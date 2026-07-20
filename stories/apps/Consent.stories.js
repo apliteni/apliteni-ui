@@ -26,8 +26,8 @@ export const Grant = {
   name: 'Grant access',
   render: () => shell(`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
-      <span style="width:46px;height:46px;border-radius:13px;background:var(--glow-purple);color:var(--accent);display:grid;place-items:center">${icon('plug')}</span>
-      <div style="display:flex;align-items:center;gap:9px;color:var(--muted)">${icon('arrowRight')}</div>
+      <span style="width:46px;height:46px;border-radius:13px;background:var(--glow-purple);color:var(--accent);display:grid;place-items:center;font-size:23px">${icon('plug')}</span>
+      <div style="display:flex;align-items:center;gap:9px;color:var(--muted);font-size:18px">${icon('arrowRight')}</div>
       <span style="width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#2b6b4b,#1d4a5e);color:#fff;display:grid;place-items:center;font:600 14px Poppins">AL</span>
     </div>
     <h1 class="ui-auth__title" style="font-size:21px"><b style="color:var(--accent);font-weight:600">Research bot</b> wants to access your strategy</h1>
