@@ -17,8 +17,10 @@ export function button({
     block && 'ui-btn--block',
     iconOnly && 'ui-btn--icon',
   );
-  const inner = `${ic ? icon(ic) : ''}${iconOnly ? '' : `<span>${esc(label)}</span>`}${iconRight ? icon(iconRight) : ''}`;
-  const attrs = `class="${cls}"${disabled ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${iconOnly ? ` aria-label="${esc(label)}"` : ''}`;
+  const bars = busy ? '<span class="ui-btn__bars"><i></i><i></i></span>' : '';
+  const inner = `${ic ? icon(ic) : ''}${iconOnly ? '' : `<span>${esc(label)}</span>`}${iconRight ? icon(iconRight) : ''}${bars}`;
+  // busy ⇒ disabled (not clickable while it works)
+  const attrs = `class="${cls}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${iconOnly ? ` aria-label="${esc(label)}"` : ''}`;
   return href
     ? `<a href="${href}" ${attrs}>${inner}</a>`
     : `<button type="${type}" ${attrs}>${inner}</button>`;
