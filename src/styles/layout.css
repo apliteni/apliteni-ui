@@ -148,14 +148,14 @@
   padding: 0 26px;
 }
 .ui-feature__icon {
-  width: 42px; height: 42px;
-  border-radius: 12px;
+  width: 46px; height: 46px;
+  border-radius: 13px;
   display: grid; place-items: center;
   background: var(--glow-purple);
   color: var(--accent);
   margin-bottom: 16px;
 }
-.ui-feature__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.ui-feature__icon svg { width: 25px; height: 25px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 .ui-feature h3 { color: var(--strong); font-size: 17px; font-weight: 600; margin-bottom: 7px; }
 .ui-feature p { color: var(--dim); font-size: 14.5px; line-height: 1.6; }
 
