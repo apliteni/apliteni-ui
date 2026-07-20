@@ -1,0 +1,51 @@
+/* ============================================================================
+ * Table — .ui-table  (borderless-body, hairline rows, uppercase head)
+ * Row modifiers: .is-dead (revoked/struck), right-aligned .ui-table__act
+ * ========================================================================== */
+
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-base);
+}
+.ui-table th {
+  text-align: left;
+  font-size: var(--text-xs);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: var(--weight-semibold);
+  padding: 0 16px 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.ui-table td {
+  padding: 15px 16px 15px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--dim);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.ui-table tr:last-child td { border-bottom: 0; }
+.ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
+.ui-table th:last-child,
+.ui-table td.ui-table__act { padding-right: 0; text-align: right; }
+.ui-table tr.is-dead td { color: var(--muted); }
+.ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
+.ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
+.ui-table--hover tbody tr:hover { background: var(--surface-2); }
+
+/* Empty state inside a table area */
+.ui-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--muted);
+}
+.ui-empty__icon {
+  width: 44px; height: 44px;
+  margin: 0 auto 14px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+.ui-empty__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.ui-empty__title { color: var(--text); font-size: var(--text-md); font-weight: var(--weight-medium); margin-bottom: 5px; }
+.ui-empty__sub { font-size: var(--text-sm); max-width: 320px; margin: 0 auto; line-height: 1.55; }

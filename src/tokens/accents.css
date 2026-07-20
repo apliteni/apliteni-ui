@@ -1,0 +1,86 @@
+/* ============================================================================
+ * Accent sub-themes — an orthogonal `data-accent` dimension on top of
+ * `data-theme` (dark/light). Set both on <html>:
+ *
+ *     <html data-theme="dark" data-accent="phoenix">
+ *
+ * Each sub-theme only re-points the accent family (--accent, --purple*,
+ * --glow-purple, --ring, --grad-*). Surfaces, text and signal colours (green =
+ * live, pink = danger) stay put, so every accent works in light AND dark and
+ * every component follows with zero component-level changes.
+ *
+ * Selectors carry two attributes + :root, so they always out-specify the
+ * single-attribute theme blocks in tokens.css regardless of import order.
+ * ========================================================================== */
+
+/* ---- Phoenix — ember / rising fire (the strategy's namesake) ------------- */
+:root[data-theme="dark"][data-accent="phoenix"] {
+  --purple: #e0531f;
+  --purple-light: #ff8a5c;
+  --purple-mid: #ffa273;
+  --accent: #ff6a3d;
+  --accent-contrast: #241006;
+  --glow-purple: rgba(255, 106, 61, 0.18);
+  --ring: 0 0 0 3px rgba(255, 106, 61, 0.38);
+  --grad-from: #ff7a45;
+  --grad-to: #ffcf6a;
+}
+:root[data-theme="light"][data-accent="phoenix"] {
+  --purple: #c2400f;
+  --purple-light: #d64a12;
+  --purple-mid: #b8420f;
+  --accent: #d64a12;
+  --accent-contrast: #ffffff;
+  --glow-purple: rgba(214, 74, 18, 0.10);
+  --ring: 0 0 0 3px rgba(214, 74, 18, 0.28);
+  --grad-from: #d64a12;
+  --grad-to: #e8992a;
+}
+
+/* ---- Ocean — azure ------------------------------------------------------- */
+:root[data-theme="dark"][data-accent="ocean"] {
+  --purple: #1f7fe0;
+  --purple-light: #5ab0ff;
+  --purple-mid: #7cc0ff;
+  --accent: #3b9dff;
+  --accent-contrast: #04121f;
+  --glow-purple: rgba(59, 157, 255, 0.18);
+  --ring: 0 0 0 3px rgba(59, 157, 255, 0.38);
+  --grad-from: #3b9dff;
+  --grad-to: #20dcf5;
+}
+:root[data-theme="light"][data-accent="ocean"] {
+  --purple: #1156b8;
+  --purple-light: #1568d6;
+  --purple-mid: #1560c8;
+  --accent: #1568d6;
+  --accent-contrast: #ffffff;
+  --glow-purple: rgba(21, 104, 214, 0.10);
+  --ring: 0 0 0 3px rgba(21, 104, 214, 0.28);
+  --grad-from: #1568d6;
+  --grad-to: #17a2c0;
+}
+
+/* ---- Emerald — jade ------------------------------------------------------ */
+:root[data-theme="dark"][data-accent="emerald"] {
+  --purple: #0fa876;
+  --purple-light: #3ad9a0;
+  --purple-mid: #5fe3b4;
+  --accent: #16c98a;
+  --accent-contrast: #04180f;
+  --glow-purple: rgba(22, 201, 138, 0.18);
+  --ring: 0 0 0 3px rgba(22, 201, 138, 0.38);
+  --grad-from: #16c98a;
+  --grad-to: #20dcf5;
+}
+:root[data-theme="light"][data-accent="emerald"] {
+  --purple: #0a865a;
+  --purple-light: #0b9c68;
+  --purple-mid: #0a9060;
+  --accent: #0b9c68;
+  --accent-contrast: #ffffff;
+  --glow-purple: rgba(11, 156, 104, 0.10);
+  --ring: 0 0 0 3px rgba(11, 156, 104, 0.28);
+  --grad-from: #0b9c68;
+  --grad-to: #12b0a0;
+}

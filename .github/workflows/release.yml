@@ -1,0 +1,28 @@
+name: Release
+
+# Publish @apliteni/aplitech-ui to GitHub Packages when a GitHub Release is
+# published. Bump the version + tag first (npm version <patch|minor|major>),
+# push the tag, then cut a Release for it.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: '@apliteni'
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

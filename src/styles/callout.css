@@ -1,0 +1,69 @@
+/* ============================================================================
+ * Callout / Note / Toast — inline messages & transient notifications
+ * ========================================================================== */
+
+.ui-callout {
+  display: flex;
+  gap: 12px;
+  padding: 15px 17px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--dim);
+}
+.ui-callout__icon { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--muted); }
+.ui-callout__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.ui-callout b { color: var(--text); font-weight: var(--weight-semibold); }
+.ui-callout code { font-family: var(--font-mono); font-size: 0.92em; color: var(--text); }
+
+.ui-callout--info { background: var(--glow-cyan); }
+.ui-callout--info .ui-callout__icon { color: var(--cyan); }
+.ui-callout--success { background: var(--glow-green); }
+.ui-callout--success .ui-callout__icon { color: var(--green); }
+.ui-callout--warn { background: color-mix(in srgb, var(--amber) 13%, transparent); }
+.ui-callout--warn .ui-callout__icon { color: var(--amber); }
+.ui-callout--danger { background: var(--glow-pink); }
+.ui-callout--danger .ui-callout__icon { color: var(--pink); }
+
+/* Toast — a floating, dismissible notification */
+.ui-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+  font-size: var(--text-base);
+  max-width: 380px;
+}
+.ui-toast__icon { width: 20px; height: 20px; flex: none; display: grid; place-items: center; border-radius: 50%; }
+.ui-toast__icon svg { width: 13px; height: 13px; }
+.ui-toast--success .ui-toast__icon { background: var(--green); color: #0c0c0c; }
+.ui-toast--danger .ui-toast__icon { background: var(--pink); color: #fff; }
+.ui-toast__body { flex: 1; }
+.ui-toast__title { font-weight: var(--weight-medium); color: var(--strong); }
+.ui-toast__close { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; }
+.ui-toast__close:hover { color: var(--text); }
+
+/* Success panel — centered confirmation, used after form submit */
+.ui-success {
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  text-align: center;
+  background: var(--glow-green);
+}
+.ui-success__check {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #0c0c0c;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 14px;
+}
+.ui-success__check svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+.ui-success__title { color: var(--strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 5px; }
+.ui-success__sub { color: var(--dim); font-size: var(--text-base); }

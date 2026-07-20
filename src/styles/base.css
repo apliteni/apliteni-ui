@@ -1,0 +1,86 @@
+/* ============================================================================
+ * base — reset, document defaults, ambient glow, typography primitives
+ * ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-normal);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--strong);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Ambient blurred glow — the deck's signature background depth.
+   Place <span class="ui-glow ui-glow--purple"> absolutely inside a positioned
+   parent. Two colour variants ship; scale/position with inline styles. */
+.ui-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+  width: 420px;
+  height: 420px;
+}
+.ui-glow--purple { background: radial-gradient(circle, var(--purple-light), transparent 70%); }
+.ui-glow--green  { background: radial-gradient(circle, var(--green), transparent 70%); opacity: 0.28; }
+.ui-glow--cyan   { background: radial-gradient(circle, var(--cyan), transparent 70%); opacity: 0.3; }
+
+/* Layout helpers used by the example apps */
+.ui-container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 clamp(14px, 2.4vw, 26px); }
+.ui-stack > * + * { margin-top: var(--space-4); }
+
+/* Section eyebrow — uppercase caption used across cards and headers */
+.ui-eyebrow {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: var(--weight-semibold);
+}
+
+/* Sensible default size for inline icons that a parent rule doesn't size.
+   Component rules (.ui-btn svg, .ui-card__icon svg…) come later and win the
+   tie, so they always override this — it only catches bare icon() calls. */
+svg:not([width]):not([height]) {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+  vertical-align: -0.15em;
+}
+
+/* Focus-visible ring, shared by all interactive controls */
+.ui-focusable:focus-visible,
+.ui-btn:focus-visible,
+.ui-input:focus-visible,
+.ui-seg button:focus-visible,
+.ui-switch:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}

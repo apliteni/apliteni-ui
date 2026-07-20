@@ -1,0 +1,197 @@
+/* ============================================================================
+ * Topbar — canonical strategy topbar, extracted verbatim (class names kept so
+ * viz/ adopts it with no markup change): brand · Deck/Text switch · theme
+ * toggle · version switcher · account menu.
+ * Source of truth previously inlined in viz/topbar.mjs.
+ * ========================================================================== */
+
+.topbar {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.topbar__in {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(14px, 2.4vw, 26px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.topbar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--strong);
+  text-decoration: none;
+}
+.topbar .brand svg { display: block; flex: none; }
+.topbar .spacer { flex: 1; }
+
+/* Deck / Text (segmented, pill) */
+.dtsw {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 3px;
+}
+.dtsw.on { display: inline-flex; }
+.dtsw a {
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 4px 13px;
+  border-radius: 24px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.dtsw a:hover { color: var(--text); }
+.dtsw a.cur { color: var(--strong); background: var(--surface); box-shadow: var(--shadow-sm); }
+
+/* Theme toggle */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 7px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  transition: transform 0.15s ease, background 0.35s ease, border-color 0.35s ease;
+}
+.toggle:hover { transform: translateY(-1px); }
+.toggle .ic { width: 15px; height: 15px; display: inline-block; color: var(--accent); }
+.toggle .ic svg { display: block; width: 100%; height: 100%; }
+
+/* Version switcher */
+.vsw { position: relative; }
+.vsw__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 7px 11px 7px 13px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.vsw__btn:hover { border-color: var(--accent); }
+.vsw__btn .lbl { color: var(--muted); }
+.vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+.vsw__btn .car {
+  width: 8px; height: 8px;
+  border-right: 1.6px solid var(--muted);
+  border-bottom: 1.6px solid var(--muted);
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform 0.2s ease;
+}
+.vsw.open .vsw__btn .car { transform: rotate(-135deg) translateY(2px); }
+.vsw__menu {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 0;
+  min-width: 266px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: 0.18s ease;
+  z-index: var(--z-dropdown);
+}
+.vsw.open .vsw__menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.vopt {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 10px 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.vopt:hover { background: var(--surface); }
+.vopt .vname { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+.vopt .vmeta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.vopt .vbadge {
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: auto;
+  flex: none;
+  margin-top: 1px;
+}
+.vbadge.live { color: var(--green); background: var(--glow-green); }
+.vbadge.arch { color: var(--muted); background: var(--surface); }
+@media (max-width: 600px) { .vsw__btn .lbl { display: none; } }
+
+/* Account — avatar + dropdown */
+.acct { position: relative; display: inline-flex; }
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, #2b6b4b, #1d4a5e);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12.5px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: border-color 0.2s ease;
+}
+.acct .avatar:hover { border-color: var(--accent); }
+.amenu {
+  position: absolute;
+  right: 0; top: 44px;
+  width: 252px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: 0.16s ease;
+  z-index: var(--z-dropdown);
+}
+.acct.open .amenu { opacity: 1; visibility: visible; transform: translateY(0); }
+.amenu .ahead { padding: 13px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 11px; }
+.amenu .ahead .avatar { cursor: default; }
+.amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+.amenu .ahead .anm { color: var(--strong); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amenu .ahead .aem { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: 13px; cursor: pointer; }
+.amenu a:hover { background: var(--surface); }
+.amenu a.cur { color: var(--accent); }
+.amenu a svg { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.7; opacity: 0.72; }
+.amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
+.amenu a.aout { color: var(--muted); }
+.amenu a.aout:hover { color: var(--accent); }

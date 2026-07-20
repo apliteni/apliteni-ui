@@ -1,0 +1,53 @@
+// Inline CSS for server-render consumers (e.g. the strategy portal, which
+// inlines stylesheets into the HTML it serves rather than linking them).
+//
+// Node reads the package's own .css files and returns them as strings. Import
+// only what a page needs:
+//
+//   import { tokensCss, topbarCss, cssText } from '@apliteni/aplitech-ui/inline'
+//
+// Browser/bundler builds should import the .css directly ('@apliteni/aplitech-ui/css').
+import { readFileSync } from 'node:fs';
+
+const read = (rel) => readFileSync(new URL(`./${rel}`, import.meta.url), 'utf8');
+
+// Tokens = base scale + dark/light + accent sub-themes. The single source for
+// every `:root{ --… }` definition. Replaces hand-inlined token blocks.
+export const tokensCss = read('tokens/tokens.css') + '\n' + read('tokens/accents.css');
+
+// Base reset, ambient glow, focus ring, default icon sizing.
+export const baseCss = read('styles/base.css');
+
+// Canonical topbar (same class names the portal already uses).
+export const topbarCss = read('styles/topbar.css');
+
+// Individual component stylesheets, addressable by name.
+export const styles = {
+  base: baseCss,
+  button: read('styles/button.css'),
+  card: read('styles/card.css'),
+  badge: read('styles/badge.css'),
+  segmented: read('styles/segmented.css'),
+  input: read('styles/input.css'),
+  table: read('styles/table.css'),
+  callout: read('styles/callout.css'),
+  code: read('styles/code.css'),
+  topbar: topbarCss,
+  layout: read('styles/layout.css'),
+};
+
+// Everything, in the same order as index.css. `tokensCss` first so cascade is right.
+export const cssText = [
+  tokensCss,
+  styles.base,
+  styles.button,
+  styles.card,
+  styles.badge,
+  styles.segmented,
+  styles.input,
+  styles.table,
+  styles.callout,
+  styles.code,
+  styles.topbar,
+  styles.layout,
+].join('\n');

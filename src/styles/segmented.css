@@ -1,0 +1,55 @@
+/* ============================================================================
+ * Segmented control — .ui-seg  (the deck's pill switch: theme, Deck/Text, plan)
+ * The selected button rides on a raised surface with a soft shadow.
+ * ========================================================================== */
+
+.ui-seg {
+  display: inline-flex;
+  background: var(--surface-2);
+  border-radius: var(--radius-2xl);
+  padding: 3px;
+  gap: 2px;
+}
+.ui-seg button {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+  color: var(--dim);
+  background: none;
+  border: 0;
+  padding: 7px 18px;
+  border-radius: var(--radius-2xl);
+  cursor: pointer;
+  transition: color var(--dur-med) var(--ease), background var(--dur-med) var(--ease);
+}
+.ui-seg button:hover { color: var(--text); }
+.ui-seg button.is-active,
+.ui-seg button[aria-selected="true"] {
+  color: var(--strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-seg--sm button { padding: 5px 13px; font-size: 12px; }
+.ui-seg--block { display: flex; }
+.ui-seg--block button { flex: 1; }
+
+/* Accent picker — round colour swatches, active gets a ring */
+.ui-accent-picker { display: inline-flex; gap: 10px; align-items: center; }
+.ui-accent-picker button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: var(--swatch, var(--accent));
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 2px var(--surface);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.ui-accent-picker button:hover { transform: scale(1.08); }
+.ui-accent-picker button.is-active {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent));
+}
+.ui-accent-picker button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent)); }

@@ -1,0 +1,177 @@
+/* ============================================================================
+ * aplitech-ui — design tokens
+ * Single source of truth for the Apliteni deck theme.
+ *
+ * Colour semantics are identical to viz/ (deck index.html, account.mjs):
+ *   purple accent · near-black surfaces · green = live · cyan = link/flag.
+ * Two themes: dark (default) and light. Toggle with `data-theme` on <html>.
+ *
+ * Everything downstream references the SEMANTIC tokens (--bg, --surface,
+ * --accent, --text…), never the raw ramp. Swap a ramp value once, and every
+ * component follows.
+ * ========================================================================== */
+
+:root {
+  /* -- Brand ramp (theme-invariant hues) ---------------------------------- */
+  --purple-900: #4c1f94;
+  --purple-700: #6a2dcc;
+  --purple-500: #9b5dff;
+  --purple-400: #b479ff;
+  --cyan-500:   #20dcf5;
+  --green-500:  #98ff8f;
+
+  /* -- Radius scale ------------------------------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-pill: 999px;
+
+  /* -- Spacing scale (4px base) ------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* -- Typography --------------------------------------------------------- */
+  --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 14.5px;
+  --text-md:   15.5px;
+  --text-lg:   18px;
+  --text-xl:   22px;
+  --text-2xl:  30px;
+  --text-3xl:  40px;
+  --text-4xl:  56px;
+
+  --weight-light: 300;
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-normal: 1.62;
+
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-caps: 0.14em;
+
+  /* -- Motion ------------------------------------------------------------- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 0.15s;
+  --dur-med: 0.25s;
+  --dur-slow: 0.4s;
+
+  /* -- Elevation (z) ------------------------------------------------------ */
+  --z-base: 1;
+  --z-sticky: 10;
+  --z-dropdown: 30;
+  --z-overlay: 100;
+  --z-toast: 200;
+}
+
+/* ============================================================================
+ * DARK THEME (default) — deck palette from viz/index.html
+ * ========================================================================== */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --purple: #6a2dcc;
+  --purple-light: #9b5dff;
+  --purple-mid: #b479ff;
+  --cyan: #20dcf5;
+  --green: #98ff8f;
+  --pink: #e35b8f;
+  --amber: #ffcf6a;
+
+  --bg: #16151f;
+  --bg-elevated: #1c1a28;
+  --surface: #221f2e;
+  --surface-2: #1b1927;
+  --surface-3: #2a2739;
+  --border: #332f45;
+  --border-strong: #453f5c;
+
+  --text: #e9e7f0;
+  --strong: #ffffff;
+  --dim: #c6c2d6;
+  --muted: #948fa8;
+
+  --accent: #9b5dff;
+  --accent-contrast: #ffffff;
+  --ink: #e9e7f0;
+
+  --glow-green: rgba(152, 255, 143, 0.16);
+  --glow-purple: rgba(155, 93, 255, 0.18);
+  --glow-cyan: rgba(32, 220, 245, 0.14);
+  --glow-pink: rgba(227, 91, 143, 0.16);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --ring: 0 0 0 3px rgba(155, 93, 255, 0.35);
+
+  /* Accent gradient stops (hero headline, marketing) — overridden per sub-theme. */
+  --grad-from: var(--purple-light);
+  --grad-to: var(--cyan);
+}
+
+/* ============================================================================
+ * LIGHT THEME — deck light palette from viz/account.mjs
+ * ========================================================================== */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --purple: #6a2dcc;
+  --purple-light: #6a2dcc;
+  --purple-mid: #7a3be0;
+  --cyan: #0c8fa8;
+  --green: #1c8a2c;
+  --pink: #d63c72;
+  --amber: #b5730a;
+
+  --bg: #f6f6f8;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f0f1f5;
+  --surface-3: #e7e9f0;
+  --border: #d7dae2;
+  --border-strong: #c3c7d4;
+
+  --text: #1e232b;
+  --strong: #0f0f13;
+  --dim: #3d434e;
+  --muted: #565c68;
+
+  --accent: #6a2dcc;
+  --accent-contrast: #ffffff;
+  --ink: #1e232b;
+
+  --glow-green: rgba(30, 150, 50, 0.1);
+  --glow-purple: rgba(106, 45, 204, 0.09);
+  --glow-cyan: rgba(12, 143, 168, 0.1);
+  --glow-pink: rgba(214, 60, 114, 0.1);
+
+  --shadow-sm: 0 1px 3px rgba(30, 30, 50, 0.08);
+  --shadow-md: 0 8px 24px rgba(30, 30, 50, 0.1);
+  --shadow-lg: 0 18px 50px rgba(30, 30, 50, 0.16);
+  --ring: 0 0 0 3px rgba(106, 45, 204, 0.25);
+
+  --grad-from: var(--purple-light);
+  --grad-to: var(--cyan);
+}

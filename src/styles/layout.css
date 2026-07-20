@@ -1,0 +1,164 @@
+/* ============================================================================
+ * Layout primitives — account sidebar, page shell, auth card, landing hero.
+ * These compose the example apps; each stays token-driven and themeable.
+ * ========================================================================== */
+
+/* -- Account sidebar (from viz/account.mjs .side) ------------------------ */
+.ui-side { position: sticky; top: 80px; align-self: start; }
+.ui-side .cap {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 12px 11px;
+}
+.ui-side a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14.5px;
+}
+.ui-side a:hover { background: var(--surface-2); }
+.ui-side a.on { background: var(--surface); color: var(--strong); font-weight: 500; }
+.ui-side a svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; opacity: 0.7; }
+.ui-side a.on svg { opacity: 1; stroke: var(--accent); }
+.ui-side .ssep { height: 1px; background: var(--border); margin: 8px 12px; }
+.ui-side a.out { color: var(--muted); }
+.ui-side a.out:hover { color: var(--accent); }
+
+/* -- Account shell grid -------------------------------------------------- */
+.ui-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 26px 96px;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 44px;
+}
+.ui-shell__page { min-width: 0; }
+.ui-shell__crumbs { font-size: 13px; color: var(--dim); margin-bottom: 8px; }
+.ui-shell__crumbs b { color: var(--text); font-weight: 500; }
+.ui-shell__page h1 { color: var(--strong); font-weight: 600; font-size: 30px; letter-spacing: -0.01em; margin-bottom: 7px; }
+.ui-shell__page .sub { color: var(--dim); font-size: 15.5px; margin-bottom: 30px; }
+@media (max-width: 720px) {
+  .ui-shell { grid-template-columns: 1fr; gap: 20px; }
+  .ui-side { position: static; }
+}
+
+/* -- Auth card (sign-in / consent) — centered, glowing --------------------- */
+.ui-auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.ui-auth__card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 38px 36px 32px;
+  box-shadow: var(--shadow-lg);
+}
+.ui-auth__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+.ui-auth__brand span { font-size: 15px; font-weight: 600; color: var(--strong); }
+.ui-auth__title { color: var(--strong); font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 7px; }
+.ui-auth__sub { color: var(--dim); font-size: 14.5px; line-height: 1.55; margin-bottom: 26px; }
+.ui-auth__foot { margin-top: 24px; text-align: center; font-size: 13px; color: var(--muted); }
+.ui-auth__foot a { color: var(--accent); }
+.ui-divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--muted); font-size: 12px; }
+.ui-divider::before, .ui-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+/* App scope grant list (OAuth consent) */
+.ui-scopes { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 8px; }
+.ui-scope { display: flex; gap: 13px; padding: 13px 4px; }
+.ui-scope + .ui-scope { border-top: 1px solid var(--border); }
+.ui-scope__icon {
+  width: 34px; height: 34px; flex: none;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  background: var(--glow-purple);
+  color: var(--accent);
+}
+.ui-scope__icon svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.ui-scope__t { color: var(--strong); font-size: 14px; font-weight: 500; }
+.ui-scope__d { color: var(--dim); font-size: 13px; margin-top: 2px; line-height: 1.5; }
+
+/* -- Landing hero -------------------------------------------------------- */
+.ui-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(60px, 12vh, 130px) 0 clamp(50px, 9vh, 100px);
+  text-align: center;
+}
+.ui-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--purple-mid);
+  background: var(--glow-purple);
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin-bottom: 26px;
+  white-space: nowrap;
+}
+.ui-hero__title {
+  font-size: clamp(38px, 6.4vw, 66px);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  color: var(--strong);
+  max-width: 14ch;
+  margin: 0 auto 22px;
+}
+.ui-hero__title .grad {
+  background: linear-gradient(120deg, var(--grad-from), var(--grad-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.ui-hero__sub {
+  font-size: clamp(16px, 2.1vw, 20px);
+  color: var(--dim);
+  max-width: 52ch;
+  margin: 0 auto 34px;
+  line-height: 1.6;
+}
+.ui-hero__cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+/* Feature grid */
+.ui-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 26px;
+}
+.ui-feature__icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--glow-purple);
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.ui-feature__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.ui-feature h3 { color: var(--strong); font-size: 17px; font-weight: 600; margin-bottom: 7px; }
+.ui-feature p { color: var(--dim); font-size: 14.5px; line-height: 1.6; }
+
+.ui-section-head { text-align: center; max-width: 620px; margin: 0 auto clamp(40px, 6vh, 64px); }
+.ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
+.ui-section-head p { color: var(--dim); font-size: 17px; line-height: 1.6; }

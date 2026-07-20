@@ -1,0 +1,64 @@
+/* ============================================================================
+ * Badge / Pill / Tag
+ *   .ui-badge        — uppercase status chip (live / soon / archive / neutral)
+ *   .ui-tag          — soft solid label
+ *   .ui-dot          — leading status dot (pulses when .is-live)
+ * ========================================================================== */
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: var(--weight-bold);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+.ui-badge--live { color: var(--green); background: var(--glow-green); }
+.ui-badge--soon { color: var(--purple-mid); background: var(--glow-purple); }
+.ui-badge--info { color: var(--cyan); background: var(--glow-cyan); }
+.ui-badge--warn { color: var(--amber); background: color-mix(in srgb, var(--amber) 15%, transparent); }
+.ui-badge--danger { color: var(--pink); background: var(--glow-pink); }
+.ui-badge--archive { color: var(--muted); background: var(--surface); }
+
+/* Pill: same shape, sentence case, a touch larger — a metadata chip */
+.ui-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: var(--radius-pill);
+  padding: 4px 11px;
+  font-weight: var(--weight-semibold);
+}
+.ui-pill--live { color: var(--green); background: var(--glow-green); }
+.ui-pill--soon { color: var(--purple-mid); background: var(--glow-purple); }
+
+/* Status dot */
+.ui-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+  display: inline-block;
+}
+.ui-dot.is-live {
+  background: var(--green);
+  box-shadow: 0 0 0 0 var(--glow-green);
+  animation: ui-pulse 2s var(--ease) infinite;
+}
+@keyframes ui-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
