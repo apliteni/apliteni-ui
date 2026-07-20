@@ -3,7 +3,6 @@ import { pad } from '../_gallery.js';
 
 export default {
   title: 'Components/Table',
-  tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
 };
 

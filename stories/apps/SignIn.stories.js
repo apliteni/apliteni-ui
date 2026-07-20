@@ -59,3 +59,13 @@ export const Loading = {
     </form>
   `, 'si3'),
 };
+
+export const GoogleOnly = {
+  name: 'Google SSO only',
+  render: () => shell(`
+    <h1 class="ui-auth__title">Sign in</h1>
+    <p class="ui-auth__sub">Access the Apliteni strategy with your work Google account. This is the only way in.</p>
+    ${googleBtn}
+    <div class="ui-auth__foot" style="margin-top:24px">Only <b style="color:var(--dim)">apliteni.com</b> accounts can sign in. <a href="#">Need access?</a></div>
+  `, 'si4'),
+};

@@ -41,16 +41,16 @@
 
 /* -- Variants ----------------------------------------------------------- */
 .ui-btn--primary {
-  background: var(--accent);
+  background: var(--accent-strong);
   color: var(--accent-contrast);
-  border-color: var(--accent);
+  border-color: var(--accent-strong);
   font-weight: var(--weight-semibold);
 }
 .ui-btn--primary:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.1);
   color: var(--accent-contrast);
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
 
 .ui-btn--ghost {

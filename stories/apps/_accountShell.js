@@ -23,7 +23,7 @@ export const accountShell = ({ active, crumb, title, sub, body, prefix = 'ac' })
         <div class="ui-shell__crumbs">Account · <b>${crumb}</b></div>
         <h1>${title}</h1>
         <div class="sub">${sub}</div>
-        ${body}
+        <div class="ui-card-stack">${body}</div>
       </div>
     </div>
   </div>`;

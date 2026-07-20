@@ -3,7 +3,6 @@ import { pad, specimen, stack } from '../_gallery.js';
 
 export default {
   title: 'Components/Segmented Control',
-  tags: ['autodocs'],
   parameters: { layout: 'centered' },
   render: (a) => segmented(a),
   argTypes: {

@@ -3,7 +3,6 @@ import { pad, specimen, stack } from '../_gallery.js';
 
 export default {
   title: 'Components/Switch & Checkbox',
-  tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
 };
 

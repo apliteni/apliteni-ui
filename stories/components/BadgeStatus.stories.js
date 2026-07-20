@@ -3,7 +3,6 @@ import { pad, row, specimen, stack } from '../_gallery.js';
 
 export default {
   title: 'Components/Badge & Status',
-  tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
 };
 

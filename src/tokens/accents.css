@@ -19,6 +19,7 @@
   --purple-light: #ff8a5c;
   --purple-mid: #ffa273;
   --accent: #ff6a3d;
+  --accent-strong: var(--accent);
   --accent-contrast: #241006;
   --glow-purple: rgba(255, 106, 61, 0.18);
   --ring: 0 0 0 3px rgba(255, 106, 61, 0.38);
@@ -30,6 +31,7 @@
   --purple-light: #d64a12;
   --purple-mid: #b8420f;
   --accent: #d64a12;
+  --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   --glow-purple: rgba(214, 74, 18, 0.10);
   --ring: 0 0 0 3px rgba(214, 74, 18, 0.28);
@@ -43,6 +45,7 @@
   --purple-light: #5ab0ff;
   --purple-mid: #7cc0ff;
   --accent: #3b9dff;
+  --accent-strong: var(--accent);
   --accent-contrast: #04121f;
   --glow-purple: rgba(59, 157, 255, 0.18);
   --ring: 0 0 0 3px rgba(59, 157, 255, 0.38);
@@ -54,6 +57,7 @@
   --purple-light: #1568d6;
   --purple-mid: #1560c8;
   --accent: #1568d6;
+  --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   --glow-purple: rgba(21, 104, 214, 0.10);
   --ring: 0 0 0 3px rgba(21, 104, 214, 0.28);
@@ -67,6 +71,7 @@
   --purple-light: #3ad9a0;
   --purple-mid: #5fe3b4;
   --accent: #16c98a;
+  --accent-strong: var(--accent);
   --accent-contrast: #04180f;
   --glow-purple: rgba(22, 201, 138, 0.18);
   --ring: 0 0 0 3px rgba(22, 201, 138, 0.38);
@@ -78,6 +83,7 @@
   --purple-light: #0b9c68;
   --purple-mid: #0a9060;
   --accent: #0b9c68;
+  --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   --glow-purple: rgba(11, 156, 104, 0.10);
   --ring: 0 0 0 3px rgba(11, 156, 104, 0.28);

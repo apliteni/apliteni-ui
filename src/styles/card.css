@@ -11,8 +11,9 @@
   position: relative;
 }
 
-/* Stacked cards breathe — matches the deck's 20px rhythm. */
-.ui-card + .ui-card { margin-top: var(--space-5); }
+/* Vertical stacks space cards with the container's gap — see .ui-card-stack.
+   (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.) */
+.ui-card-stack { display: flex; flex-direction: column; gap: var(--space-5); }
 
 .ui-card--pad-sm { padding: var(--space-5); }
 .ui-card--pad-lg { padding: var(--space-8) var(--space-10); }

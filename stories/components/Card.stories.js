@@ -3,7 +3,6 @@ import { pad, grid } from '../_gallery.js';
 
 export default {
   title: 'Components/Card',
-  tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
 };
 

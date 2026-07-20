@@ -104,6 +104,7 @@
   --surface: #221f2e;
   --surface-2: #1b1927;
   --surface-3: #2a2739;
+  --seg-active-bg: #34314a; /* raised pill — clearly above the inset track in dark */
   --border: #332f45;
   --border-strong: #453f5c;
 
@@ -113,6 +114,7 @@
   --muted: #948fa8;
 
   --accent: #9b5dff;
+  --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA (~6.5:1) */
   --accent-contrast: #ffffff;
   --ink: #e9e7f0;
 
@@ -150,6 +152,7 @@
   --surface: #ffffff;
   --surface-2: #f0f1f5;
   --surface-3: #e7e9f0;
+  --seg-active-bg: #ffffff; /* white pill raised above the grey track in light */
   --border: #d7dae2;
   --border-strong: #c3c7d4;
 
@@ -159,6 +162,7 @@
   --muted: #565c68;
 
   --accent: #6a2dcc;
+  --accent-strong: #6a2dcc; /* already dark enough for white text */
   --accent-contrast: #ffffff;
   --ink: #1e232b;
 

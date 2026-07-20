@@ -3,7 +3,6 @@ import { pad, grid, specimen, stack } from '../_gallery.js';
 
 export default {
   title: 'Components/Inputs',
-  tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
 };
 

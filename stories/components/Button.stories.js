@@ -3,7 +3,6 @@ import { pad, row, specimen, stack } from '../_gallery.js';
 
 export default {
   title: 'Components/Button',
-  tags: ['autodocs'],
   parameters: { layout: 'centered' },
   render: (a) => button(a),
   argTypes: {
