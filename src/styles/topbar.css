@@ -150,8 +150,10 @@
 .vbadge.arch { color: var(--muted); background: var(--surface); }
 @media (max-width: 600px) { .vsw__btn .lbl { display: none; } }
 
-/* Account — avatar + dropdown */
-.acct { position: relative; display: inline-flex; }
+/* Account — avatar + dropdown. Gated: hidden until the app confirms a session
+   and adds `.on` (mirrors the portal's /auth/me reveal). */
+.acct { position: relative; display: none; }
+.acct.on { display: inline-flex; }
 .avatar {
   width: 32px; height: 32px;
   border-radius: 50%;

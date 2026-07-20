@@ -29,7 +29,8 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
 export function accountMenu({ name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs' } = {}) {
   const ini = (email.split('@')[0].split(/[._-]+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('') || '?').toUpperCase();
   const it = (id, ic, label) => `<a href="#${id}"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
-  return `<div class="acct" data-acct>` +
+  // `on` so the menu is visible in Storybook / standalone use (no /auth/me gate).
+  return `<div class="acct on" data-acct>` +
     `<button class="avatar" data-acct-btn aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
     `<div class="amenu" role="menu">` +
     `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${email}">${email}</span></span></div>` +
