@@ -28,7 +28,6 @@
   .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start; }
   /* cards sit in a row here — cancel the vertical-stack top margin */
   .preview-grid .ui-card + .ui-card { margin-top: 0; }
-  .divider { height: 1px; background: var(--border); max-width: 1120px; margin: 0 auto; }
   .swap { color: var(--muted); font-size: 13px; }
   @media (max-width: 640px) { .nav .hide-sm { display: none; } }
 </style>
@@ -59,7 +58,6 @@
   <span class="ui-glow ui-glow--purple" style="top:-120px;left:8%"></span>
   <span class="ui-glow ui-glow--cyan" style="top:60px;right:-40px;width:340px;height:340px"></span>
   <div class="wrap ui-hero" style="text-align:center">
-    <span class="ui-hero__eyebrow">Apliteni design system</span>
     <h1 class="ui-hero__title">One kit for <span class="grad">every product</span></h1>
     <p class="ui-hero__sub">Tokens, components and the deck theme — the shared UI behind the strategy portal, the operating model, and whatever ships next. Framework-agnostic HTML&nbsp;+&nbsp;CSS, themeable dark &amp; light, with accent sub-themes.</p>
     <div class="ui-hero__cta">
@@ -69,8 +67,6 @@
     <p class="swap" style="margin-top:22px">Try the accent swatches above — the whole page re-themes. <span id="accName" style="color:var(--accent);font-weight:600">Nebula</span></p>
   </div>
 </section>
-
-<div class="divider"></div>
 
 <section class="wrap" style="padding:70px 0" id="install">
   <div class="ui-section-head" style="margin-bottom:44px">
@@ -83,8 +79,6 @@
 <span class="k">import</span> { button, card, topbar } <span class="k">from</span> <span class="s">'@apliteni/apliteni-ui'</span></pre></div>
   </div>
 </section>
-
-<div class="divider"></div>
 
 <section class="wrap" style="padding:70px 0">
   <div class="ui-section-head" style="margin-bottom:44px">
@@ -100,8 +94,6 @@
     <div class="ui-feature"><span class="ui-feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg></span><h3>One source of truth</h3><p>Same class names the strategy portal already ships — adopt it and delete the duplication.</p></div>
   </div>
 </section>
-
-<div class="divider"></div>
 
 <section class="wrap" style="padding:70px 0">
   <div class="ui-section-head" style="margin-bottom:44px">
