@@ -9,39 +9,78 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/kit.css">
+<link rel="stylesheet" href="/assets/kit.css?{{CSSHASH}}">
 <style>
-  /* page-only chrome; everything else is kit tokens/components */
+  /* page-only chrome; everything else is kit tokens/components.
+     The bar itself is the kit's own .topbar component — the landing eats its own
+     dog food. These rules only make it sticky + translucent for a marketing page. */
   body { overflow-x: hidden; }
-  .nav { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); background: color-mix(in srgb, var(--bg) 82%, transparent); }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
-  .nav__in { display: flex; align-items: center; gap: 16px; height: 62px; }
-  .nav a.lk { color: var(--dim); font-size: 14px; text-decoration: none; }
-  .nav a.lk:hover { color: var(--strong); }
+  section { position: relative; }
+
+  .site-topbar { position: sticky; top: 0; z-index: 20; height: 60px;
+    background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(14px);
+    border-bottom: 0; }
+  .site-topbar .topbar__in { max-width: 1120px; padding: 0 clamp(18px, 4vw, 34px); gap: 15px; }
+  .site-topbar .brand__word { font-size: 15px; letter-spacing: -0.01em; }
+  .site-topbar .lk { color: var(--dim); font-size: 14px; text-decoration: none; transition: color .15s ease; }
+  .site-topbar .lk:hover { color: var(--strong); }
+  .ver { font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 3px 9px; }
+
   .accents { display: inline-flex; gap: 9px; }
   .accents button { width: 22px; height: 22px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: 0 0 0 2px var(--bg); transition: transform .15s; }
   .accents button:hover { transform: scale(1.12); }
   .accents button.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
-  section { position: relative; }
-  .ver { font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 3px 9px; }
-  .ui-hero { padding-top: clamp(84px, 13vh, 156px); }
+
+  .ui-hero { padding-top: clamp(72px, 12vh, 140px); }
   .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start; }
-  /* cards sit in a row here — cancel the vertical-stack top margin */
   .preview-grid .ui-card + .ui-card { margin-top: 0; }
   .swap { color: var(--muted); font-size: 13px; }
-  @media (max-width: 640px) { .nav .hide-sm { display: none; } }
+
+  /* Bento — the "what's in the box" grid. Differentiated cells, not an identical
+     icon grid: mixed spans, vivid accent-gradient tiles, and live micro-demos. */
+  .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .bento__cell { position: relative; background: var(--surface); border-radius: var(--radius-xl);
+    padding: 26px 24px; display: flex; flex-direction: column; gap: 13px; overflow: hidden;
+    transition: transform .2s var(--ease), background .2s var(--ease); }
+  .bento__cell:hover { transform: translateY(-3px); background: var(--surface-2); }
+  .bento__cell h3 { color: var(--strong); font-size: 17px; font-weight: 600; }
+  .bento__cell p { color: var(--dim); font-size: 14px; line-height: 1.58; }
+  .bento__cell p code { font-size: .92em; }
+  .c-6 { grid-column: span 6; } .c-3 { grid-column: span 3; } .c-2 { grid-column: span 2; }
+  .bIcon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong)); box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .bIcon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .bento__demo { margin-top: auto; padding-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tchip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--dim); }
+  .tdot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; }
+  .tradius { width: 22px; height: 15px; border-radius: 6px; background: var(--surface-3); display: inline-block; }
+  .taa { font-weight: 700; color: var(--strong); font-size: 14px; }
+  code.cchip { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 7px; padding: 3px 9px; }
+  .pchip { font-size: 11.5px; font-weight: 600; letter-spacing: .01em; color: var(--dim);
+    background: var(--surface-2); border-radius: 7px; padding: 4px 10px; }
+  .bento__cell:hover .pchip { background: var(--surface-3); }
+  .sdot { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .sdot i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .adot { width: 20px; height: 20px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px var(--surface); }
+  .bento__cell:hover .adot { box-shadow: 0 0 0 2px var(--surface-2); }
+
+  @media (max-width: 860px) { .bento { grid-template-columns: repeat(2, 1fr); } .c-6 { grid-column: span 2; } .c-3 { grid-column: span 2; } .c-2 { grid-column: span 1; } }
+  @media (max-width: 560px) { .bento { grid-template-columns: 1fr; } .c-6, .c-3, .c-2 { grid-column: auto; } .site-topbar .hide-sm { display: none; } }
 </style>
 </head>
 <body>
 
-<header class="nav">
-  <div class="wrap nav__in">
-    <a class="brand" href="/" aria-label="apliteni ui" style="text-decoration:none">
+<!-- The kit's own .topbar component — this bar IS a design-system deliverable. -->
+<header class="topbar site-topbar">
+  <div class="topbar__in">
+    <a class="brand" href="/" aria-label="apliteni ui">
       <svg viewBox="0 0 38 36" width="22" height="21" aria-hidden="true"><defs><linearGradient id="s1" x1="1" x2="0" y1=".248" y2=".752"><stop offset="0" stop-color="rgb(140,198,63)"/><stop offset="1" stop-color="rgb(0,146,69)"/></linearGradient><linearGradient id="s2" x1="1" x2="0" y1=".497" y2=".503"><stop offset="0" stop-color="rgb(140,198,63)"/><stop offset="1" stop-color="rgb(0,146,69)"/></linearGradient></defs><g transform="translate(1 1)"><path d="M 23.115 33.95 C 22.982 34.379 23.862 31.827 24.095 30.048 C 25.239 21.404 23.879 13.04 15.283 6.191 C 11.018 2.783 5.476 0.988 0 1.235 C 1.974 1.647 3.17 3.705 3.484 5.697 C 3.8 7.673 3.468 9.697 3.7 11.69 C 4.165 15.691 6.953 19.264 10.57 21.108 C 13.84 22.771 17.689 23.1 21.306 22.359 C 21.306 22.359 17.772 13.501 11.234 10.801 C 11.234 10.801 20.062 13.451 22.617 21.981 C 24.31 27.694 23.115 33.951 23.115 33.951 Z" fill="url(#s1)"/><path d="M 24.509 17.09 C 24.495 17.045 24.478 17.002 24.459 16.959 C 25.322 13.469 28.425 10.109 30.582 9.089 C 28.392 9.171 24.708 12.546 23.562 14.621 C 22.857 13.042 21.972 11.551 20.924 10.175 C 24.84 6.026 33.851 6.026 35.527 0 C 36.157 3.886 36.157 9.632 34.532 13.221 C 32.988 16.613 29.752 21.454 25.355 20.878 C 25.181 19.594 24.898 18.327 24.509 17.091 Z" fill="url(#s2)"/></g></svg>
-      <span style="font-weight:600;color:var(--strong)">apliteni<span style="color:var(--accent)">·</span>ui</span>
+      <span class="brand__word">apliteni<span style="color:var(--accent)">·</span>ui</span>
     </a>
     <span class="ver">{{VERSION}}</span>
-    <span style="flex:1"></span>
+    <span class="spacer"></span>
     <div class="accents hide-sm" role="group" aria-label="Accent">
       <button data-acc="default" class="on" style="background:linear-gradient(135deg,#9b5dff,#6a2dcc)" title="Nebula" aria-label="Nebula accent"></button>
       <button data-acc="phoenix" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)" title="Phoenix" aria-label="Phoenix accent"></button>
@@ -86,13 +125,66 @@
     <h2>What's in the box</h2>
     <p>Everything on this page is the kit theming itself.</p>
   </div>
-  <div class="ui-features">
-    <div class="ui-feature"><span class="ui-feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg></span><h3>Tokens first</h3><p>Colour, type, spacing, radius, elevation and motion as CSS variables. Change one, everything follows.</p></div>
-    <div class="ui-feature"><span class="ui-feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg></span><h3>Real components</h3><p>Buttons, cards, segmented controls, inputs, tables, the topbar — the actual deck vocabulary.</p></div>
-    <div class="ui-feature"><span class="ui-feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg></span><h3>Every state designed</h3><p>Hover, focus, disabled, busy, empty, error, success — no dead ends.</p></div>
-    <div class="ui-feature"><span class="ui-feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg></span><h3>Accent sub-themes</h3><p>An orthogonal <code class="ui-code">data-accent</code> dimension on top of dark/light. Any hue, both themes.</p></div>
-    <div class="ui-feature"><span class="ui-feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 3 14h8l-1 8 10-12h-8z"/></svg></span><h3>Framework-agnostic</h3><p>HTML + CSS with tiny factories. Works in a server-rendered portal or any front-end.</p></div>
-    <div class="ui-feature"><span class="ui-feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg></span><h3>One source of truth</h3><p>Same class names the strategy portal already ships — adopt it and delete the duplication.</p></div>
+  <div class="bento">
+
+    <div class="bento__cell c-3">
+      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg></span>
+      <h3>Tokens first</h3>
+      <p>Colour, type, spacing, radius, elevation and motion as CSS variables. Change one — everything follows.</p>
+      <div class="bento__demo">
+        <span class="tchip"><span class="tdot" style="background:var(--accent)"></span><span class="tdot" style="background:var(--green)"></span><span class="tdot" style="background:var(--cyan)"></span><span class="tdot" style="background:var(--pink)"></span></span>
+        <span class="tchip"><span class="tradius"></span>radius</span>
+        <span class="tchip"><span class="taa">Aa</span>type</span>
+      </div>
+    </div>
+
+    <div class="bento__cell c-3">
+      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg></span>
+      <h3>Real components</h3>
+      <p>Buttons, cards, segmented controls, inputs, tables, the topbar — the actual deck vocabulary, not a swatch sheet.</p>
+      <div class="bento__demo">
+        <code class="cchip">.ui-btn</code><code class="cchip">.ui-card</code><code class="cchip">.ui-seg</code><code class="cchip">.topbar</code>
+      </div>
+    </div>
+
+    <div class="bento__cell c-2">
+      <span class="bIcon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></span>
+      <h3>Every state designed</h3>
+      <p>No dead ends.</p>
+      <div class="bento__demo">
+        <span class="sdot"><i style="background:var(--green)"></i>hover</span>
+        <span class="sdot"><i style="background:var(--accent)"></i>focus</span>
+        <span class="sdot"><i style="background:var(--muted)"></i>disabled</span>
+      </div>
+    </div>
+
+    <div class="bento__cell c-2">
+      <span class="bIcon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg></span>
+      <h3>Accent sub-themes</h3>
+      <p>An orthogonal <code class="ui-code">data-accent</code> on top of dark/light.</p>
+      <div class="bento__demo">
+        <span class="adot" style="background:linear-gradient(135deg,#9b5dff,#6a2dcc)"></span>
+        <span class="adot" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)"></span>
+        <span class="adot" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)"></span>
+        <span class="adot" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)"></span>
+      </div>
+    </div>
+
+    <div class="bento__cell c-2">
+      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M8 6 3 12l5 6M16 6l5 6-5 6"/></svg></span>
+      <h3>Framework-agnostic</h3>
+      <p>HTML + CSS with tiny factories. A server-rendered portal or any front-end.</p>
+    </div>
+
+    <div class="bento__cell c-6">
+      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+      <h3>One source of truth</h3>
+      <p>The strategy portal, the operating model and this very page all render from the same class names — adopt the kit and delete the duplication.</p>
+      <div class="bento__demo">
+        <span class="pchip">strategy.apliteni.com</span><span class="pchip">operating-model.apli.tech</span><span class="pchip">ui.apli.tech</span>
+      </div>
+    </div>
+
   </div>
 </section>
 
