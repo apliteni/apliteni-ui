@@ -28,7 +28,7 @@
 .ui-seg button[aria-selected="true"] {
   color: var(--strong);
   background: var(--seg-active-bg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-seg);
 }
 
 .ui-seg--sm button { padding: 5px 13px; font-size: 12px; }

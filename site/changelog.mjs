@@ -3,7 +3,13 @@
 
 export const RELEASES = [
   {
-    v: '0.2.3', date: '2026-07-20', tag: 'latest',
+    v: '0.2.4', date: '2026-07-20', tag: 'latest',
+    changes: [
+      ['fixed', 'Active segmented pill now sits inside its track — the heavy card shadow was spilling past the edge and reading as overflow. New tight `--shadow-seg` token.'],
+    ],
+  },
+  {
+    v: '0.2.3', date: '2026-07-20',
     changes: [
       ['added', 'Gradient-bars busy loader on buttons — the button is disabled while it works.'],
       ['added', 'Centered + glow Google-SSO sign-in, with idle / signing-in states.'],
