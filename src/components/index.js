@@ -1,4 +1,4 @@
-// aplitech-ui component factories — each returns an HTML string, matching the
+// apliteni-ui component factories — each returns an HTML string, matching the
 // viz/ server-render idiom so the portal can adopt them with no framework.
 import { icon } from '../assets/icons.js';
 

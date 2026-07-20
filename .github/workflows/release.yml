@@ -1,6 +1,6 @@
 name: Release
 
-# Publish @apliteni/aplitech-ui to GitHub Packages when a GitHub Release is
+# Publish @apliteni/apliteni-ui to GitHub Packages when a GitHub Release is
 # published. Bump the version + tag first (npm version <patch|minor|major>),
 # push the tag, then cut a Release for it.
 on:

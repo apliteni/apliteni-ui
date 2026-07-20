@@ -20,7 +20,7 @@ export const Welcome = {
     <span class="ui-glow ui-glow--cyan" style="top:40px;right:-60px;width:340px;height:340px"></span>
     <div style="position:relative;z-index:1;max-width:900px;margin:0 auto;padding:72px 0 90px">
       <div style="margin-bottom:34px">${brand({ p: 'intro', word: 'UI', size: 26 })}</div>
-      <div style="display:inline-flex;align-items:center;gap:8px;font:500 12px Poppins;letter-spacing:.06em;color:var(--purple-mid);background:var(--glow-purple);border-radius:999px;padding:6px 14px;margin-bottom:24px">${icon('sparkle')} aplitech-ui · v0.1</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;font:500 12px Poppins;letter-spacing:.06em;color:var(--purple-mid);background:var(--glow-purple);border-radius:999px;padding:6px 14px;margin-bottom:24px">${icon('sparkle')} apliteni-ui · v0.1</div>
       <h1 style="font:700 clamp(38px,6vw,60px)/1.05 Poppins;letter-spacing:-.03em;color:var(--strong);margin-bottom:20px;max-width:16ch">The Apliteni design system</h1>
       <p style="font:400 clamp(16px,2vw,19px)/1.6 Poppins;color:var(--dim);max-width:60ch;margin-bottom:40px">
         One source of UI for every product — the deck, the text portal, <code style="font-family:var(--font-mono);color:var(--text)">/account</code>, and whatever ships next.

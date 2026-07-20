@@ -1,4 +1,4 @@
-# @apliteni/aplitech-ui
+# @apliteni/apliteni-ui
 
 The Apliteni design system & UI kit — one source of UI for every product surface
 (the strategy deck, the text portal, `/account`, the operating model, and whatever
@@ -9,7 +9,7 @@ and light with **accent sub-themes**. Showcased and reviewed in **Storybook**, a
 published on **ui.apli.tech**.
 
 - 🎨 **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
-- 📦 **Package** → `@apliteni/aplitech-ui` (GitHub Packages)
+- 📦 **Package** → `@apliteni/apliteni-ui` (GitHub Packages)
 
 ## Why HTML + CSS (not React)
 
@@ -34,7 +34,7 @@ The package lives in **GitHub Packages** (private to the `apliteni` org). Point 
 Then:
 
 ```bash
-NODE_AUTH_TOKEN=$(gh auth token) npm install @apliteni/aplitech-ui
+NODE_AUTH_TOKEN=$(gh auth token) npm install @apliteni/apliteni-ui
 ```
 
 In CI, `NODE_AUTH_TOKEN` is the workflow's `GITHUB_TOKEN`. In Docker, pass it as a
@@ -43,8 +43,8 @@ build secret (see the strategy portal's Dockerfile for the pattern).
 ## Use it
 
 ```js
-import '@apliteni/aplitech-ui/css';           // once, at app root (needs the Poppins font)
-import { button, card, topbar, wireTopbar } from '@apliteni/aplitech-ui';
+import '@apliteni/apliteni-ui/css';           // once, at app root (needs the Poppins font)
+import { button, card, topbar, wireTopbar } from '@apliteni/apliteni-ui';
 
 el.innerHTML = topbar({ word: 'Strategy', account: { name, email } })
              + card({ title: 'Appearance', body: button({ label: 'Save', variant: 'primary' }) });
@@ -55,7 +55,7 @@ Server-rendered apps that inline CSS (like the strategy portal) import the style
 as **strings** instead:
 
 ```js
-import { tokensCss, topbarCss, cssText } from '@apliteni/aplitech-ui/inline';
+import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 // …inline tokensCss + topbarCss into the <style> you serve.
 ```
 
@@ -85,7 +85,7 @@ src/
   tokens/accents.css     # accent sub-themes (data-accent) for both themes
   styles/*.css           # one file per component (button, card, badge, segmented, input,
                          #   table, callout, code, topbar, layout)
-  index.css              # bundler entry — import '@apliteni/aplitech-ui/css'
+  index.css              # bundler entry — import '@apliteni/apliteni-ui/css'
   inline.js              # CSS as strings for server-render consumers (…/inline)
   assets/                # brand mark (seedling) + line-icon set
   components/            # HTML-string factories: button(), card(), badge(), topbar()…

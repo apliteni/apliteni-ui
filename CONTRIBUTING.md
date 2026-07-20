@@ -1,4 +1,4 @@
-# Contributing to @apliteni/aplitech-ui
+# Contributing to @apliteni/apliteni-ui
 
 The kit is **framework-agnostic HTML + CSS**: design tokens, one CSS file per
 component, and tiny factory functions. Storybook is the workbench. No build step —

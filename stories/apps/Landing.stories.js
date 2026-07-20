@@ -38,7 +38,7 @@ export const Default = {
     <section style="max-width:1080px;margin:0 auto;padding:20px 26px 90px;position:relative;z-index:1">
       <div class="ui-section-head" style="margin-bottom:44px">
         <h2>Built for people and agents alike</h2>
-        <p>Everything below is composed from the same aplitech-ui components.</p>
+        <p>Everything below is composed from the same apliteni-ui components.</p>
       </div>
       <div class="ui-features">
         ${feature('compass', 'Clear direction', 'Product units, superconnectors, governance — the whole model in one navigable place.')}

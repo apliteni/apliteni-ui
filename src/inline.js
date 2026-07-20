@@ -4,9 +4,9 @@
 // Node reads the package's own .css files and returns them as strings. Import
 // only what a page needs:
 //
-//   import { tokensCss, topbarCss, cssText } from '@apliteni/aplitech-ui/inline'
+//   import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline'
 //
-// Browser/bundler builds should import the .css directly ('@apliteni/aplitech-ui/css').
+// Browser/bundler builds should import the .css directly ('@apliteni/apliteni-ui/css').
 import { readFileSync } from 'node:fs';
 
 const read = (rel) => readFileSync(new URL(`./${rel}`, import.meta.url), 'utf8');

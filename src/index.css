@@ -1,6 +1,6 @@
 /* ============================================================================
- * aplitech-ui — full stylesheet.
- * Import once (`import 'aplitech-ui/css'`) or cherry-pick from src/styles/*.
+ * apliteni-ui — full stylesheet.
+ * Import once (`import 'apliteni-ui/css'`) or cherry-pick from src/styles/*.
  * Requires the Poppins font (loaded by the host page or Storybook preview).
  * ========================================================================== */
 @import "./tokens/tokens.css";
