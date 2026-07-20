@@ -21,7 +21,18 @@ const ver = (s) => s.replaceAll('{{VERSION}}', `v${version}`).replaceAll('{{CSSH
 const html = ver(readFileSync(new URL('index.html', here), 'utf8'));
 const changelog = ver(readFileSync(new URL('changelog.html', here), 'utf8')).replace('{{MAIN}}', changelogMain());
 
+// Brand mark — the "sub-theme prism": one rounded tile, the four ready-made
+// accents (Nebula / Phoenix / Ocean / Emerald). Emitted as a file so the pages
+// reference /favicon.svg rather than a fragile inline data URI.
+const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
+  `<defs><clipPath id="c"><rect width="32" height="32" rx="8"/></clipPath></defs>` +
+  `<g clip-path="url(#c)">` +
+  `<rect width="16" height="16" fill="#9b5dff"/><rect x="16" width="16" height="16" fill="#ff6a3d"/>` +
+  `<rect y="16" width="16" height="16" fill="#3b9dff"/><rect x="16" y="16" width="16" height="16" fill="#16c98a"/>` +
+  `</g></svg>`;
+
 writeFileSync(new URL('assets/kit.css', pub), cssText);
+writeFileSync(new URL('favicon.svg', pub), faviconSvg);
 writeFileSync(new URL('index.html', pub), html);
 writeFileSync(new URL('changelog/index.html', pub), changelog);
 
