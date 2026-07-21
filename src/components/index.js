@@ -87,8 +87,10 @@ export function textarea({ placeholder = '', value = '', rows = 4 } = {}) {
 export function checkbox({ label, checked, type = 'checkbox', name } = {}) {
   return `<label class="ui-check"><input type="${type}"${name ? ` name="${name}"` : ''}${checked ? ' checked' : ''}><span>${label}</span></label>`;
 }
-export function switchToggle({ checked = false, disabled = false, name } = {}) {
-  return `<label class="ui-switch"><input type="checkbox"${name ? ` name="${name}"` : ''}${checked ? ' checked' : ''}${disabled ? ' disabled' : ''}><span class="ui-switch__track"></span></label>`;
+// `label` becomes the input's accessible name (a bare switch has no visible text,
+// so it needs one). Defaults to "Toggle" so a control is never left unlabelled.
+export function switchToggle({ checked = false, disabled = false, name, label = 'Toggle' } = {}) {
+  return `<label class="ui-switch"><input type="checkbox"${name ? ` name="${name}"` : ''}${checked ? ' checked' : ''}${disabled ? ' disabled' : ''} aria-label="${esc(label)}"><span class="ui-switch__track"></span></label>`;
 }
 
 // ---- Callout / toast / success ------------------------------------------

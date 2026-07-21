@@ -24,7 +24,7 @@ export const SettingRows = {
       <div class="ui-card__row"><div><div class="lab">Language</div><div class="hint">Interface language for the portal.</div></div>
         <div class="ui-seg" data-seg="lang"><button class="is-active" aria-selected="true">EN</button><button aria-selected="false">RU</button></div></div>
       <div class="ui-card__row"><div><div class="lab">Reduce motion</div><div class="hint">Disable the animated deck transitions.</div></div>
-        <label class="ui-switch"><input type="checkbox"><span class="ui-switch__track"></span></label></div>`,
+        <label class="ui-switch"><input type="checkbox" aria-label="Reduce motion"><span class="ui-switch__track"></span></label></div>`,
   })}</div>`),
 };
 

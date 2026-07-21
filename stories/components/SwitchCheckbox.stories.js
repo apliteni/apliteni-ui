@@ -9,12 +9,12 @@ export default {
 export const Switches = {
   render: () => pad(stack(
     specimen('States', `<div style="display:flex;gap:26px;align-items:center">
-      ${switchToggle({ checked: false })} ${switchToggle({ checked: true })}
-      ${switchToggle({ checked: false, disabled: true })} ${switchToggle({ checked: true, disabled: true })}
+      ${switchToggle({ checked: false, label: 'Off' })} ${switchToggle({ checked: true, label: 'On' })}
+      ${switchToggle({ checked: false, disabled: true, label: 'Off, disabled' })} ${switchToggle({ checked: true, disabled: true, label: 'On, disabled' })}
     </div>`),
     specimen('In a row', `<div style="max-width:460px" class="ui-card">
-      <div class="ui-card__row"><div><div class="lab">Email notifications</div><div class="hint">Weekly strategy digest.</div></div>${switchToggle({ checked: true })}</div>
-      <div class="ui-card__row"><div><div class="lab">Reduce motion</div><div class="hint">Turn off deck animations.</div></div>${switchToggle({ checked: false })}</div>
+      <div class="ui-card__row"><div><div class="lab">Email notifications</div><div class="hint">Weekly strategy digest.</div></div>${switchToggle({ checked: true, label: 'Email notifications' })}</div>
+      <div class="ui-card__row"><div><div class="lab">Reduce motion</div><div class="hint">Turn off deck animations.</div></div>${switchToggle({ checked: false, label: 'Reduce motion' })}</div>
     </div>`),
   )),
 };
