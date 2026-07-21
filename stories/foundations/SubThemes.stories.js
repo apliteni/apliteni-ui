@@ -9,10 +9,8 @@ export default {
 // The real token values (mirrors tokens.css + accents.css) so each preview panel
 // is fully self-contained via inline CSS variables — every accent shows in both
 // themes at once, independent of the toolbar.
-const THEME = {
-  dark: { bg: '#16151f', surface: '#221f2e', s2: '#1b1927', s3: '#2a2739', border: '#332f45', text: '#e9e7f0', strong: '#fff', dim: '#c6c2d6', muted: '#948fa8', green: '#98ff8f', glowGreen: 'rgba(152,255,143,.16)' },
-  light: { bg: '#f6f6f8', surface: '#fff', s2: '#f0f1f5', s3: '#e7e9f0', border: '#d7dae2', text: '#1e232b', strong: '#0f0f13', dim: '#3d434e', muted: '#565c68', green: '#1c8a2c', glowGreen: 'rgba(30,150,50,.1)' },
-};
+// Surfaces / text / signal colours inherit from the toolbar theme — only the
+// accent family is pinned per panel, so the page shows ONE theme at a time.
 // `as` = --accent-strong (the AA-safe button background). Mirrors accents.css:
 // bright accents (Phoenix/Ocean/Emerald) pair with their dark --accent-contrast,
 // so accent-strong == accent; the default purple darkens to #7c3aed for white text.
@@ -23,14 +21,12 @@ const ACCENT = {
   Emerald: { dark: { a: '#16c98a', as: '#16c98a', ac: '#04180f', pl: '#3ad9a0', pm: '#5fe3b4', g: 'rgba(22,201,138,.18)', gf: '#16c98a', gt: '#20dcf5' }, light: { a: '#0b9c68', as: '#0b9c68', ac: '#fff', pl: '#0b9c68', pm: '#0a9060', g: 'rgba(11,156,104,.1)', gf: '#0b9c68', gt: '#12b0a0' } },
 };
 
-const vars = (theme, ac) => {
-  const t = THEME[theme];
-  return `--bg:${t.bg};--surface:${t.surface};--surface-2:${t.s2};--surface-3:${t.s3};--border:${t.border};--text:${t.text};--strong:${t.strong};--dim:${t.dim};--muted:${t.muted};--green:${t.green};--glow-green:${t.glowGreen};--ink:${t.text};--accent:${ac.a};--accent-strong:${ac.as};--accent-contrast:${ac.ac};--purple:${ac.a};--purple-light:${ac.pl};--purple-mid:${ac.pm};--glow-purple:${ac.g};--ring:0 0 0 3px ${ac.g};--grad-from:${ac.gf};--grad-to:${ac.gt}`;
-};
+const accentVars = (ac) =>
+  `--accent:${ac.a};--accent-strong:${ac.as};--accent-contrast:${ac.ac};--purple:${ac.a};--purple-light:${ac.pl};--purple-mid:${ac.pm};--glow-purple:${ac.g};--ring:0 0 0 3px ${ac.g};--grad-from:${ac.gf};--grad-to:${ac.gt}`;
 
 const panel = (name, theme) => {
   const ac = ACCENT[name][theme];
-  return `<div style="${vars(theme, ac)};background:var(--bg);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px">
+  return `<div style="${accentVars(ac)};background:var(--bg);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:inset 0 0 0 1px var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <span style="font:700 20px/1 Poppins;letter-spacing:-.01em"><span style="background:linear-gradient(120deg,var(--grad-from),var(--grad-to));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${name}</span></span>
       <span style="display:flex;gap:6px">${badge(theme, theme === 'dark' ? 'archive' : 'archive')}${badge('Live', 'live')}</span>
@@ -47,16 +43,17 @@ const panel = (name, theme) => {
 };
 
 const wall = (theme) => `
-  <div style="margin-bottom:12px;font:600 12px/1 Poppins;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">${theme} theme</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-bottom:38px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
     ${Object.keys(ACCENT).map((n) => panel(n, theme)).join('')}
   </div>`;
 
 export const Overview = {
-  render: () => pad(`
+  render: (_args, ctx) => {
+    const theme = ctx && ctx.globals && ctx.globals.theme === 'light' ? 'light' : 'dark';
+    return pad(`
     <h1 style="font:700 30px/1.1 Poppins;color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Accent sub-themes</h1>
-    <p style="color:var(--dim);margin-bottom:32px;max-width:64ch">One orthogonal <code style="font-family:var(--font-mono)">data-accent</code> dimension, on top of dark/light. Only the accent family moves — surfaces, text and signal colours (green = live) stay put — so every accent works in both themes and every component follows with no per-component change. Switch <b>Accent</b> in the toolbar to theme the whole kit.</p>
-    ${wall('dark')}
-    ${wall('light')}
-  `),
+    <p style="color:var(--dim);margin-bottom:32px;max-width:64ch">One orthogonal <code style="font-family:var(--font-mono)">data-accent</code> dimension, on top of dark/light. All four accents at once — only the accent family moves; surfaces, text and signal colours (green = live) stay put. Flip <b>Theme</b> in the toolbar to see them in light or dark.</p>
+    ${wall(theme)}
+  `);
+  },
 };

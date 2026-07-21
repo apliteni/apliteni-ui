@@ -5,7 +5,9 @@
 import { topbar } from './topbar.js';
 import { icon } from './index.js';
 
-// Default account navigation: [id, icon, label]. Override with the `nav` option.
+// Default account navigation: [id, icon, label, href?, target?]. Override with
+// the `nav` option. href defaults to `#{id}` — pass your real route (and an
+// optional target) to make each item a working link.
 export const ACCOUNT_NAV = [
   ['prefs', 'gear', 'Preferences'],
   ['access', 'key', 'Access &amp; agents'],
@@ -13,7 +15,8 @@ export const ACCOUNT_NAV = [
 
 const sidebar = (nav, active) =>
   `<nav class="ui-side"><div class="cap">Account</div>` +
-  nav.map(([id, ic, label]) => `<a href="#${id}"${id === active ? ' class="on"' : ''}>${icon(ic)}${label}</a>`).join('') +
+  nav.map(([id, ic, label, href, target]) =>
+    `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''}${id === active ? ' class="on"' : ''}>${icon(ic)}${label}</a>`).join('') +
   `<div class="ssep"></div><a class="out" href="#logout">${icon('logout')}Sign out</a></nav>`;
 
 export function accountShell({
