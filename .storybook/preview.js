@@ -26,7 +26,18 @@ const preview = {
       },
     },
     controls: { expanded: true, matchers: { color: /(background|color)$/i } },
-    a11y: { context: '#storybook-root' },
+    // Low-noise a11y: gate on real WCAG 2.0/2.1 A+AA failures only, not
+    // best-practice heuristics (e.g. `region`, which just flags story content
+    // living outside a landmark inside the Storybook iframe). Colour contrast is
+    // owned by the design tokens, verified visually — not by axe in an iframe.
+    // Same rule set the CI gate runs (stories/a11y.test.js), so the panel and CI
+    // never disagree.
+    a11y: {
+      context: '#storybook-root',
+      options: {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+      },
+    },
   },
 
   globalTypes: {
