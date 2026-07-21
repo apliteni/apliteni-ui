@@ -21,9 +21,23 @@
   {{CHROME_CSS}}
 
   .ui-hero { padding-top: clamp(72px, 12vh, 140px); }
-  .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start; }
-  .preview-grid .ui-card + .ui-card { margin-top: 0; }
   .swap { color: var(--muted); font-size: 13px; }
+
+  /* Accent playground — the interactive "pick an accent, watch it re-theme". */
+  .play { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: center; }
+  .play__stage { position: relative; }
+  .play-accents { display: flex; flex-wrap: wrap; gap: 10px; }
+  .play-accents button { width: auto; height: auto; border-radius: 12px; padding: 10px 15px 10px 11px;
+    display: inline-flex; align-items: center; gap: 9px; background: var(--surface);
+    box-shadow: 0 0 0 1px var(--border); color: var(--dim); font: 600 14px/1 var(--font-sans);
+    cursor: pointer; transition: color .15s, box-shadow .15s, transform .15s; }
+  .play-accents button:hover { transform: translateY(-2px); color: var(--strong); }
+  .play-accents button.on { color: var(--strong); box-shadow: 0 0 0 2px var(--accent); }
+  .play-accents .play-sw { width: 18px; height: 18px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+  .play-grad { font: 700 clamp(30px, 5vw, 44px)/1 var(--font-sans); letter-spacing: -.02em;
+    background: linear-gradient(120deg, var(--grad-from), var(--grad-to));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  @media (max-width: 760px) { .play { grid-template-columns: 1fr; gap: 26px; } }
 
   /* Bento — the "what's in the box" grid. Differentiated cells, not an identical
      icon grid: mixed spans, vivid accent-gradient tiles, and live micro-demos. */
@@ -80,9 +94,40 @@
   </div>
 </section>
 
+<section class="wrap" style="padding:70px 0" id="taste">
+  <div class="ui-section-head" style="margin-bottom:40px">
+    <h2>One kit, four identities</h2>
+    <p>Pick an accent — the whole page re-themes live. Same components, one <code class="ui-code">data-accent</code> attribute.</p>
+  </div>
+  <div class="play">
+    <div class="play__picker">
+      <div class="accents play-accents" role="group" aria-label="Choose accent">
+        <button data-acc="default" class="on" title="Nebula"><span class="play-sw" style="background:linear-gradient(135deg,#9b5dff,#6a2dcc)"></span>Nebula</button>
+        <button data-acc="phoenix" title="Phoenix"><span class="play-sw" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)"></span>Phoenix</button>
+        <button data-acc="ocean" title="Ocean"><span class="play-sw" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)"></span>Ocean</button>
+        <button data-acc="emerald" title="Emerald"><span class="play-sw" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)"></span>Emerald</button>
+      </div>
+      <p class="swap" style="margin:18px 0 0">Dark or light — the accent rides on top. Your pick follows you to the topbar, footer and the changelog.</p>
+    </div>
+    <div class="play__stage">
+      <span class="ui-glow ui-glow--purple" style="top:-50px;right:-20px;width:300px;height:300px"></span>
+      <div class="ui-card ui-card--accent" style="position:relative">
+        <div class="ui-eyebrow">Live preview</div>
+        <div class="play-grad" id="playName">Nebula</div>
+        <p class="ui-card__sub" style="margin:8px 0 20px">Buttons, tints, focus rings, gradients and glows — every accent-driven token recolours at once.</p>
+        <div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap">
+          <button class="ui-btn ui-btn--primary">Primary action</button>
+          <span class="ui-badge ui-badge--soon">Soon</span>
+          <label class="ui-switch"><input type="checkbox" checked><span class="ui-switch__track"></span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="wrap" style="padding:70px 0" id="install">
   <div class="ui-section-head" style="margin-bottom:44px">
-    <h2>Drop it in, delete your CSS</h2>
+    <h2>Drop it in</h2>
     <p>The package is private to the <code class="ui-code">apliteni</code> org on GitHub Packages. Point the scope at the registry, authenticate with a token that has <code class="ui-code">read:packages</code>, then install.</p>
   </div>
   <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
@@ -186,44 +231,19 @@
   </div>
 </section>
 
-<section class="wrap" style="padding:70px 0">
-  <div class="ui-section-head" style="margin-bottom:44px">
-    <h2>A taste</h2>
-    <p>Live components — re-themed by the accent you pick.</p>
-  </div>
-  <div class="preview-grid">
-    <div class="ui-card">
-      <div class="ui-card__title">Buttons</div>
-      <div class="ui-card__sub" style="margin-bottom:16px">Four variants, three sizes, every state.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="ui-btn ui-btn--primary">Primary</button>
-        <button class="ui-btn ui-btn--secondary">Secondary</button>
-        <button class="ui-btn ui-btn--ghost">Ghost</button>
-      </div>
-    </div>
-    <div class="ui-card">
-      <div class="ui-card__title">Status</div>
-      <div class="ui-card__sub" style="margin-bottom:16px">Signal colours stay constant across accents.</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <span class="ui-badge ui-badge--live">Live</span>
-        <span class="ui-badge ui-badge--soon">Soon</span>
-        <span class="ui-badge ui-badge--info">Info</span>
-        <span class="ui-badge ui-badge--danger">Revoked</span>
-      </div>
-    </div>
-    <div class="ui-card">
-      <div class="ui-card__title">Controls</div>
-      <div class="ui-card__sub" style="margin-bottom:16px">Segmented + switch, accent-driven.</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="ui-seg"><button class="is-active">Deck</button><button>Text</button></div>
-        <label class="ui-switch"><input type="checkbox" checked><span class="ui-switch__track"></span></label>
-      </div>
-    </div>
-  </div>
-</section>
-
 {{FOOTER}}
 
 <script>{{CHROME_JS}}</script>
+<script>
+  /* Accent playground: mirror the live accent name into the preview headline. */
+  (function(){
+    var NM = { default:'Nebula', phoenix:'Phoenix', ocean:'Ocean', emerald:'Emerald' };
+    var el = document.getElementById('playName');
+    if (!el) return;
+    function sync(){ el.textContent = NM[document.documentElement.getAttribute('data-accent') || 'default']; }
+    new MutationObserver(sync).observe(document.documentElement, { attributes:true, attributeFilter:['data-accent'] });
+    sync();
+  })();
+</script>
 </body>
 </html>
