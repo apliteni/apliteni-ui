@@ -52,9 +52,9 @@ export const Welcome = {
     <div style="position:relative;z-index:1;max-width:980px;margin:0 auto;padding:72px 0 90px">
       <div style="display:inline-flex;align-items:center;gap:11px;margin-bottom:32px">
         ${prism('intro', 30)}
-        <span style="font:600 21px/1 Poppins;letter-spacing:-.01em;color:var(--strong)">apliteni<span style="color:var(--accent)">·</span>ui</span>
+        <span style="font:600 21px/1 Poppins;letter-spacing:-.01em;color:var(--strong)">apliteni<span style="color:var(--accent)">-</span>ui</span>
       </div>
-      <div style="display:inline-flex;align-items:center;gap:8px;font:500 12px Poppins;letter-spacing:.06em;color:var(--purple-mid);background:var(--glow-purple);border-radius:999px;padding:6px 14px;margin-bottom:24px;margin-left:8px">${icon('sparkle')} apliteni·ui · v${pkg.version}</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;font:500 12px Poppins;letter-spacing:.06em;color:var(--purple-mid);background:var(--glow-purple);border-radius:999px;padding:6px 14px;margin-bottom:24px;margin-left:8px">${icon('sparkle')} apliteni-ui v${pkg.version}</div>
       <h1 style="font:700 clamp(38px,6vw,60px)/1.05 Poppins;letter-spacing:-.03em;color:var(--strong);margin-bottom:20px;max-width:16ch">The Apliteni design system</h1>
       <p style="font:400 clamp(16px,2vw,19px)/1.6 Poppins;color:var(--dim);max-width:62ch;margin-bottom:40px">
         One kit of UI for every Apliteni internal service — the strategy deck, the text portal, <code style="font-family:var(--font-mono);color:var(--text)">/account</code>, and whatever ships next.

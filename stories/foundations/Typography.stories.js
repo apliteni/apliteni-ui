@@ -7,7 +7,7 @@ export default {
 
 const specimenRow = (size, weight, label, sample) => `
   <div style="display:flex;align-items:baseline;gap:24px;padding:16px 0;border-bottom:1px solid var(--border)">
-    <div style="flex:none;width:150px;font:400 12px/1.4 Poppins;color:var(--muted)">${label}<br><span style="color:var(--dim)">${size} · ${weight}</span></div>
+    <div style="flex:none;width:150px;font:400 12px/1.4 Poppins;color:var(--muted)">${label}<br><span style="color:var(--dim)">${size} / ${weight}</span></div>
     <div style="font-family:Poppins;font-size:${size};font-weight:${weight};color:var(--strong);letter-spacing:-.01em;line-height:1.1">${sample}</div>
   </div>`;
 

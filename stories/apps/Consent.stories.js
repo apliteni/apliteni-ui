@@ -37,7 +37,7 @@ export const Grant = {
       ${scope('key', 'Read as you', 'Access the same content your account can see — nothing more.')}
     </div>
     <div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;margin:14px 0 22px">
-      ${icon('lock')} <span>Read-only · you can revoke this anytime in Access &amp; agents.</span>
+      ${icon('lock')} <span>Read-only — you can revoke this anytime in Access &amp; agents.</span>
     </div>
     <div style="display:flex;gap:10px">
       ${button({ label: 'Deny', variant: 'secondary', block: true })}

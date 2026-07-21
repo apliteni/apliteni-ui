@@ -1,7 +1,7 @@
 /* ============================================================================
  * Card — .ui-card  (filled surface, no borders — the deck groups with
  *                   surface + radius, never outlines)
- * Rows: .ui-card__row  ·  headers: .ui-card__title / .ui-card__sub
+ * Rows: .ui-card__row  /  headers: .ui-card__title / .ui-card__sub
  * ========================================================================== */
 
 .ui-card {

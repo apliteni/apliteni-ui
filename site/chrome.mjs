@@ -6,7 +6,7 @@
 
 const BRAND = `<a class="brand" href="/" aria-label="apliteni ui" style="text-decoration:none">
       <svg viewBox="0 0 32 32" width="23" height="23" aria-hidden="true"><defs><clipPath id="pr"><rect x="1" y="1" width="30" height="30" rx="9"/></clipPath></defs><g clip-path="url(#pr)"><rect x="1" y="1" width="15" height="15" fill="#9b5dff"/><rect x="16" y="1" width="15" height="15" fill="#ff6a3d"/><rect x="1" y="16" width="15" height="15" fill="#3b9dff"/><rect x="16" y="16" width="15" height="15" fill="#16c98a"/></g></svg>
-      <span class="brand__word">apliteni<span style="color:var(--accent)">·</span>ui</span>
+      <span class="brand__word">apliteni<span style="color:var(--accent)">-</span>ui</span>
     </a>`;
 
 // active: '' on the landing, 'changelog' on the changelog page (marks the nav link).
@@ -36,7 +36,7 @@ export function footer() {
   <div class="site-footer__in">
     <span>© Apliteni</span>
     <div style="display:flex;align-items:center;gap:11px">
-      <span style="font-size:11.5px;letter-spacing:.06em;text-transform:uppercase">Accent · <span id="accName" style="color:var(--accent);font-weight:600">Nebula</span></span>
+      <span style="font-size:11.5px;letter-spacing:.06em;text-transform:uppercase">Accent: <span id="accName" style="color:var(--accent);font-weight:600">Nebula</span></span>
       ${ACCENTS}
     </div>
     <span style="display:flex;gap:22px">

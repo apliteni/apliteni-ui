@@ -1,5 +1,5 @@
 // Topbar factory + client behaviours. Composes the canonical strategy topbar
-// (brand · Deck/Text · theme toggle · version switcher · account menu).
+// (brand, Deck/Text, theme toggle, version switcher, account menu).
 import { brand } from '../assets/brand.js';
 import { icon, sun, moon } from '../assets/icons.js';
 

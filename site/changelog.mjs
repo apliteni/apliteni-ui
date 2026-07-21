@@ -22,7 +22,7 @@ export const RELEASES = [
       ['added', '`--seg-active-bg` token — the active segmented pill reads clearly in dark.'],
       ['added', 'Google-SSO-only sign-in story.'],
       ['fixed', 'Card grids no longer misalign — spacing moved to `.ui-card-stack` (the child margin leaked into rows).'],
-      ['changed', 'Removed the auto-generated Storybook “Docs” pages; intro wordmark reads apliteni·ui.'],
+      ['changed', 'Removed the auto-generated Storybook “Docs” pages; intro wordmark reads apliteni-ui.'],
     ],
   },
   {

@@ -3,7 +3,7 @@
  * Single source of truth for the Apliteni deck theme.
  *
  * Colour semantics are identical to viz/ (deck index.html, account.mjs):
- *   purple accent · near-black surfaces · green = live · cyan = link/flag.
+ *   purple accent, near-black surfaces, green = live, cyan = link/flag.
  * Two themes: dark (default) and light. Toggle with `data-theme` on <html>.
  *
  * Everything downstream references the SEMANTIC tokens (--bg, --surface,

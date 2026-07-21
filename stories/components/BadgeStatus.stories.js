@@ -26,7 +26,7 @@ export const Badges = {
 export const InContext = {
   render: () => pad(`<div class="ui-card" style="max-width:460px">
     <div class="ui-card__title">phoenix.2026.002 ${badge('Live', 'live')}</div>
-    <div class="ui-card__sub">Product units · animated deck. The current strategy version, served at the clean root.</div>
+    <div class="ui-card__sub">Product units, animated deck. The current strategy version, served at the clean root.</div>
     <div style="display:flex;gap:8px">${pill('2 agents', 'live')} ${pill('MCP enabled', 'soon')}</div>
   </div>`),
 };

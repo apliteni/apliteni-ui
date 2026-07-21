@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>apliteni·ui — the Apliteni design system</title>
+<title>apliteni-ui — the Apliteni design system</title>
 <meta name="description" content="One source of UI for every Apliteni product — tokens, components and the deck theme. Framework-agnostic HTML + CSS, themeable dark & light with accent sub-themes.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?{{CSSHASH}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -131,11 +131,11 @@
     <p>The package is private to the <code class="ui-code">apliteni</code> org on GitHub Packages. Point the scope at the registry, authenticate with a token that has <code class="ui-code">read:packages</code>, then install.</p>
   </div>
   <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
-    <div class="ui-snippet"><div class="ui-snippet__bar"><span>1 · authenticate — .npmrc</span></div><pre><span class="c"># in the consuming repo</span>
+    <div class="ui-snippet"><div class="ui-snippet__bar"><span>1. authenticate — .npmrc</span></div><pre><span class="c"># in the consuming repo</span>
 <span class="s">@apliteni</span>:registry=<span class="u">https://npm.pkg.github.com</span>
 //npm.pkg.github.com/:_authToken=${<span class="k">NODE_AUTH_TOKEN</span>}</pre></div>
-    <div class="ui-snippet"><div class="ui-snippet__bar"><span>2 · install · GitHub Packages</span></div><pre><span class="k">NODE_AUTH_TOKEN</span>=$(<span class="f">gh</span> auth token) <span class="k">npm</span> install <span class="s">@apliteni/apliteni-ui</span></pre></div>
-    <div class="ui-snippet"><div class="ui-snippet__bar"><span>3 · use</span></div><pre><span class="k">import</span> <span class="s">'@apliteni/apliteni-ui/css'</span>
+    <div class="ui-snippet"><div class="ui-snippet__bar"><span>2. install — GitHub Packages</span></div><pre><span class="k">NODE_AUTH_TOKEN</span>=$(<span class="f">gh</span> auth token) <span class="k">npm</span> install <span class="s">@apliteni/apliteni-ui</span></pre></div>
+    <div class="ui-snippet"><div class="ui-snippet__bar"><span>3. use</span></div><pre><span class="k">import</span> <span class="s">'@apliteni/apliteni-ui/css'</span>
 <span class="k">import</span> { button, card, topbar } <span class="k">from</span> <span class="s">'@apliteni/apliteni-ui'</span></pre></div>
   </div>
   <p class="swap" style="text-align:center;margin-top:18px">In CI, <code class="ui-code">NODE_AUTH_TOKEN</code> is the workflow's <code class="ui-code">GITHUB_TOKEN</code>. In Docker, pass it as a build secret.</p>

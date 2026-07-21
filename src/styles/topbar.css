@@ -1,7 +1,7 @@
 /* ============================================================================
  * Topbar — canonical strategy topbar, extracted verbatim (class names kept so
- * viz/ adopts it with no markup change): brand · Deck/Text switch · theme
- * toggle · version switcher · account menu.
+ * viz/ adopts it with no markup change): brand, Deck/Text switch, theme
+ * toggle, version switcher, account menu.
  * Source of truth previously inlined in viz/topbar.mjs.
  * ========================================================================== */
 

@@ -73,8 +73,8 @@ Each accent re-points only the accent family (`--accent`, `--purple*`, `--glow-p
 stay put — so **every accent works in both themes** and every component follows with no
 component-level change.
 
-Shipped accents: **Nebula** (purple, default) · **Phoenix** (ember) · **Ocean** (azure)
-· **Emerald** (jade). Runtime helpers: `applyTheme('light')` / `applyAccent('phoenix')`
+Shipped accents: **Nebula** (purple, default), **Phoenix** (ember), **Ocean** (azure),
+**Emerald** (jade). Runtime helpers: `applyTheme('light')` / `applyAccent('phoenix')`
 (both persist to `localStorage`); or the `accentPicker()` component wired by `wireTopbar()`.
 
 ## Layout
@@ -89,7 +89,7 @@ src/
   inline.js              # CSS as strings for server-render consumers (…/inline)
   assets/                # brand mark (seedling) + line-icon set
   components/            # HTML-string factories: button(), card(), badge(), topbar()…
-stories/                 # Storybook: Foundations · Components · Apps
+stories/                 # Storybook: Foundations, Components, Apps
 site/                    # ui.apli.tech landing page + static server
 ```
 

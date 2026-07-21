@@ -2,8 +2,8 @@ import { topbar, themeToggle, deckTextSwitch, accountMenu, versionSwitcher } fro
 import { specimen } from '../_gallery.js';
 
 const VERSIONS = [
-  { label: 'phoenix.2026.002', meta: 'Product units · animated deck', badge: 'live' },
-  { label: 'phoenix.2026.001', meta: 'Phoenix · 2026-05-17', badge: 'archive' },
+  { label: 'phoenix.2026.002', meta: 'Product units, animated deck', badge: 'live' },
+  { label: 'phoenix.2026.001', meta: 'Phoenix, 2026-05-17', badge: 'archive' },
 ];
 
 export default {

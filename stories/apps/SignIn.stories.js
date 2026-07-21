@@ -88,6 +88,6 @@ export const GoogleSigningIn = {
 export const States = {
   render: () => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:40px;min-height:100vh;align-content:center;max-width:960px;margin:0 auto">
     <div>${centeredShell(`<h1 class="ui-auth__title">Sign in to Strategy</h1><p class="ui-auth__sub">Your work Google account is the key.</p>${googleBtn}<div class="ui-auth__foot" style="margin-top:22px">Idle</div>`, 'st1')}</div>
-    <div>${centeredShell(`<h1 class="ui-auth__title">Sign in to Strategy</h1><p class="ui-auth__sub">Taking you to Google…</p>${googleBtnLoading}<div class="ui-auth__foot" style="margin-top:22px">Loading · disabled</div>`, 'st2')}</div>
+    <div>${centeredShell(`<h1 class="ui-auth__title">Sign in to Strategy</h1><p class="ui-auth__sub">Taking you to Google…</p>${googleBtnLoading}<div class="ui-auth__foot" style="margin-top:22px">Loading — disabled</div>`, 'st2')}</div>
   </div>`,
 };

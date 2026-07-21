@@ -20,7 +20,7 @@ export const accountShell = ({ active, crumb, title, sub, body, prefix = 'ac' })
     <div class="ui-shell">
       ${sidebar(active)}
       <div class="ui-shell__page">
-        <div class="ui-shell__crumbs">Account · <b>${crumb}</b></div>
+        <div class="ui-shell__crumbs">Account / <b>${crumb}</b></div>
         <h1>${title}</h1>
         <div class="sub">${sub}</div>
         <div class="ui-card-stack">${body}</div>
