@@ -9,7 +9,7 @@ and light with **accent sub-themes**. Showcased and reviewed in **Storybook**, a
 published on **ui.apli.tech**.
 
 - 🎨 **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
-- 📦 **Package** → `@apliteni/apliteni-ui` (GitHub Packages)
+- 📦 **Package** → [`@apliteni/apliteni-ui`](https://www.npmjs.com/package/@apliteni/apliteni-ui) (public npm)
 
 ## Why HTML + CSS (not React)
 
@@ -21,24 +21,11 @@ of truth — the portal imports it with no rewrite and no framework drift. Story
 
 ## Install
 
-The package lives in **GitHub Packages** (private to the `apliteni` org). Point the
-`@apliteni` scope at it and authenticate with a GitHub token that has `read:packages`.
-
-`.npmrc` in the consuming repo:
-
-```
-@apliteni:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
-```
-
-Then:
+Published on the **public npm registry** — no scope config, no token:
 
 ```bash
-NODE_AUTH_TOKEN=$(gh auth token) npm install @apliteni/apliteni-ui
+npm install @apliteni/apliteni-ui
 ```
-
-In CI, `NODE_AUTH_TOKEN` is the workflow's `GITHUB_TOKEN`. In Docker, pass it as a
-build secret (see the strategy portal's Dockerfile for the pattern).
 
 ## Use it
 
@@ -117,15 +104,15 @@ site/                    # ui.apli.tech landing page + static server
 ## Develop
 
 ```bash
-NODE_AUTH_TOKEN=$(gh auth token) npm install
+npm install
 npm run storybook          # http://localhost:6006
 npm run build-storybook    # -> storybook-static/
 node site/build.mjs        # -> site/public/ (landing + kit.css)
 ```
 
-## Publish (GitHub Packages)
+## Publish (public npm)
 
-Versioned publish runs from CI on a GitHub Release:
+Versioned publish runs from CI on a GitHub Release (needs the `NPM_TOKEN` secret):
 
 ```bash
 npm version patch          # or minor / major — bumps package.json + tags
