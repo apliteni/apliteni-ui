@@ -52,6 +52,47 @@ a {
 .ui-glow--green  { background: radial-gradient(circle, var(--green), transparent 70%); opacity: 0.28; }
 .ui-glow--cyan   { background: radial-gradient(circle, var(--cyan), transparent 70%); opacity: 0.3; }
 
+/* ----------------------------------------------------------------------------
+ * Background treatments — drop-in page/section backdrops. Each is a ::before
+ * layer, so add the class to a positioned wrapper and give the real content a
+ * higher stacking context (position:relative;z-index:1). All read the accent /
+ * glow tokens, so they re-theme with the sub-theme and work in dark + light.
+ * -------------------------------------------------------------------------- */
+[class*="ui-bg-"] { position: relative; }
+[class*="ui-bg-"] > * { position: relative; z-index: 1; }
+[class*="ui-bg-"]::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+
+/* Spotlight — a soft radial from the top-centre (auth cards, focused heroes). */
+.ui-bg-spotlight::before {
+  background: radial-gradient(620px 340px at 50% -12%, var(--glow-purple), transparent 70%);
+}
+/* Aurora — layered accent + cyan glows for a rich hero backdrop. */
+.ui-bg-aurora::before {
+  background:
+    radial-gradient(520px 400px at 10% -12%, var(--glow-purple), transparent 60%),
+    radial-gradient(460px 360px at 94% 6%, var(--glow-cyan), transparent 62%);
+}
+/* Grid — a faint token-coloured grid, masked to fade at the edges. */
+.ui-bg-grid::before {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(circle at 50% 35%, #000, transparent 78%);
+  mask-image: radial-gradient(circle at 50% 35%, #000, transparent 78%);
+}
+/* Dots — a subtle dot field for dashboards / technical surfaces. */
+.ui-bg-dots::before {
+  background-image: radial-gradient(var(--border) 1.4px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(circle at 50% 35%, #000, transparent 80%);
+  mask-image: radial-gradient(circle at 50% 35%, #000, transparent 80%);
+}
+/* Accent wash — a gentle top-down tint in the current accent. */
+.ui-bg-wash::before {
+  background: linear-gradient(180deg, var(--glow-purple), transparent 45%);
+}
+
 /* Layout helpers used by the example apps */
 .ui-container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 clamp(14px, 2.4vw, 26px); }
 .ui-stack > * + * { margin-top: var(--space-4); }
