@@ -34,6 +34,31 @@
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
 .ui-table--hover tbody tr:hover { background: var(--surface-2); }
 
+/* ── Data-table modifiers (composable) ──────────────────────────────────────
+ * Compose for a dense financial ledger: .ui-table--dense --zebra --hover.
+ *   --dense  compact row rhythm for many-row / many-column data
+ *   --zebra  row striping instead of per-row rules; 2px header rule; the
+ *            (accent) hover tint out-ranks the stripe (defined after it)
+ * Cell helpers: .ui-table__num (right, tabular), .ui-table__code (plain
+ * monospace id — never a boxed code chip inside a table). */
+.ui-table--dense th { padding: 0 14px 10px 0; }
+.ui-table--dense td { padding: 10px 14px; font-size: var(--text-sm); white-space: nowrap; }
+.ui-table--dense th:first-child,
+.ui-table--dense td:first-child { padding-left: 12px; }
+.ui-table--dense th:last-child,
+.ui-table--dense td:last-child { padding-right: 12px; }
+
+.ui-table--zebra th { border-bottom-width: 2px; }
+.ui-table--zebra td { border-bottom: 0; }
+.ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); }
+.ui-table--zebra.ui-table--hover tbody tr:hover td,
+.ui-table--zebra tbody tr:hover td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+.ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
+.ui-table th.ui-table__num { text-align: right; }
+.ui-table__num--strong { color: var(--strong); font-weight: var(--weight-semibold); }
+.ui-table__code { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--muted); }
+
 /* Empty state inside a table area */
 .ui-empty {
   text-align: center;

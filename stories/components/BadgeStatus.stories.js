@@ -13,6 +13,11 @@ export const Badges = {
       badge('Beta', 'warn'), badge('Revoked', 'danger'), badge('Archive', 'archive'),
       badge('Neutral'),
     )),
+    specimen('Record status (data tables)', row(
+      badge('Paid', 'success'), badge('Verified', 'success'),
+      badge('Pending', 'pending'), badge('Failed', 'danger'),
+      badge('Dismissed', 'neutral'),
+    )),
     specimen('Metadata pills', row(
       pill('Product units'), pill('Live', 'live'), pill('Coming soon', 'soon'),
     )),
