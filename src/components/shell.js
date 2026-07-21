@@ -13,8 +13,8 @@ export const ACCOUNT_NAV = [
   ['access', 'key', 'Access &amp; agents'],
 ];
 
-const sidebar = (nav, active) =>
-  `<nav class="ui-side"><div class="cap">Account</div>` +
+const sidebar = (nav, active, cap = 'Account') =>
+  `<nav class="ui-side"><div class="cap">${cap}</div>` +
   nav.map(([id, ic, label, href, target]) =>
     `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''}${id === active ? ' class="on"' : ''}>${icon(ic)}${label}</a>`).join('') +
   `<div class="ssep"></div><a class="out" href="#logout">${icon('logout')}Sign out</a></nav>`;
@@ -25,6 +25,8 @@ export function accountShell({
   account = {},
   nav = ACCOUNT_NAV,
   active = 'prefs',
+  cap = 'Account',
+  showSwitch = false,
   crumb,
   title = '',
   sub = '',
@@ -32,11 +34,11 @@ export function accountShell({
 } = {}) {
   return `<div style="position:relative;overflow:hidden;min-height:100vh">
     <span class="ui-glow ui-glow--purple" style="top:-120px;right:6%;opacity:.35"></span>
-    ${topbar({ word, view: 'text', versions, account: { ...account, active, nav } })}
+    ${topbar({ word, view: 'text', showSwitch, versions, account: { ...account, active, nav } })}
     <div class="ui-shell">
-      ${sidebar(nav, active)}
+      ${sidebar(nav, active, cap)}
       <div class="ui-shell__page">
-        <div class="ui-shell__crumbs">Account / <b>${crumb || title}</b></div>
+        <div class="ui-shell__crumbs">${cap} / <b>${crumb || title}</b></div>
         <h1>${title}</h1>
         <div class="sub">${sub}</div>
         <div class="ui-card-stack">${body}</div>

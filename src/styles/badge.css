@@ -26,6 +26,22 @@
 .ui-badge--danger { color: var(--pink); background: var(--glow-pink); }
 .ui-badge--archive { color: var(--muted); background: var(--surface); }
 
+/* Semantic status variants — for record/row status in data tables
+   (paid / verified / pending / failed …). Same chip, mapped to meaning. */
+.ui-badge--success { color: var(--green); background: var(--glow-green); }
+.ui-badge--pending { color: var(--amber); background: color-mix(in srgb, var(--amber) 15%, transparent); }
+.ui-badge--neutral { color: var(--muted); background: var(--surface-2); }
+
+/* On the white light app the glow-tints wash out — give status chips a solid
+   tinted fill so they read at a glance. */
+:root[data-theme="light"] .ui-badge--success,
+:root[data-theme="light"] .ui-badge--live    { color: #1f7a38; background: #dff3e4; }
+:root[data-theme="light"] .ui-badge--pending,
+:root[data-theme="light"] .ui-badge--warn    { color: #8a5e00; background: #fbedd2; }
+:root[data-theme="light"] .ui-badge--danger  { color: #b7295f; background: #fbe0ea; }
+:root[data-theme="light"] .ui-badge--neutral,
+:root[data-theme="light"] .ui-badge--archive { color: #5c6270; background: #eceff4; }
+
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */
 .ui-pill {
   display: inline-flex;
