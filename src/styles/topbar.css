@@ -193,7 +193,7 @@
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: 13px; cursor: pointer; }
 .amenu a:hover { background: var(--surface); }
 .amenu a.cur { color: var(--accent); }
-.amenu a svg { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.7; opacity: 0.72; }
+.amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
 .amenu a.aout { color: var(--muted); }
 .amenu a.aout:hover { color: var(--accent); }
