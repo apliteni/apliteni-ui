@@ -1,0 +1,93 @@
+/* ============================================================================
+ * aurora — ambient warm backdrop: layered blurred glow "blobs" + optional
+ * paper grain. The kit's one signature page background, so every app gets one
+ * warm identity for free.
+ *
+ * Markup comes from aurora() in components/index.js, but you can hand-roll it:
+ *   <div class="ui-aurora ui-aurora--animated" aria-hidden="true">
+ *     <span class="ui-aurora__blob ui-aurora__blob--accent" style="--au-x:12%;--au-y:-4%"></span>
+ *     ...
+ *     <span class="ui-aurora__grain"></span>
+ *   </div>
+ *
+ * Colours default to the accent glow tokens, so the whole field re-themes with
+ * the sub-theme (phoenix / ocean / emerald) and holds up in dark AND light with
+ * no per-accent rules. Override --au-1/2/3 on .ui-aurora to retune.
+ * ========================================================================== */
+
+.ui-aurora {
+  /* Tone slots — mixed to a visible alpha off the accent families so the field
+     actually reads as an aurora (the --glow-* tokens are tuned faint for the
+     small .ui-bg-* utilities). --purple-light + --grad-to re-point per accent,
+     so the whole field re-themes; --cyan stays a fixed teal. Override to retune. */
+  --au-1: color-mix(in srgb, var(--purple-light) 52%, transparent);
+  --au-2: color-mix(in srgb, var(--cyan) 40%, transparent);
+  --au-3: color-mix(in srgb, var(--grad-to) 44%, transparent);
+
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* Light theme: the accent families are darker solids, so dial the mix right
+   down — a whisper of tint, not a wash. */
+:root[data-theme="light"] .ui-aurora {
+  --au-1: color-mix(in srgb, var(--purple-light) 18%, transparent);
+  --au-2: color-mix(in srgb, var(--cyan) 15%, transparent);
+  --au-3: color-mix(in srgb, var(--grad-to) 17%, transparent);
+}
+
+/* Full-bleed: pin to the viewport behind the whole page. Give real content a
+   normal (non-negative) stacking context and it sits on top automatically. */
+.ui-aurora--fixed {
+  position: fixed;
+  z-index: -1;
+}
+
+/* A blurred radial blob. Position via --au-x / --au-y (its centre), scale via
+   --au-size. Centring uses `translate` so the drift animation owns `transform`. */
+.ui-aurora__blob {
+  position: absolute;
+  top: var(--au-y, 50%);
+  left: var(--au-x, 50%);
+  width: var(--au-size, 60%);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, var(--au-tone), transparent 68%);
+  filter: blur(70px);
+  will-change: transform;
+}
+.ui-aurora__blob--accent { --au-tone: var(--au-1); }
+.ui-aurora__blob--teal   { --au-tone: var(--au-2); }
+.ui-aurora__blob--warm   { --au-tone: var(--au-3); }
+
+/* Slow ambient drift. Staggered per blob via --au-delay so they never line up. */
+.ui-aurora--animated .ui-aurora__blob {
+  animation: ui-aurora-drift 26s ease-in-out infinite alternate;
+  animation-delay: var(--au-delay, 0s);
+}
+@keyframes ui-aurora-drift {
+  from { transform: translate(-2%, -1%) scale(1); }
+  to   { transform: translate(3%, 2%) scale(1.12); }
+}
+
+/* Paper grain — a low-opacity fractal-noise veil. `overlay` in dark keeps it
+   from muddying the blacks; `multiply` in light reads as fine tooth on paper. */
+.ui-aurora__grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+}
+:root[data-theme="light"] .ui-aurora__grain {
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-aurora__blob { animation: none; }
+}
