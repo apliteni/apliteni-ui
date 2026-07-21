@@ -1,3 +1,34 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* Calmer manager chrome. Storybook paints EVERY component-row icon and the
+     selected row with the theme accent (colorSecondary), which flooded the
+     sidebar with purple. Keep purple as a sparing signal instead: mute the row
+     icons to neutral, and turn the selected pill from a solid electric fill into
+     a soft tint with a slim accent marker. The id-scoped selectors out-specify
+     Storybook's own emotion styles, so no !important needed. */
+
+  /* Row type icons → neutral, so colour marks selection, not every row. */
+  #storybook-explorer-tree svg[type="component"],
+  #storybook-explorer-tree svg[type="group"] {
+    color: #8b86a0;
+  }
+
+  /* Selected row → soft tint + slim marker instead of a solid electric fill.
+     Storybook paints the pill on the .sidebar-item wrapper (emotion insertRule),
+     so tint the wrapper and let the inner <a> go transparent. */
+  #storybook-explorer-tree .sidebar-item[data-selected="true"] {
+    background: rgba(155, 93, 255, 0.13) !important;
+    box-shadow: inset 2px 0 0 #9b5dff !important;
+    border-radius: 6px;
+  }
+  #storybook-explorer-tree .sidebar-item[data-selected="true"] > a[id] {
+    background: transparent !important;
+    color: #efedf7 !important;
+  }
+  #storybook-explorer-tree .sidebar-item[data-selected="true"] svg[type="story"] {
+    color: #b479ff !important;
+  }
+</style>
