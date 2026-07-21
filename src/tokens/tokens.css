@@ -149,19 +149,21 @@
   --pink: #d63c72;
   --amber: #b5730a;
 
-  --bg: #f6f6f8;
+  /* A WHITE app: the page and cards are both white; cards are delineated by a
+     hairline border + soft shadow (see card.css), not a grey canvas. */
+  --bg: #ffffff;
   --bg-elevated: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f0f1f5;
-  --surface-3: #e7e9f0;
+  --surface-2: #f5f6f9;
+  --surface-3: #eceef3;
   --seg-active-bg: #ffffff; /* white pill raised above the grey track in light */
-  --border: #d7dae2;
-  --border-strong: #c3c7d4;
+  --border: #e4e7ee;
+  --border-strong: #cdd2dc;
 
-  --text: #1e232b;
-  --strong: #0f0f13;
-  --dim: #3d434e;
-  --muted: #565c68;
+  --text: #1a1e27;
+  --strong: #0c0e13;
+  --dim: #3a404b;
+  --muted: #5c6270;
 
   --accent: #6a2dcc;
   --accent-strong: #6a2dcc; /* already dark enough for white text */
