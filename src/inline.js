@@ -34,6 +34,7 @@ export const styles = {
   code: read('styles/code.css'),
   topbar: topbarCss,
   layout: read('styles/layout.css'),
+  feedback: read('styles/feedback.css'),
 };
 
 // Everything, in the same order as index.css. `tokensCss` first so cascade is right.
@@ -50,4 +51,5 @@ export const cssText = [
   styles.code,
   styles.topbar,
   styles.layout,
+  styles.feedback,
 ].join('\n');
