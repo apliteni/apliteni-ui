@@ -1,0 +1,66 @@
+name: Security
+
+# Secret scanning, dependency audit, and a published-artifact check. Runs on
+# every push to main and every PR. Third-party actions are pinned to a commit
+# SHA (Dependabot bumps them). See issue #2.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # scan full history, not just the tip
+      - name: Run gitleaks
+        run: |
+          set -euo pipefail
+          VER=8.30.1
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${VER}"
+          curl -fsSLO "${base}/gitleaks_${VER}_linux_x64.tar.gz"
+          curl -fsSLO "${base}/gitleaks_${VER}_checksums.txt"
+          grep "gitleaks_${VER}_linux_x64.tar.gz" "gitleaks_${VER}_checksums.txt" | sha256sum -c -
+          tar -xzf "gitleaks_${VER}_linux_x64.tar.gz" gitleaks
+          ./gitleaks detect --source . --redact --no-banner --exit-code 1
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: npm audit — production deps (fail on high/critical)
+        # The package ships no runtime dependencies, so this is what a consumer
+        # actually installs. Dev tooling (Storybook/Vite) is audited below, non-blocking.
+        run: npm audit --omit=dev --audit-level=high
+      - name: npm audit — dev deps (informational)
+        run: npm audit --audit-level=high || true
+
+  package-contents:
+    name: Published artifact check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+      - name: Assert no secrets/junk in the npm tarball
+        run: |
+          set -euo pipefail
+          files=$(npm pack --dry-run --json \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{for(const f of JSON.parse(s)[0].files)console.log(f.path)})')
+          echo "Files to be published:"; echo "$files"
+          if echo "$files" | grep -iE '(^|/)(\.env|\.env\..*|\.npmrc|.*\.pem|.*\.key|id_rsa|\.git/)'; then
+            echo "::error::A secret or forbidden file is staged for publish"; exit 1
+          fi

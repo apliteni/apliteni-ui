@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # npm dependencies — security + version PRs, batched weekly.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+  # Keep GitHub Actions (incl. the SHA-pinned ones) up to date.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
