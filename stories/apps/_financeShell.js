@@ -13,6 +13,7 @@ const NAV = [
 export const financeShell = ({ active, crumb, title, sub, body }) =>
   kitAccountShell({
     word: 'Finance',
+    cap: 'Finance',
     account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
     nav: NAV,
     active, crumb, title, sub, body,
