@@ -4,7 +4,6 @@ import { icon } from '../../src/components/index.js';
 const NAV = [
   ['prefs', 'gear', 'Preferences'],
   ['access', 'key', 'Access &amp; agents'],
-  ['feedback', 'chat', 'Feedback'],
 ];
 
 const sidebar = (active) =>

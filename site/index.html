@@ -55,8 +55,8 @@
   .bIcon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
   .bento__demo { margin-top: auto; padding-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   /* Live-component demos: stack full-width instead of the inline chip row. */
-  .bento__demo--stack { display: block; }
-  .bento__demo--stack > * + * { margin-top: 12px; }
+  .bento__demo--stack { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  .bento__demo--stack .ui-seg, .bento__demo--stack .ui-switch { align-self: flex-start; }
   .bento__demo .ui-table { font-size: 13.5px; }
   .bento__demo .ui-table th, .bento__demo .ui-table td { padding-top: 9px; padding-bottom: 9px; }
   .bento__demo .ui-field__label { font-size: 13px; margin-bottom: 6px; }

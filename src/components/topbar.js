@@ -34,7 +34,7 @@ export function accountMenu({ name = 'Ada Lovelace', email = 'ada@apliteni.com',
     `<button class="avatar" data-acct-btn aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
     `<div class="amenu" role="menu">` +
     `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${email}">${email}</span></span></div>` +
-    it('prefs', 'gear', 'Preferences') + it('access', 'key', 'Access &amp; agents') + it('feedback', 'chat', 'Feedback') +
+    it('prefs', 'gear', 'Preferences') + it('access', 'key', 'Access &amp; agents') +
     `<div class="asep"></div><a class="aout" href="#logout" role="menuitem">${icon('logout')}Sign out</a>` +
     `</div></div>`;
 }
@@ -83,11 +83,22 @@ export function wireTopbar(root = document) {
     applyTheme(cur, html);
     btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', html));
   });
-  // Segmented controls (visual toggle)
-  root.querySelectorAll('[data-seg]').forEach((seg) => {
+  // Deck/Text view switch (.dtsw) — switch the active pill on click
+  root.querySelectorAll('.dtsw').forEach((sw) => {
+    sw.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (!a || !sw.contains(a)) return;
+      e.preventDefault();
+      sw.querySelectorAll('a').forEach((x) => { x.classList.remove('cur'); x.removeAttribute('aria-current'); });
+      a.classList.add('cur');
+      a.setAttribute('aria-current', 'page');
+    });
+  });
+  // Segmented controls (.ui-seg) — visual toggle
+  root.querySelectorAll('.ui-seg').forEach((seg) => {
     seg.addEventListener('click', (e) => {
       const b = e.target.closest('button');
-      if (!b) return;
+      if (!b || !seg.contains(b)) return;
       seg.querySelectorAll('button').forEach((x) => { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
       b.classList.add('is-active');
       b.setAttribute('aria-selected', 'true');

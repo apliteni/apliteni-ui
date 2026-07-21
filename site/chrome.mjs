@@ -88,4 +88,13 @@ export const CHROME_JS = `
   var savedA = null; try{ savedA = localStorage.getItem('apliteni-ui-accent'); }catch(e){}
   if (savedA) applyAccent(savedA);
   document.querySelectorAll('.accents button').forEach(function(b){ b.addEventListener('click', function(){ applyAccent(b.getAttribute('data-acc')); }); });
+
+  // Segmented controls (.ui-seg) — switch the active pill on click.
+  document.querySelectorAll('.ui-seg').forEach(function(seg){
+    seg.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b || !seg.contains(b)) return;
+      seg.querySelectorAll('button').forEach(function(x){ x.classList.remove('is-active'); });
+      b.classList.add('is-active');
+    });
+  });
 `;

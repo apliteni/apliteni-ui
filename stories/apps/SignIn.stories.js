@@ -46,7 +46,7 @@ export const Default = {
       ${field({ label: 'Password', control: input({ type: 'password', placeholder: '••••••••', icon: 'lock' }) })}
       ${button({ label: 'Sign in', variant: 'primary', block: true, size: 'lg', type: 'submit' })}
     </form>
-    <div class="ui-auth__foot">Only <b style="color:var(--dim)">apliteni.com</b> accounts can sign in. <a href="#">Need access?</a></div>
+    <div class="ui-auth__foot">Only <b style="color:var(--dim)">apliteni.com</b> accounts can sign in.</div>
   `, 'si1'),
 };
 
@@ -70,7 +70,7 @@ export const GoogleOnly = {
     <h1 class="ui-auth__title">Sign in to Strategy</h1>
     <p class="ui-auth__sub">Your work Google account is the key — no passwords.</p>
     ${googleBtn}
-    <div class="ui-auth__foot" style="margin-top:22px">apliteni.com accounts only. <a href="#">Need access?</a></div>
+    <div class="ui-auth__foot" style="margin-top:22px">apliteni.com accounts only.</div>
   `, 'si4'),
 };
 
