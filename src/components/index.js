@@ -48,6 +48,28 @@ export function card({ title, sub, body = '', variant, pad, icon: ic } = {}) {
   return `<div class="${cls}">${head}${body}</div>`;
 }
 
+// ---- Aurora — ambient warm backdrop --------------------------------------
+// Layered blurred glow "blobs" + optional paper grain. Colours default to the
+// accent glow tokens, so the field re-themes with the sub-theme. Drop it as the
+// first child of a positioned wrapper (or use fixed: true for full-bleed) and
+// give the real content a normal stacking context — it sits on top.
+const AURORA_PRESET = [
+  { tone: 'accent', x: '22%', y: '12%', size: '64%', delay: '0s' },
+  { tone: 'teal',   x: '84%', y: '24%', size: '56%', delay: '-9s' },
+  { tone: 'warm',   x: '54%', y: '92%', size: '70%', delay: '-17s' },
+];
+export function aurora({ blobs = AURORA_PRESET, grain = false, fixed = false, animated = true, className = '' } = {}) {
+  const items = blobs.map((b) => {
+    const tone = b.tone || 'accent';
+    const style = `--au-x:${b.x ?? '50%'};--au-y:${b.y ?? '50%'};--au-size:${b.size ?? '60%'}`
+      + (b.delay != null ? `;--au-delay:${b.delay}` : '');
+    return `<span class="ui-aurora__blob ui-aurora__blob--${tone}" style="${style}"></span>`;
+  }).join('');
+  const grainEl = grain ? '<span class="ui-aurora__grain"></span>' : '';
+  const cls = cx('ui-aurora', animated && 'ui-aurora--animated', fixed && 'ui-aurora--fixed', className);
+  return `<div class="${cls}" aria-hidden="true">${items}${grainEl}</div>`;
+}
+
 // ---- Segmented control ---------------------------------------------------
 export function segmented({ options = [], active = 0, size, block, name = 'seg' } = {}) {
   const cls = cx('ui-seg', size && `ui-seg--${size}`, block && 'ui-seg--block');

@@ -3,7 +3,18 @@
 
 export const RELEASES = [
   {
-    v: '0.2.4', date: '2026-07-20', tag: 'latest',
+    v: '0.3.0', date: '2026-07-21', tag: 'latest',
+    changes: [
+      ['added', 'Ambient aurora background — `aurora()` lays down drifting glow blobs plus an optional paper grain. Colours read the accent tokens, so it re-themes across Nebula, Phoenix, Ocean and Emerald with no per-app CSS. Full-bleed `fixed` mode; `prefers-reduced-motion` respected.'],
+      ['added', 'Accessibility CI gate — every story runs through axe (WCAG 2.0/2.1 A + AA) under `npm test`, so violations can’t regress.'],
+      ['added', 'Apliteni seedling on the Brand page alongside the kit prism, each with a size ramp.'],
+      ['fixed', 'Resolved the WCAG A/AA violations the a11y panel flagged — real labels on every input, named listboxes, `select()` factory.'],
+      ['fixed', 'Consent-card brand lockup — the mark no longer jams against the label; `.brand` is now self-contained outside the topbar.'],
+      ['changed', 'Calmer Storybook manager chrome — purple reads as a sparing accent, not a wall.'],
+    ],
+  },
+  {
+    v: '0.2.4', date: '2026-07-20',
     changes: [
       ['fixed', 'Active segmented pill now sits inside its track — the heavy card shadow was spilling past the edge and reading as overflow. New tight `--shadow-seg` token.'],
     ],
