@@ -51,6 +51,27 @@ el.innerHTML = topbar({ word: 'Strategy', account: { name, email } })
 wireTopbar(document);                          // theme toggle, menus, segmented, copy buttons
 ```
 
+### Reuse the account page
+
+The whole `/account` layout (topbar + sticky sidebar + page body) ships as one
+factory, so every product renders the same account shell instead of re-building it:
+
+```js
+import { accountShell, card, switchToggle, wireTopbar } from '@apliteni/apliteni-ui';
+
+el.innerHTML = accountShell({
+  word: 'Strategy',                              // the product word in the topbar
+  account: { name, email },                      // signed-in user (drives the avatar menu)
+  active: 'prefs',                               // which sidebar item is current
+  title: 'Preferences',
+  sub: 'How the portal looks and speaks to you.',
+  body: card({ title: 'Appearance', body: switchToggle({ label: 'Reduce motion' }) }),
+});
+wireTopbar(el);                                  // menus, theme toggle, segmented controls
+
+// Custom sidebar nav? pass `nav: [['prefs','gear','Preferences'], ['billing','wallet','Billing']]`
+```
+
 Server-rendered apps that inline CSS (like the strategy portal) import the stylesheet
 as **strings** instead:
 
