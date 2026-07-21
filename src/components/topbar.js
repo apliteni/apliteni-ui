@@ -26,15 +26,19 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
     `<div class="vsw__menu" role="listbox">${opts}</div></div>`;
 }
 
-export function accountMenu({ name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs' } = {}) {
+// `nav` ([id, icon, label, href?, target?][]) mirrors the account sidebar so the
+// dropdown and the sidebar stay in sync; falls back to the default two items.
+export function accountMenu({ name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs', nav } = {}) {
   const ini = (email.split('@')[0].split(/[._-]+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('') || '?').toUpperCase();
-  const it = (id, ic, label) => `<a href="#${id}"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
+  const items = nav && nav.length ? nav : [['prefs', 'gear', 'Preferences'], ['access', 'key', 'Access &amp; agents']];
+  const it = ([id, ic, label, href, target]) =>
+    `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''}${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
   // `on` so the menu is visible in Storybook / standalone use (no /auth/me gate).
   return `<div class="acct on" data-acct>` +
     `<button class="avatar" data-acct-btn aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
     `<div class="amenu" role="menu">` +
     `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${email}">${email}</span></span></div>` +
-    it('prefs', 'gear', 'Preferences') + it('access', 'key', 'Access &amp; agents') +
+    items.map(it).join('') +
     `<div class="asep"></div><a class="aout" href="#logout" role="menuitem">${icon('logout')}Sign out</a>` +
     `</div></div>`;
 }

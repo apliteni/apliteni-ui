@@ -32,7 +32,7 @@ export function accountShell({
 } = {}) {
   return `<div style="position:relative;overflow:hidden;min-height:100vh">
     <span class="ui-glow ui-glow--purple" style="top:-120px;right:6%;opacity:.35"></span>
-    ${topbar({ word, view: 'text', versions, account: { ...account, active } })}
+    ${topbar({ word, view: 'text', versions, account: { ...account, active, nav } })}
     <div class="ui-shell">
       ${sidebar(nav, active)}
       <div class="ui-shell__page">
