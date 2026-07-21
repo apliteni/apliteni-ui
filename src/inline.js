@@ -24,6 +24,7 @@ export const topbarCss = read('styles/topbar.css');
 // Individual component stylesheets, addressable by name.
 export const styles = {
   base: baseCss,
+  aurora: read('styles/aurora.css'),
   button: read('styles/button.css'),
   card: read('styles/card.css'),
   badge: read('styles/badge.css'),
@@ -41,6 +42,7 @@ export const styles = {
 export const cssText = [
   tokensCss,
   styles.base,
+  styles.aurora,
   styles.button,
   styles.card,
   styles.badge,
