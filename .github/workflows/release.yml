@@ -1,8 +1,12 @@
 name: Release
 
-# Publish @apliteni/apliteni-ui to GitHub Packages when a GitHub Release is
-# published. Bump the version + tag first (npm version <patch|minor|major>),
+# Publish @apliteni/apliteni-ui to the PUBLIC npm registry when a GitHub Release
+# is published. Bump the version + tag first (npm version <patch|minor|major>),
 # push the tag, then cut a Release for it.
+#
+# ONE-TIME SETUP (see issue #1): claim the @apliteni org on npmjs.com, create an
+# automation (publish) token, and add it as the NPM_TOKEN repo secret. Until that
+# secret exists the publish step is skipped — the release still succeeds.
 on:
   release:
     types: [published]
@@ -10,7 +14,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   publish:
@@ -20,9 +23,16 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
-          registry-url: https://npm.pkg.github.com
+          registry-url: https://registry.npmjs.org
           scope: '@apliteni'
+      - name: Detect NPM_TOKEN
+        id: tok
+        run: echo "has=${{ secrets.NPM_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
       - name: Publish
+        if: steps.tok.outputs.has == 'true'
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Skipped (no token yet)
+        if: steps.tok.outputs.has != 'true'
+        run: echo "::notice::NPM_TOKEN is not set — skipping publish. Add the secret (issue #1) to enable public npm publishing."
