@@ -73,16 +73,57 @@ export function accentPicker({ active = 'default', options = ['default', 'phoeni
 }
 
 // ---- Field / input -------------------------------------------------------
-export function field({ label, hint, error, control } = {}) {
-  return `<div class="ui-field">${label ? `<label class="ui-field__label">${esc(label)}</label>` : ''}${control || ''}${error ? `<div class="ui-field__error">${icon('alert')}${esc(error)}</div>` : hint ? `<div class="ui-field__hint">${esc(hint)}</div>` : ''}</div>`;
+// Auto-generated ids let field() tie its <label for> to the control it wraps.
+// A module counter (never Date/random) keeps ids unique within a rendered page.
+let _uid = 0;
+const nextId = (p = 'ui') => `${p}-${++_uid}`;
+// Give the first form control in `html` an id (or reuse one it already carries)
+// so a <label> can point at it. Returns { html, id }; id is null if there's no
+// form element to name.
+function withControlId(html) {
+  const existing = html.match(/<(?:input|textarea|select)\b[^>]*\bid="([^"]+)"/);
+  if (existing) return { html, id: existing[1] };
+  let id = null;
+  const out = html.replace(/<(input|textarea|select)\b/, (m) => { id = nextId('field'); return `${m} id="${id}"`; });
+  return { html: out, id };
 }
-export function input({ type = 'text', placeholder = '', value = '', icon: ic, invalid, disabled, name } = {}) {
-  const el = `<input class="${cx('ui-input', invalid && 'is-invalid')}" type="${type}" placeholder="${esc(placeholder)}" value="${esc(value)}"${name ? ` name="${name}"` : ''}${disabled ? ' disabled' : ''}>`;
+
+export function field({ label, hint, error, control = '', id } = {}) {
+  let ctl = control;
+  let forId = id;
+  if (label && control) {
+    const r = withControlId(control);
+    ctl = r.html;
+    forId = id || r.id;
+  }
+  const lab = label
+    ? `<label class="ui-field__label"${forId ? ` for="${forId}"` : ''}>${esc(label)}</label>`
+    : '';
+  const foot = error
+    ? `<div class="ui-field__error">${icon('alert')}${esc(error)}</div>`
+    : hint ? `<div class="ui-field__hint">${esc(hint)}</div>` : '';
+  return `<div class="ui-field">${lab}${ctl}${foot}</div>`;
+}
+// `ariaLabel` gives a standalone control (no wrapping field) an accessible name.
+export function input({ type = 'text', placeholder = '', value = '', icon: ic, invalid, disabled, name, id, ariaLabel } = {}) {
+  const attrs = `${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}${disabled ? ' disabled' : ''}`;
+  const el = `<input class="${cx('ui-input', invalid && 'is-invalid')}" type="${type}" placeholder="${esc(placeholder)}" value="${esc(value)}"${attrs}>`;
   if (!ic) return el;
   return `<div class="ui-input-group"><span class="ui-input-group__icon">${icon(ic)}</span>${el}</div>`;
 }
-export function textarea({ placeholder = '', value = '', rows = 4 } = {}) {
-  return `<textarea class="ui-textarea" rows="${rows}" placeholder="${esc(placeholder)}">${esc(value)}</textarea>`;
+export function textarea({ placeholder = '', value = '', rows = 4, name, id, ariaLabel } = {}) {
+  return `<textarea class="ui-textarea" rows="${rows}" placeholder="${esc(placeholder)}"${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}>${esc(value)}</textarea>`;
+}
+// Native <select>. Pass a `label` via field() or an `ariaLabel` for a bare one —
+// a select with neither has no accessible name.
+export function select({ options = [], value, name, id, ariaLabel, disabled } = {}) {
+  const opts = options.map((o) => {
+    const label = typeof o === 'string' ? o : o.label;
+    const val = typeof o === 'string' ? o : (o.value ?? o.label);
+    const sel = value != null && String(val) === String(value);
+    return `<option value="${esc(val)}"${sel ? ' selected' : ''}>${esc(label)}</option>`;
+  }).join('');
+  return `<select class="ui-select"${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}${disabled ? ' disabled' : ''}>${opts}</select>`;
 }
 export function checkbox({ label, checked, type = 'checkbox', name } = {}) {
   return `<label class="ui-check"><input type="${type}"${name ? ` name="${name}"` : ''}${checked ? ' checked' : ''}><span>${label}</span></label>`;

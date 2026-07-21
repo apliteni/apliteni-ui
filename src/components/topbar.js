@@ -2,6 +2,7 @@
 // (brand, Deck/Text, theme toggle, version switcher, account menu).
 import { brand } from '../assets/brand.js';
 import { icon, sun, moon } from '../assets/icons.js';
+import { esc } from './index.js';
 
 const THEME_KEY = 'apliteni-strategy-theme';
 
@@ -18,12 +19,12 @@ export function deckTextSwitch(active = 'deck') {
 export function versionSwitcher(versions = [], activeIdx = 0) {
   const cur = versions[activeIdx]?.label || '';
   const opts = versions.map((v, i) =>
-    `<div class="vopt" role="option" data-active="${i === activeIdx ? '1' : '0'}">` +
+    `<div class="vopt" role="option" aria-selected="${i === activeIdx}" data-active="${i === activeIdx ? '1' : '0'}">` +
     `<span><div class="vname">${v.label}</div><div class="vmeta">${v.meta || ''}</div></span>` +
     `<span class="vbadge ${v.badge === 'live' ? 'live' : 'arch'}">${v.badge || 'archive'}</span></div>`).join('');
-  return `<div class="vsw" data-vsw><button class="vsw__btn" aria-haspopup="listbox" aria-expanded="false">` +
+  return `<div class="vsw" data-vsw><button class="vsw__btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Version — ${esc(cur)}">` +
     `<span class="lbl">version:</span><span class="cur">${cur}</span><span class="car"></span></button>` +
-    `<div class="vsw__menu" role="listbox">${opts}</div></div>`;
+    `<div class="vsw__menu" role="listbox" aria-label="Version">${opts}</div></div>`;
 }
 
 // `nav` ([id, icon, label, href?, target?][]) mirrors the account sidebar so the
