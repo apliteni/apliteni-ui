@@ -21,16 +21,22 @@
   align-items: center;
   gap: 14px;
 }
-.topbar .brand {
+/* Brand lockup (mark + wordmark) — self-contained so the mark stays optically
+   centered with the word, with an even gap, in ANY context (topbar, auth cards,
+   consent). These rules used to be scoped to `.topbar`, so a lockup dropped into
+   the consent/auth card fell back to inline layout: the mark rode the text
+   baseline with no gap between it and the word. */
+.brand {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  font-size: 13px;
   font-weight: 600;
   color: var(--strong);
   text-decoration: none;
 }
-.topbar .brand svg { display: block; flex: none; }
+.brand svg { display: block; flex: none; }
+/* Topbar wordmark runs a touch smaller than the auth-card lockup. */
+.topbar .brand { font-size: 13px; }
 .topbar .spacer { flex: 1; }
 
 /* Deck / Text (segmented, pill) */
