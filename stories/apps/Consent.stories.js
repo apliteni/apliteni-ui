@@ -17,7 +17,7 @@ const shell = (inner, prefix) => `
     <span class="ui-glow ui-glow--purple" style="top:-60px;right:16%"></span>
     <span class="ui-glow ui-glow--green" style="bottom:-90px;left:12%;width:300px;height:300px"></span>
     <div class="ui-auth__card" style="max-width:440px">
-      <div class="ui-auth__brand">${brand({ p: prefix, word: 'Strategy', href: '#' })}</div>
+      <div class="ui-auth__brand">${brand({ p: prefix, word: 'apliteni-ui', href: '#' })}</div>
       ${inner}
     </div>
   </div>`;
@@ -30,10 +30,10 @@ export const Grant = {
       <div style="display:flex;align-items:center;gap:9px;color:var(--muted);font-size:18px">${icon('arrowRight')}</div>
       <span style="width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#2b6b4b,#1d4a5e);color:#fff;display:grid;place-items:center;font:600 14px Poppins">AL</span>
     </div>
-    <h1 class="ui-auth__title" style="font-size:21px"><b style="color:var(--accent);font-weight:600">Research bot</b> wants to access your strategy</h1>
+    <h1 class="ui-auth__title" style="font-size:21px"><b style="color:var(--accent);font-weight:600">Research bot</b> wants to read your account</h1>
     <p class="ui-auth__sub">Signed in as <b style="color:var(--dim)">ada@apliteni.com</b>. This agent is asking to:</p>
     <div class="ui-scopes">
-      ${scope('compass', 'Read the strategy', 'View the current strategy deck, text and version history.')}
+      ${scope('compass', 'Read your content', 'View the content and version history your account can see.')}
       ${scope('key', 'Read as you', 'Access the same content your account can see — nothing more.')}
     </div>
     <div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;margin:14px 0 22px">
@@ -52,7 +52,7 @@ export const Granted = {
     <div class="ui-success" style="background:transparent;padding:16px 0 6px">
       <div class="ui-success__check">${icon('check')}</div>
       <div class="ui-success__title">Access granted</div>
-      <div class="ui-success__sub" style="max-width:34ch;margin:0 auto">Research bot can now read your strategy. You can revoke it anytime.</div>
+      <div class="ui-success__sub" style="max-width:34ch;margin:0 auto">Research bot can now read your account. You can revoke it anytime.</div>
     </div>
     <div style="margin-top:22px">${button({ label: 'Manage agents', variant: 'secondary', block: true, iconRight: 'arrowRight' })}</div>
     <div class="ui-auth__foot" style="margin-top:16px">You can close this window and return to your agent.</div>

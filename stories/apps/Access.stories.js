@@ -1,4 +1,4 @@
-import { accountShell } from './_accountShell.js';
+import { appShell } from './_appShell.js';
 import { card, button, badge, input, snippet, hlShell, callout, icon } from '../../src/components/index.js';
 
 export default {
@@ -29,15 +29,14 @@ const tokenTable = () => `
   </table>`;
 
 export const Default = {
-  render: () => accountShell({
+  render: () => appShell({
     active: 'access',
-    crumb: 'Access &amp; agents',
-    title: 'Access &amp; agents',
-    sub: 'Connect agents to read the strategy over MCP. Each gets a scoped, revocable token.',
+    crumb: 'Account / Access & agents',
+    title: 'Access & agents',
+    sub: 'Connect agents to read over MCP. Each gets a scoped, revocable token.',
     body: `
-      ${card({ title: `Connect over MCP ${badge('Live', 'live')}`, icon: 'plug', sub: 'Paste this into your agent. It reads the strategy as you — read-only.',
-        body: snippet({ label: 'Terminal', code: hlShell('claude mcp add strategy \\\n  --url "https://strategy.apli.tech/mcp" \\\n  --header "Authorization: Bearer $TOKEN"') }) })}
-
+      ${card({ title: `Connect over MCP ${badge('Live', 'live')}`, icon: 'plug', sub: 'Paste this into your agent. It reads as you — read-only.',
+        body: snippet({ label: 'Terminal', code: hlShell('claude mcp add apliteni \\\n  --url "https://ui.apli.tech/mcp" \\\n  --header "Authorization: Bearer $TOKEN"') }) })}
       ${card({ title: 'Your agents', body: `
         ${tokenTable()}
         <div style="display:flex;gap:10px;margin-top:20px">
@@ -51,11 +50,9 @@ export const Default = {
 
 export const NewToken = {
   name: 'New token revealed',
-  render: () => accountShell({
-    active: 'access',
-    crumb: 'Access &amp; agents',
-    title: 'Access &amp; agents',
-    sub: 'Connect agents to read the strategy over MCP.',
+  render: () => appShell({
+    active: 'access', crumb: 'Account / Access & agents', title: 'Access & agents',
+    sub: 'Connect agents to read over MCP.',
     body: `
       ${card({ variant: 'live', title: `Token created ${badge('Copy now', 'warn')}`, icon: 'key',
         sub: "This is the only time you'll see it. Paste it into your agent's config.",
@@ -67,20 +64,18 @@ export const NewToken = {
 };
 
 export const Empty = {
-  render: () => accountShell({
-    active: 'access',
-    crumb: 'Access &amp; agents',
-    title: 'Access &amp; agents',
-    sub: 'Connect agents to read the strategy over MCP.',
+  render: () => appShell({
+    active: 'access', crumb: 'Account / Access & agents', title: 'Access & agents',
+    sub: 'Connect agents to read over MCP.',
     body: `
       ${callout({ variant: 'info', icon: 'info', body: 'No agents yet. Create a token, then paste the connect command into your agent.' })}
-      <div style="margin-top:20px">${card({ body: `
+      ${card({ body: `
         <div class="ui-empty">
           <div class="ui-empty__icon">${icon('plug')}</div>
           <div class="ui-empty__title">No agents connected yet</div>
           <div class="ui-empty__sub">Create a token and paste the MCP connect command into your agent to get started.</div>
           <div style="margin-top:18px">${button({ label: 'Create token', variant: 'primary', icon: 'key' })}</div>
-        </div>` })}</div>
+        </div>` })}
     `,
   }),
 };
