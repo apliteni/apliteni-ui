@@ -45,6 +45,24 @@ Add it to the toolbar (`.storybook/preview.js` globalTypes.accent), the
 `accentPicker()` swatches, and the `Sub-themes` story maps. Verify contrast of the
 primary button (`--accent` bg × `--accent-contrast` text) in both themes.
 
+## Brand tokens (synced from design-system)
+
+`src/tokens/brand.generated.css` is **generated — never hand-edit it.** It holds
+the Apliteni umbrella-brand colour primitives (`--color-apliteni-*`: the violet
+and supporting ramps), owned upstream by
+[`apliteni/design-system`](https://github.com/apliteni/design-system) and served
+at `style.apliteni.com`. Every push to that repo's `main` opens a CI-gated PR here
+that rewrites this one file (RFC #42, Option B).
+
+- To change a **brand** colour: edit it upstream, not here. The sync PR follows.
+- To refresh locally: `npm run tokens:sync -- --url https://style.apliteni.com/tokens.css`
+  (or `--from <path>/dist/tokens.css` against a local checkout). `npm run tokens:check`
+  fails if the file is stale.
+- Our **semantic** tokens (`--bg`, `--surface`, `--accent`, signal colours) stay
+  hand-authored in `tokens.css`. The purple deck theme is a deliberate product
+  choice, so it may diverge from the brand palette. `npm run tokens:drift` prints
+  where — expected, not a bug.
+
 ## Release
 
 ```bash

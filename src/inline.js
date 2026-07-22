@@ -11,9 +11,13 @@ import { readFileSync } from 'node:fs';
 
 const read = (rel) => readFileSync(new URL(`./${rel}`, import.meta.url), 'utf8');
 
-// Tokens = base scale + dark/light + accent sub-themes. The single source for
-// every `:root{ --… }` definition. Replaces hand-inlined token blocks.
-export const tokensCss = read('tokens/tokens.css') + '\n' + read('tokens/accents.css');
+// Tokens = brand primitives (synced from design-system) + base scale +
+// dark/light + accent sub-themes. The single source for every `:root{ --… }`
+// definition. brand.generated.css goes first so the cascade is right.
+export const tokensCss =
+  read('tokens/brand.generated.css') + '\n' +
+  read('tokens/tokens.css') + '\n' +
+  read('tokens/accents.css');
 
 // Base reset, ambient glow, focus ring, default icon sizing.
 export const baseCss = read('styles/base.css');
