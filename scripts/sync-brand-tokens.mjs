@@ -55,12 +55,17 @@ async function loadSource() {
   return { css: await res.text(), origin: url };
 }
 
-/** Keep only the `--color-apliteni-*` declarations — the brand primitives. */
-function extractBrandColors(css) {
+/**
+ * Keep the brand primitives: the `--color-apliteni-*` palette plus the motion
+ * vocabulary (`--duration-*`, `--easing-*`). Deliberately drop the upstream's
+ * generic `--radius/--space/--shadow/--font` — those are apliteni-ui's own.
+ * The motion names don't collide with the kit's `--ease`/`--dur-*`.
+ */
+function extractBrandPrimitives(css) {
   return css
     .split('\n')
     .map((l) => l.trim())
-    .filter((l) => /^--color-apliteni-[\w-]+:/.test(l))
+    .filter((l) => /^--(color-apliteni|duration|easing)-[\w-]+:/.test(l))
     .map((l) => '  ' + l);
 }
 
@@ -72,10 +77,10 @@ function render(lines, { origin, sha }) {
  * Synced from ${src}
  * via: npm run tokens:sync
  *
- * These are the Apliteni umbrella-brand colour primitives (violet + supporting
- * ramps). The upstream owns them; edit them there, not here. Our semantic
- * tokens (--bg, --surface, --accent, ...) live in tokens.css and may reference
- * these over time. Run \`npm run tokens:drift\` to see where they diverge.
+ * The Apliteni umbrella-brand primitives: colour ramps + motion vocabulary
+ * (--duration-*, --easing-*). The upstream owns them; edit them there, not here.
+ * Our semantic tokens (--bg, --surface, --accent, ...) live in tokens.css and may
+ * reference these over time. Run \`npm run tokens:drift\` to see where they diverge.
  * ========================================================================== */
 :root {
 ${lines.join('\n')}
@@ -85,8 +90,8 @@ ${lines.join('\n')}
 
 async function main() {
   const { css, origin } = await loadSource();
-  const lines = extractBrandColors(css);
-  if (lines.length === 0) throw new Error('No --color-apliteni-* tokens found in source.');
+  const lines = extractBrandPrimitives(css);
+  if (lines.length === 0) throw new Error('No --color-apliteni-* / motion tokens found in source.');
   const sha = arg('--sha');
   const next = render(lines, { origin, sha });
 

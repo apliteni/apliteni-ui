@@ -1,15 +1,27 @@
 /* ============================================================================
  * apliteni-ui — BRAND PRIMITIVES (generated, do not edit)
  *
- * Synced from apliteni/design-system@f5c9815
+ * Synced from apliteni/design-system@8e97c67
  * via: npm run tokens:sync
  *
- * These are the Apliteni umbrella-brand colour primitives (violet + supporting
- * ramps). The upstream owns them; edit them there, not here. Our semantic
- * tokens (--bg, --surface, --accent, ...) live in tokens.css and may reference
- * these over time. Run `npm run tokens:drift` to see where they diverge.
+ * The Apliteni umbrella-brand primitives: colour ramps + motion vocabulary
+ * (--duration-*, --easing-*). The upstream owns them; edit them there, not here.
+ * Our semantic tokens (--bg, --surface, --accent, ...) live in tokens.css and may
+ * reference these over time. Run `npm run tokens:drift` to see where they diverge.
  * ========================================================================== */
 :root {
+  --duration-instant: 80ms; /** Micro-interactions: checkbox tick, ripple. */
+  --duration-fast: 150ms; /** Hover states, button feedback. */
+  --duration-normal: 250ms; /** Panel open, dropdown, tooltip. */
+  --duration-slow: 400ms; /** Modal enter, page transition. */
+  --duration-slower: 600ms; /** Complex layout shifts, onboarding. */
+  --duration-crawl: 1000ms; /** Skeleton loaders, ambient loops. */
+  --easing-linear: linear; /** Progress bars, continuous animations. */
+  --easing-ease-in: cubic-bezier(0.4, 0, 1, 1); /** Elements leaving the screen. */
+  --easing-ease-out: cubic-bezier(0, 0, 0.2, 1); /** Elements entering the screen. */
+  --easing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /** Symmetrical transitions (e.g. toggle). */
+  --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /** Playful overshoot — modals, cards. */
+  --easing-sharp: cubic-bezier(0.4, 0, 0.6, 1); /** Snappy dismiss, collapse. */
   --color-apliteni-primary-black: #121212; /** Primary black. */
   --color-apliteni-primary-violet: #914dff; /** Primary violet. */
   --color-apliteni-primary-white: #ffffff; /** Primary white. */
