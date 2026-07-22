@@ -30,13 +30,16 @@ const dark = create({
   colorPrimary: '#9b5dff',
   colorSecondary: '#9b5dff',
 
-  appBg: '#16151f',
-  appContentBg: '#16151f',
+  // Chrome rides one step up on --bg-elevated so the sidebar/bars read as raised;
+  // the story well stays on the deepest --bg. Borders lifted to --border-strong
+  // for definition so the panels don't dissolve into one black slab.
+  appBg: '#1c1a28',
+  appContentBg: '#1c1a28',
   appPreviewBg: '#16151f',
-  appBorderColor: '#332f45',
+  appBorderColor: '#453f5c',
   appBorderRadius: 10,
 
-  barBg: '#1b1927',
+  barBg: '#221f2e',
   barTextColor: '#948fa8',
   barHoverColor: '#e9e7f0',
   barSelectedColor: '#9b5dff',
