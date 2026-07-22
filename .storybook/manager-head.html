@@ -48,4 +48,15 @@
   html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] svg[type="story"] {
     color: #6a2dcc !important;
   }
+
+  /* Global toolbar toggles — the Theme + Accent labels ("Light",
+     "Nebula (purple)", etc.). Storybook's Button base paints every toolbar
+     IconButton at typography.weight.bold, so the active toggle labels render
+     bold and shout over the sidebar. Drop them to the kit's regular UI weight
+     so they read as quiet chrome. The [data-test-id] + element selector
+     out-specifies emotion's single-class rule, so no !important — and it's
+     theme-agnostic, so it covers both dark and light chrome. */
+  [data-test-id="sb-preview-toolbar"] button {
+    font-weight: 500;
+  }
 </style>
