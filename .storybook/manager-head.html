@@ -7,8 +7,8 @@
      selected row with the theme accent (colorSecondary), which flooded the
      sidebar with purple. Keep purple as a sparing signal instead: mute the row
      icons to neutral, and turn the selected pill from a solid electric fill into
-     a soft tint with a slim accent marker. The id-scoped selectors out-specify
-     Storybook's own emotion styles, so no !important needed. */
+     a soft tinted pill. The id-scoped selectors out-specify Storybook's own
+     emotion styles, so no !important needed. */
 
   /* Row type icons → neutral, so colour marks selection, not every row. */
   #storybook-explorer-tree svg[type="component"],
@@ -16,12 +16,12 @@
     color: #8b86a0;
   }
 
-  /* Selected row → soft tint + slim marker instead of a solid electric fill.
-     Storybook paints the pill on the .sidebar-item wrapper (emotion insertRule),
-     so tint the wrapper and let the inner <a> go transparent. */
+  /* Selected row → soft tinted pill instead of a solid electric fill. Storybook
+     paints the pill on the .sidebar-item wrapper (emotion insertRule), so tint
+     the wrapper and let the inner <a> go transparent. The tint + rounded pill
+     carry selection on their own — no left accent line hanging off the edge. */
   #storybook-explorer-tree .sidebar-item[data-selected="true"] {
     background: rgba(155, 93, 255, 0.13) !important;
-    box-shadow: inset 2px 0 0 #9b5dff !important;
     border-radius: 6px;
   }
   #storybook-explorer-tree .sidebar-item[data-selected="true"] > a[id] {
@@ -41,7 +41,6 @@
   }
   html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] {
     background: rgba(106, 45, 204, 0.10) !important;
-    box-shadow: inset 2px 0 0 #6a2dcc !important;
   }
   html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] > a[id] {
     color: #0c0e13 !important;
