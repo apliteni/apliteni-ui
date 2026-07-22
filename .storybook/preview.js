@@ -20,7 +20,7 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Iconography', 'Brand'],
-          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Inputs', 'Switch & Checkbox', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
+          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
         ],
       },
