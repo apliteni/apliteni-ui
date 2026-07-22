@@ -40,6 +40,7 @@ export const styles = {
   footer: read('styles/footer.css'),
   layout: read('styles/layout.css'),
   feedback: read('styles/feedback.css'),
+  success: read('styles/success.css'),
 };
 
 // Everything, in the same order as index.css. `tokensCss` first so cascade is right.
@@ -62,4 +63,5 @@ export const cssText = [
   styles.footer,
   styles.layout,
   styles.feedback,
+  styles.success,
 ].join('\n');
