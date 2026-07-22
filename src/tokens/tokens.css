@@ -73,7 +73,7 @@
   /* -- Motion -------------------------------------------------------------
    * Durations + easings are the Apliteni brand's motion vocabulary, synced
    * from design-system into brand.generated.css (--duration-*, --easing-*).
-   * The kit's legacy --dur-*/--ease names alias onto them, so every existing
+   * The kit's legacy --dur-* and --ease names alias onto them, so every existing
    * component transitively consumes the brand primitives — one vocabulary,
    * zero drift. Fallbacks keep tokens.css self-sufficient when imported
    * without brand.generated.css. Delays are the kit's own (not a brand
