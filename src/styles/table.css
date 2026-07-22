@@ -59,18 +59,5 @@
 .ui-table__num--strong { color: var(--strong); font-weight: var(--weight-semibold); }
 .ui-table__code { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--muted); }
 
-/* Empty state inside a table area */
-.ui-empty {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--muted);
-}
-.ui-empty__icon {
-  width: 44px; height: 44px;
-  margin: 0 auto 14px;
-  color: var(--muted);
-  opacity: 0.6;
-}
-.ui-empty__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.5; }
-.ui-empty__title { color: var(--text); font-size: var(--text-md); font-weight: var(--weight-medium); margin-bottom: 5px; }
-.ui-empty__sub { font-size: var(--text-sm); max-width: 320px; margin: 0 auto; line-height: 1.55; }
+/* The empty state (.ui-empty) — shown when a table/list has no rows — now
+   lives in styles/empty.css as a standalone component (illustration support). */

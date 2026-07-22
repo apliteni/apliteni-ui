@@ -1,0 +1,84 @@
+/* ============================================================================
+ * Empty state — the placeholder shown when a list, table or page has no rows.
+ * A duotone spot illustration (in the active accent, with a brand-green spark),
+ * a title, an optional line of guidance, and an optional action.
+ *
+ * Markup:
+ *   <div class="ui-empty">
+ *     <div class="ui-empty__art"><svg class="ui-illo">…</svg></div>
+ *     <div class="ui-empty__title">No people yet</div>
+ *     <div class="ui-empty__sub">Contractors and staff you add show up here.</div>
+ *     <div class="ui-empty__actions"><button class="ui-btn ui-btn--primary">…</button></div>
+ *   </div>
+ *
+ * Illustrations live in assets/illustrations.js; emptyState() in components
+ * assembles the block. The legacy line-icon slot (.ui-empty__icon) still works.
+ * ========================================================================== */
+
+.ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+  color: var(--muted);
+}
+
+/* Duotone illustration slot. */
+.ui-empty__art {
+  margin-bottom: 4px;
+}
+.ui-illo {
+  display: block;
+}
+.ui-illo__stroke {
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ui-illo__fill {
+  fill: color-mix(in srgb, var(--accent) 13%, transparent);
+  stroke: none;
+}
+.ui-illo__spark {
+  fill: var(--illo-spark, #12a150);
+  stroke: none;
+}
+
+.ui-empty__title {
+  color: var(--text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  margin: 2px 0 0;
+}
+.ui-empty__sub {
+  font-size: var(--text-sm);
+  max-width: 340px;
+  margin: 0;
+  line-height: 1.55;
+}
+.ui-empty__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+/* Legacy line-icon slot — kept so existing .ui-empty__icon markup still works. */
+.ui-empty__icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 14px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+.ui-empty__icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
