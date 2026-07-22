@@ -3,6 +3,7 @@
 import { brand } from '../assets/brand.js';
 import { icon, sun, moon } from '../assets/icons.js';
 import { esc } from './index.js';
+import { wireDropdown } from './dropdown.js';
 
 const THEME_KEY = 'apliteni-strategy-theme';
 
@@ -16,15 +17,18 @@ export function deckTextSwitch(active = 'deck') {
     `<a${active === 'text' ? ' class="cur" aria-current="page"' : ''} href="#text">Text</a></div>`;
 }
 
+// Thin consumer of the shared dropdown wiring (wireDropdown): keeps its own
+// bespoke .vsw/.vopt classes for a pixel-identical look, but emits the generic
+// [data-dropdown] hooks so there's ONE open/close/keyboard implementation.
 export function versionSwitcher(versions = [], activeIdx = 0) {
   const cur = versions[activeIdx]?.label || '';
   const opts = versions.map((v, i) =>
-    `<div class="vopt" role="option" aria-selected="${i === activeIdx}" data-active="${i === activeIdx ? '1' : '0'}">` +
+    `<div class="vopt" role="option" data-dd-item tabindex="-1" aria-selected="${i === activeIdx}" data-active="${i === activeIdx ? '1' : '0'}">` +
     `<span><div class="vname">${v.label}</div><div class="vmeta">${v.meta || ''}</div></span>` +
     `<span class="vbadge ${v.badge === 'live' ? 'live' : 'arch'}">${v.badge || 'archive'}</span></div>`).join('');
-  return `<div class="vsw" data-vsw><button class="vsw__btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Version — ${esc(cur)}">` +
+  return `<div class="vsw" data-dropdown><button type="button" class="vsw__btn" data-dropdown-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Version — ${esc(cur)}">` +
     `<span class="lbl">version:</span><span class="cur">${cur}</span><span class="car"></span></button>` +
-    `<div class="vsw__menu" role="listbox" aria-label="Version">${opts}</div></div>`;
+    `<div class="vsw__menu" data-dropdown-panel role="listbox" aria-label="Version">${opts}</div></div>`;
 }
 
 // `nav` ([id, icon, label, href?, target?][]) mirrors the account sidebar so the
@@ -33,14 +37,15 @@ export function accountMenu({ name = 'Ada Lovelace', email = 'ada@apliteni.com',
   const ini = (email.split('@')[0].split(/[._-]+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('') || '?').toUpperCase();
   const items = nav && nav.length ? nav : [['prefs', 'gear', 'Preferences'], ['access', 'key', 'Access &amp; agents']];
   const it = ([id, ic, label, href, target]) =>
-    `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''}${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
+    `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''} data-dd-item tabindex="-1"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
   // `on` so the menu is visible in Storybook / standalone use (no /auth/me gate).
-  return `<div class="acct on" data-acct>` +
-    `<button class="avatar" data-acct-btn aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
-    `<div class="amenu" role="menu">` +
+  // Consumes the shared dropdown wiring via the generic [data-dropdown] hooks.
+  return `<div class="acct on" data-dropdown>` +
+    `<button class="avatar" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
+    `<div class="amenu" data-dropdown-panel role="menu">` +
     `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${email}">${email}</span></span></div>` +
     items.map(it).join('') +
-    `<div class="asep"></div><a class="aout" href="#logout" role="menuitem">${icon('logout')}Sign out</a>` +
+    `<div class="asep"></div><a class="aout" href="#logout" data-dd-item tabindex="-1" role="menuitem">${icon('logout')}Sign out</a>` +
     `</div></div>`;
 }
 
@@ -109,13 +114,9 @@ export function wireTopbar(root = document) {
       b.setAttribute('aria-selected', 'true');
     });
   });
-  // Version switcher + account menu (open/close)
-  const toggleOpen = (el, btn) => (e) => { e.stopPropagation(); const o = el.classList.toggle('open'); btn?.setAttribute('aria-expanded', o ? 'true' : 'false'); };
-  root.querySelectorAll('[data-vsw]').forEach((vsw) => { const b = vsw.querySelector('.vsw__btn'); b?.addEventListener('click', toggleOpen(vsw, b)); });
-  root.querySelectorAll('[data-acct]').forEach((ac) => { const b = ac.querySelector('[data-acct-btn]'); b?.addEventListener('click', toggleOpen(ac, b)); });
-  document.addEventListener('click', () => {
-    root.querySelectorAll('[data-vsw].open,[data-acct].open').forEach((el) => el.classList.remove('open'));
-  });
+  // Version switcher + account menu — the shared dropdown wiring (open/close +
+  // click-outside + Esc + keyboard nav). One implementation for the whole kit.
+  wireDropdown(root);
   // Accent pickers
   root.querySelectorAll('[data-accent-pick]').forEach((chip) => {
     chip.addEventListener('click', () => {
