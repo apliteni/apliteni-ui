@@ -1,6 +1,7 @@
 // apliteni-ui component factories — each returns an HTML string, matching the
 // viz/ server-render idiom so the portal can adopt them with no framework.
 import { icon } from '../assets/icons.js';
+import { illo } from '../assets/illustrations.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -192,6 +193,21 @@ export function successPanel({ title = 'Done', sub = '' } = {}) {
   return `<div class="ui-success"><div class="ui-success__check">${icon('check')}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
 }
 
+// ---- Empty state ---------------------------------------------------------
+// The placeholder for an empty list/table/page. Pass `art` as an illustration
+// name (see illustrations.js) or raw <svg> markup; a legacy line `icon` name is
+// also accepted. `actions` is trusted button markup (e.g. button({…})).
+export function emptyState({ art, icon: ic, title, sub, actions } = {}) {
+  const artHtml = art
+    ? `<div class="ui-empty__art">${/<svg/.test(art) ? art : illo(art)}</div>`
+    : ic ? `<div class="ui-empty__icon">${icon(ic)}</div>` : '';
+  return `<div class="ui-empty">${artHtml}`
+    + `${title ? `<div class="ui-empty__title">${esc(title)}</div>` : ''}`
+    + `${sub ? `<div class="ui-empty__sub">${esc(sub)}</div>` : ''}`
+    + `${actions ? `<div class="ui-empty__actions">${actions}</div>` : ''}`
+    + `</div>`;
+}
+
 // ---- Snippet -------------------------------------------------------------
 export function snippet({ label = 'shell', code = '', reveal = false, copy = true } = {}) {
   return `<div class="${cx('ui-snippet', reveal && 'ui-snippet--reveal')}"><div class="ui-snippet__bar"><span>${esc(label)}</span>${copy ? `<button class="ui-snippet__copy">${icon('copy')}Copy</button>` : ''}</div><pre>${code}</pre></div>`;
@@ -212,3 +228,4 @@ export const hlShell = (raw) =>
   );
 
 export { icon };
+export { illo, illoNames } from '../assets/illustrations.js';
