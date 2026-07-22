@@ -31,4 +31,22 @@
   #storybook-explorer-tree .sidebar-item[data-selected="true"] svg[type="story"] {
     color: #b479ff !important;
   }
+
+  /* Light chrome — manager.js stamps data-sbtheme="light" on <html> when the
+     Theme toolbar flips. Retune the same tints for a white sidebar so the
+     selected pill and neutral icons still read (the dark values wash out). */
+  html[data-sbtheme="light"] #storybook-explorer-tree svg[type="component"],
+  html[data-sbtheme="light"] #storybook-explorer-tree svg[type="group"] {
+    color: #8890a0;
+  }
+  html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] {
+    background: rgba(106, 45, 204, 0.10) !important;
+    box-shadow: inset 2px 0 0 #6a2dcc !important;
+  }
+  html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] > a[id] {
+    color: #0c0e13 !important;
+  }
+  html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] svg[type="story"] {
+    color: #6a2dcc !important;
+  }
 </style>
