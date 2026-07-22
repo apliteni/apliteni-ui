@@ -160,8 +160,28 @@ export function switchToggle({ checked = false, disabled = false, name, label = 
 export function callout({ variant, icon: ic = 'info', body } = {}) {
   return `<div class="${cx('ui-callout', variant && `ui-callout--${variant}`)}"><span class="ui-callout__icon">${icon(ic)}</span><div>${body}</div></div>`;
 }
-export function toast({ variant = 'success', title, body, icon: ic = 'check' } = {}) {
-  return `<div class="${cx('ui-toast', `ui-toast--${variant}`)}"><span class="ui-toast__icon">${icon(ic)}</span><div class="ui-toast__body">${title ? `<div class="ui-toast__title">${esc(title)}</div>` : ''}${body ? `<div>${esc(body)}</div>` : ''}</div><button class="ui-toast__close" aria-label="Dismiss">${icon('x')}</button></div>`;
+// Default icon per status — overridable with `icon`.
+const TOAST_ICON = { success: 'check', danger: 'x', warn: 'alert', info: 'info', neutral: 'bolt' };
+// A toast carries a status (colour) and a style (surface). Everything visual is
+// token-driven: the status modifier sets --toast-accent/-glow/-on, the style
+// modifier consumes them. `action` adds a trailing button ("Undo"/"Retry"),
+// `timer` adds an auto-dismiss progress bar (true → default 5s, or a number of
+// seconds), `compact` drops the body for a single-line toast.
+export function toast({
+  variant = 'success', style = 'soft', title, body, icon: ic,
+  action, timer = false, compact = false, dismissible = true,
+} = {}) {
+  const cls = cx('ui-toast', `ui-toast--${variant}`, `ui-toast--${style}`, compact && 'ui-toast--compact');
+  const actLabel = typeof action === 'string' ? action : action && action.label;
+  const actBtn = actLabel ? `<button class="ui-toast__action" type="button">${esc(actLabel)}</button>` : '';
+  const closeBtn = dismissible ? `<button class="ui-toast__close" aria-label="Dismiss">${icon('x')}</button>` : '';
+  const bodyHtml = compact || !body ? '' : `<div class="ui-toast__text">${esc(body)}</div>`;
+  const dur = typeof timer === 'number' ? ` style="--toast-dur:${timer}s"` : '';
+  const timerBar = timer ? '<span class="ui-toast__timer" data-toast-timer></span>' : '';
+  return `<div class="${cls}" role="status" aria-live="polite"${dur}>`
+    + `<span class="ui-toast__icon">${icon(ic || TOAST_ICON[variant] || 'info')}</span>`
+    + `<div class="ui-toast__body">${title ? `<div class="ui-toast__title">${esc(title)}</div>` : ''}${bodyHtml}</div>`
+    + `${actBtn}${closeBtn}${timerBar}</div>`;
 }
 export function successPanel({ title = 'Done', sub = '' } = {}) {
   return `<div class="ui-success"><div class="ui-success__check">${icon('check')}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
