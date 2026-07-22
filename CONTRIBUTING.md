@@ -63,6 +63,11 @@ that rewrites this one file (RFC #42, Option B).
   choice, so it may diverge from the brand palette. `npm run tokens:drift` prints
   where — expected, not a bug.
 
+`src/assets/brand.generated/` is the same story for the **Apliteni marks** — the
+umbrella wordmark + seedling mark, synced from upstream (`index.js` exports them as
+inline strings; see Foundations → Brand → Umbrella). Use these for *Apliteni the
+company*. The kit's own `prism` mark stays hand-authored in `src/assets/brand.js`.
+
 ## Release
 
 ```bash

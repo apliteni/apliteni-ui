@@ -21,13 +21,22 @@
  *   node scripts/sync-brand-tokens.mjs --check   # fail if the generated file is stale
  */
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, copyFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '../src/tokens/brand.generated.css');
+const ASSET_DIR = resolve(__dirname, '../src/assets/brand.generated');
 const DEFAULT_URL = 'https://style.apliteni.com/tokens.css';
+
+// The umbrella brand marks the kit consumes (wordmark + seedling mark). The
+// kit's own `prism` mark stays local — it's the identity of the kit, not the brand.
+const BRAND_ASSETS = [
+  ['apliteni-logo.svg', 'apliteni-logo.svg'],       // wordmark, light bg
+  ['apliteni-logo-dark.svg', 'apliteni-logo-dark.svg'], // wordmark, dark bg
+  ['apliteni-mark.svg', 'apliteni-mark.svg'],       // seedling mark
+];
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(name);
@@ -96,6 +105,26 @@ async function main() {
   await writeFile(OUT, next, 'utf8');
   console.log(`✓ Wrote ${lines.length} brand primitives -> src/tokens/brand.generated.css`);
   console.log(`  source: ${sha ? `sha ${sha}` : origin}`);
+
+  // Optionally sync brand marks (wordmark + seedling mark) from a local checkout.
+  // Emit both the raw .svg files and an index.js of inline strings — the JS
+  // module imports cleanly in plain Node (the a11y test) AND in Vite (Storybook),
+  // where a bare `.svg?raw` import would break under node --test.
+  const assetsFrom = arg('--assets-from');
+  if (assetsFrom) {
+    await mkdir(ASSET_DIR, { recursive: true });
+    const named = { 'apliteni-logo.svg': 'apliteniLogo', 'apliteni-logo-dark.svg': 'apliteniLogoDark', 'apliteni-mark.svg': 'apliteniMark' };
+    const exports = [];
+    for (const [src, dst] of BRAND_ASSETS) {
+      const svg = await readFile(resolve(process.cwd(), assetsFrom, src), 'utf8');
+      await writeFile(resolve(ASSET_DIR, dst), svg, 'utf8');
+      exports.push(`export const ${named[dst]} = ${JSON.stringify(svg.trim())};`);
+    }
+    const header = '// BRAND MARKS (generated, do not edit) — synced from apliteni/design-system.\n' +
+      '// The umbrella wordmark + seedling mark. The kit\'s own `prism` stays in brand.js.\n';
+    await writeFile(resolve(ASSET_DIR, 'index.js'), header + exports.join('\n') + '\n', 'utf8');
+    console.log(`✓ Synced ${BRAND_ASSETS.length} brand marks + index.js -> src/assets/brand.generated/`);
+  }
 }
 
 main().catch((err) => {
