@@ -1,0 +1,166 @@
+/* ============================================================================
+ * Drawer — edge-anchored overlay panel (Sheet / Slide-over): a panel that
+ * slides in from any screen edge over a scrim. Fully token-driven so it
+ * re-themes across accents + light/dark. Shares its scrim + focus-trap concept
+ * with a future Modal (see drawer.js). `prefers-reduced-motion` drops the slide
+ * for a plain fade.
+ *
+ * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
+ *   --drawer-surface  panel background      --drawer-shadow  panel elevation
+ *   --drawer-scrim    backdrop colour (overridden for light below)
+ * ========================================================================== */
+
+.ui-drawer {
+  --drawer-surface: var(--surface-2);
+  --drawer-shadow: var(--shadow-lg);
+  --drawer-scrim: rgba(0, 0, 0, 0.58);
+  --drawer-w: 420px;   /* left|right panels: width  */
+  --drawer-h: 45vh;    /* top|bottom panels: height */
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none; /* container never blocks; scrim/panel opt back in */
+}
+:root[data-theme="light"] .ui-drawer { --drawer-scrim: rgba(20, 22, 40, 0.38); }
+
+/* Scrim — fades in; visibility trails the fade so the panel can animate out. */
+.ui-drawer__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--drawer-scrim);
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur-med) var(--ease), visibility var(--dur-med) var(--ease);
+}
+.ui-drawer.is-open .ui-drawer__scrim { opacity: 1; visibility: visible; }
+
+/* Panel — the sliding surface. Flex column: header / scrollable body / footer. */
+.ui-drawer__panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--drawer-surface);
+  box-shadow: var(--drawer-shadow);
+  pointer-events: auto;
+  opacity: 1;
+  visibility: hidden;
+  transition:
+    transform var(--dur-med) var(--ease),
+    opacity var(--dur-med) var(--ease),
+    visibility var(--dur-med) var(--ease);
+}
+.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--drawer-shadow), var(--ring); }
+.ui-drawer.is-open .ui-drawer__panel { visibility: visible; transform: none; }
+
+/* -- Edge anchoring + slide-in direction ---------------------------------- */
+.ui-drawer--right .ui-drawer__panel,
+.ui-drawer--left  .ui-drawer__panel {
+  top: 0; bottom: 0;
+  width: min(var(--drawer-w), 100vw);
+  max-width: 100vw;
+}
+.ui-drawer--right .ui-drawer__panel {
+  right: 0;
+  border-left: 1px solid var(--border);
+  transform: translateX(100%);
+}
+.ui-drawer--left .ui-drawer__panel {
+  left: 0;
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
+}
+.ui-drawer--top .ui-drawer__panel,
+.ui-drawer--bottom .ui-drawer__panel {
+  left: 0; right: 0;
+  height: min(var(--drawer-h), 100vh);
+  max-height: 100vh;
+}
+.ui-drawer--top .ui-drawer__panel {
+  top: 0;
+  border-bottom: 1px solid var(--border);
+  transform: translateY(-100%);
+}
+.ui-drawer--bottom .ui-drawer__panel {
+  bottom: 0;
+  border-top: 1px solid var(--border);
+  transform: translateY(100%);
+}
+
+/* -- Sizes ----------------------------------------------------------------- */
+/* left|right → width; top|bottom → height. Same names, axis chosen by side. */
+.ui-drawer--right.ui-drawer--sm, .ui-drawer--left.ui-drawer--sm { --drawer-w: 320px; }
+.ui-drawer--right.ui-drawer--md, .ui-drawer--left.ui-drawer--md { --drawer-w: 420px; }
+.ui-drawer--right.ui-drawer--lg, .ui-drawer--left.ui-drawer--lg { --drawer-w: 560px; }
+.ui-drawer--top.ui-drawer--sm, .ui-drawer--bottom.ui-drawer--sm { --drawer-h: 30vh; }
+.ui-drawer--top.ui-drawer--md, .ui-drawer--bottom.ui-drawer--md { --drawer-h: 45vh; }
+.ui-drawer--top.ui-drawer--lg, .ui-drawer--bottom.ui-drawer--lg { --drawer-h: 72vh; }
+
+/* -- Slots ----------------------------------------------------------------- */
+.ui-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+.ui-drawer__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--strong);
+}
+.ui-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  flex: none;
+  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.ui-drawer__close:hover { color: var(--strong); background: var(--surface); }
+.ui-drawer__close:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+.ui-drawer__close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+.ui-drawer__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ui-drawer__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  flex: none;
+}
+
+/* -- Reduced motion: no slide, just a fade -------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ui-drawer__panel {
+    transform: none !important;
+    opacity: 0;
+    transition: opacity var(--dur-fast) linear, visibility var(--dur-fast) linear;
+  }
+  .ui-drawer.is-open .ui-drawer__panel { opacity: 1; }
+  .ui-drawer__scrim { transition: opacity var(--dur-fast) linear, visibility var(--dur-fast) linear; }
+}

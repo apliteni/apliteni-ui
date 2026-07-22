@@ -1,6 +1,7 @@
 import '../src/index.css';
 import { wireTopbar, applyTheme } from '../src/components/topbar.js';
 import { wireNav } from '../src/components/nav.js';
+import { wireDrawer } from '../src/components/drawer.js';
 
 // Load Poppins once (Storybook manager/preview iframe).
 if (!document.getElementById('ui-poppins')) {
@@ -21,7 +22,7 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Iconography', 'Brand'],
-          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
+          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
         ],
       },
@@ -89,7 +90,7 @@ const preview = {
       const out = story();
       if (typeof out === 'string') wrap.innerHTML = out; else wrap.append(out);
       // Wire interactive behaviours after render.
-      requestAnimationFrame(() => { wireTopbar(wrap); wireNav(wrap); });
+      requestAnimationFrame(() => { wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); });
       return wrap;
     },
   ],
