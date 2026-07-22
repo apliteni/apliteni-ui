@@ -1,4 +1,5 @@
 import { topbar } from '../../src/components/topbar.js';
+import { footer } from '../../src/components/footer.js';
 import { button, icon, badge } from '../../src/components/index.js';
 
 export default {
@@ -90,15 +91,26 @@ export const Default = {
       </div>
     </section>
 
-    <footer style="border-top:1px solid var(--border);padding:34px 26px;position:relative;z-index:1">
-      <div style="max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:13px">
-        <span>© Apliteni Strategy</span>
-        <span style="display:flex;gap:22px">
-          <a href="#" style="color:var(--muted)">Deck</a>
-          <a href="#" style="color:var(--muted)">Text</a>
-          <a href="#" style="color:var(--muted)">Agents</a>
-        </span>
-      </div>
-    </footer>
+    ${footer({
+      variant: 'full',
+      brand: { word: 'Strategy' },
+      tagline: 'One strategy — an animated deck, a readable long-form, and a live surface your agents can read over MCP.',
+      columns: [
+        { title: 'Strategy', links: [
+          { label: 'Deck', href: '#deck' }, { label: 'Text version', href: '#text' },
+          { label: 'Agents', href: '#agents' },
+        ] },
+        { title: 'Developers', links: [
+          { label: 'Connect over MCP', href: '#mcp' },
+          { label: 'GitHub', href: 'https://github.com/apliteni/apliteni-ui', target: '_blank' },
+        ] },
+      ],
+      social: [
+        { label: 'GitHub', href: 'https://github.com/apliteni/apliteni-ui', icon: 'github' },
+        { label: 'Email', href: 'mailto:hi@apliteni.com', icon: 'mail' },
+      ],
+      legal: '© Apliteni Strategy',
+      legalLinks: [{ label: 'Privacy', href: '#privacy' }, { label: 'Terms', href: '#terms' }],
+    })}
   </div>`,
 };

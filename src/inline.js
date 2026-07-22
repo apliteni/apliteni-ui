@@ -34,6 +34,7 @@ export const styles = {
   callout: read('styles/callout.css'),
   code: read('styles/code.css'),
   topbar: topbarCss,
+  footer: read('styles/footer.css'),
   layout: read('styles/layout.css'),
   feedback: read('styles/feedback.css'),
 };
@@ -52,6 +53,7 @@ export const cssText = [
   styles.callout,
   styles.code,
   styles.topbar,
+  styles.footer,
   styles.layout,
   styles.feedback,
 ].join('\n');
