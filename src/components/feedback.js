@@ -23,6 +23,12 @@ export function feedbackWidget({
   doneTitle = 'Feedback sent. Thank you!',
   doneBody = 'Thanks — your note is on its way.',
 } = {}) {
+  // The composer's Cancel/Send/Close use .ui-fbbtn, NOT the kit's button() — an
+  // intentional exception. They're internal to this self-contained widget and
+  // carry composer-scoped treatment button() doesn't model: a tighter footer
+  // size, the inline send-spinner, and a disabled-until-valid state wired by
+  // data-attributes. Promoting them to .ui-btn would regress the widget's look
+  // for no consumer gain, since the app never renders these buttons directly.
   return `
 <div class="ui-fbpill" data-fb-pill>${IC_MSG}${esc(label)}</div>
 <div class="ui-fbscrim" data-fb-scrim></div>

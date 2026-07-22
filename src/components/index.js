@@ -6,8 +6,12 @@ const cx = (...a) => a.filter(Boolean).join(' ');
 export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ---- Button --------------------------------------------------------------
+// `iconSvg` is a raw leading-icon SVG string (trusted markup, not escaped) for
+// branded glyphs the kit's icon set doesn't own — e.g. a Google "G". It takes
+// the leading slot; `icon` is the named-icon shorthand for kit glyphs. This is
+// what lets third-party buttons go through button() instead of hand-rolled markup.
 export function button({
-  label = 'Button', variant = 'secondary', size = 'md', icon: ic, iconRight,
+  label = 'Button', variant = 'secondary', size = 'md', icon: ic, iconSvg, iconRight,
   block = false, disabled = false, busy = false, type = 'button', href, iconOnly = false,
 } = {}) {
   const cls = cx(
@@ -18,7 +22,8 @@ export function button({
     iconOnly && 'ui-btn--icon',
   );
   const bars = busy ? '<span class="ui-btn__bars"><i></i><i></i></span>' : '';
-  const inner = `${ic ? icon(ic) : ''}${iconOnly ? '' : `<span>${esc(label)}</span>`}${iconRight ? icon(iconRight) : ''}${bars}`;
+  const lead = iconSvg || (ic ? icon(ic) : '');
+  const inner = `${lead}${iconOnly ? '' : `<span>${esc(label)}</span>`}${iconRight ? icon(iconRight) : ''}${bars}`;
   // busy ⇒ disabled (not clickable while it works)
   const attrs = `class="${cls}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${iconOnly ? ` aria-label="${esc(label)}"` : ''}`;
   return href

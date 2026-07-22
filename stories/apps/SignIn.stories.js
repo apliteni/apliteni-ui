@@ -17,9 +17,11 @@ const shell = (inner, prefix) => `
   </div>`;
 
 const googleG = `<svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1C42.7 36.4 45 30.9 45 24.5z"/><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.2H4.3v5.7C7.9 41.1 15.3 46 24 46z"/><path fill="#FBBC05" d="M11.6 27.9c-.4-1.3-.7-2.6-.7-4s.3-2.7.7-4v-5.7H4.3C2.8 17.3 2 20.6 2 24s.8 6.7 2.3 9.6l7.3-5.7z"/><path fill="#EA4335" d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.2 30 2 24 2 15.3 2 7.9 6.9 4.3 14.4l7.3 5.7C13.3 14.7 18.2 10.8 24 10.8z"/></svg>`;
-const googleBtn = `<button type="button" class="ui-btn ui-btn--secondary ui-btn--lg ui-btn--block">${googleG}<span>Continue with Google</span></button>`;
-// Google-loading button: gradient-bars loader + disabled (not clickable).
-const googleBtnLoading = `<button type="button" class="ui-btn ui-btn--secondary ui-btn--lg ui-btn--block" disabled aria-disabled="true" aria-busy="true">${googleG}<span>Signing you in</span><span class="ui-btn__bars"><i></i><i></i></span></button>`;
+// The branded Google button goes through button() via iconSvg — the "G" isn't a
+// kit glyph, but the button itself is a plain secondary/lg/block. busy:true gives
+// the disabled state + gradient-bars loader for free (no hand-rolled markup).
+const googleBtn = button({ label: 'Continue with Google', variant: 'secondary', size: 'lg', block: true, iconSvg: googleG });
+const googleBtnLoading = button({ label: 'Signing you in', variant: 'secondary', size: 'lg', block: true, iconSvg: googleG, busy: true });
 
 // Centered + glow shell (variant B) — brand + content centered, soft glow behind.
 const centeredShell = (inner, prefix) => `

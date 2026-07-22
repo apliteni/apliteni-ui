@@ -1,6 +1,6 @@
 import { topbar } from '../../src/components/topbar.js';
 import { footer } from '../../src/components/footer.js';
-import { button, icon, badge } from '../../src/components/index.js';
+import { button, icon, badge, segmented } from '../../src/components/index.js';
 
 export default {
   title: 'Apps/Landing Page',
@@ -71,9 +71,9 @@ export const Default = {
         ${cell('shield', 'Access you control', 'Consent screens, per-agent tokens, one-click revoke. You always see who can read what.',
           `<span class="ui-badge ui-badge--live">Read-only</span>${button({ label: 'Revoke', variant: 'danger', size: 'sm' })}`)}
         ${cell('layers', 'Deck or text', 'The same content as an animated deck or a calm long-form. Switch anytime.',
-          `<div class="ui-seg ui-seg--sm"><button class="is-active">Deck</button><button>Text</button></div>`)}
+          segmented({ options: ['Deck', 'Text'], active: 0, size: 'sm', name: 'view' }))}
         ${cell('globe', 'English & Russian', 'The whole surface localises, so the team reads it in the language they think in.',
-          `<div class="ui-seg ui-seg--sm"><button class="is-active">EN</button><button>RU</button></div>`)}
+          segmented({ options: ['EN', 'RU'], active: 0, size: 'sm', name: 'lang' }))}
         ${cell('bolt', 'Always current', 'Versioned cleanly — the live version is at the root, archives keep their own path.',
           `<span class="ui-badge ui-badge--soon">phoenix.2026.002</span>${badge('Live', 'live')}`)}
       </div>
