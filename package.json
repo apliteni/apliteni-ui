@@ -16,6 +16,7 @@
   },
   "exports": {
     ".": "./src/index.js",
+    "./motion": "./src/motion.js",
     "./inline": "./src/inline.js",
     "./css": "./src/index.css",
     "./tokens": "./src/tokens/tokens.css",

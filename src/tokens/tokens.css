@@ -70,11 +70,24 @@
   --tracking-wide: 0.04em;
   --tracking-caps: 0.14em;
 
-  /* -- Motion ------------------------------------------------------------- */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 0.15s;
-  --dur-med: 0.25s;
-  --dur-slow: 0.4s;
+  /* -- Motion -------------------------------------------------------------
+   * Durations + easings are the Apliteni brand's motion vocabulary, synced
+   * from design-system into brand.generated.css (--duration-*, --easing-*).
+   * The kit's legacy --dur-*/--ease names alias onto them, so every existing
+   * component transitively consumes the brand primitives — one vocabulary,
+   * zero drift. Fallbacks keep tokens.css self-sufficient when imported
+   * without brand.generated.css. Delays are the kit's own (not a brand
+   * concern). The reusable effect layer lives in styles/motion.css. */
+  --ease: var(--easing-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+  --dur-fast: var(--duration-fast, 0.15s);   /* 150ms — hover, press */
+  --dur-med: var(--duration-normal, 0.25s);  /* 250ms — panels, dropdowns */
+  --dur-slow: var(--duration-slow, 0.4s);    /* 400ms — enters, reveals */
+
+  --delay-1: 60ms;
+  --delay-2: 120ms;
+  --delay-3: 180ms;
+  --delay-4: 240ms;
+  --delay-5: 300ms;
 
   /* -- Elevation (z) ------------------------------------------------------ */
   --z-base: 1;

@@ -25,7 +25,7 @@
   font-family: var(--font-sans); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: .01em;
   padding: 9px 17px 9px 15px; border-radius: 999px; cursor: pointer; white-space: nowrap; overflow: hidden;
   box-shadow: 0 10px 26px var(--ui-fb-pill-glow), 0 2px 6px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.28);
-  transition: transform .2s cubic-bezier(.34,1.56,.64,1), opacity .16s ease, box-shadow .2s ease;
+  transition: transform .2s var(--easing-spring, cubic-bezier(.34,1.56,.64,1)), opacity .16s ease, box-shadow .2s ease;
 }
 .ui-fbpill.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -100%) translateY(-9px) scale(1); }
 .ui-fbpill:hover { box-shadow: 0 14px 34px var(--ui-fb-pill-glow), 0 3px 9px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.34); }
