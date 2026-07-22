@@ -1,4 +1,3 @@
-import { financeShell } from './_financeShell.js';
 import { badge, card, segmented, icon } from '../../src/components/index.js';
 
 export default {
@@ -54,17 +53,24 @@ const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe 
     </tbody>
   </table>` });
 
+// Just the report itself — the cashflow KPIs + reconciled payout ledger, no app
+// chrome. Reuses the shell's page classes (`ui-shell__page` scopes the title /
+// sub type) inside a plain centered column so it can be embedded anywhere.
 export const Default = {
-  render: () => financeShell({
-    active: 'payouts',
-    crumb: 'Payouts',
-    title: 'Payouts',
-    sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
-    body: `
-      <div style="display:grid;gap:22px">
-        ${segmented({ options: ['3M', '6M', '1Y', 'All'], active: 2 })}
-        ${kpiStrip()}
-        ${payoutsCard()}
-      </div>`,
-  }),
+  render: () => `
+    <div style="position:relative;overflow:hidden;min-height:100vh">
+      <span class="ui-glow ui-glow--purple" style="top:-120px;right:6%;opacity:.35"></span>
+      <div class="ui-shell__page" style="position:relative;z-index:1;max-width:960px;margin:0 auto;padding:40px 26px 96px">
+        <div class="ui-shell__crumbs">Finance / <b>Payouts</b></div>
+        <h1>Payouts</h1>
+        <div class="sub">Company cashflow at a glance, then the reconciled payout ledger.</div>
+        <div class="ui-card-stack">
+          <div style="display:grid;gap:22px">
+            ${segmented({ options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+            ${kpiStrip()}
+            ${payoutsCard()}
+          </div>
+        </div>
+      </div>
+    </div>`,
 };
