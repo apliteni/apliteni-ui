@@ -21,7 +21,7 @@ const preview = {
     options: {
       storySort: {
         order: [
-          'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Iconography', 'Brand'],
+          'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Iconography', 'Brand', 'Brand primitives'],
           'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
         ],

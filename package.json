@@ -19,7 +19,8 @@
     "./inline": "./src/inline.js",
     "./css": "./src/index.css",
     "./tokens": "./src/tokens/tokens.css",
-    "./accents": "./src/tokens/accents.css"
+    "./accents": "./src/tokens/accents.css",
+    "./brand": "./src/tokens/brand.generated.css"
   },
   "files": [
     "src",
@@ -32,7 +33,10 @@
   "scripts": {
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build -o storybook-static",
-    "test": "node --test"
+    "test": "node --test",
+    "tokens:sync": "node scripts/sync-brand-tokens.mjs",
+    "tokens:check": "node scripts/sync-brand-tokens.mjs --check",
+    "tokens:drift": "node scripts/brand-drift.mjs"
   },
   "engines": {
     "node": ">=20"

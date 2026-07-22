@@ -1,0 +1,121 @@
+/* ============================================================================
+ * apliteni-ui — BRAND PRIMITIVES (generated, do not edit)
+ *
+ * Synced from apliteni/design-system@8e97c67
+ * via: npm run tokens:sync
+ *
+ * The Apliteni umbrella-brand primitives: colour ramps + motion vocabulary
+ * (--duration-*, --easing-*). The upstream owns them; edit them there, not here.
+ * Our semantic tokens (--bg, --surface, --accent, ...) live in tokens.css and may
+ * reference these over time. Run `npm run tokens:drift` to see where they diverge.
+ * ========================================================================== */
+:root {
+  --duration-instant: 80ms; /** Micro-interactions: checkbox tick, ripple. */
+  --duration-fast: 150ms; /** Hover states, button feedback. */
+  --duration-normal: 250ms; /** Panel open, dropdown, tooltip. */
+  --duration-slow: 400ms; /** Modal enter, page transition. */
+  --duration-slower: 600ms; /** Complex layout shifts, onboarding. */
+  --duration-crawl: 1000ms; /** Skeleton loaders, ambient loops. */
+  --easing-linear: linear; /** Progress bars, continuous animations. */
+  --easing-ease-in: cubic-bezier(0.4, 0, 1, 1); /** Elements leaving the screen. */
+  --easing-ease-out: cubic-bezier(0, 0, 0.2, 1); /** Elements entering the screen. */
+  --easing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /** Symmetrical transitions (e.g. toggle). */
+  --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /** Playful overshoot — modals, cards. */
+  --easing-sharp: cubic-bezier(0.4, 0, 0.6, 1); /** Snappy dismiss, collapse. */
+  --color-apliteni-primary-black: #121212; /** Primary black. */
+  --color-apliteni-primary-violet: #914dff; /** Primary violet. */
+  --color-apliteni-primary-white: #ffffff; /** Primary white. */
+  --color-apliteni-supporting-red: #ff453a;
+  --color-apliteni-supporting-yellow: #ffd12f;
+  --color-apliteni-supporting-orange: #f79027;
+  --color-apliteni-supporting-green: #62c862;
+  --color-apliteni-supporting-blue: #3a86ff;
+  --color-apliteni-supporting-pink: #fa6c8f;
+  --color-apliteni-neutral-1: #121212;
+  --color-apliteni-neutral-2: #191919;
+  --color-apliteni-neutral-3: #434240;
+  --color-apliteni-neutral-4: #6a6866;
+  --color-apliteni-neutral-5: #928f8b;
+  --color-apliteni-neutral-6: #b9b5b1;
+  --color-apliteni-neutral-7: #e0dcd7;
+  --color-apliteni-neutral-8: #f1efed;
+  --color-apliteni-neutral-9: #ffffff;
+  --color-apliteni-red-1: #f33126;
+  --color-apliteni-red-2: #f93b30;
+  --color-apliteni-red-3: #ff453a;
+  --color-apliteni-red-4: #ff6754;
+  --color-apliteni-red-5: #ff836f;
+  --color-apliteni-red-6: #ff9d8a;
+  --color-apliteni-red-7: #ffb6a6;
+  --color-apliteni-red-8: #ffcfc3;
+  --color-apliteni-yellow-1: #f6c700;
+  --color-apliteni-yellow-2: #ffcf01;
+  --color-apliteni-yellow-3: #ffd12f;
+  --color-apliteni-yellow-4: #ffdb47;
+  --color-apliteni-yellow-5: #ffe16a;
+  --color-apliteni-yellow-6: #ffe789;
+  --color-apliteni-yellow-7: #ffeda7;
+  --color-apliteni-yellow-8: #fff3c5;
+  --color-apliteni-orange-1: #ff7700;
+  --color-apliteni-orange-2: #ff8100;
+  --color-apliteni-orange-3: #ff8f18;
+  --color-apliteni-orange-4: #ffa43a;
+  --color-apliteni-orange-5: #ffaa52;
+  --color-apliteni-orange-6: #fab671;
+  --color-apliteni-orange-7: #fbcb9a;
+  --color-apliteni-orange-8: #fddcbb;
+  --color-apliteni-green-1: #48a848;
+  --color-apliteni-green-2: #4faf4f;
+  --color-apliteni-green-3: #62c862;
+  --color-apliteni-green-4: #6be56b;
+  --color-apliteni-green-5: #76f076;
+  --color-apliteni-green-6: #8ef78e;
+  --color-apliteni-green-7: #a9ffa9;
+  --color-apliteni-green-8: #cbffcb;
+  --color-apliteni-blue-1: #3572d4;
+  --color-apliteni-blue-2: #3577df;
+  --color-apliteni-blue-3: #3a86ff;
+  --color-apliteni-blue-4: #5696ff;
+  --color-apliteni-blue-5: #6fa6ff;
+  --color-apliteni-blue-6: #87b6ff;
+  --color-apliteni-blue-7: #9fc5ff;
+  --color-apliteni-blue-8: #b7d4ff;
+  --color-apliteni-pink-1: #fc547e;
+  --color-apliteni-pink-2: #fb6288;
+  --color-apliteni-pink-3: #fa6c8f;
+  --color-apliteni-pink-4: #fa7b9b;
+  --color-apliteni-pink-5: #fb8da8;
+  --color-apliteni-pink-6: #fb9fb6;
+  --color-apliteni-pink-7: #fbb2c5;
+  --color-apliteni-pink-8: #fbc6d5;
+  --color-apliteni-violet-1: #914dff;
+  --color-apliteni-violet-2: #9b5dff;
+  --color-apliteni-violet-3: #a771ff;
+  --color-apliteni-violet-4: #b586fe;
+  --color-apliteni-violet-5: #c39bfc;
+  --color-apliteni-violet-6: #cfaffa;
+  --color-apliteni-violet-7: #dac3f8;
+  --color-apliteni-violet-8: #e5d8f5;
+  --color-apliteni-theme-dark-border: #333130; /** Default border. */
+  --color-apliteni-theme-dark-border-subtle: #2a2826; /** Subtle dividers. */
+  --color-apliteni-theme-light-accent-subtle: #efe1ff; /** Accent tint, badges. */
+  --color-apliteni-theme-dark-background: var(--color-apliteni-neutral-1); /** Page/app background. */
+  --color-apliteni-theme-dark-surface: var(--color-apliteni-neutral-2); /** Cards, panels. */
+  --color-apliteni-theme-dark-surface-raised: var(--color-apliteni-neutral-3); /** Elevated surfaces, tooltips. */
+  --color-apliteni-theme-dark-text-primary: var(--color-apliteni-primary-white); /** Headings, body. */
+  --color-apliteni-theme-dark-text-muted: var(--color-apliteni-neutral-5); /** Secondary text, labels. */
+  --color-apliteni-theme-dark-text-disabled: var(--color-apliteni-neutral-4); /** Disabled state. */
+  --color-apliteni-theme-dark-accent: var(--color-apliteni-primary-violet); /** Primary action, links. */
+  --color-apliteni-theme-dark-accent-hover: var(--color-apliteni-violet-2); /** Accent on hover. */
+  --color-apliteni-theme-dark-accent-subtle: var(--color-apliteni-violet-8); /** Accent tint, badges. */
+  --color-apliteni-theme-light-background: var(--color-apliteni-neutral-8); /** Page/app background. */
+  --color-apliteni-theme-light-surface: var(--color-apliteni-primary-white); /** Cards, panels. */
+  --color-apliteni-theme-light-surface-raised: var(--color-apliteni-neutral-9); /** Elevated surfaces, tooltips. */
+  --color-apliteni-theme-light-border: var(--color-apliteni-neutral-7); /** Default border. */
+  --color-apliteni-theme-light-border-subtle: var(--color-apliteni-neutral-8); /** Subtle dividers. */
+  --color-apliteni-theme-light-text-primary: var(--color-apliteni-primary-black); /** Headings, body. */
+  --color-apliteni-theme-light-text-muted: var(--color-apliteni-neutral-5); /** Secondary text, labels. */
+  --color-apliteni-theme-light-text-disabled: var(--color-apliteni-neutral-6); /** Disabled state. */
+  --color-apliteni-theme-light-accent: var(--color-apliteni-primary-violet); /** Primary action, links. */
+  --color-apliteni-theme-light-accent-hover: var(--color-apliteni-violet-1); /** Accent on hover. */
+}

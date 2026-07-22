@@ -3,6 +3,7 @@
  * Import once (`import 'apliteni-ui/css'`) or cherry-pick from src/styles/*.
  * Requires the Poppins font (loaded by the host page or Storybook preview).
  * ========================================================================== */
+@import "./tokens/brand.generated.css";
 @import "./tokens/tokens.css";
 @import "./tokens/accents.css";
 @import "./styles/base.css";
