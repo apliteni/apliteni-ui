@@ -29,7 +29,6 @@ export const topbarCss = read('styles/topbar.css');
 export const styles = {
   base: baseCss,
   motion: read('styles/motion.css'),
-  aurora: read('styles/aurora.css'),
   button: read('styles/button.css'),
   card: read('styles/card.css'),
   badge: read('styles/badge.css'),
@@ -53,7 +52,6 @@ export const cssText = [
   tokensCss,
   styles.base,
   styles.motion,
-  styles.aurora,
   styles.button,
   styles.card,
   styles.badge,

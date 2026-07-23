@@ -1,5 +1,5 @@
 import { pad } from '../_gallery.js';
-import { aurora, button, card } from '../../src/components/index.js';
+import { button, card } from '../../src/components/index.js';
 
 export default {
   title: 'Foundations/Backgrounds',
@@ -39,17 +39,6 @@ const bgPanel = (cls, name, desc) => `
     </div>
   </div>`;
 
-const auroraPanel = (label, opts, note) => `
-  <div style="position:relative;height:230px;background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--border)">
-    ${aurora(opts)}
-    <div style="position:relative;z-index:1;display:grid;place-items:center;height:100%;text-align:center;padding:18px">
-      <div>
-        <div style="font:600 14px/1 Poppins;color:var(--strong);margin-bottom:9px">${label}</div>
-        <div style="font:400 12px/1.5 Poppins;color:var(--muted);max-width:30ch">${note}</div>
-      </div>
-    </div>
-  </div>`;
-
 const h3 = (t) => `<h3 style="font:600 13px/1 Poppins;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:52px 0 20px">${t}</h3>`;
 const g = (min, ...items) => `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${min},1fr));gap:22px">${items.join('')}</div>`;
 
@@ -69,18 +58,9 @@ export const Default = {
       glowPanel('.ui-glow--green', '<span class="ui-glow ui-glow--green" style="top:50%;left:50%;transform:translate(-50%,-50%);width:300px;height:300px"></span>'),
     )}
 
-    ${h3('Ambient aurora')}
-    <p style="color:var(--dim);max-width:60ch;margin:-8px 0 20px">The kit's signature page background — layered blurred glow blobs plus an optional paper grain. Built from <code style="font-family:var(--font-mono);color:var(--accent)">aurora()</code>; colours default to the accent glow tokens, so the whole field re-themes with the sub-theme. Drift respects <code style="font-family:var(--font-mono)">prefers-reduced-motion</code>. See <b>Aurora (full-bleed)</b> for the fixed page treatment.</p>
-    ${g('280px',
-      auroraPanel('Default', {}, 'Three drifting blobs, accent + teal + warm.'),
-      auroraPanel('With grain', { grain: true }, 'Adds the fractal-noise veil for tooth and depth.'),
-      auroraPanel('Static', { animated: false }, 'Drift off — for dense screens or when motion distracts.'),
-    )}
-
     ${h3('Backdrop treatments')}
     ${g('260px',
       bgPanel('ui-bg-spotlight', 'Spotlight', 'A soft radial from the top. Auth cards and focused heroes.'),
-      bgPanel('ui-bg-aurora', 'Aurora', 'Layered accent + cyan glows for a rich hero backdrop.'),
       bgPanel('ui-bg-wash', 'Accent wash', 'A gentle top-down tint in the current accent.'),
       bgPanel('ui-bg-grid', 'Grid', 'A faint token grid, masked to fade at the edges.'),
       bgPanel('ui-bg-dots', 'Dots', 'A subtle dot field for dashboards and technical surfaces.'),
@@ -91,7 +71,7 @@ export const Default = {
 // ---------------------------------------------------------------------------
 // Full-bleed stories — one per background, so each can be judged at real scale
 // with the sub-theme + light/dark toggles applying live. They all share the
-// same wrapper trick the Aurora story pioneered: a *relative* 100vh wrapper
+// same wrapper trick: a *relative* 100vh wrapper
 // with overflow hidden. A fixed; z-index:-1 background would get trapped behind
 // Storybook's opaque #storybook-root, so the layer is rendered in-flow instead.
 // Decorative layers are aria-hidden (the ui-bg-* treatments paint via ::before,
@@ -124,29 +104,6 @@ const fullBleed = ({ bgClass = '', layer = '', eyebrow, title, body }) => `
 const glowLayer = (...spans) =>
   `<div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none">${spans.join('')}</div>`;
 
-// Full-bleed hero — the aurora as a real page background (grain on), with
-// content sitting on top. This is how an app drops it in: one call, no tokens.
-// (Rendered here with the absolute variant so it shows inside Storybook's frame;
-// in a real page use fixed: true to pin it to the viewport across scroll.)
-export const Aurora = {
-  name: 'Aurora (full-bleed)',
-  render: () => `
-    <div style="position:relative;min-height:100vh;overflow:hidden">
-      ${aurora({ grain: true })}
-      <div style="position:relative;z-index:1;min-height:100vh;display:grid;place-items:center;padding:40px;text-align:center">
-        <div style="max-width:44ch">
-          <div class="ui-eyebrow" style="justify-content:center;margin-bottom:14px">Ambient background</div>
-          <h1 style="font:700 clamp(30px,5vw,50px)/1.05 Poppins;color:var(--strong);letter-spacing:-.025em;margin-bottom:16px">One warm identity, for free</h1>
-          <p style="font:400 16px/1.6 Poppins;color:var(--dim);margin-bottom:28px">Drop <code style="font-family:var(--font-mono);color:var(--accent)">aurora({ grain: true, fixed: true })</code> behind your page and every app in the family reads as one product — no hand-rolled tokens or CSS. Flip the <b>Accent</b> and <b>Theme</b> toolbars to watch it re-theme.</p>
-          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            ${button({ label: 'Get started', variant: 'primary' })}
-            ${button({ label: 'View tokens', variant: 'secondary' })}
-          </div>
-        </div>
-      </div>
-    </div>`,
-};
-
 // Ambient glow — the signature blurred "depth" blobs (purple + cyan) at page
 // scale. Positioned off the corners so the field feels lit from within.
 export const Glow = {
@@ -172,18 +129,6 @@ export const Spotlight = {
       eyebrow: 'Backdrop — Spotlight',
       title: 'Eyes to the centre',
       body: 'One soft radial from the top pulls focus to the middle of the page. <code style="font-family:var(--font-mono);color:var(--accent)">.ui-bg-spotlight</code> is the go-to backdrop for sign-in cards and single-focus heroes.',
-    }),
-};
-
-// Aurora backdrop — the CSS-only layered accent + cyan glows (no motion).
-export const AuroraBackdrop = {
-  name: 'Aurora backdrop (full-bleed)',
-  render: () =>
-    fullBleed({
-      bgClass: 'ui-bg-aurora',
-      eyebrow: 'Backdrop — Aurora',
-      title: 'A richer hero glow',
-      body: 'Layered accent + cyan radials give a rich, static hero backdrop with no markup and no motion. <code style="font-family:var(--font-mono);color:var(--accent)">.ui-bg-aurora</code> is the drop-in cousin of the animated <code style="font-family:var(--font-mono)">aurora()</code> field.',
     }),
 };
 
