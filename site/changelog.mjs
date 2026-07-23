@@ -3,7 +3,13 @@
 
 export const RELEASES = [
   {
-    v: '0.6.0', date: '2026-07-23', tag: 'latest',
+    v: '0.6.1', date: '2026-07-23', tag: 'latest',
+    changes: [
+      ['changed', 'Theme toggle is now a single icon-only switch — a compact sun/moon button (no "Light/Dark" text). Keeps its `aria-label`, so the accessible name is intact. Affects `topbar({ theme: true })` and the site chrome.'],
+    ],
+  },
+  {
+    v: '0.6.0', date: '2026-07-23',
     changes: [
       ['removed', 'Aurora background — the `aurora()` component and the `.ui-bg-aurora` backdrop are gone. Nothing in the kit used them, so they were dead weight. The ambient `.ui-glow` blobs and the other backdrops (spotlight, accent wash, grid, dots) stay. Removing a public export is a breaking change — hence the minor bump.'],
       ['added', 'Homepage bento shows more of the kit — live Icons and Motion cells — and its blocks read as distinct panels (per-cell hue, no card hover).'],
