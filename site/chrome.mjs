@@ -40,7 +40,6 @@ export function footer() {
       ${ACCENTS}
     </div>
     <span style="display:flex;gap:22px">
-      <a href="/storybook/">Storybook</a>
       <a href="https://github.com/apliteni/apliteni-ui">GitHub</a>
     </span>
   </div>
