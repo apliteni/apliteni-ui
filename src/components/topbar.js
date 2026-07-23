@@ -8,7 +8,9 @@ import { wireDropdown } from './dropdown.js';
 const THEME_KEY = 'apliteni-strategy-theme';
 
 export function themeToggle() {
-  return `<button class="toggle" data-theme-toggle aria-label="Toggle theme"><span class="ic" data-theme-icon></span><span data-theme-label>Light</span></button>`;
+  // Single icon-only switch (sun in dark, moon in light). Icon pre-filled so it
+  // renders before applyTheme() runs; aria-label carries the accessible name.
+  return `<button class="toggle" data-theme-toggle aria-label="Toggle theme" title="Toggle light / dark"><span class="ic" data-theme-icon>${sun}</span></button>`;
 }
 
 export function deckTextSwitch(active = 'deck') {
