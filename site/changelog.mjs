@@ -3,7 +3,13 @@
 
 export const RELEASES = [
   {
-    v: '0.6.1', date: '2026-07-23', tag: 'latest',
+    v: '0.7.0', date: '2026-07-24', tag: 'latest',
+    changes: [
+      ['added', 'Tabs component — `tabs({ items, active, name })` renders an accessible tablist + panels (framework-agnostic HTML string); wire it with `initTabs()`. Full WAI-ARIA pattern: roving tabindex, Arrow/Home/End keys, aria-selected and aria-controls wiring. New Components → Tabs story.'],
+    ],
+  },
+  {
+    v: '0.6.1', date: '2026-07-23',
     changes: [
       ['changed', 'Theme toggle is now a single icon-only switch — a compact sun/moon button (no "Light/Dark" text). Keeps its `aria-label`, so the accessible name is intact. Affects `topbar({ theme: true })` and the site chrome.'],
     ],
