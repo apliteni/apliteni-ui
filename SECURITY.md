@@ -13,7 +13,8 @@ supported with security fixes. Check the current version on
 
 Instead, report them privately using
 [GitHub's private vulnerability reporting](https://github.com/apliteni/apliteni-ui/security/advisories/new)
-(**Security → Report a vulnerability**), or email **security@apliteni.com**.
+(**Security → Report a vulnerability**). It opens a private thread with the
+maintainers — no public disclosure until a fix is ready.
 
 Please include:
 
