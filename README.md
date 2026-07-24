@@ -127,10 +127,16 @@ built-in `GITHUB_TOKEN` (`packages: write`). No manual `npm publish` needed.
 
 `Dockerfile` builds the landing page + Storybook and serves both (`/` and `/storybook`)
 via a zero-dependency static server. Deployed on **Lessly** as its own product, on
-`linux/amd64` (arm64 images fail there). Rebuild + redeploy:
+`linux/amd64` (arm64 images fail there).
+
+The image is built + pushed to **GHCR** (`ghcr.io/apliteni/apliteni-ui`) by the
+**Deploy image** workflow (`.github/workflows/deploy-image.yml`) on every push to `main`
+(or via *Run workflow*). GHCR is persistent — no ttl.sh timeouts, no image expiry. The
+Lessly `site` service pulls `ghcr.io/apliteni/apliteni-ui:latest`; redeploy it to roll a
+new image out. To build locally instead:
 
 ```bash
-docker buildx build --platform linux/amd64 -t <registry>/ui-apli-tech:latest --push .
+docker buildx build --platform linux/amd64 -t ghcr.io/apliteni/apliteni-ui:latest --push .
 ```
 
 ## Adopting into the strategy portal
