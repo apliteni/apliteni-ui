@@ -1,0 +1,53 @@
+name: Component or enhancement request
+description: A new component, a new accent sub-theme, or an improvement to an existing one.
+title: "<component>: <what you want>"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The kit is framework-agnostic HTML + CSS: design tokens, one CSS file per component, tiny factory
+        functions. Requests that fit that shape land fastest.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - New component
+        - Enhancement to an existing component
+        - New accent sub-theme
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What & why
+      description: What you want and the real use case behind it. Concrete beats abstract.
+      placeholder: A "stepper" input for quantity fields — plus/minus with a number in the middle, tokenised like the button.
+    validations:
+      required: true
+  - type: textarea
+    id: states
+    attributes:
+      label: States it needs
+      description: A component isn't done until every state is designed. List the ones that matter here.
+      value: |
+        - [ ] hover
+        - [ ] focus-visible
+        - [ ] disabled
+        - [ ] busy / loading
+        - [ ] empty
+        - [ ] error
+        - [ ] success
+  - type: input
+    id: prior
+    attributes:
+      label: Prior art / reference
+      description: A link or the name of a component elsewhere that gets it right (optional).
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Before you post
+      options:
+        - label: No protected data in this issue — no real customer/financial data, personal emails or phone numbers, or internal infra IDs (Lessly UUIDs, `*.lessly.run`, ttl.sh tags, deploy tokens). See CONTRIBUTING → Data handling.
+          required: true

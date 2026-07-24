@@ -7,9 +7,21 @@ what you write is what ships.
 ## Setup
 
 ```bash
-NODE_AUTH_TOKEN=$(gh auth token) npm install
+npm install
 npm run storybook        # http://localhost:6006
 ```
+
+## Issues & pull requests
+
+- **Found a bug or want a component?** Open an issue — pick **Bug report** or **Component
+  or enhancement request** so the important details are captured up front. One thing per issue.
+- **Sending a change?** Fork, branch off `main` (`fix/…` or `feat/…`), and open a PR against
+  `main`. Fill in the PR template: what changed, the linked issue, and the verification
+  checklist.
+- **`main` is protected.** A PR needs one approving review and green CI before it merges — no
+  direct pushes. CI runs the build, `npm test` (unit + axe a11y), an `npm audit`, a published-
+  artifact check, and the secret-scan + internal-terms gates (see Data handling).
+- Keep PRs focused. One concern per PR reviews faster than a grab-bag.
 
 ## Golden rules
 
