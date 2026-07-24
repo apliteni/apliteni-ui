@@ -76,5 +76,5 @@ git push --follow-tags
 gh release create v$(node -p "require('./package.json').version") --generate-notes
 ```
 
-CI publishes to GitHub Packages on the Release. The `ui.apli.tech` site rebuilds
+CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release. The `ui.apli.tech` site rebuilds
 from the repo (landing + Storybook) — see the README for the image build/deploy.
