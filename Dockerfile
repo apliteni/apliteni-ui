@@ -1,6 +1,8 @@
 # ui.apli.tech — landing page + hosted Storybook.
 # Build for linux/amd64 (Lessly runs amd64; arm64 images fail with exec format error).
-#   docker buildx build --platform linux/amd64 -t <img> --push .
+# CI (.github/workflows/deploy-image.yml) builds + pushes this to
+# ghcr.io/apliteni/apliteni-ui on every push to main. Local build:
+#   docker buildx build --platform linux/amd64 -t ghcr.io/apliteni/apliteni-ui:latest --push .
 
 FROM node:22-alpine AS build
 WORKDIR /app
