@@ -1,0 +1,52 @@
+name: PII / infra scan (issues & PRs)
+
+# gitleaks and pre-commit never see issue/PR *bodies*, yet that's exactly where
+# internal identifiers slip in (e.g. a service UUID pasted into an issue). This
+# scans new/edited issue & PR bodies + comments against the infra denylist and
+# posts a warning. It warns, it does not block (you can't "fail" an issue).
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+  # SAFE use of pull_request_target: this job only READS context.payload and never
+  # checks out or executes PR code, so it does not reintroduce the fork-PR secret
+  # risk hardened in #74. It needs the base-repo token to comment on fork PRs.
+  pull_request_target:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan body for internal identifiers
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const body = (context.payload.issue?.body
+              || context.payload.pull_request?.body
+              || context.payload.comment?.body || "");
+            const patterns = [
+              /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/, // UUID v4
+              /ttl\.sh\/[a-z0-9]/,
+              /[a-z0-9-]+\.lessly\.run\b/,
+              /LESSLY_DEPLOY_TOKEN\s*[:=]/,
+              /\b(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/, // private IP
+            ];
+            if (!patterns.some((re) => re.test(body))) return;
+            const n = context.payload.issue?.number
+              || context.payload.pull_request?.number;
+            if (!n) return;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: n,
+              body: "⚠️ **Possible internal identifier detected** (a UUID, `*.lessly.run` "
+                + "host, ttl.sh image tag, deploy-token name, or private IP). This repo is "
+                + "public — please redact internal infra identifiers from this thread. "
+                + "See CONTRIBUTING → Data handling.",
+            });

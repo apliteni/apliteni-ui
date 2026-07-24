@@ -1,0 +1,70 @@
+# gitleaks config — extends the built-in secret rules with PII + internal-infra
+# rules so personal data and deploy topology can't land in a public repo.
+# The Security workflow (.github/workflows/security.yml) auto-loads this file.
+#
+# Go's RE2 has no negative lookahead, so "email not on an approved domain" is
+# done the idiomatic way: match ALL emails, then subtract approved domains and
+# known placeholders in [allowlist]. Add new legitimate values to the allowlist —
+# never weaken a rule.
+title = "apliteni-ui leak rules"
+
+[extend]
+useDefault = true # keep every built-in secret rule
+
+# ── Emails (must be an approved corporate / noreply / placeholder domain) ─────
+[[rules]]
+id = "pii-email"
+description = "Email address — review: only approved domains allowed"
+regex = '''[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,24}'''
+tags = ["pii", "email"]
+
+# ── Private / RFC1918 IPv4 ────────────────────────────────────────────────────
+[[rules]]
+id = "pii-private-ip"
+description = "Private (RFC1918) IPv4 address"
+regex = '''\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})\b'''
+tags = ["infra", "ip"]
+
+# ── Internal Lessly runtime hostnames (*.lessly.run) ─────────────────────────
+[[rules]]
+id = "infra-lessly-run"
+description = "Internal Lessly runtime hostname"
+regex = '''\b[a-z0-9-]+\.lessly\.run\b'''
+tags = ["infra", "hostname"]
+
+# ── ttl.sh ephemeral image tags ──────────────────────────────────────────────
+[[rules]]
+id = "infra-ttlsh-tag"
+description = "ttl.sh ephemeral registry reference"
+regex = '''\bttl\.sh/[A-Za-z0-9][A-Za-z0-9._\-/]+'''
+tags = ["infra", "registry"]
+
+# ── Bare UUID v4 — Lessly service/org/product identifiers are UUIDs ───────────
+[[rules]]
+id = "infra-uuid"
+description = "UUID (possible Lessly service/org/product identifier)"
+regex = '''\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b'''
+tags = ["infra", "uuid"]
+
+# ── Deploy/service token assignment with a real-looking value ────────────────
+[[rules]]
+id = "infra-deploy-token"
+description = "Deploy/service token assignment with a value"
+regex = '''(?i)(LESSLY_DEPLOY_TOKEN|DEPLOY_TOKEN|SERVICE_TOKEN)\s*[:=]\s*['"]?[A-Za-z0-9._\-]{16,}'''
+tags = ["infra", "token"]
+
+[allowlist]
+description = "Approved domains, placeholders, and known-safe demo data"
+regexes = [
+  # Approved email domains + GitHub noreply + demo placeholders.
+  '''[A-Za-z0-9._%+\-]+@apliteni\.com''',
+  '''[A-Za-z0-9._%+\-]+@sabirov\.io''',
+  '''[A-Za-z0-9._%+\-]+@(?:users\.)?noreply\.github\.com''',
+  '''[A-Za-z0-9._%+\-]+@example\.(?:com|org)''',
+  # Fabricated "shown once" demo API token in Access.stories.js — not a real secret.
+  '''apli_sk_live_9f2c4b7e1a06d8f3c5b2e9a1d4f70c83''',
+]
+paths = [
+  '''package-lock\.json''',
+  '''.*\.svg''',
+]
