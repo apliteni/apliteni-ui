@@ -24,6 +24,21 @@ npm run storybook        # http://localhost:6006
    Phoenix, before opening a PR. Use the toolbar toggles.
 5. **No visual slop.** Run the AI-slop detector on any new example page.
 
+## Data handling
+
+This repo is **public**. Never commit real customer or financial data, personal
+emails or phone numbers, or internal infrastructure identifiers (Lessly
+service/org/product IDs, `*.lessly.run` hosts, ttl.sh image tags, deploy tokens) —
+in code, fixtures, **issues, or PR text**. Use clearly-fabricated placeholders for
+all demo data (e.g. `Ada Lovelace / ada@apliteni.com`).
+
+Two automated gates enforce this (see `.github/workflows/security.yml`): gitleaks
+with a PII/infra ruleset (`.gitleaks.toml`) and an internal-terms denylist, both
+over the full history. Run them locally before pushing with
+[pre-commit](https://pre-commit.com): `pip install pre-commit && pre-commit install`.
+Issues and PR bodies aren't covered by gitleaks — a separate workflow warns on
+internal identifiers posted there, but the responsibility is yours.
+
 ## Add a component
 
 1. `src/styles/<name>.css` — token-driven, `.ui-<name>` class namespace.
