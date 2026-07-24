@@ -143,4 +143,4 @@ stays self-contained for the claude.ai Artifact CSP, baking tokens in via its bu
 
 ## License
 
-Proprietary — © Apliteni. See [LICENSE](./LICENSE).
+[MIT](./LICENSE) © Apliteni.

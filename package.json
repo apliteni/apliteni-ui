@@ -3,7 +3,7 @@
   "version": "0.7.1",
   "description": "Apliteni shared design system & UI kit — tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "author": "Apliteni",
   "homepage": "https://ui.apli.tech",
   "repository": {
