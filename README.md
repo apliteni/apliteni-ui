@@ -158,4 +158,5 @@ stays self-contained for the claude.ai Artifact CSP, baking tokens in via its bu
 
 ## License
 
-[MIT](./LICENSE) © Apliteni.
+[MIT](./LICENSE) © Apliteni — for the **code**. The Apliteni name, logos, and brand
+marks are trademarks and are **not** covered by the MIT license; see [TRADEMARK.md](./TRADEMARK.md).
