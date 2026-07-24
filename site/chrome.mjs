@@ -34,7 +34,7 @@ const ACCENTS = `<div class="accents" role="group" aria-label="Accent">
 export function footer() {
   return `<footer class="site-footer">
   <div class="site-footer__in">
-    <span>© Apliteni</span>
+    <span>© <a href="https://apliteni.com">Apliteni</a></span>
     <div style="display:flex;align-items:center;gap:11px">
       <span style="font-size:11.5px;letter-spacing:.06em;text-transform:uppercase">Accent: <span id="accName" style="color:var(--accent);font-weight:600">Nebula</span></span>
       ${ACCENTS}
@@ -67,7 +67,8 @@ export const CHROME_CSS = `
   .site-footer__in { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px);
     display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
     color: var(--muted); font-size: 13px; }
-  .site-footer a { color: var(--muted); }
+  .site-footer a { color: var(--muted); text-decoration: none; transition: color .15s ease; }
+  .site-footer a:hover { color: var(--strong); text-decoration: underline; text-underline-offset: 3px; }
   @media (max-width: 560px) { .site-topbar .hide-sm { display: none; } }
 `;
 

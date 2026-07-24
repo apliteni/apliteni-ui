@@ -32,7 +32,24 @@
 .ui-table tr.is-dead td { color: var(--muted); }
 .ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
-.ui-table--hover tbody tr:hover { background: var(--surface-2); }
+
+/* Row hover: an inset, rounded fill so the highlight never sits flush against a
+ * container's border (issue #71 — the full-bleed rectangle collided with a card's
+ * left edge). Separate border model with zero spacing keeps the row separators
+ * continuous while letting the row ends round; table padding (which only applies
+ * in the separate model) insets the rows so the fill clears the container edge.
+ * Zebra tables keep the original full-bleed tint (finance ledger), so they're
+ * excluded here — their hover rule lives further down. */
+.ui-table--hover:not(.ui-table--zebra) {
+  border-collapse: separate;
+  border-spacing: 0;
+  padding: 0 6px;
+}
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td { background: var(--surface-2); }
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:first-child {
+  border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
+  border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
 
 /* ── Data-table modifiers (composable) ──────────────────────────────────────
  * Compose for a dense financial ledger: .ui-table--dense --zebra --hover.

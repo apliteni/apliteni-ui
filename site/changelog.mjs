@@ -3,7 +3,14 @@
 
 export const RELEASES = [
   {
-    v: '0.7.0', date: '2026-07-24', tag: 'latest',
+    v: '0.7.1', date: '2026-07-24', tag: 'latest',
+    changes: [
+      ['fixed', 'Table row hover no longer collides with its container’s border — `.ui-table--hover` now draws the highlight as an inset, rounded pill (a few px clear of the edge) instead of a full-bleed rectangle. Dense/zebra ledgers keep their existing full-bleed tint.'],
+      ['changed', 'Homepage polish: code-block Copy buttons morph a copy glyph into a checkmark on success (reduced-motion swaps instantly), bento icon tiles use larger crisp glyphs, and the footer gets a visible link hover plus an Apliteni → apliteni.com link.'],
+    ],
+  },
+  {
+    v: '0.7.0', date: '2026-07-24',
     changes: [
       ['added', 'Tabs component — `tabs({ items, active, name })` renders an accessible tablist + panels (framework-agnostic HTML string); wire it with `initTabs()`. Full WAI-ARIA pattern: roving tabindex, Arrow/Home/End keys, aria-selected and aria-controls wiring. New Components → Tabs story.'],
     ],
