@@ -29,6 +29,7 @@ before any public disclosure.
 ## Scope
 
 This is a framework-agnostic HTML + CSS UI kit with **no runtime dependencies**
-and no server, database, or authentication code. The most relevant classes of
-issue are supply-chain (build/publish integrity), the demo/site server
-(`src/server.mjs`), and any XSS vector in the component string factories.
+and no server, database, or authentication code. The `ui.apli.tech` site is a
+static build (no server code — served by static hosting). The most relevant
+classes of issue are supply-chain (build/publish integrity) and any XSS vector
+in the component string factories.

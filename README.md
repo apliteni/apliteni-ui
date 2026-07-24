@@ -98,7 +98,7 @@ src/
   assets/                # brand mark (seedling) + line-icon set
   components/            # HTML-string factories: button(), card(), badge(), topbar()…
 stories/                 # Storybook: Foundations, Components, Apps
-site/                    # ui.apli.tech landing page + static server
+site/                    # ui.apli.tech landing page (static site build)
 ```
 
 ## Develop
@@ -107,7 +107,7 @@ site/                    # ui.apli.tech landing page + static server
 npm install
 npm run storybook          # http://localhost:6006
 npm run build-storybook    # -> storybook-static/
-node site/build.mjs        # -> site/public/ (landing + kit.css)
+node site/build.mjs        # -> site/public/ (landing + kit.css + /storybook)
 ```
 
 ## Publish (public npm)
@@ -125,18 +125,23 @@ built-in `GITHUB_TOKEN` (`packages: write`). No manual `npm publish` needed.
 
 ## Deploy (ui.apli.tech)
 
-`Dockerfile` builds the landing page + Storybook and serves both (`/` and `/storybook`)
-via a zero-dependency static server. Deployed on **Lessly** as its own product, on
-`linux/amd64` (arm64 images fail there).
+The site is **100% static** (landing + hosted Storybook) — no container, no registry.
+It's served by **Lessly static hosting**, built straight from this repo. The `site`
+service builds from `main` with:
 
-The image is built + pushed to **GHCR** (`ghcr.io/apliteni/apliteni-ui`) by the
-**Deploy image** workflow (`.github/workflows/deploy-image.yml`) on every push to `main`
-(or via *Run workflow*). GHCR is persistent — no ttl.sh timeouts, no image expiry. The
-Lessly `site` service pulls `ghcr.io/apliteni/apliteni-ui:latest`; redeploy it to roll a
-new image out. To build locally instead:
+```
+npm ci && npm run build-storybook && node site/build.mjs
+```
+
+and serves `site/public/`, which includes the landing page, `/changelog`, `kit.css`,
+and the Storybook folded in at `/storybook`. Push to `main` and redeploy the `site`
+service to roll it out.
+
+To reproduce the exact static bundle locally:
 
 ```bash
-docker buildx build --platform linux/amd64 -t ghcr.io/apliteni/apliteni-ui:latest --push .
+npm ci && npm run build-storybook && node site/build.mjs
+# -> site/public/   (landing + /changelog + /storybook + kit.css)
 ```
 
 ## Adopting into the strategy portal
