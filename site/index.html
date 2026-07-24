@@ -97,6 +97,15 @@
 
   @media (max-width: 860px) { .bento { grid-template-columns: repeat(2, 1fr); } .c-6 { grid-column: span 2; } .c-3 { grid-column: span 2; } .c-2 { grid-column: span 1; } }
   @media (max-width: 560px) { .bento { grid-template-columns: 1fr; } .c-6, .c-3, .c-2 { grid-column: auto; } }
+
+  /* "Drop it in" — two paths: Humans compose into a framework, Agents emit HTML strings. */
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; max-width: 900px; margin: 0 auto; }
+  .path { display: flex; flex-direction: column; gap: 12px; }
+  .path__label { display: inline-flex; align-items: center; gap: 8px; font: 600 11px/1 Poppins;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  .path__note { color: var(--dim); font-size: 13.5px; line-height: 1.55; min-height: 3em; }
+  .path .ui-snippet pre .c { color: var(--muted); }
+  @media (max-width: 720px) { .paths { grid-template-columns: 1fr; } .path__note { min-height: 0; } }
 </style>
 </head>
 <body>
@@ -151,12 +160,25 @@
 <section class="wrap" style="padding:70px 0" id="install">
   <div class="ui-section-head" style="margin-bottom:44px">
     <h2>Drop it in</h2>
-    <p>Published on the public npm registry — install with no token and no scope config, then compose from the components.</p>
+    <p>One package on the public npm registry — no token, no scope config. The same kit serves people and agents.</p>
   </div>
-  <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
-    <div class="ui-snippet"><div class="ui-snippet__bar"><span>install</span></div><pre><span class="k">npm</span> install <span class="s">@apliteni/apliteni-ui</span></pre></div>
-    <div class="ui-snippet"><div class="ui-snippet__bar"><span>use</span></div><pre><span class="k">import</span> <span class="s">'@apliteni/apliteni-ui/css'</span>
+  <div class="paths">
+    <div class="path">
+      <div class="path__label">Humans</div>
+      <div class="path__note">Compose the components into your app — React, Vue, Svelte or plain HTML.</div>
+      <div class="ui-snippet"><div class="ui-snippet__bar"><span>install</span></div><pre><span class="k">npm</span> install <span class="s">@apliteni/apliteni-ui</span></pre></div>
+      <div class="ui-snippet"><div class="ui-snippet__bar"><span>use</span></div><pre><span class="k">import</span> <span class="s">'@apliteni/apliteni-ui/css'</span>
 <span class="k">import</span> { button, card, topbar } <span class="k">from</span> <span class="s">'@apliteni/apliteni-ui'</span></pre></div>
+    </div>
+    <div class="path">
+      <div class="path__label">Agents</div>
+      <div class="path__note">Same package — every factory returns a plain HTML string, so an agent emits on-brand markup from any runtime. No framework, no JSX.</div>
+      <div class="ui-snippet"><div class="ui-snippet__bar"><span>install</span></div><pre><span class="k">npm</span> install <span class="s">@apliteni/apliteni-ui</span></pre></div>
+      <div class="ui-snippet"><div class="ui-snippet__bar"><span>emit</span></div><pre><span class="k">import</span> { button } <span class="k">from</span> <span class="s">'@apliteni/apliteni-ui'</span>
+
+button({ label: <span class="s">'Save'</span>, variant: <span class="s">'primary'</span> })
+<span class="c">// → &lt;button type="button" class="ui-btn ui-btn--primary"&gt;&lt;span&gt;Save&lt;/span&gt;&lt;/button&gt;</span></pre></div>
+    </div>
   </div>
 </section>
 
