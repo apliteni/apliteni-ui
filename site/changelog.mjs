@@ -88,12 +88,6 @@ export const RELEASES = [
     ],
   },
   {
-    v: '0.2.0', date: '2026-07-20',
-    changes: [
-      ['changed', 'Renamed the package to `@apliteni/apliteni-ui` (was `@apliteni/aplitech-ui`).'],
-    ],
-  },
-  {
     v: '0.1.2', date: '2026-07-20',
     changes: [['fixed', 'Enlarged the consent scope + app-chip icons.']],
   },

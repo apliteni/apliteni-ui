@@ -108,26 +108,37 @@
   .path-card b { display: block; color: var(--strong); font: 600 15px Poppins; }
   .path-card span { color: var(--muted); font-size: 12.5px; }
   .paths-panel > div:not([hidden]) { display: flex; flex-direction: column; gap: 14px; }
-  /* Dark code block — just the code with a Copy button floating top-right. */
-  .term { position: relative; background: #0d0d15; border: 1px solid #26263a; border-radius: 12px;
-    overflow: hidden; box-shadow: 0 10px 34px rgba(0, 0, 0, .26); }
+  /* Code block — theme-aware. Dark theme keeps a rich near-black panel; light
+     theme uses a soft light panel (the near-black slab reads too heavy on white)
+     with darker syntax colours. All colours flow through --term-* tokens. */
+  .term { position: relative; border-radius: 12px; overflow: hidden;
+    --term-bg: #0d0d15; --term-bd: #26263a; --term-fg: #d6d6e6;
+    --term-k: #c9a6ff; --term-s: #8bd98b; --term-c: #6b6b85;
+    --term-shadow: 0 10px 34px rgba(0, 0, 0, .26);
+    --term-btn-bg: #21212e; --term-btn-fg: #b9b9cf; --term-btn-bd: #30304a; --term-btn-hover: #2a2a3c;
+    background: var(--term-bg); border: 1px solid var(--term-bd); box-shadow: var(--term-shadow); }
+  :root[data-theme="light"] .term {
+    --term-bg: #f5f6fb; --term-bd: var(--border); --term-fg: #2c3040;
+    --term-k: #7c3aed; --term-s: #15803d; --term-c: #8a8aa0;
+    --term-shadow: 0 1px 2px rgba(20, 25, 45, .05), 0 6px 20px rgba(20, 25, 45, .06);
+    --term-btn-bg: #fff; --term-btn-fg: #55607a; --term-btn-bd: var(--border); --term-btn-hover: #eef0f6; }
   .term__copy { position: absolute; top: 8px; right: 8px; z-index: 1;
     display: grid; place-items: center; width: 30px; height: 30px;
-    background: #21212e; color: #b9b9cf; border: 1px solid #30304a; border-radius: 8px;
-    cursor: pointer; transition: background .15s, color .15s; }
-  .term__copy:hover { background: #2a2a3c; color: #fff; }
+    background: var(--term-btn-bg); color: var(--term-btn-fg); border: 1px solid var(--term-btn-bd);
+    border-radius: 8px; cursor: pointer; transition: background .15s, color .15s; }
+  .term__copy:hover { background: var(--term-btn-hover); color: var(--term-fg); }
   .term__copy .ic { grid-area: 1 / 1; width: 15px; height: 15px; stroke: currentColor; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     transition: opacity .22s ease, transform .22s ease; }
-  .term__copy .ic-check { opacity: 0; transform: scale(.5) rotate(-12deg); color: #8bd98b; }
+  .term__copy .ic-check { opacity: 0; transform: scale(.5) rotate(-12deg); color: var(--term-s); }
   .term__copy.is-copied .ic-copy { opacity: 0; transform: scale(.5) rotate(12deg); }
   .term__copy.is-copied .ic-check { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce) { .term__copy .ic { transition: none; } }
-  .term pre { margin: 0; padding: 16px 18px; color: #d6d6e6; font: 500 12.5px/1.6 var(--font-mono);
+  .term pre { margin: 0; padding: 16px 18px; color: var(--term-fg); font: 500 12.5px/1.6 var(--font-mono);
     white-space: pre-wrap; word-break: break-word; }
-  .term pre .k { color: #c9a6ff; }
-  .term pre .s { color: #8bd98b; }
-  .term pre .c { color: #6b6b85; }
+  .term pre .k { color: var(--term-k); }
+  .term pre .s { color: var(--term-s); }
+  .term pre .c { color: var(--term-c); }
   @media (max-width: 560px) { .paths-sw { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -197,7 +208,6 @@
 <span class="k">import</span> { button, card, topbar } <span class="k">from</span> <span class="s">'@apliteni/apliteni-ui'</span></pre></div>
       </div>
       <div data-content="agents" hidden>
-        <p style="color:var(--dim);font-size:13.5px;line-height:1.55;margin:0">Same public package — or skip the install: paste this one prompt into your coding agent and it re-skins any app to apliteni-ui.</p>
         <div class="term"><button class="term__copy" type="button" data-copy aria-label="Copy"><svg class="ic ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></svg><svg class="ic ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></button><pre class="prompt">Adopt the apliteni-ui design system across this entire app, replacing the current styles.
 
 1. Load it: add &lt;link rel="stylesheet" href="https://ui.apli.tech/assets/kit.css"&gt;
