@@ -3,7 +3,13 @@
 
 export const RELEASES = [
   {
-    v: '0.7.1', date: '2026-07-24', tag: 'latest',
+    v: '0.7.2', date: '2026-07-24', tag: 'latest',
+    changes: [
+      ['changed', 'Relicensed as **MIT** (was proprietary/UNLICENSED). The package is published on public npm, so MIT matches how it can actually be used — install and use it freely across your products.'],
+    ],
+  },
+  {
+    v: '0.7.1', date: '2026-07-24',
     changes: [
       ['fixed', 'Table row hover no longer collides with its container’s border — `.ui-table--hover` now draws the highlight as an inset, rounded pill (a few px clear of the edge) instead of a full-bleed rectangle. Dense/zebra ledgers keep their existing full-bleed tint.'],
       ['changed', 'Homepage polish: code-block Copy buttons morph a copy glyph into a checkmark on success (reduced-motion swaps instantly), bento icon tiles use larger crisp glyphs, and the footer gets a visible link hover plus an Apliteni → apliteni.com link.'],

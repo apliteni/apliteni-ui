@@ -1,6 +1,6 @@
 {
   "name": "@apliteni/apliteni-ui",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Apliteni shared design system & UI kit — tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
   "type": "module",
   "license": "MIT",
