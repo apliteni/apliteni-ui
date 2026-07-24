@@ -1,10 +1,12 @@
 // Build the static landing site: emit the kit stylesheet from the package's own
-// inline export, and copy the landing HTML into public/. Storybook static is
-// copied in by the Dockerfile (or `npm run build-storybook` locally).
+// inline export, copy the landing HTML into public/, and fold the built Storybook
+// into public/storybook/ so public/ is one self-contained static tree (the host
+// serves it directly — no server). Run `npm run build-storybook` first for the
+// Storybook fold; without it the landing site still builds.
 import { cssText } from '../src/inline.js';
 import { changelogMain } from './changelog.mjs';
 import { topbar, footer, CHROME_CSS, CHROME_JS } from './chrome.mjs';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, existsSync, cpSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 const here = new URL('.', import.meta.url);
@@ -46,4 +48,13 @@ writeFileSync(new URL('favicon.svg', pub), faviconSvg);
 writeFileSync(new URL('index.html', pub), html);
 writeFileSync(new URL('changelog/index.html', pub), changelog);
 
-console.log(`site: wrote index.html + changelog/ + kit.css (v${version}, css#${cssHash})`);
+// Fold the built Storybook into public/storybook/ so the whole site is one static
+// tree (served at /storybook). Guarded so a landing-only local build still works.
+const sbStatic = new URL('../storybook-static/', here);
+let sb = 'no storybook (run build-storybook)';
+if (existsSync(sbStatic)) {
+  cpSync(sbStatic, new URL('storybook/', pub), { recursive: true });
+  sb = 'storybook/';
+}
+
+console.log(`site: wrote index.html + changelog/ + kit.css + ${sb} (v${version}, css#${cssHash})`);
