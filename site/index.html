@@ -106,9 +106,20 @@
   .path-card.is-active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
   .path-card b { display: block; color: var(--strong); font: 600 15px Poppins; }
   .path-card span { color: var(--muted); font-size: 12.5px; }
-  .paths-panel > div { display: flex; flex-direction: column; gap: 14px; }
-  .paths-panel pre.prompt { white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.55; }
-  .paths-panel pre.prompt .c { color: var(--muted); }
+  .paths-panel > div:not([hidden]) { display: flex; flex-direction: column; gap: 14px; }
+  /* Terminal window for the one-shot agent prompt — dark in either theme. */
+  .term { background: #0d0d15; border: 1px solid #26263a; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, .28); }
+  .term__bar { display: flex; align-items: center; gap: 7px; padding: 11px 14px;
+    background: #14141f; border-bottom: 1px solid #26263a; }
+  .term__dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .term__title { margin-left: 8px; font: 500 11px/1 var(--font-mono); color: #8b8ba7; letter-spacing: .02em; }
+  .term__copy { margin-left: auto; background: #21212e; color: #b9b9cf; border: 1px solid #30304a;
+    border-radius: 7px; padding: 4px 10px; font: 600 11px/1 Poppins; cursor: pointer; }
+  .term__copy:hover { background: #2a2a3c; color: #fff; }
+  .term pre { margin: 0; padding: 16px 18px; color: #d4d4e4; font: 500 12px/1.65 var(--font-mono);
+    white-space: pre-wrap; word-break: break-word; }
+  .term pre .c { color: #6b6b85; }
   @media (max-width: 560px) { .paths-sw { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -179,7 +190,7 @@
       </div>
       <div data-content="agents" hidden>
         <p style="color:var(--dim);font-size:13.5px;line-height:1.55;margin:0">Same public package — or skip the install: paste this one prompt into your coding agent and it re-skins any app to apliteni-ui.</p>
-        <div class="ui-snippet"><div class="ui-snippet__bar"><span>prompt</span></div><pre class="prompt">Adopt the apliteni-ui design system across this entire app, replacing the current styles.
+        <div class="term"><div class="term__bar"><span class="term__dot" style="background:#ff5f56"></span><span class="term__dot" style="background:#febc2e"></span><span class="term__dot" style="background:#28c840"></span><span class="term__title">apliteni-ui — one-shot prompt</span><button class="term__copy" type="button" data-copy-prompt>Copy</button></div><pre class="prompt">Adopt the apliteni-ui design system across this entire app, replacing the current styles.
 
 1. Load it: add &lt;link rel="stylesheet" href="https://ui.apli.tech/assets/kit.css"&gt;
    (or: npm i @apliteni/apliteni-ui &amp;&amp; import '@apliteni/apliteni-ui/css').
@@ -360,6 +371,19 @@
           c.hidden = c.getAttribute('data-content') !== tab;
         });
       });
+    });
+  })();
+
+  /* Copy the one-shot prompt to the clipboard. */
+  (function(){
+    var btn = document.querySelector('[data-copy-prompt]');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var pre = btn.closest('.term').querySelector('pre.prompt');
+      var text = pre ? pre.textContent : '';
+      var done = function(){ var o = btn.textContent; btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = o; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, done); }
+      else { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(t); done(); }
     });
   })();
 </script>
