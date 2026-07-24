@@ -1,5 +1,9 @@
 # @apliteni/apliteni-ui
 
+[![npm](https://img.shields.io/npm/v/@apliteni/apliteni-ui?color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@apliteni/apliteni-ui)
+[![license: MIT](https://img.shields.io/npm/l/@apliteni/apliteni-ui?color=3b9dff)](./LICENSE)
+[![live: ui.apli.tech](https://img.shields.io/badge/live-ui.apli.tech-9b5dff)](https://ui.apli.tech)
+
 The Apliteni design system & UI kit — one source of UI for every product surface
 (the strategy deck, the text portal, `/account`, the operating model, and whatever
 ships next).
