@@ -89,3 +89,33 @@ test('parseContributors tiebreak orders by the displayed (canonical) name', () =
   assert.equal(people[0].name, 'Bob Yankee');   // tie at 1 commit; B before Z by displayed name
   assert.equal(people[1].name, 'Zach Zimmerman');
 });
+
+import { contributorChips } from './changelog.mjs';
+
+test('contributorChips renders an avatar image + handle link for a known author', () => {
+  const html = contributorChips([{ name: 'Artur Sabirov', handle: 'asabirov',
+    url: 'https://github.com/asabirov', avatar: 'https://github.com/asabirov.png?size=48', initials: 'AS' }]);
+  assert.match(html, /<img class="av" src="https:\/\/github.com\/asabirov.png\?size=48"/);
+  assert.match(html, /@asabirov/);
+  assert.match(html, /class="who" href="https:\/\/github.com\/asabirov"/);
+});
+
+test('contributorChips renders an initials chip for an unknown author', () => {
+  const html = contributorChips([{ name: 'Jane Doe', handle: null, url: null, avatar: null, initials: 'JD' }]);
+  assert.match(html, /<span class="av ini">JD<\/span>/);
+  assert.match(html, /Jane Doe/);
+  assert.doesNotMatch(html, /<a /);
+});
+
+test('contributorChips returns empty string when there are no contributors', () => {
+  assert.equal(contributorChips([]), '');
+  assert.equal(contributorChips(), '');
+});
+
+test('release renders a contributor row when contributors are supplied', () => {
+  const html = release({ v: '9.9.9', date: '2026-01-01', changes: [['fixed', 'x']] },
+    [{ name: 'Artur Sabirov', handle: 'asabirov', url: 'https://github.com/asabirov',
+       avatar: 'https://github.com/asabirov.png?size=48', initials: 'AS' }]);
+  assert.match(html, /class="contrib"/);
+  assert.match(html, /@asabirov/);
+});

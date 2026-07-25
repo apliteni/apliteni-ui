@@ -121,6 +121,21 @@ export const parseContributors = (logText, authors = AUTHORS) => {
     .map(({ person }) => person);
 };
 
+// Per-release contributor row: avatar (photo or initials) + handle/name chip.
+export const contributorChips = (people) => {
+  if (!people || !people.length) return '';
+  const who = (p) => {
+    const av = p.avatar
+      ? `<img class="av" src="${p.avatar}" alt="" width="22" height="22">`
+      : `<span class="av ini">${fmt(p.initials)}</span>`;
+    const label = p.handle ? `@${fmt(p.handle)}` : fmt(p.name);
+    return p.url
+      ? `<a class="who" href="${p.url}">${av}${label}</a>`
+      : `<span class="who">${av}${label}</span>`;
+  };
+  return `<div class="contrib"><span class="people">${people.map(who).join('')}</span></div>`;
+};
+
 // tiny inline-code + backtick formatter (no external md)
 const fmt = (s) => s
   .replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
@@ -155,7 +170,9 @@ export const release = (r, contributors) => `
       <ul class="rel__list">
         ${r.changes.map(([t, text, comps]) => `<li><span class="tag tag--${TAG[t].cls}">${TAG[t].label}</span><span>${fmt(text)}${componentChips(comps)}</span></li>`).join('')}
       </ul>
+      ${contributorChips(contributors)}
     </div>
   </section>`;
 
-export const changelogMain = () => RELEASES.map(release).join('');
+export const changelogMain = (contributorsByVersion = {}) =>
+  RELEASES.map((r) => release(r, contributorsByVersion[r.v])).join('');
