@@ -5,23 +5,23 @@ export const RELEASES = [
   {
     v: '0.2.4', date: '2026-07-20', tag: 'latest',
     changes: [
-      ['fixed', 'Active segmented pill now sits inside its track — the heavy card shadow was spilling past the edge and reading as overflow. New tight `--shadow-seg` token.'],
+      ['fixed', 'Active segmented pill now sits inside its track — the heavy card shadow was spilling past the edge and reading as overflow. New tight `--shadow-seg` token.', ['Segmented']],
     ],
   },
   {
     v: '0.2.3', date: '2026-07-20',
     changes: [
-      ['added', 'Gradient-bars busy loader on buttons — the button is disabled while it works.'],
+      ['added', 'Gradient-bars busy loader on buttons — the button is disabled while it works.', ['Button']],
       ['added', 'Centered + glow Google-SSO sign-in, with idle / signing-in states.'],
     ],
   },
   {
     v: '0.2.2', date: '2026-07-20',
     changes: [
-      ['added', '`--accent-strong` token — primary buttons now clear WCAG AA contrast.'],
-      ['added', '`--seg-active-bg` token — the active segmented pill reads clearly in dark.'],
+      ['added', '`--accent-strong` token — primary buttons now clear WCAG AA contrast.', ['Button']],
+      ['added', '`--seg-active-bg` token — the active segmented pill reads clearly in dark.', ['Segmented']],
       ['added', 'Google-SSO-only sign-in story.'],
-      ['fixed', 'Card grids no longer misalign — spacing moved to `.ui-card-stack` (the child margin leaked into rows).'],
+      ['fixed', 'Card grids no longer misalign — spacing moved to `.ui-card-stack` (the child margin leaked into rows).', ['Card']],
       ['changed', 'Removed the auto-generated Storybook “Docs” pages; intro wordmark reads apliteni-ui.'],
     ],
   },
@@ -56,6 +56,24 @@ export const RELEASES = [
   },
 ];
 
+// Component display name → Storybook story id (title kebab + first export).
+// A name absent here renders as a plain, unlinked chip.
+const COMPONENTS = {
+  Table:     'components-table--finance-data',
+  Badge:     'components-badge-status--badges',
+  Button:    'components-button--playground',
+  Card:      'components-card--variants',
+  Callout:   'components-callout-toast--callouts',
+  Inputs:    'components-inputs--textfields',
+  Segmented: 'components-segmented-control--playground',
+  Snippet:   'components-code-snippet--shell',
+  Switch:    'components-switch-checkbox--switches',
+  Topbar:    'components-topbar--full',
+  Feedback:  'components-feedback--default',
+};
+
+const STORYBOOK = (id) => `/storybook/?path=/story/${id}`;
+
 const TAG = {
   added: { label: 'Added', cls: 'added' },
   fixed: { label: 'Fixed', cls: 'fixed' },
@@ -68,6 +86,15 @@ const fmt = (s) => s
   .replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
   .replace(/`([^`]+)`/g, '<code class="ui-code">$1</code>');
 
+// Per-change component chips: known → Storybook deeplink, unknown → plain pill.
+export const componentChips = (names) => {
+  if (!names || !names.length) return '';
+  const chip = (n) => COMPONENTS[n]
+    ? `<a class="comp" href="${STORYBOOK(COMPONENTS[n])}">${fmt(n)}</a>`
+    : `<span class="comp plain">${fmt(n)}</span>`;
+  return `<span class="chips">${names.map(chip).join('')}</span>`;
+};
+
 const release = (r) => `
   <section class="rel">
     <div class="rel__rail"><span class="rel__dot${r.tag === 'latest' ? ' is-latest' : ''}"></span></div>
@@ -79,7 +106,7 @@ const release = (r) => `
         ${r.tag === 'first' ? '<span class="ui-badge ui-badge--soon">First</span>' : ''}
       </header>
       <ul class="rel__list">
-        ${r.changes.map(([t, text]) => `<li><span class="tag tag--${TAG[t].cls}">${TAG[t].label}</span><span>${fmt(text)}</span></li>`).join('')}
+        ${r.changes.map(([t, text, comps]) => `<li><span class="tag tag--${TAG[t].cls}">${TAG[t].label}</span><span>${fmt(text)}${componentChips(comps)}</span></li>`).join('')}
       </ul>
     </div>
   </section>`;
