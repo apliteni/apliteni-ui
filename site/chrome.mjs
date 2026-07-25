@@ -36,7 +36,6 @@ export function footer() {
   <div class="site-footer__in">
     <span>© Apliteni</span>
     <div style="display:flex;align-items:center;gap:11px">
-      <span style="font-size:11.5px;letter-spacing:.06em;text-transform:uppercase">Accent: <span id="accName" style="color:var(--accent);font-weight:600">Nebula</span></span>
       ${ACCENTS}
     </div>
     <span style="display:flex;gap:22px">
@@ -83,8 +82,7 @@ export const CHROME_JS = `
   applyTheme(savedT || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
   document.getElementById('tgl').addEventListener('click', function(){ applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); });
 
-  var NAMES = { default:'Nebula', phoenix:'Phoenix', ocean:'Ocean', emerald:'Emerald' };
-  function applyAccent(a){ if(a==='default') root.removeAttribute('data-accent'); else root.setAttribute('data-accent', a); var nm=document.getElementById('accName'); if(nm) nm.textContent = NAMES[a]; document.querySelectorAll('.accents button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-acc')===a); }); try{localStorage.setItem('apliteni-ui-accent',a);}catch(e){} }
+  function applyAccent(a){ if(a==='default') root.removeAttribute('data-accent'); else root.setAttribute('data-accent', a); document.querySelectorAll('.accents button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-acc')===a); }); try{localStorage.setItem('apliteni-ui-accent',a);}catch(e){} }
   var savedA = null; try{ savedA = localStorage.getItem('apliteni-ui-accent'); }catch(e){}
   if (savedA) applyAccent(savedA);
   document.querySelectorAll('.accents button').forEach(function(b){ b.addEventListener('click', function(){ applyAccent(b.getAttribute('data-acc')); }); });
