@@ -79,6 +79,7 @@ const TAG = {
   fixed: { label: 'Fixed', cls: 'fixed' },
   changed: { label: 'Changed', cls: 'changed' },
   removed: { label: 'Removed', cls: 'removed' },
+  breaking: { label: 'Breaking', cls: 'breaking' },
 };
 
 // tiny inline-code + backtick formatter (no external md)
@@ -95,7 +96,13 @@ export const componentChips = (names) => {
   return `<span class="chips">${names.map(chip).join('')}</span>`;
 };
 
-const release = (r) => `
+export const isBreakingRelease = (r) => r.changes.some(([t]) => t === 'breaking');
+
+const BREAKING_BADGE = `<span class="ui-badge ui-badge--breaking">` +
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>` +
+  `Breaking</span>`;
+
+export const release = (r, contributors) => `
   <section class="rel">
     <div class="rel__rail"><span class="rel__dot${r.tag === 'latest' ? ' is-latest' : ''}"></span></div>
     <div class="rel__body">
@@ -104,6 +111,7 @@ const release = (r) => `
         <span class="rel__date">${r.date}</span>
         ${r.tag === 'latest' ? '<span class="ui-badge ui-badge--live">Latest</span>' : ''}
         ${r.tag === 'first' ? '<span class="ui-badge ui-badge--soon">First</span>' : ''}
+        ${isBreakingRelease(r) ? BREAKING_BADGE : ''}
       </header>
       <ul class="rel__list">
         ${r.changes.map(([t, text, comps]) => `<li><span class="tag tag--${TAG[t].cls}">${TAG[t].label}</span><span>${fmt(text)}${componentChips(comps)}</span></li>`).join('')}
