@@ -126,11 +126,11 @@ export const contributorChips = (people) => {
   if (!people || !people.length) return '';
   const who = (p) => {
     const av = p.avatar
-      ? `<img class="av" src="${p.avatar}" alt="" width="22" height="22">`
+      ? `<img class="av" src="${attr(p.avatar)}" alt="" width="22" height="22">`
       : `<span class="av ini">${fmt(p.initials)}</span>`;
     const label = p.handle ? `@${fmt(p.handle)}` : fmt(p.name);
     return p.url
-      ? `<a class="who" href="${p.url}">${av}${label}</a>`
+      ? `<a class="who" href="${attr(p.url)}">${av}${label}</a>`
       : `<span class="who">${av}${label}</span>`;
   };
   return `<div class="contrib"><span class="people">${people.map(who).join('')}</span></div>`;
@@ -140,6 +140,9 @@ export const contributorChips = (people) => {
 const fmt = (s) => s
   .replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
   .replace(/`([^`]+)`/g, '<code class="ui-code">$1</code>');
+
+// Escape a value for use inside a double-quoted HTML attribute.
+const attr = (s) => String(s).replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[c]));
 
 // Per-change component chips: known → Storybook deeplink, unknown → plain pill.
 export const componentChips = (names) => {

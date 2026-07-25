@@ -119,3 +119,8 @@ test('release renders a contributor row when contributors are supplied', () => {
   assert.match(html, /class="contrib"/);
   assert.match(html, /@asabirov/);
 });
+
+test('contributorChips escapes a quote in the avatar URL attribute', () => {
+  const html = contributorChips([{ name: 'X', handle: 'x', url: 'https://github.com/x', avatar: 'https://a/"x', initials: 'X' }]);
+  assert.match(html, /src="https:\/\/a\/&quot;x"/);
+});
