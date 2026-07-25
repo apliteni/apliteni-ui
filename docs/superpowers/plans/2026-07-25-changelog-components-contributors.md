@@ -17,7 +17,7 @@
 - Contributor avatar URL: `https://github.com/<handle>.png?size=48`; profile URL: `https://github.com/<handle>`.
 - Bot filter: drop any author whose name or email contains `[bot]` (case-insensitive).
 - The build must **never fail** because git/tags are unavailable — every git call is wrapped so a missing tag yields no contributors for that release.
-- Reuse existing design tokens only (`--purple-mid`, `--glow-purple`, `--pink`, `--glow-pink`, `--surface-2`, `--surface-3`, `--border`, `--border-strong`, `--accent-strong`, `--muted`, `--dim`, `--strong`, `--font-sans`). No new color literals except the initials-avatar gradient `linear-gradient(135deg,#6a2dcc,#3b9dff)`.
+- Reuse existing design tokens only (`--purple-mid`, `--glow-purple`, `--pink`, `--glow-pink`, `--surface-2`, `--surface-3`, `--border`, `--border-strong`, `--accent-strong`, `--muted`, `--dim`, `--strong`, `--font-sans`). No new color literals except: the initials-avatar gradient `linear-gradient(135deg,#6a2dcc,#3b9dff)`, and `#fff` for text sitting on a solid accent fill (the `.tag--breaking` white-on-pink pill approved in the mock — there is no on-accent token in the design system).
 - Test files match the repo convention `*.test.js` (see `src/components/feedback.test.js`).
 
 ---
