@@ -81,3 +81,11 @@ test('parseContributors orders by commit count desc', () => {
 test('parseContributors returns empty array for empty input', () => {
   assert.deepEqual(parseContributors('', AUTHORS_FIXTURE), []);
 });
+
+test('parseContributors tiebreak orders by the displayed (canonical) name', () => {
+  const authors = { 'z@example.com': { handle: 'zh', name: 'Zach Zimmerman' } };
+  const log = 'Aaron Xray\tz@example.com\nBob Yankee\tbob@example.com';
+  const people = parseContributors(log, authors);
+  assert.equal(people[0].name, 'Bob Yankee');   // tie at 1 commit; B before Z by displayed name
+  assert.equal(people[1].name, 'Zach Zimmerman');
+});
