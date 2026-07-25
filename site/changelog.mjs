@@ -64,7 +64,7 @@ const COMPONENTS = {
   Button:    'components-button--playground',
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',
-  Inputs:    'components-inputs--textfields',
+  Inputs:    'components-inputs--text-fields',
   Segmented: 'components-segmented-control--playground',
   Snippet:   'components-code-snippet--shell',
   Switch:    'components-switch-checkbox--switches',
