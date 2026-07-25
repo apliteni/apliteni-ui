@@ -82,6 +82,42 @@ const TAG = {
   breaking: { label: 'Breaking', cls: 'breaking' },
 };
 
+// GitHub handle map — resolves a commit email to an avatar + profile.
+// Unknown authors fall back to an initials chip and plain name.
+export const AUTHORS = {
+  'artur.sabirov@apliteni.com': { handle: 'asabirov', name: 'Artur Sabirov' },
+};
+
+export const initialsOf = (name) =>
+  name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('') || '?';
+
+// Parse `git log --format=%an%x09%ae` output into deduped, bot-filtered contributors.
+export const parseContributors = (logText, authors = AUTHORS) => {
+  const seen = new Map(); // email → { name, count }
+  for (const line of logText.split('\n')) {
+    if (!line.trim()) continue;
+    const [name, email] = line.split('\t');
+    if (!name || !email) continue;
+    if (/\[bot\]/i.test(name) || /\[bot\]/i.test(email)) continue;
+    const key = email.toLowerCase();
+    const cur = seen.get(key) || { name, count: 0 };
+    cur.count += 1;
+    seen.set(key, cur);
+  }
+  return [...seen.entries()]
+    .sort((a, b) => b[1].count - a[1].count || a[1].name.localeCompare(b[1].name))
+    .map(([email, { name }]) => {
+      const a = authors[email];
+      if (a) return {
+        name: a.name, handle: a.handle,
+        url: `https://github.com/${a.handle}`,
+        avatar: `https://github.com/${a.handle}.png?size=48`,
+        initials: initialsOf(a.name),
+      };
+      return { name, handle: null, url: null, avatar: null, initials: initialsOf(name) };
+    });
+};
+
 // tiny inline-code + backtick formatter (no external md)
 const fmt = (s) => s
   .replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))

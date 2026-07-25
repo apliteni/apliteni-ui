@@ -41,3 +41,43 @@ test('release omits the Breaking badge when nothing is breaking', () => {
   const html = release({ v: '9.9.9', date: '2026-01-01', changes: [['fixed', 'x']] });
   assert.doesNotMatch(html, /ui-badge--breaking/);
 });
+
+import { parseContributors } from './changelog.mjs';
+
+const AUTHORS_FIXTURE = { 'artur.sabirov@apliteni.com': { handle: 'asabirov', name: 'Artur Sabirov' } };
+
+test('parseContributors dedupes by email and resolves a known handle', () => {
+  const log = 'Artur Sabirov\tartur.sabirov@apliteni.com\nArtur Sabirov\tartur.sabirov@apliteni.com';
+  const people = parseContributors(log, AUTHORS_FIXTURE);
+  assert.equal(people.length, 1);
+  assert.equal(people[0].handle, 'asabirov');
+  assert.equal(people[0].url, 'https://github.com/asabirov');
+  assert.equal(people[0].avatar, 'https://github.com/asabirov.png?size=48');
+});
+
+test('parseContributors drops bot accounts', () => {
+  const log = 'dependabot[bot]\t49699333+dependabot[bot]@users.noreply.github.com';
+  assert.deepEqual(parseContributors(log, AUTHORS_FIXTURE), []);
+});
+
+test('parseContributors falls back to initials for unknown authors', () => {
+  const [p] = parseContributors('Jane Doe\tjane@example.com', AUTHORS_FIXTURE);
+  assert.equal(p.handle, null);
+  assert.equal(p.url, null);
+  assert.equal(p.avatar, null);
+  assert.equal(p.initials, 'JD');
+  assert.equal(p.name, 'Jane Doe');
+});
+
+test('parseContributors orders by commit count desc', () => {
+  const log = ['Jane Doe\tjane@example.com',
+               'Artur Sabirov\tartur.sabirov@apliteni.com',
+               'Artur Sabirov\tartur.sabirov@apliteni.com'].join('\n');
+  const people = parseContributors(log, AUTHORS_FIXTURE);
+  assert.equal(people[0].handle, 'asabirov');
+  assert.equal(people[1].name, 'Jane Doe');
+});
+
+test('parseContributors returns empty array for empty input', () => {
+  assert.deepEqual(parseContributors('', AUTHORS_FIXTURE), []);
+});
