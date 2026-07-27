@@ -1,3 +1,62 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* Calmer manager chrome. Storybook paints EVERY component-row icon and the
+     selected row with the theme accent (colorSecondary), which flooded the
+     sidebar with purple. Keep purple as a sparing signal instead: mute the row
+     icons to neutral, and turn the selected pill from a solid electric fill into
+     a soft tinted pill. The id-scoped selectors out-specify Storybook's own
+     emotion styles, so no !important needed. */
+
+  /* Row type icons → neutral, so colour marks selection, not every row. */
+  #storybook-explorer-tree svg[type="component"],
+  #storybook-explorer-tree svg[type="group"] {
+    color: #8b86a0;
+  }
+
+  /* Selected row → soft tinted pill instead of a solid electric fill. Storybook
+     paints the pill on the .sidebar-item wrapper (emotion insertRule), so tint
+     the wrapper and let the inner <a> go transparent. The tint + rounded pill
+     carry selection on their own — no left accent line hanging off the edge. */
+  #storybook-explorer-tree .sidebar-item[data-selected="true"] {
+    background: rgba(155, 93, 255, 0.13) !important;
+    border-radius: 6px;
+  }
+  #storybook-explorer-tree .sidebar-item[data-selected="true"] > a[id] {
+    background: transparent !important;
+    color: #efedf7 !important;
+  }
+  #storybook-explorer-tree .sidebar-item[data-selected="true"] svg[type="story"] {
+    color: #b479ff !important;
+  }
+
+  /* Light chrome — manager.js stamps data-sbtheme="light" on <html> when the
+     Theme toolbar flips. Retune the same tints for a white sidebar so the
+     selected pill and neutral icons still read (the dark values wash out). */
+  html[data-sbtheme="light"] #storybook-explorer-tree svg[type="component"],
+  html[data-sbtheme="light"] #storybook-explorer-tree svg[type="group"] {
+    color: #8890a0;
+  }
+  html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] {
+    background: rgba(106, 45, 204, 0.10) !important;
+  }
+  html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] > a[id] {
+    color: #0c0e13 !important;
+  }
+  html[data-sbtheme="light"] #storybook-explorer-tree .sidebar-item[data-selected="true"] svg[type="story"] {
+    color: #6a2dcc !important;
+  }
+
+  /* Global toolbar toggles — the Theme + Accent labels ("Light",
+     "Nebula (purple)", etc.). Storybook's Button base paints every toolbar
+     IconButton at typography.weight.bold, so the active toggle labels render
+     bold and shout over the sidebar. Drop them to the kit's regular UI weight
+     so they read as quiet chrome. The [data-test-id] + element selector
+     out-specifies emotion's single-class rule, so no !important — and it's
+     theme-agnostic, so it covers both dark and light chrome. */
+  [data-test-id="sb-preview-toolbar"] button {
+    font-weight: 500;
+  }
+</style>

@@ -89,8 +89,12 @@
   pointer-events: none;
 }
 
-/* Busy: keep the label, run a gradient-bar loader along the base, and the
-   button is disabled (not clickable). Pass busy + the .ui-btn__bars markup. */
+/* Busy: keep the label, run an indeterminate accent shimmer along the base, and
+   the button is disabled (not clickable). Pass busy + the .ui-btn__bars markup.
+   The track is inset into a rounded pill so it sits INSIDE the button — not
+   flush against the clipped corners — and tints from the live --accent so it
+   reads as an intentional progress element in every theme (and mutes uniformly
+   with the button in the disabled state). */
 .ui-btn[aria-busy="true"] {
   pointer-events: none;
   position: relative;
@@ -98,21 +102,46 @@
 }
 .ui-btn__bars {
   position: absolute;
-  left: 0; right: 0; bottom: 0;
+  left: 10px; right: 10px; bottom: 5px;
   height: 3px;
-  background: color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
   overflow: hidden;
+  /* Clean entrance: grow + fade in on state change, once. */
+  transform-origin: center;
+  animation: ui-bars-in 180ms var(--ease) both;
 }
+.ui-btn--sm .ui-btn__bars { left: 7px; right: 7px; bottom: 4px; }
+.ui-btn--lg .ui-btn__bars { left: 14px; right: 14px; bottom: 7px; }
 .ui-btn__bars i {
   position: absolute;
   height: 100%;
-  border-radius: 3px;
-  background: linear-gradient(90deg, var(--purple-light), var(--cyan));
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 30%, transparent), var(--accent));
 }
-.ui-btn__bars i:nth-child(1) { width: 35%; animation: ui-bars1 2s cubic-bezier(0.65, 0.05, 0.35, 1) infinite; }
-.ui-btn__bars i:nth-child(2) { width: 20%; animation: ui-bars2 2s cubic-bezier(0.65, 0.05, 0.35, 1) 0.8s infinite; }
-@keyframes ui-bars1 { 0% { left: -40%; } 100% { left: 110%; } }
-@keyframes ui-bars2 { 0% { left: -25%; } 100% { left: 120%; } }
-@media (prefers-reduced-motion: reduce) { .ui-btn__bars i { animation: none; } .ui-btn__bars i:nth-child(1) { left: 0; } }
+/* On the filled primary the surface IS the accent, so shimmer in the contrast
+   colour instead — otherwise the bars vanish into the button. */
+.ui-btn--primary .ui-btn__bars {
+  background: color-mix(in srgb, var(--accent-contrast) 26%, transparent);
+}
+.ui-btn--primary .ui-btn__bars i {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent-contrast) 35%, transparent),
+    var(--accent-contrast));
+}
+.ui-btn__bars i:nth-child(1) { width: 38%; animation: ui-bars1 2s cubic-bezier(0.65, 0.05, 0.35, 1) infinite; }
+.ui-btn__bars i:nth-child(2) { width: 22%; animation: ui-bars2 2s cubic-bezier(0.65, 0.05, 0.35, 1) 0.8s infinite; }
+@keyframes ui-bars1 { 0% { left: -45%; } 100% { left: 110%; } }
+@keyframes ui-bars2 { 0% { left: -28%; } 100% { left: 120%; } }
+@keyframes ui-bars-in { from { opacity: 0; transform: scaleX(0.72); } to { opacity: 1; transform: scaleX(1); } }
+/* Reduced motion: no entrance, no sweep — just a static, intentional accent
+   fill so the busy state still reads clearly. */
+@media (prefers-reduced-motion: reduce) {
+  .ui-btn__bars { animation: none; opacity: 1; transform: none; }
+  .ui-btn__bars i { animation: none; }
+  .ui-btn__bars i:nth-child(1) { left: 0; width: 100%; }
+  .ui-btn__bars i:nth-child(2) { display: none; }
+}
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }

@@ -1,0 +1,28 @@
+/* ============================================================================
+ * Tabs — .ui-tabs
+ * A tablist with an underline indicator + panels. Markup comes from tabs() in
+ * components/tabs.js; wire it with initTabs(). Colours read the accent tokens.
+ * ========================================================================== */
+.ui-tabs__list {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+}
+.ui-tabs__tab {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: 600 14px/1 var(--font-sans);
+  color: var(--dim);
+  padding: 11px 14px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.ui-tabs__tab:hover { color: var(--text); }
+.ui-tabs__tab.is-active { color: var(--strong); border-bottom-color: var(--accent); }
+.ui-tabs__tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 7px 7px 0 0; }
+
+.ui-tabs__panels { padding-top: 20px; }
+.ui-tabs__panel[hidden] { display: none; }

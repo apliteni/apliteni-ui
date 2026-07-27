@@ -1,0 +1,218 @@
+/* ============================================================================
+ * Navigation — sidebar rail, horizontal tabs, breadcrumbs. One token-driven
+ * class family (ui-nav__…) so every variant re-themes across accents +
+ * light/dark. Mirrors the look the app shells draw inline (.ui-side) but as a
+ * first-class, standalone component. Active/hover surfaces are pure tokens.
+ * ========================================================================== */
+
+.ui-nav { font-family: var(--font-sans); }
+.ui-nav ul, .ui-nav ol { list-style: none; margin: 0; padding: 0; }
+
+/* -- Sidebar rail -------------------------------------------------------- */
+.ui-nav--side {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 216px;
+}
+.ui-nav__section + .ui-nav__section { margin-top: 14px; }
+.ui-nav__list { display: flex; flex-direction: column; gap: 2px; }
+.ui-nav__cap {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 12px 8px;
+}
+
+/* Item row — link, group toggle, and leaf share the same skin */
+.ui-nav__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.2;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+}
+.ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
+.ui-nav__item.is-active {
+  background: var(--surface);
+  color: var(--strong);
+  font-weight: 500;
+}
+.ui-nav--side .ui-nav__item.is-active {
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+/* Accent rail marker on the active item */
+.ui-nav--side .ui-nav__item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 50%;
+  width: 3px; height: 17px;
+  border-radius: 3px;
+  background: var(--accent);
+  transform: translateY(-50%);
+}
+.ui-nav__item:focus-visible { outline: none; box-shadow: var(--ring); }
+.ui-nav__item.is-active:focus-visible { box-shadow: var(--ring); }
+
+.ui-nav__ic { display: inline-flex; flex: none; }
+.ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; opacity: 0.72; }
+.ui-nav__item.is-active .ui-nav__ic svg,
+.ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); }
+.ui-nav__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ui-nav__item.is-danger { color: var(--pink); }
+.ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
+.ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; cursor: default; pointer-events: none; }
+
+/* Per-item badge / counter */
+.ui-nav__badge {
+  flex: none;
+  min-width: 20px;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  background: var(--surface-3);
+  color: var(--dim);
+}
+.ui-nav__badge.is-accent { background: var(--glow-purple); color: var(--accent); }
+.ui-nav__badge.is-live { background: var(--glow-green); color: var(--green); }
+.ui-nav__badge.is-danger { background: var(--glow-pink); color: var(--pink); }
+.ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface-3); color: var(--strong); }
+
+/* Collapsible group */
+.ui-nav__group { display: flex; flex-direction: column; }
+.ui-nav__caret {
+  flex: none;
+  width: 7px; height: 7px;
+  border-right: 1.6px solid var(--muted);
+  border-bottom: 1.6px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 0.18s var(--ease);
+}
+.ui-nav__group.is-open > .ui-nav__toggle .ui-nav__caret { transform: rotate(45deg); }
+.ui-nav__sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 2px 15px;
+  padding-left: 11px;
+  border-left: 1px solid var(--border);
+}
+.ui-nav__sub[hidden] { display: none; }
+.ui-nav__item--sub { font-size: 14px; padding: 7px 12px; }
+.ui-nav--side .ui-nav__item--sub.is-active { box-shadow: none; }
+.ui-nav--side .ui-nav__item--sub.is-active::before { left: -12px; height: 15px; }
+
+/* Footer slot (divider + trailing links, e.g. sign-out) */
+.ui-nav__foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* Collapsed (icon-only) rail */
+.ui-nav--side.is-collapsed { width: 60px; align-items: stretch; }
+.ui-nav--side.is-collapsed .ui-nav__cap,
+.ui-nav--side.is-collapsed .ui-nav__label,
+.ui-nav--side.is-collapsed .ui-nav__badge,
+.ui-nav--side.is-collapsed .ui-nav__caret,
+.ui-nav--side.is-collapsed .ui-nav__sub { display: none; }
+.ui-nav--side.is-collapsed .ui-nav__item { justify-content: center; padding: 11px 0; gap: 0; }
+.ui-nav--side.is-collapsed .ui-nav__ic svg { width: 19px; height: 19px; }
+.ui-nav--side.is-collapsed .ui-nav__item.is-active::before { left: 3px; }
+.ui-nav--side.is-collapsed .ui-nav__foot { text-align: center; }
+
+/* -- Horizontal tabs ----------------------------------------------------- */
+.ui-nav--tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.ui-nav--tabs.is-pill { border-bottom: 0; gap: 6px; }
+.ui-nav__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px 10px 0 0;
+  transition: color 0.16s var(--ease), background 0.16s var(--ease);
+}
+.ui-nav__tab:hover { color: var(--strong); }
+.ui-nav__tab:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+.ui-nav__tab.is-active { color: var(--strong); }
+
+/* underline variant */
+.ui-nav--tabs.is-underline .ui-nav__tab::after {
+  content: "";
+  position: absolute;
+  left: 10px; right: 10px; bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity 0.16s var(--ease), transform 0.16s var(--ease);
+}
+.ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { opacity: 1; transform: scaleX(1); }
+
+/* pill variant */
+.ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
+.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface-2); }
+.ui-nav--tabs.is-pill .ui-nav__tab.is-active {
+  background: var(--glow-purple);
+  color: var(--accent);
+}
+
+.ui-nav__tab.is-disabled { color: var(--muted); opacity: 0.5; cursor: default; }
+.ui-nav__tab .ui-nav__badge { height: 18px; }
+
+/* -- Breadcrumbs --------------------------------------------------------- */
+.ui-nav__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.ui-nav__crumb-item { display: inline-flex; align-items: center; }
+.ui-nav__crumb-item + .ui-nav__crumb-item::before {
+  content: "";
+  width: 6px; height: 6px;
+  margin: 0 8px;
+  border-right: 1.4px solid var(--muted);
+  border-bottom: 1.4px solid var(--muted);
+  transform: rotate(-45deg);
+  opacity: 0.7;
+}
+.ui-nav__crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 7px;
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.16s var(--ease), background 0.16s var(--ease);
+}
+a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); }
+a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
+.ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
+.ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.7; }

@@ -1,5 +1,9 @@
 # @apliteni/apliteni-ui
 
+[![npm](https://img.shields.io/npm/v/@apliteni/apliteni-ui?color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@apliteni/apliteni-ui)
+[![license: MIT](https://img.shields.io/npm/l/@apliteni/apliteni-ui?color=3b9dff)](./LICENSE)
+[![live: ui.apli.tech](https://img.shields.io/badge/live-ui.apli.tech-9b5dff)](https://ui.apli.tech)
+
 The Apliteni design system & UI kit — one source of UI for every product surface
 (the strategy deck, the text portal, `/account`, the operating model, and whatever
 ships next).
@@ -9,7 +13,7 @@ and light with **accent sub-themes**. Showcased and reviewed in **Storybook**, a
 published on **ui.apli.tech**.
 
 - 🎨 **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
-- 📦 **Package** → `@apliteni/apliteni-ui` (GitHub Packages)
+- 📦 **Package** → [`@apliteni/apliteni-ui`](https://www.npmjs.com/package/@apliteni/apliteni-ui) (public npm)
 
 ## Why HTML + CSS (not React)
 
@@ -21,24 +25,11 @@ of truth — the portal imports it with no rewrite and no framework drift. Story
 
 ## Install
 
-The package lives in **GitHub Packages** (private to the `apliteni` org). Point the
-`@apliteni` scope at it and authenticate with a GitHub token that has `read:packages`.
-
-`.npmrc` in the consuming repo:
-
-```
-@apliteni:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
-```
-
-Then:
+Published on the **public npm registry** — no scope config, no token:
 
 ```bash
-NODE_AUTH_TOKEN=$(gh auth token) npm install @apliteni/apliteni-ui
+npm install @apliteni/apliteni-ui
 ```
-
-In CI, `NODE_AUTH_TOKEN` is the workflow's `GITHUB_TOKEN`. In Docker, pass it as a
-build secret (see the strategy portal's Dockerfile for the pattern).
 
 ## Use it
 
@@ -111,21 +102,21 @@ src/
   assets/                # brand mark (seedling) + line-icon set
   components/            # HTML-string factories: button(), card(), badge(), topbar()…
 stories/                 # Storybook: Foundations, Components, Apps
-site/                    # ui.apli.tech landing page + static server
+site/                    # ui.apli.tech landing page (static site build)
 ```
 
 ## Develop
 
 ```bash
-NODE_AUTH_TOKEN=$(gh auth token) npm install
+npm install
 npm run storybook          # http://localhost:6006
 npm run build-storybook    # -> storybook-static/
-node site/build.mjs        # -> site/public/ (landing + kit.css)
+node site/build.mjs        # -> site/public/ (landing + kit.css + /storybook)
 ```
 
-## Publish (GitHub Packages)
+## Publish (public npm)
 
-Versioned publish runs from CI on a GitHub Release:
+Versioned publish runs from CI on a GitHub Release (needs the `NPM_TOKEN` secret):
 
 ```bash
 npm version patch          # or minor / major — bumps package.json + tags
@@ -138,12 +129,23 @@ built-in `GITHUB_TOKEN` (`packages: write`). No manual `npm publish` needed.
 
 ## Deploy (ui.apli.tech)
 
-`Dockerfile` builds the landing page + Storybook and serves both (`/` and `/storybook`)
-via a zero-dependency static server. Deployed on **Lessly** as its own product, on
-`linux/amd64` (arm64 images fail there). Rebuild + redeploy:
+The site is **100% static** (landing + hosted Storybook) — no container, no registry.
+It's served by **Lessly static hosting**, built straight from this repo. The `site`
+service builds from `main` with:
+
+```
+npm ci && npm run build-storybook && node site/build.mjs
+```
+
+and serves `site/public/`, which includes the landing page, `/changelog`, `kit.css`,
+and the Storybook folded in at `/storybook`. Push to `main` and redeploy the `site`
+service to roll it out.
+
+To reproduce the exact static bundle locally:
 
 ```bash
-docker buildx build --platform linux/amd64 -t <registry>/ui-apli-tech:latest --push .
+npm ci && npm run build-storybook && node site/build.mjs
+# -> site/public/   (landing + /changelog + /storybook + kit.css)
 ```
 
 ## Adopting into the strategy portal
@@ -156,4 +158,5 @@ stays self-contained for the claude.ai Artifact CSP, baking tokens in via its bu
 
 ## License
 
-Proprietary — © Apliteni. See [LICENSE](./LICENSE).
+[MIT](./LICENSE) © Apliteni — for the **code**. The Apliteni name, logos, and brand
+marks are trademarks and are **not** covered by the MIT license; see [TRADEMARK.md](./TRADEMARK.md).

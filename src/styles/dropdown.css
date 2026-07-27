@@ -1,0 +1,133 @@
+/* ============================================================================
+ * Dropdown — the kit's popover-list primitive (trigger + panel + item rows).
+ * Fully token-driven so it re-themes across accents + light/dark. Shares its
+ * open/close JS with the topbar's version switcher and account menu, which keep
+ * their own bespoke classes; this file styles the standalone `dropdown()`.
+ * ========================================================================== */
+
+.ui-dropdown { position: relative; display: inline-flex; }
+
+/* Trigger — pill button: [pre] [value] [chevron] */
+.ui-dropdown__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 7px 11px 7px 13px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.ui-dropdown__trigger:hover { border-color: var(--accent); }
+.ui-dropdown__trigger:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+.ui-dropdown__pre { color: var(--muted); }
+.ui-dropdown__value { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+
+/* Chevron — border caret that flips when the container is .open */
+.ui-dropdown__chevron {
+  width: 8px; height: 8px;
+  border-right: 1.6px solid var(--muted);
+  border-bottom: 1.6px solid var(--muted);
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform 0.2s ease;
+  flex: none;
+}
+.ui-dropdown.open .ui-dropdown__chevron { transform: rotate(-135deg) translateY(2px); }
+
+/* Panel — the popover surface */
+.ui-dropdown__panel {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 0;
+  min-width: 240px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  z-index: var(--z-dropdown);
+}
+.ui-dropdown__panel.is-end { left: auto; right: 0; }
+.ui-dropdown__panel.is-scroll { max-height: 300px; overflow-y: auto; }
+.ui-dropdown.open .ui-dropdown__panel { opacity: 1; visibility: visible; transform: translateY(0); }
+
+/* Item row — [icon] [main: label + desc] [badge] [tick] */
+.ui-dropdown__item {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.15s ease;
+}
+.ui-dropdown__item:hover { background: var(--surface); }
+.ui-dropdown__item:focus-visible { outline: none; background: var(--surface); box-shadow: var(--ring); }
+.ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ui-dropdown__label { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+.ui-dropdown__desc { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.ui-dropdown__ic { display: inline-flex; flex: none; color: var(--muted); }
+.ui-dropdown__ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+/* Trailing selected tick (listbox variant) */
+.ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--accent); }
+.ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+.ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; }
+.ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--accent); }
+
+/* When a row has both a badge and a tick, keep the badge from eating the margin */
+.ui-dropdown__badge + .ui-dropdown__tick { margin-left: 8px; }
+
+/* Trailing status badge */
+.ui-dropdown__badge {
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  margin-left: auto;
+  flex: none;
+  color: var(--muted);
+  background: var(--surface);
+}
+.ui-dropdown__badge.is-live { color: var(--green); background: var(--glow-green); }
+.ui-dropdown__badge.is-accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+/* Disabled + danger rows */
+.ui-dropdown__item.is-disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+.ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--muted); }
+.ui-dropdown__item.is-danger:hover .ui-dropdown__label { color: var(--accent); }
+
+/* Grouped sections */
+.ui-dropdown__section + .ui-dropdown__section { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px; }
+.ui-dropdown__group {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 7px 12px 4px;
+}
+
+/* Separator */
+.ui-dropdown__sep { height: 1px; background: var(--border); margin: 5px 4px; }
+
+/* Optional pinned header/footer blocks */
+.ui-dropdown__panel > .ui-dropdown__head {
+  padding: 11px 13px;
+  margin: -6px -6px 5px;
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}

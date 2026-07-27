@@ -1,9 +1,9 @@
 {
   "name": "@apliteni/apliteni-ui",
-  "version": "0.3.0",
+  "version": "0.7.2",
   "description": "Apliteni shared design system & UI kit — tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "author": "Apliteni",
   "homepage": "https://ui.apli.tech",
   "repository": {
@@ -16,10 +16,12 @@
   },
   "exports": {
     ".": "./src/index.js",
+    "./motion": "./src/motion.js",
     "./inline": "./src/inline.js",
     "./css": "./src/index.css",
     "./tokens": "./src/tokens/tokens.css",
-    "./accents": "./src/tokens/accents.css"
+    "./accents": "./src/tokens/accents.css",
+    "./brand": "./src/tokens/brand.generated.css"
   },
   "files": [
     "src",
@@ -32,7 +34,10 @@
   "scripts": {
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build -o storybook-static",
-    "test": "node --test"
+    "test": "node --test",
+    "tokens:sync": "node scripts/sync-brand-tokens.mjs",
+    "tokens:check": "node scripts/sync-brand-tokens.mjs --check",
+    "tokens:drift": "node scripts/brand-drift.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -43,6 +48,8 @@
     "@storybook/blocks": "^8.6.14",
     "@storybook/html": "^8.6.14",
     "@storybook/html-vite": "^8.6.14",
+    "axe-core": "^4.12.1",
+    "jsdom": "^29.1.1",
     "storybook": "^8.6.14",
     "vite": "^5.4.11"
   }

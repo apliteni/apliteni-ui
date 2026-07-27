@@ -1,4 +1,4 @@
-import { field, input, textarea, button } from '../../src/components/index.js';
+import { field, input, textarea, button, select } from '../../src/components/index.js';
 import { pad, grid, specimen, stack } from '../_gallery.js';
 
 export default {
@@ -25,8 +25,8 @@ export const Textarea = {
 
 export const SelectAndSearch = {
   render: () => pad(stack(
-    specimen('Search input', `<div style="max-width:360px">${input({ placeholder: 'Search components…', icon: 'search' })}</div>`),
-    specimen('Select', `<div style="max-width:280px"><select class="ui-select"><option>Product units</option><option>Superconnectors</option><option>Governance</option></select></div>`),
+    specimen('Search input', `<div style="max-width:360px">${input({ placeholder: 'Search components…', icon: 'search', ariaLabel: 'Search components' })}</div>`),
+    specimen('Select', `<div style="max-width:280px">${select({ options: ['Product units', 'Superconnectors', 'Governance'], ariaLabel: 'Team' })}</div>`),
     specimen('Create row (input + button)', `<div style="max-width:520px;display:flex;gap:10px">${input({ placeholder: 'New agent name' })}${button({ label: 'Create', variant: 'primary' })}</div>`),
   )),
 };

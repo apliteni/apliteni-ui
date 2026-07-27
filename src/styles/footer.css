@@ -1,0 +1,123 @@
+/* ============================================================================
+ * Footer — the canonical site/app footer (brand lockup, grouped link columns,
+ * legal/copyright row, optional social icons + theme/accent switcher slot).
+ * Three variants: full (marketing), slim (single legal row), app (in-product).
+ * Local --footer-* tokens map to the global scale, so it re-themes across every
+ * accent + light/dark and a host can override just the footer if it needs to.
+ * ========================================================================== */
+
+.ui-footer {
+  --footer-surface: transparent;
+  --footer-border: var(--border);
+  --footer-link: var(--muted);
+  --footer-link-hover: var(--strong);
+  --footer-title: var(--strong);
+  --footer-text: var(--dim);
+
+  background: var(--footer-surface);
+  border-top: 1px solid var(--footer-border);
+  color: var(--footer-text);
+  font-family: var(--font-sans);
+}
+.ui-footer__in {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px clamp(14px, 2.4vw, 26px) 30px;
+}
+
+/* Top block: brand + tagline + social on the left, link columns on the right. */
+.ui-footer__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px 60px;
+  flex-wrap: wrap;
+  padding-bottom: 30px;
+}
+.ui-footer__brand { max-width: 300px; }
+.ui-footer .ui-footer__brand .brand { font-size: 15px; }
+.ui-footer__tagline {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--footer-text);
+}
+
+/* Social row */
+.ui-footer__socials { display: flex; gap: 10px; margin-top: 16px; }
+.ui-footer__social {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--footer-border);
+  color: var(--footer-link);
+  background: var(--surface);
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.ui-footer__social:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+.ui-footer__social svg { width: 17px; height: 17px; display: block; }
+
+/* Link columns */
+.ui-footer__nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, max-content));
+  gap: 30px 56px;
+}
+.ui-footer__col-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--footer-text);
+  margin: 0 0 14px;
+}
+.ui-footer__links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.ui-footer__links a {
+  font-size: 13.5px;
+  color: var(--footer-link);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.ui-footer__links a:hover { color: var(--footer-link-hover); }
+
+/* Legal bar — shared by every variant */
+.ui-footer__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 22px;
+  flex-wrap: wrap;
+  padding-top: 22px;
+  border-top: 1px solid var(--footer-border);
+  font-size: 13px;
+  color: var(--footer-link);
+}
+.ui-footer__legal { color: var(--footer-link); }
+.ui-footer__legal-links { display: flex; gap: 22px; flex-wrap: wrap; }
+.ui-footer__legal-links a { color: var(--footer-link); text-decoration: none; transition: color 0.15s ease; }
+.ui-footer__legal-links a:hover { color: var(--footer-link-hover); }
+.ui-footer__switcher { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
+
+/* slim — a single legal row, no divider above it. */
+.ui-footer--slim .ui-footer__in { padding-top: 24px; padding-bottom: 24px; }
+.ui-footer--slim .ui-footer__bar { padding-top: 0; border-top: 0; }
+
+/* app — compact, in-product: surface background + tighter padding. */
+.ui-footer--app {
+  --footer-surface: var(--surface);
+  border-top: 1px solid var(--footer-border);
+}
+.ui-footer--app .ui-footer__in { max-width: none; padding: 12px clamp(14px, 2.4vw, 22px); }
+.ui-footer--app .ui-footer__bar { padding-top: 0; border-top: 0; font-size: 12.5px; }
+
+/* Responsive — columns collapse to a stacked layout on narrow screens. */
+@media (max-width: 720px) {
+  .ui-footer__top { flex-direction: column; gap: 30px; }
+  .ui-footer__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 30px; }
+  .ui-footer__brand { max-width: none; }
+}
+@media (max-width: 460px) {
+  .ui-footer__nav { grid-template-columns: 1fr; }
+  .ui-footer__bar { flex-direction: column; align-items: flex-start; }
+  .ui-footer__switcher { margin-left: 0; }
+}

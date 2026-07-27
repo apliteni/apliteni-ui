@@ -1,4 +1,5 @@
 import { pad } from '../_gallery.js';
+import { button, card } from '../../src/components/index.js';
 
 export default {
   title: 'Foundations/Backgrounds',
@@ -60,10 +61,109 @@ export const Default = {
     ${h3('Backdrop treatments')}
     ${g('260px',
       bgPanel('ui-bg-spotlight', 'Spotlight', 'A soft radial from the top. Auth cards and focused heroes.'),
-      bgPanel('ui-bg-aurora', 'Aurora', 'Layered accent + cyan glows for a rich hero backdrop.'),
       bgPanel('ui-bg-wash', 'Accent wash', 'A gentle top-down tint in the current accent.'),
       bgPanel('ui-bg-grid', 'Grid', 'A faint token grid, masked to fade at the edges.'),
       bgPanel('ui-bg-dots', 'Dots', 'A subtle dot field for dashboards and technical surfaces.'),
     )}
   `),
+};
+
+// ---------------------------------------------------------------------------
+// Full-bleed stories — one per background, so each can be judged at real scale
+// with the sub-theme + light/dark toggles applying live. They all share the
+// same wrapper trick: a *relative* 100vh wrapper
+// with overflow hidden. A fixed; z-index:-1 background would get trapped behind
+// Storybook's opaque #storybook-root, so the layer is rendered in-flow instead.
+// Decorative layers are aria-hidden (the ui-bg-* treatments paint via ::before,
+// which is already out of the a11y tree; explicit glow spans get the attribute).
+// ---------------------------------------------------------------------------
+
+// Sample content overlaid on every full-bleed background, so contrast and
+// legibility over the field are visible. bgClass drives the ui-bg-* ::before
+// treatments; layer injects explicit background markup (e.g. glow spans).
+const fullBleed = ({ bgClass = '', layer = '', eyebrow, title, body }) => `
+  <div class="${bgClass}" style="position:relative;min-height:100vh;overflow:hidden;background:var(--bg)">
+    ${layer}
+    <div style="position:relative;z-index:1;min-height:100vh;display:grid;place-items:center;padding:40px">
+      <div style="max-width:46ch;text-align:center">
+        <div class="ui-eyebrow" style="justify-content:center;margin-bottom:14px">${eyebrow}</div>
+        <h1 style="font:700 clamp(30px,5vw,50px)/1.05 Poppins;color:var(--strong);letter-spacing:-.025em;margin-bottom:16px">${title}</h1>
+        <p style="font:400 16px/1.6 Poppins;color:var(--dim);margin-bottom:28px">${body}</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px">
+          ${button({ label: 'Get started', variant: 'primary' })}
+          ${button({ label: 'View tokens', variant: 'secondary' })}
+        </div>
+        <div style="max-width:340px;margin:0 auto;text-align:left">
+          ${card({ title: 'Legible on top', sub: 'A card keeps its own surface', body: '<p style="color:var(--dim);font:400 13px/1.5 Poppins;margin:0">Real content sits above the field with a normal stacking context — the backdrop never fights the copy.</p>' })}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+// Wrap decorative glow spans so the whole layer is hidden from assistive tech.
+const glowLayer = (...spans) =>
+  `<div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none">${spans.join('')}</div>`;
+
+// Ambient glow — the signature blurred "depth" blobs (purple + cyan) at page
+// scale. Positioned off the corners so the field feels lit from within.
+export const Glow = {
+  name: 'Glow (full-bleed)',
+  render: () =>
+    fullBleed({
+      layer: glowLayer(
+        '<span class="ui-glow ui-glow--purple" style="top:-140px;left:8%;width:560px;height:560px"></span>',
+        '<span class="ui-glow ui-glow--cyan" style="bottom:-180px;right:4%;width:520px;height:520px"></span>',
+      ),
+      eyebrow: 'Ambient glow',
+      title: 'Depth without a photo',
+      body: 'Two blurred <code style="font-family:var(--font-mono);color:var(--accent)">.ui-glow</code> blobs light the page from the corners. They read the accent glow tokens, so the whole field re-themes with the sub-theme and holds in dark and light.',
+    }),
+};
+
+// Spotlight — a soft radial from the top-centre. Auth cards, focused heroes.
+export const Spotlight = {
+  name: 'Spotlight (full-bleed)',
+  render: () =>
+    fullBleed({
+      bgClass: 'ui-bg-spotlight',
+      eyebrow: 'Backdrop — Spotlight',
+      title: 'Eyes to the centre',
+      body: 'One soft radial from the top pulls focus to the middle of the page. <code style="font-family:var(--font-mono);color:var(--accent)">.ui-bg-spotlight</code> is the go-to backdrop for sign-in cards and single-focus heroes.',
+    }),
+};
+
+// Accent wash — a gentle top-down tint in the current accent.
+export const Wash = {
+  name: 'Accent wash (full-bleed)',
+  render: () =>
+    fullBleed({
+      bgClass: 'ui-bg-wash',
+      eyebrow: 'Backdrop — Accent wash',
+      title: 'A quiet tint from the top',
+      body: 'A gentle top-down gradient in the current accent, fading to the page by mid-fold. <code style="font-family:var(--font-mono);color:var(--accent)">.ui-bg-wash</code> warms a section without ever competing with the content.',
+    }),
+};
+
+// Grid — a faint token-coloured grid, masked to fade at the edges.
+export const Grid = {
+  name: 'Grid (full-bleed)',
+  render: () =>
+    fullBleed({
+      bgClass: 'ui-bg-grid',
+      eyebrow: 'Backdrop — Grid',
+      title: 'Structure, barely there',
+      body: 'A faint token-coloured grid, radially masked so it fades out at the edges. <code style="font-family:var(--font-mono);color:var(--accent)">.ui-bg-grid</code> adds a technical, blueprint feel to dashboards and docs.',
+    }),
+};
+
+// Dots — a subtle dot field for dashboards / technical surfaces.
+export const Dots = {
+  name: 'Dots (full-bleed)',
+  render: () =>
+    fullBleed({
+      bgClass: 'ui-bg-dots',
+      eyebrow: 'Backdrop — Dots',
+      title: 'A technical hum',
+      body: 'A subtle dot field, masked to fade at the edges. <code style="font-family:var(--font-mono);color:var(--accent)">.ui-bg-dots</code> is the quieter sibling of the grid — great behind dense dashboards and data tables.',
+    }),
 };

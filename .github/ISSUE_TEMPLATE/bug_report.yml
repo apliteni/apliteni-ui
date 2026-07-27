@@ -1,0 +1,58 @@
+name: Bug report
+description: A component looks wrong, behaves wrong, or fails a state (hover / focus / disabled / dark / light).
+title: "<component>: <one-line summary>"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping fix the kit. One bug per issue keeps things moving.
+  - type: textarea
+    id: what
+    attributes:
+      label: What's wrong
+      description: What you see vs. what you expected. A screenshot or short clip beats a paragraph.
+      placeholder: The row hover fill overlaps the card's left border — reads as a rendering glitch.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Storybook story or a minimal HTML snippet, plus the steps to trigger it.
+      placeholder: |
+        1. Open Components → Table → Playground
+        2. Set variant = hover, wrap in a card
+        3. Hover any row
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Component / file
+      description: Which component, and the CSS/JS file if you know it.
+      placeholder: Table — src/styles/table.css (.ui-table--hover)
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      description: Where it shows. Every component must hold up in both.
+      multiple: true
+      options:
+        - Dark
+        - Light
+    validations:
+      required: true
+  - type: input
+    id: accent
+    attributes:
+      label: Accent sub-theme
+      description: Which accent(s), if it's accent-specific. Signal colours (green/pink) don't move with the accent.
+      placeholder: Nebula, Phoenix — or "all"
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Before you post
+      options:
+        - label: No protected data in this issue — no real customer/financial data, personal emails or phone numbers, or internal infra IDs (Lessly UUIDs, `*.lessly.run`, ttl.sh tags, deploy tokens). See CONTRIBUTING → Data handling.
+          required: true

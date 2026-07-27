@@ -1,5 +1,8 @@
 import '../src/index.css';
 import { wireTopbar, applyTheme } from '../src/components/topbar.js';
+import { wireNav } from '../src/components/nav.js';
+import { wireDrawer } from '../src/components/drawer.js';
+import { initTabs } from '../src/components/tabs.js';
 
 // Load Poppins once (Storybook manager/preview iframe).
 if (!document.getElementById('ui-poppins')) {
@@ -19,14 +22,25 @@ const preview = {
     options: {
       storySort: {
         order: [
-          'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Iconography', 'Brand'],
-          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Inputs', 'Switch & Checkbox', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
+          'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
+          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
         ],
       },
     },
     controls: { expanded: true, matchers: { color: /(background|color)$/i } },
-    a11y: { context: '#storybook-root' },
+    // Low-noise a11y: gate on real WCAG 2.0/2.1 A+AA failures only, not
+    // best-practice heuristics (e.g. `region`, which just flags story content
+    // living outside a landmark inside the Storybook iframe). Colour contrast is
+    // owned by the design tokens, verified visually — not by axe in an iframe.
+    // Same rule set the CI gate runs (stories/a11y.test.js), so the panel and CI
+    // never disagree.
+    a11y: {
+      context: '#storybook-root',
+      options: {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+      },
+    },
   },
 
   globalTypes: {
@@ -77,7 +91,7 @@ const preview = {
       const out = story();
       if (typeof out === 'string') wrap.innerHTML = out; else wrap.append(out);
       // Wire interactive behaviours after render.
-      requestAnimationFrame(() => wireTopbar(wrap));
+      requestAnimationFrame(() => { wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); initTabs(wrap); });
       return wrap;
     },
   ],

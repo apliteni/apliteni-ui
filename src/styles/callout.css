@@ -26,27 +26,94 @@
 .ui-callout--danger { background: var(--glow-pink); }
 .ui-callout--danger .ui-callout__icon { color: var(--pink); }
 
-/* Toast — a floating, dismissible notification */
+/* ----------------------------------------------------------------------------
+ * Toast — a floating, dismissible notification.
+ * A status (colour) × style (surface) matrix, entirely token-driven:
+ *   status  success · danger · warn · info · neutral  → sets --toast-accent/-glow/-on
+ *   style   soft (tinted) · solid (filled) · outline (bordered)
+ * -------------------------------------------------------------------------- */
 .ui-toast {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  padding: 13px 16px;
+  padding: 13px 15px;
   border-radius: var(--radius-md);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-lg);
   color: var(--text);
   font-size: var(--text-base);
-  max-width: 380px;
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden; /* clips the timer bar + left marker to the rounded corners */
+  animation: ui-toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.ui-toast__icon { width: 20px; height: 20px; flex: none; display: grid; place-items: center; border-radius: 50%; }
-.ui-toast__icon svg { width: 13px; height: 13px; }
-.ui-toast--success .ui-toast__icon { background: var(--green); color: #0c0c0c; }
-.ui-toast--danger .ui-toast__icon { background: var(--pink); color: #fff; }
-.ui-toast__body { flex: 1; }
+
+/* status → the paint tokens every style below consumes (--toast-on = the ink
+   that reads on the accent when it becomes a fill) */
+.ui-toast--success { --toast-accent: var(--green); --toast-glow: var(--glow-green); --toast-on: #0c0c0c; }
+.ui-toast--danger  { --toast-accent: var(--pink);  --toast-glow: var(--glow-pink);  --toast-on: #ffffff; }
+.ui-toast--warn    { --toast-accent: var(--amber); --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: #0c0c0c; }
+.ui-toast--info    { --toast-accent: var(--cyan);  --toast-glow: var(--glow-cyan);  --toast-on: #0c0c0c; }
+.ui-toast--neutral { --toast-accent: var(--muted); --toast-glow: var(--surface-2); --toast-on: var(--strong); }
+
+/* left status marker (soft + outline; solid is already a full fill) */
+.ui-toast--soft::before,
+.ui-toast--outline::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--toast-accent);
+}
+
+.ui-toast__icon { width: 22px; height: 22px; flex: none; margin-top: 1px; display: grid; place-items: center; border-radius: 50%; background: var(--toast-accent); color: var(--toast-on); }
+.ui-toast__icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+.ui-toast__body { flex: 1; min-width: 0; }
 .ui-toast__title { font-weight: var(--weight-medium); color: var(--strong); }
-.ui-toast__close { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; }
+.ui-toast__text { color: var(--dim); }
+
+/* trailing action ("Undo" / "Retry") */
+.ui-toast__action { flex: none; align-self: center; background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-accent); cursor: pointer; }
+.ui-toast__action:hover { background: color-mix(in srgb, var(--toast-accent) 14%, transparent); }
+
+.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; }
+.ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 .ui-toast__close:hover { color: var(--text); }
+
+/* auto-dismiss progress bar — .is-running is added by wireToastStack() */
+.ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
+.ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; }
+
+/* style: soft — tinted surface */
+.ui-toast--soft { background: var(--toast-glow); box-shadow: var(--shadow-sm); }
+
+/* style: solid — filled accent, ink flips to --toast-on */
+.ui-toast--solid { background: var(--toast-accent); color: var(--toast-on); box-shadow: var(--shadow-lg); }
+.ui-toast--solid .ui-toast__title,
+.ui-toast--solid .ui-toast__text { color: var(--toast-on); }
+.ui-toast--solid .ui-toast__text { opacity: 0.82; }
+.ui-toast--solid .ui-toast__icon { background: color-mix(in srgb, var(--toast-on) 22%, transparent); color: var(--toast-on); }
+.ui-toast--solid .ui-toast__action { color: var(--toast-on); }
+.ui-toast--solid .ui-toast__action:hover { background: color-mix(in srgb, var(--toast-on) 18%, transparent); }
+.ui-toast--solid .ui-toast__close { color: color-mix(in srgb, var(--toast-on) 68%, transparent); }
+.ui-toast--solid .ui-toast__close:hover { color: var(--toast-on); }
+.ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-on) 55%, transparent); }
+
+/* style: outline — elevated card with a status-tinted border */
+.ui-toast--outline { background: var(--bg-elevated); box-shadow: var(--shadow-md); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); }
+
+/* compact — single line, no body text */
+.ui-toast--compact { align-items: center; padding-top: 10px; padding-bottom: 10px; }
+.ui-toast--compact .ui-toast__icon { margin-top: 0; }
+
+@keyframes ui-toast-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+@keyframes ui-toast-out { to { opacity: 0; transform: translateX(24px); } }
+@keyframes ui-toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.ui-toast.is-leaving { animation: ui-toast-out 0.2s ease forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-toast, .ui-toast.is-leaving { animation: none; }
+  .ui-toast__timer.is-running { animation: none; }
+}
+
+/* stack container for queued toasts */
+.ui-toast-stack { display: flex; flex-direction: column; gap: 12px; width: 400px; max-width: 100%; }
 
 /* Success panel — centered confirmation, used after form submit */
 .ui-success {

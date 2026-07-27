@@ -19,7 +19,7 @@ export function topbar(active = '') {
     <span class="spacer"></span>
     <a class="lk${on('changelog')}" href="/changelog/">Changelog</a>
     <a class="lk hide-sm" href="https://github.com/apliteni/apliteni-ui">GitHub</a>
-    <button class="toggle" id="tgl" aria-label="Toggle theme"><span class="ic" id="tglIc"></span><span id="tglLb">Light</span></button>
+    <button class="toggle" id="tgl" aria-label="Toggle theme" title="Toggle light / dark"><span class="ic" id="tglIc"></span></button>
   </div>
 </header>`;
 }
@@ -34,12 +34,11 @@ const ACCENTS = `<div class="accents" role="group" aria-label="Accent">
 export function footer() {
   return `<footer class="site-footer">
   <div class="site-footer__in">
-    <span>© Apliteni</span>
+    <span>© <a href="https://apliteni.com">Apliteni</a></span>
     <div style="display:flex;align-items:center;gap:11px">
       ${ACCENTS}
     </div>
     <span style="display:flex;gap:22px">
-      <a href="/storybook/">Storybook</a>
       <a href="https://github.com/apliteni/apliteni-ui">GitHub</a>
     </span>
   </div>
@@ -67,7 +66,8 @@ export const CHROME_CSS = `
   .site-footer__in { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px);
     display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
     color: var(--muted); font-size: 13px; }
-  .site-footer a { color: var(--muted); }
+  .site-footer a { color: var(--muted); text-decoration: none; transition: color .15s ease; }
+  .site-footer a:hover { color: var(--strong); text-decoration: underline; text-underline-offset: 3px; }
   @media (max-width: 560px) { .site-topbar .hide-sm { display: none; } }
 `;
 
@@ -77,7 +77,7 @@ export const CHROME_JS = `
   var root = document.documentElement;
   var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
   var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
-  function applyTheme(t){ root.setAttribute('data-theme', t); document.getElementById('tglIc').innerHTML = t==='dark'?SUN:MOON; document.getElementById('tglLb').textContent = t==='dark'?'Light':'Dark'; try{localStorage.setItem('apliteni-ui-theme',t);}catch(e){} }
+  function applyTheme(t){ root.setAttribute('data-theme', t); document.getElementById('tglIc').innerHTML = t==='dark'?SUN:MOON; try{localStorage.setItem('apliteni-ui-theme',t);}catch(e){} }
   var savedT = null; try{ savedT = localStorage.getItem('apliteni-ui-theme'); }catch(e){}
   applyTheme(savedT || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
   document.getElementById('tgl').addEventListener('click', function(){ applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); });

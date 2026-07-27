@@ -66,12 +66,6 @@ a {
 .ui-bg-spotlight::before {
   background: radial-gradient(620px 340px at 50% -12%, var(--glow-purple), transparent 70%);
 }
-/* Aurora — layered accent + cyan glows for a rich hero backdrop. */
-.ui-bg-aurora::before {
-  background:
-    radial-gradient(520px 400px at 10% -12%, var(--glow-purple), transparent 60%),
-    radial-gradient(460px 360px at 94% 6%, var(--glow-cyan), transparent 62%);
-}
 /* Grid — a faint token-coloured grid, masked to fade at the edges. */
 .ui-bg-grid::before {
   background-image:
