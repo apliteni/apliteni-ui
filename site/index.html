@@ -160,24 +160,25 @@
   </div>
 </section>
 
-<section class="ui-container" style="padding-block: var(--space-10)">
-  <div class="ui-eyebrow">One design system, two layers</div>
-  <h2>Vanilla for chrome. React for state.</h2>
-  <div class="ui-features">
-    <div class="ui-feature">
-      <h3>Vanilla HTML + CSS</h3>
-      <p>Framework-agnostic string factories for chrome and server-rendered
-         surfaces. Zero deps, drops into any page.</p>
+<section class="wrap" style="padding:70px 0">
+  <div class="ui-section-head" style="margin-bottom:40px">
+    <h2>Vanilla for chrome. React for state.</h2>
+    <p>One design system, two layers — both render the same tokens and <code class="ui-code">.ui-*</code> classes, so they never drift.</p>
+  </div>
+  <div style="max-width:840px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+    <div class="ui-card">
+      <div class="ui-eyebrow">Vanilla · HTML + CSS</div>
+      <div class="ui-card__title" style="margin-top:8px">Chrome &amp; server-render</div>
+      <p class="ui-card__sub" style="margin-top:8px">Framework-agnostic string factories. Zero deps, drops into any page — the strategy portal reads them directly.</p>
     </div>
-    <div class="ui-feature">
-      <h3>React components</h3>
-      <p>For surfaces that hold real client state — DataTable, Modal and more —
-         rendering the same <code class="ui-code">.ui-*</code> classes so nothing drifts.</p>
+    <div class="ui-card">
+      <div class="ui-eyebrow">React · components</div>
+      <div class="ui-card__title" style="margin-top:8px">Stateful surfaces</div>
+      <p class="ui-card__sub" style="margin-top:8px">DataTable, Modal and more — for dashboards, tables and forms — rendering the same <code class="ui-code">.ui-*</code> classes.</p>
     </div>
   </div>
-  <div class="ui-callout ui-callout--info">
-    <div>Which do I use? Does the surface hold meaningful client state?
-      <strong>No → vanilla. Yes → React.</strong></div>
+  <div class="ui-callout ui-callout--info" style="max-width:840px;margin:22px auto 0">
+    <div>Which do I use? Does the surface hold meaningful client state? <strong>No&nbsp;→&nbsp;vanilla. Yes&nbsp;→&nbsp;React.</strong></div>
   </div>
 </section>
 
