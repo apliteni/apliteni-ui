@@ -4,9 +4,10 @@ name: Release
 # is published. Bump the version + tag first (npm version <patch|minor|major>),
 # push the tag, then cut a Release for it.
 #
-# ONE-TIME SETUP (see issue #1): claim the @apliteni org on npmjs.com, create an
-# automation (publish) token, and add it as the NPM_TOKEN repo secret. Until that
-# secret exists the publish step is skipped — the release still succeeds.
+# Auth is npm Trusted Publishing (OIDC): the job exchanges a short-lived GitHub
+# OIDC token for publish rights — there is no long-lived NPM_TOKEN to steal.
+# The counterpart config lives on npmjs.com (package → Settings → Trusted
+# Publisher): repository apliteni/apliteni-ui, workflow release.yml.
 on:
   release:
     types: [published]
@@ -14,6 +15,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # OIDC token for npm trusted publishing
 
 jobs:
   publish:
@@ -22,17 +24,5 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org
-          scope: '@apliteni'
-      - name: Detect NPM_TOKEN
-        id: tok
-        run: echo "has=${{ secrets.NPM_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-      - name: Publish
-        if: steps.tok.outputs.has == 'true'
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Skipped (no token yet)
-        if: steps.tok.outputs.has != 'true'
-        run: echo "::notice::NPM_TOKEN is not set — skipping publish. Add the secret (issue #1) to enable public npm publishing."
+          node-version: 24 # trusted publishing needs npm >= 11.5.1
+      - run: npm publish
