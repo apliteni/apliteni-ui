@@ -24,7 +24,8 @@ export function DataTable<T extends { name: string }>({
   }, [rows, sort]);
 
   const pages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const slice = sorted.slice(page * pageSize, page * pageSize + pageSize);
+  const safePage = Math.min(page, pages - 1);
+  const slice = sorted.slice(safePage * pageSize, safePage * pageSize + pageSize);
   const onSort = (k: string) => {
     setSort((s) => (s.key === k ? { key: k, dir: (s.dir === 1 ? -1 : 1) } : { key: k, dir: -1 }));
     setPage(0);
@@ -41,9 +42,19 @@ export function DataTable<T extends { name: string }>({
               onChange={() => onTogglePage(slice.map((r) => r.name))} /></th>
             {columns.map((c) => (
               <th key={c.key}
-                className={[c.num && 'num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
-                aria-sort={sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}
-                onClick={c.sortable ? () => onSort(c.key) : undefined}>
+                className={[c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
+                aria-sort={c.sortable
+                  ? (sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none')
+                  : undefined}
+                role={c.sortable ? 'button' : undefined}
+                tabIndex={c.sortable ? 0 : undefined}
+                onClick={c.sortable ? () => onSort(c.key) : undefined}
+                onKeyDown={c.sortable ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === ' ') e.preventDefault();
+                    onSort(c.key);
+                  }
+                } : undefined}>
                 {c.label}{c.sortable && <span className="rx-caret">{caret(c.key)}</span>}
               </th>
             ))}
@@ -55,7 +66,7 @@ export function DataTable<T extends { name: string }>({
               <td><input type="checkbox" checked={selected.has(r.name)}
                 onChange={() => onToggle(r.name)} /></td>
               {columns.map((c) => (
-                <td key={c.key} className={c.num ? 'num' : undefined}>
+                <td key={c.key} className={c.num ? 'ui-table__num' : undefined}>
                   {c.render ? c.render(r) : String(r[c.key])}
                 </td>
               ))}
@@ -64,10 +75,10 @@ export function DataTable<T extends { name: string }>({
         </tbody>
       </table>
       <div className="rx-pager">
-        <span className="rx-pager__info">Page {page + 1} of {pages} · {sorted.length} rows</span>
-        <Button variant="ghost" size="sm" icon="chevronLeft" disabled={page === 0}
+        <span className="rx-pager__info">Page {safePage + 1} of {pages} · {sorted.length} rows</span>
+        <Button variant="ghost" size="sm" icon="chevronLeft" disabled={safePage === 0}
           onClick={() => setPage((p) => p - 1)}>Prev</Button>
-        <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={page >= pages - 1}
+        <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={safePage >= pages - 1}
           onClick={() => setPage((p) => p + 1)}>Next</Button>
       </div>
     </>

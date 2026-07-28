@@ -18,7 +18,12 @@ function Harness() {
     <DataTable columns={columns} rows={rows} pageSize={2}
       selected={sel}
       onToggle={(n) => setSel((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; })}
-      onTogglePage={(ns) => setSel(() => new Set(ns))} />
+      onTogglePage={(ns) => setSel((s) => {
+        const x = new Set(s);
+        const all = ns.every((n) => x.has(n));
+        ns.forEach((n) => (all ? x.delete(n) : x.add(n)));
+        return x;
+      })} />
   );
 }
 
@@ -39,4 +44,15 @@ it('toggles a row selection', async () => {
   const boxes = screen.getAllByRole('checkbox');       // [selectAll, row0, row1]
   await userEvent.click(boxes[1]);
   expect(boxes[1]).toBeChecked();
+});
+
+it('toggles select-all for the visible page', async () => {
+  render(<Harness />);
+  const boxes = screen.getAllByRole('checkbox');       // [selectAll, row0, row1]
+  await userEvent.click(boxes[0]);
+  expect(boxes[1]).toBeChecked();
+  expect(boxes[2]).toBeChecked();
+  await userEvent.click(boxes[0]);
+  expect(boxes[1]).not.toBeChecked();
+  expect(boxes[2]).not.toBeChecked();
 });
