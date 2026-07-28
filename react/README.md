@@ -17,7 +17,8 @@ npm install @apliteni/apliteni-ui-react @apliteni/apliteni-ui react react-dom
 ## Use
 
 ```tsx
-import '@apliteni/apliteni-ui/css';        // once, at app root
+import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
+import '@apliteni/apliteni-ui-react/css';  // React components' shell styles (modal, pager)
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui-react';
 ```
 

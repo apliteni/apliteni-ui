@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Modal } from './Modal';
 
@@ -13,4 +13,15 @@ it('closes on Escape', async () => {
   expect(screen.getByRole('dialog')).toBeInTheDocument();
   await userEvent.keyboard('{Escape}');
   expect(closed).toBe(1);
+});
+
+it('focuses the first field in the body on open, not the header Close button', async () => {
+  render(
+    <Modal open title="New campaign" onClose={() => {}}>
+      <input aria-label="Name" />
+    </Modal>,
+  );
+  await waitFor(() => {
+    expect(document.activeElement).toBe(screen.getByLabelText('Name'));
+  });
 });

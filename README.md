@@ -78,7 +78,8 @@ use `@apliteni/apliteni-ui-react` — React components rendering the same `.ui-*
 classes and tokens, so the two layers can't drift.
 
 ```tsx
-import '@apliteni/apliteni-ui/css';
+import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
+import '@apliteni/apliteni-ui-react/css';  // React components' shell styles (modal, pager)
 import { DataTable, Modal } from '@apliteni/apliteni-ui-react';
 ```
 

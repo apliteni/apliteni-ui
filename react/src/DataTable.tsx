@@ -77,9 +77,9 @@ export function DataTable<T extends { name: string }>({
       <div className="rx-pager">
         <span className="rx-pager__info">Page {safePage + 1} of {pages} · {sorted.length} rows</span>
         <Button variant="ghost" size="sm" icon="chevronLeft" disabled={safePage === 0}
-          onClick={() => setPage((p) => p - 1)}>Prev</Button>
+          onClick={() => setPage(safePage - 1)}>Prev</Button>
         <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={safePage >= pages - 1}
-          onClick={() => setPage((p) => p + 1)}>Next</Button>
+          onClick={() => setPage(safePage + 1)}>Next</Button>
       </div>
     </>
   );

@@ -16,3 +16,8 @@ it('fires onClick', async () => {
   getByRole('button').click();
   expect(hit).toBe(1);
 });
+
+it('defaults to type="button" so it never submits a form', () => {
+  const { getByRole } = render(<Button>Go</Button>);
+  expect(getByRole('button')).toHaveAttribute('type', 'button');
+});

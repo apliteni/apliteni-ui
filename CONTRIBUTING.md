@@ -72,6 +72,9 @@ internal identifiers posted there, but the responsibility is yours.
    is the source of truth.
 3. **Peer deps.** `react`/`react-dom` are peers, never bundled.
 4. Use TypeScript; every component gets a test and a Storybook story.
+5. **Root `test` glob is explicit.** The root `test` script lists directories
+   (`src/`, `stories/`, `site/`) rather than globbing everything — if you add a
+   new top-level directory containing tests, add it to that glob too.
 
 ## Add an accent sub-theme
 

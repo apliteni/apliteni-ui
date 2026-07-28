@@ -13,9 +13,15 @@ export function Modal({ open, title, onClose, footer, children }: ModalProps) {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
-    panel.current?.querySelector<HTMLElement>('input,select,textarea,button')?.focus();
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
+  useEffect(() => {
+    if (!open) return;
+    panel.current
+      ?.querySelector<HTMLElement>('.rx-modal__body input, .rx-modal__body select, '
+        + '.rx-modal__body textarea, .rx-modal__body button')
+      ?.focus();
+  }, [open]);
   if (!open) return null;
   return createPortal(
     <div className="rx-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>

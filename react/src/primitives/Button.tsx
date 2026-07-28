@@ -14,7 +14,8 @@ export type ButtonProps = {
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 export function Button({
-  variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, children, ...rest
+  variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, children,
+  type = 'button', ...rest
 }: ButtonProps) {
   const cls = cx(
     'ui-btn',
@@ -24,7 +25,7 @@ export function Button({
     iconOnly && 'ui-btn--icon',
   );
   return (
-    <button className={cls} {...rest}>
+    <button type={type} className={cls} {...rest}>
       {icon && <Icon name={icon} />}
       {!iconOnly && children != null && <span>{children}</span>}
       {iconRight && <Icon name={iconRight} />}
