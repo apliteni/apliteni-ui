@@ -16,5 +16,11 @@ const config = {
   },
   core: { disableTelemetry: true },
   docs: { autodocs: false },
+  refs: {
+    react: {
+      title: 'React components',
+      url: 'http://localhost:6007',
+    },
+  },
 };
 export default config;
