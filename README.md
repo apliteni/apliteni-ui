@@ -71,6 +71,20 @@ import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 // …inline tokensCss + topbarCss into the <style> you serve.
 ```
 
+## React components (stateful surfaces)
+
+For surfaces that hold real client state (dashboards, tables, filters, forms),
+use `@apliteni/apliteni-ui-react` — React components rendering the same `.ui-*`
+classes and tokens, so the two layers can't drift.
+
+```tsx
+import '@apliteni/apliteni-ui/css';
+import { DataTable, Modal } from '@apliteni/apliteni-ui-react';
+```
+
+**When to use which:** does the surface hold meaningful client state? No → the
+vanilla factories above. Yes → the React components. See `react/README.md`.
+
 ## Theming
 
 Theme is a `data-theme="dark|light"` attribute on `<html>`; accent is an orthogonal
