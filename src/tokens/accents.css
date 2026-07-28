@@ -30,7 +30,9 @@
   --purple: #c2400f;
   --purple-light: #d64a12;
   --purple-mid: #b8420f;
-  --accent: #d64a12;
+  /* Deepened for WCAG AA on the light ground (#fff): #d64a12 was 4.33:1 as text
+     and as the ink-on-fill; #a8370c clears AA at 6.53:1. See issue #96. */
+  --accent: #a8370c;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   --glow-purple: rgba(214, 74, 18, 0.10);
@@ -82,7 +84,9 @@
   --purple: #0a865a;
   --purple-light: #0b9c68;
   --purple-mid: #0a9060;
-  --accent: #0b9c68;
+  /* Deepened for WCAG AA on the light ground (#fff): #0b9c68 was 3.52:1 as text
+     and as the ink-on-fill; #087a52 clears AA at 5.36:1. See issue #96. */
+  --accent: #087a52;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   --glow-purple: rgba(11, 156, 104, 0.10);
