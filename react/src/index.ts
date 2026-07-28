@@ -1,1 +1,1 @@
-export {};
+export { Icon } from './primitives/Icon';
