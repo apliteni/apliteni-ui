@@ -14,6 +14,70 @@ if (!document.getElementById('ui-poppins')) {
   document.head.append(pre1, link);
 }
 
+// ---- Component inspector (dev-only) -------------------------------------
+// Toolbar toggle that boxes every kit component on the rendered story and
+// labels it with the factory name. Non-mutating: draws a fixed overlay from
+// getBoundingClientRect so it never shifts component layout. Answers
+// "what components is this prototype page composed from?" visually.
+const UI_MAP = [
+  ['.topbar', 'topbar'], ['.ui-footer', 'footer'], ['.ui-hero', 'hero'],
+  ['.ui-feature', 'feature'], ['.ui-card', 'card'], ['.ui-callout', 'callout'],
+  ['.ui-btn', 'button'], ['.ui-badge', 'badge'], ['.ui-pill', 'pill'], ['.ui-dot', 'statusDot'],
+  ['.ui-seg', 'segmented'], ['.ui-tabs', 'tabs'], ['.ui-nav', 'nav'], ['.ui-drawer', 'drawer'],
+  ['.ui-dropdown', 'dropdown'], ['.ui-toast', 'toast'], ['.ui-empty', 'emptyState'],
+  ['.ui-table', 'table'], ['.ui-field', 'field'], ['.ui-input', 'input'], ['.ui-textarea', 'textarea'],
+  ['.ui-select', 'select'], ['.ui-switch', 'switchToggle'], ['.ui-check', 'checkbox'], ['.ui-snippet', 'snippet'],
+];
+let _inspectCleanup = null;
+function paintInspector(on) {
+  if (_inspectCleanup) { _inspectCleanup(); _inspectCleanup = null; }
+  document.getElementById('ui-inspect-layer')?.remove();
+  if (on !== 'on') return;
+  const cs = getComputedStyle(document.documentElement);
+  const accent = cs.getPropertyValue('--accent').trim() || '#9b5dff';
+  const layer = document.createElement('div');
+  layer.id = 'ui-inspect-layer';
+  Object.assign(layer.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '2147483000' });
+  document.body.appendChild(layer);
+  const root = document.getElementById('storybook-root') || document.body;
+  const paint = () => {
+    layer.innerHTML = '';
+    const seen = new Set();
+    for (const [sel, name] of UI_MAP) {
+      root.querySelectorAll(sel).forEach((el) => {
+        if (seen.has(el)) return;
+        seen.add(el);
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) return;
+        const box = document.createElement('div');
+        Object.assign(box.style, {
+          position: 'fixed', left: `${r.left}px`, top: `${r.top}px`,
+          width: `${r.width}px`, height: `${r.height}px`,
+          outline: `1px solid ${accent}`, outlineOffset: '-1px', borderRadius: '4px',
+        });
+        const tag = document.createElement('span');
+        tag.textContent = name;
+        Object.assign(tag.style, {
+          position: 'absolute', left: '0', top: '0',
+          transform: r.top < 16 ? 'none' : 'translateY(-100%)',
+          background: accent, color: '#fff', font: '600 10px/1.5 ui-monospace,monospace',
+          padding: '1px 5px', borderRadius: '4px 4px 4px 0', whiteSpace: 'nowrap',
+        });
+        box.appendChild(tag);
+        layer.appendChild(box);
+      });
+    }
+  };
+  paint();
+  const repaint = () => paint();
+  window.addEventListener('scroll', repaint, true);
+  window.addEventListener('resize', repaint);
+  _inspectCleanup = () => {
+    window.removeEventListener('scroll', repaint, true);
+    window.removeEventListener('resize', repaint);
+  };
+}
+
 /** @type { import('@storybook/html').Preview } */
 const preview = {
   parameters: {
@@ -57,6 +121,19 @@ const preview = {
         dynamicTitle: true,
       },
     },
+    inspect: {
+      description: 'Component inspector',
+      defaultValue: 'off',
+      toolbar: {
+        title: 'Inspect',
+        icon: 'search',
+        items: [
+          { value: 'off', title: 'Inspector off' },
+          { value: 'on', title: 'Show components' },
+        ],
+        dynamicTitle: true,
+      },
+    },
     accent: {
       description: 'Accent sub-theme',
       defaultValue: 'default',
@@ -91,7 +168,11 @@ const preview = {
       const out = story();
       if (typeof out === 'string') wrap.innerHTML = out; else wrap.append(out);
       // Wire interactive behaviours after render.
-      requestAnimationFrame(() => { wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); initTabs(wrap); });
+      requestAnimationFrame(() => {
+        wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); initTabs(wrap);
+        // Repaint the inspector overlay after layout settles (or clear it when off).
+        requestAnimationFrame(() => paintInspector(ctx.globals.inspect));
+      });
       return wrap;
     },
   ],
