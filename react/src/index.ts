@@ -5,3 +5,5 @@ export { Badge } from './primitives/Badge';
 export { Card } from './primitives/Card';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
+export { DataTable } from './DataTable';
+export type { Column, DataTableProps } from './DataTable';
