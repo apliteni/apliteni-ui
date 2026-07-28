@@ -59,6 +59,23 @@ internal identifiers posted there, but the responsibility is yours.
 3. A factory in `src/components/index.js` returning an HTML string.
 4. `stories/components/<Name>.stories.js` — a Playground + a states gallery.
 
+## React package (`react/`)
+
+`@apliteni/apliteni-ui-react` is a workspace for stateful surfaces. Rules:
+
+1. **No drift.** React components render only `.ui-*` classes + tokens — never
+   their own colours, spacing, or radii. The design tokens' source of truth is
+   the `apliteni/design-system` repo.
+2. **Parity test is a merge gate.** Each primitive has a class-name parity test
+   (`react/src/test/classlist.ts`) asserting its class list equals the vanilla
+   factory's output. If it fails, fix the React component — the vanilla output
+   is the source of truth.
+3. **Peer deps.** `react`/`react-dom` are peers, never bundled.
+4. Use TypeScript; every component gets a test and a Storybook story.
+5. **Root `test` glob is explicit.** The root `test` script lists directories
+   (`src/`, `stories/`, `site/`) rather than globbing everything — if you add a
+   new top-level directory containing tests, add it to that glob too.
+
 ## Add an accent sub-theme
 
 Append a pair of blocks to `src/tokens/accents.css`:

@@ -1,0 +1,11 @@
+/* Modal shell only — the kit ships a drawer, not a centered modal. Tokens-only. */
+.rx-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px);
+  display: grid; place-items: center; z-index: 50; }
+.rx-modal { width: min(480px, 92vw); background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); overflow: hidden; }
+.rx-modal__head { display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.rx-modal__title { font-weight: 600; font-size: var(--text-lg); }
+.rx-modal__body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.rx-modal__foot { display: flex; justify-content: flex-end; gap: 12px;
+  padding: 16px 20px; border-top: 1px solid var(--border); }

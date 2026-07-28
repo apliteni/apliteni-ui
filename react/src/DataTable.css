@@ -1,0 +1,4 @@
+.rx-sortable { cursor: pointer; user-select: none; }
+.rx-caret { opacity: .5; margin-left: 2px; }
+.rx-pager { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.rx-pager__info { color: var(--muted); font-size: var(--text-sm); margin-right: auto; }
