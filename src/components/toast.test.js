@@ -12,7 +12,7 @@ test('toast defaults to soft style and a per-status icon', () => {
   const html = toast({ variant: 'danger', title: 'Failed' });
   assert.match(html, /ui-toast--soft/);
   // danger → the x glyph (path from the icon set), not the success check
-  assert.match(html, /M18 6 6 18/);
+  assert.match(html, /M18 6L6 18/);
 });
 
 test('toast colours come from CSS, not inline hex', () => {
