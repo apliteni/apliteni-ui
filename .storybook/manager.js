@@ -1,6 +1,6 @@
-import { addons } from '@storybook/manager-api';
-import { create } from '@storybook/theming';
-import { SET_GLOBALS, GLOBALS_UPDATED } from '@storybook/core-events';
+import { addons } from 'storybook/manager-api';
+import { create } from 'storybook/theming';
+import { SET_GLOBALS, GLOBALS_UPDATED } from 'storybook/internal/core-events';
 
 // The prism mark + wordmark as the sidebar logo (kit tokens, Poppins). The
 // wordmark ink flips with the theme so it reads on both dark and light chrome.

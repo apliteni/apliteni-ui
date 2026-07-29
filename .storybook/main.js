@@ -1,15 +1,12 @@
 /** @type { import('@storybook/html-vite').StorybookConfig } */
 const config = {
   stories: ['../stories/**/*.stories.@(js|mjs)'],
-  addons: [
-    {
-      // Trim the toolbar to what the kit needs (Theme + Accent live in preview.js
-      // globalTypes). Drop the background / grid / measure / outline / viewport tools.
-      name: '@storybook/addon-essentials',
-      options: { backgrounds: false, measure: false, outline: false, viewport: false },
-    },
-    '@storybook/addon-a11y',
-  ],
+  // Storybook 10 folded the former "essentials" addons (controls, actions,
+  // backgrounds, viewport, measure, outline, docs) into core, so only the
+  // still-separate a11y addon is listed. The background/measure/outline tools
+  // stay quiet: backgrounds is disabled via preview.js params and the manager
+  // toolbar is trimmed in manager.js.
+  addons: ['@storybook/addon-a11y'],
   framework: {
     name: '@storybook/html-vite',
     options: {},
