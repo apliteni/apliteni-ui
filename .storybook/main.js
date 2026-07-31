@@ -13,11 +13,14 @@ const config = {
   },
   core: { disableTelemetry: true },
   docs: { autodocs: false },
-  refs: {
-    react: {
-      title: 'React components',
-      url: 'http://localhost:6007',
-    },
-  },
+  // Compose the React library's Storybook (port 6007) only during local dev.
+  // In a static PRODUCTION build the ref would bake `http://localhost:6007`
+  // into index.html, so every public visitor's browser tries to reach their
+  // own localhost — which trips Chrome's "Local Network Access" prompt. Gate
+  // it on configType so the deployed build (ui.apli.tech/storybook) is clean.
+  refs: (_config, { configType }) =>
+    configType === 'DEVELOPMENT'
+      ? { react: { title: 'React components', url: 'http://localhost:6007' } }
+      : {},
 };
 export default config;
