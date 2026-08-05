@@ -10,8 +10,12 @@ Yes → use these React components.
 
 ## Install
 
+Not on npm yet — link it from this repo (workspace or `file:` dependency) alongside
+the kit and React:
+
 ```bash
-npm install @apliteni/apliteni-ui-react @apliteni/apliteni-ui react react-dom
+npm install @apliteni/apliteni-ui react react-dom
+npm install file:../apliteni-ui/react            # until the package is published
 ```
 
 ## Use
