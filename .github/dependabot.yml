@@ -6,6 +6,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # TypeScript 7 breaks the React package build: tsup 8's dts step (its bundled
+      # rollup-plugin-dts) dies with "Cannot read properties of undefined (reading
+      # 'useCaseSensitiveFileNames')". Minor/patch updates still come through.
+      # Drop this once tsup can generate types under TS 7.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       dev-dependencies:
         dependency-type: development
