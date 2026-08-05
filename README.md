@@ -8,20 +8,28 @@ The Apliteni design system & UI kit — one source of UI for every product surfa
 (the strategy deck, the text portal, `/account`, the operating model, and whatever
 ships next).
 
-Framework-agnostic **HTML + CSS**, driven entirely by design tokens, themeable dark
-and light with **accent sub-themes**. Showcased and reviewed in **Storybook**, and
-published on **ui.apli.tech**.
+Two layers over one set of design tokens: framework-agnostic **HTML + CSS**, and
+**React components** for stateful surfaces. Themeable dark and light with **accent
+sub-themes**. Showcased and reviewed in **Storybook**, and published on **ui.apli.tech**.
 
 - 🎨 **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
 - 📦 **Package** → [`@apliteni/apliteni-ui`](https://www.npmjs.com/package/@apliteni/apliteni-ui) (public npm)
+- ⚛️ **React components** → [`react/`](./react) (`@apliteni/apliteni-ui-react`, not published yet)
 
-## Why HTML + CSS (not React)
+## HTML + CSS *and* React
 
-The strategy portal (`apliteni/strategy`, `viz/`) server-renders HTML strings
-(`.mjs` modules), not a component framework. So the kit ships the same shape: token
-CSS + component CSS + tiny HTML-string factories. That makes it a *true* single source
-of truth — the portal imports it with no rewrite and no framework drift. Storybook
-(`@storybook/html-vite`) renders exactly what ships.
+The core is HTML + CSS because the strategy portal (`apliteni/strategy`, `viz/`)
+server-renders HTML strings (`.mjs` modules), not a component framework. So the kit
+ships the same shape: token CSS + component CSS + tiny HTML-string factories. That
+makes it a *true* single source of truth — the portal imports it with no rewrite and
+no framework drift. Storybook (`@storybook/html-vite`) renders exactly what ships.
+
+React sits on top for surfaces that hold real client state — dashboards, tables,
+filters, forms. Those components render the same `.ui-*` classes and the same tokens
+as the vanilla kit, so the two layers can't drift.
+
+**Which one:** does the surface hold meaningful client state? No → the HTML-string
+factories below. Yes → the [React components](#react-components-stateful-surfaces).
 
 ## Install
 
@@ -73,9 +81,10 @@ import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 
 ## React components (stateful surfaces)
 
-For surfaces that hold real client state (dashboards, tables, filters, forms),
-use `@apliteni/apliteni-ui-react` — React components rendering the same `.ui-*`
-classes and tokens, so the two layers can't drift.
+`@apliteni/apliteni-ui-react` lives in [`react/`](./react) and ships `DataTable`,
+`Modal`, `Button`, `Badge`, `Card` and `Icon` — same `.ui-*` classes, same tokens,
+TypeScript types included. It is **not on npm yet**; consume it from this repo
+(workspace / file link) until it is published.
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
@@ -83,8 +92,8 @@ import '@apliteni/apliteni-ui-react/css';  // React components' shell styles (mo
 import { DataTable, Modal } from '@apliteni/apliteni-ui-react';
 ```
 
-**When to use which:** does the surface hold meaningful client state? No → the
-vanilla factories above. Yes → the React components. See `react/README.md`.
+React 18+ is a peer dependency. Its own Storybook runs on port 6007
+(`cd react && npm run storybook`). Details in [`react/README.md`](./react/README.md).
 
 ## Theming
 
@@ -118,6 +127,7 @@ src/
   components/            # HTML-string factories: button(), card(), badge(), topbar()…
 stories/                 # Storybook: Foundations, Components, Apps
 site/                    # ui.apli.tech landing page (static site build)
+react/                   # @apliteni/apliteni-ui-react — React components, own build + Storybook
 ```
 
 ## Develop
@@ -127,6 +137,15 @@ npm install
 npm run storybook          # http://localhost:6006
 npm run build-storybook    # -> storybook-static/
 node site/build.mjs        # -> site/public/ (landing + kit.css + /storybook)
+```
+
+The React package builds and tests on its own:
+
+```bash
+cd react && npm install
+npm run storybook          # http://localhost:6007
+npm test                   # vitest
+npm run build              # tsup -> react/dist/
 ```
 
 ## Publish (public npm)
