@@ -15,8 +15,8 @@ export const Playground: StoryObj<typeof Modal> = {
         <Modal open={open} title="New campaign" onClose={() => setOpen(false)}
           footer={<Button variant="primary" onClick={() => setOpen(false)}>Create</Button>}>
           <div className="ui-field">
-            <label className="ui-field__label">Name</label>
-            <input className="ui-input" placeholder="e.g. Nutra — DE push" />
+            <label className="ui-field__label" htmlFor="rx-modal-demo-name">Name</label>
+            <input id="rx-modal-demo-name" className="ui-input" placeholder="e.g. Nutra — DE push" />
           </div>
         </Modal>
       </>

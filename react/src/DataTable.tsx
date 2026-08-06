@@ -38,24 +38,27 @@ export function DataTable<T extends { name: string }>({
       <table className="ui-table ui-table--hover ui-table--zebra">
         <thead>
           <tr>
-            <th><input type="checkbox" checked={pageAllOn}
-              onChange={() => onTogglePage(slice.map((r) => r.name))} /></th>
+            <th scope="col">
+              {/* No visible text: aria-label is this checkbox's whole name. */}
+              <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
+                onChange={() => onTogglePage(slice.map((r) => r.name))} />
+            </th>
             {columns.map((c) => (
-              <th key={c.key}
+              // The sort control is a real <button> inside the header cell. It used to be
+              // role="button" ON the <th>, which threw away the columnheader role and put
+              // aria-sort on a role that forbids it.
+              <th key={c.key} scope="col"
                 className={[c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
                 aria-sort={c.sortable
                   ? (sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none')
-                  : undefined}
-                role={c.sortable ? 'button' : undefined}
-                tabIndex={c.sortable ? 0 : undefined}
-                onClick={c.sortable ? () => onSort(c.key) : undefined}
-                onKeyDown={c.sortable ? (e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    if (e.key === ' ') e.preventDefault();
-                    onSort(c.key);
-                  }
-                } : undefined}>
-                {c.label}{c.sortable && <span className="rx-caret">{caret(c.key)}</span>}
+                  : undefined}>
+                {c.sortable
+                  ? (
+                    <button type="button" className="rx-sort" onClick={() => onSort(c.key)}>
+                      {c.label}<span className="rx-caret" aria-hidden="true">{caret(c.key)}</span>
+                    </button>
+                  )
+                  : c.label}
               </th>
             ))}
           </tr>
@@ -63,7 +66,7 @@ export function DataTable<T extends { name: string }>({
         <tbody>
           {slice.map((r) => (
             <tr key={r.name}>
-              <td><input type="checkbox" checked={selected.has(r.name)}
+              <td><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
                 onChange={() => onToggle(r.name)} /></td>
               {columns.map((c) => (
                 <td key={c.key} className={c.num ? 'ui-table__num' : undefined}>
