@@ -25,7 +25,8 @@
     "./brand": "./src/tokens/brand.generated.css",
     "./react": {
       "types": "./react/dist/index.d.ts",
-      "import": "./react/dist/index.js"
+      "import": "./react/dist/index.js",
+      "default": "./react/dist/index.js"
     },
     "./react/css": "./react/dist/index.css"
   },
