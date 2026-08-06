@@ -18,7 +18,8 @@ Yes → use these React components.
 npm install @apliteni/apliteni-ui react react-dom
 ```
 
-`react` and `react-dom` are optional peers (`>=18`) of the kit — you bring your own.
+The kit declares no dependency on `react` or `react-dom`, so install them yourself
+(18 or newer). Miss them and the import fails with a module-not-found error.
 
 ## Use
 

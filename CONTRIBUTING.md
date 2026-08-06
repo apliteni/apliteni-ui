@@ -74,8 +74,14 @@ is one package with one version, one pin and one supply-chain surface. Rules:
    (`react/src/test/classlist.ts`) asserting its class list equals the vanilla
    factory's output. If it fails, fix the React component — the vanilla output
    is the source of truth.
-3. **Peer deps.** `react`/`react-dom` are peers of the root package (optional, `>=18`)
-   and `external` in `tsup.config.ts` — never bundled.
+3. **React stays out of the root manifest.** The root package declares `react` and
+   `react-dom` nowhere — not as dependencies, not as peers. An optional peer lands in
+   the lockfile as `devOptional`, which put React in the set the production audit
+   walks, and that audit gates `main`: one react-dom advisory would redden every PR
+   in a repo that ships no React. React reaches us only as a devDependency of this
+   workspace, stays `external` in `tsup.config.ts` — never bundled — and consumers
+   install it themselves, which the README has to keep saying.
+   `scripts/packaging.test.js` fails if any of that slips.
 4. Use TypeScript; every component gets a test and a Storybook story.
 5. **Never publish it separately, and never give it a `*` dependency.** The workspace
    is `"private": true` with no `dependencies`; it reaches the vanilla factories
