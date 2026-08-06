@@ -15,13 +15,15 @@ name: Release
 # ACTIONS_ID_TOKEN_REQUEST_URL/_TOKEN injected into *every* step, so anything
 # that runs in it can mint a publishing credential for the npm audience. `npm
 # ci` runs dependency install scripts and `npm publish` from a directory runs
-# `prepack` → tsup → esbuild — all third-party code. So:
+# `prepare` → tsup → esbuild — all third-party code. So:
 #
 #   build   — installs and packs, holds no id-token, runs `npm ci
 #             --ignore-scripts` (tsup's platform binaries come in as
-#             optionalDependencies, so the build works without them).
+#             optionalDependencies, so the build works without them). The
+#             `prepare` hook is skipped by --ignore-scripts and runs at
+#             `npm pack` instead, which is where the build belongs.
 #   publish — holds the id-token, downloads the tarball and publishes that file.
-#             `npm publish <file>.tgz` does not run `prepack`, so no third-party
+#             `npm publish <file>.tgz` does not run `prepare`, so no third-party
 #             code executes next to the credential. It has no checkout either:
 #             nothing from the repo tree, including a stray .npmrc, is on disk.
 #
@@ -29,7 +31,7 @@ name: Release
 # public repo + public package, and the attestation subject is the digest of the
 # tarball bytes plus GITHUB_* env, neither of which depends on how the tarball
 # got there. Do NOT "fix" this with `npm publish --ignore-scripts` — that skips
-# `prepack` silently and ships a stale or missing react/dist with exit 0.
+# `prepare` silently and ships a stale or missing react/dist with exit 0.
 on:
   release:
     types: [published]
@@ -48,7 +50,7 @@ jobs:
           node-version: 24 # trusted publishing needs npm >= 11.5.1
           cache: npm
       - run: npm ci --ignore-scripts
-      # `npm pack` runs `prepack`, which builds the React components into
+      # `npm pack` runs `prepare`, which builds the React components into
       # react/dist — the ./react subpath ships that build. This is the one place
       # the build is allowed to run, and it holds no publishing credential.
       # --pack-destination does not create the directory, hence the mkdir.
@@ -110,7 +112,7 @@ jobs:
             exit 1
           fi
           echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
-      # Publishing a file, not a directory: no `prepack`, no third-party code.
+      # Publishing a file, not a directory: no `prepare`, no third-party code.
       # npm still refuses to republish an existing version and still resolves
       # registry + access from the publishConfig inside the tarball.
       # The path goes through the environment, not string interpolation, so a

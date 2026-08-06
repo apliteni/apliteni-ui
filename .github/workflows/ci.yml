@@ -22,8 +22,11 @@ jobs:
           cache: npm
       - run: npm ci
       # Includes the packaging guard (scripts/packaging.test.js), which packs the
-      # tarball for real — `prepack` builds react/dist on the way — and asserts the
-      # React subpath is inside it.
+      # tarball for real — `prepare` builds react/dist on the way — installs it into
+      # a scratch directory outside the checkout, and imports every subpath from
+      # there. It needs `npm ci` above to have run: the install is offline, and the
+      # guard links this tree's React into the scratch consumer rather than
+      # downloading one.
       - name: Unit tests
         run: npm test --if-present
       # The React workspace has its own test + build toolchain (vitest, tsup).
