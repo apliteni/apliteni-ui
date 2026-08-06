@@ -28,7 +28,7 @@
 .ui-side a.on svg { opacity: 1; stroke: var(--accent); }
 .ui-side .ssep { height: 1px; background: var(--border); margin: 8px 12px; }
 .ui-side a.out { color: var(--muted); }
-.ui-side a.out:hover { color: var(--accent); }
+.ui-side a.out:hover { color: var(--pink); }
 
 /* -- Account shell grid -------------------------------------------------- */
 .ui-shell {
