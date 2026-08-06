@@ -85,17 +85,27 @@ import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 same tokens, TypeScript types included. They ship as a **subpath of this package**,
 not as a package of their own: one install, one version, one pin.
 
+**You install React yourself.** The kit declares no dependency on it — not a
+dependency, not a peer — so npm will not warn you and will not pull it in. Bring your
+own `react` and `react-dom`, version 18 or newer:
+
+```bash
+npm install @apliteni/apliteni-ui react react-dom
+```
+
+Miss them and the import of `@apliteni/apliteni-ui/react` fails at build or at
+runtime with a module-not-found error for `react`. Everything else in the kit is
+unaffected, so a plain HTML consumer installs the kit alone and never gets React in
+its tree.
+
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
 import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, pager)
 import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
 ```
 
-`react` and `react-dom` are **optional** peer dependencies (18+): the subpath needs
-them, the rest of the kit doesn't, so a plain HTML consumer never gets React pulled
-into its tree. The source lives in [`react/`](./react) — a private workspace with its
-own build (tsup) and Storybook on port 6007. Details in
-[`react/README.md`](./react/README.md).
+The source lives in [`react/`](./react) — a private workspace with its own build
+(tsup) and Storybook on port 6007. Details in [`react/README.md`](./react/README.md).
 
 ## Theming
 
@@ -148,7 +158,7 @@ root covers them — there is no second install):
 ```bash
 npm run storybook -w react   # http://localhost:6007
 npm test -w react            # vitest
-npm run build                # tsup -> react/dist/ (also runs on prepack)
+npm run build                # tsup -> react/dist/ (also runs on prepare)
 ```
 
 ## Publish (public npm)
@@ -164,7 +174,7 @@ gh release create v$(node -p "require('./package.json').version") --generate-not
 The **Release** workflow (`.github/workflows/release.yml`) then publishes to the public
 npm registry over npm Trusted Publishing (OIDC) — there is no long-lived token. No
 manual `npm publish` needed. It runs in two jobs: `build` installs and runs `npm pack`,
-whose `prepack` rebuilds `react/dist` from the tagged commit, and `publish` — the only
+whose `prepare` rebuilds `react/dist` from the tagged commit, and `publish` — the only
 job that can mint an OIDC credential — just publishes that tarball, so no dependency
 or build script ever runs beside the credential. The packaging guard
 (`scripts/packaging.test.js`) fails CI if the React subpath isn't in the tarball, and

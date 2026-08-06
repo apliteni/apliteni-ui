@@ -25,7 +25,8 @@
     "./brand": "./src/tokens/brand.generated.css",
     "./react": {
       "types": "./react/dist/index.d.ts",
-      "import": "./react/dist/index.js"
+      "import": "./react/dist/index.js",
+      "default": "./react/dist/index.js"
     },
     "./react/css": "./react/dist/index.css"
   },
@@ -42,26 +43,14 @@
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build -o storybook-static",
     "build": "npm run build --workspace react",
-    "prepack": "npm run build",
-    "test": "node --test $(find src stories site scripts -name '*.test.js')",
+    "prepare": "npm run build",
+    "test": "for d in src stories site scripts; do [ -d \"$d\" ] || { echo \"npm test: no such directory: $d\" >&2; exit 1; }; done; node --test 'src/**/*.test.js' 'stories/**/*.test.js' 'site/**/*.test.js' 'scripts/**/*.test.js'",
     "tokens:sync": "node scripts/sync-brand-tokens.mjs",
     "tokens:check": "node scripts/sync-brand-tokens.mjs --check",
     "tokens:drift": "node scripts/brand-drift.mjs"
   },
   "engines": {
     "node": ">=20"
-  },
-  "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "react-dom": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^10.5.5",

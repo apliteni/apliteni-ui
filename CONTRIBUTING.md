@@ -74,8 +74,14 @@ is one package with one version, one pin and one supply-chain surface. Rules:
    (`react/src/test/classlist.ts`) asserting its class list equals the vanilla
    factory's output. If it fails, fix the React component — the vanilla output
    is the source of truth.
-3. **Peer deps.** `react`/`react-dom` are peers of the root package (optional, `>=18`)
-   and `external` in `tsup.config.ts` — never bundled.
+3. **React stays out of the root manifest.** The root package declares `react` and
+   `react-dom` nowhere — not as dependencies, not as peers. An optional peer lands in
+   the lockfile as `devOptional`, which put React in the set the production audit
+   walks, and that audit gates `main`: one react-dom advisory would redden every PR
+   in a repo that ships no React. React reaches us only as a devDependency of this
+   workspace, stays `external` in `tsup.config.ts` — never bundled — and consumers
+   install it themselves, which the README has to keep saying.
+   `scripts/packaging.test.js` fails if any of that slips.
 4. Use TypeScript; every component gets a test and a Storybook story.
 5. **Never publish it separately, and never give it a `*` dependency.** The workspace
    is `"private": true` with no `dependencies`; it reaches the vanilla factories
@@ -85,15 +91,39 @@ is one package with one version, one pin and one supply-chain surface. Rules:
    enforces all of it.
 6. **Root `test` glob is explicit.** The root `test` script lists directories
    (`src/`, `stories/`, `site/`, `scripts/`) rather than globbing everything — if you
-   add a new top-level directory containing tests, add it to that glob too.
+   add a new top-level directory containing tests, add it to that glob too. It names
+   each directory twice: once in the guard that fails the run when a directory is
+   missing, once in the glob handed to `node --test`. A renamed directory used to
+   drop its tests and still exit 0; now it exits 1 and says which one is gone.
 
 ### Packaging guard
 
-`scripts/packaging.test.js` packs the real tarball (`npm pack --dry-run`, which runs
-`prepack` → the tsup build) and asserts every `exports` target is inside it. 0.7.2
-shipped an `exports` map that read fine and a `files` array that dropped every React
-file — reading `package.json` back to itself proves nothing, so this test reads the
-pack list. If you add an export, add its files to `files`; the guard will tell you.
+`scripts/packaging.test.js` packs the real tarball (`npm pack`, which runs `prepare` →
+the tsup build), installs it into a scratch directory outside the repository, and then
+checks every `exports` entry **from a consumer that lives there**: the target is in the
+tarball, it is not zero bytes once installed, it resolves under **both** `import` and
+`require`, and — for JS entries — importing it yields exports. 0.7.2 shipped an
+`exports` map that read fine and a `files` array that dropped every React file;
+reading `package.json` back to itself proves nothing. A guard that would still pass
+with an empty bundle, or with a subpath no `require()` can reach, is not a guard.
+
+The install is what makes the check honest. `react/package.json` is deliberately kept
+out of the tarball, and that absence is what lets Node's self-reference resolution find
+the root manifest — so the bare `import { icon } from "@apliteni/apliteni-ui"` inside
+`react/dist/index.js` only resolves once the package is installed. Checked from the
+working tree it either fails, or passes by accident off a stale
+`node_modules/@apliteni/apliteni-ui` left over from an earlier install.
+
+The install is offline: the kit declares no runtime dependencies, so a correct tarball
+needs nothing from the registry. React is linked in from the repo's own `node_modules`
+afterwards, the way a real consumer of `./react` supplies it — and only after the guard
+has asserted that installing the kit alone dragged no React along. If the install
+itself fails, the run fails with npm's output attached; it never passes because nothing
+was checked. Adds roughly 0.3s to the run.
+
+If you add an export, add its files to `files`; the guard will tell you. Wildcard
+targets (`"./guidelines/*"`) are expanded against the pack list and each match is
+checked, so a pattern is never reported as a missing file.
 
 ## Add an accent sub-theme
 
@@ -140,7 +170,7 @@ gh release create v$(node -p "require('./package.json').version") --generate-not
 ```
 
 CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release.
-The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepack`
+The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepare`
 builds `react/dist` from the tagged commit — so the React subpath can never ship
 stale — and `publish` holds the OIDC credential and does nothing but publish that
 tarball, so no third-party install or build script runs beside it.
