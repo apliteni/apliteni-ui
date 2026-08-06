@@ -98,14 +98,30 @@ is one package with one version, one pin and one supply-chain surface. Rules:
 
 ### Packaging guard
 
-`scripts/packaging.test.js` packs the real tarball (`npm pack --dry-run`, which runs
-`prepare` → the tsup build) and, for every `exports` entry, asserts four things: the
-target is in the tarball, it is not zero bytes, it resolves under **both** `import`
-and `require`, and — for JS entries — importing it yields exports. 0.7.2 shipped an
+`scripts/packaging.test.js` packs the real tarball (`npm pack`, which runs `prepare` →
+the tsup build), installs it into a scratch directory outside the repository, and then
+checks every `exports` entry **from a consumer that lives there**: the target is in the
+tarball, it is not zero bytes once installed, it resolves under **both** `import` and
+`require`, and — for JS entries — importing it yields exports. 0.7.2 shipped an
 `exports` map that read fine and a `files` array that dropped every React file;
 reading `package.json` back to itself proves nothing. A guard that would still pass
-with an empty bundle, or with a subpath no `require()` can reach, is not a guard. If
-you add an export, add its files to `files`; the guard will tell you. Wildcard
+with an empty bundle, or with a subpath no `require()` can reach, is not a guard.
+
+The install is what makes the check honest. `react/package.json` is deliberately kept
+out of the tarball, and that absence is what lets Node's self-reference resolution find
+the root manifest — so the bare `import { icon } from "@apliteni/apliteni-ui"` inside
+`react/dist/index.js` only resolves once the package is installed. Checked from the
+working tree it either fails, or passes by accident off a stale
+`node_modules/@apliteni/apliteni-ui` left over from an earlier install.
+
+The install is offline: the kit declares no runtime dependencies, so a correct tarball
+needs nothing from the registry. React is linked in from the repo's own `node_modules`
+afterwards, the way a real consumer of `./react` supplies it — and only after the guard
+has asserted that installing the kit alone dragged no React along. If the install
+itself fails, the run fails with npm's output attached; it never passes because nothing
+was checked. Adds roughly 0.3s to the run.
+
+If you add an export, add its files to `files`; the guard will tell you. Wildcard
 targets (`"./guidelines/*"`) are expanded against the pack list and each match is
 checked, so a pattern is never reported as a missing file.
 
