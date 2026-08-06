@@ -30,6 +30,30 @@ test('busy:true keeps the branded glyph and adds the loader + disabled state', (
   assert.ok(html.includes('aria-busy="true"'));
 });
 
+// iconOnly drops the visible text and the glyph is aria-hidden, so `label` is
+// the button's only accessible name.
+test('iconOnly names the button from label, and mirrors it into title', () => {
+  const html = button({ label: 'Dismiss', icon: 'x', iconOnly: true });
+  assert.match(html, /aria-label="Dismiss"/);
+  assert.match(html, /title="Dismiss"/);
+  assert.doesNotMatch(html, /<span>Dismiss<\/span>/, 'no visible text in icon-only mode');
+});
+
+test('iconOnly with a blank label falls back to the icon name, never nameless', () => {
+  const html = button({ label: '   ', icon: 'trash', iconOnly: true });
+  assert.match(html, /aria-label="trash"/);
+});
+
+test('an icon-only link carries the same name', () => {
+  const html = button({ label: 'Open docs', icon: 'externalLink', iconOnly: true, href: '/docs' });
+  assert.match(html, /^<a /);
+  assert.match(html, /aria-label="Open docs"/);
+});
+
+test('a labelled button gets no aria-label — the visible text names it', () => {
+  assert.doesNotMatch(button({ label: 'Save', icon: 'check' }), /aria-label/);
+});
+
 test('without iconSvg the named-icon path is unchanged', () => {
   const bare = button({ label: 'Plain' });
   assert.ok(!bare.includes('<svg'), 'no glyph when neither icon nor iconSvg given');
