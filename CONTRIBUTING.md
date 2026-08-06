@@ -1,8 +1,10 @@
 # Contributing to @apliteni/apliteni-ui
 
 The kit is **framework-agnostic HTML + CSS**: design tokens, one CSS file per
-component, and tiny factory functions. Storybook is the workbench. No build step —
-what you write is what ships.
+component, and tiny factory functions. Storybook is the workbench. `src/` has no build
+step — what you write is what ships. The one exception is the React components in
+`react/`, which are compiled by tsup into `react/dist/` and published as the
+`@apliteni/apliteni-ui/react` subpath (see below).
 
 ## Setup
 
@@ -59,9 +61,11 @@ internal identifiers posted there, but the responsibility is yours.
 3. A factory in `src/components/index.js` returning an HTML string.
 4. `stories/components/<Name>.stories.js` — a Playground + a states gallery.
 
-## React package (`react/`)
+## React components (`react/`)
 
-`@apliteni/apliteni-ui-react` is a workspace for stateful surfaces. Rules:
+`react/` is a **private workspace** — it is not a package anyone installs. Its build
+output ships as the `@apliteni/apliteni-ui/react` subpath of this package, so the kit
+is one package with one version, one pin and one supply-chain surface. Rules:
 
 1. **No drift.** React components render only `.ui-*` classes + tokens — never
    their own colours, spacing, or radii. The design tokens' source of truth is
@@ -70,11 +74,26 @@ internal identifiers posted there, but the responsibility is yours.
    (`react/src/test/classlist.ts`) asserting its class list equals the vanilla
    factory's output. If it fails, fix the React component — the vanilla output
    is the source of truth.
-3. **Peer deps.** `react`/`react-dom` are peers, never bundled.
+3. **Peer deps.** `react`/`react-dom` are peers of the root package (optional, `>=18`)
+   and `external` in `tsup.config.ts` — never bundled.
 4. Use TypeScript; every component gets a test and a Storybook story.
-5. **Root `test` glob is explicit.** The root `test` script lists directories
-   (`src/`, `stories/`, `site/`) rather than globbing everything — if you add a
-   new top-level directory containing tests, add it to that glob too.
+5. **Never publish it separately, and never give it a `*` dependency.** The workspace
+   is `"private": true` with no `dependencies`; it reaches the vanilla factories
+   through the bare `@apliteni/apliteni-ui` specifier, which resolves to this very
+   package once installed and to `../src/` in the repo (`react/kit-alias.ts`, wired
+   into `vitest.config.ts` and `.storybook/main.ts`). `scripts/packaging.test.js`
+   enforces all of it.
+6. **Root `test` glob is explicit.** The root `test` script lists directories
+   (`src/`, `stories/`, `site/`, `scripts/`) rather than globbing everything — if you
+   add a new top-level directory containing tests, add it to that glob too.
+
+### Packaging guard
+
+`scripts/packaging.test.js` packs the real tarball (`npm pack --dry-run`, which runs
+`prepack` → the tsup build) and asserts every `exports` target is inside it. 0.7.2
+shipped an `exports` map that read fine and a `files` array that dropped every React
+file — reading `package.json` back to itself proves nothing, so this test reads the
+pack list. If you add an export, add its files to `files`; the guard will tell you.
 
 ## Add an accent sub-theme
 
@@ -120,5 +139,10 @@ git push --follow-tags
 gh release create v$(node -p "require('./package.json').version") --generate-notes
 ```
 
-CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release. The `ui.apli.tech` site rebuilds
+CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release.
+The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepack`
+builds `react/dist` from the tagged commit — so the React subpath can never ship
+stale — and `publish` holds the OIDC credential and does nothing but publish that
+tarball, so no third-party install or build script runs beside it.
+The `ui.apli.tech` site rebuilds
 from the repo (landing + Storybook) — see the README for the image build/deploy.

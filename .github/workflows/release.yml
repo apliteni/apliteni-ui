@@ -7,7 +7,29 @@ name: Release
 # Auth is npm Trusted Publishing (OIDC): the job exchanges a short-lived GitHub
 # OIDC token for publish rights — there is no long-lived NPM_TOKEN to steal.
 # The counterpart config lives on npmjs.com (package → Settings → Trusted
-# Publisher): repository apliteni/apliteni-ui, workflow release.yml.
+# Publisher): repository apliteni/apliteni-ui, workflow release.yml. It matches
+# on the workflow file, not on a job name, so the two jobs below need no change
+# there.
+#
+# The work is split in two on purpose. A job with `id-token: write` gets
+# ACTIONS_ID_TOKEN_REQUEST_URL/_TOKEN injected into *every* step, so anything
+# that runs in it can mint a publishing credential for the npm audience. `npm
+# ci` runs dependency install scripts and `npm publish` from a directory runs
+# `prepack` → tsup → esbuild — all third-party code. So:
+#
+#   build   — installs and packs, holds no id-token, runs `npm ci
+#             --ignore-scripts` (tsup's platform binaries come in as
+#             optionalDependencies, so the build works without them).
+#   publish — holds the id-token, downloads the tarball and publishes that file.
+#             `npm publish <file>.tgz` does not run `prepack`, so no third-party
+#             code executes next to the credential. It has no checkout either:
+#             nothing from the repo tree, including a stray .npmrc, is on disk.
+#
+# Provenance is unaffected: npm auto-enables it during the OIDC exchange for a
+# public repo + public package, and the attestation subject is the digest of the
+# tarball bytes plus GITHUB_* env, neither of which depends on how the tarball
+# got there. Do NOT "fix" this with `npm publish --ignore-scripts` — that skips
+# `prepack` silently and ships a stale or missing react/dist with exit 0.
 on:
   release:
     types: [published]
@@ -15,14 +37,84 @@ on:
 
 permissions:
   contents: read
-  id-token: write # OIDC token for npm trusted publishing
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24 # trusted publishing needs npm >= 11.5.1
-      - run: npm publish
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # `npm pack` runs `prepack`, which builds the React components into
+      # react/dist — the ./react subpath ships that build. This is the one place
+      # the build is allowed to run, and it holds no publishing credential.
+      # --pack-destination does not create the directory, hence the mkdir.
+      - name: Pack the tarball
+        run: |
+          mkdir -p dist-pack
+          npm pack --pack-destination dist-pack
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: npm-tarball
+          path: dist-pack/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC token for npm trusted publishing
+    steps:
+      # No checkout: this job only needs npm itself and the tarball. Note there
+      # is no `cache: npm` either — without a checkout there is no lockfile to
+      # key the cache on, and nothing here installs anything anyway.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24 # trusted publishing needs npm >= 11.5.1
+      # Fails the job if the artifact is missing — it does not fall through to a
+      # no-op publish.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: npm-tarball
+          path: dist-pack
+      # ...and if it arrived truncated, duplicated or without the React build,
+      # fail here rather than shipping it.
+      - name: Check the tarball
+        id: tarball
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          found=(dist-pack/*.tgz)
+          if [ "${#found[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one .tgz in dist-pack, found ${#found[@]}"
+            exit 1
+          fi
+          tgz="${found[0]}"
+          if [ ! -s "$tgz" ]; then
+            echo "::error::$tgz is empty"
+            exit 1
+          fi
+          if ! listing="$(tar -tzf "$tgz")"; then
+            echo "::error::$tgz is not a readable gzipped tarball"
+            exit 1
+          fi
+          # Herestring, not a pipe: `tar | grep -q` can die on SIGPIPE and trip
+          # pipefail even when the entry is there.
+          if ! grep -qxF 'package/react/dist/index.js' <<<"$listing"; then
+            echo "::error::$tgz does not contain the React build (react/dist)"
+            exit 1
+          fi
+          echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
+      # Publishing a file, not a directory: no `prepack`, no third-party code.
+      # npm still refuses to republish an existing version and still resolves
+      # registry + access from the publishConfig inside the tarball.
+      # The path goes through the environment, not string interpolation, so a
+      # step output can never be spliced into the shell command itself.
+      - env:
+          TGZ: ${{ steps.tarball.outputs.tgz }}
+        run: npm publish "$TGZ"

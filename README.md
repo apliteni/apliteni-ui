@@ -14,7 +14,7 @@ sub-themes**. Showcased and reviewed in **Storybook**, and published on **ui.apl
 
 - 🎨 **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
 - 📦 **Package** → [`@apliteni/apliteni-ui`](https://www.npmjs.com/package/@apliteni/apliteni-ui) (public npm)
-- ⚛️ **React components** → [`react/`](./react) (`@apliteni/apliteni-ui-react`, not published yet)
+- ⚛️ **React components** → `@apliteni/apliteni-ui/react` — a subpath of the same package, source in [`react/`](./react)
 
 ## HTML + CSS *and* React
 
@@ -81,19 +81,21 @@ import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 
 ## React components (stateful surfaces)
 
-`@apliteni/apliteni-ui-react` lives in [`react/`](./react) and ships `DataTable`,
-`Modal`, `Button`, `Badge`, `Card` and `Icon` — same `.ui-*` classes, same tokens,
-TypeScript types included. It is **not on npm yet**; consume it from this repo
-(workspace / file link) until it is published.
+`DataTable`, `Modal`, `Button`, `Badge`, `Card` and `Icon` — same `.ui-*` classes,
+same tokens, TypeScript types included. They ship as a **subpath of this package**,
+not as a package of their own: one install, one version, one pin.
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
-import '@apliteni/apliteni-ui-react/css';  // React components' shell styles (modal, pager)
-import { DataTable, Modal } from '@apliteni/apliteni-ui-react';
+import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, pager)
+import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
 ```
 
-React 18+ is a peer dependency. Its own Storybook runs on port 6007
-(`cd react && npm run storybook`). Details in [`react/README.md`](./react/README.md).
+`react` and `react-dom` are **optional** peer dependencies (18+): the subpath needs
+them, the rest of the kit doesn't, so a plain HTML consumer never gets React pulled
+into its tree. The source lives in [`react/`](./react) — a private workspace with its
+own build (tsup) and Storybook on port 6007. Details in
+[`react/README.md`](./react/README.md).
 
 ## Theming
 
@@ -127,7 +129,8 @@ src/
   components/            # HTML-string factories: button(), card(), badge(), topbar()…
 stories/                 # Storybook: Foundations, Components, Apps
 site/                    # ui.apli.tech landing page (static site build)
-react/                   # @apliteni/apliteni-ui-react — React components, own build + Storybook
+react/                   # React components — private workspace, built to react/dist/
+  dist/                  #   tsup output; shipped as …/react and …/react/css
 ```
 
 ## Develop
@@ -139,18 +142,18 @@ npm run build-storybook    # -> storybook-static/
 node site/build.mjs        # -> site/public/ (landing + kit.css + /storybook)
 ```
 
-The React package builds and tests on its own:
+The React components build and test through the workspace (`npm install` at the repo
+root covers them — there is no second install):
 
 ```bash
-cd react && npm install
-npm run storybook          # http://localhost:6007
-npm test                   # vitest
-npm run build              # tsup -> react/dist/
+npm run storybook -w react   # http://localhost:6007
+npm test -w react            # vitest
+npm run build                # tsup -> react/dist/ (also runs on prepack)
 ```
 
 ## Publish (public npm)
 
-Versioned publish runs from CI on a GitHub Release (needs the `NPM_TOKEN` secret):
+Versioned publish runs from CI on a GitHub Release:
 
 ```bash
 npm version patch          # or minor / major — bumps package.json + tags
@@ -158,8 +161,14 @@ git push --follow-tags
 gh release create v$(node -p "require('./package.json').version") --generate-notes
 ```
 
-The **Release** workflow (`.github/workflows/release.yml`) then publishes with the
-built-in `GITHUB_TOKEN` (`packages: write`). No manual `npm publish` needed.
+The **Release** workflow (`.github/workflows/release.yml`) then publishes to the public
+npm registry over npm Trusted Publishing (OIDC) — there is no long-lived token. No
+manual `npm publish` needed. It runs in two jobs: `build` installs and runs `npm pack`,
+whose `prepack` rebuilds `react/dist` from the tagged commit, and `publish` — the only
+job that can mint an OIDC credential — just publishes that tarball, so no dependency
+or build script ever runs beside the credential. The packaging guard
+(`scripts/packaging.test.js`) fails CI if the React subpath isn't in the tarball, and
+the release itself re-checks the tarball before publishing it.
 
 ## Deploy (ui.apli.tech)
 

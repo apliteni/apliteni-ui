@@ -1,18 +1,9 @@
 {
-  "name": "@apliteni/apliteni-ui-react",
-  "version": "0.1.0",
-  "description": "React components for apliteni-ui — stateful surfaces on the shared design tokens.",
+  "name": "apliteni-ui-react-workspace",
+  "private": true,
+  "description": "Source workspace for the kit's React components. Published as the ./react subpath of @apliteni/apliteni-ui — never as a package of its own.",
   "type": "module",
   "license": "MIT",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./css": "./dist/index.css"
-  },
-  "files": ["dist", "README.md"],
-  "sideEffects": false,
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
@@ -21,7 +12,6 @@
     "build-storybook": "storybook build -o storybook-static"
   },
   "peerDependencies": { "react": ">=18", "react-dom": ">=18" },
-  "dependencies": { "@apliteni/apliteni-ui": "*" },
   "devDependencies": {
     "@storybook/addon-a11y": "^10.5.5",
     "@storybook/react-vite": "^10.5.5",
