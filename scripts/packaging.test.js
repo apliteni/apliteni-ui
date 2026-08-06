@@ -176,19 +176,61 @@ test('the React workspace is not a second publishable package', () => {
   }
 });
 
-test('React is a peer of the kit, never a dependency', () => {
+test('installing the kit never pulls React into a consumer tree', () => {
+  // The kit used to declare react and react-dom as optional peers. npm records an
+  // optional peer in the lockfile as `devOptional`, which put React in the set the
+  // production audit walks — and that audit is a required check on main, so any
+  // react-dom advisory turned every PR red over a package that ships no React. The
+  // peers are gone; what has to stay true is the property underneath them. React
+  // must never appear on the runtime side of the manifest, in any form npm would
+  // install, and the shipped bundle must import it rather than inline a copy.
+  const runtimeBlocks = [
+    'dependencies',
+    'optionalDependencies',
+    'peerDependencies',
+    'bundleDependencies',
+    'bundledDependencies',
+  ];
+  for (const block of runtimeBlocks) {
+    const declared = pkg[block];
+    if (declared === undefined) continue;
+    const names = Array.isArray(declared) ? declared : Object.keys(declared);
+    for (const name of ['react', 'react-dom', 'scheduler']) {
+      assert.ok(
+        !names.includes(name),
+        `"${block}" lists ${name}. React is the consumer's to install — declaring it ` +
+          `here puts it back in the production audit set, and that audit gates main.`,
+      );
+    }
+  }
   assert.equal(pkg.dependencies, undefined, 'the kit ships no runtime dependencies');
+
+  // A bundled copy would be the same problem wearing a different hat: React inside
+  // our tarball, on a version we chose, unauditable and duplicated in the consumer's
+  // tree. tsup keeps it external, so the built entry imports the bare specifier.
+  const bundle = readFileSync(path.join(root, 'react', 'dist', 'index.js'), 'utf8');
   for (const name of ['react', 'react-dom']) {
-    assert.ok(pkg.peerDependencies?.[name], `${name} must be declared as a peer`);
-    assert.match(pkg.peerDependencies[name], />=\s*18/, `${name} peer range must accept 18+`);
-    // Optional, because `.`, `./css` and the other subpaths are framework-agnostic:
-    // a vanilla HTML consumer must not have React installed into its tree.
-    assert.equal(
-      pkg.peerDependenciesMeta?.[name]?.optional,
-      true,
-      `${name} must be an OPTIONAL peer — only the ./react subpath needs it`,
+    assert.match(
+      bundle,
+      new RegExp(`from\\s*["']${name}["']`),
+      `react/dist/index.js does not import "${name}" as a bare specifier — React ` +
+        'looks bundled rather than external. Check `external` in react/tsup.config.ts.',
     );
   }
+});
+
+test('the README tells consumers of ./react to install React themselves', () => {
+  // With the peers gone, nothing machine-readable tells a consumer that
+  // @apliteni/apliteni-ui/react needs React — react/package.json is not published,
+  // so the README is the only signal that ships. It has to keep saying it.
+  assert.ok(packed.has('README.md'), 'README.md must be in the tarball');
+  const readme = readFileSync(path.join(root, 'README.md'), 'utf8');
+  assert.match(
+    readme,
+    /npm install [^\n]*\breact\b[^\n]*\breact-dom\b/,
+    'README.md must show the install line that includes react and react-dom — it is ' +
+      'the only place a consumer of the ./react subpath learns it needs them.',
+  );
 });
 
 test('the React bundle is marked as a client module', () => {

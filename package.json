@@ -52,18 +52,6 @@
   "engines": {
     "node": ">=20"
   },
-  "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "react-dom": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@storybook/addon-a11y": "^10.5.5",
     "@storybook/html-vite": "^10.5.5",
