@@ -106,14 +106,44 @@ export function wireTopbar(root = document) {
       a.setAttribute('aria-current', 'page');
     });
   });
-  // Segmented controls (.ui-seg) — visual toggle
+  // Segmented controls (.ui-seg) — a toolbar of toggle buttons (see segmented()
+  // in components/index.js). Click selects; ArrowLeft/ArrowRight move and wrap,
+  // Home/End jump to the ends. The strip keeps ONE Tab stop: selecting an option
+  // hands it the tabindex and takes it off the rest, so a page with three of
+  // these costs three Tab presses, not nine.
   root.querySelectorAll('.ui-seg').forEach((seg) => {
+    const btns = () => Array.prototype.slice.call(seg.querySelectorAll('button'));
+    const select = (b, focus) => {
+      btns().forEach((x) => {
+        const on = x === b;
+        x.classList.toggle('is-active', on);
+        // Older hand-written .ui-seg markup carries aria-selected; segmented()
+        // now emits aria-pressed. Keep whichever the button actually declares in
+        // step, and never invent the other one.
+        if (x.hasAttribute('aria-pressed')) x.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (x.hasAttribute('aria-selected')) x.setAttribute('aria-selected', on ? 'true' : 'false');
+        x.tabIndex = on ? 0 : -1;
+      });
+      if (focus) b.focus();
+    };
     seg.addEventListener('click', (e) => {
       const b = e.target.closest('button');
       if (!b || !seg.contains(b)) return;
-      seg.querySelectorAll('button').forEach((x) => { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
-      b.classList.add('is-active');
-      b.setAttribute('aria-selected', 'true');
+      select(b);
+    });
+    seg.addEventListener('keydown', (e) => {
+      const b = e.target.closest('button');
+      if (!b || !seg.contains(b)) return;
+      const all = btns();
+      const i = all.indexOf(b);
+      let n = null;
+      if (e.key === 'ArrowRight') n = (i + 1) % all.length;
+      else if (e.key === 'ArrowLeft') n = (i - 1 + all.length) % all.length;
+      else if (e.key === 'Home') n = 0;
+      else if (e.key === 'End') n = all.length - 1;
+      if (n === null) return;
+      e.preventDefault();
+      select(all[n], true);
     });
   });
   // Version switcher + account menu — the shared dropdown wiring (open/close +

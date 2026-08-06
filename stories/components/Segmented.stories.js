@@ -10,7 +10,7 @@ export default {
     size: { control: 'inline-radio', options: [undefined, 'sm'] },
     block: { control: 'boolean' },
   },
-  args: { options: ['Deck', 'Text'], active: 0 },
+  args: { options: ['Deck', 'Text'], active: 0, ariaLabel: 'View' },
 };
 
 export const Playground = {};
@@ -18,9 +18,9 @@ export const Playground = {};
 export const Examples = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(stack(
-    specimen('Two options — Deck / Text', segmented({ options: ['Deck', 'Text'], active: 0 })),
-    specimen('Theme', segmented({ options: ['Dark', 'Light', 'System'], active: 0 })),
-    specimen('Small', segmented({ options: ['EN', 'RU'], active: 0, size: 'sm' })),
-    specimen('Full width (block)', `<div style="max-width:420px">${segmented({ options: ['Overview', 'Agents', 'Billing'], active: 1, block: true })}</div>`),
+    specimen('Two options — Deck / Text', segmented({ options: ['Deck', 'Text'], active: 0, ariaLabel: 'View' })),
+    specimen('Theme', segmented({ options: ['Dark', 'Light', 'System'], active: 0, ariaLabel: 'Theme' })),
+    specimen('Small', segmented({ options: ['EN', 'RU'], active: 0, size: 'sm', ariaLabel: 'Language' })),
+    specimen('Full width (block)', `<div style="max-width:420px">${segmented({ options: ['Overview', 'Agents', 'Billing'], active: 1, block: true, ariaLabel: 'Section' })}</div>`),
   )),
 };

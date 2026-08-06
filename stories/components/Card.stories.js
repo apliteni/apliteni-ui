@@ -20,9 +20,9 @@ export const SettingRows = {
     title: 'Appearance',
     body: `
       <div class="ui-card__row"><div><div class="lab">Theme</div><div class="hint">Match the deck's dark palette or a light workspace.</div></div>
-        ${segmented({ name: 'theme', options: ['Dark', 'Light', 'System'], active: 0 })}</div>
+        ${segmented({ name: 'theme', options: ['Dark', 'Light', 'System'], active: 0, ariaLabel: 'Theme' })}</div>
       <div class="ui-card__row"><div><div class="lab">Language</div><div class="hint">Interface language for the portal.</div></div>
-        ${segmented({ name: 'lang', options: ['EN', 'RU'], active: 0 })}</div>
+        ${segmented({ name: 'lang', options: ['EN', 'RU'], active: 0, ariaLabel: 'Language' })}</div>
       <div class="ui-card__row"><div><div class="lab">Reduce motion</div><div class="hint">Disable the animated deck transitions.</div></div>
         <label class="ui-switch"><input type="checkbox" aria-label="Reduce motion"><span class="ui-switch__track"></span></label></div>`,
   })}</div>`),

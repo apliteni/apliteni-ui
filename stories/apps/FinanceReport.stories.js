@@ -1,4 +1,5 @@
-import { badge, card, segmented, icon } from '../../src/components/index.js';
+import { badge, card, icon } from '../../src/components/index.js';
+import { tabs } from '../../src/components/tabs.js';
 
 export default {
   title: 'Apps/Finance report',
@@ -14,13 +15,13 @@ const kpi = (label, value, sub, tone) =>
      <div style="font:400 12px/1.4 Poppins;color:var(--muted);margin-top:5px">${sub}</div>
    </div>`;
 
-const kpiStrip = () => card({ body: `
+const kpiStrip = (r) => card({ body: `
   <div style="display:flex;gap:34px;align-items:stretch">
-    ${kpi('Money in', '759,988 €', 'Jul 1 – Jun 30', 'pos')}
+    ${kpi('Money in', r.in, r.period, 'pos')}
     <div style="border-left:1px solid var(--border)"></div>
-    ${kpi('Money out', '3,048,559 €', 'Jul 1 – Jun 30')}
+    ${kpi('Money out', r.out, r.period)}
     <div style="border-left:1px solid var(--border)"></div>
-    ${kpi('Net result', '−2,288,571 €', 'Jul 1 – Jun 30', 'neg')}
+    ${kpi('Net result', r.net, r.period, 'neg')}
   </div>` });
 
 const PAYOUTS = [
@@ -32,7 +33,16 @@ const PAYOUTS = [
   ['43',   'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
 ];
 
-const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe payouts reconciled to bank transactions.', body: `
+// The reporting period. Each entry is a real panel of content — that is what
+// makes this a tab set rather than a pill that switches nothing.
+const RANGES = [
+  { label: '3M', period: 'Apr 1 – Jun 30', in: '198,412 €', out: '742,006 €', net: '−543,594 €', rows: 2 },
+  { label: '6M', period: 'Jan 1 – Jun 30', in: '381,900 €', out: '1,504,220 €', net: '−1,122,320 €', rows: 4 },
+  { label: '1Y', period: 'Jul 1 – Jun 30', in: '759,988 €', out: '3,048,559 €', net: '−2,288,571 €', rows: 6 },
+  { label: 'All', period: 'Since Feb 2024', in: '1,904,336 €', out: '6,331,884 €', net: '−4,427,548 €', rows: 6 },
+];
+
+const payoutsCard = (r) => card({ title: `${icon('card')} Payouts`, sub: 'Stripe payouts reconciled to bank transactions.', body: `
   <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr>
       <th>ID</th><th>Payout ID</th><th>Arrival</th>
@@ -40,7 +50,7 @@ const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe 
       <th class="ui-table__num">Net (EUR)</th><th>Status</th>
     </tr></thead>
     <tbody>
-      ${PAYOUTS.map(([id, pid, arr, gross, fees, net, variant, label]) => `
+      ${PAYOUTS.slice(0, r.rows).map(([id, pid, arr, gross, fees, net, variant, label]) => `
         <tr>
           <td><a href="#">${id}</a></td>
           <td class="ui-table__code">${pid}</td>
@@ -65,11 +75,15 @@ export const Default = {
         <h1>Payouts</h1>
         <div class="sub">Company cashflow at a glance, then the reconciled payout ledger.</div>
         <div class="ui-card-stack">
-          <div style="display:grid;gap:22px">
-            ${segmented({ options: ['3M', '6M', '1Y', 'All'], active: 2 })}
-            ${kpiStrip()}
-            ${payoutsCard()}
-          </div>
+          ${tabs({
+            name: 'payout-range',
+            ariaLabel: 'Reporting period',
+            active: 2,
+            items: RANGES.map((r) => ({
+              label: r.label,
+              panel: `<div style="display:grid;gap:22px">${kpiStrip(r)}${payoutsCard(r)}</div>`,
+            })),
+          })}
         </div>
       </div>
     </div>`,

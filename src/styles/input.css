@@ -10,6 +10,9 @@
   font-weight: var(--weight-medium);
   margin-bottom: 8px;
 }
+/* Required marker. Decoration only — the control carries `required`, which is
+   what assistive technology reads, so this asterisk is aria-hidden. */
+.ui-field__req { color: var(--pink); margin-left: 4px; }
 .ui-field__hint { color: var(--muted); font-size: var(--text-sm); margin-top: 7px; line-height: 1.5; }
 .ui-field__error { color: var(--pink); font-size: var(--text-sm); margin-top: 7px; display: flex; align-items: center; gap: 6px; }
 

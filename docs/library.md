@@ -69,7 +69,8 @@ inserted verbatim.
 | `button({ label, variant, size, icon, iconRight, block, disabled, busy, href, iconOnly })` | `<button>`, or `<a>` with `href`. `busy` disables + shows the loader. |
 | `badge(label, variant)` · `pill(label, variant)` · `statusDot(live)` | Status chips + live dot. |
 | `card({ title, sub, body, variant, pad, icon })` | Surface container; `title`/`sub` are trusted markup. |
-| `segmented({ options, active, size, block, name })` | Tablist segmented control. |
+| `segmented({ options, active, size, block, name, ariaLabel })` | Pill switch. A toolbar of toggle buttons; wired by `wireTopbar()`. |
+| `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist + panels, one panel per item. |
 | `accentPicker({ active, options })` | Accent swatches; wired by `wireTopbar()`. |
 | `field` · `input` · `textarea` · `checkbox` · `switchToggle` | Form controls. |
 | `callout` · `toast` · `successPanel` | Inline feedback. |
@@ -80,6 +81,32 @@ inserted verbatim.
 
 The public JS surface is whatever `src/index.js` re-exports — add a factory there to
 publish it.
+
+### Segmented or tabs?
+
+Ask what is behind the choice. If picking an option reveals a different block of content,
+that content is a panel and you want `tabs()` — it renders the panels, ties each one to its
+tab, and a screen reader announces "tab, 1 of 3" truthfully. If picking an option only
+narrows a list, flips a unit or sets a preference, there is no panel and you want
+`segmented()` — a toolbar of toggle buttons that says "pressed", not "selected".
+
+Both give a keyboard user one Tab stop and move with ArrowLeft / ArrowRight and Home / End.
+Both need a name: pass `ariaLabel`. `segmented()`'s `name` is an identifier for `data-seg`,
+not prose, and it is never announced.
+
+### Forms
+
+`field({ label, hint, error, control, required })` owns the wiring a control cannot do for
+itself:
+
+- the label gets a `for=` pointing at the control (an id is generated if the control has none)
+- the hint or the error gets an id, and the control gets `aria-describedby` pointing at it,
+  so the reason a value was rejected is read out with the field rather than sitting beside it
+- a field with an `error` is marked `aria-invalid="true"`
+- a `required` field carries the native `required` attribute; the asterisk in the label is
+  `aria-hidden` decoration on top of that, never the only signal
+
+A control outside a `field()` needs its own `ariaLabel` — a placeholder is not a name.
 
 Install, usage, and the publish flow live in the [top-level README](../README.md).
 `publishConfig` targets the **public npm registry** (`access: public`).

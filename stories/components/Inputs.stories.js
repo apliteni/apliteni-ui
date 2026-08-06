@@ -8,9 +8,9 @@ export default {
 
 export const TextFields = {
   render: () => pad(`<div style="max-width:420px;display:flex;flex-direction:column;gap:22px">
-    ${field({ label: 'Work email', control: input({ type: 'email', placeholder: 'you@apliteni.com', icon: 'mail' }), hint: 'We only allow apliteni.com addresses.' })}
+    ${field({ label: 'Work email', required: true, control: input({ type: 'email', placeholder: 'you@apliteni.com', icon: 'mail' }), hint: 'We only allow apliteni.com addresses.' })}
     ${field({ label: 'Agent name', control: input({ placeholder: 'e.g. Research bot' }) })}
-    ${field({ label: 'Password', control: input({ type: 'password', value: 'hunter2', icon: 'lock' }) })}
+    ${field({ label: 'Password', required: true, control: input({ type: 'password', value: 'hunter2', icon: 'lock' }) })}
     ${field({ label: 'API token', error: 'This token has already been revoked.', control: input({ value: 'sk-live-9f2c…', invalid: true }) })}
     ${field({ label: 'Disabled', control: input({ placeholder: 'Read only', disabled: true }) })}
   </div>`),
@@ -27,6 +27,6 @@ export const SelectAndSearch = {
   render: () => pad(stack(
     specimen('Search input', `<div style="max-width:360px">${input({ placeholder: 'Search components…', icon: 'search', ariaLabel: 'Search components' })}</div>`),
     specimen('Select', `<div style="max-width:280px">${select({ options: ['Product units', 'Superconnectors', 'Governance'], ariaLabel: 'Team' })}</div>`),
-    specimen('Create row (input + button)', `<div style="max-width:520px;display:flex;gap:10px">${input({ placeholder: 'New agent name' })}${button({ label: 'Create', variant: 'primary' })}</div>`),
+    specimen('Create row (input + button)', `<div style="max-width:520px;display:flex;gap:10px">${input({ placeholder: 'New agent name', ariaLabel: 'New agent name' })}${button({ label: 'Create', variant: 'primary' })}</div>`),
   )),
 };
