@@ -11,8 +11,14 @@ const config = {
     name: '@storybook/html-vite',
     options: {},
   },
-  core: { disableTelemetry: true },
+  // No telemetry, and no "what's new in Storybook" card — that one is Storybook's
+  // own release marketing, and it lands on top of our sidebar.
+  core: { disableTelemetry: true, disableWhatsNewNotifications: true },
   docs: { autodocs: false },
+  // The "Get started" checklist onboards people to Storybook, not to this kit.
+  // Two flags because Storybook gates the sidebar widget and the menu's Guide
+  // page separately — turning off only the first leaves it reachable.
+  features: { sidebarOnboardingChecklist: false, menuOnboardingChecklist: false },
   // Compose the React library's Storybook (port 6007) only during local dev.
   // In a static PRODUCTION build the ref would bake `http://localhost:6007`
   // into index.html, so every public visitor's browser tries to reach their
