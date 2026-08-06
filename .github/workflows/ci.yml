@@ -21,14 +21,18 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Includes the packaging guard (scripts/packaging.test.js), which packs the
+      # tarball for real — `prepack` builds react/dist on the way — and asserts the
+      # React subpath is inside it.
       - name: Unit tests
         run: npm test --if-present
       # The React workspace has its own test + build toolchain (vitest, tsup).
-      # Without these steps a break in react/ lands on main unnoticed.
-      - name: React package — unit tests
-        run: npm test -w @apliteni/apliteni-ui-react
-      - name: React package — build
-        run: npm run build -w @apliteni/apliteni-ui-react
+      # Without these steps a break in react/ lands on main unnoticed. Selected by
+      # path, not by name: the workspace is private and its name is not an API.
+      - name: React components — unit tests
+        run: npm test -w react
+      - name: React components — build
+        run: npm run build -w react
       - name: Build Storybook
         run: npm run build-storybook
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
