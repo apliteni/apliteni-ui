@@ -42,18 +42,13 @@ jobs:
           cache: npm
       - run: npm ci
       - name: npm audit — production deps (fail on high/critical)
-        # The package declares no runtime dependencies at all: react and react-dom
-        # are OPTIONAL PEERS that come from the consumer's own tree, and nothing
-        # from them is bundled into what we publish. npm records such a peer in
-        # the lockfile as `devOptional` — reachable by a dev edge OR an optional
-        # one — and drops it only when BOTH are omitted, which is why `--omit=dev`
-        # on its own still audited react, react-dom and scheduler. `--omit=peer`
-        # covers the same intent if the peers ever stop being optional. This job
-        # is a required check on main: without these flags a react-dom advisory
-        # would turn every PR red over a package that ships no React, and the
-        # upgrade is the consumer's to make. Dev tooling (Storybook/Vite) is
-        # audited below, non-blocking.
-        run: npm audit --omit=dev --omit=peer --omit=optional --audit-level=high
+        # The package declares no runtime dependencies and no peers. React reaches
+        # this repo only as a devDependency of the react/ workspace, so `--omit=dev`
+        # leaves nothing to audit and a react-dom advisory cannot turn this required
+        # check red over a package that ships no React. `scripts/packaging.test.js`
+        # is what keeps React out of the runtime side of the manifest. Dev tooling
+        # (Storybook/Vite) is audited below, non-blocking.
+        run: npm audit --omit=dev --audit-level=high
       - name: npm audit — dev deps (informational)
         run: npm audit --audit-level=high || true
 
