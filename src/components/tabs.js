@@ -20,7 +20,7 @@ export function tabs({ items = [], active = 0, name = 'tabs', ariaLabel = 'Tabs'
   const list = items
     .map((it, i) => {
       const on = i === active;
-      return `<button class="ui-tabs__tab${on ? ' is-active' : ''}" role="tab"`
+      return `<button type="button" class="ui-tabs__tab${on ? ' is-active' : ''}" role="tab"`
         + ` id="${name}-tab-${i}" aria-controls="${name}-panel-${i}"`
         + ` aria-selected="${on ? 'true' : 'false'}" tabindex="${on ? '0' : '-1'}">${it.label}</button>`;
     })

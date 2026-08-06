@@ -124,7 +124,11 @@ export function wireTopbar(root = document) {
     chip.addEventListener('click', () => {
       applyAccent(chip.getAttribute('data-accent-pick'), document.documentElement);
       const group = chip.closest('[data-accent-group]') || root;
-      group.querySelectorAll('[data-accent-pick]').forEach((c) => c.classList.toggle('is-active', c === chip));
+      group.querySelectorAll('[data-accent-pick]').forEach((c) => {
+        c.classList.toggle('is-active', c === chip);
+        // Keep the announced state in step with the visual one.
+        if (c.hasAttribute('aria-pressed')) c.setAttribute('aria-pressed', c === chip ? 'true' : 'false');
+      });
     });
   });
   // Copy buttons

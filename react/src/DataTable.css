@@ -1,4 +1,15 @@
-.rx-sortable { cursor: pointer; user-select: none; }
+.rx-sortable { user-select: none; }
+/* The sort control is a real button; it inherits the header cell's look so the
+   markup fix (th + button, not role="button" on the th) is invisible visually. */
+.rx-sort {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+  color: inherit;
+}
+.rx-sort:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 .rx-caret { opacity: .5; margin-left: 2px; }
 .rx-pager { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 .rx-pager__info { color: var(--muted); font-size: var(--text-sm); margin-right: auto; }

@@ -11,6 +11,11 @@ export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => (
 // branded glyphs the kit's icon set doesn't own — e.g. a Google "G". It takes
 // the leading slot; `icon` is the named-icon shorthand for kit glyphs. This is
 // what lets third-party buttons go through button() instead of hand-rolled markup.
+//
+// `iconOnly` drops the visible text, and kit glyphs are aria-hidden — so `label`
+// stops being decoration and becomes the control's ONLY accessible name. It is
+// mirrored into aria-label + title, and an empty label falls back to the icon
+// name rather than shipping a nameless button.
 export function button({
   label = 'Button', variant = 'secondary', size = 'md', icon: ic, iconSvg, iconRight,
   block = false, disabled = false, busy = false, type = 'button', href, iconOnly = false,
@@ -26,7 +31,9 @@ export function button({
   const lead = iconSvg || (ic ? icon(ic) : '');
   const inner = `${lead}${iconOnly ? '' : `<span>${esc(label)}</span>`}${iconRight ? icon(iconRight) : ''}${bars}`;
   // busy ⇒ disabled (not clickable while it works)
-  const attrs = `class="${cls}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${iconOnly ? ` aria-label="${esc(label)}"` : ''}`;
+  const name = String(label == null ? '' : label).trim() || ic || 'Button';
+  const named = iconOnly ? ` aria-label="${esc(name)}" title="${esc(name)}"` : '';
+  const attrs = `class="${cls}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${named}`;
   return href
     ? `<a href="${href}" ${attrs}>${inner}</a>`
     : `<button type="${type}" ${attrs}>${inner}</button>`;
@@ -73,9 +80,14 @@ const ACCENT_SWATCH = {
   ocean: 'linear-gradient(135deg,#5ab0ff,#3b9dff)',
   emerald: 'linear-gradient(135deg,#3ad9a0,#16c98a)',
 };
+// Swatches have no text and no glyph at all — the aria-label is the whole
+// accessible name, and aria-pressed carries which one is on.
 export function accentPicker({ active = 'default', options = ['default', 'phoenix', 'ocean', 'emerald'] } = {}) {
-  return `<div class="ui-accent-picker" data-accent-group>${options.map((o) =>
-    `<button type="button" data-accent-pick="${o}"${o === active ? ' class="is-active"' : ''} style="--swatch:${ACCENT_SWATCH[o]}" aria-label="${o} accent" title="${o[0].toUpperCase() + o.slice(1)}"></button>`).join('')}</div>`;
+  const title = (o) => o.charAt(0).toUpperCase() + o.slice(1);
+  return `<div class="ui-accent-picker" data-accent-group role="group" aria-label="Accent">${options.map((o) =>
+    `<button type="button" data-accent-pick="${esc(o)}"${o === active ? ' class="is-active"' : ''}`
+    + ` style="--swatch:${ACCENT_SWATCH[o] || 'transparent'}" aria-pressed="${o === active ? 'true' : 'false'}"`
+    + ` aria-label="${esc(title(o))} accent" title="${esc(title(o))}"></button>`).join('')}</div>`;
 }
 
 // ---- Field / input -------------------------------------------------------
@@ -158,7 +170,8 @@ export function toast({
   const cls = cx('ui-toast', `ui-toast--${variant}`, `ui-toast--${style}`, compact && 'ui-toast--compact');
   const actLabel = typeof action === 'string' ? action : action && action.label;
   const actBtn = actLabel ? `<button class="ui-toast__action" type="button">${esc(actLabel)}</button>` : '';
-  const closeBtn = dismissible ? `<button class="ui-toast__close" aria-label="Dismiss">${icon('x')}</button>` : '';
+  // Icon-only: the glyph is aria-hidden, so aria-label IS the accessible name.
+  const closeBtn = dismissible ? `<button type="button" class="ui-toast__close" aria-label="Dismiss">${icon('x')}</button>` : '';
   const bodyHtml = compact || !body ? '' : `<div class="ui-toast__text">${esc(body)}</div>`;
   const dur = typeof timer === 'number' ? ` style="--toast-dur:${timer}s"` : '';
   const timerBar = timer ? '<span class="ui-toast__timer" data-toast-timer></span>' : '';
@@ -187,8 +200,15 @@ export function emptyState({ art, icon: ic, title, sub, actions } = {}) {
 }
 
 // ---- Snippet -------------------------------------------------------------
-export function snippet({ label = 'shell', code = '', reveal = false, copy = true } = {}) {
-  return `<div class="${cx('ui-snippet', reveal && 'ui-snippet--reveal')}"><div class="ui-snippet__bar"><span>${esc(label)}</span>${copy ? `<button class="ui-snippet__copy">${icon('copy')}Copy</button>` : ''}</div><pre>${code}</pre></div>`;
+// `copyLabel` is both the visible text and the accessible name of the copy
+// button. wireTopbar() swaps that text to "✓ Copied" and back, so the button is
+// never left nameless — the glyph beside it is decorative (aria-hidden).
+// `type="button"`: without it a snippet dropped inside a <form> submits the form.
+export function snippet({ label = 'shell', code = '', reveal = false, copy = true, copyLabel = 'Copy' } = {}) {
+  const copyBtn = copy
+    ? `<button type="button" class="ui-snippet__copy" data-orig="${esc(copyLabel)}">${icon('copy')}${esc(copyLabel)}</button>`
+    : '';
+  return `<div class="${cx('ui-snippet', reveal && 'ui-snippet--reveal')}"><div class="ui-snippet__bar"><span>${esc(label)}</span>${copyBtn}</div><pre>${code}</pre></div>`;
 }
 
 // Tiny shell highlighter: escapes first, then wraps comments/strings/URLs/flags/command.

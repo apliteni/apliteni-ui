@@ -28,9 +28,13 @@ test('action renders a button; timer renders a bar with a duration var', () => {
 });
 
 test('compact drops the body text', () => {
-  const html = toast({ variant: 'neutral', title: 'Reconnecting', body: 'hidden', compact: true });
+  // The probe used to be the word "hidden", which now collides with the
+  // aria-hidden every kit glyph carries. Same assertion, unambiguous sentinel.
+  const BODY = 'this body copy must not render';
+  const html = toast({ variant: 'neutral', title: 'Reconnecting', body: BODY, compact: true });
   assert.doesNotMatch(html, /ui-toast__text/);
-  assert.doesNotMatch(html, /hidden/);
+  assert.doesNotMatch(html, new RegExp(BODY));
+  assert.match(html, /Reconnecting/);
 });
 
 test('dismissible:false omits the close button', () => {

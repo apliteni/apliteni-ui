@@ -10,9 +10,11 @@
 // ship in styles/feedback.css (part of the kit stylesheet). Accent-aware.
 import { esc } from './index.js';
 
-const IC_MSG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>';
-const IC_LINES = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h10M4 19h7"/></svg>';
-const IC_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+// Decorative, like every glyph in the kit — the pill and the buttons carry their
+// own text or aria-label, so the SVGs stay out of the accessibility tree.
+const IC_MSG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>';
+const IC_LINES = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M4 5h16M4 12h10M4 19h7"/></svg>';
+const IC_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const CHECK = '<svg class="ui-fbck" viewBox="0 0 150 150" aria-hidden="true"><path class="ui-fbck-t" d="M40 78l24 24 46-50"/><path class="ui-fbck-m" d="M40 78l24 24 46-50"/><path class="ui-fbck-s" d="M40 78l24 24 46-50"/></svg>';
 
 // The widget markup — append once to the page (e.g. document.body). Copy is
@@ -36,21 +38,21 @@ export function feedbackWidget({
   <div data-fb-form>
     <div class="ui-fbc__head">
       <span class="ui-fbc__chip">${IC_LINES}<span data-fb-chip>this page</span></span>
-      <button class="ui-fbc__x" data-fb-close aria-label="Close">${IC_X}</button>
+      <button type="button" class="ui-fbc__x" data-fb-close aria-label="Close">${IC_X}</button>
     </div>
     <div class="ui-fbc__quote"><span class="ui-fbc__qm">&#8220;</span><q data-fb-quote></q></div>
     <div class="ui-fbc__body"><textarea data-fb-note maxlength="6000" placeholder="${esc(placeholder)}" aria-label="Your note"></textarea></div>
     <div class="ui-fbc__err" data-fb-err></div>
     <div class="ui-fbc__foot">
-      <button class="ui-fbbtn ghost" data-fb-cancel>Cancel</button>
-      <button class="ui-fbbtn primary" data-fb-send disabled><span class="ui-fbc__send" data-fb-sendlb>Send feedback</span></button>
+      <button type="button" class="ui-fbbtn ghost" data-fb-cancel>Cancel</button>
+      <button type="button" class="ui-fbbtn primary" data-fb-send disabled><span class="ui-fbc__send" data-fb-sendlb>Send feedback</span></button>
     </div>
   </div>
   <div class="ui-fbc__done" data-fb-done style="display:none">
     <div class="ui-fbc__ck">${CHECK}</div>
     <h4>${esc(doneTitle)}</h4>
     <p>${esc(doneBody)}</p>
-    <div class="row"><button class="ui-fbbtn ghost" data-fb-done-close>Close</button></div>
+    <div class="row"><button type="button" class="ui-fbbtn ghost" data-fb-done-close>Close</button></div>
   </div>
 </div>`;
 }
