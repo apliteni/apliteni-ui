@@ -1,4 +1,6 @@
 import type { StorybookConfig } from '@storybook/react-vite';
+import { mergeConfig } from 'vite';
+import { kitAlias } from '../kit-alias';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(tsx|ts)'],
@@ -6,5 +8,7 @@ const config: StorybookConfig = {
   addons: ['@storybook/addon-a11y'],
   framework: { name: '@storybook/react-vite', options: {} },
   core: { disableTelemetry: true },
+  // The kit's own source, not a node_modules copy — see kit-alias.ts.
+  viteFinal: (viteConfig) => mergeConfig(viteConfig, { resolve: { alias: kitAlias } }),
 };
 export default config;
