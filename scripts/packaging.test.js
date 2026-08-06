@@ -89,6 +89,19 @@ test('React is a peer of the kit, never a dependency', () => {
   }
 });
 
+test('the React bundle is marked as a client module', () => {
+  // tsup emits one module for every component, so a Next.js Server Component
+  // that imports the stateless Badge still loads the module holding useState.
+  // The directive has to be the FIRST thing in the file — after an import it is
+  // just a stray expression and the App Router build fails.
+  const bundle = readFileSync(path.join(root, 'react', 'dist', 'index.js'), 'utf8');
+  assert.match(
+    bundle.split('\n')[0],
+    /^(['"])use client\1;?$/,
+    'react/dist/index.js must start with the "use client" directive — see the tsup banner',
+  );
+});
+
 test('the React subpath ships built JS, types and CSS', () => {
   for (const file of ['react/dist/index.js', 'react/dist/index.d.ts', 'react/dist/index.css']) {
     assert.ok(packed.has(file), `${file} is missing from the tarball — consumers of ` +
