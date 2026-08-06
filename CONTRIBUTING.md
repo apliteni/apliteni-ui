@@ -90,7 +90,7 @@ is one package with one version, one pin and one supply-chain surface. Rules:
 ### Packaging guard
 
 `scripts/packaging.test.js` packs the real tarball (`npm pack --dry-run`, which runs
-`prepack` → the tsup build) and asserts every `exports` target is inside it. 0.7.2
+`prepare` → the tsup build) and asserts every `exports` target is inside it. 0.7.2
 shipped an `exports` map that read fine and a `files` array that dropped every React
 file — reading `package.json` back to itself proves nothing, so this test reads the
 pack list. If you add an export, add its files to `files`; the guard will tell you.
@@ -140,7 +140,7 @@ gh release create v$(node -p "require('./package.json').version") --generate-not
 ```
 
 CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release.
-The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepack`
+The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepare`
 builds `react/dist` from the tagged commit — so the React subpath can never ship
 stale — and `publish` holds the OIDC credential and does nothing but publish that
 tarball, so no third-party install or build script runs beside it.

@@ -3,7 +3,7 @@
 // 0.7.2 shipped an `exports` map that looked complete and a `files` array that
 // dropped every React file, and nobody noticed: an export entry is just a string
 // in a JSON file, so reading it back proves nothing. These tests read the real
-// pack list instead. `npm pack --dry-run` runs the whole pack pipeline — `prepack`
+// pack list instead. `npm pack --dry-run` runs the whole pack pipeline — `prepare`
 // included, so the React workspace is built here the same way it is on publish —
 // and reports the exact files that would land in the tarball.
 import { test } from 'node:test';
@@ -21,7 +21,7 @@ const stdout = execFileSync('npm', ['pack', '--dry-run', '--json'], {
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'pipe'],
 });
-// `prepack` (the tsup build) writes its own progress to this stdout, so the JSON
+// `prepare` (the tsup build) writes its own progress to this stdout, so the JSON
 // document starts at the first bare `[` line rather than at byte 0.
 const lines = stdout.split('\n');
 const packed = new Set(
