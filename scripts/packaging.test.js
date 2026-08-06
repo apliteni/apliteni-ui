@@ -1,20 +1,30 @@
-// Packaging guard — the tarball must contain what `exports` promises.
+// Packaging guard — every subpath a consumer can import must resolve, ship and
+// yield something.
 //
 // 0.7.2 shipped an `exports` map that looked complete and a `files` array that
 // dropped every React file, and nobody noticed: an export entry is just a string
-// in a JSON file, so reading it back proves nothing. These tests read the real
-// pack list instead. `npm pack --dry-run` runs the whole pack pipeline — `prepare`
-// included, so the React workspace is built here the same way it is on publish —
-// and reports the exact files that would land in the tarball.
+// in a JSON file, so reading it back proves nothing. The first version of this
+// guard read the real pack list, which caught that — but it compared paths as
+// strings and never resolved a specifier, so it still passed while
+// `exports["./react"]` was unreachable from `require()` and while the bundle
+// behind it was zero bytes. So the assertions below are, in order: the file is
+// in the tarball, it is not empty, both resolvers can find it, and the JS
+// entries actually export names.
+//
+// `npm pack --dry-run` runs the whole pack pipeline — `prepare` included, so the
+// React workspace is built here the same way it is on publish — and reports the
+// exact files that would land in the tarball.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+const require = createRequire(import.meta.url);
 
 const stdout = execFileSync('npm', ['pack', '--dry-run', '--json'], {
   cwd: root,
@@ -35,14 +45,106 @@ function targets(entry) {
   return [];
 }
 
-test('every exports target is in the tarball', () => {
+const rel = (target) => target.replace(/^\.\//, '');
+
+/**
+ * Packed files matching a wildcard target such as `./guidelines/*.md`. One `*`
+ * in a target stands for one `*` in the subpath, so the captured segment is what
+ * turns `./guidelines/*` into an importable specifier.
+ */
+function wildcardMatches(target) {
+  const pattern = rel(target)
+    .split('*')
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('(.+)');
+  const re = new RegExp(`^${pattern}$`);
+  return [...packed].map((file) => re.exec(file)).filter(Boolean);
+}
+
+/** Concrete `@apliteni/apliteni-ui/…` specifiers, wildcard subpaths expanded. */
+function specifiers(subpath, entry) {
+  const spec = subpath.replace(/^\./, pkg.name);
+  if (!subpath.includes('*')) return [spec];
+  // A wildcard subpath has nothing to resolve until it is filled in, so fill it
+  // in from the tarball. No match is a real failure — but it has to say *that*,
+  // not "./guidelines/* is not in the tarball", which is never true of a pattern.
+  return targets(entry).flatMap((target) => {
+    const matches = wildcardMatches(target);
+    assert.ok(
+      matches.length > 0,
+      `exports["${subpath}"] -> ${target} is a wildcard that matches no packed ` +
+        `file. Add the files to "files", or drop the export. Packed: ${packed.size} files.`,
+    );
+    return matches.map((m) => spec.replace('*', m[1]));
+  });
+}
+
+test('every exports target is in the tarball, and is not empty', () => {
   for (const [subpath, entry] of Object.entries(pkg.exports)) {
     for (const target of targets(entry)) {
-      const file = target.replace(/^\.\//, '');
+      const files = target.includes('*')
+        ? wildcardMatches(target).map((m) => m[0])
+        : [rel(target)];
+
+      if (target.includes('*')) {
+        assert.ok(
+          files.length > 0,
+          `exports["${subpath}"] -> ${target} is a wildcard that matches no packed file.`,
+        );
+      } else {
+        assert.ok(
+          packed.has(files[0]),
+          `exports["${subpath}"] points at ${target}, which is NOT in the tarball — ` +
+            `add it to "files" (or fix the export). Packed: ${packed.size} files.`,
+        );
+      }
+
+      for (const file of files) {
+        assert.ok(
+          statSync(path.join(root, file)).size > 0,
+          `exports["${subpath}"] points at ${file}, which is 0 bytes — a listed ` +
+            `file is not a working one.`,
+        );
+      }
+    }
+  }
+});
+
+test('every exports subpath resolves, for import AND for require', () => {
+  // Self-reference: inside the package, '@apliteni/apliteni-ui/x' goes through
+  // the same `exports` map a consumer's resolver walks, conditions and all. An
+  // entry that lists only `import` — as ./react did — resolves here and throws
+  // ERR_PACKAGE_PATH_NOT_EXPORTED there, which is exactly the bug this catches.
+  for (const [subpath, entry] of Object.entries(pkg.exports)) {
+    for (const spec of specifiers(subpath, entry)) {
+      assert.doesNotThrow(
+        () => import.meta.resolve(spec),
+        `import("${spec}") does not resolve — check exports["${subpath}"].`,
+      );
+      assert.doesNotThrow(
+        () => require.resolve(spec),
+        `require("${spec}") does not resolve — exports["${subpath}"] needs a ` +
+          `"default" condition (last), or every require-condition resolver ` +
+          `(Node, CJS bundlers, TypeScript --module node16) is locked out.`,
+      );
+    }
+  }
+});
+
+test('every JS entry point exports something', async () => {
+  // The counter-example is a barrel emptied to `export {}`: the file is packed,
+  // both resolvers find it and nothing works. CSS is checked by size above —
+  // Node cannot import a stylesheet.
+  for (const [subpath, entry] of Object.entries(pkg.exports)) {
+    const isJs = targets(entry).some((t) => t.endsWith('.js'));
+    if (!isJs) continue;
+    for (const spec of specifiers(subpath, entry)) {
+      const mod = await import(spec);
+      const names = Object.keys(mod).filter((n) => n !== 'default');
       assert.ok(
-        packed.has(file),
-        `exports["${subpath}"] points at ${target}, which is NOT in the tarball — ` +
-          `add it to "files" (or fix the export). Packed: ${packed.size} files.`,
+        names.length > 0 || 'default' in mod,
+        `import("${spec}") yields an empty module — exports["${subpath}"] ` +
+          `resolves to a file that exports nothing.`,
       );
     }
   }
@@ -107,4 +209,7 @@ test('the React subpath ships built JS, types and CSS', () => {
     assert.ok(packed.has(file), `${file} is missing from the tarball — consumers of ` +
       `@apliteni/apliteni-ui/react would get a package with no React in it.`);
   }
+  // Types that declare nothing are the .d.ts equivalent of an empty bundle.
+  const dts = readFileSync(path.join(root, 'react', 'dist', 'index.d.ts'), 'utf8');
+  assert.match(dts, /\bexport\b/, 'react/dist/index.d.ts declares no exports');
 });

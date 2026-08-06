@@ -93,10 +93,15 @@ is one package with one version, one pin and one supply-chain surface. Rules:
 ### Packaging guard
 
 `scripts/packaging.test.js` packs the real tarball (`npm pack --dry-run`, which runs
-`prepare` → the tsup build) and asserts every `exports` target is inside it. 0.7.2
-shipped an `exports` map that read fine and a `files` array that dropped every React
-file — reading `package.json` back to itself proves nothing, so this test reads the
-pack list. If you add an export, add its files to `files`; the guard will tell you.
+`prepare` → the tsup build) and, for every `exports` entry, asserts four things: the
+target is in the tarball, it is not zero bytes, it resolves under **both** `import`
+and `require`, and — for JS entries — importing it yields exports. 0.7.2 shipped an
+`exports` map that read fine and a `files` array that dropped every React file;
+reading `package.json` back to itself proves nothing. A guard that would still pass
+with an empty bundle, or with a subpath no `require()` can reach, is not a guard. If
+you add an export, add its files to `files`; the guard will tell you. Wildcard
+targets (`"./guidelines/*"`) are expanded against the pack list and each match is
+checked, so a pattern is never reported as a missing file.
 
 ## Add an accent sub-theme
 
