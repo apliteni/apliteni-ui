@@ -56,11 +56,17 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
+          cache: npm
+      # Packing runs `prepack`, which builds the React components with tsup, so
+      # this job needs the toolchain — a bare checkout packs nothing.
+      - run: npm ci
       - name: Assert no secrets/junk in the npm tarball
         run: |
           set -euo pipefail
+          # `prepack` writes its own build progress to this stdout, so the JSON
+          # document starts at the first bare `[` line rather than at byte 0.
           files=$(npm pack --dry-run --json \
-            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{for(const f of JSON.parse(s)[0].files)console.log(f.path)})')
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const L=s.split("\n");for(const f of JSON.parse(L.slice(L.indexOf("[")).join("\n"))[0].files)console.log(f.path)})')
           echo "Files to be published:"; echo "$files"
           if echo "$files" | grep -iE '(^|/)(\.env|\.env\..*|\.npmrc|.*\.pem|.*\.key|id_rsa|\.git/)'; then
             echo "::error::A secret or forbidden file is staged for publish"; exit 1
