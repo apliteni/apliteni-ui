@@ -85,7 +85,10 @@ is one package with one version, one pin and one supply-chain surface. Rules:
    enforces all of it.
 6. **Root `test` glob is explicit.** The root `test` script lists directories
    (`src/`, `stories/`, `site/`, `scripts/`) rather than globbing everything — if you
-   add a new top-level directory containing tests, add it to that glob too.
+   add a new top-level directory containing tests, add it to that glob too. It names
+   each directory twice: once in the guard that fails the run when a directory is
+   missing, once in the glob handed to `node --test`. A renamed directory used to
+   drop its tests and still exit 0; now it exits 1 and says which one is gone.
 
 ### Packaging guard
 
