@@ -7,13 +7,13 @@
  *
  * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
  *   --drawer-surface  panel background      --drawer-shadow  panel elevation
- *   --drawer-scrim    backdrop colour (overridden for light below)
+ *   --drawer-scrim    backdrop colour (--scrim already re-themes per theme)
  * ========================================================================== */
 
 .ui-drawer {
   --drawer-surface: var(--surface-2);
   --drawer-shadow: var(--shadow-lg);
-  --drawer-scrim: rgba(0, 0, 0, 0.58);
+  --drawer-scrim: var(--scrim);
   --drawer-w: 420px;   /* left|right panels: width  */
   --drawer-h: 45vh;    /* top|bottom panels: height */
 
@@ -22,8 +22,6 @@
   z-index: var(--z-overlay);
   pointer-events: none; /* container never blocks; scrim/panel opt back in */
 }
-:root[data-theme="light"] .ui-drawer { --drawer-scrim: rgba(20, 22, 40, 0.38); }
-
 /* Scrim — fades in; visibility trails the fade so the panel can animate out. */
 .ui-drawer__scrim {
   position: absolute;

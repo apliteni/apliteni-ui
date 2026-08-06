@@ -142,7 +142,7 @@
   left: 3px;
   width: calc(var(--sw-h) - 6px);
   height: calc(var(--sw-h) - 6px);
-  background: #fff;
+  background: var(--control-knob);
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
   transition: transform var(--dur-med) var(--ease);

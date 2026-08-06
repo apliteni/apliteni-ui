@@ -19,28 +19,26 @@
   background: var(--surface-2);
   white-space: nowrap;
 }
-.ui-badge--live { color: var(--green); background: var(--glow-green); }
+/* Status chips take the --chip-* pairs, so the light app's solid fills live in
+   tokens.css rather than in a theme override down here: on white the glow-tints
+   wash out and the ink has to deepen to clear AA, and that is a token decision. */
+.ui-badge--live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 .ui-badge--soon { color: var(--purple-mid); background: var(--glow-purple); }
 .ui-badge--info { color: var(--cyan); background: var(--glow-cyan); }
-.ui-badge--warn { color: var(--amber); background: color-mix(in srgb, var(--amber) 15%, transparent); }
-.ui-badge--danger { color: var(--pink); background: var(--glow-pink); }
+.ui-badge--warn { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
+.ui-badge--danger { color: var(--chip-danger-ink); background: var(--chip-danger-fill); }
 .ui-badge--archive { color: var(--muted); background: var(--surface); }
 
 /* Semantic status variants — for record/row status in data tables
    (paid / verified / pending / failed …). Same chip, mapped to meaning. */
-.ui-badge--success { color: var(--green); background: var(--glow-green); }
-.ui-badge--pending { color: var(--amber); background: color-mix(in srgb, var(--amber) 15%, transparent); }
+.ui-badge--success { color: var(--chip-success-ink); background: var(--chip-success-fill); }
+.ui-badge--pending { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
 .ui-badge--neutral { color: var(--muted); background: var(--surface-2); }
 
-/* On the white light app the glow-tints wash out — give status chips a solid
-   tinted fill so they read at a glance. */
-:root[data-theme="light"] .ui-badge--success,
-:root[data-theme="light"] .ui-badge--live    { color: #1f7a38; background: #dff3e4; }
-:root[data-theme="light"] .ui-badge--pending,
-:root[data-theme="light"] .ui-badge--warn    { color: #8a5e00; background: #fbedd2; }
-:root[data-theme="light"] .ui-badge--danger  { color: #b7295f; background: #fbe0ea; }
+/* The two neutral chips are the exception: their light fill is already in the
+   surface scale (--surface-3), and their ink is plain --muted. */
 :root[data-theme="light"] .ui-badge--neutral,
-:root[data-theme="light"] .ui-badge--archive { color: #5c6270; background: #eceff4; }
+:root[data-theme="light"] .ui-badge--archive { color: var(--muted); background: var(--surface-3); }
 
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */
 .ui-pill {
