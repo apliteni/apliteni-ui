@@ -1,6 +1,7 @@
-import { addons } from 'storybook/manager-api';
+import { addons, types } from 'storybook/manager-api';
 import { create } from 'storybook/theming';
 import { SET_GLOBALS, GLOBALS_UPDATED } from 'storybook/internal/core-events';
+import { THEME_TOOL_ID, THEME_TOOL_TITLE, renderThemeToggle } from './theme-toggle.jsx';
 
 // The prism mark + wordmark as the sidebar logo (kit tokens, Poppins). The
 // wordmark ink flips with the theme so it reads on both dark and light chrome.
@@ -125,4 +126,20 @@ addons.register('apliteni/theme-sync', (api) => {
   const onGlobals = ({ globals } = {}) => { if (globals && 'theme' in globals) apply(globals.theme); };
   channel.on(SET_GLOBALS, onGlobals);      // fires on load with the URL globals
   channel.on(GLOBALS_UPDATED, onGlobals);  // fires when the toolbar toggles
+});
+
+// The theme control itself: one click flips dark ⇄ light, in place of the
+// two-item dropdown preview.js used to declare. It writes the same `theme` global
+// through the same events, so the theme-sync registered above keeps working
+// untouched. `match: ({ tabId }) => !tabId` is the match the core globalTypes
+// toolbar uses, which puts the button in the left tool group beside Inspect and
+// Accent instead of a group of its own. Registered last, after the setConfig
+// calls, so nothing here can delay the first paint of the chrome.
+addons.register(THEME_TOOL_ID, () => {
+  addons.add(THEME_TOOL_ID, {
+    type: types.TOOL,
+    title: THEME_TOOL_TITLE,
+    match: ({ tabId }) => !tabId,
+    render: renderThemeToggle,
+  });
 });
