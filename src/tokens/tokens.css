@@ -118,6 +118,10 @@
   --surface-2: #1b1927;
   --surface-3: #2a2739;
   --seg-active-bg: #34314a; /* raised pill — clearly above the inset track in dark */
+  /* The raised handle on a control track (switch knob). Stays white in both
+     themes and under every accent: it has to read on the plain track AND on
+     the accent fill the track takes when the control is on. */
+  --control-knob: #ffffff;
   --border: #332f45;
   --border-strong: #453f5c;
 
@@ -131,17 +135,45 @@
   --accent-contrast: #ffffff;
   --ink: #e9e7f0;
 
+  /* Ink that reads on a SIGNAL colour once that colour becomes a fill — the
+     glyph in a success circle, the text in a solid toast. The signal hues sit
+     high enough in dark and mid-tone in light that near-black wins on all of
+     them; the pink danger fill deliberately takes light ink instead. */
+  --signal-contrast: #0c0c0c;
+  --danger-contrast: #ffffff;
+
   --glow-green: rgba(152, 255, 143, 0.16);
   --glow-purple: rgba(155, 93, 255, 0.18);
   --glow-cyan: rgba(32, 220, 245, 0.14);
   --glow-pink: rgba(227, 91, 143, 0.16);
+
+  /* Status-chip paint — the ink + fill of a badge / pill. Dark tints with the
+     signal's own glow; light needs a solid, deepened pair (the glows wash out
+     on white), which is why these are a token pair and not just --green etc. */
+  --chip-success-ink: var(--green);
+  --chip-success-fill: var(--glow-green);
+  --chip-warn-ink: var(--amber);
+  --chip-warn-fill: color-mix(in srgb, var(--amber) 15%, transparent);
+  --chip-danger-ink: var(--pink);
+  --chip-danger-fill: var(--glow-pink);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.5);
   /* Tight elevation for the active segmented pill — stays contained in its track. */
   --shadow-seg: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
+  /* Resting elevation for a card. Dark cards are borderless — the surface does
+     the grouping on its own — so they cast nothing. */
+  --shadow-card: none;
   --ring: 0 0 0 3px rgba(155, 93, 255, 0.35);
+
+  /* The ink a cast shadow is made of, and the specular white that reads as
+     gloss on a raised surface. Effects mix these instead of writing rgba(). */
+  --shadow-ink: #000000;
+  --sheen: #ffffff;
+
+  /* Backdrop that dims the page behind an overlay (drawer, modal, composer). */
+  --scrim: rgba(0, 0, 0, 0.58);
 
   /* Accent gradient stops (hero headline, marketing) — overridden per sub-theme. */
   --grad-from: var(--purple-light);
@@ -170,6 +202,7 @@
   --surface-2: #f5f6f9;
   --surface-3: #eceef3;
   --seg-active-bg: #ffffff; /* white pill raised above the grey track in light */
+  --control-knob: #ffffff;
   --border: #e4e7ee;
   --border-strong: #cdd2dc;
 
@@ -183,17 +216,38 @@
   --accent-contrast: #ffffff;
   --ink: #1e232b;
 
+  --signal-contrast: #0c0c0c;
+  --danger-contrast: #ffffff;
+
   --glow-green: rgba(30, 150, 50, 0.1);
   --glow-purple: rgba(106, 45, 204, 0.09);
   --glow-cyan: rgba(12, 143, 168, 0.1);
   --glow-pink: rgba(214, 60, 114, 0.1);
+
+  /* Solid chip pairs for the white app. Each ink is deepened past its signal
+     hue so 10px uppercase text clears WCAG AA on its own pale fill —
+     e.g. --pink (#d63c72) on #fbe0ea is 3.6:1, #b7295f is 4.9:1. */
+  --chip-success-ink: #1f7a38;
+  --chip-success-fill: #dff3e4;
+  --chip-warn-ink: #8a5e00;
+  --chip-warn-fill: #fbedd2;
+  --chip-danger-ink: #b7295f;
+  --chip-danger-fill: #fbe0ea;
 
   --shadow-sm: 0 1px 3px rgba(30, 30, 50, 0.08);
   --shadow-md: 0 8px 24px rgba(30, 30, 50, 0.1);
   --shadow-lg: 0 18px 50px rgba(30, 30, 50, 0.16);
   /* Tight elevation for the active segmented pill — stays contained in its track. */
   --shadow-seg: 0 1px 2px rgba(30, 30, 50, 0.12), 0 2px 4px rgba(30, 30, 50, 0.1);
+  /* A white card on a white page needs its own, flatter-than-sm elevation:
+     a hairline contact shadow plus a wide soft one (see card.css). */
+  --shadow-card: 0 1px 2px rgba(20, 25, 45, 0.04), 0 4px 14px rgba(20, 25, 45, 0.05);
   --ring: 0 0 0 3px rgba(106, 45, 204, 0.25);
+
+  --shadow-ink: #1e1e32;
+  --sheen: #ffffff;
+
+  --scrim: rgba(20, 22, 40, 0.38);
 
   --grad-from: var(--purple-light);
   --grad-to: var(--cyan);

@@ -108,7 +108,7 @@
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--muted); }
-.ui-dropdown__item.is-danger:hover .ui-dropdown__label { color: var(--accent); }
+.ui-dropdown__item.is-danger:hover .ui-dropdown__label { color: var(--pink); }
 
 /* Grouped sections */
 .ui-dropdown__section + .ui-dropdown__section { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px; }

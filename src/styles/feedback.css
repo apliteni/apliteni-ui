@@ -24,17 +24,23 @@
   background: var(--ui-fb-pill-grad); color: var(--accent-contrast);
   font-family: var(--font-sans); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: .01em;
   padding: 9px 17px 9px 15px; border-radius: 999px; cursor: pointer; white-space: nowrap; overflow: hidden;
-  box-shadow: 0 10px 26px var(--ui-fb-pill-glow), 0 2px 6px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.28);
+  box-shadow: 0 10px 26px var(--ui-fb-pill-glow),
+              0 2px 6px color-mix(in srgb, var(--shadow-ink) 28%, transparent),
+              inset 0 1px 0 color-mix(in srgb, var(--sheen) 28%, transparent);
   transition: transform .2s var(--easing-spring, cubic-bezier(.34,1.56,.64,1)), opacity .16s ease, box-shadow .2s ease;
 }
 .ui-fbpill.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -100%) translateY(-9px) scale(1); }
-.ui-fbpill:hover { box-shadow: 0 14px 34px var(--ui-fb-pill-glow), 0 3px 9px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.34); }
+.ui-fbpill:hover {
+  box-shadow: 0 14px 34px var(--ui-fb-pill-glow),
+              0 3px 9px color-mix(in srgb, var(--shadow-ink) 30%, transparent),
+              inset 0 1px 0 color-mix(in srgb, var(--sheen) 34%, transparent);
+}
 .ui-fbpill.show:hover { transform: translate(-50%, -100%) translateY(-12px) scale(1.04); }
 .ui-fbpill:active { transform: translate(-50%, -100%) translateY(-8px) scale(.98); }
-.ui-fbpill svg { width: 16px; height: 16px; color: currentColor; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+.ui-fbpill svg { width: 16px; height: 16px; color: currentColor; filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--shadow-ink) 25%, transparent)); }
 .ui-fbpill::before {
   content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
-  background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform: skewX(-18deg);
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--sheen) 55%, transparent), transparent); transform: skewX(-18deg);
 }
 .ui-fbpill.show::before { animation: uiFbSheen 1.15s ease .12s 1; }
 .ui-fbpill:hover::before { animation: uiFbSheen .7s ease 1; }
@@ -42,7 +48,7 @@
 
 /* Scrim behind the open composer */
 .ui-fbscrim {
-  position: fixed; inset: 0; z-index: 70; background: rgba(6,8,12,.44);
+  position: fixed; inset: 0; z-index: 70; background: var(--scrim);
   opacity: 0; pointer-events: none; transition: opacity .2s ease;
 }
 .ui-fbscrim.show { opacity: 1; pointer-events: auto; }
@@ -90,7 +96,7 @@
 .ui-fbck { width: 88px; height: 88px; overflow: visible; display: block; transform-origin: center; animation: uiFbCkSpring 1s cubic-bezier(.22,1,.3,1) both; }
 .ui-fbck-t { fill: none; stroke: var(--surface-2); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
 .ui-fbck-m { fill: none; stroke: var(--green); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 118; stroke-dashoffset: 118; animation: uiFbCkDraw .6s cubic-bezier(.5,0,.3,1) .1s forwards; }
-.ui-fbck-s { fill: none; stroke: #fff; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 15 400; stroke-dashoffset: 133; filter: drop-shadow(0 0 8px var(--green)) drop-shadow(0 0 15px var(--green)); opacity: 0; animation: uiFbCkComet .6s cubic-bezier(.5,0,.3,1) .1s forwards; }
+.ui-fbck-s { fill: none; stroke: var(--sheen); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 15 400; stroke-dashoffset: 133; filter: drop-shadow(0 0 8px var(--green)) drop-shadow(0 0 15px var(--green)); opacity: 0; animation: uiFbCkComet .6s cubic-bezier(.5,0,.3,1) .1s forwards; }
 .ui-fbc__done h4 { color: var(--strong); font-size: 19px; font-weight: var(--weight-semibold); letter-spacing: -.01em; margin-bottom: 7px; }
 .ui-fbc__done p { color: var(--dim); font-size: 13.5px; line-height: 1.55; max-width: 38ch; margin: 0 auto; }
 .ui-fbc__done p b { color: var(--text); font-weight: var(--weight-semibold); }

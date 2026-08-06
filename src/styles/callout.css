@@ -49,10 +49,10 @@
 
 /* status → the paint tokens every style below consumes (--toast-on = the ink
    that reads on the accent when it becomes a fill) */
-.ui-toast--success { --toast-accent: var(--green); --toast-glow: var(--glow-green); --toast-on: #0c0c0c; }
-.ui-toast--danger  { --toast-accent: var(--pink);  --toast-glow: var(--glow-pink);  --toast-on: #ffffff; }
-.ui-toast--warn    { --toast-accent: var(--amber); --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: #0c0c0c; }
-.ui-toast--info    { --toast-accent: var(--cyan);  --toast-glow: var(--glow-cyan);  --toast-on: #0c0c0c; }
+.ui-toast--success { --toast-accent: var(--green); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); }
+.ui-toast--danger  { --toast-accent: var(--pink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); }
+.ui-toast--warn    { --toast-accent: var(--amber); --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); }
+.ui-toast--info    { --toast-accent: var(--cyan);  --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); }
 .ui-toast--neutral { --toast-accent: var(--muted); --toast-glow: var(--surface-2); --toast-on: var(--strong); }
 
 /* left status marker (soft + outline; solid is already a full fill) */
@@ -126,7 +126,7 @@
   width: 48px; height: 48px;
   border-radius: 50%;
   background: var(--green);
-  color: #0c0c0c;
+  color: var(--signal-contrast);
   display: grid;
   place-items: center;
   margin: 0 auto 14px;

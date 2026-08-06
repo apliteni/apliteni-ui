@@ -16,7 +16,7 @@
    soft shadow to read as a panel. Dark keeps the borderless deck look. */
 :root[data-theme="light"] .ui-card {
   border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgba(20, 25, 45, .04), 0 4px 14px rgba(20, 25, 45, .05);
+  box-shadow: var(--shadow-card);
 }
 
 /* A table wider than its card scrolls INSIDE the card instead of bleeding past

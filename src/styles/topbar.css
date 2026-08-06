@@ -161,8 +161,8 @@
   width: 32px; height: 32px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: linear-gradient(145deg, #2b6b4b, #1d4a5e);
-  color: #fff;
+  background: linear-gradient(145deg, var(--accent-strong), var(--purple));
+  color: var(--accent-contrast);
   font-weight: 600;
   font-size: 12.5px;
   display: grid;
@@ -199,4 +199,4 @@
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
 .amenu a.aout { color: var(--muted); }
-.amenu a.aout:hover { color: var(--accent); }
+.amenu a.aout:hover { color: var(--pink); }

@@ -44,7 +44,7 @@
   stroke: none;
 }
 .ui-illo__spark {
-  fill: var(--illo-spark, #12a150);
+  fill: var(--illo-spark, var(--green));
   stroke: none;
 }
 
