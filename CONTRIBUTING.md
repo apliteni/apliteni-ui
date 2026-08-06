@@ -140,7 +140,9 @@ gh release create v$(node -p "require('./package.json').version") --generate-not
 ```
 
 CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release.
-`npm publish` runs `prepack`, which builds `react/dist` from the tagged commit — so the
-React subpath can never ship stale, and the release job installs dependencies first.
+The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepack`
+builds `react/dist` from the tagged commit — so the React subpath can never ship
+stale — and `publish` holds the OIDC credential and does nothing but publish that
+tarball, so no third-party install or build script runs beside it.
 The `ui.apli.tech` site rebuilds
 from the repo (landing + Storybook) — see the README for the image build/deploy.

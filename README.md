@@ -163,9 +163,12 @@ gh release create v$(node -p "require('./package.json').version") --generate-not
 
 The **Release** workflow (`.github/workflows/release.yml`) then publishes to the public
 npm registry over npm Trusted Publishing (OIDC) — there is no long-lived token. No
-manual `npm publish` needed. Publishing runs `prepack`, which rebuilds `react/dist`, so
-the React subpath in the tarball is always built from the tagged commit; the packaging
-guard (`scripts/packaging.test.js`) fails CI if it ever isn't in the tarball.
+manual `npm publish` needed. It runs in two jobs: `build` installs and runs `npm pack`,
+whose `prepack` rebuilds `react/dist` from the tagged commit, and `publish` — the only
+job that can mint an OIDC credential — just publishes that tarball, so no dependency
+or build script ever runs beside the credential. The packaging guard
+(`scripts/packaging.test.js`) fails CI if the React subpath isn't in the tarball, and
+the release itself re-checks the tarball before publishing it.
 
 ## Deploy (ui.apli.tech)
 
