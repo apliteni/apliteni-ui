@@ -119,4 +119,4 @@ jobs:
       # step output can never be spliced into the shell command itself.
       - env:
           TGZ: ${{ steps.tarball.outputs.tgz }}
-        run: npm publish "$TGZ"
+        run: npm publish "./$TGZ"
