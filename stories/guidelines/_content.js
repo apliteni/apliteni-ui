@@ -19,7 +19,8 @@ import { dropdown } from '../../src/components/dropdown.js';
 export const TITLE = 'Destructive actions';
 
 export const DECK =
-  'A destructive action should look dangerous, name what it destroys, and be undoable.';
+  'A destructive action should look dangerous, name what it destroys, and either confirm or offer '
+  + 'undo, depending on whether it can be reversed.';
 
 export const WHY =
   '--pink is a signal colour that does not move with the accent, so it survives re-theming.';
@@ -84,7 +85,7 @@ const menu = (mod) => `
     <div class="gl-cursor">Pointer resting on “Revoke access”</div>
   </div>`;
 
-/** Danger menu row that stays `--pink` while hovered. */
+/** Danger menu row that turns `--pink` on hover. */
 export const menuDo = () => menu('pink');
 /** The same row repainted `--accent` on hover, which drops the danger cue. */
 export const menuDont = () => menu('accent');
@@ -140,13 +141,16 @@ export const undoDont = () => `
 export const RULES = [
   {
     id: 'colour',
-    imperative: 'Paint destructive controls --pink, and keep them --pink on hover.',
+    imperative: 'Keep destructive controls quiet at rest, and turn them --pink on hover.',
     why: 'A destructive control painted in --accent loses that cue.',
     except: '--pink also marks an error the reader has already hit, not an action they are about to take.',
-    doCaption: 'Hover keeps the danger row --pink.',
+    doCaption: 'Hover turns the danger row --pink.',
     dontCaption: 'Hover repaints the row --accent.',
     doHtml: menuDo,
     dontHtml: menuDont,
+    // nav.css is left out on purpose. `.ui-nav__item.is-danger` is already
+    // --pink at rest, so it is the one place in the kit that disagrees with
+    // this rule. Do not add it back — fixing nav is separate work.
     kit: [
       {
         ref: 'src/styles/button.css:68',
@@ -154,14 +158,9 @@ export const RULES = [
         note: 'The danger button hovers to --pink.',
       },
       {
-        ref: 'src/styles/nav.css:79',
-        pattern: '.ui-nav__item.is-danger:hover',
-        note: 'The danger nav item stays --pink on hover.',
-      },
-      {
         ref: 'src/styles/dropdown.css:111',
         pattern: '.ui-dropdown__item.is-danger:hover',
-        note: 'The hovered danger row stays --pink.',
+        note: 'The danger row turns --pink on hover.',
       },
     ],
   },
