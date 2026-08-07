@@ -6,7 +6,7 @@
  * ========================================================================== */
 
 .ui-nav { font-family: var(--font-sans); }
-.ui-nav ul, .ui-nav ol { list-style: none; margin: 0; padding: 0; }
+.ui-nav :where(ul, ol) { list-style: none; margin: 0; padding: 0; } /* floor, not ceiling */
 
 /* -- Sidebar rail -------------------------------------------------------- */
 .ui-nav--side {
@@ -49,7 +49,7 @@
 }
 .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
 .ui-nav__item.is-active {
-  background: var(--surface);
+  background: var(--surface-3);
   color: var(--strong);
   font-weight: 500;
 }
@@ -117,14 +117,18 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin: 2px 0 2px 15px;
-  padding-left: 11px;
+  margin: var(--space-1) 0 var(--space-1) var(--space-4);
+  padding-left: var(--space-3);
   border-left: 1px solid var(--border);
 }
 .ui-nav__sub[hidden] { display: none; }
 .ui-nav__item--sub { font-size: 14px; padding: 7px 12px; }
-.ui-nav--side .ui-nav__item--sub.is-active { box-shadow: none; }
-.ui-nav--side .ui-nav__item--sub.is-active::before { left: -12px; height: 15px; }
+/* No hairline on a nested current row — but only at rest. box-shadow carries
+   both the hairline and the focus ring, so a rule about the resting look must
+   say so, or it silently cancels the ring (WCAG 2.4.7). */
+.ui-nav--side .ui-nav__item--sub.is-active:not(:focus-visible) { box-shadow: none; }
+/* Hangs back onto the guide hairline the indent above draws. */
+.ui-nav--side .ui-nav__item--sub.is-active::before { left: calc(-1 * var(--space-3)); height: 15px; }
 
 /* Footer slot (divider + trailing links, e.g. sign-out) */
 .ui-nav__foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
@@ -218,156 +222,3 @@ a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); }
 a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
 .ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.7; }
-
-/* ============================================================================
- * PROPOSALS — three candidate treatments for the sidebar rail.
- *
- * Each is scoped to a wrapper class, so the shipped rail above renders exactly
- * as it does today and the three can be compared by switching stories
- * (Components → Navigation). They are three different theories of what is
- * wrong, not three strengths of one fix. One of them becomes the rail; the
- * other two, and this whole block, get deleted.
- *
- * Because a wrapper class outranks the rules above, every proposal restates
- * :hover, :focus-visible, .is-disabled and the destructive row's hover — a
- * scoped block that forgets one silently deletes that state.
- * ========================================================================== */
-
-/* -- A · Repair -------------------------------------------------------------
- * Theory: the rail is not styled badly, it is broken. Three declarations above
- * never reach the element.
- *
- *   1. .ui-nav__sub's `margin-left: 15px` and `padding-left: 11px` lose to the
- *      `.ui-nav ul` reset on line 9 — (0,1,1) beats (0,1,0) — so a nested group
- *      renders with zero indent and its guide rail sits flush against the
- *      rail's own left edge. Measured indent from the nav box: 0px.
- *   2. The active child's marker is offset against that missing indent, so it
- *      paints at x = navLeft − 11px: outside the nav's own box, and clipped
- *      away entirely by any shell that hides overflow.
- *   3. .is-active fills with --surface, which IS --bg in the light theme
- *      (#ffffff both). The current row has no surface at all there while
- *      :hover has one, so hover reads louder than the page you are on.
- *
- * No new design values: the authored intent, restored, on the spacing scale. */
-.ui-nav-try--repair .ui-nav__sub {
-  margin: var(--space-1) 0 var(--space-1) var(--space-4);
-  padding-left: var(--space-3);
-}
-.ui-nav-try--repair .ui-nav--side .ui-nav__item--sub.is-active::before {
-  left: calc(-1 * var(--space-3));
-}
-/* A surface that exists in both themes, one step above :hover so the current
-   row can never be quieter than the row under the pointer. */
-.ui-nav-try--repair .ui-nav__item.is-active { background: var(--surface-3); }
-.ui-nav-try--repair .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
-.ui-nav-try--repair .ui-nav__item.is-active:hover { background: var(--surface-3); }
-.ui-nav-try--repair .ui-nav__item.is-danger { color: var(--muted); }
-.ui-nav-try--repair .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
-.ui-nav-try--repair .ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; }
-.ui-nav-try--repair .ui-nav__item:focus-visible,
-.ui-nav-try--repair .ui-nav__item.is-active:focus-visible,
-.ui-nav-try--repair .ui-nav__item.is-active:hover:focus-visible { box-shadow: var(--ring); }
-
-/* -- B · Rhythm -------------------------------------------------------------
- * Theory: the rail reads badly because nothing lands on a grid. Measured, it
- * draws four different row heights — 30.8, 33, 35.4 and 37px — because the
- * badge box (19px) is taller than a label's line box (17.4px), so any row that
- * carries a counter is 1.6px taller than its neighbours. The gaps between them
- * run 2, 4, 9, 10, 11, 12, 14 and 15px; `var(--space-*)` appears in this file
- * zero times.
- *
- * So: one ruled row height that a badge cannot push, one gutter, and every
- * remaining gap on the 4px scale. The icon column gets a declared width
- * instead of being whatever the SVG happens to resolve to, which gives the
- * rail one icon axis and one text axis; the nesting guide hangs off the icon
- * axis and the child labels return to the parent's text axis. */
-.ui-nav-try--rhythm .ui-nav--side { gap: var(--space-1); }
-.ui-nav-try--rhythm .ui-nav__list { gap: var(--space-1); }
-.ui-nav-try--rhythm .ui-nav__section + .ui-nav__section { margin-top: var(--space-4); }
-.ui-nav-try--rhythm .ui-nav__cap {
-  display: flex;
-  align-items: flex-end;
-  min-height: var(--space-8);
-  padding: 0 var(--space-3) var(--space-2);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-caps);
-}
-.ui-nav-try--rhythm .ui-nav__item {
-  min-height: calc(var(--space-8) + var(--space-1));
-  padding: 0 var(--space-3);
-  gap: var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-base);
-}
-/* Declared icon column, glyph flush left, so the text axis is a stated number
-   (row gutter + column + gap) and not a residue of the SVG's own width. */
-.ui-nav-try--rhythm .ui-nav__ic { width: var(--space-5); justify-content: flex-start; }
-.ui-nav-try--rhythm .ui-nav__badge { height: var(--space-5); min-width: var(--space-5); }
-/* The guide descends from the icon axis; the child gutter carries the whole
-   indent, so a child label lands back on the parent's text axis. The `- 1px`
-   below is the guide's own hairline, subtracted so the label lands on 84px
-   rather than 85px — the kit has no border-width token to name it with. */
-.ui-nav-try--rhythm .ui-nav__sub {
-  margin: var(--space-1) 0 var(--space-1) var(--space-3);
-  padding-left: 0;
-  gap: var(--space-1);
-}
-.ui-nav-try--rhythm .ui-nav__item--sub {
-  min-height: var(--space-8);
-  padding: 0 var(--space-3) 0 calc(var(--space-8) - 1px);
-  font-size: var(--text-base);
-}
-.ui-nav-try--rhythm .ui-nav--side .ui-nav__item.is-active::before { height: var(--space-4); }
-.ui-nav-try--rhythm .ui-nav--side .ui-nav__item--sub.is-active::before { left: 0; height: var(--space-4); }
-.ui-nav-try--rhythm .ui-nav__foot { margin-top: var(--space-3); padding-top: var(--space-3); }
-.ui-nav-try--rhythm .ui-nav__item.is-active { background: var(--surface-3); }
-.ui-nav-try--rhythm .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
-.ui-nav-try--rhythm .ui-nav__item.is-active:hover { background: var(--surface-3); }
-.ui-nav-try--rhythm .ui-nav__item.is-danger { color: var(--muted); }
-.ui-nav-try--rhythm .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
-.ui-nav-try--rhythm .ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; }
-.ui-nav-try--rhythm .ui-nav__item:focus-visible,
-.ui-nav-try--rhythm .ui-nav__item.is-active:focus-visible,
-.ui-nav-try--rhythm .ui-nav__item.is-active:hover:focus-visible { box-shadow: var(--ring); }
-
-/* -- C · Ink ladder ---------------------------------------------------------
- * Theory: the geometry is fine, the rail is grey mush. Measured in dark, it
- * resolves to two inks doing six jobs: every resting row is --text (14.8:1)
- * and the section captions, the sign-out row, the carets and — through
- * `opacity: 0.72` — the icons all land on --muted (5.8:1). A section label you
- * cannot click and a control you can are painted the same colour. The disabled
- * row is that same --muted knocked to 55% opacity, which is not a token at all:
- * it lands at 2.6:1 in dark and 2.4:1 in light.
- *
- * So: four named levels, no opacity anywhere, and no fill under the current
- * row — the ink, the weight and the accent marker carry it, which is why it
- * survives the light theme where --surface and --bg are the same white.
- *
- *   go here             --text     (current: --strong, 500, accent marker + icon)
- *   do this, carefully  --dim      (still --pink on hover — quiet at rest)
- *   cannot use          --muted    (was --muted x 0.55)
- *   not a control       --muted, --text-xs, uppercase — the only thing left
- *                                  down there, so the grey means one thing
- */
-.ui-nav-try--ink .ui-nav__cap { color: var(--muted); letter-spacing: var(--tracking-caps); }
-.ui-nav-try--ink .ui-nav__ic svg { opacity: 1; stroke: var(--muted); }
-.ui-nav-try--ink .ui-nav__item:hover .ui-nav__ic svg { stroke: currentColor; }
-.ui-nav-try--ink .ui-nav__item.is-active .ui-nav__ic svg,
-.ui-nav-try--ink .ui-nav__item.is-current .ui-nav__ic svg { stroke: var(--accent); }
-.ui-nav-try--ink .ui-nav__caret { border-right-color: var(--muted); border-bottom-color: var(--muted); }
-/* No fill, no hairline: ink + weight + the accent marker say "you are here",
-   and none of those three depend on --surface differing from --bg. */
-.ui-nav-try--ink .ui-nav--side .ui-nav__item.is-active {
-  background: none;
-  box-shadow: none;
-  color: var(--strong);
-  font-weight: var(--weight-medium);
-}
-.ui-nav-try--ink .ui-nav__item.is-danger { color: var(--dim); }
-.ui-nav-try--ink .ui-nav__item.is-danger .ui-nav__ic svg { stroke: currentColor; }
-.ui-nav-try--ink .ui-nav__item.is-disabled { color: var(--muted); opacity: 1; }
-.ui-nav-try--ink .ui-nav__item.is-disabled .ui-nav__ic svg { stroke: var(--muted); }
-.ui-nav-try--ink .ui-nav--side .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
-.ui-nav-try--ink .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
-.ui-nav-try--ink .ui-nav--side .ui-nav__item:focus-visible,
-.ui-nav-try--ink .ui-nav--side .ui-nav__item.is-active:focus-visible { box-shadow: var(--ring); }

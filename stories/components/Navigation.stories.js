@@ -70,46 +70,6 @@ export const Sidebar = {
   ))),
 };
 
-// ---- Proposals -----------------------------------------------------------
-// Three candidate treatments of the same rail, each answering a different
-// question about why the baseline above reads badly. Same data, same factory,
-// same footer — only the wrapper class differs, so switching stories switches
-// exactly one thing. See the "PROPOSALS" block at the foot of src/styles/nav.css
-// for what each one measured and what it changed.
-const proposal = (cls, blurb) => pad(bay(specimen(
-  blurb,
-  `<div class="${cls}">${sidebarNav({
-    ariaLabel: 'Primary',
-    sections: SECTIONS,
-    active: 'payouts-pending',
-    footer: SIGN_OUT,
-  })}</div>`,
-)));
-
-export const SidebarRepair = {
-  name: 'Sidebar — A · repair',
-  render: () => proposal(
-    'ui-nav-try--repair',
-    'Theory A — nothing here is styled badly, three declarations just never reach the element: the nested indent loses to the .ui-nav ul reset, the active child’s marker paints outside the nav box, and .is-active fills with --surface, which is --bg in the light theme. Same design values, restored.',
-  ),
-};
-
-export const SidebarRhythm = {
-  name: 'Sidebar — B · rhythm',
-  render: () => proposal(
-    'ui-nav-try--rhythm',
-    'Theory B — the rail draws four row heights (30.8 / 33 / 35.4 / 37px) because a counter is taller than a label, and its gaps run 2, 4, 9, 10, 11, 12, 14, 15px. One ruled row height a badge cannot push, one declared icon column, every gap on --space-*.',
-  ),
-};
-
-export const SidebarInk = {
-  name: 'Sidebar — C · ink ladder',
-  render: () => proposal(
-    'ui-nav-try--ink',
-    'Theory C — geometry untouched. Two inks are doing six jobs: captions, the sign-out row, the carets and the icons all resolve to --muted, and the disabled row is that same --muted at 55% opacity (2.6:1). Four named levels, no opacity, and the current row carried by ink rather than a fill.',
-  ),
-};
-
 export const SidebarCollapsed = {
   name: 'Sidebar — collapsed (icon-only)',
   render: () => pad(bay(specimen(
