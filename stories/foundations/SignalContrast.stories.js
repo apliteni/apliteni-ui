@@ -1,22 +1,26 @@
 // ---------------------------------------------------------------------------
 // Foundations — Signal contrast.
 //
-// A diagnostic page, not a gallery. Three light-mode signal colours (--pink,
-// --cyan, --green) miss WCAG AA on the surfaces the kit actually draws them on,
-// and the worst surface is each colour's own 10% glow wash. A table of numbers
-// did not settle which way to fix it, so this page sets the same numbers as
-// specimens: every ratio here is COMPUTED at render time by the WCAG 2.x
-// formula below, and every background is painted with the exact colour that
-// ratio was measured against. Number and pixel cannot drift apart.
+// The record of why the signal tokens hold the values they hold. In the light
+// theme --pink, --cyan and --green all missed WCAG AA for normal text, worst of
+// all on the surface the kit puts them on deliberately: a 10% wash of the same
+// colour. Dark --pink missed it too. This page is what was decided and what it
+// measures, kept beside the values it replaced.
+//
+// Every ratio here is COMPUTED at render time by the WCAG 2.x formula below,
+// and every background is painted with the exact colour that ratio was measured
+// against. Number and pixel cannot drift apart.
 //
 // Colour literals. Golden rule 1 says tokens, never literals — and every piece
 // of page chrome here obeys it. The literals below are the subject matter: a
-// measured token value, a composited wash, or a CANDIDATE that deliberately
-// does not exist in src/tokens/tokens.css yet. This page PROPOSES; it changes
-// no token. Each block is marked with where its value comes from.
+// token value as src/tokens/tokens.css holds it today, a composited wash, or a
+// value that used to be in the file and is kept for the comparison. Each block
+// is marked with where its value comes from. The gate in
+// stories/signal-contrast.test.js reads the same tokens out of the stylesheets,
+// so a token that moves without this page moving turns that test red.
 //
 // Themes. Section 1 shows live kit components, so it follows the toolbar theme
-// and carries both themes' measurements as labels. Sections 2-5 are painted
+// and carries both themes' measurements as labels. Sections 2-6 are painted
 // with fixed light- or dark-theme literals and read the same in either theme —
 // the point is to compare light against dark without toggling.
 // ---------------------------------------------------------------------------
@@ -58,6 +62,7 @@ const washed = (inkRgb, alpha, baseHex) =>
 
 const AA = 4.5;            // WCAG 2.2 §1.4.3, normal text. Nothing here is large text:
                            // the biggest specimen is 14.5px, the smallest 10px.
+const GRAPHIC = 3;         // WCAG 2.2 §1.4.11, non-text contrast — the bar for a glyph.
 const SCALE = [3, 6.5];    // ratio axis of every bar on this page
 const pctOf = (r) => Math.max(0, Math.min(100, ((r - SCALE[0]) / (SCALE[1] - SCALE[0])) * 100));
 const AA_PCT = pctOf(AA).toFixed(3);
@@ -80,31 +85,24 @@ const FAMILIES = [
     key: 'pink',
     token: '--pink',
     role: 'danger / revoke',
-    // Pink is the family that took Option A: the token itself moved, in both
-    // themes and in opposite directions. `light`/`dark` are the SHIPPED values;
-    // `was` and `darkWas` are what they replaced, kept so the two sit side by
-    // side. Both glows were re-tinted from the new value, so they stay the
-    // signal at its own alpha.
+    // The one family whose token moved. `light`/`dark` are what the kit holds
+    // now; `was`/`darkWas` are what they replaced. Both glows were re-tinted
+    // from the new value, so each stays its own signal at its own alpha.
     light: '#b63361',
     was: '#d63c72',
     // --glow-pink: rgba(182, 51, 97, 0.1) — the same rgb as --pink.
     glow: { rgb: [182, 51, 97], a: 0.1, sameAsToken: true },
     glowWas: { rgb: [214, 60, 114], a: 0.1 },
-    // No candidates left to weigh: the 15% step is the shipped value, and the
-    // 10% step (#c13667, 4.35 on its own glow) lost because it stayed under AA.
-    steps: [],
     dark: '#e97ca5',
     darkWas: '#e35b8f',
     darkGlow: { rgb: [233, 124, 165], a: 0.16 },
     darkGlowWas: { rgb: [227, 91, 143], a: 0.16 },
-    specimen: 'Revoke access',
     short: 'Revoke',
     // The nav row has no type-only class to borrow; these three values are
     // .ui-nav__item's own (src/styles/nav.css:40-42).
     cls: '',
     type: 'font:400 14.5px/1.2 var(--font-sans)',
     setAt: '14.5px — the nav row label',
-    refs: 16, files: 9,
   },
   {
     key: 'cyan',
@@ -113,21 +111,14 @@ const FAMILIES = [
     light: '#0c8fa8',
     // --glow-cyan: rgba(12, 143, 168, 0.1) — the same rgb as --cyan.
     glow: { rgb: [12, 143, 168], a: 0.1, sameAsToken: true },
-    steps: [
-      { label: '10% darker', hex: '#0b8197' },
-      { label: '15% darker', hex: '#0a7a8f' },
-      { label: '20% darker', hex: '#0a7286' },
-    ],
     dark: '#20dcf5',
     darkGlow: { rgb: [32, 220, 245], a: 0.14 },
-    specimen: 'Preview',
     short: 'Preview',
     // Borrow .ui-badge's own type rather than restate it; only its paint is
     // stripped, so the specimen follows src/styles/badge.css if that moves.
     cls: 'ui-badge',
     type: 'background:transparent;padding:0',
     setAt: '10px uppercase — the badge',
-    refs: 7, files: 5,
   },
   {
     key: 'green',
@@ -135,23 +126,42 @@ const FAMILIES = [
     role: 'live / success',
     light: '#1c8a2c',
     // --glow-green: rgba(30, 150, 50, 0.1). NOTE the rgb is NOT --green
-    // (#1c8a2c = 28,138,44). Green is the one family whose wash is a tint of a
-    // slightly different, lighter green than the ink laid on it.
+    // (#1c8a2c = 28,138,44). This is the drift section 6 records.
     glow: { rgb: [30, 150, 50], a: 0.1, sameAsToken: false },
-    steps: [{ label: '10% darker', hex: '#197c28' }, { label: '15% darker', hex: '#187525' }],
     dark: '#98ff8f',
     darkGlow: { rgb: [152, 255, 143], a: 0.16 },
-    specimen: 'Live',
     short: 'Live',
     cls: 'ui-pill',
     type: 'background:transparent;padding:0',
     setAt: '11px uppercase — the pill',
-    refs: 27, files: 11,
   },
 ];
 
 const byKey = Object.fromEntries(FAMILIES.map((f) => [f.key, f]));
 const glowHex = (f) => washed(f.glow.rgb, f.glow.a, LIGHT.surface);
+const dGlow = (f) => washed(f.darkGlow.rgb, f.darkGlow.a, DARK.surface);
+
+// The light chip pairs, copied from :root[data-theme="light"] in
+// src/tokens/tokens.css. All four exist; --chip-info-* was the one written for
+// this work, when the info badge was repointed at it.
+const CHIPS = [
+  { key: 'danger', name: '--chip-danger-*', ink: '#b7295f', fill: '#fbe0ea', label: 'Revoked' },
+  { key: 'warn', name: '--chip-warn-*', ink: '#8a5e00', fill: '#fbedd2', label: 'Pending' },
+  { key: 'success', name: '--chip-success-*', ink: '#1f7a38', fill: '#dff3e4', label: 'Live' },
+  { key: 'info', name: '--chip-info-*', ink: '#0a7286', fill: '#ddeff3', label: 'Preview' },
+];
+const CHIP = Object.fromEntries(CHIPS.map((c) => [c.key, c]));
+
+// Solid-fill paint, from the same two theme blocks. A solid fill and its ink
+// are one pair: --signal-solid-<status> with the theme's single
+// --signal-solid-ink. Dark fills are the bright signals and take near-black;
+// light fills are the deepened chip inks and take white.
+const NEAR_BLACK = '#0c0c0c';   // --signal-contrast, both themes
+const WHITE = '#ffffff';
+const SOLID = {
+  dark: { ink: NEAR_BLACK, success: '#98ff8f', danger: '#e97ca5', warn: '#ffcf6a', info: '#20dcf5', neutral: '#948fa8' },
+  light: { ink: WHITE, success: '#1f7a38', danger: '#b7295f', warn: '#8a5e00', info: '#0a7286', neutral: '#5c6270' },
+};
 
 // ---- Page chrome ----------------------------------------------------------
 // Everything in this block is tokens only.
@@ -191,7 +201,9 @@ const CSS = `
     .sc-name { min-width: 0; overflow-wrap: anywhere; }
 
     /* One AA line, drawn once, inherited by every bar on the page. Pass and
-       fail are the fill crossing it — no colour is spent on the verdict. */
+       fail are the fill crossing it — no colour is spent on the verdict. Only
+       cells held to 4.5 get a bar; the glyph cells in section 4 are held to 3
+       and state their number without one, so one line never means two bars. */
     .sc-bar { position: relative; height: 6px; border-radius: 3px;
       background: var(--surface-3); overflow: hidden; }
     .sc-bar::after { content: ''; position: absolute; top: -1px; bottom: -1px;
@@ -250,6 +262,22 @@ const CSS = `
       gap: var(--space-4); }
     .sc-chips .ui-badge { align-self: flex-start; }
 
+    /* A solid fill with its ink on it, and the status circle with its glyph.
+       Sized like the things they stand for, not like a colour chip. */
+    .sc-fills { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-3); }
+    .sc-fill { border-radius: var(--radius-md); padding: 10px 12px; min-width: 0;
+      font: 500 13px/1.4 var(--font-sans); display: flex; align-items: center;
+      justify-content: space-between; gap: var(--space-2); }
+    .sc-fill b { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .sc-dots { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+    .sc-dot { display: flex; align-items: center; gap: var(--space-2); min-width: 0;
+      font: 400 12px/1.4 var(--font-sans); color: var(--muted); }
+    .sc-dot i { width: 22px; height: 22px; flex: none; border-radius: 50%;
+      display: grid; place-items: center; font: 700 12px/1 var(--font-sans); font-style: normal; }
+    .sc-dot b { font: 600 12px/1.4 var(--font-sans); color: var(--strong);
+      font-variant-numeric: tabular-nums; }
+
     .sc-notes { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
     .sc-note { font: 400 12.5px/1.65 var(--font-sans); color: var(--text);
       padding-left: var(--space-3); box-shadow: inset 2px 0 0 var(--border-strong); max-width: 78ch; }
@@ -296,9 +324,6 @@ const liveSpecimen = (title, stage, caption, pairs) => `
   </div>`;
 
 const sectionLive = () => {
-  const pinkGlow = glowHex(byKey.pink);
-  const dGlow = (f) => washed(f.darkGlow.rgb, f.darkGlow.a, DARK.surface);
-
   const num = (ink, bg) => {
     const r = contrast(ink, bg);
     return [n2(r), r >= AA];
@@ -319,11 +344,11 @@ const sectionLive = () => {
     <div class="sc-sec__head">
       <div class="sc-kicker">1 — Where it lands</div>
       <h2>The four places that failed, as the kit draws them now</h2>
-      <p>These are live components: they follow the toolbar theme, so switch to light to see
-      what the fix does. Each pair used to miss AA and now clears it, by one of the two routes
-      below — the pill and the badge were repointed at a chip pair, the nav row and the field
-      follow ${code('--pink')}, which moved. The numbers beside each are fixed measurements of
-      both themes' token values.</p>
+      <p>Live components, following the toolbar theme. Switch to light to see the surfaces the
+      work was about. Each pair used to miss AA and clears it now, by one of two routes: the
+      pill and the badge were repointed at a chip pair, while the nav row and the field follow
+      ${code('--pink')}, which moved. The numbers beside each are measurements of both themes'
+      token values.</p>
     </div>
     <div class="sc-live sc-hover">
       ${liveSpecimen(
@@ -337,7 +362,7 @@ const sectionLive = () => {
           ariaLabel: 'Account settings',
         }),
         `${code('--pink')} on ${code('--glow-pink')} — ${code('src/styles/nav.css:81')}`,
-        both(byKey.pink, pinkGlow, dGlow(byKey.pink)),
+        both(byKey.pink, glowHex(byKey.pink), dGlow(byKey.pink)),
       )}
       ${liveSpecimen(
         'Live pill',
@@ -365,11 +390,11 @@ const sectionLive = () => {
       )}
     </div>
     <div class="sc-notes">
-      <div class="sc-note">The field is the control case, and it is why pink could not be
-        fixed by repointing consumers. Its ${code('--pink')} sits on plain white with nothing
-        washed under it, and it missed AA there too — ${n2(contrast(byKey.pink.was, LIGHT.surface))}
-        on white alone. The wash was never the whole problem, only the part that turned a near
-        miss into a clear one, so the token itself had to move.</div>
+      <div class="sc-note">The field is why pink could not be fixed by repointing its consumers.
+        Its ${code('--pink')} sits on plain white with nothing washed under it, and it missed AA
+        there too — ${n2(contrast(byKey.pink.was, LIGHT.surface))} on white alone. The wash was
+        never the whole problem, only the part that turned a near miss into a clear one, so the
+        token itself had to move.</div>
     </div>
   </section>`;
 };
@@ -380,7 +405,8 @@ const sectionLive = () => {
 // Six cells per family, ordered by how dark the background is. The kit's own
 // grey inset surface is dropped into the sequence at the point its contrast
 // puts it: between the 0% and 5% wash, every time. Reading left to right is
-// reading the mechanism.
+// reading the mechanism. This argument holds whatever the tokens are, which is
+// why it stays on the page now the values are settled.
 const RAMP = [0, 5, 10, 15, 20];
 
 const sectionWhy = () => `
@@ -391,14 +417,17 @@ const sectionWhy = () => `
       <p>Each row is one signal colour set on backgrounds made of increasing amounts of
       itself over white. Nothing changes across a row except how much of the ink is in the
       background. ${code('--surface-2')}, the kit's grey inset, is dropped in at the position
-      its own contrast earns — the glow wash is worth roughly twice its darkening.</p>
+      its own contrast earns, and the glow wash is worth roughly twice its darkening. This is the
+      part of the page that does not depend on which values shipped: it is why a signal on its
+      own tint is the surface to design against, and it stays true of whatever the tokens hold
+      next.</p>
     </div>
     ${FAMILIES.map((f) => {
       const cells = [];
       for (const p of RAMP) {
         const bg = washed(f.glow.rgb, p / 100, LIGHT.surface);
         const label = p === 0 ? `white — ${code('--surface')}`
-          : p === 10 ? `10% — today's ${code(f.token.replace('--', '--glow-'))}`
+          : p === 10 ? `10% — ${code(f.token.replace('--', '--glow-'))}`
             : `${p}% wash`;
         cells.push({ order: contrast(f.light, bg), html: cell(label, f.light, bg, f) });
         if (p === 0) {
@@ -415,7 +444,7 @@ const sectionWhy = () => `
           <h3>${f.token} <span style="font-weight:400;color:var(--muted)">${f.role}</span></h3>
           <p>${f.light}, set at ${f.setAt}.${f.glow.sameAsToken
             ? ''
-            : ` Its wash is a tint of rgb(${f.glow.rgb.join(', ')}), which is not what ${f.token} is — green is the one family washed with a slightly different colour from the ink laid on it.`}</p>
+            : ` Its wash is a tint of rgb(${f.glow.rgb.join(', ')}), which is not what ${f.token} is — see section 6.`}</p>
         </div>
         <div class="sc-ramp">${cells.map((c) => c.html).join('')}</div>
       </div>`;
@@ -428,108 +457,8 @@ const sectionWhy = () => `
   </section>`;
 
 // ===========================================================================
-// 3 — The candidates
+// 3 — the families that kept their tokens
 // ===========================================================================
-// A family that shipped a move gets two rows — what it was, then what it is —
-// each measured against ITS OWN glow, because the glow moved with it. A family
-// that did not move keeps one row plus its untaken candidates, all measured
-// against the one glow that is still in the kit.
-const lightRows = (f) => {
-  const gh = glowHex(f);
-  const before = f.was
-    ? [{
-      label: 'before this branch', hex: f.was, note: `${f.token} until issue #131`,
-      glow: washed(f.glowWas.rgb, f.glowWas.a, LIGHT.surface), glowLabel: 'its glow then',
-    }]
-    : [];
-  return before
-    .concat([{
-      label: f.was ? 'shipped' : 'today', hex: f.light, note: `${f.token} as the kit resolves it`,
-      glow: gh, glowLabel: f.was ? 'its glow now' : "today's glow",
-    }])
-    .concat(f.steps.map((s) => ({
-      label: s.label, hex: s.hex, note: 'candidate, not taken',
-      glow: gh, glowLabel: "today's glow",
-    })));
-};
-
-const sectionCandidates = () => `
-  <section class="sc-sec">
-    <div class="sc-sec__head">
-      <div class="sc-kicker">3 — Option A: move the signal token — light</div>
-      <h2>What pink was, what it is now, and the steps cyan and green did not take</h2>
-      <p>Each row is one value for a light-theme token; each column is a surface the kit draws
-      it on. Same specimen, same size, same AA line. Pink is the family that took this route,
-      so it has a before row and a shipped row, each on its own glow — read it against the
-      matching pair in section 5, where dark moved the opposite way. Cyan and green kept their
-      tokens; their darker steps stay here as the option that was weighed.</p>
-    </div>
-    ${FAMILIES.map((f) => {
-      const rows = lightRows(f);
-      return `
-      <div class="sc-panel">
-        <div class="sc-panel__head">
-          <h3>${f.token} <span style="font-weight:400;color:var(--muted)">${f.role}</span></h3>
-          <p>${f.refs} references across ${f.files} files in ${code('src/styles')} follow this token.</p>
-        </div>
-        ${rows.map((r) => `
-          <div class="sc-row">
-            <div class="sc-row__label">${r.hex}<span>${r.label} — ${r.note}</span></div>
-            <div class="sc-surfaces">
-              ${cell(`on white — ${code('--surface')}`, r.hex, LIGHT.surface, f)}
-              ${cell(`on ${code('--surface-2')}`, r.hex, LIGHT.surface2, f)}
-              ${cell(`on ${r.glowLabel} — ${r.glow}`, r.hex, r.glow, f)}
-            </div>
-          </div>`).join('')}
-      </div>`;
-    }).join('')}
-    <div class="sc-notes">
-      <div class="sc-note">${code('--surface-2')} is a reference column, not a live failure:
-        no kit rule sets signal-coloured <em>text</em> on it. ${code('.ui-input.is-invalid')}
-        puts ${code('--pink')} on it as a border, and a border is held to 3:1, which it clears.</div>
-      <div class="sc-note">Cyan and green kept their tokens: their candidate rows are here as
-        the option that was weighed and not taken. Cyan is the awkward one — its 15% step still
-        lands under the line on its own glow, so 20% was the first step that would have worked,
-        and that hex became ${code('--chip-info-ink')} in section 4 instead.</div>
-      <div class="sc-note">${retintNote()}</div>
-    </div>
-  </section>`;
-
-// The glow tokens hold literal rgba() of their signal, so moving a signal token
-// leaves its wash behind unless the wash is re-tinted too. Pink's was, and this
-// prices that second decision from the values actually in the kit.
-const retintNote = () => {
-  const p = byKey.pink;
-  // Ratio of the new pink against the wash it would have inherited (old rgb)
-  // versus the wash it actually got (new rgb).
-  const kept = (glowRgb, a, base) => contrast(p.light, washed(glowRgb, a, base));
-  const lightKept = kept(p.glowWas.rgb, p.glowWas.a, LIGHT.surface);
-  const lightGot = kept(p.glow.rgb, p.glow.a, LIGHT.surface);
-  const dKept = contrast(p.dark, washed(p.darkGlowWas.rgb, p.darkGlowWas.a, DARK.surface));
-  const dGot = contrast(p.dark, washed(p.darkGlow.rgb, p.darkGlow.a, DARK.surface));
-  return `<strong>The wash moved with the token.</strong> ${code('--glow-pink')} holds a literal
-    <code class="sc-code">rgba()</code>, so it had to be re-tinted by hand or pink would have
-    become the second family — after green — whose wash is a tint of a different colour from
-    the ink laid on it. It also keeps ${code('.ui-btn--danger:hover')} honest: that rule mixes
-    ${code('--pink')} at 10% itself, so a frozen ${code('--glow-pink')} would have put two
-    different pink washes side by side in the same app. The cost is small and flips no verdict:
-    light goes ${n2(lightKept)} → ${n2(lightGot)}, dark over a card ${n2(dKept)} → ${n2(dGot)}.`;
-};
-
-// ===========================================================================
-// 4 — Option B: the chip inks
-// ===========================================================================
-// The light chip pairs, copied from :root[data-theme="light"] in
-// src/tokens/tokens.css. All four now exist — info was written when the info
-// badge was repointed at it.
-const CHIPS = [
-  { key: 'danger', name: '--chip-danger-*', ink: '#b7295f', fill: '#fbe0ea', label: 'Revoked' },
-  { key: 'warn', name: '--chip-warn-*', ink: '#8a5e00', fill: '#fbedd2', label: 'Pending' },
-  { key: 'success', name: '--chip-success-*', ink: '#1f7a38', fill: '#dff3e4', label: 'Live' },
-  { key: 'info', name: '--chip-info-*', ink: '#0a7286', fill: '#ddeff3', label: 'Preview' },
-];
-const CHIP = Object.fromEntries(CHIPS.map((c) => [c.key, c]));
-
 const chipCell = (c) => {
   const r = contrast(c.ink, c.fill);
   const pass = r >= AA;
@@ -538,23 +467,23 @@ const chipCell = (c) => {
       <span class="ui-badge" style="color:${c.ink};background:${c.fill}">${c.label}</span>
       <div class="sc-meta"><span class="sc-name">${code(c.name)}</span><b>${n2(r)}</b></div>
       <div class="sc-bar${pass ? ' is-pass' : ''}"><span class="sc-bar__fill" style="width:${pctOf(r).toFixed(2)}%"></span></div>
-      <div class="sc-verdict${pass ? ' is-pass' : ''}">In the kit today, and it ${pass ? 'clears AA' : 'misses AA'}</div>
+      <div class="sc-verdict${pass ? ' is-pass' : ''}">${pass ? 'clears AA' : 'misses AA'}</div>
     </div>`;
 };
 
 const sectionChips = () => {
-  const cyan = byKey.cyan;
   const green = byKey.green;
+  const cyan = byKey.cyan;
+  const band = CHIPS.map((c) => contrast(c.ink, c.fill));
   return `
   <section class="sc-sec">
     <div class="sc-sec__head">
-      <div class="sc-kicker">4 — Option B: leave the signal tokens alone</div>
-      <h2>The light theme carries deepened inks for chips. All four now exist, and green and
-      cyan were fixed here rather than by moving a token.</h2>
-      <p>A chip pair is a solid ink on a solid fill — no wash, nothing composited. Routing a
-      failing chip through this set moves no signal colour, so nothing outside a status chip
-      changes appearance. That is why every green and cyan failure took this route and neither
-      token moved.</p>
+      <div class="sc-kicker">3 — Green and cyan</div>
+      <h2>Neither token moved; the chips that failed were repointed</h2>
+      <p>A chip pair is a solid ink on a solid fill, with no wash and nothing composited, so a chip
+      that reads its pair instead of a raw signal is fixed without moving a colour anyone else
+      uses. Every green and cyan failure was a chip, so every one of them took this route and
+      ${code('--green')} and ${code('--cyan')} still hold the values they always held.</p>
     </div>
     <div class="sc-panel">
       <div class="sc-chips">${CHIPS.map(chipCell).join('')}</div>
@@ -562,117 +491,238 @@ const sectionChips = () => {
     <div class="sc-notes">
       <div class="sc-note"><strong>Green needed no new token.</strong> Six rules wrote
         ${code('var(--green)')} on ${code('var(--glow-green)')} and landed at
-        ${n2(contrast(green.light, glowHex(green)))} — ${code('.ui-pill--live')},
-        ${code('.ui-nav__badge.is-live')}, ${code('.ui-dropdown__badge.is-live')},
-        ${code('.vbadge.live')} and ${code('.tag--added')} on the changelog page, next to
-        ${code('.ui-badge--live')}, which had used the pair all along and passed at
-        ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}. Each was a one-line repoint at
-        the pair that already existed.</div>
-      <div class="sc-note"><strong>Cyan needed the pair that was never written.</strong>
-        ${code('.ui-badge--info')} at ${code('src/styles/badge.css:27')} was the last chip
-        variant painting with a raw signal token. ${code('--chip-info-*')} is
-        ${code(CHIP.info.ink)} on ${code(CHIP.info.fill)} at
-        ${n2(contrast(CHIP.info.ink, CHIP.info.fill))} — inside the band the other three pairs
-        occupy (${n2(contrast(CHIP.success.ink, CHIP.success.fill))}–${n2(contrast(CHIP.warn.ink, CHIP.warn.fill))}).
-        The ink is the same hex as cyan's 20% step in section 3.</div>
-      <div class="sc-note"><strong>Pink is where the two options stopped being equivalent, and
-        why it took the other one.</strong> ${code('--chip-danger-ink')} clears everything —
-        ${n2(contrast(CHIP.danger.ink, LIGHT.surface))} on white,
-        ${n2(contrast(CHIP.danger.ink, glowHex(byKey.pink)))} on the pink glow — but the failing
-        pink consumers are not chips. ${code('.ui-nav__item.is-danger:hover')} is a hover state
-        and ${code('.ui-field__req')} and ${code('.ui-field__error')} are form text. Routing
-        those through a chip token would give a chip token a second job its own comment
-        disclaims, so ${code('--pink')} moved instead — section 3 for light, section 5 for
-        dark.</div>
-      <div class="sc-note">Nothing above touches ${code('--cyan')} at
-        ${code('src/styles/callout.css:21')} or ${code('src/styles/code.css:52')}, or
-        ${code('--pink')} at ${code('src/styles/button.css:69')} — those consumers keep
-        today's values under Option B and take the new ones under Option A.</div>
+        ${n2(contrast(green.light, glowHex(green)))}, next to ${code('.ui-badge--live')}, which
+        had used the pair all along and passed at ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}.
+        Each was a one-line repoint at a pair that already existed.</div>
+      <div class="sc-note"><strong>Cyan needed the pair nobody had written.</strong>
+        ${code('.ui-badge--info')} was the last chip variant still painting with a raw signal
+        token, at ${n2(contrast(cyan.light, glowHex(cyan)))} on its own glow.
+        ${code('--chip-info-*')} was added as ${CHIP.info.ink} on ${CHIP.info.fill} —
+        ${n2(contrast(CHIP.info.ink, CHIP.info.fill))}, inside the
+        ${n2(Math.min(...band))}–${n2(Math.max(...band))} band the other three pairs already
+        occupied.</div>
+      <div class="sc-note">The same route was available to danger and would have measured
+        fine. ${code('--chip-danger-ink')} is ${n2(contrast(CHIP.danger.ink, LIGHT.surface))}
+        on white. It was not taken because the failing danger consumers are not chips: a nav row
+        on hover and two pieces of form text cannot borrow a chip token without giving it a
+        second job its own comment disclaims. That is what section 4 is about.</div>
     </div>
   </section>`;
 };
 
 // ===========================================================================
-// 5 — Dark
+// 4 — --pink moved, and the two themes moved opposite ways
 // ===========================================================================
-// Same two-row shape as section 3, on the three dark surfaces.
-const darkRows = (f) => {
-  const before = f.darkWas
-    ? [{ label: 'before this branch', hex: f.darkWas, note: `${f.token} until issue #131`, glow: f.darkGlowWas }]
-    : [];
-  return before.concat([{
-    label: f.darkWas ? 'shipped' : 'today', hex: f.dark,
-    note: `${f.token} as the kit resolves it`, glow: f.darkGlow,
-  }]);
+const pinkRows = () => {
+  const f = byKey.pink;
+  return [
+    {
+      hex: f.was, label: 'light, before', note: `${f.token} until issue #131`,
+      surfaces: [
+        [`on white — ${code('--surface')}`, LIGHT.surface],
+        [`on ${code('--surface-2')}`, LIGHT.surface2],
+        ['on its glow then', washed(f.glowWas.rgb, f.glowWas.a, LIGHT.surface)],
+      ],
+    },
+    {
+      hex: f.light, label: 'light, now', note: `${f.token} as the kit resolves it`,
+      surfaces: [
+        [`on white — ${code('--surface')}`, LIGHT.surface],
+        [`on ${code('--surface-2')}`, LIGHT.surface2],
+        [`on ${code('--glow-pink')}`, glowHex(f)],
+      ],
+    },
+    {
+      hex: f.darkWas, label: 'dark, before', note: `${f.token} until issue #131`,
+      surfaces: [
+        [`on ${code('--bg')}`, DARK.bg],
+        ['on its glow then, over the page', washed(f.darkGlowWas.rgb, f.darkGlowWas.a, DARK.bg)],
+        ['on its glow then, over a card', washed(f.darkGlowWas.rgb, f.darkGlowWas.a, DARK.surface)],
+      ],
+    },
+    {
+      hex: f.dark, label: 'dark, now', note: `${f.token} as the kit resolves it`,
+      surfaces: [
+        [`on ${code('--bg')}`, DARK.bg],
+        [`on ${code('--glow-pink')}, over the page`, washed(f.darkGlow.rgb, f.darkGlow.a, DARK.bg)],
+        [`on ${code('--glow-pink')}, over a card`, dGlow(f)],
+      ],
+    },
+  ];
 };
 
-const sectionDark = () => {
-  const p = byKey.pink;
-  const pinkOn = (hex, glow, base) => n2(contrast(hex, washed(glow.rgb, glow.a, base)));
+const sectionPink = () => {
+  const f = byKey.pink;
+  // What the new pink would have measured on the wash it would have inherited,
+  // against the wash it actually got, once --glow-pink was re-tinted.
+  const lightKept = contrast(f.light, washed(f.glowWas.rgb, f.glowWas.a, LIGHT.surface));
+  const lightGot = contrast(f.light, glowHex(f));
+  const darkKept = contrast(f.dark, washed(f.darkGlowWas.rgb, f.darkGlowWas.a, DARK.surface));
+  const darkGot = contrast(f.dark, dGlow(f));
   return `
   <section class="sc-sec">
     <div class="sc-sec__head">
-      <div class="sc-kicker">5 — Dark theme</div>
-      <h2>Cyan and green were always far clear in dark. Pink was not, and moved the other way.</h2>
-      <p>The dark signal values are declared in a separate block of
-      ${code('src/tokens/tokens.css')}, so cyan and green — which took Option B — read here
-      exactly as they always did. Pink took Option A in both themes, so it gets the same
-      before-and-after pair of rows section 3 gives it, and the two are meant to be read
-      together. Painted with the dark literals, so this reads the same whichever theme the
-      toolbar is in.</p>
+      <div class="sc-kicker">4 — The one token that moved</div>
+      <h2>${code('--pink')} went darker in light and lighter in dark</h2>
+      <p>Danger is read mostly on its own wash, and a wash pulls the ground toward the ink from
+      whichever side the page starts on. In light the ground is white, so the wash lightens
+      nothing and the ink has to come down to meet it: ${f.was} → ${f.light}. In dark the ground
+      is near-black and the wash lifts it faster than the hue lifts the ink, so danger had to
+      move away from the canvas: ${f.darkWas} → ${f.dark}. Two directions, one reason. The rows
+      below are the same four surfaces before and after, in both themes.</p>
     </div>
-    ${FAMILIES.map((f) => `
-      <div class="sc-panel">
-        <div class="sc-panel__head">
-          <h3>${f.token} <span style="font-weight:400;color:var(--muted)">${f.role}</span></h3>
-          <p>wash at ${Math.round(f.darkGlow.a * 100)}%, over the page and over a card</p>
-        </div>
-        ${darkRows(f).map((r) => {
-          const gBg = washed(r.glow.rgb, r.glow.a, DARK.bg);
-          const gSurf = washed(r.glow.rgb, r.glow.a, DARK.surface);
-          return `
-          <div class="sc-row">
-            <div class="sc-row__label">${r.hex}<span>${r.label} — ${r.note}</span></div>
-            <div class="sc-surfaces">
-              ${cell(`on ${code('--bg')}`, r.hex, DARK.bg, f)}
-              ${cell(`on its own glow over ${code('--bg')} — ${gBg}`, r.hex, gBg, f)}
-              ${cell(`on its own glow over ${code('--surface')} — ${gSurf}`, r.hex, gSurf, f)}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`).join('')}
+    <div class="sc-panel">
+      ${pinkRows().map((r) => `
+        <div class="sc-row">
+          <div class="sc-row__label">${r.hex}<span>${r.label} — ${r.note}</span></div>
+          <div class="sc-surfaces">
+            ${r.surfaces.map(([name, bg]) => cell(name, r.hex, bg, f)).join('')}
+          </div>
+        </div>`).join('')}
+    </div>
     <div class="sc-notes">
-      <div class="sc-note">Dark cyan and dark green clear AA with room to spare on every
-        surface, which is why neither needed a token move in either theme.</div>
-      <div class="sc-note"><strong>The two themes moved in opposite directions.</strong>
-        Dark ${code('--pink')} was ${pinkOn(p.darkWas, p.darkGlowWas, DARK.surface)} on its
-        own glow over a card and ${pinkOn(p.darkWas, p.darkGlowWas, DARK.bg)} over the page —
-        the same failure as light, less severe. The fix is to go
-        <em>lighter</em>, to ${p.dark}, because the ground under the ink here is near-black:
-        ${pinkOn(p.dark, p.darkGlow, DARK.surface)} over a card,
-        ${pinkOn(p.dark, p.darkGlow, DARK.bg)} over the page. Light went darker, to ${p.light},
-        because there the ground is white.</div>
-      <div class="sc-note"><strong>What the dark move cost, and what paid for it.</strong> A
-        solid danger fill used to take ${code('--danger-contrast')} (white) as its ink —
-        ${code('.ui-toast--danger.ui-toast--solid')}. White on the old dark pink was
-        ${n2(contrast('#ffffff', p.darkWas))}, already under AA; on ${p.dark} it is
-        ${n2(contrast('#ffffff', p.dark))}. The two constraints pull opposite ways — ink on the
-        wash wants pink lighter, white on the fill wants it darker — so no single dark pink
-        satisfies both, and the pink was never the thing to fix. The fill and its ink were
-        being chosen on independent axes. They are now one pair
-        (${code('--signal-solid-*')}): a solid fill is the status at its theme's extreme and
-        the ink is the pole opposite it, so dark keeps ${p.dark} and takes near-black at
-        ${n2(contrast('#0c0c0c', p.dark))}. See the note below.</div>
-      <div class="sc-note"><strong>The same rule, in light.</strong> Light
-        ${code('--green')} is the case that proves fill and ink are one choice: as a solid
-        fill it measures ${n2(contrast('#0c0c0c', '#1c8a2c'))} against near-black and
-        ${n2(contrast('#ffffff', '#1c8a2c'))} against white, so no ink clears it and the fill
-        has to move. Light solid fills now take the deepened chip ink and white on top —
-        ${n2(contrast('#ffffff', '#1f7a38'))} for success. Neutral has no chip pair and needs
-        none: ${code('--muted')} is already its fill-strength form, at
-        ${n2(contrast('#ffffff', '#5c6270'))} in light and
-        ${n2(contrast('#0c0c0c', '#948fa8'))} in dark. All ten status x theme combinations are
-        gated in ${code('stories/signal-contrast.test.js')}.</div>
+      <div class="sc-note"><strong>The wash moved with the token.</strong>
+        ${code('--glow-pink')} holds a literal <code class="sc-code">rgba()</code>, so moving
+        ${code('--pink')} would have left the wash behind. It was re-tinted by hand for a
+        second reason as well: ${code('.ui-btn--danger:hover')} mixes ${code('--pink')} at 10%
+        itself, so a frozen ${code('--glow-pink')} would have put two different pink washes
+        side by side in the same app. The re-tint costs almost nothing and flips no verdict —
+        light ${n2(lightKept)} → ${n2(lightGot)}, dark over a card ${n2(darkKept)} →
+        ${n2(darkGot)}.</div>
+      <div class="sc-note">${code('--surface-2')} is a reference column, not a live failure: no
+        kit rule sets signal-coloured <em>text</em> on it. ${code('.ui-input.is-invalid')} puts
+        ${code('--pink')} on it as a border, and a border is held to ${GRAPHIC}:1, which it
+        clears.</div>
+    </div>
+  </section>`;
+};
+
+// ===========================================================================
+// 5 — When a signal stops being ink
+// ===========================================================================
+const fillCell = (label, fill, ink, bar) => {
+  const r = contrast(ink, fill);
+  const pass = r >= bar;
+  return `
+    <div class="sc-cell">
+      <div class="sc-fill" style="background:${fill};color:${ink}">
+        <span>${label}</span><b>${n2(r)}</b>
+      </div>
+      <div class="sc-verdict${pass ? ' is-pass' : ''}">${pass ? 'clears' : 'misses'} ${bar}:1</div>
+    </div>`;
+};
+
+const dot = (label, circle, glyph) => {
+  const r = contrast(glyph, circle);
+  return `<span class="sc-dot"><i style="background:${circle};color:${glyph}">✕</i>
+    ${label} <b>${n2(r)}</b></span>`;
+};
+
+const sectionFills = () => {
+  const p = byKey.pink;
+  const statuses = ['success', 'danger', 'warn', 'info', 'neutral'];
+  const fills = (theme) => `<div class="sc-fills">${statuses
+    .map((s) => fillCell(s, SOLID[theme][s], SOLID[theme].ink, AA)).join('')}</div>`;
+  return `
+  <section class="sc-sec">
+    <div class="sc-sec__head">
+      <div class="sc-kicker">5 — When a signal stops being ink</div>
+      <h2>A fill and the ink on it are one choice, not two</h2>
+      <p>Everything above paints a signal as ink. A solid toast inverts that: the signal becomes
+      the background, and something else has to read on top of it. The kit used to pick the fill
+      from the status and the ink from a global, on separate axes, so nothing made a status's
+      fill and its own ink clear each other — and four of the ten status × theme combinations
+      did not. Light ${code('--green')} is the case that settles the argument: as a solid fill
+      it measures ${n2(contrast(NEAR_BLACK, '#1c8a2c'))} against near-black and
+      ${n2(contrast(WHITE, '#1c8a2c'))} against white, so no ink rescues it and the
+      <em>fill</em> is what has to move.</p>
+    </div>
+    <div class="sc-panel">
+      <div class="sc-panel__head">
+        <h3>Dark <span style="font-weight:400;color:var(--muted)">the bright signals, inked near-black</span></h3>
+        <p>${code('--signal-solid-ink')} is ${NEAR_BLACK} here, and it clears all five.</p>
+      </div>
+      ${fills('dark')}
+    </div>
+    <div class="sc-panel">
+      <div class="sc-panel__head">
+        <h3>Light <span style="font-weight:400;color:var(--muted)">the deepened chip inks, inked white</span></h3>
+        <p>The signals are mid-tone in light, so the fills drop to the values the chip pairs
+        already carry and ${code('--signal-solid-ink')} is white.</p>
+      </div>
+      ${fills('light')}
+    </div>
+    <div class="sc-notes">
+      <div class="sc-note"><strong>The rule.</strong> A solid fill is the status at its theme's
+        extreme, and the ink is the pole opposite it, so one ink per theme clears all five. A
+        new status supplies one ${code('--signal-solid-&lt;status&gt;')} on the correct side of its
+        theme's midline and inherits the ink; there is no per-status ink decision left to get
+        wrong. The quieter of the two inks is diluted to 90% rather than given an
+        ${code('opacity')}, because the dilution used to spend exactly the contrast the pair
+        was picked for.</div>
+      <div class="sc-note"><strong>The status circle takes the ink half of that rule and not
+        the fill half.</strong> A soft or outline toast draws its glyph on a 22px
+        ${code('--toast-accent')} circle, and that circle cannot move to the theme's extreme:
+        the 3px left marker and the outline border are the same token, so a circle that left
+        the accent would put two pinks in one toast. Only the ink is free, and the bar for a
+        glyph is ${GRAPHIC}:1 rather than ${AA}:1. In dark one ink still does it, because the
+        five dark accents are the same five bright hues the solid fills take. In light it
+        cannot: the accents there are deepened to read as ink on white, which parks them
+        mid-luminance where neither pole dominates, so light keeps a per-status ink.</div>
+      <div class="sc-note"><strong>Dark danger was the combination that broke.</strong> Its
+        glyph was white, which was right while dark ${code('--pink')} was ${p.darkWas}. Section
+        4 lightened it to ${p.dark} for the wash, and that carried the circle past the point
+        where white could read on it —
+        ${n2(contrast(WHITE, p.dark))} against the ${GRAPHIC}:1 bar. Dark
+        ${code('--danger-contrast')} is now ${code('--signal-contrast')}, which is to say dark
+        danger stopped being the exception:
+        <span class="sc-dots" style="margin-top:var(--space-2)">
+          ${dot('white on the old circle', p.darkWas, WHITE)}
+          ${dot('white on the circle today', p.dark, WHITE)}
+          ${dot('near-black on the circle today', p.dark, NEAR_BLACK)}
+        </span></div>
+      <div class="sc-note">Light danger keeps its white glyph, at
+        ${n2(contrast(WHITE, p.light))} — near-black
+        would measure ${n2(contrast(NEAR_BLACK, p.light))} there, so the token stays split by
+        theme. All ten solid pairs and all ten glyph pairs are gated in
+        ${code('stories/signal-contrast.test.js')}.</div>
+    </div>
+  </section>`;
+};
+
+// ===========================================================================
+// 6 — What is still not right
+// ===========================================================================
+const sectionOpen = () => {
+  const g = byKey.green;
+  const trueTint = washed(rgb(g.light), 0.1, LIGHT.surface);
+  return `
+  <section class="sc-sec">
+    <div class="sc-sec__head">
+      <div class="sc-kicker">6 — Still not right</div>
+      <h2>${code('--glow-green')} is not a tint of ${code('--green')}</h2>
+      <p>Every other family's wash is its own signal at low alpha. Green's is not:
+      ${code('--glow-green')} is <code class="sc-code">rgba(30, 150, 50, 0.1)</code> while
+      ${code('--green')} is ${g.light} — rgb(${rgb(g.light).join(', ')}). The two have been
+      apart since the initial commit. It was left alone here on purpose: no green rule fails
+      because of it, ${code('--green')} did not move, and re-tinting it would change every
+      success surface in the kit for a tidiness the numbers do not ask for.</p>
+    </div>
+    <div class="sc-panel">
+      <div class="sc-surfaces">
+        ${cell(`${code('--glow-green')} as it is — ${glowHex(g)}`, g.light, glowHex(g), g)}
+        ${cell(`a true 10% tint of ${code('--green')} — ${trueTint}`, g.light, trueTint, g)}
+        ${cell(`white — ${code('--surface')}`, g.light, LIGHT.surface, g)}
+      </div>
+    </div>
+    <div class="sc-notes">
+      <div class="sc-note">The drift is worth
+        ${n2(Math.abs(contrast(g.light, glowHex(g)) - contrast(g.light, trueTint)))} of a ratio,
+        and all three cells fail AA, which is the point. The success chips do not read
+        ${code('--green')} on ${code('--glow-green')} any more; they read
+        ${code('--chip-success-ink')} on ${code('--chip-success-fill')}, at
+        ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}. Fixing the glow would be a
+        separate decision about what a wash is for, not a contrast fix.</div>
     </div>
   </section>`;
 };
@@ -687,23 +737,25 @@ export const Diagnosis = {
       <p class="sc-lede">In the light theme ${code('--pink')}, ${code('--cyan')} and
         ${code('--green')} all missed WCAG AA for normal text, and they missed it by the most
         on the surface the kit puts them on deliberately: a 10% wash of the same colour. Dark
-        ${code('--pink')} missed it too. Cyan and green were fixed by routing their chips at
-        the deepened chip pairs; pink had to move the token, in both themes and in opposite
-        directions. This page measures every pair it draws, at the size the kit sets it, and
-        keeps the before values beside the shipped ones.</p>
+        ${code('--pink')} missed it too. Cyan and green were fixed by repointing their chips at
+        the deepened chip pairs, so neither token moved; ${code('--pink')} moved, in both
+        themes and in opposite directions. Then the same rule had to be written a second time
+        for the surfaces where a signal is the fill rather than the ink. This page is the
+        record of those choices, measured.</p>
       <p style="margin-top:var(--space-3)">The bar under each specimen runs from
         ${SCALE[0].toFixed(1)} to ${SCALE[1].toFixed(1)}; the vertical line on it is
         ${AA.toFixed(1)}, the AA threshold for text under 18.66px bold or 24px regular.
-        Nothing on this page is large text. Every ratio is computed from the two colours
-        actually painted in that cell: a wash is drawn as the flat colour it composites to,
-        so the number under a specimen is the contrast of the two colours in front of you.
-        A live component blends the wash itself and can round a channel one step further,
-        worth at most 0.05 either way.</p>
+        Nothing measured against that line is large text. Cells held to the ${GRAPHIC}:1 of
+        non-text contrast state their number without a bar, so one line never stands for two
+        thresholds. Every ratio is computed from the two colours actually painted in that cell:
+        a wash is drawn as the flat colour it composites to. A live component blends the wash
+        itself and can round a channel one step further, worth at most 0.05 either way.</p>
       ${sectionLive()}
       ${sectionWhy()}
-      ${sectionCandidates()}
       ${sectionChips()}
-      ${sectionDark()}
+      ${sectionPink()}
+      ${sectionFills()}
+      ${sectionOpen()}
     </div>
   `),
 };
