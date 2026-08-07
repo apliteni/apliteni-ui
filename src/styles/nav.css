@@ -6,7 +6,7 @@
  * ========================================================================== */
 
 .ui-nav { font-family: var(--font-sans); }
-.ui-nav ul, .ui-nav ol { list-style: none; margin: 0; padding: 0; }
+.ui-nav :where(ul, ol) { list-style: none; margin: 0; padding: 0; } /* floor, not ceiling */
 
 /* -- Sidebar rail -------------------------------------------------------- */
 .ui-nav--side {
@@ -49,7 +49,7 @@
 }
 .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
 .ui-nav__item.is-active {
-  background: var(--surface);
+  background: var(--surface-3);
   color: var(--strong);
   font-weight: 500;
 }
@@ -117,14 +117,18 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin: 2px 0 2px 15px;
-  padding-left: 11px;
+  margin: var(--space-1) 0 var(--space-1) var(--space-4);
+  padding-left: var(--space-3);
   border-left: 1px solid var(--border);
 }
 .ui-nav__sub[hidden] { display: none; }
 .ui-nav__item--sub { font-size: 14px; padding: 7px 12px; }
-.ui-nav--side .ui-nav__item--sub.is-active { box-shadow: none; }
-.ui-nav--side .ui-nav__item--sub.is-active::before { left: -12px; height: 15px; }
+/* No hairline on a nested current row — but only at rest. box-shadow carries
+   both the hairline and the focus ring, so a rule about the resting look must
+   say so, or it silently cancels the ring (WCAG 2.4.7). */
+.ui-nav--side .ui-nav__item--sub.is-active:not(:focus-visible) { box-shadow: none; }
+/* Hangs back onto the guide hairline the indent above draws. */
+.ui-nav--side .ui-nav__item--sub.is-active::before { left: calc(-1 * var(--space-3)); height: 15px; }
 
 /* Footer slot (divider + trailing links, e.g. sign-out) */
 .ui-nav__foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
