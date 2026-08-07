@@ -156,6 +156,8 @@
   --chip-warn-fill: color-mix(in srgb, var(--amber) 15%, transparent);
   --chip-danger-ink: var(--pink);
   --chip-danger-fill: var(--glow-pink);
+  --chip-info-ink: var(--cyan);
+  --chip-info-fill: var(--glow-cyan);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -233,6 +235,12 @@
   --chip-warn-fill: #fbedd2;
   --chip-danger-ink: #b7295f;
   --chip-danger-fill: #fbe0ea;
+  /* Info was the one signal family without a pair, so the info badge was still
+     painting --cyan (#0c8fa8) on --glow-cyan over white, which is 3.39:1 —
+     under AA. #0a7286 on #ddeff3 is 4.71:1, inside the 4.64–4.93 band the other
+     three pairs already sit in. See issue #131. */
+  --chip-info-ink: #0a7286;
+  --chip-info-fill: #ddeff3;
 
   --shadow-sm: 0 1px 3px rgba(30, 30, 50, 0.08);
   --shadow-md: 0 8px 24px rgba(30, 30, 50, 0.1);

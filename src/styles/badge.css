@@ -24,7 +24,7 @@
    wash out and the ink has to deepen to clear AA, and that is a token decision. */
 .ui-badge--live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 .ui-badge--soon { color: var(--purple-mid); background: var(--glow-purple); }
-.ui-badge--info { color: var(--cyan); background: var(--glow-cyan); }
+.ui-badge--info { color: var(--chip-info-ink); background: var(--chip-info-fill); }
 .ui-badge--warn { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
 .ui-badge--danger { color: var(--chip-danger-ink); background: var(--chip-danger-fill); }
 .ui-badge--archive { color: var(--muted); background: var(--surface); }
@@ -54,7 +54,10 @@
   padding: 4px 11px;
   font-weight: var(--weight-semibold);
 }
-.ui-pill--live { color: var(--green); background: var(--glow-green); }
+/* The live pill is the same status paint as the live badge, so it takes the
+   same pair. On its own it was --green on --glow-green, which is 3.97:1 over
+   white — under AA, while the badge beside it cleared at 4.64:1. See issue #131. */
+.ui-pill--live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 .ui-pill--soon { color: var(--purple-mid); background: var(--glow-purple); }
 
 /* Status dot */
