@@ -108,18 +108,13 @@ const preview = {
   },
 
   globalTypes: {
+    // No `toolbar` block, so Storybook draws no dropdown for this one: with two
+    // values a menu is pure overhead, and the toolbar tool registered in
+    // manager.js flips the same global in one click. The global and its default
+    // are unchanged — everything that reads `theme` still reads `theme`.
     theme: {
       description: 'Deck theme',
       defaultValue: 'dark',
-      toolbar: {
-        title: 'Theme',
-        icon: 'contrast',
-        items: [
-          { value: 'dark', title: 'Dark', icon: 'moon' },
-          { value: 'light', title: 'Light', icon: 'sun' },
-        ],
-        dynamicTitle: true,
-      },
     },
     inspect: {
       description: 'Component inspector',

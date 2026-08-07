@@ -9,14 +9,18 @@ whose returned string becomes the canvas.
 - **`main.js`** — `html-vite` framework; stories glob `../stories/**/*.stories.@(js|mjs)`;
   `addon-essentials` (trimmed — the theme decorator owns the canvas) + `addon-a11y`.
   Autodocs off, telemetry off.
-- **`preview.js`** — the Theme/Accent toolbar and the decorator (below).
-- **`manager.js` / `manager-head.html`** — brand the Storybook shell.
+- **`preview.js`** — the `theme`, `inspect` and `accent` globals and the decorator (below).
+- **`manager.js` / `manager-head.html`** — brand the Storybook shell; `manager.js` also
+  registers the Theme toggle (`theme-toggle.jsx`) and re-themes the shell to match it.
 
 ## Theme & accent
 
-`preview.js` adds two toolbar dropdowns — **Theme** (`dark`/`light`) and **Accent**
-(Nebula/Phoenix/Ocean/Emerald). A decorator applies them to `<html>`, paints the canvas
-with the theme `--bg`, renders the story's string, and calls `wireTopbar()` so
+**Theme** (`dark`/`light`) is a one-click toolbar toggle: it shows the theme you are in —
+moon + "Dark", sun + "Light" — and one click flips it, no menu. It is a tool registered in
+`manager.js`, not a `preview.js` dropdown, but it writes the same `theme` global. The two
+dropdowns left in `preview.js` are **Inspect** (component inspector on/off) and **Accent**
+(Nebula/Phoenix/Ocean/Emerald). A decorator applies the globals to `<html>`, paints the
+canvas with the theme `--bg`, renders the story's string, and calls `wireTopbar()` so
 interactive behaviors work. So any story is viewable in 2 themes × 4 accents with no
 per-story code.
 
