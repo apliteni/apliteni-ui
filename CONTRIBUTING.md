@@ -37,6 +37,9 @@ npm run storybook        # http://localhost:6006
 4. **Both themes, all accents.** Check dark and light, and at least Nebula +
    Phoenix, before opening a PR. Use the toolbar toggles.
 5. **No visual slop.** Run the AI-slop detector on any new example page.
+6. **State, not destination.** A stateful control reports the state it is in,
+   never the one a click would produce — in the icon and in the accessible
+   name, and the name is rewritten whenever the state changes.
 
 ## Data handling
 
