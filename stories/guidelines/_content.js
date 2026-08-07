@@ -148,9 +148,6 @@ export const RULES = [
     dontCaption: 'Hover repaints the row --accent.',
     doHtml: menuDo,
     dontHtml: menuDont,
-    // nav.css is left out on purpose. `.ui-nav__item.is-danger` is already
-    // --pink at rest, so it is the one place in the kit that disagrees with
-    // this rule. Do not add it back — fixing nav is separate work.
     kit: [
       {
         ref: 'src/styles/button.css:68',
@@ -161,6 +158,11 @@ export const RULES = [
         ref: 'src/styles/dropdown.css:111',
         pattern: '.ui-dropdown__item.is-danger:hover',
         note: 'The danger row turns --pink on hover.',
+      },
+      {
+        ref: 'src/styles/nav.css:81',
+        pattern: '.ui-nav__item.is-danger:hover',
+        note: 'The sign-out row hovers to --pink.',
       },
     ],
   },

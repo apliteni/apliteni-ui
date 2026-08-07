@@ -75,7 +75,9 @@
 .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); }
 .ui-nav__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.ui-nav__item.is-danger { color: var(--pink); }
+/* Destructive row (sign out, revoke). Quiet at rest, --pink once the pointer
+   reaches it — same two-step as .ui-btn--danger and .ui-dropdown__item.is-danger. */
+.ui-nav__item.is-danger { color: var(--muted); }
 .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
 .ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; cursor: default; pointer-events: none; }
 
