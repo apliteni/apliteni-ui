@@ -37,6 +37,13 @@ npm run storybook        # http://localhost:6006
 4. **Both themes, all accents.** Check dark and light, and at least Nebula +
    Phoenix, before opening a PR. Use the toolbar toggles.
 5. **No visual slop.** Run the AI-slop detector on any new example page.
+6. **A stateful control reports the state it is in** — never the state a click
+   would produce. `segmented()` marks the active option `aria-pressed`, the
+   Deck/Text switch marks the current view `aria-current`, the theme toggle
+   shows a moon while dark and a sun while light. The accessible name says the
+   state too (`Theme: Dark. Switch to light.`) and is rewritten whenever the
+   state changes — a name that is right once and never again tells a screen-
+   reader user nothing. See `themeName()` in `src/components/topbar.js`.
 
 ## Data handling
 

@@ -7,10 +7,28 @@ import { wireDropdown } from './dropdown.js';
 
 const THEME_KEY = 'apliteni-strategy-theme';
 
-export function themeToggle() {
-  // Single icon-only switch (sun in dark, moon in light). Icon pre-filled so it
-  // renders before applyTheme() runs; aria-label carries the accessible name.
-  return `<button class="toggle" data-theme-toggle aria-label="Toggle theme" title="Toggle light / dark"><span class="ic" data-theme-icon>${sun}</span></button>`;
+// A stateful control in this kit reports the state it is IN, never the state a
+// click would produce — the same reading as segmented()'s aria-pressed, the
+// Deck/Text switch's aria-current, and the accent chips. So: moon while dark,
+// sun while light. Storybook's own toolbar toggle (.storybook/theme-toggle.jsx)
+// reads the same way, and topbar stories render directly beneath it.
+export const themeIcon = (t) => (t === 'light' ? sun : moon);
+
+// The name carries both the state and what the click does, which is why there
+// is no aria-pressed and no role="switch": dark and light are peers, not on and
+// off, and an ARIA state on top of this name would announce the theme twice.
+// The button is icon-only, so `title` is the only sighted reading of the same
+// fact and carries the identical string — nothing for WCAG 2.5.3 to disagree
+// with. Both are rewritten by applyTheme on every flip; a name that is right
+// once and never again tells a screen-reader user nothing.
+export const themeName = (t) =>
+  (t === 'light' ? 'Theme: Light. Switch to dark.' : 'Theme: Dark. Switch to light.');
+
+export function themeToggle(theme = 'dark') {
+  // Single icon-only switch. Icon and name are pre-filled for `theme` so the
+  // first paint is already truthful; applyTheme() keeps them so afterwards.
+  const name = esc(themeName(theme));
+  return `<button class="toggle" data-theme-toggle aria-label="${name}" title="${name}"><span class="ic" data-theme-icon>${themeIcon(theme)}</span></button>`;
 }
 
 export function deckTextSwitch(active = 'deck') {
@@ -69,11 +87,14 @@ export function topbar({
 // ---- Behaviours (call once after markup mounts) --------------------------
 export function applyTheme(t, root = document.documentElement) {
   root.setAttribute('data-theme', t);
+  const name = themeName(t);
   root.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
     const ic = btn.querySelector('[data-theme-icon]');
-    const lbl = btn.querySelector('[data-theme-label]');
-    if (ic) ic.innerHTML = t === 'dark' ? sun : moon;
-    if (lbl) lbl.textContent = t === 'dark' ? 'Light' : 'Dark';
+    if (ic) ic.innerHTML = themeIcon(t);
+    // The announced name is the point of the control, so it moves with the
+    // theme like the glyph does.
+    btn.setAttribute('aria-label', name);
+    btn.setAttribute('title', name);
   });
   try { localStorage.setItem(THEME_KEY, t); } catch (e) { /* no-op */ }
 }
