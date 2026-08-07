@@ -12,8 +12,13 @@
  * stylesheets the rail actually ships with (base.css + nav.css) with their
  * var() references substituted from the token files, mounts real sidebarNav()
  * markup in a JSDOM, and reads getComputedStyle — JSDOM applies author rules by
- * specificity and source order, so a declaration that loses a conflict resolves
- * to the winner's value here exactly as it does in a browser.
+ * specificity and source order, so a declaration that loses to another author
+ * rule resolves to the winner's value here exactly as it does in a browser.
+ * Author rules are the whole of that guarantee: JSDOM does not rank by origin,
+ * so a bare type selector loses to the user-agent sheet it would beat in a
+ * browser — `a { color }` on a linked <a> reads back as the UA's blue. Every
+ * selector asserted on below carries a class, and a class outranks the UA sheet
+ * correctly.
  *
  * Two things JSDOM cannot do, and how they are modelled without weakening the
  * gate. Both rewrites are specificity-preserving, so the cascade being tested is
