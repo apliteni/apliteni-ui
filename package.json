@@ -1,7 +1,9 @@
 {
   "name": "@apliteni/apliteni-ui",
-  "version": "0.7.2",
-  "workspaces": ["react"],
+  "version": "0.8.0",
+  "workspaces": [
+    "react"
+  ],
   "description": "Apliteni shared design system & UI kit — tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
   "type": "module",
   "license": "MIT",
