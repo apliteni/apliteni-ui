@@ -105,7 +105,12 @@ import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
 ```
 
 The source lives in [`react/`](./react) — a private workspace with its own build
-(tsup) and Storybook on port 6007. Details in [`react/README.md`](./react/README.md).
+(tsup) and Storybook on port 6007. When 6007 is taken Storybook moves to the next
+free port, so the root Storybook does not trust the number: it probes the range
+6007 can drift into and composes the first port that proves it is this workspace's
+Storybook. A stranger on the port is never composed — the "React components"
+section is absent instead, and the terminal says why. Details in
+[`react/README.md`](./react/README.md).
 
 ## Theming
 
@@ -147,7 +152,7 @@ react/                   # React components — private workspace, built to reac
 
 ```bash
 npm install
-npm run storybook          # http://localhost:6006
+npm run storybook          # http://localhost:6006, or the next free port
 npm run build-storybook    # -> storybook-static/
 node site/build.mjs        # -> site/public/ (landing + kit.css + /storybook)
 ```
@@ -156,7 +161,7 @@ The React components build and test through the workspace (`npm install` at the 
 root covers them — there is no second install):
 
 ```bash
-npm run storybook -w react   # http://localhost:6007
+npm run storybook -w react   # http://localhost:6007, or the next free port
 npm test -w react            # vitest
 npm run build                # tsup -> react/dist/ (also runs on prepare)
 ```
