@@ -23,8 +23,15 @@ test('active tab is selected + focusable; others are not', () => {
 
 test('inactive panels are hidden; active panel is not', () => {
   const html = tabs({ name: 'x', items: ITEMS, active: 0 });
-  assert.match(html, /id="x-panel-0" aria-labelledby="x-tab-0">/); // no hidden attr
-  assert.match(html, /id="x-panel-1" aria-labelledby="x-tab-1" hidden>/);
+  assert.match(html, /id="x-panel-0" aria-labelledby="x-tab-0" tabindex="0">/); // no hidden attr
+  assert.match(html, /id="x-panel-1" aria-labelledby="x-tab-1" tabindex="0" hidden>/);
+});
+
+// The APG asks for this when a panel holds nothing focusable, which is most of
+// them here. Without it the tab strip is reachable and its content is not.
+test('every panel is focusable', () => {
+  const html = tabs({ name: 'x', items: ITEMS });
+  assert.equal((html.match(/role="tabpanel"[^>]*tabindex="0"/g) || []).length, 3);
 });
 
 test('aria wiring pairs each tab with its panel', () => {

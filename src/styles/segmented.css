@@ -24,7 +24,10 @@
   transition: color var(--dur-med) var(--ease), background var(--dur-med) var(--ease);
 }
 .ui-seg button:hover { color: var(--text); }
+/* aria-pressed is what segmented() emits now; aria-selected is kept so markup
+   copied from an older release keeps painting its active pill. */
 .ui-seg button.is-active,
+.ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
   color: var(--strong);
   background: var(--seg-active-bg);

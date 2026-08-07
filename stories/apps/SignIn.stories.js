@@ -26,8 +26,8 @@ export const Default = {
     ${googleBtn}
     <div class="ui-divider">or</div>
     <form style="display:flex;flex-direction:column;gap:18px" onsubmit="return false">
-      ${field({ label: 'Work email', control: input({ type: 'email', placeholder: 'you@apliteni.com', icon: 'mail' }) })}
-      ${field({ label: 'Password', control: input({ type: 'password', placeholder: '••••••••', icon: 'lock' }) })}
+      ${field({ label: 'Work email', required: true, control: input({ type: 'email', placeholder: 'you@apliteni.com', icon: 'mail' }) })}
+      ${field({ label: 'Password', required: true, control: input({ type: 'password', placeholder: '••••••••', icon: 'lock' }) })}
       ${button({ label: 'Sign in', variant: 'primary', block: true, size: 'lg', type: 'submit' })}
     </form>
     <div class="ui-auth__foot">Only <b style="color:var(--dim)">apliteni.com</b> accounts can sign in.</div>
@@ -41,8 +41,8 @@ export const Error = {
     <p class="ui-auth__sub">Access the Apliteni design system.</p>
     ${callout({ variant: 'danger', icon: 'alert', body: "That email and password don't match. Try again or use Google." })}
     <form style="display:flex;flex-direction:column;gap:18px;margin-top:18px" onsubmit="return false">
-      ${field({ label: 'Work email', control: input({ type: 'email', value: 'ada@apliteni.com', icon: 'mail' }) })}
-      ${field({ label: 'Password', error: 'Incorrect password.', control: input({ type: 'password', value: 'wrong', icon: 'lock', invalid: true }) })}
+      ${field({ label: 'Work email', required: true, control: input({ type: 'email', value: 'ada@apliteni.com', icon: 'mail' }) })}
+      ${field({ label: 'Password', required: true, error: 'Incorrect password.', control: input({ type: 'password', value: 'wrong', icon: 'lock', invalid: true }) })}
       ${button({ label: 'Sign in', variant: 'primary', block: true, size: 'lg', type: 'submit' })}
     </form>
   `, 'si2'),

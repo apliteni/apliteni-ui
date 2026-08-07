@@ -33,7 +33,7 @@ const panel = (name, theme) => {
     </div>
     <div class="ui-card" style="padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:13px">
       <div style="display:flex;gap:8px;flex-wrap:wrap">${button({ label: 'Primary', variant: 'primary', size: 'sm' })}${button({ label: 'Secondary', variant: 'secondary', size: 'sm' })}${button({ label: 'Ghost', variant: 'ghost', size: 'sm' })}</div>
-      ${segmented({ options: ['Deck', 'Text'], active: 0, size: 'sm' })}
+      ${segmented({ options: ['Deck', 'Text'], active: 0, size: 'sm', ariaLabel: 'View' })}
       <div style="display:flex;align-items:center;gap:10px">
         <label class="ui-switch"><input type="checkbox" checked aria-label="accent drives every control"><span class="ui-switch__track"></span></label>
         <span style="color:var(--dim);font:400 13px Poppins">accent drives every control</span>

@@ -62,15 +62,34 @@ export function card({ title, sub, body = '', variant, pad, icon: ic } = {}) {
 }
 
 // ---- Segmented control ---------------------------------------------------
-export function segmented({ options = [], active = 0, size, block, name = 'seg' } = {}) {
+// A strip of mutually exclusive toggle buttons — a filter, a unit switch, a
+// language picker. It is NOT a tablist: it controls no panel, so it must not
+// announce one. `role="toolbar"` with a roving tabindex is the honest shape —
+// one Tab stop for the whole strip, ArrowLeft/ArrowRight to move between the
+// options, Home/End to jump to the ends, and `aria-pressed` to say which is on.
+// wireTopbar() ships that keyboard behaviour (see topbar.js); the markup here
+// carries the state it reads.
+//
+// When the pill drives a real change of view with content behind it, reach for
+// tabs() instead — that one owns panels and earns the tab announcement.
+//
+// `ariaLabel` names the strip. `name` seeds data-seg (a hook for callers) and
+// is deliberately not an accessible name — it is an identifier, not prose.
+// Defaults to "Options" so a strip is never left unlabelled, the same way
+// switchToggle() defaults its label.
+export function segmented({ options = [], active = 0, size, block, name = 'seg', ariaLabel = 'Options' } = {}) {
   const cls = cx('ui-seg', size && `ui-seg--${size}`, block && 'ui-seg--block');
+  // Exactly one option holds the Tab stop. If `active` points nowhere (nothing
+  // selected yet) the first option holds it, so the strip is never unreachable.
+  const rove = active >= 0 && active < options.length ? active : 0;
   const btns = options.map((o, i) => {
     const label = typeof o === 'string' ? o : o.label;
     const val = typeof o === 'string' ? o : (o.value ?? o.label);
     const on = i === active;
-    return `<button type="button" role="tab" aria-selected="${on}" data-value="${esc(val)}"${on ? ' class="is-active"' : ''}>${esc(label)}</button>`;
+    return `<button type="button" aria-pressed="${on}" tabindex="${i === rove ? '0' : '-1'}"`
+      + ` data-value="${esc(val)}"${on ? ' class="is-active"' : ''}>${esc(label)}</button>`;
   }).join('');
-  return `<div class="${cls}" role="tablist" data-seg="${name}">${btns}</div>`;
+  return `<div class="${cls}" role="toolbar" aria-label="${esc(ariaLabel)}" data-seg="${name}">${btns}</div>`;
 }
 
 // ---- Accent picker -------------------------------------------------------
@@ -105,8 +124,32 @@ function withControlId(html) {
   const out = html.replace(/<(input|textarea|select)\b/, (m) => { id = nextId('field'); return `${m} id="${id}"`; });
   return { html: out, id };
 }
+// Same trick, for the attributes that carry state rather than identity:
+// aria-describedby, aria-invalid, required. Anything the control already spells
+// out for itself wins — a caller who passed `invalid` to input() keeps their own
+// aria-invalid. `true` renders a bare boolean attribute.
+function withControlAttrs(html, attrs) {
+  const pairs = Object.entries(attrs).filter(([, v]) => v != null && v !== false);
+  if (!pairs.length) return html;
+  return html.replace(/<(input|textarea|select)\b([^>]*?)(\s*\/?)>/, (m, tag, rest, tail) => {
+    const add = pairs
+      .filter(([k]) => !new RegExp(`\\s${k}(?=[\\s=>/]|$)`).test(rest))
+      .map(([k, v]) => (v === true ? ` ${k}` : ` ${k}="${esc(v)}"`))
+      .join('');
+    return `<${tag}${rest}${add}${tail}>`;
+  });
+}
 
-export function field({ label, hint, error, control = '', id } = {}) {
+// A labelled control with, optionally, a hint or an error under it.
+//
+// The label half was wired in #119 (withControlId above → a real `for=`). This
+// finishes the job for the rest: the hint or error gets an id and the control
+// points at it with aria-describedby, so the reason a value was rejected is read
+// out with the field instead of sitting beside it as loose text. An errored
+// control is marked aria-invalid, and `required` puts the requirement in the
+// markup rather than in the label's wording — the asterisk is decoration on top
+// of that, so it is hidden from assistive technology.
+export function field({ label, hint, error, control = '', id, required = false } = {}) {
   let ctl = control;
   let forId = id;
   if (label && control) {
@@ -114,17 +157,29 @@ export function field({ label, hint, error, control = '', id } = {}) {
     ctl = r.html;
     forId = id || r.id;
   }
+  // Error wins over hint — only one message shows, so only one id is minted.
+  const msg = error || hint;
+  const msgId = msg && control ? nextId(error ? 'field-err' : 'field-hint') : null;
+  ctl = withControlAttrs(ctl, {
+    'aria-describedby': msgId,
+    'aria-invalid': error ? 'true' : null,
+    required: required || null,
+  });
   const lab = label
-    ? `<label class="ui-field__label"${forId ? ` for="${forId}"` : ''}>${esc(label)}</label>`
+    ? `<label class="ui-field__label"${forId ? ` for="${forId}"` : ''}>${esc(label)}`
+      + `${required ? '<span class="ui-field__req" aria-hidden="true">*</span>' : ''}</label>`
     : '';
   const foot = error
-    ? `<div class="ui-field__error">${icon('alert')}${esc(error)}</div>`
-    : hint ? `<div class="ui-field__hint">${esc(hint)}</div>` : '';
+    ? `<div class="ui-field__error"${msgId ? ` id="${msgId}"` : ''}>${icon('alert')}${esc(error)}</div>`
+    : hint ? `<div class="ui-field__hint"${msgId ? ` id="${msgId}"` : ''}>${esc(hint)}</div>` : '';
   return `<div class="ui-field">${lab}${ctl}${foot}</div>`;
 }
 // `ariaLabel` gives a standalone control (no wrapping field) an accessible name.
-export function input({ type = 'text', placeholder = '', value = '', icon: ic, invalid, disabled, name, id, ariaLabel } = {}) {
-  const attrs = `${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}${disabled ? ' disabled' : ''}`;
+// `invalid` paints the control red AND says so in aria-invalid — the red on its
+// own is a state only a sighted user can read.
+export function input({ type = 'text', placeholder = '', value = '', icon: ic, invalid, disabled, required, name, id, ariaLabel } = {}) {
+  const attrs = `${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}`
+    + `${invalid ? ' aria-invalid="true"' : ''}${required ? ' required' : ''}${disabled ? ' disabled' : ''}`;
   const el = `<input class="${cx('ui-input', invalid && 'is-invalid')}" type="${type}" placeholder="${esc(placeholder)}" value="${esc(value)}"${attrs}>`;
   if (!ic) return el;
   return `<div class="ui-input-group"><span class="ui-input-group__icon">${icon(ic)}</span>${el}</div>`;

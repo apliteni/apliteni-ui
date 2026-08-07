@@ -49,7 +49,7 @@ export const Default = {
             panel:
               p('Switch the layout and toggle notifications.') +
               row(
-                segmented({ options: ['Comfortable', 'Compact'], active: 0, size: 'sm', name: 'tabs-density' }),
+                segmented({ options: ['Comfortable', 'Compact'], active: 0, size: 'sm', name: 'tabs-density', ariaLabel: 'Row density' }),
                 '<label class="ui-switch"><input type="checkbox" checked aria-label="Email notifications"><span class="ui-switch__track"></span></label>',
               ),
           },

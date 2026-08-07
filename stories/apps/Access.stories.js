@@ -40,7 +40,7 @@ export const Default = {
       ${card({ title: 'Your agents', body: `
         ${tokenTable()}
         <div style="display:flex;gap:10px;margin-top:20px">
-          ${input({ placeholder: 'New agent name — e.g. Research bot' })}
+          ${input({ placeholder: 'New agent name — e.g. Research bot', ariaLabel: 'New agent name' })}
           ${button({ label: 'Create token', variant: 'primary', icon: 'key' })}
         </div>
       ` })}
