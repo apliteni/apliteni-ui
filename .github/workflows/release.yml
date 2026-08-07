@@ -117,6 +117,16 @@ jobs:
       # registry + access from the publishConfig inside the tarball.
       # The path goes through the environment, not string interpolation, so a
       # step output can never be spliced into the shell command itself.
+      #
+      # THE `./` IS LOAD-BEARING. `npm publish <arg>` parses its argument as a
+      # package spec, and a bare `a/b` is GitHub shorthand for owner/repo — so
+      # `npm publish dist-pack/apliteni-apliteni-ui-0.8.0.tgz` does not publish a
+      # file at all. v0.8.0 failed exactly there: npm ran `git ls-remote` against
+      # an ssh GitHub URL built from the path, and died on `Permission denied
+      # (publickey)` — it was resolving a repository named after the tarball.
+      # A leading `./` (or an absolute path) forces the file interpretation.
+      # Reproduce both readings with `npm publish --dry-run` on a path that does
+      # not exist: bare reaches for git, `./`-prefixed reports ENOENT.
       - env:
           TGZ: ${{ steps.tarball.outputs.tgz }}
-        run: npm publish "$TGZ"
+        run: npm publish "./$TGZ"
