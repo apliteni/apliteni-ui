@@ -490,10 +490,11 @@ const sectionChips = () => {
     </div>
     <div class="sc-notes">
       <div class="sc-note"><strong>Green needed no new token.</strong> Six rules wrote
-        ${code('var(--green)')} on ${code('var(--glow-green)')} and landed at
-        ${n2(contrast(green.light, glowHex(green)))}, next to ${code('.ui-badge--live')}, which
-        had used the pair all along and passed at ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}.
-        Each was a one-line repoint at a pair that already existed.</div>
+        ${code('var(--green)')} on ${code('var(--glow-green)')} and landed at 3.97, next to
+        ${code('.ui-badge--live')}, which had used the pair all along and passed at
+        ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}. Each was a one-line repoint at a
+        pair that already existed. (3.97 is what those rules measured at the time; re-tinting
+        ${code('--glow-green')} from ${code('--green')} later moved it to 3.91.)</div>
       <div class="sc-note"><strong>Cyan needed the pair nobody had written.</strong>
         ${code('.ui-badge--info')} was the last chip variant still painting with a raw signal
         token, at ${n2(contrast(cyan.light, glowHex(cyan)))} on its own glow.
