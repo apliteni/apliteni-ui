@@ -229,25 +229,58 @@ for (const theme of ['dark', 'light']) {
 }
 
 /* ---- the glows stay tints of their own token -----------------------------
- * A glow is its own signal at low alpha, and --pink is spent at 10% in two
- * different places: --glow-pink, and the color-mix in .ui-btn--danger:hover. If
- * --pink moves and --glow-pink does not, those two washes become visibly
- * different pinks sitting next to each other in the same app. */
-test('--glow-pink is --pink at its own alpha, in both themes', () => {
-  for (const theme of ['dark', 'light']) {
-    const vars = tokensFor(theme);
-    const pink = resolve('var(--pink)', vars);
-    const glow = resolve('var(--glow-pink)', vars);
-    assert.deepStrictEqual(
-      glow.rgb, pink.rgb,
-      `--glow-pink in ${theme} is rgb(${glow.rgb}) but --pink is rgb(${pink.rgb}).\n`
-      + 'A glow is its own signal at low alpha. Re-tint it, or .ui-btn--danger:hover\n'
-      + '(which mixes --pink at 10% itself) will paint a different wash from every\n'
-      + 'rule that uses --glow-pink.',
-    );
-    assert.ok(glow.alpha > 0 && glow.alpha < 1, `--glow-pink in ${theme} is not translucent`);
+ * A glow is its own colour at low alpha — nothing more. That is not decoration:
+ * the same hue gets spent at low alpha in places that do NOT read --glow-*, so a
+ * glow that drifts off its token puts two different washes of one colour side by
+ * side in the same app. --pink is the worked example: it is spent at 10% both as
+ * --glow-pink and as the color-mix in .ui-btn--danger:hover, and --green the
+ * same, as the color-mix in the .ui-dot.is-live pulse.
+ *
+ * Every glow is gated, in BOTH themes. Dark belongs here for the same reason
+ * light does — it is the same invariant, it already holds for all four, and a
+ * gate that only watched light would let the next hand-authored dark value in
+ * unchallenged. There is no property of a wash that makes drift acceptable in
+ * one theme and not the other.
+ *
+ * Purple pairs with --accent, not --purple, and that is the honest reading
+ * rather than a convenience: in dark --purple is #6a2dcc while --glow-purple is
+ * rgb(155, 93, 255), which is --accent / --purple-light. The purple family has a
+ * base and a bright member and the wash is made from the bright one; light
+ * collapses all three to one value, so --accent is what holds in both.
+ *
+ * Scope is src/tokens/tokens.css. The per-accent overrides in accents.css are
+ * NOT gated here: their purple glows do not agree on one source (dark Phoenix
+ * tints --accent, light Phoenix tints --purple-light, because light's --accent
+ * was deepened for AA in #96 and its glow was not re-tinted with it). Naming
+ * that is a separate decision from this one. */
+const GLOW_PAIRS = {
+  '--glow-green': '--green',
+  '--glow-cyan': '--cyan',
+  '--glow-pink': '--pink',
+  '--glow-purple': '--accent',
+};
+
+for (const theme of ['dark', 'light']) {
+  for (const [glowName, tokenName] of Object.entries(GLOW_PAIRS)) {
+    test(`${glowName} is ${tokenName} at its own alpha — ${theme}`, () => {
+      const vars = tokensFor(theme);
+      const token = resolve(`var(${tokenName})`, vars);
+      const glow = resolve(`var(${glowName})`, vars);
+      assert.deepStrictEqual(
+        glow.rgb, token.rgb,
+        `${glowName} in ${theme} is rgb(${glow.rgb}) but ${tokenName} is rgb(${token.rgb}).\n`
+        + 'A glow is its own colour at low alpha and nothing else. Re-tint it from\n'
+        + `${tokenName}, or every rule that washes with ${glowName} will paint a\n`
+        + `different colour from every rule that mixes ${tokenName} down itself.`,
+      );
+      assert.ok(
+        glow.alpha > 0 && glow.alpha < 1,
+        `${glowName} in ${theme} is not translucent (alpha ${glow.alpha}) — a glow that is\n`
+        + 'opaque is a fill, and the rules that wash with it are no longer washing.',
+      );
+    });
   }
-});
+}
 
 /* ---- the solid toast: a signal that has become the fill --------------------
  * Every rule above paints a signal AS INK. The solid toast inverts that: the
@@ -491,6 +524,38 @@ test('the contrast gate actually measures something', () => {
     tokensFor('dark').get('--pink'),
     tokensFor('light').get('--pink'),
     'both themes resolved the same --pink — the two moves went the same way',
+  );
+});
+
+/* The glow gate is generated from GLOW_PAIRS, so an emptied or stale table would
+ * pass by measuring nothing. The check that matters is not the count: it is that
+ * the table covers EVERY --glow-* the tokens declare. A fifth glow added to
+ * tokens.css and not listed here would otherwise slip in ungated. */
+test('the glow gate actually measures something', () => {
+  const declared = new Set([...TOKENS.matchAll(/(--glow-[\w-]+)\s*:/g)].map((m) => m[1]));
+  assert.ok(declared.size > 0, 'tokens.css declares no --glow-* at all');
+  assert.deepStrictEqual(
+    [...declared].sort(), Object.keys(GLOW_PAIRS).sort(),
+    'GLOW_PAIRS and the --glow-* tokens in tokens.css have come apart.\n'
+    + 'Every glow the tokens declare has to name the colour it is a tint of.',
+  );
+
+  for (const theme of ['dark', 'light']) {
+    const vars = tokensFor(theme);
+    for (const [glowName, tokenName] of Object.entries(GLOW_PAIRS)) {
+      const glow = resolve(`var(${glowName})`, vars);
+      const token = resolve(`var(${tokenName})`, vars);
+      assert.strictEqual(token.alpha, 1, `${tokenName} (${theme}) is not an opaque colour to tint from`);
+      assert.ok(glow.rgb.every(Number.isFinite), `${glowName} (${theme}) resolved to no colour`);
+    }
+  }
+
+  // The themes must genuinely differ, or one is being measured twice and half
+  // the table is invisible. --glow-green is the pair this gate was written for.
+  assert.notDeepStrictEqual(
+    resolve('var(--glow-green)', tokensFor('dark')).rgb,
+    resolve('var(--glow-green)', tokensFor('light')).rgb,
+    'both themes resolved the same --glow-green — the theme split is not working',
   );
 });
 

@@ -254,7 +254,17 @@
   --signal-contrast: #0c0c0c;
   --danger-contrast: #ffffff;
 
-  --glow-green: rgba(30, 150, 50, 0.1);
+  /* Re-tinted from --green. It was rgba(30, 150, 50, .1) — a colour that exists
+     nowhere else in the kit, carried unedited since the initial commit while the
+     other three light glows are exact tints of their own token. The wash over
+     white moves #e9f5eb -> #e8f3ea, at most two levels on a channel, which is
+     0.86 of a deltaE — under the 1.0 that is normally called imperceptible. No
+     verdict moves with it: body copy on the success wash goes 9.29 -> 9.15
+     against the 4.5 AA bar, and the --green icon on it 3.97 -> 3.91 against the
+     3.0 bar WCAG 1.4.11 sets for a graphic. The success chips are untouched —
+     light's --chip-success-fill is the solid #dff3e4, not this. Gated for all
+     four glows in stories/signal-contrast.test.js. See issue #131. */
+  --glow-green: rgba(28, 138, 44, 0.1);
   --glow-purple: rgba(106, 45, 204, 0.09);
   --glow-cyan: rgba(12, 143, 168, 0.1);
   --glow-pink: rgba(182, 51, 97, 0.1);
