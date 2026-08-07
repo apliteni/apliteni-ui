@@ -1,7 +1,6 @@
 import { topbar } from '../../src/components/topbar.js';
 import { footer } from '../../src/components/footer.js';
-import { button, icon, badge } from '../../src/components/index.js';
-import { tabs } from '../../src/components/tabs.js';
+import { button, icon, badge, segmented } from '../../src/components/index.js';
 
 export default {
   title: 'Apps/Landing Page',
@@ -18,14 +17,6 @@ const VERSIONS = [
 // No card-level hover — the only interactive things are the real controls in the
 // demo. Each cell owns a hue (tinted tile + a hairline top edge) so the six read
 // as distinct; the bento layout gives them different footprints on top of that.
-// Micro-demo for a cell whose control genuinely switches what is shown. Wrapped
-// full-width because the demo slot is a flex row and a tab strip plus its panel
-// is a block.
-const demoTabs = (name, ariaLabel, items) =>
-  `<div style="width:100%">${tabs({ name, ariaLabel, active: 0, items })}</div>`;
-
-const demoBlurb = (t) => `<p style="color:var(--dim);font:400 13px/1.6 Poppins;margin:0">${t}</p>`;
-
 const cell = (ic, hue, t, d, demo) => `
   <div class="lx-cell" style="--lx-hue:${hue}">
     <span class="lx-ico">${icon(ic)}</span>
@@ -86,15 +77,9 @@ export const Default = {
         ${cell('shield', 'var(--pink)', 'Access you control', 'Consent screens, per-agent tokens, one-click revoke. You always see who can read what.',
           `<span class="ui-badge ui-badge--live">Read-only</span>${button({ label: 'Revoke', variant: 'danger', size: 'sm' })}`)}
         ${cell('layers', 'var(--amber)', 'Deck or text', 'The same content as an animated deck or a calm long-form. Switch anytime.',
-          demoTabs('lx-view', 'View', [
-            { label: 'Deck', panel: demoBlurb('Slides that move as you do. Made for a room and a big screen.') },
-            { label: 'Text', panel: demoBlurb('One scrollable long-form. Made for search, quoting and rereading.') },
-          ]))}
+          segmented({ ariaLabel: 'View', options: ['Deck', 'Text'], active: 0, size: 'sm', name: 'view' }))}
         ${cell('globe', 'var(--green)', 'English & Russian', 'The whole surface localises, so the team reads it in the language they think in.',
-          demoTabs('lx-lang', 'Language', [
-            { label: 'EN', panel: demoBlurb('One strategy, many agents.') },
-            { label: 'RU', panel: demoBlurb('Одна стратегия, много агентов.') },
-          ]))}
+          segmented({ ariaLabel: 'Language', options: ['EN', 'RU'], active: 0, size: 'sm', name: 'lang' }))}
         ${cell('bolt', 'var(--purple-mid)', 'Always current', 'Versioned cleanly — the live version is at the root, archives keep their own path.',
           `<span class="ui-badge ui-badge--soon">phoenix.2026.002</span>${badge('Live', 'live')}`)}
       </div>
