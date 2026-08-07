@@ -31,14 +31,9 @@
  *     signal ratios below are the same under every accent. One theme axis is
  *     enough.
  *
- * What this does NOT cover, and is worse for the dark --pink move: the solid
- * danger toast (src/styles/callout.css:53 + :87) paints --danger-contrast
- * (#ffffff) ON --pink. White on the old dark pink was already 3.41:1 — under AA
- * before this branch — and on #e97ca5 it is 2.66:1. The two constraints are
- * opposed (fill-ink wants pink lighter, white-on-fill wants it darker) so no
- * single dark pink satisfies both; dark needs its own --danger-contrast or its
- * own deepened chip pair, which is a separate token decision. Gating it here
- * would only pin a failure this branch is not authorised to fix.
+ * The second half of this file gates a different shape of the same rule: the
+ * SOLID toast, where a signal stops being ink and becomes the fill. See the
+ * comment above SOLID_STATUSES.
  */
 import { test } from 'node:test';
 import assert from 'node:assert';
@@ -214,6 +209,7 @@ function measure(rule, theme) {
 }
 
 const show = (n) => n.toFixed(2);
+const hex = (rgb) => `#${rgb.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
 
 for (const theme of ['dark', 'light']) {
   for (const rule of GATED) {
@@ -253,6 +249,120 @@ test('--glow-pink is --pink at its own alpha, in both themes', () => {
   }
 });
 
+/* ---- the solid toast: a signal that has become the fill --------------------
+ * Every rule above paints a signal AS INK. The solid toast inverts that: the
+ * signal becomes the background and something else has to read on top of it.
+ *
+ * The defect this gates is structural, not three bad numbers. callout.css set
+ * the fill (--toast-accent) from the status and the ink (--toast-on) from one of
+ * two globals, on independent axes, so nothing made a status's fill and its ink
+ * clear each other. Four of the ten status x theme combinations did not: dark
+ * danger (white on #e97ca5, 2.66), dark neutral (white on #948fa8, 3.11), light
+ * success (near-black on #1c8a2c, 4.40) and light neutral (near-black on
+ * #5c6270, 3.16). Light success is the proof that no ink could rescue it — that
+ * fill sits mid-range, near-black measures 4.40 and white 4.45, so the FILL had
+ * to move. Fill and ink are one choice.
+ *
+ * The rule that replaces the two axes: a solid fill is the status at its
+ * theme's extreme, and the ink is the pole opposite it. Dark fills are the
+ * bright signals, so one ink (near-black) clears all five; light fills are the
+ * deepened ones, so one ink (white) clears all five. A new status adds one
+ * token, --signal-solid-<status>, on the correct side of its theme's midline,
+ * and inherits the ink — there is no per-status ink decision left to get wrong.
+ *
+ * Both inks a solid toast paints are gated, because the quieter one is where
+ * the pair used to leak away: .ui-toast__text is the message copy, and diluting
+ * it undoes the contrast the pair was picked for. The declared `opacity` is
+ * folded into the ink's alpha here for exactly that reason. */
+const SOLID_STATUSES = ['success', 'danger', 'warn', 'info', 'neutral'];
+const CALLOUT = cssOf('../src/styles/callout.css');
+
+/** Selectors of a rule, comma list split out and trimmed. */
+const selectorsOf = (sel) => sel.split(',').map((s) => s.trim());
+
+/** Custom properties in scope on a `.ui-toast--<status>.ui-toast--solid`, in
+ *  source order so the later rule wins exactly as the cascade makes it win. */
+function solidVars(theme, status) {
+  const vars = new Map(tokensFor(theme));
+  let sawStatus = false;
+  let sawSolid = false;
+  for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
+    const sels = selectorsOf(sel);
+    const isStatus = sels.includes(`.ui-toast--${status}`);
+    const isSolid = sels.includes('.ui-toast--solid');
+    if (!isStatus && !isSolid) continue;
+    sawStatus ||= isStatus;
+    sawSolid ||= isSolid;
+    for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
+  }
+  assert.ok(sawStatus, `.ui-toast--${status} is gone from callout.css`);
+  assert.ok(sawSolid, '.ui-toast--solid is gone from callout.css');
+  return vars;
+}
+
+/** `background` / `color` / `opacity` a `.ui-toast--solid …` selector declares,
+ *  accumulated across every rule that names it. */
+function solidDecl(suffix) {
+  const want = suffix ? `.ui-toast--solid ${suffix}` : '.ui-toast--solid';
+  const out = {};
+  for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
+    if (!selectorsOf(sel).includes(want)) continue;
+    for (const [, prop, value] of body.matchAll(/(?:^|;)\s*(background|color|opacity)\s*:\s*([^;]+)/g)) {
+      out[prop] = value.trim();
+    }
+  }
+  return out;
+}
+
+/** The two inks a solid toast reads as text, measured on the fill it sits on. */
+function measureSolid(status, theme) {
+  const vars = solidVars(theme, status);
+  const base = solidDecl('');
+  assert.ok(base.background, '.ui-toast--solid declares no background');
+  assert.ok(base.color, '.ui-toast--solid declares no color');
+
+  const fill = resolve(base.background, vars);
+  assert.strictEqual(fill.alpha, 1, `a solid toast's fill must be opaque, got ${base.background}`);
+  const ground = composite(fill, resolve('var(--bg)', vars).rgb);
+
+  const inkOf = (suffix) => {
+    const decl = { ...base, ...solidDecl(suffix) };
+    const paint = resolve(decl.color, vars);
+    const alpha = paint.alpha * (decl.opacity === undefined ? 1 : Number(decl.opacity));
+    return { rgb: composite({ rgb: paint.rgb, alpha }, ground), source: decl.color, opacity: decl.opacity };
+  };
+
+  const title = inkOf('.ui-toast__title');
+  const text = inkOf('.ui-toast__text');
+  return {
+    ground,
+    fill: base.background,
+    title: { ...title, ratio: contrast(title.rgb, ground) },
+    text: { ...text, ratio: contrast(text.rgb, ground) },
+  };
+}
+
+for (const theme of ['dark', 'light']) {
+  for (const status of SOLID_STATUSES) {
+    test(`solid ${status} toast clears WCAG AA on its own fill — ${theme}`, () => {
+      const m = measureSolid(status, theme);
+      for (const [part, ink] of [['title', m.title], ['body text', m.text]]) {
+        assert.ok(
+          ink.ratio >= AA,
+          `the ${part} of a solid ${status} toast in ${theme} measures ${show(ink.ratio)}:1, `
+          + `under the ${AA}:1 AA bar.\n`
+          + `It paints color: ${ink.source}`
+          + (ink.opacity === undefined ? '' : ` at opacity ${ink.opacity}`)
+          + ` on background: ${m.fill}, which resolves to ${hex(m.ground)}.\n`
+          + 'A solid fill and its ink are ONE choice: the fill is the status at its\n'
+          + "theme's extreme, the ink is the pole opposite it. Moving one without the\n"
+          + 'other is what this gate exists to stop.',
+        );
+      }
+    });
+  }
+}
+
 /* ---- anti-vacuity --------------------------------------------------------
  * Every assertion above is generated from a list and a set of file reads. If
  * the list emptied, a selector were renamed, or a parse silently returned
@@ -291,5 +401,39 @@ test('the contrast gate actually measures something', () => {
     tokensFor('dark').get('--pink'),
     tokensFor('light').get('--pink'),
     'both themes resolved the same --pink — the two moves went the same way',
+  );
+});
+
+test('the solid-toast gate actually measures something', () => {
+  assert.strictEqual(SOLID_STATUSES.length, 5, 'the solid status list changed size unexpectedly');
+  assert.ok([...CALLOUT.matchAll(RULE)].length > 20, 'callout.css parsed to almost no rules');
+
+  // The two inks must be read from real declarations, not defaulted into
+  // existence: .ui-toast--solid has to state both halves of the pair itself.
+  const base = solidDecl('');
+  assert.ok(base.background && base.color, '.ui-toast--solid stopped declaring its fill and ink');
+
+  for (const theme of ['dark', 'light']) {
+    const grounds = new Set();
+    for (const status of SOLID_STATUSES) {
+      const m = measureSolid(status, theme);
+      for (const ink of [m.title, m.text]) {
+        assert.ok(Number.isFinite(ink.ratio) && ink.ratio > 1, `solid ${status} (${theme}) produced no real ratio`);
+        assert.notDeepStrictEqual(ink.rgb, m.ground, `solid ${status} (${theme}) resolved ink and fill to the same colour`);
+      }
+      // the body copy is diluted, so it can only ever be the weaker of the two;
+      // if it measured better, the dilution is not being modelled at all.
+      assert.ok(m.text.ratio <= m.title.ratio + 0.01, `solid ${status} (${theme}): the body ink is not being diluted`);
+      grounds.add(hex(m.ground));
+    }
+    assert.strictEqual(grounds.size, 5, `${theme}: the five solid statuses do not paint five distinct fills`);
+  }
+
+  // Light and dark must resolve genuinely different fills, or one theme is
+  // being measured twice and half the matrix is invisible.
+  assert.notStrictEqual(
+    hex(measureSolid('success', 'dark').ground),
+    hex(measureSolid('success', 'light').ground),
+    'both themes resolved the same solid success fill — the theme split is not working',
   );
 });

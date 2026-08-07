@@ -164,6 +164,21 @@
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);
 
+  /* Solid signal surfaces — a status that has stopped being ink and become the
+     FILL (a solid toast). The fill and its ink are ONE pair, never two
+     independent picks: the fill is the status at this theme's extreme, and the
+     ink is the pole opposite it, so a single ink clears all five. Dark fills are
+     the bright signals, so the ink is near-black — it measures 15.87 on --green,
+     7.35 on --pink, 13.40 on --amber, 11.75 on --cyan and 6.29 on --muted.
+     Neutral needs no chip pair to take part: --muted is already its
+     fill-strength form. See issues #131 and #149. */
+  --signal-solid-ink: var(--signal-contrast);
+  --signal-solid-success: var(--green);
+  --signal-solid-danger: var(--pink);
+  --signal-solid-warn: var(--amber);
+  --signal-solid-info: var(--cyan);
+  --signal-solid-neutral: var(--muted);
+
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.5);
@@ -250,6 +265,21 @@
      three pairs already sit in. See issue #131. */
   --chip-info-ink: #0a7286;
   --chip-info-fill: #ddeff3;
+
+  /* Light runs the same rule the other way. The signals are mid-tone here — a
+     solid --green fill measures 4.40 against near-black and 4.45 against white,
+     so NO ink rescues it and the fill is what has to move. It moves to the
+     deepened form the chip pair already carries, and the pole above it, white,
+     clears every one: #ffffff measures 5.39 on --chip-success-ink, 6.01 on
+     --chip-danger-ink, 5.70 on --chip-warn-ink, 5.58 on --chip-info-ink and 6.11
+     on --muted. A future status supplies one --signal-solid-* value dark enough
+     for white and inherits the ink. See issues #131 and #149. */
+  --signal-solid-ink: #ffffff;
+  --signal-solid-success: var(--chip-success-ink);
+  --signal-solid-danger: var(--chip-danger-ink);
+  --signal-solid-warn: var(--chip-warn-ink);
+  --signal-solid-info: var(--chip-info-ink);
+  --signal-solid-neutral: var(--muted);
 
   --shadow-sm: 0 1px 3px rgba(30, 30, 50, 0.08);
   --shadow-md: 0 8px 24px rgba(30, 30, 50, 0.1);

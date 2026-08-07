@@ -652,14 +652,27 @@ const sectionDark = () => {
         ${pinkOn(p.dark, p.darkGlow, DARK.surface)} over a card,
         ${pinkOn(p.dark, p.darkGlow, DARK.bg)} over the page. Light went darker, to ${p.light},
         because there the ground is white.</div>
-      <div class="sc-note"><strong>What the dark move costs.</strong> A solid danger fill takes
-        ${code('--danger-contrast')} (white) as its ink — ${code('.ui-toast--danger.ui-toast--solid')}
-        at ${code('src/styles/callout.css:87')}. White on the old dark pink was
+      <div class="sc-note"><strong>What the dark move cost, and what paid for it.</strong> A
+        solid danger fill used to take ${code('--danger-contrast')} (white) as its ink —
+        ${code('.ui-toast--danger.ui-toast--solid')}. White on the old dark pink was
         ${n2(contrast('#ffffff', p.darkWas))}, already under AA; on ${p.dark} it is
         ${n2(contrast('#ffffff', p.dark))}. The two constraints pull opposite ways — ink on the
         wash wants pink lighter, white on the fill wants it darker — so no single dark pink
-        satisfies both. Dark needs its own ${code('--danger-contrast')} or its own deepened
-        chip pair, and that is a separate token decision this branch did not take.</div>
+        satisfies both, and the pink was never the thing to fix. The fill and its ink were
+        being chosen on independent axes. They are now one pair
+        (${code('--signal-solid-*')}): a solid fill is the status at its theme's extreme and
+        the ink is the pole opposite it, so dark keeps ${p.dark} and takes near-black at
+        ${n2(contrast('#0c0c0c', p.dark))}. See the note below.</div>
+      <div class="sc-note"><strong>The same rule, in light.</strong> Light
+        ${code('--green')} is the case that proves fill and ink are one choice: as a solid
+        fill it measures ${n2(contrast('#0c0c0c', '#1c8a2c'))} against near-black and
+        ${n2(contrast('#ffffff', '#1c8a2c'))} against white, so no ink clears it and the fill
+        has to move. Light solid fills now take the deepened chip ink and white on top —
+        ${n2(contrast('#ffffff', '#1f7a38'))} for success. Neutral has no chip pair and needs
+        none: ${code('--muted')} is already its fill-strength form, at
+        ${n2(contrast('#ffffff', '#5c6270'))} in light and
+        ${n2(contrast('#0c0c0c', '#948fa8'))} in dark. All ten status x theme combinations are
+        gated in ${code('stories/signal-contrast.test.js')}.</div>
     </div>
   </section>`;
 };
