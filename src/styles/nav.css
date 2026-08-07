@@ -98,7 +98,7 @@
   color: var(--dim);
 }
 .ui-nav__badge.is-accent { background: var(--glow-purple); color: var(--accent); }
-.ui-nav__badge.is-live { background: var(--glow-green); color: var(--green); }
+.ui-nav__badge.is-live { background: var(--chip-success-fill); color: var(--chip-success-ink); }
 .ui-nav__badge.is-danger { background: var(--glow-pink); color: var(--pink); }
 .ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface-3); color: var(--strong); }
 

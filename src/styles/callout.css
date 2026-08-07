@@ -29,7 +29,7 @@
 /* ----------------------------------------------------------------------------
  * Toast — a floating, dismissible notification.
  * A status (colour) × style (surface) matrix, entirely token-driven:
- *   status  success · danger · warn · info · neutral  → sets --toast-accent/-glow/-on
+ *   status  success · danger · warn · info · neutral  → sets --toast-accent/-glow/-on/-solid
  *   style   soft (tinted) · solid (filled) · outline (bordered)
  * -------------------------------------------------------------------------- */
 .ui-toast {
@@ -47,13 +47,16 @@
   animation: ui-toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* status → the paint tokens every style below consumes (--toast-on = the ink
-   that reads on the accent when it becomes a fill) */
-.ui-toast--success { --toast-accent: var(--green); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); }
-.ui-toast--danger  { --toast-accent: var(--pink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); }
-.ui-toast--warn    { --toast-accent: var(--amber); --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); }
-.ui-toast--info    { --toast-accent: var(--cyan);  --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); }
-.ui-toast--neutral { --toast-accent: var(--muted); --toast-glow: var(--surface-2); --toast-on: var(--strong); }
+/* status → the paint tokens every style below consumes.
+   --toast-accent is the status as a line or a small mark, --toast-glow its wash,
+   --toast-on the glyph ink on the accent circle. --toast-solid is separate on
+   purpose: a full fill is a different job from a 22px circle, and it is chosen
+   as a PAIR with --signal-solid-ink rather than against a global. See #149. */
+.ui-toast--success { --toast-accent: var(--green); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); }
+.ui-toast--danger  { --toast-accent: var(--pink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); }
+.ui-toast--warn    { --toast-accent: var(--amber); --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }
+.ui-toast--info    { --toast-accent: var(--cyan);  --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
+.ui-toast--neutral { --toast-accent: var(--muted); --toast-glow: var(--surface-2); --toast-on: var(--strong); --toast-solid: var(--signal-solid-neutral); }
 
 /* left status marker (soft + outline; solid is already a full fill) */
 .ui-toast--soft::before,
@@ -83,17 +86,32 @@
 /* style: soft — tinted surface */
 .ui-toast--soft { background: var(--toast-glow); box-shadow: var(--shadow-sm); }
 
-/* style: solid — filled accent, ink flips to --toast-on */
-.ui-toast--solid { background: var(--toast-accent); color: var(--toast-on); box-shadow: var(--shadow-lg); }
-.ui-toast--solid .ui-toast__title,
-.ui-toast--solid .ui-toast__text { color: var(--toast-on); }
-.ui-toast--solid .ui-toast__text { opacity: 0.82; }
-.ui-toast--solid .ui-toast__icon { background: color-mix(in srgb, var(--toast-on) 22%, transparent); color: var(--toast-on); }
-.ui-toast--solid .ui-toast__action { color: var(--toast-on); }
-.ui-toast--solid .ui-toast__action:hover { background: color-mix(in srgb, var(--toast-on) 18%, transparent); }
-.ui-toast--solid .ui-toast__close { color: color-mix(in srgb, var(--toast-on) 68%, transparent); }
-.ui-toast--solid .ui-toast__close:hover { color: var(--toast-on); }
-.ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-on) 55%, transparent); }
+/* style: solid — the status at fill strength, inked with the pole opposite it.
+   The fill and the ink are one pair, taken together from --signal-solid-*: dark
+   fills are the bright signals and take near-black, light fills are the deepened
+   ones and take white. What this replaced picked the fill from the status and
+   the ink from one of two globals, on independent axes, so nothing made them
+   clear each other — and four of the ten status x theme combinations did not.
+   Gated for all ten in stories/signal-contrast.test.js. See #149. */
+.ui-toast--solid {
+  --toast-ink: var(--signal-solid-ink);
+  background: var(--toast-solid);
+  color: var(--toast-ink);
+  box-shadow: var(--shadow-lg);
+}
+.ui-toast--solid .ui-toast__title { color: var(--toast-ink); }
+/* The body copy is the quieter of the two, but it stays quiet by dilution the
+   pair can carry: 90% of the ink measures 4.71 on the worst fill in the matrix
+   (--chip-success-ink in light). The opacity: 0.82 this replaced measured 4.19
+   there, and 2.25 on the dark danger fill — the pair was correct and the
+   dilution then spent it. */
+.ui-toast--solid .ui-toast__text { color: color-mix(in srgb, var(--toast-ink) 90%, transparent); }
+.ui-toast--solid .ui-toast__icon { background: color-mix(in srgb, var(--toast-ink) 22%, transparent); color: var(--toast-ink); }
+.ui-toast--solid .ui-toast__action { color: var(--toast-ink); }
+.ui-toast--solid .ui-toast__action:hover { background: color-mix(in srgb, var(--toast-ink) 18%, transparent); }
+.ui-toast--solid .ui-toast__close { color: color-mix(in srgb, var(--toast-ink) 68%, transparent); }
+.ui-toast--solid .ui-toast__close:hover { color: var(--toast-ink); }
+.ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-ink) 55%, transparent); }
 
 /* style: outline — elevated card with a status-tinted border */
 .ui-toast--outline { background: var(--bg-elevated); box-shadow: var(--shadow-md); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); }

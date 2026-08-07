@@ -109,7 +109,12 @@
   --purple-mid: #b479ff;
   --cyan: #20dcf5;
   --green: #98ff8f;
-  --pink: #e35b8f;
+  /* Lighter than it looks like it should be, and deliberately so: --pink is read
+     mostly ON its own 16% glow, and that wash lifts the ground faster than the
+     hue lifts the ink. #e35b8f measured 3.82:1 on --glow-pink over a card —
+     under AA — so danger moved AWAY from the canvas, not toward it. Light moves
+     the opposite way for the same reason. See issue #131. */
+  --pink: #e97ca5;
   --amber: #ffcf6a;
 
   --bg: #16151f;
@@ -136,16 +141,25 @@
   --ink: #e9e7f0;
 
   /* Ink that reads on a SIGNAL colour once that colour becomes a fill — the
-     glyph in a success circle, the text in a solid toast. The signal hues sit
-     high enough in dark and mid-tone in light that near-black wins on all of
-     them; the pink danger fill deliberately takes light ink instead. */
+     glyph in a success circle, the glyph on a toast's status circle.
+     In dark every signal is a bright hue, so one near-black ink clears all
+     five: 15.87 on --green, 7.35 on --pink, 13.40 on --amber, 11.75 on --cyan
+     and 6.29 on --muted. Danger keeps a token of its own only because LIGHT
+     still needs it: there the signals are deepened to read as ink on white,
+     which parks them mid-luminance, and --pink is the one that comes out ahead
+     against white (5.78) rather than against near-black (3.39).
+     Dark danger was white until now, which was correct while --pink was
+     #e35b8f. Issue #131 lightened it to #e97ca5 to clear AA as INK on its own
+     glow, and that carried the fill up past the point where white could read on
+     it — 2.66 on the toast's status circle, under the 3:1 of WCAG 1.4.11. The
+     ten status x theme icon pairs are gated in stories/signal-contrast.test.js. */
   --signal-contrast: #0c0c0c;
-  --danger-contrast: #ffffff;
+  --danger-contrast: var(--signal-contrast);
 
   --glow-green: rgba(152, 255, 143, 0.16);
   --glow-purple: rgba(155, 93, 255, 0.18);
   --glow-cyan: rgba(32, 220, 245, 0.14);
-  --glow-pink: rgba(227, 91, 143, 0.16);
+  --glow-pink: rgba(233, 124, 165, 0.16);
 
   /* Status-chip paint — the ink + fill of a badge / pill. Dark tints with the
      signal's own glow; light needs a solid, deepened pair (the glows wash out
@@ -158,6 +172,21 @@
   --chip-danger-fill: var(--glow-pink);
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);
+
+  /* Solid signal surfaces — a status that has stopped being ink and become the
+     FILL (a solid toast). The fill and its ink are ONE pair, never two
+     independent picks: the fill is the status at this theme's extreme, and the
+     ink is the pole opposite it, so a single ink clears all five. Dark fills are
+     the bright signals, so the ink is near-black — it measures 15.87 on --green,
+     7.35 on --pink, 13.40 on --amber, 11.75 on --cyan and 6.29 on --muted.
+     Neutral needs no chip pair to take part: --muted is already its
+     fill-strength form. See issues #131 and #149. */
+  --signal-solid-ink: var(--signal-contrast);
+  --signal-solid-success: var(--green);
+  --signal-solid-danger: var(--pink);
+  --signal-solid-warn: var(--amber);
+  --signal-solid-info: var(--cyan);
+  --signal-solid-neutral: var(--muted);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -193,7 +222,11 @@
   --purple-mid: #7a3be0;
   --cyan: #0c8fa8;
   --green: #1c8a2c;
-  --pink: #d63c72;
+  /* Deeper than the dark pink for the same reason dark's is lighter: the wash
+     under it is white, so the ink has to come down to meet it. #d63c72 measured
+     3.87:1 on --glow-pink over white and 4.42:1 on plain white — the required
+     marker and the form error missed AA on nothing at all. See issue #131. */
+  --pink: #b63361;
   --amber: #b5730a;
 
   /* A WHITE app: the page and cards are both white; cards are delineated by a
@@ -224,11 +257,11 @@
   --glow-green: rgba(30, 150, 50, 0.1);
   --glow-purple: rgba(106, 45, 204, 0.09);
   --glow-cyan: rgba(12, 143, 168, 0.1);
-  --glow-pink: rgba(214, 60, 114, 0.1);
+  --glow-pink: rgba(182, 51, 97, 0.1);
 
   /* Solid chip pairs for the white app. Each ink is deepened past its signal
      hue so 10px uppercase text clears WCAG AA on its own pale fill —
-     e.g. --pink (#d63c72) on #fbe0ea is 3.6:1, #b7295f is 4.9:1. */
+     e.g. --pink (#b63361) on #fbe0ea is 4.66:1, #b7295f is 4.85:1. */
   --chip-success-ink: #1f7a38;
   --chip-success-fill: #dff3e4;
   --chip-warn-ink: #8a5e00;
@@ -241,6 +274,21 @@
      three pairs already sit in. See issue #131. */
   --chip-info-ink: #0a7286;
   --chip-info-fill: #ddeff3;
+
+  /* Light runs the same rule the other way. The signals are mid-tone here — a
+     solid --green fill measures 4.40 against near-black and 4.45 against white,
+     so NO ink rescues it and the fill is what has to move. It moves to the
+     deepened form the chip pair already carries, and the pole above it, white,
+     clears every one: #ffffff measures 5.39 on --chip-success-ink, 6.01 on
+     --chip-danger-ink, 5.70 on --chip-warn-ink, 5.58 on --chip-info-ink and 6.11
+     on --muted. A future status supplies one --signal-solid-* value dark enough
+     for white and inherits the ink. See issues #131 and #149. */
+  --signal-solid-ink: #ffffff;
+  --signal-solid-success: var(--chip-success-ink);
+  --signal-solid-danger: var(--chip-danger-ink);
+  --signal-solid-warn: var(--chip-warn-ink);
+  --signal-solid-info: var(--chip-info-ink);
+  --signal-solid-neutral: var(--muted);
 
   --shadow-sm: 0 1px 3px rgba(30, 30, 50, 0.08);
   --shadow-md: 0 8px 24px rgba(30, 30, 50, 0.1);

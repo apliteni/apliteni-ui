@@ -102,7 +102,7 @@
   color: var(--muted);
   background: var(--surface);
 }
-.ui-dropdown__badge.is-live { color: var(--green); background: var(--glow-green); }
+.ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 .ui-dropdown__badge.is-accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
 
 /* Disabled + danger rows */
