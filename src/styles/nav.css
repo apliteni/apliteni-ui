@@ -304,7 +304,9 @@ a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-nav-try--rhythm .ui-nav__ic { width: var(--space-5); justify-content: flex-start; }
 .ui-nav-try--rhythm .ui-nav__badge { height: var(--space-5); min-width: var(--space-5); }
 /* The guide descends from the icon axis; the child gutter carries the whole
-   indent, so a child label lands back on the parent's text axis. */
+   indent, so a child label lands back on the parent's text axis. The `- 1px`
+   below is the guide's own hairline, subtracted so the label lands on 84px
+   rather than 85px — the kit has no border-width token to name it with. */
 .ui-nav-try--rhythm .ui-nav__sub {
   margin: var(--space-1) 0 var(--space-1) var(--space-3);
   padding-left: 0;
