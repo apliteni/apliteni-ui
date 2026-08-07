@@ -149,7 +149,7 @@
   flex: none;
   margin-top: 1px;
 }
-.vbadge.live { color: var(--green); background: var(--glow-green); }
+.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 .vbadge.arch { color: var(--muted); background: var(--surface); }
 @media (max-width: 600px) { .vsw__btn .lbl { display: none; } }
 

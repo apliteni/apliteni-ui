@@ -109,7 +109,12 @@
   --purple-mid: #b479ff;
   --cyan: #20dcf5;
   --green: #98ff8f;
-  --pink: #e35b8f;
+  /* Lighter than it looks like it should be, and deliberately so: --pink is read
+     mostly ON its own 16% glow, and that wash lifts the ground faster than the
+     hue lifts the ink. #e35b8f measured 3.82:1 on --glow-pink over a card —
+     under AA — so danger moved AWAY from the canvas, not toward it. Light moves
+     the opposite way for the same reason. See issue #131. */
+  --pink: #e97ca5;
   --amber: #ffcf6a;
 
   --bg: #16151f;
@@ -145,7 +150,7 @@
   --glow-green: rgba(152, 255, 143, 0.16);
   --glow-purple: rgba(155, 93, 255, 0.18);
   --glow-cyan: rgba(32, 220, 245, 0.14);
-  --glow-pink: rgba(227, 91, 143, 0.16);
+  --glow-pink: rgba(233, 124, 165, 0.16);
 
   /* Status-chip paint — the ink + fill of a badge / pill. Dark tints with the
      signal's own glow; light needs a solid, deepened pair (the glows wash out
@@ -193,7 +198,11 @@
   --purple-mid: #7a3be0;
   --cyan: #0c8fa8;
   --green: #1c8a2c;
-  --pink: #d63c72;
+  /* Deeper than the dark pink for the same reason dark's is lighter: the wash
+     under it is white, so the ink has to come down to meet it. #d63c72 measured
+     3.87:1 on --glow-pink over white and 4.42:1 on plain white — the required
+     marker and the form error missed AA on nothing at all. See issue #131. */
+  --pink: #b63361;
   --amber: #b5730a;
 
   /* A WHITE app: the page and cards are both white; cards are delineated by a
@@ -224,11 +233,11 @@
   --glow-green: rgba(30, 150, 50, 0.1);
   --glow-purple: rgba(106, 45, 204, 0.09);
   --glow-cyan: rgba(12, 143, 168, 0.1);
-  --glow-pink: rgba(214, 60, 114, 0.1);
+  --glow-pink: rgba(182, 51, 97, 0.1);
 
   /* Solid chip pairs for the white app. Each ink is deepened past its signal
      hue so 10px uppercase text clears WCAG AA on its own pale fill —
-     e.g. --pink (#d63c72) on #fbe0ea is 3.6:1, #b7295f is 4.9:1. */
+     e.g. --pink (#b63361) on #fbe0ea is 4.66:1, #b7295f is 4.85:1. */
   --chip-success-ink: #1f7a38;
   --chip-success-fill: #dff3e4;
   --chip-warn-ink: #8a5e00;

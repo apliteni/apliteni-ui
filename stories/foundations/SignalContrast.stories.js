@@ -80,13 +80,23 @@ const FAMILIES = [
     key: 'pink',
     token: '--pink',
     role: 'danger / revoke',
-    light: '#d63c72',
-    // --glow-pink: rgba(214, 60, 114, 0.1) — the same rgb as --pink.
-    glow: { rgb: [214, 60, 114], a: 0.1, sameAsToken: true },
-    // CANDIDATES — proposed replacements for the light --pink. Not in the kit.
-    steps: [{ label: '10% darker', hex: '#c13667' }, { label: '15% darker', hex: '#b63361' }],
-    dark: '#e35b8f',
-    darkGlow: { rgb: [227, 91, 143], a: 0.16 },
+    // Pink is the family that took Option A: the token itself moved, in both
+    // themes and in opposite directions. `light`/`dark` are the SHIPPED values;
+    // `was` and `darkWas` are what they replaced, kept so the two sit side by
+    // side. Both glows were re-tinted from the new value, so they stay the
+    // signal at its own alpha.
+    light: '#b63361',
+    was: '#d63c72',
+    // --glow-pink: rgba(182, 51, 97, 0.1) — the same rgb as --pink.
+    glow: { rgb: [182, 51, 97], a: 0.1, sameAsToken: true },
+    glowWas: { rgb: [214, 60, 114], a: 0.1 },
+    // No candidates left to weigh: the 15% step is the shipped value, and the
+    // 10% step (#c13667, 4.35 on its own glow) lost because it stayed under AA.
+    steps: [],
+    dark: '#e97ca5',
+    darkWas: '#e35b8f',
+    darkGlow: { rgb: [233, 124, 165], a: 0.16 },
+    darkGlowWas: { rgb: [227, 91, 143], a: 0.16 },
     specimen: 'Revoke access',
     short: 'Revoke',
     // The nav row has no type-only class to borrow; these three values are
@@ -287,28 +297,33 @@ const liveSpecimen = (title, stage, caption, pairs) => `
 
 const sectionLive = () => {
   const pinkGlow = glowHex(byKey.pink);
-  const cyanGlow = glowHex(byKey.cyan);
-  const greenGlow = glowHex(byKey.green);
   const dGlow = (f) => washed(f.darkGlow.rgb, f.darkGlow.a, DARK.surface);
 
   const num = (ink, bg) => {
     const r = contrast(ink, bg);
     return [n2(r), r >= AA];
   };
-  const both = (f, lightBg, darkBg) => {
-    const [lr, lp] = num(f.light, lightBg);
-    const [dr, dp] = num(f.dark, darkBg);
+  const pair = (lInk, lBg, dInk, dBg) => {
+    const [lr, lp] = num(lInk, lBg);
+    const [dr, dp] = num(dInk, dBg);
     return [['light', lr, lp], ['dark', dr, dp]];
   };
+  const both = (f, lightBg, darkBg) => pair(f.light, lightBg, f.dark, darkBg);
+  // The two success/info chips route through --chip-*-ink / --chip-*-fill, which
+  // is a solid pair in light and an alias to the signal + its glow in dark. So
+  // light reads the pair's own hexes and dark still reads the signal on its wash.
+  const chip = (name, f) => pair(CHIP[name].ink, CHIP[name].fill, f.dark, dGlow(f));
 
   return `
   <section class="sc-sec">
     <div class="sc-sec__head">
       <div class="sc-kicker">1 — Where it lands</div>
-      <h2>Four places the kit puts a signal colour on a wash of itself</h2>
+      <h2>The four places that failed, as the kit draws them now</h2>
       <p>These are live components: they follow the toolbar theme, so switch to light to see
-      the failing pairs as drawn. The numbers beside each are fixed measurements of both
-      themes' token values.</p>
+      what the fix does. Each pair used to miss AA and now clears it, by one of the two routes
+      below — the pill and the badge were repointed at a chip pair, the nav row and the field
+      follow ${code('--pink')}, which moved. The numbers beside each are fixed measurements of
+      both themes' token values.</p>
     </div>
     <div class="sc-live sc-hover">
       ${liveSpecimen(
@@ -327,14 +342,14 @@ const sectionLive = () => {
       ${liveSpecimen(
         'Live pill',
         pill('Live', 'live'),
-        `${code('--green')} on ${code('--glow-green')} — ${code('src/styles/badge.css:57')}`,
-        both(byKey.green, greenGlow, dGlow(byKey.green)),
+        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:60')}`,
+        chip('success', byKey.green),
       )}
       ${liveSpecimen(
         'Info badge',
         badge('Preview', 'info'),
-        `${code('--cyan')} on ${code('--glow-cyan')} — ${code('src/styles/badge.css:27')}`,
-        both(byKey.cyan, cyanGlow, dGlow(byKey.cyan)),
+        `now ${code('--chip-info-*')} — ${code('src/styles/badge.css:27')}`,
+        chip('info', byKey.cyan),
       )}
       ${liveSpecimen(
         'Required marker and field error',
@@ -350,9 +365,11 @@ const sectionLive = () => {
       )}
     </div>
     <div class="sc-notes">
-      <div class="sc-note">The field is the control case. Its ${code('--pink')} sits on plain white,
-        with nothing washed under it, and it still misses AA — so the wash is not the whole
-        problem, only the part that makes a near miss a clear one.</div>
+      <div class="sc-note">The field is the control case, and it is why pink could not be
+        fixed by repointing consumers. Its ${code('--pink')} sits on plain white with nothing
+        washed under it, and it missed AA there too — ${n2(contrast(byKey.pink.was, LIGHT.surface))}
+        on white alone. The wash was never the whole problem, only the part that turned a near
+        miss into a clear one, so the token itself had to move.</div>
     </div>
   </section>`;
 };
@@ -413,19 +430,42 @@ const sectionWhy = () => `
 // ===========================================================================
 // 3 — The candidates
 // ===========================================================================
+// A family that shipped a move gets two rows — what it was, then what it is —
+// each measured against ITS OWN glow, because the glow moved with it. A family
+// that did not move keeps one row plus its untaken candidates, all measured
+// against the one glow that is still in the kit.
+const lightRows = (f) => {
+  const gh = glowHex(f);
+  const before = f.was
+    ? [{
+      label: 'before this branch', hex: f.was, note: `${f.token} until issue #131`,
+      glow: washed(f.glowWas.rgb, f.glowWas.a, LIGHT.surface), glowLabel: 'its glow then',
+    }]
+    : [];
+  return before
+    .concat([{
+      label: f.was ? 'shipped' : 'today', hex: f.light, note: `${f.token} as the kit resolves it`,
+      glow: gh, glowLabel: f.was ? 'its glow now' : "today's glow",
+    }])
+    .concat(f.steps.map((s) => ({
+      label: s.label, hex: s.hex, note: 'candidate, not taken',
+      glow: gh, glowLabel: "today's glow",
+    })));
+};
+
 const sectionCandidates = () => `
   <section class="sc-sec">
     <div class="sc-sec__head">
-      <div class="sc-kicker">3 — Option A: move the signal token</div>
-      <h2>Today's value and the darker steps, on all three surfaces</h2>
-      <p>Each row is one candidate for the light-theme token; each column is a surface the
-      kit draws it on. Same specimen, same size, same AA line. Changing the token changes
-      every consumer of it.</p>
+      <div class="sc-kicker">3 — Option A: move the signal token — light</div>
+      <h2>What pink was, what it is now, and the steps cyan and green did not take</h2>
+      <p>Each row is one value for a light-theme token; each column is a surface the kit draws
+      it on. Same specimen, same size, same AA line. Pink is the family that took this route,
+      so it has a before row and a shipped row, each on its own glow — read it against the
+      matching pair in section 5, where dark moved the opposite way. Cyan and green kept their
+      tokens; their darker steps stay here as the option that was weighed.</p>
     </div>
     ${FAMILIES.map((f) => {
-      const gh = glowHex(f);
-      const rows = [{ label: 'today', hex: f.light, note: `${f.token} as shipped` }]
-        .concat(f.steps.map((s) => ({ label: s.label, hex: s.hex, note: 'candidate' })));
+      const rows = lightRows(f);
       return `
       <div class="sc-panel">
         <div class="sc-panel__head">
@@ -438,7 +478,7 @@ const sectionCandidates = () => `
             <div class="sc-surfaces">
               ${cell(`on white — ${code('--surface')}`, r.hex, LIGHT.surface, f)}
               ${cell(`on ${code('--surface-2')}`, r.hex, LIGHT.surface2, f)}
-              ${cell(`on today's glow — ${gh}`, r.hex, gh, f)}
+              ${cell(`on ${r.glowLabel} — ${r.glow}`, r.hex, r.glow, f)}
             </div>
           </div>`).join('')}
       </div>`;
@@ -447,46 +487,48 @@ const sectionCandidates = () => `
       <div class="sc-note">${code('--surface-2')} is a reference column, not a live failure:
         no kit rule sets signal-coloured <em>text</em> on it. ${code('.ui-input.is-invalid')}
         puts ${code('--pink')} on it as a border, and a border is held to 3:1, which it clears.</div>
-      <div class="sc-note">Cyan is the awkward one. Its 15% step still lands under the line on
-        its own glow, so it is the only family where the step that works is 20%.</div>
+      <div class="sc-note">Cyan and green kept their tokens: their candidate rows are here as
+        the option that was weighed and not taken. Cyan is the awkward one — its 15% step still
+        lands under the line on its own glow, so 20% was the first step that would have worked,
+        and that hex became ${code('--chip-info-ink')} in section 4 instead.</div>
       <div class="sc-note">${retintNote()}</div>
     </div>
   </section>`;
 
-// The glow tokens are literal rgba() of today's signal values, so moving a
-// signal token on its own leaves its wash exactly where it is — which is what
-// the third column above measures. This works out what happens if the wash is
-// re-tinted from the candidate as well, because that is a second decision and
-// somebody will ask.
+// The glow tokens hold literal rgba() of their signal, so moving a signal token
+// leaves its wash behind unless the wash is re-tinted too. Pink's was, and this
+// prices that second decision from the values actually in the kit.
 const retintNote = () => {
-  const rows = FAMILIES.flatMap((f) => f.steps.map((s) => {
-    const today = contrast(s.hex, glowHex(f));
-    const moved = contrast(s.hex, washed(rgb(s.hex), f.glow.a, LIGHT.surface));
-    return { today, moved, drop: today - moved };
-  }));
-  const passing = rows.filter((r) => r.today >= AA);
-  const tightest = passing.reduce((a, b) => (b.moved < a.moved ? b : a));
-  const drops = passing.map((r) => r.drop);
-  return `The wash tokens hold literal <code class="sc-code">rgba()</code> of today's signal
-    values, so moving a signal token on its own leaves its wash where it is — that is the
-    third column above. Re-tinting the wash from the candidate too is a second decision, and
-    it costs between ${Math.min(...drops).toFixed(2)} and ${Math.max(...drops).toFixed(2)}.
-    It flips no verdict here: the tightest candidate would go from
-    ${n2(tightest.today)} to ${n2(tightest.moved)}, still over the line.`;
+  const p = byKey.pink;
+  // Ratio of the new pink against the wash it would have inherited (old rgb)
+  // versus the wash it actually got (new rgb).
+  const kept = (glowRgb, a, base) => contrast(p.light, washed(glowRgb, a, base));
+  const lightKept = kept(p.glowWas.rgb, p.glowWas.a, LIGHT.surface);
+  const lightGot = kept(p.glow.rgb, p.glow.a, LIGHT.surface);
+  const dKept = contrast(p.dark, washed(p.darkGlowWas.rgb, p.darkGlowWas.a, DARK.surface));
+  const dGot = contrast(p.dark, washed(p.darkGlow.rgb, p.darkGlow.a, DARK.surface));
+  return `<strong>The wash moved with the token.</strong> ${code('--glow-pink')} holds a literal
+    <code class="sc-code">rgba()</code>, so it had to be re-tinted by hand or pink would have
+    become the second family — after green — whose wash is a tint of a different colour from
+    the ink laid on it. It also keeps ${code('.ui-btn--danger:hover')} honest: that rule mixes
+    ${code('--pink')} at 10% itself, so a frozen ${code('--glow-pink')} would have put two
+    different pink washes side by side in the same app. The cost is small and flips no verdict:
+    light goes ${n2(lightKept)} → ${n2(lightGot)}, dark over a card ${n2(dKept)} → ${n2(dGot)}.`;
 };
 
 // ===========================================================================
 // 4 — Option B: the chip inks
 // ===========================================================================
-// Existing light chip pairs, copied from :root[data-theme="light"] in
-// src/tokens/tokens.css. The info pair is the one that was never written; the
-// value shown for it is a CANDIDATE.
+// The light chip pairs, copied from :root[data-theme="light"] in
+// src/tokens/tokens.css. All four now exist — info was written when the info
+// badge was repointed at it.
 const CHIPS = [
-  { name: '--chip-danger-*', ink: '#b7295f', fill: '#fbe0ea', label: 'Revoked', state: 'exists' },
-  { name: '--chip-warn-*', ink: '#8a5e00', fill: '#fbedd2', label: 'Pending', state: 'exists' },
-  { name: '--chip-success-*', ink: '#1f7a38', fill: '#dff3e4', label: 'Live', state: 'exists' },
-  { name: '--chip-info-*', ink: '#0a7286', fill: '#ddeff3', label: 'Preview', state: 'candidate' },
+  { key: 'danger', name: '--chip-danger-*', ink: '#b7295f', fill: '#fbe0ea', label: 'Revoked' },
+  { key: 'warn', name: '--chip-warn-*', ink: '#8a5e00', fill: '#fbedd2', label: 'Pending' },
+  { key: 'success', name: '--chip-success-*', ink: '#1f7a38', fill: '#dff3e4', label: 'Live' },
+  { key: 'info', name: '--chip-info-*', ink: '#0a7286', fill: '#ddeff3', label: 'Preview' },
 ];
+const CHIP = Object.fromEntries(CHIPS.map((c) => [c.key, c]));
 
 const chipCell = (c) => {
   const r = contrast(c.ink, c.fill);
@@ -496,7 +538,7 @@ const chipCell = (c) => {
       <span class="ui-badge" style="color:${c.ink};background:${c.fill}">${c.label}</span>
       <div class="sc-meta"><span class="sc-name">${code(c.name)}</span><b>${n2(r)}</b></div>
       <div class="sc-bar${pass ? ' is-pass' : ''}"><span class="sc-bar__fill" style="width:${pctOf(r).toFixed(2)}%"></span></div>
-      <div class="sc-verdict${pass ? ' is-pass' : ''}">${c.state === 'exists' ? 'In the kit today, and it' : 'A candidate, and it would'} ${pass ? 'clears AA' : 'miss AA'}</div>
+      <div class="sc-verdict${pass ? ' is-pass' : ''}">In the kit today, and it ${pass ? 'clears AA' : 'misses AA'}</div>
     </div>`;
 };
 
@@ -507,37 +549,41 @@ const sectionChips = () => {
   <section class="sc-sec">
     <div class="sc-sec__head">
       <div class="sc-kicker">4 — Option B: leave the signal tokens alone</div>
-      <h2>The light theme already carries deepened inks for chips. Three of the four exist.</h2>
-      <p>A chip pair is a solid ink on a solid fill — no wash, nothing composited. Danger,
-      warning and success each have one and each clears AA. Info was never written. Routing
-      the failing consumers through this set moves no signal colour, so nothing outside a
-      status chip changes appearance.</p>
+      <h2>The light theme carries deepened inks for chips. All four now exist, and green and
+      cyan were fixed here rather than by moving a token.</h2>
+      <p>A chip pair is a solid ink on a solid fill — no wash, nothing composited. Routing a
+      failing chip through this set moves no signal colour, so nothing outside a status chip
+      changes appearance. That is why every green and cyan failure took this route and neither
+      token moved.</p>
     </div>
     <div class="sc-panel">
       <div class="sc-chips">${CHIPS.map(chipCell).join('')}</div>
     </div>
     <div class="sc-notes">
-      <div class="sc-note"><strong>Green needs no new token.</strong>
-        ${code('.ui-badge--live')} already uses ${code('--chip-success-*')} and passes at
-        ${n2(contrast('#1f7a38', '#dff3e4'))}. ${code('.ui-pill--live')} at
-        ${code('src/styles/badge.css:57')} bypasses it and writes ${code('var(--green)')} on
-        ${code('var(--glow-green)')} instead, which is why it lands at
-        ${n2(contrast(green.light, glowHex(green)))}. Pointing it at the pair that already
-        exists is a one-line change with no token added.</div>
-      <div class="sc-note"><strong>Cyan needs the pair that was never written.</strong>
-        ${code('.ui-badge--info')} at ${code('src/styles/badge.css:27')} is the only chip
-        variant still painting with a raw signal token. The candidate above is
-        ${code('#0a7286')} on ${code('#ddeff3')} at ${n2(contrast('#0a7286', '#ddeff3'))} —
-        inside the band the other three pairs already occupy
-        (${n2(contrast('#1f7a38', '#dff3e4'))}–${n2(contrast('#8a5e00', '#fbedd2'))}). The ink
-        is the same hex as cyan's 20% step in section 3.</div>
-      <div class="sc-note"><strong>Pink is where the two options stop being equivalent.</strong>
-        ${code('--chip-danger-ink')} clears everything —
-        ${n2(contrast('#b7295f', LIGHT.surface))} on white,
-        ${n2(contrast('#b7295f', glowHex(byKey.pink)))} on the pink glow — but the failing pink
-        consumers are not chips. ${code('.ui-nav__item.is-danger:hover')} is a hover state and
-        ${code('.ui-field__req')} and ${code('.ui-field__error')} are form text. Routing those
-        through a chip token means giving a chip token a second job.</div>
+      <div class="sc-note"><strong>Green needed no new token.</strong> Six rules wrote
+        ${code('var(--green)')} on ${code('var(--glow-green)')} and landed at
+        ${n2(contrast(green.light, glowHex(green)))} — ${code('.ui-pill--live')},
+        ${code('.ui-nav__badge.is-live')}, ${code('.ui-dropdown__badge.is-live')},
+        ${code('.vbadge.live')} and ${code('.tag--added')} on the changelog page, next to
+        ${code('.ui-badge--live')}, which had used the pair all along and passed at
+        ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}. Each was a one-line repoint at
+        the pair that already existed.</div>
+      <div class="sc-note"><strong>Cyan needed the pair that was never written.</strong>
+        ${code('.ui-badge--info')} at ${code('src/styles/badge.css:27')} was the last chip
+        variant painting with a raw signal token. ${code('--chip-info-*')} is
+        ${code(CHIP.info.ink)} on ${code(CHIP.info.fill)} at
+        ${n2(contrast(CHIP.info.ink, CHIP.info.fill))} — inside the band the other three pairs
+        occupy (${n2(contrast(CHIP.success.ink, CHIP.success.fill))}–${n2(contrast(CHIP.warn.ink, CHIP.warn.fill))}).
+        The ink is the same hex as cyan's 20% step in section 3.</div>
+      <div class="sc-note"><strong>Pink is where the two options stopped being equivalent, and
+        why it took the other one.</strong> ${code('--chip-danger-ink')} clears everything —
+        ${n2(contrast(CHIP.danger.ink, LIGHT.surface))} on white,
+        ${n2(contrast(CHIP.danger.ink, glowHex(byKey.pink)))} on the pink glow — but the failing
+        pink consumers are not chips. ${code('.ui-nav__item.is-danger:hover')} is a hover state
+        and ${code('.ui-field__req')} and ${code('.ui-field__error')} are form text. Routing
+        those through a chip token would give a chip token a second job its own comment
+        disclaims, so ${code('--pink')} moved instead — section 3 for light, section 5 for
+        dark.</div>
       <div class="sc-note">Nothing above touches ${code('--cyan')} at
         ${code('src/styles/callout.css:21')} or ${code('src/styles/code.css:52')}, or
         ${code('--pink')} at ${code('src/styles/button.css:69')} — those consumers keep
@@ -549,43 +595,74 @@ const sectionChips = () => {
 // ===========================================================================
 // 5 — Dark
 // ===========================================================================
-const sectionDark = () => `
+// Same two-row shape as section 3, on the three dark surfaces.
+const darkRows = (f) => {
+  const before = f.darkWas
+    ? [{ label: 'before this branch', hex: f.darkWas, note: `${f.token} until issue #131`, glow: f.darkGlowWas }]
+    : [];
+  return before.concat([{
+    label: f.darkWas ? 'shipped' : 'today', hex: f.dark,
+    note: `${f.token} as the kit resolves it`, glow: f.darkGlow,
+  }]);
+};
+
+const sectionDark = () => {
+  const p = byKey.pink;
+  const pinkOn = (hex, glow, base) => n2(contrast(hex, washed(glow.rgb, glow.a, base)));
+  return `
   <section class="sc-sec">
     <div class="sc-sec__head">
       <div class="sc-kicker">5 — Dark theme</div>
-      <h2>Cyan and green are far clear in dark. Pink is not.</h2>
+      <h2>Cyan and green were always far clear in dark. Pink was not, and moved the other way.</h2>
       <p>The dark signal values are declared in a separate block of
-      ${code('src/tokens/tokens.css')}, so every candidate in sections 3 and 4 leaves them
-      untouched. Painted here with the dark literals, so this reads the same whichever theme
-      the toolbar is in.</p>
+      ${code('src/tokens/tokens.css')}, so cyan and green — which took Option B — read here
+      exactly as they always did. Pink took Option A in both themes, so it gets the same
+      before-and-after pair of rows section 3 gives it, and the two are meant to be read
+      together. Painted with the dark literals, so this reads the same whichever theme the
+      toolbar is in.</p>
     </div>
-    ${FAMILIES.map((f) => {
-      const gBg = washed(f.darkGlow.rgb, f.darkGlow.a, DARK.bg);
-      const gSurf = washed(f.darkGlow.rgb, f.darkGlow.a, DARK.surface);
-      return `
+    ${FAMILIES.map((f) => `
       <div class="sc-panel">
         <div class="sc-panel__head">
-          <h3>${f.token} <span style="font-weight:400;color:var(--muted)">${f.dark}</span></h3>
+          <h3>${f.token} <span style="font-weight:400;color:var(--muted)">${f.role}</span></h3>
           <p>wash at ${Math.round(f.darkGlow.a * 100)}%, over the page and over a card</p>
         </div>
-        <div class="sc-surfaces">
-          ${cell(`on ${code('--bg')}`, f.dark, DARK.bg, f)}
-          ${cell(`on its own glow over ${code('--bg')} — ${gBg}`, f.dark, gBg, f)}
-          ${cell(`on its own glow over ${code('--surface')} — ${gSurf}`, f.dark, gSurf, f)}
-        </div>
-      </div>`;
-    }).join('')}
+        ${darkRows(f).map((r) => {
+          const gBg = washed(r.glow.rgb, r.glow.a, DARK.bg);
+          const gSurf = washed(r.glow.rgb, r.glow.a, DARK.surface);
+          return `
+          <div class="sc-row">
+            <div class="sc-row__label">${r.hex}<span>${r.label} — ${r.note}</span></div>
+            <div class="sc-surfaces">
+              ${cell(`on ${code('--bg')}`, r.hex, DARK.bg, f)}
+              ${cell(`on its own glow over ${code('--bg')} — ${gBg}`, r.hex, gBg, f)}
+              ${cell(`on its own glow over ${code('--surface')} — ${gSurf}`, r.hex, gSurf, f)}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`).join('')}
     <div class="sc-notes">
       <div class="sc-note">Dark cyan and dark green clear AA with room to spare on every
-        surface, so no candidate can hurt them.</div>
-      <div class="sc-note">Dark ${code('--pink')} on ${code('--glow-pink')} misses AA too —
-        ${n2(contrast(byKey.pink.dark, washed(byKey.pink.darkGlow.rgb, byKey.pink.darkGlow.a, DARK.surface)))}
-        over a card and
-        ${n2(contrast(byKey.pink.dark, washed(byKey.pink.darkGlow.rgb, byKey.pink.darkGlow.a, DARK.bg)))}
-        over the page. It is the same failure as light, less severe, and it is a separate
-        decision from anything on this page: none of the candidates here would move it.</div>
+        surface, which is why neither needed a token move in either theme.</div>
+      <div class="sc-note"><strong>The two themes moved in opposite directions.</strong>
+        Dark ${code('--pink')} was ${pinkOn(p.darkWas, p.darkGlowWas, DARK.surface)} on its
+        own glow over a card and ${pinkOn(p.darkWas, p.darkGlowWas, DARK.bg)} over the page —
+        the same failure as light, less severe. The fix is to go
+        <em>lighter</em>, to ${p.dark}, because the ground under the ink here is near-black:
+        ${pinkOn(p.dark, p.darkGlow, DARK.surface)} over a card,
+        ${pinkOn(p.dark, p.darkGlow, DARK.bg)} over the page. Light went darker, to ${p.light},
+        because there the ground is white.</div>
+      <div class="sc-note"><strong>What the dark move costs.</strong> A solid danger fill takes
+        ${code('--danger-contrast')} (white) as its ink — ${code('.ui-toast--danger.ui-toast--solid')}
+        at ${code('src/styles/callout.css:87')}. White on the old dark pink was
+        ${n2(contrast('#ffffff', p.darkWas))}, already under AA; on ${p.dark} it is
+        ${n2(contrast('#ffffff', p.dark))}. The two constraints pull opposite ways — ink on the
+        wash wants pink lighter, white on the fill wants it darker — so no single dark pink
+        satisfies both. Dark needs its own ${code('--danger-contrast')} or its own deepened
+        chip pair, and that is a separate token decision this branch did not take.</div>
     </div>
   </section>`;
+};
 
 // ===========================================================================
 export const Diagnosis = {
@@ -595,9 +672,12 @@ export const Diagnosis = {
     <div class="sc">
       <h1>Signal contrast on the glow washes</h1>
       <p class="sc-lede">In the light theme ${code('--pink')}, ${code('--cyan')} and
-        ${code('--green')} all miss WCAG AA for normal text, and they miss it by the most on
-        the surface the kit puts them on deliberately: a 10% wash of the same colour. This
-        page measures every pair it draws, at the size the kit sets it.</p>
+        ${code('--green')} all missed WCAG AA for normal text, and they missed it by the most
+        on the surface the kit puts them on deliberately: a 10% wash of the same colour. Dark
+        ${code('--pink')} missed it too. Cyan and green were fixed by routing their chips at
+        the deepened chip pairs; pink had to move the token, in both themes and in opposite
+        directions. This page measures every pair it draws, at the size the kit sets it, and
+        keeps the before values beside the shipped ones.</p>
       <p style="margin-top:var(--space-3)">The bar under each specimen runs from
         ${SCALE[0].toFixed(1)} to ${SCALE[1].toFixed(1)}; the vertical line on it is
         ${AA.toFixed(1)}, the AA threshold for text under 18.66px bold or 24px regular.
