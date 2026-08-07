@@ -280,39 +280,46 @@ const CALLOUT = cssOf('../src/styles/callout.css');
 /** Selectors of a rule, comma list split out and trimmed. */
 const selectorsOf = (sel) => sel.split(',').map((s) => s.trim());
 
-/** Custom properties in scope on a `.ui-toast--<status>.ui-toast--solid`, in
- *  source order so the later rule wins exactly as the cascade makes it win. */
-function solidVars(theme, status) {
+/** Custom properties in scope on a toast carrying every one of `selectors`,
+ *  over the theme's tokens — walked in source order, so the later rule wins
+ *  exactly as the cascade makes it win. `seen` reports which of the selectors
+ *  actually turned up, so a caller can name the one that went missing. */
+function toastVars(theme, selectors) {
   const vars = new Map(tokensFor(theme));
-  let sawStatus = false;
-  let sawSolid = false;
+  const seen = new Set();
   for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
     const sels = selectorsOf(sel);
-    const isStatus = sels.includes(`.ui-toast--${status}`);
-    const isSolid = sels.includes('.ui-toast--solid');
-    if (!isStatus && !isSolid) continue;
-    sawStatus ||= isStatus;
-    sawSolid ||= isSolid;
+    const hit = selectors.filter((s) => sels.includes(s));
+    if (!hit.length) continue;
+    for (const s of hit) seen.add(s);
     for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
   }
-  assert.ok(sawStatus, `.ui-toast--${status} is gone from callout.css`);
-  assert.ok(sawSolid, '.ui-toast--solid is gone from callout.css');
+  return { vars, seen };
+}
+
+/** Custom properties in scope on a `.ui-toast--<status>.ui-toast--solid`. */
+function solidVars(theme, status) {
+  const status_ = `.ui-toast--${status}`;
+  const { vars, seen } = toastVars(theme, [status_, '.ui-toast--solid']);
+  assert.ok(seen.has(status_), `.ui-toast--${status} is gone from callout.css`);
+  assert.ok(seen.has('.ui-toast--solid'), '.ui-toast--solid is gone from callout.css');
   return vars;
 }
 
-/** `background` / `color` / `opacity` a `.ui-toast--solid …` selector declares,
- *  accumulated across every rule that names it. */
-function solidDecl(suffix) {
-  const want = suffix ? `.ui-toast--solid ${suffix}` : '.ui-toast--solid';
+/** Paint properties a selector declares, across every rule that names it. */
+function declOf(selector, props = 'background|color') {
+  const want = new RegExp(`(?:^|;)\\s*(${props})\\s*:\\s*([^;]+)`, 'g');
   const out = {};
   for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
-    if (!selectorsOf(sel).includes(want)) continue;
-    for (const [, prop, value] of body.matchAll(/(?:^|;)\s*(background|color|opacity)\s*:\s*([^;]+)/g)) {
-      out[prop] = value.trim();
-    }
+    if (!selectorsOf(sel).includes(selector)) continue;
+    for (const [, prop, value] of body.matchAll(want)) out[prop] = value.trim();
   }
   return out;
 }
+
+/** `background` / `color` / `opacity` a `.ui-toast--solid …` selector declares. */
+const solidDecl = (suffix) =>
+  declOf(suffix ? `.ui-toast--solid ${suffix}` : '.ui-toast--solid', 'background|color|opacity');
 
 /** The two inks a solid toast reads as text, measured on the fill it sits on. */
 function measureSolid(status, theme) {
@@ -362,6 +369,89 @@ for (const theme of ['dark', 'light']) {
     });
   }
 }
+
+/* ---- the status icon: a signal that is a fill at 22px ----------------------
+ * The soft and outline toasts sit on a card, so their title and body are read
+ * against that card and the rules above cover them. The one place those two
+ * styles turn a signal into a fill is .ui-toast__icon — a --toast-accent circle
+ * with a --toast-on glyph on it, the same independent-axes shape the solid
+ * toast had: the circle comes from the status, the glyph from a global, and
+ * nothing makes the two clear each other.
+ *
+ * A glyph is a graphic, so the bar is the 3:1 of WCAG 1.4.11, not 4.5:1.
+ *
+ * Cycle 2's rule for the solid toast — move the fill to its theme's extreme so
+ * one ink clears all five — only half transfers here, because the circle's fill
+ * is not free to move: --toast-accent also paints the 3px left marker and the
+ * outline border, so a circle that left the accent would put two different
+ * pinks in one toast. What is left is the ink, and it has to be chosen against
+ * the accent it lands on. In dark it can still be one value: the five dark
+ * accents are the bright signals (the same five --signal-solid-* takes), so
+ * near-black clears all of them. In light it cannot: the accents there are
+ * deepened to read as INK on white, which parks them mid-luminance, and neither
+ * pole dominates — near-black bottoms out at 3.20 on --muted, white at 3.81 on
+ * --cyan. So light keeps a per-status ink and this gate is what holds it. */
+const ICON_AA = 3;
+
+/** The glyph read on its own circle, for a soft or outline toast. The circle is
+ *  opaque, so the card under it cannot change this ratio — which is why one
+ *  measurement stands for both styles, and why the assertion below that no
+ *  style rule re-paints the icon is the thing keeping that true. */
+function measureIcon(status, theme) {
+  const status_ = `.ui-toast--${status}`;
+  const { vars, seen } = toastVars(theme, [status_]);
+  assert.ok(seen.has(status_), `.ui-toast--${status} is gone from callout.css`);
+  const decl = declOf('.ui-toast__icon');
+  assert.ok(decl.background, '.ui-toast__icon declares no background');
+  assert.ok(decl.color, '.ui-toast__icon declares no color');
+
+  const fill = resolve(decl.background, vars);
+  assert.strictEqual(fill.alpha, 1, `the icon circle must be opaque, got ${decl.background}`);
+  const circle = fill.rgb;
+  const glyph = composite(resolve(decl.color, vars), circle);
+  return { circle, glyph, ratio: contrast(glyph, circle), fill: decl.background, ink: decl.color };
+}
+
+for (const theme of ['dark', 'light']) {
+  for (const status of SOLID_STATUSES) {
+    test(`the ${status} status icon clears 3:1 on its own circle — ${theme}`, () => {
+      const m = measureIcon(status, theme);
+      assert.ok(
+        m.ratio >= ICON_AA,
+        `the ${status} glyph in ${theme} measures ${show(m.ratio)}:1 on its circle, `
+        + `under the ${ICON_AA}:1 bar WCAG 1.4.11 sets for a graphic.\n`
+        + `It paints color: ${m.ink} (${hex(m.glyph)}) on background: ${m.fill} (${hex(m.circle)}).\n`
+        + 'The circle cannot leave --toast-accent — the left marker and the outline\n'
+        + 'border are the same value — so the ink is what moves, and it moves to the\n'
+        + 'pole that clears THIS accent, not to whichever global the family used to take.',
+      );
+    });
+  }
+}
+
+/* One circle, two styles. Soft and outline share .ui-toast__icon untouched, and
+ * the measurement above is only good for both while that stays true — a style
+ * rule that re-painted the circle or the glyph would make ten of the twenty
+ * combinations unmeasured. Solid is excluded on purpose: it re-paints the icon
+ * from --toast-ink, and the block above already gates that pair. */
+test('soft and outline leave the status icon alone', () => {
+  for (const style of ['soft', 'outline']) {
+    const decl = declOf(`.ui-toast--${style} .ui-toast__icon`);
+    assert.deepStrictEqual(
+      decl, {},
+      `.ui-toast--${style} .ui-toast__icon re-paints the circle (${JSON.stringify(decl)}).\n`
+      + 'The icon gate measures the base rule once and reads it as covering both\n'
+      + 'styles. Gate this override too, or drop it.',
+    );
+  }
+  // and the solid override, which is the one that DOES exist, still does.
+  const solid = declOf('.ui-toast--solid .ui-toast__icon');
+  assert.ok(
+    solid.background && solid.color,
+    '.ui-toast--solid .ui-toast__icon stopped re-painting the circle — it is now the\n'
+    + 'accent circle on a solid fill, which this gate does not measure.',
+  );
+});
 
 /* ---- anti-vacuity --------------------------------------------------------
  * Every assertion above is generated from a list and a set of file reads. If
