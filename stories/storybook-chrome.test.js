@@ -31,10 +31,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import http from 'node:http';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { loadMainConfig, loadAllPresets } from 'storybook/internal/common';
+import mainConfig, {
+  REACT_STORYBOOK_PORT,
+  REACT_STORYBOOK_PORT_SPAN,
+  reactStorybookCandidateUrls,
+  reactStorybookRef,
+} from '../.storybook/main.js';
 
 const require = createRequire(import.meta.url);
 const configDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.storybook');
@@ -92,5 +99,190 @@ test('our toolbar selector uses the attribute Storybook actually renders', () =>
       runtime.includes(`"${attr}": "sb-preview-toolbar"`),
       `manager-head.html targets [${attr}="sb-preview-toolbar"], but Storybook's manager bundle never sets that attribute`,
     );
+  }
+});
+
+// ── Composition (#137) ──────────────────────────────────────────────────────
+//
+// `refs` used to hand Storybook a bare `http://localhost:6007` and trust it. A
+// port is not an identity: `storybook dev -p 6007` treats the port as a wish and
+// moves to the next free one when it is taken, so whoever got there first ends up
+// in our sidebar under the heading "React components". On this machine that was a
+// different product's component library, 244 stories of it.
+//
+// So the ref follows rather than pins. Neither Storybook script uses --exact-port:
+// pinning would only trade a wrong sidebar for a workbench that refuses to boot at
+// all when the port is taken, which on this machine it always is. Instead main.js
+// probes the whole range Storybook's own port-finder can hand out and composes the
+// first port that proves it is the React workspace's Storybook — its index.json
+// must list every story file the workspace has on disk. A stranger's index does not.
+//
+// These tests drive that probe against real HTTP servers on ephemeral ports: the
+// same code path, without squatting on 6007 in CI.
+
+const repoRoot = path.resolve(configDir, '..');
+
+// A throwaway Storybook-shaped server. `entries` is the index.json payload.
+async function serveIndex(entries) {
+  const server = http.createServer((req, res) => {
+    if (req.url.split('?')[0] !== '/index.json') { res.writeHead(404); res.end(); return; }
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ v: 5, entries }));
+  });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  return { url: `http://127.0.0.1:${server.address().port}`, close: () => server.close() };
+}
+
+// The story files the React workspace has on disk, spelled the way Storybook
+// reports them in index.json — importPath is relative to the workspace root it
+// was started in.
+function reactStoryImportPaths() {
+  const workspace = path.join(repoRoot, 'react');
+  const walk = (dir, acc = []) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full, acc);
+      else if (/\.stories\.(tsx|ts)$/.test(e.name)) acc.push('./' + path.relative(workspace, full));
+    }
+    return acc;
+  };
+  return walk(path.join(workspace, 'src'));
+}
+
+const asEntries = (importPaths) =>
+  Object.fromEntries(importPaths.map((p, i) => [
+    `s${i}--playground`,
+    { id: `s${i}--playground`, type: 'story', title: 'X', name: 'Playground', importPath: p },
+  ]));
+
+test('a static build composes nothing (the #112 gate still holds)', async () => {
+  assert.deepEqual(await mainConfig.refs(undefined, { configType: 'PRODUCTION' }), {});
+});
+
+const storybookScript = (workspaceDir) =>
+  JSON.parse(fs.readFileSync(path.join(repoRoot, workspaceDir, 'package.json'), 'utf8')).scripts.storybook;
+
+// Neither script may pin its port. --exact-port makes Storybook exit 255 rather than
+// start when the port is taken, and on a developer's machine ports 6006/6007 are
+// routinely held by another project's Storybook. The ref follows the drift instead.
+for (const [label, dir] of [['root', '.'], ['React workspace', 'react']]) {
+  test(`the ${label} storybook script lets Storybook find a free port`, () => {
+    assert.doesNotMatch(
+      storybookScript(dir),
+      /--exact-port\b/,
+      `${label}: --exact-port turns a busy port into "Exiting because --exact-port was provided" (exit 255). ` +
+      'The workbench must still start; the ref proves identity instead of pinning the port.',
+    );
+  });
+}
+
+test('the probe starts at the port the React workspace asks for', () => {
+  const asked = storybookScript('react').match(/(?:-p|--port)[ =](\d+)/)?.[1];
+  assert.equal(
+    Number(asked),
+    REACT_STORYBOOK_PORT,
+    'main.js probes from a different port than react/package.json asks for',
+  );
+});
+
+// storybook/dist/core-server/index.js:11654 `getServerPort` delegates to detect-port,
+// which searches [port, port + 10) walking upward one port at a time. Probing that
+// exact window is the whole reachable set: a narrower range misses a legitimate
+// drift, and a wider one is dead code, because once all ten are taken detect-port
+// gives up on the range and returns a random ephemeral port instead.
+test("the candidate range is exactly the window Storybook's port-finder can land in", () => {
+  const urls = reactStorybookCandidateUrls();
+  assert.equal(urls.length, REACT_STORYBOOK_PORT_SPAN);
+  assert.equal(REACT_STORYBOOK_PORT_SPAN, 10, "detect-port's window is port + 10");
+  assert.deepEqual(
+    urls,
+    Array.from({ length: 10 }, (_, i) => `http://localhost:${REACT_STORYBOOK_PORT + i}`),
+  );
+});
+
+// The case that matters, and the one pinning the port could not serve at all:
+// a stranger holds 6007, our Storybook drifted upward, and the sidebar still fills.
+test('our Storybook is composed from wherever it drifted to, past a stranger on the base port', async () => {
+  const stranger = await serveIndex(asEntries(['./src/foundations/colors-primitives.mdx']));
+  const ours = await serveIndex(asEntries(reactStoryImportPaths()));
+  const said = [];
+  try {
+    assert.deepEqual(
+      await reactStorybookRef([stranger.url, ours.url], { log: (m) => said.push(m) }),
+      { react: { title: 'React components', url: ours.url } },
+      'the probe stopped at the stranger instead of walking on to our Storybook',
+    );
+    assert.deepEqual(said, []);
+  } finally {
+    stranger.close();
+    ours.close();
+  }
+});
+
+test('when several candidates are ours, the earliest port wins', async () => {
+  const paths = reactStoryImportPaths();
+  const first = await serveIndex(asEntries(paths));
+  const second = await serveIndex(asEntries(paths));
+  try {
+    assert.deepEqual(await reactStorybookRef([first.url, second.url], { log: () => {} }), {
+      react: { title: 'React components', url: first.url },
+    });
+  } finally {
+    first.close();
+    second.close();
+  }
+});
+
+test('when no candidate is ours, the message names the range and says a restart is what picks it up', async () => {
+  const stranger = await serveIndex(asEntries(['./src/Gizmo.stories.tsx']));
+  const said = [];
+  try {
+    assert.deepEqual(await reactStorybookRef([stranger.url], { log: (m) => said.push(m) }), {});
+    assert.equal(said.length, 1);
+    assert.ok(said[0].includes(stranger.url), `should name the port it tried; got: ${said[0]}`);
+    assert.match(said[0], /restart/i, 'a Storybook started later is only picked up on restart — say so');
+  } finally {
+    stranger.close();
+  }
+});
+
+test('nothing listening composes nothing, and says why', async () => {
+  const dead = await serveIndex({});
+  const { url } = dead;
+  dead.close();
+  await new Promise((r) => setTimeout(r, 50));
+
+  const said = [];
+  assert.deepEqual(await reactStorybookRef(url, { log: (m) => said.push(m) }), {});
+  assert.equal(said.length, 1);
+  assert.match(said[0], /React components/);
+  assert.ok(said[0].includes(url), `the message should name the URL it tried; got: ${said[0]}`);
+});
+
+test("a stranger's Storybook on the port is not composed", async () => {
+  const stranger = await serveIndex(asEntries(['./src/foundations/colors.mdx', './src/Gizmo.stories.tsx']));
+  const said = [];
+  try {
+    assert.deepEqual(await reactStorybookRef(stranger.url, { log: (m) => said.push(m) }), {});
+    assert.equal(said.length, 1);
+    assert.match(said[0], /not the React workspace/i);
+  } finally {
+    stranger.close();
+  }
+});
+
+test("the React workspace's own Storybook is composed", async () => {
+  const paths = reactStoryImportPaths();
+  assert.notEqual(paths.length, 0, 'no react story files on disk — the identity check would have nothing to match');
+
+  const ours = await serveIndex(asEntries([...paths, './src/SomethingNew.stories.tsx']));
+  const said = [];
+  try {
+    assert.deepEqual(await reactStorybookRef(ours.url, { log: (m) => said.push(m) }), {
+      react: { title: 'React components', url: ours.url },
+    });
+    assert.deepEqual(said, []);
+  } finally {
+    ours.close();
   }
 });
