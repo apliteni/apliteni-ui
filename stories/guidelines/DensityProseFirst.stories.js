@@ -33,12 +33,18 @@ const CSS = `
     .pf-deck { font: 300 15.5px/1.6 Poppins; color: var(--dim); margin-bottom: 8px; }
     .pf-why { font: 400 13.5px/1.7 Poppins; color: var(--muted); margin-bottom: 24px; }
 
-    .pf-fig { margin: 0 0 30px; }
-    .pf-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
-    .pf-cell { display: flex; flex-direction: column; gap: 9px; }
+    /* The one figure is as wide as the two specimens in it, not as wide as the
+       text column — max-content tracks, floored at the menu panel's own
+       min-width plus the stage padding (src/styles/dropdown.css) so the panel
+       can never push through its frame, and single-file below that. */
+    .pf-fig { margin: 0 0 var(--space-8); }
+    .pf-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, max-content));
+      gap: var(--space-4); justify-content: start; }
+    .pf-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .pf-cell__cap { font: 400 12px/1.55 Poppins; color: var(--muted); }
 
-    .pf-rule + .pf-rule { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--border); }
+    .pf-rule + .pf-rule { margin-top: var(--space-5); padding-top: var(--space-5);
+      border-top: 1px solid var(--border); }
     .pf-imp { font: 600 15px/1.5 Poppins; color: var(--strong); margin: 0 0 5px; }
     .pf-line { font: 400 13px/1.65 Poppins; color: var(--dim); margin: 0; }
 
@@ -49,7 +55,10 @@ const CSS = `
     .pf-except__label { font: 600 10.5px/1.7 Poppins; letter-spacing: .12em;
       text-transform: uppercase; color: var(--muted); margin-right: 8px; }
 
-    .pf-ref { margin: 8px 0 0; font: 400 12.5px/1.7 Poppins; color: var(--muted); }
+    /* One sentence about the group, then the addresses beside it on the same
+       line — three sentences that each said "hovers to --pink" were one fact
+       with three addresses, and the addresses were the part worth reading. */
+    .pf-refs { margin: var(--space-2) 0 0; font: 400 12.5px/1.9 Poppins; color: var(--muted); }
   </style>`;
 
 const cell = (badgeHtml, caption, html) => `
@@ -63,8 +72,8 @@ const cell = (badgeHtml, caption, html) => `
 // pointer, which is the one thing on this page prose genuinely cannot carry.
 const FIGURE = RULES[0];
 
-const refLines = (rule) => (rule.kit || []).map((k) => `
-  <p class="pf-ref">${mono(k.ref)} ${mono(k.note)}</p>`).join('');
+const refLines = (rule) => (rule.kit?.length ? `
+  <p class="pf-refs">${mono(rule.kitNote)} ${rule.kit.map((k) => mono(k.ref)).join(' ')}</p>` : '');
 
 const ruleRow = (rule) => `
   <section class="pf-rule">

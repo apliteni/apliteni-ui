@@ -25,21 +25,26 @@ export default {
 
 const CSS = `
   <style>
-    .sf { max-width: 1120px; }
-    .sf h1 { font: 700 27px/1.2 Poppins; letter-spacing: -.02em; color: var(--strong); margin-bottom: 26px; }
-    .sf h2 { font: 600 16px/1.45 Poppins; color: var(--strong); margin: 0 0 14px; }
+    /* Two specimen cells wide, and nothing on this page is wider than a specimen. */
+    .sf { max-width: var(--gl-page); }
+    .sf h1 { font: 700 27px/1.2 Poppins; letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
+    .sf h2 { font: 600 16px/1.45 Poppins; color: var(--strong); margin: 0 0 var(--space-3); }
 
     /* No card. A hairline is enough to say "next rule", and it costs 1px where
        a card costs its padding twice over. */
-    .sf-rule + .sf-rule { margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--border); }
+    .sf-rule + .sf-rule { margin-top: var(--space-8); padding-top: var(--space-8);
+      border-top: 1px solid var(--border); }
 
-    .sf-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
-    .sf-cell { display: flex; flex-direction: column; gap: 9px; }
+    /* 290px floors the cell at the menu panel's own min-width plus the stage
+       padding (src/styles/dropdown.css); below it the pair goes single-file. */
+    .sf-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: var(--space-4); }
+    .sf-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .sf-cell__cap { font: 400 12px/1.55 Poppins; color: var(--muted); }
 
     /* The citations, stripped to addresses and set on one line. Three lines of
        "hovers to --pink" said the same thing three times. */
-    .sf-refs { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;
+    .sf-refs { margin-top: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-2);
       font: 400 12px/1.6 Poppins; color: var(--muted); }
   </style>`;
 
@@ -51,7 +56,7 @@ const cell = (badgeHtml, caption, html) => `
   </div>`;
 
 const refs = (rule) => (rule.kit?.length ? `
-  <div class="sf-refs">${rule.kit.map((k) => mono(k.ref)).join('')}</div>` : '');
+  <div class="sf-refs">${rule.kit.map((k) => mono(k.ref)).join(' ')}</div>` : '');
 
 const ruleBlock = (rule) => `
   <section class="sf-rule">

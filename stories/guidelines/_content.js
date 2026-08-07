@@ -39,33 +39,51 @@ export const mono = (s) => String(s).replace(
 // visible in a screenshot instead of only under a live mouse; the two
 // modifiers paint that row the way the rule asks (`--pink`) and the way it
 // must not be painted (`--accent`).
+//
+// `--gl-cell` is the page's one measure. The specimens run from 147px (the
+// bare "Are you sure?" confirm) to 345px (the undo toast) of content, so a
+// cell is the widest of those plus the stage's own padding, and a page is two
+// cells and the gap between them. Sizing the page off the specimens is what
+// keeps a cell close to what it holds; the guidelines pages used to be 1120px
+// wide, which put every one of these specimens in a 526px cell. 345px is
+// measured, not chosen — the kit has no measure/container token scale to take
+// it from, which is the one literal on this page that wants a token.
 export const SPEC_CSS = `
   <style>
+    .gl { --gl-specimen: 345px;
+          --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
+          --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
     .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
       background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 2px 6px; }
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
-      box-shadow: inset 0 0 0 1px var(--border); padding: 22px; }
-    /* An open menu panel is absolutely positioned, so the stage reserves the
-       room and the note underneath is pushed clear of it. */
-    .gl-stage--menu { min-height: 262px; display: flex; flex-direction: column; align-items: flex-start; }
-    .gl-stage--menu .gl-cursor { margin-top: auto; }
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
+    /* An open menu panel is absolutely positioned, so it contributes no height
+       and the stage had to hold itself open around it — a hand-measured
+       min-height, 24px of which nothing ever covered, and a note pinned to the
+       bottom edge to stay clear. In a specimen the panel is the subject, not an
+       overlay on top of the page, so it joins the flow: the stage is then
+       exactly as tall as what it shows, at every width, and there is no number
+       to keep in sync when the menu gains a row. */
+    .gl-stage--menu { display: flex; flex-direction: column; align-items: flex-start; }
+    .gl-stage--menu .ui-dropdown { display: flex; flex-direction: column; align-items: flex-start; }
+    .gl-stage--menu .ui-dropdown__panel { position: static; transform: none; margin-top: var(--space-2); }
     .gl-hovering .ui-dropdown__item.is-danger { background: var(--surface); }
     .gl-hovering--accent .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--accent); }
     .gl-hovering--pink   .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
-    .gl-confirm { max-width: 380px; display: flex; flex-direction: column; gap: 14px; }
+    .gl-confirm { display: flex; flex-direction: column; gap: var(--space-3); }
     .gl-confirm__title { font: 600 15px/1.35 Poppins; color: var(--strong); }
-    .gl-confirm__acts { display: flex; gap: 10px; }
+    .gl-confirm__acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
     /* Two steps guarding one click, stacked in the order the user meets them. */
-    .gl-steps { display: flex; flex-direction: column; align-items: flex-start; gap: 13px; }
+    .gl-steps { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
     .gl-steps__then { font: 500 11px/1 Poppins; letter-spacing: .06em;
       text-transform: uppercase; color: var(--muted); padding-left: 2px; }
     /* The toast timer bar only animates once wireToastStack() adds .is-running,
        so in a static specimen it would sit at full width. Pin it partway
        through instead — the same pinning trick as .gl-hovering above. */
     .gl-counting .ui-toast__timer { transform: scaleX(0.55); }
-    .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: 14px;
+    .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
       font: 500 11px/1 Poppins; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-    .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%;
+    .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
       background: var(--muted); box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 22%, transparent); }
   </style>`;
 
@@ -138,6 +156,12 @@ export const undoDont = () => `
 // reader can copy a working implementation instead of writing one. Each entry
 // carries the file, the line, and the `pattern` that must be on that line.
 // A rule with nothing to copy from yet simply carries no `kit`.
+//
+// The sentence about those lines belongs to the rule, not to each address:
+// three entries used to read "The danger button hovers to --pink", "The danger
+// row turns --pink on hover", "The sign-out row hovers to --pink" — one fact,
+// three times, and the file names already said which component was which. So
+// `kitNote` says it once for the whole group and the addresses stand alone.
 export const RULES = [
   {
     id: 'colour',
@@ -148,22 +172,11 @@ export const RULES = [
     dontCaption: 'Hover repaints the row --accent.',
     doHtml: menuDo,
     dontHtml: menuDont,
+    kitNote: 'Three components already hover to --pink.',
     kit: [
-      {
-        ref: 'src/styles/button.css:68',
-        pattern: '.ui-btn--danger:hover',
-        note: 'The danger button hovers to --pink.',
-      },
-      {
-        ref: 'src/styles/dropdown.css:111',
-        pattern: '.ui-dropdown__item.is-danger:hover',
-        note: 'The danger row turns --pink on hover.',
-      },
-      {
-        ref: 'src/styles/nav.css:81',
-        pattern: '.ui-nav__item.is-danger:hover',
-        note: 'The sign-out row hovers to --pink.',
-      },
+      { ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' },
+      { ref: 'src/styles/dropdown.css:111', pattern: '.ui-dropdown__item.is-danger:hover' },
+      { ref: 'src/styles/nav.css:81', pattern: '.ui-nav__item.is-danger:hover' },
     ],
   },
   {
@@ -175,12 +188,9 @@ export const RULES = [
     dontCaption: '“Are you sure?” of what?',
     doHtml: wordingDo,
     dontHtml: wordingDont,
+    kitNote: 'Labelled Revoke, not OK.',
     kit: [
-      {
-        ref: 'stories/apps/Access.stories.js:26',
-        pattern: "label: 'Revoke'",
-        note: 'Labelled Revoke, not OK.',
-      },
+      { ref: 'stories/apps/Access.stories.js:26', pattern: "label: 'Revoke'" },
     ],
   },
   {
