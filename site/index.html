@@ -107,7 +107,13 @@
   .path-card.is-active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
   .path-card b { display: block; color: var(--strong); font: 600 15px Poppins; }
   .path-card span { color: var(--muted); font-size: 12.5px; }
+  /* Focus ring — same shape the kit gives a tab and its panel in
+     src/styles/tabs.css. Without it the only ring is the browser's own 1px
+     hairline, which ignores the accent and differs per browser. The panel is
+     focusable (tabindex="0" above), so it needs a ring of its own too. */
+  .path-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .paths-panel > div:not([hidden]) { display: flex; flex-direction: column; gap: 14px; }
+  .paths-panel [role="tabpanel"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
   /* Code block — theme-aware. Dark theme keeps a rich near-black panel; light
      theme uses a soft light panel (the near-black slab reads too heavy on white)
      with darker syntax colours. All colours flow through --term-* tokens. */
@@ -197,17 +203,20 @@
     <p>One package on the public npm registry — no token, no scope config. The same kit serves people and agents.</p>
   </div>
   <div style="max-width:840px;margin:0 auto">
+    <!-- A real tablist, wired the way the kit's tabs() wires one: each tab carries
+         id + aria-controls, each panel role="tabpanel" + aria-labelledby + tabindex="0",
+         one roving Tab stop. Behaviour is in the script at the foot of this file. -->
     <div class="paths-sw" role="tablist" aria-label="Choose audience">
-      <button class="path-card is-active" data-tab="humans" role="tab" aria-selected="true"><b>Humans</b><span>Install, then import the components you need</span></button>
-      <button class="path-card" data-tab="agents" role="tab" aria-selected="false"><b>Agents</b><span>Paste one prompt to re-skin your whole app</span></button>
+      <button type="button" class="path-card is-active" role="tab" id="paths-tab-humans" aria-controls="paths-panel-humans" aria-selected="true" tabindex="0"><b>Humans</b><span>Install, then import the components you need</span></button>
+      <button type="button" class="path-card" role="tab" id="paths-tab-agents" aria-controls="paths-panel-agents" aria-selected="false" tabindex="-1"><b>Agents</b><span>Paste one prompt to re-skin your whole app</span></button>
     </div>
     <div class="paths-panel" style="margin-top:16px">
-      <div data-content="humans">
+      <div role="tabpanel" id="paths-panel-humans" aria-labelledby="paths-tab-humans" tabindex="0">
         <div class="term"><button class="term__copy" type="button" data-copy aria-label="Copy"><svg class="ic ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></svg><svg class="ic ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="k">npm</span> install <span class="s">@apliteni/apliteni-ui</span></pre></div>
         <div class="term"><button class="term__copy" type="button" data-copy aria-label="Copy"><svg class="ic ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></svg><svg class="ic ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="k">import</span> <span class="s">'@apliteni/apliteni-ui/css'</span>
 <span class="k">import</span> { button, card, topbar } <span class="k">from</span> <span class="s">'@apliteni/apliteni-ui'</span></pre></div>
       </div>
-      <div data-content="agents" hidden>
+      <div role="tabpanel" id="paths-panel-agents" aria-labelledby="paths-tab-agents" tabindex="0" hidden>
         <div class="term"><button class="term__copy" type="button" data-copy aria-label="Copy"><svg class="ic ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></svg><svg class="ic ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></button><pre class="prompt">Adopt the apliteni-ui design system across this entire app, replacing the current styles.
 
 1. Load it: add &lt;link rel="stylesheet" href="https://ui.apli.tech/assets/kit.css"&gt;
@@ -372,22 +381,38 @@
     sync();
   })();
 
-  /* "Drop it in" switcher: the two cards toggle the Humans / Agents panel. */
+  /* "Drop it in" switcher: the two cards move between the Humans and Agents
+     panels. It announces itself as a tablist, so it owes the tablist contract —
+     this is the site's copy of what initTabs() does for the kit (see
+     src/components/tabs.js): roving tabindex, ArrowLeft/Right with wrap, Home
+     and End, and the panel resolved through aria-controls rather than a
+     parallel data attribute. Keep the two in step; a reader who studies both
+     must not be taught two answers. */
   (function(){
     var sw = document.querySelector('.paths-sw');
     if (!sw) return;
-    var panel = document.querySelector('.paths-panel');
-    sw.querySelectorAll('[data-tab]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var tab = btn.getAttribute('data-tab');
-        sw.querySelectorAll('[data-tab]').forEach(function(b){
-          var on = b === btn;
-          b.classList.toggle('is-active', on);
-          b.setAttribute('aria-selected', on ? 'true' : 'false');
-        });
-        panel.querySelectorAll('[data-content]').forEach(function(c){
-          c.hidden = c.getAttribute('data-content') !== tab;
-        });
+    var tabs = Array.prototype.slice.call(sw.querySelectorAll('[role="tab"]'));
+    var panelFor = function(t){ return document.getElementById(t.getAttribute('aria-controls')); };
+    var select = function(i, focus){
+      tabs.forEach(function(t, j){
+        var on = j === i;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        var p = panelFor(t);
+        if (p) p.hidden = !on;
+      });
+      if (focus && tabs[i]) tabs[i].focus();
+    };
+    tabs.forEach(function(t, i){
+      t.addEventListener('click', function(){ select(i); });
+      t.addEventListener('keydown', function(e){
+        var n = null;
+        if (e.key === 'ArrowRight') n = (i + 1) % tabs.length;
+        else if (e.key === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
+        else if (e.key === 'Home') n = 0;
+        else if (e.key === 'End') n = tabs.length - 1;
+        if (n !== null) { e.preventDefault(); select(n, true); }
       });
     });
   })();
