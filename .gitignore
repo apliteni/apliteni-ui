@@ -4,5 +4,6 @@ storybook-static/
 .DS_Store
 site/public/
 .gstack/
+.claude/
 docs/superpowers/
 .superpowers/
