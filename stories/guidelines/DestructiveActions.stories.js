@@ -1,19 +1,26 @@
 // ---------------------------------------------------------------------------
 // Guidelines — Destructive actions.
 //
-// Dense and scannable. The page is a stack of self-contained cards, one per
-// rule: the rule as a single imperative sentence, a one-line why, a live
-// do/don't pair inline, the boundary where the rule stops, and pointers into
-// kit code that already applies it. Nothing depends on what came before it, so
-// a reader can drop into the one card that applies to them and leave — and a
-// page can carry twenty rules without becoming an essay.
+// The rule is the picture. A reader who can see the difference between the do
+// and the don't has already learned the rule, so the page spends its height on
+// specimens and almost nothing on talking about them: no deck, no page-level
+// why, no sentence attached to the citations. What remains per rule is an
+// imperative, the pair, one line under each half, the boundary, and the bare
+// file:line addresses of code that already does it.
+//
+// Two places where the picture can't carry the load:
+//
+// * The boundary. "Except" is where the rule stops applying, and a specimen of
+//   a rule not applying is not a picture anyone can read. It stays as a hanging
+//   amber rule on the text — the marker without the panel, which costs an
+//   eighth of what a bordered, padded block costs across three rules.
+// * A rule with no specimen. `undo` is a decision, not an appearance, so it
+//   shows no pair; in its place it gets the one sentence saying why. Any rule
+//   without a picture gets its sentence — that's the trade, not an exception
+//   made for this one.
 // ---------------------------------------------------------------------------
 import { pad } from '../_gallery.js';
-import { card } from '../../src/components/index.js';
-import {
-  TITLE, DECK, WHY, RULES,
-  SPEC_CSS, mono, doBadge, dontBadge,
-} from './_content.js';
+import { TITLE, RULES, SPEC_CSS, mono, doBadge, dontBadge } from './_content.js';
 
 export default {
   title: 'Guidelines/Destructive actions',
@@ -22,49 +29,40 @@ export default {
 
 const CSS = `
   <style>
-    /* The page is two specimen cells wide and no wider — --gl-page, plus the
-       card's own horizontal padding, which the card sets in px (src/styles/card.css)
-       and is therefore repeated here rather than guessed at. */
-    .gc { --gc-card-pad: 26px; max-width: calc(var(--gl-page) + var(--gc-card-pad) * 2); }
-    .gc h1 { font: 700 27px/1.2 Poppins; letter-spacing: -.02em; color: var(--strong); margin-bottom: 10px; }
-    .gc .gc-deck { font: 300 15.5px/1.6 Poppins; color: var(--dim); max-width: 68ch; margin-bottom: 12px; }
-    .gc .gc-why { font: 400 13.5px/1.7 Poppins; color: var(--muted); max-width: 74ch; margin-bottom: var(--space-6); }
+    /* Two specimen cells wide, and nothing on this page is wider than a specimen. */
+    .gc { max-width: var(--gl-page); }
+    .gc h1 { font: 700 27px/1.2 Poppins; letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
+    .gc h2 { font: 600 16px/1.45 Poppins; color: var(--strong); margin: 0 0 var(--space-3); }
 
-    /* A card is --surface, so a specimen sitting on one needs the inset well. */
-    .gc .ui-card .gl-stage { background: var(--surface-2); }
-    .gc .ui-card__title { align-items: flex-start; }
+    /* No card. A hairline is enough to say "next rule", and it costs 1px where
+       a card costs its padding twice over. */
+    .gc-rule + .gc-rule { margin-top: var(--space-8); padding-top: var(--space-8);
+      border-top: 1px solid var(--border); }
 
-    .gc-head__rule { font: 600 16px/1.45 Poppins; color: var(--strong); flex: 1 1 auto; }
-    .gc-why-line { font: 400 13px/1.65 Poppins; color: var(--dim); margin: 0 0 var(--space-4); max-width: 72ch; }
-
-    /* 290px is not a taste: the menu panel is min-width 240px (src/styles/dropdown.css)
-       and the stage adds --space-5 twice, so a cell narrower than 280px would
-       push the panel through its own frame. Below that the pair goes single-file. */
+    /* 290px floors the cell at the menu panel's own min-width plus the stage
+       padding (src/styles/dropdown.css); below it the pair goes single-file. */
     .gc-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
       gap: var(--space-4); }
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .gc-cell__cap { font: 400 12px/1.55 Poppins; color: var(--muted); }
 
-    /* The boundary of the rule, set apart from both the why and the captions.
-       The amber edge is the marker; the label itself stays --muted, which clears
-       AA against --surface-2 in both themes (--amber on --surface-2 does not). */
-    .gc-except { display: flex; align-items: baseline; gap: var(--space-3); margin-top: var(--space-4);
-      padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
-      background: var(--surface-2);
-      box-shadow: inset 3px 0 0 var(--amber), inset 0 0 0 1px var(--border); }
-    .gc-except__label { flex: none; font: 600 10.5px/1.7 Poppins; letter-spacing: .12em;
-      text-transform: uppercase; color: var(--muted); }
-    .gc-except__text { font: 400 12.5px/1.65 Poppins; color: var(--text); }
+    /* The sentence a rule gets when it has no specimen to look at. */
+    .gc-why { font: 400 13px/1.65 Poppins; color: var(--dim); margin: 0; max-width: 72ch; }
 
-    /* One line of prose about the group, then the addresses on the line under
-       it. Each address used to carry its own sentence, stacked two lines deep. */
-    .gc-copy { margin-top: var(--space-4); padding-top: var(--space-3);
-      border-top: 1px solid var(--border); }
-    .gc-copy__note { margin: 0; font: 400 12.5px/1.7 Poppins; color: var(--text); }
-    .gc-copy__label { font: 600 10.5px/1.7 Poppins; letter-spacing: .12em; text-transform: uppercase;
-      color: var(--muted); margin-right: var(--space-2); }
-    .gc-refs { margin: var(--space-1) 0 0; display: flex; flex-wrap: wrap;
-      gap: var(--space-1) var(--space-3); font: 400 12.5px/1.6 Poppins; }
+    /* The boundary of the rule. The amber edge is the marker that says "this is
+       where the rule stops"; it rides on the text instead of a panel, so it
+       costs its own line height and nothing else. The label stays --muted,
+       which clears AA in both themes where --amber on the page does not. */
+    .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
+      box-shadow: inset 2px 0 0 var(--amber);
+      font: 400 12.5px/1.65 Poppins; color: var(--text); max-width: 72ch; }
+    .gc-except__label { font: 600 10.5px/1.7 Poppins; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted); margin-right: var(--space-2); }
+
+    /* The citations, stripped to addresses and set on one line. Three lines of
+       "hovers to --pink" said the same thing three times. */
+    .gc-refs { margin-top: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-2);
+      font: 400 12px/1.6 Poppins; color: var(--muted); }
   </style>`;
 
 const cell = (badgeHtml, caption, html) => `
@@ -74,38 +72,34 @@ const cell = (badgeHtml, caption, html) => `
     <div class="gc-cell__cap">${mono(caption)}</div>
   </div>`;
 
-const exceptBlock = (rule) => `
-  <div class="gc-except">
-    <span class="gc-except__label">Except</span>
-    <span class="gc-except__text">${mono(rule.except)}</span>
-  </div>`;
+// A rule shows either its pair or its sentence, never both: the pair says what
+// the sentence would have said, and says it faster.
+const figure = (rule) => (rule.doHtml ? `
+  <div class="gc-pair">
+    ${cell(doBadge(), rule.doCaption, rule.doHtml())}
+    ${cell(dontBadge(), rule.dontCaption, rule.dontHtml())}
+  </div>` : `
+  <p class="gc-why">${mono(rule.why)}</p>`);
 
-// Rules with nothing in the kit to copy from yet carry no block at all.
-const copyBlock = (rule) => (rule.kit?.length ? `
-  <div class="gc-copy">
-    <p class="gc-copy__note"><span class="gc-copy__label">Copy from</span> ${mono(rule.kitNote)}</p>
-    <p class="gc-refs">${rule.kit.map((k) => mono(k.ref)).join(' ')}</p>
-  </div>` : '');
+const exceptLine = (rule) => `
+  <p class="gc-except"><span class="gc-except__label">Except</span>${mono(rule.except)}</p>`;
 
-const ruleCard = (rule) => card({
-  title: `<span class="gc-head__rule">${mono(rule.imperative)}</span>`,
-  body: `
-    <p class="gc-why-line">${mono(rule.why)}</p>
-    <div class="gc-pair">
-      ${cell(doBadge(), rule.doCaption, rule.doHtml())}
-      ${cell(dontBadge(), rule.dontCaption, rule.dontHtml())}
-    </div>
-    ${exceptBlock(rule)}
-    ${copyBlock(rule)}`,
-});
+// Rules with nothing in the kit to copy from yet carry no addresses at all.
+const refs = (rule) => (rule.kit?.length ? `
+  <div class="gc-refs">${rule.kit.map((k) => mono(k.ref)).join(' ')}</div>` : '');
+
+const ruleBlock = (rule) => `
+  <section class="gc-rule">
+    <h2>${mono(rule.imperative)}</h2>
+    ${figure(rule)}
+    ${exceptLine(rule)}
+    ${refs(rule)}
+  </section>`;
 
 export const DestructiveActions = {
   name: 'Destructive actions',
   render: () => `${SPEC_CSS}${CSS}${pad(`<div class="gl gc">
     <h1>${TITLE}</h1>
-    <p class="gc-deck">${DECK}</p>
-    <p class="gc-why">${mono(WHY)}</p>
-
-    <div class="ui-card-stack">${RULES.map(ruleCard).join('')}</div>
+    ${RULES.map(ruleBlock).join('')}
   </div>`)}`,
 };

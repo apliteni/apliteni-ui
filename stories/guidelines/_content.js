@@ -12,18 +12,11 @@
 // on the cited line. stories/guidelines/refs.test.js resolves all of them, so a
 // reference that drifts out of date fails CI instead of misleading a reader.
 // ---------------------------------------------------------------------------
-import { button, badge, toast, esc } from '../../src/components/index.js';
+import { button, badge, esc } from '../../src/components/index.js';
 import { dropdown } from '../../src/components/dropdown.js';
 
 // ---- The rule -------------------------------------------------------------
 export const TITLE = 'Destructive actions';
-
-export const DECK =
-  'A destructive action should look dangerous, name what it destroys, and either confirm or offer '
-  + 'undo, depending on whether it can be reversed.';
-
-export const WHY =
-  '--pink is a signal colour that does not move with the accent, so it survives re-theming.';
 
 // Wrap the technical fragments of a plain-text sentence — file references,
 // token names, selectors — in <code>. Keeping the data plain text means the
@@ -40,17 +33,19 @@ export const mono = (s) => String(s).replace(
 // modifiers paint that row the way the rule asks (`--pink`) and the way it
 // must not be painted (`--accent`).
 //
-// `--gl-cell` is the page's one measure. The specimens run from 147px (the
-// bare "Are you sure?" confirm) to 345px (the undo toast) of content, so a
-// cell is the widest of those plus the stage's own padding, and a page is two
-// cells and the gap between them. Sizing the page off the specimens is what
-// keeps a cell close to what it holds; the guidelines pages used to be 1120px
-// wide, which put every one of these specimens in a 526px cell. 345px is
-// measured, not chosen — the kit has no measure/container token scale to take
-// it from, which is the one literal on this page that wants a token.
+// `--gl-cell` is the page's one measure. The specimens run from 145px (the
+// bare "Are you sure?" confirm) to 260px (the revoke confirm, whose two named
+// buttons set the widest line on the page) of content, so a cell is the widest
+// of those plus the stage's own padding, and a page is two cells and the gap
+// between them. Sizing the page off the specimens is what keeps a cell close
+// to what it holds; the guidelines pages used to be 1120px wide, which put
+// every one of these specimens in a 526px cell. 260px is measured, not chosen
+// — it was 345px while the undo toast was on the page, and it followed the
+// toast off. The kit has no measure/container token scale to take it from,
+// which is the one literal on this page that wants a token.
 export const SPEC_CSS = `
   <style>
-    .gl { --gl-specimen: 345px;
+    .gl { --gl-specimen: 260px;
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
     .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
@@ -73,14 +68,6 @@ export const SPEC_CSS = `
     .gl-confirm { display: flex; flex-direction: column; gap: var(--space-3); }
     .gl-confirm__title { font: 600 15px/1.35 Poppins; color: var(--strong); }
     .gl-confirm__acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-    /* Two steps guarding one click, stacked in the order the user meets them. */
-    .gl-steps { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
-    .gl-steps__then { font: 500 11px/1 Poppins; letter-spacing: .06em;
-      text-transform: uppercase; color: var(--muted); padding-left: 2px; }
-    /* The toast timer bar only animates once wireToastStack() adds .is-running,
-       so in a static specimen it would sit at full width. Pin it partway
-       through instead — the same pinning trick as .gl-hovering above. */
-    .gl-counting .ui-toast__timer { transform: scaleX(0.55); }
     .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
       font: 500 11px/1 Poppins; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
     .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
@@ -108,47 +95,24 @@ export const menuDo = () => menu('pink');
 /** The same row repainted `--accent` on hover, which drops the danger cue. */
 export const menuDont = () => menu('accent');
 
-const confirmStep = (title, actions) => `
-  <div class="gl-confirm">
-    <div class="gl-confirm__title">${esc(title)}</div>
-    <div class="gl-confirm__acts">${actions}</div>
+const wording = (title, actions) => `
+  <div class="gl-stage">
+    <div class="gl-confirm">
+      <div class="gl-confirm__title">${esc(title)}</div>
+      <div class="gl-confirm__acts">${actions}</div>
+    </div>
   </div>`;
 
-const wording = (title, actions) => `
-  <div class="gl-stage">${confirmStep(title, actions)}</div>`;
-
-const REVOKE_PROMPT = 'Revoke access for Research bot?';
-const revokeActions = () =>
-  button({ label: 'Keep access', variant: 'ghost' }) + button({ label: 'Revoke access', variant: 'danger' });
-const revokeToast = () => toast({
-  variant: 'danger',
-  compact: true,
-  title: 'Research bot lost access',
-  action: 'Undo',
-  timer: 8,
-});
-
 /** Buttons that name the consequence. */
-export const wordingDo = () => wording(REVOKE_PROMPT, revokeActions());
+export const wordingDo = () => wording(
+  'Revoke access for Research bot?',
+  button({ label: 'Keep access', variant: 'ghost' }) + button({ label: 'Revoke access', variant: 'danger' }),
+);
 /** Buttons that name nothing. */
 export const wordingDont = () => wording(
   'Are you sure?',
   button({ label: 'Cancel', variant: 'ghost' }) + button({ label: 'OK', variant: 'danger' }),
 );
-
-/** The revoke has already happened; the toast names it and offers the way back. */
-export const undoDo = () => `
-  <div class="gl-stage gl-counting">${revokeToast()}</div>`;
-
-/** The same revoke guarded twice: a dialog to get through, then an undo window. */
-export const undoDont = () => `
-  <div class="gl-stage gl-counting">
-    <div class="gl-steps">
-      ${confirmStep(REVOKE_PROMPT, revokeActions())}
-      <div class="gl-steps__then">then</div>
-      ${revokeToast()}
-    </div>
-  </div>`;
 
 // ---- The three sub-rules --------------------------------------------------
 // `except` is the boundary of the rule: the one place it stops applying.
@@ -157,11 +121,10 @@ export const undoDont = () => `
 // carries the file, the line, and the `pattern` that must be on that line.
 // A rule with nothing to copy from yet simply carries no `kit`.
 //
-// The sentence about those lines belongs to the rule, not to each address:
-// three entries used to read "The danger button hovers to --pink", "The danger
-// row turns --pink on hover", "The sign-out row hovers to --pink" — one fact,
-// three times, and the file names already said which component was which. So
-// `kitNote` says it once for the whole group and the addresses stand alone.
+// `doHtml`/`dontHtml` are a rule's specimen pair, and a rule can go without
+// one: `undo` turns on whether an action can be taken back, which is a
+// decision rather than an appearance, so a picture of it teaches nothing a
+// sentence doesn't. Such a rule shows its `why` in place of the pair.
 export const RULES = [
   {
     id: 'colour',
@@ -172,7 +135,6 @@ export const RULES = [
     dontCaption: 'Hover repaints the row --accent.',
     doHtml: menuDo,
     dontHtml: menuDont,
-    kitNote: 'Three components already hover to --pink.',
     kit: [
       { ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' },
       { ref: 'src/styles/dropdown.css:111', pattern: '.ui-dropdown__item.is-danger:hover' },
@@ -188,7 +150,6 @@ export const RULES = [
     dontCaption: '“Are you sure?” of what?',
     doHtml: wordingDo,
     dontHtml: wordingDont,
-    kitNote: 'Labelled Revoke, not OK.',
     kit: [
       { ref: 'stories/apps/Access.stories.js:26', pattern: "label: 'Revoke'" },
     ],
@@ -199,10 +160,9 @@ export const RULES = [
     why: 'If the action can be undone, confirming only adds friction; if it cannot, undo is a promise ' +
       'you can’t keep.',
     except: 'Irreversible actions confirm and offer nothing to restore.',
-    doCaption: 'Reversible: it happens, Undo counts down.',
-    dontCaption: 'Confirmed first, then offered Undo anyway.',
-    doHtml: undoDo,
-    dontHtml: undoDont,
+    // No specimen: see the note above the list. No `kit` either — nothing in
+    // this repository picks one of confirm and undo yet, and the page says so
+    // by pointing at nothing rather than at something adjacent.
   },
 ];
 

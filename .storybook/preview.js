@@ -87,7 +87,7 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
-          'Guidelines', ['Destructive actions', 'Density', ['Specimen first', 'Prose first', 'Index first']],
+          'Guidelines', ['Destructive actions'],
           'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
         ],
