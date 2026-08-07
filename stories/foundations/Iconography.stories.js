@@ -52,12 +52,10 @@ function wire(root) {
   const cats = [...root.querySelectorAll('[data-ic-cat]')];
   const empty = root.querySelector('.ic-empty');
 
-  // Live size control (16 / 20 / 24) — dogfoods segmented().
+  // Live size control (16 / 20 / 24) — dogfoods segmented(). The pressed state,
+  // the active class and the roving tabindex belong to wireTopbar(); this only
+  // owns the side effect, so the story can't drift from the kit's own wiring.
   root.querySelectorAll('[data-seg="icsize"] button').forEach((b) => b.addEventListener('click', () => {
-    root.querySelectorAll('[data-seg="icsize"] button').forEach((x) => {
-      x.classList.toggle('is-active', x === b);
-      x.setAttribute('aria-selected', String(x === b));
-    });
     wrap.style.setProperty('--ic-size', `${b.dataset.value}px`);
   }));
 
@@ -101,7 +99,7 @@ export const Set = {
              shipped as inline SVG. Call <code>icon('name')</code>; click any glyph to copy that call.</p>
           <div class="ic-controls">
             <input class="ic-search" type="search" placeholder="Search ${iconNames.length} icons…" aria-label="Search icons">
-            ${segmented({ name: 'icsize', options: ['16', '20', '24'], active: 2, size: 'sm' })}
+            ${segmented({ name: 'icsize', options: ['16', '20', '24'], active: 2, size: 'sm', ariaLabel: 'Icon size' })}
           </div>
         </div>
         <div class="ic-empty" hidden>No icons match “<b></b>”.</div>

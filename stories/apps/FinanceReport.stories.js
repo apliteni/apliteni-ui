@@ -66,7 +66,7 @@ export const Default = {
         <div class="sub">Company cashflow at a glance, then the reconciled payout ledger.</div>
         <div class="ui-card-stack">
           <div style="display:grid;gap:22px">
-            ${segmented({ options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+            ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
             ${kpiStrip()}
             ${payoutsCard()}
           </div>

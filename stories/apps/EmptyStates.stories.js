@@ -16,7 +16,7 @@ export const FilteredList = {
     body: `
       <div style="display:flex;gap:10px;margin-bottom:16px">
         ${input({ placeholder: 'Vendor' })}
-        ${segmented({ options: ['Any', 'Verified', 'Pending'], active: 2 })}
+        ${segmented({ ariaLabel: 'Status filter', options: ['Any', 'Verified', 'Pending'], active: 2 })}
         ${button({ label: 'Filter', variant: 'secondary' })}
       </div>
       ${card({ body: emptyState({

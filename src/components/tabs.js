@@ -28,8 +28,12 @@ export function tabs({ items = [], active = 0, name = 'tabs', ariaLabel = 'Tabs'
   const panels = items
     .map((it, i) => {
       const on = i === active;
+      // tabindex="0" on the panel: the APG requires it when the panel holds no
+      // focusable content of its own, and most panels here are plain text. Without
+      // it a keyboard user reaches the tab strip and then cannot reach what it
+      // switched to — Tab jumps straight past the panel to whatever follows.
       return `<div class="ui-tabs__panel" role="tabpanel" id="${name}-panel-${i}"`
-        + ` aria-labelledby="${name}-tab-${i}"${on ? '' : ' hidden'}>${it.panel || ''}</div>`;
+        + ` aria-labelledby="${name}-tab-${i}" tabindex="0"${on ? '' : ' hidden'}>${it.panel || ''}</div>`;
     })
     .join('');
   return `<div class="${cls}" data-tabs>`
