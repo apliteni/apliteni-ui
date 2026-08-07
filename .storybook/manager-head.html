@@ -53,10 +53,16 @@
      "Nebula (purple)", etc.). Storybook's Button base paints every toolbar
      IconButton at typography.weight.bold, so the active toggle labels render
      bold and shout over the sidebar. Drop them to the kit's regular UI weight
-     so they read as quiet chrome. The [data-test-id] + element selector
+     so they read as quiet chrome. The [data-testid] + element selector
      out-specifies emotion's single-class rule, so no !important — and it's
-     theme-agnostic, so it covers both dark and light chrome. */
-  [data-test-id="sb-preview-toolbar"] button {
+     theme-agnostic, so it covers both dark and light chrome.
+
+     `data-testid`, not `data-test-id`: Storybook spreads it onto the toolbar
+     <section> unhyphenated. We wrote the hyphenated form and the rule matched
+     nothing at all until #133. stories/storybook-chrome.test.js now reads the
+     attribute name back out of the selector below and checks it against the
+     manager bundle Storybook ships, so a rename upstream fails loudly. */
+  [data-testid="sb-preview-toolbar"] button {
     font-weight: 500;
   }
 </style>
