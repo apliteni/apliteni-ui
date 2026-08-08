@@ -67,10 +67,15 @@
   margin-top: 12px;
 }
 
-/* Legacy line-icon slot — kept so existing .ui-empty__icon markup still works. */
+/* Legacy line-icon slot — kept so existing .ui-empty__icon markup still works.
+   44px until #148. The icon inside is `width: 100%`, and that rule lost to the
+   base.css reset for as long as this slot has existed, so the slot's number was
+   never the size anyone saw: it rendered at 15.94px. Once the reset stopped
+   winning, 44px was a size nobody had chosen with their eyes open. 32px is the
+   size that was chosen, against the alternatives, on a rendered comparison. */
 .ui-empty__icon {
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   margin: 0 auto 14px;
   color: var(--muted);
   opacity: 0.6;
