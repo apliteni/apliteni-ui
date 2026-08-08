@@ -106,7 +106,11 @@ a {
    that sizes an icon outranks it. Written bare, :not([width]):not([height])
    would count both attribute selectors and weigh (0,2,1), which beats every
    `.ui-btn svg`-shaped rule in the kit no matter what order the files load in.
-   It did, for twenty-one of them. src/styles/icon-size.test.js keeps it honest. */
+   It did, for every one of them bar three, and for `.ui-fbck` besides — that
+   one is a class on the svg itself, so it is easy to miss when you go looking.
+   The count is deliberately not written here: it moved once already, and the
+   rules outside this package (site/, the Iconography story) are not in it.
+   src/styles/icon-size.test.js keeps the ones in src/styles honest. */
 svg:where(:not([width]):not([height])) {
   width: 1.1em;
   height: 1.1em;
