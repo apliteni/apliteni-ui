@@ -36,8 +36,13 @@ index.js             Public JS entry — re-exports every factory.
 | `…/inline` | CSS as **strings**, for server-render inlining (`tokensCss`, `topbarCss`, `cssText`, …). |
 | `…/tokens`, `…/accents` | Just the tokens / accent sub-themes. |
 
-`…/css` is byte-identical to `…/inline`'s `cssText` — `inline.js` reads the package's
-own `.css` files, so the two never drift.
+`…/css` and `…/inline`'s `cssText` carry the same stylesheets in the same cascade order.
+Not the same bytes: `index.css` is a list of `@import`s for a bundler to resolve, `cssText`
+is those files already concatenated. `inline.js` reads the package's own `.css` files, but
+that alone never stopped the two lists from diverging — `empty.css` reached `index.css` and
+not `inline.js`, and shipped unstyled to every consumer of `kit.css`. What holds them
+together now is `scripts/stylesheet-manifest.test.js`, which fails when either entry point
+names a stylesheet the other one does not.
 
 ## Tokens & theming
 
