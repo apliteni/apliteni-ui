@@ -60,14 +60,14 @@ Everything visual is a CSS custom property, driven by two orthogonal attributes 
   works in both themes with no component change.
 
 Runtime helpers (re-exported from the root): `applyTheme('light')` and
-`applyAccent('phoenix')` both persist to `localStorage`; or ship `accentPicker()` and
-let `wireTopbar()` handle it.
+`applyAccent('phoenix')` both persist to `localStorage`, and `ACCENTS` is the list of
+names `applyAccent` takes. Or ship `accentPicker()` and let `wireTopbar()` handle it.
 
 ## Component catalog
 
-All factories return HTML strings and live in `src/components/`. Text args are escaped
-via `esc()`; args documented as “markup” (e.g. a card `title` carrying a badge) are
-inserted verbatim.
+Every factory returns an HTML string, and the `wire*` / `init*` functions beside them bind
+the behaviour markup alone cannot carry. Text args are escaped via `esc()`; args
+documented as “markup” (e.g. a card `title` carrying a badge) are inserted verbatim.
 
 | Factory | Notes |
 |---------|-------|
@@ -77,15 +77,33 @@ inserted verbatim.
 | `segmented({ options, active, size, block, name, ariaLabel })` | Pill switch. A toolbar of toggle buttons; wired by `wireTopbar()`. |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist + panels, one panel per item. |
 | `accentPicker({ active, options })` | Accent swatches; wired by `wireTopbar()`. |
-| `field` · `input` · `textarea` · `checkbox` · `switchToggle` | Form controls. |
-| `callout` · `toast` · `successPanel` | Inline feedback. |
+| `field` · `input` · `textarea` · `select` · `checkbox` · `switchToggle` | Form controls. |
+| `dropdown({ label, value, variant, items, sections, header, footer, align, scroll })` + `wireDropdown(root)` | Popover list. `variant: 'select'` renders a listbox and shows the value in the trigger; `'menu'` renders an action list. |
+| `nav({ variant })` → `sidebarNav` · `navTabs` · `breadcrumbs`, + `wireNav(root)` | Wayfinding. The umbrella dispatches on `variant`; each shape is also exported on its own. `wireNav` only drives the sidebar's collapsible groups. |
+| `drawer({ side, size, title, body, footer, open, dismissible })` + `wireDrawer(root)` | Overlay panel anchored to a screen edge, over a scrim. `openDrawer(el, returnFocusTo)` / `closeDrawer(el)` drive one directly. |
+| `callout` · `toast` · `successPanel` | Inline feedback, inside the page the user is already on. |
+| `pushToast(container, opts)` · `dismissToast(el)` + `wireToastStack(container)` | The runtime toast stack: push one onto a container, dismiss it, or let the stack expire its own. |
+| `success({ layout, backdrop, eyebrow, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its self-drawing check on its own. See [successPanel or success?](#successpanel-or-success) below. |
+| `emptyState({ art, icon, title, sub, actions })` | Placeholder for an empty list, table or page. `art` is an `illo()` name or raw `<svg>`. |
 | `snippet({ label, code, reveal, copy })` | Code block + copy button; `hlShell(raw)` highlights shell. |
 | `topbar(...)` + `wireTopbar(root)` | Product topbar; `wireTopbar` binds theme toggle, menus, segmented, copy. |
-| `accountShell({ word, account, active, title, sub, body, nav })` | The whole `/account` layout as one factory. |
-| `feedbackWidget()` + `wireFeedback(...)` | Inline “select a passage → give feedback” widget. |
+| `themeToggle(theme)` · `accountMenu({ name, email, active, nav })` · `versionSwitcher(versions, activeIdx)` · `deckTextSwitch(active)` | The topbar's parts, usable outside it. `themeIcon(t)` / `themeName(t)` label a toggle you build yourself. |
+| `footer({ variant, brand, tagline, columns, social, legal, legalLinks, switcher })` | Site/app footer. `full` is the multi-column marketing one, `slim` a single legal row, `app` the compact in-product one. |
+| `accountShell({ word, account, active, title, sub, body, nav })` | The whole `/account` layout as one factory; `ACCOUNT_NAV` is the sidebar it falls back to. |
+| `feedbackWidget()` + `wireFeedback(...)` | Inline “select a passage → give feedback” widget. `nearestSection(node, root)` resolves which section a selection landed in. |
+| `icon(name, cls)` · `iconNames` · `iconCategories` · `illo(name)` · `illoNames` | Line icons and illustrations, as `<svg>` strings. `sun` and `moon` are exported as bare markup as well — `themeIcon()` picks between them. |
+| `esc(s)` | HTML-escape a text value. Every factory already applies it to its own text args; you need it for markup you assemble yourself. |
 
 The public JS surface is whatever `src/index.js` re-exports — add a factory there to
-publish it.
+publish it. A module the entry never names still ships in the tarball and still cannot be
+imported, because the package declares no `./components/*` subpath. Both halves of that
+are held by `scripts/entry-reachability.test.js`, which fails when a component module is
+unreachable from the entry, and fails again when a name the entry publishes is missing
+from the catalog above.
+
+Beyond the factories, the entry re-exports the theming helpers described above, the brand
+mark (`seedling`, `prism`, `brand`) and the motion helpers in `src/motion.js`
+(`prefersReducedMotion`, `staggerDelay`, `initReveal`, `replay`).
 
 ### Segmented or tabs?
 
@@ -98,6 +116,19 @@ narrows a list, flips a unit or sets a preference, there is no panel and you wan
 Both give a keyboard user one Tab stop and move with ArrowLeft / ArrowRight and Home / End.
 Both need a name: pass `ariaLabel`. `segmented()`'s `name` is an identifier for `data-seg`,
 not prose, and it is never announced.
+
+### successPanel or success?
+
+Ask how much of the screen the confirmation owns. If it sits under a form that just
+submitted, or inside a card on a page the user is staying on, you want
+`successPanel({ title, sub })` — a check, a title and one line of sub, with nothing to
+configure. If the confirmation *is* the screen, and the user needs somewhere to go next,
+you want `success({ layout, backdrop, actions, … })`, which picks a layout and a backdrop,
+carries follow-up buttons, and can run an auto-redirect countdown once you call
+`wireSuccess()` on the mounted element.
+
+Restyling one never moves the other, because they share no CSS: `successPanel` is
+`.ui-success` in `styles/callout.css`, `success` is `.ui-sx` in `styles/success.css`.
 
 ### Forms
 

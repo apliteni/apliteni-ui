@@ -235,6 +235,14 @@ export function toast({
     + `<div class="ui-toast__body">${title ? `<div class="ui-toast__title">${esc(title)}</div>` : ''}${bodyHtml}</div>`
     + `${actBtn}${closeBtn}${timerBar}</div>`;
 }
+// The inline confirmation. A check, a title and one line of sub, dropped into
+// the page the user is already on — under a form that just submitted, or inside
+// a card. Two strings, no options; styles are .ui-success in styles/callout.css.
+//
+// The kit also publishes success() from components/success.js, which is the same
+// idea at page size: layouts, a backdrop, follow-up buttons and an auto-redirect
+// countdown. Pick by how much of the screen the confirmation owns. The two share
+// no CSS, so changing one never moves the other.
 export function successPanel({ title = 'Done', sub = '' } = {}) {
   return `<div class="ui-success"><div class="ui-success__check">${icon('check')}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
 }

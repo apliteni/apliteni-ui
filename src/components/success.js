@@ -61,6 +61,16 @@ function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
 </div>`;
 }
 
+// The page-sized confirmation — what a flow lands on once it is over. It fills
+// the space it is given, and carries the things a screen needs that a block does
+// not: somewhere to go next, and optionally a countdown that takes the user
+// there.
+//
+// For a confirmation that stays inside the page the user is already on, the kit
+// publishes successPanel() from components/index.js — a check, a title and one
+// line of sub, and nothing to configure. Pick by how much of the screen the
+// confirmation owns. The two share no CSS (.ui-sx here, .ui-success there), so
+// changing one never moves the other.
 export function success({
   layout = 'hero',          // 'hero' | 'split' | 'compact'
   backdrop = 'aurora',      // 'aurora' | 'glow' | 'flat'
