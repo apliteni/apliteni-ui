@@ -68,6 +68,15 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
+    # npm's trusted publisher matches on org + repo + this filename, and on the
+    # environment name when one is set. It does not match on the ref. Without an
+    # environment, a dispatch of this workflow from any branch publishes — and
+    # branch protection covers refs/heads/main only, so creating a branch is
+    # unrestricted. The `npm-publish` environment carries a deployment rule
+    # allowing tags matching v* and nothing else, so GitHub refuses to start this
+    # job on any other ref. Bind the same environment name in the publisher
+    # config on npmjs.com and the rule is enforced from both ends.
+    environment: npm-publish
     permissions:
       contents: read
       id-token: write # OIDC token for npm trusted publishing
