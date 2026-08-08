@@ -125,9 +125,9 @@ const FAMILIES = [
     token: '--green',
     role: 'live / success',
     light: '#1c8a2c',
-    // --glow-green: rgba(30, 150, 50, 0.1). NOTE the rgb is NOT --green
-    // (#1c8a2c = 28,138,44). This is the drift section 6 records.
-    glow: { rgb: [30, 150, 50], a: 0.1, sameAsToken: false },
+    // --glow-green: rgba(28, 138, 44, 0.1) — the same rgb as --green, since #131
+    // re-tinted it. It used to be rgb(30, 150, 50); section 6 records that move.
+    glow: { rgb: [28, 138, 44], a: 0.1, sameAsToken: true },
     dark: '#98ff8f',
     darkGlow: { rgb: [152, 255, 143], a: 0.16 },
     short: 'Live',
@@ -490,10 +490,11 @@ const sectionChips = () => {
     </div>
     <div class="sc-notes">
       <div class="sc-note"><strong>Green needed no new token.</strong> Six rules wrote
-        ${code('var(--green)')} on ${code('var(--glow-green)')} and landed at
-        ${n2(contrast(green.light, glowHex(green)))}, next to ${code('.ui-badge--live')}, which
-        had used the pair all along and passed at ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}.
-        Each was a one-line repoint at a pair that already existed.</div>
+        ${code('var(--green)')} on ${code('var(--glow-green)')} and landed at 3.97, next to
+        ${code('.ui-badge--live')}, which had used the pair all along and passed at
+        ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}. Each was a one-line repoint at a
+        pair that already existed. (3.97 is what those rules measured at the time; re-tinting
+        ${code('--glow-green')} from ${code('--green')} later moved it to 3.91.)</div>
       <div class="sc-note"><strong>Cyan needed the pair nobody had written.</strong>
         ${code('.ui-badge--info')} was the last chip variant still painting with a raw signal
         token, at ${n2(contrast(cyan.light, glowHex(cyan)))} on its own glow.
@@ -691,38 +692,48 @@ const sectionFills = () => {
 };
 
 // ===========================================================================
-// 6 — What is still not right
+// 6 — The last glow that was not a tint of its own token
 // ===========================================================================
 const sectionOpen = () => {
   const g = byKey.green;
-  const trueTint = washed(rgb(g.light), 0.1, LIGHT.surface);
+  const oldWash = washed([30, 150, 50], 0.1, LIGHT.surface);
   return `
   <section class="sc-sec">
     <div class="sc-sec__head">
-      <div class="sc-kicker">6 — Still not right</div>
-      <h2>${code('--glow-green')} is not a tint of ${code('--green')}</h2>
-      <p>Every other family's wash is its own signal at low alpha. Green's is not:
-      ${code('--glow-green')} is <code class="sc-code">rgba(30, 150, 50, 0.1)</code> while
-      ${code('--green')} is ${g.light} — rgb(${rgb(g.light).join(', ')}). The two have been
-      apart since the initial commit. It was left alone here on purpose: no green rule fails
-      because of it, ${code('--green')} did not move, and re-tinting it would change every
-      success surface in the kit for a tidiness the numbers do not ask for.</p>
+      <div class="sc-kicker">6 — Re-tinted</div>
+      <h2>${code('--glow-green')} is a tint of ${code('--green')} now</h2>
+      <p>A wash is its own colour at low alpha and nothing else. Green's was not: it read
+      <code class="sc-code">rgba(30, 150, 50, 0.1)</code> while ${code('--green')} is ${g.light} —
+      rgb(${rgb(g.light).join(', ')}) — and the two had been apart since the initial commit.
+      rgb(30, 150, 50) was not a token, not a step in any ramp and not the dark green, so it
+      was a leftover from a hand-authored palette rather than a decision anyone made. It is
+      now <code class="sc-code">rgba(${g.glow.rgb.join(', ')}, 0.1)</code>, which is
+      ${code('--green')} at the alpha the other three light glows already use.</p>
     </div>
     <div class="sc-panel">
       <div class="sc-surfaces">
-        ${cell(`${code('--glow-green')} as it is — ${glowHex(g)}`, g.light, glowHex(g), g)}
-        ${cell(`a true 10% tint of ${code('--green')} — ${trueTint}`, g.light, trueTint, g)}
+        ${cell(`the old wash — ${oldWash}`, g.light, oldWash, g)}
+        ${cell(`${code('--glow-green')} today — ${glowHex(g)}`, g.light, glowHex(g), g)}
         ${cell(`white — ${code('--surface')}`, g.light, LIGHT.surface, g)}
       </div>
     </div>
     <div class="sc-notes">
-      <div class="sc-note">The drift is worth
-        ${n2(Math.abs(contrast(g.light, glowHex(g)) - contrast(g.light, trueTint)))} of a ratio,
-        and all three cells fail AA, which is the point. The success chips do not read
-        ${code('--green')} on ${code('--glow-green')} any more; they read
+      <div class="sc-note"><strong>It moves almost nothing, and that was the test.</strong>
+        The wash over white goes ${oldWash} to ${glowHex(g)} — two levels on one channel —
+        worth ${n2(Math.abs(contrast(g.light, glowHex(g)) - contrast(g.light, oldWash)))} of a
+        ratio. Every surface that reads ${code('--glow-green')} keeps the verdict it had:
+        the success callout, the soft success toast, the success panel and the feedback
+        confirmation all carry body copy at 9.29 before and 9.15 after, well clear of AA.
+        The first two cells still fail AA against ${code('--green')} itself, exactly as they
+        did — the drift was never what made them fail.</div>
+      <div class="sc-note"><strong>No chip moved.</strong> The success chips stopped reading
+        ${code('--green')} on ${code('--glow-green')} back in section 3; they read
         ${code('--chip-success-ink')} on ${code('--chip-success-fill')}, at
-        ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}. Fixing the glow would be a
-        separate decision about what a wash is for, not a contrast fix.</div>
+        ${n2(contrast(CHIP.success.ink, CHIP.success.fill))}, and in light that fill is the
+        solid ${CHIP.success.fill} rather than a wash. Dark's ${code('--glow-green')} was
+        already an exact tint of its own ${code('--green')} and did not change.
+        All four glows are now gated in both themes, in
+        ${code('stories/signal-contrast.test.js')}.</div>
     </div>
   </section>`;
 };
