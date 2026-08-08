@@ -300,11 +300,10 @@
       <p>Segmented pills, switches and toggles.</p>
       <div class="bento__demo bento__demo--stack">
         <!-- A specimen, not a switcher: it shows what a segmented control looks like and
-             chooses nothing. It is still a real focusable control, so it owes the same
-             contract as the kit's own — role="toolbar" with a name, aria-pressed on every
-             option, and ONE Tab stop for the strip. This is the site's copy of what
-             segmented() emits (src/components/index.js:82-92); the keys are wired in
-             chrome.mjs. Keep the two in step; site/segmented.test.js holds them there. -->
+             chooses nothing. It is still a real focusable control, so it owes the kit's
+             contract — a named toolbar, aria-pressed per option, one Tab stop. Mirrors
+             what segmented() emits; the keys are wired in chrome.mjs, and
+             site/segmented.test.js holds the two in step. -->
         <div class="ui-seg" role="toolbar" aria-label="Example segmented control"><button type="button" class="is-active" aria-pressed="true" tabindex="0">Deck</button><button type="button" aria-pressed="false" tabindex="-1">Text</button></div>
         <label class="ui-switch"><input type="checkbox" checked aria-label="Example toggle"><span class="ui-switch__track"></span></label>
       </div>

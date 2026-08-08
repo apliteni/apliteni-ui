@@ -22,10 +22,9 @@
 //   - It substitutes the REAL chrome. That file blanks {{CHROME_JS}} because the
 //     audience switcher's behaviour lives in index.html's own <script>. The
 //     .ui-seg handler lives in site/chrome.mjs, so blanking the chrome here
-//     would test a page with no handler at all and pass whatever the markup
-//     said. The topbar and footer come in with it: CHROME_JS reaches for
-//     #tglIc on load, and a page without the topbar throws before it binds
-//     anything.
+//     would leave the page with no handler bound at all. The topbar and footer
+//     come in with it: CHROME_JS reaches for #tglIc on load, and a page without
+//     the topbar throws before it binds anything.
 //   - It compares against the kit rather than against a fixed expectation, for
 //     the reason above.
 
@@ -63,6 +62,15 @@ const PAGE = readFileSync(new URL('./index.html', import.meta.url), 'utf8')
 
 // A strip, its document, and the two verbs the tests drive it with. Both sides
 // are built through this so neither gets a helper the other lacks.
+//
+// press() RETURNS what dispatchEvent returned: false when a handler called
+// preventDefault(), true when nothing cancelled it. That return value is the
+// only evidence of preventDefault() there is, and dropping it is how a gate
+// certifies a keyboard trap. Both ways of getting it wrong are silent
+// otherwise: without preventDefault, End scrolls the landing page to the footer
+// while it selects; with preventDefault hoisted above the "is this a key we
+// own" guard, every keydown in the strip is cancelled including Tab, and a
+// keyboard-only reader who tabs in cannot tab out.
 function harness(dom, strip) {
   const doc = dom.window.document;
   const buttons = () => [...strip.querySelectorAll('button')];
@@ -76,24 +84,37 @@ function harness(dom, strip) {
     press: (i, key) => {
       const b = buttons()[i];
       b.focus();
-      b.dispatchEvent(new dom.window.KeyboardEvent(
+      return b.dispatchEvent(new dom.window.KeyboardEvent(
         'keydown', { key, bubbles: true, cancelable: true }));
     },
   };
 }
 
-// The site's strip, inside the whole real page with the real handler bound.
-function site() {
+// The whole real page, with the real handler bound. Returns every .ui-seg on it,
+// not just the first: the handler binds all of them, so a strip added later
+// inherits the behaviour and owes the same contract. Picking one by
+// querySelector would make coverage depend on document order, and a second
+// strip added below this one would go ungated in silence.
+function sitePage() {
   const errors = [];
   const dom = new JSDOM(PAGE, {
     runScripts: 'dangerously',
     pretendToBeVisual: true,
     beforeParse(w) { w.addEventListener('error', (e) => errors.push(e.message)); },
   });
-  const strip = dom.window.document.querySelector('.ui-seg');
-  assert.ok(strip, 'the bento’s Controls cell must still carry a .ui-seg strip');
   assert.deepEqual(errors, [], 'the page’s own scripts must run clean');
-  return harness(dom, strip);
+  const strips = [...dom.window.document.querySelectorAll('.ui-seg')];
+  assert.ok(strips.length, 'the page must still carry at least one .ui-seg strip');
+  return { dom, strips: strips.map((s) => harness(dom, s)) };
+}
+
+// The specimen this issue is about, found by the name it answers to rather than
+// by where it sits in the document.
+function site() {
+  const { strips } = sitePage();
+  const found = strips.find((h) => h.strip.getAttribute('aria-label') === LABEL);
+  assert.ok(found, `no .ui-seg on the page is named “${LABEL}”`);
+  return found;
 }
 
 // The kit's strip: segmented() for the markup, wireTopbar() for the behaviour —
@@ -112,12 +133,19 @@ function kit() {
 // data-value are the kit's own caller hooks, not part of what a reader or a
 // screen reader meets, so they are left out on purpose — the site is not asked
 // to reproduce them.
+// aria-selected is read even though neither side emits it. src/styles/segmented.css
+// paints on [aria-selected="true"] as well as .is-active, so a stale one in
+// hand-written markup is a paint bug and an announcement lie at the same time,
+// and it is the pair the handler's own mirroring rule is about. `type` is read
+// because a specimen that ever moves inside a form submits it without it.
 const announcement = (h) => ({
   role: h.strip.getAttribute('role'),
   label: h.strip.getAttribute('aria-label'),
   buttons: h.buttons().map((b) => ({
     label: b.textContent.trim(),
+    type: b.getAttribute('type'),
     pressed: b.getAttribute('aria-pressed'),
+    selected: b.getAttribute('aria-selected'),
     tabindex: b.getAttribute('tabindex'),
     active: b.classList.contains('is-active'),
   })),
@@ -158,6 +186,30 @@ test('the whole strip costs one Tab stop, not one per option', () => {
     'every other option is taken out of the Tab order, not left at its default');
 });
 
+// The handler binds every .ui-seg on the page, so every .ui-seg on the page owes
+// the contract — including one added long after this file was written. Without
+// this, a second strip dropped in below the first is picked up by the behaviour
+// and missed by the gate.
+test('every segmented strip on the page owes the contract, not just the first', () => {
+  const { strips } = sitePage();
+  for (const h of strips) {
+    const name = h.strip.getAttribute('aria-label') || '(unnamed)';
+    assert.equal(h.strip.getAttribute('role'), 'toolbar',
+      `the ${name} strip must announce itself as a toolbar`);
+    assert.ok((h.strip.getAttribute('aria-label') || '').trim(),
+      'a toolbar with no name is an unnamed control');
+    const btns = h.buttons();
+    assert.ok(btns.length, `the ${name} strip must have options`);
+    assert.deepEqual(
+      btns.filter((b) => b.getAttribute('aria-pressed') === null).map((b) => b.textContent.trim()),
+      [], `every option in ${name} must say whether it is the one on`);
+    assert.equal(btns.filter((b) => b.getAttribute('aria-pressed') === 'true').length, 1,
+      `exactly one option in ${name} is the one on`);
+    assert.equal(btns.filter((b) => b.getAttribute('tabindex') === '0').length, 1,
+      `${name} must cost exactly one Tab stop`);
+  }
+});
+
 // ---- the behaviour, key for key against the kit ---------------------------
 
 test('clicking an option moves the pressed state and the Tab stop, as the kit does', () => {
@@ -181,13 +233,17 @@ for (const [key, from, expected] of [
   test(`${key} from ${OPTIONS[from]} selects ${expected}, as the kit does`, () => {
     const s = site();
     const k = kit();
-    s.press(from, key);
-    k.press(from, key);
+    const sLive = s.press(from, key);
+    const kLive = k.press(from, key);
     assert.deepEqual(announcement(s), announcement(k));
     assert.equal(announcement(s).buttons.find((b) => b.active).label, expected);
     assert.equal(focusedLabel(s), expected,
       'the arrow keys move focus with the selection, or a keyboard user is left behind');
     assert.equal(focusedLabel(s), focusedLabel(k));
+    // A key the strip acts on must be cancelled, or it does its own job too:
+    // End selects Text and scrolls the page to the footer underneath it.
+    assert.equal(sLive, false, `${key} must be cancelled once the strip has acted on it`);
+    assert.equal(sLive, kLive, `${key}: the site and the kit must agree about cancelling`);
   });
 }
 
@@ -195,8 +251,23 @@ test('a key the strip does not own is left alone for the page to handle', () => 
   const s = site();
   const k = kit();
   const before = announcement(s);
-  s.press(0, 'ArrowDown');
-  k.press(0, 'ArrowDown');
+  const sLive = s.press(0, 'ArrowDown');
+  const kLive = k.press(0, 'ArrowDown');
   assert.deepEqual(announcement(s), before, 'ArrowDown must not move the selection');
   assert.deepEqual(announcement(s), announcement(k));
+  assert.equal(sLive, true, 'ArrowDown must reach the page — scrolling is not the strip’s to cancel');
+  assert.equal(sLive, kLive);
+});
+
+// The one that turns a specimen into a cage. If preventDefault() moves above the
+// "is this a key we own" guard, the strip cancels Tab too and a keyboard-only
+// reader who tabs in cannot tab out. Nothing else in this file can see it: every
+// other assertion is about a key the strip DOES own.
+test('Tab is never cancelled, so a keyboard reader can always leave the strip', () => {
+  const s = site();
+  const k = kit();
+  for (const key of ['Tab', 'Escape', 'Enter', ' ']) {
+    assert.equal(s.press(0, key), true, `${key} must not be cancelled by the strip`);
+    assert.equal(k.press(0, key), true, `${key} must not be cancelled by the kit’s strip either`);
+  }
 });
