@@ -192,6 +192,113 @@ test('the entry actually re-exports the names those modules define', async () =>
   );
 });
 
+/* ---------------------------------------------------------------------------
+ * The other kind of unreachable: a factory a consumer can import but cannot
+ * find. Reaching a name and knowing it exists are the same problem one step
+ * apart, and the catalog in docs/library.md drifted exactly the way src/index.js
+ * did — dropdown(), drawer(), nav(), footer() and success() were all published
+ * and none of them were written down. Two hand-maintained lists again.
+ *
+ * Only inline code spans count. A word search over the prose is not sound: the
+ * catalog says "select a passage" about the feedback widget, which would read as
+ * coverage for select(), a form control it says nothing about. Fenced blocks are
+ * stripped for the same reason — a directory listing is not documentation.
+ *
+ * What this does NOT prove: that the row says anything useful, or that a name is
+ * documented in its own right. A short name that doubles as another factory's
+ * option reads as covered from that signature alone — delete the `footer()` row
+ * and `footer` still appears inside `drawer({ …, footer, … })`. Thirteen of the
+ * seventy exports sit in that position today. So this is a floor: a factory added
+ * with no row anywhere is always caught, which is the drift that actually happens.
+ * ------------------------------------------------------------------------- */
+const docFile = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'library.md');
+
+/* Names the entry publishes that docs/library.md deliberately does not describe.
+ * Empty: every export is in the catalog, the theming section or the note under
+ * it. An entry here needs a reason a consumer is better off not knowing. */
+const NOT_DOCUMENTED = [
+  // { name: 'example', why: 'why a consumer should not be told about it' },
+];
+
+/** Identifiers inside `backticks`, fenced blocks removed. */
+function documentedNames(md) {
+  const prose = md.replace(/^```[\s\S]*?^```/gm, '');
+  const names = new Set();
+  for (const [, span] of prose.matchAll(/`([^`\n]+)`/g)) {
+    for (const tok of span.split(/[^\w$]+/)) {
+      if (/^[A-Za-z_$][\w$]*$/.test(tok)) names.add(tok);
+    }
+  }
+  return names;
+}
+
+test('the docs scan reads code spans, not prose', async () => {
+  // Vacuity runs one way here: if the extraction over-matches, every name looks
+  // documented and the assertion below can never fail. So prove it under-matches
+  // — a word that only ever appears in prose must not come out of it.
+  const md = readFileSync(docFile, 'utf8');
+  const documented = documentedNames(md);
+  const entry = await import(pathToFileURL(entryFile).href);
+
+  assert.ok(
+    documented.size >= 30,
+    `only ${documented.size} identifiers came out of ${docFile} — the code-span parse is ` +
+      'broken, and "documented" below is a label nothing has to earn.',
+  );
+  assert.ok(
+    Object.keys(entry).length >= 40,
+    `the entry namespace has ${Object.keys(entry).length} names — too few to be the kit, ` +
+      'so the coverage check is comparing against almost nothing.',
+  );
+  const canary = 'orthogonal';
+  assert.ok(
+    md.includes(canary),
+    `this test uses "${canary}" as a prose-only canary and docs/library.md no longer ` +
+      'contains it. Pick another word that appears in the prose and never in backticks.',
+  );
+  assert.ok(
+    !documented.has(canary),
+    `"${canary}" appears in docs/library.md only as prose, and the scan picked it up ` +
+      'anyway — it is reading the whole file, not the code spans, so every export would ' +
+      'come out documented no matter what the catalog says.',
+  );
+});
+
+test('every name the entry publishes is written down in docs/library.md', async () => {
+  const documented = documentedNames(readFileSync(docFile, 'utf8'));
+  const entry = await import(pathToFileURL(entryFile).href);
+  const exempt = new Set(NOT_DOCUMENTED.map((e) => e.name));
+
+  const undocumented = Object.keys(entry)
+    .filter((name) => !documented.has(name) && !exempt.has(name))
+    .sort();
+
+  assert.deepEqual(
+    undocumented,
+    [],
+    `${undocumented.join(', ')} — published from src/index.js and named nowhere in ` +
+      'docs/library.md. A consumer can import it and has no way to learn it exists, which ' +
+      'is the reachability bug one step further out. Add a catalog row in ' +
+      'docs/library.md, or list it in NOT_DOCUMENTED above with a reason.',
+  );
+});
+
+test('every NOT_DOCUMENTED entry still names a live, undocumented export', async () => {
+  const documented = documentedNames(readFileSync(docFile, 'utf8'));
+  const entry = await import(pathToFileURL(entryFile).href);
+
+  const stale = NOT_DOCUMENTED.filter(
+    (e) => !(e.name in entry) || documented.has(e.name),
+  ).map((e) => `${e.name} — exempt because ${e.why}`);
+
+  assert.deepEqual(
+    stale,
+    [],
+    'NOT_DOCUMENTED names an export the entry no longer publishes, or one docs/library.md ' +
+      `now covers anyway — the list is lying about the kit:\n  ${stale.join('\n  ')}`,
+  );
+});
+
 test('every NOT_PUBLIC entry still names a live, unreachable module', () => {
   const stale = NOT_PUBLIC.filter(
     (e) => !modules.includes(e.module) || reachable.has(e.module),
