@@ -276,6 +276,78 @@ test('the memo is dropped even when the DOM write throws', () => {
   win.close();
 });
 
+test('a DOM write that bypassed mutate is refused, not answered from the stale memo', () => {
+  // The invariant `mutate` only had by convention until now. Three write sites
+  // route through it and the test above proves the mechanism; nothing stopped a
+  // fourth being added with a bare setAttribute, and a bare setAttribute leaves
+  // a memo describing the document as it was one render ago. That is the worst
+  // failure this file can have: the gate reports a colour nobody painted, and
+  // reports it confidently. The cache watches the document instead of trusting
+  // the caller, so the discipline is checked rather than remembered.
+  const win = boxWindow(
+    '.box{background:rgb(10,20,30)}.box[data-ui-state~="hover"]{background:rgb(200,100,50)}',
+  );
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+  assert.equal(styles.of(el).backgroundColor, 'rgb(10, 20, 30)', 'at rest, memoised');
+
+  el.setAttribute('data-ui-state', 'hover'); // the careless fourth write site
+
+  assert.throws(
+    () => styles.of(el),
+    /bypassed .*mutate/,
+    'the cache must refuse to answer after a write it did not see routed through mutate',
+  );
+  win.close();
+});
+
+test('the guard names any unrouted write, not just one on the element being read', () => {
+  // The poison does not have to touch the element you go on to read: any write
+  // invalidates JSDOM's own cascade cache for the WHOLE document, so every
+  // memoised element is stale after any write anywhere.
+  const win = boxWindow('.box{background:rgb(10,20,30)}');
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+  styles.of(el);
+  win.document.body.appendChild(win.document.createElement('span'));
+  assert.throws(() => styles.of(el), /bypassed .*mutate/);
+  win.close();
+});
+
+test('the guard latches, so the one throw cannot be swallowed and walked past', () => {
+  // Draining the record queue is what detects the write, and draining empties
+  // it — so an unlatched guard would throw exactly once and then answer stale
+  // colours forever after. One try/catch anywhere above would turn the whole
+  // invariant into a single swallowed exception.
+  const win = boxWindow('.box{background:rgb(10,20,30)}');
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+  styles.of(el);
+  el.setAttribute('data-ui-state', 'hover');
+  assert.throws(() => styles.of(el), /bypassed .*mutate/, 'the first read after the write');
+  assert.throws(() => styles.of(el), /bypassed .*mutate/, 'and every read after that one');
+  styles.mutate(() => el.removeAttribute('data-ui-state'));
+  assert.throws(
+    () => styles.of(el), /bypassed .*mutate/,
+    'a later well-behaved write must not clear the record — the walk it poisoned is still the walk',
+  );
+  win.close();
+});
+
+test('a write routed through mutate leaves the cache willing to answer', () => {
+  // The other half: the guard must not fire on the discipline it is enforcing,
+  // or the walk cannot run at all.
+  const win = boxWindow('.box{background:rgb(10,20,30)}');
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+  styles.of(el);
+  styles.mutate(() => el.setAttribute('data-ui-state', 'hover'));
+  assert.doesNotThrow(() => styles.of(el));
+  styles.mutate(() => { win.document.body.innerHTML = '<div class="box" id="b">y</div>'; });
+  assert.doesNotThrow(() => styles.of(win.document.getElementById('b')));
+  win.close();
+});
+
 test('the cache captures a colour when it stores it, not when it is read back', () => {
   // JSDOM resolves color-mix() LAZILY, on the first read of the property, and
   // what it resolves to depends on what else has been looked up by then. Hold a

@@ -76,6 +76,13 @@
  * the next lookups to resolve the cascade from scratch. That is JSDOM's own
  * invalidation rule and nothing here can safely be cleverer than it.
  *
+ * All three of those numbers are now asserted rather than remembered. The miss
+ * rate they imply — 28,436 of 137,206 reads — is gated below, and it is the only
+ * cost assertion here that is deterministic enough to see a doubling. The 5,710
+ * writes are gated too, as the anti-vacuity counter for the invariant that keeps
+ * the cache honest: every DOM write in the walk goes through `mutate`, and the
+ * cache now refuses to answer if one did not. See makeStyleCache.
+ *
  * Cost grows with theme×accent cells, close to linearly — measured 16.3s for the
  * default 2 cells and 63.4s for all 8, so about 8s a cell. The eight-cell accent
  * matrix is behind CONTRAST_ACCENTS=1 and is OFF by default; turning it on finds
@@ -289,7 +296,12 @@ const LEDGER = [
 
 // ---- the walk, once -------------------------------------------------------
 
-const walk = { findings: [], stats: {}, problems: [], elapsed: 0, storyIds: new Set() };
+const walk = {
+  findings: [], stats: {}, problems: [], elapsed: 0, storyIds: new Set(),
+  // Instrumentation about the RESOLVER, kept apart from `stats`, which is about
+  // the kit. Nothing here is a fact about the catalogue.
+  cache: { queries: 0, lookups: 0, routedWrites: 0 },
+};
 
 before(async () => {
   const started = Date.now();
@@ -302,6 +314,7 @@ before(async () => {
     for (const [k, v] of Object.entries(r.stats)) {
       if (typeof v === 'number') walk.stats[k] = (walk.stats[k] || 0) + v;
     }
+    for (const k of Object.keys(walk.cache)) walk.cache[k] += r.cache[k];
     walk.stats.uaBlue = (walk.stats.uaBlue || []).concat(r.stats.uaBlue);
   }
   walk.elapsed = Date.now() - started;
@@ -429,6 +442,25 @@ test('the walk actually walked — a scan that finds nothing must not pass', () 
   );
 });
 
+test('the style cache watched the real walk, so its guard is not dead code', () => {
+  // Anti-vacuity for the invariant in makeStyleCache. The guard refuses to
+  // answer a read after a DOM write that did not go through `mutate`, and it
+  // learns about writes from a MutationObserver. A watcher that was attached to
+  // the wrong node, or never attached, would report nothing and permit
+  // everything — silently, exactly like a source scan whose pattern stops
+  // matching. This asserts the watcher saw the walk's own writes: the state
+  // passes toggle data-ui-state on and off around every stateful element and
+  // replace the body once per story, and every one of those arrives at the
+  // watcher as a record. Zero means the guard is watching nothing.
+  assert.ok(
+    walk.cache.routedWrites > 1000,
+    `the style cache's watcher saw only ${walk.cache.routedWrites} DOM mutation record(s) across `
+    + 'the whole walk. It should see thousands — one per data-ui-state toggle plus the body '
+    + 'replacement per story. A watcher that sees nothing can never fire, so the `mutate` '
+    + 'invariant would be enforced by comment again.',
+  );
+});
+
 // ---- self-checks: does the resolver reach the real cascade? ---------------
 
 test("the dark theme's body text resolves to its known ratio", () => {
@@ -489,6 +521,61 @@ test('the five toast statuses resolve to five different accents', () => {
   }
 });
 
+test('the style cache is still serving four reads in five from memory', () => {
+  // THE DETERMINISTIC HALF OF THE COST GATE. The wall-clock ceiling below cannot
+  // see a 2x regression through machine noise, and says so. This can: the walk
+  // asks for a computed style a fixed number of times for a fixed catalogue, and
+  // how many of those reach JSDOM is arithmetic, not weather. Two identical runs
+  // give identical numbers.
+  //
+  // THE NUMBERS. Measured over both default cells: 137,206 queries — every read
+  // the walk performs, which is exactly the number of getComputedStyle calls the
+  // walk made before the cache existed — of which 28,436 miss and reach JSDOM.
+  // A miss rate of 0.2073.
+  //
+  // WHY A RATIO AND NOT THE 28,436. The absolute count is a fact about the
+  // catalogue as much as about the cache: it moves every time a story is added,
+  // so an exact assertion on it would have to be re-pinned by whoever adds one,
+  // and the number they would re-pin it to carries no judgement. The miss rate
+  // is the quantity the cache actually controls. It was 1.0 by definition before
+  // the cache existed, it is 0.2073 now, and adding a story moves the numerator
+  // and the denominator together — the two themes, which walk identical markup
+  // through different colours, agree to three decimal places (0.2068 / 0.2077).
+  // The absolute figures are logged rather than asserted, so a human reading a
+  // CI log still sees them move.
+  //
+  // THE CEILING. 0.30: about 1.45x today's rate, and comfortably below the 0.41
+  // a doubling of lookups would produce. A single added story cannot shift an
+  // aggregate over 137,206 reads by that much, so this does not tax the person
+  // adding one. What trips it is the cache being neutered, or a DOM write
+  // appearing inside the per-element loop — either of which turns hits back into
+  // misses across the whole walk.
+  //
+  // WHAT IT DOES NOT SEE, stated because the wall-clock note below earns its
+  // keep by being honest about the same thing: a new ancestor walk that reads
+  // through the cache and hits every time raises `queries` and leaves `lookups`
+  // alone, which moves this ratio DOWN while making the walk slower. The miss
+  // rate is a gate on the cache, not on the walk's shape.
+  const { queries, lookups } = walk.cache;
+  console.log(
+    `contrast walk: ${lookups} style lookups served from ${queries} reads `
+    + `(miss rate ${(lookups / queries).toFixed(4)}), ${walk.cache.routedWrites} DOM writes`,
+  );
+  assert.ok(
+    queries > 50000,
+    `only ${queries} style reads were made; the ratio below would be measuring almost nothing`,
+  );
+  const missRate = lookups / queries;
+  assert.ok(
+    missRate < 0.30,
+    `the style cache's miss rate rose to ${missRate.toFixed(4)} (${lookups} lookups from ${queries} `
+    + 'reads), against a ceiling of 0.30 set from a measured 0.2073. Unlike the wall clock this is '
+    + 'deterministic, so this is a real regression and not a busy machine: either the memo stopped '
+    + 'being kept, or something started writing to the DOM inside the walk\'s per-element loop and '
+    + 'is dropping the memo on every element.',
+  );
+});
+
 test('the walk has not run away with the clock', () => {
   // WHAT THIS NUMBER IS. Measured on a 10-core laptop, two default cells:
   // 15.7-16.5s run alone, 16.4-18.3s inside `npm test` where it shares those
@@ -503,9 +590,10 @@ test('the walk has not run away with the clock', () => {
   // performance regression, and no wall-clock number can: contention alone
   // spans 3x on one machine, so any threshold tight enough to see a doubling
   // flakes on a busy laptop, and a ceiling that flakes gets deleted by the next
-  // person. The deterministic quantity is the lookup count (28,436 today, from
-  // 137,206 before the cache); asserting on that rather than on seconds is the
-  // honest upgrade if this ever needs to be a real regression detector.
+  // person. The doubling is the miss-rate test's job, immediately above; the two
+  // are kept apart because they fail for different reasons. A runaway shows up
+  // here and not there — a walk that stopped terminating keeps a perfectly good
+  // miss rate — and a doubling shows up there and not here.
   console.log(
     `contrast walk: ${(walk.elapsed / 1000).toFixed(1)}s for ${THEMES.length} theme×accent cell(s), `
     + `${walk.stats.judged} pairs judged, ${walk.findings.length} distinct failures`,

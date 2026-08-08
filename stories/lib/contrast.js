@@ -315,12 +315,72 @@ function capture(cs) {
  *
  * Between writes, getComputedStyle is a pure function of the element, which is
  * what makes the memo sound in the first place.
+ *
+ * WHY THE THIRD POINT IS CHECKED RATHER THAN PROMISED. Routing every write
+ * through `mutate` used to be a convention, held by three call sites and a
+ * comment. A fourth site added with a bare setAttribute would leave the memo
+ * describing the document as it was one render ago, and the gate would report a
+ * colour nobody painted — confidently, with no test failing. So the cache no
+ * longer trusts its caller. It attaches a MutationObserver to the document and,
+ * on every read, drains the record queue: MutationObserver queues synchronously
+ * and takeRecords() drains synchronously, so "has anything changed since I last
+ * looked?" is a question that can be asked on the hot path with a standard DOM
+ * API and no JSDOM internals. A non-empty queue at a read means a write reached
+ * the document without the memo being dropped, and the cache throws instead of
+ * answering. The failure is latched: a cache that has once seen an unrouted
+ * write stays dead, so the error cannot be thrown once and then walked past.
+ *
+ * Stated exactly, because a guard that overstates itself is worse than none:
+ * this enforces "the cache never answers a question about a document that has
+ * moved since it last looked". It does not enforce "no write happens outside
+ * mutate". A write with no read after it is invisible to the guard — and
+ * harmless, because nothing was served from the memo it invalidated. It catches
+ * any write from anywhere, including one made by a story's own render code,
+ * which is the part a source scan of this file could never reach.
  */
 export function makeStyleCache(win) {
   let memo = new WeakMap();
+  /**
+   * What the cache did, for the two assertions in stories/contrast.test.js that
+   * read it.
+   *
+   *   queries       how often the walk asked for a style
+   *   lookups       how many of those reached JSDOM — i.e. missed the memo
+   *   routedWrites  mutation records the watcher took at a `mutate` boundary
+   *
+   * `queries` and `lookups` are what makes the cache's effect a NUMBER rather
+   * than a wall-clock impression: their ratio is the miss rate, which is what
+   * the cache actually controls and is independent of how many stories exist.
+   * `routedWrites` is the anti-vacuity counter for the guard above — a watcher
+   * receiving nothing can never fire.
+   */
+  const seen = { queries: 0, lookups: 0, routedWrites: 0 };
+  let poisoned = null;
+  // The callback stays empty on purpose. Every record is taken synchronously
+  // below, so the microtask JSDOM queues finds nothing left to report.
+  const watcher = new win.MutationObserver(() => {});
+  watcher.observe(win.document, {
+    attributes: true, characterData: true, childList: true, subtree: true,
+  });
+
   const of = (node) => {
+    if (poisoned) throw new Error(poisoned);
+    const unrouted = watcher.takeRecords();
+    if (unrouted.length) {
+      const where = unrouted.map((r) => (r.type === 'attributes'
+        ? `${r.type} ${r.attributeName} on <${r.target.tagName?.toLowerCase()}>`
+        : `${r.type} on <${r.target.tagName?.toLowerCase() ?? '#document'}>`));
+      poisoned = `a DOM write bypassed the style cache's \`mutate\`, so the memo now describes `
+        + `the document as it was before it: ${[...new Set(where)].slice(0, 3).join('; ')}`
+        + `${unrouted.length > 3 ? ` (+${unrouted.length - 3} more)` : ''}. Every write in the walk `
+        + 'must go through styles.mutate(() => …) in stories/lib/contrast.js, which drops the memo. '
+        + 'Reading past this point would report a colour from the previous render.';
+      throw new Error(poisoned);
+    }
+    seen.queries += 1;
     let cs = memo.get(node);
     if (cs === undefined) {
+      seen.lookups += 1;
       cs = capture(win.getComputedStyle(node));
       memo.set(node, cs);
     }
@@ -333,10 +393,11 @@ export function makeStyleCache(win) {
     try {
       return write();
     } finally {
+      seen.routedWrites += watcher.takeRecords().length;
       memo = new WeakMap();
     }
   };
-  return { of, mutate };
+  return { of, mutate, seen };
 }
 
 /**
@@ -491,10 +552,13 @@ export const storyFiles = readdirSync(path.join(root, 'stories'), { recursive: t
 /**
  * Walk every story's text-owning elements against their real background.
  *
- * Returns { records, stats, problems }. A story that will not render is a
+ * Returns { records, stats, problems, cache }. A story that will not render is a
  * problem, never a skip — the lesson stories/a11y.test.js:144-147 already
  * encodes. One shared JSDOM per theme, body replaced per story: measured
  * identical output to a fresh window per story, and much cheaper.
+ *
+ * `cache` is instrumentation about the RESOLVER and is deliberately not folded
+ * into `stats`, which holds facts about the kit. See makeStyleCache's `seen`.
  */
 export async function walkStories({ theme, accent = 'default', states = true } = {}) {
   const { vars, css } = kitCssFor(theme, accent);
@@ -656,5 +720,5 @@ export async function walkStories({ theme, accent = 'default', states = true } =
   }
 
   dom.window.close();
-  return { records, stats, problems };
+  return { records, stats, problems, cache: { ...styles.seen } };
 }
