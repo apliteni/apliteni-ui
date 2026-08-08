@@ -100,16 +100,24 @@
  */
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import {
+  AA_TEXT,
+  composite,
   groupFindings,
   kitCssFor,
   parseColour,
   ratio,
   rgbOf,
+  substitute,
   tokensFor,
   walkStories,
 } from './lib/contrast.js';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const THEMES = ['dark', 'light'];
 const ACCENT = 'default';
@@ -482,6 +490,58 @@ test('the walk stays inside its wall-clock budget', () => {
     + '`npm test` and sets the whole suite\'s wall clock. '
     + '`npm test`; something has made it much more expensive, or a cell was added without '
     + 'anyone costing it.',
+  );
+});
+
+// ---- the walker's structural blind spot ----------------------------------
+
+test('every chip ink/fill token pair clears AA, whether or not a story renders it', () => {
+  // The walk sees what the catalogue renders. A token pair that no story puts on
+  // screen is invisible to it — and the chip pairs exist precisely so a status
+  // badge can be built without reaching for a raw signal token, which means a
+  // new consumer can appear long after the pair was last looked at. Derived from
+  // token NAMES so a family added to tokens.css is judged with no edit here.
+  const src = readFileSync(path.join(root, 'src/tokens/tokens.css'), 'utf8');
+  const families = [...new Set([...src.matchAll(/--chip-([a-z]+)-ink\s*:/g)].map((m) => m[1]))];
+
+  assert.ok(
+    families.length >= 3,
+    `only ${families.length} chip families were derived from src/tokens/tokens.css. A rename `
+    + 'would make this test pass by matching nothing, which is the failure mode it exists to avoid.',
+  );
+
+  const problems = [];
+  for (const theme of THEMES) {
+    const { vars, css } = kitCssFor(theme, ACCENT);
+    // Mounted rather than parsed: a dark chip fill is a color-mix(), and JSDOM
+    // is what resolves that into a colour with an alpha channel.
+    const probes = families
+      .map((f) => `#chip-${f}{color:var(--chip-${f}-ink);background:var(--chip-${f}-fill)}`)
+      .join('');
+    const win = new JSDOM(
+      `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style>`
+      + `<style>${substitute(probes, vars)}</style></head><body>`
+      + `${families.map((f) => `<span id="chip-${f}">x</span>`).join('')}</body></html>`,
+      { pretendToBeVisual: true },
+    ).window;
+    const page = parseColour(substitute(vars.get('--bg'), vars));
+    for (const family of families) {
+      const cs = win.getComputedStyle(win.document.getElementById(`chip-${family}`));
+      const ink = parseColour(cs.color);
+      const fill = parseColour(cs.backgroundColor);
+      if (!ink || !fill) {
+        problems.push(`${theme} ${family}: ink or fill did not resolve (${cs.color} / ${cs.backgroundColor})`);
+        continue;
+      }
+      const r = ratio(ink, composite(fill, page));
+      if (r < AA_TEXT) problems.push(`${theme} --chip-${family}-ink on --chip-${family}-fill is ${r.toFixed(2)}`);
+    }
+    win.close();
+  }
+  assert.deepEqual(
+    problems, [],
+    `\n${problems.join('\n')}\n\nA chip pair is the ink and fill of a status badge. Both halves `
+    + 'move together or neither does; fix the pair in src/tokens/tokens.css.',
   );
 });
 
