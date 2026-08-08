@@ -92,12 +92,41 @@ export const CHROME_JS = `
   if (savedA) applyAccent(savedA);
   document.querySelectorAll('.accents button').forEach(function(b){ b.addEventListener('click', function(){ applyAccent(b.getAttribute('data-acc')); }); });
 
-  // Segmented controls (.ui-seg) — switch the active pill on click.
+  // Segmented controls (.ui-seg) — a toolbar of toggle buttons. This is the
+  // site's copy of what wireTopbar() does for the kit (see the .ui-seg block in
+  // src/components/topbar.js): click selects, ArrowLeft/ArrowRight move and wrap,
+  // Home/End jump to the ends, and the strip keeps ONE Tab stop — selecting an
+  // option hands it the tabindex and takes it off the rest. Keep the two in step;
+  // a reader who studies both must not be taught two answers. site/segmented.test.js
+  // imports the kit's own segmented() + wireTopbar() and fails if they drift apart.
   document.querySelectorAll('.ui-seg').forEach(function(seg){
+    var btns = function(){ return Array.prototype.slice.call(seg.querySelectorAll('button')); };
+    var select = function(b, focus){
+      btns().forEach(function(x){
+        var on = x === b;
+        x.classList.toggle('is-active', on);
+        // Mirror whichever the button declares and never invent the other, the
+        // same rule the kit follows for older hand-written .ui-seg markup.
+        if (x.hasAttribute('aria-pressed')) x.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (x.hasAttribute('aria-selected')) x.setAttribute('aria-selected', on ? 'true' : 'false');
+        x.tabIndex = on ? 0 : -1;
+      });
+      if (focus) b.focus();
+    };
     seg.addEventListener('click', function(e){
       var b = e.target.closest('button'); if(!b || !seg.contains(b)) return;
-      seg.querySelectorAll('button').forEach(function(x){ x.classList.remove('is-active'); });
-      b.classList.add('is-active');
+      select(b);
+    });
+    seg.addEventListener('keydown', function(e){
+      var b = e.target.closest('button'); if(!b || !seg.contains(b)) return;
+      var all = btns(), i = all.indexOf(b), n = null;
+      if (e.key === 'ArrowRight') n = (i + 1) % all.length;
+      else if (e.key === 'ArrowLeft') n = (i - 1 + all.length) % all.length;
+      else if (e.key === 'Home') n = 0;
+      else if (e.key === 'End') n = all.length - 1;
+      if (n === null) return;
+      e.preventDefault();
+      select(all[n], true);
     });
   });
 `;
