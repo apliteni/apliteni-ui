@@ -62,19 +62,29 @@
  * COST, HONESTLY. The walk is the most expensive thing in `npm test` and it runs
  * on every invocation. It is also the suite's critical path: `node --test` runs
  * files as parallel child processes, and this one outlasts all the others put
- * together. Measured on a 10-core laptop: the suite went from ~8s to ~25s when
- * this file landed, roughly a 3x increase, accepted knowingly.
+ * together. Measured on a 10-core laptop: the suite runs in ~18s with this file
+ * and ~8s without it, so the gate still roughly doubles it.
  *
- * Cost grows with theme×accent cells, close to linearly but not quite — measured
- * 22.2s for the default 2 cells (~11.1s each) and 116.5s for all 8 (~14.6s each,
- * the difference being the larger heap). The eight-cell accent matrix is behind
- * CONTRAST_ACCENTS=1 and is OFF by default; turning it on finds 794 distinct
- * failing pairs against 214 here, because the accent families carry different
- * literals under Phoenix, Ocean and Emerald and would each need their own ledger
- * entries. Whether it ever runs in CI is undecided. stories/a11y.test.js made
- * the same trade explicitly, so the precedent is to say so rather than drop it
- * quietly. Anyone adding a cell should know they are buying ~12-15s of every
- * `npm test`, forever.
+ * It used to be worse. The walk asked JSDOM for a computed style 137,206 times
+ * across the two cells, because every text element was walked up its ancestor
+ * chain three separate times — background, hidden test, opacity — and siblings
+ * share almost all of that chain. Memoising the lookup per element between DOM
+ * writes (makeStyleCache in stories/lib/contrast.js) cut that to 28,436 calls,
+ * and the walk from ~23s to ~16s. Not the 3x the call count suggests: what
+ * remains is dominated by the 5,710 DOM writes the state passes make, each of
+ * which throws away JSDOM's own style cache for the whole document and forces
+ * the next lookups to resolve the cascade from scratch. That is JSDOM's own
+ * invalidation rule and nothing here can safely be cleverer than it.
+ *
+ * Cost grows with theme×accent cells, close to linearly — measured 16.3s for the
+ * default 2 cells and 63.4s for all 8, so about 8s a cell. The eight-cell accent
+ * matrix is behind CONTRAST_ACCENTS=1 and is OFF by default; turning it on finds
+ * 794 distinct failing pairs against 214 here, because the accent families carry
+ * different literals under Phoenix, Ocean and Emerald and would each need their
+ * own ledger entries. Whether it ever runs in CI is undecided.
+ * stories/a11y.test.js made the same trade explicitly, so the precedent is to
+ * say so rather than drop it quietly. Anyone adding a cell should know they are
+ * buying ~8s of every `npm test`, forever.
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * THE LEDGER IS WRITTEN BY HAND ON PURPOSE. DO NOT BUILD A SCRIPT THAT
@@ -177,14 +187,17 @@ const LEDGER = [
     bg: 'the success wash and plain white in the light theme',
     example: 'div.ui-sx__eyebrow',
     count: 6,
-    worst: 3.34,
+    worst: 3.31,
     why: 'Light --green has to stay recognisably green while carrying text, and green is the '
       + 'hue that darkens worst without turning into a colour nobody reads as success. #155 '
       + 'took the live pill and the badge over the line; what is left is the eyebrow on the '
       + 'success screen, the shell glyphs in a revealed snippet, and the toast action on its own '
       + 'soft wash. Each of these repeats a meaning that is already carried by an icon or by '
       + 'wording next to it, which is why they were allowed to lag the components that carry '
-      + 'meaning alone. Closing them is #149\'s lane.',
+      + 'meaning alone. The floor moved once since: #158 re-tinted --glow-green from a colour '
+      + 'that matched no token to an exact tint of --green, which darkens the success wash by '
+      + 'about one level per channel and takes the toast action down with it. Same six rows, '
+      + 'same cause, a slightly deeper worst. Closing them is #149\'s lane.',
   },
   {
     id: 'D',
@@ -476,20 +489,34 @@ test('the five toast statuses resolve to five different accents', () => {
   }
 });
 
-test('the walk stays inside its wall-clock budget', () => {
-  // Measured ~24s for the two default cells run alone on a 10-core laptop, and
-  // ~30s inside `npm test`, where it shares those cores with 21 other files.
-  // 60s is headroom for a slower CI box without hiding a doubling.
+test('the walk has not run away with the clock', () => {
+  // WHAT THIS NUMBER IS. Measured on a 10-core laptop, two default cells:
+  // 15.7-16.5s run alone, 16.4-18.3s inside `npm test` where it shares those
+  // cores with 21 other files, and 47.6s with all ten cores deliberately
+  // saturated by competing processes. The ceiling is set off that last number,
+  // not the first: 120s is ~2.5x the worst measurement and ~7x the normal one.
+  //
+  // WHAT IT PROTECTS AGAINST, stated narrowly because a ceiling that overstates
+  // itself is worse than none. It catches a runaway — a walk that stopped
+  // terminating, or a theme×accent cell added to THEMES/ACCENT without anyone
+  // costing it, which is ~8s each and 63s for all eight. It does NOT catch a 2x
+  // performance regression, and no wall-clock number can: contention alone
+  // spans 3x on one machine, so any threshold tight enough to see a doubling
+  // flakes on a busy laptop, and a ceiling that flakes gets deleted by the next
+  // person. The deterministic quantity is the lookup count (28,436 today, from
+  // 137,206 before the cache); asserting on that rather than on seconds is the
+  // honest upgrade if this ever needs to be a real regression detector.
   console.log(
     `contrast walk: ${(walk.elapsed / 1000).toFixed(1)}s for ${THEMES.length} theme×accent cell(s), `
     + `${walk.stats.judged} pairs judged, ${walk.findings.length} distinct failures`,
   );
   assert.ok(
-    walk.elapsed < 60000,
-    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s. It is the critical path in `
-    + '`npm test` and sets the whole suite\'s wall clock. '
-    + '`npm test`; something has made it much more expensive, or a cell was added without '
-    + 'anyone costing it.',
+    walk.elapsed < 120000,
+    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s, against a 120s ceiling set from `
+    + 'a measured worst case of 47.6s on a fully contended 10-core laptop. It is the critical '
+    + 'path in `npm test` and sets the whole suite\'s wall clock. At this margin the cause is not '
+    + 'a slow machine: either the walk stopped terminating, or theme×accent cells were added '
+    + 'without anyone costing them.',
   );
 });
 

@@ -231,18 +231,131 @@ export const ratio = (a, b) => {
 };
 
 /**
+ * Every computed property the walk reads. Read at capture time — see the note on
+ * lazily-resolved color-mix in makeStyleCache — and nothing else is kept.
+ */
+const CAPTURED = [
+  'color', 'backgroundColor', 'backgroundImage',
+  'display', 'visibility', 'opacity',
+  'fontSize', 'fontWeight',
+];
+
+/** A frozen reading of CAPTURED that throws for anything it was not asked to hold. */
+function capture(cs) {
+  const values = { __proto__: null };
+  for (const property of CAPTURED) values[property] = cs[property];
+  Object.freeze(values);
+  return new Proxy(values, {
+    get(target, key) {
+      if (typeof key === 'symbol' || key in target) return target[key];
+      throw new Error(
+        `the style cache does not hold "${String(key)}". Add it to CAPTURED in `
+        + 'stories/lib/contrast.js — reading undefined here would skip the element in silence.',
+      );
+    },
+  });
+}
+
+/**
+ * Memoise getComputedStyle for one window, between DOM writes.
+ *
+ * WHY. The walk asks for a computed style far more often than there are
+ * elements: every text-owning element is walked up its ancestor chain three
+ * separate times — once for the background composite, once to test whether an
+ * ancestor hides it, once to accumulate ancestor opacity — and siblings share
+ * almost all of that chain. Measured over both themes before this existed:
+ * 137,206 getComputedStyle calls, of which the background walk was only 24,840.
+ * The hidden test (57,630) and the opacity accumulation (47,894) were larger,
+ * and both run to the root without an early exit.
+ *
+ * That is expensive in JSDOM twice over. A miss resolves the whole cascade; a
+ * hit still deep-copies the cached declaration property by property
+ * (node_modules/jsdom/.../css/helpers/computed-style.js). Memoising the lookup
+ * skips both.
+ *
+ * WHAT IS CACHED, AND WHAT IS NOT. This memoises the LOOKUP — getComputedStyle
+ * per element — and nothing else. It deliberately does not memoise
+ * effectiveBackground's composite, which is the tempting version and the one
+ * that can go quietly wrong: a composite cached against an element would have to
+ * argue that source-over stays associative down a chain shared by siblings with
+ * different translucent backgrounds of their own. The composite is cheap once
+ * the lookups are free, so it is still built from scratch for every element and
+ * that argument never has to be made.
+ *
+ * VALUES, NOT DECLARATIONS, and this is not a detail. JSDOM resolves color-mix()
+ * lazily — on the first read of the property — and what it resolves to depends
+ * on what else has been looked up by then. Hold a declaration, look at anything
+ * else, then read .color, and back comes the raw `color-mix(in srgb, …)` instead
+ * of the `color(srgb …)` the same declaration would have given a moment earlier.
+ * parseColour cannot read the raw form, so the element leaves the walk without a
+ * word: not a failure, not an unjudgeable, just gone. Caching the declaration
+ * object did precisely that to the twelve solid toasts' text — every reported
+ * finding stayed identical while the gate quietly stopped looking at twelve
+ * pairs. So the cache reads the properties it needs at the moment it stores
+ * them, freezes them, and serves those. Reading one it does not hold throws
+ * rather than answering undefined, because undefined here means "skipped in
+ * silence" — the same failure wearing a different hat.
+ *
+ * WHY IT CANNOT SERVE A COLOUR FROM THE WRONG RENDER. Three things, together:
+ *
+ *   1. The memo is a WeakMap keyed on the element OBJECT. An entry can only be
+ *      read back by the identical object, and an element belongs to exactly one
+ *      document — so no entry of one document's render is reachable from
+ *      another's, whatever the markup or the selector.
+ *   2. There is no cache at module scope. walkStories builds one per call and
+ *      drops it on return, so one theme pass cannot seed the next.
+ *   3. Within a single document, every DOM write in the walk goes through
+ *      `mutate`, which drops the memo whole — including when the write throws.
+ *      This is the one that matters, because the walk toggles data-ui-state to
+ *      exercise :hover and a surviving memo would report the at-rest colour for
+ *      the hovered pass. It is also exactly as conservative as JSDOM itself:
+ *      an attribute change on an attached element runs _attrModified →
+ *      _modified → _clearStyleCache, which throws away JSDOM's own cache for
+ *      the whole document. This memo is invalidated wherever JSDOM's is.
+ *
+ * Between writes, getComputedStyle is a pure function of the element, which is
+ * what makes the memo sound in the first place.
+ */
+export function makeStyleCache(win) {
+  let memo = new WeakMap();
+  const of = (node) => {
+    let cs = memo.get(node);
+    if (cs === undefined) {
+      cs = capture(win.getComputedStyle(node));
+      memo.set(node, cs);
+    }
+    return cs;
+  };
+  // Every DOM write goes through here, so a write cannot be made without the
+  // memo being dropped. `finally`, so a write that throws half-done cannot
+  // leave a memo describing the document as it was before it.
+  const mutate = (write) => {
+    try {
+      return write();
+    } finally {
+      memo = new WeakMap();
+    }
+  };
+  return { of, mutate };
+}
+
+/**
  * The colour actually behind an element, composited down its ancestor chain.
  *
  * Returns 'IMAGE' when any layer is an image or gradient — the honest answer,
  * because JSDOM cannot sample one. Never a fabricated composite, never a silent
  * pass. DOM ancestry is a proxy for visual stacking and the proxy is wrong for
  * anything positioned over a non-ancestor; the gate's header says so.
+ *
+ * `styleOf` is the lookup to resolve each node with — makeStyleCache(win).of in
+ * the walk, an uncached call by default. The composite itself is always built
+ * from scratch; only the lookup is ever memoised. See makeStyleCache.
  */
-export function effectiveBackground(el, win) {
+export function effectiveBackground(el, win, styleOf = (node) => win.getComputedStyle(node)) {
   const layers = [];
   let node = el;
   while (node && node.nodeType === 1) {
-    const cs = win.getComputedStyle(node);
+    const cs = styleOf(node);
     if (cs.backgroundImage && cs.backgroundImage !== 'none') return 'IMAGE';
     const c = parseColour(cs.backgroundColor);
     if (c && c[3] > 0) {
@@ -253,7 +366,7 @@ export function effectiveBackground(el, win) {
   }
   const last = layers[layers.length - 1];
   if (!last || last[3] < 0.999) {
-    layers.push(parseColour(win.getComputedStyle(win.document.body).backgroundColor) || [255, 255, 255, 1]);
+    layers.push(parseColour(styleOf(win.document.body).backgroundColor) || [255, 255, 255, 1]);
   }
   let bg = layers.pop();
   while (layers.length) bg = composite(layers.pop(), bg);
@@ -400,6 +513,9 @@ export async function walkStories({ theme, accent = 'default', states = true } =
   // to build in, exactly as stories/a11y.test.js does, or ten stories throw
   // "document is not defined" and fall out of the walk.
   installDomGlobals(win);
+  // Per call, never at module scope: this cache cannot be reached by another
+  // theme's pass, and it dies with this function. See makeStyleCache.
+  const styles = makeStyleCache(win);
 
   const records = [];
   const problems = [];
@@ -435,7 +551,7 @@ export async function walkStories({ theme, accent = 'default', states = true } =
       // speak var(), and JSDOM does not resolve var(). Skip this and a dozen
       // story-local surfaces resolve to garbage.
       const html = desugar(substitute(raw, vars));
-      win.document.body.innerHTML = html;
+      styles.mutate(() => { win.document.body.innerHTML = html; });
 
       // A story-local :hover rule lives in the story's own <style> block and is
       // invisible to the kit stylesheet's bases. Derive from both.
@@ -461,14 +577,14 @@ export async function walkStories({ theme, accent = 'default', states = true } =
 
       const atRest = new Map();
       for (const [el, state] of targets) {
-        if (state) el.setAttribute('data-ui-state', state);
+        if (state) styles.mutate(() => el.setAttribute('data-ui-state', state));
         for (const t of (state ? [el, ...el.querySelectorAll('*')] : [el])) {
           if (!hasOwnText(t)) continue;
           if (t.tagName === 'STYLE' || t.tagName === 'SCRIPT') continue;
 
           let hidden = false;
           for (let n = t; n && n.nodeType === 1; n = n.parentElement) {
-            const c = win.getComputedStyle(n);
+            const c = styles.of(n);
             if (c.display === 'none' || c.visibility === 'hidden' || Number.parseFloat(c.opacity || '1') === 0) {
               hidden = true;
               break;
@@ -477,14 +593,14 @@ export async function walkStories({ theme, accent = 'default', states = true } =
           if (hidden) { stats.hiddenSkipped += 1; continue; }
 
           stats.walked += 1;
-          const cs = win.getComputedStyle(t);
+          const cs = styles.of(t);
           const fgRaw = parseColour(cs.color);
           if (!fgRaw) continue;
           if (cs.color.replace(/\s/g, '') === 'rgb(0,0,238)') {
             stats.uaBlue.push(`${rel}:${name} ${selectorPath(t)}`);
           }
 
-          const bg = effectiveBackground(t, win);
+          const bg = effectiveBackground(t, win, styles.of);
           if (bg === 'IMAGE') {
             stats.unjudgeable += 1;
             records.push({
@@ -508,7 +624,7 @@ export async function walkStories({ theme, accent = 'default', states = true } =
           // 2.36 with its ancestors' — the user sees the second number.
           let op = Number.parseFloat(cs.opacity || '1');
           for (let n = t.parentElement; n && n.nodeType === 1; n = n.parentElement) {
-            const o = Number.parseFloat(win.getComputedStyle(n).opacity || '1');
+            const o = Number.parseFloat(styles.of(n).opacity || '1');
             if (Number.isFinite(o) && o < 1) { op *= o; stats.ancestorOpacity += 1; }
           }
 
@@ -534,7 +650,7 @@ export async function walkStories({ theme, accent = 'default', states = true } =
             fg: cs.color, bg: bgCss, ratio: r, need, unjudgeable: null,
           });
         }
-        if (state) el.removeAttribute('data-ui-state');
+        if (state) styles.mutate(() => el.removeAttribute('data-ui-state'));
       }
     }
   }

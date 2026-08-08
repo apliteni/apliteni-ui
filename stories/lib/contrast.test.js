@@ -9,13 +9,16 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
 import {
   AA_LARGE,
   AA_TEXT,
   composite,
   desugar,
+  effectiveBackground,
   expandAnchors,
   luminance,
+  makeStyleCache,
   parseColour,
   ratio,
   specialiseContextual,
@@ -204,4 +207,175 @@ test('a specialised copy never out-ranks a later override of the same property',
     'the later override must stay after every specialised copy, or it loses the '
     + `cascade it wins in a browser. Got copies ending at ${lastCopy}, override at ${override}:\n${out}`,
   );
+});
+
+// ---- the style cache ------------------------------------------------------
+//
+// The cache exists for speed, and a cache that returns one element's colour for
+// another — or one render's colour for the next — turns the gate into a
+// confident liar. These tests are about that, not about the speed.
+
+/** A window whose stylesheet is `css`, with `<div class="box" id="b">` inside. */
+const boxWindow = (css) => new JSDOM(
+  `<!doctype html><html lang="en"><head><style>${css}</style></head>`
+  + '<body><div class="box" id="b">x</div></body></html>',
+  { pretendToBeVisual: true },
+).window;
+
+test('the style cache asks the window once per element and then answers from memory', () => {
+  const win = boxWindow('.box{background:rgb(10,20,30)}');
+  const real = win.getComputedStyle.bind(win);
+  let calls = 0;
+  win.getComputedStyle = (node) => { calls += 1; return real(node); };
+
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+  const first = styles.of(el);
+  for (let i = 0; i < 20; i++) styles.of(el);
+
+  assert.equal(calls, 1, `21 lookups of one element must cost one getComputedStyle, cost ${calls}`);
+  assert.equal(first.backgroundColor, 'rgb(10, 20, 30)', 'and the answer is still the real one');
+  win.close();
+});
+
+test('a DOM write through the cache drops the memo, so a state is never read stale', () => {
+  // The load-bearing test. The walk sets data-ui-state on an element, reads it,
+  // and takes it off again; JSDOM re-resolves the cascade each time (its own
+  // _styleCache is wiped by any attribute change on an attached element). A memo
+  // that survived the write would report the at-rest colour for the hover pass
+  // and the hover colour for whatever came next — silently, and in the direction
+  // that invents passing pairs.
+  const win = boxWindow(
+    '.box{background:rgb(10,20,30)}.box[data-ui-state~="hover"]{background:rgb(200,100,50)}',
+  );
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+
+  assert.equal(styles.of(el).backgroundColor, 'rgb(10, 20, 30)', 'at rest');
+  styles.mutate(() => el.setAttribute('data-ui-state', 'hover'));
+  assert.equal(styles.of(el).backgroundColor, 'rgb(200, 100, 50)', 'hovered, not the memoised at-rest colour');
+  styles.mutate(() => el.removeAttribute('data-ui-state'));
+  assert.equal(styles.of(el).backgroundColor, 'rgb(10, 20, 30)', 'back at rest, not the memoised hover colour');
+  win.close();
+});
+
+test('the memo is dropped even when the DOM write throws', () => {
+  const win = boxWindow('.box{background:rgb(10,20,30)}');
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+  styles.of(el);
+  assert.throws(() => styles.mutate(() => { throw new Error('render blew up'); }), /render blew up/);
+  // Nothing observable changed, so the assertion is about the memo being gone,
+  // not about the colour: a write that half-succeeded must not leave a memo
+  // describing the DOM as it was before it.
+  const real = win.getComputedStyle.bind(win);
+  let calls = 0;
+  win.getComputedStyle = (node) => { calls += 1; return real(node); };
+  styles.of(el);
+  assert.equal(calls, 1, 'the memo survived a throwing write');
+  win.close();
+});
+
+test('the cache captures a colour when it stores it, not when it is read back', () => {
+  // JSDOM resolves color-mix() LAZILY, on the first read of the property, and
+  // what it resolves to depends on what else has been looked up by then. Hold a
+  // declaration, look at anything else, then read .color: back comes the raw
+  // color-mix(), which parseColour cannot read — so the element is dropped from
+  // the walk without a word. Caching the declaration OBJECT hit exactly this:
+  // twelve solid-toast text pairs stopped being judged, silently, while every
+  // reported finding stayed the same. The cache stores values, not declarations.
+  const win = new JSDOM(
+    '<!doctype html><html lang="en"><head><style>'
+    + '.c{color:color-mix(in srgb, rgb(255,255,255) 90%, transparent)}'
+    + '</style></head><body><div class="p"><div class="c" id="c">x</div></div></body></html>',
+    { pretendToBeVisual: true },
+  ).window;
+  const styles = makeStyleCache(win);
+  const cs = styles.of(win.document.getElementById('c'));
+  // Whatever the walk does between storing a style and reading its colour.
+  for (const n of win.document.querySelectorAll('*')) styles.of(n).display;
+
+  assert.ok(
+    parseColour(cs.color),
+    `the walk's parser must be able to read ${JSON.stringify(cs.color)} — an unresolved `
+    + 'color-mix() makes the element vanish from the gate instead of failing it',
+  );
+  assert.equal(cs.color, 'color(srgb 1 1 1 / 0.9)', 'and it is the resolved value, not some other one');
+  win.close();
+});
+
+test('the cache refuses a property it does not hold, rather than answering undefined', () => {
+  // A style the cache does not carry must not read back as undefined: the walk
+  // would treat it as an unparseable colour or a missing opacity and skip the
+  // element in silence, which is the failure this whole cache has to avoid.
+  const win = boxWindow('.box{background:rgb(10,20,30)}');
+  const cs = makeStyleCache(win).of(win.document.getElementById('b'));
+  assert.equal(cs.backgroundColor, 'rgb(10, 20, 30)', 'a property it does hold');
+  assert.throws(() => cs.borderTopColor, /style cache does not hold "borderTopColor"/);
+  win.close();
+});
+
+test('a cache cannot answer for an element of another document', () => {
+  // The guarantee that makes this safe across theme passes: entries are keyed on
+  // the element object itself, and an element belongs to exactly one document.
+  // Each walkStories call builds its own DOM and its own cache, so this case
+  // should never arise — the test pins the property that makes it harmless if it
+  // ever does.
+  const a = boxWindow('.box{background:rgb(10,20,30)}');
+  const b = boxWindow('.box{background:rgb(200,100,50)}');
+  const elA = a.document.getElementById('b');
+  const elB = b.document.getElementById('b');
+
+  const styles = makeStyleCache(a);
+  assert.equal(styles.of(elA).backgroundColor, 'rgb(10, 20, 30)', "document A's colour");
+  assert.notEqual(
+    styles.of(elB).backgroundColor, 'rgb(10, 20, 30)',
+    "document B's element must not pick up document A's memoised colour",
+  );
+
+  // And two caches share no storage, so one theme pass cannot seed the next.
+  const other = makeStyleCache(b);
+  assert.equal(other.of(elB).backgroundColor, 'rgb(200, 100, 50)', 'a fresh cache resolves against its own document');
+  a.close();
+  b.close();
+});
+
+test('effectiveBackground composites a translucent chain identically with and without the cache', () => {
+  // Two translucent layers over an opaque body. Caching the COMPOSITE per
+  // element would be a different change from caching getComputedStyle per
+  // element, and would have to argue that source-over stays associative down a
+  // shared chain. This caches the lookup only, so the composite is still built
+  // from scratch per element and the two answers must agree exactly.
+  const win = new JSDOM(
+    '<!doctype html><html lang="en"><head><style>'
+    + 'body{background:rgb(255,255,255)}'
+    + '.card{background:rgba(0,0,255,0.5)}'
+    + '.inner{background:rgba(255,0,0,0.25)}'
+    + '.t{background:transparent}'
+    + '</style></head><body><div class="card"><div class="inner"><span class="t" id="t">x</span>'
+    + '</div></div></body></html>',
+    { pretendToBeVisual: true },
+  ).window;
+  const el = win.document.getElementById('t');
+  const plain = effectiveBackground(el, win);
+
+  // Hand-computed: blue at 0.5 over white is (127.5, 127.5, 255); red at 0.25
+  // over that is (159.375, 95.625, 191.25). Pinned so agreement is not agreement
+  // on a shared mistake.
+  near(plain[0], 159.375, 'red channel');
+  near(plain[1], 95.625, 'green channel');
+  near(plain[2], 191.25, 'blue channel');
+
+  const styles = makeStyleCache(win);
+  const real = win.getComputedStyle.bind(win);
+  let calls = 0;
+  win.getComputedStyle = (node) => { calls += 1; return real(node); };
+
+  assert.deepEqual(effectiveBackground(el, win, styles.of), plain, 'first cached walk');
+  assert.deepEqual(effectiveBackground(el, win, styles.of), plain, 'second cached walk');
+  // The chain is span → inner → card → body, and body is opaque so the walk
+  // stops there: four nodes, four lookups for both walks together. Eight means
+  // the walk is not going through the cache at all.
+  assert.equal(calls, 4, `two walks of a four-node chain must cost four lookups, cost ${calls}`);
+  win.close();
 });
