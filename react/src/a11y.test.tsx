@@ -13,7 +13,12 @@
 // A + AA violations only, and a count that proves nothing was skipped.
 //
 // Same two rules the vanilla gate follows:
-//   - color-contrast stays off: axe can't compute contrast in a headless DOM.
+//   - color-contrast stays off: axe cannot resolve var() in a headless DOM. In
+//     the vanilla kit that job belongs to stories/contrast.test.js, which
+//     resolves the cascade and composites the background chain itself. That gate
+//     does NOT cover this workspace — it discovers `*.stories.js` and reads the
+//     kit's stylesheets, so react/src/DataTable.css and Modal.css, and the
+//     rx-* classes no vanilla story renders, are currently ungated for contrast.
 //   - a story that won't render is a failure, not a skip. The suite asserts the
 //     number of checks equals stories discovered × themes, so a story cannot
 //     drop out of coverage without turning this red.

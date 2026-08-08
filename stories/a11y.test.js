@@ -24,8 +24,11 @@
 // Deliberately NOT gated (kept quiet, on purpose):
 //  - best-practice heuristics like `region` — they flag story content sitting
 //    outside a landmark inside the Storybook iframe, which is framing, not a bug.
-//  - `color-contrast` — owned by the design tokens and verified visually; axe
-//    can't compute real contrast in a headless DOM, so it would only add flake.
+//  - `color-contrast` — axe cannot resolve var() in a headless DOM, so it reads
+//    the kit's tokens as no colour at all and would only add flake. Contrast is
+//    gated by stories/contrast.test.js, which substitutes the token files per
+//    theme, resolves the cascade itself and composites the background chain
+//    above every text-owning element.
 //
 // This is the same rule set the Storybook panel runs (see .storybook/preview.js),
 // so the panel and CI never disagree.
