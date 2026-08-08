@@ -242,22 +242,13 @@ for (const theme of ['dark', 'light']) {
  * unchallenged. There is no property of a wash that makes drift acceptable in
  * one theme and not the other.
  *
- * Purple pairs with --accent, not --purple, and that is the honest reading
- * rather than a convenience: in dark --purple is #6a2dcc while --glow-purple is
- * rgb(155, 93, 255), which is --accent / --purple-light. The purple family has a
- * base and a bright member and the wash is made from the bright one; light
- * collapses all three to one value, so --accent is what holds in both.
- *
- * Scope is src/tokens/tokens.css. The per-accent overrides in accents.css are
- * NOT gated here: their purple glows do not agree on one source (dark Phoenix
- * tints --accent, light Phoenix tints --purple-light, because light's --accent
- * was deepened for AA in #96 and its glow was not re-tinted with it). Naming
- * that is a separate decision from this one. */
+ * Three of the four glows tint a token that means the same thing in both
+ * themes. --glow-purple does not, so it is gated separately, below, across both
+ * token files. */
 const GLOW_PAIRS = {
   '--glow-green': '--green',
   '--glow-cyan': '--cyan',
   '--glow-pink': '--pink',
-  '--glow-purple': '--accent',
 };
 
 for (const theme of ['dark', 'light']) {
@@ -281,6 +272,175 @@ for (const theme of ['dark', 'light']) {
     });
   }
 }
+
+/* ---- --glow-purple: the same invariant, against a token that moves ---------
+ * The three glows above tint a token that means one thing in both themes.
+ * --glow-purple tints the accent family, and there the theme changes WHICH
+ * member is the display hue:
+ *
+ *   dark  — --accent IS the display hue, and --glow-purple tints it.
+ *   light — --accent is a text INK, and --purple-light is the display hue, so
+ *           --glow-purple tints --purple-light.
+ *
+ * Light's --accent is deepened on purpose. Issue #96 (shipped in #101) found the
+ * light Phoenix and Emerald accents failing AA as text on white — Phoenix
+ * #d64a12 at 4.33:1, Emerald #0b9c68 at 3.52:1 — and deepened ONLY --accent, to
+ * #a8370c (6.53:1) and #087a52 (5.36:1). Before that commit those two cells held
+ * --accent and --purple-light at the same value, so every light cell agreed with
+ * either reading and the split below did not exist to be seen.
+ *
+ * Be straight about provenance: no comment in either token file says the washes
+ * were deliberately left behind. #101 scoped itself to the AA failure and moved
+ * nothing else. So the light rule is what that narrow commit LEFT, and this gate
+ * is the first place it is written down. It is still the right rule: a 10% wash
+ * is not text and gains nothing from AA, and dragging it down with the ink would
+ * darken every accented surface in the light app to fix a problem those surfaces
+ * do not have. --ring was left the same way and agrees, cell for cell.
+ *
+ * So do NOT "fix" the light glows onto --accent to make the two themes agree.
+ * That uniformity would undo #96's reasoning and mud every light wash. This gate
+ * is here to stop exactly that edit, and the mutation it was written against was
+ * that edit.
+ *
+ * Read across BOTH token files. tokens.css carries the default accent (nebula);
+ * accents.css carries Phoenix, Ocean and Emerald as :root[data-theme][data-accent]
+ * blocks that override the theme's purple family. Eight cells in total, and the
+ * rule holds in all eight. */
+const GLOW_PURPLE_SOURCE = { dark: '--accent', light: '--purple-light' };
+
+const ACCENTS = cssOf('../src/tokens/accents.css');
+
+/** A cell's own selector — theme and accent both, which is what makes it a cell
+ *  rather than one of the single-attribute theme blocks over in tokens.css. */
+const CELL_SELECTOR = /^:root\[data-theme="(dark|light)"\]\[data-accent="([\w-]+)"\]$/;
+
+/** Every accent × theme cell accents.css declares, each resolved the way the
+ *  cascade resolves it: the theme's tokens first, then the cell's overrides on
+ *  top. Anything in the file that is NOT such a cell is refused rather than
+ *  skipped — a block this parser silently walked past would be a block whose
+ *  --glow-purple nobody is reading. */
+function accentCells() {
+  const cells = [];
+  for (const [, sel, body] of ACCENTS.matchAll(RULE)) {
+    const m = CELL_SELECTOR.exec(sel.trim());
+    assert.ok(
+      m,
+      `accents.css declares a rule this gate cannot place: ${sel.trim()}\n`
+      + 'Every block in that file is expected to be one accent × theme cell. If a\n'
+      + 'new shape of rule belongs there, teach this parser about it — do not let\n'
+      + 'it fall through, because a cell that is not parsed is a cell that is not gated.',
+    );
+    const [, theme, accent] = m;
+    const vars = new Map(tokensFor(theme));
+    for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
+    cells.push({ theme, accent, file: 'src/tokens/accents.css', vars });
+  }
+  return cells;
+}
+
+/** All eight cells: the two default (nebula) cells tokens.css declares, plus the
+ *  six accents.css overrides. */
+const PURPLE_CELLS = [
+  ...['dark', 'light'].map((theme) => ({
+    theme, accent: 'nebula', file: 'src/tokens/tokens.css', vars: tokensFor(theme),
+  })),
+  ...accentCells(),
+];
+
+/** Does this cell tell the two candidate sources apart? Where --accent and
+ *  --purple-light hold the same value the cell satisfies BOTH readings, so it
+ *  proves nothing about intent — but it is still asserted, because if either
+ *  token later moves, the cell has to land on the correct side of the rule. */
+const discriminates = (cell) =>
+  hex(resolve('var(--accent)', cell.vars).rgb) !== hex(resolve('var(--purple-light)', cell.vars).rgb);
+
+for (const cell of PURPLE_CELLS) {
+  const source = GLOW_PURPLE_SOURCE[cell.theme];
+  test(`--glow-purple tints ${source} — ${cell.theme} ${cell.accent}`, () => {
+    const token = resolve(`var(${source})`, cell.vars);
+    const glow = resolve('var(--glow-purple)', cell.vars);
+    const other = GLOW_PURPLE_SOURCE[cell.theme === 'dark' ? 'light' : 'dark'];
+    assert.deepStrictEqual(
+      glow.rgb, token.rgb,
+      `--glow-purple in ${cell.theme} ${cell.accent} (${cell.file}) is ${hex(glow.rgb)}, `
+      + `but ${source} is ${hex(token.rgb)}.\n`
+      + `In ${cell.theme} the wash is tinted from ${source}`
+      + (hex(resolve(`var(${other})`, cell.vars).rgb) === hex(glow.rgb)
+        ? `, and this value is ${other} — the other theme's source.\n`
+          + 'The two themes do not share one source, and making them share one is not a\n'
+          + 'fix. See the comment above GLOW_PURPLE_SOURCE and issue #96.\n'
+        : '.\n')
+      + 'A glow is its own colour at low alpha and nothing else.',
+    );
+    assert.ok(
+      glow.alpha > 0 && glow.alpha < 1,
+      `--glow-purple in ${cell.theme} ${cell.accent} is not translucent (alpha ${glow.alpha}) —\n`
+      + 'a glow that is opaque is a fill, and the rules that wash with it are no\n'
+      + 'longer washing.',
+    );
+  });
+}
+
+/* The purple gate is generated from a file scan, so a parser that quietly found
+ * fewer cells — or a rule table that emptied — would pass by measuring nothing.
+ * Two separate things are pinned: that all eight cells are there, and that the
+ * rule is actually PROVEN rather than merely satisfied. Three of the eight cells
+ * (dark nebula, light nebula, light ocean) hold --accent and --purple-light at
+ * the same value, so they agree with either reading; if a theme's cells were ALL
+ * like that, this gate would be asserting nothing about that theme's half of the
+ * rule and would keep passing if the rule were written backwards. */
+test('the --glow-purple gate actually measures something', () => {
+  assert.strictEqual(PURPLE_CELLS.length, 8, 'the purple cell list changed size unexpectedly');
+  assert.strictEqual(
+    accentCells().length, 6,
+    'accents.css stopped parsing to six accent × theme cells',
+  );
+
+  // Every --glow-purple accents.css declares must belong to a cell this gate
+  // read. A block the selector regex failed to place would otherwise vanish.
+  const declared = [...ACCENTS.matchAll(/--glow-purple\s*:/g)].length;
+  assert.strictEqual(
+    declared, 6,
+    `accents.css declares ${declared} --glow-purple values but this gate parsed 6 cells`,
+  );
+
+  for (const theme of ['dark', 'light']) {
+    const cells = PURPLE_CELLS.filter((c) => c.theme === theme);
+    assert.strictEqual(cells.length, 4, `${theme} lost an accent cell`);
+    assert.ok(
+      cells.some(discriminates),
+      `no ${theme} cell tells --accent and --purple-light apart any more, so the\n`
+      + `${theme} half of this rule is no longer being proven — every ${theme} cell would\n`
+      + 'now pass with the rule written either way round. Either a token moved, or a\n'
+      + 'cell was dropped. Look before you trust the green.',
+    );
+    for (const cell of cells) {
+      const glow = resolve('var(--glow-purple)', cell.vars);
+      assert.ok(glow.rgb.every(Number.isFinite), `--glow-purple (${theme} ${cell.accent}) resolved to no colour`);
+      assert.strictEqual(
+        resolve(`var(${GLOW_PURPLE_SOURCE[theme]})`, cell.vars).alpha, 1,
+        `${GLOW_PURPLE_SOURCE[theme]} (${theme} ${cell.accent}) is not an opaque colour to tint from`,
+      );
+    }
+  }
+
+  // The two themes must genuinely take different sources, or the split this gate
+  // exists to hold is not being exercised at all.
+  assert.notStrictEqual(
+    GLOW_PURPLE_SOURCE.dark, GLOW_PURPLE_SOURCE.light,
+    'both themes now name the same source — the two-rule split has been flattened',
+  );
+  // and the accents must really override the defaults, or accents.css is being
+  // measured as six copies of tokens.css.
+  const phoenix = PURPLE_CELLS.find((c) => c.theme === 'dark' && c.accent === 'phoenix');
+  const nebula = PURPLE_CELLS.find((c) => c.theme === 'dark' && c.accent === 'nebula');
+  assert.notStrictEqual(
+    hex(resolve('var(--glow-purple)', phoenix.vars).rgb),
+    hex(resolve('var(--glow-purple)', nebula.vars).rgb),
+    'dark Phoenix and dark nebula resolved the same --glow-purple — the accent\n'
+    + 'overrides are not being applied on top of the theme',
+  );
+});
 
 /* ---- the solid toast: a signal that has become the fill --------------------
  * Every rule above paints a signal AS INK. The solid toast inverts that: the
@@ -529,15 +689,17 @@ test('the contrast gate actually measures something', () => {
 
 /* The glow gate is generated from GLOW_PAIRS, so an emptied or stale table would
  * pass by measuring nothing. The check that matters is not the count: it is that
- * the table covers EVERY --glow-* the tokens declare. A fifth glow added to
- * tokens.css and not listed here would otherwise slip in ungated. */
+ * every --glow-* the tokens declare is gated SOMEWHERE. A fifth glow added to
+ * tokens.css and listed in neither table would otherwise slip in ungated. */
 test('the glow gate actually measures something', () => {
   const declared = new Set([...TOKENS.matchAll(/(--glow-[\w-]+)\s*:/g)].map((m) => m[1]));
   assert.ok(declared.size > 0, 'tokens.css declares no --glow-* at all');
   assert.deepStrictEqual(
-    [...declared].sort(), Object.keys(GLOW_PAIRS).sort(),
-    'GLOW_PAIRS and the --glow-* tokens in tokens.css have come apart.\n'
-    + 'Every glow the tokens declare has to name the colour it is a tint of.',
+    [...declared].sort(), [...Object.keys(GLOW_PAIRS), '--glow-purple'].sort(),
+    'the glow tables and the --glow-* tokens in tokens.css have come apart.\n'
+    + 'Every glow the tokens declare has to name the colour it is a tint of —\n'
+    + 'here if its source is the same token in both themes, or in\n'
+    + 'GLOW_PURPLE_SOURCE if the theme decides which token that is.',
   );
 
   for (const theme of ['dark', 'light']) {
