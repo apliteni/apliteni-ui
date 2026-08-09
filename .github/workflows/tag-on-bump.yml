@@ -1,0 +1,725 @@
+name: Tag on bump
+
+# A version bump landing on `main` releases itself.
+#
+# Publishing used to be three things a person had to remember after the merge:
+# `npm version`, push the tag, cut a Release. Merging feels like shipping, so
+# the three things got skipped — the ./react subpath sat unpublished for a day,
+# and later `main` ran thirteen commits ahead of the registry. Neither was a
+# hard problem; both were a step that lived only in somebody's head. This file
+# is that step, written down and run by a machine.
+#
+# It watches every push to `main`, and does something only when the version in
+# package.json is not on npm. Everything else is a no-op that takes seconds.
+#
+# ---------------------------------------------------------------------------
+# Why the registry decides, and not the tag
+# ---------------------------------------------------------------------------
+# This used to ask whether the tag existed, and treat "yes" as "released". The
+# tag is created before the publish, so its existence only ever proved that the
+# attempt had *started*. That made a failed publish permanent and silent: run 1
+# tagged, cut the Release, dispatched the publish, watched it fail and went red
+# — correctly — and then every later push to `main` saw the tag, decided there
+# was nothing to do, skipped the publish step and exited green. Nothing on npm,
+# a healthy-looking pipeline, and a re-run that could not retry because it made
+# the same decision. Only a manual dispatch or version-drift.yml a day later
+# would notice. That is exactly the silence this workflow exists to end, rebuilt
+# inside it.
+#
+# It is not a rare state either. The `npm-publish` environment requires a
+# reviewer, so the publish job pauses for a human on every release. An approval
+# that is slow, declined, or given after this job's patience runs out fails the
+# watch — so the wedge above was reachable on the *first* release, not an
+# unlucky one.
+#
+# So the registry is the source of truth for "released", because it is the only
+# thing that knows. The version is on npm: terminal, nothing to do. The version
+# is not on npm: this release is unfinished whatever else already exists, so
+# fill in the missing pieces — tag, Release, publish — and stay red until it
+# lands. Every intermediate state is resumable: a tag with no Release, a tag and
+# a Release with no publish, a publish still waiting for its approval. A re-run,
+# or the next push to `main`, picks the release up where it stopped.
+#
+# ---------------------------------------------------------------------------
+# Why this dispatches release.yml instead of letting the Release event do it
+# ---------------------------------------------------------------------------
+# release.yml triggers `on: release: types: [published]`, and a Release created
+# here would never fire it. GitHub's rule: "Events triggered by the
+# GITHUB_TOKEN will not create a new workflow run", with `workflow_dispatch`
+# and `repository_dispatch` as the only exceptions. That rule exists to stop
+# workflows triggering themselves into a loop, and it applies whether the
+# Release is created by `gh release create`, by the API, or as a side effect of
+# pushing a tag.
+#
+# So the tag and the Release below are the record — the thing a human reads and
+# links to — and the publish is reached the one way a token-created event can
+# reach it: an explicit `workflow_dispatch` on the tag ref. release.yml already
+# accepts workflow_dispatch and is NOT modified by this work.
+#
+# Dispatching at a tag rather than at `main` is load-bearing. release.yml's
+# publish job runs in the `npm-publish` environment, whose deployment rules
+# allow `tag v*` and require a reviewer. A dispatch at refs/tags/v0.10.0 is
+# permitted; one at refs/heads/main is refused by GitHub before the job starts.
+# The narrow ref is what keeps a dispatch of release.yml from being a way to
+# publish arbitrary branch contents.
+#
+# ---------------------------------------------------------------------------
+# Why there is no `paths: ['package.json']` filter
+# ---------------------------------------------------------------------------
+# It was considered and deliberately left out. A path filter would mean the
+# release only ever gets one attempt: if the push that carried the bump hits a
+# transient API error, a runner outage or a five-minute GitHub incident, the
+# bump sits on `main` unpublished until somebody happens to touch package.json
+# again — which is the same "waiting for a human to notice" failure this
+# workflow exists to end. Without the filter, every subsequent push to `main`
+# retries, and the version keeps releasing itself.
+#
+# That retry is only safe because the workflow is idempotent, which is the
+# property the `plan` step below exists to guarantee: if the version is already
+# on npm, the run ends having touched nothing. The filter would also buy less
+# than it looks like it does — package.json changes for dependency bumps and
+# script edits too, so most of the runs it lets through would be no-ops anyway.
+# The cost of getting this wrong is a few seconds of a free runner per push.
+on:
+  push:
+    branches: [main]
+
+# Two pushes landing seconds apart must not both decide the version is
+# unpublished and both dispatch a release. Serialised on the workflow, not on
+# the ref: the hazard is two runs against the same repository state, and there
+# is only one branch here anyway.
+#
+# cancel-in-progress is off on purpose. Cancelling a run halfway is exactly the
+# way to end up with a pushed tag and no Release — the one state the ordering
+# below is built to avoid.
+concurrency:
+  group: tag-on-bump
+  cancel-in-progress: false
+
+# Two permissions, for the two things this does. `contents: write` pushes the
+# tag and cuts the Release; `actions: write` dispatches release.yml and reads
+# the run it started. Nothing else — no packages, no id-token, no issues. The
+# publishing credential lives in release.yml's publish job and is minted by
+# OIDC there; nothing in this file can reach it.
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    # The backstop for a `gh` or an `npm` call that hangs rather than returns,
+    # and nothing else. Every wait in this job is bounded by its own wall-clock
+    # deadline: two minutes for a dispatched run to appear, ten for one that is
+    # running, two and a half for the registry to catch up afterwards, and a run
+    # held at its approval ends in about a minute.
+    #
+    # Worth adding up rather than eyeballing, because the number is what the
+    # cap is set from. The sleeps come to fourteen and a half minutes — 120s
+    # waiting for the run to appear, 600s following it, 150s asking npm
+    # afterwards. Each deadline is checked between calls rather than during one,
+    # so the call in flight when a deadline expires runs on top: at most another
+    # minute, npm's own timeout being the longest of them. The plan step's
+    # registry retries can spend two minutes before any of that. Nineteen
+    # minutes, then, plus a checkout, a setup-node and the sixty-odd API round
+    # trips the polling makes — so a pathological run lands around twenty and an
+    # ordinary one under two. What is left is the headroom, and it has to stay:
+    # a job the runner kills prints none of the annotations at the end of the
+    # publish step, which is the "red with no message" that step was written to
+    # remove.
+    #
+    # Any deadline below that grows has to be checked against this arithmetic —
+    # scripts/tag-on-bump.test.js asserts the sum on a virtual clock, so moving
+    # one without moving the other fails there rather than here.
+    timeout-minutes: 30
+    steps:
+      # Default fetch-depth is enough. Unlike version-drift.yml this needs no
+      # history — just package.json, scripts/ and site/ at the pushed commit —
+      # and the tag question is asked of the remote rather than of local refs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      # ---------------------------------------------------------------------
+      # 1. Is this version released, and what is missing if it is not?
+      # ---------------------------------------------------------------------
+      - name: Decide whether this push is a release
+        id: plan
+        run: |
+          set -euo pipefail
+          version="$(node -p 'require("./package.json").version ?? ""')"
+
+          # Validated before it is written anywhere, for two reasons that share
+          # one fix.
+          #
+          # A step output is `key=value` on its own line, so a version carrying
+          # a newline writes a second line that GitHub reads as a second output:
+          # a package.json holding "0.10.0\ntag=vEVIL" (a real newline once JSON
+          # is parsed — check with `node -p`) would set `tag` to whatever it
+          # liked, in a job that holds contents: write and actions: write. And a
+          # package.json with no version field at all makes `node -p` print
+          # `undefined`, which would tag the release `vundefined`.
+          #
+          # Anything that is not plausible semver stops the run instead. The
+          # anchors are whole-string in bash's =~ — no REG_NEWLINE — so an
+          # embedded newline fails the match rather than passing on its first
+          # line, which is how a `grep -E` version of this check would be fooled.
+          semver='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'
+          if [[ ! "$version" =~ $semver ]]; then
+            echo "::error::package.json's version field is $(printf '%q' "$version"), which is not a version this workflow will tag. Expected plain semver, e.g. 0.10.0."
+            exit 1
+          fi
+
+          tag="v$version"
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+          } >> "$GITHUB_OUTPUT"
+
+          # The question that decides everything. scripts/registry-status.mjs
+          # asks npm about this exact version and answers in three exit codes,
+          # deliberately the same shape as `git ls-remote --exit-code` below: 0
+          # it is published, 2 it is not, anything else it could not find out.
+          # It prints its own sentence to stderr either way, so the run log says
+          # what the registry said even when this step goes on to stop.
+          #
+          # Asked up to three times, because this step runs on every push to
+          # main and an `unknown` stops the run. One five-second npm wobble
+          # would otherwise fail the build of a README change that was never
+          # going to release anything. Only `unknown` is retried: a published
+          # and an unpublished answer are both final.
+          registry=1
+          for attempt in 1 2 3; do
+            set +e
+            node scripts/registry-status.mjs "$version"
+            registry=$?
+            set -e
+            if [ "$registry" -eq 0 ] || [ "$registry" -eq 2 ]; then break; fi
+            if [ "$attempt" -lt 3 ]; then sleep $((attempt * 5)); fi
+          done
+
+          # Asked of origin, not of the local refs. A checkout's idea of which
+          # tags exist is a snapshot taken at clone time; the remote is the
+          # thing the push will actually collide with.
+          #
+          # Three answers again, and all three matter: 0 the tag is there, 2 it
+          # is not, anything else the remote could not be reached. Collapsing
+          # that last case into "not there" would turn a network blip into an
+          # attempt to re-tag a released version, so it stops the run instead.
+          #
+          # stdout is discarded and stderr is not. Sending both to /dev/null
+          # left the `*)` branch below able to report a number and nothing else,
+          # and "git ls-remote exited 128" is the same sentence for a DNS
+          # failure, a revoked token and a repository that has been renamed.
+          set +e
+          git ls-remote --exit-code --refs origin "refs/tags/$tag" >/dev/null
+          tagged_status=$?
+          set -e
+          case "$tagged_status" in
+            0) echo "tag_exists=true" >> "$GITHUB_OUTPUT" ;;
+            2) echo "tag_exists=false" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "::error::could not ask origin whether $tag exists (git ls-remote exited $tagged_status). Not tagging on a guess."
+              exit 1
+              ;;
+          esac
+
+          # Two pull requests can each bump 0.9.0 → 0.10.0 and each pass CI
+          # against its own base — branch protection here is `strict: false`, so
+          # neither is required to be up to date with main. The first merges and
+          # releases; the second merges on a green check that was true when it
+          # was computed, and lands here to find v0.10.0 already claimed by
+          # somebody else's commit. Whether or not that version has reached npm
+          # yet, the tag points elsewhere, so nothing in this push will be
+          # published under it.
+          #
+          # Nothing inside a workflow can prevent this; the collision has
+          # already happened by the time this runs. So it is named. The peeled
+          # ref is what an annotated tag points at; the unpeeled one is the tag
+          # object, and is the fallback for a lightweight tag.
+          #
+          # `|| true` because the only thing this pipeline feeds is a warning.
+          # Under `set -euo pipefail` a second network blip here would fail the
+          # run before anything had been tagged, over a line nobody had read
+          # yet. An empty answer skips the warning, which is the right amount of
+          # noise for a lookup that did not happen.
+          if [ "$tagged_status" -eq 0 ]; then
+            tagged="$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}" \
+              | awk -v peeled="refs/tags/$tag^{}" -v plain="refs/tags/$tag" \
+                    '$2 == peeled {p = $1} $2 == plain {t = $1} END {print (p != "" ? p : t)}' \
+              || true)"
+            if [ -n "$tagged" ] && [ "$tagged" != "$GITHUB_SHA" ]; then
+              echo "::warning::$tag already exists and points at $tagged, not at this commit ($GITHUB_SHA). Two pull requests claimed the same version: this commit's changes are on main and $tag will never publish them. Bump the version again to release them."
+            fi
+          fi
+
+          case "$registry" in
+            0)
+              echo "release=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::$version is already on npm — nothing to do."
+              ;;
+            2)
+              echo "release=true" >> "$GITHUB_OUTPUT"
+              if [ "$tagged_status" -eq 0 ]; then
+                echo "::notice::$version is not on npm and $tag already exists — finishing the release that was started."
+              else
+                echo "::notice::$version is not on npm and has no tag — releasing it."
+              fi
+              ;;
+            *)
+              echo "::error::could not ask the registry whether $version is published (scripts/registry-status.mjs exited $registry, and said why on the line above). Neither publishing nor going green on a guess."
+              exit 1
+              ;;
+          esac
+
+      # ---------------------------------------------------------------------
+      # 2. The changelog gate — before anything exists that has to be undone
+      # ---------------------------------------------------------------------
+      # This is first for a reason. 0.8.0 and 0.8.1 both went out with no entry
+      # on ui.apli.tech/changelog and nobody noticed for two releases. Reading
+      # the release body out of the changelog makes that impossible, but only
+      # if the read happens before the tag: a missing entry has to be a run
+      # that did nothing, not a tag pointing at a release nobody can describe.
+      #
+      # scripts/release-notes.mjs exits non-zero and says which version is
+      # missing. No `npm ci` — it imports site/changelog.mjs and node builtins
+      # and nothing else, so there is nothing to install, and nothing
+      # third-party runs in a job holding contents: write.
+      - name: Write the release notes, or stop here
+        if: steps.plan.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: node scripts/release-notes.mjs "$VERSION" > release-notes.md
+
+      # ---------------------------------------------------------------------
+      # 3. Tag
+      # ---------------------------------------------------------------------
+      # Annotated, not lightweight. An annotated tag is a real object carrying
+      # a tagger and a date, so `git describe`, `git show v0.9.0` and the
+      # GitHub UI all have something to say about who cut the release and when.
+      # A lightweight tag is a bare pointer and answers none of that.
+      #
+      # Skipped when the tag is already there, which is what makes a resumed
+      # release possible: an unfinished release keeps its original tag rather
+      # than moving it onto whichever commit happened to retry. It is also what
+      # keeps the rollback below honest — `steps.tag.outcome` is `skipped`, not
+      # `success`, so a tag this run did not create can never be deleted by it.
+      - name: Tag the commit
+        id: tag
+        if: steps.plan.outputs.release == 'true' && steps.plan.outputs.tag_exists == 'false'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          set -euo pipefail
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              tag -a "$TAG" -m "apliteni-ui $VERSION" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+
+      # ---------------------------------------------------------------------
+      # 4. Release
+      # ---------------------------------------------------------------------
+      # --verify-tag makes gh refuse rather than invent: without it, gh creates
+      # a missing tag itself, and it would create a lightweight one.
+      #
+      # Guarded by a `view` because `create` is not safe to retry. It can
+      # succeed on the server and still exit non-zero — a read timeout after
+      # the write, a 5xx from the layer in front of it — and a bare retry then
+      # hits 422 `already_exists` and fails for the opposite reason. The same
+      # `view` is what makes a resumed release cheap: a run finishing a release
+      # whose Release was already cut does nothing here and moves on to the
+      # publish.
+      - name: Cut the Release
+        id: release
+        if: steps.plan.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --verify-tag --title "$TAG" --notes-file release-notes.md
+
+      # A tag with no Release used to be the one leftover a retry could not
+      # clear on its own. It no longer is — the plan step decides from the
+      # registry, so the next run comes back and cuts the missing Release — but
+      # this still fires, because a tag pointing at nothing readable is a bad
+      # thing to leave lying around for the minutes or days until that happens.
+      #
+      # `always()` and not `failure()`. `failure()` is false on a cancellation,
+      # so a manual cancel, the timeout expiring, or the runner dying anywhere
+      # between the tag push and gh's answer all left the tag behind and this
+      # step unrun. `!cancelled()` would not cover those either, since a
+      # cancellation is exactly one of the cases that leaves the mess.
+      #
+      # Still scoped tightly, and deliberately not widened to publish failures.
+      # `steps.tag.outcome == 'success'` is true only for a tag this run created
+      # — a resumed release skips that step — so this can never delete somebody
+      # else's tag. And a publish that fails, or sits waiting for a reviewer to
+      # approve it, keeps its tag and its Release: they are correct, they are
+      # the permanent record of the version, and deleting a tag out from under a
+      # human who is still deciding whether to approve the publish would leave
+      # the approved run publishing a version whose tag no longer exists.
+      #
+      # Both sides get cleaned up, not just the tag. `gh release create` can
+      # leave a Release behind on a failed-looking run, and deleting only the
+      # tag would leave that Release orphaned — pointing at a ref that no longer
+      # exists, and enough to make the next attempt's create return 422.
+      # `--cleanup-tag` deletes the two together.
+      #
+      # Which of the two situations this is gets established by asking, not by
+      # reading a failed delete as an absent Release. `delete || git push :tag`
+      # did the latter, so a 502, a rate limit or a write that timed out after
+      # succeeding all deleted the tag and left the Release behind — the exact
+      # orphan the paragraph above is about, made by the code meant to prevent
+      # it. A delete that fails for a real reason fails this step instead: the
+      # job is red either way, and a leftover tag with its Release intact is a
+      # thing the next run can finish.
+      #
+      # A FAILED LOOKUP IS NOT AN ABSENT RELEASE, which is the same rule §5
+      # below states about runs, and it has to hold for the asking too.
+      # `gh release view` exits 1 for a Release that is not there and for a 502,
+      # a rate limit or a read timeout alike, so `view >/dev/null 2>&1` moved the
+      # conflation from the delete to the lookup rather than removing it: a
+      # transient failure took the "there was no Release" branch, deleted the
+      # tag, left the Release, and exited 0. Green, with the orphan made. So
+      # gh's stderr is kept and only a genuine not-found counts as absent.
+      - name: Undo the tag if the Release never got made
+        if: always() && steps.tag.outcome == 'success' && steps.release.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "::warning::Cutting the Release for $TAG did not succeed. Removing the tag and any Release that was made, so the next push to main can retry cleanly."
+
+          # A workflow command is one line, and gh's errors are several. Same
+          # encoding as the copy in the publish step, for the same reason: a raw
+          # newline ends the annotation and drops everything after it. The
+          # percent substitution goes first or it re-encodes its own output.
+          oneline() {
+            local s="$1"
+            s="${s//'%'/%25}"
+            s="${s//$'\r'/%0D}"
+            printf '%s' "${s//$'\n'/%0A}"
+          }
+
+          err="$(mktemp)"
+          set +e
+          gh release view "$TAG" >/dev/null 2>"$err"
+          view_status=$?
+          set -e
+
+          if [ "$view_status" -eq 0 ]; then
+            gh release delete "$TAG" --yes --cleanup-tag
+          elif grep -qiE 'release not found|HTTP 404' "$err"; then
+            git push origin ":refs/tags/$TAG"
+          else
+            echo "::error::Could not ask GitHub whether a Release exists for $TAG (gh exited $view_status), so this job cannot tell an absent Release from a lookup that failed. Nothing has been deleted: removing the tag on that guess is exactly how a Release ends up orphaned on a ref that no longer exists, which then makes the next attempt reuse notes written for another commit. $TAG and any Release on it are still there, and that is a state the next push to main can finish. gh said: $(oneline "$(cat "$err")")"
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------------
+      # 5. Publish, and stay to watch it
+      # ---------------------------------------------------------------------
+      # Fire-and-forget would be worse than the manual process it replaces: a
+      # transient API error would leave a tag, a Release and a green tick with
+      # nothing on npm — which looks exactly like a successful release until
+      # somebody tries to install it. So this waits, and the job is red for as
+      # long as the version is not on the registry.
+      #
+      # Three things have to be right, and each of them used to be wrong.
+      #
+      # ATTACH BEFORE DISPATCHING. The publish job waits for a reviewer, so a
+      # release can sit in flight for a long time — and every push to main
+      # during that window arrives here. Dispatching unconditionally would queue
+      # a second, third and fourth run of the same publish behind the same
+      # approval. So the first thing this does is look for a run of release.yml
+      # on this tag that has not finished, and follow that one instead. A run
+      # that finished and failed is not in flight, which is what makes a genuine
+      # retry still possible.
+      #
+      # A FAILED LOOKUP IS NOT AN ABSENT RUN. `|| true` on the search would make
+      # a rate limit, a revoked token and a malformed jq program all read as
+      # "nothing in flight" — and the answer to "nothing in flight" is to
+      # dispatch, which is how one release becomes two. It stops instead.
+      #
+      # WAITING IS NOT FAILING. Both end this job red, because both leave the
+      # version unpublished, but they are different situations and the run log
+      # has to say which one it is: one needs somebody to click approve, the
+      # other needs somebody to read a stack trace.
+      - name: Publish it, and wait for the answer
+        if: steps.plan.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.plan.outputs.tag }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          # A workflow command is one line. A raw newline in an interpolated
+          # value ends the annotation and everything after it is dropped from
+          # the log — and gh's errors are routinely several lines, with the
+          # useful one rarely first. %0A is the encoding that survives. The
+          # percent substitution goes first or it re-encodes its own output.
+          oneline() {
+            local s="$1"
+            s="${s//'%'/%25}"
+            s="${s//$'\r'/%0D}"
+            printf '%s' "${s//$'\n'/%0A}"
+          }
+
+          # gh's stderr goes to a file and is read only when gh has failed. It
+          # never comes back through the value channel: `2>&1` folded a one-line
+          # version notice into the run id, and from there the step decided a
+          # run was already in flight, skipped the dispatch, failed three
+          # lookups on the notice text and exited 1 — on every push, so the
+          # release never started at all.
+          err="$(mktemp)"
+          gh_out=""
+          gh_status=0
+          gh_capture() {
+            set +e
+            gh_out="$(gh "$@" 2>"$err")"
+            gh_status=$?
+            set -e
+          }
+
+          # ---- 5a. Is one already going? -----------------------------------
+          # Anything GitHub has not called `completed` has not finished, and
+          # dispatching alongside it is the duplicate this avoids. Spelt as the
+          # negative on purpose: the list used to be enumerated — queued,
+          # in_progress, waiting, requested, pending — and `action_required` was
+          # not in it. A run held at a status this file has not heard of is
+          # still a run.
+          #
+          # Values travel through env rather than being interpolated into the
+          # jq program, so nothing read out of package.json can become jq
+          # syntax. No `--event` filter here, unlike the lookup further down: a
+          # release run started any other way is still a release run for this
+          # tag, and dispatching alongside it would be the duplicate this is
+          # here to avoid.
+          gh_capture run list --workflow release.yml --limit 50 \
+            --json databaseId,headBranch,status \
+            --jq '[.[]
+                   | select(.headBranch == env.TAG)
+                   | select(.status != "completed")]
+                  | max_by(.databaseId) | .databaseId // empty'
+          if [ "$gh_status" -ne 0 ]; then
+            echo "::error::Could not ask GitHub whether a release.yml run for $TAG is already in flight (gh exited $gh_status). Not dispatching on a guess — a duplicate dispatch queues a second publish behind the same approval. gh said: $(oneline "$(cat "$err")")"
+            exit 1
+          fi
+          run_id="$gh_out"
+
+          if [ -n "$run_id" ]; then
+            echo "::notice::A release.yml run for $TAG is already in flight (run $run_id). Following that one instead of dispatching another."
+          else
+            # ---- 5b. Dispatch, and wait for the run to exist ---------------
+            # `gh workflow run` returns as soon as GitHub accepts the request,
+            # and the run does not exist yet at that moment — it appears in the
+            # API seconds later. Asking once and giving up would report a
+            # phantom failure most of the time, so this polls.
+            #
+            # What tells the new run apart from every older one is its id.
+            # Run ids are handed out in increasing order, so "greater than the
+            # highest that existed a moment ago" is exact. This used to be a
+            # timestamp window — created within the last two minutes, on this
+            # tag — with no status filter, and it matched the run that failed
+            # ninety seconds ago just as happily as the one being started. §5c
+            # then read `completed/failure` off that corpse and told a human to
+            # fix the cause and re-run, with the real publish still building.
+            #
+            # Deliberately no status filter on the lookup itself: a publish that
+            # finishes inside this window is a *successful* release, and
+            # excluding completed runs would lose it and report that nothing
+            # could be found.
+            gh_capture run list --workflow release.yml --limit 50 \
+              --json databaseId --jq '[.[] | .databaseId] | max // 0'
+            if [ "$gh_status" -ne 0 ]; then
+              echo "::error::Could not read the newest release.yml run id before dispatching (gh exited $gh_status), so a run started now could not be told apart from one that already existed. Nothing has been dispatched. gh said: $(oneline "$(cat "$err")")"
+              exit 1
+            fi
+            BEFORE_ID="${gh_out:-0}"
+            export BEFORE_ID
+
+            # Through gh_capture like everything else here. Left bare, this was
+            # the one exit from the step that ended without a sentence: under
+            # `set -euo pipefail` a refused dispatch — a revoked token, a
+            # workflow that lost its workflow_dispatch trigger, a 422 on the ref
+            # — stopped the job with gh's stderr somewhere up the log and
+            # nothing at the bottom saying that nothing had been published.
+            gh_capture workflow run release.yml --ref "$TAG"
+            if [ "$gh_status" -ne 0 ]; then
+              echo "::error::Dispatching release.yml on $TAG was refused (gh exited $gh_status), so no publish was started and $VERSION is not on npm. The tag and the Release are correct and have been left alone; fix the cause and re-run this job, or push to main again. gh said: $(oneline "$(cat "$err")")"
+              exit 1
+            fi
+            echo "Dispatched release.yml on $TAG; waiting for the run to appear."
+
+            # A blanket `|| true` here made every way of failing look identical
+            # to "the run has not appeared yet", sixty times over: a token
+            # without actions:read, a malformed jq program and a rate limit all
+            # read as patience. Transient blips are still tolerated — they are
+            # the reason the loop exists — but three in a row is not a blip, and
+            # the error text is kept and reported either way.
+            lookup_error=""
+            failures=0
+            appear_deadline=$(( $(date +%s) + 120 ))
+            while :; do
+              sleep 5
+              gh_capture run list --workflow release.yml --event workflow_dispatch \
+                --limit 50 --json databaseId,headBranch \
+                --jq '[.[]
+                       | select(.headBranch == env.TAG)
+                       | select(.databaseId > (env.BEFORE_ID | tonumber))]
+                      | max_by(.databaseId) | .databaseId // empty'
+              if [ "$gh_status" -ne 0 ]; then
+                lookup_error="$(cat "$err")"
+                failures=$((failures + 1))
+                if [ "$failures" -ge 3 ]; then
+                  echo "::error::Listing release.yml runs failed three times in a row (gh exited $gh_status), so this is the lookup failing rather than the run being absent. release.yml was dispatched on $TAG and may well be running: check the Actions tab before doing anything. Last output: $(oneline "$lookup_error")"
+                  exit 1
+                fi
+              else
+                failures=0
+                run_id="$gh_out"
+                if [ -n "$run_id" ]; then break; fi
+              fi
+              if [ "$(date +%s)" -ge "$appear_deadline" ]; then break; fi
+            done
+
+            if [ -z "$run_id" ]; then
+              # Deliberately does not say what did or did not publish, because
+              # this step never found out. `gh workflow run` above returned 0,
+              # which means GitHub accepted the dispatch — so a run almost
+              # certainly exists and it is the lookup that came back empty.
+              # Telling a reader to dispatch again is how you get two publishes;
+              # the next push to main will find the in-flight run and follow it.
+              echo "::error::release.yml was dispatched on $TAG and accepted, but no matching run appeared within two minutes. This says nothing about whether it published — only that this job could not locate the run. The tag and the Release are correct and have been left alone. Check the Actions tab for a release.yml run on $TAG and let it finish; dispatch again only if there is none.${lookup_error:+ Last lookup error: $(oneline "$lookup_error")}"
+              exit 1
+            fi
+          fi
+
+          # ---- 5c. Follow it ------------------------------------------------
+          # Polled here rather than handed to `gh run watch --exit-status`,
+          # which was what this used to do. `gh run watch` blocks until the run
+          # finishes and reports only pass or fail, so a run held at the
+          # reviewer requirement sat here until the job timeout killed it — red
+          # with no message at all, and no way to tell that from a broken
+          # publish. Reading the status is what makes the two distinguishable.
+          echo "Following run $run_id."
+          run_status=""
+          failures=0
+          lookup_error=""
+          now="$(date +%s)"
+
+          # Two deadlines, because two different things are being waited on and
+          # only one of them is moving by itself.
+          #
+          # A run held at the npm-publish environment needs a person. The
+          # environment names four reviewers and forbids self-review, so nobody
+          # is looking yet is the ordinary case, not the unlucky one — and an
+          # approval has thirty days to arrive. Meanwhile `concurrency:
+          # tag-on-bump` queues every push to main behind this job. So a minute
+          # to catch an approval that has already happened or lands at once, and
+          # then say who has to click what and end.
+          #
+          # A run that is queued or in_progress is making progress on its own
+          # and gets the longer wait. Both are wall-clock, so a slow API adds to
+          # neither, and both are well inside timeout-minutes: 30.
+          waiting_deadline=$(( now + 60 ))
+          deadline=$(( now + 600 ))
+          while :; do
+            gh_capture run view "$run_id" --json status --jq '.status'
+            if [ "$gh_status" -ne 0 ]; then
+              # gh's error text is kept out of $run_status, so the message at
+              # the bottom cannot end up reporting a stack trace as a state.
+              lookup_error="$(cat "$err")"
+              failures=$((failures + 1))
+              if [ "$failures" -ge 3 ]; then
+                echo "::error::Reading release.yml run $run_id failed three times in a row (gh exited $gh_status), so this is the lookup failing rather than the run being gone. It may well still publish $VERSION: check the Actions tab. Last output: $(oneline "$lookup_error")"
+                exit 1
+              fi
+            else
+              failures=0
+              run_status="$gh_out"
+              if [ "$run_status" = "completed" ]; then break; fi
+              if [ "$run_status" = "waiting" ] && [ "$(date +%s)" -ge "$waiting_deadline" ]; then break; fi
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then break; fi
+            sleep 15
+          done
+
+          url="$(gh run view "$run_id" --json url --jq '.url' 2>/dev/null || true)"
+          [ -n "$url" ] || url="the Actions tab"
+
+          # Reported from what the run is *now*, not from a flag remembering
+          # what it once was. A sticky "it was waiting at some point" made a run
+          # approved at minute one and building ever since still print "approve
+          # it" — sending the reader to a page with nothing to approve on it.
+          if [ "$run_status" != "completed" ]; then
+            if [ "$run_status" = "waiting" ]; then
+              echo "::error::The publish of $VERSION is waiting for somebody to approve the npm-publish environment. Nothing is broken and nothing needs re-running: say yes at $url and the publish carries on by itself. This job is red because $VERSION is not on npm, and it will stay that way — a run that has already gone red does not turn green when the approval lands. The next push to main is the one that goes green."
+            else
+              echo "::error::The publish run for $VERSION was still ${run_status:-unreadable} after ten minutes. The tag and the Release are correct and have been left alone. Watch it at $url — if it publishes, the next push to main goes green on its own; if it does not, re-run this job to try again.${lookup_error:+ The last lookup that failed said: $(oneline "$lookup_error")}"
+            fi
+            exit 1
+          fi
+
+          conclusion="$(gh run view "$run_id" --json conclusion --jq '.conclusion' 2>/dev/null || echo "")"
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::The publish run for $VERSION finished ${conclusion:-with no conclusion this job could read} and $VERSION is not on npm. Read it at $url. A declined approval on the npm-publish environment lands here too. The tag and the Release are correct and have been left alone: fix the cause and re-run this job, or push to main again — the release resumes from wherever it stopped."
+            exit 1
+          fi
+
+          # ---- 5d. Believe the registry, not the run ------------------------
+          # The whole point of this rewrite is that "the pipeline said so" is not
+          # evidence a version shipped. That applies to this run too, so the
+          # green path ends by asking npm the same question the plan step asked.
+          #
+          # Two and a half minutes of asking, not twenty seconds. A version is
+          # published before it is readable everywhere, and that gap is npm's
+          # own and can run into minutes — so a short window here does not
+          # discover a bad release, it manufactures a false alarm about a good
+          # one.
+          #
+          # `unknown` waits out the same window, and only then becomes the
+          # warning. It used to take the first one and exit 0 after a single
+          # ask, while `unpublished` got the full budget — the patience was on
+          # the branch that fails safe and missing from the branch that goes
+          # green having confirmed nothing. Both are the registry not saying
+          # yes; only one of them is an answer.
+          #
+          # Bounded by the clock rather than by a count of attempts, so a slow
+          # npm spends this budget instead of adding to it. Six attempts each
+          # waiting out npm's own timeout is six minutes on top of the sleeps,
+          # and the headroom under timeout-minutes: 30 is worked out on this
+          # wait being the length it says it is.
+          registry=1
+          registry_deadline=$(( $(date +%s) + 150 ))
+          while :; do
+            set +e
+            node scripts/registry-status.mjs "$VERSION"
+            registry=$?
+            set -e
+            if [ "$registry" -eq 0 ]; then
+              echo "::notice::$VERSION is on npm."
+              exit 0
+            fi
+            if [ "$(date +%s)" -ge "$registry_deadline" ]; then break; fi
+            sleep 30
+          done
+
+          # A registry this job cannot reach is not a release that did not
+          # happen, so the run's own answer stands and version-drift.yml is the
+          # backstop. It is a warning rather than an error for that reason and
+          # no other, which is why it has to be the reading of last resort
+          # rather than of first blip.
+          if [ "$registry" -ne 2 ]; then
+            echo "::warning::Run $run_id published $VERSION successfully, but this job could not reach the registry to confirm it in the two and a half minutes since (the asks and their reasons are on the lines above). Treating the run's own answer as good. version-drift.yml is the backstop."
+            exit 0
+          fi
+
+          echo "::error::Run $run_id finished successfully at $url, but the registry has not served $VERSION in the two and a half minutes since. The likeliest reading by a distance is npm's own propagation — a version is published before every edge can read it, and that has taken longer than this. Look at the package's versions page on npm first: if $VERSION is there, nothing is wrong and the next push to main goes green by itself. Only if it is still missing well after that did this run publish nothing, and then it is worth finding out why before bumping past it."
+          exit 1

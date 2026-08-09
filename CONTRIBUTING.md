@@ -20,9 +20,19 @@ npm run storybook        # http://localhost:6006
 - **Sending a change?** Fork, branch off `main` (`fix/…` or `feat/…`), and open a PR against
   `main`. Fill in the PR template: what changed, the linked issue, and the verification
   checklist.
-- **`main` is protected.** A PR needs one approving review and green CI before it merges — no
-  direct pushes. CI runs the build, `npm test` (unit + axe a11y), an `npm audit`, a published-
-  artifact check, and the secret-scan + internal-terms gates (see Data handling).
+- **`main` is protected.** Direct pushes are blocked, and five checks have to be green before
+  the merge button works: `build`, `Dependency audit`, `Published artifact check`, `Secret scan
+  (gitleaks)` and `Internal-terms denylist`. Inside `build` are the build itself, `npm test`
+  (unit + axe a11y) and the React tests. Review conversations have to be resolved as well —
+  one open thread greys the button out with all five checks green.
+- **Less is enforced than that sounds.** No review is required — the rule asks for zero
+  approvals, so you can merge your own pull request. Nor is `Shipped surface vs version` (see
+  Release) one of the required checks, which means it can go red while the merge button stays
+  green. And because pull requests need not be up to date with `main`, two of them can each
+  bump to the same version. Repository admins are exempt from all of it. Making any of this
+  stricter takes three settings on the branch rule for `main` — require one approving review,
+  add `Shipped surface vs version` to the required checks, turn on "require branches to be up
+  to date" — and none of them live in this repository.
 - Keep PRs focused. One concern per PR reviews faster than a grab-bag.
 
 ## Golden rules
@@ -49,9 +59,10 @@ service/org/product IDs, `*.lessly.run` hosts, ttl.sh image tags, deploy tokens)
 in code, fixtures, **issues, or PR text**. Use clearly-fabricated placeholders for
 all demo data (e.g. `Ada Lovelace / ada@apliteni.com`).
 
-Two automated gates enforce this (see `.github/workflows/security.yml`): gitleaks
-with a PII/infra ruleset (`.gitleaks.toml`) and an internal-terms denylist, both
-over the full history. Run them locally before pushing with
+Two automated gates enforce this (see `.github/workflows/security.yml`), and both
+are required checks: gitleaks with a PII/infra ruleset (`.gitleaks.toml`), which
+reads the whole history, and an internal-terms denylist, which greps the tracked
+files as they stand. Run them locally before pushing with
 [pre-commit](https://pre-commit.com): `pip install pre-commit && pre-commit install`.
 Issues and PR bodies aren't covered by gitleaks — a separate workflow warns on
 internal identifiers posted there, but the responsibility is yours.
@@ -166,16 +177,64 @@ company*. The kit's own `prism` mark stays hand-authored in `src/assets/brand.js
 
 ## Release
 
-```bash
-npm version patch|minor|major     # bumps package.json + tags
-git push --follow-tags
-gh release create v$(node -p "require('./package.json').version") --generate-notes
-```
+A release is a version bump. Merge one to `main` and the rest happens on its
+own: `tag-on-bump.yml` tags the commit, cuts a GitHub Release whose notes are
+the changelog entry for that version, and dispatches the publish workflow on
+the tag. The old ritual of `npm version`, a pushed tag and `gh release create`
+is gone.
 
-CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release.
-The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepare`
-builds `react/dist` from the tagged commit — so the React subpath can never ship
-stale — and `publish` holds the OIDC credential and does nothing but publish that
-tarball, so no third-party install or build script runs beside it.
-The `ui.apli.tech` site rebuilds
-from the repo (landing + Storybook) — see the README for the image build/deploy.
+One step still needs a person. The publish job runs in the `npm-publish`
+environment, which asks one of four reviewers to approve it and will not let you
+approve your own, so expect to be waiting for somebody else. `tag-on-bump.yml`
+gives that about a minute — enough to catch an approval that lands straight
+away — and then goes red with a link to the run and a line saying what it is
+waiting for. It does not sit there longer, because every other push to `main`
+queues behind this job. Once a run has been approved and is building it gets ten
+minutes instead, because that one is moving on its own.
+
+Red is what an unapproved release looks like, and it does not undo itself.
+Approve the run and the publish carries on, but the job that already went red
+stays red — nothing goes back and re-runs it. What turns green is the next push
+to `main`, because the decision comes from the registry rather than from the
+tag: once the version is on npm, any run after that reads the release as done.
+Or re-run the failed job by hand — same thing. Either way nothing needs undoing:
+whatever part of the release is missing gets picked up from where it stopped.
+
+Two things have to be in the pull request. The `Shipped surface vs version` job
+checks both and goes red without either. Since it is not one of the checks
+branch protection requires, though, a red one does not stop the merge — read it
+yourself before you merge.
+
+**A change to what we publish needs a bump.** The `Shipped surface vs version`
+job packs the tarball at both ends of the pull request and compares the
+contents. If they differ and the version does not, it fails and names the
+files. `files` in package.json is what decides "published" — everything in
+`src/` except its tests, `react/dist`, plus the readme, licence and manifest
+files npm adds whether you list them or not. 52 files today. Two cases catch
+people out. `react/dist` is built from `react/src` and is not in the
+repository, so a React change lands in the report as a `react/dist` change you
+never saw in your diff. Tests under `src/` ship nothing, so editing one needs
+no bump.
+
+**A bump needs a changelog entry.** Add it to the `RELEASES` array in
+`site/changelog.mjs`, in the same pull request. The Release notes are read from
+there, so a version nothing describes is a release that cannot be built.
+Without this gate the failure would arrive after the bump was already on
+`main`, and undoing that takes a second pull request.
+
+Which number to bump is still yours to choose. Patch or minor is a judgement
+about what the change costs the people who installed the package, and once a
+version is on npm it is there for good.
+
+The publish runs as two jobs. `build` installs and runs `npm pack`, whose
+`prepare` builds `react/dist` from the tagged commit — so the React subpath can
+never ship stale — and `publish` holds the OIDC credential and does nothing but
+push that tarball to the public npm registry, so no third-party install or
+build script runs beside it.
+
+If `main` and npm disagree for more than a day, a scheduled job opens an issue
+saying so. It is the backstop for a release that was tagged and never reached
+the registry.
+
+The `ui.apli.tech` site rebuilds from the repo (landing + Storybook) — see the
+README for the image build/deploy.

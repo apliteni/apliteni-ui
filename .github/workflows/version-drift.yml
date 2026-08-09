@@ -1,0 +1,198 @@
+name: Version drift (main vs npm)
+
+# Notice when the version on `main` and the version on npm have disagreed for
+# more than a day, and open an issue saying so.
+#
+# The gap itself is routine — a bump lands on main minutes before the tag that
+# publishes it — so this deliberately does not fire on the gap. It fires on the
+# gap having survived a day, which is the shape of the two incidents that
+# prompted it: the ./react subpath sat on main unpublished for a day with no
+# signal, and later main ran thirteen commits and one changed export surface
+# ahead of the registry, again with no signal. A person found both by looking.
+#
+# All of the judgement lives in scripts/version-drift.mjs, whose verdict half is
+# a pure function with unit tests (scripts/version-drift.test.js). This file
+# gathers nothing and decides nothing; it runs the script and turns a verdict
+# into an issue. That split is the point — a check you can only exercise by
+# waiting a day and hitting the network is a check nobody ever proves works.
+#
+# One thing this cannot defend itself against: GitHub disables a scheduled
+# workflow after 60 days with no activity in the repository, and it does so
+# without failing anything. There is no run to go red, so a safety net that has
+# stopped running looks exactly like a safety net with nothing to report. If
+# this repository goes quiet for two months, the check is off until somebody
+# re-enables it from the Actions tab.
+on:
+  schedule:
+    # 07:17 UTC. Off the hour on purpose: GitHub queues cron runs and the top of
+    # the hour is where every scheduled workflow on the platform piles up, so an
+    # exact :00 is the slowest and least reliable minute to ask for.
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+
+# Enough to read the tree and file an issue, and nothing else. No contents:
+# write, no pull-requests, no packages.
+permissions:
+  contents: read
+  issues: write
+
+# The whole no-duplicates mechanism is "list open issues with the label, and
+# file one only if there are none", which is a read followed by a write with a
+# gap in the middle. Two runs overlapping in that gap — a workflow_dispatch
+# fired while the cron run is in flight, most likely by somebody testing this —
+# both see nothing open and both file. Serialised so the second waits.
+#
+# cancel-in-progress stays off: cancelling the run that is about to file leaves
+# the drift unreported for a day, and a queued duplicate costs seconds.
+concurrency:
+  group: version-drift
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # A clone with full history, one `npm view` and one API call. Anything near
+    # this and something is wedged; the default is six hours.
+    timeout-minutes: 15
+    steps:
+      # fetch-depth: 0 is load-bearing, and it fails quietly without it. The
+      # script dates the version bump with `git log -L` over package.json. In a
+      # shallow clone git treats the boundary commit as parentless, so the line
+      # looks like it was introduced there — the lookup does not error and does
+      # not come back empty, it returns the boundary commit's date. Checked on a
+      # depth-1 clone whose tip was three commits past the real bump: exit 0, and
+      # a date 20 minutes old instead of the true one. Every run would then see a
+      # brand-new bump, call it "within threshold", and never report drift. The
+      # check would look healthy and green forever, which is precisely the
+      # failure it was built to end.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      # No `npm ci`. The script imports nothing outside node: builtins, so there
+      # is nothing to install — and not installing means no third-party code runs
+      # in a job that holds issues:write.
+      - name: Assess drift
+        run: node scripts/version-drift.mjs > version-drift.json
+
+      - name: Open an issue if the drift has lasted
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('node:fs');
+            const verdict = JSON.parse(fs.readFileSync('version-drift.json', 'utf8'));
+            core.info(verdict.summary);
+            if (!verdict.drift) {
+              // Two of the four ways this ends up here are not "all is well",
+              // they are "I could not tell". `published-version-unknown` means
+              // npm did not answer; `bump-date-unknown` means the git lookup
+              // did not. Both used to print core.info and finish green, which
+              // is the same tick a healthy run leaves — so a check that had
+              // stopped checking anything was invisible in the run list. A
+              // warning surfaces in the run summary and on the Actions tab
+              // without failing the job, which is right: neither is a fault in
+              // this repository, and a registry outage must not open an issue
+              // or go red every morning.
+              const cannotTell = ['published-version-unknown', 'bump-date-unknown'];
+              if (cannotTell.includes(verdict.reason)) {
+                core.warning(
+                  `Drift could not be assessed (${verdict.reason}): ${verdict.summary} `
+                    + 'This run checked nothing — it is not a clean bill of health.',
+                );
+              } else {
+                core.info(`No issue to file (${verdict.reason}).`);
+              }
+              return;
+            }
+
+            // The marker label is the whole idempotence mechanism, so it has to
+            // exist before anything looks for it. A label that is not there
+            // does not error the search — it comes back empty, which reads as
+            // "no issue open yet" and files a fresh one every morning for as
+            // long as the drift lasts.
+            //
+            // Every label this files with is created, not just that one. The
+            // first version pre-created `version-drift` and then filed with
+            // `['version-drift', 'automated']`, which worked only because
+            // `automated` happens to exist in this repository today: delete it
+            // and issues.create rejects the whole call, so the check that
+            // catches an unpublished release would itself stop reporting. Both
+            // or neither, and both is the one that keeps working.
+            const MARKER = 'version-drift';
+            const LABELS = [
+              [MARKER, 'd93f0b', 'main and the published npm version have disagreed for over a day'],
+              ['automated', 'ededed', 'Filed by a workflow rather than by a person'],
+            ];
+            for (const [name, color, description] of LABELS) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                  color,
+                  description,
+                });
+              } catch (e) {
+                // 422 is "already there", which is the ordinary case.
+                if (e.status !== 422) throw e;
+              }
+            }
+
+            // listForRepo, not the search API. Search is a separate, eventually
+            // consistent index: an issue filed by yesterday's run can be missing
+            // from it for minutes, and every miss is a duplicate. The issues
+            // endpoint reads the same store the create writes to.
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: MARKER,
+              per_page: 1,
+            });
+            if (open.data.length > 0) {
+              // Deliberately silent rather than commenting. This runs daily and
+              // the condition persists for days by nature — a daily "still
+              // drifting" comment would bury the thread it is attached to and
+              // train everyone to mute it. The issue already says what is wrong;
+              // a second voice adds nothing until someone closes it.
+              core.info(`#${open.data[0].number} is already open — nothing to do.`);
+              return;
+            }
+
+            const body = [
+              `\`main\` is at **${verdict.mainVersion}**. npm serves `
+                + `**${verdict.publishedVersion}**. They have disagreed for about `
+                + `**${verdict.ageHours} hours** (threshold ${verdict.thresholdHours}h).`,
+              '',
+              'The version field in `package.json` last changed at '
+                + `\`${verdict.versionChangedAt}\`, and nothing has published since.`,
+              '',
+              'That is usually one of three things:',
+              '',
+              '- the release was tagged and the publish job failed or was never started;',
+              '- the version was bumped on `main` without a tag, so nothing triggered a release;',
+              '- the bump was intentional and the release is genuinely still to come.',
+              '',
+              'Anyone consuming `@apliteni/apliteni-ui` is on the published version, so any '
+                + 'export surface added since the bump does not exist for them.',
+              '',
+              '---',
+              '',
+              `Filed by [\`.github/workflows/version-drift.yml\`](${context.serverUrl}/`
+                + `${context.repo.owner}/${context.repo.repo}/blob/main/.github/workflows/`
+                + 'version-drift.yml), which runs daily. Nothing further will be filed or '
+                + 'commented while this issue is open. Closing it does not silence the check: '
+                + 'if the two versions still disagree tomorrow, a fresh issue appears. '
+                + 'Publishing is what stops it.',
+            ].join('\n');
+
+            const created = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `main is ${verdict.mainVersion} but npm serves ${verdict.publishedVersion}`,
+              body,
+              labels: LABELS.map(([name]) => name),
+            });
+            core.notice(`Filed #${created.data.number}: ${verdict.summary}`);
