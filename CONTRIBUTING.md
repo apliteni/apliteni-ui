@@ -23,7 +23,8 @@ npm run storybook        # http://localhost:6006
 - **`main` is protected.** Direct pushes are blocked, and five checks have to be green before
   the merge button works: `build`, `Dependency audit`, `Published artifact check`, `Secret scan
   (gitleaks)` and `Internal-terms denylist`. Inside `build` are the build itself, `npm test`
-  (unit + axe a11y) and the React tests.
+  (unit + axe a11y) and the React tests. Review conversations have to be resolved as well —
+  one open thread greys the button out with all five checks green.
 - **Less is enforced than that sounds.** No review is required — the rule asks for zero
   approvals, so you can merge your own pull request. Nor is `Shipped surface vs version` (see
   Release) one of the required checks, which means it can go red while the merge button stays
@@ -183,14 +184,21 @@ the tag. The old ritual of `npm version`, a pushed tag and `gh release create`
 is gone.
 
 One step still needs a person. The publish job runs in the `npm-publish`
-environment, which requires a reviewer, so somebody has to approve it before
-anything reaches npm. Until that happens `tag-on-bump.yml` waits, for about
-seventeen minutes, and then goes red saying which of the two it is — an approval
-nobody has given, or a publish that broke. It stays red for as long as the
-version is missing from npm, because it decides from the registry rather than
-from the tag. Approve the run and the publish carries on by itself. Nothing
-needs undoing either way: the next push to `main`, or a re-run of the job,
-finishes whatever part of the release is still missing.
+environment, which asks one of four reviewers to approve it and will not let you
+approve your own, so expect to be waiting for somebody else. `tag-on-bump.yml`
+gives that about a minute — enough to catch an approval that lands straight
+away — and then goes red with a link to the run and a line saying what it is
+waiting for. It does not sit there longer, because every other push to `main`
+queues behind this job. Once a run has been approved and is building it gets ten
+minutes instead, because that one is moving on its own.
+
+Red is what an unapproved release looks like, and it does not undo itself.
+Approve the run and the publish carries on, but the job that already went red
+stays red — nothing goes back and re-runs it. What turns green is the next push
+to `main`, because the decision comes from the registry rather than from the
+tag: once the version is on npm, any run after that reads the release as done.
+Or re-run the failed job by hand — same thing. Either way nothing needs undoing:
+whatever part of the release is missing gets picked up from where it stopped.
 
 Two things have to be in the pull request. The `Shipped surface vs version` job
 checks both and goes red without either. Since it is not one of the checks
