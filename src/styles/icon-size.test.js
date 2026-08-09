@@ -79,6 +79,7 @@ import {
   resolve,
   rulesOf,
   svgClassSet,
+  without,
 } from '../../scripts/lib/icon-cascade.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -126,7 +127,7 @@ for (const [i, name] of SHEETS.entries()) {
       if (!isSvgSubject(sel, SVG_CLASSES)) continue;
       for (const dim of DIMS) {
         const want = rule.style.getPropertyValue(dim).trim();
-        if (want) subjects.push({ sel, dim, want, sheet: name });
+        if (want) subjects.push({ sel, dim, want, sheet: name, rule });
       }
     }
   }
@@ -139,17 +140,32 @@ test('every icon sizing rule in the kit is still gated', () => {
     + 'in the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
 });
 
-for (const { sel, dim, want, sheet } of subjects) {
+for (const { sel, dim, want, sheet, rule } of subjects) {
   test(`${sel} { ${dim}: ${want} } decides the icon's ${dim}`, () => {
     const { el, top } = mount(document, sel, SVG_CLASSES);
     try {
       assert.ok(el.matches(sel),
         `mounted an element that does not match "${sel}" — the measurement would be of the wrong thing`);
+      /* Forced so the two candidates cannot agree by arithmetic. The reset is
+       * 1.1em, so on any element whose font-size happens to make 1.1em equal
+       * the declared px the comparison below passes whichever rule won. At
+       * 100px the reset reads 110px and nothing else does. It changes no
+       * selector, so it changes nothing about which rules match; `resolve`
+       * clones this element, inline style included, so the expectation is
+       * computed on the same basis. */
+      el.style.fontSize = '100px';
       const got = getComputedStyle(el).getPropertyValue(dim);
       const expected = resolve(getComputedStyle, el, dim, want);
       assert.equal(got, expected,
         `${sheet} asks for ${dim}: ${want} (resolves to ${expected}) and the cascade gives ${got}. `
         + 'Something upstream out-specifies it — see the header of this file.');
+      // And prove that comparison could have failed — see without().
+      const gone = without(getComputedStyle, el, rule, dim);
+      assert.notEqual(gone, expected,
+        `taking "${dim}: ${want}" out of ${sheet} changes nothing — the element still computes `
+        + `${gone}. So the assertion above passes whether this rule wins or loses, and gates `
+        + 'nothing. Either the rule is redundant and should go, or this subject needs a basis '
+        + 'that pulls it apart from whatever else is setting the same value.');
     } finally {
       top.remove();
     }

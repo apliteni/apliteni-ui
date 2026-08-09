@@ -45,14 +45,18 @@
  * coverage, which is the exact fault this file exists to fix. Composing from
  * source means importing what site/build.mjs imports (chrome.mjs, changelog.mjs)
  * and substituting the same placeholders; the raw HTML carries {{CHROME_CSS}} and
- * friends, and feeding that to a CSS parser drops rules on the floor.
+ * friends, and feeding that to a CSS parser drops rules on the floor. The same
+ * argument applies to the walk that derives the svg class set, which is why
+ * icon-cascade.js skips site/public and friends by name — see SKIP_DIRS.
  *
  * TWO SHAPES OF STORY CSS. `stories/apps/_appShell.js` writes its CSS literally
  * between <style> and </style>; `stories/foundations/Iconography.stories.js`
  * writes `<style>${STYLE}</style>` and declares STYLE above. An extractor that
  * handles only the first measures nothing for the second and says so in green.
  * Both are handled, and an interpolation that cannot be resolved is turned into
- * a marker that this file then refuses to ignore — see UNRESOLVED.
+ * a marker that this file then refuses to ignore — see UNRESOLVED. Including
+ * the case where the marker is the block's ENTIRE body, which parses to no
+ * rules at all and so reads as a surface that simply has no CSS in it.
  *
  * WHAT THIS WILL NOT CATCH — same weak claims as the gate it extends, for the
  * same reasons; read that file's header for the argument:
@@ -95,6 +99,7 @@ import {
   rulesOf,
   svgClassSet,
   walk,
+  without,
 } from './lib/icon-cascade.js';
 import { topbar, footer, CHROME_CSS, CHROME_JS } from '../site/chrome.mjs';
 import { changelogMain, release } from '../site/changelog.mjs';
@@ -168,7 +173,7 @@ function sitePages() {
       .replace('{{MAIN}}', () => changelogMain({}))
       .replaceAll('{{VERSION}}', 'v0.0.0')
       .replaceAll('{{CSSHASH}}', '0000000000');
-    const left = [...html.matchAll(/\{\{[A-Z_]+\}\}/g)].map((m) => m[0]);
+    const left = [...html.matchAll(/\{\{[A-Z0-9_]+\}\}/g)].map((m) => m[0]);
     assert.deepEqual(left, [],
       `site/${name} still carries ${left.join(', ')} after composition. site/build.mjs fills a `
       + 'placeholder this gate does not — teach it, or the CSS around it goes unmeasured.');
@@ -176,26 +181,46 @@ function sitePages() {
   });
 }
 
-/* One entry per <style> block the kit renders, tagged with the file it came
- * from so a failure names somewhere to go. */
+/* One entry per FILE the kit renders, carrying that file's <style> blocks in
+ * document order.
+ *
+ * Grouped by file, not one entry per block, and that is a correctness point
+ * rather than bookkeeping. Two <style> blocks on one page are one cascade and
+ * have to compete, exactly as they do in a browser. Giving each block its own
+ * document put every rule somewhere nothing could out-rank it: a second block
+ * carrying `.bento .bIcon svg { width: 8px }` and the `.bIcon svg { width:
+ * 24px }` it overrides would both report they decide the icon's width, and the
+ * only red would be the count — whose own message tells you to raise
+ * EXPECTED_SUBJECTS and go green. That is the defect this gate exists to end,
+ * reintroduced inside the gate.
+ *
+ * The original reason for splitting survives grouping: two UNRELATED surfaces
+ * that happen to share a class name are still separate files, so they still get
+ * separate documents and still cannot decide each other's contests. */
 function chunks() {
-  const out = [];
+  const byFile = new Map();
+  const add = (from, css) => {
+    const blocks = byFile.get(from) ?? [];
+    blocks.push(css);
+    byFile.set(from, blocks);
+  };
   for (const file of storyFiles()) {
     const source = readFileSync(file, 'utf8');
     for (const m of source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
-      out.push({ from: rel(file), css: resolveInterpolations(m[1], source) });
+      add(rel(file), resolveInterpolations(m[1], source));
     }
   }
   for (const { from, html } of sitePages()) {
     // Parsed rather than regexed: the pages are real documents, and <style> in
     // one is worth finding wherever the markup puts it.
     const page = new JSDOM(html);
-    for (const el of page.window.document.querySelectorAll('style')) out.push({ from, css: el.textContent });
+    for (const el of page.window.document.querySelectorAll('style')) add(from, el.textContent);
   }
-  return out;
+  return [...byFile].map(([from, blocks]) => ({ from, blocks }));
 }
 
 const CHUNKS = chunks();
+const BLOCKS = CHUNKS.reduce((n, c) => n + c.blocks.length, 0);
 
 // The classes the kit puts on an <svg>, derived from the source the way the
 // other gate derives them — over the surfaces too, because `.term__copy .ic`
@@ -206,30 +231,34 @@ const SVG_CLASSES = svgClassSet([src, siteDir, storiesDir], ['.js', '.mjs', '.ht
 const SHEETS = kitSheetNames(src);
 const KIT = kitStyleHtml(src, SHEETS);
 
-/* One document per chunk: the kit's stylesheets in import order, then that
- * surface's own CSS last — which is the order a browser sees, since every page
- * links kit.css in <head> before its own <style>. Per chunk rather than one
- * shared document so a class name that two unrelated surfaces happen to share
- * cannot decide the other one's contest. */
-const docs = CHUNKS.map(({ from, css }) => {
-  const dom = new JSDOM(`<!doctype html><html><head>${KIT}<style data-surface="${from}">${css}</style>`
-    + '</head><body></body></html>');
-  assert.equal(dom.window.document.styleSheets.length, SHEETS.length + 1,
+/* One document per file: the kit's stylesheets in import order, then that
+ * file's own <style> blocks in document order — the order a browser sees, since
+ * every page links kit.css in <head> before its own <style>. */
+const docs = CHUNKS.map(({ from, blocks }) => {
+  const own = blocks
+    .map((css, j) => `<style data-surface="${from}" data-block="${j}">${css}</style>`)
+    .join('\n');
+  const dom = new JSDOM(`<!doctype html><html><head>${KIT}${own}</head><body></body></html>`);
+  assert.equal(dom.window.document.styleSheets.length, SHEETS.length + blocks.length,
     `jsdom dropped a stylesheet composing ${from} — every rule in it would silently leave coverage.`);
   return dom;
 });
 
+/** That file's own sheets, in document order, after the kit's. */
+const ownSheets = (i) => CHUNKS[i].blocks
+  .map((_css, j) => docs[i].window.document.styleSheets[SHEETS.length + j]);
+
 const subjects = [];
 CHUNKS.forEach(({ from }, i) => {
-  const { document } = docs[i].window;
-  const sheet = document.styleSheets[SHEETS.length];   // the surface's own, last
-  for (const [rule] of rulesOf(sheet, from, SVG_CLASSES)) {
-    for (const raw of rule.selectorText.split(',')) {
-      const sel = raw.trim().replace(/\s+/g, ' ');
-      if (!isSvgSubject(sel, SVG_CLASSES)) continue;
-      for (const dim of DIMS) {
-        const want = rule.style.getPropertyValue(dim).trim();
-        if (want) subjects.push({ sel, dim, want, from, i });
+  for (const sheet of ownSheets(i)) {
+    for (const [rule] of rulesOf(sheet, from, SVG_CLASSES)) {
+      for (const raw of rule.selectorText.split(',')) {
+        const sel = raw.trim().replace(/\s+/g, ' ');
+        if (!isSvgSubject(sel, SVG_CLASSES)) continue;
+        for (const dim of DIMS) {
+          const want = rule.style.getPropertyValue(dim).trim();
+          if (want) subjects.push({ sel, dim, want, from, i, rule });
+        }
       }
     }
   }
@@ -250,27 +279,51 @@ test('no sizing rule is hidden behind an interpolation this gate cannot read', (
    * `.aui-unresolved-interpolation svg` and is still caught by shape, but a bare
    * `${X} { width: … }` reads as an element selector and would not be. */
   const blind = [];
-  CHUNKS.forEach(({ from, css }, i) => {
-    const sheet = docs[i].window.document.styleSheets[SHEETS.length];
-    for (const rule of sheet.cssRules) {
-      if (!rule.selectorText) continue;
-      const dims = DIMS.filter((d) => rule.style.getPropertyValue(d));
-      if (!dims.length) continue;
-      const values = dims.map((d) => rule.style.getPropertyValue(d));
-      if (rule.selectorText.includes(UNRESOLVED) || values.some((v) => v.includes(UNRESOLVED))) {
-        blind.push(`${from}: ${rule.selectorText} { ${dims.join(', ')} }`);
+  CHUNKS.forEach(({ from, blocks }, i) => {
+    ownSheets(i).forEach((sheet, j) => {
+      const css = blocks[j];
+      for (const rule of sheet.cssRules) {
+        if (!rule.selectorText) continue;
+        const dims = DIMS.filter((d) => rule.style.getPropertyValue(d));
+        if (!dims.length) continue;
+        const values = dims.map((d) => rule.style.getPropertyValue(d));
+        if (rule.selectorText.includes(UNRESOLVED) || values.some((v) => v.includes(UNRESOLVED))) {
+          blind.push(`${from}: ${rule.selectorText} { ${dims.join(', ')} }`);
+        }
       }
-    }
-    /* And the same question of the raw text, because the parsed sheet cannot
-     * answer it alone: `width: ${sizeOf(1)}px` becomes a value jsdom rejects, so
-     * the declaration is simply gone from the CSSOM above. The subject count
-     * catches that too, one rule later — this says which rule and why. */
-    for (const m of css.matchAll(/(?:^|[;{])\s*(width|height)\s*:\s*([^;}]*)/g)) {
-      if (m[2].includes(UNRESOLVED)) blind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
-    }
-    for (const m of css.matchAll(/(?:^|[}])([^{}]*)\{/g)) {
-      if (m[1].includes(UNRESOLVED)) blind.push(`${from}: selector ${m[1].trim()}`);
-    }
+      /* A block whose WHOLE body was one interpolation this file could not
+       * resolve. `<style>${SHELL_CSS}</style>` becomes the bare identifier
+       * UNRESOLVED — no braces, no declarations — so the loop above sees no
+       * rules, and both text guards below need a `{` or a literal width/height
+       * to fire. Nothing was dropped from a count either, because the count
+       * never rose. The block reads as a surface with no CSS in it, and this
+       * gate would swear it had measured the page. Two ordinary shapes land
+       * here: a single-quoted `const STYLE = '…'` (the lookup in
+       * resolveInterpolations only reads a backtick literal) and an imported
+       * `const` — which is precisely the shared-shell refactor this file's
+       * header advertises as covered. */
+      if (css.includes(UNRESOLVED) && sheet.cssRules.length === 0) {
+        blind.push(`${from}: a <style> block whose entire body is an unresolved interpolation`);
+      }
+      /* And the same question of the raw text, because the parsed sheet cannot
+       * answer it alone: `width: ${sizeOf(1)}px` becomes a value jsdom rejects, so
+       * the declaration is simply gone from the CSSOM above. The subject count
+       * catches that too, one rule later — this says which rule and why. */
+      for (const m of css.matchAll(/(?:^|[;{])\s*(width|height)\s*:\s*([^;}]*)/g)) {
+        if (m[2].includes(UNRESOLVED)) blind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
+      }
+      for (const m of css.matchAll(/(?:^|[}])([^{}]*)\{/g)) {
+        if (m[1].includes(UNRESOLVED)) blind.push(`${from}: selector ${m[1].trim()}`);
+      }
+      /* An interpolated PROPERTY NAME — `${DIM}: 21px`. jsdom drops the whole
+       * declaration as an unknown property, so it never reaches the CSSOM, and
+       * the value guard above only ever looks for a literal `width` or
+       * `height`, which is the one thing this shape does not write. Anchored on
+       * `;` or `{` so a selector such as `a:hover` cannot read as a property. */
+      for (const m of css.matchAll(/[;{]\s*([^;{}:]*)\s*:/g)) {
+        if (m[1].includes(UNRESOLVED)) blind.push(`${from}: property ${m[1].trim()}`);
+      }
+    });
   });
   assert.deepEqual(blind, [],
     'a surface writes a sizing rule whose selector or value is computed at render time. This gate '
@@ -280,25 +333,39 @@ test('no sizing rule is hidden behind an interpolation this gate cannot read', (
 
 test('every icon sizing rule the kit renders outside src/styles is gated', () => {
   assert.equal(subjects.length, EXPECTED_SUBJECTS,
-    `collected ${subjects.length} icon sizing declarations across ${CHUNKS.length} <style> blocks, `
+    `collected ${subjects.length} icon sizing declarations across ${BLOCKS} <style> blocks in `
+    + `${CHUNKS.length} files, `
     + `expected ${EXPECTED_SUBJECTS}:\n`
     + subjects.map((s) => `  ${s.from}: ${s.sel} { ${s.dim}: ${s.want} }`).join('\n')
     + '\nIf you added a rule, raise EXPECTED_SUBJECTS. If you removed one, lower it and say why in '
     + 'the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
 });
 
-for (const { sel, dim, want, from, i } of subjects) {
+for (const { sel, dim, want, from, i, rule } of subjects) {
   test(`${from}: ${sel} { ${dim}: ${want} } decides the icon's ${dim}`, () => {
     const { document, getComputedStyle } = docs[i].window;
     const { el, top } = mount(document, sel, SVG_CLASSES);
     try {
       assert.ok(el.matches(sel),
         `mounted an element that does not match "${sel}" — the measurement would be of the wrong thing`);
+      /* Forced so the two candidates cannot agree by arithmetic — the reason is
+       * the badge's, spelled out at the bottom of this file, and it is a class
+       * of hole rather than one instance. It changes no selector, so it changes
+       * nothing about which rules match; `resolve` clones this element, inline
+       * style included, so the expectation is computed on the same basis. */
+      el.style.fontSize = '100px';
       const got = getComputedStyle(el).getPropertyValue(dim);
       const expected = resolve(getComputedStyle, el, dim, want);
       assert.equal(got, expected,
         `${from} asks for ${dim}: ${want} (resolves to ${expected}) and the cascade gives ${got}. `
         + 'Something upstream out-specifies it — see the header of src/styles/icon-size.test.js.');
+      // And prove that comparison could have failed — see without().
+      const gone = without(getComputedStyle, el, rule, dim);
+      assert.notEqual(gone, expected,
+        `taking "${dim}: ${want}" out of ${from} changes nothing — the element still computes `
+        + `${gone}. So the assertion above passes whether this rule wins or loses, and gates `
+        + 'nothing. Either the rule is redundant and should go, or this subject needs a basis '
+        + 'that pulls it apart from whatever else is setting the same value.');
     } finally {
       top.remove();
     }

@@ -20,12 +20,23 @@ import path from 'node:path';
 
 export const DIMS = ['width', 'height'];
 
-/** Every file under `dir`, depth-first. */
+/* Build output and vendored code, skipped by directory name. Two of these exist
+ * on a dev machine and never in CI, which is the dangerous shape: site/public/
+ * is gitignored, and site/build.mjs folds the entire built Storybook into
+ * site/public/storybook/. A developer who has run a full build would otherwise
+ * have every sweep below read that vendor bundle — harvesting `<svg class="…">`
+ * out of it and deriving a different class set than CI derives from the same
+ * commit. This repo has already shipped one local-green/CI-red defect; a walk
+ * that reads untracked build output is how you get the next one. */
+export const SKIP_DIRS = new Set(['node_modules', 'dist', 'public', 'storybook-static']);
+
+/** Every file under `dir`, depth-first, build output excluded. */
 export function walk(dir, acc = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(p, acc);
-    else acc.push(p);
+    if (entry.isDirectory()) {
+      if (!SKIP_DIRS.has(entry.name)) walk(p, acc);
+    } else acc.push(p);
   }
   return acc;
 }
@@ -153,9 +164,39 @@ export function mount(document, sel, classes) {
  * written `1.0625rem` a failure and blame the reset for it. */
 export function resolve(getComputedStyle, el, dim, value) {
   const probe = el.cloneNode(false);
-  probe.style.setProperty(dim, value);
+  /* `important` is load-bearing, not tidiness — do not drop it. The probe is a
+   * clone, so it matches every rule the real element matches. A non-important
+   * inline declaration loses to an author `!important`, which would then win on
+   * the probe exactly as it wins on the real element: got === expected, green,
+   * whichever rule actually decided. Since #148 made the reset `svg:where(…)` at
+   * (0,0,1), it can no longer out-specify a component rule — so `!important` on
+   * it is the one remaining way to reintroduce #148's defect, and without this
+   * argument it is the one way neither gate can see. Verified: `!important` on
+   * base.css's two reset declarations leaves both gates green without it, and
+   * gives 56 and 13 failures with it. */
+  probe.style.setProperty(dim, value, 'important');
   el.parentNode.appendChild(probe);
   const got = getComputedStyle(probe).getPropertyValue(dim);
   probe.remove();
   return got;
+}
+
+/* What this element computes to with `rule`'s own declaration of `dim` taken
+ * away, the rule put back before returning.
+ *
+ * This is how a gate proves its comparison was capable of failing. A declared
+ * value that coincides with what the reset gives at this element's font-size
+ * makes the assertion a green no-op: .ui-badge declares 11px and the reset's
+ * 1.1em over badge.css's font-size: 10px is also 11px, so the measurement
+ * agreed with the winner and the loser alike. That hole was found by hand once;
+ * asserting non-vacuity is what stops the next instance needing to be. */
+export function without(getComputedStyle, el, rule, dim) {
+  const value = rule.style.getPropertyValue(dim);
+  const priority = rule.style.getPropertyPriority(dim);
+  rule.style.removeProperty(dim);
+  try {
+    return getComputedStyle(el).getPropertyValue(dim);
+  } finally {
+    rule.style.setProperty(dim, value, priority);
+  }
 }
