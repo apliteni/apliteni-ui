@@ -70,16 +70,22 @@
  *    `var(--ic-size)`, because jsdom substitutes no custom properties at all.
  *    The contest is still decided correctly — a reset that won would compute to
  *    `1.1em` and not match — but nothing here proves what --ic-size holds.
+ *  - Any dimension other than width and height. DIMS in
+ *    scripts/lib/icon-cascade.js is those two and nothing else, so a rule
+ *    sizing an svg with `inline-size`, `block-size` or a min-/max- form
+ *    contributes no subject and loses no contest here, while overriding the
+ *    reset in a real browser. Nothing on an svg subject uses one today.
  *
  * DELIBERATELY OUT OF SCOPE, both decided rather than overlooked:
  *
- *  - stories/apps/Consent.stories.js:29-30 sizes its icons by putting
- *    font-size: 23px / 18px on a wrapper and letting the reset's 1.1em do the
- *    rest. There is no rule here that can stop applying, because the mechanism
- *    IS the reset — and the reset is already gated, in
- *    src/styles/icon-size.test.js:254. Covered indirectly; nothing to add.
- *  - stories/foundations/Brand.stories.js:22-25 (fitH / fitBox) strips the
- *    width/height attributes off a brand SVG and substitutes an INLINE style.
+ *  - the Grant story in stories/apps/Consent.stories.js sizes its icons by
+ *    putting font-size: 23px / 18px on a wrapper and letting the reset's 1.1em
+ *    do the rest. There is no rule here that can stop applying, because the
+ *    mechanism IS the reset — and the reset is already gated, by the test named
+ *    `the reset still sizes a bare icon that no component rule claims` in
+ *    src/styles/icon-size.test.js. Covered indirectly; nothing to add.
+ *  - fitH / fitBox in stories/foundations/Brand.stories.js strip the
+ *    width/height attributes off a brand SVG and substitute an INLINE style.
  *    An inline style cannot lose a specificity contest to a stylesheet rule, so
  *    there is no contest to measure.
  */
@@ -223,9 +229,9 @@ const CHUNKS = chunks();
 const BLOCKS = CHUNKS.reduce((n, c) => n + c.blocks.length, 0);
 
 // The classes the kit puts on an <svg>, derived from the source the way the
-// other gate derives them — over the surfaces too, because `.term__copy .ic`
-// (site/index.html:136) is a rule on a class written onto the svg tag itself,
-// and a leaf-is-`svg` test alone would take it out of coverage in silence.
+// other gate derives them — over the surfaces too, because `.term__copy .ic` in
+// site/index.html is a rule on a class written onto the svg tag itself, and a
+// leaf-is-`svg` test alone would take it out of coverage in silence.
 const SVG_CLASSES = svgClassSet([src, siteDir, storiesDir], ['.js', '.mjs', '.html']);
 
 const SHEETS = kitSheetNames(src);
@@ -374,10 +380,11 @@ for (const { sel, dim, want, from, i, rule } of subjects) {
 
 /* The breaking badge renders only when a release carries a breaking change, so
  * measuring it against whatever RELEASES happens to hold today would be a gate
- * that lapses the moment the data changes. site/changelog.test.js:33,40 asserts
- * both states from a fixture; this asserts the icon's size in the state where it
- * renders, on the real markup site/changelog.mjs emits rather than a mounted
- * approximation of it. */
+ * that lapses the moment the data changes. site/changelog.test.js asserts both
+ * states from a fixture — that a breaking release renders the badge and that a
+ * release with nothing breaking omits it; this asserts the icon's size in the
+ * state where it renders, on the real markup site/changelog.mjs emits rather
+ * than a mounted approximation of it. */
 test('the breaking badge icon is sized by the changelog page, in the state where it renders', () => {
   const i = CHUNKS.findIndex((c) => c.from === 'site/changelog.html');
   assert.notEqual(i, -1, 'site/changelog.html is no longer among the swept surfaces');
@@ -397,7 +404,7 @@ test('the breaking badge icon is sized by the changelog page, in the state where
       'the badge icon now carries a width attribute, so the reset skips it and this rule is moot');
 
     /* The badge is measured with its font-size forced, and that is not a detail.
-     * src/styles/badge.css:12 sets .ui-badge { font-size: 10px }, so the reset's
+     * src/styles/badge.css sets .ui-badge { font-size: 10px }, so the reset's
      * 1.1em computes to exactly 11px on this element — the same number the
      * changelog asks for. Read as it renders, a reset that had taken the rule
      * over would produce an identical measurement and this test would pass

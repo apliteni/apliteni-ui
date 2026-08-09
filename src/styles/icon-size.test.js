@@ -21,7 +21,8 @@
  * that is an `<svg>`, which is two shapes and the second is easy to miss:
  *
  *   .ui-btn svg          — the selector ends in `svg`
- *   .ui-fbck             — a CLASS the kit puts ON an svg (feedback.js:18)
+ *   .ui-fbck             — a CLASS the kit puts ON an svg (the CHECK markup in
+ *                          src/components/feedback.js)
  *
  * The second shape is not cosmetic. `.ui-fbck` is (0,1,0), it lost to the old
  * (0,2,1) reset exactly like the others, and it is the largest icon in the kit:
@@ -50,6 +51,11 @@
  *    icon is 17px". Editing 17px to 18px renames the test and stays green. That
  *    is the right contract for a cascade gate and the wrong one to mistake for
  *    design review.
+ *  - ANY DIMENSION OTHER THAN width/height. DIMS in
+ *    scripts/lib/icon-cascade.js is those two and nothing else, so a rule
+ *    sizing an icon with `inline-size`, `block-size` or a min-/max- form
+ *    contributes no subject and loses no contest here, while overriding the
+ *    reset in a real browser. Nothing on an svg subject uses one today.
  *  - Layout. jsdom has none, so `width: 100%` reads back as the string `100%`.
  *    That proves the rule won, and says nothing about the pixels on screen.
  *  - Markup. A rule can apply perfectly and never meet an element, because

@@ -42,9 +42,10 @@ export function walk(dir, acc = []) {
 }
 
 /* The kit's stylesheets, in the order src/index.css imports them. Same
- * derivation as scripts/stylesheet-manifest.test.js:38, quotes and all. A looser
- * regex here would silently drop a sheet written with single quotes and take its
- * rules out of coverage with the suite still green. */
+ * derivation as importsOfIndexCss() in scripts/stylesheet-manifest.test.js,
+ * quotes and all. A looser regex here would silently drop a sheet written with
+ * single quotes and take its rules out of coverage with the suite still
+ * green. */
 export function kitSheetNames(src) {
   return [...readFileSync(path.join(src, 'index.css'), 'utf8')
     .matchAll(/^\s*@import\s+["']\.\/([^"']+)["']/gm)].map((m) => m[1]);
@@ -91,12 +92,13 @@ export const leafOf = (sel) => sel.trim().split(/\s+/).pop();
 /* Two shapes count, and the second is easy to miss:
  *
  *   .ui-btn svg          — the selector ends in `svg`
- *   .ui-fbck             — a CLASS the kit puts ON an svg (feedback.js:18)
+ *   .ui-fbck             — a CLASS the kit puts ON an svg (the CHECK markup in
+ *                          src/components/feedback.js)
  *
  * The second shape is not cosmetic: .ui-fbck is the largest icon in the kit and
  * an earlier gate that collected only selectors ending in `svg` was blind to it.
- * Outside the package the same shape appears as `.term__copy .ic`
- * (site/index.html:136) — `ic` is a class written onto the svg tag itself. */
+ * Outside the package the same shape appears as the `.term__copy .ic` rule in
+ * site/index.html — `ic` is a class written onto the svg tag itself. */
 export function isSvgSubject(selectorText, classes) {
   return selectorText.split(',').some((s) => {
     const leaf = leafOf(s);
@@ -164,16 +166,24 @@ export function mount(document, sel, classes) {
  * written `1.0625rem` a failure and blame the reset for it. */
 export function resolve(getComputedStyle, el, dim, value) {
   const probe = el.cloneNode(false);
-  /* `important` is load-bearing, not tidiness — do not drop it. The probe is a
-   * clone, so it matches every rule the real element matches. A non-important
-   * inline declaration loses to an author `!important`, which would then win on
-   * the probe exactly as it wins on the real element: got === expected, green,
-   * whichever rule actually decided. Since #148 made the reset `svg:where(…)` at
-   * (0,0,1), it can no longer out-specify a component rule — so `!important` on
-   * it is the one remaining way to reintroduce #148's defect, and without this
-   * argument it is the one way neither gate can see. Verified: `!important` on
-   * base.css's two reset declarations leaves both gates green without it, and
-   * gives 56 and 13 failures with it. */
+  /* The probe is a clone, so it matches every rule the real element matches. A
+   * non-important inline declaration loses to an author `!important`, which then
+   * wins on the probe exactly as it wins on the real element: got === expected,
+   * green, whichever rule actually decided. Since #148 made the reset
+   * `svg:where(…)` at (0,0,1) it can no longer out-specify a component rule, so
+   * `!important` on the reset is the one remaining way to reintroduce #148's
+   * defect — and this comparison cannot tell the two apart unless the probe
+   * declares important too.
+   *
+   * Belt-and-braces rather than the mechanism, though: without() catches that
+   * same regression on its own, so the flag is not what makes an `!important`
+   * reset detectable. What it buys is which assertion fires. Putting
+   * `!important` on base.css's two reset declarations fails both gates by the
+   * same counts either way — 56 here and 15 on the surfaces gate — but with the
+   * flag every gate-1 failure reads "the cascade gives 110px", naming the rule
+   * that won, and without it they read "changes nothing", which describes a
+   * symptom and sends the reader looking for a redundant rule rather than an
+   * important one. */
   probe.style.setProperty(dim, value, 'important');
   el.parentNode.appendChild(probe);
   const got = getComputedStyle(probe).getPropertyValue(dim);
