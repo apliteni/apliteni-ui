@@ -57,8 +57,13 @@
  * ---------------------------------------------------------------------------
  * The second assertion, folded into the same job
  * ---------------------------------------------------------------------------
- * If the pull request does bump the version, site/changelog.mjs must have a
- * RELEASES entry for it. It is the same decision as the surface one — is this
+ * If the pull request does bump the version, the bump has to be upwards and
+ * site/changelog.mjs must have a RELEASES entry for it. Upwards because a
+ * version that is merely *different* releases nothing: set it to something
+ * already tagged and `tag-on-bump` finds the tag on `main`, no-ops, and the
+ * change sits merged and unpublished — the original bug, wearing a bump. An
+ * intentional rollback goes forwards too, since npm will not re-serve a version
+ * it has already served. It is the same decision as the surface one — is this
  * a release, and is it a complete one — asked at the only moment it can still
  * be answered cheaply. Without it a bump merges, `tag-on-bump` runs on `main`,
  * and the release fails *after* the version is already there: bumped,
@@ -124,6 +129,28 @@ export function surfaceHash(path, contents) {
 }
 
 /**
+ * The file paths out of an `npm pack --json` stdout.
+ *
+ * `prepare` runs on pack and writes its own build progress to the same stdout,
+ * so the JSON document does not start at byte 0 — it starts at the first bare
+ * `[` line. That two-line dance was written out three separate times before it
+ * lived here; the third copy is the package-contents job in
+ * `.github/workflows/security.yml`, which is where the problem was first found
+ * and which is a shell one-liner rather than a module, so it cannot import
+ * this. If you change the parsing, change it there too.
+ *
+ * @param {string} stdout  everything `npm pack --json` printed
+ * @param {string} where   named in the error, so a failure says which tree
+ * @returns {string[]}
+ */
+export function packedFilePaths(stdout, where) {
+  const lines = stdout.split('\n');
+  const start = lines.indexOf('[');
+  if (start === -1) throw new Error(`npm pack --json in ${where} printed no JSON document`);
+  return JSON.parse(lines.slice(start).join('\n'))[0].files.map((file) => file.path);
+}
+
+/**
  * What moved between two fingerprinted file lists.
  *
  * Pure. Sorted, so the same difference reads the same way twice — a list whose
@@ -148,20 +175,74 @@ export function diffSurface(base, head) {
 const section = (heading, paths) =>
   paths.length ? [heading, ...paths.map((path) => `  ${path}`), ''] : [];
 
+const SEMVER = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
+
+/**
+ * Order two versions the way npm does, or `null` if either is not semver.
+ *
+ * Needed because "the version changed" is not the question — "the version went
+ * up" is. Only a version greater than what is published gets a tag, so a
+ * version merely *different* is a pull request that ships nothing.
+ *
+ * Prerelease ordering is the semver rule and not string order: `1.0.0-rc.1`
+ * comes before `1.0.0`, `rc.2` after `rc.1`, and a numeric identifier below an
+ * alphanumeric one. Build metadata is ignored, as the spec says it must be.
+ *
+ * @returns {-1|0|1|null}
+ */
+function compareSemver(a, b) {
+  const left = SEMVER.exec(String(a));
+  const right = SEMVER.exec(String(b));
+  if (!left || !right) return null;
+
+  for (let i = 1; i <= 3; i += 1) {
+    if (Number(left[i]) !== Number(right[i])) return Number(left[i]) < Number(right[i]) ? -1 : 1;
+  }
+
+  // No prerelease outranks any prerelease of the same core version.
+  if (!left[4] && !right[4]) return 0;
+  if (!left[4]) return 1;
+  if (!right[4]) return -1;
+
+  const leftIds = left[4].split('.');
+  const rightIds = right[4].split('.');
+  for (let i = 0; i < Math.max(leftIds.length, rightIds.length); i += 1) {
+    const l = leftIds[i];
+    const r = rightIds[i];
+    // A shorter set of identifiers sorts lower when everything before is equal.
+    if (l === undefined) return -1;
+    if (r === undefined) return 1;
+
+    const lNumeric = /^\d+$/.test(l);
+    const rNumeric = /^\d+$/.test(r);
+    if (lNumeric && rNumeric) {
+      if (Number(l) !== Number(r)) return Number(l) < Number(r) ? -1 : 1;
+    } else if (lNumeric !== rNumeric) {
+      return lNumeric ? -1 : 1;
+    } else if (l !== r) {
+      return l < r ? -1 : 1;
+    }
+  }
+  return 0;
+}
+
 /**
  * Decide whether a pull request's effect on the published package is coherent.
  *
- * Two questions, and which one gets asked depends on the version:
+ * Three questions, and which ones get asked depends on the version:
  *
  *   version unchanged → does the tarball differ? A difference here is a change
  *                       that will never be published, so it fails.
- *   version changed   → is it described? The surface may do whatever it likes;
- *                       a release is going out either way, and a release with
- *                       no changelog entry is the 0.8.0/0.8.1 hole.
+ *   version changed   → did it go up? Only a greater version has no tag yet,
+ *                       and only a version with no tag releases anything. A
+ *                       version merely different ships nothing.
+ *                     → and is it described? The surface may do whatever it
+ *                       likes; a release is going out either way, and a release
+ *                       with no changelog entry is the 0.8.0/0.8.1 hole.
  *
- * The changelog question is asked on any version change, including one that
- * leaves the tarball otherwise identical — the version still publishes, and the
- * page still needs to say what it was for.
+ * Both version questions are asked on any change, including one that leaves the
+ * tarball otherwise identical — the version still publishes, and the page still
+ * needs to say what it was for.
  *
  * @param {object} facts
  * @param {Record<string,string>} facts.base  fingerprints at the base of the PR
@@ -182,6 +263,35 @@ export function assessShippedSurface({ base, head, baseVersion, headVersion, rel
   };
 
   if (versionChanged) {
+    // Asked before the changelog, because a version going the wrong way makes
+    // "is there an entry for it" the wrong question — the entry for a version
+    // already published is of course there, and it describes a release that
+    // already happened.
+    const order = compareSemver(headVersion, baseVersion);
+    if (order === null || order <= 0) {
+      verdict.ok = false;
+      verdict.reason = 'version-not-an-increase';
+      verdict.title = `Version ${headVersion} is not an increase on ${baseVersion}`;
+      verdict.report = [
+        `This pull request moves the version from ${baseVersion} to ${headVersion}, which is not `
+          + `an increase.`,
+        '',
+        order === null
+          ? `One of the two is not a version this repository can release: \`tag-on-bump\` tags `
+            + `\`v<version>\` and refuses anything that is not plausible semver.`
+          : `Releases are triggered by a version on \`main\` with no tag yet. ${headVersion} is `
+            + `behind ${baseVersion}, so it has almost certainly been tagged and published `
+            + `already — \`tag-on-bump\` would find the tag, do nothing, and everything in this `
+            + `pull request would sit on \`main\` unpublished. That is the failure this gate `
+            + `exists for, arriving with a version bump attached.`,
+        '',
+        `Undoing a release goes forwards, not back: npm will not re-serve a version it has `
+          + `already served. Ship the next version up with the change reverted in it, rather `
+          + `than putting the old number back in package.json.`,
+      ].join('\n');
+      return verdict;
+    }
+
     try {
       renderReleaseNotes(releases, headVersion);
     } catch (err) {
@@ -261,14 +371,7 @@ export function assessShippedSurface({ base, head, baseVersion, headVersion, rel
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-/**
- * The paths npm would put in the tarball for the package rooted at `dir`.
- *
- * `prepare` runs on pack and writes its own build progress to this stdout, so
- * the JSON document does not start at byte 0 — it starts at the first bare `[`
- * line. Same technique as the package-contents job in security.yml, which is
- * where the problem was first found.
- */
+/** The paths npm would put in the tarball for the package rooted at `dir`. */
 async function packedPaths(dir) {
   const { stdout } = await execFileAsync('npm', ['pack', '--dry-run', '--json'], {
     cwd: dir,
@@ -279,10 +382,7 @@ async function packedPaths(dir) {
     timeout: 600_000,
     maxBuffer: 64 * 1024 * 1024,
   });
-  const lines = stdout.split('\n');
-  const start = lines.indexOf('[');
-  if (start === -1) throw new Error(`npm pack --json in ${dir} printed no JSON document`);
-  return JSON.parse(lines.slice(start).join('\n'))[0].files.map((file) => file.path);
+  return packedFilePaths(stdout, dir);
 }
 
 /** Fingerprint every file the package at `dir` would publish. */

@@ -25,7 +25,16 @@
 // consumer can reach — still counts.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assessShippedSurface, diffSurface, surfaceHash } from './shipped-surface.mjs';
+import { spawnSync } from 'node:child_process';
+import { copyFileSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  assessShippedSurface, diffSurface, packedFilePaths, surfaceHash,
+} from './shipped-surface.mjs';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
 
 /** A package.json whose only difference between cases is what a case varies. */
 const manifest = (overrides = {}) =>
@@ -94,11 +103,21 @@ test('a package.json that will not parse is hashed as raw bytes', () => {
   // Never silently equal. A manifest this script cannot read is a manifest
   // whose changes it cannot exclude, so it excludes nothing.
   assert.notEqual(surfaceHash('package.json', '{ not json'), surfaceHash('package.json', '{ also not json'));
-  assert.equal(surfaceHash('package.json', '{ not json'), surfaceHash('package.json', '{ not json'));
+  // "Raw bytes" is the claim, so it is checked against the one path that gets
+  // no special handling at all. Asserting only that two unreadable manifests
+  // differ would hold just as well if the fallback quietly transformed them
+  // first — and a transformed fallback is not the bytes.
+  assert.equal(surfaceHash('package.json', '{ not json'), surfaceHash('src/a.js', '{ not json'));
 });
 
-test('a package.json with no version field is not a crash', () => {
-  assert.equal(typeof surfaceHash('package.json', '{"name":"x"}'), 'string');
+test('a package.json with no version field hashes as one that has it stripped', () => {
+  // The version is excluded, not the absence of it. If the two disagreed, a
+  // manifest that never carried the field would read as a surface change the
+  // first time somebody added one.
+  assert.equal(
+    surfaceHash('package.json', JSON.stringify({ name: 'x', files: ['src'] })),
+    surfaceHash('package.json', JSON.stringify({ name: 'x', version: '1.2.3', files: ['src'] })),
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -126,10 +145,19 @@ test('the three ways a surface can move are reported apart from each other', () 
   assert.deepEqual(diff.modified, ['edited.js']);
 });
 
-test('the lists come back sorted, so two runs of the same diff read alike', () => {
-  const diff = diffSurface({}, { 'z.js': 'h', 'a.js': 'h', 'm.js': 'h' });
+test('all three lists come back sorted, so two runs of the same diff read alike', () => {
+  // All three, and each one built from keys deliberately out of order. Checking
+  // only `added` leaves two `.sort()` calls that could be deleted without a
+  // single test noticing — and the list order is what makes a re-run of the
+  // same failure legible as the same failure.
+  const diff = diffSurface(
+    { 'z.js': 'h', 'a.js': 'h', 'm.js': 'h', 'zz.js': 'h1', 'aa.js': 'h1' },
+    { 'zz.js': 'h2', 'aa.js': 'h2', 'zn.js': 'h', 'an.js': 'h', 'mn.js': 'h' },
+  );
 
-  assert.deepEqual(diff.added, ['a.js', 'm.js', 'z.js']);
+  assert.deepEqual(diff.added, ['an.js', 'mn.js', 'zn.js']);
+  assert.deepEqual(diff.removed, ['a.js', 'm.js', 'z.js']);
+  assert.deepEqual(diff.modified, ['aa.js', 'zz.js']);
 });
 
 // ---------------------------------------------------------------------------
@@ -313,10 +341,15 @@ test('a version bump with a changelog entry is the whole point and passes', () =
   assert.equal(verdict.ok, true);
 });
 
-test('a version going backwards is still a version change, and is still checked', () => {
-  // Not a normal thing to do, but a revert of a bump is. It must not slip past
-  // as "unchanged" and it must not demand a changelog entry for the version it
-  // is going back to having.
+test('a version that goes backwards fails, because nothing would ship', () => {
+  // "Different" is not "greater", and only greater releases anything. Set the
+  // version to one already tagged and published and this gate would wave the
+  // pull request through — then `tag-on-bump` on `main` finds the tag already
+  // there, no-ops, and the change sits merged and unpublished. That is the
+  // original bug wearing a version bump.
+  //
+  // 0.9.0 has a changelog entry, so this is not the changelog check firing by
+  // accident: the entry exists and the verdict is still a refusal.
   const verdict = assessShippedSurface({
     ...base,
     baseVersion: '0.10.0',
@@ -325,8 +358,61 @@ test('a version going backwards is still a version change, and is still checked'
     head: files,
   });
 
-  assert.equal(verdict.ok, true);
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.reason, 'version-not-an-increase');
   assert.equal(verdict.versionChanged, true);
+  assert.match(verdict.report, /0\.10\.0/);
+  assert.match(verdict.report, /0\.9\.0/);
+});
+
+test('a version set sideways to something already published fails too', () => {
+  // The quiet version of the same mistake: not a revert, just a wrong number.
+  // 0.8.1 is long since tagged, so on `main` there is nothing left to tag.
+  const verdict = assessShippedSurface({
+    ...base,
+    headVersion: '0.8.1',
+    base: files,
+    head: { ...files, 'src/index.js': 'h1-changed' },
+  });
+
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.reason, 'version-not-an-increase');
+});
+
+test('a version that is not semver at all fails rather than being compared', () => {
+  // `tag-on-bump` refuses to tag anything that is not plausible semver, so a
+  // pull request carrying one is a pull request that cannot release. Better
+  // said here than by a red run on `main`.
+  const verdict = assessShippedSurface({
+    ...base,
+    headVersion: '0.10',
+    base: files,
+    head: files,
+  });
+
+  assert.equal(verdict.ok, false);
+  assert.equal(verdict.reason, 'version-not-an-increase');
+});
+
+test('a prerelease is an increase over the release it follows, and not over the next one', () => {
+  const forward = assessShippedSurface({
+    ...base,
+    headVersion: '0.10.0-rc.1',
+    releases: [...RELEASES, { v: '0.10.0-rc.1', date: '2026-08-10', changes: [['added', 'A thing.']] }],
+    base: files,
+    head: files,
+  });
+  const backward = assessShippedSurface({
+    ...base,
+    baseVersion: '0.10.0',
+    headVersion: '0.10.0-rc.1',
+    base: files,
+    head: files,
+  });
+
+  assert.equal(forward.ok, true);
+  assert.equal(backward.ok, false);
+  assert.equal(backward.reason, 'version-not-an-increase');
 });
 
 test('the passing verdicts say what they decided, not nothing', () => {
@@ -361,4 +447,64 @@ test('a bump and nothing else, hashed for real, is not a surface change', () => 
 
   assert.equal(verdict.ok, true);
   assert.deepEqual(verdict.modified, []);
+});
+
+// ---------------------------------------------------------------------------
+// Reading `npm pack --json` — shared, because it was copied three times
+// ---------------------------------------------------------------------------
+
+test('the pack list is read from the first bare `[`, not from byte 0', () => {
+  // `prepare` builds react/dist with tsup on the way through and writes its own
+  // progress to the same stdout, so the JSON document does not start the output.
+  const stdout = [
+    '> @apliteni/apliteni-ui@0.9.0 prepare',
+    'CLI Building entry: react/src/index.ts',
+    '[',
+    '  { "files": [ { "path": "src/index.js" }, { "path": "README.md" } ] }',
+    ']',
+    '',
+  ].join('\n');
+
+  assert.deepEqual(packedFilePaths(stdout, 'the head checkout'), ['src/index.js', 'README.md']);
+});
+
+test('a pack that printed no JSON document is an error naming where it ran', () => {
+  // Silence here used to be a `Cannot read properties of undefined` twenty
+  // lines away from the build that actually failed.
+  assert.throws(
+    () => packedFilePaths('tsup: build failed\n', '/tmp/pr-base'),
+    /\/tmp\/pr-base/,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// The main-check — the one failure that would make this whole file pointless
+// ---------------------------------------------------------------------------
+
+test('the script actually runs when its own path contains a space', () => {
+  // The failure this guards is written at the bottom of shipped-surface.mjs and
+  // nothing checked it: compare `import.meta.url` against a hand-built
+  // `file://${process.argv[1]}` and any space in the path makes the two differ,
+  // main() never runs, the script prints nothing and exits 0 — and CI reads
+  // only the exit code, so the gate goes green having never looked at anything.
+  //
+  // Run with no --base, which is the cheapest branch that proves main() ran:
+  // usage on stderr and exit 2. A broken main-check gives silence and exit 0,
+  // which is exactly what this has to be able to tell apart.
+  const dir = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'shipped surface '));
+  try {
+    for (const file of ['shipped-surface.mjs', 'release-notes.mjs']) {
+      copyFileSync(path.join(here, file), path.join(dir, file));
+    }
+
+    const result = spawnSync(process.execPath, [path.join(dir, 'shipped-surface.mjs')], {
+      encoding: 'utf8',
+    });
+
+    assert.ok(dir.includes(' '), 'the point of the test is the space in the path');
+    assert.equal(result.status, 2, `stdout: ${result.stdout}\nstderr: ${result.stderr}`);
+    assert.match(result.stderr, /Usage: node scripts\/shipped-surface\.mjs/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

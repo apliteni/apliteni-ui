@@ -48,6 +48,7 @@ import {
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { packedFilePaths } from './shipped-surface.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -81,11 +82,11 @@ function run(command, args, cwd) {
 // ---------------------------------------------------------------------------
 const packStdout = run('npm', ['pack', '--json', '--pack-destination', scratch], root);
 // `prepare` (the tsup build) writes its own progress to this stdout, so the JSON
-// document starts at the first bare `[` line rather than at byte 0.
-const packLines = packStdout.split('\n');
-const packed = new Set(
-  JSON.parse(packLines.slice(packLines.indexOf('[')).join('\n'))[0].files.map((f) => f.path),
-);
+// document starts at the first bare `[` line rather than at byte 0. Shared with
+// scripts/shipped-surface.mjs rather than written out twice — see the note on
+// packedFilePaths for the third copy, which lives in security.yml and cannot
+// import anything.
+const packed = new Set(packedFilePaths(packStdout, root));
 
 const tarballs = readdirSync(scratch).filter((f) => f.endsWith('.tgz'));
 if (tarballs.length !== 1) {

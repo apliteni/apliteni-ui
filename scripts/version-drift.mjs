@@ -140,6 +140,23 @@ export function assessDrift({
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+/**
+ * The line `git log -L` traces.
+ *
+ * Deliberately loose about the indent. Pinning the literal two spaces prettier
+ * writes today made a reformat fatal in the quietest possible way: reindent
+ * package.json to four spaces or a tab and git exits `regexec() failed to
+ * match`, the catch below turns that into null, and every run from then on
+ * reports `bump-date-unknown`, files nothing and goes green. A formatter
+ * default is not supposed to be able to switch this check off.
+ *
+ * `[[:space:]]*` and not `\s*`: git's -L regex is POSIX, where `\s` matches
+ * nothing at all. It matches the first `"version":` line in the file, which in
+ * a package.json is the top-level one — `name` and `version` lead the manifest,
+ * and nothing nested can appear above them.
+ */
+const VERSION_LINE = '/^[[:space:]]*"version":/';
+
 /** The version this repo believes it is at. */
 async function readMainVersion() {
   const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
@@ -187,13 +204,17 @@ async function readPublishedVersion(name) {
  * introduced there and this returns the boundary's date with exit 0 — a bump
  * that is always minutes old and therefore never drift. Hence fetch-depth: 0 in
  * the workflow.
+ *
+ * Exported, and takes the directory as an argument, only so the pathspec can be
+ * exercised against real repositories in scripts/version-drift.test.js. Nothing
+ * above the divider imports it.
  */
-async function readVersionChangedAt() {
+export async function readVersionChangedAt(cwd = root) {
   try {
     const { stdout } = await execFileAsync(
       'git',
-      ['log', '-1', '--format=%cI', '--no-patch', '-L', '/^  "version":/,+1:package.json'],
-      { cwd: root, encoding: 'utf8', timeout: 60_000 },
+      ['log', '-1', '--format=%cI', '--no-patch', '-L', `${VERSION_LINE},+1:package.json`],
+      { cwd, encoding: 'utf8', timeout: 60_000 },
     );
     return stdout.trim().split('\n')[0] || null;
   } catch {

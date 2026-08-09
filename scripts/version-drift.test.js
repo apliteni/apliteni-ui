@@ -20,7 +20,11 @@
 // make the verdict depend on which side of a second the runner started on.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assessDrift } from './version-drift.mjs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { assessDrift, readVersionChangedAt } from './version-drift.mjs';
 
 /** An ISO instant `hours` before the fixed `now` every case below shares. */
 const NOW = '2026-08-09T12:00:00Z';
@@ -146,13 +150,60 @@ test('the threshold is exclusive: exactly 24 hours old is not yet drift', () => 
 test('a bump dated in the future is not drift', () => {
   // Committer dates are attacker- and mistake-controlled, and a negative age
   // sailing through a `>` comparison would read as "0 hours" in the issue.
+  //
+  // 48 hours into the future, not five: five is inside the 24h threshold from
+  // either direction, so the case would pass even if the age were taken as an
+  // absolute value — which is precisely the mistake it is meant to catch.
   const verdict = assessDrift({
     ...base,
     mainVersion: '0.10.0',
     publishedVersion: '0.9.0',
-    versionChangedAt: hoursAgo(-5),
+    versionChangedAt: hoursAgo(-48),
   });
 
   assert.equal(verdict.drift, false);
   assert.equal(verdict.reason, 'within-threshold');
+});
+
+// ---------------------------------------------------------------------------
+// Reading the bump date out of git — the one impure part with a sharp edge
+// ---------------------------------------------------------------------------
+
+/** A throwaway repository with two commits, the second one a version bump. */
+function repoWithABump(indent) {
+  const dir = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'version-drift-'));
+  const manifest = (version) =>
+    JSON.stringify({ name: 'x', version }, null, indent) + '\n';
+  const git = (...args) =>
+    execFileSync('git', args, { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+
+  git('init', '-q', '.');
+  writeFileSync(path.join(dir, 'package.json'), manifest('0.1.0'));
+  git('add', '-A');
+  git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'first');
+  writeFileSync(path.join(dir, 'package.json'), manifest('0.2.0'));
+  git('add', '-A');
+  git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'bump');
+  return dir;
+}
+
+test('the bump date is found however package.json happens to be indented', async () => {
+  // `git log -L` takes a regex, and the pathspec used to pin the exact two
+  // spaces prettier writes today. Reindent package.json — four spaces, a tab, a
+  // formatter changing its default — and git exits `regexec() failed to match`,
+  // the catch turns that into null, and every run from then on reports
+  // `bump-date-unknown` and files nothing. Green every morning, checking
+  // nothing. The whole point of this script is to end exactly that.
+  for (const indent of [2, 4, '\t']) {
+    const dir = repoWithABump(indent);
+    try {
+      const changedAt = await readVersionChangedAt(dir);
+      assert.ok(
+        changedAt && !Number.isNaN(Date.parse(changedAt)),
+        `indent ${JSON.stringify(indent)} gave ${JSON.stringify(changedAt)}`,
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
 });

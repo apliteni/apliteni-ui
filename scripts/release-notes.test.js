@@ -20,8 +20,14 @@
 // meets the shape of the actual data is a pure function that proves nothing.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { renderReleaseNotes } from './release-notes.mjs';
 import { RELEASES } from '../site/changelog.mjs';
+
+/** The version this repo is at — the one a merge to `main` would release. */
+const { version } = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+);
 
 /** Two releases, one of every type, in a deliberately unhelpful order. */
 const FIXTURE = [
@@ -120,13 +126,22 @@ test('a change type nobody planned for still gets rendered', () => {
 });
 
 test('the real changelog renders for the version this repo is at', () => {
-  // The fixtures above prove the function; this proves it against the array it
-  // will actually be handed, whose entries carry backticks, markdown, em
-  // dashes and component chips. If site/changelog.mjs ever changes shape, this
-  // is the test that says so.
-  const notes = renderReleaseNotes(RELEASES, '0.9.0');
+  // The version comes from package.json, not from a literal. Hardcoding it made
+  // this an assertion about a frozen historical entry: from the next bump on it
+  // would have gone on proving that 0.9.0 still renders while saying nothing
+  // about the version actually about to be released.
+  //
+  // Read from the manifest it is the assertion nobody else makes — the current
+  // version has a changelog entry — which is exactly the 0.8.0/0.8.1 hole,
+  // caught in `npm test` rather than in a red release job after the tag.
+  //
+  // It doubles as the shape check the fixtures above cannot do: the real array
+  // carries backticks, markdown, em dashes and component chips, and if
+  // site/changelog.mjs ever changes shape this is the test that says so.
+  const notes = renderReleaseNotes(RELEASES, version);
 
-  assert.match(notes, /### Breaking/);
-  assert.match(notes, /### Added/);
-  assert.ok(notes.trim().length > 200, 'the 0.9.0 notes should not be nearly empty');
+  const headings = notes.split('\n').filter((line) => line.startsWith('### '));
+  const bullets = notes.split('\n').filter((line) => line.startsWith('- '));
+  assert.ok(headings.length > 0, `${version} rendered no sections`);
+  assert.ok(bullets.length > 0, `${version} rendered no changes`);
 });

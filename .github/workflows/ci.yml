@@ -63,6 +63,10 @@ jobs:
     # happened, and version-drift.yml is what watches from there.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    # Two `npm ci`s and two `npm pack`s, each of which builds react/dist with
+    # tsup. Around five minutes in practice; this is the ceiling that stops a
+    # wedged build holding a runner until GitHub's six-hour default.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -90,8 +94,15 @@ jobs:
       - name: Check out the base of the pull request beside it
         run: |
           set -euo pipefail
-          if ! git rev-parse --verify --quiet HEAD^2 >/dev/null; then
-            echo "::error::HEAD is not a merge commit, so HEAD^1 is not the base of this pull request. This job compares refs/pull/N/merge against its first parent and cannot run against a plain head checkout."
+          # The precondition is HEAD^1's *tree*, not HEAD^2's existence. What
+          # the next line needs is a checkout of the first parent, and a commit
+          # whose ref resolves but whose tree was never fetched fails there with
+          # a git internals message rather than here with an explanation. The
+          # two coincide at fetch-depth: 2 — a merge commit's second parent
+          # arrives with the first — so the old check never fired wrongly; it
+          # just described something other than what it was standing in for.
+          if ! git rev-parse --verify --quiet 'HEAD^1^{tree}' >/dev/null; then
+            echo "::error::HEAD^1's tree is not in this checkout, so the base of the pull request cannot be checked out beside it. This job compares refs/pull/N/merge against its first parent and needs fetch-depth of at least 2."
             exit 1
           fi
           git worktree add --detach "$RUNNER_TEMP/pr-base" HEAD^1

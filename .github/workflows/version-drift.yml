@@ -15,6 +15,13 @@ name: Version drift (main vs npm)
 # gathers nothing and decides nothing; it runs the script and turns a verdict
 # into an issue. That split is the point — a check you can only exercise by
 # waiting a day and hitting the network is a check nobody ever proves works.
+#
+# One thing this cannot defend itself against: GitHub disables a scheduled
+# workflow after 60 days with no activity in the repository, and it does so
+# without failing anything. There is no run to go red, so a safety net that has
+# stopped running looks exactly like a safety net with nothing to report. If
+# this repository goes quiet for two months, the check is off until somebody
+# re-enables it from the Actions tab.
 on:
   schedule:
     # 07:17 UTC. Off the hour on purpose: GitHub queues cron runs and the top of
@@ -29,9 +36,24 @@ permissions:
   contents: read
   issues: write
 
+# The whole no-duplicates mechanism is "list open issues with the label, and
+# file one only if there are none", which is a read followed by a write with a
+# gap in the middle. Two runs overlapping in that gap — a workflow_dispatch
+# fired while the cron run is in flight, most likely by somebody testing this —
+# both see nothing open and both file. Serialised so the second waits.
+#
+# cancel-in-progress stays off: cancelling the run that is about to file leaves
+# the drift unreported for a day, and a queued duplicate costs seconds.
+concurrency:
+  group: version-drift
+  cancel-in-progress: false
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    # A clone with full history, one `npm view` and one API call. Anything near
+    # this and something is wedged; the default is six hours.
+    timeout-minutes: 15
     steps:
       # fetch-depth: 0 is load-bearing, and it fails quietly without it. The
       # script dates the version bump with `git log -L` over package.json. In a
@@ -63,27 +85,59 @@ jobs:
             const verdict = JSON.parse(fs.readFileSync('version-drift.json', 'utf8'));
             core.info(verdict.summary);
             if (!verdict.drift) {
-              core.info(`No issue to file (${verdict.reason}).`);
+              // Two of the four ways this ends up here are not "all is well",
+              // they are "I could not tell". `published-version-unknown` means
+              // npm did not answer; `bump-date-unknown` means the git lookup
+              // did not. Both used to print core.info and finish green, which
+              // is the same tick a healthy run leaves — so a check that had
+              // stopped checking anything was invisible in the run list. A
+              // warning surfaces in the run summary and on the Actions tab
+              // without failing the job, which is right: neither is a fault in
+              // this repository, and a registry outage must not open an issue
+              // or go red every morning.
+              const cannotTell = ['published-version-unknown', 'bump-date-unknown'];
+              if (cannotTell.includes(verdict.reason)) {
+                core.warning(
+                  `Drift could not be assessed (${verdict.reason}): ${verdict.summary} `
+                    + 'This run checked nothing — it is not a clean bill of health.',
+                );
+              } else {
+                core.info(`No issue to file (${verdict.reason}).`);
+              }
               return;
             }
 
-            // The label is the whole idempotence mechanism, so it has to exist
-            // before anything looks for it. A label that is not there does not
-            // error the search — it comes back empty, which reads as "no issue
-            // open yet" and files a fresh one every morning for as long as the
-            // drift lasts. Create it first, tolerate the 422 that means someone
-            // already did.
+            // The marker label is the whole idempotence mechanism, so it has to
+            // exist before anything looks for it. A label that is not there
+            // does not error the search — it comes back empty, which reads as
+            // "no issue open yet" and files a fresh one every morning for as
+            // long as the drift lasts.
+            //
+            // Every label this files with is created, not just that one. The
+            // first version pre-created `version-drift` and then filed with
+            // `['version-drift', 'automated']`, which worked only because
+            // `automated` happens to exist in this repository today: delete it
+            // and issues.create rejects the whole call, so the check that
+            // catches an unpublished release would itself stop reporting. Both
+            // or neither, and both is the one that keeps working.
             const MARKER = 'version-drift';
-            try {
-              await github.rest.issues.createLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: MARKER,
-                color: 'd93f0b',
-                description: 'main and the published npm version have disagreed for over a day',
-              });
-            } catch (e) {
-              if (e.status !== 422) throw e;
+            const LABELS = [
+              [MARKER, 'd93f0b', 'main and the published npm version have disagreed for over a day'],
+              ['automated', 'ededed', 'Filed by a workflow rather than by a person'],
+            ];
+            for (const [name, color, description] of LABELS) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                  color,
+                  description,
+                });
+              } catch (e) {
+                // 422 is "already there", which is the ordinary case.
+                if (e.status !== 422) throw e;
+              }
             }
 
             // listForRepo, not the search API. Search is a separate, eventually
@@ -139,6 +193,6 @@ jobs:
               repo: context.repo.repo,
               title: `main is ${verdict.mainVersion} but npm serves ${verdict.publishedVersion}`,
               body,
-              labels: [MARKER, 'automated'],
+              labels: LABELS.map(([name]) => name),
             });
             core.notice(`Filed #${created.data.number}: ${verdict.summary}`);
