@@ -3,7 +3,14 @@
 
 export const RELEASES = [
   {
-    v: '0.9.0', date: '2026-08-09', tag: 'latest',
+    v: '0.9.1', date: '2026-08-09', tag: 'latest',
+    changes: [
+      ['changed', 'Nothing you can see. 0.9.0 shipped, and then two comments inside shipped stylesheets changed without a version bump, so the package on npm stopped matching the source. This release makes them agree again — upgrading from 0.9.0 changes no rendering and no API.'],
+      ['fixed', 'Releasing no longer depends on someone remembering to do it. A version bump landing on `main` is tagged, gets a release whose notes are its changelog entry, and is published. A pull request that changes what the package ships without bumping the version fails, and a daily check opens an issue if what is on npm and what is on `main` disagree for more than a day. Silence used to look the same as success; it no longer does.'],
+    ],
+  },
+  {
+    v: '0.9.0', date: '2026-08-09',
     changes: [
       ['breaking', 'The inline-icon reset is a floor again, not a ceiling. `svg:not([width]):not([height])` counted both attribute selectors and weighed (0,2,1), so it quietly outranked every `.ui-btn svg`-shaped rule — in the kit and in your own CSS. It is now `svg:where(:not([width]):not([height]))` at (0,0,1). Any icon rule of yours that was silently losing to it now applies, so icons you sized yourself will change to the size you actually asked for.'],
       ['added', '`footer()`, `success()`, `successCheck()` and `wireSuccess()` are reachable from the package root. They were in the source and missing from the entry point, so nobody could import them.'],
