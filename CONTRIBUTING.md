@@ -22,7 +22,8 @@ npm run storybook        # http://localhost:6006
   checklist.
 - **`main` is protected.** A PR needs one approving review and green CI before it merges — no
   direct pushes. CI runs the build, `npm test` (unit + axe a11y), an `npm audit`, a published-
-  artifact check, and the secret-scan + internal-terms gates (see Data handling).
+  artifact check, the shipped-surface check (see Release), and the secret-scan + internal-terms
+  gates (see Data handling).
 - Keep PRs focused. One concern per PR reviews faster than a grab-bag.
 
 ## Golden rules
@@ -166,16 +167,44 @@ company*. The kit's own `prism` mark stays hand-authored in `src/assets/brand.js
 
 ## Release
 
-```bash
-npm version patch|minor|major     # bumps package.json + tags
-git push --follow-tags
-gh release create v$(node -p "require('./package.json').version") --generate-notes
-```
+A release is a version bump. Merge one to `main` and the rest happens on its
+own: `tag-on-bump.yml` tags the commit, cuts a GitHub Release whose notes are
+the changelog entry for that version, and dispatches the publish workflow on
+the tag. Nothing is left to do by hand. The old ritual of `npm version`, a
+pushed tag and `gh release create` is gone.
 
-CI publishes to the public npm registry (`@apliteni/apliteni-ui`) on the Release.
-The release runs as two jobs: `build` installs and runs `npm pack`, whose `prepare`
-builds `react/dist` from the tagged commit — so the React subpath can never ship
-stale — and `publish` holds the OIDC credential and does nothing but publish that
-tarball, so no third-party install or build script runs beside it.
-The `ui.apli.tech` site rebuilds
-from the repo (landing + Storybook) — see the README for the image build/deploy.
+Two things have to be in the pull request, and CI fails without either.
+
+**A change to what we publish needs a bump.** The `Shipped surface vs version`
+job packs the tarball at both ends of the pull request and compares the
+contents. If they differ and the version does not, it fails and names the
+files. `files` in package.json is what decides "published" — everything in
+`src/` except its tests, `react/dist`, plus the readme, licence and manifest
+files npm adds whether you list them or not. 52 files today. Two cases catch
+people out. `react/dist` is built from `react/src` and is not in the
+repository, so a React change lands in the report as a `react/dist` change you
+never saw in your diff. Tests under `src/` ship nothing, so editing one needs
+no bump.
+
+**A bump needs a changelog entry.** Add it to the `RELEASES` array in
+`site/changelog.mjs`, in the same pull request. The Release notes are read from
+there, so a version nothing describes is a release that cannot be built.
+Without this gate the failure would arrive after the bump was already on
+`main`, and undoing that takes a second pull request.
+
+Which number to bump is still yours to choose. Patch or minor is a judgement
+about what the change costs the people who installed the package, and once a
+version is on npm it is there for good.
+
+The publish runs as two jobs. `build` installs and runs `npm pack`, whose
+`prepare` builds `react/dist` from the tagged commit — so the React subpath can
+never ship stale — and `publish` holds the OIDC credential and does nothing but
+push that tarball to the public npm registry, so no third-party install or
+build script runs beside it.
+
+If `main` and npm disagree for more than a day, a scheduled job opens an issue
+saying so. It is the backstop for a release that was tagged and never reached
+the registry.
+
+The `ui.apli.tech` site rebuilds from the repo (landing + Storybook) — see the
+README for the image build/deploy.
