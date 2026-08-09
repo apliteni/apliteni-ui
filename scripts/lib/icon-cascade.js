@@ -97,8 +97,8 @@ export const leafOf = (sel) => sel.trim().split(/\s+/).pop();
  *
  * The second shape is not cosmetic: .ui-fbck is the largest icon in the kit and
  * an earlier gate that collected only selectors ending in `svg` was blind to it.
- * Outside the package the same shape appears as the `.term__copy .ic` rule in
- * site/index.html — `ic` is a class written onto the svg tag itself. */
+ * Outside the package the same shape appears as `.term__copy .ic { width: 15px }`
+ * in site/index.html — `ic` is a class written onto the svg tag itself. */
 export function isSvgSubject(selectorText, classes) {
   return selectorText.split(',').some((s) => {
     const leaf = leafOf(s);

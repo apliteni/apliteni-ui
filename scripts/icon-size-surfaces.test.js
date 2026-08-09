@@ -73,14 +73,21 @@
  *  - Any dimension other than width and height. DIMS in
  *    scripts/lib/icon-cascade.js is those two and nothing else, so a rule
  *    sizing an svg with `inline-size`, `block-size` or a min-/max- form
- *    contributes no subject and loses no contest here, while overriding the
- *    reset in a real browser. Nothing on an svg subject uses one today.
+ *    contributes no subject and loses no contest here — and the two forms then
+ *    go wrong differently in a real browser. `inline-size` and `block-size`
+ *    cascade as one with their physical counterparts, so `.x svg { inline-size:
+ *    40px }` at (0,1,1) out-specifies the reset's `width` at (0,0,1) and takes
+ *    the contest. `min-width` / `max-width` / `min-height` / `max-height` never
+ *    enter `width`'s cascade at all: the reset still wins `width`, and the
+ *    min-/max- value clamps the used value afterwards, which changes nothing
+ *    unless the clamp binds. Nothing on an svg subject uses either form today.
  *
  * DELIBERATELY OUT OF SCOPE, both decided rather than overlooked:
  *
  *  - the Grant story in stories/apps/Consent.stories.js sizes its icons by
- *    putting font-size: 23px / 18px on a wrapper and letting the reset's 1.1em
- *    do the rest. There is no rule here that can stop applying, because the
+ *    putting a font-size on the wrapper — 23px on the plug, 18px on the
+ *    arrow, 12.5px on the lock — and letting the reset's 1.1em do the rest.
+ *    There is no rule here that can stop applying, because the
  *    mechanism IS the reset — and the reset is already gated, by the test named
  *    `the reset still sizes a bare icon that no component rule claims` in
  *    src/styles/icon-size.test.js. Covered indirectly; nothing to add.
@@ -229,9 +236,10 @@ const CHUNKS = chunks();
 const BLOCKS = CHUNKS.reduce((n, c) => n + c.blocks.length, 0);
 
 // The classes the kit puts on an <svg>, derived from the source the way the
-// other gate derives them — over the surfaces too, because `.term__copy .ic` in
-// site/index.html is a rule on a class written onto the svg tag itself, and a
-// leaf-is-`svg` test alone would take it out of coverage in silence.
+// other gate derives them — over the surfaces too, because
+// `.term__copy .ic { width: 15px }` in site/index.html is a rule on a class
+// written onto the svg tag itself, and a leaf-is-`svg` test alone would take it
+// out of coverage in silence.
 const SVG_CLASSES = svgClassSet([src, siteDir, storiesDir], ['.js', '.mjs', '.html']);
 
 const SHEETS = kitSheetNames(src);

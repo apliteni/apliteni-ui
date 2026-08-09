@@ -54,8 +54,14 @@
  *  - ANY DIMENSION OTHER THAN width/height. DIMS in
  *    scripts/lib/icon-cascade.js is those two and nothing else, so a rule
  *    sizing an icon with `inline-size`, `block-size` or a min-/max- form
- *    contributes no subject and loses no contest here, while overriding the
- *    reset in a real browser. Nothing on an svg subject uses one today.
+ *    contributes no subject and loses no contest here — and the two forms then
+ *    go wrong differently in a real browser. `inline-size` and `block-size`
+ *    cascade as one with their physical counterparts, so `.x svg { inline-size:
+ *    40px }` at (0,1,1) out-specifies the reset's `width` at (0,0,1) and takes
+ *    the contest. `min-width` / `max-width` / `min-height` / `max-height` never
+ *    enter `width`'s cascade at all: the reset still wins `width`, and the
+ *    min-/max- value clamps the used value afterwards, which changes nothing
+ *    unless the clamp binds. Nothing on an svg subject uses either form today.
  *  - Layout. jsdom has none, so `width: 100%` reads back as the string `100%`.
  *    That proves the rule won, and says nothing about the pixels on screen.
  *  - Markup. A rule can apply perfectly and never meet an element, because
