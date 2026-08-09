@@ -20,10 +20,18 @@ npm run storybook        # http://localhost:6006
 - **Sending a change?** Fork, branch off `main` (`fix/…` or `feat/…`), and open a PR against
   `main`. Fill in the PR template: what changed, the linked issue, and the verification
   checklist.
-- **`main` is protected.** A PR needs one approving review and green CI before it merges — no
-  direct pushes. CI runs the build, `npm test` (unit + axe a11y), an `npm audit`, a published-
-  artifact check, the shipped-surface check (see Release), and the secret-scan + internal-terms
-  gates (see Data handling).
+- **`main` is protected.** Direct pushes are blocked, and five checks have to be green before
+  the merge button works: `build`, `Dependency audit`, `Published artifact check`, `Secret scan
+  (gitleaks)` and `Internal-terms denylist`. Inside `build` are the build itself, `npm test`
+  (unit + axe a11y) and the React tests.
+- **Less is enforced than that sounds.** No review is required — the rule asks for zero
+  approvals, so you can merge your own pull request. Nor is `Shipped surface vs version` (see
+  Release) one of the required checks, which means it can go red while the merge button stays
+  green. And because pull requests need not be up to date with `main`, two of them can each
+  bump to the same version. Repository admins are exempt from all of it. Making any of this
+  stricter takes three settings on the branch rule for `main` — require one approving review,
+  add `Shipped surface vs version` to the required checks, turn on "require branches to be up
+  to date" — and none of them live in this repository.
 - Keep PRs focused. One concern per PR reviews faster than a grab-bag.
 
 ## Golden rules
@@ -50,9 +58,10 @@ service/org/product IDs, `*.lessly.run` hosts, ttl.sh image tags, deploy tokens)
 in code, fixtures, **issues, or PR text**. Use clearly-fabricated placeholders for
 all demo data (e.g. `Ada Lovelace / ada@apliteni.com`).
 
-Two automated gates enforce this (see `.github/workflows/security.yml`): gitleaks
-with a PII/infra ruleset (`.gitleaks.toml`) and an internal-terms denylist, both
-over the full history. Run them locally before pushing with
+Two automated gates enforce this (see `.github/workflows/security.yml`), and both
+are required checks: gitleaks with a PII/infra ruleset (`.gitleaks.toml`), which
+reads the whole history, and an internal-terms denylist, which greps the tracked
+files as they stand. Run them locally before pushing with
 [pre-commit](https://pre-commit.com): `pip install pre-commit && pre-commit install`.
 Issues and PR bodies aren't covered by gitleaks — a separate workflow warns on
 internal identifiers posted there, but the responsibility is yours.
@@ -170,10 +179,23 @@ company*. The kit's own `prism` mark stays hand-authored in `src/assets/brand.js
 A release is a version bump. Merge one to `main` and the rest happens on its
 own: `tag-on-bump.yml` tags the commit, cuts a GitHub Release whose notes are
 the changelog entry for that version, and dispatches the publish workflow on
-the tag. Nothing is left to do by hand. The old ritual of `npm version`, a
-pushed tag and `gh release create` is gone.
+the tag. The old ritual of `npm version`, a pushed tag and `gh release create`
+is gone.
 
-Two things have to be in the pull request, and CI fails without either.
+One step still needs a person. The publish job runs in the `npm-publish`
+environment, which requires a reviewer, so somebody has to approve it before
+anything reaches npm. Until that happens `tag-on-bump.yml` waits, for about
+seventeen minutes, and then goes red saying which of the two it is — an approval
+nobody has given, or a publish that broke. It stays red for as long as the
+version is missing from npm, because it decides from the registry rather than
+from the tag. Approve the run and the publish carries on by itself. Nothing
+needs undoing either way: the next push to `main`, or a re-run of the job,
+finishes whatever part of the release is still missing.
+
+Two things have to be in the pull request. The `Shipped surface vs version` job
+checks both and goes red without either. Since it is not one of the checks
+branch protection requires, though, a red one does not stop the merge — read it
+yourself before you merge.
 
 **A change to what we publish needs a bump.** The `Shipped surface vs version`
 job packs the tarball at both ends of the pull request and compares the
