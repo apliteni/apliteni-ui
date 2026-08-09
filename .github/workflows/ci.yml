@@ -43,3 +43,67 @@ jobs:
           name: storybook-static
           path: storybook-static
           retention-days: 7
+
+  # A change to what we publish has to carry the version bump that publishes it.
+  #
+  # `tag-on-bump` releases whatever version lands on `main` without a tag, so
+  # the bump is the entire trigger for shipping — and a surface change merged
+  # without one is a change no consumer ever receives. It sits on `main` looking
+  # merged. That is how the ./react subpath stayed off npm, and how `footer()`,
+  # `success()`, `successCheck()` and `wireSuccess()` sat on `main` exported and
+  # unreachable.
+  #
+  # Its own job rather than a step in `build`, so it does not lengthen the
+  # critical path everything else waits on. It duplicates `npm ci` for that
+  # reason and the trade is deliberate: the two run side by side.
+  shipped-surface:
+    name: Shipped surface vs version
+    # The question is "what would merging this change about what we publish",
+    # and on a push to `main` there is no such thing to ask — the merge already
+    # happened, and version-drift.yml is what watches from there.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Two, and two is provably the minimum. On a pull_request the ref
+          # checked out is refs/pull/N/merge, a merge commit whose first parent
+          # is the tip of the base branch; depth 2 brings both parents' trees
+          # with it, so HEAD^1 can be checked out and packed. At the default
+          # depth of 1 only the merge commit itself arrives — `git rev-parse
+          # HEAD^1` resolves, but the tree is absent and `git worktree add`
+          # fails. fetch-depth: 0 would also work and clones the entire history
+          # to reach one commit.
+          fetch-depth: 2
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # Packing is the only way to see this surface. `react/dist` is built and
+      # gitignored, so a React change is invisible to `git diff`; `react/src/**`
+      # is never published, so a glob wide enough to catch it also fires on test
+      # files that ship nothing. Both trees therefore get a real install and a
+      # real `npm pack` — `prepare` builds react/dist on the way through, which
+      # is what makes the built output comparable at all.
+      - name: Check out the base of the pull request beside it
+        run: |
+          set -euo pipefail
+          if ! git rev-parse --verify --quiet HEAD^2 >/dev/null; then
+            echo "::error::HEAD is not a merge commit, so HEAD^1 is not the base of this pull request. This job compares refs/pull/N/merge against its first parent and cannot run against a plain head checkout."
+            exit 1
+          fi
+          git worktree add --detach "$RUNNER_TEMP/pr-base" HEAD^1
+          # A second install rather than a copied node_modules: if this pull
+          # request changes package-lock.json, the base has to be built with the
+          # toolchain the base declares, or the comparison attributes a tsup
+          # upgrade to the source. The npm cache is warm from the install above,
+          # so this is the download-free path.
+          ( cd "$RUNNER_TEMP/pr-base" && npm ci )
+
+      # Exits non-zero with the added, removed and modified entries when the
+      # tarball moves and the version does not, and when a bump arrives with no
+      # entry in site/changelog.mjs. Both readings are printed either way.
+      - name: Compare what each side would publish
+        run: node scripts/shipped-surface.mjs --base "$RUNNER_TEMP/pr-base"
