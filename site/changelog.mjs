@@ -3,7 +3,42 @@
 
 export const RELEASES = [
   {
-    v: '0.7.2', date: '2026-07-24', tag: 'latest',
+    v: '0.9.0', date: '2026-08-09', tag: 'latest',
+    changes: [
+      ['breaking', 'The inline-icon reset is a floor again, not a ceiling. `svg:not([width]):not([height])` counted both attribute selectors and weighed (0,2,1), so it quietly outranked every `.ui-btn svg`-shaped rule — in the kit and in your own CSS. It is now `svg:where(:not([width]):not([height]))` at (0,0,1). Any icon rule of yours that was silently losing to it now applies, so icons you sized yourself will change to the size you actually asked for.'],
+      ['added', '`footer()`, `success()`, `successCheck()` and `wireSuccess()` are reachable from the package root. They were in the source and missing from the entry point, so nobody could import them.'],
+      ['added', '`empty.css` ships through `/inline`, so the empty-state styles reach anyone using the inline stylesheet rather than the built one.'],
+      ['fixed', 'The theme control reports the theme you are in, never the one a click would produce — in the glyph and in the accessible name, which is rewritten whenever the state changes.', ['Topbar']],
+      ['fixed', '`--pink` clears the surfaces it is drawn on in both themes, and the live pill and info badge clear AA in light.', ['Badge', 'Callout']],
+      ['fixed', 'A glow wash is a tint of the colour it carries. The values that had drifted are back in line and a test holds them there.'],
+      ['fixed', 'The danger nav row is quiet at rest and turns `--pink` on hover, which is what the destructive-actions guideline says it should do.'],
+      ['changed', 'Colour contrast is measured rather than reviewed by eye. Every story is mounted per theme against the real stylesheets, and each text-owning element is measured against the background actually composited beneath it. Pairs that stay below the bar are recorded with a written reason rather than left to be rediscovered.'],
+    ],
+  },
+  {
+    v: '0.8.1', date: '2026-08-07',
+    changes: [
+      ['fixed', 'The zebra table recipe insets its own end cells, so a striped row no longer runs into the container border.', ['Table']],
+      ['fixed', 'The audience switcher on the homepage announces itself as a tablist and then behaves like one — roving tabindex, arrow keys, `aria-selected`.'],
+      ['fixed', 'The Storybook toolbar selector works again, and the workbench stops composing stories from outside the kit.'],
+      ['fixed', 'Releases publish again. `npm publish` was handed the tarball as a bare `a/b` path, which npm reads as owner/repo shorthand, so every publish resolved a repository instead of the file and died on a public-key error.'],
+    ],
+  },
+  {
+    v: '0.8.0', date: '2026-08-07',
+    changes: [
+      ['added', 'React components ship as `@apliteni/apliteni-ui/react` — Button, Badge, Card, Icon, Modal and DataTable, with their own stylesheets and stories. The vanilla kit is unchanged and remains the source of truth for tokens.'],
+      ['added', 'Guidelines are a place in Storybook now, starting with destructive actions. Each rule cites the lines of the kit that implement it, and a test fails the build when a cited line drifts.'],
+      ['added', 'Storybook flips theme in one click instead of through a dropdown.'],
+      ['fixed', 'Light-mode Phoenix and Emerald were deepened to meet WCAG AA. Both failed as text and as a button fill.'],
+      ['fixed', 'Danger is always `--pink`, and colour comes from tokens rather than from literals scattered through the components.'],
+      ['fixed', 'Field errors are connected to their fields, decorative icons are hidden from assistive technology, every icon-only control has a name, and the accessibility gates that were meant to catch all of this actually run.', ['Inputs']],
+      ['changed', 'The icon set is unified on canonical Feather/Lucide glyphs, so the same idea is the same drawing everywhere.'],
+      ['changed', 'Storybook 8 → 10 and Vite 5 → 6.'],
+    ],
+  },
+  {
+    v: '0.7.2', date: '2026-07-24',
     changes: [
       ['changed', 'Relicensed as **MIT** (was proprietary/UNLICENSED). The package is published on public npm, so MIT matches how it can actually be used — install and use it freely across your products.'],
     ],

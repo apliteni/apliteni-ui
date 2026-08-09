@@ -18,7 +18,7 @@
 // it resolves the spec, reads the tarball and needs no credentials.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, realpathSync, rmSync, mkdirSync, readdirSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -53,25 +53,23 @@ test('the workflow publishes a file path, not a git shorthand', () => {
     // Run the workflow's own command, with TGZ set the way the workflow sets it:
     // relative to the working directory, with a slash in it.
     //
-    // The exit code is deliberately ignored. An unauthenticated `--dry-run`
-    // resolves the spec, reads the tarball and prints it, and *then* exits
-    // non-zero because it cannot check publish rights without a credential.
-    // What is under test is how npm resolved the argument, which the output
-    // reports either way — so asserting on the exit code would fail on a
-    // developer's machine and in CI while the workflow itself was fine.
+    // The exit code is deliberately ignored, and both streams are kept. An
+    // unauthenticated `--dry-run` resolves the spec, reads the tarball and
+    // prints it, and *then* exits non-zero — but only when the version is
+    // already on the registry. On the version bump itself it resolves the same
+    // way and exits zero, so a branch that reads stdout alone loses everything:
+    // npm writes the tarball report to stderr as `npm notice` lines, and stdout
+    // carries one `+ name@version`. Read one stream and this guard passes only
+    // when the publish would have failed anyway, which is to say it is blind on
+    // the one pull request it exists to protect.
     const command = `${publishCommand()} --dry-run`;
-    let text;
-    try {
-      const out = execFileSync('bash', ['-c', command], {
-        cwd: scratch,
-        encoding: 'utf8',
-        env: { ...process.env, TGZ: path.join('dist-pack', tgz) },
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-      text = out;
-    } catch (error) {
-      text = `${error.stdout ?? ''}${error.stderr ?? ''}`;
-    }
+    const run = spawnSync('bash', ['-c', command], {
+      cwd: scratch,
+      encoding: 'utf8',
+      env: { ...process.env, TGZ: path.join('dist-pack', tgz) },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const text = `${run.stdout ?? ''}${run.stderr ?? ''}`;
 
     assert.doesNotMatch(
       text,
