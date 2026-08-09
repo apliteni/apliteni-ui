@@ -108,9 +108,11 @@ a {
    `.ui-btn svg`-shaped rule in the kit no matter what order the files load in.
    It did, for every one of them bar three, and for `.ui-fbck` besides — that
    one is a class on the svg itself, so it is easy to miss when you go looking.
-   The count is deliberately not written here: it moved once already, and the
-   rules outside this package (site/, the Iconography story) are not in it.
-   src/styles/icon-size.test.js keeps the ones in src/styles honest. */
+   The count is deliberately not written here: it moved once already. Two gates
+   keep the rules that compete with this one honest, and between them they cover
+   every one — src/styles/icon-size.test.js reads the stylesheets src/index.css
+   imports, and scripts/icon-size-surfaces.test.js reads the surfaces the kit
+   renders: the landing site and the Storybook stories. */
 svg:where(:not([width]):not([height])) {
   width: 1.1em;
   height: 1.1em;

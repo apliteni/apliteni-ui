@@ -23,8 +23,8 @@ import { esc, button } from './index.js';
 // the tick that strokes on via dash-offset, and a burst ring that expands and
 // fades. viewBox 0 0 52 52; the tick path length is ~34 (dasharray tuned to it).
 export function successCheck() {
-  // width/height attributes keep the base svg:not([width]) fallback from
-  // sizing us; the real size is set per-layout in success.css.
+  // width/height attributes keep the base svg:where(:not([width]):not([height]))
+  // fallback from sizing us; the real size is set per-layout in success.css.
   return `<svg class="ui-sx__check" width="52" height="52" viewBox="0 0 52 52" aria-hidden="true" focusable="false">
   <circle class="ui-sx__ring" cx="26" cy="26" r="24"/>
   <circle class="ui-sx__disc" cx="26" cy="26" r="24"/>
