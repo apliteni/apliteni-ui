@@ -108,14 +108,29 @@ permissions:
 jobs:
   tag:
     runs-on: ubuntu-latest
-    # The backstop for a `gh` call that hangs rather than returns, and nothing
-    # else. Everything the publish step waits on is bounded by its own
-    # wall-clock deadlines — two minutes for a dispatched run to appear, ten for
-    # one that is running, two and a half for the registry to catch up, and a
-    # run held at its approval ends in about a minute — so the longest path
-    # through this job is a quarter of an hour. That has to stay true: a job the
-    # runner kills prints none of the annotations at the end of the publish
-    # step, which is the "red with no message" that step was written to remove.
+    # The backstop for a `gh` or an `npm` call that hangs rather than returns,
+    # and nothing else. Every wait in this job is bounded by its own wall-clock
+    # deadline: two minutes for a dispatched run to appear, ten for one that is
+    # running, two and a half for the registry to catch up afterwards, and a run
+    # held at its approval ends in about a minute.
+    #
+    # Worth adding up rather than eyeballing, because the number is what the
+    # cap is set from. The sleeps come to fourteen and a half minutes — 120s
+    # waiting for the run to appear, 600s following it, 150s asking npm
+    # afterwards. Each deadline is checked between calls rather than during one,
+    # so the call in flight when a deadline expires runs on top: at most another
+    # minute, npm's own timeout being the longest of them. The plan step's
+    # registry retries can spend two minutes before any of that. Nineteen
+    # minutes, then, plus a checkout, a setup-node and the sixty-odd API round
+    # trips the polling makes — so a pathological run lands around twenty and an
+    # ordinary one under two. What is left is the headroom, and it has to stay:
+    # a job the runner kills prints none of the annotations at the end of the
+    # publish step, which is the "red with no message" that step was written to
+    # remove.
+    #
+    # Any deadline below that grows has to be checked against this arithmetic —
+    # scripts/tag-on-bump.test.js asserts the sum on a virtual clock, so moving
+    # one without moving the other fails there rather than here.
     timeout-minutes: 30
     steps:
       # Default fetch-depth is enough. Unlike version-drift.yml this needs no
@@ -362,6 +377,15 @@ jobs:
       # it. A delete that fails for a real reason fails this step instead: the
       # job is red either way, and a leftover tag with its Release intact is a
       # thing the next run can finish.
+      #
+      # A FAILED LOOKUP IS NOT AN ABSENT RELEASE, which is the same rule §5
+      # below states about runs, and it has to hold for the asking too.
+      # `gh release view` exits 1 for a Release that is not there and for a 502,
+      # a rate limit or a read timeout alike, so `view >/dev/null 2>&1` moved the
+      # conflation from the delete to the lookup rather than removing it: a
+      # transient failure took the "there was no Release" branch, deleted the
+      # tag, left the Release, and exited 0. Green, with the orphan made. So
+      # gh's stderr is kept and only a genuine not-found counts as absent.
       - name: Undo the tag if the Release never got made
         if: always() && steps.tag.outcome == 'success' && steps.release.outcome != 'success'
         env:
@@ -370,10 +394,31 @@ jobs:
         run: |
           set -euo pipefail
           echo "::warning::Cutting the Release for $TAG did not succeed. Removing the tag and any Release that was made, so the next push to main can retry cleanly."
-          if gh release view "$TAG" >/dev/null 2>&1; then
+
+          # A workflow command is one line, and gh's errors are several. Same
+          # encoding as the copy in the publish step, for the same reason: a raw
+          # newline ends the annotation and drops everything after it. The
+          # percent substitution goes first or it re-encodes its own output.
+          oneline() {
+            local s="$1"
+            s="${s//'%'/%25}"
+            s="${s//$'\r'/%0D}"
+            printf '%s' "${s//$'\n'/%0A}"
+          }
+
+          err="$(mktemp)"
+          set +e
+          gh release view "$TAG" >/dev/null 2>"$err"
+          view_status=$?
+          set -e
+
+          if [ "$view_status" -eq 0 ]; then
             gh release delete "$TAG" --yes --cleanup-tag
-          else
+          elif grep -qiE 'release not found|HTTP 404' "$err"; then
             git push origin ":refs/tags/$TAG"
+          else
+            echo "::error::Could not ask GitHub whether a Release exists for $TAG (gh exited $view_status), so this job cannot tell an absent Release from a lookup that failed. Nothing has been deleted: removing the tag on that guess is exactly how a Release ends up orphaned on a ref that no longer exists, which then makes the next attempt reuse notes written for another commit. $TAG and any Release on it are still there, and that is a state the next push to main can finish. gh said: $(oneline "$(cat "$err")")"
+            exit 1
           fi
 
       # ---------------------------------------------------------------------
@@ -499,7 +544,17 @@ jobs:
             BEFORE_ID="${gh_out:-0}"
             export BEFORE_ID
 
-            gh workflow run release.yml --ref "$TAG"
+            # Through gh_capture like everything else here. Left bare, this was
+            # the one exit from the step that ended without a sentence: under
+            # `set -euo pipefail` a refused dispatch — a revoked token, a
+            # workflow that lost its workflow_dispatch trigger, a 422 on the ref
+            # — stopped the job with gh's stderr somewhere up the log and
+            # nothing at the bottom saying that nothing had been published.
+            gh_capture workflow run release.yml --ref "$TAG"
+            if [ "$gh_status" -ne 0 ]; then
+              echo "::error::Dispatching release.yml on $TAG was refused (gh exited $gh_status), so no publish was started and $VERSION is not on npm. The tag and the Release are correct and have been left alone; fix the cause and re-run this job, or push to main again. gh said: $(oneline "$(cat "$err")")"
+              exit 1
+            fi
             echo "Dispatched release.yml on $TAG; waiting for the run to appear."
 
             # A blanket `|| true` here made every way of failing look identical
@@ -627,9 +682,23 @@ jobs:
           # published before it is readable everywhere, and that gap is npm's
           # own and can run into minutes — so a short window here does not
           # discover a bad release, it manufactures a false alarm about a good
-          # one. An unknown is a warning and not a failure, because a registry
-          # this job cannot reach is not a release that did not happen.
-          for attempt in 1 2 3 4 5 6; do
+          # one.
+          #
+          # `unknown` waits out the same window, and only then becomes the
+          # warning. It used to take the first one and exit 0 after a single
+          # ask, while `unpublished` got the full budget — the patience was on
+          # the branch that fails safe and missing from the branch that goes
+          # green having confirmed nothing. Both are the registry not saying
+          # yes; only one of them is an answer.
+          #
+          # Bounded by the clock rather than by a count of attempts, so a slow
+          # npm spends this budget instead of adding to it. Six attempts each
+          # waiting out npm's own timeout is six minutes on top of the sleeps,
+          # and the headroom under timeout-minutes: 30 is worked out on this
+          # wait being the length it says it is.
+          registry=1
+          registry_deadline=$(( $(date +%s) + 150 ))
+          while :; do
             set +e
             node scripts/registry-status.mjs "$VERSION"
             registry=$?
@@ -638,12 +707,19 @@ jobs:
               echo "::notice::$VERSION is on npm."
               exit 0
             fi
-            if [ "$registry" -ne 2 ]; then
-              echo "::warning::Run $run_id published $VERSION successfully, but this job could not reach the registry to confirm it (see the line above). Treating the run's own answer as good. version-drift.yml is the backstop."
-              exit 0
-            fi
-            if [ "$attempt" -lt 6 ]; then sleep 30; fi
+            if [ "$(date +%s)" -ge "$registry_deadline" ]; then break; fi
+            sleep 30
           done
+
+          # A registry this job cannot reach is not a release that did not
+          # happen, so the run's own answer stands and version-drift.yml is the
+          # backstop. It is a warning rather than an error for that reason and
+          # no other, which is why it has to be the reading of last resort
+          # rather than of first blip.
+          if [ "$registry" -ne 2 ]; then
+            echo "::warning::Run $run_id published $VERSION successfully, but this job could not reach the registry to confirm it in the two and a half minutes since (the asks and their reasons are on the lines above). Treating the run's own answer as good. version-drift.yml is the backstop."
+            exit 0
+          fi
 
           echo "::error::Run $run_id finished successfully at $url, but the registry has not served $VERSION in the two and a half minutes since. The likeliest reading by a distance is npm's own propagation — a version is published before every edge can read it, and that has taken longer than this. Look at the package's versions page on npm first: if $VERSION is there, nothing is wrong and the next push to main goes green by itself. Only if it is still missing well after that did this run publish nothing, and then it is worth finding out why before bumping past it."
           exit 1

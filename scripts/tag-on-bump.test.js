@@ -560,10 +560,19 @@ const flag = (name) => { const i = argv.indexOf(name); return i === -1 ? null : 
 const BASE = Date.parse(${JSON.stringify(CLOCK_EPOCH)});
 const iso = (sec) => new Date(BASE + sec * 1000).toISOString().replace(/\\.\\d+Z$/, 'Z');
 
-// Anything can be told to fail, for a set number of calls or for ever.
+// Anything can be told to fail, for a set number of calls or for ever, and to
+// start doing it only after a few calls have gone through. \`after\` is what
+// picks one \`gh run list\` out of the several the publish step makes: the
+// in-flight search, the watermark read and the appear loop are the same command
+// with different arguments, and only their order tells them apart.
 function maybeFail(key) {
   const f = (state.failures || {})[key];
   if (!f) return;
+  if (f.after) {
+    f.after -= 1;
+    save();
+    return;
+  }
   if (f.times !== undefined) {
     if (f.times <= 0) return;
     f.times -= 1;
@@ -692,8 +701,49 @@ printf '%s\\n' "$*" >> "$GIT_STUB_LOG"
 exit 0
 `;
 
+/**
+ * What a missing jq means — which is not the same thing in both places it can
+ * happen.
+ *
+ * Every test below this line runs the publish step or the rollback step, and
+ * both of them hand the workflow's own `--jq` programs to the real jq. Without
+ * it they all skip, and `node --test` exits 0 having executed none of them:
+ * two dozen tests and the whole of the publish step's coverage, gone without a
+ * word. On a developer machine that is a reasonable trade — the rest of the
+ * suite still runs. On CI it is the coverage quietly not existing, resting on
+ * an assumption about the runner image that nothing checks. `ubuntu-latest` has
+ * jq today; the point is that nothing would say so if it stopped.
+ */
+function jqRequirement({ hasJq, ci }) {
+  if (hasJq) return 'run';
+  return ci ? 'fail' : 'skip';
+}
+
 const HAS_JQ = spawnSync('sh', ['-c', 'command -v jq'], { encoding: 'utf8' }).status === 0;
-const needsJq = HAS_JQ ? {} : { skip: 'jq is not installed — the gh stub hands it the workflow’s own --jq programs' };
+const JQ = jqRequirement({ hasJq: HAS_JQ, ci: Boolean(process.env.CI) });
+if (JQ === 'fail') {
+  throw new Error(
+    'jq is not installed and CI is set. The gh stub hands the workflow’s own --jq programs to the real jq, so ' +
+      'without jq every publish-step and rollback test in this file skips itself and the suite still exits 0 — ' +
+      'the publish step’s entire coverage, gone silently. Install jq on the runner rather than running without it.',
+  );
+}
+const needsJq = JQ === 'run' ? {} : { skip: 'jq is not installed — the gh stub hands it the workflow’s own --jq programs' };
+
+test('a CI run without jq is a failure, not two dozen silent skips', () => {
+  assert.equal(jqRequirement({ hasJq: true, ci: true }), 'run');
+  assert.equal(jqRequirement({ hasJq: true, ci: false }), 'run');
+  assert.equal(
+    jqRequirement({ hasJq: false, ci: true }),
+    'fail',
+    'skipping the publish step’s whole test suite on CI is the coverage silently not existing',
+  );
+  assert.equal(
+    jqRequirement({ hasJq: false, ci: false }),
+    'skip',
+    'a developer without jq should still get the rest of the suite',
+  );
+});
 
 function executable(file, contents) {
   writeFileSync(file, contents);
@@ -921,12 +971,157 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // that stops an ordinary run: a job the runner kills prints none of the
   // annotations below it, which is the "red with no message" this rewrite
   // existed to remove. The longest path is a run that never finishes.
+  //
+  // Asserted at the real number and not at a round one twice its size. The
+  // sleeps here are exactly the appear wait plus the follow wait — 60s for this
+  // run to become visible, then the full 600s deadline — so 660s is the answer
+  // and anything else is a deadline that moved. `< 1200` let the follow
+  // deadline be pushed to 1100s without a word, which is most of the job's
+  // ceiling spent on one wait.
   const result = runPublishStep({
     dispatch: { appearAfter: 60, timeline: [{ at: 0, status: 'in_progress' }] },
   });
 
   assert.equal(result.status, 1, result.log);
-  assert.ok(result.waited < 20 * 60, `waited ${result.waited}s, which leaves no room under timeout-minutes: 30`);
+  assert.ok(
+    result.waited <= 700,
+    `waited ${result.waited}s; the appear wait plus the follow deadline is 660s, and the room under timeout-minutes: 30 is budgeted on that`,
+  );
+});
+
+test('a dispatch whose run never appears gives up at two minutes', needsJq, () => {
+  // The appear deadline is the only thing standing between "GitHub accepted the
+  // dispatch but the run is not in the API yet" and a job that polls until the
+  // runner kills it. A killed job prints none of the annotations below, so the
+  // reader gets a red tick and no sentence — which is the failure mode this
+  // whole step was rewritten to remove, reached by the wait meant to avoid it.
+  const result = runPublishStep({ dispatch: { creates: false } });
+
+  assert.equal(result.status, 1, result.log);
+  assert.match(result.log, /no matching run appeared within two minutes/);
+  assert.ok(result.waited >= 120, `gave up after ${result.waited}s — a run can take most of two minutes to appear`);
+  assert.ok(
+    result.waited <= 150,
+    `waited ${result.waited}s for a run to appear; the deadline says two minutes and timeout-minutes: 30 is budgeted on it`,
+  );
+});
+
+test('a watermark that could not be read stops before dispatching, not after', needsJq, () => {
+  // The newest run id is read *before* the dispatch, and it is the only thing
+  // that tells the run this job started from every run that already existed.
+  // A dispatch made without it is a dispatch whose run cannot be identified:
+  // the appear loop takes the highest id it can see, and until the new run
+  // reaches the API that is the one that failed thirty seconds ago. §5c then
+  // reads `completed/failure` off a corpse and sends a human to fix a publish
+  // that is still building.
+  //
+  // So a failed watermark read has to stop, and stop before anything has been
+  // started. The lookup that fails here is the second `gh run list` — the
+  // in-flight search above it succeeds, as it would.
+  const result = runPublishStep({
+    runs: [{ id: 100, createdAt: -30, timeline: [{ at: 0, status: 'completed', conclusion: 'failure' }] }],
+    failures: { runList: { after: 1, times: 1, exit: 1, stderr: 'HTTP 500: internal error\nx-github-request-id: 42\n' } },
+    dispatch: {
+      appearAfter: 20,
+      timeline: [{ at: 0, status: 'queued' }, { at: 60, status: 'completed', conclusion: 'success' }],
+    },
+  });
+
+  assert.equal(result.status, 1, result.log);
+  assert.equal(
+    dispatched(result),
+    false,
+    'nothing may be dispatched when the run it starts could not be told apart from the runs that already exist',
+  );
+  assert.doesNotMatch(result.log, /Following run 100/, 'the run that failed a minute ago is not the run this job started');
+  const annotation = result.lines.find((l) => l.startsWith('::error::'));
+  assert.ok(annotation, `no ::error:: annotation in:\n${result.log}`);
+  assert.match(annotation, /Nothing has been dispatched/);
+  assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
+});
+
+test('three failed lookups in a row while waiting for the run is the lookup failing, not patience', needsJq, () => {
+  // The appear loop tolerates blips on purpose — that is what it is for — but
+  // a token without actions:read, a malformed jq program and a rate limit all
+  // fail every time, and reading those as patience burns the whole two minutes
+  // and then reports that the run never appeared. Three in a row is not a blip,
+  // and the difference matters to whoever reads the annotation: one says look
+  // at the Actions tab, the other says fix your token.
+  const result = runPublishStep({
+    dispatch: { appearAfter: 40, timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    failures: { runList: { after: 2, exit: 1, stderr: 'HTTP 403: rate limit exceeded\nX-RateLimit-Reset: 1700000000\n' } },
+  });
+
+  assert.equal(result.status, 1, result.log);
+  assert.match(result.log, /failed three times in a row/);
+  assert.ok(result.waited <= 60, `waited ${result.waited}s before calling three consecutive failures what they are`);
+});
+
+test('two failed lookups in a row are the blip the appear loop exists to absorb', needsJq, () => {
+  // The other side of the threshold. Tightening it to one turns every ordinary
+  // 502 into a failed release.
+  const result = runPublishStep({
+    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    failures: { runList: { after: 2, times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+  });
+
+  assert.equal(result.status, 0, result.log);
+  assert.match(result.log, /is on npm/);
+});
+
+test('three failed reads of the run in a row is the lookup failing, not the run being gone', needsJq, () => {
+  // Same threshold, the other loop. Without it a `gh run view` that fails every
+  // time spends the full ten-minute follow deadline and then reports the run as
+  // "still unreadable" — which reads as a stuck publish rather than as a broken
+  // lookup, and sends the reader to watch a run that may well have finished.
+  const result = runPublishStep({
+    runs: [{ id: 100, timeline: [{ at: 0, status: 'in_progress' }] }],
+    failures: { runView: { exit: 1, stderr: 'HTTP 502: bad gateway\nx-github-request-id: 7\n' } },
+  });
+
+  assert.equal(result.status, 1, result.log);
+  assert.match(result.log, /Reading release\.yml run 100 failed three times in a row/);
+  assert.equal(dispatched(result), false);
+  assert.ok(result.waited <= 120, `waited ${result.waited}s before calling three consecutive failures what they are`);
+});
+
+test('two failed reads of the run in a row are the blip the follow loop exists to absorb', needsJq, () => {
+  const result = runPublishStep({
+    runs: [
+      { id: 100, timeline: [{ at: 0, status: 'in_progress' }, { at: 60, status: 'completed', conclusion: 'success' }] },
+    ],
+    failures: { runView: { times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+  });
+
+  assert.equal(result.status, 0, result.log);
+  assert.equal(dispatched(result), false);
+  assert.match(result.log, /is on npm/);
+});
+
+test('a dispatch gh refuses is an error with a sentence, not a bare non-zero exit', needsJq, () => {
+  // Every other call in this step goes through gh_capture and ends in an
+  // ::error:: that says what happened. `gh workflow run` did not, so under
+  // `set -euo pipefail` a refused dispatch — a revoked token, a workflow file
+  // that lost its workflow_dispatch trigger, a 422 on the ref — ended the step
+  // with gh's own stderr somewhere up the log and nothing at the bottom saying
+  // that nothing was published.
+  const result = runPublishStep({
+    failures: {
+      workflowRun: {
+        exit: 1,
+        stderr: 'HTTP 422: Workflow does not have workflow_dispatch trigger\nsee the docs for more\n',
+      },
+    },
+  });
+
+  assert.equal(result.status, 1, result.log);
+  const annotation = result.lines.find((l) => l.startsWith('::error::'));
+  assert.ok(annotation, `a refused dispatch is the one exit from this step with no sentence:\n${result.log}`);
+  assert.match(annotation, /%0A/);
+  assert.ok(
+    annotation.includes('HTTP 422') && annotation.includes('see the docs for more'),
+    `gh's reason did not survive into the annotation:\n${annotation}`,
+  );
 });
 
 test('a lookup that keeps failing says so, with every line of what gh said', needsJq, () => {
@@ -973,6 +1168,40 @@ test('a successful run whose version never appears blames propagation before it 
   assert.doesNotMatch(result.log, /Do not bump past this version/);
 });
 
+test('a registry that blips on the green path is asked again, not shrugged at', needsJq, () => {
+  // The retries were on the branch that fails safe and missing from the branch
+  // that goes green. `unpublished` got two and a half minutes of asking;
+  // `unknown` — the answer that ends the job green having confirmed nothing —
+  // got one attempt and a warning. One npm wobble was enough to make the whole
+  // "believe the registry, not the run" check say nothing at all.
+  const result = runPublishStep({
+    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    registryAnswers: ['unreachable', 'unreachable', 'published'],
+  });
+
+  assert.equal(result.status, 0, result.log);
+  assert.equal(result.npmCalls, 3, 'an unknown has to be asked again — it is not an answer');
+  assert.match(result.log, /is on npm/);
+  assert.doesNotMatch(result.log, /could not reach the registry/, 'the registry was reached, on the third ask');
+});
+
+test('a registry unreachable for the whole wait is a warning, not a red run', needsJq, () => {
+  // …and the other end of it: a registry this job cannot reach still is not a
+  // release that did not happen, so the run's own answer stands and
+  // version-drift.yml is the backstop. What changes is that it takes the whole
+  // window to get there.
+  const result = runPublishStep({
+    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    registryAnswers: ['unreachable'],
+  });
+
+  assert.equal(result.status, 0, result.log);
+  assert.ok(result.npmCalls >= 6, `asked npm ${result.npmCalls} times, which is not the advertised patience`);
+  assert.ok(result.waited >= 150, `gave up after ${result.waited}s of a two-and-a-half-minute budget`);
+  assert.match(result.log, /::warning::/);
+  assert.match(result.log, /version-drift/);
+});
+
 test('a failed publish is reported as a failed publish', needsJq, () => {
   const result = runPublishStep({
     dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'failure' }] },
@@ -994,6 +1223,30 @@ test('a Release that cannot be deleted does not get its tag deleted out from und
 
   assert.notEqual(result.status, 0, `the step has to fail loudly, log:\n${result.log}`);
   assert.deepEqual(result.gitCalls, [], 'the tag must not be deleted when the Release could not be');
+});
+
+test('a Release lookup that failed is not a Release that is absent', needsJq, () => {
+  // The conflation moved from `delete` to `view`; it did not go away.
+  // `gh release view` exits 1 for a Release that is not there and for a 502, a
+  // rate limit or a read timeout alike, and reading all of those as "there was
+  // no Release" deletes the tag, leaves the Release behind, and exits 0.
+  //
+  // That is the orphan the comment above this step says it prevents, produced
+  // by the code written to prevent it and reported green. The next run finds
+  // the orphaned Release, skips `create` on it, and ships a Release whose notes
+  // were written for a different commit — the thing the wedge test above says
+  // must never happen.
+  const result = runRollbackStep({
+    release: true,
+    failures: { releaseView: { exit: 1, stderr: 'HTTP 502: Bad gateway\nx-github-request-id: abc\n' } },
+  });
+
+  assert.notEqual(result.status, 0, `a lookup that failed has to fail the step, log:\n${result.log}`);
+  assert.deepEqual(result.gitCalls, [], 'the tag must not be deleted on a guess about what the lookup meant');
+  assert.equal(result.releaseLeft, true, 'and the Release has to still be there for the next run to finish');
+  const annotation = result.log.split('\n').find((l) => l.startsWith('::error::'));
+  assert.ok(annotation, `no ::error:: annotation in:\n${result.log}`);
+  assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
 });
 
 test('a tag with no Release behind it is simply removed', needsJq, () => {
