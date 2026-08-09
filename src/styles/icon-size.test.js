@@ -21,7 +21,8 @@
  * that is an `<svg>`, which is two shapes and the second is easy to miss:
  *
  *   .ui-btn svg          — the selector ends in `svg`
- *   .ui-fbck             — a CLASS the kit puts ON an svg (feedback.js:18)
+ *   .ui-fbck             — a CLASS the kit puts ON an svg (the CHECK markup in
+ *                          src/components/feedback.js)
  *
  * The second shape is not cosmetic. `.ui-fbck` is (0,1,0), it lost to the old
  * (0,2,1) reset exactly like the others, and it is the largest icon in the kit:
@@ -50,6 +51,17 @@
  *    icon is 17px". Editing 17px to 18px renames the test and stays green. That
  *    is the right contract for a cascade gate and the wrong one to mistake for
  *    design review.
+ *  - ANY DIMENSION OTHER THAN width/height. DIMS in
+ *    scripts/lib/icon-cascade.js is those two and nothing else, so a rule
+ *    sizing an icon with `inline-size`, `block-size` or a min-/max- form
+ *    contributes no subject and loses no contest here — and the two forms then
+ *    go wrong differently in a real browser. `inline-size` and `block-size`
+ *    cascade as one with their physical counterparts, so `.x svg { inline-size:
+ *    40px }` at (0,1,1) out-specifies the reset's `width` at (0,0,1) and takes
+ *    the contest. `min-width` / `max-width` / `min-height` / `max-height` never
+ *    enter `width`'s cascade at all: the reset still wins `width`, and the
+ *    min-/max- value clamps the used value afterwards, which changes nothing
+ *    unless the clamp binds. Nothing on an svg subject uses either form today.
  *  - Layout. jsdom has none, so `width: 100%` reads back as the string `100%`.
  *    That proves the rule won, and says nothing about the pixels on screen.
  *  - Markup. A rule can apply perfectly and never meet an element, because
@@ -59,15 +71,28 @@
  *  - An icon carrying its own width/height ATTRIBUTES, which the reset skips on
  *    purpose. Seven svgs in src/ do: the brand logos, the success check, the
  *    empty-state illustration.
- *  - Anything outside src/styles. site/index.html and the Iconography story
- *    carry their own icon rules, and they are not read here.
+ *  - Anything outside the stylesheets src/index.css imports. The landing site
+ *    and the Storybook stories carry icon rules of their own, in files this gate
+ *    never opens. Those are gated by scripts/icon-size-surfaces.test.js, which
+ *    shares this file's machinery and asks the same question of them; between
+ *    the two, every icon-sizing rule the kit renders is measured.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
+import {
+  DIMS,
+  isSvgSubject,
+  kitSheetNames,
+  kitStyleHtml,
+  mount,
+  resolve,
+  rulesOf,
+  svgClassSet,
+  without,
+} from '../../scripts/lib/icon-cascade.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const src = path.resolve(here, '..');
@@ -80,21 +105,12 @@ const src = path.resolve(here, '..');
 // commit and say why there. The number is meant to be inconvenient.
 const EXPECTED_SUBJECTS = 56;
 
-// Same derivation as scripts/stylesheet-manifest.test.js:38, quotes and all. A
-// looser regex here would silently drop a sheet written with single quotes and
-// take its rules out of coverage with the suite still green.
-const SHEETS = [...readFileSync(path.join(src, 'index.css'), 'utf8')
-  .matchAll(/^\s*@import\s+["']\.\/([^"']+)["']/gm)].map((m) => m[1]);
+const SHEETS = kitSheetNames(src);
 
 assert.ok(SHEETS.length >= 20,
   `parsed ${SHEETS.length} @imports out of src/index.css — the parser in this test is broken, not the kit.`);
 
-// One <style> per sheet, in import order: the cascade still resolves across
-// them exactly as one concatenated sheet would, and every rule keeps a file
-// name. Concatenating first would throw that away.
-const styles = SHEETS
-  .map((rel) => `<style data-sheet="${rel}">${readFileSync(path.join(src, rel), 'utf8')}</style>`)
-  .join('\n');
+const styles = kitStyleHtml(src, SHEETS);
 
 const dom = new JSDOM(`<!doctype html><html><head>${styles}</head><body></body></html>`);
 const { document, getComputedStyle } = dom.window;
@@ -102,29 +118,9 @@ const { document, getComputedStyle } = dom.window;
 assert.equal(document.styleSheets.length, SHEETS.length,
   'jsdom dropped a stylesheet — every rule in it would silently leave coverage.');
 
-/* The classes the kit puts on an <svg>, read out of the components rather than
- * listed here, so a new one joins coverage by existing. Two ways a class gets
- * onto an svg: written into the tag, or passed as icon()'s second argument. */
-function svgClasses() {
-  const found = new Set();
-  const walk = (dir) => {
-    for (const e of readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, e.name);
-      if (e.isDirectory()) { walk(p); continue; }
-      if (!e.name.endsWith('.js') || e.name.endsWith('.test.js')) continue;
-      const js = readFileSync(p, 'utf8');
-      for (const m of js.matchAll(/<svg[^>]*\sclass="([^"${]+)"/g)) {
-        for (const c of m[1].trim().split(/\s+/)) found.add(c);
-      }
-      for (const m of js.matchAll(/\bicon\(\s*'[^']*'\s*,\s*'([^']+)'/g)) {
-        for (const c of m[1].trim().split(/\s+/)) found.add(c);
-      }
-    }
-  };
-  walk(src);
-  return found;
-}
-const SVG_CLASSES = svgClasses();
+// The classes the kit puts on an <svg>, read out of the components rather than
+// listed here, so a new one joins coverage by existing — see svgClassSet().
+const SVG_CLASSES = svgClassSet([src]);
 
 test('the kit still puts classes directly on svg elements', () => {
   // If this derivation ever returns nothing, every class-on-svg rule silently
@@ -132,99 +128,21 @@ test('the kit still puts classes directly on svg elements', () => {
   assert.ok(SVG_CLASSES.size > 0, 'found no class applied to an <svg> in src/**; the scanner is broken');
 });
 
-const DIMS = ['width', 'height'];
-
-// Yield [rule, sheetName], refusing to guess about shapes this gate cannot
-// measure rather than reporting a misleading result for them.
-function* rulesOf(sheet, name) {
-  for (const rule of sheet.cssRules) {
-    if (rule.selectorText) {
-      // A CSSStyleRule carries an empty cssRules of its own under CSS nesting,
-      // so testing that property first would swallow every style rule.
-      if (rule.cssRules?.length) {
-        throw new Error(`${name}: nested rule under "${rule.selectorText}" — this gate `
-          + 'mounts from a full selector and cannot resolve "&". Unnest it or teach the gate.');
-      }
-      yield [rule, name];
-      continue;
-    }
-    // @media / @supports / @layer. jsdom's getComputedStyle does not apply
-    // rules inside them even when the condition matches, so a sizing rule that
-    // moved in here would become a permanent, misleading red.
-    if (rule.cssRules) {
-      for (const inner of rule.cssRules) {
-        if (!inner.selectorText) continue;
-        const sizes = DIMS.some((d) => inner.style?.getPropertyValue(d));
-        if (sizes && isSvgSubject(inner.selectorText)) {
-          throw new Error(`${name}: "${inner.selectorText}" sizes an icon inside `
-            + `"${rule.cssText.slice(0, 40)}…". jsdom does not apply conditional rules, so this `
-            + 'gate cannot measure it. Move it out or teach the gate.');
-        }
-      }
-    }
-  }
-}
-
-const leafOf = (sel) => sel.trim().split(/\s+/).pop();
-
-function isSvgSubject(selectorText) {
-  return selectorText.split(',').some((s) => {
-    const leaf = leafOf(s);
-    if (/^svg\b/.test(leaf)) return true;
-    return leaf.split('.').slice(1).some((c) => SVG_CLASSES.has(c.replace(/[:[].*$/, '')));
-  });
-}
-
 const subjects = [];
 for (const [i, name] of SHEETS.entries()) {
-  for (const [rule] of rulesOf(document.styleSheets[i], name)) {
+  for (const [rule] of rulesOf(document.styleSheets[i], name, SVG_CLASSES)) {
     // base.css owns the reset. It is excluded by which file it lives in, not by
     // what its selector looks like.
     if (name === 'styles/base.css') continue;
     for (const raw of rule.selectorText.split(',')) {
       const sel = raw.trim().replace(/\s+/g, ' ');
-      if (!isSvgSubject(sel)) continue;
+      if (!isSvgSubject(sel, SVG_CLASSES)) continue;
       for (const dim of DIMS) {
         const want = rule.style.getPropertyValue(dim).trim();
-        if (want) subjects.push({ sel, dim, want, sheet: name });
+        if (want) subjects.push({ sel, dim, want, sheet: name, rule });
       }
     }
   }
-}
-
-/* The smallest DOM satisfying a descendant selector such as
- * `.ui-nav--side.is-collapsed .ui-nav__ic svg`. Every icon selector in the kit
- * is a chain of compound class/element parts. Anything else throws — and the
- * mounted element is checked against the selector afterwards, which is the
- * catch-all for shapes this builder gets subtly wrong. */
-function mount(sel) {
-  const parts = sel.split(' ').filter(Boolean);
-  let parent = document.body;
-  let el = null;
-  for (const part of parts) {
-    if (/[>+~[:*&\\]/.test(part)) throw new Error(`unsupported selector part: ${part} (in ${sel})`);
-    const bare = part.replace(/\..*$/, '');
-    const isSvg = bare === 'svg' || (!bare && part.split('.').slice(1).some((c) => SVG_CLASSES.has(c)));
-    el = isSvg
-      ? document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-      : document.createElement(bare || 'div');
-    for (const cls of part.split('.').slice(1)) el.classList.add(cls);
-    parent.appendChild(el);
-    parent = el;
-  }
-  return { el, top: document.body.lastElementChild };
-}
-
-/* What the declared value resolves to in this element's own context. Comparing
- * the computed px against the declared literal would call a winning rule
- * written `1.0625rem` a failure and blame the reset for it. */
-function resolve(el, dim, value) {
-  const probe = el.cloneNode(false);
-  probe.style.setProperty(dim, value);
-  el.parentNode.appendChild(probe);
-  const got = getComputedStyle(probe).getPropertyValue(dim);
-  probe.remove();
-  return got;
 }
 
 test('every icon sizing rule in the kit is still gated', () => {
@@ -234,17 +152,32 @@ test('every icon sizing rule in the kit is still gated', () => {
     + 'in the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
 });
 
-for (const { sel, dim, want, sheet } of subjects) {
+for (const { sel, dim, want, sheet, rule } of subjects) {
   test(`${sel} { ${dim}: ${want} } decides the icon's ${dim}`, () => {
-    const { el, top } = mount(sel);
+    const { el, top } = mount(document, sel, SVG_CLASSES);
     try {
       assert.ok(el.matches(sel),
         `mounted an element that does not match "${sel}" — the measurement would be of the wrong thing`);
+      /* Forced so the two candidates cannot agree by arithmetic. The reset is
+       * 1.1em, so on any element whose font-size happens to make 1.1em equal
+       * the declared px the comparison below passes whichever rule won. At
+       * 100px the reset reads 110px and nothing else does. It changes no
+       * selector, so it changes nothing about which rules match; `resolve`
+       * clones this element, inline style included, so the expectation is
+       * computed on the same basis. */
+      el.style.fontSize = '100px';
       const got = getComputedStyle(el).getPropertyValue(dim);
-      const expected = resolve(el, dim, want);
+      const expected = resolve(getComputedStyle, el, dim, want);
       assert.equal(got, expected,
         `${sheet} asks for ${dim}: ${want} (resolves to ${expected}) and the cascade gives ${got}. `
         + 'Something upstream out-specifies it — see the header of this file.');
+      // And prove that comparison could have failed — see without().
+      const gone = without(getComputedStyle, el, rule, dim);
+      assert.notEqual(gone, expected,
+        `taking "${dim}: ${want}" out of ${sheet} changes nothing — the element still computes `
+        + `${gone}. So the assertion above passes whether this rule wins or loses, and gates `
+        + 'nothing. Either the rule is redundant and should go, or this subject needs a basis '
+        + 'that pulls it apart from whatever else is setting the same value.');
     } finally {
       top.remove();
     }
