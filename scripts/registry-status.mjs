@@ -35,9 +35,10 @@
  */
 
 import { readFile } from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 /**
@@ -182,10 +183,38 @@ async function main(argv) {
   process.exitCode = EXIT_CODES[verdict.state];
 }
 
+// Am I the program, or am I being imported?
+//
 // pathToFileURL, not `file://${…}` — see the same guard in version-drift.mjs.
 // String concatenation loses to any path containing a space, the comparison
 // comes back false, main() never runs and the script exits 0 saying nothing,
 // which a caller reading exit codes would read as "published".
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+//
+// Asked twice, because one string comparison is a thin thing to hang a release
+// on: a symlink, a path spelt through a `..`, or a Node that hands argv[1] over
+// in some other shape would all miss. Real paths catch what the URL string does
+// not.
+function ranAs(entry) {
+  if (import.meta.url === pathToFileURL(entry).href) return true;
+  try {
+    return realpathSync(entry) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+const entry = process.argv[1];
+if (entry && ranAs(entry)) {
   await main(process.argv.slice(2));
+} else if (entry && basename(entry) === basename(fileURLToPath(import.meta.url))) {
+  // Somebody ran a file by this name and neither identity check agreed it was
+  // this one. Whatever that is, it is not an import, and exiting 0 here is the
+  // dangerous direction: the workflow reads 0 as "the version is published" and
+  // goes green over a release that never happened. So it is a loud unknown.
+  process.stdout.write('unknown\n');
+  process.stderr.write(
+    `registry-status: ran as ${entry}, which this script could not confirm is itself, ` +
+      'so it has not asked the registry anything. Exiting unknown rather than 0.\n',
+  );
+  process.exitCode = EXIT_CODES.unknown;
 }
