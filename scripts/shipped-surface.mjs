@@ -314,19 +314,24 @@ export function assessShippedSurface({ base, head, baseVersion, headVersion, rel
     }
 
     verdict.reason = 'released-by-bump';
+    // Both of these describe the pull request against its base branch, which is
+    // the only pair of trees this script has looked at. What npm is serving
+    // right now is scripts/registry-status.mjs's question and it asks it
+    // properly; a sentence here that sounds like an answer to it is a guess.
     verdict.report = changed
       ? `${baseVersion} → ${headVersion}, with ${added.length} added, ${removed.length} removed and ` +
-        `${modified.length} modified in the tarball, and a changelog entry for ${headVersion}.`
-      : `${baseVersion} → ${headVersion} with an identical tarball, and a changelog entry for ` +
-        `${headVersion}. Nothing published changes; the release goes out on the version alone.`;
+        `${modified.length} modified in the tarball against the base branch, and a changelog entry ` +
+        `for ${headVersion}.`
+      : `${baseVersion} → ${headVersion}, with a changelog entry for ${headVersion} and a tarball ` +
+        `byte-for-byte the one the base branch packs. The release goes out on the version alone.`;
     return verdict;
   }
 
   if (!changed) {
     verdict.reason = 'surface-unchanged';
     verdict.report =
-      `The tarball is byte-for-byte what ${baseVersion} already publishes, so there is nothing ` +
-      `here that needs releasing.`;
+      `Nothing in this pull request changes what the package ships. The tarball it packs is ` +
+      `byte-for-byte the one its base branch packs, so there is nothing here to release.`;
     return verdict;
   }
 

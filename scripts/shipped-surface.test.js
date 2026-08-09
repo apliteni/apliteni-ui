@@ -415,15 +415,52 @@ test('a prerelease is an increase over the release it follows, and not over the 
   assert.equal(backward.reason, 'version-not-an-increase');
 });
 
+/** Every way this gate can pass, so a rule about passing messages covers them all. */
+const passingVerdicts = () => [
+  assessShippedSurface({ ...base, base: files, head: files }),
+  assessShippedSurface({ ...base, headVersion: '0.10.0', base: files, head: files }),
+  assessShippedSurface({ ...base, headVersion: '0.10.0', base: files, head: { ...files, 'x.js': 'h' } }),
+];
+
 test('the passing verdicts say what they decided, not nothing', () => {
   // A gate that prints nothing when it passes is indistinguishable from a gate
   // that never ran — which is how a green tick ends up meaning less than it
   // looks like it means.
-  for (const verdict of [
-    assessShippedSurface({ ...base, base: files, head: files }),
-    assessShippedSurface({ ...base, headVersion: '0.10.0', base: files, head: { ...files, 'x.js': 'h' } }),
-  ]) {
+  for (const verdict of passingVerdicts()) {
     assert.ok(verdict.report.trim().length > 0);
+  }
+});
+
+test('the passing verdicts name the comparison they made', () => {
+  // The whole decision is one tree against another: the pull request against
+  // the branch it is opened on. A passing message that does not say which two
+  // things it weighed leaves the reader to guess, and the guess they reach for
+  // is npm.
+  const [unchanged, bumpOnly, bumpAndChange] = passingVerdicts();
+
+  assert.match(unchanged.report, /pull request/i);
+  assert.match(unchanged.report, /base branch/i);
+  assert.match(bumpOnly.report, /base branch/i);
+  assert.match(bumpAndChange.report, /base branch/i);
+});
+
+test('no passing verdict speaks for the registry, because this script never asks it', () => {
+  // The bug this pins: the unchanged-surface pass used to read "The tarball is
+  // byte-for-byte what 0.9.0 already publishes", and it was false on `main` the
+  // week it was written — 0.9.0 was on npm, `main` said 0.9.0, and the two
+  // tarballs differed by two files that had merged without a bump. Nothing here
+  // fetches anything, so nothing here may report what npm holds. Asking the
+  // registry is scripts/registry-status.mjs's job and it is a separate one.
+  //
+  // A passing message may say what this pull request *would* ship. It may not
+  // say what anything publishes or is published, and it may not name npm or the
+  // registry as evidence, because it has not looked.
+  const registryClaims = [/\bnpm\b/i, /registr/i, /publishe[sd]\b/i];
+
+  for (const verdict of passingVerdicts()) {
+    for (const claim of registryClaims) {
+      assert.doesNotMatch(verdict.report, claim, `${verdict.reason} report: ${verdict.report}`);
+    }
   }
 });
 
