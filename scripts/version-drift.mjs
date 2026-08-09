@@ -30,7 +30,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
@@ -227,6 +227,13 @@ async function main(argv) {
   process.stderr.write(`${verdict.summary}\n`);
 }
 
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${...}`. String-concatenating the path is wrong
+// for any directory containing a space or a character that needs percent
+// encoding: `import.meta.url` has it as %20, the concatenation has it raw, the
+// comparison comes back false and main() never runs. The script then prints
+// nothing and exits 0, which the workflow reads as "no drift" — the check goes
+// green by never having run. Encoding the path the same way the module URL is
+// encoded is the only comparison that holds.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   await main(process.argv.slice(2));
 }

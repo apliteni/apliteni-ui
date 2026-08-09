@@ -1,0 +1,269 @@
+name: Tag on bump
+
+# A version bump landing on `main` releases itself.
+#
+# Publishing used to be three things a person had to remember after the merge:
+# `npm version`, push the tag, cut a Release. Merging feels like shipping, so
+# the three things got skipped — the ./react subpath sat unpublished for a day,
+# and later `main` ran thirteen commits ahead of the registry. Neither was a
+# hard problem; both were a step that lived only in somebody's head. This file
+# is that step, written down and run by a machine.
+#
+# It watches every push to `main`, and does something only when the version in
+# package.json has no tag yet. Everything else is a no-op that takes seconds.
+#
+# ---------------------------------------------------------------------------
+# Why this dispatches release.yml instead of letting the Release event do it
+# ---------------------------------------------------------------------------
+# release.yml triggers `on: release: types: [published]`, and a Release created
+# here would never fire it. GitHub's rule: "Events triggered by the
+# GITHUB_TOKEN will not create a new workflow run", with `workflow_dispatch`
+# and `repository_dispatch` as the only exceptions. That rule exists to stop
+# workflows triggering themselves into a loop, and it applies whether the
+# Release is created by `gh release create`, by the API, or as a side effect of
+# pushing a tag.
+#
+# So the tag and the Release below are the record — the thing a human reads and
+# links to — and the publish is reached the one way a token-created event can
+# reach it: an explicit `workflow_dispatch` on the tag ref. release.yml already
+# accepts workflow_dispatch and is NOT modified by this work.
+#
+# Dispatching at a tag rather than at `main` is load-bearing. release.yml's
+# publish job runs in the `npm-publish` environment, whose only deployment rule
+# is `tag v*`. A dispatch at refs/tags/v0.10.0 is permitted; one at
+# refs/heads/main is refused by GitHub before the job starts. The narrow ref is
+# what keeps a dispatch of release.yml from being a way to publish arbitrary
+# branch contents.
+#
+# ---------------------------------------------------------------------------
+# Why there is no `paths: ['package.json']` filter
+# ---------------------------------------------------------------------------
+# It was considered and deliberately left out. A path filter would mean the
+# tagging only ever gets one attempt: if the push that carried the bump hits a
+# transient API error, a runner outage or a five-minute GitHub incident, the
+# bump sits on `main` untagged until somebody happens to touch package.json
+# again — which is the same "waiting for a human to notice" failure this
+# workflow exists to end. Without the filter, every subsequent push to `main`
+# retries, and the version keeps releasing itself.
+#
+# That retry is only safe because the workflow is idempotent, which is the
+# property the `plan` step below exists to guarantee: if the tag is already
+# there, the run ends having touched nothing. The filter would also buy less
+# than it looks like it does — package.json changes for dependency bumps and
+# script edits too, so most of the runs it lets through would be no-ops anyway.
+# The cost of getting this wrong is a few seconds of a free runner per push.
+on:
+  push:
+    branches: [main]
+
+# Two pushes landing seconds apart must not both decide the tag is missing and
+# both try to create it. Serialised on the workflow, not on the ref: the hazard
+# is two runs against the same repository state, and there is only one branch
+# here anyway.
+#
+# cancel-in-progress is off on purpose. Cancelling a run halfway is exactly the
+# way to end up with a pushed tag and no Release — the one state the ordering
+# below is built to avoid.
+concurrency:
+  group: tag-on-bump
+  cancel-in-progress: false
+
+# Two permissions, for the two things this does. `contents: write` pushes the
+# tag and cuts the Release; `actions: write` dispatches release.yml and reads
+# the run it started. Nothing else — no packages, no id-token, no issues. The
+# publishing credential lives in release.yml's publish job and is minted by
+# OIDC there; nothing in this file can reach it.
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    # Bounds the wait on the publish run at the bottom. `gh run watch` has no
+    # timeout of its own, and a queued-forever run would otherwise hold a
+    # runner until GitHub's six-hour ceiling.
+    timeout-minutes: 30
+    steps:
+      # Default fetch-depth is enough. Unlike version-drift.yml this needs no
+      # history — just package.json, scripts/ and site/ at the pushed commit —
+      # and the tag question is asked of the remote rather than of local refs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      # ---------------------------------------------------------------------
+      # 1. Is this push a release at all?
+      # ---------------------------------------------------------------------
+      - name: Decide whether this push is a release
+        id: plan
+        run: |
+          set -euo pipefail
+          version="$(node -p 'require("./package.json").version')"
+          tag="v$version"
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+          } >> "$GITHUB_OUTPUT"
+
+          # Asked of origin, not of the local refs. A checkout's idea of which
+          # tags exist is a snapshot taken at clone time; the remote is the
+          # thing the push will actually collide with.
+          #
+          # ls-remote --exit-code distinguishes three answers and all three
+          # matter: 0 the tag is there, 2 it is not, anything else the remote
+          # could not be reached. Collapsing that last case into "not there"
+          # would turn a network blip into an attempt to re-tag a released
+          # version, so it stops the run instead.
+          set +e
+          git ls-remote --exit-code --refs origin "refs/tags/$tag" >/dev/null 2>&1
+          status=$?
+          set -e
+          case "$status" in
+            0)
+              echo "release=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::$tag already exists — nothing to do."
+              ;;
+            2)
+              echo "release=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::$tag does not exist yet — releasing $version."
+              ;;
+            *)
+              echo "::error::could not ask origin whether $tag exists (git ls-remote exited $status). Not tagging on a guess."
+              exit 1
+              ;;
+          esac
+
+      # ---------------------------------------------------------------------
+      # 2. The changelog gate — before anything exists that has to be undone
+      # ---------------------------------------------------------------------
+      # This is first for a reason. 0.8.0 and 0.8.1 both went out with no entry
+      # on ui.apli.tech/changelog and nobody noticed for two releases. Reading
+      # the release body out of the changelog makes that impossible, but only
+      # if the read happens before the tag: a missing entry has to be a run
+      # that did nothing, not a tag pointing at a release nobody can describe.
+      #
+      # scripts/release-notes.mjs exits non-zero and says which version is
+      # missing. No `npm ci` — it imports site/changelog.mjs and node builtins
+      # and nothing else, so there is nothing to install, and nothing
+      # third-party runs in a job holding contents: write.
+      - name: Write the release notes, or stop here
+        if: steps.plan.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: node scripts/release-notes.mjs "$VERSION" > release-notes.md
+
+      # ---------------------------------------------------------------------
+      # 3. Tag
+      # ---------------------------------------------------------------------
+      # Annotated, not lightweight. An annotated tag is a real object carrying
+      # a tagger and a date, so `git describe`, `git show v0.9.0` and the
+      # GitHub UI all have something to say about who cut the release and when.
+      # A lightweight tag is a bare pointer and answers none of that.
+      - name: Tag the commit
+        id: tag
+        if: steps.plan.outputs.release == 'true'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          set -euo pipefail
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              tag -a "$TAG" -m "apliteni-ui $VERSION" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+
+      # ---------------------------------------------------------------------
+      # 4. Release
+      # ---------------------------------------------------------------------
+      # --verify-tag makes gh refuse rather than invent: without it, gh creates
+      # a missing tag itself, and it would create a lightweight one.
+      - name: Cut the Release
+        id: release
+        if: steps.plan.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: gh release create "$TAG" --verify-tag --title "$TAG" --notes-file release-notes.md
+
+      # A tag with no Release is the one leftover a retry cannot clear on its
+      # own: the plan step would see the tag next time and skip, so the release
+      # would stay half-made until a human deleted the tag by hand. The window
+      # is small — between the push above and gh returning — but it is real,
+      # and the whole point of this workflow is not needing a human.
+      #
+      # Scoped tightly: only when the tag push succeeded and the Release did
+      # not. A failure further down leaves the tag and the Release alone, since
+      # by then they are correct and it is the publish that needs looking at.
+      - name: Undo the tag if the Release never got made
+        if: failure() && steps.tag.outcome == 'success' && steps.release.outcome != 'success'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          echo "::warning::Cutting the Release for $TAG failed. Deleting the tag so the next push to main can retry cleanly."
+          git push origin ":refs/tags/$TAG"
+
+      # ---------------------------------------------------------------------
+      # 5. Publish, and stay to watch it
+      # ---------------------------------------------------------------------
+      # Fire-and-forget would be worse than the manual process it replaces: a
+      # transient API error would leave a tag, a Release and a green tick with
+      # nothing on npm — which looks exactly like a successful release until
+      # somebody tries to install it. So this waits, and fails if the publish
+      # fails.
+      #
+      # There is a race to handle first. `gh workflow run` returns as soon as
+      # GitHub accepts the request, and the run does not exist yet at that
+      # moment — it appears in the API seconds later. Asking once and giving up
+      # would report a phantom failure most of the time, so this polls.
+      #
+      # The window is anchored on a timestamp taken two minutes before the
+      # dispatch. The slack absorbs any clock skew between this runner and
+      # GitHub's, and it cannot pick up a stale run by mistake: the filter also
+      # requires the run's ref to be this tag, and this tag was created by the
+      # step above minutes ago, so no earlier run can exist on it.
+      #
+      # ON TIMEOUT — five minutes with no run appearing — the step fails loudly
+      # and stops. It deliberately does NOT undo the tag or the Release: those
+      # are correct and are the permanent record of the version. What is
+      # missing is the publish, and the fix is to dispatch release.yml on the
+      # tag again from the Actions tab. version-drift.yml is the backstop: if
+      # nobody does, it opens an issue once main and npm have disagreed for a
+      # day.
+      - name: Publish it, and wait for the answer
+        if: steps.plan.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          SINCE="$(date -u -d '2 minutes ago' +%Y-%m-%dT%H:%M:%SZ)"
+          export SINCE
+
+          gh workflow run release.yml --ref "$TAG"
+          echo "Dispatched release.yml on $TAG; waiting for the run to appear."
+
+          # Filtered in jq rather than with `gh run list --branch`, so the ref
+          # comparison is done on the field the API actually returns. Values
+          # travel through env rather than being interpolated into the jq
+          # program, so nothing read out of package.json can become jq syntax.
+          run_id=""
+          for _ in $(seq 1 60); do
+            sleep 5
+            run_id="$(gh run list --workflow release.yml --event workflow_dispatch \
+              --limit 50 --json databaseId,createdAt,headBranch \
+              --jq '[.[] | select(.headBranch == env.TAG and .createdAt >= env.SINCE)]
+                    | max_by(.createdAt) | .databaseId // empty' || true)"
+            if [ -n "$run_id" ]; then break; fi
+          done
+
+          if [ -z "$run_id" ]; then
+            echo "::error::release.yml was dispatched on $TAG but no run appeared within five minutes. The tag and the Release are correct and have been left alone; nothing has been published. Re-run release.yml on $TAG from the Actions tab."
+            exit 1
+          fi
+
+          echo "Watching run $run_id."
+          # --exit-status makes this step's result the publish run's result, so
+          # a failed publish is a failed release rather than a green tick.
+          gh run watch "$run_id" --exit-status --interval 15
