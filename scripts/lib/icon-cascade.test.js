@@ -40,6 +40,9 @@ import {
   isSvgSubject,
   mount,
   rulesOf,
+  selectorParts,
+  styleBlocksOf,
+  styleImportsIn,
   svgClassSet,
   writtenAs,
 } from './icon-cascade.js';
@@ -100,7 +103,7 @@ test('within a block an important declaration wins wherever it sits', () => {
   assert.equal(measure('.a svg { inline-size: 33px !important; width: 10px }').width, '33px');
 });
 
-test('a block that declares one axis in both spellings and repeats one is refused', () => {
+test('a block that straddles one axis with both spellings is refused', () => {
   /* The fold decides this contest by position, and position is the one thing the
    * CSSOM cannot report here: cssstyle keeps a repeated property once, in its
    * FIRST position carrying its LAST value. So the first case below reads as
@@ -110,10 +113,68 @@ test('a block that declares one axis in both spellings and repeats one is refuse
    * pass. Nothing here can recover the order, so nothing here guesses at it. */
   assert.throws(
     () => foldLogicalDims(sheetOf('.a svg { width: 10px; inline-size: 33px; width: 12px }'), 'probe.css'),
-    /declares width twice/);
+    /declares width both before and after inline-size/);
   assert.throws(
     () => foldLogicalDims(sheetOf('.a svg { inline-size: 33px; width: 12px; inline-size: 44px }'), 'probe.css'),
-    /declares inline-size twice/);
+    /declares inline-size both before and after width/);
+});
+
+test('a repeat whose importance changes between the repeats is refused too', () => {
+  /* The other half of the same bookkeeping. Deduplication keeps the LAST
+   * importance, which here is not the one that wins: a browser renders 10px, and
+   * the fold — told `width` is not important — hands the axis to `inline-size`.
+   * Position alone would call this safe, since both widths sit before it. */
+  assert.throws(
+    () => foldLogicalDims(
+      sheetOf('.a svg { width: 10px !important; width: 12px; inline-size: 33px }'), 'probe.css'),
+    /!important/);
+  // Steady importance across the repeats is read correctly and goes through.
+  assert.equal(
+    measure('.a svg { width: 10px !important; width: 12px !important; inline-size: 33px }').width,
+    '12px');
+});
+
+test('a repeat the CSSOM keeps in source order is folded, not refused', () => {
+  /* Only the STRADDLING order is unresolvable. cssstyle keeps a repeated
+   * property in its first position carrying its last value, which is the source
+   * order still whenever every repeat sits on one side of its twin — so the fold
+   * picks the winner a browser picks and there is nothing to refuse. Refusing
+   * these reds on ordinary CSS, a px-to-rem fallback beside a logical
+   * declaration among it. */
+  assert.equal(measure('.a svg { width: 10px; width: 12px; inline-size: 33px }').width, '33px');
+  assert.equal(measure('.a svg { inline-size: 33px; width: 10px; width: 12px }').width, '12px');
+  assert.doesNotThrow(() => foldLogicalDims(
+    sheetOf('.a svg { width: 20px; width: 1.25rem; inline-size: 1.25rem }'), 'probe.css'));
+});
+
+test('a repeat inside a conditional group is not refused, because the fold never reaches it', () => {
+  // foldLogicalDims() rewrites top-level rules only, so nothing inside @media
+  // can produce the wrong number this refusal exists to stop. rulesOf() is what
+  // has something to say about a sizing rule in there.
+  assert.doesNotThrow(() => foldLogicalDims(
+    sheetOf('@media (min-width: 40em) { .a p { width: 1px; inline-size: 2px; width: 3px } }'),
+    'probe.css'));
+});
+
+test('a brace inside a string does not hide the straddle behind it', () => {
+  /* The blocks were split on `/\{([^{}]*)\}/`, which the `}` in a string closes
+   * early — so the rest of that block went unscanned and the one shape this
+   * refusal exists for sailed through as a wrong number reported as a pass. */
+  assert.throws(() => foldLogicalDims(
+    sheetOf('.a svg { background: url("}"); width: 10px; inline-size: 33px; width: 12px }'),
+    'probe.css'), /declares width both before and after/);
+});
+
+test('the refusal names the rule it is about', () => {
+  /* A selector read back off the raw text, so it has to survive the two things
+   * that used to garble it: a brace inside a string earlier in the block, and a
+   * statement — `@import` — ending in `;` rather than in a block. Naming the
+   * wrong rule sends the reader to a declaration that is not there. */
+  const straddle = 'width: 10px; inline-size: 33px; width: 12px';
+  assert.throws(() => foldLogicalDims(sheetOf(`.a svg { content: "{"; ${straddle} }`), 'probe.css'),
+    /"\.a svg" declares width both before and after/);
+  assert.throws(() => foldLogicalDims(sheetOf(`@charset "utf-8";\n.a svg { ${straddle} }`), 'probe.css'),
+    /"\.a svg" declares width both before and after/);
 });
 
 test('a repeated declaration with no logical twin beside it folds as it always did', () => {
@@ -257,6 +318,39 @@ test('a functional pseudo that names no icon is not read as one', () => {
   assert.equal(isSvgSubject('.a:not(svg)', new Set(['ic'])), false);
 });
 
+test('an icon named inside :not() or :has() stays inside it', () => {
+  /* The recursion collects the alternatives a compound offers, and `:is()` is
+   * one of those wherever it is written — including inside the two pseudos that
+   * are deliberately excluded. `.a:not(:is(svg))` selects what is NOT an svg;
+   * reading the `:is()` out of it made the gate call that an icon, mount it, and
+   * hard-error on the `:`. Only the top level of the compound offers
+   * alternatives. */
+  const classes = new Set(['ic']);
+  for (const sel of ['.a:not(:is(svg))', '.a:has(:is(svg))', '.a:not(:where(.ic))',
+    '.a:has(> :is(svg))', '.a:has(:where(.ic))']) {
+    assert.equal(isSvgSubject(sel, classes), false,
+      `"${sel}" says something about another element, or about what the subject is not`);
+  }
+  // And the top-level ones still read as they did.
+  assert.ok(isSvgSubject('.a:where(:is(svg))', classes));
+  assert.ok(isSvgSubject('.a:is(.ic)', classes));
+});
+
+test('a bracket inside a quoted attribute value separates nothing', () => {
+  /* `]` and `[` are ordinary characters inside a string, and counting them as
+   * brackets takes the scan below zero — after which nothing is ever top level
+   * again, the trailing `svg` stops being the leaf, and a rule sizing an icon
+   * leaves coverage with no count moving to say so. */
+  const classes = new Set(['ic']);
+  for (const sel of ['.a[data-x="]"] svg', '.a[data-x="["] svg', ".a[data-x=']'] .ic",
+    '.a[data-x="([{"] svg']) {
+    assert.ok(isSvgSubject(sel, classes), `"${sel}" reads as something other than an icon rule`);
+  }
+  // The characters this scan does read are still read, inside the value and out.
+  assert.deepEqual(selectorParts('.a[title="a, b"] svg, .b span'), ['.a[title="a, b"] svg', '.b span']);
+  assert.ok(isSvgSubject('.a[title="a > b"] svg', classes));
+});
+
 test('a rule an icon selector reaches through a combinator is mountable', () => {
   // A subject nothing can mount is a red that names the gate rather than the
   // rule, so the two have to move together.
@@ -292,6 +386,61 @@ test('an @import is reported wherever a stylesheet carries one', () => {
   // unfollowed @import out of the way rather than in it.
   assert.deepEqual(importsIn('@import "./zz.css";\n.a svg { width: 42px }'), ['"./zz.css"']);
   assert.deepEqual(importsIn('/* @import "./zz.css"; */ .a svg { width: 42px }'), []);
+});
+
+test('a <style> written with dangerouslySetInnerHTML is CSS like any other', () => {
+  /* THE React idiom for injecting a CSS string, and it was invisible: no block,
+   * no marker, no refusal, into a gate whose count is 0 so nothing else could
+   * notice. A quoted string and a template literal both read as what they say. */
+  assert.deepEqual(
+    styleBlocksOf('export const S = () => <style dangerouslySetInnerHTML={{__html: ".rx-btn svg{width:16px}"}} />;'),
+    ['.rx-btn svg{width:16px}']);
+  assert.deepEqual(
+    styleBlocksOf('const S = () => <style dangerouslySetInnerHTML={{ __html: `.a > svg { width: 9px }` }} />;'),
+    ['.a > svg { width: 9px }']);
+});
+
+test('a dangerouslySetInnerHTML nothing can resolve leaves the marker, not silence', () => {
+  // Same contract as every other block this cannot read through: a token the
+  // gates refuse, rather than an empty block that reads as a file with no CSS.
+  assert.deepEqual(
+    styleBlocksOf('const S = () => <style dangerouslySetInnerHTML={{__html: cssFor(theme)}} />;'),
+    [UNRESOLVED]);
+  assert.deepEqual(
+    styleBlocksOf(`const CSS = \`.a svg { width: 7px }\`;
+const S = () => <style dangerouslySetInnerHTML={{__html: CSS}} />;`),
+    ['.a svg { width: 7px }']);
+});
+
+test('a self-closing <style> does not swallow the source up to the next one', () => {
+  /* `<style[^>]*>…</style>` spans from a self-closing tag to the NEXT closing
+   * one, taking the source between them in as CSS. It reds — rulesOf() refuses
+   * the nested rule it parses out of that — but it names the wrong thing. */
+  assert.deepEqual(styleBlocksOf(
+    `const A = () => <style dangerouslySetInnerHTML={{__html: css}} />;
+const B = () => <style>{\`.rx-btn svg { width: 16px }\`}</style>;`),
+  [UNRESOLVED, '.rx-btn svg { width: 16px }']);
+});
+
+test('a module imported for its side effects is not read as a stylesheet', () => {
+  /* The React gate asks this what the workspace loads, and answers a specifier
+   * it does not sweep with "name it .css, or widen the sweep". Said about
+   * `import './polyfills'` that is a hard red on ordinary React code, and advice
+   * that would have the reader rename a TypeScript module to .css. */
+  assert.deepEqual(styleImportsIn("import './polyfills';\nimport './DataTable.css';"),
+    ['./DataTable.css']);
+  assert.deepEqual(styleImportsIn("import './setup';\nimport React from 'react';"), []);
+});
+
+test('a stylesheet is read as one whatever the extension and whatever binds it', () => {
+  /* Both halves are what this guard is for. A sheet renamed .pcss leaves the
+   * *.css sweep in silence, and the count that would notice is 0 either way — so
+   * missing it is the whole failure. And a CSS module is bound to a name rather
+   * than imported bare, which the pattern used to require. */
+  assert.deepEqual(styleImportsIn("import './DataTable.pcss';"), ['./DataTable.pcss']);
+  assert.deepEqual(styleImportsIn("import styles from './x.module.css';"), ['./x.module.css']);
+  assert.deepEqual(styleImportsIn('import "./a.scss";\nimport "./b.less";\nimport "./c.styl";'),
+    ['./a.scss', './b.less', './c.styl']);
 });
 
 /* A directory of source files, thrown away afterwards. The class scanner reads

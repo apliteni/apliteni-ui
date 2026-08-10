@@ -149,11 +149,27 @@ export function svgClassSet(dirs, exts = ['.js']) {
  * call `at` for every character that is not. Every split below is built on this,
  * because the characters that separate a selector are the same characters an
  * argument list is full of: the `>` in `:has(> .ui-table)` separates nothing and
- * the comma in `:where(ul, ol)` does not start a second selector. */
+ * the comma in `:where(ul, ol)` does not start a second selector.
+ *
+ * Quoted strings are stepped over as well, and for a sharper reason than the
+ * separators: `[data-x="]"]` closes no bracket, so counting that `]` takes the
+ * depth below zero and NOTHING after it is ever top level again. The leaf of
+ * `.a[data-x="]"] svg` stops being `svg`, the rule stops being an icon rule, and
+ * it leaves coverage in silence — no error, and no count moves to say so. */
 function scanTop(sel, at) {
   let depth = 0;
+  let quote = '';
   for (let i = 0; i < sel.length; i += 1) {
     const ch = sel[i];
+    if (quote) {
+      // A backslash escapes the next character, `\"` included, so the string
+      // does not end early. Both characters are handed on as ordinary content.
+      if (ch === '\\' && i + 1 < sel.length) { at(ch, false, i); i += 1; at(sel[i], false, i); continue; }
+      if (ch === quote) quote = '';
+      at(ch, false, i);
+      continue;
+    }
+    if (ch === '"' || ch === "'") { quote = ch; at(ch, false, i); continue; }
     if (ch === '(' || ch === '[') depth += 1;
     else if (ch === ')' || ch === ']') depth -= 1;
     at(ch, depth === 0 && !'()[]'.includes(ch), i);
@@ -207,11 +223,21 @@ const withoutArgs = (compound) => {
 /* The argument lists of the pseudo-classes that name what the subject may BE.
  * `:has()` and `:not()` are deliberately not among them: the first is about a
  * different element and the second says what the subject is not, so neither
- * makes the subject an icon however its argument reads. */
+ * makes the subject an icon however its argument reads.
+ *
+ * Which is why only the TOP level of the compound is collected. An `:is()`
+ * nested inside one of the excluded two is that pseudo's argument, not the
+ * subject's: `.a:not(:is(svg))` selects everything that is not an svg, and
+ * harvesting the `:is()` out of it turned that into an icon rule — a subject the
+ * gate then tried to mount, which hard-errors on the `:`. A red on correct CSS,
+ * from the one exclusion this function is built around. */
 function alternativesIn(compound) {
+  const top = new Set();
+  scanTop(compound, (_ch, isTop, i) => { if (isTop) top.add(i); });
   const out = [];
   const re = /:(?:is|where|matches)\(/g;
   for (let m = re.exec(compound); m; m = re.exec(compound)) {
+    if (!top.has(m.index)) { re.lastIndex = m.index + 1; continue; }
     let depth = 1;
     let i = m.index + m[0].length;
     const start = i;
@@ -345,38 +371,122 @@ function rawTextOf(sheet, name) {
  * as narrow as it is. */
 const AXES = [...LOGICAL_DIMS].map(([logical, physical]) => [physical, logical]);
 
-/* A block that names both spellings of one axis and repeats either of them,
- * which is the one shape the fold below cannot resolve.
+/* Every top-level block of a stylesheet's raw text, as [selector, body] — which
+ * is exactly the set foldLogicalDims() rewrites, and the reason the check below
+ * can be as narrow as it is.
  *
- * cssstyle keeps a repeated property once — in its FIRST position, carrying its
- * LAST value — so `width: 10px; inline-size: 33px; width: 12px` reaches the
- * CSSOM as `width: 12px; inline-size: 33px`. The fold reads position to decide
- * which declaration a browser takes, and the position it reads is now a
- * fabrication: it folds to 33px where a browser renders 12. That is a wrong
- * number rather than an error, so every gate would report it as a pass.
+ * A scan rather than a regex, because both halves are things `\{([^{}]*)\}` gets
+ * wrong. A `}` inside a string closes a block that is still open, so everything
+ * after it in that block goes unread — silently, and in the direction that
+ * passes. And the selector taken as "whatever precedes the brace" lands inside a
+ * string for `content: "{"`, or swallows the `@import` line above the rule, so a
+ * refusal names something the file does not contain.
  *
- * Nothing in the CSSOM can recover the order — rule.cssText is serialised from
- * the same deduplicated block — so this refuses instead of guessing. Repeating a
- * property with no logical twin beside it decides nothing the fold reads, and is
- * an ordinary fallback (`width: 100%; width: fit-content`), so it goes through.
- */
+ * Blocks nested inside another — inside `@media`, or under CSS nesting — are not
+ * reported at all: they are at brace depth 1 and the fold never reaches them.
+ * Each block says whether it HOLDS one, since the fold skips those too and a `{`
+ * looked for in the body text would find the one in `content: "{"`. */
+function topLevelBlocks(css) {
+  const out = [];
+  let depth = 0;
+  let quote = '';
+  let start = 0;
+  let bodyAt = 0;
+  let holdsBlock = false;
+  for (let i = 0; i < css.length; i += 1) {
+    const ch = css[i];
+    if (quote) {
+      if (ch === '\\') i += 1;
+      else if (ch === quote) quote = '';
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+    } else if (ch === '{') {
+      depth += 1;
+      if (depth === 1) { bodyAt = i + 1; holdsBlock = false; } else holdsBlock = true;
+    } else if (ch === '}') {
+      if (depth === 0) start = i + 1;
+      else {
+        depth -= 1;
+        if (depth === 0) {
+          out.push([css.slice(start, bodyAt - 1).trim(), css.slice(bodyAt, i), holdsBlock]);
+          start = i + 1;
+        }
+      }
+    } else if (ch === ';' && depth === 0) {
+      // A statement rather than a block — `@import`, `@charset`. The selector of
+      // the rule after it starts here.
+      start = i + 1;
+    }
+  }
+  return out;
+}
+
+/* A top-level block whose two spellings of one axis reach the fold in an order,
+ * or with an importance, the file does not declare — the one shape the fold
+ * cannot resolve.
+ *
+ * cssstyle keeps a repeated property once, in its FIRST position carrying its
+ * LAST value and its LAST importance. The fold reads position and importance to
+ * decide which declaration a browser takes, so it is right whenever that
+ * bookkeeping still describes the file, and wrong when it does not. Two ways it
+ * stops describing the file, and only two:
+ *
+ *   .a { width: 10px; inline-size: 33px; width: 12px }
+ *
+ * straddles — `width` sits on both sides of its twin, so keeping it in its first
+ * position moves it in front of a declaration the file puts it behind. A browser
+ * renders 12px and the fold gives 33. And
+ *
+ *   .a { width: 10px !important; width: 12px; inline-size: 33px }
+ *
+ * repeats a property whose importance changes between the repeats, so the last
+ * importance is not the one that wins: a browser renders 10px and the fold, told
+ * `width` is not important, hands the axis to `inline-size`. Both are wrong
+ * numbers rather than errors, which every gate would report as a pass, and
+ * nothing in the CSSOM can recover the truth — rule.cssText is serialised from
+ * the same deduplicated block. So this refuses rather than guessing.
+ *
+ * Every other repeat goes through, because the fold gets it right. All the
+ * repeats on one side of the twin is still the file's order after deduplication,
+ * whichever side that is; a repeat with no logical twin beside it decides
+ * nothing the fold reads and is an ordinary fallback (`width: 100%; width:
+ * fit-content`, or a px value ahead of a rem one).
+ *
+ * A straddle in a rule that sizes no icon is refused along with the rest. The
+ * fold does rewrite that rule and does get it wrong, and telling the two apart
+ * would mean handing this function the icon classes — which every gate derives,
+ * but two of them derive after they have folded. Refusing is the safe direction
+ * and the shape is vanishingly rare; widen the signature if it ever turns up. */
 function refuseRepeatedAxis(css, name) {
-  for (const m of css.matchAll(/\{([^{}]*)\}/g)) {
-    const counts = new Map();
-    for (const d of m[1].matchAll(declRe(SIZING_PROPS))) {
-      counts.set(d[1], (counts.get(d[1]) ?? 0) + 1);
+  for (const [selector, body, holdsBlock] of topLevelBlocks(css)) {
+    // Not a style rule, or a rule with a rule inside it — the fold skips both,
+    // and rulesOf() is what has something to say about the second.
+    if (selector.startsWith('@') || holdsBlock) continue;
+    const decls = new Map();
+    let n = 0;
+    for (const d of body.matchAll(declRe(SIZING_PROPS))) {
+      const list = decls.get(d[1]) ?? [];
+      list.push({ at: n, important: /!\s*important/i.test(d[2]) });
+      decls.set(d[1], list);
+      n += 1;
     }
     for (const axis of AXES) {
-      if (!axis.every((p) => counts.has(p))) continue;
-      const repeated = axis.find((p) => counts.get(p) > 1);
+      if (!axis.every((p) => decls.has(p))) continue;
+      const repeated = axis.find((p) => decls.get(p).length > 1);
       if (!repeated) continue;
-      const before = css.slice(0, m.index);
-      const sel = before.slice(Math.max(before.lastIndexOf('{'), before.lastIndexOf('}')) + 1).trim();
-      throw new Error(`${name}: "${sel}" declares ${repeated} twice in a block that also declares `
-        + `${axis.find((p) => p !== repeated)}. A browser takes the last of the two; the CSSOM this `
-        + 'gate reads keeps a repeated property once, in its first position with its last value, so '
-        + 'the order here is not the order the file declares and the fold would pick the wrong '
-        + 'winner and report it as a size. Declare the axis once.');
+      const [a, b] = axis.map((p) => decls.get(p));
+      const apart = a[a.length - 1].at < b[0].at || b[b.length - 1].at < a[0].at;
+      const steady = axis.every((p) => decls.get(p).every((d, _i, all) => d.important === all[0].important));
+      if (apart && steady) continue;
+      const other = axis.find((p) => p !== repeated);
+      throw new Error(`${name}: "${selector}" ${apart
+        ? `repeats ${repeated} with an !important on one of them and not the other, beside `
+          + `a declaration of ${other}`
+        : `declares ${repeated} both before and after ${other}`}. A browser takes the declaration `
+        + 'that wins on importance and then the last one; the CSSOM this gate reads keeps a '
+        + 'repeated property once, in its first position with its last value and its last '
+        + 'importance, so the fold would pick the winner out of an order this file does not '
+        + 'declare and report it as a size. Declare the axis once.');
     }
   }
 }
@@ -507,6 +617,25 @@ export function* rulesOf(sheet, name, classes) {
 export const importsIn = (css) => [...stripComments(css).matchAll(/@import\s+([^;]*)/g)]
   .map((m) => m[1].trim());
 
+/* The extensions a stylesheet is written under. The list is what lets the React
+ * gate tell `import './DataTable.pcss'` — a sheet its *.css sweep would miss, and
+ * the whole reason that guard exists — from `import './polyfills'`, which is a
+ * TypeScript module and no concern of a sweep for stylesheets. */
+const STYLE_EXTS = ['css', 'pcss', 'postcss', 'scss', 'sass', 'less', 'styl', 'stylus'];
+
+/* Every stylesheet a source file imports by a RELATIVE path, however it binds
+ * it: bare for the side effect, or to a name the way a CSS module is imported.
+ * A query suffix — `?inline`, `?raw` — is kept on the specifier, since it is
+ * part of what the bundler was asked for.
+ *
+ * Relative only. An import through a path alias (`@/styles/x.css`) resolves
+ * through tsconfig or the bundler's config, neither of which this reads, so it
+ * is not reported — and the gate's header says so rather than implying the
+ * sweep covers it. */
+export const styleImportsIn = (source) => [...source.matchAll(
+  new RegExp(String.raw`^\s*import\s+(?:[^'"]*\bfrom\s+)?['"](\.[^'"]+\.(?:${STYLE_EXTS.join('|')})(?:\?[^'"]*)?)['"]`,
+    'gm'))].map((m) => m[1]);
+
 export const IMPORT_REFUSAL = 'a stylesheet imports another sheet, and no gate here follows it — '
   + 'each composes the files it finds and nothing else, so the imported rules ship unmeasured. '
   + 'Import the sheet from the component or the page instead, so it is a file the sweep finds, or '
@@ -533,23 +662,79 @@ export function resolveInterpolations(body, source, depth = 0) {
   });
 }
 
+/* The CSS an expression states outright. A template literal and a quoted string
+ * both say it plainly; anything else — a call, a concatenation, a name from
+ * another file — is handed back as an interpolation so it reaches UNRESOLVED
+ * rather than silence. A string carrying a backslash goes the same way: `\7d` is
+ * a CSS escape and `\\n` is a JS one, and reading it as either would put a
+ * character in the CSS the file does not have. */
+function literalCss(expr) {
+  const text = expr.trim();
+  const template = text.match(/^`([\s\S]*)`$/);
+  if (template) return template[1];
+  const quoted = text.match(/^'([^'\\]*)'$/) ?? text.match(/^"([^"\\]*)"$/);
+  return quoted ? quoted[1] : `\${${text}}`;
+}
+
 /* A JSX expression container with its braces taken off. `.tsx` cannot write CSS
  * between the tags the way a template-literal story does — it writes
  * <style>{`…`}</style> — and handing those braces and backticks to a CSS parser
- * yields a block with no rules in it, which reads as a component with no CSS.
- * A container holding anything but a template literal is handed back as an
- * interpolation, so it reaches UNRESOLVED rather than silence. */
+ * yields a block with no rules in it, which reads as a component with no CSS. */
 function unwrapExpression(body) {
   const container = body.match(/^\s*\{([\s\S]*)\}\s*$/);
-  if (!container) return body;
-  const literal = container[1].trim().match(/^`([\s\S]*)`$/);
-  return literal ? literal[1] : `\${${container[1].trim()}}`;
+  return container ? literalCss(container[1]) : body;
+}
+
+/* The `__html` of every `<style dangerouslySetInnerHTML={{__html: …}} />`, with
+ * the span each one occupies. That is THE React idiom for injecting a CSS
+ * string, and the paired-tag pattern below cannot see it — a self-closing tag
+ * has nothing between it and `</style>` but the rest of the file, which the
+ * pattern would take in as CSS if a later block gave it a closing tag to reach.
+ * So these are read first and blanked out of the source the pattern then scans.
+ *
+ * The expression is found by balancing brackets rather than by matching to the
+ * first `}}`, because the CSS itself is full of braces. */
+function dangerousStyles(source) {
+  const found = [];
+  const open = /<style\b[^<]*?dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*/g;
+  for (let m = open.exec(source); m; m = open.exec(source)) {
+    let depth = 0;
+    let quote = '';
+    let i = m.index + m[0].length;
+    const start = i;
+    for (; i < source.length; i += 1) {
+      const ch = source[i];
+      if (quote) {
+        if (ch === '\\') i += 1;
+        else if (ch === quote) quote = '';
+      } else if (ch === '"' || ch === "'" || ch === '`') quote = ch;
+      else if ('([{'.includes(ch)) depth += 1;
+      else if (')]'.includes(ch)) depth -= 1;
+      else if (ch === '}') {
+        if (depth === 0) break;
+        depth -= 1;
+      }
+    }
+    if (i >= source.length) continue;
+    // Through the tag's own `>`, so the blanked span leaves nothing a later
+    // pattern can read as an opening tag.
+    const tagEnd = source.indexOf('>', i);
+    found.push({ expr: source.slice(start, i), at: m.index, to: (tagEnd === -1 ? i : tagEnd) + 1 });
+    open.lastIndex = i;
+  }
+  return found;
 }
 
 /** The CSS of every <style> block in a source file, resolved as far as it can be. */
 export function styleBlocksOf(source) {
-  return [...source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
-    .map((m) => resolveInterpolations(unwrapExpression(m[1]), source));
+  const dangerous = dangerousStyles(source);
+  let rest = source;
+  for (const { at, to } of dangerous) rest = rest.slice(0, at) + ' '.repeat(to - at) + rest.slice(to);
+  const paired = [...rest.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)]
+    .map((m) => ({ at: m.index, body: unwrapExpression(m[1]) }));
+  return [...dangerous.map(({ at, expr }) => ({ at, body: literalCss(expr) })), ...paired]
+    .sort((a, b) => a.at - b.at)
+    .map(({ body }) => resolveInterpolations(body, source));
 }
 
 /* Everything in one block of CSS that a gate cannot see the whole of, split into
@@ -634,7 +819,10 @@ export function mount(document, sel, classes) {
     if (/[[:*&\\]/.test(part)) {
       throw new Error(`unsupported selector part: ${part} (in ${sel}). This builds a chain of `
         + 'compound class/element parts and nothing else, so it cannot make an element this one '
-        + 'would match. Write the rule in a shape it can mount, or teach it this shape.');
+        + 'would match. Write the rule in a shape it can mount, or teach it this shape — except '
+        + 'for a state or a pseudo-element (`svg:hover`, `svg::before`), which no amount of '
+        + 'teaching reaches: jsdom has no pointer to hover with and no box for a pseudo-element, '
+        + 'so an icon sized in one is unmeasurable here rather than merely unmounted.');
     }
     const bare = part.replace(/\..*$/, '');
     const isSvg = bare === 'svg' || (!bare && part.split('.').slice(1).some((c) => classes.has(c)));

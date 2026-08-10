@@ -23,7 +23,9 @@
  * so react/src/primitives/ joins the sweep the day it grows a stylesheet, and
  * every <style> block written inside a .ts or .tsx there — the idiom the vanilla
  * stories already use, and one that would otherwise fall between this gate and
- * the stories/*.stories.js glob the surfaces gate runs on.
+ * the stories/*.stories.js glob the surfaces gate runs on. Both spellings of it:
+ * the CSS between the tags, and the string a `dangerouslySetInnerHTML` hands
+ * them, which is what React writes when the CSS is a value rather than markup.
  *
  * Discovery is what can narrow without saying so, and at a count of 0 there is
  * nothing else to notice with, so the two ways it narrows are asserted rather
@@ -83,8 +85,12 @@
  * right.
  *
  * WHAT THIS WILL NOT CATCH — the same weak claims as the two gates it joins, for
- * the same reasons, plus three of its own:
+ * the same reasons, plus four of its own:
  *
+ *  - A STYLESHEET IMPORTED THROUGH A PATH ALIAS. The import scan reads relative
+ *    specifiers, since `@/styles/x.css` resolves through tsconfig or the
+ *    bundler's config and this reads neither. Such a sheet is swept if it lives
+ *    under react/src and is named .css, and unswept without a word if it is not.
  *  - CSS ANYWHERE UNDER react/ EXCEPT react/src. A stylesheet added beside
  *    react/.storybook/preview.ts would render in the workspace's Storybook and be
  *    outside this sweep. react/src is where the components put their CSS and what
@@ -152,6 +158,7 @@ import {
   selectorParts,
   stripComments,
   styleBlocksOf,
+  styleImportsIn,
   svgClassSet,
   walk,
   without,
@@ -186,15 +193,14 @@ const isSource = (p) => /\.[cm]?[jt]sx?$/.test(p) && !isTest(p);
  * Path order, which is stable across machines in a way readdir order is not. */
 const REACT_SHEETS = REACT_FILES.filter((p) => p.endsWith('.css')).map(rel);
 
-/* Every stylesheet a React source imports for its side effects — the
- * `import './DataTable.css'` at the top of DataTable.tsx. That is the list the
- * workspace actually loads, and it is the only thing that can tell the sweep
- * above it read less than the workspace ships: rename DataTable.css to
- * DataTable.pcss and the glob halves in silence, because the count that would
- * notice is 0 before and after. */
+/* Every stylesheet a React source imports — the `import './DataTable.css'` at
+ * the top of DataTable.tsx. That is the list the workspace actually loads, and
+ * it is the only thing that can tell the sweep above it read less than the
+ * workspace ships: rename DataTable.css to DataTable.pcss and the glob halves in
+ * silence, because the count that would notice is 0 before and after. */
 const IMPORTED_SHEETS = [...new Set(REACT_FILES.filter(isSource)
-  .flatMap((p) => [...readFileSync(p, 'utf8').matchAll(/^\s*import\s+['"](\.[^'"]+)['"]/gm)]
-    .map((m) => rel(path.resolve(path.dirname(p), m[1])))))].sort();
+  .flatMap((p) => styleImportsIn(readFileSync(p, 'utf8'))
+    .map((spec) => rel(path.resolve(path.dirname(p), spec)))))].sort();
 
 /* And the CSS a component writes in a <style> block of its own, which is the
  * idiom this repo's vanilla stories already use and which react/src is free to
