@@ -49,6 +49,19 @@ export const CLAMP_PROPS = [
   'min-inline-size', 'max-inline-size', 'min-block-size', 'max-block-size',
 ];
 
+/* A declaration of one of `props`, matched in the raw text of a stylesheet
+ * rather than in the CSSOM — which is the only place some of them survive, since
+ * jsdom drops a declaration whose value it cannot parse and a surface that
+ * computes its value at render time hands it exactly that.
+ *
+ * Anchored on `;` or `{` so that `min-width` cannot be read as `width`. That
+ * anchor is the whole reason a caller can ask about SIZING_PROPS and CLAMP_PROPS
+ * separately and get two different answers, so scripts/lib/icon-cascade.test.js
+ * asserts it rather than trusting it. Fresh each call because the `g` flag makes
+ * lastIndex state a shared regex would carry between callers. */
+export const declRe = (props) => new RegExp(
+  `(?:^|[;{])\\s*(${props.join('|')})\\s*:\\s*([^;}]*)`, 'g');
+
 /* Build output and vendored code, skipped by directory name. Two of these exist
  * on a dev machine and never in CI, which is the dangerous shape: site/public/
  * is gitignored, and site/build.mjs folds the entire built Storybook into
@@ -144,8 +157,37 @@ function* everyRule(container) {
   }
 }
 
+/** An at-rule's prelude — `@media screen` out of `@media screen { … }`. */
+const preludeOf = (rule) => rule.cssText.slice(0, rule.cssText.indexOf('{')).trim();
+
+/* Every style rule inside a conditional group, at any depth, paired with the
+ * at-rules it sits under — innermost first, so a refusal can name them in the
+ * order a reader unwraps them.
+ *
+ * Depth is the point. jsdom parses `@layer x { @media screen { … } }` happily
+ * and applies none of it, so a rule buried two levels down contributes no
+ * subject, loses no contest and — until this recursed — drew no complaint
+ * either. Style rules are descended into as well, because CSS nesting puts a
+ * rule under a rule the same way. */
+function* nestedIn(group, chain) {
+  for (const rule of group.cssRules ?? []) {
+    if (rule.selectorText) yield [rule, chain];
+    if (rule.cssRules) {
+      yield* nestedIn(rule, rule.selectorText ? chain : [preludeOf(rule), ...chain]);
+    }
+  }
+}
+
 const FOLDED = new WeakSet();
 const AS_WRITTEN = new WeakMap();
+
+/* What a gate says when a stylesheet turns the axes the fold assumes. `what`
+ * names the declaration, since the two spellings are found in different places
+ * and only one of them can name the rule it sits in. */
+const writingModeRefusal = (name, what) => `${name}: ${what}. This gate folds inline-size onto `
+  + 'width and block-size onto height, which holds only while every icon is laid out '
+  + 'horizontally. Take the declaration out, or teach the gate to fold along the writing mode '
+  + 'each icon is actually in.';
 
 /* Rewrite `inline-size` onto `width` and `block-size` onto `height` in every
  * rule of `sheet`, so a logical declaration competes in the cascade jsdom does
@@ -173,13 +215,19 @@ export function foldLogicalDims(sheet, name) {
      * may be the vertical axis and folding it onto `width` measures the wrong
      * contest — quietly, and in the direction that passes. */
     const mode = rule.style?.getPropertyValue('writing-mode');
-    if (mode) {
-      throw new Error(`${name}: "${rule.selectorText}" declares writing-mode: ${mode}. This gate `
-        + 'folds inline-size onto width and block-size onto height, which holds only while every '
-        + 'icon is laid out horizontally. Take the declaration out, or teach the gate to fold '
-        + 'along the writing mode each icon is actually in.');
-    }
+    if (mode) throw new Error(writingModeRefusal(name, `"${rule.selectorText}" declares `
+      + `writing-mode: ${mode}`));
   }
+  /* And the same question of the sheet's raw text, because the CSSOM cannot
+   * answer it alone. jsdom drops `-webkit-writing-mode` outright — the rule
+   * carrying it reads as empty — and drops any value it does not recognise with
+   * it, so the loop above sees nothing in either case. Every browser that
+   * honours the prefixed spelling turns the axes exactly as the unprefixed one
+   * does, which is what the fold cannot survive. */
+  const prefixed = (sheet.ownerNode?.textContent ?? '')
+    .match(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/);
+  if (prefixed) throw new Error(writingModeRefusal(name, `a rule declares ${prefixed[1]}: `
+    + `${prefixed[2].trim()}, which jsdom parses away before this gate can read it`));
   for (const rule of sheet.cssRules) {
     // Only the rules a gate mounts. A logical declaration inside @media is left
     // as written for the guard in rulesOf() to find and refuse.
@@ -261,13 +309,12 @@ export function* rulesOf(sheet, name, classes) {
     // rules inside them even when the condition matches, so a sizing rule that
     // moved in here would become a permanent, misleading red.
     if (rule.cssRules) {
-      for (const inner of rule.cssRules) {
-        if (!inner.selectorText) continue;
+      for (const [inner, chain] of nestedIn(rule, [preludeOf(rule)])) {
         const sizes = SIZING_PROPS.some((d) => inner.style?.getPropertyValue(d));
         if (sizes && isSvgSubject(inner.selectorText, classes)) {
           throw new Error(`${name}: "${inner.selectorText}" sizes an icon inside `
-            + `"${rule.cssText.slice(0, 40)}…". jsdom does not apply conditional rules, so this `
-            + 'gate cannot measure it. Move it out or teach the gate.');
+            + `${chain.map((c) => `"${c}"`).join(' inside ')}. jsdom does not apply conditional `
+            + 'rules, so this gate cannot measure it. Move it out or teach the gate.');
         }
       }
     }

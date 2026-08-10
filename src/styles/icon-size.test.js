@@ -82,6 +82,23 @@
  *    icon today, and the test named `no rule in the kit sizes an icon with a
  *    clamp` is what keeps that sentence true — the first clamp to land on an
  *    icon fails this gate instead of passing quietly through it.
+ *  - AN ICON RESET BY `all`. `all: unset`, `all: revert` and `all: initial` each
+ *    take `width` back to `auto` in a browser, so a rule carrying one decides
+ *    the icon by unsaying the reset. jsdom keeps `all` in the CSSOM and expands
+ *    it into nothing, so the element still computes the reset's 1.1em here and
+ *    the rule is neither a subject nor a refusal. It is named rather than gated
+ *    on the same argument as the clamp above — there is no contest inside
+ *    `width`'s cascade for this gate to hold, only a shorthand jsdom leaves
+ *    unresolved.
+ *  - AN ICON SIZED AROUND `width` ALTOGETHER — `zoom`, `transform: scale()`,
+ *    `aspect-ratio`, `contain-intrinsic-size`. None of them enters `width`'s
+ *    cascade, and jsdom has no layout for any of them to act in. `aspect-ratio`
+ *    is the sharp one, because `.x svg { width: 20px; aspect-ratio: 1 }` derives
+ *    the height from the width: the height a browser renders is decided by a
+ *    rule this gate reads as setting a width and nothing else. Whether any of
+ *    these should eventually be refused the way a clamp is has not been
+ *    decided; naming them is what stops this gate's silence reading as
+ *    coverage.
  *  - Layout. jsdom has none, so `width: 100%` reads back as the string `100%`.
  *    That proves the rule won, and says nothing about the pixels on screen.
  *  - Markup. A rule can apply perfectly and never meet an element, because
