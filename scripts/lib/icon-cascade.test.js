@@ -549,10 +549,22 @@ test('a value nothing could resolve is left to the blind-spot machinery', () => 
 });
 
 test('a value named only inside a comment is not read as a dropped declaration', () => {
-  // The raw text is where a comment still lives, and a commented-out rule is not
-  // a rule — the same argument stripComments() carries everywhere else.
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { /* width: fit-content(20%) */ height: 12px }'),
-    []);
+  /* The raw text is where a comment still lives, and a commented-out rule is not
+   * a rule — the same argument stripComments() carries everywhere else.
+   *
+   * The commented-out declarations keep their own trailing `;`, because that
+   * semicolon is the whole of what makes this a test. declRe() anchors a property
+   * on `{` or `;`, so a property named in a comment that holds neither is already
+   * invisible to the pattern, and a fixture built from one reads the same whether
+   * the comments were stripped or left exactly where they were. */
+  assert.deepEqual(droppedDecls('probe.css',
+    '.zz svg { height: 12px; /* width: 12px; height: fit-content(20%) */ }', new Set()), []);
+  /* The other edge of that same anchor, and the reason stripping beats widening
+   * the pattern: a comment sitting between `{` and the first declaration hides
+   * that declaration too. Cutting the comment out is what keeps a genuinely
+   * dropped value from going quiet behind a note about it. */
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { /* the chevron */ width: fit-content(20%) }',
+    new Set()), ['probe.css: .zz svg { width: fit-content(20%) }']);
 });
 
 test('an icon named inside :is() or :where() is refused by mount, and says why', () => {
@@ -575,9 +587,13 @@ test('an icon named inside :is() or :where() is refused by mount, and says why',
 
 /* A data URI carrying an inline `style` attribute — the shape src/styles/input.css
  * writes for the select chevron, with the two attributes moved into a style. Valid
- * CSS, no icon anywhere in it, and to a pattern that does not know where a string
- * starts it holds two declarations. */
-const DATA_URI = ".ui-select { background-image: url(\"data:image/svg+xml,%3Csvg "
+ * CSS, no icon anywhere in the string, and to a pattern that does not know where a
+ * string starts it holds two declarations.
+ *
+ * ON AN ICON SELECTOR, because the scan is scoped to the rules that decide an icon
+ * and a rule this scan skips proves nothing about how it reads a string. The `svg`
+ * leaf is what carries it past that guard and into the text. */
+const DATA_URI = ".ui-select svg { background-image: url(\"data:image/svg+xml,%3Csvg "
   + "style='height:12px;width:12px'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\") }";
 
 test('a sizing declaration written inside a string is not a declaration', () => {
@@ -585,9 +601,14 @@ test('a sizing declaration written inside a string is not a declaration', () => 
    * string in that text is content rather than CSS. Read as CSS it is a rule the
    * gate then refuses — a red on correct code, which is how a gate gets switched
    * off. Both the shapes this repo already has: a data URI holding an inline
-   * style, and a `content` string holding a brace. */
+   * style, and a `content` string holding a brace.
+   *
+   * Both fixtures are icon rules, by the two routes into the scan — an `svg` leaf
+   * and a class the kit puts on an svg — so each one reaches the string rather
+   * than being turned back at the door. */
   assert.deepEqual(droppedDecls('probe.css', DATA_URI, new Set()), []);
-  assert.deepEqual(droppedDecls('probe.css', '.a::after { content: "{ width: 5px" }', new Set()), []);
+  assert.deepEqual(droppedDecls('probe.css', '.a::after { content: "{ width: 5px" }',
+    new Set(['a'])), []);
 });
 
 test('a straddle written inside a string is not a straddle', () => {
