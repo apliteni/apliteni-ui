@@ -24,30 +24,23 @@ import path from 'node:path';
 
 /* The two dimensions every contest here is decided in. A rule can name either of
  * them in two spellings, and the second spelling is why this file has a
- * normalization step. `inline-size` and `block-size` share a computed value with
- * `width` and `height` and cascade as one with them, so
- * `.x svg { inline-size: 21px }` at (0,1,1) beats the reset's `width` at (0,0,1)
- * and decides the icon exactly as a physical declaration would.
- *
- * jsdom does not model that sharing. It keeps `inline-size` in a cascade of its
- * own that `width` never enters, so a logical declaration measured as written
- * wins every contest it is in — including the ones a browser makes it lose,
- * which is a gate that cannot fail. foldLogicalDims() rewrites the declaration
- * onto its physical counterpart before anything is measured, and the contest
- * that gets measured is then the one the browser holds. */
+ * normalization step: jsdom keeps `inline-size` in a cascade of its own that
+ * `width` never enters, so a logical declaration measured as written wins every
+ * contest it is in, including the ones a browser makes it lose.
+ * foldLogicalDims() rewrites it onto its physical counterpart before anything is
+ * measured. The argument is under TWO SPELLINGS, ONE CONTEST in the header of
+ * src/styles/icon-size.test.js. */
 export const DIMS = ['width', 'height'];
 export const LOGICAL_DIMS = new Map([['inline-size', 'width'], ['block-size', 'height']]);
 
 /** Both spellings, for the checks that read a rule before it has been folded. */
 export const SIZING_PROPS = [...DIMS, ...LOGICAL_DIMS.keys()];
 
-/* Sizing an icon by clamping it, which neither gate measures anything about: a
- * clamp never enters `width`'s cascade, so the reset still wins `width` and the
- * clamp applies to the used value afterwards — and jsdom has no layout to apply
- * it in. Each gate asserts this list lands on no icon, which is how a clamp on
- * an icon reaches a reader instead of passing in silence. Both spellings again,
- * for the same reason as above: `min-inline-size` is `min-width` while the
- * writing mode is horizontal. */
+/* Sizing an icon by clamping it, which no gate measures anything about — the
+ * argument is in CLAMP_REFUSAL below. Each gate asserts this list lands on no
+ * icon, which is how a clamp on an icon reaches a reader instead of passing in
+ * silence. Both spellings again, for the same reason as above:
+ * `min-inline-size` is `min-width` while the writing mode is horizontal. */
 export const CLAMP_PROPS = [
   'min-width', 'max-width', 'min-height', 'max-height',
   'min-inline-size', 'max-inline-size', 'min-block-size', 'max-block-size',
@@ -201,7 +194,7 @@ const writingModeRefusal = (name, what) => `${name}: ${what}. This gate folds in
 
 /* Rewrite `inline-size` onto `width` and `block-size` onto `height` in every
  * rule of `sheet`, so a logical declaration competes in the cascade jsdom does
- * model. Both gates run this over every sheet of a document as they build it,
+ * model. Every gate runs this over every sheet of a document as it builds it,
  * and rulesOf() refuses a sheet that has not been through it.
  *
  * Before anything is measured, and that ordering is load-bearing: jsdom clears
@@ -271,7 +264,7 @@ export const writtenAs = (rule, dim) => AS_WRITTEN.get(rule)?.[dim] ?? dim;
 
 /* Every clamp this sheet puts on an icon, named the way a gate reports it.
  * Conditional groups included: a clamp inside @media is exactly as unmeasured as
- * one outside, and the reader deserves to hear about it from the same place. */
+ * one outside, so both are reported from the same place. */
 export function clampsOn(sheet, name, classes) {
   const found = [];
   for (const rule of everyRule(sheet)) {
@@ -288,8 +281,8 @@ export function clampsOn(sheet, name, classes) {
   return found;
 }
 
-/** What a gate says when a clamp lands on an icon. Both gates say it. */
-export const CLAMP_REFUSAL = 'a rule sizes an icon by clamping it, and neither gate can tell you '
+/** What a gate says when a clamp lands on an icon. All three gates say it. */
+export const CLAMP_REFUSAL = 'a rule sizes an icon by clamping it, and no gate can tell you '
   + 'what that does. A min-/max- declaration never enters width\'s cascade: the reset still wins '
   + 'width, the clamp applies to the used value afterwards, and jsdom has no layout to apply it '
   + 'in — so the icon renders at a size no rule these gates can read decides. Size the icon with '
@@ -371,12 +364,12 @@ export function resolve(getComputedStyle, el, dim, value) {
    * Belt-and-braces rather than the mechanism, though: without() catches that
    * same regression on its own, so the flag is not what makes an `!important`
    * reset detectable. What it buys is which assertion fires. Putting
-   * `!important` on base.css's two reset declarations fails both gates by the
-   * same counts either way — 56 here and 15 on the surfaces gate — but with the
-   * flag every gate-1 failure reads "the cascade gives 110px", naming the rule
-   * that won, and without it they read "changes nothing", which describes a
-   * symptom and sends the reader looking for a redundant rule rather than an
-   * important one. */
+   * `!important` on base.css's two reset declarations fails the kit gate and the
+   * surfaces gate by the same counts either way — 56 and 15, the React gate
+   * having no subject to fail — but with the flag every kit-gate failure reads
+   * "the cascade gives 110px", naming the rule that won, and without it they
+   * read "changes nothing", which describes a symptom and sends the reader
+   * looking for a redundant rule rather than an important one. */
   probe.style.setProperty(dim, value, 'important');
   el.parentNode.appendChild(probe);
   const got = getComputedStyle(probe).getPropertyValue(dim);

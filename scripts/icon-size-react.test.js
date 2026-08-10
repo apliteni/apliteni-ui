@@ -20,8 +20,7 @@
  * copied, so the three gates cannot drift into measuring different things.
  *
  * IT DISCOVERS, IT DOES NOT ENUMERATE. Every *.css under react/src, at any depth,
- * so react/src/primitives/ joins the sweep the day it grows a stylesheet. There is
- * no list of filenames below.
+ * so react/src/primitives/ joins the sweep the day it grows a stylesheet.
  *
  * ONE CASCADE, NOT ONE DOCUMENT PER FILE. Every one of those sheets is imported by
  * a component, tsup concatenates them into a single react/dist/index.css, and the
@@ -50,16 +49,18 @@
  * `rgba(0, 0, 0, .55)`, one-liners expand — but preserves the rules and their
  * values, so the contest is the same one. If the build ever starts lowering
  * syntax, this gate and the sheet that ships through the ./react/css export could
- * disagree, and this is the paragraph that says where to look.
+ * disagree — look here first.
  *
  * THE COUNT STARTS AT ZERO, which is the dangerous part. No React stylesheet
  * carries an svg rule today, so `collected 0, expected 0` is what a healthy gate
- * says and also what a gate that read nothing at all says. Five assertions stand
+ * says and also what a gate that read nothing at all says. Six assertions stand
  * between those two: the sweep found stylesheets, the kit's sheets are in the
  * document, its reset still reaches a bare icon there, preview.ts still imports
- * the kit's CSS at all, and no sizing declaration in those files is one the parser
- * threw away or one this gate never opened. Take any of them out and this file
- * goes back to being ornamental.
+ * the kit's CSS at all, the class scanner still finds a class the kit puts on an
+ * svg — returning nothing would take every class-on-svg rule out of coverage and
+ * leave the count at the same healthy-looking zero — and no sizing declaration in
+ * those files is one the parser threw away or one this gate never opened. Take any
+ * of them out and this file goes back to being ornamental.
  *
  * WHAT THIS WILL NOT CATCH — the same weak claims as the two gates it joins, for
  * the same reasons, plus three of its own:

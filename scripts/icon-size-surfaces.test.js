@@ -19,7 +19,7 @@
  * question of them: mount an element matching the rule's selector against the
  * kit's real stylesheets plus that surface's own CSS, and read getComputedStyle
  * back. The machinery is imported from scripts/lib/icon-cascade.js rather than
- * copied, so the two gates cannot drift into measuring different things.
+ * copied, so the three gates cannot drift into measuring different things.
  *
  * IT DISCOVERS, IT DOES NOT ENUMERATE. This is the property that matters most
  * here, because the defect being fixed was an undercount: a header that named
@@ -39,14 +39,11 @@
  * that stops carrying an icon rule leaves the count, and the count is asserted.
  *
  * THE REACT WORKSPACE IS NOT ONE OF THESE SURFACES, and that is a decision rather
- * than an oversight. react/.storybook/preview.ts imports the kit's CSS as well, so
- * React stories do render against the same reset — but their CSS sits in
- * react/src/*.css files that components import, and this file extracts rules from
- * <style> blocks written inside story sources, so there is nothing here for it to
- * read. It is gated by scripts/icon-size-react.test.js, on the same machinery,
- * with a count of its own: folded in here it would share this file's count, and a
- * React rule dropping out of coverage while a site rule arrived would leave the
- * number where it was and the tripwire silent.
+ * than an oversight. Its CSS sits in react/src/*.css files that components import,
+ * and this file extracts rules from <style> blocks written inside story sources,
+ * so there is nothing here for it to read. It has a gate of its own, on the same
+ * machinery and with a count of its own — scripts/icon-size-react.test.js says
+ * why the count is kept separate.
  *
  * NO BUILT SITE. The pages are composed from source, not read out of
  * site/public/. CI runs `npm test` before `npm run build-storybook` and never
@@ -80,33 +77,19 @@
  *    `var(--ic-size)`, because jsdom substitutes no custom properties at all.
  *    The contest is still decided correctly — a reset that won would compute to
  *    `1.1em` and not match — but nothing here proves what --ic-size holds.
- *  - an icon sized by a clamp. `min-width` / `max-width` / `min-height` /
- *    `max-height` and their logical spellings never enter `width`'s cascade, so
- *    the reset still wins `width` and the clamp applies to the used value
- *    afterwards — there is no contest here to measure, and no layout in jsdom to
- *    apply the clamp in. No surface clamps an icon today, and the test named
- *    `no surface the kit renders sizes an icon with a clamp` is what keeps that
- *    true rather than merely current. That test reads the parsed sheet, so a
- *    clamp whose value a surface computes at render time is invisible to it —
- *    jsdom drops the declaration first. The interpolation test below catches
- *    that one out of the raw text instead.
- *  - an icon reset by `all`. `all: unset`, `all: revert` and `all: initial` each
- *    take `width` back to `auto` in a browser, so a rule carrying one decides
- *    the icon by unsaying the reset. jsdom keeps the shorthand and expands it
- *    into nothing, so the element still computes the reset here and the rule is
- *    neither a subject nor a refusal.
- *  - an icon sized around `width` altogether — `zoom`, `transform: scale()`,
- *    `aspect-ratio`, `contain-intrinsic-size`. None of them enters `width`'s
- *    cascade, and jsdom has no layout for any of them to act in. `aspect-ratio`
- *    is the sharp one, because `.x svg { width: 20px; aspect-ratio: 1 }` derives
- *    the height from the width: the height a browser renders is decided by a
- *    rule this gate reads as setting a width and nothing else. Both families are
- *    named rather than gated on the argument the clamp above makes, and whether
- *    they should eventually be refused is open.
+ *  - an icon sized by a clamp. No surface clamps an icon today, and the test
+ *    named `no surface the kit renders sizes an icon with a clamp` is what keeps
+ *    that true rather than merely current. That test reads the parsed sheet, so
+ *    a clamp whose value a surface computes at render time is invisible to it;
+ *    the interpolation test below catches that one out of the raw text instead.
+ *    The argument is in CLAMP_REFUSAL.
+ *  - an icon reset by `all`, and an icon sized around `width` altogether —
+ *    `zoom`, `transform: scale()`, `aspect-ratio`, `contain-intrinsic-size`.
+ *    Named rather than gated, for the reasons src/styles/icon-size.test.js gives.
  *
  * A rule written with `inline-size` or `block-size` IS measured, on the same
- * terms as its physical twin and named the way the file spells it. Both gates
- * fold the declaration onto its physical counterpart first, because jsdom would
+ * terms as its physical twin and named the way the file spells it. Every gate
+ * folds the declaration onto its physical counterpart first, because jsdom would
  * otherwise let it win contests a browser makes it lose; the argument, and the
  * writing-mode precondition the fold rests on, are in the header of
  * src/styles/icon-size.test.js.
@@ -172,13 +155,10 @@ const EXPECTED_SUBJECTS = 14;
  * that was never there. Kept as a marker so the assertion below can refuse it. */
 const UNRESOLVED = 'ui-unresolved-interpolation';
 
-/* A sizing declaration and a clamp, each as the file writes it. jsdom drops a
- * declaration whose value it cannot parse, so `inline-size: ${X}px` never
- * reaches the CSSOM the loop above reads and the raw text is the only place it
- * still exists — and a clamp written that way is the one shape the clamp test
- * cannot see at all, since that test reads the parsed sheet. Two patterns rather
- * than one because the two findings send their reader somewhere different; the
- * assertions below say where. */
+/* A sizing declaration and a clamp, each as the file writes it — read out of the
+ * raw text, which is the only place a declaration whose value a surface computes
+ * at render time still exists. Two patterns rather than one because the two
+ * findings send their reader somewhere different. */
 const SIZING_DECL = declRe(SIZING_PROPS);
 const CLAMP_DECL = declRe(CLAMP_PROPS);
 
@@ -382,7 +362,7 @@ test('nothing that sizes an icon is hidden behind an interpolation this gate can
       }
       /* And the clamps, kept in a list of their own because they ask for
        * something different. A width this file could not read is a gap in
-       * resolveInterpolations and nothing more; a clamp is a shape neither gate
+       * resolveInterpolations and nothing more; a clamp is a shape no gate
        * measures at all, so resolving it is only the first half of the answer
        * and the clamp test is the second. Until it resolves, neither half can
        * run: jsdom drops the declaration, so clampsOn() reads a sheet it is not
@@ -412,7 +392,7 @@ test('nothing that sizes an icon is hidden behind an interpolation this gate can
     + 'cannot parse, so the test named `no surface the kit renders sizes an icon with a clamp` '
     + 'reads a sheet this declaration is no longer in, and the raw text above is the only place '
     + 'it survives. Teach resolveInterpolations() and the two of them can then say whether this '
-    + 'clamp lands on an icon — and if it does, that test refuses it, because neither gate '
+    + 'clamp lands on an icon — and if it does, that test refuses it, because no gate '
     + 'measures anything about a clamp. The argument is in CLAMP_REFUSAL.');
 });
 
