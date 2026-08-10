@@ -314,16 +314,17 @@ test('nothing that sizes an icon is hidden behind an interpolation this gate can
   assert.deepEqual(clampedBlind, [], CLAMPED_BLIND_REFUSAL);
 });
 
-test('no sizing declaration on a surface is one this gate cannot read', () => {
+test('no icon on a surface is sized by a value this gate cannot read', () => {
   /* The count above moves when a subject appears or disappears, and a rule jsdom
    * refused to parse is neither: `width: fit-content(20%)` in a page's <style>
    * block reaches the CSSOM as a rule that sizes nothing, so the page ships it,
    * the browser applies it and the number stays put. Asked of the raw text, which
-   * is the one place the declaration still exists. A value hidden behind an
-   * interpolation is left to the test above, which can say what is wrong with
-   * it. */
+   * is the one place the declaration still exists, and of the rules that decide
+   * an icon — a page sizing a layout with a bare `env()` is writing CSS this gate
+   * has no business refusing. A value hidden behind an interpolation is left to
+   * the test above, which can say what is wrong with it. */
   const dropped = CHUNKS.flatMap(({ from, blocks }) => blocks
-    .flatMap((css) => droppedDecls(from, css)));
+    .flatMap((css) => droppedDecls(from, css, SVG_CLASSES)));
   assert.deepEqual(dropped, [], DROPPED_REFUSAL);
 });
 

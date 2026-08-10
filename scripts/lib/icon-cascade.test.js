@@ -476,16 +476,6 @@ test('a class only a test writes onto an svg is skipped whatever the extension',
   }
 });
 
-test('a sizing value jsdom cannot parse is reported rather than reading as no rule at all', () => {
-  /* The hole this closes. jsdom drops a declaration whose value it cannot parse,
-   * so the rule carrying it reaches the CSSOM sizing nothing — it contributes no
-   * subject, and a subject count only moves when a subject appears or
-   * disappears, so an added-and-dropped rule leaves the count exactly where it
-   * was. Green build, live rule, nothing measuring it. */
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { width: fit-content(20%); height: 12px }'),
-    ['probe.css: width: fit-content(20%)']);
-});
-
 test('a logical declaration is asked about the property the fold lands it on', () => {
   /* cssstyle waves `inline-size` through whatever the value, so asked under the
    * name the file spells it this declaration survives — and then foldLogicalDims()
@@ -493,28 +483,56 @@ test('a logical declaration is asked about the property the fold lands it on', (
    * question is whether the declaration survives into the cascade the gate
    * measures, and that cascade is the physical one. Reported under the spelling
    * the file uses, since that is what the reader has to go and find. */
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { inline-size: fit-content(20%) }'),
-    ['probe.css: inline-size: fit-content(20%)']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { inline-size: fit-content(20%) }', new Set()),
+    ['probe.css: .zz svg { inline-size: fit-content(20%) }']);
 });
 
 test('a clamp jsdom cannot parse is reported too', () => {
   // Same silence, one property list over. A clamp that never reaches the CSSOM
   // is a clamp `no rule sizes an icon with a clamp` cannot find.
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { min-width: 20sp }'),
-    ['probe.css: min-width: 20sp']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { min-width: 20sp }', new Set()),
+    ['probe.css: .zz svg { min-width: 20sp }']);
 });
 
-test('the values the kit already writes are not read as dropped', () => {
+/* Values a browser resolves and this guard must not refuse. It asks jsdom
+ * whether a declaration survived being parsed, which is the right question and
+ * one whose answer moves with the parser rather than with CSS — so the list is
+ * long on purpose. `var()`, `calc()` and the viewport units are what the kit
+ * writes today; the container and font-relative units, the newer math
+ * functions and the wide keywords are what somebody writes next. Every one of
+ * them refused is a red on correct code, and a gate that does that gets
+ * switched off. */
+const RESOLVABLE = [
+  'width: var(--ic-size)', 'width: var(--a, var(--b, 3px))', 'height: calc(1em + 2px)',
+  'width: calc(100% - env(safe-area-inset-left))', 'width: clamp(1px, 2vw, 3px)',
+  'height: min(10px, 2em)', 'width: max(4px, 1vw)', 'width: round(1.2px, 1px)',
+  'width: mod(5px, 2px)', 'width: abs(-5px)', 'height: 10dvh', 'height: 10svh',
+  'height: 10lvh', 'width: 10cqi', 'width: 10cqw', 'height: 10lh',
+  'width: -webkit-fill-available', 'width: fit-content', 'width: max-content',
+  'width: 1.25rem !important', 'width: inherit', 'width: initial', 'width: unset',
+  'width: revert', 'width: revert-layer', 'aspect-ratio: 1 / 1', 'width: 100%',
+  'height: 1.1em', 'height: 17px', 'inline-size: 33px', 'block-size: 34px',
+  'min-width: 4px', 'max-inline-size: 5px',
+];
+
+test('the values a browser resolves are not read as dropped, on an icon or off one', () => {
   /* The other direction, and the one that decides whether this guard survives
-   * contact with the repo. A gate that reds on `var()` or `calc()` is a gate
-   * somebody switches off. */
-  assert.deepEqual(droppedDecls('probe.css',
-    '.a svg { width: var(--ic-size); height: calc(1em + 2px) }'
-    + '.b svg { width: clamp(1px, 2vw, 3px); height: min(10px, 2em) }'
-    + '.c svg { width: 100%; height: 1.1em }'
-    + '.d svg { width: 1.25rem !important; height: 17px }'
-    + '.e svg { inline-size: 33px; block-size: 34px }'
-    + '.f svg { min-width: 4px; max-inline-size: 5px }'), []);
+   * contact with the repo. Asked on an icon selector, where the guard does its
+   * work, and on a selector with no icon in it, where it must now stay quiet
+   * whatever the value — `width: env(safe-area-inset-left)` on a drawer and
+   * `CALC(…)` on a toast are values jsdom really does drop, and neither is any
+   * business of an icon gate. */
+  const classes = new Set(['ic']);
+  for (const decl of RESOLVABLE) {
+    assert.deepEqual(droppedDecls('probe.css', `.a svg { ${decl} }`, classes), [],
+      `"${decl}" reads as a value jsdom threw away`);
+  }
+  for (const decl of [...RESOLVABLE, 'width: env(safe-area-inset-left)',
+    'width: anchor-size(width)', 'height: CALC(1px + 2px)', 'width: MIN(1px, 2px)',
+    'width: Var(--x)', 'width: fill-available']) {
+    assert.deepEqual(droppedDecls('probe.css', `.ui-drawer { ${decl} }`, classes), [],
+      `"${decl}" on a rule with no icon in it reds a gate that measures icons`);
+  }
 });
 
 test('a value nothing could resolve is left to the blind-spot machinery', () => {
@@ -524,7 +542,8 @@ test('a value nothing could resolve is left to the blind-spot machinery', () => 
    * blindSpots() owns that one, because it can say what is actually wrong with
    * it. A genuinely dropped declaration beside it is still reported. */
   const css = `.zz svg { width: ${UNRESOLVED}px; height: fit-content(20%) }`;
-  assert.deepEqual(droppedDecls('probe.css', css), ['probe.css: height: fit-content(20%)']);
+  assert.deepEqual(droppedDecls('probe.css', css, new Set()),
+    ['probe.css: .zz svg { height: fit-content(20%) }']);
   assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
     [`probe.css: width: ${UNRESOLVED}px`]);
 });
@@ -552,6 +571,93 @@ test('an icon named inside :is() or :where() is refused by mount, and says why',
       + 'make it, so the reader cannot tell a gap from a bug');
     return true;
   });
+});
+
+/* A data URI carrying an inline `style` attribute — the shape src/styles/input.css
+ * writes for the select chevron, with the two attributes moved into a style. Valid
+ * CSS, no icon anywhere in it, and to a pattern that does not know where a string
+ * starts it holds two declarations. */
+const DATA_URI = ".ui-select { background-image: url(\"data:image/svg+xml,%3Csvg "
+  + "style='height:12px;width:12px'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\") }";
+
+test('a sizing declaration written inside a string is not a declaration', () => {
+  /* The raw-text scans read the text a browser hands to a CSS parser, and a
+   * string in that text is content rather than CSS. Read as CSS it is a rule the
+   * gate then refuses — a red on correct code, which is how a gate gets switched
+   * off. Both the shapes this repo already has: a data URI holding an inline
+   * style, and a `content` string holding a brace. */
+  assert.deepEqual(droppedDecls('probe.css', DATA_URI, new Set()), []);
+  assert.deepEqual(droppedDecls('probe.css', '.a::after { content: "{ width: 5px" }', new Set()), []);
+});
+
+test('a straddle written inside a string is not a straddle', () => {
+  /* Same blindness, one scan over. `content` here holds a second `width` that
+   * sits after `inline-size`, so the axis reads as declared on both sides of its
+   * twin and the fold refuses a block a browser resolves without ambiguity. */
+  assert.doesNotThrow(() => foldLogicalDims(
+    sheetOf('.a svg { width: 10px; inline-size: 33px; content: ";width: 12px" }'), 'probe.css'));
+});
+
+test('a writing mode named inside a string is not a declaration either', () => {
+  /* The prefixed spelling is looked for in the raw text because jsdom parses it
+   * away, and the raw text is where a string lives too. An inline style inside a
+   * data URI is the shape that carries one, and refusing it stops the fold over
+   * a sheet whose every icon is laid out horizontally. */
+  assert.doesNotThrow(() => foldLogicalDims(
+    sheetOf(".a::after { content: '; -webkit-writing-mode: vertical-rl' }"), 'probe.css'));
+});
+
+test('an @import named inside a string is not an import', () => {
+  // Same scan, same string, and this one is a hard refusal on a sheet that
+  // imports nothing at all.
+  assert.deepEqual(importsIn('.a::after { content: "@import zz" }'), []);
+});
+
+test('an interpolation inside a string is not a value the gate is blind to', () => {
+  // A surface can interpolate into a data URI as readily as into a size, and
+  // what comes out is an image, not a width nobody could resolve.
+  const css = `.zz { background-image: url("%3Csvg style='height:12px;width:${UNRESOLVED}px'%3E") }`;
+  assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)), { blind: [], clampedBlind: [] });
+});
+
+test('a dropped declaration on a rule that touches no icon is not refused', () => {
+  /* The question — did jsdom keep this declaration — is worth asking of a rule
+   * that decides an icon and of nothing else. Asked of every rule in the sheet it
+   * reds on `width: env(safe-area-inset-left)` on a drawer, which is ordinary CSS
+   * with no icon in it, and on uppercase function names besides. */
+  assert.deepEqual(droppedDecls('probe.css', '.ui-drawer { width: env(safe-area-inset-left) }',
+    new Set(['ic'])), []);
+  assert.deepEqual(droppedDecls('probe.css', '.ui-tip { max-width: anchor-size(width) }',
+    new Set(['ic'])), []);
+  assert.deepEqual(droppedDecls('probe.css', '.ui-toast { height: CALC(1px + 2px) }',
+    new Set(['ic'])), []);
+});
+
+test('a dropped declaration on an icon rule is refused, and named with its selector', () => {
+  /* The other half, and the whole point of the guard: a rule that decides an icon
+   * and reaches the CSSOM sizing nothing. It is named with the selector now,
+   * because the scan has one — the message used to say "sizes something" for want
+   * of it, which sends the reader through the file looking for the rule. Both
+   * shapes an icon rule takes: an `svg` leaf, and a class the kit puts on an svg. */
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { width: fit-content(20%); height: 12px }',
+    new Set(['ic'])), ['probe.css: .zz svg { width: fit-content(20%) }']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz .ic { min-width: 20sp }', new Set(['ic'])),
+    ['probe.css: .zz .ic { min-width: 20sp }']);
+});
+
+test('a dropped declaration this gate cannot scope to a rule stays loud', () => {
+  /* Scoping asks a selector whether it targets an icon, so the shapes with no
+   * selector to ask are the shapes scoping would silence. A rule inside a
+   * conditional group is one — the block's own selector is the at-rule, and the
+   * rule is somewhere in its body. A selector computed at render time is another:
+   * "not an icon" there is a guess, not an answer. Both are reported with the
+   * ground they sit on named, since that is what the reader has to go and open. */
+  assert.deepEqual(
+    droppedDecls('probe.css', '@media screen { .drawer { width: fit-content(20%) } }', new Set()),
+    ['probe.css: @media screen { width: fit-content(20%) }']);
+  assert.deepEqual(
+    droppedDecls('probe.css', `.a${UNRESOLVED} { width: fit-content(20%) }`, new Set()),
+    [`probe.css: .a${UNRESOLVED} { width: fit-content(20%) }`]);
 });
 
 test('a declaration pattern reads min-width as a clamp and never as a width', () => {
