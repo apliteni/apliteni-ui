@@ -121,19 +121,56 @@ test('a block that straddles one axis with both spellings is refused', () => {
     /declares inline-size both before and after width/);
 });
 
-test('a repeat whose importance changes between the repeats is refused too', () => {
-  /* The other half of the same bookkeeping. Deduplication keeps the LAST
-   * importance, which here is not the one that wins: a browser renders 10px, and
-   * the fold — told `width` is not important — hands the axis to `inline-size`.
-   * Position alone would call this safe, since both widths sit before it. */
-  assert.throws(
-    () => foldLogicalDims(
-      sheetOf('.a svg { width: 10px !important; width: 12px; inline-size: 33px }'), 'probe.css'),
-    /!important/);
-  // Steady importance across the repeats is read correctly and goes through.
+test('a repeat that leaves its !important behind is refused, twin or no twin', () => {
+  /* The other half of the same bookkeeping, and the half that is not about the
+   * fold at all. Deduplication keeps the LAST importance, and the last
+   * importance is not the one that wins: a browser takes the important
+   * declaration wherever it sits, so it renders 40px while the CSSOM — and
+   * therefore every gate that measures it — holds 16px and says so.
+   *
+   * The first case has no logical twin in it, which is the point. Nothing folds
+   * there and nothing needs to: the measurement is already wrong before the fold
+   * is asked anything. Scoping this to the fold reported a size a browser does
+   * not render, in silence, on a green build. */
+  for (const decls of [
+    'width: 40px !important; width: 16px',
+    'height: 40px !important; height: 16px',
+    'inline-size: 40px !important; inline-size: 16px',
+    'block-size: 40px !important; block-size: 16px',
+    // Three repeats, with the important one first and then in the middle. What
+    // decides both is the same thing: the last declaration is not the winner.
+    'width: 10px !important; width: 12px; width: 14px',
+    'width: 10px; width: 12px !important; width: 14px',
+    // And the shape that was already refused, for the reason it is refused now.
+    'width: 10px !important; width: 12px; inline-size: 33px',
+  ]) {
+    assert.throws(() => foldLogicalDims(sheetOf(`.a svg { ${decls} }`), 'probe.css'), /!important/,
+      `"${decls}" hands every gate a size a browser does not render`);
+  }
+});
+
+test('a repeat whose last declaration is the one a browser takes is folded, not refused', () => {
+  /* The other side of that line, and it has to stay green: an !important that
+   * ARRIVES between the repeats leaves the CSSOM holding exactly the declaration
+   * a browser takes, value and importance alike, so there is nothing to recover
+   * and nothing to refuse. Same for repeats that never touch importance at all,
+   * which is the ordinary fallback in src/styles.
+   *
+   * Refusing these reds on CSS somebody is right to write, and a gate that reds
+   * on correct code gets switched off. */
+  assert.equal(measure('.a svg { width: 10px; width: 33px !important }').width, '33px');
+  assert.equal(measure('.a svg { width: 10px !important; width: 33px !important }').width, '33px');
+  assert.equal(
+    measure('.a svg { width: 10px; width: 12px !important; width: 33px !important }').width, '33px');
   assert.equal(
     measure('.a svg { width: 10px !important; width: 12px !important; inline-size: 33px }').width,
     '12px');
+  // Beside a logical twin too, in both spellings. The CSSOM keeps the winner, so
+  // the fold reads the importance the file declares and hands the axis over on it.
+  assert.equal(
+    measure('.a svg { width: 10px; width: 33px !important; inline-size: 44px }').width, '33px');
+  assert.equal(
+    measure('.a svg { inline-size: 10px; inline-size: 33px !important; width: 44px }').width, '33px');
 });
 
 test('a repeat the CSSOM keeps in source order is folded, not refused', () => {
@@ -685,6 +722,32 @@ test('an @import is reported wherever a stylesheet carries one', () => {
   assert.deepEqual(importsIn('/* @import "./zz.css"; */ .a svg { width: 42px }'), []);
 });
 
+test('both shapes a .tsx writes a <style> block in are still recognised', () => {
+  /* THE TRIPWIRE UNDER THE OTHER HALF OF THE REACT SWEEP.
+   *
+   * scripts/icon-size-react.test.js collects two things: every *.css under
+   * react/src, and every <style> block in the .ts and .tsx there. The first half
+   * has a `length > 0` behind it, because the workspace has stylesheets. The
+   * second collects nothing today — nothing under react/src writes a block — so
+   * a `length > 0` there would red on a workspace that is fine, and without one
+   * a recogniser that stopped reading the idiom would leave that half sitting at
+   * a healthy-looking zero for ever.
+   *
+   * So the guard is here rather than in the gate, and it proves the RECOGNISER
+   * still works instead of proving the workspace uses it. Break either shape and
+   * this reds while the sweep's zero stays honest. Both are asserted because the
+   * gate's header claims both: the CSS between the tags of a template literal,
+   * and the string a `dangerouslySetInnerHTML` hands them. */
+  const source = 'export const Table = () => (<>\n'
+    + '  <style>{`.rx-tbl svg { width: 14px }`}</style>\n'
+    + '  <style dangerouslySetInnerHTML={{ __html: ".rx-btn svg{width:16px}" }} />\n'
+    + '</>);';
+  assert.deepEqual(styleBlocksOf(source),
+    ['.rx-tbl svg { width: 14px }', '.rx-btn svg{width:16px}'],
+    'the React gate reads its .tsx <style> blocks with this, and its count is 0 either way — so '
+    + 'a shape lost here leaves that half of the sweep reading nothing and saying nothing');
+});
+
 test('a <style> written with dangerouslySetInnerHTML is CSS like any other', () => {
   /* THE React idiom for injecting a CSS string, and it was invisible: no block,
    * no marker, no refusal, into a gate whose count is 0 so nothing else could
@@ -902,6 +965,29 @@ test('an icon named inside :is() or :where() is refused by mount, and says why',
   });
 });
 
+test('an :is() naming the icon\'s ancestor is refused in its own words', () => {
+  /* The commonest shape that reaches this refusal, and the one the refusal was
+   * wrong about. `:is(.ui-btn, .ui-chip) svg` names the icon plainly — it is the
+   * `svg` at the end — and the `:is()` is the ancestor in front of it, which is
+   * what this builder cannot make. Sent to compoundIsSvg() to read about "an
+   * icon named inside :is()", the reader goes looking for a disagreement that is
+   * not in their selector and finds nothing to fix.
+   *
+   * So the two shapes are told apart by where the compound sits. The leaf keeps
+   * the message above; an ancestor gets one about the ancestor. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  assert.throws(() => mount(dom.window.document, ':is(.ui-btn, .ui-chip) svg', new Set()), (err) => {
+    assert.match(err.message, /:is\(\.ui-btn, \.ui-chip\)/);
+    assert.match(err.message, /ancestor/,
+      'the refusal does not say the :is() is the ancestor rather than the icon, so the reader '
+      + 'cannot tell which half of the selector this is about');
+    assert.doesNotMatch(err.message, /compoundIsSvg/,
+      'the refusal still sends the reader to compoundIsSvg() for an icon named inside :is(), and '
+      + 'the icon in this selector is not named there');
+    return true;
+  });
+});
+
 /* A data URI carrying an inline `style` attribute — the shape src/styles/input.css
  * writes for the select chevron, with the two attributes moved into a style. Valid
  * CSS, no icon anywhere in the string, and to a pattern that does not know where a
@@ -983,16 +1069,49 @@ test('a dropped declaration on an icon rule is refused, and named with its selec
     ['probe.css: .zz .ic { min-width: 20sp }']);
 });
 
+test('a rule inside a conditional group is scoped by its own selector', () => {
+  /* A conditional group is a wrapper, not a rule. The declarations in it belong
+   * to the rules further in, and every one of those has a selector of its own to
+   * be asked — so the scan goes in rather than reading the body flat, and the
+   * same question gets the same answer at either depth.
+   *
+   * Read flat, `@media` was the selector for everything under it, no selector
+   * that starts with `@` is an icon, and the scan therefore asked about every
+   * declaration in the block. That refused `width: env(safe-area-inset-left)` on
+   * a drawer inside a media query while allowing it verbatim one brace out —
+   * a red on CSS somebody is right to write, which is the argument this scoping
+   * exists for and the argument it was not honouring. */
+  assert.deepEqual(
+    droppedDecls('probe.css', '@media screen { .drawer { width: env(safe-area-inset-left) } }',
+      new Set(['ic'])), []);
+  // And an icon in there is still refused, which is what the descent must not
+  // cost. Nothing else catches it: the declaration is gone from the CSSOM, so
+  // rulesOf() reads that rule as sizing nothing and lets it by.
+  assert.deepEqual(
+    droppedDecls('probe.css', '@media screen { .zz svg { width: fit-content(20%) } }', new Set()),
+    ['probe.css: .zz svg { width: fit-content(20%) }']);
+  // At any depth, since a group nests inside a group.
+  assert.deepEqual(
+    droppedDecls('probe.css', '@layer k { @media screen { .zz .ic { width: fit-content(20%) } } }',
+      new Set(['ic'])), ['probe.css: .zz .ic { width: fit-content(20%) }']);
+});
+
 test('a dropped declaration this gate cannot scope to a rule stays loud', () => {
   /* Scoping asks a selector whether it targets an icon, so the shapes with no
-   * selector to ask are the shapes scoping would silence. A rule inside a
-   * conditional group is one — the block's own selector is the at-rule, and the
-   * rule is somewhere in its body. A selector computed at render time is another:
-   * "not an icon" there is a guess, not an answer. Both are reported with the
-   * ground they sit on named, since that is what the reader has to go and open. */
+   * selector to ask are the shapes scoping would silence. Three of them.
+   *
+   * An at-rule holding declarations rather than rules — there is nothing further
+   * in to descend to, and the prelude is not a selector. A rule with a rule
+   * nested inside it, where the inner selector is relative to the outer one and
+   * means nothing on its own. And a selector computed at render time, where "not
+   * an icon" is a guess rather than an answer. Each is reported with the ground
+   * it sits on named, since that is what the reader has to go and open. */
   assert.deepEqual(
-    droppedDecls('probe.css', '@media screen { .drawer { width: fit-content(20%) } }', new Set()),
+    droppedDecls('probe.css', '@media screen { width: fit-content(20%) }', new Set()),
     ['probe.css: @media screen { width: fit-content(20%) }']);
+  assert.deepEqual(
+    droppedDecls('probe.css', '@media screen { .drawer { svg { width: fit-content(20%) } } }',
+      new Set()), ['probe.css: .drawer { width: fit-content(20%) }']);
   assert.deepEqual(
     droppedDecls('probe.css', `.a${UNRESOLVED} { width: fit-content(20%) }`, new Set()),
     [`probe.css: .a${UNRESOLVED} { width: fit-content(20%) }`]);
