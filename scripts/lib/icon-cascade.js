@@ -18,7 +18,36 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
+/* The two dimensions every contest here is decided in. A rule can name either of
+ * them in two spellings, and the second spelling is why this file has a
+ * normalization step. `inline-size` and `block-size` share a computed value with
+ * `width` and `height` and cascade as one with them, so
+ * `.x svg { inline-size: 21px }` at (0,1,1) beats the reset's `width` at (0,0,1)
+ * and decides the icon exactly as a physical declaration would.
+ *
+ * jsdom does not model that sharing. It keeps `inline-size` in a cascade of its
+ * own that `width` never enters, so a logical declaration measured as written
+ * wins every contest it is in — including the ones a browser makes it lose,
+ * which is a gate that cannot fail. foldLogicalDims() rewrites the declaration
+ * onto its physical counterpart before anything is measured, and the contest
+ * that gets measured is then the one the browser holds. */
 export const DIMS = ['width', 'height'];
+export const LOGICAL_DIMS = new Map([['inline-size', 'width'], ['block-size', 'height']]);
+
+/** Both spellings, for the checks that read a rule before it has been folded. */
+export const SIZING_PROPS = [...DIMS, ...LOGICAL_DIMS.keys()];
+
+/* Sizing an icon by clamping it, which neither gate measures anything about: a
+ * clamp never enters `width`'s cascade, so the reset still wins `width` and the
+ * clamp applies to the used value afterwards — and jsdom has no layout to apply
+ * it in. Each gate asserts this list lands on no icon, which is how a clamp on
+ * an icon reaches a reader instead of passing in silence. Both spellings again,
+ * for the same reason as above: `min-inline-size` is `min-width` while the
+ * writing mode is horizontal. */
+export const CLAMP_PROPS = [
+  'min-width', 'max-width', 'min-height', 'max-height',
+  'min-inline-size', 'max-inline-size', 'min-block-size', 'max-block-size',
+];
 
 /* Build output and vendored code, skipped by directory name. Two of these exist
  * on a dev machine and never in CI, which is the dangerous shape: site/public/
@@ -107,9 +136,116 @@ export function isSvgSubject(selectorText, classes) {
   });
 }
 
+/** Every rule in a sheet, conditional groups included, depth first. */
+function* everyRule(container) {
+  for (const rule of container.cssRules ?? []) {
+    yield rule;
+    if (rule.cssRules) yield* everyRule(rule);
+  }
+}
+
+const FOLDED = new WeakSet();
+const AS_WRITTEN = new WeakMap();
+
+/* Rewrite `inline-size` onto `width` and `block-size` onto `height` in every
+ * rule of `sheet`, so a logical declaration competes in the cascade jsdom does
+ * model. Both gates run this over every sheet of a document as they build it,
+ * and rulesOf() refuses a sheet that has not been through it.
+ *
+ * Before anything is measured, and that ordering is load-bearing: jsdom clears
+ * its computed-style cache when the DOM or a sheet's rule list changes, but not
+ * when a declaration inside a rule does, so a fold that ran after a
+ * getComputedStyle call would leave the element reading its old size.
+ *
+ * Order inside the block is respected rather than overwritten, because CSS
+ * respects it: `width: 10px; inline-size: 20px` is 20px and the same pair the
+ * other way round is 10px, and an `!important` on either side wins over the
+ * other regardless of where it sits.
+ *
+ * The property as the author wrote it is kept, so a test named after this
+ * subject can say `inline-size` where the file says `inline-size` — a gate that
+ * renamed the rule it measures would send the next reader looking for a
+ * declaration that is not there. */
+export function foldLogicalDims(sheet, name) {
+  for (const rule of everyRule(sheet)) {
+    /* The mapping above is the horizontal-writing-mode one. Nothing in this
+     * repo declares writing-mode, and the moment something does, `inline-size`
+     * may be the vertical axis and folding it onto `width` measures the wrong
+     * contest — quietly, and in the direction that passes. */
+    const mode = rule.style?.getPropertyValue('writing-mode');
+    if (mode) {
+      throw new Error(`${name}: "${rule.selectorText}" declares writing-mode: ${mode}. This gate `
+        + 'folds inline-size onto width and block-size onto height, which holds only while every '
+        + 'icon is laid out horizontally. Take the declaration out, or teach the gate to fold '
+        + 'along the writing mode each icon is actually in.');
+    }
+  }
+  for (const rule of sheet.cssRules) {
+    // Only the rules a gate mounts. A logical declaration inside @media is left
+    // as written for the guard in rulesOf() to find and refuse.
+    if (!rule.selectorText || rule.cssRules?.length) continue;
+    const order = [];
+    for (let i = 0; i < rule.style.length; i += 1) order.push(rule.style.item(i));
+    for (const [logical, physical] of LOGICAL_DIMS) {
+      const li = order.lastIndexOf(logical);
+      if (li === -1) continue;
+      const value = rule.style.getPropertyValue(logical);
+      const priority = rule.style.getPropertyPriority(logical);
+      rule.style.removeProperty(logical);
+      const pi = order.lastIndexOf(physical);
+      if (pi !== -1) {
+        const logicalIsImportant = priority === 'important';
+        const physicalIsImportant = rule.style.getPropertyPriority(physical) === 'important';
+        const physicalWins = physicalIsImportant === logicalIsImportant
+          ? pi > li
+          : physicalIsImportant;
+        if (physicalWins) continue;
+      }
+      rule.style.setProperty(physical, value, priority);
+      AS_WRITTEN.set(rule, { ...AS_WRITTEN.get(rule), [physical]: logical });
+    }
+  }
+  FOLDED.add(sheet);
+}
+
+/** How this rule spells `dim` — `inline-size` for a folded declaration. */
+export const writtenAs = (rule, dim) => AS_WRITTEN.get(rule)?.[dim] ?? dim;
+
+/* Every clamp this sheet puts on an icon, named the way a gate reports it.
+ * Conditional groups included: a clamp inside @media is exactly as unmeasured as
+ * one outside, and the reader deserves to hear about it from the same place. */
+export function clampsOn(sheet, name, classes) {
+  const found = [];
+  for (const rule of everyRule(sheet)) {
+    if (!rule.selectorText || !rule.style) continue;
+    for (const raw of rule.selectorText.split(',')) {
+      const sel = raw.trim().replace(/\s+/g, ' ');
+      if (!isSvgSubject(sel, classes)) continue;
+      for (const prop of CLAMP_PROPS) {
+        const value = rule.style.getPropertyValue(prop);
+        if (value) found.push(`${name}: ${sel} { ${prop}: ${value.trim()} }`);
+      }
+    }
+  }
+  return found;
+}
+
+/** What a gate says when a clamp lands on an icon. Both gates say it. */
+export const CLAMP_REFUSAL = 'a rule sizes an icon by clamping it, and neither gate can tell you '
+  + 'what that does. A min-/max- declaration never enters width\'s cascade: the reset still wins '
+  + 'width, the clamp applies to the used value afterwards, and jsdom has no layout to apply it '
+  + 'in — so the icon renders at a size no rule these gates can read decides. Size the icon with '
+  + 'width/height or inline-size/block-size, which are measured, and clamp something that is not '
+  + 'an icon; or teach these gates to measure a clamp somewhere layout exists.';
+
 /* Yield [rule, sheetName], refusing to guess about shapes these gates cannot
  * measure rather than reporting a misleading result for them. */
 export function* rulesOf(sheet, name, classes) {
+  if (!FOLDED.has(sheet)) {
+    throw new Error(`${name}: this sheet has not been through foldLogicalDims(), so a rule sizing `
+      + 'an icon with inline-size or block-size would be read as if it sized nothing. Fold every '
+      + 'sheet of the document as you build it.');
+  }
   for (const rule of sheet.cssRules) {
     if (rule.selectorText) {
       // A CSSStyleRule carries an empty cssRules of its own under CSS nesting,
@@ -127,7 +263,7 @@ export function* rulesOf(sheet, name, classes) {
     if (rule.cssRules) {
       for (const inner of rule.cssRules) {
         if (!inner.selectorText) continue;
-        const sizes = DIMS.some((d) => inner.style?.getPropertyValue(d));
+        const sizes = SIZING_PROPS.some((d) => inner.style?.getPropertyValue(d));
         if (sizes && isSvgSubject(inner.selectorText, classes)) {
           throw new Error(`${name}: "${inner.selectorText}" sizes an icon inside `
             + `"${rule.cssText.slice(0, 40)}…". jsdom does not apply conditional rules, so this `

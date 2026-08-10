@@ -70,17 +70,20 @@
  *    `var(--ic-size)`, because jsdom substitutes no custom properties at all.
  *    The contest is still decided correctly — a reset that won would compute to
  *    `1.1em` and not match — but nothing here proves what --ic-size holds.
- *  - Any dimension other than width and height. DIMS in
- *    scripts/lib/icon-cascade.js is those two and nothing else, so a rule
- *    sizing an svg with `inline-size`, `block-size` or a min-/max- form
- *    contributes no subject and loses no contest here — and the two forms then
- *    go wrong differently in a real browser. `inline-size` and `block-size`
- *    cascade as one with their physical counterparts, so `.x svg { inline-size:
- *    40px }` at (0,1,1) out-specifies the reset's `width` at (0,0,1) and takes
- *    the contest. `min-width` / `max-width` / `min-height` / `max-height` never
- *    enter `width`'s cascade at all: the reset still wins `width`, and the
- *    min-/max- value clamps the used value afterwards, which changes nothing
- *    unless the clamp binds. Nothing on an svg subject uses either form today.
+ *  - an icon sized by a clamp. `min-width` / `max-width` / `min-height` /
+ *    `max-height` and their logical spellings never enter `width`'s cascade, so
+ *    the reset still wins `width` and the clamp applies to the used value
+ *    afterwards — there is no contest here to measure, and no layout in jsdom to
+ *    apply the clamp in. No surface clamps an icon today, and the test named
+ *    `no surface the kit renders sizes an icon with a clamp` is what keeps that
+ *    true rather than merely current.
+ *
+ * A rule written with `inline-size` or `block-size` IS measured, on the same
+ * terms as its physical twin and named the way the file spells it. Both gates
+ * fold the declaration onto its physical counterpart first, because jsdom would
+ * otherwise let it win contests a browser makes it lose; the argument, and the
+ * writing-mode precondition the fold rests on, are in the header of
+ * src/styles/icon-size.test.js.
  *
  * DELIBERATELY OUT OF SCOPE, both decided rather than overlooked:
  *
@@ -103,7 +106,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import {
+  CLAMP_REFUSAL,
   DIMS,
+  SIZING_PROPS,
+  clampsOn,
+  foldLogicalDims,
   isSvgSubject,
   kitSheetNames,
   kitStyleHtml,
@@ -113,6 +120,7 @@ import {
   svgClassSet,
   walk,
   without,
+  writtenAs,
 } from './lib/icon-cascade.js';
 import { topbar, footer, CHROME_CSS, CHROME_JS } from '../site/chrome.mjs';
 import { changelogMain, release } from '../site/changelog.mjs';
@@ -135,6 +143,14 @@ const EXPECTED_SUBJECTS = 14;
  * drop the declaration, and a dropped icon rule is indistinguishable from a rule
  * that was never there. Kept as a marker so the assertion below can refuse it. */
 const UNRESOLVED = 'ui-unresolved-interpolation';
+
+/* A sizing declaration as the file writes it, anchored on `;` or `{` so that
+ * `min-width` cannot read as `width`. Built from SIZING_PROPS rather than
+ * spelled out, because this has to ask about `inline-size` too: jsdom drops a
+ * declaration whose value it cannot parse, so `inline-size: ${X}px` never
+ * reaches the CSSOM the loop above reads and the raw text is the only place it
+ * still exists. */
+const SIZING_DECL = new RegExp(`(?:^|[;{])\\s*(${SIZING_PROPS.join('|')})\\s*:\\s*([^;}]*)`, 'g');
 
 /* Resolve `${NAME}` against a `const NAME = \`…\`` in the same file — the shape
  * Iconography.stories.js uses. Anything else (a call, an expression) becomes
@@ -255,6 +271,13 @@ const docs = CHUNKS.map(({ from, blocks }) => {
   const dom = new JSDOM(`<!doctype html><html><head>${KIT}${own}</head><body></body></html>`);
   assert.equal(dom.window.document.styleSheets.length, SHEETS.length + blocks.length,
     `jsdom dropped a stylesheet composing ${from} — every rule in it would silently leave coverage.`);
+  /* The kit's sheets are folded here as well as in src/styles/icon-size.test.js,
+   * because this document holds its own copy of them: a reset written with a
+   * logical property and left unfolded would sit out the cascade entirely, and
+   * every surface rule would then win a contest nobody was holding. */
+  [...dom.window.document.styleSheets].forEach((sheet, k) => {
+    foldLogicalDims(sheet, k < SHEETS.length ? SHEETS[k] : from);
+  });
   return dom;
 });
 
@@ -271,7 +294,7 @@ CHUNKS.forEach(({ from }, i) => {
         if (!isSvgSubject(sel, SVG_CLASSES)) continue;
         for (const dim of DIMS) {
           const want = rule.style.getPropertyValue(dim).trim();
-          if (want) subjects.push({ sel, dim, want, from, i, rule });
+          if (want) subjects.push({ sel, dim, want, from, i, rule, as: writtenAs(rule, dim) });
         }
       }
     }
@@ -323,7 +346,7 @@ test('no sizing rule is hidden behind an interpolation this gate cannot read', (
        * answer it alone: `width: ${sizeOf(1)}px` becomes a value jsdom rejects, so
        * the declaration is simply gone from the CSSOM above. The subject count
        * catches that too, one rule later — this says which rule and why. */
-      for (const m of css.matchAll(/(?:^|[;{])\s*(width|height)\s*:\s*([^;}]*)/g)) {
+      for (const m of css.matchAll(SIZING_DECL)) {
         if (m[2].includes(UNRESOLVED)) blind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
       }
       for (const m of css.matchAll(/(?:^|[}])([^{}]*)\{/g)) {
@@ -350,13 +373,22 @@ test('every icon sizing rule the kit renders outside src/styles is gated', () =>
     `collected ${subjects.length} icon sizing declarations across ${BLOCKS} <style> blocks in `
     + `${CHUNKS.length} files, `
     + `expected ${EXPECTED_SUBJECTS}:\n`
-    + subjects.map((s) => `  ${s.from}: ${s.sel} { ${s.dim}: ${s.want} }`).join('\n')
+    + subjects.map((s) => `  ${s.from}: ${s.sel} { ${s.as}: ${s.want} }`).join('\n')
     + '\nIf you added a rule, raise EXPECTED_SUBJECTS. If you removed one, lower it and say why in '
     + 'the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
 });
 
-for (const { sel, dim, want, from, i, rule } of subjects) {
-  test(`${from}: ${sel} { ${dim}: ${want} } decides the icon's ${dim}`, () => {
+test('no surface the kit renders sizes an icon with a clamp', () => {
+  // Only each surface's own sheets. The kit's are the same sheets
+  // src/styles/icon-size.test.js sweeps, and every surface holds a copy of
+  // them, so including them here would report one kit clamp once per file.
+  const clamped = CHUNKS.flatMap(({ from }, i) => ownSheets(i)
+    .flatMap((sheet) => clampsOn(sheet, from, SVG_CLASSES)));
+  assert.deepEqual(clamped, [], CLAMP_REFUSAL);
+});
+
+for (const { sel, dim, want, from, i, rule, as } of subjects) {
+  test(`${from}: ${sel} { ${as}: ${want} } decides the icon's ${dim}`, () => {
     const { document, getComputedStyle } = docs[i].window;
     const { el, top } = mount(document, sel, SVG_CLASSES);
     try {
@@ -371,12 +403,12 @@ for (const { sel, dim, want, from, i, rule } of subjects) {
       const got = getComputedStyle(el).getPropertyValue(dim);
       const expected = resolve(getComputedStyle, el, dim, want);
       assert.equal(got, expected,
-        `${from} asks for ${dim}: ${want} (resolves to ${expected}) and the cascade gives ${got}. `
+        `${from} asks for ${as}: ${want} (resolves to ${expected}) and the cascade gives ${got}. `
         + 'Something upstream out-specifies it — see the header of src/styles/icon-size.test.js.');
       // And prove that comparison could have failed — see without().
       const gone = without(getComputedStyle, el, rule, dim);
       assert.notEqual(gone, expected,
-        `taking "${dim}: ${want}" out of ${from} changes nothing — the element still computes `
+        `taking "${as}: ${want}" out of ${from} changes nothing — the element still computes `
         + `${gone}. So the assertion above passes whether this rule wins or loses, and gates `
         + 'nothing. Either the rule is redundant and should go, or this subject needs a basis '
         + 'that pulls it apart from whatever else is setting the same value.');
