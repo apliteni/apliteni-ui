@@ -13,11 +13,27 @@
  * These cases are the ones a browser answers unambiguously. Each is written so
  * that the two candidate values are far enough apart that no arithmetic can make
  * a wrong fold look right.
+ *
+ * The refusals below are here for a different reason. foldLogicalDims() stops on
+ * a writing-mode declaration, rulesOf() stops on an unfolded sheet and on a
+ * sizing rule inside a conditional group, and clampsOn() reports the min-/max-
+ * forms neither gate measures. Every one of those fires only when a stylesheet
+ * carries the shape it refuses, so the only way to find out whether one still
+ * worked was to write that shape into the kit and watch a gate go red. Each case
+ * here puts the shape in a sheet of its own instead.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { foldLogicalDims, writtenAs } from './icon-cascade.js';
+import {
+  CLAMP_PROPS,
+  SIZING_PROPS,
+  clampsOn,
+  declRe,
+  foldLogicalDims,
+  rulesOf,
+  writtenAs,
+} from './icon-cascade.js';
 
 /* One sheet, folded, with an svg mounted inside `.a` and measured. The font-size
  * is forced for the same reason both gates force it: the reset is 1.1em, and at
@@ -37,6 +53,17 @@ function measure(css) {
   const rule = (sel) => [...sheet.cssRules].find((r) => r.selectorText === sel);
   return { width: style.getPropertyValue('width'), height: style.getPropertyValue('height'), rule };
 }
+
+/* One parsed sheet, unfolded and unmounted — everything the refusals need. The
+ * <style> element is kept alive by the document the JSDOM holds, which matters
+ * because foldLogicalDims() reads the raw text back off it. */
+function sheetOf(css) {
+  const dom = new JSDOM(`<!doctype html><html><head><style>${css}</style></head><body></body></html>`);
+  return dom.window.document.styleSheets[0];
+}
+
+/** Every rule rulesOf() yields, since draining the generator is what makes it throw. */
+const drain = (sheet) => [...rulesOf(sheet, 'probe.css', new Set())];
 
 const RESET = 'svg:where(:not([width]):not([height])) { width: 1.1em; height: 1.1em }';
 
@@ -74,4 +101,76 @@ test('a rule with no logical declaration is left exactly as it was', () => {
   const { width, rule } = measure(`${RESET} .a svg { width: 33px }`);
   assert.equal(width, '33px');
   assert.equal(writtenAs(rule('.a svg'), 'width'), 'width');
+});
+
+test('a writing-mode declaration stops the fold', () => {
+  // The fold is the horizontal mapping. Under a vertical mode `inline-size` is
+  // the other axis, so folding it onto `width` measures the wrong contest and
+  // says nothing about it.
+  assert.throws(() => foldLogicalDims(sheetOf('.a svg { writing-mode: vertical-rl }'), 'probe.css'),
+    /writing-mode: vertical-rl/);
+});
+
+test('a vendor-prefixed writing-mode stops the fold too', () => {
+  /* jsdom parses `-webkit-writing-mode` away — the rule reads as empty, so the
+   * declaration loop above it finds nothing to refuse. The browsers that honour
+   * the prefixed spelling turn the axes exactly as the unprefixed one does. */
+  assert.throws(
+    () => foldLogicalDims(sheetOf('.a svg { -webkit-writing-mode: vertical-rl }'), 'probe.css'),
+    /writing-mode/);
+});
+
+test('a sizing rule inside a conditional group is refused', () => {
+  const sheet = sheetOf('@media screen { .a svg { width: 33px } }');
+  foldLogicalDims(sheet, 'probe.css');
+  assert.throws(() => drain(sheet), /@media screen/);
+});
+
+test('a sizing rule two conditional groups deep is refused, naming both', () => {
+  /* jsdom parses this nesting fine and applies none of it. A refusal that looked
+   * one level down would leave the rule below it contributing no subject, losing
+   * no contest and drawing no complaint. */
+  const sheet = sheetOf('@layer probe { @media screen { .a svg { inline-size: 33px } } }');
+  foldLogicalDims(sheet, 'probe.css');
+  assert.throws(() => drain(sheet), (err) => {
+    assert.match(err.message, /@media screen/,
+      'the reader is told a rule is buried without being told which at-rule buries it');
+    assert.match(err.message, /@layer probe/);
+    return true;
+  });
+});
+
+test('rulesOf refuses a sheet nobody folded', () => {
+  assert.throws(() => drain(sheetOf('.a svg { width: 33px }')), /foldLogicalDims/);
+});
+
+test('clampsOn reports every clamp an icon rule carries, and only those', () => {
+  const sheet = sheetOf('.a svg { min-width: 1px; max-inline-size: 2px } .b { min-height: 3px }');
+  assert.deepEqual(clampsOn(sheet, 'probe.css', new Set()), [
+    'probe.css: .a svg { min-width: 1px }',
+    'probe.css: .a svg { max-inline-size: 2px }',
+  ]);
+});
+
+test('a clamp inside a conditional group is reported like any other', () => {
+  // Unmeasured is unmeasured wherever it sits, so this one is reported rather
+  // than refused by rulesOf() — which reads sizing properties, not clamps.
+  const sheet = sheetOf('@media screen { .a svg { max-width: 4px } }');
+  assert.deepEqual(clampsOn(sheet, 'probe.css', new Set()),
+    ['probe.css: .a svg { max-width: 4px }']);
+});
+
+test('a declaration pattern reads min-width as a clamp and never as a width', () => {
+  /* The anchor is what keeps those apart, and the two gates ask the same text
+   * about both lists. Read `width` out of `min-width` and a clamp would be
+   * reported as the sizing rule it is not. */
+  const found = (props, css) => [...css.matchAll(declRe(props))].map((m) => m[1]);
+  assert.deepEqual(found(SIZING_PROPS, '.a svg { min-width: 5px }'), []);
+  assert.deepEqual(found(CLAMP_PROPS, '.a svg { min-width: 5px }'), ['min-width']);
+  assert.deepEqual(found(SIZING_PROPS, '.a svg { inline-size: 5px; height: 6px }'),
+    ['inline-size', 'height']);
+  for (const prop of CLAMP_PROPS) {
+    assert.deepEqual(found(CLAMP_PROPS, `.a svg { ${prop}: 5px }`), [prop],
+      `${prop} is read as something other than itself — check the alternation order`);
+  }
 });

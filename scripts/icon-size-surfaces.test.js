@@ -76,7 +76,23 @@
  *    afterwards — there is no contest here to measure, and no layout in jsdom to
  *    apply the clamp in. No surface clamps an icon today, and the test named
  *    `no surface the kit renders sizes an icon with a clamp` is what keeps that
- *    true rather than merely current.
+ *    true rather than merely current. That test reads the parsed sheet, so a
+ *    clamp whose value a surface computes at render time is invisible to it —
+ *    jsdom drops the declaration first. The interpolation test below catches
+ *    that one out of the raw text instead.
+ *  - an icon reset by `all`. `all: unset`, `all: revert` and `all: initial` each
+ *    take `width` back to `auto` in a browser, so a rule carrying one decides
+ *    the icon by unsaying the reset. jsdom keeps the shorthand and expands it
+ *    into nothing, so the element still computes the reset here and the rule is
+ *    neither a subject nor a refusal.
+ *  - an icon sized around `width` altogether — `zoom`, `transform: scale()`,
+ *    `aspect-ratio`, `contain-intrinsic-size`. None of them enters `width`'s
+ *    cascade, and jsdom has no layout for any of them to act in. `aspect-ratio`
+ *    is the sharp one, because `.x svg { width: 20px; aspect-ratio: 1 }` derives
+ *    the height from the width: the height a browser renders is decided by a
+ *    rule this gate reads as setting a width and nothing else. Both families are
+ *    named rather than gated on the argument the clamp above makes, and whether
+ *    they should eventually be refused is open.
  *
  * A rule written with `inline-size` or `block-size` IS measured, on the same
  * terms as its physical twin and named the way the file spells it. Both gates
@@ -106,10 +122,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import {
+  CLAMP_PROPS,
   CLAMP_REFUSAL,
   DIMS,
   SIZING_PROPS,
   clampsOn,
+  declRe,
   foldLogicalDims,
   isSvgSubject,
   kitSheetNames,
@@ -144,13 +162,15 @@ const EXPECTED_SUBJECTS = 14;
  * that was never there. Kept as a marker so the assertion below can refuse it. */
 const UNRESOLVED = 'ui-unresolved-interpolation';
 
-/* A sizing declaration as the file writes it, anchored on `;` or `{` so that
- * `min-width` cannot read as `width`. Built from SIZING_PROPS rather than
- * spelled out, because this has to ask about `inline-size` too: jsdom drops a
+/* A sizing declaration and a clamp, each as the file writes it. jsdom drops a
  * declaration whose value it cannot parse, so `inline-size: ${X}px` never
  * reaches the CSSOM the loop above reads and the raw text is the only place it
- * still exists. */
-const SIZING_DECL = new RegExp(`(?:^|[;{])\\s*(${SIZING_PROPS.join('|')})\\s*:\\s*([^;}]*)`, 'g');
+ * still exists — and a clamp written that way is the one shape the clamp test
+ * cannot see at all, since that test reads the parsed sheet. Two patterns rather
+ * than one because the two findings send their reader somewhere different; the
+ * assertions below say where. */
+const SIZING_DECL = declRe(SIZING_PROPS);
+const CLAMP_DECL = declRe(CLAMP_PROPS);
 
 /* Resolve `${NAME}` against a `const NAME = \`…\`` in the same file — the shape
  * Iconography.stories.js uses. Anything else (a call, an expression) becomes
@@ -309,13 +329,14 @@ test('the sweep still recognises a class the kit puts directly on an svg', () =>
     + `it found: ${[...SVG_CLASSES].join(', ') || '(nothing)'}`);
 });
 
-test('no sizing rule is hidden behind an interpolation this gate cannot read', () => {
+test('nothing that sizes an icon is hidden behind an interpolation this gate cannot read', () => {
   /* Every rule that sets width or height, not only the ones that survived
    * isSvgSubject — because an interpolation in the SELECTOR is exactly what
    * would stop a rule looking like an icon rule. `.a${X} svg` reads as
    * `.aui-unresolved-interpolation svg` and is still caught by shape, but a bare
    * `${X} { width: … }` reads as an element selector and would not be. */
   const blind = [];
+  const clampedBlind = [];
   CHUNKS.forEach(({ from, blocks }, i) => {
     ownSheets(i).forEach((sheet, j) => {
       const css = blocks[j];
@@ -349,6 +370,16 @@ test('no sizing rule is hidden behind an interpolation this gate cannot read', (
       for (const m of css.matchAll(SIZING_DECL)) {
         if (m[2].includes(UNRESOLVED)) blind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
       }
+      /* And the clamps, kept in a list of their own because they ask for
+       * something different. A width this file could not read is a gap in
+       * resolveInterpolations and nothing more; a clamp is a shape neither gate
+       * measures at all, so resolving it is only the first half of the answer
+       * and the clamp test is the second. Until it resolves, neither half can
+       * run: jsdom drops the declaration, so clampsOn() reads a sheet it is not
+       * in and reports nothing. */
+      for (const m of css.matchAll(CLAMP_DECL)) {
+        if (m[2].includes(UNRESOLVED)) clampedBlind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
+      }
       for (const m of css.matchAll(/(?:^|[}])([^{}]*)\{/g)) {
         if (m[1].includes(UNRESOLVED)) blind.push(`${from}: selector ${m[1].trim()}`);
       }
@@ -366,6 +397,13 @@ test('no sizing rule is hidden behind an interpolation this gate cannot read', (
     'a surface writes a sizing rule whose selector or value is computed at render time. This gate '
     + 'substituted a placeholder for it, so it cannot tell whether it sizes an icon and cannot '
     + 'measure it if it does. Teach resolveInterpolations().');
+  assert.deepEqual(clampedBlind, [],
+    'a surface clamps a size with a value computed at render time. jsdom drops a declaration it '
+    + 'cannot parse, so the test named `no surface the kit renders sizes an icon with a clamp` '
+    + 'reads a sheet this declaration is no longer in, and the raw text above is the only place '
+    + 'it survives. Teach resolveInterpolations() and the two of them can then say whether this '
+    + 'clamp lands on an icon — and if it does, that test refuses it, because neither gate '
+    + 'measures anything about a clamp. The argument is in CLAMP_REFUSAL.');
 });
 
 test('every icon sizing rule the kit renders outside src/styles is gated', () => {
