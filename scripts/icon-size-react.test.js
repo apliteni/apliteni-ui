@@ -298,8 +298,15 @@ test('the React workspace still renders against the kit stylesheets', () => {
    * rendering against the reset in src/styles/base.css and there is no contest
    * here to measure — at which point this gate should be rewritten or deleted,
    * not left passing over a workspace it no longer describes. */
-  const preview = readFileSync(previewPath, 'utf8');
-  assert.match(preview, /import\s+['"]@apliteni\/apliteni-ui\/css['"]/,
+  /* Read the way styleImportsIn() reads a specifier: comments out first, and the
+   * match anchored to the start of a line. Unanchored, `// import
+   * '@apliteni/apliteni-ui/css';` still matches — which is the ordinary way
+   * somebody switches an import off, and this is the one assertion holding up a
+   * gate whose count is 0, so it passing over a disabled import leaves nothing
+   * else to notice. The strip handles the block spelling, including one wrapped
+   * around whole lines, which the anchor alone would read as a live import. */
+  const preview = stripComments(readFileSync(previewPath, 'utf8'));
+  assert.match(preview, /^\s*import\s+['"]@apliteni\/apliteni-ui\/css['"]/m,
     'react/.storybook/preview.ts no longer imports the kit CSS, so the React workspace no longer '
     + 'renders against the icon reset this gate measures every React rule against. Either restore '
     + 'the import or retire this gate — do not leave it green over a contest nobody is in.');
