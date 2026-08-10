@@ -57,9 +57,21 @@ export const CLAMP_PROPS = [
  * anchor is the whole reason a caller can ask about SIZING_PROPS and CLAMP_PROPS
  * separately and get two different answers, so scripts/lib/icon-cascade.test.js
  * asserts it rather than trusting it. Fresh each call because the `g` flag makes
- * lastIndex state a shared regex would carry between callers. */
+ * lastIndex state a shared regex would carry between callers.
+ *
+ * Case-insensitive because CSS property names are. `WIDTH: 40px` sizes an
+ * element in every browser and cssstyle stores it lower-cased, so a scan that
+ * only matched lower case read a file the CSSOM did not have — and the guards
+ * below, which exist to catch the two of them disagreeing, were the ones blinded
+ * by it. The anchor survives the flag: `MAX-WIDTH` still cannot read as `width`.
+ *
+ * The name comes back spelled as the file spells it, which is right for a report
+ * and wrong for anything else. A caller that KEYS on it, or hands it to
+ * cssstyle, has to lower-case it first — getPropertyValue() is case-sensitive
+ * even though setProperty() is not, so `MAX-WIDTH` asked as written reads back
+ * empty and looks like a value jsdom threw away. */
 export const declRe = (props) => new RegExp(
-  `(?:^|[;{])\\s*(${props.join('|')})\\s*:\\s*([^;}]*)`, 'g');
+  `(?:^|[;{])\\s*(${props.join('|')})\\s*:\\s*([^;}]*)`, 'gi');
 
 /* CSS with its comments taken out, for every scan that reads raw text rather
  * than the CSSOM. A commented-out `width: 20px` is not a declaration, and a
@@ -498,6 +510,22 @@ function topLevelBlocks(css) {
  * and still loses the importance, which is the one thing that decides a contest
  * against an `!important` reset.
  *
+ * How the file SPELLS the property is a separate question, and one this scan
+ * used to get wrong. `WIDTH` and `width` are one property to CSS and one entry
+ * in the CSSOM, so a capital walked past a check that only matched lower case
+ * and handed every gate the losing declaration — #148 again, arriving through
+ * the spelling. declRe() now reads the name the way CSS does and this keys on it
+ * lower-cased, so the two spellings are one repeat here as they are one property
+ * there. Two spellings are still outside what it can see, and nothing in this
+ * repo writes either. An ESCAPED name, `wid\74 h`, is `width` to a browser and
+ * nothing at all to jsdom, which throws the declaration away before the CSSOM
+ * has it — so there is no repeat left to refuse and the gate measures whichever
+ * declaration survived. A name led by a NO-BREAK SPACE or a BOM goes the other
+ * way: a browser drops it, jsdom drops it, the two agree, and the scan counts it
+ * regardless, because `\s` in a JavaScript regex covers characters CSS
+ * whitespace does not. The first under-reads; the second would refuse a block
+ * that is fine.
+ *
  * THE ORDER, which is about the fold and needs the twin. In
  *
  *   .a { width: 10px; inline-size: 33px; width: 12px }
@@ -530,9 +558,13 @@ function refuseMisreadRepeats(css, name) {
     // phantom declaration on the far side of the twin and read as a straddle.
     // The selector stays as written, since it is what the refusal names.
     for (const d of blankStrings(body).matchAll(declRe(SIZING_PROPS))) {
-      const list = decls.get(d[1]) ?? [];
+      // Keyed lower-case, because that is how the CSSOM keys it: `WIDTH` and
+      // `width` are one property there and deduplicate into each other, so two
+      // keys here would count one repeat as two singles and refuse neither.
+      const prop = d[1].toLowerCase();
+      const list = decls.get(prop) ?? [];
       list.push({ at: n, important: /!\s*important/i.test(d[2]) });
-      decls.set(d[1], list);
+      decls.set(prop, list);
       n += 1;
     }
     for (const [prop, list] of decls) {
@@ -1076,13 +1108,16 @@ function survivesParsing(prop, value) {
  * A CONDITIONAL GROUP IS DESCENDED INTO rather than read flat, because the
  * argument above holds at every depth and the code used to make it only at brace
  * depth 0. `@media` is a wrapper: the declarations under it belong to the rules
- * further in, and each of those has a selector of its own to be scoped by. Read
- * flat, the block's selector was the at-rule, no selector starting with `@` is
- * an icon, and so every declaration inside was asked about — which refused
- * `width: env(safe-area-inset-left)` on a drawer in a media query while allowing
- * the same declaration one brace out. An icon inside the group is still refused,
- * and has to be: the declaration is gone from the CSSOM, so rulesOf() reads that
- * rule as sizing nothing and this is the only thing that sees it.
+ * further in, and each of those has an element selector of its own to be scoped
+ * by — bar a keyframe, whose `from` and `50%` name no element and so scope to
+ * nothing, which is the right answer, since no icon's cascade runs through a
+ * keyframe. Read flat, the block's selector was the at-rule, no selector
+ * starting with `@` is an icon, and so every declaration inside was asked
+ * about — which refused `width: env(safe-area-inset-left)` on a drawer in a
+ * media query while allowing the same declaration one brace out. An icon inside
+ * the group is still refused, and has to be: the declaration is gone from the
+ * CSSOM, so rulesOf() reads that rule as sizing nothing and this is the only
+ * thing that sees it.
  *
  * Three shapes are asked anyway, because scoping them is what would make them
  * silent: an at-rule holding declarations rather than rules, where there is
@@ -1120,7 +1155,8 @@ export function droppedDecls(from, css, classes) {
         for (const [, prop, value] of decls.matchAll(declRe(props))) {
           const decl = value.trim();
           if (decl.includes(UNRESOLVED)) continue;
-          if (!survivesParsing(LOGICAL_DIMS.get(prop) ?? prop, decl)) {
+          const lower = prop.toLowerCase();
+          if (!survivesParsing(LOGICAL_DIMS.get(lower) ?? lower, decl)) {
             out.push(`${from}: ${selector} { ${prop}: ${decl} }`);
           }
         }

@@ -149,6 +149,31 @@ test('a repeat that leaves its !important behind is refused, twin or no twin', (
   }
 });
 
+test('a repeat spelled in capitals is refused like any other', () => {
+  /* CSS property names are case-insensitive and cssstyle normalizes them, so
+   * `WIDTH` and `width` are one property in the CSSOM and are deduplicated
+   * together — first position, last value, last importance, exactly as two
+   * lower-case spellings would be. The scan that refuses that shape reads the
+   * raw text, where the two spellings are two different strings, so the capital
+   * one walked past it and handed every gate 16px on a rule a browser renders at
+   * 40. That is the defect the refusal above exists for, arriving through the
+   * spelling of the property name. */
+  for (const decls of [
+    'WIDTH: 40px !important; width: 16px',
+    'width: 40px !important; WIDTH: 16px',
+    'Height: 40px !important; height: 16px',
+    'INLINE-SIZE: 40px !important; inline-size: 16px',
+    'Block-Size: 40px !important; block-size: 16px',
+  ]) {
+    assert.throws(() => foldLogicalDims(sheetOf(`.a svg { ${decls} }`), 'probe.css'), /!important/,
+      `"${decls}" hands every gate a size a browser does not render`);
+  }
+  // And the straddle, whose two spellings of one axis are now three.
+  assert.throws(
+    () => foldLogicalDims(sheetOf('.a svg { WIDTH: 10px; inline-size: 33px; width: 12px }'), 'probe.css'),
+    /declares width both before and after inline-size/);
+});
+
 test('a repeat whose last declaration is the one a browser takes is folded, not refused', () => {
   /* The other side of that line, and it has to stay green: an !important that
    * ARRIVES between the repeats leaves the CSSOM holding exactly the declaration
@@ -872,6 +897,25 @@ test('a clamp jsdom cannot parse is reported too', () => {
   // is a clamp `no rule sizes an icon with a clamp` cannot find.
   assert.deepEqual(droppedDecls('probe.css', '.zz svg { min-width: 20sp }', new Set()),
     ['probe.css: .zz svg { min-width: 20sp }']);
+});
+
+test('a property spelled in capitals is asked the same question, and asked in lower case', () => {
+  /* The scan reads property names case-insensitively, so these arrive here
+   * spelled as the file spells them. cssstyle's getPropertyValue() is
+   * case-sensitive even though setProperty() is not, so a name handed on as
+   * written reads back empty and every uppercase declaration would look like one
+   * jsdom threw away — a red on CSS a browser is perfectly happy with. And the
+   * logical mapping is keyed lower case too, so `INLINE-SIZE` asked as written
+   * would be asked as itself, which cssstyle waves through whatever the value. */
+  const classes = new Set(['ic']);
+  for (const decl of ['WIDTH: 1.25rem', 'MAX-WIDTH: 40px', 'INLINE-SIZE: 33px', 'Height: 17px']) {
+    assert.deepEqual(droppedDecls('probe.css', `.a svg { ${decl} }`, classes), [],
+      `"${decl}" reads as a value jsdom threw away`);
+  }
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { WIDTH: fit-content(20%) }', new Set()),
+    ['probe.css: .zz svg { WIDTH: fit-content(20%) }']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { INLINE-SIZE: fit-content(20%) }', new Set()),
+    ['probe.css: .zz svg { INLINE-SIZE: fit-content(20%) }']);
 });
 
 /* Values a browser resolves and this guard must not refuse. It asks jsdom
