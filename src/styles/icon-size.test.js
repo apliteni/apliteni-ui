@@ -116,20 +116,24 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import {
   CLAMP_REFUSAL,
   DIMS,
+  IMPORT_REFUSAL,
   clampsOn,
   foldLogicalDims,
+  importsIn,
   isSvgSubject,
   kitSheetNames,
   kitStyleHtml,
   mount,
   resolve,
   rulesOf,
+  selectorParts,
   svgClassSet,
   without,
   writtenAs,
@@ -180,8 +184,8 @@ for (const [i, name] of SHEETS.entries()) {
     // base.css owns the reset. It is excluded by which file it lives in, not by
     // what its selector looks like.
     if (name === 'styles/base.css') continue;
-    for (const raw of rule.selectorText.split(',')) {
-      const sel = raw.trim().replace(/\s+/g, ' ');
+    for (const raw of selectorParts(rule.selectorText)) {
+      const sel = raw.replace(/\s+/g, ' ');
       if (!isSvgSubject(sel, SVG_CLASSES)) continue;
       for (const dim of DIMS) {
         const want = rule.style.getPropertyValue(dim).trim();
@@ -196,6 +200,17 @@ test('every icon sizing rule in the kit is still gated', () => {
     `collected ${subjects.length} icon sizing declarations, expected ${EXPECTED_SUBJECTS}. `
     + 'If you added a rule, raise EXPECTED_SUBJECTS. If you removed one, lower it and say why '
     + 'in the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
+});
+
+test('no kit stylesheet imports a sheet this gate never opens', () => {
+  /* src/index.css is nothing but @imports and is the one sheet whose imports
+   * ARE followed — SHEETS is derived from them. A component stylesheet is the
+   * other case: an @import there names a sheet nothing composes, and `files` in
+   * package.json ships everything under src/, so its rules reach consumers with
+   * no gate over them and no complaint here. */
+  const unfollowed = SHEETS.flatMap((name) => importsIn(readFileSync(path.join(src, name), 'utf8'))
+    .map((spec) => `${name}: @import ${spec}`));
+  assert.deepEqual(unfollowed, [], IMPORT_REFUSAL);
 });
 
 test('no rule in the kit sizes an icon with a clamp', () => {

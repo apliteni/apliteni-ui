@@ -59,6 +59,14 @@ export const CLAMP_PROPS = [
 export const declRe = (props) => new RegExp(
   `(?:^|[;{])\\s*(${props.join('|')})\\s*:\\s*([^;}]*)`, 'g');
 
+/* CSS with its comments taken out, for every scan that reads raw text rather
+ * than the CSSOM. A commented-out `width: 20px` is not a declaration, and a
+ * comment warning people off `-webkit-writing-mode` is not one either — read as
+ * text, both fire guards on a file that is perfectly fine. The patterns above
+ * also stop at `;` or `}`, so a comment sitting between `{` and the first
+ * declaration hides that declaration from them entirely. */
+export const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
+
 /* Build output and vendored code, skipped by directory name. Two of these exist
  * on a dev machine and never in CI, which is the dangerous shape: site/public/
  * is gitignored, and site/build.mjs folds the entire built Storybook into
@@ -69,12 +77,17 @@ export const declRe = (props) => new RegExp(
  * that reads untracked build output is how you get the next one. */
 export const SKIP_DIRS = new Set(['node_modules', 'dist', 'public', 'storybook-static']);
 
-/** Every file under `dir`, depth-first, build output excluded. */
-export function walk(dir, acc = []) {
+/* Every file under `dir`, depth-first, build output excluded. The pruning is by
+ * NAME and so applies at any depth, including inside a directory of hand-written
+ * source; pass `skipped` an array and every directory refused lands in it, so a
+ * caller sweeping somewhere build output has no business being can say so
+ * instead of quietly reading less. */
+export function walk(dir, acc = [], skipped = null) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) walk(p, acc);
+      if (SKIP_DIRS.has(entry.name)) skipped?.push(p);
+      else walk(p, acc, skipped);
     } else acc.push(p);
   }
   return acc;
@@ -132,7 +145,85 @@ export function svgClassSet(dirs, exts = ['.js']) {
   return found;
 }
 
-export const leafOf = (sel) => sel.trim().split(/\s+/).pop();
+/* Walk a selector at the top level, stepping over anything inside () or [], and
+ * call `at` for every character that is not. Every split below is built on this,
+ * because the characters that separate a selector are the same characters an
+ * argument list is full of: the `>` in `:has(> .ui-table)` separates nothing and
+ * the comma in `:where(ul, ol)` does not start a second selector. */
+function scanTop(sel, at) {
+  let depth = 0;
+  for (let i = 0; i < sel.length; i += 1) {
+    const ch = sel[i];
+    if (ch === '(' || ch === '[') depth += 1;
+    else if (ch === ')' || ch === ']') depth -= 1;
+    at(ch, depth === 0 && !'()[]'.includes(ch), i);
+  }
+}
+
+/* The selectors a selector list holds — `.a, .b` is two, `:where(ul, ol)` is
+ * one. Every caller that used to split on ',' goes through this, since the
+ * halves that split produces out of a functional pseudo are not selectors and
+ * cannot be reasoned about as if they were. */
+export function selectorParts(selectorText) {
+  const parts = [''];
+  scanTop(selectorText, (ch, top) => {
+    if (top && ch === ',') parts.push('');
+    else parts[parts.length - 1] += ch;
+  });
+  return parts.map((s) => s.trim()).filter(Boolean);
+}
+
+/* One complex selector split into its compound selectors, each paired with the
+ * combinator in front of it. `.a>svg` and `.a > svg` are the same two compounds,
+ * which is the point: read as whitespace-separated tokens the first is one
+ * token, `svg` is not its leaf, and the rule that decides the icon looks like a
+ * rule about nothing. */
+export function compoundsOf(sel) {
+  const out = [];
+  let cur = '';
+  let comb = '';
+  scanTop(sel, (ch, top) => {
+    if (top && /[\s>+~]/.test(ch)) {
+      if (cur) { out.push([comb || ' ', cur]); cur = ''; comb = ''; }
+      if (!/\s/.test(ch)) comb = ch;
+      return;
+    }
+    cur += ch;
+  });
+  if (cur) out.push([comb || ' ', cur]);
+  return out;
+}
+
+/** The compound a selector actually selects — `svg` out of `.rx-tbl>svg`. */
+export const leafOf = (sel) => compoundsOf(sel.trim()).pop()?.[1] ?? '';
+
+/** A compound with every functional pseudo's argument list emptied out. */
+const withoutArgs = (compound) => {
+  let out = '';
+  scanTop(compound, (ch, top) => { if (top) out += ch; });
+  return out;
+};
+
+/* The argument lists of the pseudo-classes that name what the subject may BE.
+ * `:has()` and `:not()` are deliberately not among them: the first is about a
+ * different element and the second says what the subject is not, so neither
+ * makes the subject an icon however its argument reads. */
+function alternativesIn(compound) {
+  const out = [];
+  const re = /:(?:is|where|matches)\(/g;
+  for (let m = re.exec(compound); m; m = re.exec(compound)) {
+    let depth = 1;
+    let i = m.index + m[0].length;
+    const start = i;
+    for (; i < compound.length && depth > 0; i += 1) {
+      if (compound[i] === '(') depth += 1;
+      else if (compound[i] === ')') depth -= 1;
+    }
+    if (depth === 0) out.push(compound.slice(start, i - 1));
+    re.lastIndex = i;
+  }
+  return out;
+}
 
 /* Two shapes count, and the second is easy to miss:
  *
@@ -143,13 +234,24 @@ export const leafOf = (sel) => sel.trim().split(/\s+/).pop();
  * The second shape is not cosmetic: .ui-fbck is the largest icon in the kit and
  * an earlier gate that collected only selectors ending in `svg` was blind to it.
  * Outside the package the same shape appears as `.term__copy .ic { width: 15px }`
- * in site/index.html — `ic` is a class written onto the svg tag itself. */
+ * in site/index.html — `ic` is a class written onto the svg tag itself.
+ *
+ * Asked of the leaf compound, and asked recursively through `:is()`/`:where()`,
+ * so the shape a selector is written in decides nothing. `.rx-tbl>svg`,
+ * `.rx-tbl+svg` and `.a :where(svg)` all select an svg exactly as `.rx-tbl svg`
+ * does; answering "not an icon" for them left a rule that beats the reset with
+ * no gate over it and no complaint either, which is the one failure this
+ * machinery is for. */
+function compoundIsSvg(compound, classes) {
+  const bare = withoutArgs(compound);
+  if (/^svg\b/.test(bare)) return true;
+  if ([...bare.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].some((m) => classes.has(m[1]))) return true;
+  return alternativesIn(compound)
+    .some((args) => selectorParts(args).some((s) => compoundIsSvg(leafOf(s), classes)));
+}
+
 export function isSvgSubject(selectorText, classes) {
-  return selectorText.split(',').some((s) => {
-    const leaf = leafOf(s);
-    if (/^svg\b/.test(leaf)) return true;
-    return leaf.split('.').slice(1).some((c) => classes.has(c.replace(/[:[].*$/, '')));
-  });
+  return selectorParts(selectorText).some((s) => compoundIsSvg(leafOf(s), classes));
 }
 
 /** Every rule in a sheet, conditional groups included, depth first. */
@@ -187,6 +289,14 @@ const AS_WRITTEN = new WeakMap();
 /* What a gate says when a stylesheet turns the axes the fold assumes. `what`
  * names the declaration, since the two spellings are found in different places
  * and only one of them can name the rule it sits in. */
+/* Whether a declared writing mode leaves the inline axis horizontal. Only the
+ * modes that turn it break the fold, and `horizontal-tb` is the mode the fold
+ * assumes — refusing it would tell a reader to delete the declaration that makes
+ * this gate correct, and a gate that reds on correct code gets switched off.
+ * `initial` is horizontal-tb; `inherit` and `unset` name a mode set somewhere
+ * this cannot see, so they are refused with the rest. */
+const turnsTheAxes = (mode) => !!mode && !['horizontal-tb', 'initial'].includes(mode.trim().toLowerCase());
+
 const writingModeRefusal = (name, what) => `${name}: ${what}. This gate folds inline-size onto `
   + 'width and block-size onto height, which holds only while every icon is laid out '
   + 'horizontally. Take the declaration out, or teach the gate to fold along the writing mode '
@@ -211,6 +321,66 @@ const writingModeRefusal = (name, what) => `${name}: ${what}. This gate folds in
  * subject can say `inline-size` where the file says `inline-size` — a gate that
  * renamed the rule it measures would send the next reader looking for a
  * declaration that is not there. */
+/* The text a sheet was parsed from, which two of the checks below have no other
+ * source for: jsdom drops `-webkit-writing-mode` and deduplicates a repeated
+ * declaration before either reaches the CSSOM. A sheet with no <style> element
+ * behind it has no such text, and reading that as an empty string turns both
+ * checks off — a constructed CSSStyleSheet has a null ownerNode and a <link>
+ * has an element whose textContent is '', so each folds with no complaint
+ * whatever it carries. Every gate here builds its document out of <style>
+ * elements, which is what makes that a refusal rather than a limitation. */
+function rawTextOf(sheet, name) {
+  const node = sheet.ownerNode;
+  if (node?.nodeName?.toLowerCase() !== 'style') {
+    throw new Error(`${name}: this sheet has no <style> element behind it, so this gate cannot read `
+      + 'the text it was parsed from — and the two checks that read it would find nothing and pass. '
+      + 'Mount the sheet as a <style> element the way every gate here builds its document, or teach '
+      + 'this to reach the text wherever it now lives.');
+  }
+  return stripComments(node.textContent);
+}
+
+/* The two axes, each in the two spellings that share it. Order matters between
+ * the members of a pair and nowhere else, which is what makes the refusal below
+ * as narrow as it is. */
+const AXES = [...LOGICAL_DIMS].map(([logical, physical]) => [physical, logical]);
+
+/* A block that names both spellings of one axis and repeats either of them,
+ * which is the one shape the fold below cannot resolve.
+ *
+ * cssstyle keeps a repeated property once — in its FIRST position, carrying its
+ * LAST value — so `width: 10px; inline-size: 33px; width: 12px` reaches the
+ * CSSOM as `width: 12px; inline-size: 33px`. The fold reads position to decide
+ * which declaration a browser takes, and the position it reads is now a
+ * fabrication: it folds to 33px where a browser renders 12. That is a wrong
+ * number rather than an error, so every gate would report it as a pass.
+ *
+ * Nothing in the CSSOM can recover the order — rule.cssText is serialised from
+ * the same deduplicated block — so this refuses instead of guessing. Repeating a
+ * property with no logical twin beside it decides nothing the fold reads, and is
+ * an ordinary fallback (`width: 100%; width: fit-content`), so it goes through.
+ */
+function refuseRepeatedAxis(css, name) {
+  for (const m of css.matchAll(/\{([^{}]*)\}/g)) {
+    const counts = new Map();
+    for (const d of m[1].matchAll(declRe(SIZING_PROPS))) {
+      counts.set(d[1], (counts.get(d[1]) ?? 0) + 1);
+    }
+    for (const axis of AXES) {
+      if (!axis.every((p) => counts.has(p))) continue;
+      const repeated = axis.find((p) => counts.get(p) > 1);
+      if (!repeated) continue;
+      const before = css.slice(0, m.index);
+      const sel = before.slice(Math.max(before.lastIndexOf('{'), before.lastIndexOf('}')) + 1).trim();
+      throw new Error(`${name}: "${sel}" declares ${repeated} twice in a block that also declares `
+        + `${axis.find((p) => p !== repeated)}. A browser takes the last of the two; the CSSOM this `
+        + 'gate reads keeps a repeated property once, in its first position with its last value, so '
+        + 'the order here is not the order the file declares and the fold would pick the wrong '
+        + 'winner and report it as a size. Declare the axis once.');
+    }
+  }
+}
+
 export function foldLogicalDims(sheet, name) {
   for (const rule of everyRule(sheet)) {
     /* The mapping above is the horizontal-writing-mode one. Nothing in this
@@ -218,7 +388,7 @@ export function foldLogicalDims(sheet, name) {
      * may be the vertical axis and folding it onto `width` measures the wrong
      * contest — quietly, and in the direction that passes. */
     const mode = rule.style?.getPropertyValue('writing-mode');
-    if (mode) throw new Error(writingModeRefusal(name, `"${rule.selectorText}" declares `
+    if (turnsTheAxes(mode)) throw new Error(writingModeRefusal(name, `"${rule.selectorText}" declares `
       + `writing-mode: ${mode}`));
   }
   /* And the same question of the sheet's raw text, because the CSSOM cannot
@@ -227,10 +397,14 @@ export function foldLogicalDims(sheet, name) {
    * it, so the loop above sees nothing in either case. Every browser that
    * honours the prefixed spelling turns the axes exactly as the unprefixed one
    * does, which is what the fold cannot survive. */
-  const prefixed = (sheet.ownerNode?.textContent ?? '')
+  const raw = rawTextOf(sheet, name);
+  const prefixed = raw
     .match(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/);
-  if (prefixed) throw new Error(writingModeRefusal(name, `a rule declares ${prefixed[1]}: `
-    + `${prefixed[2].trim()}, which jsdom parses away before this gate can read it`));
+  if (prefixed && turnsTheAxes(prefixed[2])) {
+    throw new Error(writingModeRefusal(name, `a rule declares ${prefixed[1]}: `
+      + `${prefixed[2].trim()}, which jsdom parses away before this gate can read it`));
+  }
+  refuseRepeatedAxis(raw, name);
   for (const rule of sheet.cssRules) {
     // Only the rules a gate mounts. A logical declaration inside @media is left
     // as written for the guard in rulesOf() to find and refuse.
@@ -269,8 +443,8 @@ export function clampsOn(sheet, name, classes) {
   const found = [];
   for (const rule of everyRule(sheet)) {
     if (!rule.selectorText || !rule.style) continue;
-    for (const raw of rule.selectorText.split(',')) {
-      const sel = raw.trim().replace(/\s+/g, ' ');
+    for (const raw of selectorParts(rule.selectorText)) {
+      const sel = raw.replace(/\s+/g, ' ');
       if (!isSvgSubject(sel, classes)) continue;
       for (const prop of CLAMP_PROPS) {
         const value = rule.style.getPropertyValue(prop);
@@ -324,27 +498,157 @@ export function* rulesOf(sheet, name, classes) {
   }
 }
 
+/* Every @import in a stylesheet's raw text. An @import names a sheet that ships
+ * to consumers and that no gate here opens: each one composes the files it finds
+ * and nothing else, so the imported rules are measured only if that sheet is
+ * itself one of them. src/index.css is the deliberate exception — it is nothing
+ * but @imports, and the kit gate's sheet list is derived FROM them, so it is the
+ * one sheet whose imports are already followed. */
+export const importsIn = (css) => [...stripComments(css).matchAll(/@import\s+([^;]*)/g)]
+  .map((m) => m[1].trim());
+
+export const IMPORT_REFUSAL = 'a stylesheet imports another sheet, and no gate here follows it — '
+  + 'each composes the files it finds and nothing else, so the imported rules ship unmeasured. '
+  + 'Import the sheet from the component or the page instead, so it is a file the sweep finds, or '
+  + 'teach the gate to follow @import.';
+
+/* An interpolation no gate could resolve becomes this token. It is a valid CSS
+ * identifier on purpose: substituting something invalid would make jsdom drop
+ * the declaration, and a dropped icon rule is indistinguishable from a rule that
+ * was never there. Kept as a marker so the gates can refuse it. */
+export const UNRESOLVED = 'ui-unresolved-interpolation';
+
+/* Resolve `${NAME}` against a `const NAME = \`…\`` in the same file — the shape
+ * stories/foundations/Iconography.stories.js uses. Anything else (a call, an
+ * expression, a single-quoted const, one imported from elsewhere) becomes
+ * UNRESOLVED, which is a failure only if it lands inside an icon-sizing rule. */
+export function resolveInterpolations(body, source, depth = 0) {
+  return body.replace(/\$\{([^}]*)\}/g, (_whole, expr) => {
+    const name = expr.trim();
+    if (depth < 4 && /^[A-Za-z_$][\w$]*$/.test(name)) {
+      const m = source.match(new RegExp(`\\bconst\\s+${name}\\s*=\\s*\`([^\`]*)\``));
+      if (m) return resolveInterpolations(m[1], source, depth + 1);
+    }
+    return UNRESOLVED;
+  });
+}
+
+/* A JSX expression container with its braces taken off. `.tsx` cannot write CSS
+ * between the tags the way a template-literal story does — it writes
+ * <style>{`…`}</style> — and handing those braces and backticks to a CSS parser
+ * yields a block with no rules in it, which reads as a component with no CSS.
+ * A container holding anything but a template literal is handed back as an
+ * interpolation, so it reaches UNRESOLVED rather than silence. */
+function unwrapExpression(body) {
+  const container = body.match(/^\s*\{([\s\S]*)\}\s*$/);
+  if (!container) return body;
+  const literal = container[1].trim().match(/^`([\s\S]*)`$/);
+  return literal ? literal[1] : `\${${container[1].trim()}}`;
+}
+
+/** The CSS of every <style> block in a source file, resolved as far as it can be. */
+export function styleBlocksOf(source) {
+  return [...source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
+    .map((m) => resolveInterpolations(unwrapExpression(m[1]), source));
+}
+
+/* Everything in one block of CSS that a gate cannot see the whole of, split into
+ * what it merely could not read and the clamps, which ask for something
+ * different — a width nobody could resolve is a gap in resolveInterpolations and
+ * nothing more, while a clamp is a shape no gate measures at all, so resolving
+ * it is only the first half of the answer and the clamp test is the second.
+ *
+ * The raw text is asked as well as the parsed sheet, because the parsed sheet
+ * cannot answer alone: `width: ${sizeOf(1)}px` becomes a value jsdom rejects, so
+ * the declaration is simply gone from the CSSOM. Comments come out first — a
+ * commented-out `width: 20px` is not a declaration, and the patterns start at
+ * `{` or `;`, so a comment sitting in front of the first declaration in a block
+ * hides that declaration from every one of them. */
+export function blindSpots(from, css, sheet) {
+  const blind = [];
+  const clampedBlind = [];
+  const text = stripComments(css);
+  for (const rule of sheet.cssRules) {
+    if (!rule.selectorText) continue;
+    const dims = DIMS.filter((d) => rule.style.getPropertyValue(d));
+    if (!dims.length) continue;
+    const values = dims.map((d) => rule.style.getPropertyValue(d));
+    if (rule.selectorText.includes(UNRESOLVED) || values.some((v) => v.includes(UNRESOLVED))) {
+      blind.push(`${from}: ${rule.selectorText} { ${dims.join(', ')} }`);
+    }
+  }
+  /* A block whose WHOLE body was one interpolation nothing could resolve.
+   * `<style>${SHELL_CSS}</style>` becomes the bare identifier UNRESOLVED — no
+   * braces, no declarations — so the loop above sees no rules, and both text
+   * guards below need a `{` or a literal width/height to fire. Nothing was
+   * dropped from a count either, because the count never rose. The block reads
+   * as a surface with no CSS in it, and the gate would swear it had measured
+   * the page. */
+  if (text.includes(UNRESOLVED) && sheet.cssRules.length === 0) {
+    blind.push(`${from}: a <style> block whose entire body is an unresolved interpolation`);
+  }
+  for (const m of text.matchAll(declRe(SIZING_PROPS))) {
+    if (m[2].includes(UNRESOLVED)) blind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
+  }
+  for (const m of text.matchAll(declRe(CLAMP_PROPS))) {
+    if (m[2].includes(UNRESOLVED)) clampedBlind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
+  }
+  for (const m of text.matchAll(/(?:^|[}])([^{}]*)\{/g)) {
+    if (m[1].includes(UNRESOLVED)) blind.push(`${from}: selector ${m[1].trim()}`);
+  }
+  /* An interpolated PROPERTY NAME — `${DIM}: 21px`. jsdom drops the whole
+   * declaration as an unknown property, so it never reaches the CSSOM, and the
+   * value guard above only ever looks for a literal `width` or `height`, which
+   * is the one thing this shape does not write. Anchored on `;` or `{` so a
+   * selector such as `a:hover` cannot read as a property. */
+  for (const m of text.matchAll(/[;{]\s*([^;{}:]*)\s*:/g)) {
+    if (m[1].includes(UNRESOLVED)) blind.push(`${from}: property ${m[1].trim()}`);
+  }
+  return { blind, clampedBlind };
+}
+
+export const BLIND_REFUSAL = 'a surface writes a sizing rule whose selector or value is computed '
+  + 'at render time. The gate substituted a placeholder for it, so it cannot tell whether it sizes '
+  + 'an icon and cannot measure it if it does. Teach resolveInterpolations().';
+
+export const CLAMPED_BLIND_REFUSAL = 'a surface clamps a size with a value computed at render '
+  + 'time. jsdom drops a declaration it cannot parse, so the clamp test reads a sheet this '
+  + 'declaration is no longer in, and the raw text is the only place it survives. Teach '
+  + 'resolveInterpolations() and the two of them can then say whether this clamp lands on an icon '
+  + '— and if it does, that test refuses it, because no gate measures anything about a clamp. The '
+  + 'argument is in CLAMP_REFUSAL.';
+
 /* The smallest DOM satisfying a descendant selector such as
  * `.ui-nav--side.is-collapsed .ui-nav__ic svg`. Every icon selector the kit
  * renders is a chain of compound class/element parts. Anything else throws — and
  * the mounted element is checked against the selector afterwards, which is the
  * catch-all for shapes this builder gets subtly wrong. */
 export function mount(document, sel, classes) {
-  const parts = sel.split(' ').filter(Boolean);
-  let parent = document.body;
+  /* Everything goes inside one container, which is also what the caller
+   * removes. A sibling combinator at the top of the chain builds two elements
+   * rather than nesting one inside the other, so "the last child of body" stops
+   * being the whole of what was mounted. */
+  const top = document.body.appendChild(document.createElement('div'));
   let el = null;
-  for (const part of parts) {
-    if (/[>+~[:*&\\]/.test(part)) throw new Error(`unsupported selector part: ${part} (in ${sel})`);
+  for (const [comb, part] of compoundsOf(sel)) {
+    if (/[[:*&\\]/.test(part)) {
+      throw new Error(`unsupported selector part: ${part} (in ${sel}). This builds a chain of `
+        + 'compound class/element parts and nothing else, so it cannot make an element this one '
+        + 'would match. Write the rule in a shape it can mount, or teach it this shape.');
+    }
     const bare = part.replace(/\..*$/, '');
     const isSvg = bare === 'svg' || (!bare && part.split('.').slice(1).some((c) => classes.has(c)));
-    el = isSvg
+    const node = isSvg
       ? document.createElementNS('http://www.w3.org/2000/svg', 'svg')
       : document.createElement(bare || 'div');
-    for (const cls of part.split('.').slice(1)) el.classList.add(cls);
-    parent.appendChild(el);
-    parent = el;
+    for (const cls of part.split('.').slice(1)) node.classList.add(cls);
+    // A child combinator builds the same nesting a descendant one does; the two
+    // sibling combinators put the element beside its predecessor instead, which
+    // `+` and `~` both match when it is the one that comes next.
+    (el === null ? top : '+~'.includes(comb) ? el.parentNode : el).appendChild(node);
+    el = node;
   }
-  return { el, top: document.body.lastElementChild };
+  return { el, top };
 }
 
 /* What the declared value resolves to in this element's own context. Comparing
@@ -385,7 +689,19 @@ export function resolve(getComputedStyle, el, dim, value) {
  * makes the assertion a green no-op: .ui-badge declares 11px and the reset's
  * 1.1em over badge.css's font-size: 10px is also 11px, so the measurement
  * agreed with the winner and the loser alike. That hole was found by hand once;
- * asserting non-vacuity is what stops the next instance needing to be. */
+ * asserting non-vacuity is what stops the next instance needing to be.
+ *
+ * It only works because resolve() ran first, and that is not obvious from
+ * either function. jsdom caches an element's computed style and throws the cache
+ * away when the DOM changes, never when a declaration inside a rule does — so
+ * this reads the same element the caller already measured and would hand back
+ * the cached answer. What clears it is resolve() appending a probe and removing
+ * it again. Call the two in the other order, or drop resolve() as redundant once
+ * `want` is a px literal, and every one of these checks reports `gone` equal to
+ * `expected`: a false red on every subject, telling the reader a working rule is
+ * redundant and should go. Measured on `.a svg { width: 33px }` under the reset:
+ * with resolve(), gone is 110px and the check passes; without it, gone is 33px
+ * and it fails. */
 export function without(getComputedStyle, el, rule, dim) {
   const value = rule.style.getPropertyValue(dim);
   const priority = rule.style.getPropertyPriority(dim);

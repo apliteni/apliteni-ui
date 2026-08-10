@@ -19,8 +19,21 @@
  * own red. The machinery is imported from scripts/lib/icon-cascade.js rather than
  * copied, so the three gates cannot drift into measuring different things.
  *
- * IT DISCOVERS, IT DOES NOT ENUMERATE. Every *.css under react/src, at any depth,
- * so react/src/primitives/ joins the sweep the day it grows a stylesheet.
+ * IT DISCOVERS, IT DOES NOT ENUMERATE. Every *.css under react/src at any depth,
+ * so react/src/primitives/ joins the sweep the day it grows a stylesheet, and
+ * every <style> block written inside a .ts or .tsx there — the idiom the vanilla
+ * stories already use, and one that would otherwise fall between this gate and
+ * the stories/*.stories.js glob the surfaces gate runs on.
+ *
+ * Discovery is what can narrow without saying so, and at a count of 0 there is
+ * nothing else to notice with, so the two ways it narrows are asserted rather
+ * than trusted. SKIP_DIRS prunes by directory NAME wherever that name turns up,
+ * which is what build output needs and what a react/src/public/ somebody wrote
+ * by hand does not; the walk reports every directory it refused, and a refusal
+ * under react/src fails. And the glob is *.css, so a sheet renamed .pcss leaves
+ * the sweep with the count unmoved; the components' own `import './DataTable.css'`
+ * lines say what the workspace actually loads, and a sheet on that list this does
+ * not read fails too.
  *
  * ONE CASCADE, NOT ONE DOCUMENT PER FILE. Every one of those sheets is imported by
  * a component, tsup concatenates them into a single react/dist/index.css, and the
@@ -53,14 +66,21 @@
  *
  * THE COUNT STARTS AT ZERO, which is the dangerous part. No React stylesheet
  * carries an svg rule today, so `collected 0, expected 0` is what a healthy gate
- * says and also what a gate that read nothing at all says. Six assertions stand
- * between those two: the sweep found stylesheets, the kit's sheets are in the
- * document, its reset still reaches a bare icon there, preview.ts still imports
- * the kit's CSS at all, the class scanner still finds a class the kit puts on an
- * svg — returning nothing would take every class-on-svg rule out of coverage and
- * leave the count at the same healthy-looking zero — and no sizing declaration in
- * those files is one the parser threw away or one this gate never opened. Take any
- * of them out and this file goes back to being ornamental.
+ * says and also what a gate that read nothing at all says. Eight assertions stand
+ * between those two: the sweep found stylesheets, it entered every directory
+ * under react/src, it reads every sheet a component imports, the kit's sheets are
+ * in the document, its reset still reaches a bare icon there, preview.ts still
+ * imports the kit's CSS at all, the class scanner still finds a class the kit
+ * puts on an svg — returning nothing would take every class-on-svg rule out of
+ * coverage and leave the count at the same healthy-looking zero — and no sizing
+ * declaration in what it read is one the parser threw away, one hidden behind an
+ * interpolation, or one inside a sheet this gate never opened. Take any of them
+ * out and this file goes back to being ornamental.
+ *
+ * The document-count assert is not one of the eight, and deliberately: the
+ * document is built out of that same list, so it proves jsdom dropped nothing
+ * rather than that the list was right. The first three are what say the list is
+ * right.
  *
  * WHAT THIS WILL NOT CATCH — the same weak claims as the two gates it joins, for
  * the same reasons, plus three of its own:
@@ -111,19 +131,27 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import {
+  BLIND_REFUSAL,
+  CLAMPED_BLIND_REFUSAL,
   CLAMP_PROPS,
   CLAMP_REFUSAL,
   DIMS,
+  IMPORT_REFUSAL,
   SIZING_PROPS,
+  blindSpots,
   clampsOn,
   declRe,
   foldLogicalDims,
+  importsIn,
   isSvgSubject,
   kitSheetNames,
   kitStyleHtml,
   mount,
   resolve,
   rulesOf,
+  selectorParts,
+  stripComments,
+  styleBlocksOf,
   svgClassSet,
   walk,
   without,
@@ -144,39 +172,74 @@ const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 // a rule; lower it in the same commit as the removal, and say why there.
 const EXPECTED_SUBJECTS = 0;
 
+/* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
+ * NAME wherever the name turns up, which is what build output needs and what
+ * hand-written source does not: a react/src/public/ holding a stylesheet is
+ * ordinary React, and pruning it drops every rule in it out of the sweep without
+ * moving a count that sits at zero either way. */
+const SKIPPED_DIRS = [];
+const REACT_FILES = walk(reactSrc, [], SKIPPED_DIRS).sort();
+const isTest = (p) => /\.test\.[cm]?[jt]sx?$/.test(p);
+const isSource = (p) => /\.[cm]?[jt]sx?$/.test(p) && !isTest(p);
+
 /* Every stylesheet the React components import, discovered rather than listed.
  * Path order, which is stable across machines in a way readdir order is not. */
-const REACT_SHEETS = walk(reactSrc).filter((p) => p.endsWith('.css')).sort().map(rel);
+const REACT_SHEETS = REACT_FILES.filter((p) => p.endsWith('.css')).map(rel);
+
+/* Every stylesheet a React source imports for its side effects — the
+ * `import './DataTable.css'` at the top of DataTable.tsx. That is the list the
+ * workspace actually loads, and it is the only thing that can tell the sweep
+ * above it read less than the workspace ships: rename DataTable.css to
+ * DataTable.pcss and the glob halves in silence, because the count that would
+ * notice is 0 before and after. */
+const IMPORTED_SHEETS = [...new Set(REACT_FILES.filter(isSource)
+  .flatMap((p) => [...readFileSync(p, 'utf8').matchAll(/^\s*import\s+['"](\.[^'"]+)['"]/gm)]
+    .map((m) => rel(path.resolve(path.dirname(p), m[1])))))].sort();
+
+/* And the CSS a component writes in a <style> block of its own, which is the
+ * idiom this repo's vanilla stories already use and which react/src is free to
+ * use too. Extracted by the same function scripts/icon-size-surfaces.test.js
+ * extracts a story's blocks with, so the two cannot drift — including what it
+ * does with an interpolation it cannot resolve, which is to leave a marker the
+ * guards below refuse rather than an empty block that reads as no CSS at all. */
+const STYLE_BLOCKS = REACT_FILES.filter(isSource)
+  .flatMap((p) => styleBlocksOf(readFileSync(p, 'utf8'))
+    .map((css, j) => ({ from: `${rel(p)} block ${j}`, css })));
+
+/** Every piece of CSS this gate measures, each knowing where it came from. */
+const OWN = [
+  ...REACT_SHEETS.map((name) => ({ from: name, css: readFileSync(path.join(root, name), 'utf8') })),
+  ...STYLE_BLOCKS,
+];
 
 const SHEETS = kitSheetNames(src);
 const KIT = kitStyleHtml(src, SHEETS);
 
-const OWN = REACT_SHEETS
-  .map((name) => `<style data-sheet="${name}">${readFileSync(path.join(root, name), 'utf8')}</style>`)
+const OWN_HTML = OWN
+  .map(({ from, css }) => `<style data-sheet="${from}">${css}</style>`)
   .join('\n');
 
-const dom = new JSDOM(`<!doctype html><html><head>${KIT}${OWN}</head><body></body></html>`);
+const dom = new JSDOM(`<!doctype html><html><head>${KIT}${OWN_HTML}</head><body></body></html>`);
 const { document, getComputedStyle } = dom.window;
 
-assert.equal(document.styleSheets.length, SHEETS.length + REACT_SHEETS.length,
+assert.equal(document.styleSheets.length, SHEETS.length + OWN.length,
   'jsdom dropped a stylesheet composing the React workspace — every rule in it would silently '
   + 'leave coverage.');
 
 /** That workspace's own sheets, after the kit's. */
-const ownSheets = () => REACT_SHEETS.map((_n, j) => document.styleSheets[SHEETS.length + j]);
+const ownSheets = () => OWN.map((_o, j) => document.styleSheets[SHEETS.length + j]);
 
-/* What each React sheet says, with comments taken out — a commented-out
+/* What each of them says, with comments taken out — a commented-out
  * `width: 20px` is not a declaration, and leaving it in would make the guard
  * below fire on a file that is perfectly fine. */
-const RAW = REACT_SHEETS.map((name) => readFileSync(path.join(root, name), 'utf8')
-  .replace(/\/\*[\s\S]*?\*\//g, ' '));
+const RAW = OWN.map(({ css }) => stripComments(css));
 
 /* The kit's sheets are folded here as well as in src/styles/icon-size.test.js,
  * because this document holds its own copy of them: a reset written with a
  * logical property and left unfolded would sit out the cascade entirely, and
  * every React rule would then win a contest nobody was holding. */
 [...document.styleSheets].forEach((sheet, k) => {
-  foldLogicalDims(sheet, k < SHEETS.length ? SHEETS[k] : REACT_SHEETS[k - SHEETS.length]);
+  foldLogicalDims(sheet, k < SHEETS.length ? SHEETS[k] : OWN[k - SHEETS.length].from);
 });
 
 // The classes that end up on an <svg>, derived from the source the way the other
@@ -187,10 +250,10 @@ const RAW = REACT_SHEETS.map((name) => readFileSync(path.join(root, name), 'utf8
 const SVG_CLASSES = svgClassSet([src, reactSrc], ['.js', '.ts', '.tsx']);
 
 const subjects = [];
-REACT_SHEETS.forEach((from, j) => {
+OWN.forEach(({ from }, j) => {
   for (const [rule] of rulesOf(ownSheets()[j], from, SVG_CLASSES)) {
-    for (const raw of rule.selectorText.split(',')) {
-      const sel = raw.trim().replace(/\s+/g, ' ');
+    for (const raw of selectorParts(rule.selectorText)) {
+      const sel = raw.replace(/\s+/g, ' ');
       if (!isSvgSubject(sel, SVG_CLASSES)) continue;
       for (const dim of DIMS) {
         const want = rule.style.getPropertyValue(dim).trim();
@@ -204,6 +267,25 @@ test('the sweep still finds the React workspace stylesheets', () => {
   assert.ok(REACT_SHEETS.length > 0,
     'found no *.css under react/src — the sweep is broken, not the workspace. Every assertion '
     + 'below would pass on an empty sweep, including the count.');
+});
+
+test('the sweep enters every directory under react/src', () => {
+  assert.deepEqual(SKIPPED_DIRS.map(rel), [],
+    'a directory under react/src carries a name SKIP_DIRS prunes — node_modules, dist, public or '
+    + 'storybook-static. That list is for build output found anywhere, and it cannot tell build '
+    + 'output from a react/src/public/ somebody wrote by hand, so every stylesheet under it left '
+    + 'this sweep and the count stayed at 0. Rename the directory, or narrow the pruning to the '
+    + 'paths where build output actually lands.');
+});
+
+test('the sweep reads every stylesheet a React component imports', () => {
+  const unswept = IMPORTED_SHEETS.filter((p) => !REACT_SHEETS.includes(p));
+  assert.deepEqual(unswept, [],
+    'a React source imports a stylesheet this sweep does not read. It collects *.css under '
+    + 'react/src, so a sheet under any other extension is loaded by the workspace, shipped through '
+    + 'react/dist/index.css and measured by nothing — and the subject count cannot say so, because '
+    + 'it is 0 whether the sheet is read or not. Name it .css, or widen the sweep to whatever the '
+    + 'workspace now writes.');
 });
 
 test('the React workspace still renders against the kit stylesheets', () => {
@@ -259,10 +341,13 @@ test('no sizing declaration in the React CSS is one this gate cannot read', () =
    * that lives anywhere else ships to consumers with its rules unmeasured. */
   const droppedDecls = [];
   const unfollowed = [];
-  REACT_SHEETS.forEach((from, j) => {
-    for (const m of RAW[j].matchAll(/@import\s+([^;]*)/g)) {
-      unfollowed.push(`${from}: @import ${m[1].trim()}`);
-    }
+  const blind = [];
+  const clampedBlind = [];
+  OWN.forEach(({ from }, j) => {
+    unfollowed.push(...importsIn(RAW[j]).map((spec) => `${from}: @import ${spec}`));
+    const found = blindSpots(from, OWN[j].css, ownSheets()[j]);
+    blind.push(...found.blind);
+    clampedBlind.push(...found.clampedBlind);
     for (const props of [SIZING_PROPS, CLAMP_PROPS]) {
       for (const m of RAW[j].matchAll(declRe(props))) {
         const [, prop, value] = m;
@@ -274,22 +359,20 @@ test('no sizing declaration in the React CSS is one this gate cannot read', () =
       }
     }
   });
-  assert.deepEqual(unfollowed, [],
-    'a React stylesheet imports another sheet, and this gate does not follow it — it composes the '
-    + 'files it finds under react/src and nothing else, so the imported rules are measured only if '
-    + 'that sheet is itself under react/src. Import it from the component instead, so it is a file '
-    + 'this sweep finds, or teach this gate to follow @import.');
+  assert.deepEqual(unfollowed, [], IMPORT_REFUSAL);
   assert.deepEqual(droppedDecls, [],
     'a React stylesheet sizes something with a value jsdom cannot parse, so the declaration is '
     + 'gone from the CSSOM this gate measures and the rule reads as if it sized nothing. If it '
     + 'lands on an icon it is unmeasured; write the size in a form jsdom parses, or teach this '
     + 'gate to measure it somewhere layout exists.');
+  assert.deepEqual(blind, [], BLIND_REFUSAL);
+  assert.deepEqual(clampedBlind, [], CLAMPED_BLIND_REFUSAL);
 });
 
 test('every icon sizing rule in the React workspace is gated', () => {
   assert.equal(subjects.length, EXPECTED_SUBJECTS,
-    `collected ${subjects.length} icon sizing declarations across ${REACT_SHEETS.length} `
-    + `stylesheets in react/src (${REACT_SHEETS.join(', ')}), expected ${EXPECTED_SUBJECTS}:\n`
+    `collected ${subjects.length} icon sizing declarations across ${OWN.length} pieces of CSS `
+    + `under react/src (${OWN.map((o) => o.from).join(', ')}), expected ${EXPECTED_SUBJECTS}:\n`
     + subjects.map((s) => `  ${s.from}: ${s.sel} { ${s.as}: ${s.want} }`).join('\n')
     + '\nIf you added a rule, raise EXPECTED_SUBJECTS. If you removed one, lower it and say why in '
     + 'the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
@@ -298,7 +381,7 @@ test('every icon sizing rule in the React workspace is gated', () => {
 test('no rule in the React workspace sizes an icon with a clamp', () => {
   // Only the workspace's own sheets. The kit's are src/styles/icon-size.test.js's
   // to sweep, and this document holds a copy of them.
-  const clamped = REACT_SHEETS.flatMap((from, j) => clampsOn(ownSheets()[j], from, SVG_CLASSES));
+  const clamped = OWN.flatMap(({ from }, j) => clampsOn(ownSheets()[j], from, SVG_CLASSES));
   assert.deepEqual(clamped, [], CLAMP_REFUSAL);
 });
 

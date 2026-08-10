@@ -31,9 +31,14 @@ import { JSDOM } from 'jsdom';
 import {
   CLAMP_PROPS,
   SIZING_PROPS,
+  UNRESOLVED,
+  blindSpots,
   clampsOn,
   declRe,
+  importsIn,
   foldLogicalDims,
+  isSvgSubject,
+  mount,
   rulesOf,
   svgClassSet,
   writtenAs,
@@ -95,6 +100,29 @@ test('within a block an important declaration wins wherever it sits', () => {
   assert.equal(measure('.a svg { inline-size: 33px !important; width: 10px }').width, '33px');
 });
 
+test('a block that declares one axis in both spellings and repeats one is refused', () => {
+  /* The fold decides this contest by position, and position is the one thing the
+   * CSSOM cannot report here: cssstyle keeps a repeated property once, in its
+   * FIRST position carrying its LAST value. So the first case below reads as
+   * `width: 12px; inline-size: 33px` and folds to 33px where a browser renders
+   * 12, and the second folds to 12px where a browser renders 44 — a wrong number
+   * rather than an error, which is what all three gates would then report as a
+   * pass. Nothing here can recover the order, so nothing here guesses at it. */
+  assert.throws(
+    () => foldLogicalDims(sheetOf('.a svg { width: 10px; inline-size: 33px; width: 12px }'), 'probe.css'),
+    /declares width twice/);
+  assert.throws(
+    () => foldLogicalDims(sheetOf('.a svg { inline-size: 33px; width: 12px; inline-size: 44px }'), 'probe.css'),
+    /declares inline-size twice/);
+});
+
+test('a repeated declaration with no logical twin beside it folds as it always did', () => {
+  // `width: 100%; width: fit-content` is an ordinary fallback and decides
+  // nothing the fold reads, so the refusal above must not reach it.
+  assert.equal(measure('.a svg { width: 100%; width: 33px }').width, '33px');
+  assert.equal(measure('.a svg { height: 10px; inline-size: 33px }').width, '33px');
+});
+
 test('a folded declaration keeps the importance it was written with', () => {
   // Dropping the priority in the rewrite would hand this to the later rule.
   const { width } = measure('.a svg { inline-size: 33px !important } .a svg { width: 50px }');
@@ -122,6 +150,39 @@ test('a vendor-prefixed writing-mode stops the fold too', () => {
   assert.throws(
     () => foldLogicalDims(sheetOf('.a svg { -webkit-writing-mode: vertical-rl }'), 'probe.css'),
     /writing-mode/);
+});
+
+test('a sheet whose text this gate cannot read is refused, not waved through', () => {
+  /* Two of the checks in foldLogicalDims() are raw-text scans, because jsdom
+   * drops `-webkit-writing-mode` and deduplicates a repeated declaration before
+   * the CSSOM sees either. A sheet with no <style> element behind it has no text
+   * to scan, and reading that as an empty string turns both checks off: the
+   * constructed sheet below carries the exact declaration the gate exists to
+   * refuse and folds without a word. A <link> sheet reads the same way — its
+   * ownerNode is an element whose textContent is ''. */
+  const { window } = new JSDOM('<!doctype html>');
+  const constructed = new window.CSSStyleSheet();
+  constructed.replaceSync('.a svg { -webkit-writing-mode: vertical-rl; inline-size: 33px }');
+  assert.throws(() => foldLogicalDims(constructed, 'constructed.css'), /<style>/);
+  const linked = { cssRules: [], ownerNode: window.document.createElement('link') };
+  assert.throws(() => foldLogicalDims(linked, 'linked.css'), /<style>/);
+});
+
+test('the horizontal writing mode is the one the fold assumes, so it is not refused', () => {
+  /* `writing-mode: horizontal-tb` is exactly what the fold needs to be true.
+   * Refusing it tells a reader to delete a declaration that makes the gate
+   * correct, and a gate that reds on correct code gets switched off. */
+  assert.doesNotThrow(() => foldLogicalDims(sheetOf('html { writing-mode: horizontal-tb }'), 'probe.css'));
+  assert.doesNotThrow(() => foldLogicalDims(sheetOf('html { -webkit-writing-mode: horizontal-tb }'), 'probe.css'));
+});
+
+test('a writing mode named inside a comment is not a declaration', () => {
+  // The prefixed spelling is looked for in the raw text, which is where a
+  // comment still lives. Scanning it would refuse a sheet that warns people off
+  // the very thing this gate refuses.
+  assert.doesNotThrow(() => foldLogicalDims(
+    sheetOf('/* do not use -webkit-writing-mode: vertical-rl here */ .a svg { width: 12px }'),
+    'probe.css'));
 });
 
 test('a sizing rule inside a conditional group is refused', () => {
@@ -162,6 +223,75 @@ test('a clamp inside a conditional group is reported like any other', () => {
   const sheet = sheetOf('@media screen { .a svg { max-width: 4px } }');
   assert.deepEqual(clampsOn(sheet, 'probe.css', new Set()),
     ['probe.css: .a svg { max-width: 4px }']);
+});
+
+test('a combinator written without spaces does not hide the icon behind it', () => {
+  /* `.rx-tbl>svg` is (0,1,1) in a browser and beats the reset at (0,0,1), so it
+   * decides the icon — and read as one whitespace-separated token it is neither
+   * an `svg` leaf nor a class anything knows, so it used to be quietly answered
+   * "not an icon" and measured by nothing. The spaced form was already a
+   * subject, which is what made the difference invisible. */
+  const classes = new Set(['ic']);
+  for (const sel of ['.a>svg', '.a+svg', '.a~svg', '.a > svg', '.a + svg', '.a~.ic']) {
+    assert.ok(isSvgSubject(sel, classes), `"${sel}" reads as something other than an icon rule`);
+  }
+});
+
+test('an icon named inside :is() or :where() is the subject those select', () => {
+  // Both name alternatives the subject may itself BE, so a rule matching an svg
+  // through one decides that icon's size exactly as `.a svg` would.
+  const classes = new Set(['ic']);
+  for (const sel of ['.a :where(svg)', '.a :is(svg)', '.a :is(div, svg)', '.a :where(.ic)']) {
+    assert.ok(isSvgSubject(sel, classes), `"${sel}" reads as something other than an icon rule`);
+  }
+});
+
+test('a functional pseudo that names no icon is not read as one', () => {
+  /* The other half of the same recursion, and the half that keeps it off rules
+   * the kit already ships. `:has()` and `:not()` say something about a different
+   * element or about what the subject is not, so neither makes the subject an
+   * icon however the argument reads. */
+  assert.equal(isSvgSubject('.ui-nav :where(ul, ol)', new Set(['ic'])), false);
+  assert.equal(isSvgSubject('.ui-card:has(> svg)', new Set(['ic'])), false);
+  assert.equal(isSvgSubject('.ui-card:has(.ic)', new Set(['ic'])), false);
+  assert.equal(isSvgSubject('.a:not(svg)', new Set(['ic'])), false);
+});
+
+test('a rule an icon selector reaches through a combinator is mountable', () => {
+  // A subject nothing can mount is a red that names the gate rather than the
+  // rule, so the two have to move together.
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  for (const sel of ['.a>svg', '.a > svg', '.a+svg', '.a ~ svg']) {
+    const { el, top } = mount(dom.window.document, sel, new Set());
+    assert.ok(el.matches(sel), `mounted an element that does not match "${sel}"`);
+    top.remove();
+    assert.equal(dom.window.document.body.children.length, 0, `${sel} left markup behind`);
+  }
+});
+
+test('a comment in front of a declaration does not hide it from the raw-text scans', () => {
+  /* The patterns start at `{` or `;`, so a comment sitting between the brace and
+   * the first declaration swallows that declaration whole — and the raw text is
+   * the only place a value computed at render time still exists, since jsdom
+   * drops the declaration carrying it. `.zz svg { /* size *\/ width: … }` was
+   * read as a rule that sets a height and nothing else. */
+  const css = `.zz svg { /* size */ width: ${UNRESOLVED}px; height: 13px }`;
+  const { blind } = blindSpots('probe.css', css, sheetOf(css));
+  assert.deepEqual(blind, [`probe.css: width: ${UNRESOLVED}px`]);
+});
+
+test('a declaration named only inside a comment is not read as one', () => {
+  // The other direction, and the reason stripping is right rather than merely
+  // convenient: a commented-out rule is not a rule.
+  const css = `.zz svg { /* width: ${UNRESOLVED}px */ height: 13px }`;
+  assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)), { blind: [], clampedBlind: [] });
+});
+
+test('an @import is reported wherever a stylesheet carries one', () => {
+  // A sheet no gate opens. Read out of the raw text, since jsdom keeps an
+  // unfollowed @import out of the way rather than in it.
+  assert.deepEqual(importsIn('@import "./zz.css";\n.a svg { width: 42px }'), ['"./zz.css"']);
+  assert.deepEqual(importsIn('/* @import "./zz.css"; */ .a svg { width: 42px }'), []);
 });
 
 /* A directory of source files, thrown away afterwards. The class scanner reads
