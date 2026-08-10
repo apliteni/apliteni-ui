@@ -39,6 +39,7 @@ import {
   importsIn,
   foldLogicalDims,
   isSvgSubject,
+  kitSheetNames,
   mount,
   resetSelectorOf,
   rulesOf,
@@ -277,6 +278,40 @@ test('a vendor-prefixed writing-mode stops the fold too', () => {
     /writing-mode/);
 });
 
+test('a vendor-prefixed writing-mode spelled in capitals stops the fold too', () => {
+  /* CSS property names are case-insensitive and the vendor prefix is part of the
+   * name, so `-WEBKIT-WRITING-MODE` turns the axes in exactly the browsers the
+   * lower-case spelling turns them in. jsdom parses it away like the other
+   * spelling, so the declaration loop sees nothing and this raw-text scan is the
+   * only thing left — which read lower case only, and handed every gate a sheet
+   * whose icons are laid out along the axis the fold assumes they are not.
+   *
+   * The value is folded too, since a browser reads that case-insensitively as
+   * well and `VERTICAL-RL` names the same mode. */
+  for (const decl of ['-WEBKIT-WRITING-MODE: vertical-rl', '-Webkit-Writing-Mode: VERTICAL-RL']) {
+    assert.throws(() => foldLogicalDims(sheetOf(`.a svg { ${decl} }`), 'probe.css'),
+      /writing-mode/i, `"${decl}" turns the axes the fold assumes and walked past this gate`);
+  }
+  // And the name comes back spelled the way the file spells it, so the refusal
+  // sends the reader to a declaration their sheet actually contains.
+  assert.throws(
+    () => foldLogicalDims(sheetOf('.a svg { -WEBKIT-WRITING-MODE: vertical-rl }'), 'probe.css'),
+    /-WEBKIT-WRITING-MODE/);
+});
+
+test('a prefixed writing mode is refused wherever in the sheet it sits', () => {
+  /* The scan used to read the FIRST prefixed declaration in the file and judge
+   * the sheet by it, so a `horizontal-tb` — which is the mode the fold assumes
+   * and is right not to refuse — stood in front of every later declaration and
+   * answered for all of them. A sheet that sets the mode on <html> and turns it
+   * on one component is the ordinary way that happens. */
+  for (const second of ['-webkit-writing-mode: vertical-rl', '-WEBKIT-WRITING-MODE: vertical-rl']) {
+    assert.throws(() => foldLogicalDims(
+      sheetOf(`html { -webkit-writing-mode: horizontal-tb } .a svg { ${second} }`), 'probe.css'),
+    /writing-mode/i, `"${second}" sits behind a horizontal-tb and was never read`);
+  }
+});
+
 test('a sheet whose text this gate cannot read is refused, not waved through', () => {
   /* Two of the checks in foldLogicalDims() are raw-text scans, because jsdom
    * drops `-webkit-writing-mode` and deduplicates a repeated declaration before
@@ -299,6 +334,9 @@ test('the horizontal writing mode is the one the fold assumes, so it is not refu
    * correct, and a gate that reds on correct code gets switched off. */
   assert.doesNotThrow(() => foldLogicalDims(sheetOf('html { writing-mode: horizontal-tb }'), 'probe.css'));
   assert.doesNotThrow(() => foldLogicalDims(sheetOf('html { -webkit-writing-mode: horizontal-tb }'), 'probe.css'));
+  // Including in capitals, which is the same declaration. Reading the name
+  // case-insensitively and the value case-sensitively would refuse this one.
+  assert.doesNotThrow(() => foldLogicalDims(sheetOf('html { -WEBKIT-WRITING-MODE: HORIZONTAL-TB }'), 'probe.css'));
 });
 
 test('a writing mode named inside a comment is not a declaration', () => {
@@ -747,6 +785,42 @@ test('an @import is reported wherever a stylesheet carries one', () => {
   assert.deepEqual(importsIn('/* @import "./zz.css"; */ .a svg { width: 42px }'), []);
 });
 
+test('an @import spelled in capitals is reported like any other', () => {
+  /* An at-rule keyword is case-insensitive, and jsdom agrees: `@IMPORT` parses
+   * into a real CSSImportRule, so the sheet it names ships and no gate opens it.
+   * A scan that read lower case only was blind to exactly the shape the refusal
+   * exists for, and the refusal is the only thing watching — an unfollowed
+   * @import contributes no subject, so no count moves when one arrives.
+   *
+   * The specifier comes back as the file writes it, since it is a file name and
+   * a file name is case-sensitive on Linux. */
+  assert.deepEqual(importsIn('@IMPORT "./Zz.css";\n.a svg { width: 42px }'), ['"./Zz.css"']);
+  assert.deepEqual(importsIn('@Import url(./zz.css);'), ['url(./zz.css)']);
+  // And the two shapes that are not imports stay not-imports in capitals.
+  assert.deepEqual(importsIn('/* @IMPORT "./zz.css"; */ .a svg { width: 42px }'), []);
+  assert.deepEqual(importsIn('.a::after { content: "@IMPORT zz" }'), []);
+});
+
+test('the kit sheet list reads the at-rule in any case and the file name in one', () => {
+  /* Two halves of one pattern with opposite answers. `@import` is an at-rule
+   * keyword, so a sheet listed as `@IMPORT` is a sheet index.css really pulls in
+   * — missed here it never joins the document, and the surfaces and React gates
+   * then measure every rule they sweep against a cascade the kit does not have,
+   * with no count of theirs moving to say so.
+   *
+   * The specifier is the other half: it is a path, it is handed straight to
+   * readFileSync, and file names are case-sensitive on Linux however the keyword
+   * in front of them reads. So it comes back exactly as written. */
+  const dir = sourceDir({
+    'index.css': '@import "./tokens/Brand.generated.css";\n@IMPORT "./styles/base.css";\n',
+  });
+  try {
+    assert.deepEqual(kitSheetNames(dir), ['tokens/Brand.generated.css', 'styles/base.css']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('both shapes a .tsx writes a <style> block in are still recognised', () => {
   /* THE TRIPWIRE UNDER THE OTHER HALF OF THE REACT SWEEP.
    *
@@ -847,6 +921,24 @@ test('a stylesheet reached by anything but a relative path is not reported', () 
   }
   // And a relative one written the other way is still read.
   assert.deepEqual(styleImportsIn("import '../shared/tokens.css';"), ['../shared/tokens.css']);
+});
+
+test('this one is read case-sensitively, because JavaScript and esbuild are', () => {
+  /* The CSS scans beside it were made case-insensitive, and this one must not
+   * be. `@import` is an at-rule keyword and CSS folds case; `import` here is a
+   * JavaScript keyword and JavaScript does not, so `IMPORT './x.css'` is a
+   * syntax error rather than a sheet the workspace loads. Reporting it would
+   * hand the React gate a file that never ships and tell the reader to rename
+   * something the bundler never saw.
+   *
+   * The extension is the same answer for a different reason. tsup builds this
+   * workspace with esbuild, and esbuild matches its loaders on the extension as
+   * written: `import './x.CSS'` fails the build outright — "No loader is
+   * configured for '.CSS' files" — so it is a red at build time rather than a
+   * stylesheet shipping past this sweep. Reading it as CSS here would report a
+   * sheet no build produces. */
+  assert.deepEqual(styleImportsIn("IMPORT './DataTable.css';"), []);
+  assert.deepEqual(styleImportsIn("import './DataTable.CSS';"), []);
 });
 
 /* A directory of source files, thrown away afterwards. The class scanner reads
