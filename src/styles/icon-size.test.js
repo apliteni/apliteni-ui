@@ -72,32 +72,26 @@
  *    icon is 17px". Editing 17px to 18px renames the test and stays green. That
  *    is the right contract for a cascade gate and the wrong one to mistake for
  *    design review.
- *  - AN ICON SIZED BY A CLAMP. `min-width` / `max-width` / `min-height` /
- *    `max-height`, and the logical spellings of the four, never enter `width`'s
- *    cascade at all: the reset still wins `width`, and the clamp applies to the
- *    used value afterwards, so the icon can render at a size no rule in the
- *    cascade names. There is no contest for this gate to measure, and jsdom has
- *    no layout to apply the clamp in either, so measuring one would be
- *    asserting a contest that does not happen. Nothing in the kit clamps an
- *    icon today, and the test named `no rule in the kit sizes an icon with a
- *    clamp` is what keeps that sentence true — the first clamp to land on an
- *    icon fails this gate instead of passing quietly through it.
+ *  - AN ICON SIZED BY A CLAMP. The min-/max- forms never enter `width`'s
+ *    cascade, so there is no contest here to measure and no layout in jsdom to
+ *    apply one in. Nothing in the kit clamps an icon today, and the test named
+ *    `no rule in the kit sizes an icon with a clamp` is what keeps that true
+ *    rather than merely current: the first clamp to land on an icon fails this
+ *    gate. The argument is in CLAMP_REFUSAL.
  *  - AN ICON RESET BY `all`. `all: unset`, `all: revert` and `all: initial` each
  *    take `width` back to `auto` in a browser, so a rule carrying one decides
- *    the icon by unsaying the reset. jsdom keeps `all` in the CSSOM and expands
- *    it into nothing, so the element still computes the reset's 1.1em here and
- *    the rule is neither a subject nor a refusal. It is named rather than gated
- *    on the same argument as the clamp above — there is no contest inside
- *    `width`'s cascade for this gate to hold, only a shorthand jsdom leaves
- *    unresolved.
+ *    the icon by unsaying the reset. jsdom expands the shorthand into nothing,
+ *    so the element still computes the reset's 1.1em here and the rule is
+ *    neither a subject nor a refusal. Nothing stops it being a refusal: `all`
+ *    itself does reach the CSSOM, exactly as a clamp does, and the clamp is
+ *    refused by a test above. This one is named and not refused.
  *  - AN ICON SIZED AROUND `width` ALTOGETHER — `zoom`, `transform: scale()`,
  *    `aspect-ratio`, `contain-intrinsic-size`. None of them enters `width`'s
  *    cascade, and jsdom has no layout for any of them to act in. `aspect-ratio`
  *    is the sharp one, because `.x svg { width: 20px; aspect-ratio: 1 }` derives
  *    the height from the width: the height a browser renders is decided by a
- *    rule this gate reads as setting a width and nothing else. Whether any of
- *    these should eventually be refused the way a clamp is has not been
- *    decided; naming them is what stops this gate's silence reading as
+ *    rule this gate reads as setting a width and nothing else. These are not
+ *    refused either; naming them is what stops this gate's silence reading as
  *    coverage.
  *  - Layout. jsdom has none, so `width: 100%` reads back as the string `100%`.
  *    That proves the rule won, and says nothing about the pixels on screen.

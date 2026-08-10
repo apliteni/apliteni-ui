@@ -1,14 +1,14 @@
 /* Rule: folding a logical declaration onto its physical counterpart leaves the
  * cascade saying what a browser would say.
  *
- * The two icon-size gates measure `inline-size` by rewriting it onto `width`
+ * The three icon-size gates measure `inline-size` by rewriting it onto `width`
  * before anything is mounted, because jsdom keeps the two in separate cascades
  * and would let the logical declaration win contests a browser makes it lose —
  * see foldLogicalDims() in icon-cascade.js. That rewrite is the one piece of
  * this machinery with a right answer of its own: inside a block the later
  * declaration wins, `!important` wins over both, and getting either wrong
- * produces a number rather than an error, so both gates would keep passing and
- * measure the wrong rule.
+ * produces a number rather than an error, so all three gates would keep passing
+ * and measure the wrong rule.
  *
  * These cases are the ones a browser answers unambiguously. Each is written so
  * that the two candidate values are far enough apart that no arithmetic can make
@@ -17,7 +17,7 @@
  * The refusals below are here for a different reason. foldLogicalDims() stops on
  * a writing-mode declaration, rulesOf() stops on an unfolded sheet and on a
  * sizing rule inside a conditional group, and clampsOn() reports the min-/max-
- * forms neither gate measures. Every one of those fires only when a stylesheet
+ * forms no gate measures. Every one of those fires only when a stylesheet
  * carries the shape it refuses, so the only way to find out whether one still
  * worked was to write that shape into the kit and watch a gate go red. Each case
  * here puts the shape in a sheet of its own instead.
@@ -40,7 +40,7 @@ import {
 } from './icon-cascade.js';
 
 /* One sheet, folded, with an svg mounted inside `.a` and measured. The font-size
- * is forced for the same reason both gates force it: the reset is 1.1em, and at
+ * is forced for the same reason the gates force it: the reset is 1.1em, and at
  * 100px it reads 110px, which no declaration here asks for. */
 function measure(css) {
   const dom = new JSDOM(`<!doctype html><html><head><style>${css}</style></head><body></body></html>`);
@@ -197,7 +197,7 @@ test('a class only a test writes onto an svg is skipped whatever the extension',
 });
 
 test('a declaration pattern reads min-width as a clamp and never as a width', () => {
-  /* The anchor is what keeps those apart, and the two gates ask the same text
+  /* The anchor is what keeps those apart, and the gates ask the same text
    * about both lists. Read `width` out of `min-width` and a clamp would be
    * reported as the sizing rule it is not. */
   const found = (props, css) => [...css.matchAll(declRe(props))].map((m) => m[1]);
