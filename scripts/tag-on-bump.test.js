@@ -866,11 +866,14 @@ exit 0
  * Every test below this line runs the publish step or the rollback step, and
  * both of them hand the workflow's own `--jq` programs to the real jq. Without
  * it they all skip, and `node --test` exits 0 having executed none of them:
- * two dozen tests and the whole of the publish step's coverage, gone without a
- * word. On a developer machine that is a reasonable trade — the rest of the
- * suite still runs. On CI it is the coverage quietly not existing, resting on
- * an assumption about the runner image that nothing checks. `ubuntu-latest` has
- * jq today; the point is that nothing would say so if it stopped.
+ * most of the tests in this file and the whole of the publish step's coverage,
+ * gone without a word. Counted rather than guessed at, and left uncounted here
+ * on purpose — the figure moves every time a test is added, and a number
+ * nothing holds to the code is the thing this file is about. On a developer
+ * machine that is a reasonable trade — the rest of the suite still runs. On CI
+ * it is the coverage quietly not existing, resting on an assumption about the
+ * runner image that nothing checks. `ubuntu-latest` has jq today; the point is
+ * that nothing would say so if it stopped.
  */
 function jqRequirement({ hasJq, ci }) {
   if (hasJq) return 'run';
@@ -888,7 +891,7 @@ if (JQ === 'fail') {
 }
 const needsJq = JQ === 'run' ? {} : { skip: 'jq is not installed — the gh stub hands it the workflow’s own --jq programs' };
 
-test('a CI run without jq is a failure, not two dozen silent skips', () => {
+test('a CI run without jq is a failure, not most of the file skipping in silence', () => {
   assert.equal(jqRequirement({ hasJq: true, ci: true }), 'run');
   assert.equal(jqRequirement({ hasJq: true, ci: false }), 'run');
   assert.equal(

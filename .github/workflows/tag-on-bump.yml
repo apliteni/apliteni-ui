@@ -150,13 +150,15 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     # The backstop for a `gh` or an `npm` call that hangs rather than returns,
-    # and nothing else. Every wait in this job is bounded by its own wall-clock
-    # deadline: two minutes for a dispatched run to appear, ten for one that has
-    # not finished, ten seconds absorbing a failed read of its conclusion, and
-    # two and a half minutes for the registry to catch up afterwards. A run held
-    # at its approval is followed on that same ten-minute deadline and spends
-    # all of it; what its approval changes is the colour at the end, for the
-    # reasons argued at the top of this file.
+    # and nothing else. Every wait in this job is bounded, three of them by a
+    # wall-clock deadline and the fourth by a count of tries: two minutes for a
+    # dispatched run to appear, ten for one that has not finished, two and a
+    # half for the registry to catch up afterwards, and then three reads of a
+    # conclusion five seconds apart, which comes to ten seconds of absorbing
+    # failures with no deadline over it. A run held at its approval is followed
+    # on that same ten-minute deadline and spends all of it; what its approval
+    # changes is the colour at the end, for the reasons argued at the top of
+    # this file.
     #
     # Worth adding up rather than eyeballing, because the number is what the cap
     # is set from. The sleeps come to 880s, a shade under fifteen minutes — 120s
@@ -455,7 +457,7 @@ jobs:
               exit 1
             fi
           else
-            echo "::error::Could not ask GitHub whether a Release exists for $TAG (gh exited $view_status), so this job cannot tell an absent Release from a lookup that failed. Nothing has been created: creating one on that guess fails with 422 already_exists when the Release was there all along, and the tag would then be rolled back under a Release that is fine. $TAG is untouched and the next push to main can finish the release from here. gh said: $(oneline "$(cat "$err")")"
+            echo "::error::Could not ask GitHub whether a Release exists for $TAG (gh exited $view_status), so this job cannot tell an absent Release from a lookup that failed. Nothing has been created: creating one on that guess fails with 422 already_exists when the Release was there all along. $TAG is untouched and the next push to main can finish the release from here. gh said: $(oneline "$(cat "$err")")"
             exit 1
           fi
 
@@ -792,11 +794,13 @@ jobs:
           # version-drift.yml carries the trade by comparing version strings, and
           # that covers an approval declined or never given completely: nothing
           # publishes, npm keeps serving the old version, and the two numbers
-          # stay apart until somebody acts. It does not cover a run adopted from
-          # a foreign tag by §5a — if that publish is eventually approved, `main`
-          # and npm agree on the version while what npm serves was built from
-          # another commit, and no comparison of version strings can see it. §5a
-          # behaves that way already and is a separate thing to fix.
+          # stay apart until somebody acts. It does not cover a tag pointing at
+          # a commit other than this one, however the run on it got started —
+          # §5a adopting one already in flight, §5b dispatching a new one. If
+          # that publish is approved, `main` and npm agree on the version while
+          # what npm serves was built somewhere else, and no comparison of
+          # version strings can see it. This file behaves that way already and
+          # is a separate thing to fix.
           if [ "$run_status" = "waiting" ]; then
             echo "::warning::The publish of $VERSION is in flight, waiting for somebody to approve the npm-publish environment. Say yes at $url and it carries on by itself — the tag, the Release and the dispatch are all done and correct, and a reviewer is the only thing left. $VERSION is not on npm yet, so this green tick means the release was started, not that it shipped. If the approval never comes, version-drift.yml files an issue about npm and main disagreeing: it looks once a day and only reports a gap older than twenty-four hours, so expect that in one to two days rather than tomorrow morning."
             exit 0
@@ -811,10 +815,15 @@ jobs:
           # only by a run that is `waiting` when it is read, so this one never
           # mentions approving anything.
           #
-          # Red, and deliberately not given the branch above's green. A publish
-          # still building ten minutes after it was approved is anomalous in a
-          # way a reviewer who has not clicked is not, and the two want different
-          # answers from whoever reads them.
+          # Red, and deliberately not given the branch above's green. What has
+          # actually happened is ten minutes of watching with the run not
+          # finishing, and the approval could have landed anywhere inside them
+          # or before them: nothing in this step knows when it came, so it
+          # cannot say how much of the ten a person spent deciding and how much
+          # the build spent building. The branch above still knows what its run
+          # is waiting for and can say so. This one has run out of anything
+          # useful to tell whoever reads it, and that is what the red is for —
+          # not a judgement that the build is slow.
           if [ "$run_status" != "completed" ]; then
             echo "::error::The publish run for $VERSION was still ${run_status:-unreadable} after ten minutes. The tag and the Release are correct and have been left alone. Watch it at $url — if it publishes, the next push to main goes green on its own; if it does not, re-run this job to try again.${lookup_error:+ The last lookup that failed said: $(oneline "$lookup_error")}"
             exit 1

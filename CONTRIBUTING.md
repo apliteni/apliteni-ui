@@ -191,19 +191,27 @@ is gone.
 One step still needs a person. The publish job runs in the `npm-publish`
 environment, which asks one of four reviewers to approve it and will not let you
 approve your own, so expect to be waiting for somebody else. `tag-on-bump.yml`
-gives that about a minute — enough to catch an approval that lands straight
-away — and then goes red with a link to the run and a line saying what it is
-waiting for. It does not sit there longer, because every other push to `main`
-queues behind this job. Once a run has been approved and is building it gets ten
-minutes instead, because that one is moving on its own.
+watches the publish for ten minutes and then stops watching. A run that finishes
+inside that window is reported as it finished, red if the publish failed. A run
+still waiting on a reviewer when the ten minutes are up leaves the job green,
+with a warning naming the run and what it is waiting for. Somebody who has not
+clicked yet is not a broken pipeline.
 
-Red is what an unapproved release looks like, and it does not undo itself.
-Approve the run and the publish carries on, but the job that already went red
-stays red — nothing goes back and re-runs it. What turns green is the next push
-to `main`, because the decision comes from the registry rather than from the
-tag: once the version is on npm, any run after that reads the release as done.
-Or re-run the failed job by hand — same thing. Either way nothing needs undoing:
-whatever part of the release is missing gets picked up from where it stopped.
+So that green does not mean the version shipped. It means the release was
+started: the tag, the Release and the dispatch are all done, and npm has nothing
+new on it until the approval lands. If the approval never comes, what notices
+is `version-drift.yml` — it compares npm against `main` once a day and only
+reports a gap older than twenty-four hours, so expect the issue in one to two
+days rather than overnight.
+
+A red job does not undo itself. The publish it started can still finish, since a
+run that was building when the watch ran out may publish minutes later, but the
+job that already went red stays red — nothing goes back and re-runs it. What
+turns green is the next push to `main`, because the decision comes from the
+registry rather than from the tag: once the version is on npm, any run after
+that reads the release as done. Or re-run the failed job by hand — same thing.
+Either way nothing needs undoing: whatever part of the release is missing gets
+picked up from where it stopped.
 
 Two things have to be in the pull request. The `Shipped surface vs version` job
 checks both and goes red without either. Since it is not one of the checks
