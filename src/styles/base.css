@@ -108,16 +108,17 @@ a {
    `.ui-btn svg`-shaped rule in the kit no matter what order the files load in.
    It did, for every one of them bar three, and for `.ui-fbck` besides — that
    one is a class on the svg itself, so it is easy to miss when you go looking.
-   The count is deliberately not written here: it moved once already. Three gates
+   The count is deliberately not written here: it moved once already. Two gates
    keep the rules that compete with this one honest, each over the ground it
    actually sweeps: src/styles/icon-size.test.js reads the stylesheets
-   src/index.css imports, scripts/icon-size-surfaces.test.js reads the surfaces
-   the kit renders — the landing site's pages, the Storybook stories and the
-   chrome under .storybook/ — and scripts/icon-size-react.test.js reads the CSS
-   the React workspace writes. None claims more, and each header lists what it
-   declines to claim; read one before trusting a green run. The gap worth knowing
-   here: a reset scoped to an ancestor that a subject's own selector does not name
-   is out of reach of all three. */
+   src/index.css imports, and scripts/icon-size-surfaces.test.js reads the
+   surfaces the kit renders — the landing site's pages and the Storybook stories.
+   Neither claims more, and the second one's header lists what it declines to
+   claim; read it before trusting a green run. Two gaps are worth knowing here: a
+   reset scoped to an ancestor that a subject's own selector does not name is out
+   of reach of both, and .storybook/preview.js imports src/index.css into every
+   story iframe, which makes .storybook/ a third rendering surface neither gate
+   sweeps. Nothing in there sizes an icon today. */
 svg:where(:not([width]):not([height])) {
   width: 1.1em;
   height: 1.1em;

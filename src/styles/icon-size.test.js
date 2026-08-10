@@ -124,7 +124,12 @@
  *    scripts/icon-size-react.test.js. Both share this file's machinery and ask
  *    the same question of what they sweep, and each keeps a count of its own, so
  *    a rule leaving one sweep cannot be cancelled out by a rule arriving in
- *    another. What each one still cannot see is in its own header.
+ *    another. What each one still cannot see is in its own header. The comment
+ *    over the reset in src/styles/base.css contradicts all of that — it says two
+ *    gates and calls .storybook/ a surface neither sweeps, which stopped being
+ *    true when the third gate landed, and it stays wrong because src/ ships and
+ *    rewording a comment there costs a version bump; this paragraph is the
+ *    account to trust.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
