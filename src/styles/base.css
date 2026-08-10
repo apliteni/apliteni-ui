@@ -113,8 +113,8 @@ a {
    actually sweeps: src/styles/icon-size.test.js reads the stylesheets
    src/index.css imports, scripts/icon-size-surfaces.test.js reads the surfaces
    the kit renders — the landing site's pages, the Storybook stories and the
-   chrome under .storybook/ — and scripts/icon-size-react.test.js reads the React
-   workspace's stylesheets. None claims more, and each header lists what it
+   chrome under .storybook/ — and scripts/icon-size-react.test.js reads the CSS
+   the React workspace writes. None claims more, and each header lists what it
    declines to claim; read one before trusting a green run. The gap worth knowing
    here: a reset scoped to an ancestor that a subject's own selector does not name
    is out of reach of all three. */

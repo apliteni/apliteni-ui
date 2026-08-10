@@ -31,11 +31,18 @@
  * list is derived from the components rather than typed here — see svgClasses().
  *
  * PROVENANCE, NOT SELECTOR SHAPE. Each stylesheet goes in as its own <style>
- * element, so every rule knows which file it came from. That is how the reset
- * is told apart from a component rule. Guessing by "has no class in it" — the
- * obvious shortcut — breaks the moment anyone writes a nested rule, because
- * jsdom serialises `.x { svg { … } }` as `& svg`, which has no class either and
- * would be silently dropped as if it were the reset.
+ * element, so every rule knows which file it came from — which is how the reset
+ * is looked for in base.css and nowhere else. Inside that file it is found by
+ * what makes it the reset: it is the one rule that sizes an icon with no class
+ * on it and nothing around it, and no component rule can do that. Everything
+ * else base.css holds is a subject like any other, so `.ui-nav__ic svg` written
+ * there is measured instead of swallowed — which it was, for as long as this
+ * gate skipped the file by name. Selector shape decides none of it. "Has no
+ * class in it" — the obvious shortcut — breaks the moment anyone writes a nested
+ * rule, because jsdom serialises `.x { svg { … } }` as `& svg`, which has no
+ * class either and would be dropped in silence as if it were the reset; the
+ * question here is asked of an element instead, and a nested rule is refused by
+ * name before it is asked. See resetSelectorOf().
  *
  * TWO SPELLINGS, ONE CONTEST. `inline-size` and `block-size` share a computed
  * value with `width` and `height` and cascade as one with them, so a rule
@@ -102,14 +109,17 @@
  *  - An icon carrying its own width/height ATTRIBUTES, which the reset skips on
  *    purpose. Seven svgs in src/ do: the brand logos, the success check, the
  *    empty-state illustration.
- *  - Anything outside the stylesheets src/index.css imports. Four other places
- *    render this reset, in files this gate never opens: the landing site, the
- *    Storybook stories under stories/, the Storybook chrome under .storybook/,
- *    whose preview.js imports src/index.css into every story iframe, and the
- *    React workspace under react/src, which renders against it because
- *    react/.storybook/preview.ts imports the kit's CSS. Two of them carry icon
- *    rules today; .storybook/ and react/src carry none, and their gates are what
- *    keep that a fact rather than an assumption. The first three are gated by
+ *  - Anything outside the stylesheets src/index.css imports. index.css itself is
+ *    a list of sheets and not a sheet, and a rule written into it would ship
+ *    unread; the test named `src/index.css still holds nothing but @imports` is
+ *    what keeps it a list. Four other places render this reset, in files this
+ *    gate never opens: the landing site, the Storybook stories under stories/,
+ *    the Storybook chrome under .storybook/, whose preview.js imports
+ *    src/index.css into every story iframe, and the React workspace under
+ *    react/src, which renders against it because react/.storybook/preview.ts
+ *    imports the kit's CSS. Two of them carry icon rules today; .storybook/ and
+ *    react/src carry none, and their gates are what keep that a fact rather than
+ *    an assumption. The first three are gated by
  *    scripts/icon-size-surfaces.test.js and the fourth by
  *    scripts/icon-size-react.test.js. Both share this file's machinery and ask
  *    the same question of what they sweep, and each keeps a count of its own, so
@@ -135,9 +145,11 @@ import {
   kitSheetNames,
   kitStyleHtml,
   mount,
+  resetSelectorOf,
   resolve,
   rulesOf,
   selectorParts,
+  stripComments,
   svgClassSet,
   without,
   writtenAs,
@@ -182,14 +194,19 @@ test('the kit still puts classes directly on svg elements', () => {
   assert.ok(SVG_CLASSES.size > 0, 'found no class applied to an <svg> in src/**; the scanner is broken');
 });
 
+/* The one rule that is not a subject, because it is what every subject is
+ * measured against. It is found rather than assumed — see resetSelectorOf(),
+ * and the hole that closes. Everything else in base.css is swept like any other
+ * sheet's rules. */
+const BASE = 'styles/base.css';
+const RESET = resetSelectorOf(document.styleSheets[SHEETS.indexOf(BASE)], BASE, SVG_CLASSES);
+
 const subjects = [];
 for (const [i, name] of SHEETS.entries()) {
   for (const [rule] of rulesOf(document.styleSheets[i], name, SVG_CLASSES)) {
-    // base.css owns the reset. It is excluded by which file it lives in, not by
-    // what its selector looks like.
-    if (name === 'styles/base.css') continue;
     for (const raw of selectorParts(rule.selectorText)) {
       const sel = raw.replace(/\s+/g, ' ');
+      if (name === BASE && sel === RESET) continue;
       if (!isSvgSubject(sel, SVG_CLASSES)) continue;
       for (const dim of DIMS) {
         const want = rule.style.getPropertyValue(dim).trim();
@@ -204,6 +221,32 @@ test('every icon sizing rule in the kit is still gated', () => {
     `collected ${subjects.length} icon sizing declarations, expected ${EXPECTED_SUBJECTS}. `
     + 'If you added a rule, raise EXPECTED_SUBJECTS. If you removed one, lower it and say why '
     + 'in the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
+});
+
+test('the reset is not measured against itself', () => {
+  /* It is the rule every subject above is compared with, so collecting it as a
+   * subject would compare it with itself: the declaration under test and the
+   * expectation would be the same declaration, and taking it away would change
+   * both — so the non-vacuity check would call the one rule this file cannot do
+   * without redundant. That is why the reset is left out, and why it is the only
+   * rule in base.css that is. */
+  assert.deepEqual(subjects.filter(({ sheet, sel }) => sheet === BASE && sel === RESET), [],
+    'the reset is a subject, so the gate is measuring it against itself');
+});
+
+test('src/index.css still holds nothing but @imports', () => {
+  /* The specifiers in this file are the whole of what this gate opens, so a rule
+   * written into index.css itself is a rule no gate reads — and `files` in
+   * package.json ships it, so it reaches a consumer's browser and competes with
+   * the reset like every rule that is measured. Nothing holds one today. This is
+   * what keeps that a fact rather than a habit. */
+  const left = stripComments(readFileSync(path.join(src, 'index.css'), 'utf8'))
+    .replace(/@import\s+[^;]*;/g, '')
+    .trim();
+  assert.equal(left, '', 'src/index.css carries CSS of its own, and this gate reads it as nothing '
+    + 'but a list of sheets to open — so whatever is written here ships unmeasured. Move the rule '
+    + 'into the component stylesheet it belongs to, where the sweep finds it, or teach this gate '
+    + 'to read index.css as a sheet as well as a list.');
 });
 
 test('no kit stylesheet imports a sheet this gate never opens', () => {

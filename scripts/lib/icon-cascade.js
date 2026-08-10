@@ -4,8 +4,8 @@
  *   scripts/icon-size-surfaces.test.js — the rules on the surfaces the kit renders
  *                                        (the landing site, the Storybook stories
  *                                        and the chrome under .storybook/)
- *   scripts/icon-size-react.test.js    — the rules in the React workspace's own
- *                                        stylesheets under react/src
+ *   scripts/icon-size-react.test.js    — the rules in the CSS under react/src, in
+ *                                        stylesheets and <style> blocks alike
  *
  * All three ask the same question — does the rule that sizes this icon actually
  * win the cascade against the reset in src/styles/base.css — and all three
@@ -643,6 +643,65 @@ export function* rulesOf(sheet, name, classes) {
       }
     }
   }
+}
+
+/* The selector the reset is written under, found by what makes it the reset
+ * rather than by what it looks like.
+ *
+ * The reset and the rules measured against it can share a file, so provenance
+ * alone cannot tell them apart — which is the hole this closes. A gate that
+ * excluded base.css wholesale swallowed any component rule anybody wrote there,
+ * and `.ui-nav__ic svg { width: 40px }` in that file was measured by nothing.
+ *
+ * So the reset is identified positively, and by the one thing only it does: it
+ * sizes an icon with no class on it, no attribute and nothing around it. Every
+ * component rule in the kit names a class, on the icon or on an ancestor, so a
+ * bare <svg> matches none of them. That is the same icon the gate's own
+ * bare-icon test measures, which is what makes this the reset's definition and
+ * not a heuristic about its shape.
+ *
+ * Shape is what must not decide it. jsdom serialises `.x { svg { … } }` as
+ * `& svg`, so "the rule with no class in it" reads a nested component rule as
+ * the reset and drops it in silence. Nothing here reads a selector's parts:
+ * rulesOf() refuses a nested rule by name before this can classify it, and the
+ * question below is asked of an element.
+ *
+ * Asked per selector, since a selector list can hold the reset and a component
+ * rule in one block, and asked only of the rules that SIZE an icon — `*` matches
+ * a bare svg and decides nothing about it.
+ *
+ * Exactly one, and the count is the point. A second rule sizing a bare icon is
+ * either a reset written twice or a rule like `svg:not([width])` at (0,1,1),
+ * which out-ranks every `.ui-btn svg` in the kit from the one file whose rules
+ * are not subjects — #148 arriving again with every gate green. Two rules
+ * sharing one selector are one reset, since that is one rule split across two
+ * blocks. */
+export function resetSelectorOf(sheet, name, classes) {
+  const bare = sheet.ownerNode.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const found = new Set();
+  for (const [rule] of rulesOf(sheet, name, classes)) {
+    if (!DIMS.some((d) => rule.style.getPropertyValue(d))) continue;
+    for (const raw of selectorParts(rule.selectorText)) {
+      const sel = raw.replace(/\s+/g, ' ');
+      if (isSvgSubject(sel, classes) && bare.matches(sel)) found.add(sel);
+    }
+  }
+  const [first, second] = [...found];
+  if (second) {
+    throw new Error(`${name}: "${first}" and "${second}" both size a bare icon, and this gate `
+      + 'knows the reset by being the only rule that does. One of them is the reset; the other '
+      + 'out-ranks every component rule in the kit from the one file whose rules are measured '
+      + 'against it rather than as subjects, which is the defect these gates exist for. Write the '
+      + 'reset once, or teach the gate to tell these two apart.');
+  }
+  if (!first) {
+    throw new Error(`${name}: nothing here sizes a bare icon — an <svg> with no class on it and `
+      + 'nothing around it. That rule is the reset, and finding it this way is what lets every '
+      + 'other icon rule in this file be measured like any other. Without it there is nothing for '
+      + 'the subjects to be measured against. Put the reset back, or teach the gate where it '
+      + 'now lives.');
+  }
+  return first;
 }
 
 /* Every @import in a stylesheet's raw text. An @import names a sheet that ships
