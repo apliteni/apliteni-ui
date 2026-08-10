@@ -102,23 +102,19 @@
  *  - An icon carrying its own width/height ATTRIBUTES, which the reset skips on
  *    purpose. Seven svgs in src/ do: the brand logos, the success check, the
  *    empty-state illustration.
- *  - Anything outside the stylesheets src/index.css imports. Three other places
+ *  - Anything outside the stylesheets src/index.css imports. Four other places
  *    render this reset, in files this gate never opens: the landing site, the
- *    Storybook stories under stories/, and the React workspace under react/src,
- *    which renders against it because react/.storybook/preview.ts imports the
- *    kit's CSS. Two of them carry icon rules today; react/src carries none, and
- *    its gate is what keeps that a fact rather than an assumption. The first two
- *    are gated by scripts/icon-size-surfaces.test.js and the third by
+ *    Storybook stories under stories/, the Storybook chrome under .storybook/,
+ *    whose preview.js imports src/index.css into every story iframe, and the
+ *    React workspace under react/src, which renders against it because
+ *    react/.storybook/preview.ts imports the kit's CSS. Two of them carry icon
+ *    rules today; .storybook/ and react/src carry none, and their gates are what
+ *    keep that a fact rather than an assumption. The first three are gated by
+ *    scripts/icon-size-surfaces.test.js and the fourth by
  *    scripts/icon-size-react.test.js. Both share this file's machinery and ask
  *    the same question of what they sweep, and each keeps a count of its own, so
  *    a rule leaving one sweep cannot be cancelled out by a rule arriving in
  *    another. What each one still cannot see is in its own header.
- *  - A FOURTH RENDERING SURFACE, which no gate sweeps: the root .storybook/.
- *    Its preview.js imports src/index.css into every story iframe exactly as
- *    react/.storybook/preview.ts does, so a stylesheet added beside it would
- *    compete with this reset in every story anybody browses. Nothing in there
- *    sizes an icon today — src/styles/base.css says the same beside the reset —
- *    and nothing would say so if that changed.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

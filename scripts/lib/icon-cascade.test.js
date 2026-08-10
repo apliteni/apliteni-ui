@@ -364,6 +364,86 @@ test('a rule an icon selector reaches through a combinator is mountable', () => 
   }
 });
 
+test('an attribute selector is an element this builder can make', () => {
+  /* An attribute is something you set on the element, so a selector naming one
+   * describes a element this can build. Refusing them left
+   * `svg[type="story"]`-shaped rules a subject that hard-errored instead of being
+   * measured — a red naming the gate rather than the rule. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  for (const sel of ['.a [data-x] svg', '.a [data-x=y] svg', '.a [data-x="y"] svg',
+    ".a [data-x='y'] svg", '.a svg[type="story"]', '#tree svg[type="story"]',
+    '.a [data-x~="y"] svg', '.a[data-open] > svg']) {
+    const { el, top } = mount(dom.window.document, sel, new Set());
+    assert.ok(el.matches(sel), `mounted an element that does not match "${sel}"`);
+    top.remove();
+    assert.equal(dom.window.document.body.children.length, 0, `${sel} left markup behind`);
+  }
+});
+
+test(':root is the document element, and the document is put back afterwards', () => {
+  /* `:root[data-theme="light"] .ui-nav__ic svg` is this repo's own idiom — live
+   * in badge.css and card.css — and `:root` matches one element in the document
+   * and no element this could create. So the attribute goes on <html>, and the
+   * chain hangs where it always does, which is inside <html> already.
+   *
+   * Putting it back is the half that has to be automatic. Every gate here shares
+   * one document across every subject in the file, so a theme left on <html>
+   * would be the theme every subject after it is measured in. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  const { document } = dom.window;
+  document.documentElement.setAttribute('data-theme', 'dark');
+  const sel = ':root[data-theme="light"] .ui-nav__ic svg';
+  const { el, top } = mount(document, sel, new Set());
+  assert.ok(el.matches(sel), `mounted an element that does not match "${sel}"`);
+  top.remove();
+  assert.equal(document.documentElement.getAttribute('data-theme'), 'dark',
+    'the mount left its own theme on <html>, so every subject measured after it is measured in a '
+    + 'theme the file never asked for');
+  assert.equal(document.body.children.length, 0, `${sel} left markup behind`);
+});
+
+test('a rule inside a themed scope is measured, not merely mounted', () => {
+  // The half of this that is worth having: the contest such a rule is in gets
+  // held, and the rule that decides the icon is the one that wins it.
+  const css = `${RESET} :root[data-theme="light"] .ui-nav__ic svg { width: 17px }`;
+  const dom = new JSDOM(`<!doctype html><html><head><style>${css}</style></head><body></body></html>`);
+  const { document, getComputedStyle } = dom.window;
+  foldLogicalDims(document.styleSheets[0], 'probe.css');
+  const { el, top } = mount(document, ':root[data-theme="light"] .ui-nav__ic svg', new Set());
+  el.style.fontSize = '100px';
+  const got = getComputedStyle(el).getPropertyValue('width');
+  top.remove();
+  assert.equal(got, '17px', 'the themed rule did not win the contest the browser gives it');
+});
+
+test('a state pseudo-class is refused as unmountable rather than untaught', () => {
+  /* `.rx-btn:hover svg` cannot be mounted here at all: jsdom has no pointer and
+   * no box for a pseudo-element. Telling the reader to teach the builder sends
+   * them after something that does not exist. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  for (const sel of ['.rx-btn:hover svg', '.a svg:focus-visible', '.a svg::before']) {
+    assert.throws(() => mount(dom.window.document, sel, new Set()), (err) => {
+      assert.match(err.message, /jsdom has no pointer/,
+        `"${sel}" is refused without saying why teaching this builder would not help`);
+      return true;
+    });
+  }
+});
+
+test('a structural pseudo-class is refused as buildable and not built', () => {
+  // The refusal a reader can act on, so its message must not read like the one
+  // for a shape no teaching reaches.
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  for (const sel of ['.a svg:first-child', '.a svg:nth-child(2)']) {
+    assert.throws(() => mount(dom.window.document, sel, new Set()), (err) => {
+      assert.match(err.message, /siblings/,
+        `"${sel}" is refused without saying what stands between this builder and building it`);
+      assert.doesNotMatch(err.message, /jsdom has no pointer/);
+      return true;
+    });
+  }
+});
+
 test('a comment in front of a declaration does not hide it from the raw-text scans', () => {
   /* The patterns start at `{` or `;`, so a comment sitting between the brace and
    * the first declaration swallows that declaration whole — and the raw text is
@@ -376,10 +456,78 @@ test('a comment in front of a declaration does not hide it from the raw-text sca
 });
 
 test('a declaration named only inside a comment is not read as one', () => {
-  // The other direction, and the reason stripping is right rather than merely
-  // convenient: a commented-out rule is not a rule.
-  const css = `.zz svg { /* width: ${UNRESOLVED}px */ height: 13px }`;
+  /* The other edge of the same anchor — the test above is the one that fails when
+   * a comment hides a real declaration, and this is the one that fails when a
+   * commented-out declaration is read as a real one. A commented-out rule is not
+   * a rule, and refusing a file for one is a red nobody can act on.
+   *
+   * The comment carries a `;` of its own, and that semicolon is the whole of what
+   * makes this a test. declRe() anchors a property on `{` or `;`, so a `width`
+   * written in a comment that holds neither is already invisible to the pattern,
+   * and a fixture built from one reads the same whether the comments came out or
+   * stayed exactly where they were. */
+  const css = `.zz svg { /* height: 12px; width: ${UNRESOLVED}px */ height: 13px }`;
   assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)), { blind: [], clampedBlind: [] });
+  // The clamp scan reads the same text through the same anchor, and has its own
+  // refusal to raise on what it finds there.
+  const clamp = `.zz svg { /* height: 12px; max-width: ${UNRESOLVED}px */ height: 13px }`;
+  assert.deepEqual(blindSpots('probe.css', clamp, sheetOf(clamp)), { blind: [], clampedBlind: [] });
+});
+
+test('a rule beside an unresolved shell does not hide the shell', () => {
+  /* The shared-shell refactor this guard exists for: a block that pulls its CSS
+   * in as `${SHELL_CSS}` and writes a rule of its own beside it. The guard used
+   * to ask whether the sheet parsed to NO rules, so the one parseable rule
+   * switched it off — and the three text scans each need something the marker on
+   * its own does not have, a `{` after it or a `:` beside it. The shell could
+   * hold every icon rule on the surface and the gate would report a clean run. */
+  for (const css of [`.a { color: red } ${UNRESOLVED}`, `${UNRESOLVED} .a { color: red }`]) {
+    assert.notDeepEqual(blindSpots('probe.css', css, sheetOf(css)).blind, [],
+      `"${css}" reads as a surface this gate saw the whole of`);
+  }
+});
+
+test('an unresolved interpolation standing in for declarations is reported', () => {
+  // `.a { ${DECLS} }` parses to a rule with nothing in it, so the rule scan finds
+  // no width to complain about and the block is not empty either. It can hold a
+  // width all the same.
+  const css = `.a svg { ${UNRESOLVED} }`;
+  assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
+    ['probe.css: an unresolved interpolation where a rule or a declaration would be']);
+});
+
+test('an interpolated value that sizes nothing is not reported', () => {
+  /* The other direction, and the one that decides whether this guard survives
+   * contact with the repo. A surface interpolates a colour, a font stack and an
+   * image URL far more often than a size, and every one of those refused is a red
+   * on correct code. The properties that matter are the sizing and clamp ones,
+   * and the two scans above own them. */
+  for (const decl of ['background: ${}', 'color: ${}', 'font-family: ${}',
+    'background-image: url(${})', 'transition: ${} 0.2s']) {
+    const css = `.a svg { ${decl.replace('${}', UNRESOLVED)} }`;
+    assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)), { blind: [], clampedBlind: [] },
+      `"${decl}" reds a gate that measures icon sizes`);
+  }
+});
+
+test('a <style> assembled by concatenation is not a block with no CSS in it', () => {
+  /* `'<style>' + CSS + '</style>'` in a source hands the extractor a fragment of
+   * JavaScript between the tags. It parses to no rules and carries no marker, so
+   * every guard here was quiet and the surface read as one that simply styles
+   * nothing — while the CSS it concatenates ships and applies. */
+  const css = "' + CSS + '";
+  assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
+    ['probe.css: a <style> block this gate parsed to no rules at all']);
+});
+
+test('a <style> block with nothing in it is not a blind spot', () => {
+  // A block that is empty, or holds nothing but a comment, parses to no rules
+  // because there are none — and refusing correct code is how a gate gets
+  // switched off.
+  for (const css of ['', '   \n  ', '/* nothing to see */']) {
+    assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)), { blind: [], clampedBlind: [] },
+      `an empty block written "${css}" reads as CSS this gate could not parse`);
+  }
 });
 
 test('an @import is reported wherever a stylesheet carries one', () => {
@@ -442,6 +590,27 @@ test('a stylesheet is read as one whatever the extension and whatever binds it',
   assert.deepEqual(styleImportsIn("import styles from './x.module.css';"), ['./x.module.css']);
   assert.deepEqual(styleImportsIn('import "./a.scss";\nimport "./b.less";\nimport "./c.styl";'),
     ['./a.scss', './b.less', './c.styl']);
+});
+
+test('a stylesheet reached by anything but a relative path is not reported', () => {
+  /* RELATIVE ONLY, and that is the whole shape of this scan. A bare specifier
+   * resolves through node_modules and an aliased one through tsconfig or the
+   * bundler's config, and this reads neither — so a path built out of one names a
+   * file that does not exist.
+   *
+   * The React gate turns this list into "a sheet the workspace loads that the
+   * sweep does not read", and tells the reader to rename it .css or widen the
+   * glob. Said about `bootstrap/dist/bootstrap.css` that is a hard red on ordinary
+   * code with advice nobody can follow. The gate's header names the gap instead;
+   * this is what keeps the two agreeing. */
+  for (const spec of ['bootstrap/dist/bootstrap.css', '@/styles/tokens.css',
+    '~/styles/tokens.css', 'normalize.css/normalize.css']) {
+    assert.deepEqual(styleImportsIn(`import '${spec}';`), [],
+      `"${spec}" resolves somewhere this scan cannot follow, and reporting it names a path that `
+      + 'does not exist');
+  }
+  // And a relative one written the other way is still read.
+  assert.deepEqual(styleImportsIn("import '../shared/tokens.css';"), ['../shared/tokens.css']);
 });
 
 /* A directory of source files, thrown away afterwards. The class scanner reads

@@ -3,7 +3,7 @@
  *
  * src/styles/icon-size.test.js gates the rules inside src/styles. It builds its
  * list from the @imports of src/index.css, so anything the kit renders through
- * another path is outside it by construction — and two such paths exist:
+ * another path is outside it by construction — and three such paths exist:
  *
  *   the landing site   site/build.mjs writes assets/kit.css from src/inline.js,
  *                      which carries src/styles/base.css verbatim, and both
@@ -14,6 +14,9 @@
  *                      went from ~16px to 24px that way, found by hand.
  *   the stories        Storybook loads src/index.css and every story's own
  *                      <style> block competes with the same reset.
+ *   the workbench      .storybook/preview.js imports ../src/index.css, so CSS
+ *                      written beside it lands in every story iframe against
+ *                      that same reset.
  *
  * This gate reads those surfaces and asks src/styles/icon-size.test.js's
  * question of them: mount an element matching the rule's selector against the
@@ -34,9 +37,29 @@
  *                               import transitively, which is how the shared
  *                               shells (_appShell.js, _content.js) join coverage
  *                               without being named.
+ *   .storybook/                 every *.css, and the <style> blocks of every
+ *                               *.html — manager-head.html today, a
+ *                               preview-head.html the day somebody writes one.
+ *                               A .js file there is not read for <style> blocks;
+ *                               nothing writes CSS that way, and the day one does
+ *                               it falls outside this sweep.
  *
- * A new page, a new story, a new shared shell: all in scope by existing. A file
- * that stops carrying an icon rule leaves the count, and the count is asserted.
+ * A new page, a new story, a new shared shell, a stylesheet beside preview.js:
+ * all in scope by existing. A file that stops carrying an icon rule leaves the
+ * count, and the count is asserted. .storybook/ contributes no subject today, so
+ * the count cannot tell whether it was read — the test named `the Storybook
+ * chrome is one of the swept surfaces` is what does.
+ *
+ * THE CHROME IS SWEPT HERE rather than in a gate of its own, because this gate
+ * already holds the site and the stories under one count and .storybook/ is the
+ * third leg of the same workbench its stories render in. The two halves of that
+ * directory render differently and are measured the same way: preview.js loads
+ * the kit into the story iframe, while manager-head.html styles the Storybook UI
+ * around it, which loads no kit CSS at all. Holding a manager rule to the
+ * iframe's cascade is the stricter of the two readings — the reset is (0,0,1) and
+ * loses every tie on source order, so a manager rule has to go out of its way to
+ * lose to it — and the looser reading would leave the iframe's own CSS measured
+ * by nobody.
  *
  * THE REACT WORKSPACE IS NOT ONE OF THESE SURFACES, and that is a decision rather
  * than an oversight. It has a gate of its own, on the same machinery and with a
@@ -61,9 +84,10 @@
  * handles only the first measures nothing for the second and says so in green.
  * Both are handled, and an interpolation that cannot be resolved is turned into
  * a marker that this file then refuses to ignore — see UNRESOLVED and
- * blindSpots() in scripts/lib/icon-cascade.js. Including the case where the
- * marker is the block's ENTIRE body, which parses to no rules at all and so
- * reads as a surface that simply has no CSS in it.
+ * blindSpots() in scripts/lib/icon-cascade.js. Including a marker standing where
+ * a whole rule or a whole declaration would be, which parses to nothing and so
+ * reads as a surface with no CSS there — and a block that parsed to no rules at
+ * all, which is what a <style> assembled by string concatenation leaves behind.
  *
  * WHAT THIS WILL NOT CATCH — same weak claims as the gate it extends, for the
  * same reasons; read that file's header for the argument:
@@ -146,6 +170,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = path.join(root, 'src');
 const siteDir = path.join(root, 'site');
 const storiesDir = path.join(root, 'stories');
+const sbDir = path.join(root, '.storybook');
 const rel = (p) => path.relative(root, p);
 
 // Same tripwire as EXPECTED_SUBJECTS in src/styles/icon-size.test.js, and the
@@ -199,18 +224,51 @@ function sitePages() {
   });
 }
 
+/* The Storybook chrome's own CSS. `.storybook/preview.js` imports
+ * `../src/index.css`, so the kit loads into every story iframe and a rule
+ * written beside it competes with the reset in every story anybody browses.
+ *
+ * Discovered rather than listed, at any depth: every .css file, and the <style>
+ * blocks of every .html file, which is how Storybook takes hand-written CSS —
+ * manager-head.html today, a preview-head.html the day somebody adds one. A
+ * .js file there is not read for <style> blocks; nothing in .storybook/ writes
+ * CSS that way, and the day one does it is outside this sweep. */
+function storybookChrome() {
+  const out = [];
+  for (const file of walk(sbDir).sort()) {
+    const from = rel(file);
+    const text = readFileSync(file, 'utf8');
+    if (file.endsWith('.css')) out.push({ from, css: text });
+    else if (file.endsWith('.html')) {
+      for (const el of new JSDOM(text).window.document.querySelectorAll('style')) {
+        out.push({ from, css: el.textContent });
+      }
+    }
+  }
+  return out;
+}
+
 /* One entry per FILE the kit renders, carrying that file's <style> blocks in
  * document order.
  *
  * Grouped by file, not one entry per block, and that is a correctness point
  * rather than bookkeeping. Two <style> blocks on one page are one cascade and
  * have to compete, exactly as they do in a browser. Giving each block its own
- * document put every rule somewhere nothing could out-rank it: a second block
- * carrying `.bento .bIcon svg { width: 8px }` and the `.bIcon svg { width:
- * 24px }` it overrides would both report they decide the icon's width, and the
- * only red would be the count — whose own message tells you to raise
- * EXPECTED_SUBJECTS and go green. That is the defect this gate exists to end,
- * reintroduced inside the gate.
+ * document put every rule somewhere nothing could out-rank it: a page declaring
+ * `.bIcon svg { width: 24px }` in one block and `.bIcon svg { width: 8px }` in a
+ * later one renders at 8px, and split into two documents both rules reported they
+ * decided the icon's width. Grouped, the 24px rule fails by name and says what
+ * beat it. Split, the only red available was the count — whose own message tells
+ * you to raise EXPECTED_SUBJECTS and go green. That is the defect this gate
+ * exists to end, reintroduced inside the gate.
+ *
+ * Grouping does not reach a rule that wins on SPECIFICITY rather than on order.
+ * `.bento .bIcon svg { width: 8px }` beats `.bIcon svg { width: 24px }` on the
+ * page, and both pass here either way, because a subject is mounted with only the
+ * ancestors its own selector names — so the `.bIcon svg` subject has no `.bento`
+ * above it to lose to and wins a contest the page does not hold. That is the
+ * first entry under WHAT THIS WILL NOT CATCH in the header of this file, met from
+ * the other side.
  *
  * The original reason for splitting survives grouping: two UNRELATED surfaces
  * that happen to share a class name are still separate files, so they still get
@@ -231,6 +289,7 @@ function chunks() {
     const page = new JSDOM(html);
     for (const el of page.window.document.querySelectorAll('style')) add(from, el.textContent);
   }
+  for (const { from, css } of storybookChrome()) add(from, css);
   return [...byFile].map(([from, blocks]) => ({ from, blocks }));
 }
 
@@ -241,8 +300,10 @@ const BLOCKS = CHUNKS.reduce((n, c) => n + c.blocks.length, 0);
 // other gate derives them — over the surfaces too, because
 // `.term__copy .ic { width: 15px }` in site/index.html is a rule on a class
 // written onto the svg tag itself, and a leaf-is-`svg` test alone would take it
-// out of coverage in silence.
-const SVG_CLASSES = svgClassSet([src, siteDir, storiesDir], ['.js', '.mjs', '.html']);
+// out of coverage in silence. Over .storybook/ for the same reason: its chrome
+// is free to put a class on an svg of its own, and a rule sizing that class
+// would otherwise read as a rule about nothing.
+const SVG_CLASSES = svgClassSet([src, siteDir, storiesDir, sbDir], ['.js', '.jsx', '.mjs', '.html']);
 
 const SHEETS = kitSheetNames(src);
 const KIT = kitStyleHtml(src, SHEETS);
@@ -293,6 +354,18 @@ test('the sweep still recognises a class the kit puts directly on an svg', () =>
   assert.ok(SVG_CLASSES.has('ic'),
     'the scanner no longer finds `ic`, the class site/index.html writes onto its copy-button svgs; '
     + `it found: ${[...SVG_CLASSES].join(', ') || '(nothing)'}`);
+});
+
+test('the Storybook chrome is one of the swept surfaces', () => {
+  /* .storybook/ carries no icon size today, so the count above reads 14 whether
+   * this sweep opened it or read nothing at all. This is what tells the two
+   * apart. */
+  const swept = CHUNKS.filter((c) => c.from.startsWith('.storybook/'));
+  assert.ok(swept.length > 0,
+    'the sweep found no CSS under .storybook/, and every assertion in this file would pass on that '
+    + 'empty sweep — the subject count included, because .storybook/ contributes none. Storybook '
+    + `loads the kit into every story iframe, so a rule there competes with the reset. It read: ${
+      CHUNKS.map((c) => c.from).join(', ')}`);
 });
 
 test('nothing that sizes an icon is hidden behind an interpolation this gate cannot read', () => {
