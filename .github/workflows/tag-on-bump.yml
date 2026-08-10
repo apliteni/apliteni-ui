@@ -27,9 +27,10 @@ name: Tag on bump
 # rebuilt inside it.
 #
 # It is not a rare state either. The `npm-publish` environment requires a
-# reviewer, so the publish job pauses for a human on every release. An approval
-# that is declined, or a publish that fails once it is approved, fails the watch
-# — so the wedge above was reachable on the *first* release, not an unlucky one.
+# reviewer, so the publish job pauses for a human on every release. A publish
+# that fails once it is approved fails the watch, and so does an approval
+# declined while the watch is still running — so the wedge above was reachable
+# on the *first* release, not an unlucky one.
 #
 # So the registry is the source of truth for "released", because it is the only
 # thing that knows. The version is on npm: terminal, nothing to do. The version
@@ -69,7 +70,12 @@ name: Tag on bump
 # provenance. So the watch runs to its deadline either way. What `waiting`
 # changes is the colour at the end of it.
 #
-# An approval that is declined, or that nobody ever gives, looks green here.
+# What colour a declined approval gets is decided by the clock and by nothing
+# else. Decline inside the ten minutes and the run completes with conclusion
+# `failure` while this job is still reading it, so the job goes red down the
+# conclusion branch in §5c. Decline after them and the green tick has already
+# been printed — as it has for an approval nobody ever gives at all.
+#
 # Nothing on npm and a green tick is the shape of the silence this whole file
 # exists to end. What makes it a trade rather than the wedge rebuilt is that
 # somebody is watching: version-drift.yml compares npm against `main` once a
@@ -151,9 +157,10 @@ jobs:
     runs-on: ubuntu-latest
     # The backstop for a `gh` or an `npm` call that hangs rather than returns,
     # and nothing else. Every wait in this job is bounded, three of them by a
-    # wall-clock deadline and the fourth by a count of tries: two minutes for a
-    # dispatched run to appear, ten for one that has not finished, two and a
-    # half for the registry to catch up afterwards, and then three reads of a
+    # wall-clock deadline and two by a count of tries: three asks of the
+    # registry in the plan step, five and then ten seconds apart; two minutes
+    # for a dispatched run to appear; ten for one that has not finished; two and
+    # a half for the registry to catch up afterwards; and then three reads of a
     # conclusion five seconds apart, which comes to ten seconds of absorbing
     # failures with no deadline over it. A run held at its approval is followed
     # on that same ten-minute deadline and spends all of it; what its approval
@@ -457,7 +464,7 @@ jobs:
               exit 1
             fi
           else
-            echo "::error::Could not ask GitHub whether a Release exists for $TAG (gh exited $view_status), so this job cannot tell an absent Release from a lookup that failed. Nothing has been created: creating one on that guess fails with 422 already_exists when the Release was there all along. $TAG is untouched and the next push to main can finish the release from here. gh said: $(oneline "$(cat "$err")")"
+            echo "::error::Could not ask GitHub whether a Release exists for $TAG (gh exited $view_status), so this job cannot tell an absent Release from a lookup that failed. Nothing has been created: creating one on that guess fails with 422 already_exists when the Release was there all along. $TAG is untouched by this step — if this run pushed it the step below removes it, and if it was already there when this run started it stays — and the next push to main can finish the release from whichever of the two is left. gh said: $(oneline "$(cat "$err")")"
             exit 1
           fi
 
@@ -771,6 +778,28 @@ jobs:
           url="$(gh run view "$run_id" --json url --jq '.url' 2>/dev/null || true)"
           [ -n "$url" ] || url="the Actions tab"
 
+          # $run_status is the last status the loop above managed to read, and
+          # that is not always the last status there was. A run sitting at
+          # `waiting` fifteen seconds before the deadline can be approved, fail
+          # fast and finish inside those fifteen seconds, and if the read at the
+          # deadline 502s the loop leaves on the stale `waiting`. The green
+          # below is the one exit from this step that never asks npm, so it is
+          # the one that must not be taken on a value this old. So the run is
+          # asked once more, and the answer comes from what it is *now* — the
+          # same rule the branch below §5c's green states about the annotation.
+          #
+          # One ask, with no retry loop around it, because a confirming read
+          # that fails is not a reason to change the answer: the job would have
+          # gone green on the stale `waiting` anyway, so a failure here leaves
+          # exactly the behaviour there was before this read existed. It can
+          # only improve the outcome, and it can never hold the job up.
+          if [ "$run_status" = "waiting" ]; then
+            gh_capture run view "$run_id" --json status --jq '.status'
+            if [ "$gh_status" -eq 0 ] && [ "$gh_out" = "completed" ]; then
+              run_status="completed"
+            fi
+          fi
+
           # Ten minutes gone and still nobody has clicked — the one green exit
           # from an unfinished release. The top of this file argues that trade
           # and names what it costs.
@@ -864,7 +893,7 @@ jobs:
           done
 
           if [ "$conclusion" != "success" ]; then
-            echo "::error::The publish run for $VERSION finished ${conclusion:-with no conclusion this job could read} and $VERSION is not on npm. Read it at $url. A declined approval on the npm-publish environment lands here too. The tag and the Release are correct and have been left alone: fix the cause and re-run this job, or push to main again — the release resumes from wherever it stopped."
+            echo "::error::The publish run for $VERSION finished ${conclusion:-with no conclusion this job could read} and $VERSION is not on npm. Read it at $url. A declined approval on the npm-publish environment lands here too, when it is declined while this job is still watching. The tag and the Release are correct and have been left alone: fix the cause and re-run this job, or push to main again — the release resumes from wherever it stopped."
             exit 1
           fi
 

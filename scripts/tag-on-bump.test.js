@@ -95,6 +95,16 @@
 // is the same defect from the other side: waiting at 0s, in_progress at 30s,
 // completed/failure at 200s, and the job has to be red.
 //
+// That green exit asks the run once more before it takes it, and the ask is
+// pinned from both ends. `the confirming read agreeing the run is still
+// waiting changes nothing` holds its cost at one round trip and no seconds —
+// still 605, still 41 follow reads, one confirming read on top — and `a run
+// that finished while the last read was failing does not get the green` is the
+// hole it exists to close: `waiting` throughout, `completed/failure` at 600s,
+// and the forty-first follow read 502ing so the loop leaves on a stale
+// `waiting`. Red off the conclusion, with npm never asked. Proved by taking
+// the confirming read back out, which exits 0 on a publish that failed.
+//
 // The conclusion read gets that tolerance too, and a five-second gap rather
 // than fifteen — which the comment above it argues for by name, because two of
 // them is the ten seconds the job's arithmetic carries. `the conclusion is
@@ -1010,9 +1020,30 @@ const dispatched = (result) => result.calls.some((c) => c[0] === 'workflow' && c
 const appearLookups = (result) =>
   result.calls.filter((c) => c[0] === 'run' && c[1] === 'list' && c.includes('--event')).length;
 
-/** Reads of a run's `status` — the follow loop, and nothing else. */
-const followViews = (result) =>
-  result.calls.filter((c) => c[0] === 'run' && c[1] === 'view' && c.includes('status')).length;
+/**
+ * Reads of a run's `status` — the follow loop, and nothing else.
+ *
+ * The confirming read on the green path is the same gh invocation, argument for
+ * argument, so nothing in the call itself tells the two apart. What does is the
+ * url read that sits between them: the follow loop is entirely above it and the
+ * confirming read entirely below. Counting the whole file would fold the
+ * confirming read into the poll count and leave the fifteen-second interval
+ * pinned at a number that no longer means what it says.
+ */
+const followViews = (result) => statusViews(result).before;
+
+/** The one status read after the url read — the green path's confirming ask. */
+const confirmingViews = (result) => statusViews(result).after;
+
+function statusViews(result) {
+  const isStatusRead = (c) => c[0] === 'run' && c[1] === 'view' && c.includes('status');
+  const url = result.calls.findIndex((c) => c[0] === 'run' && c[1] === 'view' && c.includes('url'));
+  if (url === -1) return { before: result.calls.filter(isStatusRead).length, after: 0 };
+  return {
+    before: result.calls.slice(0, url).filter(isStatusRead).length,
+    after: result.calls.slice(url + 1).filter(isStatusRead).length,
+  };
+}
 
 /**
  * Execute the Release step's own `run:` body against the same stubbed `gh`.
@@ -1245,6 +1276,64 @@ test('an approval that arrives, on a publish that then fails, is a failed publis
   assert.match(result.log, /left alone/, 'the tag and the Release are correct and stay');
   assert.doesNotMatch(result.log, /approve/i, 'the approval already happened — there is nothing to click');
   assert.doesNotMatch(result.log, /::warning::/, 'a failed publish is not a release still holding');
+});
+
+test('the confirming read agreeing the run is still waiting changes nothing', needsJq, () => {
+  // The green exit is the one way out of this step that never asks npm, so it
+  // is asked to confirm itself: one more read of the run's status before the
+  // warning is printed. When that read says `waiting` too, nothing about the
+  // answer moves — the same green, the same warning, the same 605 seconds, and
+  // the registry still not consulted, because there is nothing published to
+  // consult it about.
+  //
+  // The cost is pinned as well, and it is a round trip and not a second. A
+  // confirming read that slept, or that retried, would be spending the job's
+  // ceiling on a question whose answer changes nothing here.
+  const result = runPublishStep({ dispatch: { timeline: [{ at: 0, status: 'waiting' }] } });
+
+  assert.equal(result.status, 0, result.log);
+  assert.match(result.log, /::warning::/, 'a queued approval is still a warning');
+  assert.doesNotMatch(result.log, /::error::/);
+  assert.match(result.log, /approve/i, 'the reader still has to be told what the run is waiting for');
+  assert.equal(confirmingViews(result), 1, 'the green path asks the run once more before taking it');
+  assert.equal(followViews(result), 41, 'and that ask is not one of the follow loop’s forty-one');
+  assert.equal(result.waited, 605, `left after ${result.waited}s; the confirming read costs a round trip, not a second`);
+  assert.equal(result.npmCalls, 0, 'a release nobody has approved has nothing on npm to check');
+});
+
+test('a run that finished while the last read was failing does not get the green', needsJq, () => {
+  // The hole the confirming read exists to close. $run_status holds the last
+  // status the follow loop managed to *read*, not the last status there was: a
+  // run sitting at `waiting` fifteen seconds before the deadline, approved,
+  // failing fast, and then read through a 502 on the last poll leaves a stale
+  // `waiting` standing. The job would take the green exit on it — and the green
+  // exit is the one path out of this step that never asks npm, so a failed
+  // publish would be reported as a release still holding.
+  //
+  // Timed to that: `waiting` throughout, `completed/failure` at 600s, and the
+  // forty-first and last follow read failing so the loop leaves on the stale
+  // value. The confirming read happens after it, sees the run has finished, and
+  // the job goes down the conclusion branch like any other finished run.
+  const result = runPublishStep({
+    dispatch: {
+      timeline: [
+        { at: 0, status: 'waiting' },
+        { at: 600, status: 'completed', conclusion: 'failure' },
+      ],
+    },
+    failures: { runView: { after: 40, times: 1, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+  });
+
+  assert.equal(result.status, 1, `a publish that failed must not exit green, log:\n${result.log}`);
+  assert.match(result.log, /finished failure/, 'the conclusion is read, and it is what the reader is told');
+  assert.doesNotMatch(result.log, /::warning::/, 'a failed publish is not a release still waiting on somebody');
+  assert.equal(confirmingViews(result), 1, 'one ask, not a retry loop — a failed confirming read changes no answer');
+  assert.equal(
+    result.npmCalls,
+    0,
+    'the registry is asked only to confirm a success; a failed conclusion has to be red without it',
+  );
+  assert.equal(result.waited, 605, `waited ${result.waited}s; the confirming read adds a round trip and no sleep`);
 });
 
 test('a run that is still building is reported as still building, not as an approval', needsJq, () => {
