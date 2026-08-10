@@ -39,11 +39,10 @@
  * that stops carrying an icon rule leaves the count, and the count is asserted.
  *
  * THE REACT WORKSPACE IS NOT ONE OF THESE SURFACES, and that is a decision rather
- * than an oversight. Its CSS sits in react/src/*.css files that components import,
- * and this file extracts rules from <style> blocks written inside story sources,
- * so there is nothing here for it to read. It has a gate of its own, on the same
- * machinery and with a count of its own — scripts/icon-size-react.test.js says
- * why the count is kept separate.
+ * than an oversight. It has a gate of its own, on the same machinery and with a
+ * count of its own — scripts/icon-size-react.test.js says why the count is kept
+ * separate, and it reads both the .css files React components import and the
+ * <style> blocks they write, with the same extractor this file uses.
  *
  * NO BUILT SITE. The pages are composed from source, not read out of
  * site/public/. CI runs `npm test` before `npm run build-storybook` and never
@@ -61,9 +60,10 @@
  * writes `<style>${STYLE}</style>` and declares STYLE above. An extractor that
  * handles only the first measures nothing for the second and says so in green.
  * Both are handled, and an interpolation that cannot be resolved is turned into
- * a marker that this file then refuses to ignore — see UNRESOLVED. Including
- * the case where the marker is the block's ENTIRE body, which parses to no
- * rules at all and so reads as a surface that simply has no CSS in it.
+ * a marker that this file then refuses to ignore — see UNRESOLVED and
+ * blindSpots() in scripts/lib/icon-cascade.js. Including the case where the
+ * marker is the block's ENTIRE body, which parses to no rules at all and so
+ * reads as a surface that simply has no CSS in it.
  *
  * WHAT THIS WILL NOT CATCH — same weak claims as the gate it extends, for the
  * same reasons; read that file's header for the argument:
@@ -115,19 +115,23 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import {
-  CLAMP_PROPS,
+  BLIND_REFUSAL,
+  CLAMPED_BLIND_REFUSAL,
   CLAMP_REFUSAL,
   DIMS,
-  SIZING_PROPS,
+  IMPORT_REFUSAL,
+  blindSpots,
   clampsOn,
-  declRe,
   foldLogicalDims,
+  importsIn,
   isSvgSubject,
   kitSheetNames,
   kitStyleHtml,
   mount,
   resolve,
   rulesOf,
+  selectorParts,
+  styleBlocksOf,
   svgClassSet,
   walk,
   without,
@@ -148,33 +152,6 @@ const rel = (p) => path.relative(root, p);
 // in it. Seven rules across five files, width and height apiece. Raise it when
 // you add one; lower it in the same commit as the removal, and say why there.
 const EXPECTED_SUBJECTS = 14;
-
-/* An interpolation this file could not resolve becomes this token. It is a valid
- * CSS identifier on purpose: substituting something invalid would make jsdom
- * drop the declaration, and a dropped icon rule is indistinguishable from a rule
- * that was never there. Kept as a marker so the assertion below can refuse it. */
-const UNRESOLVED = 'ui-unresolved-interpolation';
-
-/* A sizing declaration and a clamp, each as the file writes it — read out of the
- * raw text, which is the only place a declaration whose value a surface computes
- * at render time still exists. Two patterns rather than one because the two
- * findings send their reader somewhere different. */
-const SIZING_DECL = declRe(SIZING_PROPS);
-const CLAMP_DECL = declRe(CLAMP_PROPS);
-
-/* Resolve `${NAME}` against a `const NAME = \`…\`` in the same file — the shape
- * Iconography.stories.js uses. Anything else (a call, an expression) becomes
- * UNRESOLVED, which is a failure only if it lands inside an icon-sizing rule. */
-function resolveInterpolations(body, source, depth = 0) {
-  return body.replace(/\$\{([^}]*)\}/g, (_whole, expr) => {
-    const name = expr.trim();
-    if (depth < 4 && /^[A-Za-z_$][\w$]*$/.test(name)) {
-      const m = source.match(new RegExp(`\\bconst\\s+${name}\\s*=\\s*\`([^\`]*)\``));
-      if (m) return resolveInterpolations(m[1], source, depth + 1);
-    }
-    return UNRESOLVED;
-  });
-}
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
@@ -244,10 +221,7 @@ function chunks() {
     byFile.set(from, blocks);
   };
   for (const file of storyFiles()) {
-    const source = readFileSync(file, 'utf8');
-    for (const m of source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
-      add(rel(file), resolveInterpolations(m[1], source));
-    }
+    for (const css of styleBlocksOf(readFileSync(file, 'utf8'))) add(rel(file), css);
   }
   for (const { from, html } of sitePages()) {
     // Parsed rather than regexed: the pages are real documents, and <style> in
@@ -299,8 +273,8 @@ const subjects = [];
 CHUNKS.forEach(({ from }, i) => {
   for (const sheet of ownSheets(i)) {
     for (const [rule] of rulesOf(sheet, from, SVG_CLASSES)) {
-      for (const raw of rule.selectorText.split(',')) {
-        const sel = raw.trim().replace(/\s+/g, ' ');
+      for (const raw of selectorParts(rule.selectorText)) {
+        const sel = raw.replace(/\s+/g, ' ');
         if (!isSvgSubject(sel, SVG_CLASSES)) continue;
         for (const dim of DIMS) {
           const want = rule.style.getPropertyValue(dim).trim();
@@ -329,71 +303,19 @@ test('nothing that sizes an icon is hidden behind an interpolation this gate can
   const clampedBlind = [];
   CHUNKS.forEach(({ from, blocks }, i) => {
     ownSheets(i).forEach((sheet, j) => {
-      const css = blocks[j];
-      for (const rule of sheet.cssRules) {
-        if (!rule.selectorText) continue;
-        const dims = DIMS.filter((d) => rule.style.getPropertyValue(d));
-        if (!dims.length) continue;
-        const values = dims.map((d) => rule.style.getPropertyValue(d));
-        if (rule.selectorText.includes(UNRESOLVED) || values.some((v) => v.includes(UNRESOLVED))) {
-          blind.push(`${from}: ${rule.selectorText} { ${dims.join(', ')} }`);
-        }
-      }
-      /* A block whose WHOLE body was one interpolation this file could not
-       * resolve. `<style>${SHELL_CSS}</style>` becomes the bare identifier
-       * UNRESOLVED — no braces, no declarations — so the loop above sees no
-       * rules, and both text guards below need a `{` or a literal width/height
-       * to fire. Nothing was dropped from a count either, because the count
-       * never rose. The block reads as a surface with no CSS in it, and this
-       * gate would swear it had measured the page. Two ordinary shapes land
-       * here: a single-quoted `const STYLE = '…'` (the lookup in
-       * resolveInterpolations only reads a backtick literal) and an imported
-       * `const` — which is precisely the shared-shell refactor this file's
-       * header advertises as covered. */
-      if (css.includes(UNRESOLVED) && sheet.cssRules.length === 0) {
-        blind.push(`${from}: a <style> block whose entire body is an unresolved interpolation`);
-      }
-      /* And the same question of the raw text, because the parsed sheet cannot
-       * answer it alone: `width: ${sizeOf(1)}px` becomes a value jsdom rejects, so
-       * the declaration is simply gone from the CSSOM above. The subject count
-       * catches that too, one rule later — this says which rule and why. */
-      for (const m of css.matchAll(SIZING_DECL)) {
-        if (m[2].includes(UNRESOLVED)) blind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
-      }
-      /* And the clamps, kept in a list of their own because they ask for
-       * something different. A width this file could not read is a gap in
-       * resolveInterpolations and nothing more; a clamp is a shape no gate
-       * measures at all, so resolving it is only the first half of the answer
-       * and the clamp test is the second. Until it resolves, neither half can
-       * run: jsdom drops the declaration, so clampsOn() reads a sheet it is not
-       * in and reports nothing. */
-      for (const m of css.matchAll(CLAMP_DECL)) {
-        if (m[2].includes(UNRESOLVED)) clampedBlind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
-      }
-      for (const m of css.matchAll(/(?:^|[}])([^{}]*)\{/g)) {
-        if (m[1].includes(UNRESOLVED)) blind.push(`${from}: selector ${m[1].trim()}`);
-      }
-      /* An interpolated PROPERTY NAME — `${DIM}: 21px`. jsdom drops the whole
-       * declaration as an unknown property, so it never reaches the CSSOM, and
-       * the value guard above only ever looks for a literal `width` or
-       * `height`, which is the one thing this shape does not write. Anchored on
-       * `;` or `{` so a selector such as `a:hover` cannot read as a property. */
-      for (const m of css.matchAll(/[;{]\s*([^;{}:]*)\s*:/g)) {
-        if (m[1].includes(UNRESOLVED)) blind.push(`${from}: property ${m[1].trim()}`);
-      }
+      const found = blindSpots(from, blocks[j], sheet);
+      blind.push(...found.blind);
+      clampedBlind.push(...found.clampedBlind);
     });
   });
-  assert.deepEqual(blind, [],
-    'a surface writes a sizing rule whose selector or value is computed at render time. This gate '
-    + 'substituted a placeholder for it, so it cannot tell whether it sizes an icon and cannot '
-    + 'measure it if it does. Teach resolveInterpolations().');
-  assert.deepEqual(clampedBlind, [],
-    'a surface clamps a size with a value computed at render time. jsdom drops a declaration it '
-    + 'cannot parse, so the test named `no surface the kit renders sizes an icon with a clamp` '
-    + 'reads a sheet this declaration is no longer in, and the raw text above is the only place '
-    + 'it survives. Teach resolveInterpolations() and the two of them can then say whether this '
-    + 'clamp lands on an icon — and if it does, that test refuses it, because no gate '
-    + 'measures anything about a clamp. The argument is in CLAMP_REFUSAL.');
+  assert.deepEqual(blind, [], BLIND_REFUSAL);
+  assert.deepEqual(clampedBlind, [], CLAMPED_BLIND_REFUSAL);
+});
+
+test('no surface imports a stylesheet this gate never opens', () => {
+  const unfollowed = CHUNKS.flatMap(({ from, blocks }) => blocks
+    .flatMap((css) => importsIn(css).map((spec) => `${from}: @import ${spec}`)));
+  assert.deepEqual(unfollowed, [], IMPORT_REFUSAL);
 });
 
 test('every icon sizing rule the kit renders outside src/styles is gated', () => {
