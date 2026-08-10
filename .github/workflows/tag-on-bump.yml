@@ -22,9 +22,9 @@ name: Tag on bump
 # — correctly — and then every later push to `main` saw the tag, decided there
 # was nothing to do, skipped the publish step and exited green. Nothing on npm,
 # a healthy-looking pipeline, and a re-run that could not retry because it made
-# the same decision. Only a manual dispatch or version-drift.yml a day later
-# would notice. That is exactly the silence this workflow exists to end, rebuilt
-# inside it.
+# the same decision. Only a manual dispatch, or version-drift.yml a day or two
+# later, would notice. That is exactly the silence this workflow exists to end,
+# rebuilt inside it.
 #
 # It is not a rare state either. The `npm-publish` environment requires a
 # reviewer, so the publish job pauses for a human on every release. An approval
@@ -40,33 +40,46 @@ name: Tag on bump
 # or the next push to `main`, picks the release up where it stopped.
 #
 # ---------------------------------------------------------------------------
-# The one exception: a publish waiting for its approval is not a failure
+# Why a publish still waiting for its approval is not a failure
 # ---------------------------------------------------------------------------
-# "Stay red until it lands" has exactly one carve-out, and it is argued for
-# here so that nobody reading the rule above undoes it as an oversight.
+# "Stay red until it lands" has exactly one carve-out.
 #
-# A run parked at the `npm-publish` approval ends this job green, with a
-# warning. 0.9.1 is why. Its publish was approved about thirty-five minutes
-# after it was dispatched, it succeeded, and `@apliteni/apliteni-ui@0.9.1` is on
-# npm — and the job that started it is red for ever, because it gave the
-# approval sixty seconds and then called a human being who was in a meeting a
-# pipeline failure. A healthy release with a red tick on it teaches everybody
-# to stop reading the tick.
+# A run still parked at the `npm-publish` approval when this job's ten-minute
+# watch runs out ends the job green, with a warning. 0.9.1 is why. Its publish
+# was approved about thirty-five minutes after it was dispatched, it succeeded,
+# and `@apliteni/apliteni-ui@0.9.1` is on npm — and the job that started it is
+# red for ever, because it gave the approval sixty seconds and then called a
+# human being who was in a meeting a pipeline failure. A healthy release with a
+# red tick on it teaches everybody to stop reading the tick.
 #
-# The reasoning is about what this job is responsible for. It is responsible for
-# a release being *started* and not silently lost. Once the tag exists, the
-# Release exists and the publish is dispatched, all of that is discharged: what
-# remains is a human decision with thirty days to arrive that no amount of
-# waiting on a runner can hurry, while `concurrency: tag-on-bump` queues every
-# later push to `main` behind the waiting.
+# This job is responsible for a release being *started* and not silently lost.
+# Once the tag exists, the Release exists and the publish is dispatched, all of
+# that is discharged: what remains is a human decision with thirty days to
+# arrive that no amount of waiting on a runner can hurry, while
+# `concurrency: tag-on-bump` queues every later push to `main` behind the
+# waiting. The `npm-publish` environment names four reviewers and forbids
+# self-review, so nobody has clicked yet is the ordinary state of every release
+# here rather than the unlucky one.
 #
-# The cost is real and is not hidden. An approval that is declined, or that
-# nobody ever gives, now looks green here — nothing on npm and a green tick,
-# which is the shape of the silence this whole file exists to end. What makes it
-# a trade worth taking rather than the wedge rebuilt is that it is bounded and
-# somebody is watching: version-drift.yml runs every morning, compares npm
-# against `main`, and files an issue when they disagree. The wedge was permanent
-# and unwatched. This is one night, and the warning says so out loud.
+# The full ten minutes get spent first, and that is not a detail. release.yml
+# reaches the approval gate about ninety seconds in, so a job that left at the
+# first sight of `waiting` would be gone before the publish had done anything —
+# and everything the gate stands in front of would be green here whatever it
+# did: the tarball check, the `./`-prefix `npm publish` bug that burned v0.8.0,
+# provenance. So the watch runs to its deadline either way. What `waiting`
+# changes is the colour at the end of it.
+#
+# An approval that is declined, or that nobody ever gives, looks green here.
+# Nothing on npm and a green tick is the shape of the silence this whole file
+# exists to end. What makes it a trade rather than the wedge rebuilt is that
+# somebody is watching: version-drift.yml compares npm against `main` once a
+# day, at 07:17 UTC, and files an issue when the two have disagreed for more
+# than twenty-four hours. It measures that age from when the version line last
+# changed on `main` rather than from when the publish stalled, so a bump that
+# lands shortly after one morning's run is still inside the threshold at the
+# next one and the issue arrives on the morning after — one to two days, not
+# overnight, and silent on the first morning by design. The wedge was permanent
+# and unwatched.
 #
 # ---------------------------------------------------------------------------
 # Why this dispatches release.yml instead of letting the Release event do it
@@ -138,11 +151,12 @@ jobs:
     runs-on: ubuntu-latest
     # The backstop for a `gh` or an `npm` call that hangs rather than returns,
     # and nothing else. Every wait in this job is bounded by its own wall-clock
-    # deadline: two minutes for a dispatched run to appear, ten for one that is
-    # running, ten seconds absorbing a failed read of its conclusion, and two
-    # and a half minutes for the registry to catch up afterwards. A run held at
-    # its approval is not waited on at all — it ends the step the moment it is
-    # seen, green, for the reasons argued at the top of this file.
+    # deadline: two minutes for a dispatched run to appear, ten for one that has
+    # not finished, ten seconds absorbing a failed read of its conclusion, and
+    # two and a half minutes for the registry to catch up afterwards. A run held
+    # at its approval is followed on that same ten-minute deadline and spends
+    # all of it; what its approval changes is the colour at the end, for the
+    # reasons argued at the top of this file.
     #
     # Worth adding up rather than eyeballing, because the number is what the cap
     # is set from. The sleeps come to 880s, a shade under fifteen minutes — 120s
@@ -153,17 +167,28 @@ jobs:
     # being the longest of them. The plan step's registry retries can spend two
     # minutes before any of that. Eighteen minutes, then, plus a checkout, a
     # setup-node and the sixty-odd API round trips the polling makes — so a
-    # pathological run lands around twenty and an ordinary one under two. What
+    # pathological run lands around twenty. Most pushes release nothing and end
+    # in the plan step in seconds; a release ends when the publish does, and a
+    # release nobody approves spends the ten-minute watch and goes green. What
     # is left is the headroom, and it has to stay: a job the runner kills prints
     # none of the annotations at the end of the publish step, which is the "red
     # with no message" that step was written to remove.
     #
-    # Any deadline below that grows has to be re-checked against this sum by
-    # hand. Nothing enforces it: scripts/tag-on-bump.test.js pins the individual
-    # waits on a virtual clock — the appear deadline and the follow deadline
-    # each have a test asserting how long they spend — but no test reads
-    # `timeout-minutes` out of this file or adds the deadlines up, so this
-    # comment and this number are the only thing holding them together.
+    # A deadline below that grows has to be re-checked against this sum, and a
+    # test does the re-checking rather than a reader: `every wait is well inside
+    # the job's own ceiling` in scripts/tag-on-bump.test.js runs the publish step
+    # on a virtual clock, measures each wait at its worst, adds the two costs no
+    # clock can see — the call in flight when a deadline expires, and the plan
+    # step's registry retries — then reads `timeout-minutes` out of this file and
+    # holds one against the other. The total has to fit inside two thirds of the
+    # ceiling and to be at least half of it, so a deadline that grows fails and
+    # so does a ceiling that shrinks. The same test counts the round trips, which
+    # is the other half of the arithmetic: a poll interval can be halved without
+    # moving a single clock.
+    #
+    # Every deadline, poll interval and retry count in this file is separately
+    # pinned by a test of its own. The list of them, with the mutation each one
+    # was proved by, is in that test file's header.
     timeout-minutes: 30
     steps:
       # Default fetch-depth is enough. Unlike version-drift.yml this needs no
@@ -408,7 +433,27 @@ jobs:
             # to the publish.
             echo "::notice::A Release for $TAG already exists — leaving it as it is and going on to the publish."
           elif grep -qiE 'release not found|HTTP 404' "$err"; then
-            gh release create "$TAG" --verify-tag --title "$TAG" --notes-file release-notes.md
+            # A 404 that means something else — the repository not found, a
+            # token without the scope to read Releases — matches `HTTP 404` too
+            # and lands here. That is a fail-closed reading: `create` then fails
+            # for the same reason `view` did, and the annotation below says so
+            # in gh's own words. Narrowing the match to exclude it would mean
+            # deciding which 404s are which from a string, and getting that
+            # wrong in the other direction stops a release that is fine.
+            #
+            # Captured rather than left bare, for the reason the dispatch in §5
+            # was: as the last statement in this branch under `set -euo
+            # pipefail`, a 502, a 422 or a 404 ended the step with gh's stderr
+            # somewhere up the log and nothing at the bottom saying that no
+            # Release had been cut.
+            set +e
+            gh release create "$TAG" --verify-tag --title "$TAG" --notes-file release-notes.md 2>"$err"
+            create_status=$?
+            set -e
+            if [ "$create_status" -ne 0 ]; then
+              echo "::error::Cutting the Release for $TAG failed (gh exited $create_status), so no publish was started and nothing has reached npm. The tag and everything before it are untouched by this step, and the release can be finished from here: the next push to main asks the registry again, finds the version unpublished, and picks up where this stopped. gh said: $(oneline "$(cat "$err")")"
+              exit 1
+            fi
           else
             echo "::error::Could not ask GitHub whether a Release exists for $TAG (gh exited $view_status), so this job cannot tell an absent Release from a lookup that failed. Nothing has been created: creating one on that guess fails with 422 already_exists when the Release was there all along, and the tag would then be rolled back under a Release that is fine. $TAG is untouched and the next push to main can finish the release from here. gh said: $(oneline "$(cat "$err")")"
             exit 1
@@ -520,10 +565,11 @@ jobs:
       #
       # WAITING IS NOT FAILING, and here that is not only a difference in
       # wording but a difference in colour. A publish that broke is red and
-      # needs somebody to read a stack trace. A publish parked at its approval
-      # is a warning and exits 0: it needs somebody to click, this job cannot
-      # make that happen, and it has already done everything it is responsible
-      # for. §5c-waiting below argues that trade and names what it costs.
+      # needs somebody to read a stack trace. A publish still parked at its
+      # approval when the ten-minute watch runs out is a warning and exits 0: it
+      # needs somebody to click, this job cannot make that happen, and it has
+      # already done everything it is responsible for. The header argues that
+      # trade and names what it costs.
       - name: Publish it, and wait for the answer
         if: steps.plan.outputs.release == 'true'
         env:
@@ -688,14 +734,17 @@ jobs:
           lookup_error=""
           now="$(date +%s)"
 
-          # One deadline, for the one thing here that is moving by itself: a run
-          # that is queued or in_progress. Ten minutes of it, wall-clock, so a
-          # slow API adds nothing to the wait, and well inside
-          # timeout-minutes: 30.
+          # One deadline for every state that is not `completed`, `waiting`
+          # included. Ten minutes of it, wall-clock, so a slow API adds nothing
+          # to the wait, and well inside timeout-minutes: 30.
           #
-          # A run held at the npm-publish environment is not waited on at all —
-          # it leaves the loop the moment it is seen. See §5c-waiting below for
-          # why that is a green exit and not a shorter red one.
+          # The loop breaks on `completed` and on nothing else. Breaking on
+          # `waiting` as well is how this was first written, and release.yml
+          # reaches the npm-publish gate about ninety seconds into a release: the
+          # job was green and gone before the reviewer clicked, having watched
+          # nothing. Every way the publish can fail lives downstream of that
+          # gate — the tarball check, the `./`-prefix `npm publish` bug that
+          # burned v0.8.0, provenance — so all of them arrived here green.
           deadline=$(( now + 600 ))
           while :; do
             gh_capture run view "$run_id" --json status --jq '.status'
@@ -711,7 +760,7 @@ jobs:
             else
               failures=0
               run_status="$gh_out"
-              if [ "$run_status" = "completed" ] || [ "$run_status" = "waiting" ]; then break; fi
+              if [ "$run_status" = "completed" ]; then break; fi
             fi
             if [ "$(date +%s)" -ge "$deadline" ]; then break; fi
             sleep 15
@@ -720,33 +769,9 @@ jobs:
           url="$(gh run view "$run_id" --json url --jq '.url' 2>/dev/null || true)"
           [ -n "$url" ] || url="the Actions tab"
 
-          # ---- 5c-waiting. An approval nobody has clicked yet ---------------
-          # THE ONE EXCEPTION TO "STAY RED UNTIL IT LANDS", AND IT IS DELIBERATE.
-          # Deleting it puts 0.9.1's release back: that publish was approved
-          # about thirty-five minutes after it was dispatched, succeeded, and is
-          # on npm — and the job that started it went red at sixty seconds, over
-          # nothing but a person who was in a meeting.
-          #
-          # What this job is responsible for is that a release is *started* and
-          # not silently lost. At this point it has done all of that: the tag,
-          # the Release and the dispatch are correct, and the publish is queued
-          # behind a human decision that has thirty days to arrive and that no
-          # amount of waiting here can hurry. A reviewer who has not clicked yet
-          # is the ordinary state of every release in this repository — the
-          # npm-publish environment names four reviewers and forbids
-          # self-review — so calling it a pipeline failure makes red the normal
-          # colour of a healthy release, which is how a red tick stops meaning
-          # anything.
-          #
-          # What it costs, stated plainly rather than discovered later: an
-          # approval that is declined, or that nobody ever gives, looks green
-          # here. Nothing on npm and a green tick is exactly the silence the top
-          # of this file is about. The reason that is an acceptable trade and
-          # not a reopening of the wedge is that it is bounded and someone is
-          # watching: version-drift.yml runs every morning, compares npm against
-          # main, and files an issue when they disagree. The wedge was permanent
-          # and unwatched; this is one night at most, and named in the warning
-          # so the reader knows it.
+          # Ten minutes gone and still nobody has clicked — the one green exit
+          # from an unfinished release. The top of this file argues that trade
+          # and names what it costs.
           #
           # Warning and not notice: a notice is invisible in a green run, and
           # somebody has to see that a release is still holding. Warning and not
@@ -755,8 +780,25 @@ jobs:
           # It must not tell anyone to re-run or re-dispatch. There is a run
           # waiting for approval; starting a second one queues a second publish
           # behind the same person, which is the duplicate §5 exists to avoid.
+          #
+          # A run-level `waiting` is read here as "the npm-publish gate", and
+          # that holds only for release.yml as it stands: two jobs, strictly
+          # sequential, one environment between them. Add a third job that can
+          # fail while another waits, an environment wait timer, or a custom
+          # protection rule, and a run can be `waiting` for something this green
+          # does not cover. release.yml is not this file's to annotate, so the
+          # assumption is written down where it is made.
+          #
+          # version-drift.yml carries the trade by comparing version strings, and
+          # that covers an approval declined or never given completely: nothing
+          # publishes, npm keeps serving the old version, and the two numbers
+          # stay apart until somebody acts. It does not cover a run adopted from
+          # a foreign tag by §5a — if that publish is eventually approved, `main`
+          # and npm agree on the version while what npm serves was built from
+          # another commit, and no comparison of version strings can see it. §5a
+          # behaves that way already and is a separate thing to fix.
           if [ "$run_status" = "waiting" ]; then
-            echo "::warning::The publish of $VERSION is in flight, waiting for somebody to approve the npm-publish environment. Say yes at $url and it carries on by itself — the tag, the Release and the dispatch are all done and correct, and a reviewer is the only thing left. $VERSION is not on npm yet, so this green tick means the release was started, not that it shipped. If the approval never comes, version-drift.yml notices the next morning that npm and main disagree and files an issue about it."
+            echo "::warning::The publish of $VERSION is in flight, waiting for somebody to approve the npm-publish environment. Say yes at $url and it carries on by itself — the tag, the Release and the dispatch are all done and correct, and a reviewer is the only thing left. $VERSION is not on npm yet, so this green tick means the release was started, not that it shipped. If the approval never comes, version-drift.yml files an issue about npm and main disagreeing: it looks once a day and only reports a gap older than twenty-four hours, so expect that in one to two days rather than tomorrow morning."
             exit 0
           fi
 
@@ -768,6 +810,11 @@ jobs:
           # a page with nothing to approve on it. The branch above is reached
           # only by a run that is `waiting` when it is read, so this one never
           # mentions approving anything.
+          #
+          # Red, and deliberately not given the branch above's green. A publish
+          # still building ten minutes after it was approved is anomalous in a
+          # way a reviewer who has not clicked is not, and the two want different
+          # answers from whoever reads them.
           if [ "$run_status" != "completed" ]; then
             echo "::error::The publish run for $VERSION was still ${run_status:-unreadable} after ten minutes. The tag and the Release are correct and have been left alone. Watch it at $url — if it publishes, the next push to main goes green on its own; if it does not, re-run this job to try again.${lookup_error:+ The last lookup that failed said: $(oneline "$lookup_error")}"
             exit 1

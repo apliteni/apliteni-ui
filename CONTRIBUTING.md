@@ -13,13 +13,10 @@ npm install
 npm run storybook        # http://localhost:6006
 ```
 
-`npm test` needs one more tool: [`jq`](https://jqlang.github.io/jq/) on your PATH. It is
-there because the release-workflow tests run the workflow's own `--jq` programs through
-the real jq rather than a stand-in — those filters are where the bugs were. Without it
-they skip themselves and you still get the rest of the suite, while on CI they stop the
-run instead, because a green tick over release tests that quietly did not run is worse
-than a red one. Most package managers carry it: `brew install jq`, `apt install jq`,
-`winget install jqlang.jq`.
+`npm test` also needs [`jq`](https://jqlang.github.io/jq/) on your PATH: `brew install jq`,
+`apt install jq`, `winget install jqlang.jq`. Without it the release-workflow tests skip
+themselves instead of failing, so a green local run is not proof they passed. CI stops the
+run rather than skipping them.
 
 ## Issues & pull requests
 

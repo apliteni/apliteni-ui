@@ -12,8 +12,8 @@
 //      and the job exited 0.
 //   3. From then on, green for ever. Nothing on npm, a healthy-looking
 //      pipeline, and a re-run that could not retry because it reached the same
-//      conclusion. Only a manual dispatch or version-drift.yml a day later
-//      would notice.
+//      conclusion. Only a manual dispatch, or version-drift.yml a day or two
+//      later, would notice.
 //
 // The fix is that the registry decides, not the tag. So what is tested here is
 // the decision: the plan step's real `run:` body, executed against a real git
@@ -84,6 +84,17 @@
 // Proved by 600 → 900, 600 → 300, `sleep 15` → `sleep 30`, and the threshold
 // both ways.
 //
+// That deadline covers a run held at its approval too, and the pin is the same
+// number read the other way round. `a publish still waiting at the follow
+// deadline says so and goes green` holds `waited` at 605 — the 600 plus the
+// appear loop's one five-second poll — and the reads at 41, because the green
+// exit is earned by spending the deadline rather than by seeing `waiting`.
+// Proved by putting a 120s `waiting_deadline` back into the loop, which is the
+// shape this was first written in and which no assertion in this file caught.
+// `an approval that arrives, on a publish that then fails, is a failed publish`
+// is the same defect from the other side: waiting at 0s, in_progress at 30s,
+// completed/failure at 200s, and the job has to be red.
+//
 // The conclusion read gets that tolerance too, and a five-second gap rather
 // than fifteen — which the comment above it argues for by name, because two of
 // them is the ten seconds the job's arithmetic carries. `the conclusion is
@@ -97,6 +108,15 @@
 // minutes of asking, thirty seconds apart` holds the window at 150s by the
 // same difference and the attempts at six. Proved by 150 → 900, 150 → 60, and
 // `sleep 30` → `sleep 60`.
+//
+// The round trips are pinned as well, and on one run rather than by adding two
+// loops' maxima together. `every wait is well inside the job’s own ceiling`
+// holds the worst single job at 69 gh calls: the in-flight search, the
+// watermark read, the dispatch, 24 appear lookups, 41 follow reads and the url
+// read, on a run that appears at the last poll of the appear window and is
+// still going when the follow deadline expires. The sum it replaced — 24 + 41
+// off two separate runs — described a job that cannot exist, because a run that
+// never appears exits the step before the follow loop is reached.
 //
 // Three numbers that are not durations are claimed as well. The exit codes —
 // "0 it is published, 2 it is not" from registry-status.mjs, and the same
@@ -999,6 +1019,11 @@ const followViews = (result) =>
  * and a harness that only works because nothing looks is a harness that stops
  * working the moment something does.
  *
+ * No CLOCK_FILE, unlike the publish harness. This step calls neither `date` nor
+ * `sleep`, and the gh stub reads the clock only on its `run list` and `run view`
+ * paths, which this step never takes. One was written here anyway and nothing
+ * ever read it.
+ *
  * @param {{release?: boolean, failures?: object}} world
  */
 function runReleaseStep({ release = false, failures = {} } = {}) {
@@ -1008,9 +1033,7 @@ function runReleaseStep({ release = false, failures = {} } = {}) {
     mkdirSync(bin);
     const statePath = path.join(scratch, 'gh-state.json');
     const ghLog = path.join(scratch, 'gh-log');
-    const clockFile = path.join(scratch, 'clock');
     writeFileSync(ghLog, '');
-    writeFileSync(clockFile, '0\n');
     writeFileSync(path.join(scratch, 'release-notes.md'), `## ${TAG}\n\nwhat changed\n`);
     writeFileSync(statePath, JSON.stringify({ runs: [], release, failures, warnings: {} }));
     executable(path.join(bin, 'gh'), GH_STUB);
@@ -1021,7 +1044,6 @@ function runReleaseStep({ release = false, failures = {} } = {}) {
       env: {
         ...process.env,
         PATH: `${bin}${path.delimiter}${process.env.PATH}`,
-        CLOCK_FILE: clockFile,
         GH_STUB_STATE: statePath,
         GH_STUB_LOG: ghLog,
         GH_TOKEN: 'stub',
@@ -1034,7 +1056,6 @@ function runReleaseStep({ release = false, failures = {} } = {}) {
       status: run.status,
       log: `${run.stdout ?? ''}${run.stderr ?? ''}`,
       calls: readFileSync(ghLog, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)),
-      releaseNow: JSON.parse(readFileSync(statePath, 'utf8')).release,
     };
   } finally {
     rmSync(scratch, { recursive: true, force: true });
@@ -1044,7 +1065,13 @@ function runReleaseStep({ release = false, failures = {} } = {}) {
 /** Did the step ask GitHub to cut a Release? */
 const created = (result) => result.calls.filter((c) => c[0] === 'release' && c[1] === 'create');
 
-/** Execute the rollback step's `run:` body, with gh and git both stubbed. */
+/**
+ * Execute the rollback step's `run:` body, with gh and git both stubbed.
+ *
+ * No CLOCK_FILE here either, for the reason given at `runReleaseStep`: this step
+ * calls neither `date` nor `sleep`, and nothing in the gh stub's Release paths
+ * reads the clock.
+ */
 function runRollbackStep({ release = true, failures = {} } = {}) {
   const scratch = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'apliteni-ui-rollback-'));
   try {
@@ -1053,10 +1080,8 @@ function runRollbackStep({ release = true, failures = {} } = {}) {
     const statePath = path.join(scratch, 'gh-state.json');
     const ghLog = path.join(scratch, 'gh-log');
     const gitLog = path.join(scratch, 'git-log');
-    const clockFile = path.join(scratch, 'clock');
     writeFileSync(ghLog, '');
     writeFileSync(gitLog, '');
-    writeFileSync(clockFile, '0\n');
     writeFileSync(statePath, JSON.stringify({ runs: [], release, failures, warnings: {} }));
     executable(path.join(bin, 'gh'), GH_STUB);
     executable(path.join(bin, 'git'), GIT_STUB);
@@ -1067,7 +1092,6 @@ function runRollbackStep({ release = true, failures = {} } = {}) {
       env: {
         ...process.env,
         PATH: `${bin}${path.delimiter}${process.env.PATH}`,
-        CLOCK_FILE: clockFile,
         GH_STUB_STATE: statePath,
         GH_STUB_LOG: ghLog,
         GIT_STUB_LOG: gitLog,
@@ -1149,21 +1173,25 @@ test('a chatty gh is not a run id', needsJq, () => {
   assert.match(result.log, /Following run 1\b/);
 });
 
-test('a publish nobody has approved says so and stops, rather than holding the runner', needsJq, () => {
-  // Seventeen minutes of waiting on a run that needs one of four reviewers,
-  // with `concurrency: tag-on-bump` queueing every push to main behind it, and
-  // an approval that can be thirty days coming. So the runner is still not
-  // held — that half of this test has not moved.
+test('a publish still waiting at the follow deadline says so and goes green', needsJq, () => {
+  // A run held at its approval used to be red, and 0.9.1's release proved what
+  // that costs: the publish was approved 35 minutes later and succeeded, the
+  // version is on npm, and the job that started it is red for ever over a human
+  // who took longer than sixty seconds to click. This job's responsibility is
+  // that a release is started and not silently lost, and at this point it has
+  // discharged all of it. So it says where to go and click, names
+  // version-drift.yml as the thing that notices if nobody ever does, exits 0.
   //
-  // What has moved is the verdict. A run held at its approval used to be red,
-  // and 0.9.1's release proved what that costs: the publish was approved 35
-  // minutes later and succeeded, the version is on npm, and the job that
-  // started it is red for ever over a human who took longer than sixty seconds
-  // to click. This job's responsibility is that a release is started and not
-  // silently lost, and at this point it has discharged all of it — the tag, the
-  // Release and the dispatch are correct and the publish is queued behind a
-  // person. So it says where to go and click, names version-drift.yml as the
-  // thing that notices if nobody ever does, and exits 0.
+  // THE GREEN IS EARNED BY THE FULL DEADLINE, NOT BY THE FIRST SIGHT OF
+  // `waiting`. Breaking the follow loop on `waiting` is how this was first
+  // written, and it is the defect the test below this one exists for:
+  // release.yml reaches `waiting` about ninety seconds in, so the job left
+  // before the publish had done anything and every failure downstream of the
+  // gate — the tarball check, the `./`-prefix publish bug that burned v0.8.0,
+  // provenance — arrived here as a green tick. So the deadline is pinned from
+  // both sides. 605s is the follow loop's own 600 plus the appear loop's single
+  // five-second poll, which this scenario pays because it dispatches; a
+  // `waiting_deadline` of 120s reads 125 here and 900 reads 905.
   const result = runPublishStep({ dispatch: { timeline: [{ at: 0, status: 'waiting' }] } });
 
   assert.equal(result.status, 0, result.log);
@@ -1179,7 +1207,41 @@ test('a publish nobody has approved says so and stops, rather than holding the r
     /re-run|run this job again|dispatch(ing)? again|push to main again/i,
     'telling a reader to start it over is how one release becomes two',
   );
-  assert.ok(result.waited < 180, `held the runner for ${result.waited}s of virtual time`);
+  assert.equal(
+    result.waited,
+    605,
+    `left after ${result.waited}s; a run that is waiting is followed for the whole 600s deadline, ` +
+      'plus the appear loop\'s one five-second poll — anything shorter is the job leaving before the publish ran',
+  );
+  assert.equal(followViews(result), 41, 'ten minutes of fifteen-second polling is forty-one reads, waiting or not');
+});
+
+test('an approval that arrives, on a publish that then fails, is a failed publish', needsJq, () => {
+  // The shape of a real release, and the case breaking the follow loop on
+  // `waiting` got wrong: release.yml hits the npm-publish gate about ninety
+  // seconds in, somebody approves, and the publish job then does the work that
+  // can actually break — the tarball check, `npm publish`, provenance. A job
+  // that leaves at the first `waiting` never observes any of it.
+  //
+  // Timed the way a reviewer measured it: waiting at 0s, approved at 30s,
+  // finished failure at 200s. Exit 1, the log says the publish finished
+  // failure, and it tells nobody to go and approve anything — there is nothing
+  // left to approve.
+  const result = runPublishStep({
+    dispatch: {
+      timeline: [
+        { at: 0, status: 'waiting' },
+        { at: 30, status: 'in_progress' },
+        { at: 200, status: 'completed', conclusion: 'failure' },
+      ],
+    },
+  });
+
+  assert.equal(result.status, 1, result.log);
+  assert.match(result.log, /finished failure/, 'the publish failed, and that is what the reader has to be told');
+  assert.match(result.log, /left alone/, 'the tag and the Release are correct and stay');
+  assert.doesNotMatch(result.log, /approve/i, 'the approval already happened — there is nothing to click');
+  assert.doesNotMatch(result.log, /::warning::/, 'a failed publish is not a release still holding');
 });
 
 test('a run that is still building is reported as still building, not as an approval', needsJq, () => {
@@ -1260,10 +1322,27 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // The other half of the arithmetic: the comment counts round trips, not just
   // seconds, and the sleeps inside the loops are what set them. Halving one
   // leaves every wall-clock assertion above green and doubles the traffic.
-  const roundTrips = appearLookups(appear) + followViews(follow);
-  assert.ok(
-    roundTrips >= 60 && roundTrips < 70,
-    `the polling makes ${roundTrips} API round trips; the job-level comment says sixty-odd`,
+  //
+  // Measured on one run rather than by adding the two loops' maxima together,
+  // which is what this did and which described a job that cannot exist: a run
+  // that never appears exits the step before the follow loop is reached, so
+  // 24 + 41 was a worst case nothing could reach. The genuine worst is a single
+  // run that pays both loops in full — dispatched, appearing on the last poll
+  // of the two-minute appear window, and still running when the ten-minute
+  // follow deadline expires — and it costs more than the sum did, not less,
+  // because the calls around the loops count too.
+  const worst = runPublishStep({
+    dispatch: { appearAfter: 120, timeline: [{ at: 0, status: 'in_progress' }] },
+  });
+  assert.equal(worst.status, 1, worst.log);
+  assert.equal(appearLookups(worst), 24, 'the appear loop has to be paid in full for this to be the worst case');
+  assert.equal(followViews(worst), 41, '…and the follow loop too');
+  assert.equal(
+    worst.calls.length,
+    69,
+    `the worst single job makes ${worst.calls.length} API round trips; the job-level comment says sixty-odd. ` +
+      'That is the in-flight search, the watermark read, the dispatch, 24 appear lookups, 41 follow reads and the ' +
+      'url read — every one of them a call to an API with a rate limit on it.',
   );
 });
 
@@ -1669,7 +1748,29 @@ test('a Release that genuinely is not there gets cut, with the tag verified', ne
     created(result)[0].includes('--verify-tag'),
     `without --verify-tag gh invents a missing tag, and a lightweight one: ${JSON.stringify(created(result)[0])}`,
   );
-  assert.equal(result.releaseNow, true);
+});
+
+test('a create gh refuses is an error with a sentence, not a bare non-zero exit', needsJq, () => {
+  // The same defect the dispatch had, in the other half of this step. The
+  // `view` arm got its annotation and `create` was left as the last statement
+  // in its branch, so under `set -euo pipefail` a 502, a 422 or a 404 ended the
+  // step with gh's stderr somewhere up the log and nothing at the bottom saying
+  // that no Release had been cut and nothing had been published.
+  const result = runReleaseStep({
+    release: false,
+    failures: { releaseCreate: { exit: 1, stderr: 'HTTP 502: Bad gateway\nx-github-request-id: abc\n' } },
+  });
+
+  assert.equal(result.status, 1, `a create that failed has to fail the step, log:\n${result.log}`);
+  const annotation = result.log.split('\n').find((l) => l.startsWith('::error::'));
+  assert.ok(annotation, `a refused create is an exit from this step with no sentence:\n${result.log}`);
+  assert.match(annotation, /Release for v0\.10\.0/, 'the reader has to be told which Release was not cut');
+  assert.match(annotation, /next push to main/, '…and that the release resumes on its own');
+  assert.ok(
+    annotation.includes('HTTP 502: Bad gateway') && annotation.includes('x-github-request-id: abc'),
+    `gh's reason did not survive into the annotation:\n${annotation}`,
+  );
+  assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
 });
 
 test('a 404 is a Release that is not there, in both steps that ask', needsJq, () => {
@@ -1698,6 +1799,15 @@ test('a Release that is already cut is left alone, which is what makes a resumed
 
   assert.equal(result.status, 0, result.log);
   assert.deepEqual(created(result), [], 'create is not safe to retry — that is the whole reason for the view');
+  // The arm goes green having done nothing, which is indistinguishable from the
+  // step being skipped unless it says so. A resumed release is the ordinary way
+  // this repository publishes after a failed attempt, and the run log is where
+  // somebody works out how far the first attempt got.
+  assert.match(
+    result.log,
+    /::notice::A Release for v0\.10\.0 already exists/,
+    'a step that deliberately does nothing has to say that is what it did',
+  );
 });
 
 test('a Release that cannot be deleted does not get its tag deleted out from under it', needsJq, () => {
