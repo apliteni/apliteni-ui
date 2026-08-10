@@ -108,11 +108,17 @@
  *  - An icon carrying its own width/height ATTRIBUTES, which the reset skips on
  *    purpose. Seven svgs in src/ do: the brand logos, the success check, the
  *    empty-state illustration.
- *  - Anything outside the stylesheets src/index.css imports. The landing site
- *    and the Storybook stories carry icon rules of their own, in files this gate
- *    never opens. Those are gated by scripts/icon-size-surfaces.test.js, which
- *    shares this file's machinery and asks the same question of them; between
- *    the two, every icon-sizing rule the kit renders is measured.
+ *  - Anything outside the stylesheets src/index.css imports. Three other places
+ *    carry icon rules of their own, in files this gate never opens: the landing
+ *    site, the Storybook stories under stories/, and the React workspace's own
+ *    stylesheets under react/src, which render against this same reset because
+ *    react/.storybook/preview.ts imports the kit's CSS. The first two are gated
+ *    by scripts/icon-size-surfaces.test.js and the third by
+ *    scripts/icon-size-react.test.js. Both share this file's machinery and ask
+ *    the same question of what they sweep, and each keeps a count of its own, so
+ *    a rule leaving one sweep cannot be cancelled out by a rule arriving in
+ *    another. Between the three, every place the kit renders an icon has a gate
+ *    over it; what each one still cannot see is in its own header.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

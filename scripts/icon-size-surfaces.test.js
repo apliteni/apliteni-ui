@@ -38,6 +38,16 @@
  * A new page, a new story, a new shared shell: all in scope by existing. A file
  * that stops carrying an icon rule leaves the count, and the count is asserted.
  *
+ * THE REACT WORKSPACE IS NOT ONE OF THESE SURFACES, and that is a decision rather
+ * than an oversight. react/.storybook/preview.ts imports the kit's CSS as well, so
+ * React stories do render against the same reset — but their CSS sits in
+ * react/src/*.css files that components import, and this file extracts rules from
+ * <style> blocks written inside story sources, so there is nothing here for it to
+ * read. It is gated by scripts/icon-size-react.test.js, on the same machinery,
+ * with a count of its own: folded in here it would share this file's count, and a
+ * React rule dropping out of coverage while a site rule arrived would leave the
+ * number where it was and the tripwire silent.
+ *
  * NO BUILT SITE. The pages are composed from source, not read out of
  * site/public/. CI runs `npm test` before `npm run build-storybook` and never
  * runs site/build.mjs, so site/public/ does not exist there — a gate that read it

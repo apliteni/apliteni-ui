@@ -24,6 +24,9 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import {
   CLAMP_PROPS,
@@ -32,6 +35,7 @@ import {
   declRe,
   foldLogicalDims,
   rulesOf,
+  svgClassSet,
   writtenAs,
 } from './icon-cascade.js';
 
@@ -158,6 +162,38 @@ test('a clamp inside a conditional group is reported like any other', () => {
   const sheet = sheetOf('@media screen { .a svg { max-width: 4px } }');
   assert.deepEqual(clampsOn(sheet, 'probe.css', new Set()),
     ['probe.css: .a svg { max-width: 4px }']);
+});
+
+/* A directory of source files, thrown away afterwards. The class scanner reads
+ * files rather than strings, so a case about which files it reads and which
+ * spellings it recognises has to hand it real ones. */
+function sourceDir(files) {
+  const dir = mkdtempSync(path.join(tmpdir(), 'icon-cascade-'));
+  for (const [name, text] of Object.entries(files)) writeFileSync(path.join(dir, name), text);
+  return dir;
+}
+
+test('a class written onto an svg as className is found the way class is', () => {
+  /* React spells the attribute `className`, and a class the scanner does not
+   * find is a class every rule targeting it stops being measured against — the
+   * shape that hid .ui-fbck in the kit. */
+  const dir = sourceDir({ 'Widget.tsx': '<svg className="rx-glyph" aria-hidden="true" />' });
+  try {
+    assert.ok(svgClassSet([dir], ['.tsx']).has('rx-glyph'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a class only a test writes onto an svg is skipped whatever the extension', () => {
+  // A class no component renders is not a class the kit renders, and the test
+  // files that carry one are .tsx as often as .js now.
+  const dir = sourceDir({ 'Widget.test.tsx': '<svg className="rx-test-only" />' });
+  try {
+    assert.deepEqual([...svgClassSet([dir], ['.tsx'])], []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('a declaration pattern reads min-width as a clamp and never as a width', () => {
