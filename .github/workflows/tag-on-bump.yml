@@ -63,12 +63,20 @@ name: Tag on bump
 # here rather than the unlucky one.
 #
 # The full ten minutes get spent first, and that is not a detail. release.yml
-# reaches the approval gate about ninety seconds in, so a job that left at the
+# reaches the approval gate about half a minute in, so a job that left at the
 # first sight of `waiting` would be gone before the publish had done anything —
 # and everything the gate stands in front of would be green here whatever it
 # did: the tarball check, the `./`-prefix `npm publish` bug that burned v0.8.0,
 # provenance. So the watch runs to its deadline either way. What `waiting`
 # changes is the colour at the end of it.
+#
+# Half a minute is measured rather than remembered, and it is worth rechecking
+# the same way if release.yml's build ever grows: `gh run list --workflow
+# release.yml`, then `gh run view <id> --json createdAt,jobs` on each, and take
+# the interval from the run being created to its `build` job finishing — the
+# publish job is gated, so that interval is the wait before the gate. Every run
+# since build and publish were split into two jobs spent 18, 22, 23, 31 and 32
+# seconds on it.
 #
 # What colour a declined approval gets is decided by the clock and by nothing
 # else. Decline inside the ten minutes and the run completes with conclusion
@@ -755,7 +763,8 @@ jobs:
           #
           # The loop breaks on `completed` and on nothing else. Breaking on
           # `waiting` as well is how this was first written, and release.yml
-          # reaches the npm-publish gate about ninety seconds into a release: the
+          # reaches the npm-publish gate about half a minute into a release (the
+          # header says where that figure comes from and how to recheck it): the
           # job was green and gone before the reviewer clicked, having watched
           # nothing. Every way the publish can fail lives downstream of that
           # gate — the tarball check, the `./`-prefix `npm publish` bug that

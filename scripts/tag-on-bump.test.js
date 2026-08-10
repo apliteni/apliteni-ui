@@ -178,9 +178,9 @@
 // dependency — a repository with more than fifty release.yml runs newer than
 // the one being looked for would not find it — but nothing in the file says
 // so, and inventing the claim is the workflow's business and not this file's.
-// `node-version: 24`, the two pinned action SHAs with their `# v7.0.1`
-// labels, and the `// 0` and `:-0` fallbacks behind BEFORE_ID are unclaimed
-// and unpinned.
+// `node-version: 24`, the two pinned action SHAs with their labels —
+// `actions/checkout` at `# v7.0.1`, `actions/setup-node` at `# v7.0.0` — and
+// the `// 0` and `:-0` fallbacks behind BEFORE_ID are unclaimed and unpinned.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -947,17 +947,24 @@ exit 0
  * What a missing jq means — which is not the same thing in both places it can
  * happen.
  *
- * Every test below this line runs the publish step or the rollback step, and
- * both of them hand the workflow's own `--jq` programs to the real jq. Without
- * it they all skip, and `node --test` exits 0 having executed none of them:
- * most of the tests in this file and the whole of the publish step's coverage,
- * gone without a word. Counted rather than guessed at, and left uncounted here
- * on purpose — the figure moves every time a test is added, and a number
- * nothing holds to the code is the thing this file is about. On a developer
- * machine that is a reasonable trade — the rest of the suite still runs. On CI
- * it is the coverage quietly not existing, resting on an assumption about the
- * runner image that nothing checks. `ubuntu-latest` has jq today; the point is
- * that nothing would say so if it stopped.
+ * Every test carrying `needsJq` runs the publish step, which hands the
+ * workflow's own `--jq` programs to the real jq through the gh stub. Without it
+ * they all skip, and `node --test` exits 0 having executed none of them: the
+ * whole of the publish step's coverage, gone without a word. Counted rather
+ * than guessed at, and left uncounted here on purpose — the figure moves every
+ * time a test is added, and a number nothing holds to the code is the thing
+ * this file is about. On a developer machine that is a reasonable trade — the
+ * rest of the suite still runs. On CI it is the coverage quietly not existing,
+ * resting on an assumption about the runner image that nothing checks.
+ * `ubuntu-latest` has jq today; the point is that nothing would say so if it
+ * stopped.
+ *
+ * The Release step and the rollback step are deliberately not gated, and this
+ * sentence used to claim they were the same case. Neither `run:` body contains
+ * a single `--jq`, and the gh stub's `release view|create|delete` paths never
+ * reach for jq either — they answer out of the scenario and exit. So the gate
+ * was skipping tests that pass perfectly well without jq, for a reason that was
+ * not true of them. Read the `run:` body before gating anything else on this.
  */
 function jqRequirement({ hasJq, ci }) {
   if (hasJq) return 'run';
@@ -969,8 +976,8 @@ const JQ = jqRequirement({ hasJq: HAS_JQ, ci: Boolean(process.env.CI) });
 if (JQ === 'fail') {
   throw new Error(
     'jq is not installed and CI is set. The gh stub hands the workflow’s own --jq programs to the real jq, so ' +
-      'without jq every publish-step and rollback test in this file skips itself and the suite still exits 0 — ' +
-      'the publish step’s entire coverage, gone silently. Install jq on the runner rather than running without it.',
+      'without jq every publish-step test in this file skips itself and the suite still exits 0 — the publish ' +
+      'step’s entire coverage, gone silently. Install jq on the runner rather than running without it.',
   );
 }
 const needsJq = JQ === 'run' ? {} : { skip: 'jq is not installed — the gh stub hands it the workflow’s own --jq programs' };
@@ -1293,13 +1300,15 @@ test('a publish still waiting at the follow deadline says so and goes green', ne
   // THE GREEN IS EARNED BY THE FULL DEADLINE, NOT BY THE FIRST SIGHT OF
   // `waiting`. Breaking the follow loop on `waiting` is how this was first
   // written, and it is the defect the test below this one exists for:
-  // release.yml reaches `waiting` about ninety seconds in, so the job left
+  // release.yml reaches `waiting` about half a minute in, so the job left
   // before the publish had done anything and every failure downstream of the
   // gate — the tarball check, the `./`-prefix publish bug that burned v0.8.0,
-  // provenance — arrived here as a green tick. So the deadline is pinned from
-  // both sides. 605s is the follow loop's own 600 plus the appear loop's single
-  // five-second poll, which this scenario pays because it dispatches; a
-  // `waiting_deadline` of 120s reads 125 here and 900 reads 905.
+  // provenance — arrived here as a green tick. That half minute is measured;
+  // tag-on-bump.yml's header holds the figures and the two `gh` commands that
+  // redo them. So the deadline is pinned from both sides. 605s is the follow
+  // loop's own 600 plus the appear loop's single five-second poll, which this
+  // scenario pays because it dispatches; a `waiting_deadline` of 120s reads 125
+  // here and 900 reads 905.
   const result = runPublishStep({ dispatch: { timeline: [{ at: 0, status: 'waiting' }] } });
 
   assert.equal(result.status, 0, result.log);
@@ -1326,8 +1335,8 @@ test('a publish still waiting at the follow deadline says so and goes green', ne
 
 test('an approval that arrives, on a publish that then fails, is a failed publish', needsJq, () => {
   // The shape of a real release, and the case breaking the follow loop on
-  // `waiting` got wrong: release.yml hits the npm-publish gate about ninety
-  // seconds in, somebody approves, and the publish job then does the work that
+  // `waiting` got wrong: release.yml hits the npm-publish gate about half a
+  // minute in, somebody approves, and the publish job then does the work that
   // can actually break — the tarball check, `npm publish`, provenance. A job
   // that leaves at the first `waiting` never observes any of it.
   //
@@ -1479,9 +1488,19 @@ test('the timeout registry-status.mjs gives npm is read out of it, not written d
     Number.isInteger(seconds) && seconds > 0,
     `read ${seconds} out of registry-status.mjs, which is not a count of seconds`,
   );
+  // Held as the literal spelling, and the message has to say that is what it
+  // is. The reader above takes any run of digits and underscores, so
+  // `timeout: 60000` gives back the same 60 seconds and arrives here anyway —
+  // and this used to greet it with "the seconds read back have to be the
+  // milliseconds actually written down", sending whoever wrote it hunting for a
+  // value error that is not there. The pin stays strict rather than accepting
+  // both spellings: one form of the number in one place is the whole point.
   assert.ok(
     registryStatusSource.includes(`timeout: ${seconds}_000`),
-    'the seconds read back have to be the milliseconds actually written down',
+    `scripts/registry-status.mjs does not write the timeout as \`timeout: ${seconds}_000\`. The value is fine — ` +
+      `${seconds} seconds is what came back out of it — so this is about the form: \`timeout: ${seconds * 1000}\`, ` +
+      'or any other spacing, means the same and reads differently. Put the `_000` separator this repository uses ' +
+      'back rather than teaching this line a second spelling.',
   );
 
   // Each of the three ways the read could go quiet instead of loud.
@@ -2004,7 +2023,7 @@ test('a failed publish is reported as a failed publish', needsJq, () => {
 
 // ---------------------------------------------------------------------------
 
-test('a Release lookup that failed is not a Release that has to be created', needsJq, () => {
+test('a Release lookup that failed is not a Release that has to be created', () => {
   // `gh release view "$TAG" >/dev/null 2>&1 || gh release create …` is
   // character-for-character the conflation the rollback step one step below had
   // removed from it: `gh release view` exits 1 for a Release that is not there
@@ -2026,7 +2045,7 @@ test('a Release lookup that failed is not a Release that has to be created', nee
   assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
 });
 
-test('a Release that genuinely is not there gets cut, with the tag verified', needsJq, () => {
+test('a Release that genuinely is not there gets cut, with the tag verified', () => {
   const result = runReleaseStep({ release: false });
 
   assert.equal(result.status, 0, result.log);
@@ -2037,7 +2056,7 @@ test('a Release that genuinely is not there gets cut, with the tag verified', ne
   );
 });
 
-test('a create gh refuses is an error with a sentence, not a bare non-zero exit', needsJq, () => {
+test('a create gh refuses is an error with a sentence, not a bare non-zero exit', () => {
   // The same defect the dispatch had, in the other half of this step. The
   // `view` arm got its annotation and `create` was left as the last statement
   // in its branch, so under `set -euo pipefail` a 502, a 422 or a 404 ended the
@@ -2060,7 +2079,7 @@ test('a create gh refuses is an error with a sentence, not a bare non-zero exit'
   assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
 });
 
-test('a 404 is a Release that is not there, in both steps that ask', needsJq, () => {
+test('a 404 is a Release that is not there, in both steps that ask', () => {
   // The match that decides absence is `release not found|HTTP 404`, and only
   // the first half of it had a test: the stub says "release not found", which
   // is what gh prints when it has parsed the API's answer. It does not always
@@ -2081,7 +2100,7 @@ test('a 404 is a Release that is not there, in both steps that ask', needsJq, ()
   assert.deepEqual(rollback.gitCalls, [`push origin :refs/tags/${TAG}`]);
 });
 
-test('a Release that is already cut is left alone, which is what makes a resumed release cheap', needsJq, () => {
+test('a Release that is already cut is left alone, which is what makes a resumed release cheap', () => {
   const result = runReleaseStep({ release: true });
 
   assert.equal(result.status, 0, result.log);
@@ -2097,7 +2116,7 @@ test('a Release that is already cut is left alone, which is what makes a resumed
   );
 });
 
-test('a Release that cannot be deleted does not get its tag deleted out from under it', needsJq, () => {
+test('a Release that cannot be deleted does not get its tag deleted out from under it', () => {
   // `delete || git push :tag` read every delete failure as "there was no
   // Release". A 5xx then removed the tag and left the Release pointing at a ref
   // that no longer exists — and the next attempt's `gh release view` finds that
@@ -2108,7 +2127,7 @@ test('a Release that cannot be deleted does not get its tag deleted out from und
   assert.deepEqual(result.gitCalls, [], 'the tag must not be deleted when the Release could not be');
 });
 
-test('a Release lookup that failed is not a Release that is absent', needsJq, () => {
+test('a Release lookup that failed is not a Release that is absent', () => {
   // The conflation moved from `delete` to `view`; it did not go away.
   // `gh release view` exits 1 for a Release that is not there and for a 502, a
   // rate limit or a read timeout alike, and reading all of those as "there was
@@ -2132,7 +2151,7 @@ test('a Release lookup that failed is not a Release that is absent', needsJq, ()
   assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
 });
 
-test('a tag with no Release behind it is simply removed', needsJq, () => {
+test('a tag with no Release behind it is simply removed', () => {
   const result = runRollbackStep({ release: false });
 
   assert.equal(result.status, 0, result.log);

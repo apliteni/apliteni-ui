@@ -14,9 +14,9 @@ npm run storybook        # http://localhost:6006
 ```
 
 `npm test` also needs [`jq`](https://jqlang.github.io/jq/) on your PATH: `brew install jq`,
-`apt install jq`, `winget install jqlang.jq`. Without it the release-workflow tests skip
-themselves instead of failing, so a green local run is not proof they passed. CI stops the
-run rather than skipping them.
+`apt install jq`, `winget install jqlang.jq`. Without it the tests covering the release
+workflow's publish step skip themselves instead of failing, so a green local run is not
+proof they passed. CI stops the run rather than skipping them.
 
 ## Issues & pull requests
 
@@ -193,9 +193,11 @@ environment, which asks one of four reviewers to approve it and will not let you
 approve your own, so expect to be waiting for somebody else. `tag-on-bump.yml`
 watches the publish for ten minutes and then stops watching. A run that finishes
 inside that window is reported as it finished, red if the publish failed. It also
-goes red on a publish that succeeded but that npm has not served two and a half
-minutes later, and the message says to look at npm first: a version is published
-before every edge can read it, so slow propagation is much the likeliest reading.
+goes red when the publish succeeded and npm, asked for two and a half minutes,
+still says it does not have the version — and the message sends you to npm first,
+because a version is published before every edge can read it. A registry that
+never answered at all is a different case, so it does not go red: the job stays
+green with a warning on it, and `version-drift.yml` is what catches that one.
 A run still waiting on a reviewer when the ten minutes are up leaves the job
 green, with a warning naming the run and what it is waiting for. Somebody who has
 not clicked yet is not a broken pipeline.
