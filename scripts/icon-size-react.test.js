@@ -28,12 +28,12 @@
  * them, which is what React writes when the CSS is a value rather than markup.
  *
  * Discovery is what can narrow without saying so, and at a count of 0 there is
- * nothing else to notice with, so the two ways it narrows are asserted rather
- * than trusted. SKIP_DIRS prunes by directory NAME wherever that name turns up,
- * which is what build output needs and what a react/src/public/ somebody wrote
- * by hand does not; the walk reports every directory it refused, and a refusal
- * under react/src fails. And the glob is *.css, so a sheet renamed .pcss leaves
- * the sweep with the count unmoved; the components' own `import './DataTable.css'`
+ * nothing else to notice with, so the two ways the *.css half narrows are
+ * asserted rather than trusted. SKIP_DIRS prunes by directory NAME wherever that
+ * name turns up, which is what build output needs and what a react/src/public/
+ * somebody wrote by hand does not; the walk reports every directory it refused,
+ * and a refusal under react/src fails. And the glob is *.css, so a sheet renamed
+ * .pcss leaves the sweep with the count unmoved; the components' own `import './DataTable.css'`
  * lines say what the workspace actually loads, and a sheet on that list this does
  * not read fails too.
  *
@@ -83,6 +83,22 @@
  * deliberately: the document is built out of that same list, so it proves jsdom
  * dropped nothing rather than that the list was right. The first three are what
  * say the list is right.
+ *
+ * THE TWO HALVES ARE NOT GUARDED ALIKE. Three of the seven say the *.css half
+ * read what it should — it found stylesheets, it entered every directory, it
+ * reads every sheet a component imports — and it can carry them because the
+ * workspace has stylesheets to find. The <style>-block half has none: nothing
+ * under react/src writes one, so a `length > 0` there would red on a workspace
+ * that is perfectly fine, and without it a recogniser that stopped reading the
+ * .tsx idiom would sit at the same healthy-looking zero.
+ *
+ * What stands behind that zero is a case over the recogniser itself, `both
+ * shapes a .tsx writes a <style> block in are still recognised` in
+ * scripts/lib/icon-cascade.test.js. It hands styleBlocksOf both shapes this
+ * header claims to read and asserts it finds them, so losing either reds there
+ * while the zero here stays honest. It sits beside the rest of that function's
+ * cases rather than in this file, because what it proves is a property of the
+ * machinery and not of this workspace.
  *
  * WHAT THIS WILL NOT CATCH — the same weak claims as the two gates it joins, for
  * the same reasons, plus four of its own:

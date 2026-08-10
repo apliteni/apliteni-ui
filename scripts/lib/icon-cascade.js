@@ -455,43 +455,71 @@ function topLevelBlocks(css) {
   return out;
 }
 
-/* A top-level block whose two spellings of one axis reach the fold in an order,
- * or with an importance, the file does not declare — the one shape the fold
- * cannot resolve.
+/* A top-level block the CSSOM stops describing — the shapes where what every
+ * gate measures is not what a browser renders.
  *
  * cssstyle keeps a repeated property once, in its FIRST position carrying its
- * LAST value and its LAST importance. The fold reads position and importance to
- * decide which declaration a browser takes, so it is right whenever that
- * bookkeeping still describes the file, and wrong when it does not. Two ways it
- * stops describing the file, and only two:
+ * LAST value and its LAST importance. That bookkeeping is what every gate here
+ * reads, and it is right whenever it still describes the file. There are two
+ * ways it stops, and they are not the same failure.
+ *
+ * THE WINNER. A browser takes the important declaration wherever it sits, and
+ * only then the last one, so the winner of
+ *
+ *   .ui-btn svg { width: 40px !important; width: 16px }
+ *
+ * is 40px. The CSSOM holds 16px, not important, because that is the last
+ * declaration — and the gate mounts an element, reads 16px back, agrees with
+ * itself and reports the rule as measured while the browser renders something
+ * else. No logical twin is anywhere near it and none is needed: the measurement
+ * is already wrong before the fold is asked anything. That is why this is scoped
+ * to the measurement rather than to the fold, and it is the whole of #148 —
+ * a rule deciding an icon's size with the thing meant to notice staying quiet —
+ * rebuilt inside the fix for it.
+ *
+ * The line is exactly this: a repeat is misread when SOME declaration of the
+ * property is important and the LAST one is not. Nothing else about the repeat
+ * matters. Working through the cases —
+ *
+ *   width: 100%; width: fit-content      no importance anywhere, last wins in
+ *                                        both, so the fallback idiom is read
+ *                                        correctly and must stay green
+ *   width: 10px; width: 12px !important  importance arrives and stays; the last
+ *                                        declaration IS the winner
+ *   width: 10px !important; width: 12px  importance drops; a browser takes 10px
+ *                                        and the CSSOM says 12px — refused
+ *   10px !imp; 12px; 14px                the winner is 10px, the CSSOM says 14px
+ *   10px; 12px !imp; 14px                the winner is 12px, the CSSOM says 14px
+ *   10px; 12px !imp; 14px !imp           the winner is the last one — read right
+ *
+ * The same holds for `height` and for both logical spellings, since cssstyle
+ * deduplicates all four the same way, so all four are asked. Value equality is
+ * not a way out: `width: 16px !important; width: 16px` computes the same number
+ * and still loses the importance, which is the one thing that decides a contest
+ * against an `!important` reset.
+ *
+ * THE ORDER, which is about the fold and needs the twin. In
  *
  *   .a { width: 10px; inline-size: 33px; width: 12px }
  *
- * straddles — `width` sits on both sides of its twin, so keeping it in its first
- * position moves it in front of a declaration the file puts it behind. A browser
- * renders 12px and the fold gives 33. And
+ * `width` sits on both sides of its twin, so keeping it in its first position
+ * moves it in front of a declaration the file puts it behind. A browser renders
+ * 12px and the fold gives 33. Every other arrangement survives: with all the
+ * repeats on one side of the twin, whichever side, the deduplicated order is
+ * still the file's, and the fold picks the winner a browser picks.
  *
- *   .a { width: 10px !important; width: 12px; inline-size: 33px }
+ * Both are wrong numbers rather than errors, which every gate would report as a
+ * pass, and nothing in the CSSOM can recover the truth — rule.cssText is
+ * serialised from the same deduplicated block. So this refuses rather than
+ * guessing.
  *
- * repeats a property whose importance changes between the repeats, so the last
- * importance is not the one that wins: a browser renders 10px and the fold, told
- * `width` is not important, hands the axis to `inline-size`. Both are wrong
- * numbers rather than errors, which every gate would report as a pass, and
- * nothing in the CSSOM can recover the truth — rule.cssText is serialised from
- * the same deduplicated block. So this refuses rather than guessing.
- *
- * Every other repeat goes through, because the fold gets it right. All the
- * repeats on one side of the twin is still the file's order after deduplication,
- * whichever side that is; a repeat with no logical twin beside it decides
- * nothing the fold reads and is an ordinary fallback (`width: 100%; width:
- * fit-content`, or a px value ahead of a rem one).
- *
- * A straddle in a rule that sizes no icon is refused along with the rest. The
- * fold does rewrite that rule and does get it wrong, and telling the two apart
+ * Neither check asks whether the rule sizes an icon, so a repeat in a rule that
+ * sizes nothing of the sort is refused with the rest. Telling the two apart
  * would mean handing this function the icon classes — which every gate derives,
- * but two of them derive after they have folded. Refusing is the safe direction
- * and the shape is vanishingly rare; widen the signature if it ever turns up. */
-function refuseRepeatedAxis(css, name) {
+ * but two of them derive after they have folded. Refusing is the safe direction,
+ * and neither shape is CSS somebody writes on purpose: a declaration that a
+ * browser can never take is dead either way. */
+function refuseMisreadRepeats(css, name) {
   for (const [selector, body, holdsBlock] of topLevelBlocks(css)) {
     // Not a style rule, or a rule with a rule inside it — the fold skips both,
     // and rulesOf() is what has something to say about the second.
@@ -507,23 +535,27 @@ function refuseRepeatedAxis(css, name) {
       decls.set(d[1], list);
       n += 1;
     }
+    for (const [prop, list] of decls) {
+      if (list.length < 2 || list[list.length - 1].important) continue;
+      if (!list.some((d) => d.important)) continue;
+      throw new Error(`${name}: "${selector}" repeats ${prop} with an !important on one of them `
+        + 'and not on the last. A browser takes the important declaration wherever it sits; the '
+        + 'CSSOM this gate measures keeps a repeated property once, in its first position with its '
+        + 'last value and its last importance, so every gate here reads the declaration a browser '
+        + `throws away and reports a size nothing renders. Declare ${prop} once, or put the `
+        + '!important on the declaration you mean to win.');
+    }
     for (const axis of AXES) {
       if (!axis.every((p) => decls.has(p))) continue;
       const repeated = axis.find((p) => decls.get(p).length > 1);
       if (!repeated) continue;
       const [a, b] = axis.map((p) => decls.get(p));
-      const apart = a[a.length - 1].at < b[0].at || b[b.length - 1].at < a[0].at;
-      const steady = axis.every((p) => decls.get(p).every((d, _i, all) => d.important === all[0].important));
-      if (apart && steady) continue;
+      if (a[a.length - 1].at < b[0].at || b[b.length - 1].at < a[0].at) continue;
       const other = axis.find((p) => p !== repeated);
-      throw new Error(`${name}: "${selector}" ${apart
-        ? `repeats ${repeated} with an !important on one of them and not the other, beside `
-          + `a declaration of ${other}`
-        : `declares ${repeated} both before and after ${other}`}. A browser takes the declaration `
-        + 'that wins on importance and then the last one; the CSSOM this gate reads keeps a '
-        + 'repeated property once, in its first position with its last value and its last '
-        + 'importance, so the fold would pick the winner out of an order this file does not '
-        + 'declare and report it as a size. Declare the axis once.');
+      throw new Error(`${name}: "${selector}" declares ${repeated} both before and after ${other}. `
+        + 'A browser takes the last of them; the CSSOM this gate reads keeps a repeated property '
+        + 'once, in its first position with its last value, so the fold would pick the winner out '
+        + 'of an order this file does not declare and report it as a size. Declare the axis once.');
     }
   }
 }
@@ -551,7 +583,7 @@ export function foldLogicalDims(sheet, name) {
     throw new Error(writingModeRefusal(name, `a rule declares ${prefixed[1]}: `
       + `${prefixed[2].trim()}, which jsdom parses away before this gate can read it`));
   }
-  refuseRepeatedAxis(raw, name);
+  refuseMisreadRepeats(raw, name);
   for (const rule of sheet.cssRules) {
     // Only the rules a gate mounts. A logical declaration inside @media is left
     // as written for the guard in rulesOf() to find and refuse.
@@ -1041,13 +1073,25 @@ function survivesParsing(prop, value) {
  * from the CSSOM, so there is no rule object to ask — but topLevelBlocks()
  * yields the selector out of the raw text and isSvgSubject() answers from that.
  *
+ * A CONDITIONAL GROUP IS DESCENDED INTO rather than read flat, because the
+ * argument above holds at every depth and the code used to make it only at brace
+ * depth 0. `@media` is a wrapper: the declarations under it belong to the rules
+ * further in, and each of those has a selector of its own to be scoped by. Read
+ * flat, the block's selector was the at-rule, no selector starting with `@` is
+ * an icon, and so every declaration inside was asked about — which refused
+ * `width: env(safe-area-inset-left)` on a drawer in a media query while allowing
+ * the same declaration one brace out. An icon inside the group is still refused,
+ * and has to be: the declaration is gone from the CSSOM, so rulesOf() reads that
+ * rule as sizing nothing and this is the only thing that sees it.
+ *
  * Three shapes are asked anyway, because scoping them is what would make them
- * silent: a block whose selector is an at-rule or which holds a rule of its own,
- * where the declaration belongs to a rule further in and this block's selector
- * is not it; a block with no selector to read; and a selector computed at render
- * time, where "not an icon" is a guess rather than an answer. Each is reported
- * with the ground it sits on named, which is coarser than a rule and still sends
- * the reader to the right place.
+ * silent: an at-rule holding declarations rather than rules, where there is
+ * nothing further in to descend to and the prelude is not a selector; a rule
+ * with a rule nested inside it, where the inner selector is relative to the
+ * outer one and says nothing on its own; and a selector computed at render time,
+ * where "not an icon" is a guess rather than an answer. Each is reported with
+ * the ground it sits on named, which is coarser than a rule and still sends the
+ * reader to the right place.
  *
  * A logical declaration is asked under its PHYSICAL name, which is not the name
  * the file spells. cssstyle waves `inline-size` through whatever the value, so
@@ -1063,22 +1107,27 @@ function survivesParsing(prop, value) {
  * the reader looking for two problems. */
 export function droppedDecls(from, css, classes) {
   const out = [];
-  for (const [raw, body, holdsBlock] of topLevelBlocks(stripComments(css))) {
-    const selector = raw.replace(/\s+/g, ' ');
-    const scopable = !!selector && !selector.startsWith('@') && !holdsBlock
-      && !selector.includes(UNRESOLVED);
-    if (scopable && !isSvgSubject(selector, classes)) continue;
-    const text = blankStrings(body);
-    for (const props of [SIZING_PROPS, CLAMP_PROPS]) {
-      for (const [, prop, value] of text.matchAll(declRe(props))) {
-        const decl = value.trim();
-        if (decl.includes(UNRESOLVED)) continue;
-        if (!survivesParsing(LOGICAL_DIMS.get(prop) ?? prop, decl)) {
-          out.push(`${from}: ${selector} { ${prop}: ${decl} }`);
+  const scan = (text) => {
+    for (const [raw, body, holdsBlock] of topLevelBlocks(text)) {
+      const selector = raw.replace(/\s+/g, ' ');
+      const group = selector.startsWith('@');
+      // A conditional group, whose rules carry the selectors this scopes by.
+      if (group && holdsBlock) { scan(body); continue; }
+      const scopable = !!selector && !group && !holdsBlock && !selector.includes(UNRESOLVED);
+      if (scopable && !isSvgSubject(selector, classes)) continue;
+      const decls = blankStrings(body);
+      for (const props of [SIZING_PROPS, CLAMP_PROPS]) {
+        for (const [, prop, value] of decls.matchAll(declRe(props))) {
+          const decl = value.trim();
+          if (decl.includes(UNRESOLVED)) continue;
+          if (!survivesParsing(LOGICAL_DIMS.get(prop) ?? prop, decl)) {
+            out.push(`${from}: ${selector} { ${prop}: ${decl} }`);
+          }
         }
       }
     }
-  }
+  };
+  scan(stripComments(css));
   return out;
 }
 
@@ -1087,9 +1136,9 @@ export const DROPPED_REFUSAL = 'a rule that decides an icon sizes it with a valu
   + 'it sized nothing. Nothing else notices: it contributes no subject, so the count that would '
   + 'catch a rule leaving coverage sits exactly where it was. The rule still applies in a browser, '
   + 'measured by nobody. Write the size in a form jsdom parses, or teach the gate to measure it '
-  + 'somewhere layout exists. Where the name above is an at-rule or a computed selector rather '
-  + 'than a rule, this could not tell an icon from anything else and asked regardless — see '
-  + 'droppedDecls().';
+  + 'somewhere layout exists. Where the name above is not a rule this could scope — an at-rule '
+  + 'holding declarations, a rule with a rule nested inside it, a selector computed at render '
+  + 'time — it could not tell an icon from anything else and asked regardless; see droppedDecls().';
 
 export const BLIND_REFUSAL = 'a surface writes a sizing rule whose selector or value is computed '
   + 'at render time. The gate substituted a placeholder for it, so it cannot tell whether it sizes '
@@ -1145,17 +1194,31 @@ function parseCompound(part) {
   return out;
 }
 
-const refuse = (part, sel) => {
+/* `isLeaf` is what tells the two `:is()` shapes apart, and they are different
+ * problems. On the leaf the pseudo names the ICON — `.a :where(svg)` — and the
+ * refusal is the two halves of this file disagreeing on purpose. In front of it
+ * the pseudo names an ANCESTOR — `:is(.ui-btn, .ui-chip) svg` — where the icon
+ * is the plain `svg` at the end, compoundIsSvg() had nothing to do with it, and
+ * a reader sent there to read about an icon named inside `:is()` finds no such
+ * thing in their selector. The second is the commoner shape by far. */
+const refuse = (part, sel, isLeaf) => {
   const pseudo = part.match(/::?[-\w]+/)?.[0] ?? '';
   let why = 'This builds a chain of compounds out of tag names, classes, ids and attributes, and '
     + 'nothing else, so it cannot make an element this one would match. Write the rule in a shape '
     + 'it can mount, or teach it this shape.';
-  if (/:(?:is|where|matches)\(/.test(part)) {
+  if (/:(?:is|where|matches)\(/.test(part) && isLeaf) {
     why = 'The two halves of this machinery are meant to disagree here: compoundIsSvg() reads an '
       + 'icon named inside :is() or :where() as the icon rule it is, and this builder stops short '
       + 'of it, so you get a refusal rather than a rule that leaves coverage in silence. Building '
       + 'it would mean choosing one alternative out of the argument list, which the argument\'s own '
       + 'complex selectors make more than a pseudo taken off.';
+  } else if (/:(?:is|where|matches)\(/.test(part)) {
+    why = 'This one names an ancestor of the icon, not the icon — the icon is the compound at the '
+      + 'end, and it is recognised. What stops here is the ancestor: this gives each compound one '
+      + 'element, and an :is() offers a list of things that element could be, so building it means '
+      + 'choosing an alternative out of the argument list, which the argument\'s own complex '
+      + 'selectors and attribute selectors make more than a pseudo taken off. Name the ancestor '
+      + 'with a plain selector, or write one rule per alternative.';
   } else if (pseudo.startsWith('::') || STATE_PSEUDO.test(pseudo)) {
     why = 'A state or a pseudo-element is not a shape teaching reaches: jsdom has no pointer to '
       + 'hover with and no box for a pseudo-element, so an icon sized in one is unmeasurable here '
@@ -1181,9 +1244,9 @@ const refuse = (part, sel) => {
  * compound is set on <html> rather than created, and every gate here shares one
  * document across every subject in the file. */
 export function mount(document, sel, classes) {
-  const parts = compoundsOf(sel).map(([comb, part]) => {
+  const parts = compoundsOf(sel).map(([comb, part], i, all) => {
     const spec = parseCompound(part);
-    if (!spec) throw refuse(part, sel);
+    if (!spec) throw refuse(part, sel, i === all.length - 1);
     return [comb, spec, part];
   });
   /* `:root` is the document element, so the only chains it can head are the ones
