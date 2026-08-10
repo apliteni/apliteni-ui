@@ -192,10 +192,13 @@ One step still needs a person. The publish job runs in the `npm-publish`
 environment, which asks one of four reviewers to approve it and will not let you
 approve your own, so expect to be waiting for somebody else. `tag-on-bump.yml`
 watches the publish for ten minutes and then stops watching. A run that finishes
-inside that window is reported as it finished, red if the publish failed. A run
-still waiting on a reviewer when the ten minutes are up leaves the job green,
-with a warning naming the run and what it is waiting for. Somebody who has not
-clicked yet is not a broken pipeline.
+inside that window is reported as it finished, red if the publish failed. It also
+goes red on a publish that succeeded but that npm has not served two and a half
+minutes later, and the message says to look at npm first: a version is published
+before every edge can read it, so slow propagation is much the likeliest reading.
+A run still waiting on a reviewer when the ten minutes are up leaves the job
+green, with a warning naming the run and what it is waiting for. Somebody who has
+not clicked yet is not a broken pipeline.
 
 So that green does not mean the version shipped. It means the release was
 started: the tag, the Release and the dispatch are all done, and npm has nothing

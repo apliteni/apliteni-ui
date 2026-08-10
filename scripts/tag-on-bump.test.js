@@ -64,13 +64,24 @@
 //
 // The plan step asks the registry three times, five seconds and then ten
 // seconds apart — "Asked up to three times". Those three are what the job's
-// arithmetic buys 195s for: registry-status.mjs gives npm a 60_000ms timeout,
-// so three that hang is 180s, and the two sleeps make 195. The prose used to
-// say two minutes and the constant in the ceiling test used to be 120, which is
-// three asks with one of them free. `a registry that stays unreachable still
-// stops the job` counts the calls and reads the waits back off the sleep stub.
-// Proved by `1 2 3` → `1 2 3 4`, by `1 2 3` → `1 2`, and by `attempt * 5` →
-// `attempt * 7`.
+// arithmetic pays for: registry-status.mjs gives npm a timeout of its own, so
+// three that hang is three of those, and the two sleeps go on top. The prose
+// used to say two minutes and the constant in the ceiling test used to be 120,
+// which is three asks with one of them free. `a registry that stays unreachable
+// still stops the job` counts the calls and reads the waits back off the sleep
+// stub. Proved by `1 2 3` → `1 2 3 4`, by `1 2 3` → `1 2`, and by `attempt * 5`
+// → `attempt * 7`.
+//
+// The timeout those three are multiplied by lives in registry-status.mjs, and
+// it was the last number in that sum nothing held. It is not written down here
+// any more: `the timeout registry-status.mjs gives npm is read out of it, not
+// written down again here` reads it back out of that file and throws rather
+// than matching nothing if the shape changes, and the ceiling test computes
+// both CALL_IN_FLIGHT and PLAN_STEP_RETRIES from what it returns instead of
+// carrying 60 and 195 as literals. Proved by `timeout: 60_000` → `120_000`,
+// which used to leave every test in the repo green while making the job-level
+// comment's arithmetic three minutes short, and now fails the ceiling test at
+// 23.0 min against its 20.0 min bar.
 //
 // §5b waits two minutes for a dispatched run to appear, polling every five
 // seconds, and reads three failed lookups in a row as the lookup being broken
@@ -181,6 +192,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const workflowPath = path.join(root, '.github/workflows/tag-on-bump.yml');
 const workflow = readFileSync(workflowPath, 'utf8');
+const registryStatusPath = path.join(root, 'scripts/registry-status.mjs');
+const registryStatusSource = readFileSync(registryStatusPath, 'utf8');
 
 // ---------------------------------------------------------------------------
 // Reading the job out of the YAML
@@ -261,6 +274,43 @@ function jobNumber(key) {
   const found = workflow.match(new RegExp(`^ {4}${key}:\\s*(\\d+)\\s*$`, 'm'));
   assert.ok(found, `tag-on-bump.yml has no \`    ${key}:\` line — has the job changed shape?`);
   return Number(found[1]);
+}
+
+/**
+ * The timeout registry-status.mjs gives npm, in seconds.
+ *
+ * Read rather than written down, because the ceiling arithmetic below is built
+ * out of it four times over and the workflow's job-level comment describes it
+ * in prose. A literal here would be one more copy to leave behind, and the
+ * whole point of that test is that a number nothing holds drifts silently.
+ *
+ * Throws on anything it does not recognise, the way parseSteps throws when the
+ * YAML changes shape. A regex allowed to match nothing is worse than the
+ * literal it replaced: it would feed a zero into the sum and keep every
+ * assertion green while the thing being checked had gone.
+ */
+function npmTimeoutSeconds(source) {
+  const found = [...source.matchAll(/\btimeout:\s*([\d_]+)/g)];
+  if (found.length === 0) {
+    throw new Error(
+      'scripts/registry-status.mjs has no `timeout:` on the npm call any more. The ceiling arithmetic in this file ' +
+        'is spending that number; it cannot spend one that is not there.',
+    );
+  }
+  if (found.length > 1) {
+    throw new Error(
+      `scripts/registry-status.mjs has ${found.length} \`timeout:\` settings in it, and this file cannot know which ` +
+        'one the npm call gets. Teach it which, do not let it guess.',
+    );
+  }
+  const ms = Number(found[0][1].replaceAll('_', ''));
+  if (!Number.isInteger(ms) || ms <= 0 || ms % 1000 !== 0) {
+    throw new Error(
+      `scripts/registry-status.mjs gives npm ${found[0][1]}ms, which is not a whole number of seconds. Every sum ` +
+        'below is in seconds and the workflow comment describes them in seconds.',
+    );
+  }
+  return ms / 1000;
 }
 
 // ---------------------------------------------------------------------------
@@ -1412,6 +1462,46 @@ test('a run that is still building is reported as still building, not as an appr
   assert.doesNotMatch(result.log, /approve/i);
 });
 
+test('the timeout registry-status.mjs gives npm is read out of it, not written down again here', () => {
+  // The ceiling test below spends this number four times over — once for the
+  // call in flight when a deadline expires, three times for the plan step's
+  // retries — and a copy of it here would be a fourth place to forget. That is
+  // the failure this file exists to catch, not to commit: 60_000 → 120_000 in
+  // registry-status.mjs would leave every assertion green while the job-level
+  // comment's arithmetic ran three minutes short.
+  //
+  // So it is read, and the read throws rather than quietly matching nothing —
+  // the bargain parseSteps makes with the YAML. A regex that comes back empty
+  // would put a zero into the sum and pass everything, which is worse than the
+  // literal it replaced.
+  const seconds = npmTimeoutSeconds(registryStatusSource);
+  assert.ok(
+    Number.isInteger(seconds) && seconds > 0,
+    `read ${seconds} out of registry-status.mjs, which is not a count of seconds`,
+  );
+  assert.ok(
+    registryStatusSource.includes(`timeout: ${seconds}_000`),
+    'the seconds read back have to be the milliseconds actually written down',
+  );
+
+  // Each of the three ways the read could go quiet instead of loud.
+  assert.throws(
+    () => npmTimeoutSeconds("execFileAsync('npm', args, { encoding: 'utf8' })"),
+    /no `timeout:`/,
+    'a timeout that has been deleted is an error here, not a zero in the sum',
+  );
+  assert.throws(
+    () => npmTimeoutSeconds('{ timeout: 60_000 } … { timeout: 30_000 }'),
+    /cannot know which one/,
+    'two of them and this file cannot tell which one npm is given',
+  );
+  assert.throws(
+    () => npmTimeoutSeconds('{ timeout: 1_500 }'),
+    /whole number of seconds/,
+    'the sums below are in seconds, so a timeout that is not whole seconds has to stop them',
+  );
+});
+
 test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // `timeout-minutes` has to be the backstop for a `gh` or an `npm` that hangs,
   // not the thing that stops an ordinary run: a job the runner kills prints
@@ -1442,18 +1532,30 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // quite both be spent on one run. A ceiling check wants the pessimistic sum.
   const sleeps = appear.waited + follow.waited + tail.waited;
 
-  // The two costs the comment names that no clock here can see. A deadline is
-  // checked between calls and not during one, so the call in flight when it
-  // expires runs on top — npm's own timeout being the longest of them. And the
-  // plan step's registry retries happen before this step is reached at all.
+  // The two costs the comment names that no clock here can see. Both are built
+  // out of the one timeout registry-status.mjs gives npm, read back out of that
+  // file rather than written down again here — so 60_000 → 120_000 there fails
+  // this test instead of quietly making the job's arithmetic three minutes
+  // short. Held by `the timeout registry-status.mjs gives npm is read out of
+  // it, not written down again here` above.
   //
-  // The plan step's figure is measured off the code rather than off the prose
-  // that used to claim two minutes for it: three asks of registry-status.mjs,
-  // which gives npm a 60_000ms timeout of its own, with a five- and then a
-  // ten-second sleep between them. Three npms that hang is 180s, and the sleeps
-  // make 195.
-  const CALL_IN_FLIGHT = 60;
-  const PLAN_STEP_RETRIES = 195;
+  // The first cost is the call in flight when a deadline expires, because a
+  // deadline is checked between calls and not during one. It is one allowance
+  // rather than one per deadline, and it is the npm ask specifically: that is
+  // the only call in the job carrying a timeout of its own, so it is the only
+  // overrun with a number on it. A `gh` read that hangs has no timeout and so
+  // no figure here; what it would add comes out of the headroom the first
+  // assertion below keeps free.
+  //
+  // The second is the plan step's asks of the registry, which are spent before
+  // this step is reached at all: three of them, each able to sit out that same
+  // npm timeout, with a five- and then a ten-second sleep between them. The
+  // three and the two sleeps are not guesses either — `a registry that stays
+  // unreachable still stops the job` counts the calls and reads the waits off
+  // the sleep stub.
+  const npmTimeout = npmTimeoutSeconds(registryStatusSource);
+  const CALL_IN_FLIGHT = npmTimeout;
+  const PLAN_STEP_RETRIES = 3 * npmTimeout + 5 + 10;
   const pathological = sleeps + CALL_IN_FLIGHT + PLAN_STEP_RETRIES;
 
   const ceiling = jobNumber('timeout-minutes') * 60;

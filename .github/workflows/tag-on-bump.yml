@@ -172,13 +172,16 @@ jobs:
     # waiting for the run to appear, 600s following it, 10s absorbing failed
     # reads of its conclusion, 150s asking npm afterwards. Each deadline is
     # checked between calls rather than during one, so the call in flight when a
-    # deadline expires runs on top: at most another minute, npm's own timeout
-    # being the longest of them. The plan step's registry retries can spend
-    # 195s before any of that — three asks, each able to sit out the 60s
-    # timeout registry-status.mjs gives npm, with a five- and a ten-second
-    # sleep between them. Nineteen minutes, then, plus a checkout, a setup-node
-    # and the seventy-odd API round trips the polling makes — so a pathological
-    # run lands around twenty. Most pushes release nothing and end in the plan
+    # deadline expires runs on top. That is a single allowance and not one per
+    # deadline, and it is the npm ask it is about: registry-status.mjs gives npm
+    # a timeout of its own and the `gh` reads carry none, so npm's overrun is
+    # the only one with a figure on it and a `gh` call that hangs is absorbed by
+    # the headroom instead. The plan step's registry retries are spent before
+    # any of that — three asks, each able to sit out that same npm timeout, with
+    # a five- and a ten-second sleep between them. Nineteen minutes all told on
+    # the timeout npm is given today, plus a checkout, a setup-node and the
+    # seventy-odd API round trips the polling makes — so a pathological run
+    # lands around twenty. Most pushes release nothing and end in the plan
     # step in seconds; a release ends when the publish does, and a release
     # nobody approves spends the ten-minute watch and goes green. What is left
     # is the headroom, and it has to stay: a job the runner kills prints none
@@ -190,12 +193,13 @@ jobs:
     # the job's own ceiling` in scripts/tag-on-bump.test.js runs the publish step
     # on a virtual clock, measures each wait at its worst, adds the two costs no
     # clock can see — the call in flight when a deadline expires, and the plan
-    # step's registry retries — then reads `timeout-minutes` out of this file and
-    # holds one against the other. The total has to fit inside two thirds of the
-    # ceiling and to be at least half of it, so a deadline that grows fails and
-    # so does a ceiling that shrinks. The same test counts the round trips, which
-    # is the other half of the arithmetic: a poll interval can be halved without
-    # moving a single clock.
+    # step's registry retries, both computed from the timeout it reads back out
+    # of scripts/registry-status.mjs rather than off this comment — then reads
+    # `timeout-minutes` out of this file and holds one against the other. The
+    # total has to fit inside two thirds of the ceiling and to be at least half
+    # of it, so a deadline that grows fails and so does a ceiling that shrinks.
+    # The same test counts the round trips, which is the other half of the
+    # arithmetic: a poll interval can be halved without moving a single clock.
     #
     # Every deadline, poll interval and retry count in this file is separately
     # pinned by a test of its own. The list of them, with the mutation each one
