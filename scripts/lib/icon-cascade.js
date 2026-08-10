@@ -2,7 +2,8 @@
  *
  *   src/styles/icon-size.test.js       — the rules inside the package's own stylesheets
  *   scripts/icon-size-surfaces.test.js — the rules on the surfaces the kit renders
- *                                        (the landing site, the Storybook stories)
+ *                                        (the landing site, the Storybook stories
+ *                                        and the chrome under .storybook/)
  *   scripts/icon-size-react.test.js    — the rules in the React workspace's own
  *                                        stylesheets under react/src
  *
@@ -795,6 +796,51 @@ export function styleBlocksOf(source) {
  * hides that declaration from every one of them. Strings are blanked after
  * them, for the reason in blankStrings(): a surface interpolates into a data URI
  * as readily as into a size, and what comes out is an image. */
+/* Whether an unresolved interpolation stands where a RULE or a DECLARATION would
+ * be — `<style>${SHELL_CSS}</style>`, a `${SHARED}` after the last rule in a
+ * block, `.a { ${DECLS} }`. Each of those can hold a rule that sizes an icon, and
+ * each is invisible to the three scans in blindSpots(): the value and property
+ * scans both need a `:` beside the marker, and the selector scan needs a `{`
+ * after it.
+ *
+ * Asked by POSITION, because the question the guard used to ask — is the marker
+ * here and did the sheet parse to no rules — is answered "no" by any one
+ * parseable rule written beside the shell. That is the shared-shell refactor
+ * itself: one ordinary rule next to `${SHELL_CSS}` and the block reads as fully
+ * measured.
+ *
+ * A marker inside a declaration's VALUE is left alone, whatever the property. A
+ * surface interpolates a colour or an image far more often than a size, and
+ * refusing `background: ${theme.bg}` is a red on correct code. The sizing and
+ * clamp properties are the ones that matter there, and blindSpots() scans them
+ * by name.
+ *
+ * The text arrives with comments out and strings blanked, so every brace left in
+ * it is a brace a CSS parser sees. */
+function standsWhereCssWouldBe(text) {
+  for (let i = text.indexOf(UNRESOLVED); i !== -1; i = text.indexOf(UNRESOLVED, i + 1)) {
+    const before = text.slice(0, i);
+    const after = text.slice(i + UNRESOLVED.length);
+    const depth = (before.match(/\{/g) ?? []).length - (before.match(/\}/g) ?? []).length;
+    if (depth <= 0) {
+      /* Top level, where a whole rule would sit. A marker in a rule's PRELUDE is
+       * the selector scan's to report, and the next brace is what says which
+       * this is: a `{` puts the marker in front of a block, so it is part of that
+       * selector. */
+      const brace = after.search(/[{}]/);
+      if (brace === -1 || after[brace] === '}') return true;
+      continue;
+    }
+    // Inside a block, where a declaration would sit. A `:` anywhere in the
+    // fragment around it makes the marker a property name or a value, and both
+    // are already scanned.
+    const from = Math.max(before.lastIndexOf('{'), before.lastIndexOf('}'), before.lastIndexOf(';'));
+    const to = after.search(/[;{}]/);
+    if (!(before.slice(from + 1) + (to === -1 ? after : after.slice(0, to))).includes(':')) return true;
+  }
+  return false;
+}
+
 export function blindSpots(from, css, sheet) {
   const blind = [];
   const clampedBlind = [];
@@ -808,15 +854,29 @@ export function blindSpots(from, css, sheet) {
       blind.push(`${from}: ${rule.selectorText} { ${dims.join(', ')} }`);
     }
   }
-  /* A block whose WHOLE body was one interpolation nothing could resolve.
-   * `<style>${SHELL_CSS}</style>` becomes the bare identifier UNRESOLVED — no
-   * braces, no declarations — so the loop above sees no rules, and both text
-   * guards below need a `{` or a literal width/height to fire. Nothing was
-   * dropped from a count either, because the count never rose. The block reads
-   * as a surface with no CSS in it, and the gate would swear it had measured
-   * the page. */
-  if (text.includes(UNRESOLVED) && sheet.cssRules.length === 0) {
-    blind.push(`${from}: a <style> block whose entire body is an unresolved interpolation`);
+  /* An interpolation nothing could resolve, standing where CSS would be —
+   * `<style>${SHELL_CSS}</style>`, a `${SHARED}` after the last rule, a
+   * `.a { ${DECLS} }`. Nothing was dropped from a count either, because the count
+   * never rose: the block reads as a surface with no CSS in it, and the gate
+   * would swear it had measured the page. The argument for asking by position
+   * rather than by rule count is in standsWhereCssWouldBe(). */
+  if (standsWhereCssWouldBe(text)) {
+    blind.push(`${from}: an unresolved interpolation where a rule or a declaration would be`);
+  }
+  /* And a block that parsed to nothing at all. `'<style>' + CSS + '</style>'` in
+   * a source hands this a fragment of JavaScript between the tags: no rules to
+   * read, no marker to find, and every guard here quiet while the CSS it
+   * concatenates ships and applies.
+   *
+   * An EMPTY block is not that. `<style></style>`, and one holding nothing but a
+   * comment, parse to no rules because there are none, and a gate that reds on
+   * correct code gets switched off. Comments are already out of `text` and
+   * strings are blanked, so what is left is what the parser was handed. A marker
+   * in there is the guard above's to report, since it can say what is actually
+   * wrong with it — one block drawing two refusals sends the reader looking for
+   * two problems. */
+  if (sheet.cssRules.length === 0 && text.trim() && !text.includes(UNRESOLVED)) {
+    blind.push(`${from}: a <style> block this gate parsed to no rules at all`);
   }
   for (const m of text.matchAll(declRe(SIZING_PROPS))) {
     if (m[2].includes(UNRESOLVED)) blind.push(`${from}: ${m[1]}: ${m[2].trim()}`);
@@ -945,40 +1005,138 @@ export const CLAMPED_BLIND_REFUSAL = 'a surface clamps a size with a value compu
   + '— and if it does, that test refuses it, because no gate measures anything about a clamp. The '
   + 'argument is in CLAMP_REFUSAL.';
 
+/* One attribute selector at the head of what is left of a compound. The
+ * operators are all satisfied by setting the attribute to the value written —
+ * `~=` on a single token, `^=`/`$=`/`*=` on the whole string — so they take one
+ * code path. A case-insensitivity flag (`[a="v" i]`) does not match, which is the
+ * safe direction: it is refused rather than built wrong. */
+const ATTR = /^\[\s*(-?[_a-zA-Z][\w-]*)\s*(?:[~|^$*]?=\s*("[^"]*"|'[^']*'|[^\s\]]*)\s*)?\]/;
+
+/* Pseudo-classes naming a STATE of the element. jsdom has no pointer, no focus
+ * and no navigation, so none of them can be mounted at all — a limit of the
+ * environment rather than a gap in this builder. Pseudo-elements go with them:
+ * jsdom gives them no box. */
+const STATE_PSEUDO = /^:(?:hover|active|focus|focus-visible|focus-within|target|link|visited|checked|disabled|enabled|indeterminate|default|placeholder-shown|autofill|user-invalid|user-valid)$/;
+
+/* Pseudo-classes naming the element's POSITION among its siblings. This builder
+ * gives each compound one element and no siblings, so it cannot place a subject
+ * at a position — buildable in principle by padding the parent, and not built,
+ * because nothing in the repo sizes an icon that way. */
+const POSITION_PSEUDO = /^:(?:first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|nth-child|nth-last-child|nth-of-type|nth-last-of-type|empty|scope)$/;
+
+/* One compound as the element it describes: a tag name, the classes and ids and
+ * attributes on it, and whether it is the document element. Anything this cannot
+ * account for gives null, and mount() turns that into a refusal shaped to what it
+ * found. `:root` is stripped from the front because that is where every rule in
+ * this repo writes it. */
+function parseCompound(part) {
+  const out = { tag: '', classes: [], attrs: [], root: false };
+  let rest = part;
+  if (rest.startsWith(':root')) { out.root = true; rest = rest.slice(5); }
+  const tag = rest.match(/^-?[_a-zA-Z][\w-]*/);
+  if (tag) { out.tag = tag[0]; rest = rest.slice(tag[0].length); }
+  while (rest) {
+    const cls = rest.match(/^\.(-?[_a-zA-Z][\w-]*)/);
+    const id = rest.match(/^#(-?[_a-zA-Z][\w-]*)/);
+    const attr = rest.match(ATTR);
+    if (cls) out.classes.push(cls[1]);
+    else if (id) out.attrs.push(['id', id[1]]);
+    else if (attr) out.attrs.push([attr[1], (attr[2] ?? '').replace(/^(["'])([\s\S]*)\1$/, '$2')]);
+    else return null;
+    rest = rest.slice((cls ?? id ?? attr)[0].length);
+  }
+  return out;
+}
+
+const refuse = (part, sel) => {
+  const pseudo = part.match(/::?[-\w]+/)?.[0] ?? '';
+  let why = 'This builds a chain of compounds out of tag names, classes, ids and attributes, and '
+    + 'nothing else, so it cannot make an element this one would match. Write the rule in a shape '
+    + 'it can mount, or teach it this shape.';
+  if (/:(?:is|where|matches)\(/.test(part)) {
+    why = 'The two halves of this machinery are meant to disagree here: compoundIsSvg() reads an '
+      + 'icon named inside :is() or :where() as the icon rule it is, and this builder stops short '
+      + 'of it, so you get a refusal rather than a rule that leaves coverage in silence. Building '
+      + 'it would mean choosing one alternative out of the argument list, which the argument\'s own '
+      + 'complex selectors make more than a pseudo taken off.';
+  } else if (pseudo.startsWith('::') || STATE_PSEUDO.test(pseudo)) {
+    why = 'A state or a pseudo-element is not a shape teaching reaches: jsdom has no pointer to '
+      + 'hover with and no box for a pseudo-element, so an icon sized in one is unmeasurable here '
+      + 'rather than merely unmounted. Measure it somewhere layout and input exist, or size the '
+      + 'icon in a rule that is not state-scoped.';
+  } else if (POSITION_PSEUDO.test(pseudo)) {
+    why = 'This gives each compound one element and no siblings, so it cannot put the subject at a '
+      + 'position. That is buildable — pad the parent until the position is right — and not built, '
+      + 'because nothing here sizes an icon that way. Teach it, or select the icon by a class.';
+  }
+  return new Error(`unsupported selector part: ${part} (in ${sel}). ${why}`);
+};
+
 /* The smallest DOM satisfying a descendant selector such as
- * `.ui-nav--side.is-collapsed .ui-nav__ic svg`. Every icon selector the kit
- * renders is a chain of compound class/element parts. Anything else throws — and
- * the mounted element is checked against the selector afterwards, which is the
- * catch-all for shapes this builder gets subtly wrong. */
+ * `.ui-nav--side.is-collapsed .ui-nav__ic svg`, or
+ * `:root[data-theme="light"] .ui-nav__ic svg`. Anything a compound can carry that
+ * this cannot set on an element throws — and the mounted element is checked
+ * against the selector afterwards, which is the catch-all for shapes this builder
+ * gets subtly wrong.
+ *
+ * The whole selector is parsed before anything is built, so a refusal leaves the
+ * document exactly as it found it. That matters more than it used to: a `:root`
+ * compound is set on <html> rather than created, and every gate here shares one
+ * document across every subject in the file. */
 export function mount(document, sel, classes) {
+  const parts = compoundsOf(sel).map(([comb, part]) => {
+    const spec = parseCompound(part);
+    if (!spec) throw refuse(part, sel);
+    return [comb, spec, part];
+  });
+  const rootAt = parts.findIndex(([, spec]) => spec.root);
+  if (rootAt > 0 || (rootAt === 0 && parts.length > 1 && parts[1][0] !== ' ')) {
+    throw refuse(parts[Math.max(rootAt, 0)][2], sel);
+  }
   /* Everything goes inside one container, which is also what the caller
    * removes. A sibling combinator at the top of the chain builds two elements
    * rather than nesting one inside the other, so "the last child of body" stops
    * being the whole of what was mounted. */
   const top = document.body.appendChild(document.createElement('div'));
-  let el = null;
-  for (const [comb, part] of compoundsOf(sel)) {
-    if (/[[:*&\\]/.test(part)) {
-      throw new Error(`unsupported selector part: ${part} (in ${sel}). This builds a chain of `
-        + 'compound class/element parts and nothing else, so it cannot make an element this one '
-        + 'would match. Write the rule in a shape it can mount, or teach it this shape — except '
-        + 'for a state or a pseudo-element (`svg:hover`, `svg::before`), which no amount of '
-        + 'teaching reaches: jsdom has no pointer to hover with and no box for a pseudo-element, '
-        + 'so an icon sized in one is unmeasurable here rather than merely unmounted. If the part '
-        + 'names an icon inside :is() or :where(), the two halves of this machinery are meant to '
-        + 'disagree: compoundIsSvg() reads it as the icon rule it is, and this builder stops short '
-        + 'of it, so you get a refusal rather than a rule that leaves coverage in silence.');
+  const html = document.documentElement;
+  const was = new Map();
+  const keep = (name) => { if (!was.has(name)) was.set(name, html.getAttribute(name)); };
+  /* Putting <html> back is the container's own job, because every gate cleans up
+   * with `top.remove()` in a finally and shares one document across every
+   * subject. A theme left behind would be the theme every later subject is
+   * measured in — green, and measuring the wrong contest. */
+  const drop = top.remove.bind(top);
+  top.remove = () => {
+    for (const [name, value] of was) {
+      if (value === null) html.removeAttribute(name);
+      else html.setAttribute(name, value);
     }
-    const bare = part.replace(/\..*$/, '');
-    const isSvg = bare === 'svg' || (!bare && part.split('.').slice(1).some((c) => classes.has(c)));
+    drop();
+  };
+  let el = null;
+  let placed = null;
+  for (const [comb, spec] of parts) {
+    if (spec.root) {
+      // `:root` matches the document element and nothing this could create, so
+      // it is set rather than built — and the chain hangs where it always does,
+      // which is inside <html> already.
+      if (spec.classes.length) keep('class');
+      for (const cls of spec.classes) html.classList.add(cls);
+      for (const [name, value] of spec.attrs) { keep(name); html.setAttribute(name, value); }
+      el = html;
+      continue;
+    }
+    const isSvg = spec.tag === 'svg' || (!spec.tag && spec.classes.some((c) => classes.has(c)));
     const node = isSvg
       ? document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-      : document.createElement(bare || 'div');
-    for (const cls of part.split('.').slice(1)) node.classList.add(cls);
+      : document.createElement(spec.tag || 'div');
+    for (const cls of spec.classes) node.classList.add(cls);
+    for (const [name, value] of spec.attrs) node.setAttribute(name, value);
     // A child combinator builds the same nesting a descendant one does; the two
     // sibling combinators put the element beside its predecessor instead, which
     // `+` and `~` both match when it is the one that comes next.
-    (el === null ? top : '+~'.includes(comb) ? el.parentNode : el).appendChild(node);
+    (placed === null ? top : '+~'.includes(comb) ? placed.parentNode : placed).appendChild(node);
+    placed = node;
     el = node;
   }
   return { el, top };
