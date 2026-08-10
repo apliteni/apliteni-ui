@@ -68,6 +68,30 @@ export const declRe = (props) => new RegExp(
  * declaration hides that declaration from them entirely. */
 export const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
 
+/* The same text with the CONTENTS of every string replaced by spaces — the
+ * quotes left where they are, and every offset unmoved. A string is content and
+ * not CSS: the data URI in src/styles/input.css can hold
+ * `style='height:12px;width:12px'` and a `content` can hold `{ width: 5px`, and
+ * read as declarations both make a gate refuse a file a browser is perfectly
+ * happy with. A gate that reds on correct code gets switched off.
+ *
+ * Every scan below that reads raw CSS goes through it first, bar one:
+ * kitSheetNames() matches on the quoted sheet name itself, which blanking
+ * erases, and the file it reads is nothing but @import lines. A scan that needs
+ * the text of a string as well as its position — importsIn() — matches here and
+ * reads there, which the preserved offsets are what allow.
+ *
+ * It walks with the same scanner the selector splits use, so one place knows
+ * where a string starts and ends rather than one per caller. Comments come out
+ * first everywhere this is called, which leaves one shape unhandled: a comment
+ * opener written INSIDE a string, which stripComments() cuts from, taking real
+ * CSS with it. That was true before this and is true after it. */
+export const blankStrings = (css) => {
+  let out = '';
+  scanTop(css, (ch, _top, _i, inString) => { out += inString ? ' ' : ch; });
+  return out;
+};
+
 /* Build output and vendored code, skipped by directory name. Two of these exist
  * on a dev machine and never in CI, which is the dangerous shape: site/public/
  * is gitignored, and site/build.mjs folds the entire built Storybook into
@@ -165,15 +189,15 @@ function scanTop(sel, at) {
     if (quote) {
       // A backslash escapes the next character, `\"` included, so the string
       // does not end early. Both characters are handed on as ordinary content.
-      if (ch === '\\' && i + 1 < sel.length) { at(ch, false, i); i += 1; at(sel[i], false, i); continue; }
-      if (ch === quote) quote = '';
-      at(ch, false, i);
+      if (ch === '\\' && i + 1 < sel.length) { at(ch, false, i, true); i += 1; at(sel[i], false, i, true); continue; }
+      if (ch === quote) { quote = ''; at(ch, false, i, false); continue; }
+      at(ch, false, i, true);
       continue;
     }
-    if (ch === '"' || ch === "'") { quote = ch; at(ch, false, i); continue; }
+    if (ch === '"' || ch === "'") { quote = ch; at(ch, false, i, false); continue; }
     if (ch === '(' || ch === '[') depth += 1;
     else if (ch === ')' || ch === ']') depth -= 1;
-    at(ch, depth === 0 && !'()[]'.includes(ch), i);
+    at(ch, depth === 0 && !'()[]'.includes(ch), i, false);
   }
 }
 
@@ -473,7 +497,10 @@ function refuseRepeatedAxis(css, name) {
     if (selector.startsWith('@') || holdsBlock) continue;
     const decls = new Map();
     let n = 0;
-    for (const d of body.matchAll(declRe(SIZING_PROPS))) {
+    // Strings blanked, so a `content` holding `;width: 12px` cannot put a
+    // phantom declaration on the far side of the twin and read as a straddle.
+    // The selector stays as written, since it is what the refusal names.
+    for (const d of blankStrings(body).matchAll(declRe(SIZING_PROPS))) {
       const list = decls.get(d[1]) ?? [];
       list.push({ at: n, important: /!\s*important/i.test(d[2]) });
       decls.set(d[1], list);
@@ -517,7 +544,7 @@ export function foldLogicalDims(sheet, name) {
    * honours the prefixed spelling turns the axes exactly as the unprefixed one
    * does, which is what the fold cannot survive. */
   const raw = rawTextOf(sheet, name);
-  const prefixed = raw
+  const prefixed = blankStrings(raw)
     .match(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/);
   if (prefixed && turnsTheAxes(prefixed[2])) {
     throw new Error(writingModeRefusal(name, `a rule declares ${prefixed[1]}: `
@@ -623,8 +650,16 @@ export function* rulesOf(sheet, name, classes) {
  * itself one of them. src/index.css is the deliberate exception — it is nothing
  * but @imports, and the kit gate's sheet list is derived FROM them, so it is the
  * one sheet whose imports are already followed. */
-export const importsIn = (css) => [...stripComments(css).matchAll(/@import\s+([^;]*)/g)]
-  .map((m) => m[1].trim());
+/* Matched against the text with strings blanked, so `content: "@import zz"` is
+ * not an import — but READ back out of the text as written, since the specifier
+ * of a real @import is itself a string and blanking it would report a sheet with
+ * no name. Blanking keeps every offset, which is what lets the two be different
+ * texts. */
+export const importsIn = (css) => {
+  const text = stripComments(css);
+  return [...blankStrings(text).matchAll(/@import\s+([^;]*)/dg)]
+    .map(({ indices }) => text.slice(...indices[1]).trim());
+};
 
 /* The extensions a stylesheet is written under. The list is what lets the React
  * gate tell `import './DataTable.pcss'` — a sheet its *.css sweep would miss, and
@@ -757,11 +792,13 @@ export function styleBlocksOf(source) {
  * the declaration is simply gone from the CSSOM. Comments come out first — a
  * commented-out `width: 20px` is not a declaration, and the patterns start at
  * `{` or `;`, so a comment sitting in front of the first declaration in a block
- * hides that declaration from every one of them. */
+ * hides that declaration from every one of them. Strings are blanked after
+ * them, for the reason in blankStrings(): a surface interpolates into a data URI
+ * as readily as into a size, and what comes out is an image. */
 export function blindSpots(from, css, sheet) {
   const blind = [];
   const clampedBlind = [];
-  const text = stripComments(css);
+  const text = blankStrings(stripComments(css));
   for (const rule of sheet.cssRules) {
     if (!rule.selectorText) continue;
     const dims = DIMS.filter((d) => rule.style.getPropertyValue(d));
@@ -830,13 +867,30 @@ function survivesParsing(prop, value) {
  * that sizes nothing. It contributes no subject; a count only moves when a
  * subject appears or disappears; so a rule added and dropped in the same breath
  * leaves the number exactly where it was, and the rule applies in a browser with
- * nothing watching it. Every gate asks this of everything it sweeps.
+ * nothing watching it. All three gates ask it.
  *
  * The question is asked of the raw text, because the CSSOM is precisely where
  * the answer is missing, and each declaration is re-parsed on its own rather
  * than being looked for by value. `fit-content(20%)` and `anchor-size(width)`
  * are what jsdom drops today and the set grows every time CSS does, so a list of
  * values here would be out of date by the release after this one.
+ *
+ * ASKED OF THE RULES THAT DECIDE AN ICON, not of every rule in the sheet. What
+ * jsdom drops has nothing to do with icons — `width: env(safe-area-inset-left)`
+ * on a drawer, `height: CALC(1px + 2px)` on a toast — and refusing those is a
+ * red on CSS somebody is going to write and be right to write. Over react/src,
+ * two small files, asking everything cost nothing; over src/styles it is a wide
+ * net across CSS with no icon anywhere near it. The dropped declaration is gone
+ * from the CSSOM, so there is no rule object to ask — but topLevelBlocks()
+ * yields the selector out of the raw text and isSvgSubject() answers from that.
+ *
+ * Three shapes are asked anyway, because scoping them is what would make them
+ * silent: a block whose selector is an at-rule or which holds a rule of its own,
+ * where the declaration belongs to a rule further in and this block's selector
+ * is not it; a block with no selector to read; and a selector computed at render
+ * time, where "not an icon" is a guess rather than an answer. Each is reported
+ * with the ground it sits on named, which is coarser than a rule and still sends
+ * the reader to the right place.
  *
  * A logical declaration is asked under its PHYSICAL name, which is not the name
  * the file spells. cssstyle waves `inline-size` through whatever the value, so
@@ -850,25 +904,35 @@ function survivesParsing(prop, value) {
  * too, but blindSpots() already reports it and can say what is actually wrong
  * with it, and one rule drawing two refusals under two different messages sends
  * the reader looking for two problems. */
-export function droppedDecls(from, css) {
+export function droppedDecls(from, css, classes) {
   const out = [];
-  const text = stripComments(css);
-  for (const props of [SIZING_PROPS, CLAMP_PROPS]) {
-    for (const [, prop, raw] of text.matchAll(declRe(props))) {
-      const value = raw.trim();
-      if (value.includes(UNRESOLVED)) continue;
-      if (!survivesParsing(LOGICAL_DIMS.get(prop) ?? prop, value)) out.push(`${from}: ${prop}: ${value}`);
+  for (const [raw, body, holdsBlock] of topLevelBlocks(stripComments(css))) {
+    const selector = raw.replace(/\s+/g, ' ');
+    const scopable = !!selector && !selector.startsWith('@') && !holdsBlock
+      && !selector.includes(UNRESOLVED);
+    if (scopable && !isSvgSubject(selector, classes)) continue;
+    const text = blankStrings(body);
+    for (const props of [SIZING_PROPS, CLAMP_PROPS]) {
+      for (const [, prop, value] of text.matchAll(declRe(props))) {
+        const decl = value.trim();
+        if (decl.includes(UNRESOLVED)) continue;
+        if (!survivesParsing(LOGICAL_DIMS.get(prop) ?? prop, decl)) {
+          out.push(`${from}: ${selector} { ${prop}: ${decl} }`);
+        }
+      }
     }
   }
   return out;
 }
 
-export const DROPPED_REFUSAL = 'a stylesheet sizes something with a value jsdom cannot parse, so '
-  + 'the declaration is gone from the CSSOM these gates measure and the rule reads as if it sized '
-  + 'nothing. Nothing else notices: it contributes no subject, so the count that would catch a rule '
-  + 'leaving coverage sits exactly where it was. If the rule lands on an icon it applies in a '
-  + 'browser and is measured by nobody. Write the size in a form jsdom parses, or teach the gate to '
-  + 'measure it somewhere layout exists.';
+export const DROPPED_REFUSAL = 'a rule that decides an icon sizes it with a value jsdom cannot '
+  + 'parse, so the declaration is gone from the CSSOM these gates measure and the rule reads as if '
+  + 'it sized nothing. Nothing else notices: it contributes no subject, so the count that would '
+  + 'catch a rule leaving coverage sits exactly where it was. The rule still applies in a browser, '
+  + 'measured by nobody. Write the size in a form jsdom parses, or teach the gate to measure it '
+  + 'somewhere layout exists. Where the name above is an at-rule or a computed selector rather '
+  + 'than a rule, this could not tell an icon from anything else and asked regardless — see '
+  + 'droppedDecls().';
 
 export const BLIND_REFUSAL = 'a surface writes a sizing rule whose selector or value is computed '
   + 'at render time. The gate substituted a placeholder for it, so it cannot tell whether it sizes '

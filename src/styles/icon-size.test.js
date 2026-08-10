@@ -221,14 +221,21 @@ test('no kit stylesheet imports a sheet this gate never opens', () => {
   assert.deepEqual(unfollowed, [], IMPORT_REFUSAL);
 });
 
-test('no sizing declaration in the kit is one this gate cannot read', () => {
+test('no icon in the kit is sized by a value this gate cannot read', () => {
   /* A value jsdom cannot parse takes the whole declaration out of the CSSOM, and
    * the count above cannot notice: a rule that never reached the CSSOM
    * contributes no subject, so adding one leaves the number where it was. The
    * rule still applies in a browser. base.css is asked too — the reset is the
    * rule every subject is measured against, and a reset that quietly stopped
-   * being parsed would hand every contest to the component rule. */
-  const dropped = SHEETS.flatMap((name) => droppedDecls(name, readFileSync(path.join(src, name), 'utf8')));
+   * being parsed would hand every contest to the component rule.
+   *
+   * Asked of the rules that decide an icon, which is why the class set is handed
+   * over. What jsdom drops is ordinary CSS elsewhere in these sheets — a bare
+   * `env()`, an uppercase `CALC()` — and refusing it on a rule with no icon in it
+   * is a red nobody here can act on. droppedDecls() says which shapes stay loud
+   * anyway. */
+  const dropped = SHEETS.flatMap((name) => droppedDecls(
+    name, readFileSync(path.join(src, name), 'utf8'), SVG_CLASSES));
   assert.deepEqual(dropped, [], DROPPED_REFUSAL);
 });
 
@@ -273,18 +280,25 @@ for (const { sel, dim, want, sheet, rule, as } of subjects) {
 }
 
 test('the reset still sizes a bare icon that no component rule claims', () => {
-  // The cheapest way to stop the reset winning is to delete it, which would
-  // leave every bare icon() call at the browser default. This is the half of
-  // base.css that has to survive. Asserted as a ratio, not a px string, so it
-  // pins the rule and not the root font-size.
+  /* The cheapest way to stop the reset winning is to delete it, which would
+   * leave every bare icon() call at the browser default. This is the half of
+   * base.css that has to survive. Asserted as a ratio, not a px string, so it
+   * pins the rule and not the root font-size.
+   *
+   * Both axes, because the reset declares both and half of it is not a reset.
+   * Reading `width` alone left `height: 1.1em` deletable with all three gates
+   * green: a browser then renders every bare icon at its intrinsic height, and
+   * the one assertion standing between that and a release said nothing. */
   const box = document.createElement('div');
   box.style.fontSize = '20px';
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   box.appendChild(el);
   document.body.appendChild(box);
-  const got = getComputedStyle(el).width;
+  const style = getComputedStyle(el);
+  const got = { width: style.width, height: style.height };
   box.remove();
-  assert.equal(got, '22px', 'a bare icon should still be sized 1.1em by the reset');
+  assert.deepEqual(got, { width: '22px', height: '22px' },
+    'a bare icon should still be sized 1.1em by the reset, on both axes');
 });
 
 test('an icon carrying its own width attribute is left alone by the reset', () => {

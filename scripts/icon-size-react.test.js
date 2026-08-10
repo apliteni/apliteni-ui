@@ -74,9 +74,9 @@
  * imports the kit's CSS at all, the kit's reset still reaches a bare icon in this
  * document, the class scanner still finds a class the kit puts on an svg —
  * returning nothing would take every class-on-svg rule out of coverage and leave
- * the count at the same healthy-looking zero — and no sizing declaration in what
- * it read is one the parser threw away, one hidden behind an interpolation, or
- * one inside a sheet this gate never opened. Take any of them out and this file
+ * the count at the same healthy-looking zero — and nothing it read sizes an icon
+ * with a value the parser threw away, hides a size behind an interpolation, or
+ * sits inside a sheet this gate never opened. Take any of them out and this file
  * goes back to being ornamental.
  *
  * The document-count assert at module level is not one of the seven, and
@@ -309,17 +309,23 @@ test('the kit reset reaches an icon in this document', () => {
   /* Proof that the kit's sheets are not merely counted but applying. A document
    * built from empty or unreadable sheets would give every React rule a walkover
    * and report it as a win. Asserted as a ratio of the font-size, so it pins the
-   * reset rather than the root font-size. */
+   * reset rather than the root font-size.
+   *
+   * Both axes, since the reset declares both and this is the only thing here
+   * watching it. Reading `width` alone, `height: 1.1em` could be deleted from
+   * base.css with this gate and the other two green. */
   const box = document.createElement('div');
   box.style.fontSize = '20px';
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   box.appendChild(el);
   document.body.appendChild(box);
-  const got = getComputedStyle(el).width;
+  const style = getComputedStyle(el);
+  const got = { width: style.width, height: style.height };
   box.remove();
-  assert.equal(got, '22px',
-    'the kit reset does not size a bare icon in this document, so every React rule measured here '
-    + 'would win by default. The kit sheets are mounted but not applying.');
+  assert.deepEqual(got, { width: '22px', height: '22px' },
+    'the kit reset does not size a bare icon on both axes in this document, so a React rule '
+    + 'measured here could win by default. Either the kit sheets are mounted and not applying, or '
+    + 'the reset has lost one of the two declarations it makes.');
 });
 
 test('the sweep still recognises a class put directly on an svg', () => {
@@ -338,9 +344,10 @@ test('no sizing declaration in the React CSS is one this gate cannot read', () =
    * jsdom keeps the declarations it understands and discards the rest without a
    * word: `width: fit-content(20%)` leaves the rule it was written in with no
    * width at all, so the rule reads as if it sized nothing. Every sizing and
-   * clamp declaration in the raw text is therefore re-parsed on its own and asked
-   * whether it survived — see droppedDecls(), which the other two gates ask the
-   * same question with.
+   * clamp declaration a rule that decides an icon carries is therefore re-parsed
+   * on its own and asked whether it survived — see droppedDecls(), which the
+   * other two gates ask the same question with, and which says which shapes it
+   * asks of every rule regardless because scoping them would silence them.
    *
    * And an `@import` is a sheet this gate never opens. It reads the files under
    * react/src one by one; esbuild inlines what they import, so an imported sheet
@@ -354,7 +361,7 @@ test('no sizing declaration in the React CSS is one this gate cannot read', () =
     const found = blindSpots(from, OWN[j].css, ownSheets()[j]);
     blind.push(...found.blind);
     clampedBlind.push(...found.clampedBlind);
-    dropped.push(...droppedDecls(from, OWN[j].css));
+    dropped.push(...droppedDecls(from, OWN[j].css, SVG_CLASSES));
   });
   assert.deepEqual(unfollowed, [], IMPORT_REFUSAL);
   assert.deepEqual(dropped, [], DROPPED_REFUSAL);
