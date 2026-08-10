@@ -1,15 +1,19 @@
-/* Shared machinery for the two icon-size gates.
+/* Shared machinery for the three icon-size gates.
  *
- *   src/styles/icon-size.test.js      — the rules inside the package's own stylesheets
+ *   src/styles/icon-size.test.js       — the rules inside the package's own stylesheets
  *   scripts/icon-size-surfaces.test.js — the rules on the surfaces the kit renders
  *                                        (the landing site, the Storybook stories)
+ *   scripts/icon-size-react.test.js    — the rules in the React workspace's own
+ *                                        stylesheets under react/src
  *
- * Both ask the same question — does the rule that sizes this icon actually win
- * the cascade against the reset in src/styles/base.css — and both answer it the
- * same way: mount an element matching the rule's selector against the real kit
- * stylesheets and read getComputedStyle back. Only the source of the rules
- * differs. This file is that shared half, so the second gate cannot drift into
- * measuring something subtly different from the first.
+ * All three ask the same question — does the rule that sizes this icon actually
+ * win the cascade against the reset in src/styles/base.css — and all three
+ * answer it the same way: mount an element matching the rule's selector against
+ * the real kit stylesheets and read getComputedStyle back. Only the source of
+ * the rules differs, and each gate keeps a subject count of its own so a rule
+ * leaving one sweep cannot be cancelled out by a rule arriving in another. This
+ * file is the shared half, so no gate can drift into measuring something subtly
+ * different from the others.
  *
  * It lives under scripts/ on purpose. `files` in package.json excludes test
  * files from src/ but nothing else, so a plain .js helper under src/ would ship
@@ -106,9 +110,15 @@ export function kitStyleHtml(src, names) {
  * listed here, so a new one joins coverage by existing. Two ways a class gets
  * onto an svg: written into the tag, or passed as icon()'s second argument.
  *
+ * Both spellings of the attribute, because the React workspace writes JSX and
+ * JSX spells it `className`. A class this returns nothing for is a class every
+ * rule targeting it stops being measured against, silently — that is how
+ * .ui-fbck was missed in the kit — so reading only `class=` would have taken a
+ * React icon rule out of coverage the moment one was written.
+ *
  * `dirs` are scanned depth-first; `exts` says which files count. Test files are
- * always skipped — a class that only a test writes onto an svg is not a class
- * the kit renders. */
+ * always skipped, in every extension the repo tests in — a class that only a
+ * test writes onto an svg is not a class the kit renders. */
 export function svgClassSet(dirs, exts = ['.js']) {
   const found = new Set();
   for (const dir of dirs) {
@@ -116,9 +126,9 @@ export function svgClassSet(dirs, exts = ['.js']) {
     for (const p of walk(dir)) {
       const name = path.basename(p);
       if (!exts.some((e) => name.endsWith(e))) continue;
-      if (name.endsWith('.test.js')) continue;
+      if (/\.test\.[cm]?[jt]sx?$/.test(name)) continue;
       const text = readFileSync(p, 'utf8');
-      for (const m of text.matchAll(/<svg[^>]*\sclass="([^"${]+)"/g)) {
+      for (const m of text.matchAll(/<svg[^>]*\s(?:className|class)="([^"${]+)"/g)) {
         for (const c of m[1].trim().split(/\s+/)) found.add(c);
       }
       for (const m of text.matchAll(/\bicon\(\s*'[^']*'\s*,\s*'([^']+)'/g)) {
