@@ -131,14 +131,33 @@ export function walk(dir, acc = [], skipped = null) {
   return acc;
 }
 
-/* The kit's stylesheets, in the order src/index.css imports them. Same
- * derivation as importsOfIndexCss() in scripts/stylesheet-manifest.test.js,
- * quotes and all. A looser regex here would silently drop a sheet written with
- * single quotes and take its rules out of coverage with the suite still
- * green. */
+/* The kit's stylesheets, in the order src/index.css imports them. Both quotes
+ * are read, because a sheet written with the other one would leave this list and
+ * take its rules out of coverage with the suite still green.
+ *
+ * The two halves of this pattern want opposite answers on case, and it is worth
+ * being explicit about which is which. `@import` is an at-rule keyword, so it
+ * folds case: a sheet listed as `@IMPORT` is a sheet index.css really pulls in.
+ * Missed here it never joins the document any gate builds — and the surfaces and
+ * React gates then measure every rule they sweep against a cascade the kit does
+ * not have, with no count of theirs moving to say so. The kit gate's own count
+ * does move, which is loud, but it names the wrong thing: it reports a handful
+ * of rules having left coverage rather than a sheet having left the list.
+ *
+ * The specifier is the other half. It is a path, it goes straight to
+ * readFileSync, and a file name is case-sensitive on Linux however the keyword
+ * in front of it reads — so it must come back exactly as written. It does: the
+ * flag folds case in the pattern, not in the text, and `[^"']+` matches every
+ * character either way.
+ *
+ * scripts/stylesheet-manifest.test.js derives the same list with the same
+ * pattern minus this flag, so an `@IMPORT` in index.css is a sheet this finds
+ * and that guard does not — it reds there, saying the sheet is missing from
+ * index.css when what is missing is the lower-case spelling. Loud and pointing
+ * one file off, which is the direction to leave it in. */
 export function kitSheetNames(src) {
   return [...readFileSync(path.join(src, 'index.css'), 'utf8')
-    .matchAll(/^\s*@import\s+["']\.\/([^"']+)["']/gm)].map((m) => m[1]);
+    .matchAll(/^\s*@import\s+["']\.\/([^"']+)["']/gmi)].map((m) => m[1]);
 }
 
 /* One <style> per sheet, in import order: the cascade still resolves across
@@ -607,11 +626,29 @@ export function foldLogicalDims(sheet, name) {
    * carrying it reads as empty — and drops any value it does not recognise with
    * it, so the loop above sees nothing in either case. Every browser that
    * honours the prefixed spelling turns the axes exactly as the unprefixed one
-   * does, which is what the fold cannot survive. */
+   * does, which is what the fold cannot survive.
+   *
+   * Case-insensitive for the same reason declRe() is: a property name folds case
+   * in CSS and the vendor prefix is part of the name, so `-WEBKIT-WRITING-MODE`
+   * lays an icon out along the other axis in exactly the browsers the lower-case
+   * spelling does. The loop above is no help — jsdom parses the capital spelling
+   * away as readily — so this scan reading lower case only left the fold
+   * measuring the wrong axis with every gate green. The unprefixed name needs no
+   * flag: cssstyle stores it lower-cased, so `WRITING-MODE` reaches the loop
+   * above under the name it asks for. Nothing downstream keys on the match — the
+   * value is folded again by turnsTheAxes() and the name is only ever printed —
+   * so the flag is the whole of the fix.
+   *
+   * EVERY declaration rather than the first, which is a second way this went
+   * quiet. `horizontal-tb` is the mode the fold assumes and is right not to be
+   * refused, so a sheet that declares it on <html> put an allowed value in front
+   * of every later declaration and answered for all of them. Reading the first
+   * match is only ever correct in a file with one. */
   const raw = rawTextOf(sheet, name);
-  const prefixed = blankStrings(raw)
-    .match(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/);
-  if (prefixed && turnsTheAxes(prefixed[2])) {
+  const prefixed = [...blankStrings(raw)
+    .matchAll(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/gi)]
+    .find((m) => turnsTheAxes(m[2]));
+  if (prefixed) {
     throw new Error(writingModeRefusal(name, `a rule declares ${prefixed[1]}: `
       + `${prefixed[2].trim()}, which jsdom parses away before this gate can read it`));
   }
@@ -778,10 +815,19 @@ export function resetSelectorOf(sheet, name, classes) {
  * not an import — but READ back out of the text as written, since the specifier
  * of a real @import is itself a string and blanking it would report a sheet with
  * no name. Blanking keeps every offset, which is what lets the two be different
- * texts. */
+ * texts.
+ *
+ * The keyword is matched in any case, because an at-rule keyword folds case and
+ * jsdom agrees: `@IMPORT "./zz.css"` parses into a real CSSImportRule, so the
+ * sheet ships, no gate opens it, and its rules are measured by nobody. This
+ * refusal is the only thing watching for that — an unfollowed import contributes
+ * no subject, so no count moves when one arrives — and reading lower case only
+ * blinded it to the one spelling that is easy to write by accident. The flag
+ * reaches nothing else: `[^;]*` has no case to fold, and the specifier is sliced
+ * out of the untouched text, so a file name comes back exactly as written. */
 export const importsIn = (css) => {
   const text = stripComments(css);
-  return [...blankStrings(text).matchAll(/@import\s+([^;]*)/dg)]
+  return [...blankStrings(text).matchAll(/@import\s+([^;]*)/dgi)]
     .map(({ indices }) => text.slice(...indices[1]).trim());
 };
 
@@ -799,7 +845,17 @@ const STYLE_EXTS = ['css', 'pcss', 'postcss', 'scss', 'sass', 'less', 'styl', 's
  * Relative only. An import through a path alias (`@/styles/x.css`) resolves
  * through tsconfig or the bundler's config, neither of which this reads, so it
  * is not reported — and the gate's header says so rather than implying the
- * sweep covers it. */
+ * sweep covers it.
+ *
+ * Case-SENSITIVE, unlike the two CSS scans above, and for two separate reasons.
+ * `import` here is a JavaScript keyword rather than an at-rule, and JavaScript
+ * does not fold case, so `IMPORT './x.css'` is a syntax error and not a sheet
+ * the workspace loads; reporting it would name a file no build ever reads. And
+ * the extension goes the same way because esbuild, which tsup builds this
+ * workspace with, matches its loaders on the extension as written — `.CSS`
+ * fails the build outright, "No loader is configured for '.CSS' files", so that
+ * spelling is a red at build time rather than a stylesheet slipping past the
+ * sweep. */
 export const styleImportsIn = (source) => [...source.matchAll(
   new RegExp(String.raw`^\s*import\s+(?:[^'"]*\bfrom\s+)?['"](\.[^'"]+\.(?:${STYLE_EXTS.join('|')})(?:\?[^'"]*)?)['"]`,
     'gm'))].map((m) => m[1]);

@@ -245,8 +245,13 @@ test('src/index.css still holds nothing but @imports', () => {
    * package.json ships it, so it reaches a consumer's browser and competes with
    * the reset like every rule that is measured. Nothing holds one today. This is
    * what keeps that a fact rather than a habit. */
+  /* The keyword is taken out in any case, the way kitSheetNames() reads it. An
+   * at-rule keyword folds case, so `@IMPORT "./styles/nav.css";` names a sheet
+   * this gate opens like any other — left standing in the residue it reads as
+   * CSS of index.css's own, which is a red on a file that is fine and advice
+   * that would have the reader move a stylesheet that never left. */
   const left = stripComments(readFileSync(path.join(src, 'index.css'), 'utf8'))
-    .replace(/@import\s+[^;]*;/g, '')
+    .replace(/@import\s+[^;]*;/gi, '')
     .trim();
   assert.equal(left, '', 'src/index.css carries CSS of its own, and this gate reads it as nothing '
     + 'but a list of sheets to open — so whatever is written here ships unmeasured. Move the rule '
