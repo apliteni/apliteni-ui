@@ -1924,7 +1924,24 @@ test('a successful run whose version never appears blames propagation before it 
   assert.equal(result.status, 1, result.log);
   assert.ok(result.waited >= 120, `only waited ${result.waited}s for the registry to catch up`);
   assert.match(result.log, /propagat|read-after-write|not yet readable/i);
-  assert.doesNotMatch(result.log, /Do not bump past this version/);
+
+  // The ordering the name of this test promises, which nothing here used to
+  // check. What stood here was `doesNotMatch(/Do not bump past this version/)`,
+  // and that string occurs nowhere but in the assertion that forbids it — no
+  // version of this workflow has printed it, so it could never have gone red.
+  // Underneath it, though, the requirement is real: the reader is sent to npm
+  // before this job blames the publish, and the blame is still conditional when
+  // they get there. So a rewrite that turned the advice into an order to stop
+  // releasing would drop the `Only if`, and these two go red.
+  const annotation = result.lines.find((l) => l.startsWith('::error::'));
+  assert.ok(annotation, `no ::error:: annotation in:\n${result.log}`);
+  const npmFirst = annotation.search(/npm\b[^.]*\bfirst\b/i);
+  assert.ok(npmFirst > -1, `nothing sends the reader to npm before anything else:\n${annotation}`);
+  const blamesPublish = annotation.search(/\bonly if\b[^.]*\bpublish(ed)? nothing\b/i);
+  assert.ok(
+    blamesPublish > npmFirst,
+    `the publish is blamed unconditionally, or ahead of npm — a freeze is the expensive thing to be wrong about:\n${annotation}`,
+  );
 });
 
 test('a registry that blips on the green path is asked again, not shrugged at', needsJq, () => {

@@ -199,9 +199,10 @@ to npm first, because a version is published before every edge can read it. Any
 other last answer leaves the job green with a warning on it, because a registry
 that was not answering when the window closed has said nothing either way, and
 `version-drift.yml` is what catches that one.
+
 A run still waiting on a reviewer when the ten minutes are up leaves the job
-green, with a warning naming the run and what it is waiting for. Somebody who has
-not clicked yet is not a broken pipeline.
+green, with a warning naming what it is waiting for and, where it can, the run.
+Somebody who has not clicked yet is not a broken pipeline.
 
 So that green does not mean the version shipped. It means the release was
 started: the tag, the Release and the dispatch are all done, and npm has nothing
