@@ -68,21 +68,21 @@
  *
  * THE COUNT STARTS AT ZERO, which is the dangerous part. No React stylesheet
  * carries an svg rule today, so `collected 0, expected 0` is what a healthy gate
- * says and also what a gate that read nothing at all says. Eight assertions stand
+ * says and also what a gate that read nothing at all says. Seven tests stand
  * between those two: the sweep found stylesheets, it entered every directory
- * under react/src, it reads every sheet a component imports, the kit's sheets are
- * in the document, its reset still reaches a bare icon there, preview.ts still
- * imports the kit's CSS at all, the class scanner still finds a class the kit
- * puts on an svg — returning nothing would take every class-on-svg rule out of
- * coverage and leave the count at the same healthy-looking zero — and no sizing
- * declaration in what it read is one the parser threw away, one hidden behind an
- * interpolation, or one inside a sheet this gate never opened. Take any of them
- * out and this file goes back to being ornamental.
+ * under react/src, it reads every sheet a component imports, preview.ts still
+ * imports the kit's CSS at all, the kit's reset still reaches a bare icon in this
+ * document, the class scanner still finds a class the kit puts on an svg —
+ * returning nothing would take every class-on-svg rule out of coverage and leave
+ * the count at the same healthy-looking zero — and no sizing declaration in what
+ * it read is one the parser threw away, one hidden behind an interpolation, or
+ * one inside a sheet this gate never opened. Take any of them out and this file
+ * goes back to being ornamental.
  *
- * The document-count assert is not one of the eight, and deliberately: the
- * document is built out of that same list, so it proves jsdom dropped nothing
- * rather than that the list was right. The first three are what say the list is
- * right.
+ * The document-count assert at module level is not one of the seven, and
+ * deliberately: the document is built out of that same list, so it proves jsdom
+ * dropped nothing rather than that the list was right. The first three are what
+ * say the list is right.
  *
  * WHAT THIS WILL NOT CATCH — the same weak claims as the two gates it joins, for
  * the same reasons, plus four of its own:
@@ -139,14 +139,13 @@ import { JSDOM } from 'jsdom';
 import {
   BLIND_REFUSAL,
   CLAMPED_BLIND_REFUSAL,
-  CLAMP_PROPS,
   CLAMP_REFUSAL,
   DIMS,
+  DROPPED_REFUSAL,
   IMPORT_REFUSAL,
-  SIZING_PROPS,
   blindSpots,
   clampsOn,
-  declRe,
+  droppedDecls,
   foldLogicalDims,
   importsIn,
   isSvgSubject,
@@ -340,12 +339,13 @@ test('no sizing declaration in the React CSS is one this gate cannot read', () =
    * word: `width: fit-content(20%)` leaves the rule it was written in with no
    * width at all, so the rule reads as if it sized nothing. Every sizing and
    * clamp declaration in the raw text is therefore re-parsed on its own and asked
-   * whether it survived.
+   * whether it survived — see droppedDecls(), which the other two gates ask the
+   * same question with.
    *
    * And an `@import` is a sheet this gate never opens. It reads the files under
    * react/src one by one; esbuild inlines what they import, so an imported sheet
    * that lives anywhere else ships to consumers with its rules unmeasured. */
-  const droppedDecls = [];
+  const dropped = [];
   const unfollowed = [];
   const blind = [];
   const clampedBlind = [];
@@ -354,23 +354,10 @@ test('no sizing declaration in the React CSS is one this gate cannot read', () =
     const found = blindSpots(from, OWN[j].css, ownSheets()[j]);
     blind.push(...found.blind);
     clampedBlind.push(...found.clampedBlind);
-    for (const props of [SIZING_PROPS, CLAMP_PROPS]) {
-      for (const m of RAW[j].matchAll(declRe(props))) {
-        const [, prop, value] = m;
-        const probe = new JSDOM(`<style>a{${prop}:${value}}</style>`)
-          .window.document.styleSheets[0].cssRules[0];
-        if (!probe?.style.getPropertyValue(prop)) {
-          droppedDecls.push(`${from}: ${prop}: ${value.trim()}`);
-        }
-      }
-    }
+    dropped.push(...droppedDecls(from, OWN[j].css));
   });
   assert.deepEqual(unfollowed, [], IMPORT_REFUSAL);
-  assert.deepEqual(droppedDecls, [],
-    'a React stylesheet sizes something with a value jsdom cannot parse, so the declaration is '
-    + 'gone from the CSSOM this gate measures and the rule reads as if it sized nothing. If it '
-    + 'lands on an icon it is unmeasured; write the size in a form jsdom parses, or teach this '
-    + 'gate to measure it somewhere layout exists.');
+  assert.deepEqual(dropped, [], DROPPED_REFUSAL);
   assert.deepEqual(blind, [], BLIND_REFUSAL);
   assert.deepEqual(clampedBlind, [], CLAMPED_BLIND_REFUSAL);
 });

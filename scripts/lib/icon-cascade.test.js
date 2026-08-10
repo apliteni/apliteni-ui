@@ -35,6 +35,7 @@ import {
   blindSpots,
   clampsOn,
   declRe,
+  droppedDecls,
   importsIn,
   foldLogicalDims,
   isSvgSubject,
@@ -473,6 +474,84 @@ test('a class only a test writes onto an svg is skipped whatever the extension',
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('a sizing value jsdom cannot parse is reported rather than reading as no rule at all', () => {
+  /* The hole this closes. jsdom drops a declaration whose value it cannot parse,
+   * so the rule carrying it reaches the CSSOM sizing nothing — it contributes no
+   * subject, and a subject count only moves when a subject appears or
+   * disappears, so an added-and-dropped rule leaves the count exactly where it
+   * was. Green build, live rule, nothing measuring it. */
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { width: fit-content(20%); height: 12px }'),
+    ['probe.css: width: fit-content(20%)']);
+});
+
+test('a logical declaration is asked about the property the fold lands it on', () => {
+  /* cssstyle waves `inline-size` through whatever the value, so asked under the
+   * name the file spells it this declaration survives — and then foldLogicalDims()
+   * rewrites it onto `width`, which refuses the value, and the rule is empty. The
+   * question is whether the declaration survives into the cascade the gate
+   * measures, and that cascade is the physical one. Reported under the spelling
+   * the file uses, since that is what the reader has to go and find. */
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { inline-size: fit-content(20%) }'),
+    ['probe.css: inline-size: fit-content(20%)']);
+});
+
+test('a clamp jsdom cannot parse is reported too', () => {
+  // Same silence, one property list over. A clamp that never reaches the CSSOM
+  // is a clamp `no rule sizes an icon with a clamp` cannot find.
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { min-width: 20sp }'),
+    ['probe.css: min-width: 20sp']);
+});
+
+test('the values the kit already writes are not read as dropped', () => {
+  /* The other direction, and the one that decides whether this guard survives
+   * contact with the repo. A gate that reds on `var()` or `calc()` is a gate
+   * somebody switches off. */
+  assert.deepEqual(droppedDecls('probe.css',
+    '.a svg { width: var(--ic-size); height: calc(1em + 2px) }'
+    + '.b svg { width: clamp(1px, 2vw, 3px); height: min(10px, 2em) }'
+    + '.c svg { width: 100%; height: 1.1em }'
+    + '.d svg { width: 1.25rem !important; height: 17px }'
+    + '.e svg { inline-size: 33px; block-size: 34px }'
+    + '.f svg { min-width: 4px; max-inline-size: 5px }'), []);
+});
+
+test('a value nothing could resolve is left to the blind-spot machinery', () => {
+  /* An unresolved interpolation makes a value jsdom cannot parse, so both guards
+   * have something to say about the same declaration — and two refusals under two
+   * different messages for one rule sends the reader looking for two problems.
+   * blindSpots() owns that one, because it can say what is actually wrong with
+   * it. A genuinely dropped declaration beside it is still reported. */
+  const css = `.zz svg { width: ${UNRESOLVED}px; height: fit-content(20%) }`;
+  assert.deepEqual(droppedDecls('probe.css', css), ['probe.css: height: fit-content(20%)']);
+  assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
+    [`probe.css: width: ${UNRESOLVED}px`]);
+});
+
+test('a value named only inside a comment is not read as a dropped declaration', () => {
+  // The raw text is where a comment still lives, and a commented-out rule is not
+  // a rule — the same argument stripComments() carries everywhere else.
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { /* width: fit-content(20%) */ height: 12px }'),
+    []);
+});
+
+test('an icon named inside :is() or :where() is refused by mount, and says why', () => {
+  /* The two halves of this machinery disagree about this shape on purpose.
+   * compoundIsSvg() reads `.a :where(svg)` as the icon rule it is, and mount()
+   * cannot build an element for it — so it refuses, loudly, rather than leaving
+   * the rule unmeasured in silence. The refusal has to name that pairing, or the
+   * reader is told the gate does not support a selector the gate's own subject
+   * test just accepted. */
+  assert.ok(isSvgSubject('.a :where(svg)', new Set()));
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  assert.throws(() => mount(dom.window.document, '.a :where(svg)', new Set()), (err) => {
+    assert.match(err.message, /:where\(svg\)/);
+    assert.match(err.message, /:is\(\)/,
+      'the refusal does not say that the subject test recognises this shape and this builder cannot '
+      + 'make it, so the reader cannot tell a gap from a bug');
+    return true;
+  });
 });
 
 test('a declaration pattern reads min-width as a clamp and never as a width', () => {
