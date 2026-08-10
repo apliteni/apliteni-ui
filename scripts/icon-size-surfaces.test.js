@@ -40,9 +40,9 @@
  *   .storybook/                 every *.css, and the <style> blocks of every
  *                               *.html — manager-head.html today, a
  *                               preview-head.html the day somebody writes one.
- *                               A .js file there is not read for <style> blocks;
- *                               nothing writes CSS that way, and the day one does
- *                               it falls outside this sweep.
+ *                               A .js or .jsx file there is not read for <style>
+ *                               blocks; theme-toggle.jsx writes none, and the day
+ *                               one does it falls outside this sweep.
  *
  * A new page, a new story, a new shared shell, a stylesheet beside preview.js:
  * all in scope by existing. A file that stops carrying an icon rule leaves the
@@ -230,9 +230,9 @@ function sitePages() {
  *
  * Discovered rather than listed, at any depth: every .css file, and the <style>
  * blocks of every .html file, which is how Storybook takes hand-written CSS —
- * manager-head.html today, a preview-head.html the day somebody adds one. A
- * .js file there is not read for <style> blocks; nothing in .storybook/ writes
- * CSS that way, and the day one does it is outside this sweep. */
+ * manager-head.html today, a preview-head.html the day somebody adds one. A .js
+ * or .jsx file there is not read for <style> blocks; theme-toggle.jsx writes
+ * none, and the day one does it is outside this sweep. */
 function storybookChrome() {
   const out = [];
   for (const file of walk(sbDir).sort()) {

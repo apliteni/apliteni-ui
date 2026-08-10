@@ -402,6 +402,64 @@ test(':root is the document element, and the document is put back afterwards', (
   assert.equal(document.body.children.length, 0, `${sel} left markup behind`);
 });
 
+test(':root reached by a child combinator is the same element, one nesting in', () => {
+  /* `:root > .sbc svg` and `html > .sbc svg` are the same rule spelled two ways,
+   * and only the second used to mount — the first was refused as an unsupported
+   * selector part, naming `:root`, which this builder has handled since the
+   * themed rules in badge.css. The refusal was about the combinator behind it.
+   * A rule written this way is ordinary CSS, and a subject nothing can mount is a
+   * red that names the gate rather than the rule. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  const { document } = dom.window;
+  for (const sel of [':root > .sbc svg', ':root>.sbc svg', ':root[data-theme="light"] > .sbc svg',
+    ':root > svg']) {
+    const { el, top } = mount(document, sel, new Set());
+    assert.ok(el.matches(sel), `mounted an element that does not match "${sel}"`);
+    top.remove();
+    assert.equal(document.body.children.length, 0, `${sel} left markup behind`);
+    assert.deepEqual([...document.documentElement.children].map((n) => n.nodeName.toLowerCase()),
+      ['head', 'body'], `${sel} left markup under <html>`);
+  }
+});
+
+test('a rule reaching an icon through :root > is measured, not merely mounted', () => {
+  /* The half worth having. The chain hangs off <html> rather than off the
+   * container inside <body>, which is a place nothing was ever mounted before —
+   * so this asks the question a gate asks: does the rule win the contest the
+   * browser gives it, against the reset and at a font-size no arithmetic can make
+   * agree. `html > .sbc svg` is the same rule, and the two must not disagree. */
+  const css = `${RESET} :root > .sbc svg { width: 17px } html > .sbc svg { height: 19px }`;
+  const dom = new JSDOM(`<!doctype html><html><head><style>${css}</style></head><body></body></html>`);
+  const { document, getComputedStyle } = dom.window;
+  foldLogicalDims(document.styleSheets[0], 'probe.css');
+  const { el, top } = mount(document, ':root > .sbc svg', new Set());
+  el.style.fontSize = '100px';
+  const got = { width: getComputedStyle(el).getPropertyValue('width'), height: getComputedStyle(el).getPropertyValue('height') };
+  top.remove();
+  assert.deepEqual(got, { width: '17px', height: '19px' },
+    'the rule did not win the contest the browser gives it, so the mount is somewhere the cascade '
+    + 'does not reach');
+});
+
+test('a :root chain this builder cannot place says what is wrong with it', () => {
+  /* The two shapes that stay refused, and the reason they have to say why. The
+   * generic refusal reads "this builds a chain of compounds out of tag names,
+   * classes, ids and attributes, and nothing else" — which sends the reader off
+   * to teach the builder `:root`, a thing it already does. Neither of these
+   * selects anything in any document: the document element has no siblings, and
+   * nothing stands in front of it. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  for (const sel of ['.a :root svg', ':root + .a svg', ':root ~ .a svg']) {
+    assert.throws(() => mount(dom.window.document, sel, new Set()), (err) => {
+      assert.match(err.message, /document element/,
+        `"${sel}" is refused without saying what :root actually selects`);
+      assert.doesNotMatch(err.message, /out of tag names, classes/,
+        `"${sel}" is refused as a shape this builder was never taught, which is not why`);
+      return true;
+    });
+  }
+});
+
 test('a rule inside a themed scope is measured, not merely mounted', () => {
   // The half of this that is worth having: the contest such a rule is in gets
   // held, and the rule that decides the icon is the one that wins it.
@@ -518,6 +576,32 @@ test('a <style> assembled by concatenation is not a block with no CSS in it', ()
   const css = "' + CSS + '";
   assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
     ['probe.css: a <style> block this gate parsed to no rules at all']);
+});
+
+test('a block that is nothing but an at-rule cssom models nothing of is not a blind spot', () => {
+  /* `@property` and `@charset` are valid CSS a browser honours, and cssom builds
+   * no rule for either — so a block that is nothing else parses to zero rules for
+   * the same reason an empty one does, and reporting it reds on correct code.
+   * cssom recovers the moment an ordinary rule sits beside them, which is what
+   * makes this shape as narrow as it is and also what would have hidden it. */
+  for (const css of ["@property --ic-size { syntax: '<length>'; inherits: false; initial-value: 16px }",
+    '@charset "utf-8";',
+    "@charset \"utf-8\";\n@property --ic { syntax: '<color>'; inherits: false; initial-value: red }"]) {
+    assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)), { blind: [], clampedBlind: [] },
+      `"${css}" is CSS a browser honours and this reds on it`);
+  }
+});
+
+test('an at-rule in front of a concatenated block does not buy the block silence', () => {
+  /* The other edge. What the refusal is for is a `<style>` assembled by string
+   * concatenation, and an at-rule written above the seam must not turn it off —
+   * nor must an at-rule nobody closed, which is not a shape a browser honours
+   * either. */
+  for (const css of ['@charset "utf-8";\n\' + CSS + \'', '@property --ic {']) {
+    assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
+      ['probe.css: a <style> block this gate parsed to no rules at all'],
+      `"${css}" reads as a block this gate saw the whole of`);
+  }
 });
 
 test('a <style> block with nothing in it is not a blind spot', () => {

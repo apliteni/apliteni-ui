@@ -841,6 +841,42 @@ function standsWhereCssWouldBe(text) {
   return false;
 }
 
+/* Whether every statement in this text is an at-rule — which is what tells a
+ * block cssom modelled nothing of from a block cssom could not read.
+ *
+ * `@property` and `@charset` reach the CSSOM as no rule at all, so a block that
+ * holds one of them and nothing else parses to zero rules exactly as an empty
+ * block does. Both are CSS a browser honours, and a gate that reds on correct
+ * code gets switched off. Every other at-rule this repo could write is modelled
+ * — @media, @supports, @layer, @font-face, @namespace, @import all become a rule
+ * — so a block carrying one of those never reaches the caller's question.
+ *
+ * An at-rule nobody closed is not one of these: it reads to the end of the text
+ * with its block still open, which is neither a shape a browser honours nor a
+ * reason to go quiet, so it is answered no. So is anything that is not an
+ * at-rule at all, which is the concatenated `' + CSS + '` the caller's refusal
+ * exists for.
+ *
+ * The text arrives with comments out and strings blanked, so every brace and
+ * every `;` left in it is one a CSS parser sees. */
+function onlyAtRules(text) {
+  let i = 0;
+  for (;;) {
+    while (i < text.length && /\s/.test(text[i])) i += 1;
+    if (i >= text.length) return true;
+    if (text[i] !== '@') return false;
+    let depth = 0;
+    let end = -1;
+    for (let j = i; j < text.length && end === -1; j += 1) {
+      if (text[j] === '{') depth += 1;
+      else if (text[j] === '}') { depth -= 1; if (depth === 0) end = j + 1; }
+      else if (text[j] === ';' && depth === 0) end = j + 1;
+    }
+    if (end === -1) return false;
+    i = end;
+  }
+}
+
 export function blindSpots(from, css, sheet) {
   const blind = [];
   const clampedBlind = [];
@@ -870,12 +906,14 @@ export function blindSpots(from, css, sheet) {
    *
    * An EMPTY block is not that. `<style></style>`, and one holding nothing but a
    * comment, parse to no rules because there are none, and a gate that reds on
-   * correct code gets switched off. Comments are already out of `text` and
-   * strings are blanked, so what is left is what the parser was handed. A marker
-   * in there is the guard above's to report, since it can say what is actually
-   * wrong with it — one block drawing two refusals sends the reader looking for
-   * two problems. */
-  if (sheet.cssRules.length === 0 && text.trim() && !text.includes(UNRESOLVED)) {
+   * correct code gets switched off. Nor is a block that is nothing but an
+   * at-rule cssom models nothing of — see onlyAtRules(). Comments are already out
+   * of `text` and strings are blanked, so what is left is what the parser was
+   * handed. A marker in there is the guard above's to report, since it can say
+   * what is actually wrong with it — one block drawing two refusals sends the
+   * reader looking for two problems. */
+  if (sheet.cssRules.length === 0 && text.trim() && !text.includes(UNRESOLVED)
+    && !onlyAtRules(text)) {
     blind.push(`${from}: a <style> block this gate parsed to no rules at all`);
   }
   for (const m of text.matchAll(declRe(SIZING_PROPS))) {
@@ -1089,9 +1127,22 @@ export function mount(document, sel, classes) {
     if (!spec) throw refuse(part, sel);
     return [comb, spec, part];
   });
+  /* `:root` is the document element, so the only chains it can head are the ones
+   * a document can hold: a descendant of <html>, or a child of it. Both are built
+   * below. The two that no document holds are refused here, and refused in their
+   * own words — routed through refuse() they came back as "unsupported selector
+   * part: :root", which reads as a shape this builder was never taught and sends
+   * the reader off to teach it something it has done since badge.css. */
   const rootAt = parts.findIndex(([, spec]) => spec.root);
-  if (rootAt > 0 || (rootAt === 0 && parts.length > 1 && parts[1][0] !== ' ')) {
-    throw refuse(parts[Math.max(rootAt, 0)][2], sel);
+  if (rootAt > 0) {
+    throw new Error(`unplaceable selector: ${sel}. :root is the document element, and every element `
+      + 'this builder makes hangs inside it, so nothing can stand in front of it. Take the '
+      + 'compounds ahead of :root off, or name that ancestor by a class.');
+  }
+  if (rootAt === 0 && parts.length > 1 && !' >'.includes(parts[1][0])) {
+    throw new Error(`unplaceable selector: ${sel}. :root is the document element and the document `
+      + 'element has no siblings, so no document matches this rule. Write the icon\'s ancestor as a '
+      + 'descendant or a child of :root.');
   }
   /* Everything goes inside one container, which is also what the caller
    * removes. A sibling combinator at the top of the chain builds two elements
@@ -1106,7 +1157,13 @@ export function mount(document, sel, classes) {
    * subject. A theme left behind would be the theme every later subject is
    * measured in — green, and measuring the wrong contest. */
   const drop = top.remove.bind(top);
+  /* Everything mounted outside `top`, which is only ever the head of a chain
+   * hanging straight off <html> — see the child combinator below. It cannot go
+   * inside the container, because the container would then stand between it and
+   * the document element and the rule would stop matching. */
+  const outside = [];
   top.remove = () => {
+    for (const node of outside) node.remove();
     for (const [name, value] of was) {
       if (value === null) html.removeAttribute(name);
       else html.setAttribute(name, value);
@@ -1132,10 +1189,19 @@ export function mount(document, sel, classes) {
       : document.createElement(spec.tag || 'div');
     for (const cls of spec.classes) node.classList.add(cls);
     for (const [name, value] of spec.attrs) node.setAttribute(name, value);
-    // A child combinator builds the same nesting a descendant one does; the two
-    // sibling combinators put the element beside its predecessor instead, which
-    // `+` and `~` both match when it is the one that comes next.
-    (placed === null ? top : '+~'.includes(comb) ? placed.parentNode : placed).appendChild(node);
+    /* A child combinator builds the same nesting a descendant one does; the two
+     * sibling combinators put the element beside its predecessor instead, which
+     * `+` and `~` both match when it is the one that comes next.
+     *
+     * The one place the two combinators part company is straight after `:root`,
+     * where the descendant form is satisfied by the container inside <body> and
+     * the child form is not — `:root > .sbc svg` needs `.sbc` to be a child of
+     * <html> itself, so it is mounted there and taken down by top.remove(). */
+    const parent = placed === null
+      ? (rootAt === 0 && comb === '>' ? html : top)
+      : ('+~'.includes(comb) ? placed.parentNode : placed);
+    parent.appendChild(node);
+    if (parent === html) outside.push(node);
     placed = node;
     el = node;
   }
