@@ -40,6 +40,7 @@ import {
   foldLogicalDims,
   isSvgSubject,
   mount,
+  resetSelectorOf,
   rulesOf,
   selectorParts,
   styleBlocksOf,
@@ -269,6 +270,69 @@ test('a sizing rule two conditional groups deep is refused, naming both', () => 
 
 test('rulesOf refuses a sheet nobody folded', () => {
   assert.throws(() => drain(sheetOf('.a svg { width: 33px }')), /foldLogicalDims/);
+});
+
+/* The reset and the rules measured against it can live in the same file, so the
+ * file a rule comes from cannot tell them apart on its own. resetSelectorOf()
+ * asks the question that can: which rule sizes an icon with no class on it and
+ * nothing around it. Only the reset does — every component rule names a class,
+ * or an ancestor that carries one. The cases below are the shapes that
+ * identification has to survive. */
+test('the reset is the rule that sizes an icon nothing else claims', () => {
+  const sheet = sheetOf(`${RESET} .ui-nav__ic svg { width: 40px }`);
+  foldLogicalDims(sheet, 'probe.css');
+  assert.equal(resetSelectorOf(sheet, 'probe.css', new Set()),
+    'svg:where(:not([width]):not([height]))',
+    'a component rule written into the reset\'s own file would leave coverage as if it were the reset');
+});
+
+test('a component rule riding along in the reset\'s selector list is not the reset', () => {
+  // Answered per selector, not per rule, so the icon rule sharing a block with
+  // the reset is still a rule this gate measures.
+  const sheet = sheetOf('svg:where(:not([width])), .ui-nav__ic svg { width: 40px }');
+  foldLogicalDims(sheet, 'probe.css');
+  assert.equal(resetSelectorOf(sheet, 'probe.css', new Set()), 'svg:where(:not([width]))');
+});
+
+test('a nested rule cannot pass for the reset', () => {
+  /* jsdom serialises `.ui-nav__ic { svg { … } }` as `& svg`, which names no
+   * class — the shape the "has no class in it" shortcut would have dropped as if
+   * it were the reset. Here it is refused by name instead. */
+  const sheet = sheetOf(`${RESET} .ui-nav__ic { svg { width: 40px } }`);
+  foldLogicalDims(sheet, 'probe.css');
+  assert.throws(() => resetSelectorOf(sheet, 'probe.css', new Set()), /nested rule/);
+});
+
+test('two rules sizing a bare icon is refused rather than guessed at', () => {
+  /* `svg:not([width])` is (0,1,1) and out-ranks every `.ui-btn svg` in the kit.
+   * Waving it through as a second reset is #148 arriving again in the one file
+   * this gate reads a reset out of. */
+  const sheet = sheetOf(`${RESET} svg:not([width]) { width: 40px }`);
+  foldLogicalDims(sheet, 'probe.css');
+  assert.throws(() => resetSelectorOf(sheet, 'probe.css', new Set()),
+    /both size a bare icon/);
+});
+
+test('the same reset written twice is one reset', () => {
+  const sheet = sheetOf('svg:where(:not([width])) { width: 1.1em } '
+    + 'svg:where(:not([width])) { height: 1.1em }');
+  foldLogicalDims(sheet, 'probe.css');
+  assert.equal(resetSelectorOf(sheet, 'probe.css', new Set()), 'svg:where(:not([width]))');
+});
+
+test('a sheet with no reset in it is refused', () => {
+  const sheet = sheetOf('.ui-nav__ic svg { width: 40px }');
+  foldLogicalDims(sheet, 'probe.css');
+  assert.throws(() => resetSelectorOf(sheet, 'probe.css', new Set()), /nothing here sizes a bare icon/);
+});
+
+test('a rule that sizes no icon is not mistaken for the reset', () => {
+  // `*` matches a bare svg and sizes nothing; `.ui-glow` is a span. Neither is a
+  // candidate, so base.css's own furniture cannot stand in for the reset.
+  const sheet = sheetOf(`* { margin: 0 } .ui-glow { width: 420px } ${RESET}`);
+  foldLogicalDims(sheet, 'probe.css');
+  assert.equal(resetSelectorOf(sheet, 'probe.css', new Set()),
+    'svg:where(:not([width]):not([height]))');
 });
 
 test('clampsOn reports every clamp an icon rule carries, and only those', () => {
