@@ -103,16 +103,22 @@
  *    purpose. Seven svgs in src/ do: the brand logos, the success check, the
  *    empty-state illustration.
  *  - Anything outside the stylesheets src/index.css imports. Three other places
- *    carry icon rules of their own, in files this gate never opens: the landing
- *    site, the Storybook stories under stories/, and the React workspace's own
- *    stylesheets under react/src, which render against this same reset because
- *    react/.storybook/preview.ts imports the kit's CSS. The first two are gated
- *    by scripts/icon-size-surfaces.test.js and the third by
+ *    render this reset, in files this gate never opens: the landing site, the
+ *    Storybook stories under stories/, and the React workspace under react/src,
+ *    which renders against it because react/.storybook/preview.ts imports the
+ *    kit's CSS. Two of them carry icon rules today; react/src carries none, and
+ *    its gate is what keeps that a fact rather than an assumption. The first two
+ *    are gated by scripts/icon-size-surfaces.test.js and the third by
  *    scripts/icon-size-react.test.js. Both share this file's machinery and ask
  *    the same question of what they sweep, and each keeps a count of its own, so
  *    a rule leaving one sweep cannot be cancelled out by a rule arriving in
- *    another. Between the three, every place the kit renders an icon has a gate
- *    over it; what each one still cannot see is in its own header.
+ *    another. What each one still cannot see is in its own header.
+ *  - A FOURTH RENDERING SURFACE, which no gate sweeps: the root .storybook/.
+ *    Its preview.js imports src/index.css into every story iframe exactly as
+ *    react/.storybook/preview.ts does, so a stylesheet added beside it would
+ *    compete with this reset in every story anybody browses. Nothing in there
+ *    sizes an icon today — src/styles/base.css says the same beside the reset —
+ *    and nothing would say so if that changed.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -123,8 +129,10 @@ import { JSDOM } from 'jsdom';
 import {
   CLAMP_REFUSAL,
   DIMS,
+  DROPPED_REFUSAL,
   IMPORT_REFUSAL,
   clampsOn,
+  droppedDecls,
   foldLogicalDims,
   importsIn,
   isSvgSubject,
@@ -211,6 +219,17 @@ test('no kit stylesheet imports a sheet this gate never opens', () => {
   const unfollowed = SHEETS.flatMap((name) => importsIn(readFileSync(path.join(src, name), 'utf8'))
     .map((spec) => `${name}: @import ${spec}`));
   assert.deepEqual(unfollowed, [], IMPORT_REFUSAL);
+});
+
+test('no sizing declaration in the kit is one this gate cannot read', () => {
+  /* A value jsdom cannot parse takes the whole declaration out of the CSSOM, and
+   * the count above cannot notice: a rule that never reached the CSSOM
+   * contributes no subject, so adding one leaves the number where it was. The
+   * rule still applies in a browser. base.css is asked too — the reset is the
+   * rule every subject is measured against, and a reset that quietly stopped
+   * being parsed would hand every contest to the component rule. */
+  const dropped = SHEETS.flatMap((name) => droppedDecls(name, readFileSync(path.join(src, name), 'utf8')));
+  assert.deepEqual(dropped, [], DROPPED_REFUSAL);
 });
 
 test('no rule in the kit sizes an icon with a clamp', () => {

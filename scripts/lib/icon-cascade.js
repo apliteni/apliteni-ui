@@ -21,6 +21,7 @@
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { JSDOM } from 'jsdom';
 
 /* The two dimensions every contest here is decided in. A rule can name either of
  * them in two spellings, and the second spelling is why this file has a
@@ -263,11 +264,19 @@ function alternativesIn(compound) {
  * in site/index.html — `ic` is a class written onto the svg tag itself.
  *
  * Asked of the leaf compound, and asked recursively through `:is()`/`:where()`,
- * so the shape a selector is written in decides nothing. `.rx-tbl>svg`,
- * `.rx-tbl+svg` and `.a :where(svg)` all select an svg exactly as `.rx-tbl svg`
- * does; answering "not an icon" for them left a rule that beats the reset with
- * no gate over it and no complaint either, which is the one failure this
- * machinery is for. */
+ * so the shape a selector is written in decides nothing. `.rx-tbl>svg` and
+ * `.rx-tbl+svg` select an svg exactly as `.rx-tbl svg` does; answering "not an
+ * icon" for them left a rule that beats the reset with no gate over it and no
+ * complaint either, which is the one failure this machinery is for.
+ *
+ * `.a :where(svg)` selects one too, and is recognised here — but mount() cannot
+ * build an element for it and refuses, so the rule is reported rather than
+ * measured. That is the two halves of this file disagreeing on purpose. The
+ * alternative is answering "not an icon", which is the silence above; a refusal
+ * naming the selector sends the reader to the rule instead. Teaching mount() the
+ * shape would mean choosing one alternative out of the argument list and
+ * building it, which the argument's own complex selectors and attribute
+ * selectors make more than a pseudo taken off. */
 function compoundIsSvg(compound, classes) {
   const bare = withoutArgs(compound);
   if (/^svg\b/.test(bare)) return true;
@@ -792,6 +801,75 @@ export function blindSpots(from, css, sheet) {
   return { blind, clampedBlind };
 }
 
+/* One sheet, reused, for asking whether a declaration survives being parsed.
+ * Built on first use and emptied after each question. A JSDOM per declaration
+ * answers the same thing and costs about two seconds across the three gates — a
+ * tax big enough to get the check deleted rather than fixed. */
+let probeSheet = null;
+function survivesParsing(prop, value) {
+  if (!probeSheet) {
+    const { document } = new JSDOM('<!doctype html><html><head><style></style></head></html>').window;
+    probeSheet = document.querySelector('style').sheet;
+  }
+  try {
+    probeSheet.insertRule(`a{${prop}:${value}}`, 0);
+  } catch {
+    // Not even a rule. Whatever it is, it is not a size this gate can read.
+    return false;
+  }
+  const kept = probeSheet.cssRules[0].style.getPropertyValue(prop);
+  probeSheet.deleteRule(0);
+  return !!kept;
+}
+
+/* Every sizing or clamp declaration in `css` that would not survive being
+ * parsed — the hole a subject count cannot see.
+ *
+ * jsdom keeps the declarations it understands and discards the rest without a
+ * word, so `.zz svg { width: fit-content(20%) }` reaches the CSSOM as a rule
+ * that sizes nothing. It contributes no subject; a count only moves when a
+ * subject appears or disappears; so a rule added and dropped in the same breath
+ * leaves the number exactly where it was, and the rule applies in a browser with
+ * nothing watching it. Every gate asks this of everything it sweeps.
+ *
+ * The question is asked of the raw text, because the CSSOM is precisely where
+ * the answer is missing, and each declaration is re-parsed on its own rather
+ * than being looked for by value. `fit-content(20%)` and `anchor-size(width)`
+ * are what jsdom drops today and the set grows every time CSS does, so a list of
+ * values here would be out of date by the release after this one.
+ *
+ * A logical declaration is asked under its PHYSICAL name, which is not the name
+ * the file spells. cssstyle waves `inline-size` through whatever the value, so
+ * asked as written it always survives — and then foldLogicalDims() rewrites it
+ * onto `width`, which refuses the value, and the rule ends up empty anyway. The
+ * cascade every gate measures is the physical one, so that is the cascade the
+ * declaration has to reach. It is REPORTED as written, since that is the
+ * declaration the reader has to go and find.
+ *
+ * A value holding an unresolved interpolation is left alone: jsdom drops that
+ * too, but blindSpots() already reports it and can say what is actually wrong
+ * with it, and one rule drawing two refusals under two different messages sends
+ * the reader looking for two problems. */
+export function droppedDecls(from, css) {
+  const out = [];
+  const text = stripComments(css);
+  for (const props of [SIZING_PROPS, CLAMP_PROPS]) {
+    for (const [, prop, raw] of text.matchAll(declRe(props))) {
+      const value = raw.trim();
+      if (value.includes(UNRESOLVED)) continue;
+      if (!survivesParsing(LOGICAL_DIMS.get(prop) ?? prop, value)) out.push(`${from}: ${prop}: ${value}`);
+    }
+  }
+  return out;
+}
+
+export const DROPPED_REFUSAL = 'a stylesheet sizes something with a value jsdom cannot parse, so '
+  + 'the declaration is gone from the CSSOM these gates measure and the rule reads as if it sized '
+  + 'nothing. Nothing else notices: it contributes no subject, so the count that would catch a rule '
+  + 'leaving coverage sits exactly where it was. If the rule lands on an icon it applies in a '
+  + 'browser and is measured by nobody. Write the size in a form jsdom parses, or teach the gate to '
+  + 'measure it somewhere layout exists.';
+
 export const BLIND_REFUSAL = 'a surface writes a sizing rule whose selector or value is computed '
   + 'at render time. The gate substituted a placeholder for it, so it cannot tell whether it sizes '
   + 'an icon and cannot measure it if it does. Teach resolveInterpolations().';
@@ -822,7 +900,10 @@ export function mount(document, sel, classes) {
         + 'would match. Write the rule in a shape it can mount, or teach it this shape — except '
         + 'for a state or a pseudo-element (`svg:hover`, `svg::before`), which no amount of '
         + 'teaching reaches: jsdom has no pointer to hover with and no box for a pseudo-element, '
-        + 'so an icon sized in one is unmeasurable here rather than merely unmounted.');
+        + 'so an icon sized in one is unmeasurable here rather than merely unmounted. If the part '
+        + 'names an icon inside :is() or :where(), the two halves of this machinery are meant to '
+        + 'disagree: compoundIsSvg() reads it as the icon rule it is, and this builder stops short '
+        + 'of it, so you get a refusal rather than a rule that leaves coverage in silence.');
     }
     const bare = part.replace(/\..*$/, '');
     const isSvg = bare === 'svg' || (!bare && part.split('.').slice(1).some((c) => classes.has(c)));
