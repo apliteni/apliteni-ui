@@ -636,6 +636,11 @@ if (cmd === 'run' && sub === 'list') {
 
 if (cmd === 'run' && sub === 'view') {
   maybeFail('runView');
+  // The step reads a run three ways — its status, its url, its conclusion —
+  // and \`runView\` above fails all of them alike. \`runViewConclusion\` picks out
+  // the last one, so a test about the conclusion read does not have to count
+  // how many times the follow loop happened to poll first.
+  if (fieldsAsked().join(',') === 'conclusion') maybeFail('runViewConclusion');
   chatter('runView');
   const run = state.runs.find((r) => String(r.id) === String(argv[2]));
   if (!run) {
@@ -678,6 +683,17 @@ if (cmd === 'release' && sub === 'view') {
   if (state.release) process.exit(0);
   process.stderr.write('release not found\\n');
   process.exit(1);
+}
+
+if (cmd === 'release' && sub === 'create') {
+  maybeFail('releaseCreate');
+  if (state.release) {
+    process.stderr.write('HTTP 422: Validation Failed (already_exists)\\n');
+    process.exit(1);
+  }
+  state.release = true;
+  save();
+  process.exit(0);
 }
 
 if (cmd === 'release' && sub === 'delete') {
@@ -835,6 +851,59 @@ function runPublishStep(world) {
 /** Did the step ask GitHub to start a run? */
 const dispatched = (result) => result.calls.some((c) => c[0] === 'workflow' && c[1] === 'run');
 
+/**
+ * Execute the Release step's own `run:` body against the same stubbed `gh`.
+ *
+ * The step reads `release-notes.md` through `--notes-file`, so the scratch
+ * directory it runs in gets one — the stub never opens it, but a real gh would,
+ * and a harness that only works because nothing looks is a harness that stops
+ * working the moment something does.
+ *
+ * @param {{release?: boolean, failures?: object}} world
+ */
+function runReleaseStep({ release = false, failures = {} } = {}) {
+  const scratch = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'apliteni-ui-release-'));
+  try {
+    const bin = path.join(scratch, 'bin');
+    mkdirSync(bin);
+    const statePath = path.join(scratch, 'gh-state.json');
+    const ghLog = path.join(scratch, 'gh-log');
+    const clockFile = path.join(scratch, 'clock');
+    writeFileSync(ghLog, '');
+    writeFileSync(clockFile, '0\n');
+    writeFileSync(path.join(scratch, 'release-notes.md'), `## ${TAG}\n\nwhat changed\n`);
+    writeFileSync(statePath, JSON.stringify({ runs: [], release, failures, warnings: {} }));
+    executable(path.join(bin, 'gh'), GH_STUB);
+
+    const run = spawnSync('bash', ['-c', step('Cut the Release').run], {
+      cwd: scratch,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+        CLOCK_FILE: clockFile,
+        GH_STUB_STATE: statePath,
+        GH_STUB_LOG: ghLog,
+        GH_TOKEN: 'stub',
+        TAG,
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    return {
+      status: run.status,
+      log: `${run.stdout ?? ''}${run.stderr ?? ''}`,
+      calls: readFileSync(ghLog, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)),
+      releaseNow: JSON.parse(readFileSync(statePath, 'utf8')).release,
+    };
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+}
+
+/** Did the step ask GitHub to cut a Release? */
+const created = (result) => result.calls.filter((c) => c[0] === 'release' && c[1] === 'create');
+
 /** Execute the rollback step's `run:` body, with gh and git both stubbed. */
 function runRollbackStep({ release = true, failures = {} } = {}) {
   const scratch = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'apliteni-ui-rollback-'));
@@ -941,24 +1010,47 @@ test('a chatty gh is not a run id', needsJq, () => {
 });
 
 test('a publish nobody has approved says so and stops, rather than holding the runner', needsJq, () => {
-  // MUST FIX. Seventeen minutes of waiting on a run that needs one of four
-  // reviewers, with `concurrency: tag-on-bump` queueing every push to main
-  // behind it, and an approval that can be thirty days coming. Poll briefly for
-  // an approval that has already happened; past that, say who has to click what.
+  // Seventeen minutes of waiting on a run that needs one of four reviewers,
+  // with `concurrency: tag-on-bump` queueing every push to main behind it, and
+  // an approval that can be thirty days coming. So the runner is still not
+  // held — that half of this test has not moved.
+  //
+  // What has moved is the verdict. A run held at its approval used to be red,
+  // and 0.9.1's release proved what that costs: the publish was approved 35
+  // minutes later and succeeded, the version is on npm, and the job that
+  // started it is red for ever over a human who took longer than sixty seconds
+  // to click. This job's responsibility is that a release is started and not
+  // silently lost, and at this point it has discharged all of it — the tag, the
+  // Release and the dispatch are correct and the publish is queued behind a
+  // person. So it says where to go and click, names version-drift.yml as the
+  // thing that notices if nobody ever does, and exits 0.
   const result = runPublishStep({ dispatch: { timeline: [{ at: 0, status: 'waiting' }] } });
 
-  assert.equal(result.status, 1, result.log);
-  assert.match(result.log, /approve/i);
+  assert.equal(result.status, 0, result.log);
+  assert.match(result.log, /::warning::/, 'a queued approval is a warning — not a notice, and not an error');
+  assert.doesNotMatch(result.log, /::error::/, 'nothing here is broken, so nothing here is an error');
+  assert.match(result.log, /approve/i, 'the reader has to be told what the run is waiting for');
+  assert.match(result.log, /npm-publish/, '…and which environment they are approving');
+  assert.match(result.log, /https:\/\/github\.test\/runs\/\d+/, '…and where to go and do it');
+  assert.match(result.log, /is not on npm yet/, 'green must not be read as published');
+  assert.match(result.log, /version-drift/, 'the backstop for an approval that never comes has to be named');
+  assert.doesNotMatch(
+    result.log,
+    /re-run|run this job again|dispatch(ing)? again|push to main again/i,
+    'telling a reader to start it over is how one release becomes two',
+  );
   assert.ok(result.waited < 180, `held the runner for ${result.waited}s of virtual time`);
 });
 
-test('a run approved late is reported as what it is now, not as what it was', needsJq, () => {
-  // MUST FIX. The waiting flag was sticky, so a run approved at minute one and
-  // building ever since still printed "approve it at $url". The reader clicks
-  // through and finds nothing to approve — which is the exact confusion that
-  // replacing `gh run watch` was meant to end, only backwards.
+test('a run that is still building is reported as still building, not as an approval', needsJq, () => {
+  // The other half of the guarantee the sticky-waiting flag used to break: what
+  // the annotation says has to be read off the run's status now, not off a
+  // memory of what it once was. A run that never reaches `waiting` and is still
+  // going when the follow deadline expires is a run nobody can approve, and
+  // sending its reader to click something is the exact confusion that replacing
+  // `gh run watch` was meant to end, only backwards.
   const result = runPublishStep({
-    dispatch: { timeline: [{ at: 0, status: 'waiting' }, { at: 30, status: 'in_progress' }] },
+    dispatch: { timeline: [{ at: 0, status: 'queued' }, { at: 30, status: 'in_progress' }] },
   });
 
   assert.equal(result.status, 1, result.log);
@@ -1202,6 +1294,50 @@ test('a registry unreachable for the whole wait is a warning, not a red run', ne
   assert.match(result.log, /version-drift/);
 });
 
+test('two failed reads of the conclusion in a row are absorbed like every other blip', needsJq, () => {
+  // The conclusion read was a single ask with no tolerance — `|| echo ""` —
+  // sitting twenty lines below two loops that deliberately absorb two
+  // consecutive failures. One blip emptied `$conclusion`, which the next line
+  // reads as "finished with no conclusion this job could read", and a publish
+  // that succeeded reds the job that started it.
+  const result = runPublishStep({
+    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    failures: { runViewConclusion: { times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+  });
+
+  assert.equal(result.status, 0, result.log);
+  assert.match(result.log, /is on npm/, 'the green path has to carry on to the registry check');
+  assert.ok(result.npmCalls >= 1, 'the registry check is the point of getting here at all');
+  assert.doesNotMatch(result.log, /::error::/);
+});
+
+test('three failed reads of the conclusion is the lookup failing, not a run without one', needsJq, () => {
+  // The other side of the threshold, and the distinction the message has to
+  // draw. "Finished with no conclusion this job could read" describes the run;
+  // this is the lookup, and the run may well have published. Reporting the
+  // first as the second sends a reader to debug a publish that worked.
+  const result = runPublishStep({
+    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    failures: { runViewConclusion: { exit: 1, stderr: 'HTTP 403: rate limit exceeded\nX-RateLimit-Reset: 1700000000\n' } },
+  });
+
+  assert.equal(result.status, 1, result.log);
+  const annotation = result.lines.find((l) => l.startsWith('::error::'));
+  assert.ok(annotation, `no ::error:: annotation in:\n${result.log}`);
+  assert.match(annotation, /conclusion of release\.yml run \d+ failed three times in a row/);
+  assert.match(annotation, /the lookup failing rather than the run having no conclusion/);
+  assert.doesNotMatch(
+    annotation,
+    /with no conclusion this job could read/,
+    'that sentence is about the run, and this is the lookup — telling them apart is the whole fix',
+  );
+  assert.ok(
+    annotation.includes('HTTP 403: rate limit exceeded'),
+    `gh's reason did not reach the annotation:\n${annotation}`,
+  );
+  assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
+});
+
 test('a failed publish is reported as a failed publish', needsJq, () => {
   const result = runPublishStep({
     dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'failure' }] },
@@ -1213,6 +1349,47 @@ test('a failed publish is reported as a failed publish', needsJq, () => {
 });
 
 // ---------------------------------------------------------------------------
+
+test('a Release lookup that failed is not a Release that has to be created', needsJq, () => {
+  // `gh release view "$TAG" >/dev/null 2>&1 || gh release create …` is
+  // character-for-character the conflation the rollback step one step below had
+  // removed from it: `gh release view` exits 1 for a Release that is not there
+  // and for a 502, a rate limit or a read timeout alike. So a blip fell through
+  // to `create`, which then 422s on the Release that does exist — a red job over
+  // a transient read, on a release that had nothing wrong with it.
+  const result = runReleaseStep({
+    release: true,
+    failures: { releaseView: { exit: 1, stderr: 'HTTP 502: Bad gateway\nx-github-request-id: abc\n' } },
+  });
+
+  assert.equal(result.status, 1, `a lookup that failed has to fail the step, log:\n${result.log}`);
+  assert.deepEqual(created(result), [], 'nothing may be created on a guess about what the lookup meant');
+  const annotation = result.log.split('\n').find((l) => l.startsWith('::error::'));
+  assert.ok(annotation, `no ::error:: annotation in:\n${result.log}`);
+  assert.match(annotation, /cannot tell an absent Release from a lookup that failed/);
+  assert.match(annotation, /[Nn]othing has been created/);
+  assert.ok(annotation.includes('HTTP 502: Bad gateway'), `gh's reason did not reach the annotation:\n${annotation}`);
+  assert.match(annotation, /%0A/, 'gh said two lines and both have to survive into the annotation');
+});
+
+test('a Release that genuinely is not there gets cut, with the tag verified', needsJq, () => {
+  const result = runReleaseStep({ release: false });
+
+  assert.equal(result.status, 0, result.log);
+  assert.equal(created(result).length, 1, `expected exactly one create, got: ${JSON.stringify(result.calls)}`);
+  assert.ok(
+    created(result)[0].includes('--verify-tag'),
+    `without --verify-tag gh invents a missing tag, and a lightweight one: ${JSON.stringify(created(result)[0])}`,
+  );
+  assert.equal(result.releaseNow, true);
+});
+
+test('a Release that is already cut is left alone, which is what makes a resumed release cheap', needsJq, () => {
+  const result = runReleaseStep({ release: true });
+
+  assert.equal(result.status, 0, result.log);
+  assert.deepEqual(created(result), [], 'create is not safe to retry — that is the whole reason for the view');
+});
 
 test('a Release that cannot be deleted does not get its tag deleted out from under it', needsJq, () => {
   // `delete || git push :tag` read every delete failure as "there was no
