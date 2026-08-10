@@ -58,14 +58,19 @@
 // the call in flight when a deadline expires, and the plan step's retries —
 // and relates the total to the ceiling read out of the YAML: it has to fit in
 // two thirds of it, and to be at least half of it, so the cap stays a backstop
-// for a hung call rather than a quarter of an hour of idle runner. Proved by
-// 30 → 25, 30 → 5 and 30 → 45. Every round number outside 27–35 fails it.
+// for a hung call rather than a quarter of an hour of idle runner. The sum is
+// 1140s, so the ceiling has to sit between 28.5 and 38 minutes: proved by
+// 30 → 5 and 30 → 45 outside it, and by 28 and 39 failing while 29 and 38 pass.
 //
 // The plan step asks the registry three times, five seconds and then ten
-// seconds apart — "Asked up to three times", and the job's arithmetic buys two
-// minutes for them. `a registry that stays unreachable still stops the job`
-// counts the calls and reads the waits back off the sleep stub. Proved by
-// `1 2 3` → `1 2 3 4`, by `1 2 3` → `1 2`, and by `attempt * 5` → `attempt * 7`.
+// seconds apart — "Asked up to three times". Those three are what the job's
+// arithmetic buys 195s for: registry-status.mjs gives npm a 60_000ms timeout,
+// so three that hang is 180s, and the two sleeps make 195. The prose used to
+// say two minutes and the constant in the ceiling test used to be 120, which is
+// three asks with one of them free. `a registry that stays unreachable still
+// stops the job` counts the calls and reads the waits back off the sleep stub.
+// Proved by `1 2 3` → `1 2 3 4`, by `1 2 3` → `1 2`, and by `attempt * 5` →
+// `attempt * 7`.
 //
 // §5b waits two minutes for a dispatched run to appear, polling every five
 // seconds, and reads three failed lookups in a row as the lookup being broken
@@ -96,7 +101,7 @@
 // completed/failure at 200s, and the job has to be red.
 //
 // That green exit asks the run once more before it takes it, and the ask is
-// pinned from both ends. `the confirming read agreeing the run is still
+// pinned from three sides. `the confirming read agreeing the run is still
 // waiting changes nothing` holds its cost at one round trip and no seconds —
 // still 605, still 41 follow reads, one confirming read on top — and `a run
 // that finished while the last read was failing does not get the green` is the
@@ -104,6 +109,16 @@
 // and the forty-first follow read 502ing so the loop leaves on a stale
 // `waiting`. Red off the conclusion, with npm never asked. Proved by taking
 // the confirming read back out, which exits 0 on a publish that failed.
+//
+// The third side is what the ask does with an answer that is neither of those.
+// `a confirming read that finds the run building takes the red, not the green`
+// is the same 502 on the last poll with the approval landing at 595s, so the
+// fresh read says `in_progress`: the job has to go red down the "still
+// in_progress" branch, and must not print a warning telling its reader to
+// approve a run it has just watched building. Proved by narrowing the ask back
+// to `[ "$gh_out" = "completed" ]`, which every other test in this file was
+// content with — it exits 0 with the approve-it warning on a run nobody can
+// approve, and it makes the colour depend on whether the last poll blipped.
 //
 // The conclusion read gets that tolerance too, and a five-second gap rather
 // than fifteen — which the comment above it argues for by name, because two of
@@ -121,12 +136,20 @@
 //
 // The round trips are pinned as well, and on one run rather than by adding two
 // loops' maxima together. `every wait is well inside the job’s own ceiling`
-// holds the worst single job at 69 gh calls: the in-flight search, the
-// watermark read, the dispatch, 24 appear lookups, 41 follow reads and the url
-// read, on a run that appears at the last poll of the appear window and is
-// still going when the follow deadline expires. The sum it replaced — 24 + 41
-// off two separate runs — described a job that cannot exist, because a run that
-// never appears exits the step before the follow loop is reached.
+// holds the worst single job at 73 gh calls: the in-flight search, the
+// watermark read, the dispatch, 24 appear lookups, 41 follow reads, the url
+// read, the confirming read and three tries at the conclusion. It is a run
+// that appears at the last poll of the appear window, is still `waiting` when
+// the follow deadline expires, has that last read 502 on it, finishes while it
+// is failing, and then makes the conclusion loop spend all three of its tries.
+// The other two loops cannot be made to cost a call that way — a failed lookup
+// there eats a poll slot rather than adding one — so 24 and 41 are fixed and
+// the conclusion loop is the only one a blip lengthens. Two figures came
+// before this one. 24 + 41, added off two separate runs, described a job that
+// cannot exist, because a run that never appears exits the step before the
+// follow loop is reached. The 69 that took its place was measured on a real
+// run, but before the confirming read existed and on a run that finishes
+// nothing, so it never reached the conclusion loop either.
 //
 // Three numbers that are not durations are claimed as well. The exit codes —
 // "0 it is published, 2 it is not" from registry-status.mjs, and the same
@@ -559,9 +582,10 @@ test('a registry that stays unreachable still stops the job', () => {
   assert.ok(plan.npmCalls > 1, `expected more than one attempt, got ${plan.npmCalls}`);
 
   // Three, and not "more than one". The comment above the loop says three and
-  // the job's arithmetic budgets two minutes for them; a fourth attempt spends
-  // another npm timeout that nothing upstairs has counted, and `npmCalls > 1`
-  // is as happy with six as with three.
+  // the job's arithmetic budgets 195s for them — three npm timeouts of 60s each
+  // plus the two sleeps below. A fourth attempt spends another minute that
+  // nothing upstairs has counted, and `npmCalls > 1` is as happy with six as
+  // with three.
   assert.equal(plan.npmCalls, 3, `the registry is asked three times, not ${plan.npmCalls}`);
 
   // The backoff, which is otherwise invisible: five seconds then ten, and
@@ -1336,6 +1360,42 @@ test('a run that finished while the last read was failing does not get the green
   assert.equal(result.waited, 605, `waited ${result.waited}s; the confirming read adds a round trip and no sleep`);
 });
 
+test('a confirming read that finds the run building takes the red, not the green', needsJq, () => {
+  // The other answer the confirming read can come back with, and the one a
+  // narrowing to `completed` threw away. The approval landed inside the last
+  // fifteen-second gap and release.yml is building; the read at the deadline
+  // 502s, so the loop leaves on a `waiting` that stopped being true a moment
+  // ago. Honour only `completed` and the stale value stands: the job prints a
+  // warning telling the reader to go and approve a run it has just read as
+  // running, and exits 0 — the "page with nothing to approve on it" the branch
+  // below this one names as a defect that was fixed.
+  //
+  // It is a colour inconsistency too. Two runs both `in_progress` at the
+  // deadline get opposite verdicts on whether the previous poll happened to
+  // blip. `in_progress` at the deadline is red on purpose — the step has run
+  // out of anything useful to say — and a blip must not exempt one run from it.
+  //
+  // Timed to the gap: `waiting` throughout, `in_progress` from 595s, and the
+  // forty-first and last follow read failing. The fortieth read lands at 590s
+  // and still sees `waiting`, so the loop has no way to know.
+  const result = runPublishStep({
+    dispatch: {
+      timeline: [
+        { at: 0, status: 'waiting' },
+        { at: 595, status: 'in_progress' },
+      ],
+    },
+    failures: { runView: { after: 40, times: 1, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+  });
+
+  assert.equal(result.status, 1, `a run nobody can approve must not take the green, log:\n${result.log}`);
+  assert.match(result.log, /still in_progress/, 'the run is named as what the last successful read said it is');
+  assert.doesNotMatch(result.log, /::warning::/, 'the green exit belongs to a run that is still waiting, and this is not one');
+  assert.doesNotMatch(result.log, /approve/i, 'there is nothing left to approve — somebody already did');
+  assert.equal(confirmingViews(result), 1, 'still one ask, and now its answer is used whatever it says');
+  assert.equal(followViews(result), 41, 'the follow loop is still paid in full before the confirming read');
+});
+
 test('a run that is still building is reported as still building, not as an approval', needsJq, () => {
   // The other half of the guarantee the sticky-waiting flag used to break: what
   // the annotation says has to be read off the run's status now, not off a
@@ -1386,8 +1446,14 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // checked between calls and not during one, so the call in flight when it
   // expires runs on top — npm's own timeout being the longest of them. And the
   // plan step's registry retries happen before this step is reached at all.
+  //
+  // The plan step's figure is measured off the code rather than off the prose
+  // that used to claim two minutes for it: three asks of registry-status.mjs,
+  // which gives npm a 60_000ms timeout of its own, with a five- and then a
+  // ten-second sleep between them. Three npms that hang is 180s, and the sleeps
+  // make 195.
   const CALL_IN_FLIGHT = 60;
-  const PLAN_STEP_RETRIES = 120;
+  const PLAN_STEP_RETRIES = 195;
   const pathological = sleeps + CALL_IN_FLIGHT + PLAN_STEP_RETRIES;
 
   const ceiling = jobNumber('timeout-minutes') * 60;
@@ -1420,21 +1486,48 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // that never appears exits the step before the follow loop is reached, so
   // 24 + 41 was a worst case nothing could reach. The genuine worst is a single
   // run that pays both loops in full — dispatched, appearing on the last poll
-  // of the two-minute appear window, and still running when the ten-minute
-  // follow deadline expires — and it costs more than the sum did, not less,
-  // because the calls around the loops count too.
+  // of the two-minute appear window, and still going when the ten-minute follow
+  // deadline expires — and it costs more than the sum did, not less, because
+  // the calls around the loops count too.
+  //
+  // It also pays every blip the step is built to absorb, because those are
+  // round trips like any other and this is the traffic ceiling. Two of the
+  // three loops cannot be made to spend one: a failed lookup in the appear or
+  // the follow loop consumes a poll slot rather than adding a call, so both
+  // stay at 24 and 41 however badly the API behaves. The conclusion loop is the
+  // one with no clock over it, and its three tries are three calls. So the run
+  // measured here is `waiting` all the way to the deadline, has its
+  // forty-first and last follow read 502 — which is the read the confirming
+  // ask below exists for — finishes while that read is failing, and then needs
+  // all three tries to get its conclusion out of GitHub.
+  //
+  // The seconds the same run spends are not the sum above and do not need to
+  // be: 730 against the 885 those three measurements come to. The pessimistic
+  // sum stays the pessimistic sum.
   const worst = runPublishStep({
-    dispatch: { appearAfter: 120, timeline: [{ at: 0, status: 'in_progress' }] },
+    dispatch: {
+      appearAfter: 120,
+      timeline: [
+        { at: 0, status: 'waiting' },
+        { at: 720, status: 'completed', conclusion: 'failure' },
+      ],
+    },
+    failures: {
+      runView: { after: 40, times: 1, exit: 1, stderr: 'HTTP 502: bad gateway\n' },
+      runViewConclusion: { times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' },
+    },
   });
   assert.equal(worst.status, 1, worst.log);
   assert.equal(appearLookups(worst), 24, 'the appear loop has to be paid in full for this to be the worst case');
   assert.equal(followViews(worst), 41, '…and the follow loop too');
+  assert.equal(confirmingViews(worst), 1, '…and the confirming read has to be reached, which the stale `waiting` does');
   assert.equal(
     worst.calls.length,
-    69,
-    `the worst single job makes ${worst.calls.length} API round trips; the job-level comment says sixty-odd. ` +
-      'That is the in-flight search, the watermark read, the dispatch, 24 appear lookups, 41 follow reads and the ' +
-      'url read — every one of them a call to an API with a rate limit on it.',
+    73,
+    `the worst single job makes ${worst.calls.length} API round trips; the job-level comment says seventy-odd. ` +
+      'That is the in-flight search, the watermark read, the dispatch, 24 appear lookups, 41 follow reads, the url ' +
+      'read, the confirming read and three tries at the conclusion — every one of them a call to an API with a ' +
+      'rate limit on it.',
   );
 });
 

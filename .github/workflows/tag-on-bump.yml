@@ -173,15 +173,17 @@ jobs:
     # reads of its conclusion, 150s asking npm afterwards. Each deadline is
     # checked between calls rather than during one, so the call in flight when a
     # deadline expires runs on top: at most another minute, npm's own timeout
-    # being the longest of them. The plan step's registry retries can spend two
-    # minutes before any of that. Eighteen minutes, then, plus a checkout, a
-    # setup-node and the sixty-odd API round trips the polling makes — so a
-    # pathological run lands around twenty. Most pushes release nothing and end
-    # in the plan step in seconds; a release ends when the publish does, and a
-    # release nobody approves spends the ten-minute watch and goes green. What
-    # is left is the headroom, and it has to stay: a job the runner kills prints
-    # none of the annotations at the end of the publish step, which is the "red
-    # with no message" that step was written to remove.
+    # being the longest of them. The plan step's registry retries can spend
+    # 195s before any of that — three asks, each able to sit out the 60s
+    # timeout registry-status.mjs gives npm, with a five- and a ten-second
+    # sleep between them. Nineteen minutes, then, plus a checkout, a setup-node
+    # and the seventy-odd API round trips the polling makes — so a pathological
+    # run lands around twenty. Most pushes release nothing and end in the plan
+    # step in seconds; a release ends when the publish does, and a release
+    # nobody approves spends the ten-minute watch and goes green. What is left
+    # is the headroom, and it has to stay: a job the runner kills prints none
+    # of the annotations at the end of the publish step, which is the "red with
+    # no message" that step was written to remove.
     #
     # A deadline below that grows has to be re-checked against this sum, and a
     # test does the re-checking rather than a reader: `every wait is well inside
@@ -788,15 +790,26 @@ jobs:
           # asked once more, and the answer comes from what it is *now* — the
           # same rule the branch below §5c's green states about the annotation.
           #
+          # Whatever that answer is, and not only `completed`. Honouring the one
+          # reply that finishes the run leaves the stale `waiting` standing for
+          # an approval that landed in the last fifteen seconds with the publish
+          # still building: the job would print a warning sending its reader to
+          # approve a run it has this moment read as `in_progress` — the page
+          # with nothing to approve on it that the branch below §5c's green
+          # names. It would also let a blip pick the colour, two runs both
+          # `in_progress` at the deadline going opposite ways on whether the
+          # last poll happened to 502.
+          #
           # One ask, with no retry loop around it, because a confirming read
           # that fails is not a reason to change the answer: the job would have
           # gone green on the stale `waiting` anyway, so a failure here leaves
           # exactly the behaviour there was before this read existed. It can
-          # only improve the outcome, and it can never hold the job up.
+          # only put a fresher status in place of an older one, and it can never
+          # hold the job up.
           if [ "$run_status" = "waiting" ]; then
             gh_capture run view "$run_id" --json status --jq '.status'
-            if [ "$gh_status" -eq 0 ] && [ "$gh_out" = "completed" ]; then
-              run_status="completed"
+            if [ "$gh_status" -eq 0 ]; then
+              run_status="$gh_out"
             fi
           fi
 
