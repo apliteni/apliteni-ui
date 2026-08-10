@@ -42,7 +42,21 @@ test('the workflow publishes a file path, not a git shorthand', () => {
     // pass while the real workflow, which packs into dist-pack/, fails.
     const sub = path.join(scratch, 'dist-pack');
     mkdirSync(sub);
-    execFileSync('npm', ['pack', '--pack-destination', sub], {
+    // --ignore-scripts is load-bearing, and removing it makes another test fail
+    // rather than this one. A root `npm pack` runs `prepare`, which is tsup with
+    // `clean: true`: it deletes react/dist and re-emits it, JS and CSS in about
+    // 50ms and the types roughly 1.3s later in CI. scripts/packaging.test.js
+    // packs the root too, and node --test runs the two files at once, so without
+    // this flag two builds race — one pack archives react/dist in the gap where
+    // the other build's clean has removed index.d.ts and not yet rewritten it,
+    // and ships a package with JS, CSS and no types. That is the packaging gate
+    // going red on a defect nobody introduced.
+    //
+    // Nothing here reads the tarball. It exists to be a real .tgz at a path with
+    // a slash in it, which is the only thing the publish command below is being
+    // asked about, so a pack that skips the build is the same pack for this
+    // test's purposes.
+    execFileSync('npm', ['pack', '--ignore-scripts', '--pack-destination', sub], {
       cwd: root,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
