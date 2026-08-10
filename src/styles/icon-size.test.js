@@ -37,6 +37,27 @@
  * jsdom serialises `.x { svg { … } }` as `& svg`, which has no class either and
  * would be silently dropped as if it were the reset.
  *
+ * TWO SPELLINGS, ONE CONTEST. `inline-size` and `block-size` share a computed
+ * value with `width` and `height` and cascade as one with them, so a rule
+ * written `.x svg { inline-size: 40px }` at (0,1,1) beats the reset's `width` at
+ * (0,0,1) and decides the icon exactly as a physical declaration would. jsdom
+ * does not model that sharing: it keeps the logical declaration in a cascade of
+ * its own that `width` never enters, where it wins every contest it is in,
+ * including the ones a browser makes it lose. Measured as written it would be a
+ * gate that cannot fail. So each logical declaration is rewritten onto its
+ * physical counterpart before anything is mounted — value and `!important`
+ * alike, and respecting where it sat in its own block — and what gets measured
+ * below is the contest the browser holds. The subject keeps the property as the
+ * file spells it, so every test name below is a string the stylesheet contains.
+ *
+ * That rewrite is the horizontal-writing-mode mapping, which is every icon in
+ * this repo. It is asserted rather than assumed: a `writing-mode` declaration
+ * anywhere in these stylesheets stops the gate, because in a vertical mode
+ * `inline-size` is the other axis and folding it onto `width` would measure the
+ * wrong contest and pass. See foldLogicalDims() in
+ * scripts/lib/icon-cascade.js; its own cases are in
+ * scripts/lib/icon-cascade.test.js.
+ *
  * WHAT THIS WILL NOT CATCH, stated weakly on purpose:
  *
  *  - A RESET SCOPED TO AN ANCESTOR. Subjects are mounted with only the
@@ -51,17 +72,16 @@
  *    icon is 17px". Editing 17px to 18px renames the test and stays green. That
  *    is the right contract for a cascade gate and the wrong one to mistake for
  *    design review.
- *  - ANY DIMENSION OTHER THAN width/height. DIMS in
- *    scripts/lib/icon-cascade.js is those two and nothing else, so a rule
- *    sizing an icon with `inline-size`, `block-size` or a min-/max- form
- *    contributes no subject and loses no contest here — and the two forms then
- *    go wrong differently in a real browser. `inline-size` and `block-size`
- *    cascade as one with their physical counterparts, so `.x svg { inline-size:
- *    40px }` at (0,1,1) out-specifies the reset's `width` at (0,0,1) and takes
- *    the contest. `min-width` / `max-width` / `min-height` / `max-height` never
- *    enter `width`'s cascade at all: the reset still wins `width`, and the
- *    min-/max- value clamps the used value afterwards, which changes nothing
- *    unless the clamp binds. Nothing on an svg subject uses either form today.
+ *  - AN ICON SIZED BY A CLAMP. `min-width` / `max-width` / `min-height` /
+ *    `max-height`, and the logical spellings of the four, never enter `width`'s
+ *    cascade at all: the reset still wins `width`, and the clamp applies to the
+ *    used value afterwards, so the icon can render at a size no rule in the
+ *    cascade names. There is no contest for this gate to measure, and jsdom has
+ *    no layout to apply the clamp in either, so measuring one would be
+ *    asserting a contest that does not happen. Nothing in the kit clamps an
+ *    icon today, and the test named `no rule in the kit sizes an icon with a
+ *    clamp` is what keeps that sentence true — the first clamp to land on an
+ *    icon fails this gate instead of passing quietly through it.
  *  - Layout. jsdom has none, so `width: 100%` reads back as the string `100%`.
  *    That proves the rule won, and says nothing about the pixels on screen.
  *  - Markup. A rule can apply perfectly and never meet an element, because
@@ -83,7 +103,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import {
+  CLAMP_REFUSAL,
   DIMS,
+  clampsOn,
+  foldLogicalDims,
   isSvgSubject,
   kitSheetNames,
   kitStyleHtml,
@@ -92,6 +115,7 @@ import {
   rulesOf,
   svgClassSet,
   without,
+  writtenAs,
 } from '../../scripts/lib/icon-cascade.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -118,6 +142,11 @@ const { document, getComputedStyle } = dom.window;
 assert.equal(document.styleSheets.length, SHEETS.length,
   'jsdom dropped a stylesheet — every rule in it would silently leave coverage.');
 
+// A rule written with a logical property is rewritten onto the physical one it
+// shares a computed value with, here, before anything is measured — see
+// foldLogicalDims().
+SHEETS.forEach((name, i) => foldLogicalDims(document.styleSheets[i], name));
+
 // The classes the kit puts on an <svg>, read out of the components rather than
 // listed here, so a new one joins coverage by existing — see svgClassSet().
 const SVG_CLASSES = svgClassSet([src]);
@@ -139,7 +168,7 @@ for (const [i, name] of SHEETS.entries()) {
       if (!isSvgSubject(sel, SVG_CLASSES)) continue;
       for (const dim of DIMS) {
         const want = rule.style.getPropertyValue(dim).trim();
-        if (want) subjects.push({ sel, dim, want, sheet: name, rule });
+        if (want) subjects.push({ sel, dim, want, sheet: name, rule, as: writtenAs(rule, dim) });
       }
     }
   }
@@ -152,8 +181,16 @@ test('every icon sizing rule in the kit is still gated', () => {
     + 'in the commit — a rule that leaves coverage is otherwise indistinguishable from a pass.');
 });
 
-for (const { sel, dim, want, sheet, rule } of subjects) {
-  test(`${sel} { ${dim}: ${want} } decides the icon's ${dim}`, () => {
+test('no rule in the kit sizes an icon with a clamp', () => {
+  // base.css is swept too. The reset is excluded from the subjects above
+  // because it is the rule they are measured against, but a clamp on it would
+  // be no more measurable than a clamp anywhere else.
+  const clamped = SHEETS.flatMap((name, i) => clampsOn(document.styleSheets[i], name, SVG_CLASSES));
+  assert.deepEqual(clamped, [], CLAMP_REFUSAL);
+});
+
+for (const { sel, dim, want, sheet, rule, as } of subjects) {
+  test(`${sel} { ${as}: ${want} } decides the icon's ${dim}`, () => {
     const { el, top } = mount(document, sel, SVG_CLASSES);
     try {
       assert.ok(el.matches(sel),
@@ -169,12 +206,12 @@ for (const { sel, dim, want, sheet, rule } of subjects) {
       const got = getComputedStyle(el).getPropertyValue(dim);
       const expected = resolve(getComputedStyle, el, dim, want);
       assert.equal(got, expected,
-        `${sheet} asks for ${dim}: ${want} (resolves to ${expected}) and the cascade gives ${got}. `
+        `${sheet} asks for ${as}: ${want} (resolves to ${expected}) and the cascade gives ${got}. `
         + 'Something upstream out-specifies it — see the header of this file.');
       // And prove that comparison could have failed — see without().
       const gone = without(getComputedStyle, el, rule, dim);
       assert.notEqual(gone, expected,
-        `taking "${dim}: ${want}" out of ${sheet} changes nothing — the element still computes `
+        `taking "${as}: ${want}" out of ${sheet} changes nothing — the element still computes `
         + `${gone}. So the assertion above passes whether this rule wins or loses, and gates `
         + 'nothing. Either the rule is redundant and should go, or this subject needs a basis '
         + 'that pulls it apart from whatever else is setting the same value.');
