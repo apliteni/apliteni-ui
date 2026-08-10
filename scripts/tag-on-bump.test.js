@@ -29,6 +29,94 @@
 // a millisecond and the elapsed time is itself something a test can assert on.
 // The stub hands the real `--jq` programs to the real jq, because those filters
 // are where two of the four defects were.
+//
+// ---------------------------------------------------------------------------
+// Every number tag-on-bump.yml argues for, and what holds it there
+// ---------------------------------------------------------------------------
+//
+// That file explains its literals in prose: a wait is "two minutes", a
+// threshold is "three in a row", and the job-level comment adds the deadlines
+// up and sets `timeout-minutes` from the sum. A number a comment claims and no
+// test holds is a number that drifts, quietly — `timeout-minutes: 30 → 5` and
+// `registry_deadline: 150 → 900` both left this suite green, because a wait
+// asserted only from underneath is as content at six times its length as at
+// the length it says it is.
+//
+// So each one is pinned below, and each pin was proved by putting the mutation
+// into the workflow on disk, diffing to be sure the edit had landed, watching
+// the test fail, and reverting. Measurement rather than reading the YAML, for
+// the reason given further up: the harness runs the real `run:` bodies on a
+// virtual clock, so a deadline is pinned by the seconds a step actually spends
+// and a retry count by how many times the stub is actually called.
+//
+// `timeout-minutes: 30` is the one that cannot be measured, because no `run:`
+// body can exercise a runner setting. It is not asserted at a number either —
+// that is what `result.waited <= 700` did, against a budget written down
+// nowhere else, and 30 → 5 walked straight past it. `every wait is well inside
+// the job’s own ceiling` measures the three waits at their worst (120s, 600s
+// and 165s), adds the two costs the comment names that no clock here can see —
+// the call in flight when a deadline expires, and the plan step's retries —
+// and relates the total to the ceiling read out of the YAML: it has to fit in
+// two thirds of it, and to be at least half of it, so the cap stays a backstop
+// for a hung call rather than a quarter of an hour of idle runner. Proved by
+// 30 → 25, 30 → 5 and 30 → 45. Every round number outside 27–35 fails it.
+//
+// The plan step asks the registry three times, five seconds and then ten
+// seconds apart — "Asked up to three times", and the job's arithmetic buys two
+// minutes for them. `a registry that stays unreachable still stops the job`
+// counts the calls and reads the waits back off the sleep stub. Proved by
+// `1 2 3` → `1 2 3 4`, by `1 2 3` → `1 2`, and by `attempt * 5` → `attempt * 7`.
+//
+// §5b waits two minutes for a dispatched run to appear, polling every five
+// seconds, and reads three failed lookups in a row as the lookup being broken
+// rather than the run being slow. `a dispatch whose run never appears gives up
+// at two minutes` holds the deadline at 120s exactly and the polling at 24
+// lookups: a deadline says nothing about how often GitHub is asked, and
+// halving the sleep doubles the traffic without moving a single clock.
+// `two failed lookups in a row are the blip the appear loop exists to absorb`
+// holds the threshold from below, `three failed lookups in a row…` from above.
+// Proved by 120 → 900, by 120 → 150 (the value the old `<= 150` bound let
+// through), by `sleep 5` → `sleep 10`, and by `-ge 3` → `-ge 2` and → `-ge 4`.
+//
+// §5c follows a running publish for ten minutes, fifteen seconds at a time,
+// with the same threshold. `following a run that never finishes takes ten
+// minutes, fifteen seconds at a time` holds both, at 600s and 41 reads.
+// Proved by 600 → 900, 600 → 300, `sleep 15` → `sleep 30`, and the threshold
+// both ways.
+//
+// The conclusion read gets that tolerance too, and a five-second gap rather
+// than fifteen — which the comment above it argues for by name, because two of
+// them is the ten seconds the job's arithmetic carries. `the conclusion is
+// re-read after five seconds, not fifteen` measures it as the difference
+// between the same release with the blips and without them, so what is left is
+// that loop's own cost and not the appear wait in front of it. Proved by
+// `sleep 5` → `sleep 15`, and the threshold both ways.
+//
+// §5d gives npm two and a half minutes, thirty seconds apart, which the
+// comment there says is six attempts. `the registry gets two and a half
+// minutes of asking, thirty seconds apart` holds the window at 150s by the
+// same difference and the attempts at six. Proved by 150 → 900, 150 → 60, and
+// `sleep 30` → `sleep 60`.
+//
+// Three numbers that are not durations are claimed as well. The exit codes —
+// "0 it is published, 2 it is not" from registry-status.mjs, and the same
+// three-way shape from `git ls-remote --exit-code` — are held by the plan
+// tests at the top of this file; proved by turning each `2)` label into `9)`.
+// The `%0A` encoding an annotation needs to survive more than one line is held
+// by every test that reads an `::error::` back. And `release not found|HTTP
+// 404`, the match that decides a Release is absent, had a test for its first
+// half only: `a 404 is a Release that is not there, in both steps that ask`
+// covers the other, proved by 404 → 410.
+//
+// The rest, so that this can be told from a partial list. `--limit 50` on the
+// three `gh run list` calls is claimed by no comment and held by no test,
+// which is worth knowing rather than worth fixing here: it is a real
+// dependency — a repository with more than fifty release.yml runs newer than
+// the one being looked for would not find it — but nothing in the file says
+// so, and inventing the claim is the workflow's business and not this file's.
+// `node-version: 24`, the two pinned action SHAs with their `# v7.0.1`
+// labels, and the `// 0` and `:-0` fallbacks behind BEFORE_ID are unclaimed
+// and unpinned.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -105,6 +193,21 @@ function step(name) {
   const found = steps.find((s) => s.name === name);
   assert.ok(found, `tag-on-bump.yml has no step named "${name}" — steps are: ${steps.map((s) => s.name)}`);
   return found;
+}
+
+/**
+ * A number the job declares to the runner rather than one a step spends.
+ *
+ * The only thing in this file read out of the YAML as a value, and only
+ * because `timeout-minutes` is a runner setting: no `run:` body can exercise
+ * it, so there is nothing to measure. It is not asserted on directly either —
+ * it is one side of a relation whose other side is measured. See
+ * `every wait is well inside the job’s own ceiling`.
+ */
+function jobNumber(key) {
+  const found = workflow.match(new RegExp(`^ {4}${key}:\\s*(\\d+)\\s*$`, 'm'));
+  assert.ok(found, `tag-on-bump.yml has no \`    ${key}:\` line — has the job changed shape?`);
+  return Number(found[1]);
 }
 
 // ---------------------------------------------------------------------------
@@ -252,9 +355,13 @@ function runPlanStep({ published, registryAnswers, tagAt, breakPeelLookup = fals
       registryAnswers ?? [published === 'unreachable' ? 'unreachable' : published ? 'published' : 'unpublished'];
     const npmCalls = writeNpmStub(bin, scratch, answers);
 
-    // Retries are the behaviour under test, not the waiting. Nothing else in
-    // this step sleeps.
-    writeFileSync(path.join(bin, 'sleep'), '#!/bin/sh\nexit 0\n');
+    // Retries are the behaviour under test, not the waiting — so `sleep`
+    // returns at once. It writes down what it was asked to wait for, though:
+    // the backoff between the registry retries is a number the comment above
+    // them budgets for, and the argument is the only place it is observable.
+    const sleepLog = path.join(scratch, 'sleeps');
+    writeFileSync(sleepLog, '');
+    writeFileSync(path.join(bin, 'sleep'), `#!/bin/sh\nprintf '%s\\n' "$1" >> '${sleepLog}'\nexit 0\n`);
     chmodSync(path.join(bin, 'sleep'), 0o755);
 
     if (breakPeelLookup) {
@@ -286,6 +393,7 @@ function runPlanStep({ published, registryAnswers, tagAt, breakPeelLookup = fals
       status: run.status,
       log: `${run.stdout ?? ''}${run.stderr ?? ''}`,
       npmCalls: Number(readFileSync(npmCalls, 'utf8').trim()),
+      sleeps: readFileSync(sleepLog, 'utf8').split('\n').filter(Boolean),
       outputs: Object.fromEntries(
         readFileSync(outputFile, 'utf8')
           .split('\n')
@@ -419,6 +527,20 @@ test('a registry that stays unreachable still stops the job', () => {
 
   assert.equal(plan.status, 1, `expected the step to fail, log:\n${plan.log}`);
   assert.ok(plan.npmCalls > 1, `expected more than one attempt, got ${plan.npmCalls}`);
+
+  // Three, and not "more than one". The comment above the loop says three and
+  // the job's arithmetic budgets two minutes for them; a fourth attempt spends
+  // another npm timeout that nothing upstairs has counted, and `npmCalls > 1`
+  // is as happy with six as with three.
+  assert.equal(plan.npmCalls, 3, `the registry is asked three times, not ${plan.npmCalls}`);
+
+  // The backoff, which is otherwise invisible: five seconds then ten, and
+  // nothing after the last attempt, because there is nothing left to wait for.
+  assert.deepEqual(
+    plan.sleeps,
+    ['5', '10'],
+    'the backoff is attempt * 5, and the third attempt is not followed by a wait',
+  );
 });
 
 test('a warning that cannot be printed is not a reason to fail the release', () => {
@@ -852,6 +974,24 @@ function runPublishStep(world) {
 const dispatched = (result) => result.calls.some((c) => c[0] === 'workflow' && c[1] === 'run');
 
 /**
+ * How many times each polling loop went round.
+ *
+ * A deadline says how long a loop may run for; the sleep inside it says how
+ * many times GitHub gets asked in that window, and the two are independent —
+ * halving the sleep leaves every wall-clock assertion in this file green and
+ * doubles the API traffic the job-level comment adds up. So both get counted.
+ *
+ * The appear loop is the only `gh run list` carrying `--event`, which is what
+ * tells it apart from the in-flight search and the watermark read above it.
+ */
+const appearLookups = (result) =>
+  result.calls.filter((c) => c[0] === 'run' && c[1] === 'list' && c.includes('--event')).length;
+
+/** Reads of a run's `status` — the follow loop, and nothing else. */
+const followViews = (result) =>
+  result.calls.filter((c) => c[0] === 'run' && c[1] === 'view' && c.includes('status')).length;
+
+/**
  * Execute the Release step's own `run:` body against the same stubbed `gh`.
  *
  * The step reads `release-notes.md` through `--notes-file`, so the scratch
@@ -1059,25 +1199,71 @@ test('a run that is still building is reported as still building, not as an appr
 });
 
 test('every wait is well inside the job’s own ceiling', needsJq, () => {
-  // `timeout-minutes: 30` has to be the backstop for a hung `gh`, not the thing
-  // that stops an ordinary run: a job the runner kills prints none of the
-  // annotations below it, which is the "red with no message" this rewrite
-  // existed to remove. The longest path is a run that never finishes.
+  // `timeout-minutes` has to be the backstop for a `gh` or an `npm` that hangs,
+  // not the thing that stops an ordinary run: a job the runner kills prints
+  // none of the annotations below it, which is the "red with no message" this
+  // rewrite existed to remove.
   //
-  // Asserted at the real number and not at a round one twice its size. The
-  // sleeps here are exactly the appear wait plus the follow wait — 60s for this
-  // run to become visible, then the full 600s deadline — so 660s is the answer
-  // and anything else is a deadline that moved. `< 1200` let the follow
-  // deadline be pushed to 1100s without a word, which is most of the job's
-  // ceiling spent on one wait.
-  const result = runPublishStep({
-    dispatch: { appearAfter: 60, timeline: [{ at: 0, status: 'in_progress' }] },
+  // It is the one number in the workflow no `run:` body can exercise, so this
+  // is the one test that reads a number out of the YAML — but it does not
+  // assert on it. It relates it to time actually spent on the virtual clock,
+  // which is what makes the job-level comment's arithmetic something other
+  // than a promise. This test used to be `result.waited <= 700` against a
+  // budget written down nowhere, and 30 → 5 left it green.
+  //
+  // Every wait in the step, each measured at its own worst:
+  const appear = runPublishStep({ dispatch: { creates: false } });
+  const follow = runPublishStep({ runs: [{ id: 100, timeline: [{ at: 0, status: 'in_progress' }] }] });
+  const tail = runPublishStep({
+    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    failures: { runViewConclusion: { times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+    registryAnswers: ['unreachable'],
   });
+  assert.equal(appear.status, 1, appear.log);
+  assert.equal(follow.status, 1, follow.log);
+  assert.equal(tail.status, 0, tail.log);
 
-  assert.equal(result.status, 1, result.log);
+  // Slightly over the truth rather than under it: the tail run pays the appear
+  // loop's first five seconds as well, and the appear and follow maxima cannot
+  // quite both be spent on one run. A ceiling check wants the pessimistic sum.
+  const sleeps = appear.waited + follow.waited + tail.waited;
+
+  // The two costs the comment names that no clock here can see. A deadline is
+  // checked between calls and not during one, so the call in flight when it
+  // expires runs on top — npm's own timeout being the longest of them. And the
+  // plan step's registry retries happen before this step is reached at all.
+  const CALL_IN_FLIGHT = 60;
+  const PLAN_STEP_RETRIES = 120;
+  const pathological = sleeps + CALL_IN_FLIGHT + PLAN_STEP_RETRIES;
+
+  const ceiling = jobNumber('timeout-minutes') * 60;
+  const minutes = (s) => `${(s / 60).toFixed(1)} min`;
+
+  // A third of the ceiling stays free, for the checkout, the setup-node, the
+  // round trips below, and the headroom the comment insists on keeping.
   assert.ok(
-    result.waited <= 700,
-    `waited ${result.waited}s; the appear wait plus the follow deadline is 660s, and the room under timeout-minutes: 30 is budgeted on that`,
+    pathological <= (ceiling * 2) / 3,
+    `the waits in this step come to ${minutes(sleeps)}, and ${minutes(pathological)} with the plan step's retries and ` +
+      `one call in flight — which is more than two thirds of the ${minutes(ceiling)} ceiling. Either a deadline grew ` +
+      `or timeout-minutes shrank; a job the runner kills prints none of its annotations.`,
+  );
+
+  // …and not so far above them that the cap has stopped being a backstop for a
+  // hung call and become a quarter of an hour of an idle runner.
+  assert.ok(
+    pathological >= ceiling / 2,
+    `the waits in this step come to ${minutes(pathological)} against a ${minutes(ceiling)} ceiling. timeout-minutes ` +
+      `is the backstop for a call that hangs, and one set to more than twice the longest thing below it is a hung ` +
+      `job nobody hears about for that long.`,
+  );
+
+  // The other half of the arithmetic: the comment counts round trips, not just
+  // seconds, and the sleeps inside the loops are what set them. Halving one
+  // leaves every wall-clock assertion above green and doubles the traffic.
+  const roundTrips = appearLookups(appear) + followViews(follow);
+  assert.ok(
+    roundTrips >= 60 && roundTrips < 70,
+    `the polling makes ${roundTrips} API round trips; the job-level comment says sixty-odd`,
   );
 });
 
@@ -1092,10 +1278,93 @@ test('a dispatch whose run never appears gives up at two minutes', needsJq, () =
   assert.equal(result.status, 1, result.log);
   assert.match(result.log, /no matching run appeared within two minutes/);
   assert.ok(result.waited >= 120, `gave up after ${result.waited}s — a run can take most of two minutes to appear`);
-  assert.ok(
-    result.waited <= 150,
-    `waited ${result.waited}s for a run to appear; the deadline says two minutes and timeout-minutes: 30 is budgeted on it`,
+  // Two minutes exactly, and asserted as an equality rather than as a bound
+  // with room in it. `<= 150` let the deadline be pushed to 150s without a
+  // word, and the sum under `timeout-minutes` is worked out on this being 120.
+  assert.equal(
+    result.waited,
+    120,
+    `waited ${result.waited}s for a run to appear; the message above says two minutes and the job's ceiling is budgeted on it`,
   );
+  // …and the interval it is spent in. The deadline alone says nothing about
+  // how often GitHub is asked: at `sleep 10` this wait is still two minutes
+  // and half the round trips, at `sleep 1` it is two minutes and six hundred.
+  assert.equal(appearLookups(result), 24, 'two minutes of five-second polling is twenty-four lookups');
+});
+
+test('following a run that never finishes takes ten minutes, fifteen seconds at a time', needsJq, () => {
+  // The follow deadline, on its own: an already-in-flight run means no
+  // dispatch and no appear loop, so every second on the clock afterwards
+  // belongs to this wait and nothing has to be subtracted from it.
+  //
+  // Both sides, because one side is how `registry_deadline` was found to be
+  // unpinned from above — `>= 600` is as content at 900 as at 600, and 900
+  // here would be half the job's ceiling spent following one run.
+  const result = runPublishStep({
+    runs: [{ id: 100, timeline: [{ at: 0, status: 'in_progress' }] }],
+  });
+
+  assert.equal(result.status, 1, result.log);
+  assert.match(result.log, /still in_progress/);
+  assert.equal(result.waited, 600, `followed the run for ${result.waited}s; the comment above the loop says ten minutes`);
+  assert.equal(followViews(result), 41, 'ten minutes of fifteen-second polling is forty-one reads');
+});
+
+test('the conclusion is re-read after five seconds, not fifteen', needsJq, () => {
+  // The one wait in this step whose length is argued for out loud: "Five
+  // seconds between tries, not fifteen: this is the last thing the step does
+  // before the registry check and two of them is the whole cost, so ten
+  // seconds is what this adds to the job's arithmetic." Ten seconds is
+  // therefore a number the sum under `timeout-minutes` contains, and nothing
+  // measured it.
+  //
+  // Measured as the difference between the same release with and without the
+  // blips, so the answer is the conclusion loop's own cost and not the appear
+  // wait in front of it. A single run's clock would be pinning three numbers
+  // at once and failing for whichever of them moved.
+  const world = { dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] } };
+  const clean = runPublishStep(world);
+  const blipped = runPublishStep({
+    ...world,
+    failures: { runViewConclusion: { times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+  });
+
+  assert.equal(clean.status, 0, clean.log);
+  assert.equal(blipped.status, 0, blipped.log);
+  assert.match(blipped.log, /is on npm/);
+  assert.equal(
+    blipped.waited - clean.waited,
+    10,
+    `two absorbed blips cost ${blipped.waited - clean.waited}s, and the job's arithmetic says ten`,
+  );
+});
+
+test('the registry gets two and a half minutes of asking, thirty seconds apart', needsJq, () => {
+  // §5d's budget, measured from both ends on a run that has nothing else left
+  // to wait for. THE ONE-SIDED PIN THIS FILE WAS CAUGHT BY: the test below
+  // asserts `waited >= 150`, which passes just as happily when the deadline is
+  // 900 — six times the budget the job's ceiling was worked out from, and a
+  // quarter of an hour of a runner spent asking npm the same question.
+  //
+  // The interval is pinned by the count rather than by the clock. Six attempts
+  // is what the comment says the budget buys, and it is only six because they
+  // are thirty seconds apart; at `sleep 5` the same two and a half minutes
+  // becomes thirty-one asks, each one waiting out npm's own timeout on top.
+  // Difference again, against the same release whose version npm serves on the
+  // first ask, so what is left is §5d's wait and nothing in front of it.
+  const world = { dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] } };
+  const answered = runPublishStep({ ...world, registryAnswers: ['published'] });
+  const silent = runPublishStep({ ...world, registryAnswers: ['unreachable'] });
+
+  assert.equal(silent.status, 0, silent.log);
+  assert.match(silent.log, /::warning::/);
+  assert.equal(answered.npmCalls, 1, 'a registry that answers is asked once');
+  assert.equal(
+    silent.waited - answered.waited,
+    150,
+    `spent ${silent.waited - answered.waited}s on the registry; the comment says two and a half minutes`,
+  );
+  assert.equal(silent.npmCalls, 6, `asked npm ${silent.npmCalls} times; thirty seconds apart across that window is six`);
 });
 
 test('a watermark that could not be read stops before dispatching, not after', needsJq, () => {
@@ -1139,9 +1408,18 @@ test('three failed lookups in a row while waiting for the run is the lookup fail
   // and then reports that the run never appeared. Three in a row is not a blip,
   // and the difference matters to whoever reads the annotation: one says look
   // at the Actions tab, the other says fix your token.
+  //
+  // Exactly three failures and then a working lookup, rather than a lookup
+  // that never works again. A stream of failures with no end to it fails this
+  // step at a threshold of four as readily as at three — the annotation even
+  // says "three times in a row" whatever the number is, because that string is
+  // written out by hand. Three and then recovery is what tells the two apart:
+  // at four the loop would go on, find the run, and end green.
   const result = runPublishStep({
     dispatch: { appearAfter: 40, timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
-    failures: { runList: { after: 2, exit: 1, stderr: 'HTTP 403: rate limit exceeded\nX-RateLimit-Reset: 1700000000\n' } },
+    failures: {
+      runList: { after: 2, times: 3, exit: 1, stderr: 'HTTP 403: rate limit exceeded\nX-RateLimit-Reset: 1700000000\n' },
+    },
   });
 
   assert.equal(result.status, 1, result.log);
@@ -1166,9 +1444,13 @@ test('three failed reads of the run in a row is the lookup failing, not the run 
   // time spends the full ten-minute follow deadline and then reports the run as
   // "still unreadable" — which reads as a stuck publish rather than as a broken
   // lookup, and sends the reader to watch a run that may well have finished.
+  //
+  // Three failures and then a working read, for the reason given at the appear
+  // loop's copy of this test: a stream with no end to it exits at four exactly
+  // as it exits at three, so it pins the threshold from one side only.
   const result = runPublishStep({
     runs: [{ id: 100, timeline: [{ at: 0, status: 'in_progress' }] }],
-    failures: { runView: { exit: 1, stderr: 'HTTP 502: bad gateway\nx-github-request-id: 7\n' } },
+    failures: { runView: { times: 3, exit: 1, stderr: 'HTTP 502: bad gateway\nx-github-request-id: 7\n' } },
   });
 
   assert.equal(result.status, 1, result.log);
@@ -1316,9 +1598,15 @@ test('three failed reads of the conclusion is the lookup failing, not a run with
   // draw. "Finished with no conclusion this job could read" describes the run;
   // this is the lookup, and the run may well have published. Reporting the
   // first as the second sends a reader to debug a publish that worked.
+  //
+  // Three and then a working read, for the reason given at the appear loop's
+  // copy of this test: failures with no end to them pin the threshold from
+  // below and leave it free to grow.
   const result = runPublishStep({
     dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
-    failures: { runViewConclusion: { exit: 1, stderr: 'HTTP 403: rate limit exceeded\nX-RateLimit-Reset: 1700000000\n' } },
+    failures: {
+      runViewConclusion: { times: 3, exit: 1, stderr: 'HTTP 403: rate limit exceeded\nX-RateLimit-Reset: 1700000000\n' },
+    },
   });
 
   assert.equal(result.status, 1, result.log);
@@ -1382,6 +1670,27 @@ test('a Release that genuinely is not there gets cut, with the tag verified', ne
     `without --verify-tag gh invents a missing tag, and a lightweight one: ${JSON.stringify(created(result)[0])}`,
   );
   assert.equal(result.releaseNow, true);
+});
+
+test('a 404 is a Release that is not there, in both steps that ask', needsJq, () => {
+  // The match that decides absence is `release not found|HTTP 404`, and only
+  // the first half of it had a test: the stub says "release not found", which
+  // is what gh prints when it has parsed the API's answer. It does not always
+  // get that far — a 404 with an HTML body, or a `gh api` path, and what
+  // reaches stderr is the status line. Changing `HTTP 404` to anything else
+  // left the whole suite green, and the branch a 404 would then take is the
+  // one that stops the release.
+  const notFound = { releaseView: { exit: 1, stderr: 'HTTP 404: Not Found\n' } };
+
+  const release = runReleaseStep({ release: false, failures: notFound });
+  assert.equal(release.status, 0, `a 404 means there is no Release, so one gets cut, log:\n${release.log}`);
+  assert.equal(created(release).length, 1, `expected exactly one create, got: ${JSON.stringify(release.calls)}`);
+
+  // Same match, same reasoning, the other step: a tag whose Release is
+  // genuinely absent is removed rather than left behind for nobody.
+  const rollback = runRollbackStep({ release: false, failures: notFound });
+  assert.equal(rollback.status, 0, rollback.log);
+  assert.deepEqual(rollback.gitCalls, [`push origin :refs/tags/${TAG}`]);
 });
 
 test('a Release that is already cut is left alone, which is what makes a resumed release cheap', needsJq, () => {
