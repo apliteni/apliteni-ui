@@ -193,11 +193,12 @@ environment, which asks one of four reviewers to approve it and will not let you
 approve your own, so expect to be waiting for somebody else. `tag-on-bump.yml`
 watches the publish for ten minutes and then stops watching. A run that finishes
 inside that window is reported as it finished, red if the publish failed. It also
-goes red when the publish succeeded and npm, asked for two and a half minutes,
-still says it does not have the version — and the message sends you to npm first,
-because a version is published before every edge can read it. A registry that
-never answered at all is a different case, so it does not go red: the job stays
-green with a warning on it, and `version-drift.yml` is what catches that one.
+goes red when the publish succeeded and npm's last answer, once the two and a half
+minutes are up, is that it does not have the version — and the message sends you
+to npm first, because a version is published before every edge can read it. Any
+other last answer leaves the job green with a warning on it, because a registry
+that was not answering when the window closed has said nothing either way, and
+`version-drift.yml` is what catches that one.
 A run still waiting on a reviewer when the ten minutes are up leaves the job
 green, with a warning naming the run and what it is waiting for. Somebody who has
 not clicked yet is not a broken pipeline.
