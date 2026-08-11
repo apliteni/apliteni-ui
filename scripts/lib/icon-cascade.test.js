@@ -472,6 +472,43 @@ test('an icon named inside :is() or :where() is the subject those select', () =>
   }
 });
 
+test('an icon named inside a pseudo spelled in capitals is the same subject', () => {
+  /* A pseudo-class name folds case in CSS, so `:WHERE(svg)` selects what
+   * `:where(svg)` selects and a rule written that way decides an icon's size the
+   * same way. Read lower case only, the alternatives inside it were never
+   * collected, the compound looked like a rule about nothing, and the rule left
+   * the subject count without moving it.
+   *
+   * jsdom is worse than blind here, which is what makes the reading matter. Its
+   * selector engine does not know `:WHERE()`: querySelectorAll throws "Unknown
+   * pseudo-class :WHERE()", and matches() and the style resolution answer TRUE
+   * for every element — so `.ui-btn :WHERE(svg)` sizes every icon in the
+   * document, including the bare one the reset owns. Recognised here it is a
+   * subject, mount() refuses the shape by name, and the reader is sent to the
+   * rule. Missed here it reds on the reset instead, in a file that is fine. */
+  const classes = new Set(['ic']);
+  for (const sel of ['.a :WHERE(svg)', '.a :IS(svg)', '.a :Matches(svg)', '.a :Where(.ic)',
+    '.a :IS(div, svg)']) {
+    assert.ok(isSvgSubject(sel, classes), `"${sel}" reads as something other than an icon rule`);
+  }
+});
+
+test('the class named inside one is still matched the way CSS matches a class', () => {
+  /* The flag folds the pseudo's NAME and must reach no further. Class names are
+   * case-SENSITIVE — `.Ic` and `.ic` are two different classes — so a rule
+   * naming one the kit does not put on an svg is not an icon rule, however the
+   * pseudo around it is spelled. Folding the argument too would make this gate
+   * mount an element for a rule that selects nothing. */
+  const classes = new Set(['ic']);
+  for (const sel of ['.a :where(.Ic)', '.a :WHERE(.IC)', '.a :IS(.Ic)']) {
+    assert.equal(isSvgSubject(sel, classes), false,
+      `"${sel}" names a class the kit puts on nothing, and was read as an icon rule`);
+  }
+  // The element name inside stays case-sensitive too: an SVG-namespace type
+  // selector folds no case, so `:where(SVG)` selects no <svg> in an HTML document.
+  assert.equal(isSvgSubject('.a :WHERE(SVG)', classes), false);
+});
+
 test('a functional pseudo that names no icon is not read as one', () => {
   /* The other half of the same recursion, and the half that keeps it off rules
    * the kit already ships. `:has()` and `:not()` say something about a different
@@ -564,6 +601,26 @@ test(':root is the document element, and the document is put back afterwards', (
     'the mount left its own theme on <html>, so every subject measured after it is measured in a '
     + 'theme the file never asked for');
   assert.equal(document.body.children.length, 0, `${sel} left markup behind`);
+});
+
+test(':root is the document element however the rule spells it', () => {
+  /* `:ROOT` is `:root` — pseudo-class names fold case — and this repo's themed
+   * idiom written that way is ordinary CSS a browser applies. Read lower case
+   * only, the compound was not the document element, nothing else in it parsed
+   * either, and the rule was refused as a shape this builder was never taught.
+   * That is a red on correct CSS from a builder that has handled the shape since
+   * badge.css, and a gate that reds on correct code gets switched off. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  const { document } = dom.window;
+  for (const sel of [':ROOT[data-theme="light"] .ui-nav__ic svg', ':Root > .sbc svg']) {
+    const { el, top } = mount(document, sel, new Set());
+    assert.ok(el.matches(sel.toLowerCase()),
+      `mounted an element that does not match "${sel}"`);
+    top.remove();
+    assert.equal(document.body.children.length, 0, `${sel} left markup behind`);
+    assert.equal(document.documentElement.getAttribute('data-theme'), null,
+      `${sel} left its own theme on <html>`);
+  }
 });
 
 test(':root reached by a child combinator is the same element, one nesting in', () => {
@@ -661,6 +718,36 @@ test('a structural pseudo-class is refused as buildable and not built', () => {
       assert.match(err.message, /siblings/,
         `"${sel}" is refused without saying what stands between this builder and building it`);
       assert.doesNotMatch(err.message, /jsdom has no pointer/);
+      return true;
+    });
+  }
+});
+
+test('a refusal reads the pseudo-class name the way CSS does', () => {
+  /* Every one of these is refused whichever case it is written in, so nothing is
+   * unmeasured here — what changes is which of the four explanations the reader
+   * gets. Written in capitals they all fell through to the last one, "write the
+   * rule in a shape it can mount, or teach it this shape", which is wrong advice
+   * on all four counts: the shape IS taught, and the reader is sent to build
+   * something that already exists rather than to the ancestor, the state or the
+   * position that actually stopped it.
+   *
+   * The leaf `:WHERE()` is the one this round put here. compoundIsSvg() now reads
+   * it as the icon rule it is, so it reaches this refusal for the first time —
+   * and a refusal that arrives with the wrong explanation is the disposition the
+   * fix was meant to move away from. */
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
+  const cases = [
+    ['.a :WHERE(svg)', /compoundIsSvg\(\)/],
+    [':IS(.ui-btn, .ui-chip) svg', /ancestor/],
+    ['.rx-btn:HOVER svg', /jsdom has no pointer/],
+    ['.a svg:FIRST-CHILD', /siblings/],
+  ];
+  for (const [sel, says] of cases) {
+    assert.throws(() => mount(dom.window.document, sel, new Set()), (err) => {
+      assert.match(err.message, says,
+        `"${sel}" is refused in the words kept for a shape nobody taught this builder, and the `
+        + 'reader is sent to teach it something it already knows');
       return true;
     });
   }
@@ -821,6 +908,35 @@ test('the kit sheet list reads the at-rule in any case and the file name in one'
   }
 });
 
+test('a <style> block is read whatever case the markup spells the tag in', () => {
+  /* The surfaces gate hands this the STORY files, and a story is a `.js` module
+   * returning an HTML string out of a template literal — stories/apps/_appShell.js
+   * is one. So `<STYLE>` in there is the HTML element, folded by every browser
+   * and by jsdom, and the CSS inside it applies in every story iframe that
+   * renders the shell.
+   *
+   * Missed here it is silent in the worst way. A story that writes the tag in
+   * capitals from the day it is added contributes no block, no subject and no
+   * count — the sweep reads 14 with the rule measured and 14 without it. Proved
+   * by adding one: `<style>` reds with "collected 15, expected 14" and `<STYLE>`
+   * leaves all 22 assertions green over a rule that sizes an icon to 33px.
+   *
+   * `dangerouslySetInnerHTML` and `__html` inside it stay case-sensitive, being
+   * React props rather than HTML attributes, and the tag in front of them folds
+   * with the rest so that a block this scan can see is a block the blanking pass
+   * has already taken out of its way. */
+  assert.deepEqual(styleBlocksOf('<STYLE>.a svg { width: 33px }</STYLE>'),
+    ['.a svg { width: 33px }']);
+  assert.deepEqual(styleBlocksOf('<Style media="screen">.a svg { width: 12px }</Style>'),
+    ['.a svg { width: 12px }']);
+  assert.deepEqual(
+    styleBlocksOf('<STYLE dangerouslySetInnerHTML={{ __html: ".b svg{width:9px}" }} />\n'
+      + '<style>.c svg { width: 5px }</style>'),
+    ['.b svg{width:9px}', '.c svg { width: 5px }'],
+    'the self-closing block was not blanked, so the paired scan read the source between it and the '
+    + 'next closing tag as CSS');
+});
+
 test('both shapes a .tsx writes a <style> block in are still recognised', () => {
   /* THE TRIPWIRE UNDER THE OTHER HALF OF THE REACT SWEEP.
    *
@@ -968,6 +1084,109 @@ test('a class only a test writes onto an svg is skipped whatever the extension',
   const dir = sourceDir({ 'Widget.test.tsx': '<svg className="rx-test-only" />' });
   try {
     assert.deepEqual([...svgClassSet([dir], ['.tsx'])], []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('an svg tag and a class attribute are found however the markup spells them', () => {
+  /* HTML tag names and attribute names fold case, and the browser is the one
+   * that decides: `<SVG CLASS="ic">` parses to an element whose localName is
+   * `svg`, in the SVG namespace, matched by `.ic` and sized by every rule that
+   * targets it. Read lower case only, that class never entered the set — and a
+   * class this scan does not find is a class every rule targeting it stops being
+   * measured against, with no count moving to say so. That is how .ui-fbck was
+   * missed in the kit, arriving again through the spelling.
+   *
+   * The tripwire in scripts/icon-size-surfaces.test.js is no help against it: it
+   * guards `ic`, one class that already exists, and a class introduced in
+   * capitals never joins the set for it to miss. */
+  const dir = sourceDir({
+    'page.html': '<SVG class="cap-tag"></SVG>\n<svg CLASS="cap-attr"></svg>\n'
+      + '<Svg Class="cap-mixed"></Svg>\n',
+  });
+  try {
+    assert.deepEqual([...svgClassSet([dir], ['.html'])].sort(),
+      ['cap-attr', 'cap-mixed', 'cap-tag']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the JSX prop is read case-sensitively, because JSX is JavaScript', () => {
+  /* `className` is the other half of the same scan and wants the opposite
+   * answer. It is a JSX prop rather than an HTML attribute, and JSX folds no
+   * case: `CLASSNAME` is a different prop, which React hands to the DOM as an
+   * attribute named `classname` and not as a class at all. `<SVG …>` in JSX is a
+   * component reference rather than the intrinsic element, so the tag goes with
+   * it. Reading either would put a class in the set that no svg carries, and a
+   * rule naming it would then be mounted as an icon and measured. */
+  const dir = sourceDir({
+    'Widget.tsx': '<svg className="rx-real" />\n<svg CLASSNAME="rx-phantom" />\n'
+      + '<SVG className="rx-component" />\n',
+  });
+  try {
+    assert.deepEqual([...svgClassSet([dir], ['.tsx'])], ['rx-real']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the class the markup carries comes back spelled the way it is written', () => {
+  /* The flag folds the tag and the attribute and must reach no further. A CSS
+   * class name is case-SENSITIVE — `.Probeic` and `.probeic` are two classes —
+   * and every consumer of this set compares it exactly: compoundIsSvg() asks
+   * `classes.has()` of the name in the selector, and mount() asks it again to
+   * decide whether to build an <svg> or a <div>. Folding the captured value
+   * would make a rule targeting `.Probeic` an icon rule against markup carrying
+   * `probeic`, and this gate would then mount an svg for a rule that selects
+   * nothing in a browser. */
+  const dir = sourceDir({ 'page.html': '<SVG class="probeic"></SVG>' });
+  try {
+    const classes = svgClassSet([dir], ['.html']);
+    assert.deepEqual([...classes], ['probeic']);
+    assert.ok(isSvgSubject('.term__copy .probeic', classes));
+    assert.equal(isSvgSubject('.term__copy .Probeic', classes), false,
+      '`.Probeic` and `.probeic` are two different classes, and a rule naming the one the markup '
+      + 'does not carry was read as a rule that sizes this icon');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the icon() call is read case-sensitively, because JavaScript is', () => {
+  /* The other half of svgClassSet(), and it wants the opposite answer. `icon` is
+   * a JavaScript identifier rather than an HTML name, and JavaScript folds no
+   * case: `ICON('check', 'ui-fbck')` calls a function this kit does not export,
+   * so nothing renders and no svg carries that class. Reading it here would put
+   * a class in the set that no markup writes, and a rule naming it would then be
+   * mounted as an icon rule and measured against the reset. */
+  const dir = sourceDir({
+    'widget.js': "el.innerHTML = icon('check', 'kit-real');\n"
+      + "other.innerHTML = ICON('check', 'kit-phantom');\n",
+  });
+  try {
+    assert.deepEqual([...svgClassSet([dir], ['.js'])], ['kit-real']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a test file is skipped by the spelling the test runner discovers it under', () => {
+  /* The skip stays case-sensitive, and this says why. `node --test` is handed a
+   * glob ending `.test.js` and matches it as written, so `Widget.Test.js` is not
+   * a file it runs — it is ordinary source, and a class it puts on an svg is a
+   * class the kit renders. Folding the skip would drop it from the sweep, which
+   * is the silent direction: every rule targeting that class would leave
+   * coverage with the suite still green. */
+  const dir = sourceDir({
+    'Widget.test.js': '<svg class="only-a-test-writes-this" />',
+    // A different stem, because macOS folds file names and one stem would be one
+    // file here and two on the machine CI runs on.
+    'Gadget.Test.js': '<svg class="ordinary-source" />',
+  });
+  try {
+    assert.deepEqual([...svgClassSet([dir], ['.js'])], ['ordinary-source']);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
