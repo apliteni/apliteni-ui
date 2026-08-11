@@ -51,7 +51,10 @@ proof they passed. CI stops the run rather than skipping them.
    busy, empty, error and success are all designed and in a story.
 4. **Both themes, all accents.** Check dark and light, and at least Nebula +
    Phoenix, before opening a PR. Use the toolbar toggles.
-5. **No visual slop.** Run the AI-slop detector on any new example page.
+5. **No visual slop.** Run the AI-slop detector on any new example page. It reads
+   comments too: past about twenty-five lines, a comment block has stopped being a
+   comment and become a design document. The argument goes in `docs/adr/` and the
+   code keeps a one-line pointer — see [docs/adr/README.md](docs/adr/README.md).
 6. **State, not destination.** A stateful control reports the state it is in,
    never the one a click would produce — in the icon and in the accessible
    name, and the name is rewritten whenever the state changes.
