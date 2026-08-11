@@ -1134,20 +1134,26 @@ test('the JSX prop is read case-sensitively, because JSX is JavaScript', () => {
 
 test('the class the markup carries comes back spelled the way it is written', () => {
   /* The flag folds the tag and the attribute and must reach no further. A CSS
-   * class name is case-SENSITIVE — `.Probeic` and `.probeic` are two classes —
+   * class name is case-SENSITIVE — `.probeIC` and `.probeic` are two classes —
    * and every consumer of this set compares it exactly: compoundIsSvg() asks
    * `classes.has()` of the name in the selector, and mount() asks it again to
    * decide whether to build an <svg> or a <div>. Folding the captured value
-   * would make a rule targeting `.Probeic` an icon rule against markup carrying
-   * `probeic`, and this gate would then mount an svg for a rule that selects
-   * nothing in a browser. */
-  const dir = sourceDir({ 'page.html': '<SVG class="probeic"></SVG>' });
+   * would make a rule targeting `.probeic` an icon rule against markup carrying
+   * `probeIC`, and this gate would then mount an svg for a rule that selects
+   * nothing in a browser.
+   *
+   * The class here is deliberately MIXED case. With an all-lowercase value this
+   * test passed whether or not the capture was folded, so the claim it is named
+   * for had nothing holding it. */
+  const dir = sourceDir({ 'page.html': '<SVG class="probeIC"></SVG>' });
   try {
     const classes = svgClassSet([dir], ['.html']);
-    assert.deepEqual([...classes], ['probeic']);
-    assert.ok(isSvgSubject('.term__copy .probeic', classes));
-    assert.equal(isSvgSubject('.term__copy .Probeic', classes), false,
-      '`.Probeic` and `.probeic` are two different classes, and a rule naming the one the markup '
+    assert.deepEqual([...classes], ['probeIC'],
+      'the captured class was not spelled the way the markup spells it — a flag that folds the '
+      + 'tag and the attribute has reached the value');
+    assert.ok(isSvgSubject('.term__copy .probeIC', classes));
+    assert.equal(isSvgSubject('.term__copy .probeic', classes), false,
+      '`.probeIC` and `.probeic` are two different classes, and a rule naming the one the markup '
       + 'does not carry was read as a rule that sizes this icon');
   } finally {
     rmSync(dir, { recursive: true, force: true });
