@@ -169,19 +169,53 @@ export function kitStyleHtml(src, names) {
     .join('\n');
 }
 
+/* An svg carrying a class, in the two languages this repo writes markup in. They
+ * are one shape and they answer differently on case, so they are two patterns
+ * rather than one with a flag over the whole of it.
+ *
+ * HTML is the case-insensitive one, and a browser is what decides it. A tag name
+ * and an attribute name both fold, so `<SVG CLASS="ic">` parses to an element
+ * whose localName is `svg`, in the SVG namespace, matched by `.ic` and sized by
+ * every rule that targets it — jsdom included. This is the spelling the sweep
+ * was blind to, and blind in the silent direction: a class it does not find is a
+ * class every rule targeting it stops being measured against, with no count
+ * moving to say so. That is how .ui-fbck was missed in the kit the first time,
+ * and the `ic` tripwire in scripts/icon-size-surfaces.test.js does not catch it
+ * coming back this way — that guards one class that already exists, and a class
+ * introduced in capitals never joins the set for it to miss.
+ *
+ * JSX is the case-sensitive one. `className` is a prop rather than an attribute
+ * and JavaScript folds no case, so `CLASSNAME` is a different prop, which React
+ * hands to the DOM as an attribute named `classname` and not as a class at all;
+ * `<SVG …>` in JSX is a component reference rather than the intrinsic element.
+ * Reading either would put a class in the set that no svg carries, and a rule
+ * naming it would then be mounted as an icon and measured against the reset.
+ *
+ * Neither flag reaches the captured value. A class name is case-SENSITIVE —
+ * `.Ic` and `.ic` are two classes — and every consumer compares this set
+ * exactly: compoundIsSvg() asks classes.has() of the name in the selector, and
+ * mount() asks it again to decide whether to build an <svg> or a <div>. The flag
+ * folds case in the pattern, not in the text, so the class comes back spelled
+ * the way the markup spells it. */
+const svgClassRes = () => [/<svg[^>]*\sclass="([^"${]+)"/gi, /<svg[^>]*\sclassName="([^"${]+)"/g];
+
 /* The classes the kit puts on an <svg>, read out of the source rather than
  * listed here, so a new one joins coverage by existing. Two ways a class gets
  * onto an svg: written into the tag, or passed as icon()'s second argument.
  *
- * Both spellings of the attribute, because the React workspace writes JSX and
- * JSX spells it `className`. A class this returns nothing for is a class every
- * rule targeting it stops being measured against, silently — that is how
- * .ui-fbck was missed in the kit — so reading only `class=` would have taken a
- * React icon rule out of coverage the moment one was written.
+ * The icon() call is read case-sensitively, and for the reason styleImportsIn()
+ * is: `icon` is a JavaScript identifier, JavaScript folds no case, and
+ * `ICON('check', 'ui-fbck')` calls a function this kit does not export. Nothing
+ * renders, no svg carries that class, and reading it would hand a gate a rule to
+ * mount against markup that does not exist.
  *
  * `dirs` are scanned depth-first; `exts` says which files count. Test files are
  * always skipped, in every extension the repo tests in — a class that only a
- * test writes onto an svg is not a class the kit renders. */
+ * test writes onto an svg is not a class the kit renders. That skip is
+ * case-sensitive too: `node --test` is handed a glob ending `.test.js` and
+ * matches it as written, so `Widget.Test.js` is not a file it runs. It is
+ * ordinary source, and folding the skip would drop it from the sweep in the
+ * silent direction. */
 export function svgClassSet(dirs, exts = ['.js']) {
   const found = new Set();
   for (const dir of dirs) {
@@ -191,8 +225,10 @@ export function svgClassSet(dirs, exts = ['.js']) {
       if (!exts.some((e) => name.endsWith(e))) continue;
       if (/\.test\.[cm]?[jt]sx?$/.test(name)) continue;
       const text = readFileSync(p, 'utf8');
-      for (const m of text.matchAll(/<svg[^>]*\s(?:className|class)="([^"${]+)"/g)) {
-        for (const c of m[1].trim().split(/\s+/)) found.add(c);
+      for (const re of svgClassRes()) {
+        for (const m of text.matchAll(re)) {
+          for (const c of m[1].trim().split(/\s+/)) found.add(c);
+        }
       }
       for (const m of text.matchAll(/\bicon\(\s*'[^']*'\s*,\s*'([^']+)'/g)) {
         for (const c of m[1].trim().split(/\s+/)) found.add(c);
@@ -287,12 +323,33 @@ const withoutArgs = (compound) => {
  * subject's: `.a:not(:is(svg))` selects everything that is not an svg, and
  * harvesting the `:is()` out of it turned that into an icon rule — a subject the
  * gate then tried to mount, which hard-errors on the `:`. A red on correct CSS,
- * from the one exclusion this function is built around. */
+ * from the one exclusion this function is built around.
+ *
+ * The NAME is read in any case, because a pseudo-class name folds case in CSS:
+ * `:WHERE(svg)` selects what `:where(svg)` selects, so a rule written that way
+ * decides an icon's size and this read lower case only, collected no
+ * alternatives out of it, and let the rule leave the subject count without
+ * moving it.
+ *
+ * jsdom is worse than blind about that spelling, which is what turns a silence
+ * into a red on the wrong file. Its selector engine does not know `:WHERE()`:
+ * querySelectorAll throws "Unknown pseudo-class :WHERE()", and matches() and the
+ * style resolution answer TRUE for every element. So `.ui-btn :WHERE(svg)` sizes
+ * every icon in the document the gate builds, the bare one the reset owns
+ * included — and the three assertions that fail are the ones about the reset, in
+ * files that are fine, while the rule that did it is not a subject and is named
+ * nowhere. Recognised here it is a subject, mount() refuses the shape by name,
+ * and the reader is sent to the rule.
+ *
+ * The flag reaches the name and nothing else. What is inside the parentheses is
+ * sliced out of `compound` by offset and handed back untouched, so the class
+ * names and element names in there are still compared exactly — which is what
+ * they need, since `.Ic` and `.ic` are two different classes. */
 function alternativesIn(compound) {
   const top = new Set();
   scanTop(compound, (_ch, isTop, i) => { if (isTop) top.add(i); });
   const out = [];
-  const re = /:(?:is|where|matches)\(/g;
+  const re = /:(?:is|where|matches)\(/gi;
   for (let m = re.exec(compound); m; m = re.exec(compound)) {
     if (!top.has(m.index)) { re.lastIndex = m.index + 1; continue; }
     let depth = 1;
@@ -917,10 +974,17 @@ function unwrapExpression(body) {
  * So these are read first and blanked out of the source the pattern then scans.
  *
  * The expression is found by balancing brackets rather than by matching to the
- * first `}}`, because the CSS itself is full of braces. */
+ * first `}}`, because the CSS itself is full of braces.
+ *
+ * The TAG folds case with the one below and the props do not, which is the split
+ * both patterns want: `style` is an HTML element name and `dangerouslySetInnerHTML`
+ * and `__html` are React props, so JavaScript decides those and a browser decides
+ * that. Folding the tag here as well as below is what keeps the blanking aligned
+ * — a block the pattern below can see is a block this pass has already taken out
+ * of its way, which is the whole job of reading these first. */
 function dangerousStyles(source) {
   const found = [];
-  const open = /<style\b[^<]*?dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*/g;
+  const open = /<style\b[^<]*?dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*/gi;
   for (let m = open.exec(source); m; m = open.exec(source)) {
     let depth = 0;
     let quote = '';
@@ -949,12 +1013,29 @@ function dangerousStyles(source) {
   return found;
 }
 
-/** The CSS of every <style> block in a source file, resolved as far as it can be. */
+/* The CSS of every <style> block in a source file, resolved as far as it can be.
+ *
+ * The tag is read in any case, and the surfaces gate is why. It hands this the
+ * STORY files, and a story is a `.js` module returning an HTML string out of a
+ * template literal — stories/apps/_appShell.js is one — so `<STYLE>` there is the
+ * HTML element, folded by every browser and by jsdom, applying in every story
+ * iframe that renders the shell. Read lower case only it was not a block at all,
+ * and a story that spells it that way from the day it is added contributes no
+ * block, no subject and no count: the sweep reads 14 with the rule measured and
+ * 14 without it. The same story written `<style>` reds with "collected 15,
+ * expected 14", which is what the gate is for.
+ *
+ * The React gate hands this `.tsx` instead, where a capitalised tag is a
+ * component rather than the element — so folding over-reads a component named
+ * exactly `Style`. Nothing under react/src writes one, and the over-read is
+ * loud: the block parses to no rules and blindSpots() reds naming the file.
+ * Silence in the other direction is the failure this family is about, so that is
+ * the direction to be wrong in. */
 export function styleBlocksOf(source) {
   const dangerous = dangerousStyles(source);
   let rest = source;
   for (const { at, to } of dangerous) rest = rest.slice(0, at) + ' '.repeat(to - at) + rest.slice(to);
-  const paired = [...rest.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)]
+  const paired = [...rest.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
     .map((m) => ({ at: m.index, body: unwrapExpression(m[1]) }));
   return [...dangerous.map(({ at, expr }) => ({ at, body: literalCss(expr) })), ...paired]
     .sort((a, b) => a.at - b.at)
@@ -1253,24 +1334,37 @@ const ATTR = /^\[\s*(-?[_a-zA-Z][\w-]*)\s*(?:[~|^$*]?=\s*("[^"]*"|'[^']*'|[^\s\]
 /* Pseudo-classes naming a STATE of the element. jsdom has no pointer, no focus
  * and no navigation, so none of them can be mounted at all — a limit of the
  * environment rather than a gap in this builder. Pseudo-elements go with them:
- * jsdom gives them no box. */
-const STATE_PSEUDO = /^:(?:hover|active|focus|focus-visible|focus-within|target|link|visited|checked|disabled|enabled|indeterminate|default|placeholder-shown|autofill|user-invalid|user-valid)$/;
+ * jsdom gives them no box.
+ *
+ * This list and the one below decide nothing about coverage — a selector that
+ * reaches either of them is refused whichever case it is written in. What they
+ * decide is WHICH refusal the reader gets, and a pseudo-class name folds case,
+ * so `:HOVER` matched none of them and fell through to the words kept for a
+ * shape nobody taught this builder. That sends the reader to teach it something
+ * no teaching reaches. */
+const STATE_PSEUDO = /^:(?:hover|active|focus|focus-visible|focus-within|target|link|visited|checked|disabled|enabled|indeterminate|default|placeholder-shown|autofill|user-invalid|user-valid)$/i;
 
 /* Pseudo-classes naming the element's POSITION among its siblings. This builder
  * gives each compound one element and no siblings, so it cannot place a subject
  * at a position — buildable in principle by padding the parent, and not built,
  * because nothing in the repo sizes an icon that way. */
-const POSITION_PSEUDO = /^:(?:first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|nth-child|nth-last-child|nth-of-type|nth-last-of-type|empty|scope)$/;
+const POSITION_PSEUDO = /^:(?:first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|nth-child|nth-last-child|nth-of-type|nth-last-of-type|empty|scope)$/i;
 
 /* One compound as the element it describes: a tag name, the classes and ids and
  * attributes on it, and whether it is the document element. Anything this cannot
  * account for gives null, and mount() turns that into a refusal shaped to what it
  * found. `:root` is stripped from the front because that is where every rule in
- * this repo writes it. */
+ * this repo writes it, and read in any case because a pseudo-class name folds
+ * case. `:ROOT[data-theme="light"] .ui-nav__ic svg` is the themed idiom badge.css
+ * already writes, and a browser applies it identically. Matched lower case only
+ * it was not the document element, nothing else in the compound parsed either,
+ * and the rule came back refused as a shape nobody had taught this builder — a
+ * red on correct CSS. Only the length is used to slice, which every spelling
+ * shares, and nothing downstream reads the text. */
 function parseCompound(part) {
   const out = { tag: '', classes: [], attrs: [], root: false };
   let rest = part;
-  if (rest.startsWith(':root')) { out.root = true; rest = rest.slice(5); }
+  if (/^:root/i.test(rest)) { out.root = true; rest = rest.slice(5); }
   const tag = rest.match(/^-?[_a-zA-Z][\w-]*/);
   if (tag) { out.tag = tag[0]; rest = rest.slice(tag[0].length); }
   while (rest) {
@@ -1298,13 +1392,13 @@ const refuse = (part, sel, isLeaf) => {
   let why = 'This builds a chain of compounds out of tag names, classes, ids and attributes, and '
     + 'nothing else, so it cannot make an element this one would match. Write the rule in a shape '
     + 'it can mount, or teach it this shape.';
-  if (/:(?:is|where|matches)\(/.test(part) && isLeaf) {
+  if (/:(?:is|where|matches)\(/i.test(part) && isLeaf) {
     why = 'The two halves of this machinery are meant to disagree here: compoundIsSvg() reads an '
       + 'icon named inside :is() or :where() as the icon rule it is, and this builder stops short '
       + 'of it, so you get a refusal rather than a rule that leaves coverage in silence. Building '
       + 'it would mean choosing one alternative out of the argument list, which the argument\'s own '
       + 'complex selectors make more than a pseudo taken off.';
-  } else if (/:(?:is|where|matches)\(/.test(part)) {
+  } else if (/:(?:is|where|matches)\(/i.test(part)) {
     why = 'This one names an ancestor of the icon, not the icon — the icon is the compound at the '
       + 'end, and it is recognised. What stops here is the ancestor: this gives each compound one '
       + 'element, and an :is() offers a list of things that element could be, so building it means '
