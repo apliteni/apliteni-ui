@@ -188,6 +188,29 @@ renders — `--glow-purple` over an accent-tinted card — so the DARK row clear
 move and does not clear: it is bucket F of the ledger in `stories/contrast.test.js`, at 4.48, and it
 is the only row that entry now holds. Bucket B ends this change at four rows, down from 25 on `main`.
 
+**And it carried the ambient glow, which was accepted rather than pinned.** Naming only the "soon"
+badge understates the ramp move. `--purple-light` is not just a step behind the accent:
+`src/styles/base.css:51` reads it directly as the stop of `.ui-glow--purple`, so every ambient
+purple glow in the dark theme is now slightly lighter. That is the kit's account shell
+(`src/components/shell.js:36`) and the app stories that mount it, the Sign-in, Landing, Consent and
+FinanceReport screens, the Elevation and Backgrounds foundations pages, and the site homepage, which
+paints two. The same token also paints the success confetti's purple piece
+(`src/styles/success.css:146`), one Landing feature icon and the homepage's first bento cell.
+`--purple-mid` likewise reaches past the badge: the snippet's keyword colour
+(`src/styles/code.css:51`), the hero eyebrow pill (`src/styles/layout.css:110`), the "soon" pill
+beside the "soon" badge (`src/styles/badge.css:26` and `:61`), the changelog's "changed" tags and
+component links on the site, and the homepage's sixth bento cell.
+
+None of it is pinned, and pinning was the alternative: freeze the glow's stop, or the eyebrow, at
+the old violet and let the ramp move only where a ratio demanded it. That is how a token family
+stops being one — the ink lifts and the light it sits in does not. The glow follows the accent,
+which is what an accent family is for. It was looked at rendered and accepted.
+
+The cost of the whole change, measured across the eight-cell walk against `main`: **794 distinct
+failing pairs before, 760 after — 34 closed, none new** — with exactly one pair worse anywhere in
+the matrix, the danger badge on a hovered zebra row at 4.24 → 4.14, which ledger A in
+`stories/contrast.test.js` already names and explains.
+
 **Light's `--accent` does not move.** `#6a2dcc` already clears every ground, washed and flat, at
 worst 5.89.
 
@@ -199,6 +222,19 @@ in `.storybook/manager-head.html`, the accent's rgb at `0.13`, and the `--accent
 `.storybook/preview.js` that the Inspect overlay reads when the property resolves empty. The prism
 mark in the sidebar logo keeps `#9b5dff` on purpose: that violet is the brand ramp's `--purple-500`,
 the mark's own colour, and it never tracked `--accent`. Nothing gates any of the three.
+
+**Three further copies do not move, and are filed rather than fixed.** The accent-picker swatch for
+Nebula is written as a literal gradient in three places — `src/components/index.js:97`
+(`ACCENT_SWATCH.default`, which renders in the Footer and Preferences stories), `site/chrome.mjs:28`
+and `site/index.html:177` — all three `linear-gradient(135deg,#9b5dff,#6a2dcc)`. The other three
+swatches are each their dark cell's `--purple-light → --accent`; Nebula's holds the retired
+`#9b5dff` where they hold theirs, so after the ramp move the swatch for the accent you are about to
+pick contains neither value that accent now resolves to in the dark theme. `CONTRIBUTING.md:160`
+already names the `accentPicker()` swatches as one of the places to touch when an accent is added,
+which is exactly why these three should have moved together with the token — the sync point was
+written down and the change did not follow it. They stay as they are on purpose:
+`site/index.html` belongs to another lane, and fixing two of three would leave one literal holding
+two different states. One issue covers all three.
 
 **The floor is held by a test, not by this record.** `stories/accent-contrast.test.js` measures all
 eight cells on every `npm test` — the accent on five flat grounds and on the wash over the four base
