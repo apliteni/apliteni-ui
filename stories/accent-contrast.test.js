@@ -13,6 +13,12 @@
  * while that walk runs two. It sees pairs no story happens to render; it does not
  * see a pair a story invents out of literals. The two gates are complements.
  *
+ * There is one story that invents the accent family out of literals on purpose —
+ * the sub-theme page, whose panels each pin a whole accent inline so all four
+ * show at once under one toolbar theme. That mirror is the last test in this
+ * file: what the page paints is resolved against the token files property by
+ * property, because a mirror kept by hand goes stale and this one twice did.
+ *
  * The accents are read out of src/tokens/accents.css rather than listed, so a
  * fifth accent is judged the day it is declared. A derivation that matched
  * nothing would pass by measuring nothing, so the count is asserted.
@@ -27,6 +33,7 @@ import path from 'node:path';
 import {
   AA_TEXT, composite, parseColour, ratio, substitute, tokensFor,
 } from './lib/contrast.js';
+import { ACCENT as PANELS, accentVars } from './foundations/SubThemes.stories.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const THEMES = ['dark', 'light'];
@@ -194,5 +201,99 @@ test('the accent gate actually measures something', () => {
     `the composite models now disagree by ${widest.toFixed(3)} on some pair. The comment on MODELS `
     + 'says a few hundredths and reads their agreement as the reason neither has to be the browser; '
     + 'a wider gap means that argument needs re-making, not re-pinning.',
+  );
+});
+
+// ---- the accent surface this gate would otherwise not see ------------------
+
+/**
+ * The accent family: every custom property a [data-accent] block declares.
+ *
+ * Derived from accents.css rather than listed, so a token that joins the family
+ * is demanded of the story the day it is declared, and a token that leaves it
+ * stops being demanded without an edit here. Comments are stripped first —
+ * several of them quote token names, and a quoted name is not a declaration.
+ */
+const FAMILY = [...new Set(
+  [...ACCENTS_CSS.replace(/\/\*[\s\S]*?\*\//g, '')
+    .matchAll(/\[data-accent="[\w-]+"\][^{]*\{([^}]*)\}/g)]
+    .flatMap(([, body]) => [...body.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1])),
+)];
+
+/** The accent a panel of the sub-theme story stands for. Nebula is that page's
+ *  name for the default accent; every other panel is named for the attribute
+ *  value itself. The mapping is asserted to cover the matrix exactly, so a
+ *  rename on either side fails rather than quietly measuring seven cells. */
+const accentOf = (panel) => (panel.toLowerCase() === 'nebula' ? 'default' : panel.toLowerCase());
+
+/** A CSS value reduced to what it paints: colours become numbers, so `#fff` and
+ *  `rgb(255,255,255)` and `#FFFFFF` are one value, and whitespace decides
+ *  nothing. Anything that is not a colour survives as text, which is what makes
+ *  `0 0 0 3px …` in --ring comparable at all. */
+const canonical = (value) => String(value)
+  .replace(/#[0-9a-f]{3,8}\b|rgba?\([^)]*\)/gi, (c) => {
+    const p = parseColour(c);
+    return p ? `rgba(${p.slice(0, 3).map(Math.round).join(',')},${Number(p[3]).toFixed(3)})` : c;
+  })
+  .replace(/\s+/g, ' ')
+  .trim();
+
+/** What accentVars() actually writes onto a panel, as declared. Both sides of
+ *  the comparison are derived: this one from the story's own renderer, the other
+ *  from the token files — neither is restated here. */
+const declarationsOf = (css) => new Map(css.split(';').map((d) => {
+  const i = d.indexOf(':');
+  return [d.slice(0, i).trim(), d.slice(i + 1).trim()];
+}));
+
+test('the sub-theme story paints the accent tokens it claims to mirror', () => {
+  assert.ok(
+    FAMILY.length >= 8,
+    `only ${FAMILY.length} accent-family propert(ies) were derived from src/tokens/accents.css. `
+    + 'A renamed attribute would empty this list and let the story claim anything.',
+  );
+  assert.deepEqual(
+    Object.keys(PANELS).map(accentOf).sort(), [...ACCENTS].sort(),
+    'the sub-theme story\'s panels are not the accents accents.css declares. Either an accent was '
+    + 'added or renamed and the story never followed, or a panel was renamed and now stands for no '
+    + 'accent — in which case its literals would be compared against nothing.',
+  );
+
+  const drift = [];
+  let compared = 0;
+  for (const [panel, byTheme] of Object.entries(PANELS)) {
+    for (const theme of THEMES) {
+      const vars = tokensFor(theme, accentOf(panel));
+      const declared = declarationsOf(accentVars(byTheme[theme]));
+      assert.deepEqual(
+        [...declared.keys()].sort(), [...FAMILY].sort(),
+        `the ${theme} ${panel} panel does not paint the accent family accents.css declares. A `
+        + 'property the panel leaves out is one the preview inherits from the toolbar theme instead '
+        + 'of showing; one it invents belongs to no token.',
+      );
+      for (const [property, painted] of declared) {
+        compared += 1;
+        const token = vars.get(property);
+        const shipped = token == null ? null : canonical(substitute(token, vars));
+        if (shipped !== canonical(painted)) {
+          drift.push(`${theme} ${panel} ${property}: the story paints ${painted}, the kit ships `
+            + `${token == null ? 'nothing' : substitute(token, vars)}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(
+    drift,
+    [],
+    `\n${drift.join('\n')}\n\nstories/foundations/SubThemes.stories.js hand-copies the accent `
+    + 'family so each preview panel is self-contained, and a hand-copied value goes stale the next '
+    + 'time a token moves. The page\'s whole subject is what each accent\'s tokens are, so a stale '
+    + 'literal is the page stating something the kit does not ship. Fix the table, not this test.',
+  );
+  assert.equal(
+    compared,
+    FAMILY.length * Object.keys(PANELS).length * THEMES.length,
+    'the mirror check compared a different number of values than there are properties × panels × '
+    + 'themes, so it is not seeing the whole table',
   );
 });

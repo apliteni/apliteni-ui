@@ -2,7 +2,8 @@
 
 - **Date:** 2026-08-12
 - **Status:** accepted
-- **Code:** `src/tokens/tokens.css`, `src/tokens/accents.css`, `stories/accent-contrast.test.js`
+- **Code:** `src/tokens/tokens.css`, `src/tokens/accents.css`, `stories/accent-contrast.test.js`,
+  `stories/foundations/SubThemes.stories.js`
 - **Issues:** #157
 
 ## What we ran into
@@ -96,6 +97,15 @@ if that derivation stops matching. It composites both ways and takes the worse, 
 chosen by picking the model that flatters it. It carries an exemption mechanism with nothing in it:
 an empty list is the correct state for a gate nobody has had to excuse yet, and it makes the gate
 harsher, not weaker — every pair is judged on its measurement alone.
+
+**One accent surface the token gate could not see: a story that copies the tokens by hand.**
+`stories/foundations/SubThemes.stories.js` pins a whole accent family inline per preview panel, so
+all four accents can be shown at once under one toolbar theme. That mirror had drifted twice — two
+accents #96 deepened and, in this change, four washes — and it painted `--purple` and `--ring` from
+the wrong field in every panel: 23 of its 80 declarations stated a value the kit does not ship, on a
+page whose whole subject is what each accent's tokens are. The same test now resolves what that page
+paints against the two token files, property by property, deriving both sides rather than restating
+either.
 
 ## Why not the alternatives
 
