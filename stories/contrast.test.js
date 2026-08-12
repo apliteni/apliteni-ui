@@ -163,29 +163,38 @@ const LEDGER = [
     bg: 'the hovered danger row of a table, tinted by --glow-pink',
     example: 'span.ui-badge.ui-badge--danger',
     count: 1,
-    worst: 4.24,
+    worst: 4.14,
     why: 'The danger signal painted on its own tint is the kit\'s only danger cue at rest, '
       + 'and #156 moved --pink in both themes so it clears the surfaces it is drawn on. What '
       + 'survives is the hover state of a danger badge inside an already-tinted table row: two '
-      + 'washes of the same hue stacked, which the token move was never going to reach. It is a '
+      + 'washes stacked, which the token move was never going to reach. It is a '
       + 'badge beside legible text, not the only carrier of the meaning, so it is debt rather '
-      + 'than a defect. Fixing it means deciding whether a tinted row may tint its badges again.',
+      + 'than a defect. Fixing it means deciding whether a tinted row may tint its badges again. '
+      + 'The floor moved once since: the wash under it is a color-mix of --accent '
+      + '(src/styles/table.css), so #157 lifting the dark accent lifted this ground with it and '
+      + 'took the pair down. Same row, same cause, a slightly deeper worst.',
   },
   {
     id: 'B',
     fg: '--accent',
     themes: ['dark'],
-    bg: 'tinted, hovered and selected accent surfaces in the dark theme',
-    example: 'span.ui-nav__badge.is-accent',
-    count: 25,
-    worst: 3.20,
-    why: 'The largest bucket in the ledger and the one with no owner. In the dark theme the '
-      + 'brand accent is used both as the ink and, at low alpha, as the surface underneath it — '
-      + 'a selected dropdown row, a nav badge, an inline code chip, the replay control in the '
-      + 'motion playground. Ink and surface are the same hue, so the wash lifts the background '
-      + 'toward the text and the pair closes. This is not in #131 or #149; it needs its own '
-      + 'issue and its own decision, because the fix is either a darker accent ink for text on '
-      + 'accent washes or dropping the wash. This ledger records it as debt; it does not decide it.',
+    bg: 'grounds mixed from the accent itself, in the dark theme',
+    example: 'span.ui-dropdown__badge.is-accent',
+    count: 5,
+    worst: 3.97,
+    why: 'This was the largest bucket in the ledger until #157 lifted the dark accent onto '
+      + '--purple-mid and thinned its wash. That closed every row whose ground was --glow-purple — '
+      + 'the wash a component reaches for by token — and what is left is the one shape a token '
+      + 'value cannot reach: a ground built as a color-mix of --accent into itself. Such a ground '
+      + 'rises with the accent, so lightening the ink lightens the surface under it by the same '
+      + 'move, and no choice of accent closes the pair. Four rules remain. The dropdown badge '
+      + '(src/styles/dropdown.css) is the kit\'s own and should follow the nav badge, which takes '
+      + '--glow-purple and now clears; the replay control is styled inside the motion story and '
+      + 'belongs to whoever owns that story; the "soon" badge is read on an accent-tinted card, so '
+      + 'closing it is the badge and card owners together. The fifth row is not purple at all — the '
+      + 'copy control on the green-tinted snippet bar of a live card, which the snippet and card '
+      + 'owners share and which fails under every accent, not just this one. #157 records these '
+      + 'rather than closing them: they are outside a token change by construction.',
   },
   {
     id: 'C',
@@ -239,17 +248,22 @@ const LEDGER = [
   {
     id: 'F',
     fg: '--purple-mid',
-    themes: ['dark', 'light'],
-    bg: '--glow-purple, under the "soon" badge and pill',
+    themes: ['light'],
+    bg: 'the accent-tinted card, under the "soon" badge',
     example: 'span.ui-badge.ui-badge--soon',
-    count: 4,
-    worst: 3.94,
+    count: 1,
+    worst: 4.48,
     why: 'The "soon" status is deliberately the quietest thing the kit can render — it marks '
       + 'something that does not exist yet and must not compete with what does. It is set in '
       + 'the mid purple on a purple wash, which is the same ink-on-its-own-hue problem as the '
-      + 'accent bucket, chosen here on purpose. Nobody owns this: the decision to make is '
-      + 'whether a status that means "not yet" is allowed to sit below the floor, and if not, '
-      + 'whether it stops being purple or stops being washed.',
+      + 'accent bucket, chosen here on purpose. This was a two-theme entry until #157 lifted the '
+      + 'dark accent onto --purple-mid: those two tokens now resolve to one colour in dark, so in '
+      + 'that theme "the mid purple on its own wash" has stopped being a cause distinct from the '
+      + 'accent, and its surviving dark row is recorded in bucket B instead. Splitting them there '
+      + 'would double-count one row under two names. Light still tells the two tokens apart, so '
+      + 'this entry keeps the theme where the distinction is real. Nobody owns it: the decision to '
+      + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
+      + 'not, whether it stops being purple or stops being washed.',
   },
   {
     id: 'H',

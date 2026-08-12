@@ -15,7 +15,7 @@ export default {
 // bright accents (Phoenix/Ocean/Emerald) pair with their dark --accent-contrast,
 // so accent-strong == accent; the default purple darkens to #7c3aed for white text.
 const ACCENT = {
-  Nebula: { dark: { a: '#9b5dff', as: '#7c3aed', ac: '#fff', pl: '#9b5dff', pm: '#b479ff', g: 'rgba(155,93,255,.18)', gf: '#9b5dff', gt: '#20dcf5' }, light: { a: '#6a2dcc', as: '#6a2dcc', ac: '#fff', pl: '#6a2dcc', pm: '#7a3be0', g: 'rgba(106,45,204,.09)', gf: '#6a2dcc', gt: '#0c8fa8' } },
+  Nebula: { dark: { a: '#b479ff', as: '#7c3aed', ac: '#fff', pl: '#9b5dff', pm: '#b479ff', g: 'rgba(180,121,255,.12)', gf: '#9b5dff', gt: '#20dcf5' }, light: { a: '#6a2dcc', as: '#6a2dcc', ac: '#fff', pl: '#6a2dcc', pm: '#7a3be0', g: 'rgba(106,45,204,.09)', gf: '#6a2dcc', gt: '#0c8fa8' } },
   Phoenix: { dark: { a: '#ff6a3d', as: '#ff6a3d', ac: '#241006', pl: '#ff8a5c', pm: '#ffa273', g: 'rgba(255,106,61,.18)', gf: '#ff7a45', gt: '#ffcf6a' }, light: { a: '#d64a12', as: '#d64a12', ac: '#fff', pl: '#d64a12', pm: '#b8420f', g: 'rgba(214,74,18,.1)', gf: '#d64a12', gt: '#e8992a' } },
   Ocean: { dark: { a: '#3b9dff', as: '#3b9dff', ac: '#04121f', pl: '#5ab0ff', pm: '#7cc0ff', g: 'rgba(59,157,255,.18)', gf: '#3b9dff', gt: '#20dcf5' }, light: { a: '#1568d6', as: '#1568d6', ac: '#fff', pl: '#1568d6', pm: '#1560c8', g: 'rgba(21,104,214,.1)', gf: '#1568d6', gt: '#17a2c0' } },
   Emerald: { dark: { a: '#16c98a', as: '#16c98a', ac: '#04180f', pl: '#3ad9a0', pm: '#5fe3b4', g: 'rgba(22,201,138,.18)', gf: '#16c98a', gt: '#20dcf5' }, light: { a: '#0b9c68', as: '#0b9c68', ac: '#fff', pl: '#0b9c68', pm: '#0a9060', g: 'rgba(11,156,104,.1)', gf: '#0b9c68', gt: '#12b0a0' } },

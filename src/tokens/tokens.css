@@ -135,7 +135,12 @@
   --dim: #c6c2d6;
   --muted: #948fa8;
 
-  --accent: #9b5dff;
+  /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own
+     wash over a card. This value is --purple-mid, already shipping on the "soon"
+     badge, so no new colour enters the ramp. --glow-purple and --ring follow it
+     down the file. Held by stories/accent-contrast.test.js. See issue #157.
+     why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md */
+  --accent: #b479ff;
   --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA (~6.5:1) */
   --accent-contrast: #ffffff;
   --ink: #e9e7f0;
@@ -157,7 +162,11 @@
   --danger-contrast: var(--signal-contrast);
 
   --glow-green: rgba(152, 255, 143, 0.16);
-  --glow-purple: rgba(155, 93, 255, 0.18);
+  /* Dropped from 0.18: the wash, not the surface beneath it, is what put --accent
+     under AA — it lifts the ground toward the ink faster than the ink lifts off
+     it. Re-tinted from the new --accent, which signal-contrast.test.js requires.
+     See issue #157. */
+  --glow-purple: rgba(180, 121, 255, 0.12);
   --glow-cyan: rgba(32, 220, 245, 0.14);
   --glow-pink: rgba(233, 124, 165, 0.16);
 
@@ -196,7 +205,12 @@
   /* Resting elevation for a card. Dark cards are borderless — the surface does
      the grouping on its own — so they cast nothing. */
   --shadow-card: none;
-  --ring: 0 0 0 3px rgba(155, 93, 255, 0.35);
+  /* The accent's own rgb at a fixed alpha, so it moves whenever --accent moves —
+     otherwise a token points at a colour the accent no longer is. At this alpha
+     the band sits under the 3:1 WCAG 1.4.11 asks of a focus indicator, before
+     this change and after it; nothing here closes that. See issue #157 and the
+     ADR's closing section. */
+  --ring: 0 0 0 3px rgba(180, 121, 255, 0.35);
 
   /* The ink a cast shadow is made of, and the specular white that reads as
      gloss on a raised surface. Effects mix these instead of writing rgba(). */
