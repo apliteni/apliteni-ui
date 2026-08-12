@@ -35,6 +35,42 @@ const parseRef = (ref) => {
 const fail = (page, rule, ref, said) =>
   `${page} → rule "${rule}" → reference ${ref}\n     ${said}`;
 
+// A missing field used to reach the page as the word "undefined" — "Except
+// undefined" under a rule with no boundary. Two page authors hit it and both
+// invented a boundary to get rid of it, which is the opposite of what the form
+// is for. `except` and the pair are optional now and the renderer omits what a
+// rule does not have; what is checked here is that a field which IS there says
+// something, and that a rule without a pair still says why.
+const shapeProblems = (page, rule) => {
+  const said = (s) => `${page} → rule "${rule.id}" → ${s}`;
+  const filled = (v) => typeof v === 'string' && v.trim() !== '';
+  const problems = [];
+
+  if (!filled(rule.imperative)) problems.push(said('`imperative` is the rule — it cannot be empty'));
+
+  if (rule.except !== undefined && !filled(rule.except)) {
+    problems.push(said('`except` is present but empty — leave it out instead'));
+  }
+
+  if (rule.doHtml || rule.dontHtml) {
+    for (const [html, caption] of [['doHtml', 'doCaption'], ['dontHtml', 'dontCaption']]) {
+      if (!rule[html]) {
+        problems.push(said(`has a ${html === 'doHtml' ? "don't" : 'do'} but no \`${html}\``
+          + ' — a specimen pair is both halves or neither'));
+      } else if (!filled(rule[caption])) {
+        problems.push(said(`\`${caption}\` is what the picture cannot say — it cannot be empty`));
+      }
+    }
+    if (rule.why !== undefined && !filled(rule.why)) {
+      problems.push(said('`why` is present but empty — leave it out instead'));
+    }
+  } else if (!filled(rule.why)) {
+    problems.push(said('has no specimen pair, so it needs a `why` to stand on'));
+  }
+
+  return problems;
+};
+
 // `unmet` is how a rule admits the kit does not do this yet — an issue number
 // and one sentence. It is optional; a broken one points a reader at a gap they
 // cannot look up, so the shape is checked here rather than seen on the page.
@@ -115,7 +151,10 @@ for (const page of pages) {
   });
 
   test(`guideline rules are well formed: stories/guidelines/${page}`, () => {
-    const problems = mod.RULES.flatMap((rule) => unmetProblems(page, rule));
+    const problems = mod.RULES.flatMap((rule) => [
+      ...shapeProblems(page, rule),
+      ...unmetProblems(page, rule),
+    ]);
     assert.deepStrictEqual(
       problems,
       [],
@@ -151,6 +190,34 @@ test('a malformed `unmet` fails with a line a reader can act on', () => {
   }
 
   assert.match(only({ issue: 128, note: '' }), /^Page\.js → rule "r" → unmet\n {5}/);
+});
+
+// Same reason as above: the pages are well formed, so the shape rules are
+// exercised here against rules that are not.
+test('a rule missing what the page renders fails with a line a reader can act on', () => {
+  const of = (rule) => shapeProblems('Page.js', { id: 'r', ...rule });
+  const pair = { doHtml: () => '', dontHtml: () => '', doCaption: 'a', dontCaption: 'b' };
+
+  assert.deepStrictEqual(of({ imperative: 'Do the thing', why: 'because' }), [],
+    'an imperative and a why is a whole rule');
+  assert.deepStrictEqual(of({ imperative: 'Do the thing', ...pair }), [],
+    'an imperative and a pair is a whole rule');
+  assert.deepStrictEqual(of({ imperative: 'Do the thing', why: 'because', except: 'here' }), [],
+    'a boundary is allowed, not required');
+
+  assert.match(of({ why: 'because' })[0], /`imperative` is the rule/);
+  assert.match(of({ imperative: 'i' })[0], /needs a `why` to stand on/);
+  assert.match(of({ imperative: 'i', why: '  ' })[0], /needs a `why` to stand on/);
+  assert.match(of({ imperative: 'i', why: 'w', except: '  ' })[0],
+    /`except` is present but empty — leave it out instead/);
+  assert.match(of({ imperative: 'i', ...pair, doCaption: '' })[0],
+    /`doCaption` is what the picture cannot say/);
+  assert.match(of({ imperative: 'i', dontHtml: () => '', dontCaption: 'b' })[0],
+    /has a don't but no `doHtml`/);
+  assert.match(of({ imperative: 'i', doHtml: () => '', doCaption: 'a' })[0],
+    /has a do but no `dontHtml`/);
+
+  assert.match(of({ imperative: 'i' })[0], /^Page\.js → rule "r" → /);
 });
 
 // A page whose references all resolve is only meaningful if there were some.

@@ -47,6 +47,15 @@ const SPEC_CSS = `
       font: 500 11px/1 Poppins; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
     .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
       background: var(--muted); box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 22%, transparent); }
+    /* A confirm is fixed to the viewport, so left alone its scrim leaves the
+       cell and covers the whole page. In a specimen the panel is the subject
+       rather than something laid over a page, so it joins the flow and the
+       scrim goes with the fixed positioning it belonged to. Two pages show a
+       confirm in a cell now — Destructive actions and Component choice — which
+       is what makes this stage furniture rather than one page's business. */
+    .gl-stage--confirm .ui-confirm { position: static; }
+    .gl-stage--confirm .ui-confirm__scrim { display: none; }
+    .gl-stage--confirm .ui-confirm__panel { position: static; translate: none; width: auto; }
   </style>`;
 
 // ---- Page CSS -------------------------------------------------------------
@@ -120,8 +129,11 @@ const figure = (rule) => (rule.doHtml ? `
   </div>` : `
   <p class="gc-why">${mono(rule.why)}</p>`);
 
-const exceptLine = (rule) => `
-  <p class="gc-except"><span class="gc-except__label">Except</span>${mono(rule.except)}</p>`;
+// Not every rule has a boundary, and a rule that has none used to render the
+// words "Except undefined". Two page authors met that and both went looking for
+// a boundary to invent, which is the one thing this field must never invite.
+const exceptLine = (rule) => (rule.except ? `
+  <p class="gc-except"><span class="gc-except__label">Except</span>${mono(rule.except)}</p>` : '');
 
 // A rule the kit does not meet yet is still a rule, and says so: the sentence
 // and the issue it is tracked under. stories/guidelines/refs.test.js checks the

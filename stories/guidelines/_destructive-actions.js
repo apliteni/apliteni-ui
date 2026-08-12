@@ -39,14 +39,6 @@ export const SPEC_CSS = `
     .gl-hovering .ui-dropdown__item.is-danger { background: var(--surface); }
     .gl-hovering--accent .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--accent); }
     .gl-hovering--pink   .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
-    /* The same containment the menu needs, for the same reason. A confirm is
-       fixed to the viewport, so left alone its scrim would leave the cell and
-       cover the whole page. In a specimen the panel is the subject rather than
-       something laid over a page, so it joins the flow and the scrim goes with
-       the fixed positioning it belonged to. */
-    .gl-stage--confirm .ui-confirm { position: static; }
-    .gl-stage--confirm .ui-confirm__scrim { display: none; }
-    .gl-stage--confirm .ui-confirm__panel { position: static; translate: none; width: auto; }
   </style>`;
 
 // ---- Live specimens -------------------------------------------------------
