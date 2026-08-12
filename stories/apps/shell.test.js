@@ -61,6 +61,38 @@ test('a label with markup in it is escaped in the accessible name too', () => {
   assert.match(html, /aria-label="Access &amp; agents"/);
 });
 
+// An always-on aria-label overrides the row's own text, badge included. Before
+// the name was written out it was computed from the content, so "Pending 3" is
+// what a reader heard; a label-only name silently drops the count.
+test('a badged item keeps its count in its accessible name', () => {
+  const html = sidebarNav({ items: [{ id: 'p', label: 'Pending', icon: 'card', badge: 3 }] });
+  assert.match(
+    html, /aria-label="Pending 3"/,
+    'the row is announced as "Pending" — the count is on screen and not in the name',
+  );
+});
+
+test('a toned badge object contributes its text, not its tone', () => {
+  const html = sidebarNav({ items: [{ id: 'p', label: 'Alerts', badge: { text: '12', tone: 'danger' } }] });
+  assert.match(html, /aria-label="Alerts 12"/);
+  assert.doesNotMatch(html, /aria-label="[^"]*danger/);
+});
+
+test('a badge counted in the name is escaped there as well', () => {
+  const html = sidebarNav({ items: [{ id: 'p', label: 'Quota', badge: '<9' }] });
+  assert.match(html, /aria-label="Quota &lt;9"/);
+});
+
+test('an unbadged item is named by its label alone, with no trailing space', () => {
+  const html = sidebarNav({ items: [{ id: 'a', label: 'Overview', badge: '' }] });
+  assert.match(html, /aria-label="Overview"/);
+});
+
+test('the collapsed tooltip carries the count too — the badge is hidden there', () => {
+  const html = sidebarNav({ items: [{ id: 'p', label: 'Pending', badge: 3 }], collapsed: true });
+  assert.match(html, /title="Pending 3"/);
+});
+
 // ---- 2. a rail label keeps its colour under a consumer's a:link ----------
 //
 // Resolved, not grepped — the same technique stories/nav-cascade.test.js uses
@@ -256,6 +288,16 @@ test('the shell marks the current nav entry', () => {
   assert.match(html, /class="ui-nav__item is-active"[^>]*href="#access"/);
 });
 
+// The kit's default is what a consuming /account page gets when it passes no
+// nav at all, so an entry here is a live link on somebody else's site. The
+// published default has always been these two; Overview has no page behind it.
+test('ACCOUNT_NAV is the two entries the published default has always had', () => {
+  assert.deepEqual(
+    ACCOUNT_NAV.map((i) => i.id), ['prefs', 'access'],
+    'a third default entry puts a link with nothing behind it on every consuming /account page',
+  );
+});
+
 test('the one nav definition spells the ampersand for esc(), not for raw HTML', () => {
   const access = ACCOUNT_NAV.find((i) => i.id === 'access');
   assert.equal(
@@ -281,6 +323,49 @@ test('a signed-in reader is named in the rail, and the demo address is the only 
   assert.match(html, /Ada Lovelace/);
   assert.match(html, /ada@apliteni\.com/);
   assert.doesNotMatch(appShell({}), /@/, 'an unknown reader must not be given a placeholder identity');
+});
+
+// Parsed, not grepped: whether a node is *inside* the <nav> is a tree question,
+// and a regex over the string cannot answer it.
+const dom = (html) => new JSDOM(`<!doctype html><html lang="en"><body>${html}</body></html>`).window.document;
+
+test('the signed-in reader sits beside the navigation landmark, not inside it', () => {
+  const doc = dom(appShell({ account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' } }));
+  assert.ok(doc.querySelector('.ui-app__rail > .ui-app__user'), 'the reader block left the rail');
+  assert.equal(
+    doc.querySelector('nav .ui-app__user'), null,
+    'the reader\'s name and address are inside the <nav>, so a screen reader walking the '
+    + 'navigation landmark announces the email as a navigation item',
+  );
+});
+
+test('the shell has no sign-out link unless the caller asks for one', () => {
+  assert.doesNotMatch(appShell({ title: 'T' }), /Sign out/);
+  assert.doesNotMatch(appShell({ title: 'T' }), /ui-nav__foot/);
+});
+
+test('a sign-out link is a navigation action, so it goes in the nav footer', () => {
+  const doc = dom(appShell({ signOutHref: '#logout' }));
+  const out = doc.querySelector('nav .ui-nav__foot .ui-nav__item.is-danger');
+  assert.ok(out, 'the sign-out link is not the nav\'s footer row');
+  assert.equal(out.getAttribute('href'), '#logout');
+  assert.match(out.textContent, /Sign out/);
+});
+
+test('the sign-out href is escaped like every other caller string', () => {
+  assert.match(appShell({ signOutHref: '/out?a=1&b=2' }), /href="\/out\?a=1&amp;b=2"/);
+});
+
+test('the rail head is dropped when a topbar already carries the product word', () => {
+  assert.match(appShell({ word: 'Finance' }), /class="ui-app__brand"/);
+  assert.doesNotMatch(
+    appShell({ word: 'Finance', topbar: { word: 'Finance' } }), /class="ui-app__brand"/,
+    'the product word is drawn twice — once in the topbar, once in the rail head',
+  );
+});
+
+test('the rail claims no DOM id, so two shells on one page do not collide', () => {
+  assert.doesNotMatch(appShell({ title: 'T' }), /id="app-rail"/);
 });
 
 test('the shell escapes the caller\'s brand word', () => {

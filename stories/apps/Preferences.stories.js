@@ -1,10 +1,13 @@
-import { appShell } from './_appShell.js';
+import { appShell, ACCOUNT_NAV } from '../../src/components/shell.js';
 import { card, switchToggle, accentPicker, segmented } from '../../src/components/index.js';
 
 export default {
   title: 'Apps/Preferences',
   parameters: { layout: 'fullscreen' },
 };
+
+// Overview belongs to this demo, not to the kit's default nav — see Access.
+const NAV = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...ACCOUNT_NAV];
 
 // Theme and Language are settings, not navigation — picking one changes what the
 // portal will do, not what this page shows. So they stay a segmented strip, which
@@ -16,8 +19,11 @@ const settingRow = (lab, hint, control) =>
 
 export const Default = {
   render: () => appShell({
+    nav: NAV,
     active: 'prefs',
-    crumb: 'Account / Preferences',
+    account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+    signOutHref: '#logout',
+    crumbs: [{ label: 'Account', href: '#' }, { label: 'Preferences' }],
     title: 'Preferences',
     sub: 'How the kit looks and speaks to you. Saved to this browser.',
     body: `

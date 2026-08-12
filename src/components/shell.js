@@ -3,17 +3,18 @@
 // with a breadcrumb trail the caller owns. `accountShell()` is a thin preset
 // over it that keeps the topbar, so the published /account API still works.
 // Call wireTopbar() once after mounting to wire the account menu + theme toggle.
-// why: docs/adr/0001-one-page-shell.md
+// why: docs/adr/0006-one-page-shell-built-from-the-kits-own-nav.md
 import { topbar as productTopbar } from './topbar.js';
-import { esc } from './index.js';
+import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs } from './nav.js';
 import { prism } from '../assets/brand.js';
 
 // The one account navigation definition: nav.js item objects. Labels are raw
 // text — every nav primitive escapes, so a pre-escaped `&amp;` would come out
-// as `&amp;amp;`. `key` means credentials; `plug` means integration.
+// as `&amp;amp;`. `key` means credentials; `plug` means integration. These two
+// are the kit's default, so each is a live link on a consumer's /account page —
+// a screen the kit does not ship belongs in the caller's own nav, not here.
 export const ACCOUNT_NAV = [
-  { id: 'overview', icon: 'chart', label: 'Overview' },
   { id: 'prefs', icon: 'gear', label: 'Preferences' },
   { id: 'access', icon: 'key', label: 'Access & agents' },
 ];
@@ -35,8 +36,18 @@ const initials = (name = '', email = '') => {
   return (parts.slice(0, 2).join('') || '?').toUpperCase();
 };
 
-// The rail footer: who is signed in. Empty when nobody is — a shell must not
-// invent an identity for a reader it does not know.
+// Signing out is a navigation action, so it belongs in the rail nav's footer
+// slot. Opt-in: a shell that renders it unasked puts a dead link on a page with
+// no session behind it.
+const signOut = (href) =>
+  `<a class="ui-nav__item is-danger" href="${esc(href)}" aria-label="Sign out">` +
+  `<span class="ui-nav__ic">${icon('logout')}</span>` +
+  `<span class="ui-nav__label">Sign out</span></a>`;
+
+// Who is signed in. A sibling of the <nav>, not its footer: a reader's name and
+// address are not navigation, and inside the landmark a screen reader announces
+// the address as an entry. Empty when nobody is — a shell must not invent an
+// identity for a reader it does not know.
 function railUser({ name, email } = {}) {
   if (!name && !email) return '';
   return `<div class="ui-app__user">` +
@@ -58,6 +69,7 @@ export function appShell({
   sub = '',
   body = '',
   account = {},
+  signOutHref = '',
   topbar = null,
   maxWidth = '860px',
 } = {}) {
@@ -65,13 +77,17 @@ export function appShell({
     sections: [{ label: navLabel, items: nav.map(toItem) }],
     active,
     ariaLabel: navLabel,
-    footer: railUser(account),
-    id: 'app-rail',
+    footer: signOutHref ? signOut(signOutHref) : '',
   });
+  // The topbar already says the product word. Two lockups on one screen is one
+  // product word too many, so the rail head steps aside when there is a topbar.
+  const brand = topbar ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}">`
+    + `${prism('appb', 24)}<span>${esc(word)}</span></a>`;
   const grid = `<div class="ui-app">
     <aside class="ui-app__rail">
-      <a class="ui-app__brand" href="${esc(brandHref)}">${prism('appb', 24)}<span>${esc(word)}</span></a>
+      ${brand}
       ${rail}
+      ${railUser(account)}
     </aside>
     <main class="ui-app__main" style="--ui-app-main: ${esc(maxWidth)}">
       ${crumbs.length ? breadcrumbs({ items: crumbs }) : ''}
@@ -97,6 +113,7 @@ export function accountShell({
   title = '',
   sub = '',
   body = '',
+  signOutHref = '#logout',
 } = {}) {
   const items = nav.map(toItem);
   const trail = [{ label: cap }, { label: crumb || title }].filter((c) => c.label);
@@ -110,6 +127,7 @@ export function accountShell({
     sub,
     body,
     account,
+    signOutHref,
     topbar: {
       word,
       view: 'text',

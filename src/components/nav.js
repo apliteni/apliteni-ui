@@ -30,19 +30,30 @@ const nextId = (p = 'nav') => `${p}-${++_uid}`;
 
 // A trailing counter/badge on a nav item. `badge` is a number, a string, or
 // { text, tone }. Tones map to the badge token set (accent | live | neutral…).
-function navBadge(badge) {
+const badgeText = (badge) => {
   if (badge == null || badge === '') return '';
   const text = typeof badge === 'object' ? badge.text : badge;
+  return text == null || text === '' ? '' : String(text);
+};
+
+function navBadge(badge) {
+  const text = badgeText(badge);
+  if (!text) return '';
   const tone = typeof badge === 'object' && badge.tone ? badge.tone : 'neutral';
   return `<span class="${cx('ui-nav__badge', `is-${tone}`)}">${esc(text)}</span>`;
 }
 
 // An item's accessible name. It is emitted at every width, not only when
 // `collapsed`, so a shell may fold `.ui-nav__label` out of view in CSS and keep
-// the icon named. The `title` tooltip is for the collapsed rail only — a narrow
-// touch device has no hover to show it with.
-const leafName = (label, collapsed) =>
-  ` aria-label="${esc(label)}"${collapsed ? ` title="${esc(label)}"` : ''}`;
+// the icon named. An always-on name overrides the row's own text, so the badge
+// has to be spelled into it — otherwise "Pending 3" narrows to "Pending". The
+// `title` tooltip is for the collapsed rail only — a narrow touch device has no
+// hover to show it with, and the badge is folded away there too.
+const leafName = (label, collapsed, badge) => {
+  const count = badgeText(badge);
+  const name = esc(count ? `${label} ${count}` : label);
+  return ` aria-label="${name}"${collapsed ? ` title="${name}"` : ''}`;
+};
 
 // One sidebar leaf: a link (or a plain, aria-disabled span). `collapsed` also
 // hides the label visually, leaving the icon hoverable.
@@ -54,7 +65,7 @@ function sideLeaf(it, active, { collapsed, sub } = {}) {
   const text = `<span class="ui-nav__label">${esc(label)}</span>`;
   const badge = navBadge(it.badge);
   const cls = cx('ui-nav__item', sub && 'ui-nav__item--sub', on && 'is-active', it.danger && 'is-danger', disabled && 'is-disabled');
-  const name = leafName(label, collapsed);
+  const name = leafName(label, collapsed, it.badge);
   if (disabled) {
     return `<li><span class="${cls}" aria-disabled="true"${name}>${lead}${text}${badge}</span></li>`;
   }

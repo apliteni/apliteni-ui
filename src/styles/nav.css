@@ -46,7 +46,7 @@
   font-family: inherit;
   transition: background 0.16s var(--ease), color 0.16s var(--ease);
 }
-.ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/adr/0001-one-page-shell.md */
+.ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/adr/0006-one-page-shell-built-from-the-kits-own-nav.md */
 .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
 .ui-nav__item.is-active {
   background: var(--surface-3);

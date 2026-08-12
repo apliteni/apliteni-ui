@@ -176,7 +176,7 @@ export const RULES = [
     doHtml: wordingDo,
     dontHtml: wordingDont,
     kit: [
-      { ref: 'stories/apps/Access.stories.js:26', pattern: "label: 'Revoke'" },
+      { ref: 'stories/apps/Access.stories.js:37', pattern: "label: 'Revoke'" },
     ],
   },
   {

@@ -39,7 +39,11 @@ const src = path.resolve(here, '..');
 // rule. If you REMOVE one — which #148's Definition of Done explicitly allows,
 // "or is removed because the element does not need one" — lower it in the same
 // commit and say why there. The number is meant to be inconvenient.
-const EXPECTED_SUBJECTS = 56;
+// Was 56: #127 made appShell() the kit's one shell, so nothing emits the
+// hand-written `.ui-side` rail any more and its `.ui-side a svg` rule went with
+// it — width and height, the two subjects that left. The rail's icons are
+// sidebarNav()'s now, sized by `.ui-nav__ic svg`, which this gate already holds.
+const EXPECTED_SUBJECTS = 54;
 
 const SHEETS = kitSheetNames(src);
 
