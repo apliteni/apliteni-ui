@@ -3,7 +3,15 @@
 
 export const RELEASES = [
   {
-    v: '0.9.1', date: '2026-08-09', tag: 'latest',
+    v: '0.10.0', date: '2026-08-12', tag: 'latest',
+    changes: [
+      ['added', '`confirm()` — the question a page stops for before something irreversible. A focus-trapped modal over a scrim; Escape cancels, and it opens on the safe answer, so a reader who hits Enter out of habit keeps what they have.'],
+      ['fixed', 'Opening a drawer puts the reader inside it. Focus was asked for while the panel still counted as hidden, so it went nowhere — and the page behind was already hidden from assistive technology by then, leaving the reader on the document body with nothing to read and nothing to tab to.', ['Drawer']],
+      ['fixed', 'Two overlays open at once — two drawers, or a confirm over a drawer — no longer hide the whole page from assistive technology until a reload. Closing them out of order used to leave everything outside them `inert` for good.'],
+    ],
+  },
+  {
+    v: '0.9.1', date: '2026-08-09',
     changes: [
       ['changed', 'Nothing you can see. 0.9.0 shipped, and then two comments inside shipped stylesheets changed without a version bump, so the package on npm stopped matching the source. This release makes them agree again — upgrading from 0.9.0 changes no rendering and no API.'],
       ['fixed', 'Releasing no longer depends on someone remembering to do it. A version bump landing on `main` is tagged, gets a release whose notes are its changelog entry, and is published. A pull request that changes what the package ships without bumping the version fails, and a daily check opens an issue if what is on npm and what is on `main` disagree for more than a day. Silence used to look the same as success; it no longer does.'],
@@ -161,6 +169,8 @@ const COMPONENTS = {
   Button:    'components-button--playground',
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',
+  Confirm:   'components-confirm--playground',
+  Drawer:    'components-drawer--playground',
   Inputs:    'components-inputs--text-fields',
   Segmented: 'components-segmented-control--playground',
   Snippet:   'components-code-snippet--shell',
