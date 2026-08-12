@@ -68,8 +68,11 @@
   --accent-contrast: #ffffff;
   /* Thinned from 0.10 for WCAG AA. In light the harshest ground is --surface-2,
      the grey panel; #96 deepened --accent to clear plain white, which it does,
-     but the wash over that panel was not part of it. See issue #157. */
-  --glow-purple: rgba(21, 104, 214, 0.06);
+     but the wash over that panel was not part of it. 0.06 was the first alpha
+     tried and it clears in one composite model and fails in the other, so it was
+     never a value that had cleared — one step thinner clears in both, and in the
+     pixel a browser paints. See issue #157. */
+  --glow-purple: rgba(21, 104, 214, 0.05);
   --ring: 0 0 0 3px rgba(21, 104, 214, 0.28);
   --grad-from: #1568d6;
   --grad-to: #17a2c0;

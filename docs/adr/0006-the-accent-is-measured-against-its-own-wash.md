@@ -16,7 +16,7 @@ them:
 | `--bg` | 4.65 | 3.76 |
 | `--bg-elevated` | 4.40 | 3.53 |
 | `--surface` | 4.15 | 3.32 |
-| `--surface-2` | 4.45 | 3.58 |
+| `--surface-2` | 4.45 | 3.57 |
 
 Two things are visible in that table and only one of them was expected. The flat surfaces are close
 to the bar — one of the four clears it. The **wash is a whole point worse than the surface it sits
@@ -46,33 +46,45 @@ an exact tint of `--accent`, and a lifted accent with the old wash would have fa
 so the ramp gains nothing to maintain.
 
 The result across all eight theme × accent cells, with the flat grounds and the washed grounds both
-counted:
+counted. Every number is the worse of the two composite models described below:
 
 | cell | before | after |
 |---|---|---|
 | dark default | fails, worst 3.32 | passes, worst 4.54 |
-| dark phoenix | fails, worst 4.31 | passes, worst 4.58 |
+| dark phoenix | fails, worst 4.31 | passes, worst 4.56 |
 | dark ocean | fails, worst 4.28 | passes, worst 4.53 |
 | dark emerald | passes, worst 5.35 | unchanged |
 | light default | passes, worst 5.89 | unchanged |
-| light phoenix | passes, worst 5.31 | unchanged |
-| light ocean | fails, worst 4.27 | 4.49 — still under, exempt |
-| light emerald | fails, worst 4.45 | passes, worst 4.55 |
+| light phoenix | passes, worst 5.30 | unchanged |
+| light ocean | fails, worst 4.26 | passes, worst 4.56 |
+| light emerald | fails, worst 4.44 | passes, worst 4.54 |
 
 Every worst above is the accent on the wash over a surface, never on a flat one. No flat ground fails
 in any cell, before or after.
 
 The other three accents fail on the wash and nowhere else, so they are closed the same way, by
 lowering that cell's alpha rather than by moving a hue that #96 chose: dark Phoenix and dark Ocean
-from `0.18` to `0.15`, light Ocean from `0.10` to `0.06`, light Emerald from `0.10` to `0.08`. Their
+from `0.18` to `0.15`, light Ocean from `0.10` to `0.05`, light Emerald from `0.10` to `0.08`. Their
 hues are untouched. This is a separate commit from the default accent's move so it can be reverted on
 its own.
 
-**Light Ocean does not quite close.** The alpha search that produced `0.06` composited at full
-precision, where it lands at 4.501. At 8 bits it lands at 4.491 — nine thousandths under. `0.05`
-clears it in both models, but that is a further step off the wash's visibility, and how faint the
-azure wash may get is a colour decision this record does not make. The cell keeps a written exemption
-in the gate rather than a value nobody chose.
+**Two composite models, and a value is only chosen when it clears in both.** A wash over a ground can
+be composited at full precision, or rounded to 8 bits per layer. The gate does both and judges a pair
+on the worse reading. Rounding is in there because it is closer to a framebuffer than full precision
+is — but it is not the framebuffer, and neither model is: rendered in headless Chromium and read back
+out of the screenshot, `rgba(180, 121, 255, 0.12)` over `#221f2e` paints `rgb(51, 42, 71)`, where
+rounding predicts `rgb(52, 42, 71)` and full precision gives `(51.52, 41.80, 71.08)`. The dark
+default's binding pair therefore reads 4.555 against the painted pixel, 4.540 rounded and 4.555
+exact. The models disagree by at most a few hundredths, which is why taking the worse of them costs
+nothing and why no number here is claimed past two decimals.
+
+That rule is what decided light Ocean. `0.06` was the largest alpha the first search found, composited
+at full precision, where it reads 4.501; rounded it reads 4.491, and the pixel Chromium paints reads
+4.483. It was never a value that had cleared — it was a failing pair reported by whichever model was
+asked. `0.05` clears in both models and in the browser, at 4.56. That is one more step off the wash's
+visibility than the search wanted, and how faint the azure wash may get is a colour question this
+record does not answer beyond the floor; what it does say is that the floor is not negotiable by
+choosing a model.
 
 **Light's `--accent` does not move.** `#6a2dcc` already clears every ground, washed and flat, at
 worst 5.89.
@@ -80,9 +92,10 @@ worst 5.89.
 **The floor is held by a test, not by this record.** `stories/accent-contrast.test.js` measures all
 eight cells on every `npm test`. It derives the accents from the `[data-accent="…"]` blocks in
 `src/tokens/accents.css`, so a fifth accent is judged the day it is declared, and it refuses to run
-if that derivation stops matching. It composites at 8 bits, because that is what the browser paints —
-which is the harsher reading on the pair that binds the dark default accent, 4.54 against 4.56 at
-full precision.
+if that derivation stops matching. It composites both ways and takes the worse, so no value can be
+chosen by picking the model that flatters it. It carries an exemption mechanism with nothing in it:
+an empty list is the correct state for a gate nobody has had to excuse yet, and it makes the gate
+harsher, not weaker — every pair is judged on its measurement alone.
 
 ## Why not the alternatives
 
@@ -133,9 +146,14 @@ state in the kit under every accent, and nothing here decides it.
 a cell needed it. Whether those three accents want a lifted hue the way the default one got is a
 question this record leaves open — it closed them the cheap way, on the wash alone.
 
-**Light Ocean's last nine thousandths**, above. The gate carries it as a written exemption, which is
-the only live entry in that list; if it is ever closed, the exemption mechanism has nothing left
-proving it works.
+**How visible the light Ocean wash should be.** It went to `0.05` because that is where the pair
+clears in both models, not because anyone judged the azure wash at that alpha. The floor decided it;
+whether it is still doing its job as a tint is a colour question nobody has answered.
+
+**The exemption mechanism has nothing proving it works.** Its list is empty, so the test that fails a
+stale entry currently measures nothing. That is the price of a gate with no excuses in it, and the
+cheaper half of the trade — the alternative was leaving a failing pair in the list to keep the
+mechanism exercised.
 
 **Whether the colour is right.** AA is a floor. This record says the dark accent now clears it; it
 does not say the violet is the correct violet.

@@ -43,39 +43,47 @@ const CELLS = THEMES.flatMap((theme) => ACCENTS.map((accent) => ({ theme, accent
  * A cell that is allowed to sit under the floor, and the reason a person gave.
  * `ground` and `washed` name the exact pair — an exemption is never a whole cell,
  * because a cell that failed somewhere else would then pass on this reason.
+ *
+ * EMPTY IS THE CORRECT STATE, NOT DEAD CODE. Nothing has had to be excused yet,
+ * and an empty list makes this gate strictly harsher than a populated one: every
+ * pair is judged on its measurement alone. The mechanism stays because the next
+ * failing pair needs somewhere to be argued in the open rather than quietly
+ * softened — and because the stale-entry test below is what stops an entry from
+ * outliving the failure it was written for.
  */
-const EXEMPT = [
-  {
-    theme: 'light',
-    accent: 'ocean',
-    ground: '--surface-2',
-    washed: true,
-    why: 'Misses the bar by nine thousandths, and is held there on purpose. #157 searched for the '
-      + 'largest wash alpha that still clears and found this one, computing the composite at full '
-      + 'precision; this gate rounds each layer to 8 bits because that is what the browser puts in '
-      + 'the framebuffer, and the same alpha lands just under. One step thinner clears it in both '
-      + 'models — but that is another step off the wash\'s visibility, and how faint the azure wash '
-      + 'is allowed to get is a colour decision this issue did not make. Recorded so the nine '
-      + 'thousandths are a choice somebody can see rather than a rounding nobody noticed.',
-  },
-];
+const EXEMPT = [];
 
 const keyOf = ({ theme, accent, ground, washed }) =>
   `${theme}/${accent} ${washed ? `--glow-purple over ${ground}` : ground}`;
 const EXEMPTED = new Set(EXEMPT.map(keyOf));
 
-/** Paint `fg` over an opaque `bg` and round to 8 bits, because that is what the
- *  browser puts in the framebuffer — and the wash is painted before the ink is
- *  painted over it, so the rounding happens twice, once per layer.
+/**
+ * The two ways to composite a wash over a ground, because neither of them is
+ * what the browser paints and they disagree.
  *
- *  It is not a rounding error either way round. On the pair that binds the dark
- *  default accent it is the HARSHER reading (4.54 against 4.56 at full
- *  precision); on light Ocean it is the kinder one. Full precision would have
- *  passed that dark pair on four hundredths the browser never renders. */
-const paint = (fg, bg) => composite(fg, bg).map(Math.round);
+ * `rounded` rounds each layer to 8 bits — the wash is painted before the ink is
+ * painted over it, so the rounding happens twice, once per layer. That is closer
+ * to a framebuffer than full precision, which is why it is here at all, but it
+ * is not the framebuffer: rendered in headless Chromium and read back out of the
+ * screenshot, rgba(180,121,255,0.12) over #221f2e paints rgb(51,42,71), where
+ * rounding predicts rgb(52,42,71) and full precision gives (51.52,41.80,71.08).
+ * The three readings of that pair are 4.555, 4.540 and 4.555 — the same number to
+ * a hundredth, and no model is the truth to three decimals.
+ *
+ * Which model is harsher flips from pair to pair, so a pair is judged on the
+ * WORSE of the two and a value is only chosen when it clears in both. That is why
+ * light Ocean's wash is at 0.05: at 0.06 it read 4.501 at full precision and
+ * 4.491 rounded, and the pixel Chromium actually paints read 4.483 — a failing
+ * pair either way, and one this gate would have carried as an exemption if it had
+ * believed a single model.
+ */
+const MODELS = {
+  rounded: (fg, bg) => composite(fg, bg).map(Math.round),
+  exact: (fg, bg) => composite(fg, bg),
+};
 
 /** Every pair a cell is judged on: the accent on each flat ground, and on the
- *  accent wash over that ground. */
+ *  accent wash over that ground, at the worse of the two composite models. */
 function pairsOf({ theme, accent }) {
   const vars = tokensFor(theme, accent);
   const colour = (name) => parseColour(substitute(`var(${name})`, vars));
@@ -83,15 +91,22 @@ function pairsOf({ theme, accent }) {
   const glow = colour('--glow-purple');
   return GROUNDS.flatMap((ground) => {
     const flat = colour(ground);
-    const washed = paint(glow, flat);
+    const byModel = Object.fromEntries(Object.entries(MODELS).map(([name, paint]) => {
+      const washed = paint(glow, flat);
+      return [name, ratio(paint(ink, washed), washed)];
+    }));
     return [
-      { theme, accent, ground, washed: false, bg: flat, ratio: ratio(ink, flat) },
-      { theme, accent, ground, washed: true, bg: washed, ratio: ratio(paint(ink, washed), washed) },
+      { theme, accent, ground, washed: false, ratio: ratio(ink, flat), byModel: null },
+      {
+        theme, accent, ground, washed: true, byModel,
+        ratio: Math.min(...Object.values(byModel)),
+      },
     ];
   });
 }
 
-const show = (p) => `${keyOf(p)} — ${p.ratio.toFixed(2)}:1`;
+const show = (p) => `${keyOf(p)} — ${p.ratio.toFixed(2)}:1`
+  + (p.byModel ? ` (${Object.entries(p.byModel).map(([m, r]) => `${m} ${r.toFixed(3)}`).join(', ')})` : '');
 
 for (const cell of CELLS) {
   test(`--accent clears WCAG AA on every ground it is read on — ${cell.theme} ${cell.accent}`, () => {
@@ -161,4 +176,23 @@ test('the accent gate actually measures something', () => {
   // Six of the eight cells override the default; if they resolved alike, this
   // gate would be measuring tokens.css eight times over.
   assert.ok(inks.size >= 6, `the eight cells resolved only ${inks.size} distinct --accent value(s)`);
+
+  // The two composite models have to actually be two. Held the same function
+  // twice, every "clears in both" above would be one claim wearing two names,
+  // and the min over them would be a min over nothing.
+  assert.equal(Object.keys(MODELS).length, 2, 'a washed pair is judged on two composite models');
+  const spreads = CELLS.flatMap(pairsOf).filter((p) => p.byModel)
+    .map((p) => Math.max(...Object.values(p.byModel)) - Math.min(...Object.values(p.byModel)));
+  const widest = Math.max(...spreads);
+  assert.ok(
+    widest > 0,
+    'the two composite models agreed exactly on all 32 washed pairs, which no two different '
+    + 'models do — MODELS is holding one model twice',
+  );
+  assert.ok(
+    widest < 0.05,
+    `the composite models now disagree by ${widest.toFixed(3)} on some pair. The comment on MODELS `
+    + 'says a few hundredths and reads their agreement as the reason neither has to be the browser; '
+    + 'a wider gap means that argument needs re-making, not re-pinning.',
+  );
 });
