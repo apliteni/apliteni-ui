@@ -5,6 +5,7 @@ export const RELEASES = [
   {
     v: '0.10.0', date: '2026-08-12', tag: 'latest',
     changes: [
+      ['breaking', '`drawer({ open: true })` now really opens — the page behind goes inert, Tab is trapped in the panel, Escape closes it. A sidebar or an inline specimen that should sit there open wants `specimen: true`. `confirm()` reads `open: true` the same way.'],
       ['added', '`confirm()` — the question a page stops for before something irreversible. A focus-trapped modal over a scrim; Escape cancels, and it opens on the safe answer, so a reader who hits Enter out of habit keeps what they have.'],
       ['fixed', 'Opening a drawer puts the reader inside it. Focus was asked for while the panel still counted as hidden, so it went nowhere — and the page behind was already hidden from assistive technology by then, leaving the reader on the document body with nothing to read and nothing to tab to.', ['Drawer']],
       ['fixed', 'Two overlays open at once — two drawers, or a confirm over a drawer — no longer hide the whole page from assistive technology until a reload. Closing them out of order used to leave everything outside them `inert` for good.'],

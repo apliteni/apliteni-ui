@@ -138,8 +138,9 @@ export function pushOverlay(root, panel, dismiss) {
  * wiring has no history to order by: every overlay here opened before the page
  * was live. The overlays share one z-index, so the root drawn later is the one
  * painted over the other, and it is the one the keyboard belongs to — whichever
- * component's wiring happened to run first. A root that is not open is left
- * alone, which is what keeps a specimen a picture.
+ * component's wiring happened to run first. A root that renders closed is left
+ * alone: wiring is not an opening, and it waits for the one that is. A specimen
+ * never reaches here at all — it carries no hook for the wiring to find.
  */
 export function adoptOverlay(root, panel, dismiss) {
   if (!root.classList.contains('is-open')) return;
