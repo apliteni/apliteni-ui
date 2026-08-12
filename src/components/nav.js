@@ -37,8 +37,15 @@ function navBadge(badge) {
   return `<span class="${cx('ui-nav__badge', `is-${tone}`)}">${esc(text)}</span>`;
 }
 
-// One sidebar leaf: a link (or a plain, aria-disabled span). `collapsed` folds
-// the label into an aria-label + title so the icon stays named and hoverable.
+// An item's accessible name. It is emitted at every width, not only when
+// `collapsed`, so a shell may fold `.ui-nav__label` out of view in CSS and keep
+// the icon named. The `title` tooltip is for the collapsed rail only — a narrow
+// touch device has no hover to show it with.
+const leafName = (label, collapsed) =>
+  ` aria-label="${esc(label)}"${collapsed ? ` title="${esc(label)}"` : ''}`;
+
+// One sidebar leaf: a link (or a plain, aria-disabled span). `collapsed` also
+// hides the label visually, leaving the icon hoverable.
 function sideLeaf(it, active, { collapsed, sub } = {}) {
   const on = it.id != null && it.id === active;
   const disabled = !!it.disabled;
@@ -47,7 +54,7 @@ function sideLeaf(it, active, { collapsed, sub } = {}) {
   const text = `<span class="ui-nav__label">${esc(label)}</span>`;
   const badge = navBadge(it.badge);
   const cls = cx('ui-nav__item', sub && 'ui-nav__item--sub', on && 'is-active', it.danger && 'is-danger', disabled && 'is-disabled');
-  const name = collapsed ? ` aria-label="${esc(label)}" title="${esc(label)}"` : '';
+  const name = leafName(label, collapsed);
   if (disabled) {
     return `<li><span class="${cls}" aria-disabled="true"${name}>${lead}${text}${badge}</span></li>`;
   }
@@ -72,7 +79,7 @@ function sideGroup(it, active, { collapsed } = {}) {
   const label = it.label || '';
   const text = `<span class="ui-nav__label">${esc(label)}</span>`;
   const kids = (it.items || []).map((c) => sideLeaf(c, active, { collapsed, sub: true })).join('');
-  const name = collapsed ? ` aria-label="${esc(label)}" title="${esc(label)}"` : '';
+  const name = leafName(label, collapsed);
   const btn =
     `<button type="button" class="${cx('ui-nav__item', 'ui-nav__toggle', childActive && 'is-current')}"` +
     ` data-nav-toggle aria-expanded="${open ? 'true' : 'false'}" aria-controls="${listId}"${name}>` +
@@ -89,7 +96,8 @@ function sideItem(it, active, opts) {
 //   items/section items: { id, label, icon?, href?, target?, badge?, danger?,
 //                           disabled?, items?, open? }  (items ⇒ collapsible group)
 //   active     id of the current item (gets aria-current="page")
-//   collapsed  icon-only rail; labels fold into aria-label + title
+//   collapsed  icon-only rail; every item is aria-labelled at every width, and
+//              collapsed adds the hover tooltip on top
 //   footer     trusted HTML pinned below a divider (e.g. a sign-out link)
 //   ariaLabel  accessible name for the <nav> landmark
 export function sidebarNav({
