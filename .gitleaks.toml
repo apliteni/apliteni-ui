@@ -8,6 +8,15 @@
 # never weaken a rule.
 title = "apliteni-ui leak rules"
 
+# The version these rules were written and measured against. Measured behaviour, so
+# nobody over-reads it: an older gitleaks does NOT refuse the config — it logs
+# "config requires a newer Gitleaks version" and scans on regardless. So this buys a
+# line in the log that says which binary is out of step, not a gate. It also cannot
+# protect the same-id override the 1Password rule depends on: if a future gitleaks
+# changes how a redefined id composes with the default, this key will not notice.
+# scripts/gitleaks-rules.check.mjs is what actually proves the rules still bite.
+minVersion = "v8.30.1"
+
 [extend]
 useDefault = true # keep every built-in secret rule
 
@@ -70,16 +79,24 @@ regex = '''ops_eyJ[A-Za-z0-9+/_-]{23,}={0,3}'''
 keywords = ["ops_eyj"]
 tags = ["secret", "1password"]
 
-# ── OpenAI project / service-account / admin key, any half-length ────────────
-# gitleaks 8.30.1 knows the prefixes but pins each half either side of the T3BlbkFJ
-# watermark to exactly 58 or 74 characters, so a key of any other half-length is caught
-# by nothing — including generic-api-key. Anchoring on the watermark instead (base64 for
-# "OpenAI", present in every key OpenAI mints) covers all three prefixes at any length.
-# Full argument: #179 and asabirov/claude#68.
+# ── OpenAI key, anchored on the watermark alone ──────────────────────────────
+# Matches a FRAGMENT: the watermark with 20 characters on either side of it, and no
+# prefix requirement at all. That is the point. Requiring sk-<prefix>- and a long
+# unbroken run reproduces the very hole #179 exists to close — a real sk-proj- key
+# broken at column 80 is then caught by nothing, ours or upstream's, and neither is
+# sk-service- or a head longer than the cap. Anchoring on T3BlbkFJ (base64 for
+# "OpenAI", present in every key OpenAI mints) is what carries the specificity, the
+# same trade the ops_eyJ rule above makes. Measured: zero findings from this rule
+# across 118 MB of node_modules and the full tracked history.
+#
+# This is a NEW id, so upstream's `openai-api-key` is NOT replaced — it stays live and
+# both may name the same key. Do not "tidy" this onto upstream's id for symmetry with
+# the 1Password rule above: that would replace upstream's, and they are not
+# interchangeable. Full argument: #179 and asabirov/claude#68.
 [[rules]]
 id = "openai-api-key-watermark"
-description = "OpenAI project, service-account or admin key, any half-length"
-regex = '''sk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,100}T3BlbkFJ[A-Za-z0-9_-]{20,100}'''
+description = "OpenAI key fragment — watermark-anchored, any prefix, wrapped or truncated"
+regex = '''(?:[A-Za-z0-9_-]{20,}T3BlbkFJ|T3BlbkFJ[A-Za-z0-9_-]{20,})'''
 keywords = ["T3BlbkFJ"]
 tags = ["secret", "openai"]
 
@@ -115,14 +132,15 @@ regex = '''figd_[A-Za-z0-9_-]{35,}'''
 keywords = ["figd_"]
 tags = ["secret", "figma"]
 
-# phx_ is the personal API key, which reads and writes. PostHog's other prefix, phc_,
-# is the project key that ships inside published web pages — public by design, so it
-# deliberately gets no rule; one would flag every landing page in the tree.
+# PostHog mints five prefixes (its own models/utils.py): phx_ personal, phs_ project
+# secret, pha_ OAuth access, phr_ OAuth refresh — and phc_ project. The first four are
+# secrets and are all matched here. phc_ deliberately is not: it ships inside published
+# web pages by design, so a rule for it would flag every landing page in the tree.
 [[rules]]
-id = "posthog-personal-api-key"
-description = "PostHog personal API key"
-regex = '''phx_[A-Za-z0-9]{40,}'''
-keywords = ["phx_"]
+id = "posthog-api-key"
+description = "PostHog secret key — personal, project-secret, or OAuth (not the public phc_)"
+regex = '''ph[xsar]_[A-Za-z0-9]{40,}'''
+keywords = ["phx_", "phs_", "pha_", "phr_"]
 tags = ["secret", "posthog"]
 
 [allowlist]
@@ -136,7 +154,14 @@ regexes = [
   # Fabricated "shown once" demo API token in Access.stories.js — not a real secret.
   '''apli_sk_live_9f2c4b7e1a06d8f3c5b2e9a1d4f70c83''',
 ]
+# Anchored, and that is the point: a path entry switches off EVERY rule in this file
+# for anything it matches, and gitleaks matches these as a substring search. Unanchored,
+# '''.*\.svg''' exempted src/icons/sprite.svg.ts — an ordinary name in an icon kit —
+# from the whole gate. Measured: gitleaks' own default allowlist already exempts .svg
+# (with .png/.jpg/.gif/.pdf/.doc/.bin) and correctly does NOT exempt .svg.ts, so the
+# unanchored form was strictly weaker than the default it sat beside, and the anchored
+# one is belt-and-braces over it. scripts/gitleaks-rules.check.mjs holds both halves.
 paths = [
-  '''package-lock\.json''',
-  '''.*\.svg''',
+  '''(?:^|/)package-lock\.json$''',
+  '''(?i)\.svg$''',
 ]
