@@ -33,12 +33,13 @@ the binding constraint, and a fix aimed at them would have been aimed at the wro
 The story walk agreed: 116 distinct failing pairs in dark, 25 of them with `--accent` as the
 foreground, worst 3.20.
 
-**One of those five grounds was outside both gates.** `--surface-3` is what paints an **active**
+**One of those five grounds was measured by nothing.** `--surface-3` is what paints an **active**
 sidebar row (`src/styles/nav.css:52`), and the accent counter on that row painted `--glow-purple`
-over it (`:100`) — the accent wash laid on an already-raised surface, two tints stacked. The token
-gate measured four grounds because a person had written four down; no story renders an active nav
-item with an accent badge, so the story walk in `stories/contrast.test.js` did not see the pair
-either. It was found by reading CSS by hand. It failed on `main`, and it still failed against every
+over it (`:100`) — the accent wash laid on an already-raised surface, two tints stacked. On `main`
+the only contrast gate the accent passed through was the story walk in `stories/contrast.test.js`,
+which sees what the catalogue renders, and no story rendered an active nav item with an accent
+counter. There was no token-level accent gate at all; `stories/accent-contrast.test.js` is new here.
+So the pair was found by reading CSS by hand. It failed on `main`, and it still failed against every
 token this change moved:
 
 | cell | on `main` | against the shipped tokens |
@@ -220,9 +221,9 @@ Rejected for the chroma. It is the ramp's top step now, as `--purple-mid`; it is
 **Drop the wash's alpha further — `0.10`, or `0.09`.** Measured by running the whole story walk at
 each, before the ramp moved — so five surviving failures rather than today's four, the "soon" badge
 still being one of them. The walk reported the same five at `0.12`, `0.10` and `0.09`, with the same
-worst at 3.97, and three of the five did not move by a single hundredth between the three runs. Only
-the "soon" badge moved at all, and it still failed at `0.09`. Alpha below `0.12` bought nothing and
-spent the wash's visibility.
+worst at 3.97, and four of the five did not move by a single hundredth between the three runs. The
+"soon" badge was the one that moved — 3.98, 4.11, 4.17 — and it still failed at `0.09`. Alpha below
+`0.12` bought nothing and spent the wash's visibility.
 
 **Thin light Ocean's wash instead of deepening its ink.** The largest alpha a search found was `0.06`,
 which clears at full precision (4.501) and fails both other ways — 4.491 rounded, 4.483 against the
@@ -241,14 +242,15 @@ accent would repaint every card in the dark app to fix a problem the cards do no
 read on it. `--glow-purple` cannot reach these, because they do not use it. Lightening the accent
 moves such a ground too, but only by a fraction: the ground is the ink at `N%` over an opaque
 surface, so when the ink moves the ground moves by `N%` of that. The pair opens. On
-`src/styles/dropdown.css:106`, 14% over `--surface`, holding everything else fixed:
+`src/styles/dropdown.css:106`, 14% over `--surface`, holding everything else fixed — the ground
+rounded to 8 bits and, as everywhere in this record, the ratio the worse of the two models:
 
 | `--accent` | ground | ratio |
 |---|---|---|
 | `#9b5dff` | rgb(51, 40, 75) | 3.50 |
-| `#b479ff` — shipped | rgb(54, 44, 75) | 4.41 |
-| `#bd8cff` | rgb(56, 46, 75) | 5.03 |
-| `#d9bcff` | rgb(60, 53, 75) | 6.99 |
+| `#b479ff` — shipped | rgb(54, 44, 75) | 4.40 |
+| `#bd8cff` | rgb(56, 46, 75) | 5.02 |
+| `#d9bcff` | rgb(60, 53, 75) | 6.98 |
 
 The ink's relative luminance runs 0.2202 → 0.5794 across that range while the ground's runs 0.0271 →
 0.0400. `#bd8cff` clears the bar on its own badge — and `#bd8cff` is the value this record rejects as
@@ -264,10 +266,19 @@ Three rules remain in dark, over the four rows of bucket B in `stories/contrast.
   `.ui-dropdown__item` lightens from the panel's `--surface-2` to `--surface` in exactly those two
   states. At rest the pair clears.
 - `stories/foundations/Motion.stories.js:98` — the story's own `.mz-replay:hover`, at 20%. One row.
-  The base rule at `:95` is 12% and clears at 4.56; only the hover fails.
-- the copy control on the green-tinted snippet bar of a live card. One row, and not purple at all —
-  it fails under every accent including Phoenix and Ocean, so it is a surface problem rather than an
-  accent one, shared by the snippet and card owners.
+  The base rule at `:95` is 12% and clears at 4.54; only the hover fails. That 12% pair is the dark
+  default cell's binding one — the same pair the decision table and the Chromium reading above are
+  about, and it is quoted here at the worse of the two models, as everywhere in this record.
+- the hovered copy control on the green-tinted snippet bar of a live card. One row, and the only
+  one in this bucket whose ground is not mixed from the accent: the bar is green, so it does not
+  move when the accent does. Across the eight-cell walk it fails in **three cells** — dark Nebula
+  4.22, dark Phoenix 4.37, dark Ocean 4.41 — and clears in dark Emerald at 5.78 and in all four
+  light cells. So it is not "every accent". What the narrower fact supports is smaller and more
+  useful than the universal it replaces: a fixed dark bar that three of the four dark accents are
+  too dark against and the fourth is light enough to clear. No accent token can reach the ground,
+  because the ground is not the accent's — but the ink is, so this is not a pair the accent is
+  innocent of either. Darkening the bar closes all three at once, which is why it sits with the
+  snippet and card owners rather than here.
 
 `.ui-nav__badge.is-accent` (`src/styles/nav.css:100`) is the counter-example: the ground it reads on
 is a token the kit ships rather than a mix of the ink itself, which is the shape the others should
