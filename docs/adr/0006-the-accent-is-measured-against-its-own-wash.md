@@ -251,11 +251,11 @@ surface, so when the ink moves the ground moves by `N%` of that. The pair opens.
 | `#d9bcff` | rgb(60, 53, 75) | 6.99 |
 
 The ink's relative luminance runs 0.2202 → 0.5794 across that range while the ground's runs 0.0271 →
-0.0400. `#bd8cff` — a colour this kit already ships, as the top of the dark ramp — clears the bar on
-its own badge. So these rows are **closable by lightening the accent, and expensive**. What holds
-them here is the brand, not the mathematics: the accent that closes all of them is well past the
-point where it is still this violet, and both #96 and #157 chose the hue first and the ratio second.
-That is why they are carried as debt.
+0.0400. `#bd8cff` clears the bar on its own badge — and `#bd8cff` is the value this record rejects as
+the accent one section up, for the chroma it gives up. So these rows are **closable by lightening the
+accent, and expensive**. What holds them here is the brand, not the mathematics: the accent that
+closes all of them is well past the point where it is still this violet, and both #96 and #157 chose
+the hue first and the ratio second. That is why they are carried as debt.
 
 Three rules remain in dark, over the four rows of bucket B in `stories/contrast.test.js`:
 
