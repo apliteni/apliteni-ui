@@ -234,7 +234,7 @@ already names the `accentPicker()` swatches as one of the places to touch when a
 which is exactly why these three should have moved together with the token — the sync point was
 written down and the change did not follow it. They stay as they are on purpose:
 `site/index.html` belongs to another lane, and fixing two of three would leave one literal holding
-two different states. One issue covers all three.
+two different states. #190 covers all three.
 
 **The floor is held by a test, not by this record.** `stories/accent-contrast.test.js` measures all
 eight cells on every `npm test` — the accent on five flat grounds and on the wash over the four base
