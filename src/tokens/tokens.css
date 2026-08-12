@@ -141,7 +141,7 @@
      down the file. Held by stories/accent-contrast.test.js. See issue #157.
      why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md */
   --accent: #b479ff;
-  --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA (~6.5:1) */
+  --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA at 5.70:1 */
   --accent-contrast: #ffffff;
   --ink: #e9e7f0;
 
