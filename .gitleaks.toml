@@ -68,6 +68,7 @@ id = "1password-service-account-token"
 description = "1Password service account token (base64 or base64url, wrapped or whole)"
 regex = '''ops_eyJ[A-Za-z0-9+/_-]{23,}={0,3}'''
 keywords = ["ops_eyj"]
+tags = ["secret", "1password"]
 
 # ── OpenAI project / service-account / admin key, any half-length ────────────
 # gitleaks 8.30.1 knows the prefixes but pins each half either side of the T3BlbkFJ
@@ -80,6 +81,49 @@ id = "openai-api-key-watermark"
 description = "OpenAI project, service-account or admin key, any half-length"
 regex = '''sk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,100}T3BlbkFJ[A-Za-z0-9_-]{20,100}'''
 keywords = ["T3BlbkFJ"]
+tags = ["secret", "openai"]
+
+# ── Vendor tokens this environment uses daily that gitleaks 8.30.1 has no rule for ──
+# Without these, each reaches a commit on generic-api-key alone — which needs a
+# credential-ish word beside the value, so a token quoted in prose walks through, and
+# which stands down on its own stopword list. Each rule below is anchored on a vendor
+# prefix no ordinary text contains, so neither weakness applies, and the length floors
+# are loose on purpose: the prefix carries the specificity, as with ops_eyJ above.
+# Full argument: #179 and asabirov/claude#68.
+
+[[rules]]
+id = "apify-api-token"
+description = "Apify API token"
+regex = '''apify_api_[A-Za-z0-9]{30,}'''
+keywords = ["apify_api_"]
+tags = ["secret", "apify"]
+
+# pk_ then the numeric user id then 32 uppercase characters. Stripe's publishable keys
+# also begin pk_, but they are pk_live_/pk_test_ and never carry digits in that
+# position, so the two do not collide.
+[[rules]]
+id = "clickup-api-token"
+description = "ClickUp personal API token"
+regex = '''pk_\d{5,}_[A-Z0-9]{32}'''
+keywords = ["pk_"]
+tags = ["secret", "clickup"]
+
+[[rules]]
+id = "figma-personal-access-token"
+description = "Figma personal access token"
+regex = '''figd_[A-Za-z0-9_-]{35,}'''
+keywords = ["figd_"]
+tags = ["secret", "figma"]
+
+# phx_ is the personal API key, which reads and writes. PostHog's other prefix, phc_,
+# is the project key that ships inside published web pages — public by design, so it
+# deliberately gets no rule; one would flag every landing page in the tree.
+[[rules]]
+id = "posthog-personal-api-key"
+description = "PostHog personal API key"
+regex = '''phx_[A-Za-z0-9]{40,}'''
+keywords = ["phx_"]
+tags = ["secret", "posthog"]
 
 [allowlist]
 description = "Approved domains, placeholders, and known-safe demo data"
