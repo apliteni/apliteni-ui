@@ -23,7 +23,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
@@ -209,6 +209,70 @@ test('the labels-visible rail is unchanged', () => {
   assert.equal(at.css('.ui-nav__label', 'display'), 'inline', 'a wide rail lost its labels');
 });
 
+// ---- A1b. an icon-less row is not a blank target -------------------------
+//
+// sidebarNav() documents `icon` as optional at every level, and the folded rail
+// shows the icon and nothing else. So a top-level leaf, a group head and a
+// group's child are all 44px of empty box when they carry no glyph. The dot
+// fallback started life scoped to `--sub`, which covered the children only.
+//
+// JSDOM implements no getComputedStyle for pseudo-elements, so this cannot be
+// resolved through the cascade the way the rules above are. It resolves the
+// SELECTOR instead — the fold's own ::after rules, asked of real rail rows via
+// Element.matches(), which is the same engine the browser matches with.
+
+const ICONLESS = appShell({
+  nav: [
+    { id: 'plain', label: 'Plain leaf' },
+    { label: 'Group head', items: [{ id: 'child', label: 'Child' }, { id: 'kid', icon: 'clock', label: 'Kid' }] },
+    { id: 'iconed', icon: 'chart', label: 'Iconed' },
+  ],
+  active: 'child',
+  signOutHref: '#logout',
+});
+
+/** Every selector in the fold that draws an ::after, with the pseudo dropped. */
+function foldMarkSelectors() {
+  const body = unwrap(decomment(read('src/styles/layout.css')), FOLD);
+  assert.ok(body, `layout.css no longer folds at ${FOLD}`);
+  return [...body.matchAll(/([^{}]+)::after\s*\{/g)]
+    .flatMap(([, sel]) => sel.split(',').map((s) => s.trim()).filter(Boolean));
+}
+
+const railRows = (html) => {
+  const doc = new JSDOM(`<!doctype html><html lang="en"><body>${html}</body></html>`).window.document;
+  return [...doc.querySelectorAll('.ui-app__rail .ui-nav__item')];
+};
+
+test('every icon-less row in the folded rail is given a mark of its own', () => {
+  const marks = foldMarkSelectors();
+  assert.ok(marks.length, 'the folded rail draws no ::after at all — this gate measures nothing');
+  const blank = railRows(ICONLESS).filter((row) => !row.querySelector('.ui-nav__ic'));
+  assert.ok(
+    blank.length >= 3,
+    'the fixture stopped carrying an icon-less leaf, an icon-less group head and an icon-less child',
+  );
+  const unmarked = blank.filter((row) => !marks.some((sel) => row.matches(sel)));
+  assert.deepEqual(
+    unmarked.map((row) => row.getAttribute('aria-label')),
+    [],
+    `${unmarked.length} of ${blank.length} icon-less rows draw nothing below 720px, so each is a `
+    + 'blank 44px target. sidebarNav() documents `icon` as optional at every level — the dot '
+    + 'fallback has to cover every level too, not a group\'s children alone.',
+  );
+});
+
+test('a row that has an icon is not given a second mark beside it', () => {
+  const marks = foldMarkSelectors();
+  const iconed = railRows(ICONLESS).filter((row) => row.querySelector('.ui-nav__ic'));
+  assert.ok(iconed.length >= 3, 'the fixture stopped carrying rows with icons');
+  const doubled = iconed.filter((row) => marks.some((sel) => row.matches(sel)));
+  assert.deepEqual(
+    doubled.map((row) => row.getAttribute('aria-label')), [],
+    'a row draws its glyph and a dot beside it — the fallback is for rows that have nothing',
+  );
+});
+
 // ---- A2. the rail can reach its own bottom -------------------------------
 //
 // The rail is pinned for the whole scroll of .ui-app at a height locked to the
@@ -375,6 +439,26 @@ test('sign out rests in the rail\'s own ink and turns --pink on the way to being
   );
 });
 
+// A pointer reaching the row is one way of being about to click it; a Tab key
+// landing on it is the other. Only the first was painted, so the reader with no
+// pointer got the ring and no colour — the destructive signal was pointer-only.
+test('the keyboard reaches sign out the same way the pointer does', () => {
+  for (const theme of ['dark', 'light']) {
+    const at = mount(SHELL, { theme });
+    assert.equal(
+      at.inState('.ui-nav__item.is-danger', 'focus-visible', 'color'),
+      at.inState('.ui-nav__item.is-danger', 'hover', 'color'),
+      `sign out is --pink under the pointer and something else under the keyboard in ${theme}. `
+      + 'The focus ring says where you are; it does not say that this row is the destructive one.',
+    );
+    assert.equal(
+      at.inState('.ui-nav__item.is-danger', 'focus-visible', 'backgroundColor'),
+      at.inState('.ui-nav__item.is-danger', 'hover', 'backgroundColor'),
+      `the danger wash is pointer-only in ${theme}`,
+    );
+  }
+});
+
 // ---- C4. three ranks, not one block --------------------------------------
 
 test('the crumb sits further from the title than the title sits from its subtitle', () => {
@@ -426,9 +510,41 @@ test('the reading column centres in the track it is given', () => {
 // Empty states drew its screens with the topbar on and the finance report drew
 // the same product, the same nav and the same rail with it off. Nothing tells
 // you which is the kit's shape until you flip between two stories.
+//
+// accountShell() is not in that set and must not be pulled into it: the preset
+// keeps its topbar, because dropping it would take the theme toggle and the
+// account menu off every consuming /account page. So the gate is about the
+// screens built directly on appShell(), and it finds them by asking each story
+// file which factory it imports rather than by a list somebody keeps by hand.
+// The four the demo set has always had are pinned below, so a file cannot leave
+// the gate simply by importing the preset.
+
+const DEMO_SCREENS = ['Access', 'EmptyStates', 'FinanceReport', 'Preferences'];
+
+const storyFiles = () => readdirSync(path.join(root, 'stories/apps'))
+  .filter((f) => f.endsWith('.stories.js')).sort();
+
+// The import list, not any mention of the name: these files talk about the
+// preset in their comments, and a comment is not a call.
+const importsFactory = (src, name) =>
+  new RegExp(String.raw`import\s*\{[^}]*\b${name}\b[^}]*\}\s*from`).test(src);
+
+/** Story files that draw a screen with appShell() itself, preset callers aside. */
+const appShellFiles = () => storyFiles().filter((f) => {
+  const src = read(path.join('stories/apps', f));
+  return importsFactory(src, 'appShell') && !importsFactory(src, 'accountShell');
+});
 
 test('every example screen built on appShell() makes the same call about the topbar', async () => {
-  const files = ['Access', 'EmptyStates', 'FinanceReport', 'Preferences'];
+  const files = appShellFiles().map((f) => f.replace('.stories.js', ''));
+  for (const want of DEMO_SCREENS) {
+    assert.ok(
+      files.includes(want),
+      `${want}.stories.js is no longer one of the appShell() demo screens this gate holds `
+      + 'together — importing accountShell() into it takes it out of the set rather than '
+      + 'settling what shape the set is',
+    );
+  }
   const seen = [];
   for (const file of files) {
     const mod = await import(`./${file}.stories.js`);
@@ -448,6 +564,46 @@ test('every example screen built on appShell() makes the same call about the top
     + '. accountShell() keeps its topbar because dropping it would take the theme toggle and '
     + 'the account menu off every consuming /account page — but appShell() ships with none, '
     + 'and a demo set that shows both without saying why teaches neither.',
+  );
+});
+
+// The preset's topbar composition is the newest thing in the shell and the one
+// thing no story drew: a sticky .topbar over a rail that sticks under it. A
+// story is what makes it visible; this is what makes it discoverable.
+test('a story renders accountShell(), so the preset\'s own composition is on screen somewhere', async () => {
+  const drawn = [];
+  for (const file of storyFiles()) {
+    if (!importsFactory(read(path.join('stories/apps', file)), 'accountShell')) continue;
+    const mod = await import(`./${file}`);
+    for (const [name, story] of Object.entries(mod)) {
+      if (name === 'default' || typeof story?.render !== 'function') continue;
+      const out = story.render();
+      if (out.includes('class="ui-app-page"') && out.includes('<header class="topbar"')) {
+        drawn.push(`${file}:${name}`);
+      }
+    }
+  }
+  assert.ok(
+    drawn.length,
+    'no story in stories/apps renders accountShell(). Its topbar composition — --ui-app-top, '
+    + 'the sticky topbar, the rail offset beneath it — is new code the workbench never draws, '
+    + 'so nobody sees it break.',
+  );
+});
+
+// --ui-app-top is a hand-copied duplicate of .topbar's height in topbar.css.
+// Nothing makes the copy follow the original, and a stale one either overlaps
+// the rail's first row or leaves a strip of page above it.
+test('the shell offsets its rail by exactly the height the topbar actually is', () => {
+  const tall = /\.topbar\s*\{[^}]*?\bheight:\s*([^;]+);/.exec(decomment(read('src/styles/topbar.css')));
+  assert.ok(tall, 'premise: .topbar no longer declares a fixed height — re-derive this offset');
+  const offset = /--ui-app-top:\s*([^;}]+)/.exec(decomment(read('src/styles/layout.css')));
+  assert.ok(offset, 'layout.css no longer offsets the shell below the topbar');
+  assert.equal(
+    offset[1].trim(), tall[1].trim(),
+    `.ui-app-page offsets the shell by ${offset[1].trim()} while .topbar is ${tall[1].trim()} `
+    + 'tall. The two are separate literals: the rail either starts under the topbar or leaves '
+    + 'a strip of page above itself, and neither shows up in a unit test of either file alone.',
   );
 });
 

@@ -41,8 +41,11 @@
   overflow-y: auto;
 }
 /* The rail's hover WAS --surface-2, so moving the rail onto it would have made
-   hovering a row do nothing. Scoped, so a sidebarNav() anywhere else is untouched. */
-.ui-app__rail .ui-nav__item:hover { background: var(--surface-3); }
+   hovering a row do nothing. Scoped, so a sidebarNav() anywhere else is
+   untouched — and the destructive row is left out, because this rule ties with
+   nav.css's danger wash on specificity and wins on source order alone. Sign out
+   was quietly losing the --pink wash the guideline page cites nav.css for. */
+.ui-app__rail .ui-nav__item:not(.is-danger):hover { background: var(--surface-3); }
 .ui-app__brand {
   display: flex;
   align-items: center;
@@ -73,9 +76,11 @@
 .ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
 
 /* Sign out is a navigation row and rests like one. The danger intent is the
-   hover step nav.css writes for it, which a resting --muted was pre-empting —
-   it made the last row of the rail the quietest thing in it. */
-.ui-app__rail .ui-nav__item.is-danger:not(:hover) { color: var(--text); }
+   step nav.css writes for it, which a resting --muted was pre-empting — it made
+   the last row of the rail the quietest thing in it. Both of nav.css's danger
+   states are named here, not hover alone: this rule outranks them, so a state
+   it forgets is a state it silently cancels. */
+.ui-app__rail .ui-nav__item.is-danger:not(:hover):not(:focus-visible) { color: var(--text); }
 
 /* One rule closes the rail, not two twenty pixels apart: the nav's own footer
    keeps its hairline and the reader block is separated by space alone — it has
@@ -163,9 +168,11 @@
      instead is the indent and its guide hairline; a 46px column has no room. */
   .ui-app__rail .ui-nav__sub { margin: 0; padding-left: 0; border-left: 0; }
   .ui-app__rail .ui-nav__item--sub.is-active::before { left: 3px; }
-  /* A child with no icon of its own would be a blank 44px target, so it gets a
-     dot in the row's own ink — the aria-label names it either way. */
-  .ui-app__rail .ui-nav__item--sub:not(:has(.ui-nav__ic))::after {
+  /* sidebarNav() takes `icon` as optional at every level, and the glyph is the
+     whole of a row on screen here — so a row without one, at any level, would be
+     a blank 44px target. It gets a dot in the row's own ink instead; the
+     aria-label names it either way. */
+  .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after {
     content: "";
     width: 5px; height: 5px;
     border-radius: 50%;

@@ -1,8 +1,8 @@
 /* ============================================================================
  * Navigation — sidebar rail, horizontal tabs, breadcrumbs. One token-driven
  * class family (ui-nav__…) so every variant re-themes across accents +
- * light/dark. Mirrors the look the app shells draw inline (.ui-side) but as a
- * first-class, standalone component. Active/hover surfaces are pure tokens.
+ * light/dark. appShell() draws its rail from sidebarNav(), so this file is the
+ * page shell's rail as well as a standalone component. States are pure tokens.
  * ========================================================================== */
 
 .ui-nav { font-family: var(--font-sans); }
@@ -75,10 +75,13 @@
 .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); }
 .ui-nav__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Destructive row (sign out, revoke). Quiet at rest, --pink once the pointer
-   reaches it — same two-step as .ui-btn--danger and .ui-dropdown__item.is-danger. */
+/* Destructive row (sign out, revoke). Quiet at rest, --pink once a pointer or
+   the keyboard reaches it — as .ui-btn--danger and .ui-dropdown__item do. */
 .ui-nav__item.is-danger { color: var(--muted); }
 .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
+/* Tabbing onto it is the same "about to click this" the pointer means. The ring
+   says where you are; only this says what the row does. */
+.ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); color: var(--pink); }
 .ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; cursor: default; pointer-events: none; }
 
 /* Per-item badge / counter */

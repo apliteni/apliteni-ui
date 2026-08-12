@@ -8,34 +8,39 @@ import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs } from './nav.js';
 import { prism } from '../assets/brand.js';
+import { ACCOUNT_NAV, toMenuTuple } from './account-nav.js';
 
-// The one account navigation definition: nav.js item objects. Labels are raw
-// text — every nav primitive escapes, so a pre-escaped `&amp;` would come out
-// as `&amp;amp;`. `key` means credentials; `plug` means integration. These two
-// are the kit's default, so each is a live link on a consumer's /account page —
-// a screen the kit does not ship belongs in the caller's own nav, not here.
-export const ACCOUNT_NAV = [
-  { id: 'prefs', icon: 'gear', label: 'Preferences' },
-  { id: 'access', icon: 'key', label: 'Access & agents' },
-];
+// The one account navigation definition lives in account-nav.js, because
+// topbar.js needs it too and this file already imports topbar.js. Re-exported
+// here so the published name docs/library.md documents keeps working.
+export { ACCOUNT_NAV };
 
 // accountShell() has always taken its nav as [id, icon, label, href?, target?].
 // Accept that shape and nav.js's object shape side by side, so a consumer's
-// existing tuples and the exported ACCOUNT_NAV both work.
-const toItem = (n) => (Array.isArray(n)
+// existing tuples and the exported ACCOUNT_NAV both work. A nav that is not a
+// list at all falls back to the default, for the same reason `account: null`
+// and an unparseable `maxWidth` do: a shell that throws mid-render takes the
+// page with it. An empty list is an answer, not a mistake — it stays empty.
+const toItems = (nav) => (Array.isArray(nav) ? nav : ACCOUNT_NAV).map((n) => (Array.isArray(n)
   ? { id: n[0], icon: n[1], label: n[2], href: n[3], target: n[4] }
-  : n);
-
-// topbar()'s account menu still speaks tuples, and it interpolates every field
-// raw — the label, the href and the target alike. Escape all three here rather
-// than sending the menu a string the rail would have escaped.
-const toMenuTuple = (it) => [
-  esc(it.id ?? ''), it.icon, esc(it.label || ''),
-  it.href ? esc(it.href) : it.href,
-  it.target ? esc(it.target) : it.target,
-];
+  : n));
 
 const str = (v) => (v == null ? '' : String(v));
+
+// The reader, escaped for accountMenu()'s raw sinks. Only the keys the caller
+// actually sent are rewritten: accountMenu()'s own parameter defaults stay the
+// one place the demo identity is written down. A key that arrived null is
+// dropped rather than passed on, because a default parameter covers `undefined`
+// alone — an /auth/me answering `email: null` otherwise reached the menu's
+// `email.split('@')` and took the page down with it.
+const escReader = (a) => {
+  const out = { ...a };
+  for (const key of ['name', 'email']) {
+    if (out[key] == null) delete out[key];
+    else out[key] = esc(str(out[key]));
+  }
+  return out;
+};
 
 // `maxWidth` lands inside a style attribute, which is a declaration list: esc()
 // stops a quote closing the attribute, and `;` is the character that matters
@@ -106,7 +111,7 @@ export function appShell({
   maxWidth = MAIN_MAX,
 } = {}) {
   const rail = sidebarNav({
-    sections: [{ label: navLabel, items: nav.map(toItem) }],
+    sections: [{ label: navLabel, items: toItems(nav) }],
     active,
     ariaLabel: navLabel,
     footer: signOutHref ? signOut(signOutHref) : '',
@@ -117,12 +122,16 @@ export function appShell({
   // so the name is written out — the mark itself is aria-hidden.
   const brand = topbar ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}" aria-label="${esc(word)}">`
     + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
+  // A <div>, not an <aside>: <aside> is the `complementary` landmark — content
+  // related to the page but separable from it — and this holds the page's
+  // primary navigation and the reader who is signed in. The <nav> inside it is
+  // already the landmark that names the menu.
   const grid = `<div class="ui-app">
-    <aside class="ui-app__rail">
+    <div class="ui-app__rail">
       ${brand}
       ${rail}
       ${railUser(account)}
-    </aside>
+    </div>
     <main class="ui-app__main" style="--ui-app-main: ${mainMax(maxWidth)}">
       ${crumbs.length ? breadcrumbs({ items: crumbs }) : ''}
       ${title ? `<h1>${title}</h1>` : ''}
@@ -149,8 +158,13 @@ export function accountShell({
   body = '',
   signOutHref = '#logout',
 } = {}) {
-  const items = nav.map(toItem);
+  const items = toItems(nav);
   const trail = [{ label: cap }, { label: crumb || title }].filter((c) => c.label);
+  // The topbar's sinks interpolate raw where the rail's escape: brand() writes
+  // `word` straight into its markup and accountMenu() does the same with the
+  // reader's name and address. So the topbar path gets its own escaped copy —
+  // escaping them before appShell() sees them would come out as entities in the
+  // rail, which escapes for itself. Same reasoning as toMenuTuple().
   return appShell({
     word,
     nav: items,
@@ -163,11 +177,11 @@ export function accountShell({
     account,
     signOutHref,
     topbar: {
-      word,
+      word: esc(word),
       view: 'text',
       showSwitch,
       versions,
-      account: { ...account, active, nav: items.map(toMenuTuple) },
+      account: { ...escReader(account), active, nav: items.map(toMenuTuple) },
     },
   });
 }

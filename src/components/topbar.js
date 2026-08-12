@@ -4,6 +4,7 @@ import { brand } from '../assets/brand.js';
 import { icon, sun, moon } from '../assets/icons.js';
 import { esc } from './index.js';
 import { wireDropdown } from './dropdown.js';
+import { accountMenuNav } from './account-nav.js';
 
 const THEME_KEY = 'apliteni-strategy-theme';
 
@@ -52,10 +53,14 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
 }
 
 // `nav` ([id, icon, label, href?, target?][]) mirrors the account sidebar so the
-// dropdown and the sidebar stay in sync; falls back to the default two items.
+// dropdown and the sidebar stay in sync. The fallback is derived from the one
+// ACCOUNT_NAV definition rather than restated here: a second literal agreed
+// with it by hand about the icon and disagreed about the encoding, which is the
+// drift #127 was filed about. Every field below is interpolated raw, so what
+// arrives has to arrive escaped — accountMenuNav() is what does that.
 export function accountMenu({ name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs', nav } = {}) {
   const ini = (email.split('@')[0].split(/[._-]+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('') || '?').toUpperCase();
-  const items = nav && nav.length ? nav : [['prefs', 'gear', 'Preferences'], ['access', 'key', 'Access &amp; agents']];
+  const items = nav && nav.length ? nav : accountMenuNav();
   const it = ([id, ic, label, href, target]) =>
     `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''} data-dd-item tabindex="-1"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
   // `on` so the menu is visible in Storybook / standalone use (no /auth/me gate).

@@ -1,7 +1,7 @@
 /* Rule: a screen's own content lays out from the space it has, not from the
  * width of the window.
  *
- * The finance report's three cashflow numbers need about 450px between them —
+ * The finance report's three cashflow numbers need about 620px between them —
  * the story says so itself. It asked for that in a viewport media query keyed to
  * the shell's 720px fold, and the two are not the same question: the rail folds
  * at 720 but is still 249px wide above it, so between 721 and 1023 the column is

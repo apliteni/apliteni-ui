@@ -119,10 +119,11 @@ group's children sit under its head at the same 44px pitch, and what goes instea
 its guide hairline, which a 46px column has no room for. The head still opens and closes them,
 because `wireNav()` toggles the `hidden` attribute and nothing at that width overrides it.
 
-The cost is that a child row has only its icon to show. A child with no icon of its own gets a dot
-in the row's ink rather than a blank 44px target — it is named by `aria-label` either way, but it is
-the one place in the rail where what you see does not say which entry it is. A nav with more than a
-handful of grouped children will read as a column of near-identical glyphs on a phone.
+The cost is that a row has only its icon to show. `sidebarNav()` takes `icon` as optional at every
+level, so a top-level leaf, a group's head and a group's child can all arrive without one; each gets
+a dot in the row's ink rather than a blank 44px target. It is named by `aria-label` either way, but
+a dot is the one thing in the rail where what you see does not say which entry it is. A nav with
+more than a handful of icon-less rows will read as a column of near-identical marks on a phone.
 
 `sidebarNav({ collapsed: true })` — the explicit icon-only rail, which is a different surface from
 this shell's CSS fold — still hides a group's children outright. That gap is unchanged here.

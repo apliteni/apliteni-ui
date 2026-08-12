@@ -253,6 +253,7 @@ test('a nested row keeps the tighter metrics written for it after the item block
 // ---- 3. appShell() — the kit's one page shell ----------------------------
 
 const { appShell, accountShell, ACCOUNT_NAV } = await import('../../src/components/shell.js');
+const { accountMenu } = await import('../../src/components/topbar.js');
 
 test('the shell emits exactly one main landmark', () => {
   const html = appShell({ title: 'T', body: '<p>x</p>' });
@@ -307,6 +308,47 @@ test('the one nav definition spells the ampersand for esc(), not for raw HTML', 
   assert.equal(access.icon, 'key', 'key means credentials; plug means integration');
 });
 
+// #127's DoD: the account navigation has ONE definition. It is drawn twice —
+// the rail and the topbar's account menu — and those two used to be separate
+// literals that agreed about the icon by hand and disagreed about the encoding.
+// Rendering both and comparing the result proves nothing: two copies of the
+// same two entries look identical. What proves derivation is changing the one
+// definition and watching both surfaces follow.
+test('the rail and the topbar menu are drawn from the same account-nav definition', () => {
+  const probe = { id: 'probe-127', icon: 'gear', label: 'Probe & drift' };
+  ACCOUNT_NAV.push(probe);
+  try {
+    assert.match(
+      accountMenu({}), /href="#probe-127"/,
+      'accountMenu() restates the account entries as a literal of its own, so the two lists '
+      + 'agree only for as long as somebody keeps editing both',
+    );
+    assert.match(appShell({}), /href="#probe-127"/, 'the rail stopped defaulting to the one definition');
+  } finally {
+    const at = ACCOUNT_NAV.indexOf(probe);
+    if (at >= 0) ACCOUNT_NAV.splice(at, 1);
+  }
+  assert.deepEqual(ACCOUNT_NAV.map((i) => i.id), ['prefs', 'access'], 'the probe outlived its test');
+});
+
+// accountMenu() interpolates its tuples raw, so the shared definition has to
+// arrive there escaped — and escaped exactly once.
+test('the menu\'s own fallback names what ACCOUNT_NAV names, spelled the same way', () => {
+  const doc = dom(accountMenu({}));
+  const items = [...doc.querySelectorAll('.amenu a[role="menuitem"]')].filter((a) => !a.classList.contains('aout'));
+  assert.deepEqual(
+    items.map((a) => [a.getAttribute('href'), a.textContent.trim()]),
+    ACCOUNT_NAV.map((i) => [`#${i.id}`, i.label]),
+    'the account menu and the rail disagree about what the account entries are called',
+  );
+  assert.doesNotMatch(accountMenu({}), /&amp;amp;/, 'a label escaped twice reads as "Access &amp; agents" on screen');
+});
+
+test('the published ACCOUNT_NAV name still comes out of the package entry point', async () => {
+  const pkg = await import('../../src/index.js');
+  assert.equal(pkg.ACCOUNT_NAV, ACCOUNT_NAV, 'docs/library.md documents this name — moving it must not unpublish it');
+});
+
 test('the shell is built from the kit\'s own nav, not a hand-written rail', () => {
   const html = appShell({ nav: ACCOUNT_NAV, active: 'prefs' });
   assert.match(html, /class="ui-nav ui-nav--side"/);
@@ -336,6 +378,22 @@ test('the signed-in reader sits beside the navigation landmark, not inside it', 
     doc.querySelector('nav .ui-app__user'), null,
     'the reader\'s name and address are inside the <nav>, so a screen reader walking the '
     + 'navigation landmark announces the email as a navigation item',
+  );
+});
+
+// <aside> is the `complementary` landmark: content related to the page but
+// separable from it. The rail is the page's primary navigation and the reader
+// who is signed in — the opposite of separable — and the <nav> inside it is
+// already the landmark that names it. A second landmark around it only gives a
+// screen reader's landmark list an entry that says "complementary" about the
+// menu.
+test('the rail is not wrapped in a complementary landmark', () => {
+  const rail = dom(appShell({ navLabel: 'Finance' })).querySelector('.ui-app__rail');
+  assert.ok(rail, 'the shell no longer draws a rail');
+  assert.equal(
+    rail.tagName, 'DIV',
+    `the rail is a <${rail.tagName.toLowerCase()}>, which is the complementary landmark — the `
+    + 'page\'s main navigation is not complementary to it',
   );
 });
 
@@ -391,6 +449,37 @@ test('a nav item reaches the topbar menu with its href and target escaped too', 
     html, /onmouseover="alert\(1\)"/,
     'accountMenu() interpolates href raw, so an unescaped tuple field breaks out of the attribute',
   );
+});
+
+// One call, two answers: railUser() escapes the reader's name and address, and
+// accountMenu() interpolates the identical strings raw. A display name is not a
+// trusted-HTML slot anywhere else in the shell, so the topbar path escapes what
+// it hands the menu — the way it already does for a nav tuple's fields.
+test('a reader\'s name and address reach the topbar menu escaped, as they reach the rail', () => {
+  const html = accountShell({ account: { name: '<img src=x onerror=alert(1)>', email: '<svg onload=alert(2)>' } });
+  assert.doesNotMatch(
+    html, /<img src=x onerror=alert\(1\)>/,
+    'the display name is live markup inside the account menu while the same string is escaped '
+    + 'nine lines above it in the rail',
+  );
+  assert.doesNotMatch(html, /<svg onload=alert\(2\)>/, 'the address is live markup inside the account menu');
+});
+
+test('the product word reaches the topbar lockup escaped too', () => {
+  assert.doesNotMatch(
+    accountShell({ word: '<img src=x onerror=alert(3)>' }), /<img src=x onerror=alert\(3\)>/,
+    'brand() interpolates `word` raw, so the topbar draws whatever the caller\'s word says',
+  );
+});
+
+// Escaping on the way to a raw sink is one step, not two: the rail escapes for
+// itself, so a string escaped before appShell() sees it comes out as entities.
+test('escaping for the menu does not double-escape the rail', () => {
+  const doc = dom(accountShell({ account: { name: 'A & B', email: 'a&b@apliteni.test' } }));
+  assert.equal(doc.querySelector('.ui-app__who b').textContent, 'A & B');
+  assert.equal(doc.querySelector('.ui-app__who span').textContent, 'a&b@apliteni.test');
+  assert.equal(doc.querySelector('.amenu .anm').textContent, 'A & B');
+  assert.equal(doc.querySelector('.amenu .aem').textContent, 'a&b@apliteni.test');
 });
 
 // Default parameters cover `undefined` only. An /auth/me that answers `account:
@@ -457,6 +546,35 @@ test('an absent or oddly-typed reader degrades instead of throwing', () => {
   assert.doesNotThrow(() => appShell({ account: null }));
   assert.doesNotThrow(() => accountShell({ account: null }));
   assert.match(appShell({ account: { name: 42 } }), /<b>42<\/b>/);
+  // A default parameter covers `undefined`; an /auth/me that answers `email:
+  // null` reaches accountMenu()'s `email.split('@')` and takes the page down.
+  for (const account of [{ email: null }, { name: null }, { email: 42, name: 42 }]) {
+    assert.doesNotThrow(
+      () => accountShell({ account }), `accountShell threw on account: ${JSON.stringify(account)}`,
+    );
+  }
+});
+
+// Same reasoning as `account: null` and an unparseable `maxWidth`: a default
+// parameter covers `undefined` and nothing else, and a shell that throws
+// mid-render takes the page with it. An /auth/me that answers `nav: null`, or a
+// config that hands over an object where a list was meant, gets the default nav.
+test('a missing or mistyped nav falls back to the default rather than throwing', () => {
+  for (const bad of [null, undefined, 'prefs', 42, {}, { items: [] }]) {
+    let html;
+    assert.doesNotThrow(() => { html = appShell({ nav: bad }); }, `appShell threw on nav: ${JSON.stringify(bad)}`);
+    assert.match(
+      html, /href="#prefs"/,
+      `appShell({ nav: ${JSON.stringify(bad)} }) drew a rail with no entries in it`,
+    );
+    assert.doesNotThrow(() => accountShell({ nav: bad }), `accountShell threw on nav: ${JSON.stringify(bad)}`);
+  }
+});
+
+// An empty list is a caller saying "no entries", which is a different sentence
+// from "I did not pass one" — the shell must not put links back.
+test('an empty nav is a caller\'s answer, not a mistake to correct', () => {
+  assert.doesNotMatch(appShell({ nav: [] }), /href="#prefs"/, 'an explicitly empty rail was refilled with the default');
 });
 
 test('the shell escapes the caller\'s brand word', () => {
