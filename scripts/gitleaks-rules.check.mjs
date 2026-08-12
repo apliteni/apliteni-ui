@@ -15,19 +15,9 @@
  * Every fixture is generated here, at runtime, into a temp directory removed on
  * every exit path. None is real, and none may ever be written into the tree:
  * this repo is public, its own scan runs over scripts/, and the Security
- * workflow's denylist greps tracked files for the infra shapes below.
- *
- * ┌─ READ THIS BEFORE EDITING A FIXTURE ────────────────────────────────────┐
- * │ Every fixture is a TEMPLATE LITERAL, and that is load-bearing, not      │
- * │ style. `ops_eyJ${x}` puts a '$' where the rule wants a base64           │
- * │ character, so the source text of this file matches nothing. Collapse    │
- * │ any of them to a plain string — bake the generated value in "to make    │
- * │ it readable" — and this file becomes a real finding: the pre-commit     │
- * │ gate then refuses every commit in the repo, for everyone, until it is   │
- * │ put back. Keep the interpolation adjacent to the prefix.                │
- * │ The same trick is what keeps LESSLY_DEPLOY_TOKEN, *.lessly.run and      │
- * │ ttl.sh/ out of the denylist grep, which does not exclude scripts/.      │
- * └─────────────────────────────────────────────────────────────────────────┘
+ * workflow's denylist greps tracked files for the infra shapes below. The rules
+ * that keep that true are stated above the fixture builder, where editing
+ * happens — read them before touching a fixture.
  *
  * NOT named *.test.js on purpose. `npm test` globs scripts/**\/*.test.js and
  * runs on a machine with no gitleaks; this check needs the pinned binary and
@@ -38,9 +28,6 @@
  *
  * The argument exists so the check can be pointed at an older or deliberately
  * mutated config to prove it still fails there. Default is this repo's own.
- *
- * Exit codes: 0 all cases pass. 1 one or more assertions failed. 2 the check
- * could not reach a verdict (no binary, scanner error, unreadable report).
  */
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -113,6 +100,18 @@ function streamUrlSafe(seed, n) {
 
 /** The 1Password base64url payload — pinned the same way, and always was. */
 const urlPayload = streamUrlSafe('b', 260);
+
+// ┌─ READ THIS BEFORE EDITING A FIXTURE ────────────────────────────────────┐
+// │ Every fixture is a TEMPLATE LITERAL, and that is load-bearing, not      │
+// │ style. `ops_eyJ${x}` puts a '$' where the rule wants a base64           │
+// │ character, so the source text of this file matches nothing. Collapse    │
+// │ any of them to a plain string — bake the generated value in "to make    │
+// │ it readable" — and this file becomes a real finding: the pre-commit     │
+// │ gate then refuses every commit in the repo, for everyone, until it is   │
+// │ put back. Keep the interpolation adjacent to the prefix.                │
+// │ The same trick is what keeps LESSLY_DEPLOY_TOKEN, *.lessly.run and      │
+// │ ttl.sh/ out of the denylist grep, which does not exclude scripts/.      │
+// └─────────────────────────────────────────────────────────────────────────┘
 
 const note = (value) =>
   ['A note quoting something that must never reach this repo.', '', `    ${value}`, '', 'That is all.'].join('\n');
@@ -395,6 +394,20 @@ function gitleaksVersion() {
   return v.status === 0 ? (v.stdout ?? '').trim() : 'unknown';
 }
 
+/**
+ * The exit-code contract, stated where the codes are chosen.
+ *
+ * 0 — every case passed.
+ * 1 — one or more assertions failed. Only ever set at the end of main(), and
+ *     only after every case has been evaluated, so a run lists all failures
+ *     rather than the first.
+ * 2 — the check could not reach a verdict: no binary, the scanner refused to
+ *     start, no report, unreadable report, a renamed field. Never a raw Node
+ *     stack — a security gate that dies in a traceback reads as a broken
+ *     script, and a broken script is what people skip.
+ *
+ * `fail` is 2 and only 2. It is used for every "cannot tell" path below.
+ */
 function fail(message) {
   console.error(message);
   process.exit(2);
