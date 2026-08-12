@@ -51,6 +51,84 @@
   .ui-side { position: static; }
 }
 
+/* -- The one page shell (appShell) --------------------------------------- */
+/* A full-height rail beside one <main>. The rail's own rows are sidebarNav()'s
+   (.ui-nav--side), so nothing here restyles a nav item — these rules place the
+   rail, its brand head and its signed-in footer, and set the reading column. */
+.ui-app {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  min-height: calc(100vh - var(--ui-app-top, 0px));
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+/* With a topbar above it, the shell starts below one. 52px is .topbar's height
+   in topbar.css; the topbar sticks so the rail below it can too. */
+.ui-app-page { --ui-app-top: 52px; }
+.ui-app-page .topbar { position: sticky; top: 0; z-index: var(--z-sticky); }
+
+.ui-app__rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-4);
+  border-right: 1px solid var(--border);
+  background: var(--bg-elevated);
+  position: sticky;
+  top: var(--ui-app-top, 0px);
+  height: calc(100vh - var(--ui-app-top, 0px));
+}
+.ui-app__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px 6px;
+  text-decoration: none;
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+/* Carries the shell's class as well as its own, for the same reason the rail
+   rows do (see nav.css): a host stylesheet's `a:link` is (0,1,1). */
+.ui-app .ui-app__brand { color: var(--strong); }
+.ui-app__brand svg { display: block; flex: none; }
+
+/* The nav grows, so the footer it carries — who is signed in — pins to the
+   bottom of a full-height rail instead of hugging the last nav row. */
+.ui-app__rail .ui-nav--side { flex: 1 1 auto; }
+.ui-app__rail .ui-nav__foot { margin-top: auto; }
+
+.ui-app__user { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-1) 0; }
+.ui-app__av {
+  width: 30px; height: 30px; flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--strong);
+  display: grid; place-items: center;
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+}
+.ui-app__who { font-size: 12.5px; line-height: 1.3; min-width: 0; }
+.ui-app__who b { display: block; color: var(--strong); font-weight: var(--weight-semibold); }
+.ui-app__who span { display: block; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+
+.ui-app__main {
+  min-width: 0;
+  max-width: var(--ui-app-main, 860px);
+  padding: 40px clamp(24px, 4vw, 56px) 72px;
+}
+.ui-app__main .ui-nav--crumbs { margin-bottom: var(--space-2); }
+.ui-app__main h1 {
+  color: var(--strong);
+  font-size: 30px;
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: 8px;
+}
+.ui-app__sub { color: var(--dim); font-size: 15px; line-height: 1.6; max-width: 60ch; margin-bottom: 32px; }
+.ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
+
 /* -- Auth card (sign-in / consent) — centered, glowing --------------------- */
 .ui-auth {
   min-height: 100vh;

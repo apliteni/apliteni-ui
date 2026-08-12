@@ -1,0 +1,355 @@
+/* Rule: the kit has one page shell, and it is built from the kit's own nav.
+ *
+ * The gates here are about composition, not looks: a rail item stays named at
+ * every width, the shell emits exactly one <main>, the caller owns the crumb
+ * trail, the navigation landmark has a name, and accountShell() — a published
+ * export — still accepts everything it accepted before.
+ */
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { JSDOM } from 'jsdom';
+import { sidebarNav } from '../../src/components/nav.js';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, '../..');
+const read = (p) => readFileSync(path.join(root, p), 'utf8');
+
+// ---- 1. a rail item is named whether or not it is collapsed --------------
+
+test('a sidebar item carries its accessible name even when not collapsed', () => {
+  const html = sidebarNav({ items: [{ id: 'a', label: 'Overview', icon: 'chart' }] });
+  assert.match(
+    html, /aria-label="Overview"/,
+    'an expanded rail item has no accessible name of its own, so the CSS fold at '
+    + 'narrow widths would hide the label and leave the icon unnamed',
+  );
+});
+
+test('an expanded sidebar item does not carry a title tooltip', () => {
+  const html = sidebarNav({ items: [{ id: 'a', label: 'Overview', icon: 'chart' }] });
+  assert.doesNotMatch(
+    html, /title="Overview"/,
+    'the label is already on screen at this width — a tooltip repeating it is noise',
+  );
+});
+
+test('a collapsed sidebar item still carries the title tooltip', () => {
+  const html = sidebarNav({ items: [{ id: 'a', label: 'Overview', icon: 'chart' }], collapsed: true });
+  assert.match(html, /title="Overview"/);
+  assert.match(html, /aria-label="Overview"/);
+});
+
+test('a disabled sidebar item is named the same way', () => {
+  const html = sidebarNav({ items: [{ id: 'a', label: 'Settings', icon: 'gear', disabled: true }] });
+  assert.match(html, /aria-disabled="true" aria-label="Settings"/);
+  assert.doesNotMatch(html, /title="Settings"/);
+});
+
+test('a collapsible group head is named whether or not it is collapsed', () => {
+  const html = sidebarNav({
+    items: [{ icon: 'card', label: 'Payouts', items: [{ id: 'p', label: 'Pending' }] }],
+  });
+  assert.match(html, /aria-label="Payouts"/);
+  assert.doesNotMatch(html, /title="Payouts"/);
+});
+
+test('a label with markup in it is escaped in the accessible name too', () => {
+  const html = sidebarNav({ items: [{ id: 'a', label: 'Access & agents' }] });
+  assert.match(html, /aria-label="Access &amp; agents"/);
+});
+
+// ---- 2. a rail label keeps its colour under a consumer's a:link ----------
+//
+// Resolved, not grepped — the same technique stories/nav-cascade.test.js uses
+// and for the same reason: a colour declaration that is present in the file can
+// still be dead. base.css + nav.css are loaded with their var() references
+// substituted from the token files, mounted in a JSDOM, and read back with
+// getComputedStyle, which ranks author rules by specificity and source order.
+// The kit is a published package, so the consumer sheet below — an `a:link`
+// rule at (0,1,1), the commonest thing a host stylesheet says about links — is
+// appended AFTER the kit's, exactly where a consumer's own CSS would land.
+
+const RULE = /([^{}]+)\{([^{}]*)\}/g;
+const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+function tokensFor(theme = 'dark') {
+  const wanted = [':root', `:root[data-theme="${theme}"]`];
+  const vars = new Map();
+  for (const file of ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css']) {
+    for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
+      if (!selector.split(',').map((s) => s.trim()).some((s) => wanted.includes(s))) continue;
+      for (const decl of body.split(';')) {
+        const i = decl.indexOf(':');
+        if (i < 0) continue;
+        const name = decl.slice(0, i).trim();
+        if (name.startsWith('--')) vars.set(name, decl.slice(i + 1).trim());
+      }
+    }
+  }
+  return vars;
+}
+
+function substitute(css, vars) {
+  let out = css;
+  for (let pass = 0; pass < 12 && out.includes('var('); pass++) {
+    out = out.replace(/var\(\s*(--[\w-]+)\s*(?:,([^()]*))?\)/g, (m, name, fallback) =>
+      vars.has(name) ? vars.get(name) : (fallback != null ? fallback.trim() : m));
+  }
+  return out;
+}
+
+// JSDOM hands colours back as rgb(); the token files write them as hex.
+const colour = (v) => {
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(v).trim());
+  if (!hex) return String(v).trim();
+  const h = hex[1].length === 3 ? [...hex[1]].map((c) => c + c).join('') : hex[1];
+  return `rgb(${parseInt(h.slice(0, 2), 16)}, ${parseInt(h.slice(2, 4), 16)}, ${parseInt(h.slice(4, 6), 16)})`;
+};
+
+// State pseudo-classes → attribute selectors of identical (0,1,0) weight.
+const STATES = ['hover', 'focus-visible', 'focus', 'active'];
+const desugar = (css) => STATES.reduce((acc, s) => acc.split(`:${s}`).join(`[data-ui-state~="${s}"]`), css);
+
+const CONSUMER_LINK = 'rgb(1, 2, 3)';
+
+const RAIL = sidebarNav({
+  ariaLabel: 'Account',
+  sections: [{
+    label: 'Account',
+    items: [
+      { id: 'overview', icon: 'chart', label: 'Overview' },
+      { id: 'prefs', icon: 'gear', label: 'Preferences' },
+    ],
+  }],
+  active: 'prefs',
+  footer: '<a class="ui-nav__item is-danger" href="#logout"><span class="ui-nav__label">Sign out</span></a>',
+});
+
+/** Mount the rail under a consumer stylesheet and hand back a resolver. */
+function railUnderConsumerCss(theme = 'dark') {
+  const vars = tokensFor(theme);
+  const kit = desugar(substitute(decomment(read('src/styles/base.css') + '\n' + read('src/styles/nav.css')), vars));
+  const consumer = `a:link { color: ${CONSUMER_LINK}; }`;
+  const w = new JSDOM(
+    `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${kit}</style>`
+    + `<style>${consumer}</style></head>`
+    + `<body>${RAIL}<a class="plain-link" href="#x">plain</a></body></html>`,
+    { pretendToBeVisual: true },
+  ).window;
+  const q = (sel) => {
+    const el = w.document.querySelector(sel);
+    assert.ok(el, `the rail has no ${sel} — the fixture stopped exercising the rule under test`);
+    return el;
+  };
+  return {
+    vars,
+    css: (sel, prop) => w.getComputedStyle(q(sel))[prop],
+    inState: (sel, state, prop) => {
+      const el = q(sel);
+      el.setAttribute('data-ui-state', state);
+      const value = w.getComputedStyle(el)[prop];
+      el.removeAttribute('data-ui-state');
+      return value;
+    },
+  };
+}
+
+test("the consumer sheet in this fixture is live — otherwise the gate below proves nothing", () => {
+  const r = railUnderConsumerCss();
+  assert.equal(
+    r.css('.plain-link', 'color'), CONSUMER_LINK,
+    'a bare anchor does not take the consumer\'s a:link colour, so the fixture is not '
+    + 'modelling a consumer stylesheet at all and the rail gate is checking nothing',
+  );
+});
+
+for (const theme of ['dark', 'light']) {
+  test(`a resting rail label keeps the kit's --text under a consumer's a:link — ${theme}`, () => {
+    const r = railUnderConsumerCss(theme);
+    const text = colour(r.vars.get('--text'));
+    assert.equal(
+      r.css('.ui-nav__item:not(.is-active):not(.is-danger)', 'color'), text,
+      `a non-active rail label resolves to ${r.css('.ui-nav__item:not(.is-active):not(.is-danger)', 'color')} `
+      + `instead of --text (${text}) in the ${theme} theme. The kit is published: a host `
+      + 'stylesheet\'s a:link is (0,1,1) and .ui-nav__item is (0,1,0), so the host wins and '
+      + 'every resting rail label takes the host\'s link colour. Raise the kit declaration\'s '
+      + 'specificity — do not change the colour value.',
+    );
+  });
+}
+
+test('raising the resting colour does not flatten the states written after it', () => {
+  const r = railUnderConsumerCss();
+  const strong = colour(r.vars.get('--strong'));
+  const muted = colour(r.vars.get('--muted'));
+  const pink = colour(r.vars.get('--pink'));
+  assert.equal(r.css('.ui-nav__item.is-active', 'color'), strong, 'the current row lost its --strong ink');
+  assert.equal(
+    r.inState('.ui-nav__item:not(.is-active):not(.is-danger)', 'hover', 'color'), strong,
+    'a hovered row lost its --strong ink — the raised resting rule now outranks :hover',
+  );
+  assert.equal(r.css('.ui-nav__item.is-danger', 'color'), muted, 'the destructive row lost its quiet resting ink');
+  assert.equal(
+    r.inState('.ui-nav__item.is-danger', 'hover', 'color'), pink,
+    'the destructive row lost --pink on hover',
+  );
+});
+
+test('a nested row keeps the tighter metrics written for it after the item block', () => {
+  const rail = sidebarNav({
+    items: [{ icon: 'card', label: 'Payouts', open: true, items: [{ id: 'p', label: 'Pending' }] }],
+  });
+  const vars = tokensFor('dark');
+  const kit = desugar(substitute(decomment(read('src/styles/base.css') + '\n' + read('src/styles/nav.css')), vars));
+  const w = new JSDOM(
+    `<!doctype html><html lang="en" data-theme="dark"><head><style>${kit}</style></head><body>${rail}</body></html>`,
+    { pretendToBeVisual: true },
+  ).window;
+  const sub = w.getComputedStyle(w.document.querySelector('.ui-nav__item--sub'));
+  assert.equal(
+    sub.fontSize, '14px',
+    'a nested row is back to the full-size 14.5px — .ui-nav__item--sub is (0,1,0) and sits '
+    + 'AFTER the item block, so raising that whole block\'s specificity silently outranks it. '
+    + 'Raise the colour declaration alone.',
+  );
+  assert.equal(sub.paddingTop, '7px', 'a nested row lost its tighter padding for the same reason');
+});
+
+// ---- 3. appShell() — the kit's one page shell ----------------------------
+
+const { appShell, accountShell, ACCOUNT_NAV } = await import('../../src/components/shell.js');
+
+test('the shell emits exactly one main landmark', () => {
+  const html = appShell({ title: 'T', body: '<p>x</p>' });
+  assert.equal(
+    (html.match(/<main\b/g) || []).length, 1,
+    'the shell must have exactly one answer to "where does the page content start"',
+  );
+});
+
+test('the shell renders the trail the caller passed, and adds no product word of its own', () => {
+  const html = appShell({
+    crumbs: [{ label: 'Account', href: '#' }, { label: 'Access & agents' }],
+    title: 'Access & agents',
+  });
+  assert.match(html, /aria-label="Breadcrumb"/);
+  assert.match(html, /aria-current="page"[^>]*>(?:(?!<\/nav>).)*Access &amp; agents/s);
+  assert.doesNotMatch(
+    html, /apliteni-ui\s*\/\s*<b>/,
+    'the shell is writing its own crumb trail again — the caller owns the trail',
+  );
+});
+
+test('the trail is the caller\'s alone — no crumbs, no breadcrumb landmark', () => {
+  assert.doesNotMatch(appShell({ title: 'T' }), /aria-label="Breadcrumb"/);
+});
+
+test('the shell names its navigation landmark', () => {
+  assert.match(appShell({ navLabel: 'Finance' }), /<nav[^>]+aria-label="Finance"/);
+});
+
+test('the shell marks the current nav entry', () => {
+  const html = appShell({ nav: ACCOUNT_NAV, active: 'access' });
+  assert.match(html, /class="ui-nav__item is-active"[^>]*href="#access"/);
+});
+
+test('the one nav definition spells the ampersand for esc(), not for raw HTML', () => {
+  const access = ACCOUNT_NAV.find((i) => i.id === 'access');
+  assert.equal(
+    access.label, 'Access & agents',
+    'nav.js runs every label through esc(), so a pre-escaped &amp; here double-escapes',
+  );
+  assert.equal(access.icon, 'key', 'key means credentials; plug means integration');
+});
+
+test('the shell is built from the kit\'s own nav, not a hand-written rail', () => {
+  const html = appShell({ nav: ACCOUNT_NAV, active: 'prefs' });
+  assert.match(html, /class="ui-nav ui-nav--side"/);
+  assert.doesNotMatch(html, /class="ui-side"/);
+});
+
+test('the shell has no topbar unless the caller asks for one', () => {
+  assert.doesNotMatch(appShell({ title: 'T' }), /<header class="topbar"/);
+  assert.match(appShell({ title: 'T', topbar: { word: 'Finance' } }), /<header class="topbar"/);
+});
+
+test('a signed-in reader is named in the rail, and the demo address is the only one', () => {
+  const html = appShell({ account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' } });
+  assert.match(html, /Ada Lovelace/);
+  assert.match(html, /ada@apliteni\.com/);
+  assert.doesNotMatch(appShell({}), /@/, 'an unknown reader must not be given a placeholder identity');
+});
+
+test('the shell escapes the caller\'s brand word', () => {
+  assert.match(appShell({ word: 'A & B' }), /A &amp; B/);
+});
+
+test('accountShell still accepts what it accepted before', () => {
+  const html = accountShell({
+    word: 'Finance', cap: 'Finance', crumb: 'Payouts', title: 'Payouts',
+    nav: [['payouts', 'card', 'Payouts', '#', '_top']], active: 'payouts',
+  });
+  assert.match(html, /<main\b/);
+  assert.match(html, /Payouts/);
+});
+
+test('accountShell keeps the topbar, so wireTopbar() still has something to wire', () => {
+  const html = accountShell({ word: 'Strategy', showSwitch: true, versions: [{ label: 'v2', badge: 'live' }] });
+  assert.match(html, /data-theme-toggle/, 'the theme toggle went missing from every consuming /account page');
+  assert.match(html, /data-dropdown-trigger/, 'the account menu went missing');
+  assert.match(html, /class="vsw"/, 'the version switcher went missing');
+});
+
+test('accountShell renders the old tuple nav as real rail entries', () => {
+  const html = accountShell({
+    nav: [['payouts', 'card', 'Payouts', 'https://example.test/payouts', '_top']], active: 'payouts',
+  });
+  assert.match(html, /href="https:\/\/example\.test\/payouts"/);
+  assert.match(html, /target="_top"/);
+  assert.match(html, /aria-current="page"/);
+});
+
+test('accountShell also accepts the new object nav — ACCOUNT_NAV is its own default', () => {
+  const html = accountShell({ nav: ACCOUNT_NAV, active: 'access' });
+  assert.match(html, /Access &amp; agents/);
+  assert.doesNotMatch(html, /&amp;amp;/, 'a label escaped twice reads as "Access &amp; agents" on screen');
+});
+
+test('accountShell turns cap + crumb into the trail the caller used to get for free', () => {
+  const html = accountShell({ cap: 'Finance', crumb: 'Payouts', title: 'Payouts' });
+  assert.match(html, /aria-label="Breadcrumb"/);
+  assert.match(html, /Finance/);
+  assert.match(html, /aria-current="page"[^>]*>(?:(?!<\/nav>).)*Payouts/s);
+});
+
+test('accountShell emits one main landmark, not zero and not two', () => {
+  const html = accountShell({ title: 'Preferences', body: '<p>x</p>' });
+  assert.equal((html.match(/<main\b/g) || []).length, 1);
+});
+
+// The shell's rail head is a link too, so it meets a host's `a:link` the same
+// way a nav row does. Resolved against the shipped sheets, not read off them.
+test('the shell\'s own anchors keep the kit\'s ink under a consumer\'s a:link', () => {
+  const vars = tokensFor('dark');
+  const kit = desugar(substitute(decomment(
+    read('src/styles/base.css') + '\n' + read('src/styles/nav.css') + '\n' + read('src/styles/layout.css'),
+  ), vars));
+  const w = new JSDOM(
+    `<!doctype html><html lang="en" data-theme="dark"><head><style>${kit}</style>`
+    + `<style>a:link { color: ${CONSUMER_LINK}; }</style></head>`
+    + `<body>${appShell({ word: 'apliteni-ui', nav: ACCOUNT_NAV, active: 'prefs' })}</body></html>`,
+    { pretendToBeVisual: true },
+  ).window;
+  const at = (sel) => w.getComputedStyle(w.document.querySelector(sel)).color;
+  assert.equal(
+    at('.ui-app__brand'), colour(vars.get('--strong')),
+    'the rail head takes the host\'s link colour — .ui-app__brand is (0,1,0) against a:link at (0,1,1)',
+  );
+  assert.equal(
+    at('.ui-nav__item:not(.is-active)'), colour(vars.get('--text')),
+    'a rail row inside the shell takes the host\'s link colour',
+  );
+});
