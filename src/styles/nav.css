@@ -101,6 +101,16 @@
 .ui-nav__badge.is-live { background: var(--chip-success-fill); color: var(--chip-success-ink); }
 .ui-nav__badge.is-danger { background: var(--glow-pink); color: var(--pink); }
 .ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface-3); color: var(--strong); }
+/* Same shape, one row up: on an active row the accent counter takes the row's
+   OWN surface instead of laying its wash over it. An active row is already
+   painted --surface-3, so --glow-purple there is two tints stacked, and the
+   accent read on that pair falls under WCAG AA in five of the eight theme x
+   accent cells — 4.08 in dark Nebula, where the flat surface reads 4.92. No
+   alpha reaches it: dark Nebula would need 0.06 and light Ocean 0.00. The
+   stacking is the defect, so the rule is that the accent wash is painted on a
+   base surface, never on a raised one. See issue #157 and
+   docs/adr/0006-the-accent-is-measured-against-its-own-wash.md. */
+.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface-3); color: var(--accent); }
 
 /* Collapsible group */
 .ui-nav__group { display: flex; flex-direction: column; }
