@@ -180,24 +180,26 @@ const LEDGER = [
     themes: ['dark'],
     bg: 'grounds mixed from the accent itself, in the dark theme',
     example: 'span.ui-dropdown__badge.is-accent',
-    count: 5,
+    count: 4,
     worst: 3.97,
     why: 'This was the largest bucket in the ledger until #157 lifted the dark accent onto '
       + '--purple-mid and thinned its wash. That closed every row whose ground was --glow-purple — '
       + 'the wash a component reaches for by token — and what is left is the one shape a token '
       + 'value cannot reach: a ground built as a color-mix of --accent into itself. Such a ground '
       + 'rises with the accent, so lightening the ink lightens the surface under it by the same '
-      + 'move, and no choice of accent closes the pair. Four rules remain. The dropdown badge '
-      + '(src/styles/dropdown.css) is the kit\'s own and should follow the nav badge, which takes '
-      + '--glow-purple on a base surface and, on an active row, the row\'s own raised surface '
-      + 'instead of stacking the wash on top of it — #157 changed that rule when it found the '
-      + 'stacked pair below the floor, and the badge clears on both grounds now; the replay '
-      + 'control is styled inside the motion story and '
-      + 'belongs to whoever owns that story; the "soon" badge is read on an accent-tinted card, so '
-      + 'closing it is the badge and card owners together. The fifth row is not purple at all — the '
+      + 'move, and no choice of accent closes the pair. Three rules remain, over four rows. The '
+      + 'dropdown badge (src/styles/dropdown.css) is the kit\'s own — it fails hovered and focused, '
+      + 'which is the two rows — and should follow the nav badge, which takes --glow-purple on a '
+      + 'base surface and, on an active row, the row\'s own raised surface instead of stacking the '
+      + 'wash on top of it; #157 changed that rule when it found the stacked pair below the floor, '
+      + 'and the badge clears on both grounds now. The replay control is styled inside the motion '
+      + 'story and belongs to whoever owns that story. The last row is not purple at all — the '
       + 'copy control on the green-tinted snippet bar of a live card, which the snippet and card '
-      + 'owners share and which fails under every accent, not just this one. #157 records these '
-      + 'rather than closing them: they are outside a token change by construction.',
+      + 'owners share and which fails under every accent, not just this one. The "soon" badge on '
+      + 'an accent-tinted card was here too until #157 moved --purple-mid up a step behind the '
+      + 'accent; that row now clears and has left the ledger rather than moving between buckets. '
+      + '#157 records the rest rather than closing them: they are outside a token change by '
+      + 'construction.',
   },
   {
     id: 'C',
@@ -259,12 +261,14 @@ const LEDGER = [
     why: 'The "soon" status is deliberately the quietest thing the kit can render — it marks '
       + 'something that does not exist yet and must not compete with what does. It is set in '
       + 'the mid purple on a purple wash, which is the same ink-on-its-own-hue problem as the '
-      + 'accent bucket, chosen here on purpose. This was a two-theme entry until #157 lifted the '
-      + 'dark accent onto --purple-mid: those two tokens now resolve to one colour in dark, so in '
-      + 'that theme "the mid purple on its own wash" has stopped being a cause distinct from the '
-      + 'accent, and its surviving dark row is recorded in bucket B instead. Splitting them there '
-      + 'would double-count one row under two names. Light still tells the two tokens apart, so '
-      + 'this entry keeps the theme where the distinction is real. Nobody owns it: the decision to '
+      + 'accent bucket, chosen here on purpose. This was a two-theme entry until #157, which moved '
+      + 'the dark accent up onto --purple-mid and then moved the ramp up a step behind it, so dark '
+      + '--purple-mid is a lighter colour than it was and its "soon" row clears. The dark row is '
+      + 'therefore gone from the ledger, not relocated: the two tokens tell each other apart in '
+      + 'both themes again, and there is no dark row left for this entry to hold. `themes` is a '
+      + 'matcher, so it names only light, where the pair still fails — a dark row appearing here '
+      + 'later should be looked at by a person, which is what leaving it out makes happen. Nobody '
+      + 'owns it: the decision to '
       + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
       + 'not, whether it stops being purple or stops being washed.',
   },

@@ -31,7 +31,7 @@ export default {
 // the failure names.
 export const ACCENT = {
   Nebula: {
-    dark: { a: '#b479ff', as: '#7c3aed', ac: '#fff', p: '#6a2dcc', pl: '#9b5dff', pm: '#b479ff', g: 'rgba(180,121,255,.12)', rg: 'rgba(180,121,255,.35)', gf: '#9b5dff', gt: '#20dcf5' },
+    dark: { a: '#b479ff', as: '#7c3aed', ac: '#fff', p: '#6a2dcc', pl: '#b479ff', pm: '#bd8cff', g: 'rgba(180,121,255,.12)', rg: 'rgba(180,121,255,.35)', gf: '#9b5dff', gt: '#20dcf5' },
     light: { a: '#6a2dcc', as: '#6a2dcc', ac: '#fff', p: '#6a2dcc', pl: '#6a2dcc', pm: '#7a3be0', g: 'rgba(106,45,204,.09)', rg: 'rgba(106,45,204,.25)', gf: '#6a2dcc', gt: '#0c8fa8' },
   },
   Phoenix: {

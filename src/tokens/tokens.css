@@ -105,8 +105,15 @@
   color-scheme: dark;
 
   --purple: #6a2dcc;
-  --purple-light: #9b5dff;
-  --purple-mid: #b479ff;
+  /* The ramp moves up one step so --accent is --purple-light again, which is
+     the shape light Nebula and light Ocean already ship and which dark Nebula
+     held until #157 lifted the accent onto the old --purple-mid. Left alone,
+     the two tokens would resolve to one colour and the ramp would carry a
+     duplicate step. #bd8cff is the value docs/adr/0006 reasons about and
+     rejects as the accent; it becomes the ramp's top step instead. Light
+     Nebula's ramp does not move. See issue #157. */
+  --purple-light: #b479ff;
+  --purple-mid: #bd8cff;
   --cyan: #20dcf5;
   --green: #98ff8f;
   /* Lighter than it looks like it should be, and deliberately so: --pink is read
@@ -136,9 +143,11 @@
   --muted: #948fa8;
 
   /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own
-     wash over a card. This value is --purple-mid, already shipping on the "soon"
-     badge, so no new colour enters the ramp. --glow-purple and --ring follow it
-     down the file. Held by stories/accent-contrast.test.js. See issue #157.
+     wash over a card. This value was already in the ramp as --purple-mid, so no
+     new colour entered it; the ramp then moved up a step above so --accent is
+     --purple-light, which is how every other Nebula and Ocean cell is written.
+     --glow-purple and --ring follow it down the file. Held by
+     stories/accent-contrast.test.js. See issue #157.
      why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md */
   --accent: #b479ff;
   --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA at 5.70:1 */
@@ -220,8 +229,12 @@
   /* Backdrop that dims the page behind an overlay (drawer, modal, composer). */
   --scrim: rgba(0, 0, 0, 0.58);
 
-  /* Accent gradient stops (hero headline, marketing) — overridden per sub-theme. */
-  --grad-from: var(--purple-light);
+  /* Accent gradient stops (hero headline, marketing) — overridden per sub-theme.
+     --grad-from is pinned to the literal rather than tracking --purple-light,
+     which #157 moved up a step: following it would lighten the hero gradient's
+     first stop, a visible change nobody asked for. Every --grad-from in
+     src/tokens/accents.css is already written as a literal for the same reason. */
+  --grad-from: #9b5dff;
   --grad-to: var(--cyan);
 }
 
