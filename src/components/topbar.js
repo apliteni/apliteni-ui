@@ -4,7 +4,7 @@ import { brand } from '../assets/brand.js';
 import { icon, sun, moon } from '../assets/icons.js';
 import { esc } from './index.js';
 import { wireDropdown } from './dropdown.js';
-import { accountMenuNav, initials } from './account-nav.js';
+import { accountMenuNav, initials, toMenuTuple } from './account-nav.js';
 
 const THEME_KEY = 'apliteni-strategy-theme';
 
@@ -71,7 +71,12 @@ export function accountMenu({
   // initials() is shared with the rail's avatar — the two are the same reader
   // on the /account preset, and they used to disagree about who that was.
   const ini = mark == null ? initials(name, email) : mark;
-  const items = nav && nav.length ? nav : accountMenuNav();
+  // ACCOUNT_NAV is published, and it is a list of item objects — so the shape a
+  // consumer most naturally hands this option is the one that used to throw here.
+  // Read either; toMenuTuple() escapes an object on the way, which a tuple that
+  // arrives already escaped does not need.
+  const items = (nav && nav.length ? nav : accountMenuNav())
+    .map((n) => (Array.isArray(n) ? n : toMenuTuple(n)));
   const it = ([id, ic, label, href, target]) =>
     `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''} data-dd-item tabindex="-1"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
   // `on` so the menu is visible in Storybook / standalone use (no /auth/me gate).

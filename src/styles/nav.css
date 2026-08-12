@@ -237,11 +237,14 @@
   gap: 6px;
   padding: 3px 6px;
   border-radius: 7px;
-  color: var(--dim);
   text-decoration: none;
   font-size: 13px;
   transition: color 0.16s var(--ease), background 0.16s var(--ease);
 }
+/* Carries the block's class as well as its own, for the reason .ui-nav__item
+   does above: a linked crumb is an <a>, and a host stylesheet's `a:link` is
+   (0,1,1), which outranks a bare (0,1,0) class. */
+.ui-nav .ui-nav__crumb { color: var(--dim); }
 a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); }
 a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
