@@ -53,6 +53,122 @@ description = "Deploy/service token assignment with a value"
 regex = '''(?i)(LESSLY_DEPLOY_TOKEN|DEPLOY_TOKEN|SERVICE_TOKEN)\s*[:=]\s*['"]?[A-Za-z0-9._\-]{16,}'''
 tags = ["infra", "token"]
 
+# ── 1Password service account token ──────────────────────────────────────────
+# Replaces the rule of the same id in gitleaks 8.30.1, whose `ops_eyJ[a-zA-Z0-9+/]{250,}`
+# has two reachable holes. The one that carries the change is {250,}: it wants 250
+# unbroken characters, which a token quoted in wrapped prose never has. The second is
+# the alphabet — that class is standard base64, so a token containing `-` or `_` breaks
+# the run. How often real tokens carry those is not something we established (seven
+# decoded samples had none), so the claim here is only the measured one: a base64url
+# token is refused now and was not before. The quantifier is a REMAINDER — 30 characters of
+# the whole token and `ops_eyJ` is 7 of them, so {23,}; writing {30,} would mean 37 and
+# miss a 36-character fragment. The low floor is safe because of the anchor, not the
+# length: `ops_eyJ` is the 1Password prefix plus the base64 of the `{"` opening the
+# token's JSON claims, and ordinary text essentially never contains it.
+# Full argument: #179 and asabirov/claude#68.
+[[rules]]
+id = "1password-service-account-token"
+description = "1Password service account token (base64 or base64url, wrapped or whole)"
+regex = '''ops_eyJ[A-Za-z0-9+/_-]{23,}={0,3}'''
+keywords = ["ops_eyj"]
+tags = ["secret", "1password"]
+
+# ── OpenAI key, anchored on the watermark alone ──────────────────────────────
+# Matches a FRAGMENT: the watermark with 20 characters on either side of it, and no
+# prefix requirement at all. That is the point. Requiring sk-<prefix>- and a long
+# unbroken run reproduces the very hole #179 exists to close — a real sk-proj- key
+# broken at column 80 is then caught by nothing, ours or upstream's, and neither is
+# sk-service- or a head longer than the cap. Anchoring on T3BlbkFJ (base64 for
+# "OpenAI", present in every key OpenAI mints) is what carries the specificity, the
+# same trade the ops_eyJ rule above makes.
+#
+# WRAPPING IS MOSTLY, NOT WHOLLY, HANDLED. Measured on a 74/74 key: 54 of 61 wrap
+# columns between 60 and 120 are caught. The seven misses are columns 83-89, where the
+# break lands inside the eight-character watermark itself and neither half survives.
+# That is inherent to any line-based scanner anchored on one literal, not a defect to
+# fix here.
+#
+# KNOWN FALSE POSITIVE, so the person reading this rule id off a refusal knows what
+# they are looking at. T3BlbkFJ is base64 for "OpenAI", so any base64 blob whose
+# plaintext contains "OpenAI" at a 3-byte-aligned offset matches — one offset in three.
+# Reproduced with a base64 document naming OpenAI; the same text one byte over is
+# quiet. If this fires on something legitimate the answer is an allowlist entry, per
+# this file's header — NOT `git commit --no-verify`, which turns the whole gate off for
+# that commit. Both alignments are pinned in scripts/gitleaks-rules.check.mjs.
+#
+# This is a NEW id, so upstream's `openai-api-key` is NOT replaced — it stays live and
+# both may name the same key. Do not "tidy" this onto upstream's id for symmetry with
+# the 1Password rule above: that would replace upstream's, and they are not
+# interchangeable. Full argument: #179 and asabirov/claude#68.
+[[rules]]
+id = "openai-api-key-watermark"
+description = "OpenAI key fragment — watermark-anchored, any prefix, wrapped or truncated"
+regex = '''(?:[A-Za-z0-9_-]{20,}T3BlbkFJ|T3BlbkFJ[A-Za-z0-9_-]{20,})'''
+keywords = ["T3BlbkFJ"]
+tags = ["secret", "openai"]
+
+# ── Vendor tokens this environment uses daily that gitleaks 8.30.1 has no rule for ──
+#
+# All four below start with \b and the two rules ABOVE do not. That asymmetry is
+# deliberate; here is what each half is measured to do.
+#
+# These four anchor on a PREFIX, and the boundary is what makes "prefix" mean prefix
+# rather than "occurs somewhere inside a name". Without it, a name shaped like
+# `glyphs_` or `alpha_` plus 40 characters is refused by the PostHog rule, `configd_`
+# plus 35 by Figma (that class allows _ and -, so snake_case reaches 35 easily),
+# `myapify_api_` by Apify and `spk_12345_` by ClickUp. Those shapes are plausible in
+# ordinary code; none of them appears in this repo today.
+#
+# The two above anchor on a literal INSIDE a run they are meant to match into, so
+# there is no prefix for a boundary to protect. Measured, not assumed: \b on ops_eyJ
+# is harmless — all 30 cases still pass — and it is left off only because it guards
+# nothing. \b on the watermark rule DOES break it: a wrapped key's continuation line
+# reads `…tmT3BlbkFJ…`, so the watermark is preceded by a word character, which is
+# precisely the position that rule exists to catch. Adding it there fails
+# openai-wrapped-80col.md.
+#
+# Without these four, each reaches a commit on generic-api-key alone — which needs a
+# credential-ish word beside the value, so a token quoted in prose walks through, and
+# which stands down on its own stopword list. Each rule below is anchored on a vendor
+# prefix no ordinary text contains, so neither weakness applies, and the length floors
+# are loose on purpose: the prefix carries the specificity, as with ops_eyJ above.
+# Full argument: #179 and asabirov/claude#68.
+
+[[rules]]
+id = "apify-api-token"
+description = "Apify API token"
+regex = '''\bapify_api_[A-Za-z0-9]{30,}'''
+keywords = ["apify_api_"]
+tags = ["secret", "apify"]
+
+# pk_ then the numeric user id then 32 uppercase characters. Stripe's publishable keys
+# also begin pk_, but they are pk_live_/pk_test_ and never carry digits in that
+# position, so the two do not collide.
+[[rules]]
+id = "clickup-api-token"
+description = "ClickUp personal API token"
+regex = '''\bpk_\d{5,}_[A-Z0-9]{32}'''
+keywords = ["pk_"]
+tags = ["secret", "clickup"]
+
+[[rules]]
+id = "figma-personal-access-token"
+description = "Figma personal access token"
+regex = '''\bfigd_[A-Za-z0-9_-]{35,}'''
+keywords = ["figd_"]
+tags = ["secret", "figma"]
+
+# PostHog mints five prefixes (its own models/utils.py): phx_ personal, phs_ project
+# secret, pha_ OAuth access, phr_ OAuth refresh — and phc_ project. The first four are
+# secrets and are all matched here. phc_ deliberately is not: it ships inside published
+# web pages by design, so a rule for it would flag every landing page in the tree.
+[[rules]]
+id = "posthog-api-key"
+description = "PostHog secret key — personal, project-secret, or OAuth (not the public phc_)"
+regex = '''\bph[xsar]_[A-Za-z0-9]{40,}'''
+keywords = ["phx_", "phs_", "pha_", "phr_"]
+tags = ["secret", "posthog"]
+
 [allowlist]
 description = "Approved domains, placeholders, and known-safe demo data"
 regexes = [
@@ -64,7 +180,16 @@ regexes = [
   # Fabricated "shown once" demo API token in Access.stories.js — not a real secret.
   '''apli_sk_live_9f2c4b7e1a06d8f3c5b2e9a1d4f70c83''',
 ]
+# Anchored, and that is the point: a path entry switches off EVERY rule in this file
+# for anything it matches, and gitleaks matches these as a substring search. Unanchored,
+# '''.*\.svg''' exempts any path merely CONTAINING .svg — a file named
+# src/icons/sprite.svg.ts would be, and that is a plausible name in an icon kit,
+# though no such path exists here today. Measured: gitleaks' own default allowlist
+# already exempts .svg (with .png/.jpg/.gif/.pdf/.doc/.bin) and correctly does NOT
+# exempt .svg.ts, so the unanchored form is strictly weaker than the default it sits
+# beside, and the anchored one is belt-and-braces over it.
+# scripts/gitleaks-rules.check.mjs holds both halves.
 paths = [
-  '''package-lock\.json''',
-  '''.*\.svg''',
+  '''(?:^|/)package-lock\.json$''',
+  '''(?i)\.svg$''',
 ]
