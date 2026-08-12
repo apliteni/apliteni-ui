@@ -30,6 +30,12 @@ jobs:
           tar -xzf "gitleaks_${VER}_linux_x64.tar.gz" gitleaks
           # --config loads .gitleaks.toml (default secret rules + PII/infra rules).
           ./gitleaks detect --source . --config .gitleaks.toml --redact --no-banner --exit-code 1
+      # A green scan proves nothing on its own — a rule that stopped matching looks
+      # the same as a clean repo. This plants a fabricated token of every covered
+      # shape and asserts the right rule names it. It reuses the binary the step
+      # above extracted into $PWD rather than pinning a second copy.
+      - name: Rule regression check
+        run: PATH="$PWD:$PATH" node scripts/gitleaks-rules.check.mjs
 
   audit:
     name: Dependency audit
