@@ -137,6 +137,49 @@ test('src/styles/confirm.css: a closing confirm stops being clickable at once', 
   );
 });
 
+// ---- Which of the two paints on top --------------------------------------
+
+// The z-index each root resolves to, with var() substituted from the token file
+// and a trailing `+ n` / `- n` applied. Only the forms the sheets actually use.
+function stackingLevel(rule, tokens) {
+  const decl = /(?:^|;)\s*z-index\s*:([^;]*)/.exec(rule.body);
+  assert.ok(decl, `${rule.selector} declares no z-index — it would stack in document order`);
+
+  const value = decl[1].trim();
+  const parsed = /^(?:calc\(\s*)?var\(\s*(--[\w-]+)\s*\)\s*(?:([+-])\s*(\d+)\s*\)?)?$/.exec(value);
+  assert.ok(parsed, `${rule.selector}'s z-index is \`${value}\` — expected a token, or a token ± n`);
+
+  const [, token, sign, offset] = parsed;
+  const base = tokens.get(token);
+  assert.ok(base !== undefined, `${token} is not defined in the token file`);
+  return base + (sign === '-' ? -Number(offset) : Number(offset ?? 0));
+}
+
+test('a confirm paints above a drawer, whatever order they are mounted in', () => {
+  const tokens = new Map(
+    [...read('src/tokens/tokens.css').matchAll(/(--z-[\w-]+)\s*:\s*(\d+)\s*;/g)]
+      .map(([, name, value]) => [name, Number(value)]),
+  );
+  assert.ok(tokens.size > 0, 'the z tokens were found — did the token file move?');
+
+  const rootOf = (file, block) => {
+    const root = rules(read(file)).find((r) => selects(r, `.${block}`));
+    assert.ok(root, `.${block} is missing from ${file}`);
+    return root;
+  };
+
+  const confirmZ = stackingLevel(rootOf('src/styles/confirm.css', 'ui-confirm'), tokens);
+  const drawerZ = stackingLevel(rootOf('src/styles/drawer.css', 'ui-drawer'), tokens);
+
+  assert.ok(
+    confirmZ > drawerZ,
+    `a confirm resolves to z-index ${confirmZ} and a drawer to ${drawerZ}. At equal levels paint `
+    + 'order falls back to document order, so a confirm whose markup comes first — a normal way to '
+    + 'mount dialogs — is painted BEHIND the drawer it is asking about: its buttons are clipped by '
+    + 'the drawer panel, and at narrow widths the dialog is hidden outright',
+  );
+});
+
 test('src/styles/confirm.css: a consequence too long for the viewport scrolls', () => {
   const all = rules(read('src/styles/confirm.css'));
 
