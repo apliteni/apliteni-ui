@@ -59,14 +59,31 @@ const bay = (html) => `<div style="max-width:760px">${html}</div>`;
 
 export const Sidebar = {
   name: 'Sidebar — expanded + nested',
-  render: () => pad(bay(specimen(
-    'Sections, icon+label items, active state, counters, a collapsible group (its active child auto-opens it), and a sign-out footer',
-    sidebarNav({
-      ariaLabel: 'Primary',
-      sections: SECTIONS,
-      active: 'payouts-pending',
-      footer: SIGN_OUT,
-    }),
+  render: () => pad(bay(stack(
+    specimen(
+      'Sections, icon+label items, active state, counters, a collapsible group (its active child auto-opens it), and a sign-out footer',
+      sidebarNav({
+        ariaLabel: 'Primary',
+        sections: SECTIONS,
+        active: 'payouts-pending',
+        footer: SIGN_OUT,
+      }),
+    ),
+    // The accent counter ON the active row — the one place the kit reads accent
+    // ink on a raised surface. The rail above cannot also show it: only one row
+    // is ever active, and that one carries the neutral counter. It is here so
+    // the contrast walk measures the pair rather than a person's reading of it.
+    // nav.css:113 gives the counter the active row's own --surface-3 instead of
+    // laying --glow-purple over it; deleted, that rule broke nothing in the
+    // suite until this specimen existed. See #157.
+    specimen(
+      'The accent counter on the active row — an active row is already raised, so the counter takes that surface rather than stacking the accent wash on it',
+      sidebarNav({
+        ariaLabel: 'Overview',
+        sections: [SECTIONS[0]],
+        active: 'inbox',
+      }),
+    ),
   ))),
 };
 

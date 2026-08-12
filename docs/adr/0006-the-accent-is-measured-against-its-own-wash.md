@@ -3,7 +3,8 @@
 - **Date:** 2026-08-12
 - **Status:** accepted
 - **Code:** `src/tokens/tokens.css`, `src/tokens/accents.css`, `src/styles/nav.css`,
-  `stories/accent-contrast.test.js`, `stories/foundations/SubThemes.stories.js`,
+  `stories/accent-contrast.test.js`, `stories/contrast.test.js`,
+  `stories/components/Navigation.stories.js`, `stories/foundations/SubThemes.stories.js`,
   `.storybook/manager.js`, `.storybook/manager-head.html`, `.storybook/preview.js`
 - **Issues:** #157
 
@@ -128,6 +129,17 @@ that stacked it, and `src/styles/nav.css:113` is where it stops: on an active ro
 the row's own `--surface-3`, the same shape the neutral badge two lines above it already had. Read on
 the flat surface instead of the stacked pair, every cell clears — 4.92 in dark Nebula, 5.10 Phoenix,
 5.15 Ocean, 6.74 Emerald; 6.33 light Nebula, 5.62 Phoenix, 5.43 Ocean, 4.62 Emerald.
+
+**And the row is now rendered, so the rule is held by a measurement rather than by this record.**
+The reason the pair went unmeasured was that no story put an accent counter on an active row, and
+an edited stylesheet nobody renders is worth as much as a comment. `Sidebar` in
+`stories/components/Navigation.stories.js` gains a second specimen that does — the same rail with
+the active row on the accent counter — beside the one it already had, which keeps the nested
+auto-open, the neutral counter on an active row and the sign-out footer where they were. The walk
+now reads 4.92 there in dark Nebula. Deleting `src/styles/nav.css:113` was tried in a copy against
+the changed story: `stories/contrast.test.js` goes red, bucket B growing from four rows to five on
+the stacked pair and the ledger total from 190 to 191. Against the story as it was, that same
+deletion passed every contrast gate in the suite, which is what "held by nothing" meant.
 
 `--surface-3` therefore joins the grounds as a flat one, and the wash is measured over the four base
 grounds only. **That exclusion is a claim about the kit, not a gap in the gate**, and the gate's
@@ -328,11 +340,13 @@ declared that way and is caught only because the sub-theme panels happen to pin 
 limit of the gate rather than an oversight in a value, and closing it means deciding what the accent
 family IS — the union of both files, or the intersection — which this change does not decide.
 
-**Nothing enforces the base-surface rule.** It is held by one edited stylesheet and a paragraph in
-the gate's header. A token gate cannot see a component that stacks the wash again. The story walk
-could, but only if a story rendered it, and the pair that started all this went unmeasured precisely
-because no story does. Enforcing the rule would take a gate that reads the stylesheets for
-`--glow-purple` on a raised surface. That is a follow-up, not this change.
+**Nothing enforces the base-surface rule as a rule.** The one place that broke it is now held by a
+measurement: the nav counter on an active row is rendered by `Sidebar`, so re-stacking the wash
+there takes `stories/contrast.test.js` red. That is one instance, not the rule. A token gate cannot
+see a component that stacks the wash, and the story walk sees only what a story renders — which is
+exactly how this pair stayed invisible until somebody read the CSS. The next component to stack
+`--glow-purple` on a raised surface will be caught by the same accident, or not at all. Enforcing
+the rule would take a gate that reads the stylesheets for it. That is a follow-up, not this change.
 
 **The focus ring.** `--ring` follows the accent's rgb here, and that is all this change does to it. As
 a focus indicator it sits far under the 3:1 that WCAG 1.4.11 asks: 1.61 against `--bg` before this

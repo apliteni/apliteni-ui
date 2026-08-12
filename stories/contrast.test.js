@@ -65,20 +65,20 @@
  * together. Measured on a 10-core laptop: the suite runs in ~18s with this file
  * and ~8s without it, so the gate still roughly doubles it.
  *
- * It used to be worse. The walk asked JSDOM for a computed style 137,206 times
+ * It used to be worse. The walk asked JSDOM for a computed style 138,534 times
  * across the two cells, because every text element was walked up its ancestor
  * chain three separate times — background, hidden test, opacity — and siblings
  * share almost all of that chain. Memoising the lookup per element between DOM
- * writes (makeStyleCache in stories/lib/contrast.js) cut that to 28,436 calls,
+ * writes (makeStyleCache in stories/lib/contrast.js) cut that to 28,706 calls,
  * and the walk from ~23s to ~16s. Not the 3x the call count suggests: what
- * remains is dominated by the 5,710 DOM writes the state passes make, each of
+ * remains is dominated by the 5,738 DOM writes the state passes make, each of
  * which throws away JSDOM's own style cache for the whole document and forces
  * the next lookups to resolve the cascade from scratch. That is JSDOM's own
  * invalidation rule and nothing here can safely be cleverer than it.
  *
  * All three of those numbers are now asserted rather than remembered. The miss
- * rate they imply — 28,436 of 137,206 reads — is gated below, and it is the only
- * cost assertion here that is deterministic enough to see a doubling. The 5,710
+ * rate they imply — 28,706 of 138,534 reads — is gated below, and it is the only
+ * cost assertion here that is deterministic enough to see a doubling. The 5,738
  * writes are gated too, as the anti-vacuity counter for the invariant that keeps
  * the cache honest: every DOM write in the walk goes through `mutate`, and the
  * cache now refuses to answer if one did not. See makeStyleCache.
@@ -562,17 +562,17 @@ test('the style cache is still serving four reads in five from memory', () => {
   // how many of those reach JSDOM is arithmetic, not weather. Two identical runs
   // give identical numbers.
   //
-  // THE NUMBERS. Measured over both default cells: 137,206 queries — every read
+  // THE NUMBERS. Measured over both default cells: 138,534 queries — every read
   // the walk performs, which is exactly the number of getComputedStyle calls the
-  // walk made before the cache existed — of which 28,436 miss and reach JSDOM.
-  // A miss rate of 0.2073.
+  // walk made before the cache existed — of which 28,706 miss and reach JSDOM.
+  // A miss rate of 0.2072.
   //
-  // WHY A RATIO AND NOT THE 28,436. The absolute count is a fact about the
+  // WHY A RATIO AND NOT THE 28,706. The absolute count is a fact about the
   // catalogue as much as about the cache: it moves every time a story is added,
   // so an exact assertion on it would have to be re-pinned by whoever adds one,
   // and the number they would re-pin it to carries no judgement. The miss rate
   // is the quantity the cache actually controls. It was 1.0 by definition before
-  // the cache existed, it is 0.2073 now, and adding a story moves the numerator
+  // the cache existed, it is 0.2072 now, and adding a story moves the numerator
   // and the denominator together — the two themes, which walk identical markup
   // through different colours, agree to three decimal places (0.2068 / 0.2077).
   // The absolute figures are logged rather than asserted, so a human reading a
@@ -580,7 +580,7 @@ test('the style cache is still serving four reads in five from memory', () => {
   //
   // THE CEILING. 0.30: about 1.45x today's rate, and comfortably below the 0.41
   // a doubling of lookups would produce. A single added story cannot shift an
-  // aggregate over 137,206 reads by that much, so this does not tax the person
+  // aggregate over 138,534 reads by that much, so this does not tax the person
   // adding one. What trips it is the cache being neutered, or a DOM write
   // appearing inside the per-element loop — either of which turns hits back into
   // misses across the whole walk.
@@ -603,7 +603,7 @@ test('the style cache is still serving four reads in five from memory', () => {
   assert.ok(
     missRate < 0.30,
     `the style cache's miss rate rose to ${missRate.toFixed(4)} (${lookups} lookups from ${queries} `
-    + 'reads), against a ceiling of 0.30 set from a measured 0.2073. Unlike the wall clock this is '
+    + 'reads), against a ceiling of 0.30 set from a measured 0.2072. Unlike the wall clock this is '
     + 'deterministic, so this is a real regression and not a busy machine: either the memo stopped '
     + 'being kept, or something started writing to the DOM inside the walk\'s per-element loop and '
     + 'is dropping the memo on every element.',
