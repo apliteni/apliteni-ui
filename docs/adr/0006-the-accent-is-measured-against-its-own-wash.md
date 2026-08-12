@@ -277,6 +277,37 @@ take. It is also why the rule changed rather than a value — on an active row i
 **The token gate cannot see any of them.** It measures tokens against tokens; a ground a component
 mixes for itself is only visible to the story walk, and only where a story renders it.
 
+**Where the other three accents differ from the default, at story level.** #157 asks that whatever is
+true of the default accent be true of the other three, or that the difference be recorded. This is
+the difference. The story walk in `stories/contrast.test.js` runs the DEFAULT accent only, so its
+ledger — bucket B and every other entry — is a statement about two cells out of eight. Running the
+same walk on all eight (`CONTRAST_ACCENTS=1`) finds 760 distinct failing pairs where those two
+account for 190, and the rows with `--accent` itself as the ink are not spread evenly:
+
+| cell | rows with `--accent` as the ink | of those, at rest | the same two on `main` |
+|---|---|---|---|
+| dark default | 4 | 0 | 25 and 15 |
+| dark phoenix | 2 | 0 | 2 and 0 |
+| dark ocean | 2 | 0 | 2 and 0 |
+| dark emerald | 0 | 0 | 0 and 0 |
+| light default | 0 | 0 | 0 and 0 |
+| light phoenix | 0 | 0 | 0 and 0 |
+| light ocean | 0 | 0 | 9 and 5 |
+| light emerald | 5 | 2 | 6 and 2 |
+
+The default's four are every one of them a hover or focus state. **Light Emerald's are not**: two of
+its five fail at rest — `.ui-dropdown__badge.is-accent` at 4.10, and the label of the active item in
+the app-shell sidebar (`a.ax-item.is-on > span`) at 4.40. A pair that fails at rest is a different
+kind of debt from one that fails only under the pointer, and both of those two predate this change
+and are untouched by it: light Emerald's accent hue did not move, and both grounds are mixed from
+that hue rather than washed with `--glow-purple`. What did move in the other accents is light Ocean,
+whose deeper ink closed all nine of its rows, five of which were at rest.
+
+None of this reaches the ledger, because the ledger keys on the walk and the walk runs one accent.
+Turning the eight-cell matrix on by default is what would surface it, at the per-cell cost
+`stories/contrast.test.js` records in its header — which is the trade that file already names as
+undecided. This record states the difference; it does not close it.
+
 **A token declared only in `tokens.css`'s theme blocks is neither mirrored nor gated as accent
 family.** `FAMILY` — the set of properties the sub-theme mirror is held to — is derived from the
 `[data-accent="…"]` blocks in `accents.css`, because those blocks are what an accent overrides. A
