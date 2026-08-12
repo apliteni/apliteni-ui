@@ -2,6 +2,7 @@ import '../src/index.css';
 import { wireTopbar, applyTheme } from '../src/components/topbar.js';
 import { wireNav } from '../src/components/nav.js';
 import { wireDrawer } from '../src/components/drawer.js';
+import { wireConfirm } from '../src/components/confirm.js';
 import { initTabs } from '../src/components/tabs.js';
 
 // Load Poppins once (Storybook manager/preview iframe).
@@ -24,6 +25,7 @@ const UI_MAP = [
   ['.ui-feature', 'feature'], ['.ui-card', 'card'], ['.ui-callout', 'callout'],
   ['.ui-btn', 'button'], ['.ui-badge', 'badge'], ['.ui-pill', 'pill'], ['.ui-dot', 'statusDot'],
   ['.ui-seg', 'segmented'], ['.ui-tabs', 'tabs'], ['.ui-nav', 'nav'], ['.ui-drawer', 'drawer'],
+  ['.ui-confirm', 'confirm'],
   ['.ui-dropdown', 'dropdown'], ['.ui-toast', 'toast'], ['.ui-empty', 'emptyState'],
   ['.ui-table', 'table'], ['.ui-field', 'field'], ['.ui-input', 'input'], ['.ui-textarea', 'textarea'],
   ['.ui-select', 'select'], ['.ui-switch', 'switchToggle'], ['.ui-check', 'checkbox'], ['.ui-snippet', 'snippet'],
@@ -88,7 +90,7 @@ const preview = {
         order: [
           'Foundations', ['Colors', 'Signal contrast', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
           'Guidelines', ['Destructive actions'],
-          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
+          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Confirm', 'Table', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
         ],
       },
@@ -165,7 +167,7 @@ const preview = {
       if (typeof out === 'string') wrap.innerHTML = out; else wrap.append(out);
       // Wire interactive behaviours after render.
       requestAnimationFrame(() => {
-        wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); initTabs(wrap);
+        wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); wireConfirm(wrap); initTabs(wrap);
         // Repaint the inspector overlay after layout settles (or clear it when off).
         requestAnimationFrame(() => paintInspector(ctx.globals.inspect));
       });

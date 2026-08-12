@@ -10,12 +10,11 @@
 // (or call openDrawer(rootEl) directly). Pass `open: true` to render it already
 // open — handy for specimens/screenshots.
 //
-// This deliberately shares its scrim + focus-trap concept with a future Modal /
-// Dialog: both are "content over a scrim, focus-trapped, Esc-dismissable". The
-// data hooks ([data-drawer]/[data-drawer-scrim]/[data-drawer-close]) and the
-// wireDrawer trap below are the primitive a Modal would reuse (centered instead
-// of edge-anchored). Kept as one component for now per issue #34.
+// The scrim + focus trap are shared with confirm(): both are "content over a
+// scrim, focus-trapped, Esc-dismissable", and they import one implementation
+// from ./overlay.js so the two can never disagree about what Tab does.
 import { esc, icon } from './index.js';
+import { focusablesIn, inertOutside, trapTab } from './overlay.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -70,48 +69,6 @@ export function drawer({
 // document (guarded by a flag on the document node, so multiple documents each
 // get their own). Safe to call repeatedly (Storybook re-renders).
 
-const FOCUSABLE = [
-  'a[href]', 'button:not([disabled])', 'input:not([disabled])',
-  'select:not([disabled])', 'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',');
-
-// Focusable controls inside the panel, in DOM order. Scoped to the panel, so
-// nothing outside the trap is returned; hidden closed drawers are never queried
-// (we only call this while open).
-function focusablesIn(panel) {
-  return Array.from(panel.querySelectorAll(FOCUSABLE));
-}
-
-// Hide everything *outside* the drawer from AT + tab order: walk root→body and
-// mark each ancestor's other children inert + aria-hidden, remembering prior
-// state so close can restore it exactly. The scrim + panel live inside the root,
-// so they stay interactive. This is the focus-trap primitive a Modal reuses.
-function inertOutside(root, on) {
-  if (on) {
-    const touched = [];
-    let node = root;
-    while (node && node.parentElement && node !== document.body) {
-      for (const sib of node.parentElement.children) {
-        if (sib === node || sib.hasAttribute('data-drawer')) continue;
-        touched.push([sib, sib.getAttribute('aria-hidden'), sib.hasAttribute('inert')]);
-        sib.setAttribute('aria-hidden', 'true');
-        sib.setAttribute('inert', '');
-        sib.inert = true;
-      }
-      node = node.parentElement;
-    }
-    root.__drawerInert = touched;
-  } else {
-    (root.__drawerInert || []).forEach(([el, ariaHidden, hadInert]) => {
-      if (ariaHidden == null) el.removeAttribute('aria-hidden');
-      else el.setAttribute('aria-hidden', ariaHidden);
-      if (!hadInert) { el.removeAttribute('inert'); el.inert = false; }
-    });
-    root.__drawerInert = null;
-  }
-}
-
 export function openDrawer(root, returnFocusTo) {
   if (!root || root.classList.contains('is-open')) return;
   root.__drawerReturn = returnFocusTo
@@ -131,23 +88,6 @@ export function closeDrawer(root) {
   const back = root.__drawerReturn;
   root.__drawerReturn = null;
   if (back && typeof back.focus === 'function') back.focus();
-}
-
-// Trap Tab within the panel while open; wrap at both ends.
-function trapTab(root, e) {
-  if (e.key !== 'Tab') return;
-  const panel = root.querySelector('[data-drawer-panel]');
-  if (!panel) return;
-  const items = focusablesIn(panel);
-  if (!items.length) { e.preventDefault(); panel.focus(); return; }
-  const first = items[0];
-  const last = items[items.length - 1];
-  const active = document.activeElement;
-  if (e.shiftKey && (active === first || active === panel)) {
-    e.preventDefault(); last.focus();
-  } else if (!e.shiftKey && active === last) {
-    e.preventDefault(); first.focus();
-  }
 }
 
 // Topmost open drawer (last in document order) — Esc closes that one.
@@ -174,7 +114,7 @@ export function wireDrawer(root = document) {
       if (e.key === 'Escape' && dismissible) {
         e.preventDefault(); e.stopPropagation(); closeDrawer(dr);
       } else if (e.key === 'Tab') {
-        trapTab(dr, e);
+        trapTab(dr.querySelector('[data-drawer-panel]'), e);
       }
     });
   });
