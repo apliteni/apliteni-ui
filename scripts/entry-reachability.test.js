@@ -49,7 +49,7 @@ const entryFile = path.join(src, 'index.js');
  * stops naming a live, genuinely-unreachable module, so a rename cannot leave
  * a lie behind.
  *
- * One entry today. Every other module under src/components/ is a component
+ * Two entries today. Every other module under src/components/ is a component
  * factory meant for consumers, and the only other private helper is `esc`,
  * which lives in src/components/index.js and rides along on a public module.
  * Note the corollary: a short list gives the staleness test below little to
@@ -60,6 +60,14 @@ const NOT_PUBLIC = [
     why: 'it holds the scrim and focus-trap internals drawer.js and confirm.js share, and '
       + 'publishing focusablesIn/mark/trapTab would commit the package to keeping '
       + 'helpers those two rewrite between themselves.',
+  },
+  {
+    module: 'components/account-nav.js',
+    why: 'it is the account navigation definition shared by shell.js and topbar.js — '
+      + 'shell.js already imports topbar.js, so the constant cannot live in either without '
+      + 'a cycle. Its one public name, ACCOUNT_NAV, reaches the entry re-exported by '
+      + 'components/shell.js; the escaping helpers beside it are how the tuple sink is fed '
+      + 'and are nobody else\'s to call.',
   },
 ];
 

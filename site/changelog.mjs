@@ -3,7 +3,26 @@
 
 export const RELEASES = [
   {
-    v: '0.10.0', date: '2026-08-12', tag: 'latest',
+    v: '0.11.0', date: '2026-08-12', tag: 'latest',
+    changes: [
+      ['added', '`appShell()` — the kit has one page shell now. A full-height rail built from the kit\'s own `sidebarNav()`, beside exactly one `<main>`. The breadcrumb trail is yours: pass `crumbs` and it renders `breadcrumbs()`, pass nothing and there is no trail. The topbar is off unless you ask for one.', ['Shell']],
+      ['added', 'The rail folds to icons below 720px instead of disappearing. Every row keeps its accessible name at every width, and the icon target measures 45×44px on a phone. Before this, a 375px screen got three navigation links, none of them reachable.', ['Shell']],
+      ['breaking', '`accountShell()` is now a preset over `appShell()`, and its markup changed. It emits a `<main>` where it emitted none, its sidebar is `sidebarNav()`\'s `.ui-nav--side` rather than a hand-written `.ui-side`, and its breadcrumb comes from `breadcrumbs()`. Every option it took it still takes, including the old `[id, icon, label, href, target]` nav tuples — but CSS or scripts of yours that reached for `.ui-side`, `.ui-shell`, `.ui-shell__crumbs`, `.ui-shell__page` or `.sub` no longer find anything, because nothing emits that markup any more. The shell has also stopped emitting `.ui-card-stack`; that rule is still in `card.css`, so markup of your own carrying the class still spaces the same way. Inside the shell the card stack is `.ui-app__body` and the page subtitle is `.ui-app__sub`.', ['Shell']],
+      ['breaking', '`ACCOUNT_NAV` is a list of `{ id, icon, label }` objects, not `[id, icon, label]` tuples. `sidebarNav()`, `appShell()`, `accountShell()`, `topbar()` and `accountMenu()` all read either shape, so passing it anywhere the kit takes a nav still works — but if you spread or destructure its entries yourself, that is the line to change.', ['Shell']],
+      ['breaking', 'A nav label that arrives pre-escaped now shows its entity. Every nav primitive escapes what it is given, so `[\'x\', \'gear\', \'Access &amp; agents\']` renders as `Access &amp;amp; agents`. The kit taught this pattern: the `ACCOUNT_NAV` it shipped spelled that ampersand as an entity, because the old shell interpolated raw HTML. Pass raw text — `Access & agents` — wherever you were passing entities.', ['Shell']],
+      ['breaking', '`crumb` is escaped rather than inserted as HTML. It used to land inside a `<b>` the shell wrote itself; it now goes through `breadcrumbs()`, which escapes every label. `crumb: \'<em>Payouts</em>\'` rendered italic before and renders the tags as text now. There is no markup slot in the trail — pass an item with an `icon` to `appShell({ crumbs })` if you need one.', ['Shell']],
+      ['changed', '`sub` is a `<p>`, not a `<div>`. It is still a trusted-HTML slot, but a `<p>` closes at the first block element the parser meets, so `sub: \'<div>block</div>\'` now leaves a stray `</p>` behind it. Inline markup is unaffected; anything block-level belongs in `body`.', ['Shell']],
+      ['removed', 'The `.ui-side` and `.ui-shell` rules are gone from the stylesheet. Nothing emitted that markup any more.', ['Shell']],
+      ['fixed', 'A rail label keeps the kit\'s own colour under a host stylesheet\'s `a:link`. The kit\'s declaration was `.ui-nav__item` at (0,1,0) and a host\'s `a:link` is (0,1,1), so every resting rail label took the host\'s link colour. The breadcrumb link is held the same way.'],
+      ['fixed', 'A badged rail row is announced with its count. The row carries an accessible name at every width now, and a name built from the label alone had narrowed "Pending 3" to "Pending".'],
+      ['fixed', 'The signed-in reader sits beside the rail\'s navigation, not inside it — a screen reader was announcing the reader\'s email address as a navigation entry.'],
+      ['fixed', 'A shell no longer names a reader you did not give it. Where a caller passed only an address, or no account at all, the topbar menu filled the gap with the kit\'s own demo person — so a page could name your reader in the rail and somebody else beside it.', ['Shell']],
+      ['changed', 'The account menu\'s initials come from the display name when there is one, and from the address otherwise. They were read from the address alone, so the rail and the menu could draw two different marks for one reader.'],
+      ['changed', '`ACCOUNT_NAV` spells its ampersand as `&` rather than `&amp;`. If you read that constant\'s labels yourself, they are raw text now.'],
+    ],
+  },
+  {
+    v: '0.10.0', date: '2026-08-12',
     changes: [
       ['breaking', '`drawer({ open: true })` now really opens — the page behind goes inert, Tab is trapped in the panel, Escape closes it. A sidebar or an inline specimen that should sit there open wants `specimen: true`. `confirm()` reads `open: true` the same way.'],
       ['added', '`confirm()` — the question a page stops for before something irreversible. A focus-trapped modal over a scrim; Escape cancels, and it opens on the safe answer, so a reader who hits Enter out of habit keeps what they have.'],

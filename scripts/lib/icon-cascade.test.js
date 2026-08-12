@@ -910,7 +910,7 @@ test('the kit sheet list reads the at-rule in any case and the file name in one'
 
 test('a <style> block is read whatever case the markup spells the tag in', () => {
   /* The surfaces gate hands this the STORY files, and a story is a `.js` module
-   * returning an HTML string out of a template literal — stories/apps/_appShell.js
+   * returning an HTML string out of a template literal — stories/apps/Landing.stories.js
    * is one. So `<STYLE>` in there is the HTML element, folded by every browser
    * and by jsdom, and the CSS inside it applies in every story iframe that
    * renders the shell.

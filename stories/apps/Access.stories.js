@@ -1,10 +1,21 @@
-import { appShell } from './_appShell.js';
+import { appShell, ACCOUNT_NAV } from '../../src/components/shell.js';
 import { card, button, badge, input, snippet, hlShell, callout, icon } from '../../src/components/index.js';
 
 export default {
   title: 'Apps/Access & Agents',
   parameters: { layout: 'fullscreen' },
 };
+
+// Overview is this demo's own screen, not the kit's default — a consuming
+// /account page that took ACCOUNT_NAV whole would get a link to nothing.
+const NAV = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...ACCOUNT_NAV];
+const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
+const CRUMBS = [{ label: 'Account', href: '#' }, { label: 'Access & agents' }];
+// A crumb `label` is text and nav.js escapes it; `title` is a raw-HTML slot.
+const screen = (opts) => appShell({
+  nav: NAV, active: 'access', crumbs: CRUMBS, title: 'Access &amp; agents',
+  account: READER, signOutHref: '#logout', ...opts,
+});
 
 const AGENTS = [
   ['Research bot', 'Read only', '2 hours ago', 'live'],
@@ -29,10 +40,7 @@ const tokenTable = () => `
   </table>`;
 
 export const Default = {
-  render: () => appShell({
-    active: 'access',
-    crumb: 'Account / Access & agents',
-    title: 'Access & agents',
+  render: () => screen({
     sub: 'Connect agents to read over MCP. Each gets a scoped, revocable token.',
     body: `
       ${card({ title: `Connect over MCP ${badge('Live', 'live')}`, icon: 'plug', sub: 'Paste this into your agent. It reads as you — read-only.',
@@ -50,8 +58,7 @@ export const Default = {
 
 export const NewToken = {
   name: 'New token revealed',
-  render: () => appShell({
-    active: 'access', crumb: 'Account / Access & agents', title: 'Access & agents',
+  render: () => screen({
     sub: 'Connect agents to read over MCP.',
     body: `
       ${card({ variant: 'live', title: `Token created ${badge('Copy now', 'warn')}`, icon: 'key',
@@ -64,8 +71,7 @@ export const NewToken = {
 };
 
 export const Empty = {
-  render: () => appShell({
-    active: 'access', crumb: 'Account / Access & agents', title: 'Access & agents',
+  render: () => screen({
     sub: 'Connect agents to read over MCP.',
     body: `
       ${callout({ variant: 'info', icon: 'info', body: 'No agents yet. Create a token, then paste the connect command into your agent.' })}

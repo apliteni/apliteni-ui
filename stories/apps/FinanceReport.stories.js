@@ -1,4 +1,5 @@
 import { badge, card, segmented, icon } from '../../src/components/index.js';
+import { financeShell } from './_finance-nav.js';
 
 export default {
   title: 'Apps/Finance report',
@@ -14,14 +15,32 @@ const kpi = (label, value, sub, tone) =>
      <div style="font:400 12px/1.4 Poppins;color:var(--muted);margin-top:5px">${sub}</div>
    </div>`;
 
+// Three numbers side by side need about 620px between them, measured at the
+// 26px Poppins the values are set in. That is a fact about this strip and not
+// about the window, and the two stopped agreeing once the shell grew a rail:
+// the rail folds at 720px but is still 249px wide above it, so from 721 to 1023
+// the column is narrower than the strip needs and every number orphaned its €
+// onto a second line. The strip asks its own container instead. The shell's
+// fold is left alone — it came from a measured touch target and belongs to
+// every screen, not to this one.
+const KPI_CSS = `<style>
+  .fr-kpis__box { container-type: inline-size; }
+  .fr-kpis { display: flex; gap: 34px; align-items: stretch; }
+  .fr-kpis__sep { border-left: 1px solid var(--border); }
+  @container (max-width: 620px) {
+    .fr-kpis { flex-direction: column; gap: 18px; }
+    .fr-kpis__sep { border-left: 0; border-top: 1px solid var(--border); }
+  }
+</style>`;
+
 const kpiStrip = () => card({ body: `
-  <div style="display:flex;gap:34px;align-items:stretch">
+  <div class="fr-kpis__box"><div class="fr-kpis">
     ${kpi('Money in', '759,988 €', 'Jul 1 – Jun 30', 'pos')}
-    <div style="border-left:1px solid var(--border)"></div>
+    <div class="fr-kpis__sep"></div>
     ${kpi('Money out', '3,048,559 €', 'Jul 1 – Jun 30')}
-    <div style="border-left:1px solid var(--border)"></div>
+    <div class="fr-kpis__sep"></div>
     ${kpi('Net result', '−2,288,571 €', 'Jul 1 – Jun 30', 'neg')}
-  </div>` });
+  </div></div>` });
 
 const PAYOUTS = [
   ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
@@ -32,6 +51,9 @@ const PAYOUTS = [
   ['43',   'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
 ];
 
+// The table stays a direct child of the card: `.ui-card:has(> .ui-table)` in
+// card.css is what scrolls seven columns of ledger on a phone, and a wrapper
+// around the table turns that selector off.
 const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe payouts reconciled to bank transactions.', body: `
   <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr>
@@ -53,24 +75,19 @@ const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe 
     </tbody>
   </table>` });
 
-// Just the report itself — the cashflow KPIs + reconciled payout ledger, no app
-// chrome. Reuses the shell's page classes (`ui-shell__page` scopes the title /
-// sub type) inside a plain centered column so it can be embedded anywhere.
+// The cashflow KPIs + reconciled payout ledger, in the portal's one shell —
+// financeShell() in _finance-nav.js, the same call the empty-state screens make.
+// The column, the rail and the trail are its answer; this story owns the screen.
 export const Default = {
-  render: () => `
-    <div style="position:relative;overflow:hidden;min-height:100vh">
-      <span class="ui-glow ui-glow--purple" style="top:-120px;right:6%;opacity:.35"></span>
-      <div class="ui-shell__page" style="position:relative;z-index:1;max-width:960px;margin:0 auto;padding:40px 26px 96px">
-        <div class="ui-shell__crumbs">Finance / <b>Payouts</b></div>
-        <h1>Payouts</h1>
-        <div class="sub">Company cashflow at a glance, then the reconciled payout ledger.</div>
-        <div class="ui-card-stack">
-          <div style="display:grid;gap:22px">
-            ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
-            ${kpiStrip()}
-            ${payoutsCard()}
-          </div>
-        </div>
-      </div>
-    </div>`,
+  render: () => KPI_CSS + financeShell({
+    active: 'payouts',
+    crumb: 'Payouts',
+    title: 'Payouts',
+    sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
+    body: `
+      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${kpiStrip()}
+      ${payoutsCard()}
+    `,
+  }),
 };

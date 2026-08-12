@@ -1,8 +1,8 @@
 /* ============================================================================
  * Navigation — sidebar rail, horizontal tabs, breadcrumbs. One token-driven
  * class family (ui-nav__…) so every variant re-themes across accents +
- * light/dark. Mirrors the look the app shells draw inline (.ui-side) but as a
- * first-class, standalone component. Active/hover surfaces are pure tokens.
+ * light/dark. appShell() draws its rail from sidebarNav(), so this file is the
+ * page shell's rail as well as a standalone component. States are pure tokens.
  * ========================================================================== */
 
 .ui-nav { font-family: var(--font-sans); }
@@ -35,7 +35,6 @@
   width: 100%;
   padding: 9px 12px;
   border-radius: 10px;
-  color: var(--text);
   text-decoration: none;
   font-size: 14.5px;
   font-weight: 400;
@@ -47,6 +46,7 @@
   font-family: inherit;
   transition: background 0.16s var(--ease), color 0.16s var(--ease);
 }
+.ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/adr/0007-one-page-shell-built-from-the-kits-own-nav.md */
 .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
 .ui-nav__item.is-active {
   background: var(--surface-3);
@@ -75,11 +75,25 @@
 .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); }
 .ui-nav__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Destructive row (sign out, revoke). Quiet at rest, --pink once the pointer
-   reaches it — same two-step as .ui-btn--danger and .ui-dropdown__item.is-danger. */
+/* Destructive row (sign out, revoke). Quiet at rest, --pink once a pointer or
+   the keyboard reaches it — as .ui-btn--danger and .ui-dropdown__item do. */
 .ui-nav__item.is-danger { color: var(--muted); }
 .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
+/* Tabbing onto it is the same "about to click this" the pointer means. The ring
+   says where you are; only this says what the row does. */
+.ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); color: var(--pink); }
 .ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; cursor: default; pointer-events: none; }
+
+/* The current row under the pointer. It rests on --surface-3, which is also what
+   a resting row hovers to, so the one row with no hover response was the row the
+   reader is standing on. There is no surface above --surface-3, so the step is
+   mixed: --text is near-white in dark and near-black in light, and both themes
+   raise a surface by moving it away from the page. Written after the danger
+   rules so it cannot out-rank them — sign out is never the current row, but a
+   rule that could take its wash would be one to argue with later. */
+.ui-nav__item.is-active:not(.is-danger):hover {
+  background: color-mix(in srgb, var(--text) 10%, var(--surface-3));
+}
 
 /* Per-item badge / counter */
 .ui-nav__badge {
@@ -223,11 +237,14 @@
   gap: 6px;
   padding: 3px 6px;
   border-radius: 7px;
-  color: var(--dim);
   text-decoration: none;
   font-size: 13px;
   transition: color 0.16s var(--ease), background 0.16s var(--ease);
 }
+/* Carries the block's class as well as its own, for the reason .ui-nav__item
+   does above: a linked crumb is an <a>, and a host stylesheet's `a:link` is
+   (0,1,1), which outranks a bare (0,1,0) class. */
+.ui-nav .ui-nav__crumb { color: var(--dim); }
 a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); }
 a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }

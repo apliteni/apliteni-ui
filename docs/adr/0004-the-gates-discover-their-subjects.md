@@ -57,7 +57,7 @@ imports and substituting the same placeholders — the raw HTML carries `{{CHROM
 and feeding that to a CSS parser drops rules on the floor. The same argument is why the walk that
 derives the svg class set skips `site/public` and friends by name.
 
-**Both shapes of story CSS are read.** `stories/apps/_appShell.js` writes its CSS literally between
+**Both shapes of story CSS are read.** `stories/apps/Landing.stories.js` writes its CSS literally between
 `<style>` and `</style>`; `stories/foundations/Iconography.stories.js` writes `<style>${STYLE}</style>`
 and declares `STYLE` above. An extractor handling only the first measures nothing for the second and
 says so in green. An interpolation that cannot be resolved becomes a marker this gate then refuses

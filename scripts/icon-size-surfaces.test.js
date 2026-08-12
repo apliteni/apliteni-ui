@@ -47,13 +47,16 @@ const rel = (p) => path.relative(root, p);
 // Same tripwire as EXPECTED_SUBJECTS in src/styles/icon-size.test.js, and the
 // same deliberate inconvenience: a rule that quietly leaves coverage looks
 // exactly like a rule that passes, so the number is the real count with no slack
-// in it. Seven rules across five files, width and height apiece. Raise it when
+// in it. Six rules across four files, width and height apiece. Raise it when
 // you add one; lower it in the same commit as the removal, and say why there.
-const EXPECTED_SUBJECTS = 14;
+// Was seven across five: stories/apps/_appShell.js was a story-local fork of the
+// page shell, and #127 replaced it with the kit's own appShell(), whose icons are
+// sized in src/styles — the other gate's territory, not this one's.
+const EXPECTED_SUBJECTS = 12;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
- * a shared shell like _appShell.js a surface without being named as one. */
+ * a shared module like _finance-nav.js a surface without being named as one. */
 function storyFiles() {
   const roots = walk(storiesDir).filter((p) => /\.stories\.(js|mjs)$/.test(p));
   assert.ok(roots.length > 0, 'found no *.stories.js under stories/ — the sweep is broken, not the kit.');
