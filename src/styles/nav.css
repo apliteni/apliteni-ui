@@ -101,6 +101,16 @@
 .ui-nav__badge.is-live { background: var(--chip-success-fill); color: var(--chip-success-ink); }
 .ui-nav__badge.is-danger { background: var(--glow-pink); color: var(--pink); }
 .ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface-3); color: var(--strong); }
+/* Same shape, one row up: on an active row the accent counter takes the row's
+   OWN surface instead of laying its wash over it. An active row is already
+   painted --surface-3, so --glow-purple there is two tints stacked. Every
+   figure here is measured against the tokens this kit now ships. The accent on
+   that pair falls under WCAG AA in four of the eight theme x accent cells —
+   4.08 in dark Nebula, where the flat surface reads 4.92 — and no alpha reaches
+   it, the largest that clears being 0.06 in dark Nebula and 0.02 in light
+   Emerald. So the accent wash is painted on a base surface, never a raised one.
+   See #157 and docs/adr/0006-the-accent-is-measured-against-its-own-wash.md. */
+.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface-3); color: var(--accent); }
 
 /* Collapsible group */
 .ui-nav__group { display: flex; flex-direction: column; }

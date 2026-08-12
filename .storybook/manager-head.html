@@ -19,9 +19,11 @@
   /* Selected row → soft tinted pill instead of a solid electric fill. Storybook
      paints the pill on the .sidebar-item wrapper (emotion insertRule), so tint
      the wrapper and let the inner <a> go transparent. The tint + rounded pill
-     carry selection on their own — no left accent line hanging off the edge. */
+     carry selection on their own — no left accent line hanging off the edge.
+     The tint is --accent's own rgb at a fixed alpha, so it moves when the accent
+     moves; #157 moved the dark one and this followed. */
   #storybook-explorer-tree .sidebar-item[data-selected="true"] {
-    background: rgba(155, 93, 255, 0.13) !important;
+    background: rgba(180, 121, 255, 0.13) !important;
     border-radius: 6px;
   }
   #storybook-explorer-tree .sidebar-item[data-selected="true"] > a[id] {

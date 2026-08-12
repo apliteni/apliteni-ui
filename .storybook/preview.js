@@ -36,7 +36,7 @@ function paintInspector(on) {
   document.getElementById('ui-inspect-layer')?.remove();
   if (on !== 'on') return;
   const cs = getComputedStyle(document.documentElement);
-  const accent = cs.getPropertyValue('--accent').trim() || '#9b5dff';
+  const accent = cs.getPropertyValue('--accent').trim() || '#b479ff';
   const layer = document.createElement('div');
   layer.id = 'ui-inspect-layer';
   Object.assign(layer.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '2147483000' });

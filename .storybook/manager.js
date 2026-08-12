@@ -5,6 +5,8 @@ import { THEME_TOOL_ID, THEME_TOOL_TITLE, renderThemeToggle } from './theme-togg
 
 // The prism mark + wordmark as the sidebar logo (kit tokens, Poppins). The
 // wordmark ink flips with the theme so it reads on both dark and light chrome.
+// The mark's violet is the brand ramp's --purple-500 (#9b5dff) — the mark's own
+// colour, which does not follow --accent and did not move with it in #157.
 const logo = (ink) =>
   '<svg xmlns="http://www.w3.org/2000/svg" width="126" height="24" viewBox="0 0 126 24">' +
   '<defs><clipPath id="p"><rect x="1" y="2" width="20" height="20" rx="6"/></clipPath></defs>' +
@@ -28,8 +30,8 @@ const dark = create({
   brandImage: brand('#e9e7f0'),
   brandTarget: '_self',
 
-  colorPrimary: '#9b5dff',
-  colorSecondary: '#9b5dff',
+  colorPrimary: '#b479ff',
+  colorSecondary: '#b479ff',
 
   // Chrome rides one step up on --bg-elevated so the sidebar/bars read as raised;
   // the story well stays on the deepest --bg. Borders lifted to --border-strong
@@ -43,7 +45,7 @@ const dark = create({
   barBg: '#221f2e',
   barTextColor: '#948fa8',
   barHoverColor: '#e9e7f0',
-  barSelectedColor: '#9b5dff',
+  barSelectedColor: '#b479ff',
 
   textColor: '#e9e7f0',
   textMutedColor: '#948fa8',

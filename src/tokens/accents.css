@@ -21,7 +21,10 @@
   --accent: #ff6a3d;
   --accent-strong: var(--accent);
   --accent-contrast: #241006;
-  --glow-purple: rgba(255, 106, 61, 0.18);
+  /* Thinned from 0.18 for WCAG AA: the ember accent cleared every flat surface
+     but not its own wash over a card, which lifts the ground toward the ink. The
+     hue is untouched. See issue #157. */
+  --glow-purple: rgba(255, 106, 61, 0.15);
   --ring: 0 0 0 3px rgba(255, 106, 61, 0.38);
   --grad-from: #ff7a45;
   --grad-to: #ffcf6a;
@@ -49,7 +52,9 @@
   --accent: #3b9dff;
   --accent-strong: var(--accent);
   --accent-contrast: #04121f;
-  --glow-purple: rgba(59, 157, 255, 0.18);
+  /* Thinned from 0.18 for WCAG AA, the same wash-over-a-card pair as dark
+     Phoenix and from the same alpha. The hue is untouched. See issue #157. */
+  --glow-purple: rgba(59, 157, 255, 0.15);
   --ring: 0 0 0 3px rgba(59, 157, 255, 0.38);
   --grad-from: #3b9dff;
   --grad-to: #20dcf5;
@@ -58,9 +63,25 @@
   --purple: #1156b8;
   --purple-light: #1568d6;
   --purple-mid: #1560c8;
-  --accent: #1568d6;
+  /* Deepened for WCAG AA on the raised grey panel and its wash: #1568d6 read
+     4.54:1 on --surface-3 and 3.98:1 on --glow-purple over it; #005bc8 clears
+     both at 5.43:1 and 4.76:1. Both washed figures are at the 0.10 alpha below,
+     which is what this cell ships — an earlier version of this comment quoted
+     them at the 0.05 the wash briefly carried, which flattered both inks.
+     Light Ocean is the one light accent #96 never deepened, because it happened
+     to clear plain white. Same kind of move, smaller: hue and chroma unchanged
+     in OKLCH (H 258, C 0.185) and four points of lightness down, where #96's
+     two took about ten points and gave up 15.9% of the chroma on Phoenix and
+     17.6% on Emerald. See issues #96 and #157. */
+  --accent: #005bc8;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
+  /* Back to 0.10, the alpha this cell carried before #157. #157 thinned it to
+     0.05 while --accent was still #1568d6, because no alpha could carry that
+     blue over the grey panel. Deepening the ink is what closed the pair, so the
+     wash does not have to be the thing that gives. The rgb stays --purple-light
+     rather than the accent — in light a glow tints --purple-light, which
+     stories/signal-contrast.test.js holds. See issue #157. */
   --glow-purple: rgba(21, 104, 214, 0.10);
   --ring: 0 0 0 3px rgba(21, 104, 214, 0.28);
   --grad-from: #1568d6;
@@ -89,7 +110,9 @@
   --accent: #087a52;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
-  --glow-purple: rgba(11, 156, 104, 0.10);
+  /* Thinned from 0.10 for WCAG AA, the same grey-panel pair as light Ocean and
+     from the same alpha. See issue #157. */
+  --glow-purple: rgba(11, 156, 104, 0.08);
   --ring: 0 0 0 3px rgba(11, 156, 104, 0.28);
   --grad-from: #0b9c68;
   --grad-to: #12b0a0;

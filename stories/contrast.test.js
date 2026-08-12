@@ -65,20 +65,20 @@
  * together. Measured on a 10-core laptop: the suite runs in ~18s with this file
  * and ~8s without it, so the gate still roughly doubles it.
  *
- * It used to be worse. The walk asked JSDOM for a computed style 137,206 times
+ * It used to be worse. The walk asked JSDOM for a computed style 138,534 times
  * across the two cells, because every text element was walked up its ancestor
  * chain three separate times — background, hidden test, opacity — and siblings
  * share almost all of that chain. Memoising the lookup per element between DOM
- * writes (makeStyleCache in stories/lib/contrast.js) cut that to 28,436 calls,
+ * writes (makeStyleCache in stories/lib/contrast.js) cut that to 28,706 calls,
  * and the walk from ~23s to ~16s. Not the 3x the call count suggests: what
- * remains is dominated by the 5,710 DOM writes the state passes make, each of
+ * remains is dominated by the 5,738 DOM writes the state passes make, each of
  * which throws away JSDOM's own style cache for the whole document and forces
  * the next lookups to resolve the cascade from scratch. That is JSDOM's own
  * invalidation rule and nothing here can safely be cleverer than it.
  *
  * All three of those numbers are now asserted rather than remembered. The miss
- * rate they imply — 28,436 of 137,206 reads — is gated below, and it is the only
- * cost assertion here that is deterministic enough to see a doubling. The 5,710
+ * rate they imply — 28,706 of 138,534 reads — is gated below, and it is the only
+ * cost assertion here that is deterministic enough to see a doubling. The 5,738
  * writes are gated too, as the anti-vacuity counter for the invariant that keeps
  * the cache honest: every DOM write in the walk goes through `mutate`, and the
  * cache now refuses to answer if one did not. See makeStyleCache.
@@ -86,9 +86,11 @@
  * Cost grows with theme×accent cells, close to linearly — measured 16.3s for the
  * default 2 cells and 63.4s for all 8, so about 8s a cell. The eight-cell accent
  * matrix is behind CONTRAST_ACCENTS=1 and is OFF by default; turning it on finds
- * 794 distinct failing pairs against 214 here, because the accent families carry
- * different literals under Phoenix, Ocean and Emerald and would each need their
- * own ledger entries. Whether it ever runs in CI is undecided.
+ * 760 distinct failing pairs — the count the matrix test prints at the foot of
+ * this file — against the 190 of the ledger total asserted below, because the
+ * accent families carry different literals under Phoenix, Ocean and Emerald and
+ * would each need their own ledger entries. Both numbers are re-readable from a
+ * run rather than remembered. Whether it ever runs in CI is undecided.
  * stories/a11y.test.js made the same trade explicitly, so the precedent is to
  * say so rather than drop it quietly. Anyone adding a cell should know they are
  * buying ~8s of every `npm test`, forever.
@@ -98,14 +100,14 @@
  * REGENERATES IT.
  *
  * The mandatory `why` on every entry is the anti-automation device. A
- * regenerator would have to invent the sentence explaining why twenty-five dark
- * accent rows are acceptable debt, and it cannot, so the entries stay attached to
- * a person who decided. Contrast this with stories/danger-colour.test.js, whose
- * AT_REST_EXEMPT keys on a CSS SELECTOR PARSED OUT OF THE SOURCE and whose test
- * at :141 fails when an exemption stops naming a live rule. That ledger cannot
- * rot, because a rename breaks it. This one keys on a MEASUREMENT, which changes
- * whenever a token moves — so it needs a human, and the `why` is where the human
- * is.
+ * regenerator would have to invent the sentence explaining why bucket B's four
+ * dark accent rows — its `count` a screen below — are acceptable debt, and it
+ * cannot, so the entries stay attached to a person who decided. Contrast this
+ * with stories/danger-colour.test.js, whose AT_REST_EXEMPT keys on a CSS
+ * SELECTOR PARSED OUT OF THE SOURCE and whose test at :141 fails when an
+ * exemption stops naming a live rule. That ledger cannot rot, because a rename
+ * breaks it. This one keys on a MEASUREMENT, which changes whenever a token
+ * moves — so it needs a human, and the `why` is where the human is.
  *
  * Counts are asserted with ===, never as a ceiling. A ceiling would let a fix in
  * one row mask a regression in another inside the same bucket. An exact count
@@ -163,29 +165,54 @@ const LEDGER = [
     bg: 'the hovered danger row of a table, tinted by --glow-pink',
     example: 'span.ui-badge.ui-badge--danger',
     count: 1,
-    worst: 4.24,
+    worst: 4.14,
     why: 'The danger signal painted on its own tint is the kit\'s only danger cue at rest, '
       + 'and #156 moved --pink in both themes so it clears the surfaces it is drawn on. What '
       + 'survives is the hover state of a danger badge inside an already-tinted table row: two '
-      + 'washes of the same hue stacked, which the token move was never going to reach. It is a '
+      + 'washes stacked, which the token move was never going to reach. It is a '
       + 'badge beside legible text, not the only carrier of the meaning, so it is debt rather '
-      + 'than a defect. Fixing it means deciding whether a tinted row may tint its badges again.',
+      + 'than a defect. Fixing it means deciding whether a tinted row may tint its badges again. '
+      + 'The floor moved once since: the wash under it is a color-mix of --accent '
+      + '(src/styles/table.css), so #157 lifting the dark accent lifted this ground with it and '
+      + 'took the pair down. Same row, same cause, a slightly deeper worst.',
   },
   {
     id: 'B',
     fg: '--accent',
     themes: ['dark'],
-    bg: 'tinted, hovered and selected accent surfaces in the dark theme',
-    example: 'span.ui-nav__badge.is-accent',
-    count: 25,
-    worst: 3.20,
-    why: 'The largest bucket in the ledger and the one with no owner. In the dark theme the '
-      + 'brand accent is used both as the ink and, at low alpha, as the surface underneath it — '
-      + 'a selected dropdown row, a nav badge, an inline code chip, the replay control in the '
-      + 'motion playground. Ink and surface are the same hue, so the wash lifts the background '
-      + 'toward the text and the pair closes. This is not in #131 or #149; it needs its own '
-      + 'issue and its own decision, because the fix is either a darker accent ink for text on '
-      + 'accent washes or dropping the wash. This ledger records it as debt; it does not decide it.',
+    bg: 'grounds mixed from the accent itself, in the dark theme',
+    example: 'span.ui-dropdown__badge.is-accent',
+    count: 4,
+    worst: 3.97,
+    why: 'This was the largest bucket in the ledger until #157 lifted the dark accent onto '
+      + '--purple-mid and thinned its wash. That closed every row whose ground was --glow-purple — '
+      + 'the wash a component reaches for by token — and what is left is the shape a token value '
+      + 'reaches only at a price nobody has agreed to pay: a ground a component mixes for itself '
+      + 'out of the very ink that will be read on it. Such a ground DOES rise with the accent, but '
+      + 'it rises by a fraction of the accent\'s own rise — that is what the mix percentage means — '
+      + 'so the pair opens rather than holding, and a light enough accent does close it. That is '
+      + 'the honest statement and it is weaker than the one this entry used to make. What keeps '
+      + 'these rows here is not arithmetic but the brand: the accent that closes them is well past '
+      + 'the point where it is still this violet, and #96 and #157 both chose the hue before the '
+      + 'ratio. So they are debt with a known price, not an impossibility. Three rules remain, '
+      + 'over four rows. The dropdown badge (src/styles/dropdown.css) is the kit\'s own and is two '
+      + 'of them: its ground is the mix over whatever the row beneath is, and the row lightens to '
+      + '--surface when hovered or focused, which is exactly where it fails. It should follow the '
+      + 'nav badge, which takes --glow-purple on a base surface and, on an active row, the row\'s '
+      + 'own raised surface instead of stacking the wash on top of it; #157 changed that rule when '
+      + 'it found the stacked pair below the floor, and the badge clears on both grounds now. The '
+      + 'replay control is styled inside the motion story, fails only in its hover state, and '
+      + 'belongs to whoever owns that story. The last row is the odd one out: the hovered copy '
+      + 'control on the green-tinted snippet bar of a live card, whose ground is not mixed from '
+      + 'the accent at all and so does not rise when the accent does. Walked across all eight '
+      + 'theme x accent cells it fails in three of them — dark Nebula, Phoenix and Ocean — and '
+      + 'clears under dark Emerald and in every light cell, so it is a fixed dark bar that three '
+      + 'of the four dark accents sit too close to rather than a pair any one accent owns. '
+      + 'Darkening the bar closes all three at once, which is why it belongs to the snippet and '
+      + 'card owners and not to a token here. The "soon" badge on an '
+      + 'accent-tinted card was a dark row here until #157 moved --purple-mid up a step behind the '
+      + 'accent; the dark row now clears, and the light one it always had lives in bucket F. #157 '
+      + 'records the rest rather than closing them.',
   },
   {
     id: 'C',
@@ -239,17 +266,24 @@ const LEDGER = [
   {
     id: 'F',
     fg: '--purple-mid',
-    themes: ['dark', 'light'],
-    bg: '--glow-purple, under the "soon" badge and pill',
+    themes: ['light'],
+    bg: 'the accent-tinted card, under the "soon" badge',
     example: 'span.ui-badge.ui-badge--soon',
-    count: 4,
-    worst: 3.94,
+    count: 1,
+    worst: 4.48,
     why: 'The "soon" status is deliberately the quietest thing the kit can render — it marks '
       + 'something that does not exist yet and must not compete with what does. It is set in '
       + 'the mid purple on a purple wash, which is the same ink-on-its-own-hue problem as the '
-      + 'accent bucket, chosen here on purpose. Nobody owns this: the decision to make is '
-      + 'whether a status that means "not yet" is allowed to sit below the floor, and if not, '
-      + 'whether it stops being purple or stops being washed.',
+      + 'accent bucket, chosen here on purpose. This was a two-theme entry until #157, which moved '
+      + 'the dark accent up onto --purple-mid and then moved the ramp up a step behind it, so dark '
+      + '--purple-mid is a lighter colour than it was and its "soon" row clears. The dark row is '
+      + 'therefore gone from the ledger, not relocated: the two tokens tell each other apart in '
+      + 'both themes again, and there is no dark row left for this entry to hold. `themes` is a '
+      + 'matcher, so it names only light, where the pair still fails — a dark row appearing here '
+      + 'later should be looked at by a person, which is what leaving it out makes happen. Nobody '
+      + 'owns it: the decision to '
+      + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
+      + 'not, whether it stops being purple or stops being washed.',
   },
   {
     id: 'H',
@@ -528,17 +562,17 @@ test('the style cache is still serving four reads in five from memory', () => {
   // how many of those reach JSDOM is arithmetic, not weather. Two identical runs
   // give identical numbers.
   //
-  // THE NUMBERS. Measured over both default cells: 137,206 queries — every read
+  // THE NUMBERS. Measured over both default cells: 138,534 queries — every read
   // the walk performs, which is exactly the number of getComputedStyle calls the
-  // walk made before the cache existed — of which 28,436 miss and reach JSDOM.
-  // A miss rate of 0.2073.
+  // walk made before the cache existed — of which 28,706 miss and reach JSDOM.
+  // A miss rate of 0.2072.
   //
-  // WHY A RATIO AND NOT THE 28,436. The absolute count is a fact about the
+  // WHY A RATIO AND NOT THE 28,706. The absolute count is a fact about the
   // catalogue as much as about the cache: it moves every time a story is added,
   // so an exact assertion on it would have to be re-pinned by whoever adds one,
   // and the number they would re-pin it to carries no judgement. The miss rate
   // is the quantity the cache actually controls. It was 1.0 by definition before
-  // the cache existed, it is 0.2073 now, and adding a story moves the numerator
+  // the cache existed, it is 0.2072 now, and adding a story moves the numerator
   // and the denominator together — the two themes, which walk identical markup
   // through different colours, agree to three decimal places (0.2068 / 0.2077).
   // The absolute figures are logged rather than asserted, so a human reading a
@@ -546,7 +580,7 @@ test('the style cache is still serving four reads in five from memory', () => {
   //
   // THE CEILING. 0.30: about 1.45x today's rate, and comfortably below the 0.41
   // a doubling of lookups would produce. A single added story cannot shift an
-  // aggregate over 137,206 reads by that much, so this does not tax the person
+  // aggregate over 138,534 reads by that much, so this does not tax the person
   // adding one. What trips it is the cache being neutered, or a DOM write
   // appearing inside the per-element loop — either of which turns hits back into
   // misses across the whole walk.
@@ -569,7 +603,7 @@ test('the style cache is still serving four reads in five from memory', () => {
   assert.ok(
     missRate < 0.30,
     `the style cache's miss rate rose to ${missRate.toFixed(4)} (${lookups} lookups from ${queries} `
-    + 'reads), against a ceiling of 0.30 set from a measured 0.2073. Unlike the wall clock this is '
+    + 'reads), against a ceiling of 0.30 set from a measured 0.2072. Unlike the wall clock this is '
     + 'deterministic, so this is a real regression and not a busy machine: either the memo stopped '
     + 'being kept, or something started writing to the DOM inside the walk\'s per-element loop and '
     + 'is dropping the memo on every element.',
