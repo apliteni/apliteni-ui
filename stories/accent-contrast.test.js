@@ -271,7 +271,13 @@ test('the accent gate actually measures something', () => {
     `only ${DECLARED.length} accent(s) were derived from src/tokens/accents.css. A renamed attribute `
     + 'would make every assertion above pass by matching nothing, which is the failure this guards.',
   );
-  assert.equal(CELLS.length, THEMES.length * ACCENTS.length, 'the cell list is not the full matrix');
+  // Not asserted here: `CELLS.length === THEMES.length * ACCENTS.length`. CELLS
+  // is built as exactly that product one screen up, so the equality restates its
+  // own definition and cannot fail — the same shape as the mirror check's old
+  // comparison count, removed in the same commit. An assertion whose two sides
+  // are the same expression is not a guard, and leaving one in a file about
+  // vacuity teaches the wrong lesson. What makes the matrix real is that the
+  // accents are derived and their count is pinned, below.
   assert.equal(
     [...ACCENTS_CSS.matchAll(/--accent\s*:/g)].length,
     DECLARED.length * THEMES.length,
