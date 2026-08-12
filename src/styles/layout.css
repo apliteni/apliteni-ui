@@ -141,6 +141,21 @@
    inside itself. This is what keeps the shell narrower than the window. */
 .ui-app__body > * { min-width: 0; }
 
+/* -- A row of controls above a list --------------------------------------- */
+/* Filter fields, a segmented switch, the button that applies them. The row is
+   one line wherever the line holds and breaks where it does not, and the text
+   field is what makes that one decision instead of two: an .ui-input is
+   width:100%, so as a flex item its hypothetical size is the whole container
+   and wrapping alone put every control beside it on a second line at 1280 as
+   readily as at 375. Given a basis of its own the field shares the line, takes
+   the slack when there is any, and the line breaks only once the field would be
+   squeezed under that basis — 6rem, about as narrow as a placeholder plus a word
+   of what you typed. min-width:0 keeps an input's automatic minimum (its `size`
+   attribute, ~20 characters) from setting a floor well above the basis. */
+.ui-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+.ui-toolbar > .ui-input,
+.ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
+
 /* -- The narrow rail ------------------------------------------------------ */
 /* Below this width the rail folds to an icon strip instead of disappearing.
    sidebarNav() names every row at every width, so folding the label out of view

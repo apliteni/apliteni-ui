@@ -1017,7 +1017,7 @@ function dangerousStyles(source) {
  *
  * The tag is read in any case, and the surfaces gate is why. It hands this the
  * STORY files, and a story is a `.js` module returning an HTML string out of a
- * template literal — stories/apps/_appShell.js is one — so `<STYLE>` there is the
+ * template literal — stories/apps/Landing.stories.js is one — so `<STYLE>` there is the
  * HTML element, folded by every browser and by jsdom, applying in every story
  * iframe that renders the shell. Read lower case only it was not a block at all,
  * and a story that spells it that way from the day it is added contributes no

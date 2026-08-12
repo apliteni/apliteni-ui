@@ -1,6 +1,5 @@
-import { appShell } from '../../src/components/shell.js';
 import { badge, card, segmented, icon } from '../../src/components/index.js';
-import { FINANCE_NAV, FINANCE_READER } from './_finance-nav.js';
+import { financeShell } from './_finance-nav.js';
 
 export default {
   title: 'Apps/Finance report',
@@ -76,21 +75,15 @@ const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe 
     </tbody>
   </table>` });
 
-// The cashflow KPIs + reconciled payout ledger, in the kit's one shell. The
-// trail is passed in rather than written by hand — the shell has no opinion
-// about what a page is called.
+// The cashflow KPIs + reconciled payout ledger, in the portal's one shell —
+// financeShell() in _finance-nav.js, the same call the empty-state screens make.
+// The column, the rail and the trail are its answer; this story owns the screen.
 export const Default = {
-  render: () => KPI_CSS + appShell({
-    word: 'Finance',
-    nav: FINANCE_NAV,
+  render: () => KPI_CSS + financeShell({
     active: 'payouts',
-    navLabel: 'Finance',
-    account: FINANCE_READER,
-    signOutHref: '#logout',
-    crumbs: [{ label: 'Finance', href: '#' }, { label: 'Payouts' }],
+    crumb: 'Payouts',
     title: 'Payouts',
     sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
-    maxWidth: '960px',
     body: `
       ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
       ${kpiStrip()}

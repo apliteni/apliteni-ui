@@ -482,9 +482,144 @@ test('the rail and the topbar say the same initials about the same reader', () =
   assert.equal(rail, 'AL', 'a display name is what a reader recognises, so it is what wins');
 });
 
+// Read off both surfaces, because "together" is the whole claim. The earlier
+// version of this test asked the topbar alone and passed on the wrong reader:
+// the shell dropped the absent `name` key, accountMenu() filled it with its own
+// demo default, and "AL" came out of "Ada Lovelace" rather than out of the
+// address the caller passed.
 test('with no display name both surfaces fall back to the address, together', () => {
   const doc = dom(accountShell({ account: { email: 'ada.lovelace@apliteni.com' } }));
   assert.equal(doc.querySelector('.acct .avatar').textContent.trim(), 'AL');
+  assert.equal(doc.querySelector('.ui-app__av').textContent.trim(), 'AL');
+});
+
+// ---- one reader, or none, on both surfaces -------------------------------
+//
+// accountMenu() carries a demo identity as its default — "Ada Lovelace" at an
+// apliteni.com address — and the shell used to drop a `name` or `email` key it
+// had not been given, which is exactly what lets that default through. So a
+// consumer's /account page named its own reader in the rail and the kit's demo
+// fixture in the topbar, on the same screen. railUser() states the rule the
+// whole file is meant to keep: a shell must not invent an identity for a reader
+// it does not know.
+const DEMO_NAME = /Ada Lovelace/;
+const DEMO_ADDRESS = /ada@apliteni\.com/;
+const reader = (html) => {
+  const doc = dom(html);
+  const text = (sel) => (doc.querySelector(sel)?.textContent ?? '').trim();
+  return {
+    railAvatar: text('.ui-app__av'),
+    railName: text('.ui-app__who b'),
+    railAddress: text('.ui-app__who span'),
+    menuAvatar: text('.acct > .avatar'),
+    menuName: text('.amenu .anm'),
+    menuAddress: text('.amenu .aem'),
+  };
+};
+
+test('an account with only an address is that address on both surfaces, and nobody else', () => {
+  const html = accountShell({ account: { email: 'bob@example.com' } });
+  const r = reader(html);
+  assert.equal(r.menuAddress, 'bob@example.com');
+  assert.equal(r.railAddress, 'bob@example.com');
+  assert.equal(r.menuName, '', `the topbar menu names the reader "${r.menuName}"`);
+  assert.equal(r.menuAvatar, r.railAvatar);
+  assert.doesNotMatch(html, DEMO_NAME, 'the kit\'s demo reader is drawn beside a consumer\'s own');
+  assert.doesNotMatch(html, DEMO_ADDRESS, 'the kit\'s demo address is drawn beside a consumer\'s own');
+});
+
+test('an account with only a name is that name on both surfaces, and no address at all', () => {
+  const html = accountShell({ account: { name: 'Bob Smith' } });
+  const r = reader(html);
+  assert.equal(r.menuName, 'Bob Smith');
+  assert.equal(r.railName, 'Bob Smith');
+  assert.equal(r.menuAddress, '', `the topbar menu gives the reader the address "${r.menuAddress}"`);
+  assert.equal(r.menuAvatar, r.railAvatar);
+  assert.doesNotMatch(html, DEMO_NAME);
+  assert.doesNotMatch(html, DEMO_ADDRESS);
+});
+
+test('a shell handed no reader at all names nobody on either surface', () => {
+  for (const html of [accountShell({ account: null }), accountShell({})]) {
+    assert.doesNotMatch(html, DEMO_NAME, 'an unknown reader was given the kit\'s demo name');
+    assert.doesNotMatch(html, DEMO_ADDRESS, 'an unknown reader was given the kit\'s demo address');
+    assert.doesNotMatch(html, /@/, 'an unknown reader was given an address of some other kind');
+    assert.equal(dom(html).querySelector('.ui-app__user'), null, 'the rail drew a reader it does not know');
+  }
+});
+
+// ---- the avatar is derived before the escaping, not after -----------------
+//
+// The rail computes initials() off the caller's raw strings; the menu computed
+// them off the copy the shell had already escaped for it. `<Ada>` and
+// `&lt;Ada&gt;` do not begin with the same character, so "one reader, one pair
+// of initials" held only for names spelled with none of < > & ".
+test('both avatars carry the same initials for a name that has to be escaped', () => {
+  const html = accountShell({ account: { name: '<Ada> Lovelace' } });
+  const r = reader(html);
+  assert.equal(
+    r.menuAvatar, r.railAvatar,
+    `the topbar avatar reads "${r.menuAvatar}" and the rail avatar reads "${r.railAvatar}" for `
+    + 'one reader — the menu derives its mark from the escaped copy',
+  );
+  assert.equal(r.menuAvatar, '<L', 'the mark is derived from the name the caller passed, not from its entities');
+});
+
+test('nothing a reader\'s name carries reaches the menu markup unescaped', () => {
+  const html = accountShell({ account: { name: '<Ada> & "Lovelace"', email: '<a href="#">&</a>' } });
+  assert.doesNotMatch(html, /<Ada>/, 'the display name reaches the account menu as live markup');
+  assert.doesNotMatch(html, /<a href="#">/, 'the address reaches the account menu as live markup');
+  const r = reader(html);
+  assert.equal(r.menuName, '<Ada> & "Lovelace"');
+  assert.equal(r.menuName, r.railName, 'the two surfaces spell the same name differently');
+  assert.equal(r.menuAddress, r.railAddress);
+  assert.equal(r.menuAvatar, r.railAvatar);
+  // A bare & is a parse error in the same string the rail escapes a few nodes
+  // away — including the one the avatar is made of.
+  assert.doesNotMatch(
+    html, /&(?!#\d+;|#x[0-9a-fA-F]+;|[a-zA-Z][a-zA-Z0-9]*;)/,
+    'the shell emits a bare & into its own markup',
+  );
+});
+
+// ---- appShell({ topbar }) is a path into the same raw sinks ---------------
+//
+// accountShell() escaped for the menu itself, so the preset was safe and the
+// public option underneath it was not: `topbar` went to productTopbar() exactly
+// as the caller wrote it. The escaping belongs on the one path into the topbar,
+// which is appShell()'s normaliser — the preset then passes text like anyone else.
+test('a reader handed to appShell\'s own topbar is escaped like the preset\'s', () => {
+  const html = appShell({ topbar: { account: { name: '<img src=x onerror=alert(1)>', email: '<svg onload=alert(2)>' } } });
+  assert.doesNotMatch(html, /<img src=x onerror=alert\(1\)>/, 'appShell({ topbar }) draws the caller\'s display name as markup');
+  assert.doesNotMatch(html, /<svg onload=alert\(2\)>/, 'appShell({ topbar }) draws the caller\'s address as markup');
+});
+
+test('the product word handed to appShell\'s own topbar is escaped like the preset\'s', () => {
+  assert.doesNotMatch(
+    appShell({ topbar: { word: '<img src=x onerror=alert(4)>' } }), /<img src=x onerror=alert\(4\)>/,
+    'brand() interpolates `word` raw, and appShell forwards the topbar options verbatim',
+  );
+});
+
+// Both nav shapes, because the topbar's normaliser is the same shape-either-way
+// pass the rail runs: accountShell() has always taken tuples and appShell()'s
+// own nav takes item objects, and accountMenu() reads neither of them safely.
+test('a menu entry handed to appShell\'s own topbar is escaped like the preset\'s', () => {
+  const shapes = {
+    tuple: [['x', 'gear', 'X', '" onmouseover="alert(5)']],
+    object: [{ id: 'x', icon: 'gear', label: 'X', href: '" onmouseover="alert(5)' }],
+  };
+  for (const [shape, nav] of Object.entries(shapes)) {
+    let html;
+    assert.doesNotThrow(
+      () => { html = appShell({ topbar: { account: { name: 'Bob', nav } } }); },
+      `appShell({ topbar }) threw on a ${shape} nav — accountMenu() destructures every entry as a tuple`,
+    );
+    assert.doesNotMatch(
+      html, /onmouseover="alert\(5\)"/,
+      `a ${shape} entry's href reaches accountMenu(), which interpolates it raw`,
+    );
+  }
 });
 
 test('the product word reaches the topbar lockup escaped too', () => {

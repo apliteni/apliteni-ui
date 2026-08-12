@@ -54,15 +54,38 @@ const toCrumbs = (crumbs) => (Array.isArray(crumbs) ? crumbs : [])
 // /auth/me answering `account: null` or a numeric display name reached both.
 const toReader = (a) => (isRecord(a) ? { name: str(a.name), email: str(a.email) } : { name: '', email: '' });
 
-// The same two fields, escaped, for the topbar menu's raw sinks. A key that was
-// never given is dropped rather than emptied, so accountMenu() still falls back
-// to its own default instead of drawing a reader with no name.
-const escReader = (a) => {
-  const out = isRecord(a) ? { ...a } : {};
-  for (const key of ['name', 'email']) {
-    if (out[key] == null) delete out[key];
-    else out[key] = esc(str(out[key]));
-  }
+// ---- the topbar, which interpolates where the rail escapes ----------------
+//
+// brand() writes `word` straight into its markup and accountMenu() does the
+// same with the reader's name, address and menu entries. So the escaping is
+// here, on the one path into productTopbar(), and not in each caller:
+// accountShell() escaped for itself and the `topbar` option underneath it
+// escaped for nobody. The caller passes text either way.
+
+// The reader the menu draws. Both fields are always written, empty when the
+// caller gave none — accountMenu()'s own defaults are a demo identity, and a
+// key dropped here is a key its default fills in, which is how a consumer's
+// page came to name its own reader in the rail and the kit's fixture beside it.
+//
+// `initials` travels with them because it is derived, and a derived value comes
+// from what the caller passed, not from the entities made of it: `<Ada>` and
+// `&lt;Ada&gt;` do not start with the same character. The entries land in the
+// same sink and toMenuTuple() is what escapes them; it reads item objects, so
+// tuples go through toItems() first. A nav nobody passed stays unpassed, and
+// accountMenu() falls back to its own derived default rather than to nothing.
+const toMenuReader = (a) => {
+  const { name, email } = toReader(a);
+  const rest = isRecord(a) && !Array.isArray(a) ? a : {};
+  const out = { ...rest, name: esc(name), email: esc(email), initials: esc(initials(name, email)) };
+  if (out.nav != null) out.nav = toItems(out.nav).map(toMenuTuple);
+  return out;
+};
+
+const toTopbar = (t) => {
+  if (!isRecord(t) || Array.isArray(t)) return null;
+  const out = { ...t };
+  if (out.word != null) out.word = esc(str(out.word));
+  if (out.account != null) out.account = toMenuReader(out.account);
   return out;
 };
 
@@ -80,7 +103,9 @@ const mainMax = (v) => {
 
 // The one pass. Each key names the function that settles it; nothing else in
 // this file re-checks a value that has been through here.
-const SHAPES = { nav: toItems, crumbs: toCrumbs, account: toReader, maxWidth: mainMax };
+const SHAPES = {
+  nav: toItems, crumbs: toCrumbs, account: toReader, maxWidth: mainMax, topbar: toTopbar,
+};
 function settle(options) {
   const out = { ...options };
   for (const key of Object.keys(SHAPES)) out[key] = SHAPES[key](out[key]);
@@ -135,7 +160,7 @@ export function appShell(options = {}) {
     body = '',
     account,
     signOutHref = '',
-    topbar = null,
+    topbar,
     maxWidth,
   } = settle(options);
   const rail = sidebarNav({
@@ -186,15 +211,15 @@ export function accountShell({
   body = '',
   signOutHref = '#logout',
 } = {}) {
-  // The same normaliser appShell() runs, called once here because the tuples the
-  // topbar menu needs are drawn from the same list the rail is.
+  // The same normaliser appShell() runs, called once here so the rail and the
+  // topbar menu are handed one list rather than two readings of `nav`.
   const items = toItems(nav);
   const trail = [{ label: cap }, { label: crumb || title }];
-  // The topbar's sinks interpolate raw where the rail's escape: brand() writes
-  // `word` straight into its markup and accountMenu() does the same with the
-  // reader's name and address. So the topbar path gets its own escaped copy —
-  // escaping them before appShell() sees them would come out as entities in the
-  // rail, which escapes for itself. Same reasoning as toMenuTuple().
+  // The preset hands the topbar the caller's text, exactly as it hands the rail
+  // the caller's text. toTopbar() is what escapes for the menu's raw sinks, and
+  // it runs once inside appShell() — escaping here as well would reach the menu
+  // as entities, and escaping nowhere is what the public `topbar` option used
+  // to do.
   return appShell({
     word,
     nav: items,
@@ -207,11 +232,11 @@ export function accountShell({
     account,
     signOutHref,
     topbar: {
-      word: esc(word),
+      word,
       view: 'text',
       showSwitch,
       versions,
-      account: { ...escReader(account), active, nav: items.map(toMenuTuple) },
+      account: { ...(isRecord(account) ? account : {}), active, nav: items },
     },
   });
 }

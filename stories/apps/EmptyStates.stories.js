@@ -1,30 +1,15 @@
-import { appShell } from '../../src/components/shell.js';
 import { card, emptyState, button, input, segmented } from '../../src/components/index.js';
-import { FINANCE_NAV, FINANCE_READER } from './_finance-nav.js';
+import { financeShell } from './_finance-nav.js';
 
 export default {
   title: 'Apps/Empty states',
   parameters: { layout: 'fullscreen' },
 };
 
-// The same screen the finance portal draws, and drawn the same way: appShell()
-// ships with no topbar, so none of the example screens asks for one. The rail
-// already answers who is signed in and how to leave; a topbar beside it drew a
-// second product word and a second account menu saying the same two things.
-// accountShell() is the one preset that keeps a topbar, because `versions`,
-// `showSwitch` and wireTopbar() are published behaviour on that page.
-const financeShell = ({ active, crumb, title, sub, body }) => appShell({
-  word: 'Finance',
-  nav: FINANCE_NAV,
-  active,
-  navLabel: 'Finance',
-  crumbs: [{ label: 'Finance', href: '#' }, { label: crumb || title }],
-  title,
-  sub,
-  body,
-  account: FINANCE_READER,
-  signOutHref: '#logout',
-});
+// The same screen the finance portal draws, and drawn by the same call:
+// financeShell() in _finance-nav.js is the portal's one composition, so these
+// screens and the finance report cannot end up on different columns or with
+// different trails.
 
 // A filtered list that returned nothing — illustration + nudge, no action.
 export const FilteredList = {
@@ -34,7 +19,7 @@ export const FilteredList = {
     title: 'Invoices',
     sub: 'Everything you have uploaded or received by email.',
     body: `
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <div class="ui-toolbar" style="margin-bottom:16px">
         ${input({ placeholder: 'Vendor' })}
         ${segmented({ ariaLabel: 'Status filter', options: ['Any', 'Verified', 'Pending'], active: 2 })}
         ${button({ label: 'Filter', variant: 'secondary' })}

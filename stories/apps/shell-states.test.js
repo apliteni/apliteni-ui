@@ -596,11 +596,22 @@ test('no example screen writes text into a markup slot and calls it markup', asy
 const importsFactory = (src, name) =>
   new RegExp(String.raw`import\s*\{[^}]*\b${name}\b[^}]*\}\s*from`).test(src);
 
+// A screen composes the shell either in the story file or through the demo
+// module beside it — the finance portal's two screens now share one call in
+// _finance-nav.js rather than each writing their own. So the question is
+// followed one import deep instead of being answered off the story file alone;
+// a screen that moves its composition into a shared module is still one of the
+// screens this gate holds together, which is the point of moving it.
+const localModules = (src) => [...src.matchAll(/from\s+'\.\/(_[\w-]+\.js)'/g)].map((m) => m[1]);
+const composesWith = (file, name) => {
+  const src = read(path.join('stories/apps', file));
+  return importsFactory(src, name)
+    || localModules(src).some((m) => importsFactory(read(path.join('stories/apps', m)), name));
+};
+
 /** Story files that draw a screen with appShell() itself, preset callers aside. */
-const appShellFiles = () => storyFiles().filter((f) => {
-  const src = read(path.join('stories/apps', f));
-  return importsFactory(src, 'appShell') && !importsFactory(src, 'accountShell');
-});
+const appShellFiles = () => storyFiles()
+  .filter((f) => composesWith(f, 'appShell') && !composesWith(f, 'accountShell'));
 
 test('every example screen built on appShell() makes the same call about the topbar', async () => {
   const files = appShellFiles().map((f) => f.replace('.stories.js', ''));
@@ -661,6 +672,44 @@ test('the two finance screens draw one nav definition, not two copies of it', as
     if (at >= 0) FINANCE_NAV.splice(at, 1);
   }
   assert.equal(FINANCE_NAV.some((i) => i.id === 'probe-127-demo'), false, 'the probe outlived its test');
+});
+
+// The nav was the first copy; the composition around it was the second. Empty
+// states declared a wrapper of its own and the finance report called appShell()
+// straight, passing `maxWidth: '960px'` — so one portal's two screens read at
+// two column widths and each rebuilt the Finance crumb by hand. Same shape as
+// the nav, one layer out. A width is the measurable half: it is written into
+// the <main> style attribute, so the two screens either agree or they do not.
+test('the two finance screens are one composition — one column, one trail root', async () => {
+  const screens = [];
+  for (const file of ['EmptyStates', 'FinanceReport']) {
+    const mod = await import(`./${file}.stories.js`);
+    for (const [name, story] of Object.entries(mod)) {
+      if (name === 'default' || typeof story?.render !== 'function') continue;
+      const html = story.render();
+      const doc = new JSDOM(`<!doctype html><html lang="en"><body>${html}</body></html>`).window.document;
+      const crumbs = [...doc.querySelectorAll('nav[aria-label="Breadcrumb"] a, nav[aria-label="Breadcrumb"] [aria-current]')];
+      screens.push({
+        at: `${file}.${name}`,
+        column: (/--ui-app-main:\s*([^";]+)/.exec(html) || [])[1]?.trim(),
+        root: crumbs[0]?.textContent.trim(),
+      });
+    }
+  }
+  assert.ok(screens.length >= 3, 'the fixture stopped finding the finance screens');
+  const widths = new Set(screens.map((s) => s.column));
+  assert.equal(
+    widths.size, 1,
+    'the finance portal draws its screens on different columns: '
+    + screens.map((s) => `${s.at} ${s.column}`).join(', ')
+    + '. One portal, two answers about how wide a page is — the drift the shared nav '
+    + 'beside them was extracted to remove.',
+  );
+  assert.equal(
+    new Set(screens.map((s) => s.root)).size, 1,
+    'the finance screens each build their own crumb trail: '
+    + screens.map((s) => `${s.at} "${s.root}"`).join(', '),
+  );
 });
 
 // The preset's topbar composition is the newest thing in the shell and the one

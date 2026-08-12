@@ -58,10 +58,19 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
 // with it by hand about the icon and disagreed about the encoding, which is the
 // drift #127 was filed about. Every field below is interpolated raw, so what
 // arrives has to arrive escaped — accountMenuNav() is what does that.
-export function accountMenu({ name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs', nav } = {}) {
+//
+// `initials` is the avatar, for a caller that escapes on the way in. A mark is
+// derived from the reader's name, and a derived value has to be derived before
+// the escaping: `<Ada>` and `&lt;Ada&gt;` do not begin with the same character,
+// so shell.js — which escapes both fields for this sink — computes the mark
+// from the caller's own strings and passes it down beside them. Left out, it is
+// computed here from `name` and `email`, exactly where it always came from.
+export function accountMenu({
+  name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs', nav, initials: mark,
+} = {}) {
   // initials() is shared with the rail's avatar — the two are the same reader
   // on the /account preset, and they used to disagree about who that was.
-  const ini = initials(name, email);
+  const ini = mark == null ? initials(name, email) : mark;
   const items = nav && nav.length ? nav : accountMenuNav();
   const it = ([id, ic, label, href, target]) =>
     `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''} data-dd-item tabindex="-1"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;

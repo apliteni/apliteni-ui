@@ -56,7 +56,7 @@ const EXPECTED_SUBJECTS = 12;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
- * a shared shell like _appShell.js a surface without being named as one. */
+ * a shared module like _finance-nav.js a surface without being named as one. */
 function storyFiles() {
   const roots = walk(storiesDir).filter((p) => /\.stories\.(js|mjs)$/.test(p));
   assert.ok(roots.length > 0, 'found no *.stories.js under stories/ — the sweep is broken, not the kit.');
