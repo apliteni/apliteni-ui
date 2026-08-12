@@ -14,13 +14,12 @@
 //   a rule not applying is not a picture anyone can read. It stays as a hanging
 //   amber rule on the text — the marker without the panel, which costs an
 //   eighth of what a bordered, padded block costs across three rules.
-// * A rule with no specimen. `undo` is a decision, not an appearance, so it
-//   shows no pair; in its place it gets the one sentence saying why. Any rule
-//   without a picture gets its sentence — that's the trade, not an exception
-//   made for this one.
+// * A rule with no specimen. A rule can land before the kit has anything to
+//   photograph, and until it does it stands on its one sentence in place of
+//   the pair.
 // ---------------------------------------------------------------------------
 import { pad } from '../_gallery.js';
-import { TITLE, RULES, SPEC_CSS, mono, doBadge, dontBadge } from './_content.js';
+import { TITLE, RULES, SPEC_CSS, mono, doBadge, dontBadge } from './_destructive-actions.js';
 
 export default {
   title: 'Guidelines/Destructive actions',
@@ -32,16 +31,23 @@ const CSS = `
     /* Two specimen cells wide, and nothing on this page is wider than a specimen. */
     .gc { max-width: var(--gl-page); }
     .gc h1 { font: 700 27px/1.2 Poppins; letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
-    .gc h2 { font: 600 16px/1.45 Poppins; color: var(--strong); margin: 0 0 var(--space-3); }
+    /* The page styles its own heading by name. A bare ".gc h2" also matched
+       .ui-confirm__title — a confirm's question is an h2 — and beat the
+       component's own rule on specificity, so the specimen wore the page's
+       type instead of the kit's. */
+    .gc-imperative { font: 600 16px/1.45 Poppins; color: var(--strong); margin: 0 0 var(--space-3); }
 
     /* No card. A hairline is enough to say "next rule", and it costs 1px where
        a card costs its padding twice over. */
     .gc-rule + .gc-rule { margin-top: var(--space-8); padding-top: var(--space-8);
       border-top: 1px solid var(--border); }
 
-    /* 290px floors the cell at the menu panel's own min-width plus the stage
-       padding (src/styles/dropdown.css); below it the pair goes single-file. */
-    .gc-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    /* A squeezed cell deforms the specimen inside it, so the pair goes
+       single-file at exactly the width where a cell stops fitting rather than
+       at a number guessed in advance: min() lets a column shrink below the
+       measure only once the measure is wider than the row itself. */
+    .gc-pair { display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(var(--gl-cell), 100%), 1fr));
       gap: var(--space-4); }
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .gc-cell__cap { font: 400 12px/1.55 Poppins; color: var(--muted); }
@@ -90,7 +96,7 @@ const refs = (rule) => (rule.kit?.length ? `
 
 const ruleBlock = (rule) => `
   <section class="gc-rule">
-    <h2>${mono(rule.imperative)}</h2>
+    <h2 class="gc-imperative">${mono(rule.imperative)}</h2>
     ${figure(rule)}
     ${exceptLine(rule)}
     ${refs(rule)}

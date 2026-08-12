@@ -172,8 +172,10 @@ tags = ["secret", "posthog"]
 [allowlist]
 description = "Approved domains, placeholders, and known-safe demo data"
 regexes = [
-  # Approved email domains + GitHub noreply + demo placeholders.
+  # Approved email domains + GitHub noreply + demo placeholders — apliteni.test among
+  # them, because RFC 2606 reserves .test and no address there can ever be deliverable.
   '''[A-Za-z0-9._%+\-]+@apliteni\.com''',
+  '''[A-Za-z0-9._%+\-]+@apliteni\.test''',
   '''[A-Za-z0-9._%+\-]+@sabirov\.io''',
   '''[A-Za-z0-9._%+\-]+@(?:users\.)?noreply\.github\.com''',
   '''[A-Za-z0-9._%+\-]+@example\.(?:com|org)''',

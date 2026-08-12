@@ -12,8 +12,9 @@
 // on the cited line. stories/guidelines/refs.test.js resolves all of them, so a
 // reference that drifts out of date fails CI instead of misleading a reader.
 // ---------------------------------------------------------------------------
-import { button, badge, esc } from '../../src/components/index.js';
+import { badge, toast } from '../../src/components/index.js';
 import { dropdown } from '../../src/components/dropdown.js';
+import { confirm } from '../../src/components/confirm.js';
 
 // ---- The rule -------------------------------------------------------------
 export const TITLE = 'Destructive actions';
@@ -33,19 +34,22 @@ export const mono = (s) => String(s).replace(
 // modifiers paint that row the way the rule asks (`--pink`) and the way it
 // must not be painted (`--accent`).
 //
-// `--gl-cell` is the page's one measure. The specimens run from 145px (the
-// bare "Are you sure?" confirm) to 260px (the revoke confirm, whose two named
-// buttons set the widest line on the page) of content, so a cell is the widest
-// of those plus the stage's own padding, and a page is two cells and the gap
-// between them. Sizing the page off the specimens is what keeps a cell close
-// to what it holds; the guidelines pages used to be 1120px wide, which put
-// every one of these specimens in a 526px cell. 260px is measured, not chosen
-// — it was 345px while the undo toast was on the page, and it followed the
-// toast off. The kit has no measure/container token scale to take it from,
-// which is the one literal on this page that wants a token.
+// `--gl-specimen` is the page's declared measure. The page does not re-measure
+// its own copy for it — it takes the confirm's own `--confirm-w`
+// (src/styles/confirm.css), so a specimen is the width the product renders it
+// at, and a copy edit to a title or a button label cannot quietly invalidate
+// the number. A cell is that measure plus the stage's padding, and a page is
+// two cells and the gap between them, which is what keeps a cell close to what
+// it holds.
+//
+// The width is written out here because a custom property does not travel from
+// a descendant to its ancestor: `--confirm-w` lives on `.ui-confirm`, inside
+// the element that lays the grid out. stories/guidelines/destructive-actions.test.js
+// holds the two in step. The 240px menu panel then sits in the measure with
+// slack beside it, which is what showing one component at its real width costs.
 export const SPEC_CSS = `
   <style>
-    .gl { --gl-specimen: 260px;
+    .gl { --gl-specimen: 420px;
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
     .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
@@ -65,9 +69,14 @@ export const SPEC_CSS = `
     .gl-hovering .ui-dropdown__item.is-danger { background: var(--surface); }
     .gl-hovering--accent .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--accent); }
     .gl-hovering--pink   .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
-    .gl-confirm { display: flex; flex-direction: column; gap: var(--space-3); }
-    .gl-confirm__title { font: 600 15px/1.35 Poppins; color: var(--strong); }
-    .gl-confirm__acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    /* The same containment the menu needs, for the same reason. A confirm is
+       fixed to the viewport, so left alone its scrim would leave the cell and
+       cover the whole page. In a specimen the panel is the subject rather than
+       something laid over a page, so it joins the flow and the scrim goes with
+       the fixed positioning it belonged to. */
+    .gl-stage--confirm .ui-confirm { position: static; }
+    .gl-stage--confirm .ui-confirm__scrim { display: none; }
+    .gl-stage--confirm .ui-confirm__panel { position: static; translate: none; width: auto; }
     .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
       font: 500 11px/1 Poppins; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
     .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
@@ -95,24 +104,43 @@ export const menuDo = () => menu('pink');
 /** The same row repainted `--accent` on hover, which drops the danger cue. */
 export const menuDont = () => menu('accent');
 
-const wording = (title, actions) => `
-  <div class="gl-stage">
-    <div class="gl-confirm">
-      <div class="gl-confirm__title">${esc(title)}</div>
-      <div class="gl-confirm__acts">${actions}</div>
-    </div>
+// `specimen: true` renders the dialog open and inert as documentation: no
+// data-confirm hook, no aria-modal. A page with three live confirms on it claims
+// three modal dialogs own it, traps a keyboard reader in the first, and loses a
+// specimen for good the first time someone answers one.
+const confirmSpec = (opts) => `
+  <div class="gl-stage gl-stage--confirm">
+    ${confirm({ ...opts, specimen: true })}
   </div>`;
 
 /** Buttons that name the consequence. */
-export const wordingDo = () => wording(
-  'Revoke access for Research bot?',
-  button({ label: 'Keep access', variant: 'ghost' }) + button({ label: 'Revoke access', variant: 'danger' }),
-);
+export const wordingDo = () => confirmSpec({
+  title: 'Revoke access for Research bot?',
+  cancelLabel: 'Keep access',
+  confirmLabel: 'Revoke access',
+});
 /** Buttons that name nothing. */
-export const wordingDont = () => wording(
-  'Are you sure?',
-  button({ label: 'Cancel', variant: 'ghost' }) + button({ label: 'OK', variant: 'danger' }),
-);
+export const wordingDont = () => confirmSpec({
+  title: 'Are you sure?',
+  cancelLabel: 'Cancel',
+  confirmLabel: 'OK',
+});
+
+/** An irreversible delete asks first, because there is nothing to restore. */
+export const undoDo = () => confirmSpec({
+  title: 'Delete workspace “Acme”?',
+  body: 'Its boards, tokens and history go with it.',
+  cancelLabel: 'Keep workspace',
+  confirmLabel: 'Delete workspace',
+});
+/** The same delete offering a way back it does not have. */
+export const undoDont = () => `
+  <div class="gl-stage">
+    ${toast({
+    variant: 'neutral', style: 'soft', title: 'Workspace “Acme” deleted',
+    body: 'Its boards, tokens and history went with it.', action: 'Undo',
+  })}
+  </div>`;
 
 // ---- The three sub-rules --------------------------------------------------
 // `except` is the boundary of the rule: the one place it stops applying.
@@ -121,15 +149,12 @@ export const wordingDont = () => wording(
 // carries the file, the line, and the `pattern` that must be on that line.
 // A rule with nothing to copy from yet simply carries no `kit`.
 //
-// `doHtml`/`dontHtml` are a rule's specimen pair, and a rule can go without
-// one: `undo` turns on whether an action can be taken back, which is a
-// decision rather than an appearance, so a picture of it teaches nothing a
-// sentence doesn't. Such a rule shows its `why` in place of the pair.
+// `doHtml`/`dontHtml` are a rule's specimen pair, and are optional.
 export const RULES = [
   {
     id: 'colour',
     imperative: 'Keep destructive controls quiet at rest, and turn them --pink on hover.',
-    why: 'A destructive control painted in --accent loses that cue.',
+    why: 'A destructive control that turns --accent on hover reads as an ordinary one.',
     except: '--pink also marks an error the reader has already hit, not an action they are about to take.',
     doCaption: 'Hover turns the danger row --pink.',
     dontCaption: 'Hover repaints the row --accent.',
@@ -143,7 +168,7 @@ export const RULES = [
   },
   {
     id: 'wording',
-    imperative: 'Name what you destroy in the button label.',
+    imperative: 'Name what each button does — the one that destroys, and the one that doesn’t.',
     why: '“OK” describes nothing; “Revoke access” names the cost.',
     except: 'Cancel is right when nothing exists yet to keep, like a new form or upload.',
     doCaption: 'Each label makes sense alone.',
@@ -157,12 +182,19 @@ export const RULES = [
   {
     id: 'undo',
     imperative: 'Confirm or undo, never both — reversibility decides which.',
-    why: 'If the action can be undone, confirming only adds friction; if it cannot, undo is a promise ' +
-      'you can’t keep.',
-    except: 'Irreversible actions confirm and offer nothing to restore.',
-    // No specimen: see the note above the list. No `kit` either — nothing in
-    // this repository picks one of confirm and undo yet, and the page says so
-    // by pointing at nothing rather than at something adjacent.
+    why: 'If the action can be undone, confirming only costs the reader a click; if it cannot, undo ' +
+      'is a promise you can’t keep.',
+    except: 'A reversible action still confirms when it fans out: one row is one click back, ' +
+      'a whole selection is not.',
+    doCaption: 'Nothing to restore, so it asks first.',
+    dontCaption: 'Undo on a workspace already gone.',
+    doHtml: undoDo,
+    dontHtml: undoDont,
+    kit: [
+      { ref: 'src/components/confirm.js:62', pattern: 'role="alertdialog"' },
+      { ref: 'src/components/index.js:227', pattern: 'class="ui-toast__action"' },
+      { ref: 'src/styles/callout.css:75', pattern: '.ui-toast__action { flex: none;' },
+    ],
   },
 ];
 

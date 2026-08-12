@@ -1,0 +1,130 @@
+/* ============================================================================
+ * Confirm — the kit's confirmation dialog: a centred panel over a scrim, for
+ * the question a destructive action has to ask. Fully token-driven so it
+ * re-themes across accents + light/dark. Shares its scrim + focus-trap
+ * behaviour with the drawer (see overlay.js).
+ *
+ * Motion is the drawer's, deliberately: --dur-med/--ease, and `visibility`
+ * switched rather than transitioned. A transitioned visibility is still
+ * `hidden` in the frame the class lands, so openConfirm()'s focus() would have
+ * nothing to focus and the reader would be left on <body>. The root owns the
+ * switch; the panel and scrim inherit it.
+ *
+ * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
+ *   --confirm-surface  panel background     --confirm-shadow  panel elevation
+ *   --confirm-scrim    backdrop colour (--scrim already re-themes per theme)
+ * ========================================================================== */
+
+.ui-confirm {
+  --confirm-surface: var(--surface-2);
+  --confirm-shadow: var(--shadow-lg);
+  --confirm-scrim: var(--scrim);
+  --confirm-w: 420px;
+
+  position: fixed;
+  inset: 0;
+  /* One above the drawer's own overlay level: a confirm asks a question about the
+     drawer it was opened over, so it has to be readable above it whatever order
+     the two are mounted in. */
+  z-index: calc(var(--z-overlay) + 1);
+  pointer-events: none; /* container never blocks; scrim/panel opt back in */
+
+  /* Only the hide is transitioned, so the panel is still on screen while it
+     fades out; the show is instant, because focus moves in the same frame.
+     `linear` and not var(--ease): visibility is discrete, easing a step buys
+     nothing, and a curve that leaves [0, 1] would flip it mid-fade. */
+  visibility: hidden;
+  transition: visibility var(--dur-med) linear;
+}
+.ui-confirm.is-open { visibility: visible; transition: none; }
+
+/* Hit-testable only while open. The root stays visible for --dur-med after
+   closeConfirm() has stopped trapping, and an accept button that is still
+   clickable in that window runs the caller's destructive work a second time. */
+.ui-confirm.is-open .ui-confirm__scrim,
+.ui-confirm.is-open .ui-confirm__panel { pointer-events: auto; }
+
+.ui-confirm__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--confirm-scrim);
+  opacity: 0;
+  transition: opacity var(--dur-med) var(--ease);
+}
+.ui-confirm.is-open .ui-confirm__scrim { opacity: 1; }
+
+/* Panel — centred with `translate` so the entrance can own `transform` without
+   dropping the panel into the corner when it resets to none. */
+.ui-confirm__panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(var(--confirm-w), calc(100vw - var(--space-8)));
+  /* A fixed, centred panel cannot be scrolled into view — scrollIntoView does
+     nothing to it — so a panel taller than the viewport puts its answers below
+     the fold for good. Bound it, and let the consequence scroll instead. The
+     dvh line wins where it is understood; the vh line is what holds it up
+     everywhere else. */
+  max-height: calc(100vh - var(--space-8));
+  max-height: calc(100dvh - var(--space-8));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background: var(--confirm-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--confirm-shadow);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--dur-med) var(--ease),
+    transform var(--dur-med) var(--ease);
+}
+.ui-confirm.is-open .ui-confirm__panel { opacity: 1; transform: none; }
+.ui-confirm__panel:focus-visible { outline: none; box-shadow: var(--confirm-shadow), var(--ring); }
+
+/* -- Slots ----------------------------------------------------------------- */
+/* The question and the answers keep their size; the consequence between them is
+   the one that gives, and scrolls — the same split the drawer's header / body /
+   footer makes. */
+.ui-confirm__title {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: 1.35;
+  color: var(--strong);
+}
+.ui-confirm__body {
+  margin: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+  line-height: 1.55;
+  color: var(--muted);
+}
+.ui-confirm__acts {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* -- Reduced motion: no rise, just a fade --------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ui-confirm { transition: visibility var(--dur-fast) linear; }
+  .ui-confirm__panel {
+    transform: none;
+    transition: opacity var(--dur-fast) linear;
+  }
+  .ui-confirm__scrim { transition: opacity var(--dur-fast) linear; }
+}

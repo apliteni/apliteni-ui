@@ -1,9 +1,9 @@
 /* ============================================================================
  * Drawer — edge-anchored overlay panel (Sheet / Slide-over): a panel that
  * slides in from any screen edge over a scrim. Fully token-driven so it
- * re-themes across accents + light/dark. Shares its scrim + focus-trap concept
- * with a future Modal (see drawer.js). `prefers-reduced-motion` drops the slide
- * for a plain fade.
+ * re-themes across accents + light/dark. Shares its scrim + focus trap with
+ * confirm() (see overlay.js). `prefers-reduced-motion` drops the slide for a
+ * plain fade.
  *
  * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
  *   --drawer-surface  panel background      --drawer-shadow  panel elevation
@@ -21,18 +21,29 @@
   inset: 0;
   z-index: var(--z-overlay);
   pointer-events: none; /* container never blocks; scrim/panel opt back in */
+
+  /* One place owns "is this drawer on screen at all", and the scrim and panel
+     inherit it. Only the HIDE is transitioned, so the panel is still on screen
+     while it slides out; the show is instant (`.is-open` cancels the
+     transition) because openDrawer() focuses a control in the same frame it
+     opens, and focus() on a hidden element does nothing. `linear` and not
+     var(--ease): visibility is discrete, easing a step buys nothing, and a curve
+     that leaves [0, 1] would flip it in the middle of the fade. */
+  visibility: hidden;
+  transition: visibility var(--dur-med) linear;
 }
-/* Scrim — fades in; visibility trails the fade so the panel can animate out. */
+.ui-drawer.is-open { visibility: visible; transition: none; }
+
+/* Scrim — fades in and out; the drawer root decides when it stops existing. */
 .ui-drawer__scrim {
   position: absolute;
   inset: 0;
   background: var(--drawer-scrim);
   pointer-events: auto;
   opacity: 0;
-  visibility: hidden;
-  transition: opacity var(--dur-med) var(--ease), visibility var(--dur-med) var(--ease);
+  transition: opacity var(--dur-med) var(--ease);
 }
-.ui-drawer.is-open .ui-drawer__scrim { opacity: 1; visibility: visible; }
+.ui-drawer.is-open .ui-drawer__scrim { opacity: 1; }
 
 /* Panel — the sliding surface. Flex column: header / scrollable body / footer. */
 .ui-drawer__panel {
@@ -43,14 +54,12 @@
   box-shadow: var(--drawer-shadow);
   pointer-events: auto;
   opacity: 1;
-  visibility: hidden;
   transition:
     transform var(--dur-med) var(--ease),
-    opacity var(--dur-med) var(--ease),
-    visibility var(--dur-med) var(--ease);
+    opacity var(--dur-med) var(--ease);
 }
 .ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--drawer-shadow), var(--ring); }
-.ui-drawer.is-open .ui-drawer__panel { visibility: visible; transform: none; }
+.ui-drawer.is-open .ui-drawer__panel { transform: none; }
 
 /* -- Edge anchoring + slide-in direction ---------------------------------- */
 .ui-drawer--right .ui-drawer__panel,
@@ -154,11 +163,12 @@
 
 /* -- Reduced motion: no slide, just a fade -------------------------------- */
 @media (prefers-reduced-motion: reduce) {
+  .ui-drawer { transition: visibility var(--dur-fast) linear; }
   .ui-drawer__panel {
     transform: none !important;
     opacity: 0;
-    transition: opacity var(--dur-fast) linear, visibility var(--dur-fast) linear;
+    transition: opacity var(--dur-fast) linear;
   }
   .ui-drawer.is-open .ui-drawer__panel { opacity: 1; }
-  .ui-drawer__scrim { transition: opacity var(--dur-fast) linear, visibility var(--dur-fast) linear; }
+  .ui-drawer__scrim { transition: opacity var(--dur-fast) linear; }
 }

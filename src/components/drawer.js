@@ -8,14 +8,14 @@
 //
 // A page trigger opens it by id:  <button data-drawer-open="ID">…</button>
 // (or call openDrawer(rootEl) directly). Pass `open: true` to render it already
-// open — handy for specimens/screenshots.
+// open, or `specimen: true` for a picture of one on a documentation page.
 //
-// This deliberately shares its scrim + focus-trap concept with a future Modal /
-// Dialog: both are "content over a scrim, focus-trapped, Esc-dismissable". The
-// data hooks ([data-drawer]/[data-drawer-scrim]/[data-drawer-close]) and the
-// wireDrawer trap below are the primitive a Modal would reuse (centered instead
-// of edge-anchored). Kept as one component for now per issue #34.
+// Inertness, Escape and the focus trap are shared with confirm(): both are
+// "content over a scrim, focus-trapped, Esc-dismissable", and they push onto one
+// stack in ./overlay.js so the two can never disagree about which of them the
+// keyboard currently belongs to.
 import { esc, icon } from './index.js';
+import { adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -29,14 +29,20 @@ const nextId = (p = 'drawer') => `${p}-${++_uid}`;
 //   title       header heading (also the dialog's accessible name)
 //   body        scrollable body HTML (trusted markup)
 //   footer      pinned footer actions HTML (trusted markup)
-//   open        render already-open (specimens / screenshots)
+//   open        render already-open, as a real panel: wireDrawer() adopts it onto
+//               the overlay stack, so the page behind it goes inert, Tab is
+//               trapped in the panel and Escape closes it
+//   specimen    render open as a *picture* of the panel: same markup, minus the
+//               data-drawer hook and aria-modal, so no wiring and no key handler
+//               can reach it. See confirm() for why a documentation page wants
+//               that; `open` is the one to use when the drawer is real.
 //   id          root id — a [data-drawer-open="id"] trigger targets it
 //   ariaLabel   accessible name when there's no visible title
 //   dismissible show the close button + allow scrim/Esc dismiss (default true)
 //   closeLabel  accessible name for the close button (default 'Close')
 export function drawer({
   side = 'right', size = 'md', title, body = '', footer = '',
-  open = false, id, ariaLabel, dismissible = true, closeLabel = 'Close',
+  open = false, specimen = false, id, ariaLabel, dismissible = true, closeLabel = 'Close',
 } = {}) {
   const titleId = title ? nextId('drawer-title') : null;
   const nameAttr = titleId
@@ -54,71 +60,31 @@ export function drawer({
   const bodyEl = `<div class="ui-drawer__body">${body}</div>`;
   const footEl = footer ? `<footer class="ui-drawer__footer">${footer}</footer>` : '';
 
-  const rootCls = cx('ui-drawer', `ui-drawer--${side}`, `ui-drawer--${size}`, open && 'is-open');
-  return `<div class="${rootCls}" data-drawer data-drawer-side="${esc(side)}"`
+  const rootCls = cx('ui-drawer', `ui-drawer--${side}`, `ui-drawer--${size}`, (open || specimen) && 'is-open');
+  return `<div class="${rootCls}"${specimen ? '' : ' data-drawer'} data-drawer-side="${esc(side)}"`
     + `${dismissible ? '' : ' data-drawer-static'}${id ? ` id="${esc(id)}"` : ''}>`
     + `<div class="ui-drawer__scrim" data-drawer-scrim></div>`
-    + `<aside class="ui-drawer__panel" role="dialog" aria-modal="true" ${nameAttr} tabindex="-1" data-drawer-panel>`
+    + `<aside class="ui-drawer__panel" role="dialog"${specimen ? '' : ' aria-modal="true"'} ${nameAttr} tabindex="-1" data-drawer-panel>`
     + `${header}${bodyEl}${footEl}`
     + `</aside></div>`;
 }
 
 // ---- Shared behaviour ----------------------------------------------------
-// One open/close/scrim/Esc/focus-trap implementation for every drawer in the
-// kit. Per-instance handlers are attached once (guarded by a flag on the node);
-// document-level Esc + the [data-drawer-open] delegation are attached once per
-// document (guarded by a flag on the document node, so multiple documents each
-// get their own). Safe to call repeatedly (Storybook re-renders).
-
-const FOCUSABLE = [
-  'a[href]', 'button:not([disabled])', 'input:not([disabled])',
-  'select:not([disabled])', 'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',');
-
-// Focusable controls inside the panel, in DOM order. Scoped to the panel, so
-// nothing outside the trap is returned; hidden closed drawers are never queried
-// (we only call this while open).
-function focusablesIn(panel) {
-  return Array.from(panel.querySelectorAll(FOCUSABLE));
-}
-
-// Hide everything *outside* the drawer from AT + tab order: walk root→body and
-// mark each ancestor's other children inert + aria-hidden, remembering prior
-// state so close can restore it exactly. The scrim + panel live inside the root,
-// so they stay interactive. This is the focus-trap primitive a Modal reuses.
-function inertOutside(root, on) {
-  if (on) {
-    const touched = [];
-    let node = root;
-    while (node && node.parentElement && node !== document.body) {
-      for (const sib of node.parentElement.children) {
-        if (sib === node || sib.hasAttribute('data-drawer')) continue;
-        touched.push([sib, sib.getAttribute('aria-hidden'), sib.hasAttribute('inert')]);
-        sib.setAttribute('aria-hidden', 'true');
-        sib.setAttribute('inert', '');
-        sib.inert = true;
-      }
-      node = node.parentElement;
-    }
-    root.__drawerInert = touched;
-  } else {
-    (root.__drawerInert || []).forEach(([el, ariaHidden, hadInert]) => {
-      if (ariaHidden == null) el.removeAttribute('aria-hidden');
-      else el.setAttribute('aria-hidden', ariaHidden);
-      if (!hadInert) { el.removeAttribute('inert'); el.inert = false; }
-    });
-    root.__drawerInert = null;
-  }
-}
+// One open/close/scrim/close-button implementation for every drawer in the kit;
+// inertness, Escape and Tab belong to the overlay stack. Per-instance handlers
+// are attached once (guarded by a flag on the node); the [data-drawer-open]
+// delegation is attached once per document (guarded by a flag on the document
+// node, so multiple documents each get their own). Safe to call repeatedly
+// (Storybook re-renders).
 
 export function openDrawer(root, returnFocusTo) {
   if (!root || root.classList.contains('is-open')) return;
   root.__drawerReturn = returnFocusTo
     || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
   root.classList.add('is-open');
-  inertOutside(root, true);
   const panel = root.querySelector('[data-drawer-panel]');
+  const dismissible = !root.hasAttribute('data-drawer-static');
+  pushOverlay(root, panel, dismissible ? () => closeDrawer(root) : null);
   // Focus the first focusable control, else the panel itself.
   const first = panel && focusablesIn(panel)[0];
   (first || panel)?.focus();
@@ -127,33 +93,12 @@ export function openDrawer(root, returnFocusTo) {
 export function closeDrawer(root) {
   if (!root || !root.classList.contains('is-open')) return;
   root.classList.remove('is-open');
-  inertOutside(root, false);
+  popOverlay(root);
   const back = root.__drawerReturn;
   root.__drawerReturn = null;
-  if (back && typeof back.focus === 'function') back.focus();
-}
-
-// Trap Tab within the panel while open; wrap at both ends.
-function trapTab(root, e) {
-  if (e.key !== 'Tab') return;
-  const panel = root.querySelector('[data-drawer-panel]');
-  if (!panel) return;
-  const items = focusablesIn(panel);
-  if (!items.length) { e.preventDefault(); panel.focus(); return; }
-  const first = items[0];
-  const last = items[items.length - 1];
-  const active = document.activeElement;
-  if (e.shiftKey && (active === first || active === panel)) {
-    e.preventDefault(); last.focus();
-  } else if (!e.shiftKey && active === last) {
-    e.preventDefault(); first.focus();
-  }
-}
-
-// Topmost open drawer (last in document order) — Esc closes that one.
-function topOpenDrawer(doc = document) {
-  const open = doc.querySelectorAll('[data-drawer].is-open');
-  return open.length ? open[open.length - 1] : null;
+  // The trigger can be gone by now — focus() on a detached node does nothing at
+  // all, which leaves the reader with no place on the page.
+  returnFocus(back, root.ownerDocument);
 }
 
 export function wireDrawer(root = document) {
@@ -169,14 +114,9 @@ export function wireDrawer(root = document) {
     dr.querySelectorAll('[data-drawer-close]').forEach((btn) =>
       btn.addEventListener('click', () => closeDrawer(dr)));
 
-    dr.addEventListener('keydown', (e) => {
-      if (!dr.classList.contains('is-open')) return;
-      if (e.key === 'Escape' && dismissible) {
-        e.preventDefault(); e.stopPropagation(); closeDrawer(dr);
-      } else if (e.key === 'Tab') {
-        trapTab(dr, e);
-      }
-    });
+    // Rendered with `open: true`, so nothing called openDrawer() and nothing put
+    // it on the stack. Adopting it here is what makes its aria-modal true.
+    adoptOverlay(dr, dr.querySelector('[data-drawer-panel]'), dismissible ? () => closeDrawer(dr) : null);
   });
 
   const doc = root === document ? document : (root.ownerDocument || document);
@@ -190,11 +130,8 @@ export function wireDrawer(root = document) {
       const target = doc.getElementById(opener.getAttribute('data-drawer-open'));
       if (target) openDrawer(target, opener);
     });
-    // Esc closes the topmost open drawer even when focus escaped the panel.
-    doc.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
-      const top = topOpenDrawer(doc);
-      if (top && !top.hasAttribute('data-drawer-static')) { e.preventDefault(); closeDrawer(top); }
-    });
   }
+  // This runs on every re-render, which is the moment to notice that an overlay
+  // was destroyed while it was open and hand the page back.
+  syncOverlays(doc);
 }
