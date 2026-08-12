@@ -3,7 +3,7 @@
 // shell.js and topbar.js need it and shell.js already imports topbar.js — the
 // other direction would be a cycle. shell.js re-exports ACCOUNT_NAV, which is
 // the published name docs/library.md documents.
-// why: docs/adr/0006-one-page-shell-built-from-the-kits-own-nav.md
+// why: docs/adr/0007-one-page-shell-built-from-the-kits-own-nav.md
 import { esc } from './index.js';
 
 // nav.js item objects. Labels are raw text — every nav primitive escapes, so a

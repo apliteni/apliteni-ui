@@ -3,7 +3,7 @@
 // with a breadcrumb trail the caller owns. `accountShell()` is a thin preset
 // over it that keeps the topbar, so the published /account API still works.
 // Call wireTopbar() once after mounting to wire the account menu + theme toggle.
-// why: docs/adr/0006-one-page-shell-built-from-the-kits-own-nav.md
+// why: docs/adr/0007-one-page-shell-built-from-the-kits-own-nav.md
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs } from './nav.js';

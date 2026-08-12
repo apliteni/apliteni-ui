@@ -1,4 +1,4 @@
-# 0006. One page shell, built from the kit's own nav
+# 0007. One page shell, built from the kit's own nav
 
 - **Date:** 2026-08-12
 - **Status:** accepted
