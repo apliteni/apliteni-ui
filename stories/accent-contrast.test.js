@@ -1,12 +1,28 @@
 /* Rule: --accent clears WCAG AA as text on every ground the kit paints under it,
  * in all eight theme × accent cells — or a person names the cell and says why.
  *
- * The grounds are the four opaque surfaces the kit ever puts behind body text
- * (--bg, --bg-elevated, --surface, --surface-2) and --glow-purple washed over
- * each, because those five are the whole of what a component can reach for by
- * token when it wants an accent-tinted ground; every other accent ground in the
- * kit is a color-mix of --accent into itself, which no token value can fix — see
- * the ADR.
+ * The grounds are the five opaque surfaces the kit ever puts behind body text
+ * (--bg, --bg-elevated, --surface, --surface-2, --surface-3); every other accent
+ * ground in the kit is a color-mix of --accent into itself, which no token value
+ * can fix — see the ADR.
+ *
+ * The wash is measured over the four BASE surfaces and not over --surface-3, and
+ * that is a rule about the kit rather than a gap in this gate. --surface-3 is a
+ * RAISED surface: a nav row that is active, a badge that has been lifted off the
+ * card it sits on. Painting --glow-purple there stacks a second tint on a
+ * already-tinted ground, and the accent read on the pair fell under AA in five
+ * of the eight cells — 4.08 in dark Nebula, where the flat surface reads 4.92 —
+ * with no alpha able to reach it (dark Nebula needed 0.06, light Ocean 0.00).
+ * #157 changed the rule instead of the alpha: THE ACCENT WASH IS PAINTED ON A
+ * BASE SURFACE, NEVER STACKED ON A RAISED ONE. src/styles/nav.css:113 is the one
+ * rule that did stack it and no longer does.
+ *
+ * The limit, plainly: this is a TOKEN gate and cannot see a component that
+ * stacks the wash again. Neither can the story walk in contrast.test.js — no
+ * story renders an active nav item with an accent badge, which is why the pair
+ * above went unmeasured on main and on this branch until a person looked. If
+ * that rule is to be held mechanically it needs a gate that reads the
+ * stylesheets, and this is not it.
  *
  * This is a TOKEN contract, not a render. It costs milliseconds where the story
  * walk in contrast.test.js costs seconds a cell, so it can afford all eight cells
@@ -37,7 +53,12 @@ import { ACCENT as PANELS, accentVars } from './foundations/SubThemes.stories.js
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const THEMES = ['dark', 'light'];
-const GROUNDS = ['--bg', '--bg-elevated', '--surface', '--surface-2'];
+const GROUNDS = ['--bg', '--bg-elevated', '--surface', '--surface-2', '--surface-3'];
+
+/** The grounds the accent WASH is measured over: the base surfaces only. See the
+ *  header — --surface-3 is raised, and the rule is that the wash is not stacked
+ *  on it. Derived by subtraction so a sixth surface joins both lists at once. */
+const WASHED_GROUNDS = GROUNDS.filter((g) => g !== '--surface-3');
 
 /** Accent names as accents.css declares them. The default accent lives in
  *  tokens.css and carries no data-accent attribute, so it is named here. */
@@ -78,19 +99,23 @@ const EXEMPTED = new Set(EXEMPT.map(keyOf));
  * a hundredth, and no model is the truth to three decimals.
  *
  * Which model is harsher flips from pair to pair, so a pair is judged on the
- * WORSE of the two and a value is only chosen when it clears in both. That is why
- * light Ocean's wash is at 0.05: at 0.06 it read 4.501 at full precision and
- * 4.491 rounded, and the pixel Chromium actually paints read 4.483 — a failing
- * pair either way, and one this gate would have carried as an exemption if it had
- * believed a single model.
+ * WORSE of the two and a value is only chosen when it clears in both. Light
+ * Ocean is where that earned its keep: its wash was thinned to 0.05 because at
+ * 0.06 over --surface-2 it read 4.501 at full precision and 4.491 rounded, and
+ * the pixel Chromium actually paints read 4.483 — a failing pair either way, and
+ * one this gate would have carried as an exemption if it had believed a single
+ * model. The wash is back at 0.10 now: #157 deepened that cell's --accent
+ * instead, which is what a thinner wash had been standing in for. The rule that
+ * refused 0.06 is the reason the deeper ink was looked for at all.
  */
 const MODELS = {
   rounded: (fg, bg) => composite(fg, bg).map(Math.round),
   exact: (fg, bg) => composite(fg, bg),
 };
 
-/** Every pair a cell is judged on: the accent on each flat ground, and on the
- *  accent wash over that ground, at the worse of the two composite models. */
+/** Every pair a cell is judged on: the accent on each of the five flat grounds,
+ *  and on the accent wash over the four base ones, at the worse of the two
+ *  composite models. */
 function pairsOf({ theme, accent }) {
   const vars = tokensFor(theme, accent);
   const colour = (name) => parseColour(substitute(`var(${name})`, vars));
@@ -98,17 +123,16 @@ function pairsOf({ theme, accent }) {
   const glow = colour('--glow-purple');
   return GROUNDS.flatMap((ground) => {
     const flat = colour(ground);
+    const pairs = [{ theme, accent, ground, washed: false, ratio: ratio(ink, flat), byModel: null }];
+    if (!WASHED_GROUNDS.includes(ground)) return pairs;
     const byModel = Object.fromEntries(Object.entries(MODELS).map(([name, paint]) => {
       const washed = paint(glow, flat);
       return [name, ratio(paint(ink, washed), washed)];
     }));
-    return [
-      { theme, accent, ground, washed: false, ratio: ratio(ink, flat), byModel: null },
-      {
-        theme, accent, ground, washed: true, byModel,
-        ratio: Math.min(...Object.values(byModel)),
-      },
-    ];
+    return [...pairs, {
+      theme, accent, ground, washed: true, byModel,
+      ratio: Math.min(...Object.values(byModel)),
+    }];
   });
 }
 
@@ -175,7 +199,16 @@ test('the accent gate actually measures something', () => {
       assert.equal(flat[3], 1, `${ground} (${cell.theme} ${cell.accent}) is not opaque, so it cannot be a ground`);
     }
     const pairs = pairsOf(cell);
-    assert.equal(pairs.length, GROUNDS.length * 2, `${cell.theme} ${cell.accent} produced the wrong pair count`);
+    assert.equal(
+      pairs.length, GROUNDS.length + WASHED_GROUNDS.length,
+      `${cell.theme} ${cell.accent} produced the wrong pair count`,
+    );
+    assert.deepEqual(
+      pairs.filter((p) => p.washed).map((p) => p.ground), WASHED_GROUNDS,
+      `${cell.theme} ${cell.accent} is judged on the wash over a different set of grounds than `
+      + 'WASHED_GROUNDS names. The exclusion of --surface-3 is a rule about where the kit paints '
+      + 'the wash, argued in this file\'s header — it must not become an accident of the loop.',
+    );
     for (const p of pairs) assert.ok(Number.isFinite(p.ratio) && p.ratio > 1, `${keyOf(p)} produced no real ratio`);
     inks.add(String(colour('--accent')));
   }
