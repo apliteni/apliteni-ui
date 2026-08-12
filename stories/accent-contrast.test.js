@@ -1,21 +1,33 @@
 /* Rule: --accent clears WCAG AA as text on every ground the kit paints under it,
  * in all eight theme × accent cells — or a person names the cell and says why.
  *
- * The grounds are the five opaque surfaces the kit ever puts behind body text
- * (--bg, --bg-elevated, --surface, --surface-2, --surface-3); every other accent
- * ground in the kit is a color-mix of --accent into itself, which no token value
- * can fix — see the ADR.
+ * The grounds are DISCOVERED from the token files, never listed here. The first
+ * version of this gate listed four, and the fifth (--surface-3) was found by a
+ * reviewer reading CSS by hand after the branch was green — the exact failure
+ * docs/adr/0004 exists to stop. What is written by hand now is the opposite of a
+ * list: a NAME PATTERN over the two semantic token files, and a reason for every
+ * candidate the pattern finds that is not measured. See CANDIDATE_GROUNDS.
+ *
+ * Every other accent ground in the kit is a color-mix of --accent into a
+ * component's own rule rather than a token, so no token value reaches it and
+ * this gate cannot see it — see the ADR.
  *
  * The wash is measured over the four BASE surfaces and not over --surface-3, and
  * that is a rule about the kit rather than a gap in this gate. --surface-3 is a
  * RAISED surface: a nav row that is active, a badge that has been lifted off the
- * card it sits on. Painting --glow-purple there stacks a second tint on a
- * already-tinted ground, and the accent read on the pair fell under AA in five
- * of the eight cells — 4.08 in dark Nebula, where the flat surface reads 4.92 —
- * with no alpha able to reach it (dark Nebula needed 0.06, light Ocean 0.00).
- * #157 changed the rule instead of the alpha: THE ACCENT WASH IS PAINTED ON A
- * BASE SURFACE, NEVER STACKED ON A RAISED ONE. src/styles/nav.css:113 is the one
- * rule that did stack it and no longer does.
+ * card it sits on. Painting --glow-purple there stacks a second tint on an
+ * already-tinted ground, and the accent read on that pair fell under AA in four
+ * of the eight cells against the tokens this change ships — 4.08 in dark Nebula,
+ * where the flat surface reads 4.92 — and in five against the tokens on main.
+ * (Every number in this file is measured against the SHIPPED tokens unless it
+ * says otherwise; the two baselines disagree because this change moved the very
+ * tokens the pair is made of, and quoting one while meaning the other is how
+ * three of these figures went wrong before.) No alpha reaches it either way:
+ * solving for the largest wash that clears with --surface-3 counted gives 0.06
+ * in dark Nebula — half the 0.12 chosen here — and 0.02 in light Emerald, which
+ * is a wash nobody would see. #157 changed the rule instead of the alpha: THE
+ * ACCENT WASH IS PAINTED ON A BASE SURFACE, NEVER STACKED ON A RAISED ONE.
+ * src/styles/nav.css:113 is the one rule that did stack it and no longer does.
  *
  * The limit, plainly: this is a TOKEN gate and cannot see a component that
  * stacks the wash again. Neither can the story walk in contrast.test.js — no
@@ -36,8 +48,9 @@
  * property, because a mirror kept by hand goes stale and this one twice did.
  *
  * The accents are read out of src/tokens/accents.css rather than listed, so a
- * fifth accent is judged the day it is declared. A derivation that matched
- * nothing would pass by measuring nothing, so the count is asserted.
+ * fifth accent is judged the day it is declared, and the grounds are swept out
+ * of the token files the same way. A derivation that matched nothing would pass
+ * by measuring nothing, so both counts are asserted.
  *
  * why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md
  */
@@ -53,16 +66,74 @@ import { ACCENT as PANELS, accentVars } from './foundations/SubThemes.stories.js
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const THEMES = ['dark', 'light'];
-const GROUNDS = ['--bg', '--bg-elevated', '--surface', '--surface-2', '--surface-3'];
+
+const TOKENS_CSS = readFileSync(path.join(root, 'src/tokens/tokens.css'), 'utf8');
+
+/** Every custom property a token file declares in a :root block, comments
+ *  stripped first — several of them quote token names, and a quoted name is not
+ *  a declaration. */
+const declaredIn = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .filter(([, selector]) => selector.split(',').some((s) => s.trim().startsWith(':root')))
+  .flatMap(([, , body]) => [...body.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+
+/**
+ * A ground is a surface the kit paints BEHIND other things, and the kit's token
+ * names say which those are: --bg…, --surface…, or a name ending in -bg. The
+ * candidates are swept out of the two semantic token files by that pattern, so
+ * a surface added tomorrow is a candidate the day it is declared and cannot be
+ * left out by the same oversight that lost --surface-3.
+ *
+ * A PATTERN AND NOT A PREDICATE, on purpose. Deriving grounds from "every
+ * opaque token" or "every token used as a background" sweeps in --control-knob,
+ * the chip fills and the brand ramp — none of which the accent is ever read on
+ * — and would bury the real grounds under a page of exemptions. Naming is the
+ * kit's own signal for what a surface is, and it is the narrowest honest one.
+ *
+ * brand.generated.css is not swept: it carries the synced brand primitives the
+ * semantic tokens are built FROM, and nothing paints text on a primitive.
+ * accents.css declares no surface today and is swept anyway, so the day it does
+ * the sweep already covers it.
+ */
+const SURFACE_NAME = /^--(bg|surface)(-|$)|-bg$/;
+
+/** Accent names as accents.css declares them. The default accent lives in
+ *  tokens.css and carries no data-accent attribute, so it is named here. */
+const ACCENTS_CSS = readFileSync(path.join(root, 'src/tokens/accents.css'), 'utf8');
+
+const CANDIDATE_GROUNDS = [...new Set([...declaredIn(TOKENS_CSS), ...declaredIn(ACCENTS_CSS)])]
+  .filter((name) => SURFACE_NAME.test(name));
+
+/**
+ * A candidate the accent is NEVER read on, and the reason a person gave.
+ *
+ * This is the other half of discovery: the sweep decides what the candidates
+ * are, and a person decides, in writing, which of them this gate does not
+ * measure. Nothing here can be checked by measurement — the claim is about what
+ * the kit PAINTS, not about a ratio — which is exactly why it has to be a
+ * sentence somebody wrote and not a filter somebody tuned.
+ */
+const EXEMPT_GROUNDS = [
+  {
+    ground: '--seg-active-bg',
+    why: 'The active pill of a segmented control, and the one candidate surface no accent ink is '
+      + 'painted on: the active pill sets `color: var(--strong)` (src/styles/segmented.css), which '
+      + 'is #ffffff in dark and near-black in light, and nothing else in the kit paints on this '
+      + 'token at all. Measured anyway it would fail — --accent reads 4.23:1 on it in dark Nebula '
+      + '— so this entry is a live one, not a formality: it records a LATENT risk, that the day a '
+      + 'component puts accent ink on an active segment the pair is already under the floor. It is '
+      + 'excused because the kit does not paint it, and it must stop being excused the moment the '
+      + 'kit does. No measurement can notice that happening; a person reading this has to.',
+  },
+];
+
+const NOT_MEASURED = new Set(EXEMPT_GROUNDS.map((e) => e.ground));
+const GROUNDS = CANDIDATE_GROUNDS.filter((g) => !NOT_MEASURED.has(g));
 
 /** The grounds the accent WASH is measured over: the base surfaces only. See the
  *  header — --surface-3 is raised, and the rule is that the wash is not stacked
  *  on it. Derived by subtraction so a sixth surface joins both lists at once. */
 const WASHED_GROUNDS = GROUNDS.filter((g) => g !== '--surface-3');
 
-/** Accent names as accents.css declares them. The default accent lives in
- *  tokens.css and carries no data-accent attribute, so it is named here. */
-const ACCENTS_CSS = readFileSync(path.join(root, 'src/tokens/accents.css'), 'utf8');
 const DECLARED = [...new Set([...ACCENTS_CSS.matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]))];
 const ACCENTS = ['default', ...DECLARED];
 const CELLS = THEMES.flatMap((theme) => ACCENTS.map((accent) => ({ theme, accent })));
@@ -157,7 +228,7 @@ for (const cell of CELLS) {
 
 // ---- anti-vacuity: a derivation that matches nothing passes everything ----
 
-test('every accent exemption still names a real failure', () => {
+test('every exemption still names something real, and says why in a sentence', () => {
   const measured = new Map(
     CELLS.flatMap(pairsOf).map((p) => [keyOf(p), p.ratio]),
   );
@@ -169,8 +240,28 @@ test('every accent exemption still names a real failure', () => {
     + 'entry should go, or a token moved and the entry now excuses a pair nobody looked at. An '
     + 'exemption that stops matching is a hole in the gate, so it fails here rather than passing quietly.',
   );
+
+  // The same rot, one level up: an excused GROUND that the sweep no longer
+  // finds is excusing nothing, and the surface it was written for is either
+  // renamed and now silently measured, or gone and the entry is a fossil.
+  const orphaned = EXEMPT_GROUNDS.map((e) => e.ground).filter((g) => !CANDIDATE_GROUNDS.includes(g));
+  assert.deepEqual(
+    orphaned,
+    [],
+    `\n${orphaned.join('\n')}\n\nEXEMPT_GROUNDS excuses a property the token-file sweep does not `
+    + 'find. Either it was renamed — in which case the reason written on it now applies to a name '
+    + 'nobody excused — or it left the token files and the entry should go with it.',
+  );
+
   for (const e of EXEMPT) {
     assert.ok(e.why && e.why.length > 120, `the ${keyOf(e)} exemption has no real reason written on it`);
+  }
+  for (const e of EXEMPT_GROUNDS) {
+    assert.ok(
+      e.why && e.why.length > 120,
+      `the ${e.ground} ground exemption has no real reason written on it. A ground is dropped from `
+      + 'this gate only on an argument about what the kit paints, and the argument has to be here.',
+    );
   }
 });
 
@@ -187,12 +278,45 @@ test('the accent gate actually measures something', () => {
     'accents.css declares a different number of --accent values than the cells derived from it',
   );
 
+  // The candidate sweep, pinned exactly rather than as a floor — this one
+  // number does both jobs. Below it, a broken SURFACE_NAME or a renamed :root
+  // block empties the sweep and every ground assertion would pass by measuring
+  // nothing. Above it, a surface has joined the token files, and the point of
+  // discovering candidates is that a person then decides which kind it is
+  // instead of it landing in nobody's list. Bumping this number IS that
+  // decision, so it is deliberately not automatic.
+  assert.equal(
+    CANDIDATE_GROUNDS.length, 6,
+    `the token-file sweep found ${CANDIDATE_GROUNDS.length} candidate ground(s) `
+    + `(${CANDIDATE_GROUNDS.join(', ')}), not 6. If a surface was added, decide whether the accent `
+    + 'is ever read on it: leave it measured, or write it into EXEMPT_GROUNDS with a reason. Then '
+    + 'move this number. If a surface left, move it too. If it went to zero, SURFACE_NAME or the '
+    + ':root sweep is broken and this gate was about to measure nothing.',
+  );
+  assert.ok(GROUNDS.length > 0, 'every candidate ground has been excused, so nothing is measured');
+
   const inks = new Set();
   for (const cell of CELLS) {
     const vars = tokensFor(cell.theme, cell.accent);
     const colour = (name) => parseColour(substitute(`var(${name})`, vars));
     const glow = colour('--glow-purple');
     assert.ok(glow && glow[3] > 0 && glow[3] < 1, `--glow-purple (${cell.theme} ${cell.accent}) is not a wash`);
+
+    // The INK has to be opaque too, and this is the assertion that was missing.
+    // ratio() reads the rgb it is handed and ignores alpha, so a translucent
+    // --accent would be measured as the colour it is not: every flat pair would
+    // report the ratio of a solid ink the browser never paints, and report it
+    // as a pass. The washed pairs would catch it — they composite the ink — but
+    // silently, by failing for a reason nobody would connect to the alpha.
+    const ink = colour('--accent');
+    assert.ok(ink, `--accent (${cell.theme} ${cell.accent}) resolved to no colour`);
+    assert.equal(
+      ink[3], 1,
+      `--accent (${cell.theme} ${cell.accent}) is not opaque. Every flat pair in this file is `
+      + 'measured as though it were, so a translucent accent is judged as a colour the kit does '
+      + 'not paint. A wash belongs in --glow-purple; --accent is ink.',
+    );
+
     for (const ground of GROUNDS) {
       const flat = colour(ground);
       assert.ok(flat, `${ground} (${cell.theme} ${cell.accent}) resolved to no colour`);
@@ -293,11 +417,13 @@ test('the sub-theme story paints the accent tokens it claims to mirror', () => {
   );
 
   const drift = [];
-  let compared = 0;
   for (const [panel, byTheme] of Object.entries(PANELS)) {
     for (const theme of THEMES) {
       const vars = tokensFor(theme, accentOf(panel));
       const declared = declarationsOf(accentVars(byTheme[theme]));
+      // This is also what makes the walk below exhaustive: the key set is
+      // pinned to FAMILY per panel, so every panel contributes every property.
+      // A separate count of the comparisons would only restate that.
       assert.deepEqual(
         [...declared.keys()].sort(), [...FAMILY].sort(),
         `the ${theme} ${panel} panel does not paint the accent family accents.css declares. A `
@@ -305,7 +431,6 @@ test('the sub-theme story paints the accent tokens it claims to mirror', () => {
         + 'of showing; one it invents belongs to no token.',
       );
       for (const [property, painted] of declared) {
-        compared += 1;
         const token = vars.get(property);
         const shipped = token == null ? null : canonical(substitute(token, vars));
         if (shipped !== canonical(painted)) {
@@ -322,11 +447,5 @@ test('the sub-theme story paints the accent tokens it claims to mirror', () => {
     + 'family so each preview panel is self-contained, and a hand-copied value goes stale the next '
     + 'time a token moves. The page\'s whole subject is what each accent\'s tokens are, so a stale '
     + 'literal is the page stating something the kit does not ship. Fix the table, not this test.',
-  );
-  assert.equal(
-    compared,
-    FAMILY.length * Object.keys(PANELS).length * THEMES.length,
-    'the mirror check compared a different number of values than there are properties × panels × '
-    + 'themes, so it is not seeing the whole table',
   );
 });
