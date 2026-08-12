@@ -93,9 +93,12 @@ first, to `0.05`, and then took it back: see "the ground we missed". This is a s
 the default accent's move so it can be reverted on its own.
 
 **Light Ocean's accent deepens, and its wash goes back to `0.10`.** `#1568d6` becomes `#005bc8`: hue
-and chroma unchanged in OKLCH (H 258, C 0.185), four points of lightness off. That is exactly the
-move #96 made on light Phoenix (`#d64a12` → `#a8370c`) and light Emerald (`#0b9c68` → `#087a52`),
-and light Ocean is the one light accent it skipped, because that cell happened to clear plain white.
+and chroma unchanged in OKLCH (H 258, C 0.185), four points of lightness off. It is the same KIND of
+move #96 made on light Phoenix (`#d64a12` → `#a8370c`) and light Emerald (`#0b9c68` → `#087a52`) —
+deepen a light accent until it clears — and light Ocean is the one light accent #96 skipped, because
+that cell happened to clear plain white. It is not the same magnitude, and calling it that would
+overstate the precedent: both of #96's moves took about ten points of lightness and gave up 16–18% of
+the accent's chroma, where this one takes four and gives up none. Gentler in both directions.
 It does not clear the raised grey panel: `#1568d6` reads 4.54 flat on `--surface-3` and 3.98 on the
 wash over it, where `#005bc8` reads 5.43 and 4.76 — both washed figures at the `0.10` this cell
 ships, not at the `0.05` it briefly carried. White on the deeper blue is 6.31, so
@@ -351,12 +354,15 @@ state in the kit under every accent, and nothing here decides it.
 only where a cell needed it. Whether those accents want a lifted hue the way the default one got is a
 question this record leaves open — it closed them the cheap way, on the wash alone. Light Ocean is
 the exception, and it is deepened rather than lifted: `#005bc8` at the same OKLCH hue and chroma, the
-move #96 made on the other two light accents.
+same kind of move #96 made on the other two light accents and a smaller one.
 
 **Whether light Ocean's deeper blue reads as the same blue.** Hue and chroma are held exactly and
-lightness comes down four points, which is the change #96 twice made and nobody objected to. That is
-an argument from precedent, not from anyone having looked at the two side by side under the light
-theme's surfaces.
+lightness comes down four points. The precedent is that #96 twice deepened a light accent for the
+same reason and nobody objected — but those two moves were bigger than this one, about ten points of
+lightness with 16–18% of the chroma given up, so "nobody objected" was said about a larger change
+than the one being justified here. That makes this the safer end of an accepted move, which is an
+argument from precedent either way, and not from anyone having looked at the two side by side under
+the light theme's surfaces.
 
 **Half the exemption machinery still has nothing proving it works.** The PAIR list is empty, so the
 test that fails a stale pair entry currently measures nothing. That is the price of a gate with no
