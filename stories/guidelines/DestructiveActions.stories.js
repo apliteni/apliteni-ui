@@ -14,13 +14,13 @@
 //   a rule not applying is not a picture anyone can read. It stays as a hanging
 //   amber rule on the text — the marker without the panel, which costs an
 //   eighth of what a bordered, padded block costs across three rules.
-// * A rule with no specimen. `undo` is a decision, not an appearance, so it
-//   shows no pair; in its place it gets the one sentence saying why. Any rule
-//   without a picture gets its sentence — that's the trade, not an exception
-//   made for this one.
+// * A rule with no specimen. Every rule on the page has a pair today, but one
+//   can arrive before the kit has anything to photograph — `undo` did, and
+//   stood on its one sentence until confirm() shipped. Any rule without a
+//   picture gets its sentence in place of the pair.
 // ---------------------------------------------------------------------------
 import { pad } from '../_gallery.js';
-import { TITLE, RULES, SPEC_CSS, mono, doBadge, dontBadge } from './_content.js';
+import { TITLE, RULES, SPEC_CSS, mono, doBadge, dontBadge } from './_destructive-actions.js';
 
 export default {
   title: 'Guidelines/Destructive actions',

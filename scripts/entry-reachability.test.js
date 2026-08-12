@@ -49,14 +49,18 @@ const entryFile = path.join(src, 'index.js');
  * stops naming a live, genuinely-unreachable module, so a rename cannot leave
  * a lie behind.
  *
- * It is empty on purpose. Every module under src/components/ today is a
- * component factory meant for consumers; nothing there is internal-only. The
- * closest thing to a private helper is `esc`, and it lives in
- * src/components/index.js, which is public and re-exported. Note the corollary:
- * while this list is empty the staleness test below has nothing to check. The
- * gate's real floor is the anti-vacuity test, not this list. */
+ * One entry today. Every other module under src/components/ is a component
+ * factory meant for consumers, and the only other private helper is `esc`,
+ * which lives in src/components/index.js and rides along on a public module.
+ * Note the corollary: a short list gives the staleness test below little to
+ * check, so the gate's real floor is the anti-vacuity test, not this list. */
 const NOT_PUBLIC = [
-  // { module: 'components/example.js', why: 'why a consumer must not reach it' },
+  {
+    module: 'components/overlay.js',
+    why: 'it holds the scrim and focus-trap internals drawer.js and confirm.js share, and '
+      + 'publishing focusablesIn/inertOutside/trapTab would commit the package to keeping '
+      + 'helpers those two rewrite between themselves.',
+  },
 ];
 
 const EXEMPT = new Set(NOT_PUBLIC.map((e) => e.module));

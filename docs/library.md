@@ -81,6 +81,7 @@ documented as “markup” (e.g. a card `title` carrying a badge) are inserted v
 | `dropdown({ label, value, variant, items, sections, header, footer, align, scroll })` + `wireDropdown(root)` | Popover list. `variant: 'select'` renders a listbox and shows the value in the trigger; `'menu'` renders an action list. |
 | `nav({ variant })` → `sidebarNav` · `navTabs` · `breadcrumbs`, + `wireNav(root)` | Wayfinding. The umbrella dispatches on `variant`; each shape is also exported on its own. `wireNav` only drives the sidebar's collapsible groups. |
 | `drawer({ side, size, title, body, footer, open, dismissible })` + `wireDrawer(root)` | Overlay panel anchored to a screen edge, over a scrim. `openDrawer(el, returnFocusTo)` / `closeDrawer(el)` drive one directly. |
+| `confirm({ title, body, confirmLabel, cancelLabel, variant, open, id })` + `wireConfirm(root)` | Modal question over a scrim, for the destructive action a page has to stop for. `openConfirm(el, returnFocusTo)` / `closeConfirm(el)` drive one directly. |
 | `callout` · `toast` · `successPanel` | Inline feedback, inside the page the user is already on. |
 | `pushToast(container, opts)` · `dismissToast(el)` + `wireToastStack(container)` | The runtime toast stack: push one onto a container, dismiss it, or let the stack expire its own. |
 | `success({ layout, backdrop, eyebrow, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its self-drawing check on its own. See [successPanel or success?](#successpanel-or-success) below. |
