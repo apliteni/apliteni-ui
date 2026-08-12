@@ -3,7 +3,8 @@
 - **Date:** 2026-08-12
 - **Status:** accepted
 - **Code:** `src/tokens/tokens.css`, `src/tokens/accents.css`, `src/styles/nav.css`,
-  `stories/accent-contrast.test.js`, `stories/foundations/SubThemes.stories.js`
+  `stories/accent-contrast.test.js`, `stories/foundations/SubThemes.stories.js`,
+  `.storybook/manager.js`
 - **Issues:** #157
 
 ## What we ran into
@@ -74,9 +75,16 @@ below:
 | light ocean | fails, worst 4.26 | passes, worst 5.10 |
 | light emerald | fails, worst 4.44 | passes, worst 4.54 |
 
-Every "before" worst above is the accent on the wash over a surface, never on a flat one; afterwards
-the same holds in seven cells, and in light Ocean the flat `--surface-3` and the wash over
-`--surface-2` are within a tenth of each other.
+In all eight cells, before and after, the worst pair is the accent on the wash over a surface and
+never on a flat one. That is the finding this record is named for, and it survives every value this
+change moved: closing a cell meant moving the wash or the ink under it, not the surfaces.
+
+**A note on baselines, because three of the numbers below were wrong for want of one.** Every figure
+in this record is measured against the tokens this change SHIPS unless it says otherwise. This
+branch moved the accent, the ramp and four washes, and it moved two of them twice — so "before",
+"on `main`", and "at the point the reviewer looked" are three different sets of tokens, and a figure
+quoted from one while the sentence means another reads as a plain error to anyone who recomputes it.
+Where a before-and-after is worth having, both baselines are named.
 
 The other three accents fail on the wash and nowhere else. Two are closed by lowering that cell's
 alpha rather than by moving a hue that #96 chose — dark Phoenix and dark Ocean from `0.18` to `0.15`,
@@ -88,8 +96,9 @@ the default accent's move so it can be reverted on its own.
 and chroma unchanged in OKLCH (H 258, C 0.185), four points of lightness off. That is exactly the
 move #96 made on light Phoenix (`#d64a12` → `#a8370c`) and light Emerald (`#0b9c68` → `#087a52`),
 and light Ocean is the one light accent it skipped, because that cell happened to clear plain white.
-It does not clear the raised grey panel: `#1568d6` read 4.54 on `--surface-3` and 4.25 on the wash
-over it, where `#005bc8` reads 5.43 and 5.06. White on the deeper blue is 6.31, so
+It does not clear the raised grey panel: `#1568d6` reads 4.54 flat on `--surface-3` and 3.98 on the
+wash over it, where `#005bc8` reads 5.43 and 4.76 — both washed figures at the `0.10` this cell
+ships, not at the `0.05` it briefly carried. White on the deeper blue is 6.31, so
 `--accent-contrast` still clears AA. Because the ink is what closed the pair, the wash no longer has
 to be the thing that gives, and it returns to `0.10` where the other light washes sit. Its rgb stays
 `21, 104, 214` — `--purple-light`, which is what a light glow tints.
@@ -100,23 +109,27 @@ The first version of this change measured four opaque grounds. There are five. `
 paints an **active** sidebar row (`src/styles/nav.css:52`), and the accent counter on that row painted
 `--glow-purple` over it (`:100`) — the accent wash laid on an already-raised surface, two tints
 stacked. That pair was never in the gate, and no story renders an active nav item with an accent
-badge, so the story walk in `stories/contrast.test.js` did not see it either. It failed in five of
-the eight cells, on `main` and on the first version of this change alike:
+badge, so the story walk in `stories/contrast.test.js` did not see it either. It failed on `main`
+and it still failed after every token this change moved — the two baselines, side by side:
 
-| cell | `--accent` on the wash over `--surface-3` |
-|---|---|
-| dark default | 4.08 |
-| dark phoenix | 4.12 |
-| dark ocean | 4.06 |
-| light ocean | 4.25 |
-| light emerald | 4.23 |
-| dark emerald | 4.86 |
-| light default | 5.50 |
-| light phoenix | 4.95 |
+| cell | on `main` | against the shipped tokens |
+|---|---|---|
+| dark default | 3.00 | 4.08 |
+| dark phoenix | 3.93 | 4.12 |
+| dark ocean | 3.88 | 4.06 |
+| light emerald | 4.16 | 4.23 |
+| light ocean | 3.98 | 4.76 |
+| dark emerald | 4.86 | 4.86 |
+| light phoenix | 4.95 | 4.95 |
+| light default | 5.50 | 5.50 |
+
+Five cells under the floor on `main`, four against the tokens shipped here — light Ocean is the one
+that crossed, and only because its ink was deepened for a different reason. Lifting the accent moved
+these numbers and did not fix them.
 
 **No alpha reaches it.** Solving for the largest wash that clears with `--surface-3` counted, dark
-Nebula needs `0.06` — half the `0.12` this change had chosen — and light Ocean needs `0.00`, which is
-no wash at all. Spending the wash to rescue this pair means spending the wash entirely.
+Nebula needs `0.06` — half the `0.12` this change chose — and light Emerald needs `0.02`, a wash
+nobody would see. Spending the wash to rescue this pair means spending the wash entirely.
 
 So the rule changed rather than the alpha. **The accent wash is painted on a base surface, never
 stacked on a raised one.** The accent counter on an active row was the one place in the kit that
@@ -125,18 +138,46 @@ row's own `--surface-3`, the same shape the neutral badge two lines above it alr
 flat surface instead of the stacked pair, every cell clears — 4.92 in dark Nebula, 5.10 Phoenix, 5.15
 Ocean, 6.74 Emerald; 6.33 light Nebula, 5.62 Phoenix, 5.43 Ocean, 4.62 Emerald.
 
-`--surface-3` therefore joins `GROUNDS` as a flat ground, and the wash is measured over the four base
+`--surface-3` therefore joins the grounds as a flat one, and the wash is measured over the four base
 grounds only. **That exclusion is a claim about the kit, not a gap in the gate**, and the gate's
 header says so in those words: nothing paints the accent wash on a raised surface any more. Its
 limit, stated plainly there too: a token gate cannot see a component that stacks the wash again, and
 neither can the story walk, for the reason this pair went unmeasured in the first place. Holding that
 rule mechanically would need a gate that reads the stylesheets. Nobody has built one.
 
-Two figures moved with the ramp. `--purple-mid` at `#bd8cff` lifts the "soon" badge from 4.10 to 4.81
-on the wash over `--surface-3`, and from 3.97 to 4.67 on the accent-tinted card the story walk
-actually renders it on — so that row clears and leaves the ledger in `stories/contrast.test.js`
-entirely. Bucket B falls from five rows to four; bucket F, which had been lending its dark row to B
-while the two tokens were one colour, has no dark row to hold at all now.
+**The grounds stopped being a list.** Adding `--surface-3` by hand would have fixed this instance and
+left the defect: a gate that derives its accents and derives its token family, and then enumerates
+the one list a person happened to write. [0004](0004-the-gates-discover-their-subjects.md) is the
+record of exactly that failure mode, and the missing ground is what it predicts — a list is a claim
+about the world that nothing keeps true, and a reviewer had to find this one by hand after the branch
+was green.
+
+The candidates are now swept out of `tokens.css` and `accents.css` by NAME: `--bg…`, `--surface…`,
+or anything ending `-bg`. What a person writes is no longer the list but the pattern, plus a reason
+for every candidate the pattern finds that the gate does not measure. Both are asserted — the
+candidate count exactly, so a surface joining the token files fails the gate until somebody decides
+which kind it is, and a stale exemption fails rather than quietly excusing nothing.
+
+The sweep is a name pattern rather than a property of the value on purpose. "Every opaque token", or
+"every token used as a background", pulls in `--control-knob`, the chip fills and the brand ramp —
+none of which the accent is ever read on — and buries the real grounds under a page of exemptions.
+Naming is the kit's own signal for what a surface is, and it is the narrowest honest one available
+from the token files alone.
+
+The sweep finds six candidates, and the sixth is one nobody had measured: **`--seg-active-bg`**
+(`#34314a`), the active pill of a segmented control, where `--accent` reads **4.23** flat in dark
+Nebula. Nothing paints accent ink there today —
+the active pill's label is `color: var(--strong)` — so it is a latent risk rather than a live
+failure, and it is the exemption list's first and only entry. That entry is the shape the mechanism
+was built for: a claim about what the kit paints, which no measurement can confirm or refute, written
+down where the next person has to read it. The day a component puts accent ink on an active segment,
+the pair is already under the floor and the entry is already wrong.
+
+The ramp move carried the "soon" badge with it. `--purple-mid` at `#bd8cff` takes it from 3.94 to
+4.67 on the pair the story walk actually renders — `--glow-purple` over an accent-tinted card — so
+the DARK row clears. The light row does not move and does not clear: it is bucket F of the ledger in
+`stories/contrast.test.js`, at 4.48, and it is the only row that entry now holds. Bucket B ends this
+change at four rows, down from 25 on `main`.
 
 **Two composite models, and a value is only chosen when it clears in both.** A wash over a ground can
 be composited at full precision, or rounded to 8 bits per layer. The gate does both and judges a pair
@@ -160,26 +201,47 @@ by choosing a model.
 **Light's `--accent` does not move.** `#6a2dcc` already clears every ground, washed and flat, at
 worst 5.89.
 
+**The workbench chrome follows.** `.storybook/manager.js` hand-copies the dark palette and says so —
+"Values mirror `src/tokens/tokens.css` (dark block)" — which this change made false. `colorPrimary`,
+`colorSecondary` and `barSelectedColor` are the accent, and they move to `#b479ff` with it. The prism
+mark in the sidebar logo keeps `#9b5dff` on purpose: that violet is the brand ramp's `--purple-500`,
+the mark's own colour, and it never tracked `--accent`. Nothing gates this file — it is a third
+hand-copied mirror, found the same way the sub-theme story was.
+
 **The floor is held by a test, not by this record.** `stories/accent-contrast.test.js` measures all
 eight cells on every `npm test` — the accent on five flat grounds and on the wash over the four base
-ones, nine pairs a cell. It derives the accents from the `[data-accent="…"]` blocks in
-`src/tokens/accents.css`, so a fifth accent is judged the day it is declared, and it refuses to run
-if that derivation stops matching. It composites both ways and takes the worse, so no value can be
-chosen by picking the model that flatters it. It carries an exemption mechanism with nothing in it:
-an empty list is the correct state for a gate nobody has had to excuse yet, and it makes the gate
-harsher, not weaker — every pair is judged on its measurement alone. Nothing was excused to close
-`--surface-3`, and nothing should be: the ground was added to the gate at full strength.
+ones, nine pairs a cell. Both of its subject lists are derived: the accents from the
+`[data-accent="…"]` blocks in `src/tokens/accents.css`, so a fifth accent is judged the day it is
+declared, and the grounds from the surface names in the token files, so a sixth surface is a
+candidate the day it is declared. Each derivation's size is pinned, so one that stopped matching
+would fail rather than pass by measuring nothing. It composites both ways and takes the worse, so no
+value can be chosen by picking the model that flatters it. It asserts that the ink is opaque and each
+ground is opaque, because the ratio it computes is only the ratio the browser paints if both are.
+
+It carries two exemption lists, and they excuse different things. The pair list — a single cell
+allowed under the floor — is empty, which is the correct state for a gate nobody has had to excuse
+yet and makes it harsher rather than weaker. Nothing was excused to close `--surface-3`; the ground
+was added at full strength. The ground list has one entry, `--seg-active-bg`, and it excuses a
+surface from being measured at all, on the claim that no accent ink is painted there. Both are
+checked for rot: an entry that stops naming a real failure, or a real candidate, fails the gate.
 
 **One accent surface the token gate could not see: a story that copies the tokens by hand.**
 `stories/foundations/SubThemes.stories.js` pins a whole accent family inline per preview panel, so
-all four accents can be shown at once under one toolbar theme. That mirror had drifted twice — two
-accents #96 deepened and, in this change, four washes — and it painted `--purple` and `--ring` from
-the wrong field in every panel: 23 of its 80 declarations stated a value the kit does not ship, on a
-page whose whole subject is what each accent's tokens are. The same test now resolves what that page
-paints against the two token files, property by property, deriving both sides rather than restating
-either. It earned its keep immediately: the ramp move and light Ocean's deepening moved five values
-in that table — dark Nebula's `--purple-light` and `--purple-mid`, light Ocean's `--accent`,
-`--accent-strong` and `--glow-purple` — and the check named all five before anything shipped.
+all four accents can be shown at once under one toolbar theme — 10 properties × 4 panels × 2 themes,
+80 declarations, every one of them a literal somebody typed.
+
+It was already stale before this branch touched it. Measured on `main` against `main`, **19 of the 80
+stated a value the kit did not ship**: 15 because every panel read `--purple` and `--ring` from the
+wrong field of its own table, and 4 because #96 had deepened light Phoenix and light Emerald and
+nobody followed. (15 rather than 16 for a reason worth keeping: `--ring` was wrong in all 8 panels
+and `--purple` in only 7, because light Nebula's wrong field happened to hold the right value. A
+mirror can be right by accident, which is most of the argument for not keeping one by hand.)
+Against the tokens this change ships the count is **28 of 80**, the difference being the values #157
+itself moved.
+
+The same test now resolves what that page paints against the two token files, property by property,
+deriving both sides rather than restating either. It earned its keep immediately: this change moved
+10 values in the accent family, and the check named every one of them before anything shipped.
 
 ## Why not the alternatives
 
@@ -191,29 +253,61 @@ otherwise ship — has since been spent: `#bd8cff` is the ramp's top step now, a
 still not the accent.
 
 **Drop the wash's alpha further — `0.10`, or `0.09`.** Measured, by running the whole story walk at
-each. The walk reports the same five surviving failures at `0.12`, `0.10` and `0.09`, with the same
-worst at 3.97, and three of those five rows do not move by a single hundredth between the three runs.
-Only the "soon" badge on the accent card moves at all, and it still fails at `0.09`. Alpha below
-`0.12` buys nothing and spends the wash's visibility.
+each, at the point in this branch before the ramp moved — so five surviving failures rather than
+today's four, the "soon" badge still being one of them. The walk reported the same five at `0.12`,
+`0.10` and `0.09`, with the same worst at 3.97, and three of the five did not move by a single
+hundredth between the three runs. Only the "soon" badge moved at all, and it still failed at `0.09`.
+Alpha below `0.12` bought nothing and spent the wash's visibility, and the ramp move afterwards
+closed that badge for a different reason entirely.
 
 **Move the flat surfaces instead.** They are not what fails. Darkening `--surface` to rescue the
 accent would repaint every card in the dark app to fix a problem the cards do not have.
 
 ## What this does not cover
 
-**Grounds mixed from the accent into itself.** A rule that writes
-`color-mix(in srgb, var(--accent) N%, transparent)` builds a ground out of the ink that will be read
-on it, so the ground rises whenever the accent rises and the pair never opens. Lightening the accent
-cannot close these, and neither can lowering `--glow-purple`, which they do not use. Two such rules
-remain in dark, over three rows, and they are why bucket B of the ledger in
-`stories/contrast.test.js` has four rows rather than none:
+**Grounds a component mixes for itself out of the accent.** A rule that writes
+`color-mix(in srgb, var(--accent) N%, transparent)` builds the ground out of the ink that will be
+read on it. `--glow-purple` cannot reach these, because they do not use it.
 
-- `src/styles/dropdown.css:106` — `.ui-dropdown__badge.is-accent`, at 14%, failing hovered and
-  focused, which is two of the rows
-- `stories/foundations/Motion.stories.js:95,98` — the story's own `.mz-replay`, at 12% and 20%
+**What lightening the accent does to them, stated correctly.** An earlier draft of this record said
+the ground "rises with the accent" so that "no choice of accent closes the pair". That is false, and
+the arithmetic is not subtle. The ground is the ink at `N%` over an opaque surface, so when the ink
+moves, the ground moves by `N%` of that — a fraction, not the whole. The pair opens. On
+`src/styles/dropdown.css:106`, 14% over `--surface`, holding everything else fixed:
 
-The "soon" badge read on an accent-tinted card was a third until the ramp moved up behind the accent;
-`--purple-mid` at `#bd8cff` takes it from 3.97 to 4.67 and it has left the ledger.
+| `--accent` | ground | ratio |
+|---|---|---|
+| `#9b5dff` | rgb(51, 40, 75) | 3.50 |
+| `#b479ff` — shipped | rgb(54, 44, 75) | 4.41 |
+| `#bd8cff` | rgb(56, 46, 75) | 5.03 |
+| `#d9bcff` | rgb(60, 53, 75) | 6.99 |
+
+The ink's relative luminance runs 0.2202 → 0.5794 across that range while the ground's runs 0.0271 →
+0.0400. `#bd8cff` — a colour this kit already ships, as the top of the dark ramp — clears the bar on
+its own badge.
+
+So these rows are **closable by lightening the accent, and expensive**. What holds them here is the
+brand, not the mathematics: the accent that closes all of them is well past the point where it is
+still this violet, and both #96 and #157 chose the hue first and the ratio second. That is a real
+reason to carry them as debt. "Impossible" was not, and it was the sentence justifying rows recorded
+as permanent debt with no owner, which is why it had to be right.
+
+Three rules remain in dark, over the four rows of bucket B in `stories/contrast.test.js`:
+
+- `src/styles/dropdown.css:106` — `.ui-dropdown__badge.is-accent`, at 14%. Two rows, hovered and
+  focused, and only those two: the badge's mix sits over whatever the row beneath it is, and
+  `.ui-dropdown__item` lightens from the panel's `--surface-2` to `--surface` in exactly those two
+  states. At rest the pair clears.
+- `stories/foundations/Motion.stories.js:98` — the story's own `.mz-replay:hover`, at 20%. One row.
+  The base rule at `:95` is 12% and clears at 4.56; only the hover fails.
+- the copy control on the green-tinted snippet bar of a live card. One row, and not purple at all —
+  it fails under every accent including Phoenix and Ocean, so it is a surface problem rather than an
+  accent one, shared by the snippet and card owners.
+
+The "soon" badge is **not** one of these and was mis-filed here. `src/styles/card.css:36` mixes the
+accent into `--surface`, an opaque token, not into transparency; the ink on it is `--purple-mid`, not
+`--accent`. Its dark row cleared when the ramp moved up behind the accent — 3.94 to 4.67 — and its
+light row never moved and still fails, in bucket F.
 
 `.ui-nav__badge.is-accent` (`src/styles/nav.css:100`) is the counter-example, and not the one this
 record originally claimed. It was cited here as a rule that takes `var(--glow-purple)` and had been
@@ -225,12 +319,17 @@ color-mix rules either way, because the ground it reads on is a token the kit sh
 of the ink itself. That is still the shape the others should take. What it stopped being is evidence
 that a token move alone had fixed anything.
 
-A fourth remaining row is not purple at all — the copy control on the green-tinted snippet bar of a
-live card, which fails under every accent including Phoenix and Ocean today. It is a surface problem
-and not an accent one.
-
 **The token gate cannot see any of them.** It measures tokens against tokens; a ground a component
 mixes for itself is only visible to the story walk, and only where a story renders it.
+
+**A token declared only in `tokens.css`'s theme blocks is neither mirrored nor gated as accent
+family.** `FAMILY` — the set of properties the sub-theme mirror is held to — is derived from the
+`[data-accent="…"]` blocks in `accents.css`, because those blocks are what an accent overrides. A
+property added to the theme blocks of `tokens.css` alone is therefore in no accent's family: the
+mirror is not required to paint it, and the drift check never asks about it. `--accent` itself is
+declared that way and is caught only because the sub-theme panels happen to pin it. This is a real
+limit of the gate rather than an oversight in a value, and closing it means deciding what the accent
+family IS — the union of both files, or the intersection — which this change does not decide.
 
 **Nothing enforces the base-surface rule.** "The accent wash is painted on a base surface, never
 stacked on a raised one" is the rule this change adopted, and it is held by one edited stylesheet and
@@ -256,10 +355,18 @@ lightness comes down four points, which is the change #96 twice made and nobody 
 an argument from precedent, not from anyone having looked at the two side by side under the light
 theme's surfaces.
 
-**The exemption mechanism has nothing proving it works.** Its list is empty, so the test that fails a
-stale entry currently measures nothing. That is the price of a gate with no excuses in it, and the
-cheaper half of the trade — the alternative was leaving a failing pair in the list to keep the
-mechanism exercised.
+**Half the exemption machinery still has nothing proving it works.** The PAIR list is empty, so the
+test that fails a stale pair entry currently measures nothing. That is the price of a gate with no
+excuses in it, and the cheaper half of the trade — the alternative was leaving a failing pair in the
+list to keep the mechanism exercised. The GROUND list is no longer in that position: `--seg-active-bg`
+is a live entry, and removing it puts four cells under the floor, so the path through that half of
+the code is exercised on every run.
+
+**Whether `--seg-active-bg` should be excused at all.** The entry rests on a reading of the
+stylesheets — that the active segmented pill sets `color: var(--strong)` and that nothing else in the
+kit paints on that token. That was checked by hand, on one day, by one person. Nothing re-checks it,
+and nothing can: it is a claim about what components do, and this is a token gate. If it is wrong, or
+becomes wrong, the gate stays green while a pair sits at 4.23.
 
 **Whether the colour is right.** AA is a floor. This record says the dark accent now clears it; it
 does not say the violet is the correct violet.
