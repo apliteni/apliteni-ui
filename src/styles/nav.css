@@ -84,6 +84,17 @@
 .ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); color: var(--pink); }
 .ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; cursor: default; pointer-events: none; }
 
+/* The current row under the pointer. It rests on --surface-3, which is also what
+   a resting row hovers to, so the one row with no hover response was the row the
+   reader is standing on. There is no surface above --surface-3, so the step is
+   mixed: --text is near-white in dark and near-black in light, and both themes
+   raise a surface by moving it away from the page. Written after the danger
+   rules so it cannot out-rank them — sign out is never the current row, but a
+   rule that could take its wash would be one to argue with later. */
+.ui-nav__item.is-active:not(.is-danger):hover {
+  background: color-mix(in srgb, var(--text) 10%, var(--surface-3));
+}
+
 /* Per-item badge / counter */
 .ui-nav__badge {
   flex: none;

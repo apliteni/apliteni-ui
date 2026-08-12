@@ -11,9 +11,9 @@ export default {
 const NAV = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...ACCOUNT_NAV];
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 const CRUMBS = [{ label: 'Account', href: '#' }, { label: 'Access & agents' }];
-
+// A crumb `label` is text and nav.js escapes it; `title` is a raw-HTML slot.
 const screen = (opts) => appShell({
-  nav: NAV, active: 'access', crumbs: CRUMBS, title: 'Access & agents',
+  nav: NAV, active: 'access', crumbs: CRUMBS, title: 'Access &amp; agents',
   account: READER, signOutHref: '#logout', ...opts,
 });
 

@@ -44,8 +44,11 @@
    hovering a row do nothing. Scoped, so a sidebarNav() anywhere else is
    untouched — and the destructive row is left out, because this rule ties with
    nav.css's danger wash on specificity and wins on source order alone. Sign out
-   was quietly losing the --pink wash the guideline page cites nav.css for. */
-.ui-app__rail .ui-nav__item:not(.is-danger):hover { background: var(--surface-3); }
+   was quietly losing the --pink wash the guideline page cites nav.css for. The
+   current row is left out for the same reason: this rule outranks nav.css's
+   active hover, and painting --surface-3 over a row already resting on it is
+   what made the row you are standing on the one row that ignores the pointer. */
+.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface-3); }
 .ui-app__brand {
   display: flex;
   align-items: center;

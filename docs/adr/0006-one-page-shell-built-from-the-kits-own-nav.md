@@ -34,6 +34,10 @@ B, this session.
 
 The decisions that followed, in the order they were taken:
 
+**`appShell()` is the kit's answer; `accountShell()` is a compatibility preset.** New work calls
+`appShell()`. `accountShell()` stays for the `/account` pages already on it, and `docs/library.md`
+marks it as such — so nobody has to be told which of two exported factories to reach for.
+
 **The topbar stays, off by default.** `appShell()` renders none unless the caller passes one.
 `accountShell()` passes one, because `versions`, `showSwitch` and `wireTopbar()` are published
 behaviour — dropping the topbar silently would take the theme toggle and the account menu off every
@@ -108,6 +112,16 @@ that is a breaking change for anyone who hand-wrote the markup rather than calli
 
 The fold is one breakpoint at 720px and one shape below it — an icon strip. There is no drawer, no
 toggle, and no way for a reader to see the labels again at that width without turning the device.
+
+There is no skip link. The rail comes before `<main>` in the source, so a sighted keyboard-only
+reader tabs every nav row before reaching the page — at 375px the rail is still every entry, just
+narrower. The landmarks are what carries this: `<nav>` and `<main>` are both named, which satisfies
+WCAG 2.4.1 through ARIA11, so it is a limitation and not a failure. It is a limitation a reader
+using a keyboard without a screen reader feels on every page.
+
+`<main>` is settled for the pages the shell composes and for those alone. `Landing`, `SignIn` and
+`Consent` are not shell-composed — they draw `.ui-hero` and `.ui-auth` directly — and still emit no
+main landmark at all.
 
 A badge is hidden in the folded rail, as it is in the explicitly collapsed one. The count survives
 in the accessible name and not on screen.

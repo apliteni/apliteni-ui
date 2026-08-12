@@ -361,6 +361,47 @@ test('a hovered rail row is still a step above the rail it sits in', () => {
   }
 });
 
+// The one row with no hover response was the row the reader is standing on:
+// .is-active rests on --surface-3 and the rail's hover rule painted --surface-3
+// over it, an exact no-op. Every state in this kit is designed, and "the pointer
+// is on the current page" is a state.
+test('hovering the row the reader is standing on is a response, in both themes', () => {
+  for (const theme of ['dark', 'light']) {
+    const at = mount(SHELL, { theme });
+    const rail = at.bg('.ui-app__rail');
+    const rest = parseColour(at.css('.ui-app__rail .ui-nav__item.is-active', 'backgroundColor'));
+    const hover = parseColour(at.inState('.ui-app__rail .ui-nav__item.is-active', 'hover', 'backgroundColor'));
+    assert.ok(rest && rest[3] > 0, `the current row paints no resting background in ${theme}`);
+    assert.ok(hover && hover[3] > 0, `the current row paints no hovered background in ${theme}`);
+    const moved = ratio(composite(hover, rail), composite(rest, rail));
+    assert.ok(
+      moved > 1.02,
+      `the current row is ${r2(moved)}:1 against its own resting state in ${theme} — hovering `
+      + 'the row you are on does nothing, and it is the only row in the rail that does nothing',
+    );
+    assert.ok(
+      ratio(composite(hover, rail), rail) > ratio(composite(rest, rail), rail),
+      `hovering the current row in ${theme} moves it back towards the rail. Every other row `
+      + 'steps away from the rail under the pointer; the current one must not recede.',
+    );
+  }
+});
+
+// The rail's other rows keep the step they had — an active-row rule that also
+// caught them would flatten the difference between "here" and "under the pointer".
+test('a resting row still hovers to the step below the current row', () => {
+  for (const theme of ['dark', 'light']) {
+    const at = mount(SHELL, { theme });
+    const rail = at.bg('.ui-app__rail');
+    const plain = parseColour(at.inState('.ui-app__rail .ui-nav__item:not(.is-active)', 'hover', 'backgroundColor'));
+    const active = parseColour(at.inState('.ui-app__rail .ui-nav__item.is-active', 'hover', 'backgroundColor'));
+    assert.ok(
+      ratio(composite(active, rail), rail) > ratio(composite(plain, rail), rail),
+      `a hovered resting row and the hovered current row read the same in ${theme}`,
+    );
+  }
+});
+
 // ---- C2. the active row is the brightest by construction -----------------
 
 test('the active glyph is the brightest in the rail, whatever the accent is', () => {
@@ -524,6 +565,32 @@ const DEMO_SCREENS = ['Access', 'EmptyStates', 'FinanceReport', 'Preferences'];
 const storyFiles = () => readdirSync(path.join(root, 'stories/apps'))
   .filter((f) => f.endsWith('.stories.js')).sort();
 
+// `title`, `sub` and `body` are raw-HTML slots — that is what lets a title carry
+// a badge — so the caller owes them markup, not text. The demo set was passing
+// `title: 'Access & agents'`, and a bare `&` is a parse error in the very string
+// that IS escaped on the same screen when it travels through a nav label or a
+// crumb. An & that starts no character reference is the whole test: nothing else
+// distinguishes text handed to a markup slot from markup.
+const BARE_AMP = /&(?!#\d+;|#x[0-9a-fA-F]+;|[a-zA-Z][a-zA-Z0-9]*;)/g;
+
+test('no example screen writes text into a markup slot and calls it markup', async () => {
+  const bad = [];
+  for (const file of storyFiles()) {
+    const mod = await import(`./${file}`);
+    for (const [name, story] of Object.entries(mod)) {
+      if (name === 'default' || typeof story?.render !== 'function') continue;
+      for (const m of story.render().matchAll(BARE_AMP)) {
+        bad.push(`${file}:${name} — …${story.render().slice(Math.max(0, m.index - 24), m.index + 16)}…`);
+      }
+    }
+  }
+  assert.deepEqual(
+    bad, [],
+    'an example screen ships a bare & into raw HTML, so the kit\'s own demo is invalid markup '
+    + 'where the identical string is escaped a few nodes away:\n  ' + bad.join('\n  '),
+  );
+});
+
 // The import list, not any mention of the name: these files talk about the
 // preset in their comments, and a comment is not a call.
 const importsFactory = (src, name) =>
@@ -565,6 +632,35 @@ test('every example screen built on appShell() makes the same call about the top
     + 'the account menu off every consuming /account page — but appShell() ships with none, '
     + 'and a demo set that shows both without saying why teaches neither.',
   );
+});
+
+// The finance portal's nav was written out twice — once in EmptyStates and once
+// in FinanceReport — with a comment in each pointing at the other. That is the
+// defect this issue exists to remove, rebuilt in the demo layer. Rendering both
+// and comparing proves nothing: two copies of four entries look identical. What
+// proves derivation is changing the one definition and watching both follow.
+test('the two finance screens draw one nav definition, not two copies of it', async () => {
+  const { FINANCE_NAV } = await import('./_finance-nav.js');
+  const probe = { id: 'probe-127-demo', icon: 'gear', label: 'Probe & drift' };
+  FINANCE_NAV.push(probe);
+  try {
+    for (const file of ['EmptyStates', 'FinanceReport']) {
+      const mod = await import(`./${file}.stories.js`);
+      const drawn = Object.entries(mod)
+        .filter(([name, story]) => name !== 'default' && typeof story?.render === 'function')
+        .map(([, story]) => story.render())
+        .join('');
+      assert.match(
+        drawn, /href="#probe-127-demo"/,
+        `${file}.stories.js keeps a copy of the finance nav of its own, so the two agree only `
+        + 'for as long as somebody keeps editing both',
+      );
+    }
+  } finally {
+    const at = FINANCE_NAV.indexOf(probe);
+    if (at >= 0) FINANCE_NAV.splice(at, 1);
+  }
+  assert.equal(FINANCE_NAV.some((i) => i.id === 'probe-127-demo'), false, 'the probe outlived its test');
 });
 
 // The preset's topbar composition is the newest thing in the shell and the one

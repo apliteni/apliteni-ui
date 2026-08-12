@@ -78,7 +78,7 @@ export const Default = {
           `<span class="ui-badge ui-badge--live">Read-only</span>${button({ label: 'Revoke', variant: 'danger', size: 'sm' })}`)}
         ${cell('layers', 'var(--amber)', 'Deck or text', 'The same content as an animated deck or a calm long-form. Switch anytime.',
           segmented({ ariaLabel: 'View', options: ['Deck', 'Text'], active: 0, size: 'sm', name: 'view' }))}
-        ${cell('globe', 'var(--green)', 'English & Russian', 'The whole surface localises, so the team reads it in the language they think in.',
+        ${cell('globe', 'var(--green)', 'English &amp; Russian', 'The whole surface localises, so the team reads it in the language they think in.',
           segmented({ ariaLabel: 'Language', options: ['EN', 'RU'], active: 0, size: 'sm', name: 'lang' }))}
         ${cell('bolt', 'var(--purple-mid)', 'Always current', 'Versioned cleanly — the live version is at the root, archives keep their own path.',
           `<span class="ui-badge ui-badge--soon">phoenix.2026.002</span>${badge('Live', 'live')}`)}

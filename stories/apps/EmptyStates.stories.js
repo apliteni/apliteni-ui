@@ -1,20 +1,11 @@
 import { appShell } from '../../src/components/shell.js';
 import { card, emptyState, button, input, segmented } from '../../src/components/index.js';
+import { FINANCE_NAV, FINANCE_READER } from './_finance-nav.js';
 
 export default {
   title: 'Apps/Empty states',
   parameters: { layout: 'fullscreen' },
 };
-
-// The finance portal's own nav, written where the screen that uses it lives —
-// it is not the kit's account default and never was.
-const NAV = [
-  { id: 'dashboard', icon: 'chart', label: 'Dashboard', href: '#', target: '_top' },
-  { id: 'payouts', icon: 'card', label: 'Payouts', href: '#', target: '_top' },
-  { id: 'invoices', icon: 'doc', label: 'Invoices', href: '#', target: '_top' },
-  { id: 'prefs', icon: 'gear', label: 'Preferences', href: '#', target: '_top' },
-];
-const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 
 // The same screen the finance portal draws, and drawn the same way: appShell()
 // ships with no topbar, so none of the example screens asks for one. The rail
@@ -24,14 +15,14 @@ const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 // `showSwitch` and wireTopbar() are published behaviour on that page.
 const financeShell = ({ active, crumb, title, sub, body }) => appShell({
   word: 'Finance',
-  nav: NAV,
+  nav: FINANCE_NAV,
   active,
   navLabel: 'Finance',
   crumbs: [{ label: 'Finance', href: '#' }, { label: crumb || title }],
   title,
   sub,
   body,
-  account: READER,
+  account: FINANCE_READER,
   signOutHref: '#logout',
 });
 

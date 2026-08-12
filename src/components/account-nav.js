@@ -29,3 +29,19 @@ export const toMenuTuple = (it) => [
 // What accountMenu() falls back to. Derived on call, not frozen at import, so
 // the menu and the rail cannot answer differently about the same definition.
 export const accountMenuNav = () => ACCOUNT_NAV.map(toMenuTuple);
+
+// One reader, one pair of initials. The rail (shell.js) and the topbar's
+// account menu (topbar.js) both draw an avatar for the same person, and each
+// computed it for itself: the rail preferred the display name, the menu only
+// ever read the email's local part. So the /account preset — the one screen
+// with both on it — said "AL" in the rail and "A" in the topbar. This lives
+// beside ACCOUNT_NAV for the same reason ACCOUNT_NAV lives here: both files
+// need it and shell.js already imports topbar.js.
+//
+// The display name is what a reader recognises, so it wins; the address is the
+// fallback. `?` is what nobody at all comes out as.
+export const initials = (name, email) => {
+  const from = String(name ?? '').trim() || String(email ?? '').split('@')[0] || '';
+  const parts = from.split(/[\s._-]+/).filter(Boolean).map((w) => w[0]);
+  return (parts.slice(0, 2).join('') || '?').toUpperCase();
+};

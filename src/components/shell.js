@@ -8,33 +8,57 @@ import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs } from './nav.js';
 import { prism } from '../assets/brand.js';
-import { ACCOUNT_NAV, toMenuTuple } from './account-nav.js';
+import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
 
 // The one account navigation definition lives in account-nav.js, because
 // topbar.js needs it too and this file already imports topbar.js. Re-exported
 // here so the published name docs/library.md documents keeps working.
 export { ACCOUNT_NAV };
 
+const str = (v) => (v == null ? '' : String(v));
+const isRecord = (v) => typeof v === 'object' && v !== null;
+
+// ---- the options bag, settled once --------------------------------------
+//
+// Every option below carries a shape, and a default parameter covers
+// `undefined` and nothing else — so `nav: null` from an /auth/me, a `maxWidth`
+// out of tenant config, a `crumbs` string written by somebody reading the
+// migration note all arrived as they were. A shell that throws mid-render takes
+// the page with it, so each is settled here, before the first sink sees it, and
+// a parameter is protected by being declared rather than by what it crashes
+// into. Adding one to appShell() means adding it to SHAPES or deciding in the
+// open that it needs nothing.
+
 // accountShell() has always taken its nav as [id, icon, label, href?, target?].
 // Accept that shape and nav.js's object shape side by side, so a consumer's
 // existing tuples and the exported ACCOUNT_NAV both work. A nav that is not a
-// list at all falls back to the default, for the same reason `account: null`
-// and an unparseable `maxWidth` do: a shell that throws mid-render takes the
-// page with it. An empty list is an answer, not a mistake — it stays empty.
-const toItems = (nav) => (Array.isArray(nav) ? nav : ACCOUNT_NAV).map((n) => (Array.isArray(n)
-  ? { id: n[0], icon: n[1], label: n[2], href: n[3], target: n[4] }
-  : n));
+// list at all falls back to the default; an entry inside one that is neither
+// shape is dropped, because sideItem() reads `.items` off whatever it is given.
+// An empty list is an answer, not a mistake — it stays empty.
+const toItems = (nav) => (Array.isArray(nav) ? nav : ACCOUNT_NAV)
+  .filter(isRecord)
+  .map((n) => (Array.isArray(n)
+    ? { id: n[0], icon: n[1], label: n[2], href: n[3], target: n[4] }
+    : n));
 
-const str = (v) => (v == null ? '' : String(v));
+// The trail is the caller's, and `crumbs` is the one option whose shape changed
+// in this release: the old API was `crumb: 'Payouts'`, a string, and the new one
+// is `crumbs: [{ label }]`. One letter apart. A value that is not a list is not
+// read as a one-crumb trail — that would draw a plausible page and hide the
+// migration mistake — so it is no trail at all, which is the visible answer. A
+// crumb with no label would draw an empty cell, so it goes too.
+const toCrumbs = (crumbs) => (Array.isArray(crumbs) ? crumbs : [])
+  .filter((c) => isRecord(c) && !Array.isArray(c) && str(c.label) !== '');
 
-// The reader, escaped for accountMenu()'s raw sinks. Only the keys the caller
-// actually sent are rewritten: accountMenu()'s own parameter defaults stay the
-// one place the demo identity is written down. A key that arrived null is
-// dropped rather than passed on, because a default parameter covers `undefined`
-// alone — an /auth/me answering `email: null` otherwise reached the menu's
-// `email.split('@')` and took the page down with it.
+// The reader, as two strings. railUser() and initials() both read them, and an
+// /auth/me answering `account: null` or a numeric display name reached both.
+const toReader = (a) => (isRecord(a) ? { name: str(a.name), email: str(a.email) } : { name: '', email: '' });
+
+// The same two fields, escaped, for the topbar menu's raw sinks. A key that was
+// never given is dropped rather than emptied, so accountMenu() still falls back
+// to its own default instead of drawing a reader with no name.
 const escReader = (a) => {
-  const out = { ...a };
+  const out = isRecord(a) ? { ...a } : {};
   for (const key of ['name', 'email']) {
     if (out[key] == null) delete out[key];
     else out[key] = esc(str(out[key]));
@@ -54,11 +78,14 @@ const mainMax = (v) => {
   return s === 'none' || LENGTH.test(s) ? s : MAIN_MAX;
 };
 
-const initials = (name, email) => {
-  const from = str(name).trim() || (str(email).split('@')[0] || '');
-  const parts = from.split(/[\s._-]+/).filter(Boolean).map((w) => w[0]);
-  return (parts.slice(0, 2).join('') || '?').toUpperCase();
-};
+// The one pass. Each key names the function that settles it; nothing else in
+// this file re-checks a value that has been through here.
+const SHAPES = { nav: toItems, crumbs: toCrumbs, account: toReader, maxWidth: mainMax };
+function settle(options) {
+  const out = { ...options };
+  for (const key of Object.keys(SHAPES)) out[key] = SHAPES[key](out[key]);
+  return out;
+}
 
 // Signing out is a navigation action, so it belongs in the rail nav's footer
 // slot. Opt-in: a shell that renders it unasked puts a dead link on a page with
@@ -77,9 +104,7 @@ const signOut = (href) =>
 // narrow rail folds `.ui-app__who` out of view, so a name that lived only there
 // left the initials on screen with nothing at all in the accessibility tree.
 // Naming the mark instead makes the two agree at every width, and says it once.
-function railUser(user) {
-  const name = str(user && user.name);
-  const email = str(user && user.email);
+function railUser({ name, email }) {
   if (!name && !email) return '';
   const who = [name, email].filter(Boolean).join(', ');
   return `<div class="ui-app__user">` +
@@ -95,23 +120,26 @@ function railUser(user) {
 // nav.js keeps a module counter. Two shells on one page must not collide.
 let _shellUid = 0;
 
-export function appShell({
-  word = 'apliteni-ui',
-  brandHref = '#',
-  nav = ACCOUNT_NAV,
-  active,
-  navLabel = 'Account',
-  crumbs = [],
-  title = '',
-  sub = '',
-  body = '',
-  account = {},
-  signOutHref = '',
-  topbar = null,
-  maxWidth = MAIN_MAX,
-} = {}) {
+export function appShell(options = {}) {
+  // Everything in SHAPES arrives settled; the rest is text, and a text default
+  // is what a default parameter is for.
+  const {
+    word = 'apliteni-ui',
+    brandHref = '#',
+    nav,
+    active,
+    navLabel = 'Account',
+    crumbs,
+    title = '',
+    sub = '',
+    body = '',
+    account,
+    signOutHref = '',
+    topbar = null,
+    maxWidth,
+  } = settle(options);
   const rail = sidebarNav({
-    sections: [{ label: navLabel, items: toItems(nav) }],
+    sections: [{ label: navLabel, items: nav }],
     active,
     ariaLabel: navLabel,
     footer: signOutHref ? signOut(signOutHref) : '',
@@ -132,7 +160,7 @@ export function appShell({
       ${rail}
       ${railUser(account)}
     </div>
-    <main class="ui-app__main" style="--ui-app-main: ${mainMax(maxWidth)}">
+    <main class="ui-app__main" style="--ui-app-main: ${maxWidth}">
       ${crumbs.length ? breadcrumbs({ items: crumbs }) : ''}
       ${title ? `<h1>${title}</h1>` : ''}
       ${sub ? `<p class="ui-app__sub">${sub}</p>` : ''}
@@ -158,8 +186,10 @@ export function accountShell({
   body = '',
   signOutHref = '#logout',
 } = {}) {
+  // The same normaliser appShell() runs, called once here because the tuples the
+  // topbar menu needs are drawn from the same list the rail is.
   const items = toItems(nav);
-  const trail = [{ label: cap }, { label: crumb || title }].filter((c) => c.label);
+  const trail = [{ label: cap }, { label: crumb || title }];
   // The topbar's sinks interpolate raw where the rail's escape: brand() writes
   // `word` straight into its markup and accountMenu() does the same with the
   // reader's name and address. So the topbar path gets its own escaped copy —

@@ -465,6 +465,28 @@ test('a reader\'s name and address reach the topbar menu escaped, as they reach 
   assert.doesNotMatch(html, /<svg onload=alert\(2\)>/, 'the address is live markup inside the account menu');
 });
 
+// The preset is the one screen that draws both avatars at once, and they were
+// computed by two functions: initials() in shell.js prefers the display name,
+// accountMenu()'s own `ini` only ever read the email's local part. One reader,
+// two answers, on the screen this branch created to show both surfaces together
+// — the same drift class #127 was filed about.
+test('the rail and the topbar say the same initials about the same reader', () => {
+  const doc = dom(accountShell({ account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' } }));
+  const rail = doc.querySelector('.ui-app__av').textContent.trim();
+  const top = doc.querySelector('.acct .avatar').textContent.trim();
+  assert.equal(
+    top, rail,
+    `the topbar avatar reads "${top}" and the rail avatar reads "${rail}" for one reader — `
+    + 'two functions computing initials off two different fields',
+  );
+  assert.equal(rail, 'AL', 'a display name is what a reader recognises, so it is what wins');
+});
+
+test('with no display name both surfaces fall back to the address, together', () => {
+  const doc = dom(accountShell({ account: { email: 'ada.lovelace@apliteni.com' } }));
+  assert.equal(doc.querySelector('.acct .avatar').textContent.trim(), 'AL');
+});
+
 test('the product word reaches the topbar lockup escaped too', () => {
   assert.doesNotMatch(
     accountShell({ word: '<img src=x onerror=alert(3)>' }), /<img src=x onerror=alert\(3\)>/,
@@ -575,6 +597,77 @@ test('a missing or mistyped nav falls back to the default rather than throwing',
 // from "I did not pass one" — the shell must not put links back.
 test('an empty nav is a caller\'s answer, not a mistake to correct', () => {
   assert.doesNotMatch(appShell({ nav: [] }), /href="#prefs"/, 'an explicitly empty rail was refilled with the default');
+});
+
+// A list the caller passed stays the caller's list, holes and all — dropping
+// what cannot be drawn is not the same as deciding they meant the default.
+test('a hole inside nav is dropped, and the rest of the caller\'s list still draws', () => {
+  let html;
+  assert.doesNotThrow(
+    () => { html = appShell({ nav: [null, { id: 'alpha', icon: 'gear', label: 'Alpha' }, 'prefs', 42] }); },
+    'a null inside the nav list reaches sideItem(), which reads `it.items` off it',
+  );
+  assert.match(html, /href="#alpha"/, 'the drawable entry went with the holes');
+  assert.doesNotMatch(html, /href="#prefs"/, 'a list with a hole in it was replaced by the default');
+  assert.doesNotMatch(html, /undefined/, 'an undrawable entry was drawn as an unnamed row');
+});
+
+// ---- crumbs: the one option whose shape changed in this release ----------
+//
+// The old API was `crumb: 'Payouts'`, a string; the new one is
+// `crumbs: [{ label }]`. One letter apart, so a consumer following the
+// migration note writes `crumbs: 'Payouts'` — and got a blank page rather than
+// a missing trail, because `.length` and `.map` were read off it unguarded.
+// Same reasoning as `nav`, `account` and `maxWidth`: a shell that throws
+// mid-render takes the page with it.
+
+test('a crumbs value that is not a list draws no trail rather than throwing', () => {
+  for (const bad of [null, 'Account / Payouts', 42, {}, { label: 'Payouts' }]) {
+    let html;
+    assert.doesNotThrow(
+      () => { html = appShell({ crumbs: bad, title: 'Payouts' }); },
+      `appShell threw on crumbs: ${JSON.stringify(bad)}`,
+    );
+    assert.doesNotMatch(
+      html, /aria-label="Breadcrumb"/,
+      `crumbs: ${JSON.stringify(bad)} produced a trail out of a value that is not one`,
+    );
+    assert.match(html, /<main\b/, 'the page stopped rendering at all');
+  }
+});
+
+// Reading a bare string as a one-crumb trail would hide the migration mistake:
+// the page would look right and the caller would never learn that `crumb` is
+// now `crumbs`. No trail is the honest outcome.
+test('a bare string is not quietly reinterpreted as a one-crumb trail', () => {
+  const html = appShell({ crumbs: 'Payouts', title: 'Payouts' });
+  assert.doesNotMatch(html, /ui-nav--crumbs/, 'the string was promoted to a trail of its own');
+});
+
+test('a hole inside the crumb trail is dropped, and the rest of it still draws', () => {
+  let html;
+  assert.doesNotThrow(
+    () => { html = appShell({ crumbs: [null, { label: 'Account', href: '#' }, 'Payouts', {}, { label: 'Access & agents' }] }); },
+    'a null inside the trail reaches breadcrumbs(), which reads `it.icon` off it',
+  );
+  assert.match(html, /aria-label="Breadcrumb"/, 'the whole trail went with the holes');
+  assert.match(html, /Account/);
+  assert.match(html, /aria-current="page"[^>]*>(?:(?!<\/nav>).)*Access &amp; agents/s);
+  assert.doesNotMatch(html, /undefined/, 'an undrawable crumb was drawn as an unnamed one');
+});
+
+test('a trail with nothing drawable in it is no trail at all', () => {
+  for (const bad of [[], [null], [{}], [{ label: '' }, undefined]]) {
+    assert.doesNotMatch(
+      appShell({ crumbs: bad, title: 'T' }), /aria-label="Breadcrumb"/,
+      `crumbs: ${JSON.stringify(bad)} left an empty breadcrumb landmark on the page`,
+    );
+  }
+});
+
+test('accountShell hardens the crumb trail the same way', () => {
+  assert.doesNotThrow(() => accountShell({ cap: null, crumb: null, title: null }));
+  assert.doesNotThrow(() => accountShell({ nav: [null], cap: 'Account', crumb: 'Payouts' }));
 });
 
 test('the shell escapes the caller\'s brand word', () => {

@@ -1,19 +1,11 @@
 import { appShell } from '../../src/components/shell.js';
 import { badge, card, segmented, icon } from '../../src/components/index.js';
+import { FINANCE_NAV, FINANCE_READER } from './_finance-nav.js';
 
 export default {
   title: 'Apps/Finance report',
   parameters: { layout: 'fullscreen' },
 };
-
-// The finance portal's own nav, beside the screen that uses it — see the same
-// list in EmptyStates.stories.js. It is a demo portal's nav, not the kit's.
-const NAV = [
-  { id: 'dashboard', icon: 'chart', label: 'Dashboard', href: '#', target: '_top' },
-  { id: 'payouts', icon: 'card', label: 'Payouts', href: '#', target: '_top' },
-  { id: 'invoices', icon: 'doc', label: 'Invoices', href: '#', target: '_top' },
-  { id: 'prefs', icon: 'gear', label: 'Preferences', href: '#', target: '_top' },
-];
 
 // KPI stat — label / value / sub, income green & net pink when negative.
 const kpi = (label, value, sub, tone) =>
@@ -90,10 +82,10 @@ const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe 
 export const Default = {
   render: () => KPI_CSS + appShell({
     word: 'Finance',
-    nav: NAV,
+    nav: FINANCE_NAV,
     active: 'payouts',
     navLabel: 'Finance',
-    account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+    account: FINANCE_READER,
     signOutHref: '#logout',
     crumbs: [{ label: 'Finance', href: '#' }, { label: 'Payouts' }],
     title: 'Payouts',

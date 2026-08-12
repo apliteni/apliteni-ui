@@ -48,8 +48,9 @@ export const WithVersionSwitcher = {
     account: READER,
     active: 'access',
     cap: 'Account',
+    // `crumb` is text and the shell escapes it; `title` is a raw-HTML slot.
     crumb: 'Access & agents',
-    title: 'Access & agents',
+    title: 'Access &amp; agents',
     sub: 'The same preset carrying a version switcher and the Deck/Text pair.',
     showSwitch: true,
     versions: [
