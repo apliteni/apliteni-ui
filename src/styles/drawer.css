@@ -26,9 +26,11 @@
      inherit it. Only the HIDE is transitioned, so the panel is still on screen
      while it slides out; the show is instant (`.is-open` cancels the
      transition) because openDrawer() focuses a control in the same frame it
-     opens, and focus() on a hidden element does nothing. */
+     opens, and focus() on a hidden element does nothing. `linear` and not
+     var(--ease): visibility is discrete, easing a step buys nothing, and a curve
+     that leaves [0, 1] would flip it in the middle of the fade. */
   visibility: hidden;
-  transition: visibility var(--dur-med) var(--ease);
+  transition: visibility var(--dur-med) linear;
 }
 .ui-drawer.is-open { visibility: visible; transition: none; }
 

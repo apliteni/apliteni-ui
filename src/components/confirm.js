@@ -5,17 +5,18 @@
 //
 // A page trigger opens it by id:  <button data-confirm-open="ID">…</button>
 // (or call openConfirm(rootEl) directly). Pass `open: true` to render it already
-// open — handy for specimens/screenshots.
+// open, or `specimen: true` for a picture of one on a documentation page.
 //
 // Answering is the caller's job: both answers close the dialog, and a listener
 // on [data-confirm-accept] is where the destructive work goes. Focus opens on
 // the SAFE answer, never the destructive one, so a reader who hits Enter out of
 // habit keeps what they have.
 //
-// The scrim and focus trap come from ./overlay.js — the same ones the drawer
-// runs, so the kit has one trap and not two.
+// Inertness, Escape and the focus trap come from ./overlay.js — one stack for
+// every overlay on the page, so a confirm over a drawer never has to guess which
+// of the two the keyboard belongs to.
 import { button, esc } from './index.js';
-import { focusablesIn, inertOutside, trapTab } from './overlay.js';
+import { focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -29,11 +30,18 @@ const nextId = (p = 'confirm') => `${p}-${++_uid}`;
 //   confirmLabel  the destructive answer (default 'Confirm')
 //   cancelLabel   the safe answer (default 'Cancel')
 //   variant       'danger' (default) | 'primary' — which button the answer is
-//   open          render already-open (specimens / screenshots)
+//   open          render already-open (screenshots of a live dialog)
+//   specimen      render open as a *picture* of the dialog: same markup, minus
+//                 the data-confirm hook and aria-modal, so no wiring and no key
+//                 handler can reach it. A documentation page shows several at
+//                 once and none of them owns the page or answers Escape — an
+//                 answered specimen would erase itself with nothing to bring it
+//                 back, and three modal dialogs on one page trap the reader in
+//                 the first. `open` is the one to use when the dialog is real.
 //   id            root id — a [data-confirm-open="id"] trigger targets it
 export function confirm({
   title = 'Are you sure?', body = '', confirmLabel = 'Confirm', cancelLabel = 'Cancel',
-  variant = 'danger', id, open = false,
+  variant = 'danger', id, open = false, specimen = false,
 } = {}) {
   const titleId = nextId('confirm-title');
   const bodyId = body ? nextId('confirm-body') : null;
@@ -46,10 +54,10 @@ export function confirm({
   const acceptBtn = button({ label: confirmLabel, variant })
     .replace('<button ', '<button data-confirm-accept ');
 
-  const rootCls = cx('ui-confirm', `ui-confirm--${variant}`, open && 'is-open');
-  return `<div class="${rootCls}" data-confirm${id ? ` id="${esc(id)}"` : ''}>`
+  const rootCls = cx('ui-confirm', (open || specimen) && 'is-open');
+  return `<div class="${rootCls}"${specimen ? '' : ' data-confirm'}${id ? ` id="${esc(id)}"` : ''}>`
     + `<div class="ui-confirm__scrim" data-confirm-scrim></div>`
-    + `<div class="ui-confirm__panel" role="alertdialog" aria-modal="true"`
+    + `<div class="ui-confirm__panel" role="alertdialog"${specimen ? '' : ' aria-modal="true"'}`
     + ` aria-labelledby="${titleId}"${describedBy} tabindex="-1" data-confirm-panel>`
     + `<h2 class="ui-confirm__title" id="${titleId}">${esc(title)}</h2>`
     + (bodyId ? `<p class="ui-confirm__body" id="${bodyId}">${esc(body)}</p>` : '')
@@ -67,9 +75,11 @@ export function openConfirm(root, returnFocusTo) {
   root.__confirmReturn = returnFocusTo
     || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
   root.classList.add('is-open');
-  inertOutside(root, true);
   const panel = root.querySelector('[data-confirm-panel]');
-  // The safe answer, else the first control, else the panel itself.
+  pushOverlay(root, panel, () => closeConfirm(root));
+  // The safe answer, else the first control, else the panel itself. Asked for by
+  // name and not by position: DOM order puts the safe answer first today, and a
+  // preference that only agrees with the order proves nothing about either.
   const safe = panel && (panel.querySelector('[data-confirm-cancel]') || focusablesIn(panel)[0]);
   (safe || panel)?.focus();
 }
@@ -77,16 +87,13 @@ export function openConfirm(root, returnFocusTo) {
 export function closeConfirm(root) {
   if (!root || !root.classList.contains('is-open')) return;
   root.classList.remove('is-open');
-  inertOutside(root, false);
+  popOverlay(root);
   const back = root.__confirmReturn;
   root.__confirmReturn = null;
-  if (back && typeof back.focus === 'function') back.focus();
-}
-
-// Topmost open confirm (last in document order) — Esc closes that one.
-function topOpenConfirm(doc = document) {
-  const open = doc.querySelectorAll('[data-confirm].is-open');
-  return open.length ? open[open.length - 1] : null;
+  // The destructive work a caller hangs off [data-confirm-accept] usually deletes
+  // the row the trigger stood in, so the trigger can be detached by now — and
+  // focus() on a detached node is a silent no-op that strands the reader.
+  returnFocus(back, root.ownerDocument);
 }
 
 export function wireConfirm(scope = document) {
@@ -98,15 +105,6 @@ export function wireConfirm(scope = document) {
     cf.querySelector('[data-confirm-scrim]')?.addEventListener('click', () => closeConfirm(cf));
     cf.querySelectorAll('[data-confirm-cancel],[data-confirm-accept]').forEach((btn) =>
       btn.addEventListener('click', () => closeConfirm(cf)));
-
-    cf.addEventListener('keydown', (e) => {
-      if (!cf.classList.contains('is-open')) return;
-      if (e.key === 'Escape') {
-        e.preventDefault(); e.stopPropagation(); closeConfirm(cf);
-      } else if (e.key === 'Tab') {
-        trapTab(cf.querySelector('[data-confirm-panel]'), e);
-      }
-    });
   });
 
   const doc = scope === document ? document : (scope.ownerDocument || document);
@@ -120,11 +118,8 @@ export function wireConfirm(scope = document) {
       const target = doc.getElementById(opener.getAttribute('data-confirm-open'));
       if (target) openConfirm(target, opener);
     });
-    // Esc closes the topmost open confirm even when focus escaped the panel.
-    doc.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
-      const top = topOpenConfirm(doc);
-      if (top) { e.preventDefault(); closeConfirm(top); }
-    });
   }
+  // This runs on every re-render, which is the moment to notice that an overlay
+  // was destroyed while it was open and hand the page back.
+  syncOverlays(doc);
 }

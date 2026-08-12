@@ -2,10 +2,13 @@ import { drawer } from '../../src/components/drawer.js';
 import { button, field, input, select, switchToggle, card } from '../../src/components/index.js';
 
 // Drawers are position:fixed overlays: each story renders a little faux page
-// behind so the scrim reads true, then the drawer on top. Open-state specimens
-// pass `open: true` (mirrors the Dropdown stories' open specimens). Interactive
-// stories use a [data-drawer-open="id"] trigger; the preview decorator wires
-// them via wireDrawer().
+// behind so the scrim reads true, then the drawer on top. Interactive stories
+// use a [data-drawer-open="id"] trigger; the preview decorator wires them via
+// wireDrawer().
+//
+// The one-per-side stories pass `specimen: true` rather than `open: true`: a
+// picture of a drawer should not close itself the first time someone presses
+// Escape or hits the X, because nothing on those stories can open it again.
 export default {
   title: 'Components/Drawer',
   parameters: { layout: 'fullscreen' },
@@ -39,7 +42,7 @@ const sideStory = (side) => ({
   name: `${side[0].toUpperCase() + side.slice(1)} (open)`,
   render: () => behind() + drawer({
     side, title: `${side[0].toUpperCase() + side.slice(1)} drawer`,
-    body: LOREM, open: true,
+    body: LOREM, specimen: true,
     footer: button({ label: 'Close', variant: 'secondary' }) + button({ label: 'Save', variant: 'primary' }),
   }),
 });
@@ -79,7 +82,7 @@ export const Sizes = {
 export const FormInDrawer = {
   name: 'Form in a drawer (open)',
   render: () => behind() + drawer({
-    side: 'right', size: 'md', title: 'New API key', open: true,
+    side: 'right', size: 'md', title: 'New API key', specimen: true,
     body:
       card({ body:
         `<p style="margin:0;font:400 12.5px/1.55 Poppins;color:var(--muted)">Scoped, named, and

@@ -11,18 +11,13 @@
 //    ["t=50","visible","BODY"],["t=500","visible","BODY"]]
 //
 // JSDOM has no CSS and no transitions, so it cannot reproduce that. It can only
-// prove the aim — focus is asked to move — which is why the stylesheet is read
-// as text below and the rule that broke is pinned there instead.
+// prove the aim — focus is asked to move. The stylesheet rule that broke is
+// pinned in stories/overlay-css.test.js, which reads both overlay sheets as text
+// and asks the same questions of each.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import { JSDOM } from 'jsdom';
-
-const here = path.dirname(fileURLToPath(import.meta.url));
-const repo = path.resolve(here, '..');
 
 const dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>', { pretendToBeVisual: true });
 for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLElement', 'Event', 'KeyboardEvent', 'MouseEvent']) {
@@ -63,22 +58,4 @@ test('openDrawer() lands focus on the first control inside the panel, not on <bo
   assert.equal(doc.activeElement, first, 'focus moves into the panel');
   assert.notEqual(doc.activeElement, doc.body, 'and never onto <body>, which is where the reader landed in Chrome');
   assert.ok(host.contains(doc.activeElement));
-});
-
-// The assertion that pins the real-browser bug. `visibility` is discrete: a
-// transition holds it at the OLD value for the whole duration, so a panel whose
-// visibility is transitioned is still hidden in the frame the class lands and
-// focus() has nothing to focus. Switch it outright; delay the hide on close if
-// the slide-out needs the panel on screen, never the show on open.
-test('the panel never transitions `visibility` — a transitioned panel is still hidden when focus() runs', () => {
-  const css = readFileSync(path.join(repo, 'src/styles/drawer.css'), 'utf8');
-  const rules = [...css.matchAll(/([^{}]*\.ui-drawer__panel[^{}]*)\{([^}]*)\}/g)];
-  assert.ok(rules.length > 0, 'the panel rules were found — did the class name change?');
-
-  for (const [, selector, body] of rules) {
-    assert.doesNotMatch(
-      body, /transition[a-z-]*\s*:[^;]*\bvisibility\b/,
-      `${selector.trim()} transitions visibility, which delays the switch past the click`,
-    );
-  }
 });

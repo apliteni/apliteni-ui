@@ -102,11 +102,13 @@ export const menuDo = () => menu('pink');
 /** The same row repainted `--accent` on hover, which drops the danger cue. */
 export const menuDont = () => menu('accent');
 
-// `open: true` renders the dialog already open, which is what a still picture
-// of one needs.
+// `specimen: true` renders the dialog open and inert as documentation: no
+// data-confirm hook, no aria-modal. A page with three live confirms on it claims
+// three modal dialogs own it, traps a keyboard reader in the first, and loses a
+// specimen for good the first time someone answers one.
 const confirmSpec = (opts) => `
   <div class="gl-stage gl-stage--confirm">
-    ${confirm({ ...opts, open: true })}
+    ${confirm({ ...opts, specimen: true })}
   </div>`;
 
 /** Buttons that name the consequence. */
@@ -190,7 +192,7 @@ export const RULES = [
     doHtml: undoDo,
     dontHtml: undoDont,
     kit: [
-      { ref: 'src/components/confirm.js:52', pattern: 'role="alertdialog"' },
+      { ref: 'src/components/confirm.js:60', pattern: 'role="alertdialog"' },
       { ref: 'src/components/index.js:218', pattern: 'adds a trailing button ("Undo"/"Retry")' },
       { ref: 'src/styles/callout.css:75', pattern: '.ui-toast__action { flex: none;' },
     ],

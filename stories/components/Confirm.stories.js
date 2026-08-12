@@ -2,10 +2,15 @@ import { confirm } from '../../src/components/confirm.js';
 import { button, card } from '../../src/components/index.js';
 
 // Confirms are position:fixed overlays: each story renders a little faux page
-// behind so the scrim reads true, then the dialog on top. Open-state specimens
-// pass `open: true` (mirrors the Drawer stories' open specimens). Interactive
-// stories use a [data-confirm-open="id"] trigger; the preview decorator wires
-// them via wireConfirm().
+// behind so the scrim reads true, then the dialog on top. Interactive stories
+// use a [data-confirm-open="id"] trigger; the preview decorator wires them via
+// wireConfirm().
+//
+// The states gallery passes `specimen: true` rather than `open: true`, because a
+// gallery is a set of pictures and a live dialog is not one: answering it takes
+// the story from one dialog to none with no trigger anywhere to bring it back,
+// and while it is up it owns the keyboard, so Tab never reaches the link at the
+// bottom of the page behind it.
 export default {
   title: 'Components/Confirm',
   parameters: { layout: 'fullscreen' },
@@ -45,7 +50,7 @@ export const Playground = {
 export const Danger = {
   name: 'Danger (open)',
   render: () => behind() + confirm({
-    open: true, title: DELETE_TITLE, body: DELETE_BODY,
+    specimen: true, title: DELETE_TITLE, body: DELETE_BODY,
     confirmLabel: 'Delete workspace', cancelLabel: 'Keep it',
   }),
 };
@@ -53,7 +58,7 @@ export const Danger = {
 export const Primary = {
   name: 'Primary — not everything irreversible is destructive (open)',
   render: () => behind() + confirm({
-    open: true, variant: 'primary',
+    specimen: true, variant: 'primary',
     title: 'Publish the “Nebula” changelog?',
     body: 'It goes out to 1,240 subscribers straight away. You can edit it afterwards, but not unsend it.',
     confirmLabel: 'Publish now', cancelLabel: 'Not yet',
@@ -63,7 +68,7 @@ export const Primary = {
 export const LongConsequence = {
   name: 'A consequence worth reading (open)',
   render: () => behind() + confirm({
-    open: true,
+    specimen: true,
     title: 'Revoke every API key in this workspace?',
     body: 'All 42 keys stop working the moment you confirm — including the two the deploy bot '
       + 'uses, which will fail its next run. Issuing replacements takes a minute each, and '
@@ -75,7 +80,7 @@ export const LongConsequence = {
 export const TitleOnly = {
   name: 'Question with no consequence to spell out (open)',
   render: () => behind() + confirm({
-    open: true, title: 'Discard this draft?',
+    specimen: true, title: 'Discard this draft?',
     confirmLabel: 'Discard', cancelLabel: 'Keep editing',
   }),
 };

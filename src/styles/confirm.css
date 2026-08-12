@@ -27,17 +27,24 @@
   pointer-events: none; /* container never blocks; scrim/panel opt back in */
 
   /* Only the hide is transitioned, so the panel is still on screen while it
-     fades out; the show is instant, because focus moves in the same frame. */
+     fades out; the show is instant, because focus moves in the same frame.
+     `linear` and not var(--ease): visibility is discrete, easing a step buys
+     nothing, and a curve that leaves [0, 1] would flip it mid-fade. */
   visibility: hidden;
-  transition: visibility var(--dur-med) var(--ease);
+  transition: visibility var(--dur-med) linear;
 }
 .ui-confirm.is-open { visibility: visible; transition: none; }
+
+/* Hit-testable only while open. The root stays visible for --dur-med after
+   closeConfirm() has stopped trapping, and an accept button that is still
+   clickable in that window runs the caller's destructive work a second time. */
+.ui-confirm.is-open .ui-confirm__scrim,
+.ui-confirm.is-open .ui-confirm__panel { pointer-events: auto; }
 
 .ui-confirm__scrim {
   position: absolute;
   inset: 0;
   background: var(--confirm-scrim);
-  pointer-events: auto;
   opacity: 0;
   transition: opacity var(--dur-med) var(--ease);
 }
@@ -51,11 +58,17 @@
   left: 50%;
   translate: -50% -50%;
   width: min(var(--confirm-w), calc(100vw - var(--space-8)));
+  /* A fixed, centred panel cannot be scrolled into view — scrollIntoView does
+     nothing to it — so a panel taller than the viewport puts its answers below
+     the fold for good. Bound it, and let the consequence scroll instead. The
+     dvh line wins where it is understood; the vh line is what holds it up
+     everywhere else. */
+  max-height: calc(100vh - var(--space-8));
+  max-height: calc(100dvh - var(--space-8));
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-5);
-  pointer-events: auto;
   background: var(--confirm-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -70,8 +83,12 @@
 .ui-confirm__panel:focus-visible { outline: none; box-shadow: var(--confirm-shadow), var(--ring); }
 
 /* -- Slots ----------------------------------------------------------------- */
+/* The question and the answers keep their size; the consequence between them is
+   the one that gives, and scrolls — the same split the drawer's header / body /
+   footer makes. */
 .ui-confirm__title {
   margin: 0;
+  flex: none;
   font-family: var(--font-sans);
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
@@ -80,6 +97,9 @@
 }
 .ui-confirm__body {
   margin: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: var(--weight-normal);
@@ -88,6 +108,7 @@
 }
 .ui-confirm__acts {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;

@@ -59,10 +59,39 @@ test('a [data-confirm-open] trigger opens the dialog and focus lands on the safe
   assert.notEqual(active(), doc.body, 'and never on <body>');
 });
 
-test('openConfirm() moves focus into the panel without a trigger element', () => {
-  const host = mount('ck-api');
+// The claim above is about a *preference*, and the safe answer is also first in
+// the DOM, so position and preference give the same answer on the real markup
+// and neither test tells you which one ran. Take the order away and only the
+// preference is left: this is the one test that fails when openConfirm() stops
+// asking for [data-confirm-cancel] by name.
+test('focus lands on the safe answer even when it is not the first control in the panel', () => {
+  const host = mount('ck-pref');
+  const acts = host.querySelector('.ui-confirm__acts');
+  const cancel = host.querySelector('[data-confirm-cancel]');
+  const accept = host.querySelector('[data-confirm-accept]');
+
+  acts.insertBefore(accept, cancel);
+  assert.equal(acts.firstElementChild, accept, 'the fixture really does lead with the destructive answer');
+
   openConfirm(host.querySelector('[data-confirm]'));
-  assert.ok(host.querySelector('[data-confirm-panel]').contains(active()), 'focus is inside the panel');
+  assert.equal(active(), cancel, 'focus is on the answer that changes nothing, wherever it sits');
+});
+
+test('the safe answer is emitted first, so the first Tab stop is also the harmless one', () => {
+  const host = mount('ck-order');
+  const acts = host.querySelector('.ui-confirm__acts');
+  assert.equal(acts.firstElementChild, host.querySelector('[data-confirm-cancel]'));
+  assert.equal(acts.lastElementChild, host.querySelector('[data-confirm-accept]'));
+});
+
+test('openConfirm() moves focus onto a control in the panel without a trigger element', () => {
+  const host = mount('ck-api');
+  const panel = host.querySelector('[data-confirm-panel]');
+  openConfirm(host.querySelector('[data-confirm]'));
+  assert.ok(panel.contains(active()), 'focus is inside the panel');
+  // The panel itself carries tabindex="-1" and is the last-resort landing spot,
+  // so "inside the panel" is satisfied by focus that never reached an answer.
+  assert.notEqual(active(), panel, 'and on an answer, not parked on the panel');
 });
 
 // ---- The trap: Tab wraps both ways ---------------------------------------
@@ -126,6 +155,24 @@ test('either answer closes it and returns focus to the trigger', () => {
   }
 });
 
+// The listener on [data-confirm-accept] is where a caller's destructive work
+// goes, and what it destroys is usually the row the trigger stood in. By the
+// time the dialog hands focus back, the node it remembers can be off the page —
+// and focus() on a detached node does nothing at all.
+test('a trigger replaced while the dialog was open still gets focus back', () => {
+  const host = mount('ck-rerender');
+  const trigger = doc.getElementById('ck-rerender-trigger');
+  trigger.focus();
+  click(trigger);
+
+  const fresh = trigger.cloneNode(true);
+  trigger.replaceWith(fresh);
+  click(host.querySelector('[data-confirm-accept]'));
+
+  assert.equal(active(), fresh, 'focus goes to the trigger that is on the page now');
+  assert.notEqual(active(), trigger, 'not to the node the re-render threw away');
+});
+
 test('a scrim click cancels — the click that misses is the harmless answer', () => {
   const host = mount('ck-scrim');
   const trigger = doc.getElementById('ck-scrim-trigger');
@@ -174,4 +221,21 @@ test('wireConfirm() is safe to call twice — Storybook re-renders', () => {
   press(active(), 'Escape');
   assert.equal(host.querySelector('[data-confirm]').classList.contains('is-open'), false, 'one open, one close');
   assert.equal(active(), trigger);
+});
+
+// "Still works after two calls" is true of a dialog wired twice over, because
+// every handler the second pass adds is idempotent. What the guard is actually
+// for is that the second pass adds nothing, so count instead of retrying.
+test('wireConfirm() attaches its handlers once, however many times it is called', () => {
+  const host = mount('ck-once');
+  const added = [];
+  const proto = dom.window.EventTarget.prototype;
+  const real = proto.addEventListener;
+  proto.addEventListener = function spy(...args) {
+    if (this instanceof dom.window.Element && host.contains(this)) added.push(`${this.tagName} ${args[0]}`);
+    return real.apply(this, args);
+  };
+  try { wireConfirm(host); } finally { proto.addEventListener = real; }
+
+  assert.deepEqual(added, [], 'a second wireConfirm() stacks no second copy of the dialog handlers');
 });
