@@ -162,7 +162,11 @@ export function pushOverlay(root, panel, dismiss, layer) {
  * root the markup happens to put first. Document position only separates two
  * overlays on the same layer, and there it is the right answer rather than a
  * fallback — at equal stack levels the later root paints on top (CSS 2.2 Appendix
- * E, steps 8 and 9). A browser refines the layer from the live z-index; JSDOM has
+ * E, steps 8 and 9). That comparison earns its keep whenever adoption order and
+ * document order disagree: a root inserted above one already on the stack and
+ * wired after it, and — in a browser only — a consumer stylesheet that lifts the
+ * drawer onto the confirm's layer, where wiring runs drawer-first however the
+ * markup is ordered. A browser refines the layer from the live z-index; JSDOM has
  * none to give, so the tests hold OVERLAY_LAYER to the sheets instead. A root that
  * renders closed is left alone: wiring is not an opening, and it waits for the one
  * that is. A specimen never reaches here at all — it carries no hook for the

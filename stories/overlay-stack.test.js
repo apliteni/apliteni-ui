@@ -280,18 +280,31 @@ test('the confirm owns Escape when the drawer is the root that comes first', () 
   assert.equal(dr.classList.contains('is-open'), true, 'and the drawer is still open');
 });
 
-test('between two overlays on one layer, the root later in the document owns Escape', () => {
-  mount(
-    confirm({ id: 'st-tie-a', title: 'Discard the filters?', open: true })
-    + confirm({ id: 'st-tie-b', title: 'Delete the workspace?', open: true }),
-  );
-  const first = doc.getElementById('st-tie-a');
-  const second = doc.getElementById('st-tie-b');
+// The tie-break between two overlays on one layer, mounted so that adoption order
+// and document order disagree — which is the only mount that can prove it. Two
+// open confirms in one lump of markup cannot: wiring walks [data-confirm] in
+// document order, so the later root is always adopted last and simply appending
+// it gives the same answer the tie-break would. Here the second dialog is
+// inserted ABOVE the one already on the stack and wired after it, which is what
+// an ordinary re-render does. Appending would put the earlier root on top and
+// hand it Escape; comparing document position puts it underneath, where equal
+// z-index paints it and where the reader sees it.
+
+test('the root later in the document owns Escape even when it reached the stack first', () => {
+  const { overlays } = mount(confirm({ id: 'st-tie-b', title: 'Delete the workspace?', open: true }));
+  const later = doc.getElementById('st-tie-b');
+
+  const host = doc.createElement('div');
+  host.innerHTML = confirm({ id: 'st-tie-a', title: 'Discard the filters?', open: true });
+  overlays.insertBefore(host.firstElementChild, later);
+  wireConfirm(doc.body);
+  const earlier = doc.getElementById('st-tie-a');
 
   press(doc.body, 'Escape');
-  assert.equal(second.classList.contains('is-open'), false,
-    'equal z-index paints in tree order, so the later root is the one on top');
-  assert.equal(first.classList.contains('is-open'), true, 'and the one it covers is not closed with it');
+  assert.equal(later.classList.contains('is-open'), false,
+    'equal z-index paints in tree order, so the later root is on top however it got onto the stack');
+  assert.equal(earlier.classList.contains('is-open'), true,
+    'and the one it covers is not the one Escape closes, though it was adopted last');
 });
 
 test('wiring twice does not put the same open root on the stack twice', () => {
