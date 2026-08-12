@@ -168,18 +168,48 @@ function stackingLevel(rule, tokens) {
   return base + (sign === '-' ? -Number(offset) : Number(offset ?? 0));
 }
 
-test('a confirm paints above a drawer, whatever order they are mounted in', () => {
+// The sheets are the only place these numbers are real; the module keeps a copy so
+// the keyboard can be given to whichever overlay is painted on top. Reading them
+// needs no DOM — overlay.js touches `document` only in a default parameter — so the
+// copy is checked here, next to the rules it copies.
+const { OVERLAY_LAYER } = await import('../src/components/overlay.js');
+
+const zTokens = () => {
   const tokens = new Map(
     [...read('src/tokens/tokens.css').matchAll(/(--z-[\w-]+)\s*:\s*(\d+)\s*;/g)]
       .map(([, name, value]) => [name, Number(value)]),
   );
   assert.ok(tokens.size > 0, 'the z tokens were found — did the token file move?');
+  return tokens;
+};
 
-  const rootOf = (file, block) => {
-    const root = rules(read(file)).find((r) => selects(r, `.${block}`));
-    assert.ok(root, `.${block} is missing from ${file}`);
-    return root;
-  };
+const rootOf = (file, block) => {
+  const root = rules(read(file)).find((r) => selects(r, `.${block}`));
+  assert.ok(root, `.${block} is missing from ${file}`);
+  return root;
+};
+
+test("the stack's layers are the ones the sheets resolve to", () => {
+  const tokens = zTokens();
+  const pairs = [
+    ['confirm', 'src/styles/confirm.css', 'ui-confirm'],
+    ['drawer', 'src/styles/drawer.css', 'ui-drawer'],
+  ];
+
+  for (const [name, file, block] of pairs) {
+    const level = stackingLevel(rootOf(file, block), tokens);
+    assert.equal(
+      OVERLAY_LAYER[name], level,
+      `${file} paints .${block} at z-index ${level}, but OVERLAY_LAYER.${name} in `
+      + `src/components/overlay.js still says ${OVERLAY_LAYER[name]}. The sheet moved and the `
+      + "stack's idea of which overlay is on top did not follow, so Escape and the Tab trap go to "
+      + 'the layer underneath the one the reader can see',
+    );
+  }
+});
+
+test('a confirm paints above a drawer, whatever order they are mounted in', () => {
+  const tokens = zTokens();
 
   const confirmZ = stackingLevel(rootOf('src/styles/confirm.css', 'ui-confirm'), tokens);
   const drawerZ = stackingLevel(rootOf('src/styles/drawer.css', 'ui-drawer'), tokens);

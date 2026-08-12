@@ -243,11 +243,15 @@ test('a drawer rendered open is on the stack once it is wired', () => {
   assert.deepEqual(hidden(page), [null, false], 'and the page is handed back');
 });
 
-// Adoption happens at wire time, and wiring has no history to order by: the
-// only evidence of which is on top is the page itself. Both overlays carry the
-// same z-index, so the root drawn later paints over the earlier one — and it is
-// the one Escape answers, whichever component was wired first.
-test('two roots rendered open stack in document order, not in wiring order', () => {
+// Adoption happens at wire time, and wiring has no history to order by. What
+// the page does have is paint order: a confirm declares
+// `z-index: calc(var(--z-overlay) + 1)` (src/styles/confirm.css:29) and a drawer
+// `z-index: var(--z-overlay)` (src/styles/drawer.css:22), so the confirm is drawn
+// over the drawer whichever root the markup puts first — and the overlay the
+// reader can see is the one Escape has to answer. Document position is left to
+// separate two overlays on the same layer, where the later root is the painted one.
+
+test('the confirm owns Escape when its markup comes first and the drawer is drawn later', () => {
   mount(
     confirm({ id: 'st-ord-cf', title: 'Discard the filters?', open: true })
     + drawer({ id: 'st-ord-dr', title: 'Filters', body: '<input id="st-ord-input">', open: true }),
@@ -256,8 +260,38 @@ test('two roots rendered open stack in document order, not in wiring order', () 
   const dr = doc.getElementById('st-ord-dr');
 
   press(doc.body, 'Escape');
-  assert.equal(dr.classList.contains('is-open'), false, 'the root drawn last is the one on top');
-  assert.equal(cf.classList.contains('is-open'), true, 'and the one it covers is not closed with it');
+  assert.equal(cf.classList.contains('is-open'), false,
+    'the confirm paints above the drawer, so it is the one Escape closes');
+  assert.equal(dr.classList.contains('is-open'), true,
+    'and the drawer it is asking about stays open underneath');
+});
+
+test('the confirm owns Escape when the drawer is the root that comes first', () => {
+  mount(
+    drawer({ id: 'st-rev-dr', title: 'Filters', body: '<input id="st-rev-input">', open: true })
+    + confirm({ id: 'st-rev-cf', title: 'Discard the filters?', open: true }),
+  );
+  const cf = doc.getElementById('st-rev-cf');
+  const dr = doc.getElementById('st-rev-dr');
+
+  press(doc.body, 'Escape');
+  assert.equal(cf.classList.contains('is-open'), false,
+    'the same answer with the document order reversed — the layer decides, not the markup');
+  assert.equal(dr.classList.contains('is-open'), true, 'and the drawer is still open');
+});
+
+test('between two overlays on one layer, the root later in the document owns Escape', () => {
+  mount(
+    confirm({ id: 'st-tie-a', title: 'Discard the filters?', open: true })
+    + confirm({ id: 'st-tie-b', title: 'Delete the workspace?', open: true }),
+  );
+  const first = doc.getElementById('st-tie-a');
+  const second = doc.getElementById('st-tie-b');
+
+  press(doc.body, 'Escape');
+  assert.equal(second.classList.contains('is-open'), false,
+    'equal z-index paints in tree order, so the later root is the one on top');
+  assert.equal(first.classList.contains('is-open'), true, 'and the one it covers is not closed with it');
 });
 
 test('wiring twice does not put the same open root on the stack twice', () => {
