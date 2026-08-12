@@ -390,11 +390,13 @@ for (const cell of PURPLE_CELLS) {
 /* The purple gate is generated from a file scan, so a parser that quietly found
  * fewer cells — or a rule table that emptied — would pass by measuring nothing.
  * Two separate things are pinned: that all eight cells are there, and that the
- * rule is actually PROVEN rather than merely satisfied. Three of the eight cells
- * (dark nebula, light nebula, light ocean) hold --accent and --purple-light at
- * the same value, so they agree with either reading; if a theme's cells were ALL
- * like that, this gate would be asserting nothing about that theme's half of the
- * rule and would keep passing if the rule were written backwards. */
+ * rule is actually PROVEN rather than merely satisfied. Two of the eight cells
+ * (dark nebula and light nebula) hold --accent and --purple-light at the same
+ * value, so they agree with either reading; if a theme's cells were ALL like
+ * that, this gate would be asserting nothing about that theme's half of the rule
+ * and would keep passing if the rule were written backwards. Light ocean was a
+ * third until #157 deepened its --accent away from --purple-light, the way #96
+ * had already deepened light phoenix and light emerald. */
 test('the --glow-purple gate actually measures something', () => {
   assert.strictEqual(PURPLE_CELLS.length, 8, 'the purple cell list changed size unexpectedly');
   assert.strictEqual(

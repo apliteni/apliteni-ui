@@ -63,16 +63,22 @@
   --purple: #1156b8;
   --purple-light: #1568d6;
   --purple-mid: #1560c8;
-  --accent: #1568d6;
+  /* Deepened for WCAG AA on the raised grey panel and its wash: #1568d6 was
+     4.54:1 on --surface-3 and 4.25:1 on --glow-purple over it; #005bc8 clears
+     both at 5.43:1 and 5.06:1. Light Ocean is the one light accent #96 never
+     deepened, because it happened to clear plain white — this is that same
+     move, the third time: hue and chroma unchanged in OKLCH (H 258, C 0.185),
+     four points of lightness down. See issues #96 and #157. */
+  --accent: #005bc8;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
-  /* Thinned from 0.10 for WCAG AA. In light the harshest ground is --surface-2,
-     the grey panel; #96 deepened --accent to clear plain white, which it does,
-     but the wash over that panel was not part of it. 0.06 was the first alpha
-     tried and it clears in one composite model and fails in the other, so it was
-     never a value that had cleared — one step thinner clears in both, and in the
-     pixel a browser paints. See issue #157. */
-  --glow-purple: rgba(21, 104, 214, 0.05);
+  /* Back to 0.10, where the other light washes sit. #157 thinned this to 0.05
+     while --accent was still #1568d6, because no alpha could carry that blue
+     over the grey panel. Deepening the ink is what closed the pair, so the wash
+     does not have to be the thing that gives. The rgb stays --purple-light
+     rather than the accent — in light a glow tints --purple-light, which
+     stories/signal-contrast.test.js holds. See issue #157. */
+  --glow-purple: rgba(21, 104, 214, 0.10);
   --ring: 0 0 0 3px rgba(21, 104, 214, 0.28);
   --grad-from: #1568d6;
   --grad-to: #17a2c0;
