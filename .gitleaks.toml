@@ -53,6 +53,34 @@ description = "Deploy/service token assignment with a value"
 regex = '''(?i)(LESSLY_DEPLOY_TOKEN|DEPLOY_TOKEN|SERVICE_TOKEN)\s*[:=]\s*['"]?[A-Za-z0-9._\-]{16,}'''
 tags = ["infra", "token"]
 
+# ── 1Password service account token ──────────────────────────────────────────
+# Replaces the rule of the same id in gitleaks 8.30.1, whose `ops_eyJ[a-zA-Z0-9+/]{250,}`
+# has two reachable holes: real tokens are base64url (`-` and `_`), which that class
+# breaks on, and {250,} wants 250 unbroken characters, which a token quoted in wrapped
+# prose never has. The quantifier here is a REMAINDER — the floor is 30 characters of
+# the whole token and `ops_eyJ` is 7 of them, so {23,}; writing {30,} would mean 37 and
+# miss a 36-character fragment. The low floor is safe because of the anchor, not the
+# length: `ops_eyJ` is the 1Password prefix plus the base64 of the `{"` opening the
+# token's JSON claims, and ordinary text essentially never contains it.
+# Full argument: #179 and asabirov/claude#68.
+[[rules]]
+id = "1password-service-account-token"
+description = "1Password service account token (base64 or base64url, wrapped or whole)"
+regex = '''ops_eyJ[A-Za-z0-9+/_-]{23,}={0,3}'''
+keywords = ["ops_eyj"]
+
+# ── OpenAI project / service-account / admin key, any half-length ────────────
+# gitleaks 8.30.1 knows the prefixes but pins each half either side of the T3BlbkFJ
+# watermark to exactly 58 or 74 characters, so a key of any other half-length is caught
+# by nothing — including generic-api-key. Anchoring on the watermark instead (base64 for
+# "OpenAI", present in every key OpenAI mints) covers all three prefixes at any length.
+# Full argument: #179 and asabirov/claude#68.
+[[rules]]
+id = "openai-api-key-watermark"
+description = "OpenAI project, service-account or admin key, any half-length"
+regex = '''sk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,100}T3BlbkFJ[A-Za-z0-9_-]{20,100}'''
+keywords = ["T3BlbkFJ"]
+
 [allowlist]
 description = "Approved domains, placeholders, and known-safe demo data"
 regexes = [
