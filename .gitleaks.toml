@@ -8,15 +8,6 @@
 # never weaken a rule.
 title = "apliteni-ui leak rules"
 
-# The version these rules were written and measured against. Measured behaviour, so
-# nobody over-reads it: an older gitleaks does NOT refuse the config — it logs
-# "config requires a newer Gitleaks version" and scans on regardless. So this buys a
-# line in the log that says which binary is out of step, not a gate. It also cannot
-# protect the same-id override the 1Password rule depends on: if a future gitleaks
-# changes how a redefined id composes with the default, this key will not notice.
-# scripts/gitleaks-rules.check.mjs is what actually proves the rules still bite.
-minVersion = "v8.30.1"
-
 [extend]
 useDefault = true # keep every built-in secret rule
 
@@ -64,9 +55,12 @@ tags = ["infra", "token"]
 
 # ── 1Password service account token ──────────────────────────────────────────
 # Replaces the rule of the same id in gitleaks 8.30.1, whose `ops_eyJ[a-zA-Z0-9+/]{250,}`
-# has two reachable holes: real tokens are base64url (`-` and `_`), which that class
-# breaks on, and {250,} wants 250 unbroken characters, which a token quoted in wrapped
-# prose never has. The quantifier here is a REMAINDER — the floor is 30 characters of
+# has two reachable holes. The one that carries the change is {250,}: it wants 250
+# unbroken characters, which a token quoted in wrapped prose never has. The second is
+# the alphabet — that class is standard base64, so a token containing `-` or `_` breaks
+# the run. How often real tokens carry those is not something we established (seven
+# decoded samples had none), so the claim here is only the measured one: a base64url
+# token is refused now and was not before. The quantifier is a REMAINDER — 30 characters of
 # the whole token and `ops_eyJ` is 7 of them, so {23,}; writing {30,} would mean 37 and
 # miss a 36-character fragment. The low floor is safe because of the anchor, not the
 # length: `ops_eyJ` is the 1Password prefix plus the base64 of the `{"` opening the
@@ -86,8 +80,21 @@ tags = ["secret", "1password"]
 # broken at column 80 is then caught by nothing, ours or upstream's, and neither is
 # sk-service- or a head longer than the cap. Anchoring on T3BlbkFJ (base64 for
 # "OpenAI", present in every key OpenAI mints) is what carries the specificity, the
-# same trade the ops_eyJ rule above makes. Measured: zero findings from this rule
-# across 118 MB of node_modules and the full tracked history.
+# same trade the ops_eyJ rule above makes.
+#
+# WRAPPING IS MOSTLY, NOT WHOLLY, HANDLED. Measured on a 74/74 key: 54 of 61 wrap
+# columns between 60 and 120 are caught. The seven misses are columns 83-89, where the
+# break lands inside the eight-character watermark itself and neither half survives.
+# That is inherent to any line-based scanner anchored on one literal, not a defect to
+# fix here.
+#
+# KNOWN FALSE POSITIVE, so the person reading this rule id off a refusal knows what
+# they are looking at. T3BlbkFJ is base64 for "OpenAI", so any base64 blob whose
+# plaintext contains "OpenAI" at a 3-byte-aligned offset matches — one offset in three.
+# Reproduced with a base64 document naming OpenAI; the same text one byte over is
+# quiet. If this fires on something legitimate the answer is an allowlist entry, per
+# this file's header — NOT `git commit --no-verify`, which turns the whole gate off for
+# that commit. Both alignments are pinned in scripts/gitleaks-rules.check.mjs.
 #
 # This is a NEW id, so upstream's `openai-api-key` is NOT replaced — it stays live and
 # both may name the same key. Do not "tidy" this onto upstream's id for symmetry with
@@ -101,6 +108,14 @@ keywords = ["T3BlbkFJ"]
 tags = ["secret", "openai"]
 
 # ── Vendor tokens this environment uses daily that gitleaks 8.30.1 has no rule for ──
+#
+# All four below start with \b, and the two rules ABOVE deliberately do not — do not
+# "fix" that inconsistency. These four match a prefix that can appear mid-identifier:
+# without the boundary, `const glyphs_…` and `alpha_…` hit the PostHog rule, `configd_…`
+# hit Figma (its class allows _ and -, so snake_case reaches 35 characters easily),
+# `myapify_api_…` hit Apify and `spk_12345_…` hit ClickUp. All five are ordinary names.
+# The ops_eyJ and watermark rules are the opposite case: they are built to match a
+# FRAGMENT of a longer run, so a left boundary would break the wrapped-key case outright.
 # Without these, each reaches a commit on generic-api-key alone — which needs a
 # credential-ish word beside the value, so a token quoted in prose walks through, and
 # which stands down on its own stopword list. Each rule below is anchored on a vendor
@@ -111,7 +126,7 @@ tags = ["secret", "openai"]
 [[rules]]
 id = "apify-api-token"
 description = "Apify API token"
-regex = '''apify_api_[A-Za-z0-9]{30,}'''
+regex = '''\bapify_api_[A-Za-z0-9]{30,}'''
 keywords = ["apify_api_"]
 tags = ["secret", "apify"]
 
@@ -121,14 +136,14 @@ tags = ["secret", "apify"]
 [[rules]]
 id = "clickup-api-token"
 description = "ClickUp personal API token"
-regex = '''pk_\d{5,}_[A-Z0-9]{32}'''
+regex = '''\bpk_\d{5,}_[A-Z0-9]{32}'''
 keywords = ["pk_"]
 tags = ["secret", "clickup"]
 
 [[rules]]
 id = "figma-personal-access-token"
 description = "Figma personal access token"
-regex = '''figd_[A-Za-z0-9_-]{35,}'''
+regex = '''\bfigd_[A-Za-z0-9_-]{35,}'''
 keywords = ["figd_"]
 tags = ["secret", "figma"]
 
@@ -139,7 +154,7 @@ tags = ["secret", "figma"]
 [[rules]]
 id = "posthog-api-key"
 description = "PostHog secret key — personal, project-secret, or OAuth (not the public phc_)"
-regex = '''ph[xsar]_[A-Za-z0-9]{40,}'''
+regex = '''\bph[xsar]_[A-Za-z0-9]{40,}'''
 keywords = ["phx_", "phs_", "pha_", "phr_"]
 tags = ["secret", "posthog"]
 

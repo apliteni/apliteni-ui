@@ -91,124 +91,175 @@ function wrap(value, columns) {
   return (value.match(new RegExp(`.{1,${columns}}`, 'g')) ?? []).join('\n');
 }
 
-/** The base64url 1Password payload: '-' and '_' early, as a real one has. */
-const urlPayload = (() => {
-  const p = [...stream('b', 260)];
+/**
+ * A base64url payload that is GUARANTEED to contain '-' and '_', rather than
+ * one that happens to draw them.
+ *
+ * This exists because trusting the draw silently voided cases. `stream()` with
+ * a base64url alphabet is deterministic, and the Figma seed drew neither
+ * character across all 40: narrowing that rule's class to [A-Za-z0-9] left
+ * every case green, so nothing would have noticed real Figma tokens — which
+ * are half '-' and '_' — going unmatched. Two of the three OpenAI fixtures had
+ * the same hole. Use this anywhere a rule's class claims base64url, and the
+ * claim becomes falsifiable: narrow the class and the case goes red.
+ */
+function streamUrlSafe(seed, n) {
+  if (n < 21) throw new Error(`streamUrlSafe needs n >= 21 to place both markers, got ${n}`);
+  const p = [...stream(seed, n, B64URL)];
   p[9] = '-';
   p[20] = '_';
   return p.join('');
-})();
+}
+
+/** The 1Password base64url payload — pinned the same way, and always was. */
+const urlPayload = streamUrlSafe('b', 260);
 
 const note = (value) =>
   ['A note quoting something that must never reach this repo.', '', `    ${value}`, '', 'That is all.'].join('\n');
 
 /**
- * One planted file per case. `rule` is the ID that must name the finding.
- * `rule: null` means the opposite assertion: no rule DEFINED IN THIS CONFIG
- * may name it. Deliberately not "no findings at all" — that would make the
- * case hostage to gitleaks' entire default ruleset, where changing one word of
- * the prose to "api key" flips generic-api-key on and fails the check for a
- * reason that has nothing to do with us.
+ * One planted file per case, carrying two separate claims.
+ *
+ * `ours` — the EXACT set of rules defined in this config that may name the
+ * file: {ours} when set, {} when null. Exact, not "at least", because nothing
+ * else detects one of our rules eating another's territory. Widening
+ * clickup-api-token until it also matched figd_… left every case green under
+ * the old "expected ∈ named" oracle; for a file whose recent history is
+ * deliberate loosening of character classes, that is the likeliest failure.
+ * A control case is simply `ours: null` — the same claim, not a special case.
+ *
+ * `upstream` — gitleaks' own rules that must ALSO fire. Only asserted where
+ * upstream genuinely owns the shape, never as a general requirement: the
+ * default ruleset is not ours to depend on. generic-api-key names
+ * deploy-token.md today and is deliberately ignored, so that a stopword or
+ * entropy tweak upstream cannot turn this check red.
  */
 const CASES = [
   // ── 1Password ─────────────────────────────────────────────────────────────
   {
     file: 'onepassword-standard.md',
-    rule: '1password-service-account-token',
+    ours: '1password-service-account-token',
     why: 'standard-base64 payload, unbroken',
     body: note(`ops_eyJ${stream('a', 260, B64)}`),
   },
   {
     file: 'onepassword-base64url.md',
-    rule: '1password-service-account-token',
-    why: "base64url payload — '-' and '_' early, which upstream's class cannot reach",
+    ours: '1password-service-account-token',
+    why: "base64url payload — '-' and '_' pinned, not drawn",
     body: note(`ops_eyJ${urlPayload}`),
   },
   {
+    // Also stands for the wrapped case: a wrap that leaves at least 30
+    // characters on the anchor line is this same assertion, because only the
+    // line carrying ops_eyJ can match. A separate wrapped fixture at 47
+    // characters could not fail while this one passed, so it was decoration.
     file: 'onepassword-fragment.md',
-    rule: '1password-service-account-token',
-    why: 'truncated to 30 characters total, the floor the remainder quantifier sets',
+    ours: '1password-service-account-token',
+    why: 'truncated to 30 characters total — the floor, and equally a wrap leaving 30 on the anchor line',
     body: note(`ops_eyJ${stream('c', 23)}`),
-  },
-  {
-    file: 'onepassword-wrapped.md',
-    rule: '1password-service-account-token',
-    why: 'wrapped, leaving 47 characters on the anchor line — above the 30 floor',
-    body: note(`ops_eyJ${stream('w', 40)}\n    ${stream('w2', 60)}`),
   },
 
   // ── OpenAI ────────────────────────────────────────────────────────────────
   {
     file: 'openai-admin-30.md',
-    rule: 'openai-api-key-watermark',
+    ours: 'openai-api-key-watermark',
     why: '30-character halves — upstream pins 58 or 74 and catches nothing here',
-    body: note(`sk-admin-${stream('d', 30, B64URL)}${MARK}${stream('e', 30, B64URL)}`),
+    body: note(`sk-admin-${streamUrlSafe('d', 30)}${MARK}${streamUrlSafe('e', 30)}`),
   },
   {
     file: 'openai-service-prefix.md',
-    rule: 'openai-api-key-watermark',
+    ours: 'openai-api-key-watermark',
     why: "sk-service-, a real prefix outside upstream's proj|svcacct|admin set",
-    body: note(`sk-service-${stream('sv', 40, B64URL)}${MARK}${stream('sv2', 40, B64URL)}`),
+    body: note(`sk-service-${streamUrlSafe('sv', 40)}${MARK}${streamUrlSafe('sv2', 40)}`),
   },
   {
     file: 'openai-wrapped-80col.md',
-    rule: 'openai-api-key-watermark',
+    ours: 'openai-api-key-watermark',
     why: 'a real-shaped 74/74 key broken at column 80 — the hole this rule was rewritten to close',
-    body: note(wrap(`sk-proj-${stream('p1', 74, B64URL)}${MARK}${stream('p2', 74, B64URL)}`, 80)),
+    body: note(wrap(`sk-proj-${streamUrlSafe('p1', 74)}${MARK}${streamUrlSafe('p2', 74)}`, 80)),
   },
   {
-    // Upstream's rule, not ours. It is still live because our watermark rule
-    // took a NEW id rather than overriding openai-api-key; if someone ever
-    // renames ours onto upstream's id, this case goes red.
+    // Upstream's rule, and ours, both name this shape — which is the point:
+    // our watermark rule took a NEW id rather than overriding openai-api-key,
+    // so upstream's stays live. `upstream` is what pins that.
+    //
+    // Renaming ours onto upstream's id is measured, not assumed: it turns five
+    // cases red — this one, openai-admin-30, openai-service-prefix,
+    // openai-wrapped-80col and openai-base64-aligned. Under the older oracle,
+    // which only asked whether the expected id was among the names, this case
+    // stayed green through that rename and the other four carried the guard.
+    // The exact-set oracle is what made the rename visible here directly.
     file: 'openai-legacy.md',
-    rule: 'openai-api-key',
+    ours: 'openai-api-key-watermark',
+    upstream: ['openai-api-key'],
     why: "the legacy sk-<20>watermark<20> shape gitleaks' own rule still owns",
     body: note(`sk-${stream('l1', 20)}${MARK}${stream('l2', 20)}`),
+  },
+
+  // ── The watermark rule's known false-positive class, pinned both ways ─────
+  //
+  // T3BlbkFJ is base64 for "OpenAI", so ANY base64 blob whose plaintext says
+  // "OpenAI" starting at a 3-byte-aligned offset contains it and matches. One
+  // offset in three. That is the accepted cost of anchoring on the watermark
+  // alone, and these two cases keep it a measured boundary rather than a note
+  // in a comment nobody re-checks. The base64 is computed here, never a
+  // literal: a literal would carry the watermark into the tree.
+  {
+    file: 'openai-base64-aligned.md',
+    ours: 'openai-api-key-watermark',
+    why: 'base64 of prose naming OpenAI at a 3-aligned offset — a false positive we accept, not a bug',
+    body: note(Buffer.from(`OpenAI ${'is named in this configuration blob, for testing only'}`).toString('base64')),
+  },
+  {
+    file: 'openai-base64-unaligned.md',
+    ours: null,
+    why: 'the same prose one byte over — two offsets in three do not produce the watermark',
+    body: note(Buffer.from(`xOpenAI ${'is named in this configuration blob, for testing only'}`).toString('base64')),
   },
 
   // ── Other vendor tokens ───────────────────────────────────────────────────
   {
     file: 'apify.md',
-    rule: 'apify-api-token',
+    ours:'apify-api-token',
     why: 'Apify API token',
     body: note(`apify_api_${stream('f', 32)}`),
   },
   {
     file: 'clickup.md',
-    rule: 'clickup-api-token',
+    ours:'clickup-api-token',
     why: 'ClickUp personal API token',
     body: note(`pk_${stream('g', 8, DIGITS)}_${stream('h', 32, UPPER)}`),
   },
   {
     file: 'figma.md',
-    rule: 'figma-personal-access-token',
-    why: 'Figma personal access token',
-    body: note(`figd_${stream('i', 40, B64URL)}`),
+    ours: 'figma-personal-access-token',
+    why: "Figma personal access token — base64url pinned, since real ones are about half '-' and '_'",
+    body: note(`figd_${streamUrlSafe('i', 40)}`),
   },
 
   // PostHog mints five prefixes; four are secrets. One case each, so widening
   // the class to ph[xsar]_ cannot silently narrow again.
   {
     file: 'posthog-personal.md',
-    rule: 'posthog-api-key',
+    ours:'posthog-api-key',
     why: 'phx_ personal API key',
     body: note(`phx_${stream('j', 44)}`),
   },
   {
     file: 'posthog-project-secret.md',
-    rule: 'posthog-api-key',
+    ours:'posthog-api-key',
     why: 'phs_ project secret key',
     body: note(`phs_${stream('j2', 44)}`),
   },
   {
     file: 'posthog-oauth-access.md',
-    rule: 'posthog-api-key',
+    ours:'posthog-api-key',
     why: 'pha_ OAuth access token',
     body: note(`pha_${stream('j3', 44)}`),
   },
   {
     file: 'posthog-oauth-refresh.md',
-    rule: 'posthog-api-key',
+    ours:'posthog-api-key',
     why: 'phr_ OAuth refresh token',
     body: note(`phr_${stream('j4', 44)}`),
   },
@@ -216,31 +267,31 @@ const CASES = [
   // ── The PII and infra rules this repo had before issue #179 ───────────────
   {
     file: 'email.md',
-    rule: 'pii-email',
+    ours:'pii-email',
     why: 'an email on no approved domain',
     body: note(`${stream('e1', 10, LOWER)}@${stream('e2', 12, LOWER)}.test`),
   },
   {
     file: 'private-ip.md',
-    rule: 'pii-private-ip',
+    ours:'pii-private-ip',
     why: 'an RFC1918 address',
     body: note(`10.${stream('n1', 2, DIGITS)}.${stream('n2', 2, DIGITS)}.${stream('n3', 2, DIGITS)}`),
   },
   {
     file: 'lessly-host.md',
-    rule: 'infra-lessly-run',
+    ours:'infra-lessly-run',
     why: 'an internal runtime hostname',
     body: note(`${stream('h1', 14, LOWER)}.lessly.run`),
   },
   {
     file: 'ttlsh-ref.md',
-    rule: 'infra-ttlsh-tag',
+    ours:'infra-ttlsh-tag',
     why: 'an ephemeral registry reference',
     body: note(`ttl.sh/${stream('t1', 12, LOWER)}:1h`),
   },
   {
     file: 'uuid.md',
-    rule: 'infra-uuid',
+    ours:'infra-uuid',
     why: 'a v4 UUID, the shape of a Lessly service/org/product id',
     body: note(
       `${stream('u1', 8, HEX)}-${stream('u2', 4, HEX)}-4${stream('u3', 3, HEX)}-a${stream('u4', 3, HEX)}-${stream('u5', 12, HEX)}`,
@@ -248,7 +299,7 @@ const CASES = [
   },
   {
     file: 'deploy-token.md',
-    rule: 'infra-deploy-token',
+    ours:'infra-deploy-token',
     why: 'a deploy-token assignment carrying a real-looking value',
     body: note(`${DEPLOY_VAR}=${stream('dt', 24)}`),
   },
@@ -259,7 +310,7 @@ const CASES = [
     // a name like src/icons/sprite.svg.ts is an ordinary thing in an icon kit.
     // This case is why the entry is anchored to $.
     file: 'fixture.svg.ts',
-    rule: 'apify-api-token',
+    ours:'apify-api-token',
     why: 'a path merely CONTAINING .svg must not inherit the .svg exemption',
     body: note(`apify_api_${stream('sv3', 32)}`),
   },
@@ -274,16 +325,55 @@ const CASES = [
     // our entry — our entry is belt-and-braces over the default. What it would
     // catch is that default going away.
     file: 'exempt-fixture.svg',
-    rule: null,
+    ours:null,
     why: 'a real .svg stays exempt (composed: our path entry and gitleaks’ default both cover it)',
     body: note(`apify_api_${stream('sv4', 32)}`),
+  },
+
+  // ── Ordinary identifiers that must NOT be credentials ─────────────────────
+  //
+  // Four vendor rules carry a leading \b because their prefixes occur happily
+  // in the middle of ordinary names. Without it every one of these five fired:
+  // a rule that refuses `const glyphs_…` is a rule someone turns off. These
+  // pin the boundary — drop the \b from any of the four and the matching case
+  // reddens. The declarations are shaped like real source, and the file
+  // extensions are real too, so nothing here is exempt by path.
+  {
+    file: 'identifier-posthog-glyphs.ts',
+    ours: null,
+    why: "`glyphs_` ends in phs_ — the PostHog project-secret prefix mid-identifier",
+    body: `const glyphs_${stream('x1', 44)} = 1;\n`,
+  },
+  {
+    file: 'identifier-posthog-alpha.ts',
+    ours: null,
+    why: '`alpha_` ends in pha_ — the PostHog OAuth-access prefix mid-identifier',
+    body: `export const alpha_${stream('x2', 44)} = 2;\n`,
+  },
+  {
+    file: 'identifier-figma-configd.ts',
+    ours: null,
+    why: '`configd_` contains figd_, and that class allows _ and -, so snake_case reaches 35 easily',
+    body: `const configd_${stream('x3', 20)}_channel_name_for_the_daemon = 3;\n`,
+  },
+  {
+    file: 'identifier-apify-myapify.ts',
+    ours: null,
+    why: '`myapify_api_` contains apify_api_',
+    body: `const myapify_api_${stream('x4', 34)} = 4;\n`,
+  },
+  {
+    file: 'identifier-clickup-spk.ts',
+    ours: null,
+    why: '`spk_12345_` contains pk_ followed by digits and uppercase',
+    body: `const spk_12345_${stream('x5', 32, UPPER)} = 5;\n`,
   },
 
   // ── Control ───────────────────────────────────────────────────────────────
   {
     // If the rule set has degenerated into flagging everything, this notices.
     file: 'control-prose.md',
-    rule: null,
+    ours:null,
     why: 'prose naming the ops_eyJ prefix, plus a phc_ project key that is public by design',
     body: [
       'A 1Password service account token starts with the prefix ops_eyJ, which',
@@ -370,13 +460,32 @@ function main() {
   const failures = [];
   for (const c of CASES) {
     const named = [...(byFile.get(c.file) ?? [])].sort();
-    if (c.rule === null) {
-      const ours = named.filter((id) => ruleIds.has(id));
-      if (ours.length > 0) failures.push(`${c.file} — flagged by ${ours.join(', ')}, expected none (${c.why})`);
-      continue;
+    // Two claims, deliberately different in scope. Ours is an EXACT set over
+    // config-defined rules, so a rule growing into another's territory fails.
+    // Upstream is a subset check over everything, so gitleaks' defaults firing
+    // where we did not ask is not our failure.
+    const oursNamed = named.filter((id) => ruleIds.has(id));
+    const expected = c.ours ? [c.ours] : [];
+    const missing = expected.filter((id) => !oursNamed.includes(id));
+    const extra = oursNamed.filter((id) => !expected.includes(id));
+
+    if (missing.length > 0 && oursNamed.length === 0) {
+      failures.push(`${c.file} — NOT CAUGHT, expected ${c.ours} (${c.why})`);
+    } else if (missing.length > 0) {
+      failures.push(`${c.file} — named by ${oursNamed.join(', ')}, expected ${c.ours} (${c.why})`);
+    } else if (extra.length > 0) {
+      failures.push(
+        expected.length === 0
+          ? `${c.file} — flagged by ${extra.join(', ')}, expected no rule of ours (${c.why})`
+          : `${c.file} — ${c.ours} is correct, but ${extra.join(', ')} also claims it (${c.why})`,
+      );
     }
-    if (named.length === 0) failures.push(`${c.file} — NOT CAUGHT, expected ${c.rule} (${c.why})`);
-    else if (!named.includes(c.rule)) failures.push(`${c.file} — caught by ${named.join(', ')}, expected ${c.rule} (${c.why})`);
+
+    for (const up of c.upstream ?? []) {
+      if (!named.includes(up)) {
+        failures.push(`${c.file} — upstream ${up} no longer names it (${c.why})`);
+      }
+    }
   }
 
   const where = `config: ${CONFIG} — ${gitleaksVersion()}`;
