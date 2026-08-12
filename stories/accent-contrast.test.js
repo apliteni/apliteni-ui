@@ -1,59 +1,30 @@
 /* Rule: --accent clears WCAG AA as text on every ground the kit paints under it,
  * in all eight theme × accent cells — or a person names the cell and says why.
  *
- * The grounds are DISCOVERED from the token files, never listed here. The first
- * version of this gate listed four, and the fifth (--surface-3) was found by a
- * reviewer reading CSS by hand after the branch was green — the exact failure
- * docs/adr/0004 exists to stop. What is written by hand now is the opposite of a
- * list: a NAME PATTERN over the two semantic token files, and a reason for every
- * candidate the pattern finds that is not measured. See CANDIDATE_GROUNDS.
+ * The accents, their token family and the grounds are all DISCOVERED from the
+ * two semantic token files rather than listed here, and the size of each
+ * derivation is asserted, so one that stopped matching fails instead of passing
+ * by measuring nothing. What a person writes by hand is the SURFACE_NAME
+ * pattern, plus a reason for every candidate that pattern finds and this gate
+ * does not measure (EXEMPT_GROUNDS), and for every pair allowed under the floor
+ * (EXEMPT).
  *
- * Two kinds of accent ground are still outside this gate, and neither is an
- * accident. One is the surfaces a COMPONENT mixes for itself out of the accent
- * — a color-mix in a stylesheet rather than a token — which no token gate can
- * see; the story walk in contrast.test.js carries those, in its bucket B. The
- * other is a candidate the sweep DOES find and a person excused in writing; see
- * EXEMPT_GROUNDS, which has one entry. Both are argued in the ADR.
+ * The wash is measured over the four BASE surfaces and not over --surface-3.
+ * That is a claim about the kit rather than a gap here: --surface-3 is a RAISED
+ * surface, and nothing paints the accent wash on one any more.
+ * src/styles/nav.css:113 is the rule that used to, and its comment carries the
+ * numbers. Nothing holds that rule mechanically — a token gate cannot see a
+ * component that stacks the wash again, and no story renders the pair either,
+ * which is why it went unmeasured until a person read the CSS by hand.
  *
- * The wash is measured over the four BASE surfaces and not over --surface-3, and
- * that is a rule about the kit rather than a gap in this gate. --surface-3 is a
- * RAISED surface: a nav row that is active, a badge that has been lifted off the
- * card it sits on. Painting --glow-purple there stacks a second tint on an
- * already-tinted ground, and the accent read on that pair fell under AA in four
- * of the eight cells against the tokens this change ships — 4.08 in dark Nebula,
- * where the flat surface reads 4.92 — and in five against the tokens on main.
- * (Every number in this file is measured against the SHIPPED tokens unless it
- * says otherwise; the two baselines disagree because this change moved the very
- * tokens the pair is made of, and quoting one while meaning the other is how
- * three of these figures went wrong before.) No alpha reaches it either way:
- * solving for the largest wash that clears with --surface-3 counted gives 0.06
- * in dark Nebula — half the 0.12 chosen here — and 0.02 in light Emerald, which
- * is a wash nobody would see. #157 changed the rule instead of the alpha: THE
- * ACCENT WASH IS PAINTED ON A BASE SURFACE, NEVER STACKED ON A RAISED ONE.
- * src/styles/nav.css:113 is the one rule that did stack it and no longer does.
- *
- * The limit, plainly: this is a TOKEN gate and cannot see a component that
- * stacks the wash again. Neither can the story walk in contrast.test.js — no
- * story renders an active nav item with an accent badge, which is why the pair
- * above went unmeasured on main and on this branch until a person looked. If
- * that rule is to be held mechanically it needs a gate that reads the
- * stylesheets, and this is not it.
- *
- * This is a TOKEN contract, not a render. It costs milliseconds where the story
- * walk in contrast.test.js costs seconds a cell, so it can afford all eight cells
- * while that walk runs two. It sees pairs no story happens to render; it does not
- * see a pair a story invents out of literals. The two gates are complements.
- *
- * There is one story that invents the accent family out of literals on purpose —
- * the sub-theme page, whose panels each pin a whole accent inline so all four
- * show at once under one toolbar theme. That mirror is the last test in this
- * file: what the page paints is resolved against the token files property by
- * property, because a mirror kept by hand goes stale and this one twice did.
- *
- * The accents are read out of src/tokens/accents.css rather than listed, so a
- * fifth accent is judged the day it is declared, and the grounds are swept out
- * of the token files the same way. A derivation that matched nothing would pass
- * by measuring nothing, so both counts are asserted.
+ * This is a TOKEN contract, not a render: milliseconds, where the story walk in
+ * contrast.test.js costs seconds a cell. That is why this file affords all eight
+ * cells while that one runs two, and the two are complements — it sees pairs no
+ * story happens to render, and misses both a ground a component mixes for itself
+ * and a pair a story invents out of literals. One story invents them on purpose,
+ * and the last test here is why: the sub-theme page pins a whole accent family
+ * inline per panel, and that mirror is resolved against the token files property
+ * by property, because a mirror kept by hand goes stale and this one twice did.
  *
  * why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md
  */
@@ -340,7 +311,8 @@ test('the accent gate actually measures something', () => {
       pairs.filter((p) => p.washed).map((p) => p.ground), WASHED_GROUNDS,
       `${cell.theme} ${cell.accent} is judged on the wash over a different set of grounds than `
       + 'WASHED_GROUNDS names. The exclusion of --surface-3 is a rule about where the kit paints '
-      + 'the wash, argued in this file\'s header — it must not become an accident of the loop.',
+      + 'the wash, stated in this file\'s header and argued in the ADR it points at — it must not '
+      + 'become an accident of the loop.',
     );
     for (const p of pairs) assert.ok(Number.isFinite(p.ratio) && p.ratio > 1, `${keyOf(p)} produced no real ratio`);
     inks.add(String(colour('--accent')));
