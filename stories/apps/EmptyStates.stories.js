@@ -16,8 +16,12 @@ const NAV = [
 ];
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 
-// The same screen the finance portal draws: the kit's shell with the topbar on,
-// which is what accountShell() gave this demo before the shells were merged.
+// The same screen the finance portal draws, and drawn the same way: appShell()
+// ships with no topbar, so none of the example screens asks for one. The rail
+// already answers who is signed in and how to leave; a topbar beside it drew a
+// second product word and a second account menu saying the same two things.
+// accountShell() is the one preset that keeps a topbar, because `versions`,
+// `showSwitch` and wireTopbar() are published behaviour on that page.
 const financeShell = ({ active, crumb, title, sub, body }) => appShell({
   word: 'Finance',
   nav: NAV,
@@ -29,11 +33,6 @@ const financeShell = ({ active, crumb, title, sub, body }) => appShell({
   body,
   account: READER,
   signOutHref: '#logout',
-  topbar: {
-    word: 'Finance',
-    view: 'text',
-    account: { ...READER, active, nav: NAV.map((n) => [n.id, n.icon, n.label, n.href, n.target]) },
-  },
 });
 
 // A filtered list that returned nothing — illustration + nudge, no action.

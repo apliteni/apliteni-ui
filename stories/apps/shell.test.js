@@ -395,6 +395,64 @@ test('a nav item reaches the topbar menu with its href and target escaped too', 
 
 // Default parameters cover `undefined` only. An /auth/me that answers `account:
 // null`, or a numeric display name, rendered fine before the shells were merged.
+// `maxWidth` is interpolated into a style attribute, and a style attribute is a
+// declaration list. esc() stops a quote closing the attribute; it does nothing
+// about `;`, which opens the next declaration. A per-screen setting — the kind
+// that arrives from tenant config, as FinanceReport.stories.js passes one — was
+// therefore a way to write arbitrary CSS onto the host page.
+test('a maxWidth carrying a second declaration cannot reach the style attribute', () => {
+  const html = appShell({ maxWidth: '860px; position: fixed; inset: 0; z-index: 99999' });
+  assert.doesNotMatch(
+    html, /position:\s*fixed/,
+    'the caller\'s `;` opened a second declaration — the reading column is now a '
+    + 'full-viewport overlay over whatever page the shell was mounted in',
+  );
+  assert.match(html, /style="--ui-app-main: 860px"/, 'the fallback is not the documented default');
+});
+
+// Scoped to the style attribute on purpose: the rail head's brand mark clips
+// through a `url(#…)` of its own, so a match anywhere in the document proves
+// nothing about what the caller was allowed to write.
+test('a url() in maxWidth cannot reach the style attribute either', () => {
+  const html = appShell({ maxWidth: 'none; background: url(https://example.test/a.png)' });
+  const style = /<main[^>]*style="([^"]*)"/.exec(html);
+  assert.ok(style, 'the reading column stopped carrying its width as a style attribute');
+  assert.doesNotMatch(
+    style[1], /url\(/,
+    'a rejected value still reached the sheet, so the shell makes an outbound request '
+    + 'for whoever wrote the config',
+  );
+});
+
+test('a plain CSS length is what the caller asked for', () => {
+  for (const w of ['960px', '72rem', '80ch', '100%', '90vw', '48em', 'none']) {
+    assert.match(appShell({ maxWidth: w }), new RegExp(`style="--ui-app-main: ${w.replace('%', '%')}"`), `${w} was rejected`);
+  }
+});
+
+test('a value that is not a length falls back to the default rather than throwing', () => {
+  for (const w of ['', 'wide', 'calc(100% - 40px)', '860', '860 px', null, undefined, 42]) {
+    const html = appShell({ maxWidth: w });
+    assert.match(
+      html, /style="--ui-app-main: 860px"/,
+      `${JSON.stringify(w)} left the column without the documented default. An empty or `
+      + 'unparseable value makes the declaration invalid at computed-value time, and the '
+      + 'column falls to max-width: none — the full track, not 860px',
+    );
+  }
+});
+
+// The `860px` in `max-width: var(--ui-app-main, 860px)` can never fire while
+// shell.js always writes the property. It is the floor for hand-written markup,
+// so the two have to say the same number or the floor is a different shell.
+test('the CSS fallback and the shell\'s default are the same width', () => {
+  const css = read('src/styles/layout.css');
+  const m = /--ui-app-main,\s*([^)]+)\)/.exec(css);
+  assert.ok(m, 'layout.css no longer reads --ui-app-main with a fallback');
+  const shell = /style="--ui-app-main: ([^"]+)"/.exec(appShell({}));
+  assert.equal(m[1].trim(), shell[1], 'the stylesheet floor and the shell default drifted apart');
+});
+
 test('an absent or oddly-typed reader degrades instead of throwing', () => {
   assert.doesNotThrow(() => appShell({ account: null }));
   assert.doesNotThrow(() => accountShell({ account: null }));

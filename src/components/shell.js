@@ -37,6 +37,18 @@ const toMenuTuple = (it) => [
 
 const str = (v) => (v == null ? '' : String(v));
 
+// `maxWidth` lands inside a style attribute, which is a declaration list: esc()
+// stops a quote closing the attribute, and `;` is the character that matters
+// there. So a length is all this accepts — a number and a unit the reading
+// column can use, or `none`. Anything else falls back to the default rather
+// than throwing, because a shell that throws mid-render takes the page with it.
+const MAIN_MAX = '860px';
+const LENGTH = /^(?:\d+|\d*\.\d+)(?:px|rem|em|ch|%|vw)$/;
+const mainMax = (v) => {
+  const s = str(v).trim();
+  return s === 'none' || LENGTH.test(s) ? s : MAIN_MAX;
+};
+
 const initials = (name, email) => {
   const from = str(name).trim() || (str(email).split('@')[0] || '');
   const parts = from.split(/[\s._-]+/).filter(Boolean).map((w) => w[0]);
@@ -55,13 +67,20 @@ const signOut = (href) =>
 // address are not navigation, and inside the landmark a screen reader announces
 // the address as an entry. Empty when nobody is — a shell must not invent an
 // identity for a reader it does not know.
+//
+// The initials carry the name, and the spelled-out half is aria-hidden. The
+// narrow rail folds `.ui-app__who` out of view, so a name that lived only there
+// left the initials on screen with nothing at all in the accessibility tree.
+// Naming the mark instead makes the two agree at every width, and says it once.
 function railUser(user) {
   const name = str(user && user.name);
   const email = str(user && user.email);
   if (!name && !email) return '';
+  const who = [name, email].filter(Boolean).join(', ');
   return `<div class="ui-app__user">` +
-    `<span class="ui-app__av" aria-hidden="true">${esc(initials(name, email))}</span>` +
-    `<span class="ui-app__who">` +
+    `<span class="ui-app__av" role="img" aria-label="Signed in as ${esc(who)}">` +
+    `${esc(initials(name, email))}</span>` +
+    `<span class="ui-app__who" aria-hidden="true">` +
     (name ? `<b>${esc(name)}</b>` : '') +
     (email ? `<span>${esc(email)}</span>` : '') +
     `</span></div>`;
@@ -84,7 +103,7 @@ export function appShell({
   account = {},
   signOutHref = '',
   topbar = null,
-  maxWidth = '860px',
+  maxWidth = MAIN_MAX,
 } = {}) {
   const rail = sidebarNav({
     sections: [{ label: navLabel, items: nav.map(toItem) }],
@@ -104,7 +123,7 @@ export function appShell({
       ${rail}
       ${railUser(account)}
     </aside>
-    <main class="ui-app__main" style="--ui-app-main: ${esc(maxWidth)}">
+    <main class="ui-app__main" style="--ui-app-main: ${mainMax(maxWidth)}">
       ${crumbs.length ? breadcrumbs({ items: crumbs }) : ''}
       ${title ? `<h1>${title}</h1>` : ''}
       ${sub ? `<p class="ui-app__sub">${sub}</p>` : ''}

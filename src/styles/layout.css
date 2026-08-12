@@ -22,17 +22,27 @@
 .ui-app-page { --ui-app-top: 52px; }
 .ui-app-page .topbar { position: sticky; top: 0; z-index: var(--z-sticky); }
 
+/* --surface-2, not --bg-elevated: elevated resolves to --bg itself in the light
+   theme, an exact no-op that left the border as the whole of the rail.
+   overflow-y, because the box is pinned at the viewport's height for the whole
+   scroll of .ui-app — without it a row past that height paints below the fold
+   and no amount of document scrolling brings it back. The rail's own padding is
+   what keeps a focus ring out of the clip, so it stays above --ring's spread. */
 .ui-app__rail {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
   padding: var(--space-5) var(--space-4);
   border-right: 1px solid var(--border);
-  background: var(--bg-elevated);
+  background: var(--surface-2);
   position: sticky;
   top: var(--ui-app-top, 0px);
   height: calc(100vh - var(--ui-app-top, 0px));
+  overflow-y: auto;
 }
+/* The rail's hover WAS --surface-2, so moving the rail onto it would have made
+   hovering a row do nothing. Scoped, so a sidebarNav() anywhere else is untouched. */
+.ui-app__rail .ui-nav__item:hover { background: var(--surface-3); }
 .ui-app__brand {
   display: flex;
   align-items: center;
@@ -53,12 +63,28 @@
 .ui-app__rail .ui-nav--side { flex: 1 1 auto; }
 .ui-app__rail .ui-nav__foot { margin-top: auto; }
 
+/* Which row is current is structural here, not chromatic: the resting glyphs
+   step down so the current one is the brightest whatever --accent is doing, and
+   the bar beside it carries the hue. A 3x17px bar on a 45x44 tile was the
+   smallest of three weak signals doing the most work, so it grows with the row. */
+.ui-app__rail .ui-nav__ic svg { opacity: 0.62; }
+.ui-app__rail .ui-nav__item.is-active .ui-nav__ic svg,
+.ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; }
+.ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
+
+/* Sign out is a navigation row and rests like one. The danger intent is the
+   hover step nav.css writes for it, which a resting --muted was pre-empting —
+   it made the last row of the rail the quietest thing in it. */
+.ui-app__rail .ui-nav__item.is-danger:not(:hover) { color: var(--text); }
+
+/* One rule closes the rail, not two twenty pixels apart: the nav's own footer
+   keeps its hairline and the reader block is separated by space alone — it has
+   an avatar and a weight change already. */
 .ui-app__user {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 12px var(--space-1) 0;
-  border-top: 1px solid var(--border);
+  padding: var(--space-5) var(--space-1) 0;
 }
 .ui-app__av {
   width: 30px; height: 30px; flex: none;
@@ -75,12 +101,23 @@
    the rail column is max-content, so a long one widens the rail instead. */
 .ui-app__who span { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* The reading column centres in the track it is given — without width: 100% it
+   was hugging the rail, 519px of dead background on the right at 1728px wide.
+   The width is what keeps the auto margins honest: an auto inline margin takes
+   a grid item out of stretch, and Chrome then lays it out at its max-content
+   width, which is how the payout ledger pushed the page 529px sideways at 375.
+   The 860px is the floor for hand-written markup — shell.js validates what it
+   writes into --ui-app-main and falls back to this same number. */
 .ui-app__main {
   min-width: 0;
+  width: 100%;
   max-width: var(--ui-app-main, 860px);
+  margin-inline: auto;
   padding: 40px clamp(24px, 4vw, 56px) 72px;
 }
-.ui-app__main .ui-nav--crumbs { margin-bottom: var(--space-2); }
+/* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and
+   the h1 8px off its subtitle, so all three ranks read as one. */
+.ui-app__main .ui-nav--crumbs { margin-bottom: var(--space-5); }
 .ui-app__main h1 {
   color: var(--strong);
   font-size: 30px;
@@ -112,7 +149,6 @@
   .ui-app__rail .ui-nav__label,
   .ui-app__rail .ui-nav__badge,
   .ui-app__rail .ui-nav__caret,
-  .ui-app__rail .ui-nav__sub,
   .ui-app__rail .ui-app__who,
   .ui-app__brand span { display: none; }
   .ui-app__rail .ui-nav__item { justify-content: center; gap: 0; padding: 0; min-height: 44px; }
@@ -120,6 +156,22 @@
   .ui-app__rail .ui-nav__foot { padding-top: var(--space-2); }
   .ui-app__brand { justify-content: center; padding: 2px 0; }
   .ui-app__user { justify-content: center; padding-left: 0; padding-right: 0; }
+  /* A group's children are rail rows at this width too. The nested list is NOT
+     folded away: wireNav() toggles the `hidden` attribute and nothing else, so
+     a display:none here left the toggle announcing aria-expanded over a list it
+     could not reach — and took the row carrying aria-current with it. What goes
+     instead is the indent and its guide hairline; a 46px column has no room. */
+  .ui-app__rail .ui-nav__sub { margin: 0; padding-left: 0; border-left: 0; }
+  .ui-app__rail .ui-nav__item--sub.is-active::before { left: 3px; }
+  /* A child with no icon of its own would be a blank 44px target, so it gets a
+     dot in the row's own ink — the aria-label names it either way. */
+  .ui-app__rail .ui-nav__item--sub:not(:has(.ui-nav__ic))::after {
+    content: "";
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.62;
+  }
   .ui-app__main { padding: 28px var(--space-4) 56px; }
   .ui-app__main h1 { font-size: 25px; }
   /* A settings row is label-beside-control down to the width where the control

@@ -112,6 +112,21 @@ toggle, and no way for a reader to see the labels again at that width without tu
 A badge is hidden in the folded rail, as it is in the explicitly collapsed one. The count survives
 in the accessible name and not on screen.
 
+A grouped nav folds to a flat strip. Its children are *not* folded away with the labels: hiding the
+nested list left the group's toggle announcing `aria-expanded="true"` over a list that was not drawn,
+and took the row carrying `aria-current="page"` — the page the reader is standing on — with it. So a
+group's children sit under its head at the same 44px pitch, and what goes instead is the indent and
+its guide hairline, which a 46px column has no room for. The head still opens and closes them,
+because `wireNav()` toggles the `hidden` attribute and nothing at that width overrides it.
+
+The cost is that a child row has only its icon to show. A child with no icon of its own gets a dot
+in the row's ink rather than a blank 44px target — it is named by `aria-label` either way, but it is
+the one place in the rail where what you see does not say which entry it is. A nav with more than a
+handful of grouped children will read as a column of near-identical glyphs on a phone.
+
+`sidebarNav({ collapsed: true })` — the explicit icon-only rail, which is a different surface from
+this shell's CSS fold — still hides a group's children outright. That gap is unchanged here.
+
 `.ui-card__row` stacks below 720px only inside `.ui-app__main`. A settings row in somebody else's
 container still overflows at that width; that is a gap in `card.css`, not in this shell.
 

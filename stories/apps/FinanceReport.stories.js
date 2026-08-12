@@ -24,25 +24,32 @@ const kpi = (label, value, sub, tone) =>
      <div style="font:400 12px/1.4 Poppins;color:var(--muted);margin-top:5px">${sub}</div>
    </div>`;
 
-// Three numbers side by side need about 450px between them. Below the shell's
-// own breakpoint they stack, and the rule that divided them turns to lie flat.
+// Three numbers side by side need about 620px between them, measured at the
+// 26px Poppins the values are set in. That is a fact about this strip and not
+// about the window, and the two stopped agreeing once the shell grew a rail:
+// the rail folds at 720px but is still 249px wide above it, so from 721 to 1023
+// the column is narrower than the strip needs and every number orphaned its €
+// onto a second line. The strip asks its own container instead. The shell's
+// fold is left alone — it came from a measured touch target and belongs to
+// every screen, not to this one.
 const KPI_CSS = `<style>
+  .fr-kpis__box { container-type: inline-size; }
   .fr-kpis { display: flex; gap: 34px; align-items: stretch; }
   .fr-kpis__sep { border-left: 1px solid var(--border); }
-  @media (max-width: 720px) {
+  @container (max-width: 620px) {
     .fr-kpis { flex-direction: column; gap: 18px; }
     .fr-kpis__sep { border-left: 0; border-top: 1px solid var(--border); }
   }
 </style>`;
 
 const kpiStrip = () => card({ body: `
-  <div class="fr-kpis">
+  <div class="fr-kpis__box"><div class="fr-kpis">
     ${kpi('Money in', '759,988 €', 'Jul 1 – Jun 30', 'pos')}
     <div class="fr-kpis__sep"></div>
     ${kpi('Money out', '3,048,559 €', 'Jul 1 – Jun 30')}
     <div class="fr-kpis__sep"></div>
     ${kpi('Net result', '−2,288,571 €', 'Jul 1 – Jun 30', 'neg')}
-  </div>` });
+  </div></div>` });
 
 const PAYOUTS = [
   ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
