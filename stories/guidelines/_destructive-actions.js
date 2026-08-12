@@ -12,50 +12,20 @@
 // on the cited line. stories/guidelines/refs.test.js resolves all of them, so a
 // reference that drifts out of date fails CI instead of misleading a reader.
 // ---------------------------------------------------------------------------
-import { badge, toast } from '../../src/components/index.js';
+import { toast } from '../../src/components/index.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { confirm } from '../../src/components/confirm.js';
 
 // ---- The rule -------------------------------------------------------------
 export const TITLE = 'Destructive actions';
 
-// Wrap the technical fragments of a plain-text sentence — file references,
-// token names, selectors — in <code>. Keeping the data plain text means the
-// layout can style those fragments however it wants.
-export const mono = (s) => String(s).replace(
-  /(?:[\w/-]+(?:\.[\w-]+)*\.(?:css|js)(?::\d+)?|var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?)/g,
-  (m) => `<code>${m}</code>`,
-);
-
 // ---- Specimen CSS ---------------------------------------------------------
-// `.gl-stage` is the neutral surface every specimen sits on. `.gl-hovering`
-// pins a dropdown's danger row into its hover appearance so the difference is
-// visible in a screenshot instead of only under a live mouse; the two
-// modifiers paint that row the way the rule asks (`--pink`) and the way it
+// `.gl-hovering` pins a dropdown's danger row into its hover appearance so the
+// difference is visible in a screenshot instead of only under a live mouse; the
+// two modifiers paint that row the way the rule asks (`--pink`) and the way it
 // must not be painted (`--accent`).
-//
-// `--gl-specimen` is the page's declared measure. The page does not re-measure
-// its own copy for it — it takes the confirm's own `--confirm-w`
-// (src/styles/confirm.css), so a specimen is the width the product renders it
-// at, and a copy edit to a title or a button label cannot quietly invalidate
-// the number. A cell is that measure plus the stage's padding, and a page is
-// two cells and the gap between them, which is what keeps a cell close to what
-// it holds.
-//
-// The width is written out here because a custom property does not travel from
-// a descendant to its ancestor: `--confirm-w` lives on `.ui-confirm`, inside
-// the element that lays the grid out. stories/guidelines/destructive-actions.test.js
-// holds the two in step. The 240px menu panel then sits in the measure with
-// slack beside it, which is what showing one component at its real width costs.
 export const SPEC_CSS = `
   <style>
-    .gl { --gl-specimen: 420px;
-          --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
-          --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
-    .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 2px 6px; }
-    .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
-      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
     /* An open menu panel is absolutely positioned, so it contributes no height
        and the stage had to hold itself open around it — a hand-measured
        min-height, 24px of which nothing ever covered, and a note pinned to the
@@ -77,10 +47,6 @@ export const SPEC_CSS = `
     .gl-stage--confirm .ui-confirm { position: static; }
     .gl-stage--confirm .ui-confirm__scrim { display: none; }
     .gl-stage--confirm .ui-confirm__panel { position: static; translate: none; width: auto; }
-    .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
-      font: 500 11px/1 Poppins; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-    .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
-      background: var(--muted); box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 22%, transparent); }
   </style>`;
 
 // ---- Live specimens -------------------------------------------------------
@@ -197,7 +163,3 @@ export const RULES = [
     ],
   },
 ];
-
-// ---- Small shared atoms ---------------------------------------------------
-export const doBadge = () => badge('Do', 'live');
-export const dontBadge = () => badge('Don’t', 'danger');

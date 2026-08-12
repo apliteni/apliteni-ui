@@ -35,6 +35,29 @@ const parseRef = (ref) => {
 const fail = (page, rule, ref, said) =>
   `${page} → rule "${rule}" → reference ${ref}\n     ${said}`;
 
+// `unmet` is how a rule admits the kit does not do this yet — an issue number
+// and one sentence. It is optional; a broken one points a reader at a gap they
+// cannot look up, so the shape is checked here rather than seen on the page.
+const unmetProblems = (page, rule) => {
+  const said = (s) => `${page} → rule "${rule.id}" → unmet\n     ${s}`;
+  const u = rule.unmet;
+
+  if (u === undefined) return [];
+  if (typeof u !== 'object' || u === null || Array.isArray(u)) {
+    return [said(`\`unmet\` must be an object like { issue: 128, note: '…' } — got ${JSON.stringify(u)}`)];
+  }
+
+  const problems = [];
+  if (!Number.isInteger(u.issue) || u.issue < 1) {
+    problems.push(said(`\`issue\` must be a positive integer — got ${JSON.stringify(u.issue)}`));
+  }
+  if (typeof u.note !== 'string' || u.note.trim() === '') {
+    problems.push(said('`note` must be a non-empty string naming what the kit does not do yet'
+      + ` — got ${JSON.stringify(u.note)}`));
+  }
+  return problems;
+};
+
 for (const page of pages) {
   const mod = await import(path.join(here, page));
   if (!Array.isArray(mod.RULES)) continue;
@@ -90,7 +113,45 @@ for (const page of pages) {
       `guideline references no longer match the code they cite:\n  ${problems.join('\n  ')}`,
     );
   });
+
+  test(`guideline rules are well formed: stories/guidelines/${page}`, () => {
+    const problems = mod.RULES.flatMap((rule) => unmetProblems(page, rule));
+    assert.deepStrictEqual(
+      problems,
+      [],
+      `a rule declares an \`unmet\` the page cannot render:\n  ${problems.join('\n  ')}`,
+    );
+  });
 }
+
+// The checker above only ever sees rules that are already well formed, so the
+// shape rules for `unmet` are exercised here against ones that are not.
+test('a malformed `unmet` fails with a line a reader can act on', () => {
+  const problems = (unmet) => unmetProblems('Page.js', { id: 'r', unmet });
+  const only = (unmet) => {
+    const found = problems(unmet);
+    assert.equal(found.length, 1, `expected one problem, got ${found.length}: ${found.join(' | ')}`);
+    return found[0];
+  };
+
+  assert.deepStrictEqual(unmetProblems('Page.js', { id: 'r' }), [], 'no `unmet` is not a problem');
+  assert.deepStrictEqual(
+    problems({ issue: 128, note: 'the kit has no such control yet' }), [],
+    'a well-formed `unmet` is not a problem',
+  );
+
+  for (const bad of ['#128', 128, null, ['x'], true]) {
+    assert.match(only(bad), /`unmet` must be an object/, `${JSON.stringify(bad)} should not be accepted`);
+  }
+  for (const issue of [0, -1, 1.5, '128', undefined]) {
+    assert.match(only({ issue, note: 'n' }), /`issue` must be a positive integer/);
+  }
+  for (const note of ['', '   ', 42, undefined]) {
+    assert.match(only({ issue: 128, note }), /`note` must be a non-empty string/);
+  }
+
+  assert.match(only({ issue: 128, note: '' }), /^Page\.js → rule "r" → unmet\n {5}/);
+});
 
 // A page whose references all resolve is only meaningful if there were some.
 test('the guidelines pages cite at least one line of kit code', async () => {
