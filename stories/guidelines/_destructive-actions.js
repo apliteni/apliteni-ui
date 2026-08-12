@@ -191,8 +191,8 @@ export const RULES = [
     doHtml: undoDo,
     dontHtml: undoDont,
     kit: [
-      { ref: 'src/components/confirm.js:60', pattern: 'role="alertdialog"' },
-      { ref: 'src/components/index.js:218', pattern: 'adds a trailing button ("Undo"/"Retry")' },
+      { ref: 'src/components/confirm.js:62', pattern: 'role="alertdialog"' },
+      { ref: 'src/components/index.js:227', pattern: 'class="ui-toast__action"' },
       { ref: 'src/styles/callout.css:75', pattern: '.ui-toast__action { flex: none;' },
     ],
   },

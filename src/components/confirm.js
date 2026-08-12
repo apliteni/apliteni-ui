@@ -16,7 +16,7 @@
 // every overlay on the page, so a confirm over a drawer never has to guess which
 // of the two the keyboard belongs to.
 import { button, esc } from './index.js';
-import { focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
+import { adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -30,7 +30,9 @@ const nextId = (p = 'confirm') => `${p}-${++_uid}`;
 //   confirmLabel  the destructive answer (default 'Confirm')
 //   cancelLabel   the safe answer (default 'Cancel')
 //   variant       'danger' (default) | 'primary' — which button the answer is
-//   open          render already-open (screenshots of a live dialog)
+//   open          render already-open, as a real dialog: wireConfirm() adopts it
+//                 onto the overlay stack, so the page behind it goes inert, Tab
+//                 is trapped in the panel and Escape closes it
 //   specimen      render open as a *picture* of the dialog: same markup, minus
 //                 the data-confirm hook and aria-modal, so no wiring and no key
 //                 handler can reach it. A documentation page shows several at
@@ -105,6 +107,10 @@ export function wireConfirm(scope = document) {
     cf.querySelector('[data-confirm-scrim]')?.addEventListener('click', () => closeConfirm(cf));
     cf.querySelectorAll('[data-confirm-cancel],[data-confirm-accept]').forEach((btn) =>
       btn.addEventListener('click', () => closeConfirm(cf)));
+
+    // Rendered with `open: true`, so nothing called openConfirm() and nothing
+    // put it on the stack. Adopting it here is what makes its aria-modal true.
+    adoptOverlay(cf, cf.querySelector('[data-confirm-panel]'), () => closeConfirm(cf));
   });
 
   const doc = scope === document ? document : (scope.ownerDocument || document);

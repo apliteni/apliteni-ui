@@ -105,18 +105,48 @@ function ownKeys(page, doc) {
   });
 }
 
+// Node.DOCUMENT_POSITION_PRECEDING, without reaching for a global Node that a
+// document-scoped module has no business assuming is there.
+const PRECEDING = 2;
+
+// One way onto the stack. `where` picks the slot; everything after it — the
+// duplicate guard, the key owner, the recompute — is the same either way.
+function place(root, panel, dismiss, where) {
+  const doc = root.ownerDocument;
+  const page = pageOf(doc);
+  if (page.stack.some((e) => e.root === root)) return;
+  page.stack.splice(where(page), 0, { root, panel, dismiss });
+  ownKeys(page, doc);
+  sync(doc);
+}
+
 /**
  * Put an overlay on top of the page. `dismiss` is what Escape calls — pass null
  * for one that refuses to be dismissed, and Escape then does nothing rather than
  * falling through to the overlay underneath.
  */
 export function pushOverlay(root, panel, dismiss) {
-  const doc = root.ownerDocument;
-  const page = pageOf(doc);
-  if (page.stack.some((e) => e.root === root)) return;
-  page.stack.push({ root, panel, dismiss });
-  ownKeys(page, doc);
-  sync(doc);
+  place(root, panel, dismiss, (page) => page.stack.length);
+}
+
+/**
+ * Take on a root that arrived already open — markup rendered with `open: true`,
+ * which nobody called open…() for. Without this its aria-modal is a claim the
+ * page contradicts: nothing is inert, Tab walks out, Escape has no owner.
+ *
+ * It goes in at its own place in the document rather than on top, because
+ * wiring has no history to order by: every overlay here opened before the page
+ * was live. The overlays share one z-index, so the root drawn later is the one
+ * painted over the other, and it is the one the keyboard belongs to — whichever
+ * component's wiring happened to run first. A root that is not open is left
+ * alone, which is what keeps a specimen a picture.
+ */
+export function adoptOverlay(root, panel, dismiss) {
+  if (!root.classList.contains('is-open')) return;
+  place(root, panel, dismiss, (page) => {
+    const at = page.stack.findIndex((e) => e.root.compareDocumentPosition(root) & PRECEDING);
+    return at === -1 ? page.stack.length : at;
+  });
 }
 
 /** Take an overlay off the page, wherever in the stack it sits. */

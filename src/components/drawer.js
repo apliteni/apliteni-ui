@@ -15,7 +15,7 @@
 // stack in ./overlay.js so the two can never disagree about which of them the
 // keyboard currently belongs to.
 import { esc, icon } from './index.js';
-import { focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
+import { adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -29,7 +29,9 @@ const nextId = (p = 'drawer') => `${p}-${++_uid}`;
 //   title       header heading (also the dialog's accessible name)
 //   body        scrollable body HTML (trusted markup)
 //   footer      pinned footer actions HTML (trusted markup)
-//   open        render already-open (screenshots of a live panel)
+//   open        render already-open, as a real panel: wireDrawer() adopts it onto
+//               the overlay stack, so the page behind it goes inert, Tab is
+//               trapped in the panel and Escape closes it
 //   specimen    render open as a *picture* of the panel: same markup, minus the
 //               data-drawer hook and aria-modal, so no wiring and no key handler
 //               can reach it. See confirm() for why a documentation page wants
@@ -111,6 +113,10 @@ export function wireDrawer(root = document) {
     });
     dr.querySelectorAll('[data-drawer-close]').forEach((btn) =>
       btn.addEventListener('click', () => closeDrawer(dr)));
+
+    // Rendered with `open: true`, so nothing called openDrawer() and nothing put
+    // it on the stack. Adopting it here is what makes its aria-modal true.
+    adoptOverlay(dr, dr.querySelector('[data-drawer-panel]'), dismissible ? () => closeDrawer(dr) : null);
   });
 
   const doc = root === document ? document : (root.ownerDocument || document);

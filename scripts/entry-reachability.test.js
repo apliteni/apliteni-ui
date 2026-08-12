@@ -58,7 +58,7 @@ const NOT_PUBLIC = [
   {
     module: 'components/overlay.js',
     why: 'it holds the scrim and focus-trap internals drawer.js and confirm.js share, and '
-      + 'publishing focusablesIn/inertOutside/trapTab would commit the package to keeping '
+      + 'publishing focusablesIn/mark/trapTab would commit the package to keeping '
       + 'helpers those two rewrite between themselves.',
   },
 ];

@@ -208,6 +208,69 @@ test('an overlay torn down while open hands the layer underneath it back', () =>
     'Escape reaches the drawer, not the dialog that is no longer on the page');
 });
 
+// ---- Blocker 9: markup that arrives already open -------------------------
+// `open: true` renders .is-open and aria-modal="true", but nothing called
+// openConfirm/openDrawer, so nothing put the root on the stack. Wiring is the
+// moment the page finds out; without it the dialog tells a screen reader the
+// page is unavailable while the page is still tabbable and Escape is dead.
+
+test('a confirm rendered open is on the stack once it is wired', () => {
+  const { page } = mount(confirm({ id: 'st-o-cf', title: 'Delete the workspace?', open: true }));
+  const cf = doc.getElementById('st-o-cf');
+
+  assert.deepEqual(hidden(page), ['true', true], 'the page behind it is neither tabbable nor readable');
+
+  assert.equal(press(doc.body, 'Tab'), false, 'Tab is intercepted');
+  assert.ok(cf.querySelector('[data-confirm-panel]').contains(active()),
+    'and lands inside the dialog rather than walking the page');
+
+  press(active(), 'Escape');
+  assert.equal(cf.classList.contains('is-open'), false, 'Escape closes it');
+  assert.deepEqual(hidden(page), [null, false], 'and the page is handed back');
+});
+
+test('a drawer rendered open is on the stack once it is wired', () => {
+  const { page } = mount(drawer({ id: 'st-o-dr', title: 'Filters', body: '<input id="st-o-input">', open: true }));
+  const dr = doc.getElementById('st-o-dr');
+
+  assert.deepEqual(hidden(page), ['true', true], 'the page behind it is neither tabbable nor readable');
+
+  assert.equal(press(doc.body, 'Tab'), false, 'Tab is intercepted');
+  assert.ok(dr.querySelector('[data-drawer-panel]').contains(active()), 'and lands inside the panel');
+
+  press(active(), 'Escape');
+  assert.equal(dr.classList.contains('is-open'), false, 'Escape closes it');
+  assert.deepEqual(hidden(page), [null, false], 'and the page is handed back');
+});
+
+// Adoption happens at wire time, and wiring has no history to order by: the
+// only evidence of which is on top is the page itself. Both overlays carry the
+// same z-index, so the root drawn later paints over the earlier one — and it is
+// the one Escape answers, whichever component was wired first.
+test('two roots rendered open stack in document order, not in wiring order', () => {
+  mount(
+    confirm({ id: 'st-ord-cf', title: 'Discard the filters?', open: true })
+    + drawer({ id: 'st-ord-dr', title: 'Filters', body: '<input id="st-ord-input">', open: true }),
+  );
+  const cf = doc.getElementById('st-ord-cf');
+  const dr = doc.getElementById('st-ord-dr');
+
+  press(doc.body, 'Escape');
+  assert.equal(dr.classList.contains('is-open'), false, 'the root drawn last is the one on top');
+  assert.equal(cf.classList.contains('is-open'), true, 'and the one it covers is not closed with it');
+});
+
+test('wiring twice does not put the same open root on the stack twice', () => {
+  const { page } = mount(confirm({ id: 'st-tw-cf', title: 'Delete the workspace?', open: true }));
+  wireConfirm(doc.body);   // Storybook re-renders; the root is the same node
+  const cf = doc.getElementById('st-tw-cf');
+
+  assert.deepEqual(hidden(page), ['true', true], 'the page is hidden by one dialog');
+  closeConfirm(cf);
+  assert.deepEqual(hidden(page), [null, false],
+    'and one close hands it back — a second copy on the stack would still be holding it');
+});
+
 // ---- Blocker 8: a specimen is a picture, not a dialog --------------------
 
 test('a specimen renders open but carries no dialog hooks', () => {
@@ -240,4 +303,22 @@ test('a specimen survives the click and the Escape that would erase it', () => {
 
   press(doc.body, 'Escape');
   assert.equal(spec.classList.contains('is-open'), true, 'Escape with nothing open leaves it alone too');
+});
+
+// The other half of that claim: wiring adopts a root that renders open, and a
+// specimen must be the one it walks past. A picture of a dialog owns nothing —
+// the page behind it stays readable, Tab walks straight through it, and Escape
+// has no one to talk to.
+test('a specimen is not adopted onto the stack when the page is wired', () => {
+  const { page, overlays } = mount(confirm({ specimen: true, title: 'Revoke access for Research bot?' }));
+  const spec = overlays.firstElementChild;
+  const pageBtn = doc.getElementById('page-btn');
+
+  assert.deepEqual(hidden(page), [null, false], 'the page behind the picture is untouched');
+
+  pageBtn.focus();
+  assert.equal(press(pageBtn, 'Tab'), true, 'Tab off a page control is nobody’s to intercept');
+
+  press(doc.body, 'Escape');
+  assert.equal(spec.classList.contains('is-open'), true, 'and Escape leaves the picture where it is');
 });
