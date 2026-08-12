@@ -21,7 +21,10 @@
   --accent: #ff6a3d;
   --accent-strong: var(--accent);
   --accent-contrast: #241006;
-  --glow-purple: rgba(255, 106, 61, 0.18);
+  /* Thinned from 0.18 for WCAG AA: the ember accent cleared every flat surface
+     but not its own wash over a card, which lifts the ground toward the ink. The
+     hue is untouched. See issue #157. */
+  --glow-purple: rgba(255, 106, 61, 0.15);
   --ring: 0 0 0 3px rgba(255, 106, 61, 0.38);
   --grad-from: #ff7a45;
   --grad-to: #ffcf6a;
@@ -49,7 +52,9 @@
   --accent: #3b9dff;
   --accent-strong: var(--accent);
   --accent-contrast: #04121f;
-  --glow-purple: rgba(59, 157, 255, 0.18);
+  /* Thinned from 0.18 for WCAG AA, the same wash-over-a-card pair as dark
+     Phoenix and from the same alpha. The hue is untouched. See issue #157. */
+  --glow-purple: rgba(59, 157, 255, 0.15);
   --ring: 0 0 0 3px rgba(59, 157, 255, 0.38);
   --grad-from: #3b9dff;
   --grad-to: #20dcf5;
@@ -61,7 +66,10 @@
   --accent: #1568d6;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
-  --glow-purple: rgba(21, 104, 214, 0.10);
+  /* Thinned from 0.10 for WCAG AA. In light the harshest ground is --surface-2,
+     the grey panel; #96 deepened --accent to clear plain white, which it does,
+     but the wash over that panel was not part of it. See issue #157. */
+  --glow-purple: rgba(21, 104, 214, 0.06);
   --ring: 0 0 0 3px rgba(21, 104, 214, 0.28);
   --grad-from: #1568d6;
   --grad-to: #17a2c0;
@@ -89,7 +97,9 @@
   --accent: #087a52;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
-  --glow-purple: rgba(11, 156, 104, 0.10);
+  /* Thinned from 0.10 for WCAG AA, the same grey-panel pair as light Ocean and
+     from the same alpha. See issue #157. */
+  --glow-purple: rgba(11, 156, 104, 0.08);
   --ring: 0 0 0 3px rgba(11, 156, 104, 0.28);
   --grad-from: #0b9c68;
   --grad-to: #12b0a0;

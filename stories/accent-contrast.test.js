@@ -46,39 +46,17 @@ const CELLS = THEMES.flatMap((theme) => ACCENTS.map((accent) => ({ theme, accent
  */
 const EXEMPT = [
   {
-    theme: 'dark',
-    accent: 'phoenix',
-    ground: '--surface',
-    washed: true,
-    why: 'The ember accent on its own wash over a card. The wash is the binding constraint here '
-      + 'exactly as it was for the default accent, and the same fix applies — a lower alpha — but '
-      + 'the hue itself is #96\'s and moving it is a separate decision. Held until the wash drops.',
-  },
-  {
-    theme: 'dark',
-    accent: 'ocean',
-    ground: '--surface',
-    washed: true,
-    why: 'The azure accent on its own wash over a card, the same shape as dark Phoenix above and '
-      + 'from the same 0.18 alpha. Flat surfaces all clear; only the wash closes the pair. Held '
-      + 'until the wash drops.',
-  },
-  {
     theme: 'light',
     accent: 'ocean',
     ground: '--surface-2',
     washed: true,
-    why: 'In light the harshest ground is --surface-2, the grey panel, and the purple wash lifts it '
-      + 'further toward the ink. The light accents were deepened in #96 to clear plain white, which '
-      + 'they do; the wash over the grey panel was not part of that change. Held until the wash drops.',
-  },
-  {
-    theme: 'light',
-    accent: 'emerald',
-    ground: '--surface-2',
-    washed: true,
-    why: 'The jade accent on its wash over the grey panel — the same pair as light Ocean above, and '
-      + 'from the same 0.10 alpha. Held until the wash drops.',
+    why: 'Misses the bar by nine thousandths, and is held there on purpose. #157 searched for the '
+      + 'largest wash alpha that still clears and found this one, computing the composite at full '
+      + 'precision; this gate rounds each layer to 8 bits because that is what the browser puts in '
+      + 'the framebuffer, and the same alpha lands just under. One step thinner clears it in both '
+      + 'models — but that is another step off the wash\'s visibility, and how faint the azure wash '
+      + 'is allowed to get is a colour decision this issue did not make. Recorded so the nine '
+      + 'thousandths are a choice somebody can see rather than a rounding nobody noticed.',
   },
 ];
 

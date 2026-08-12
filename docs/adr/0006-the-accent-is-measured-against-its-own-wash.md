@@ -50,20 +50,29 @@ counted:
 
 | cell | before | after |
 |---|---|---|
-| dark default | fails, worst 3.32 | **passes, worst 4.54** |
-| dark phoenix | fails, worst 4.31 | unchanged |
-| dark ocean | fails, worst 4.28 | unchanged |
+| dark default | fails, worst 3.32 | passes, worst 4.54 |
+| dark phoenix | fails, worst 4.31 | passes, worst 4.58 |
+| dark ocean | fails, worst 4.28 | passes, worst 4.53 |
 | dark emerald | passes, worst 5.35 | unchanged |
 | light default | passes, worst 5.89 | unchanged |
 | light phoenix | passes, worst 5.31 | unchanged |
-| light ocean | fails, worst 4.27 | unchanged |
-| light emerald | fails, worst 4.45 | unchanged |
+| light ocean | fails, worst 4.27 | 4.49 — still under, exempt |
+| light emerald | fails, worst 4.45 | passes, worst 4.55 |
 
-Every worst above is the accent on the wash over a surface, never on a flat one.
+Every worst above is the accent on the wash over a surface, never on a flat one. No flat ground fails
+in any cell, before or after.
 
-The four cells that still fail all fail on the wash and nowhere else, and all four are closed by
-lowering that cell's alpha rather than by moving a hue: dark Phoenix and dark Ocean from `0.18` to
-`0.15`, light Ocean from `0.10` to `0.06`, light Emerald from `0.10` to `0.08`.
+The other three accents fail on the wash and nowhere else, so they are closed the same way, by
+lowering that cell's alpha rather than by moving a hue that #96 chose: dark Phoenix and dark Ocean
+from `0.18` to `0.15`, light Ocean from `0.10` to `0.06`, light Emerald from `0.10` to `0.08`. Their
+hues are untouched. This is a separate commit from the default accent's move so it can be reverted on
+its own.
+
+**Light Ocean does not quite close.** The alpha search that produced `0.06` composited at full
+precision, where it lands at 4.501. At 8 bits it lands at 4.491 — nine thousandths under. `0.05`
+clears it in both models, but that is a further step off the wash's visibility, and how faint the
+azure wash may get is a colour decision this record does not make. The cell keeps a written exemption
+in the gate rather than a value nobody chose.
 
 **Light's `--accent` does not move.** `#6a2dcc` already clears every ground, washed and flat, at
 worst 5.89.
@@ -121,7 +130,12 @@ near-black page. Clearing 3:1 would need roughly `0.61`, which is a visible rede
 state in the kit under every accent, and nothing here decides it.
 
 **The accent hues of Phoenix, Ocean and Emerald.** Untouched. Only their washes move, and only where
-a cell needed it.
+a cell needed it. Whether those three accents want a lifted hue the way the default one got is a
+question this record leaves open — it closed them the cheap way, on the wash alone.
+
+**Light Ocean's last nine thousandths**, above. The gate carries it as a written exemption, which is
+the only live entry in that list; if it is ever closed, the exemption mechanism has nothing left
+proving it works.
 
 **Whether the colour is right.** AA is a floor. This record says the dark accent now clears it; it
 does not say the violet is the correct violet.
