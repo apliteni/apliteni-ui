@@ -71,15 +71,15 @@
      Light Ocean is the one light accent #96 never deepened, because it happened
      to clear plain white. Same kind of move, smaller: hue and chroma unchanged
      in OKLCH (H 258, C 0.185) and four points of lightness down, where #96's
-     two took about ten points and gave up 16-18% of the chroma.
-     See issues #96 and #157. */
+     two took about ten points and gave up 15.9% of the chroma on Phoenix and
+     17.6% on Emerald. See issues #96 and #157. */
   --accent: #005bc8;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
-  /* Back to 0.10, where the other light washes sit. #157 thinned this to 0.05
-     while --accent was still #1568d6, because no alpha could carry that blue
-     over the grey panel. Deepening the ink is what closed the pair, so the wash
-     does not have to be the thing that gives. The rgb stays --purple-light
+  /* Back to 0.10, the alpha this cell carried before #157. #157 thinned it to
+     0.05 while --accent was still #1568d6, because no alpha could carry that
+     blue over the grey panel. Deepening the ink is what closed the pair, so the
+     wash does not have to be the thing that gives. The rgb stays --purple-light
      rather than the accent — in light a glow tints --purple-light, which
      stories/signal-contrast.test.js holds. See issue #157. */
   --glow-purple: rgba(21, 104, 214, 0.10);

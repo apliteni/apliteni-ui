@@ -112,13 +112,13 @@ hue and chroma unchanged in OKLCH (H 258, C 0.185), four points of lightness off
 #96 made on light Phoenix (`#d64a12` → `#a8370c`) and light Emerald (`#0b9c68` → `#087a52`) — deepen
 a light accent until it clears — and light Ocean is the one light accent #96 skipped, because that
 cell happened to clear plain white. It is a smaller move than either: both of #96's took about ten
-points of lightness and gave up 16–18% of the accent's chroma, where this takes four and gives up
-none. Clearing plain white was never the whole test, and the old blue does not clear the raised grey
-panel: `#1568d6` reads 4.54 flat on `--surface-3` and 3.98 on the wash over it, where `#005bc8` reads
-5.43 and 4.76 — both washed figures at the `0.10` this cell ships. White on the deeper blue is 6.31,
-so `--accent-contrast` still clears AA. Because the ink is what closed the pair, the wash does not
-have to be the thing that gives, and it stays at `0.10`. Its rgb stays `21, 104, 214` —
-`--purple-light`, which is what a light glow tints.
+points of lightness and gave up 15.9% of the accent's chroma on Phoenix and 17.6% on Emerald, where
+this takes four and gives up none. Clearing plain white was never the whole test, and the old blue
+does not clear the raised grey panel: `#1568d6` reads 4.54 flat on `--surface-3` and 3.98 on the wash
+over it, where `#005bc8` reads 5.43 and 4.76 — both washed figures at the `0.10` this cell ships.
+White on the deeper blue is 6.31, so `--accent-contrast` still clears AA. Because the ink is what
+closed the pair, the wash does not have to be the thing that gives, and it stays at `0.10`. Its rgb
+stays `21, 104, 214` — `--purple-light`, which is what a light glow tints.
 
 **No alpha reaches the stacked pair.** Solving for the largest wash that clears with `--surface-3`
 counted, dark Nebula needs `0.06` — half the `0.12` this change chose — and light Emerald needs
@@ -300,8 +300,8 @@ rounded to 8 bits and, as everywhere in this record, the ratio the worse of the 
 | `#bd8cff` | rgb(56, 46, 75) | 5.02 |
 | `#d9bcff` | rgb(60, 53, 75) | 6.98 |
 
-The ink's relative luminance runs 0.2202 → 0.5794 across that range while the ground's runs 0.0271 →
-0.0400. `#bd8cff` clears the bar on its own badge — and `#bd8cff` is the value this record rejects as
+The ink's relative luminance runs 0.2202 → 0.5794 across that range while the ground's runs 0.0273 →
+0.0401. `#bd8cff` clears the bar on its own badge — and `#bd8cff` is the value this record rejects as
 the accent one section up, for the chroma it gives up. So these rows are **closable by lightening the
 accent, and expensive**. What holds them here is the brand, not the mathematics: the accent that
 closes all of them is well past the point where it is still this violet, and both #96 and #157 chose
