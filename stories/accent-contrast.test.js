@@ -8,9 +8,12 @@
  * list: a NAME PATTERN over the two semantic token files, and a reason for every
  * candidate the pattern finds that is not measured. See CANDIDATE_GROUNDS.
  *
- * Every other accent ground in the kit is a color-mix of --accent into a
- * component's own rule rather than a token, so no token value reaches it and
- * this gate cannot see it — see the ADR.
+ * Two kinds of accent ground are still outside this gate, and neither is an
+ * accident. One is the surfaces a COMPONENT mixes for itself out of the accent
+ * — a color-mix in a stylesheet rather than a token — which no token gate can
+ * see; the story walk in contrast.test.js carries those, in its bucket B. The
+ * other is a candidate the sweep DOES find and a person excused in writing; see
+ * EXEMPT_GROUNDS, which has one entry. Both are argued in the ADR.
  *
  * The wash is measured over the four BASE surfaces and not over --surface-3, and
  * that is a rule about the kit rather than a gap in this gate. --surface-3 is a
