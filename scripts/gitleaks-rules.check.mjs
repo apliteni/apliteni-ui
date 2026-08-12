@@ -82,13 +82,13 @@ function wrap(value, columns) {
  * A base64url payload that is GUARANTEED to contain '-' and '_', rather than
  * one that happens to draw them.
  *
- * This exists because trusting the draw silently voided cases. `stream()` with
- * a base64url alphabet is deterministic, and the Figma seed drew neither
- * character across all 40: narrowing that rule's class to [A-Za-z0-9] left
- * every case green, so nothing would have noticed real Figma tokens — which
- * are half '-' and '_' — going unmatched. Two of the three OpenAI fixtures had
- * the same hole. Use this anywhere a rule's class claims base64url, and the
- * claim becomes falsifiable: narrow the class and the case goes red.
+ * This exists because trusting the draw silently voids cases. `stream()` with a
+ * base64url alphabet is deterministic, and the Figma seed happens to draw
+ * neither character across all 40: with that fixture, narrowing the rule's
+ * class to [A-Za-z0-9] leaves every case green, so nothing reports real Figma
+ * tokens — which are about half '-' and '_' — going unmatched. Two of the three
+ * OpenAI fixtures had the same hole. Use this anywhere a rule's class claims
+ * base64url, and the claim becomes falsifiable: narrow the class, case goes red.
  */
 function streamUrlSafe(seed, n) {
   if (n < 21) throw new Error(`streamUrlSafe needs n >= 21 to place both markers, got ${n}`);
@@ -219,13 +219,13 @@ const CASES = [
   // ── Other vendor tokens ───────────────────────────────────────────────────
   {
     file: 'apify.md',
-    ours:'apify-api-token',
+    ours: 'apify-api-token',
     why: 'Apify API token',
     body: note(`apify_api_${stream('f', 32)}`),
   },
   {
     file: 'clickup.md',
-    ours:'clickup-api-token',
+    ours: 'clickup-api-token',
     why: 'ClickUp personal API token',
     body: note(`pk_${stream('g', 8, DIGITS)}_${stream('h', 32, UPPER)}`),
   },
@@ -240,25 +240,25 @@ const CASES = [
   // the class to ph[xsar]_ cannot silently narrow again.
   {
     file: 'posthog-personal.md',
-    ours:'posthog-api-key',
+    ours: 'posthog-api-key',
     why: 'phx_ personal API key',
     body: note(`phx_${stream('j', 44)}`),
   },
   {
     file: 'posthog-project-secret.md',
-    ours:'posthog-api-key',
+    ours: 'posthog-api-key',
     why: 'phs_ project secret key',
     body: note(`phs_${stream('j2', 44)}`),
   },
   {
     file: 'posthog-oauth-access.md',
-    ours:'posthog-api-key',
+    ours: 'posthog-api-key',
     why: 'pha_ OAuth access token',
     body: note(`pha_${stream('j3', 44)}`),
   },
   {
     file: 'posthog-oauth-refresh.md',
-    ours:'posthog-api-key',
+    ours: 'posthog-api-key',
     why: 'phr_ OAuth refresh token',
     body: note(`phr_${stream('j4', 44)}`),
   },
@@ -266,31 +266,31 @@ const CASES = [
   // ── The PII and infra rules this repo had before issue #179 ───────────────
   {
     file: 'email.md',
-    ours:'pii-email',
+    ours: 'pii-email',
     why: 'an email on no approved domain',
     body: note(`${stream('e1', 10, LOWER)}@${stream('e2', 12, LOWER)}.test`),
   },
   {
     file: 'private-ip.md',
-    ours:'pii-private-ip',
+    ours: 'pii-private-ip',
     why: 'an RFC1918 address',
     body: note(`10.${stream('n1', 2, DIGITS)}.${stream('n2', 2, DIGITS)}.${stream('n3', 2, DIGITS)}`),
   },
   {
     file: 'lessly-host.md',
-    ours:'infra-lessly-run',
+    ours: 'infra-lessly-run',
     why: 'an internal runtime hostname',
     body: note(`${stream('h1', 14, LOWER)}.lessly.run`),
   },
   {
     file: 'ttlsh-ref.md',
-    ours:'infra-ttlsh-tag',
+    ours: 'infra-ttlsh-tag',
     why: 'an ephemeral registry reference',
     body: note(`ttl.sh/${stream('t1', 12, LOWER)}:1h`),
   },
   {
     file: 'uuid.md',
-    ours:'infra-uuid',
+    ours: 'infra-uuid',
     why: 'a v4 UUID, the shape of a Lessly service/org/product id',
     body: note(
       `${stream('u1', 8, HEX)}-${stream('u2', 4, HEX)}-4${stream('u3', 3, HEX)}-a${stream('u4', 3, HEX)}-${stream('u5', 12, HEX)}`,
@@ -298,7 +298,7 @@ const CASES = [
   },
   {
     file: 'deploy-token.md',
-    ours:'infra-deploy-token',
+    ours: 'infra-deploy-token',
     why: 'a deploy-token assignment carrying a real-looking value',
     body: note(`${DEPLOY_VAR}=${stream('dt', 24)}`),
   },
@@ -309,7 +309,7 @@ const CASES = [
     // a name like src/icons/sprite.svg.ts is an ordinary thing in an icon kit.
     // This case is why the entry is anchored to $.
     file: 'fixture.svg.ts',
-    ours:'apify-api-token',
+    ours: 'apify-api-token',
     why: 'a path merely CONTAINING .svg must not inherit the .svg exemption',
     body: note(`apify_api_${stream('sv3', 32)}`),
   },
@@ -324,7 +324,7 @@ const CASES = [
     // our entry — our entry is belt-and-braces over the default. What it would
     // catch is that default going away.
     file: 'exempt-fixture.svg',
-    ours:null,
+    ours: null,
     why: 'a real .svg stays exempt (composed: our path entry and gitleaks’ default both cover it)',
     body: note(`apify_api_${stream('sv4', 32)}`),
   },
@@ -372,7 +372,7 @@ const CASES = [
   {
     // If the rule set has degenerated into flagging everything, this notices.
     file: 'control-prose.md',
-    ours:null,
+    ours: null,
     why: 'prose naming the ops_eyJ prefix, plus a phc_ project key that is public by design',
     body: [
       'A 1Password service account token starts with the prefix ops_eyJ, which',
