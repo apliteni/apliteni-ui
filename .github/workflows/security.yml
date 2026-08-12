@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # scan full history, not just the tip
-      - name: Run gitleaks
+      - name: Install gitleaks
         run: |
           set -euo pipefail
           VER=8.30.1
@@ -28,8 +28,75 @@ jobs:
           curl -fsSLO "${base}/gitleaks_${VER}_checksums.txt"
           grep "gitleaks_${VER}_linux_x64.tar.gz" "gitleaks_${VER}_checksums.txt" | sha256sum -c -
           tar -xzf "gitleaks_${VER}_linux_x64.tar.gz" gitleaks
+      # `detect` walks every ref in the clone, so on a pull request a leak sitting
+      # on some unrelated unmerged branch turned this check red on every open PR
+      # at once (issue #186). A pull request scans its own commit range; a push to
+      # main keeps the whole-clone walk, which is the backstop it was built to be.
+      #
+      # Every value this body reads comes in through the step's own `env:` block
+      # and is quoted here. A branch name is attacker-controlled on a fork PR, and
+      # a `${{ }}` expression is pasted into the script before bash sees it — so
+      # none appears below. That also makes the body runnable outside Actions,
+      # which is how scripts/secret-scan-range.check.mjs runs this exact text
+      # against synthetic repositories.
+      - name: Scan for secrets
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          gitleaks="${GITLEAKS_BIN:-./gitleaks}"
+          report="$(mktemp)"
+          scope="the whole clone (every ref)"
+          range=()
+          # Set only when the range below is really in effect: it is the answer to
+          # "which branch is this finding on", and it is only the right answer while
+          # the scan is confined to that branch's commits.
+          on_branch=""
+          if [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ]; then
+            base="${PR_BASE_SHA:-}"
+            head="${PR_HEAD_SHA:-}"
+            # Never silently scan less than intended: if either end of the range is
+            # missing from this checkout, fall back to the whole-clone walk and say so.
+            if [ -n "$base" ] && [ -n "$head" ] &&
+               git cat-file -e "${base}^{commit}" 2>/dev/null &&
+               git cat-file -e "${head}^{commit}" 2>/dev/null; then
+              range=("--log-opts=${base}..${head}")
+              on_branch="${PR_HEAD_REF:-}"
+              scope="commits ${base}..${head} on branch ${PR_HEAD_REF:-(unknown)}"
+            else
+              echo "::warning::This pull request's base or head commit is not in the checkout;" \
+                "falling back to scanning the whole clone."
+            fi
+          fi
+          echo "gitleaks scope: ${scope}"
           # --config loads .gitleaks.toml (default secret rules + PII/infra rules).
-          ./gitleaks detect --source . --config .gitleaks.toml --redact --no-banner --exit-code 1
+          if "$gitleaks" detect --source . --config .gitleaks.toml --redact --no-banner \
+               --exit-code 1 --report-format json --report-path "$report" \
+               ${range[@]+"${range[@]}"}; then
+            echo "No secrets found in ${scope}."
+            exit 0
+          fi
+          echo "::error::gitleaks found secrets in ${scope}. Each finding below names the" \
+            "commit and the branch it lives on — the value itself stays redacted."
+          # Findings are already --redact'ed, so rule/file/line/commit leak nothing.
+          # `node` here is the runner's preinstalled one — this failure path runs
+          # before setup-node below, and if it were missing the pipeline would fail
+          # and the step would still end red, which is the safe direction.
+          node -e 'for (const f of JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"))) console.log([f.RuleID, f.Commit || "", f.File, f.StartLine].join("\t"))' "$report" |
+            while IFS=$'\t' read -r rule commit file line; do
+              short="$(git rev-parse --short "$commit" 2>/dev/null || echo "${commit:-(no commit)}")"
+              if [ -n "$on_branch" ]; then
+                branch="$on_branch"
+              else
+                # A whole-clone finding can come from any ref, so ask git which one.
+                branch="$(git branch -a --contains "$commit" --format='%(refname:short)' 2>/dev/null |
+                  head -n 1)"
+              fi
+              echo "  ${rule}: ${file}:${line} — commit ${short} on branch ${branch:-(unknown)}"
+            done
+          exit 1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
@@ -45,6 +112,13 @@ jobs:
       # the interpreter and take this gate green without running anything.
       - name: Rule regression check
         run: GITLEAKS_BIN=./gitleaks node scripts/gitleaks-rules.check.mjs
+      # The scan step above decides how much history to walk, and getting that
+      # wrong is invisible from its output: a pull request that scans a stranger's
+      # branch looks like a scan, and one that scans nothing looks like a pass.
+      # This lifts that step's real `run:` body out of this file and executes it
+      # against synthetic repositories where the answer is known.
+      - name: Commit-range check
+        run: GITLEAKS_BIN=./gitleaks node scripts/secret-scan-range.check.mjs
 
   audit:
     name: Dependency audit

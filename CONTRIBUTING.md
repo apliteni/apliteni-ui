@@ -68,9 +68,10 @@ in code, fixtures, **issues, or PR text**. Use clearly-fabricated placeholders f
 all demo data (e.g. `Ada Lovelace / ada@apliteni.com`).
 
 Two automated gates enforce this (see `.github/workflows/security.yml`), and both
-are required checks: gitleaks with a PII/infra ruleset (`.gitleaks.toml`), which
-reads the whole history, and an internal-terms denylist, which greps the tracked
-files as they stand. Run them locally before pushing with
+are required checks: gitleaks with a PII/infra ruleset (`.gitleaks.toml`), and an
+internal-terms denylist, which greps the tracked files as they stand. On a pull
+request gitleaks reads only that pull request's own commits; on a push to main it
+reads the whole history. Run them locally before pushing with
 [pre-commit](https://pre-commit.com): `pip install pre-commit && pre-commit install`.
 Issues and PR bodies aren't covered by gitleaks — a separate workflow warns on
 internal identifiers posted there, but the responsibility is yours.
