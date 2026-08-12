@@ -26,7 +26,11 @@
  *     danger menu row is read while its row is hovered to --surface. Where a
  *     rule declares its own background, that background is composited over the
  *     named surface first.
- *   - compositing rounds to 8 bits, because that is what the browser paints.
+ *   - compositing rounds to 8 bits because that is closer to a framebuffer than
+ *     full precision, not because it is what the browser paints. The two models
+ *     disagree by at most a few hundredths, and a value that close to the bar is
+ *     chosen to clear under either. See
+ *     docs/adr/0006-the-accent-is-measured-against-its-own-wash.md.
  *   - accents (Phoenix, Ocean, Emerald) redefine only the purple family, so the
  *     signal ratios below are the same under every accent. One theme axis is
  *     enough.
@@ -120,7 +124,9 @@ function resolve(value, vars, seen = new Set()) {
   throw new Error(`cannot read colour value: ${value}`);
 }
 
-/** Paint `top` over an opaque `ground`, at 8 bits — what the browser shows. */
+/** Paint `top` over an opaque `ground`, rounded to 8 bits — closer to a
+ *  framebuffer than full precision, though not what the browser paints. See the
+ *  modelling note at the top of this file. */
 const composite = (top, ground) =>
   top.rgb.map((c, i) => Math.round(c * top.alpha + ground[i] * (1 - top.alpha)));
 
