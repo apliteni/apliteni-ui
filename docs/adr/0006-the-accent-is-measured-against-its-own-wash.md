@@ -240,8 +240,11 @@ Against the tokens this change ships the count is **28 of 80**, the difference b
 itself moved.
 
 The same test now resolves what that page paints against the two token files, property by property,
-deriving both sides rather than restating either. It earned its keep immediately: this change moved
-10 values in the accent family, and the check named every one of them before anything shipped.
+deriving both sides rather than restating either. It earned its keep inside this branch. The check
+landed partway through, and the two commits after it moved five values in that table — dark Nebula's
+`--purple-light` and `--purple-mid` when the ramp moved up, light Ocean's `--accent`,
+`--accent-strong` and `--glow-purple` when its ink was deepened and its wash put back. The check
+named all five, and the table was corrected in the same commits that moved them.
 
 ## Why not the alternatives
 
