@@ -4,7 +4,7 @@
 - **Status:** accepted
 - **Code:** `src/tokens/tokens.css`, `src/tokens/accents.css`, `src/styles/nav.css`,
   `stories/accent-contrast.test.js`, `stories/foundations/SubThemes.stories.js`,
-  `.storybook/manager.js`
+  `.storybook/manager.js`, `.storybook/manager-head.html`, `.storybook/preview.js`
 - **Issues:** #157
 
 ## What we ran into
@@ -180,9 +180,12 @@ worst 5.89.
 
 **The workbench chrome follows.** `.storybook/manager.js` hand-copies the dark palette and says so —
 "Values mirror `src/tokens/tokens.css` (dark block)" — which this change made false. `colorPrimary`,
-`colorSecondary` and `barSelectedColor` are the accent, and they move to `#b479ff` with it. The prism
+`colorSecondary` and `barSelectedColor` are the accent, and they move to `#b479ff` with it. Two more
+copies of the retired value sit outside that file and move with it: the selected sidebar row's tint
+in `.storybook/manager-head.html`, the accent's rgb at `0.13`, and the `--accent` fallback in
+`.storybook/preview.js` that the Inspect overlay reads when the property resolves empty. The prism
 mark in the sidebar logo keeps `#9b5dff` on purpose: that violet is the brand ramp's `--purple-500`,
-the mark's own colour, and it never tracked `--accent`. Nothing gates this file.
+the mark's own colour, and it never tracked `--accent`. Nothing gates any of the three.
 
 **The floor is held by a test, not by this record.** `stories/accent-contrast.test.js` measures all
 eight cells on every `npm test` — the accent on five flat grounds and on the wash over the four base
