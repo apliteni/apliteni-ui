@@ -277,10 +277,10 @@ test('the accent gate actually measures something', () => {
   // Not asserted here: `CELLS.length === THEMES.length * ACCENTS.length`. CELLS
   // is built as exactly that product one screen up, so the equality restates its
   // own definition and cannot fail — the same shape as the mirror check's old
-  // comparison count, removed in the same commit. An assertion whose two sides
-  // are the same expression is not a guard, and leaving one in a file about
-  // vacuity teaches the wrong lesson. What makes the matrix real is that the
-  // accents are derived and their count is pinned, below.
+  // comparison count, which went one commit earlier. An assertion whose two
+  // sides are the same expression is not a guard, and leaving one in a file
+  // about vacuity teaches the wrong lesson. What makes the matrix real is that
+  // the accents are derived and their count is pinned, below.
   assert.equal(
     [...ACCENTS_CSS.matchAll(/--accent\s*:/g)].length,
     DECLARED.length * THEMES.length,
