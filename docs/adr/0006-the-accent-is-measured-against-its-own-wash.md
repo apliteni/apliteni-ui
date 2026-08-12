@@ -99,9 +99,11 @@ deepen a light accent until it clears — and light Ocean is the one light accen
 that cell happened to clear plain white. It is not the same magnitude, and calling it that would
 overstate the precedent: both of #96's moves took about ten points of lightness and gave up 16–18% of
 the accent's chroma, where this one takes four and gives up none. Gentler in both directions.
-It does not clear the raised grey panel: `#1568d6` reads 4.54 flat on `--surface-3` and 3.98 on the
-wash over it, where `#005bc8` reads 5.43 and 4.76 — both washed figures at the `0.10` this cell
-ships, not at the `0.05` it briefly carried. White on the deeper blue is 6.31, so
+
+Clearing plain white was never the whole test, and the old blue does not clear the raised grey panel:
+`#1568d6` reads 4.54 flat on `--surface-3` and 3.98 on the wash over it, where `#005bc8` reads 5.43
+and 4.76 — both washed figures at the `0.10` this cell ships, not at the `0.05` it briefly carried
+mid-branch. White on the deeper blue is 6.31, so
 `--accent-contrast` still clears AA. Because the ink is what closed the pair, the wash no longer has
 to be the thing that gives, and it returns to `0.10` where the other light washes sit. Its rgb stays
 `21, 104, 214` — `--purple-light`, which is what a light glow tints.
