@@ -71,7 +71,9 @@
 }
 .ui-app__who { font-size: 12.5px; line-height: 1.3; min-width: 0; }
 .ui-app__who b { display: block; color: var(--strong); font-weight: var(--weight-semibold); }
-.ui-app__who span { display: block; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+/* nowrap is what makes the ellipsis fire — without it the address wraps, and
+   the rail column is max-content, so a long one widens the rail instead. */
+.ui-app__who span { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .ui-app__main {
   min-width: 0;

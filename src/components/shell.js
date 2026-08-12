@@ -26,12 +26,19 @@ const toItem = (n) => (Array.isArray(n)
   ? { id: n[0], icon: n[1], label: n[2], href: n[3], target: n[4] }
   : n);
 
-// topbar()'s account menu still speaks tuples, and it interpolates the label
-// raw — so escape here rather than sending it two different strings.
-const toMenuTuple = (it) => [it.id, it.icon, esc(it.label || ''), it.href, it.target];
+// topbar()'s account menu still speaks tuples, and it interpolates every field
+// raw — the label, the href and the target alike. Escape all three here rather
+// than sending the menu a string the rail would have escaped.
+const toMenuTuple = (it) => [
+  esc(it.id ?? ''), it.icon, esc(it.label || ''),
+  it.href ? esc(it.href) : it.href,
+  it.target ? esc(it.target) : it.target,
+];
 
-const initials = (name = '', email = '') => {
-  const from = name.trim() || (email.split('@')[0] || '');
+const str = (v) => (v == null ? '' : String(v));
+
+const initials = (name, email) => {
+  const from = str(name).trim() || (str(email).split('@')[0] || '');
   const parts = from.split(/[\s._-]+/).filter(Boolean).map((w) => w[0]);
   return (parts.slice(0, 2).join('') || '?').toUpperCase();
 };
@@ -48,7 +55,9 @@ const signOut = (href) =>
 // address are not navigation, and inside the landmark a screen reader announces
 // the address as an entry. Empty when nobody is — a shell must not invent an
 // identity for a reader it does not know.
-function railUser({ name, email } = {}) {
+function railUser(user) {
+  const name = str(user && user.name);
+  const email = str(user && user.email);
   if (!name && !email) return '';
   return `<div class="ui-app__user">` +
     `<span class="ui-app__av" aria-hidden="true">${esc(initials(name, email))}</span>` +
@@ -57,6 +66,10 @@ function railUser({ name, email } = {}) {
     (email ? `<span>${esc(email)}</span>` : '') +
     `</span></div>`;
 }
+
+// Unique-per-render suffix for the brand mark's clip id — the same reason
+// nav.js keeps a module counter. Two shells on one page must not collide.
+let _shellUid = 0;
 
 export function appShell({
   word = 'apliteni-ui',
@@ -81,8 +94,10 @@ export function appShell({
   });
   // The topbar already says the product word. Two lockups on one screen is one
   // product word too many, so the rail head steps aside when there is a topbar.
-  const brand = topbar ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}">`
-    + `${prism('appb', 24)}<span>${esc(word)}</span></a>`;
+  // The word is the link's only text and the narrow rail folds it out of view,
+  // so the name is written out — the mark itself is aria-hidden.
+  const brand = topbar ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}" aria-label="${esc(word)}">`
+    + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
   const grid = `<div class="ui-app">
     <aside class="ui-app__rail">
       ${brand}

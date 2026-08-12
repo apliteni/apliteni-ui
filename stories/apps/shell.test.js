@@ -368,6 +368,39 @@ test('the rail claims no DOM id, so two shells on one page do not collide', () =
   assert.doesNotMatch(appShell({ title: 'T' }), /id="app-rail"/);
 });
 
+// The rail head is the other id the shell emits: prism() clips through one, and
+// brand.js says the prefix is what stops two marks on a page colliding.
+test('two shells on one page do not share the brand mark\'s clip id', () => {
+  const doc = dom(appShell({ word: 'A' }) + appShell({ word: 'B' }));
+  const ids = [...doc.querySelectorAll('.ui-app__brand [id]')].map((n) => n.id);
+  assert.equal(ids.length, 2, 'the rail head stopped emitting a clip id — this gate measures nothing now');
+  assert.notEqual(ids[0], ids[1], 'both rail heads clip through the same DOM id');
+});
+
+// The narrow rail folds `.ui-app__brand span` out of view and prism() is
+// aria-hidden, so the word is the whole accessible name and it has to be written.
+test('the rail head is named independently of the word the narrow rail folds away', () => {
+  assert.match(appShell({ word: 'Finance' }), /class="ui-app__brand"[^>]*aria-label="Finance"/);
+});
+
+test('a nav item reaches the topbar menu with its href and target escaped too', () => {
+  const html = accountShell({
+    nav: [{ id: 'x', icon: 'gear', label: 'X', href: '" onmouseover="alert(1)' }], active: 'x',
+  });
+  assert.doesNotMatch(
+    html, /onmouseover="alert\(1\)"/,
+    'accountMenu() interpolates href raw, so an unescaped tuple field breaks out of the attribute',
+  );
+});
+
+// Default parameters cover `undefined` only. An /auth/me that answers `account:
+// null`, or a numeric display name, rendered fine before the shells were merged.
+test('an absent or oddly-typed reader degrades instead of throwing', () => {
+  assert.doesNotThrow(() => appShell({ account: null }));
+  assert.doesNotThrow(() => accountShell({ account: null }));
+  assert.match(appShell({ account: { name: 42 } }), /<b>42<\/b>/);
+});
+
 test('the shell escapes the caller\'s brand word', () => {
   assert.match(appShell({ word: 'A & B' }), /A &amp; B/);
 });
