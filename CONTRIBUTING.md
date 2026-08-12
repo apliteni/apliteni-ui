@@ -40,24 +40,17 @@ proof they passed. CI stops the run rather than skipping them.
   to date" — and none of them live in this repository.
 - Keep PRs focused. One concern per PR reviews faster than a grab-bag.
 
-## Golden rules
+## Rules
 
-1. **Tokens, never literals.** Components reference semantic tokens
-   (`var(--accent)`, `var(--surface)`, `var(--space-4)`) — never raw hex or px
-   colours. If you need a value that doesn't exist, add a token first.
-2. **Signal colours are constant.** `--green` = live, `--pink` = danger. They do
-   **not** move with the accent. Only the accent family does.
-3. **Every state.** A component isn't done until hover, focus-visible, disabled,
-   busy, empty, error and success are all designed and in a story.
-4. **Both themes, all accents.** Check dark and light, and at least Nebula +
-   Phoenix, before opening a PR. Use the toolbar toggles.
-5. **No visual slop.** Run the AI-slop detector on any new example page. It reads
-   comments too: past about twenty-five lines, a comment block has stopped being a
-   comment and become a design document. The argument goes in `docs/adr/` and the
-   code keeps a one-line pointer — see [docs/adr/README.md](docs/adr/README.md).
-6. **State, not destination.** A stateful control reports the state it is in,
-   never the one a click would produce — in the icon and in the accessible
-   name, and the name is rewritten whenever the state changes.
+The rules for designing a screen are in the **Guidelines** section of Storybook —
+[ui.apli.tech/storybook](https://ui.apli.tech/storybook/). Tokens and colour, the states
+a component owes, which component to reach for, how it words itself. Read them before
+you start, not at review.
+
+**No visual slop.** Run the AI-slop detector on any new example page. It reads
+comments too: past about twenty-five lines, a comment block has stopped being a
+comment and become a design document. The argument goes in `docs/adr/` and the
+code keeps a one-line pointer — see [docs/adr/README.md](docs/adr/README.md).
 
 ## Data handling
 
