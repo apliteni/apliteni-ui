@@ -75,7 +75,12 @@ export function accountMenu({
   // consumer most naturally hands this option is the one that used to throw here.
   // Read either; toMenuTuple() escapes an object on the way, which a tuple that
   // arrives already escaped does not need.
-  const items = (nav && nav.length ? nav : accountMenuNav())
+  //
+  // A list that is empty is an answer and stays empty, which is what the rail
+  // does with the same value. Falling back on `.length` meant a caller who asked
+  // for no entries got none in the rail and the kit's two in the menu — one nav,
+  // two answers, which is the drift #127 exists to close.
+  const items = (Array.isArray(nav) ? nav : accountMenuNav())
     .map((n) => (Array.isArray(n) ? n : toMenuTuple(n)));
   const it = ([id, ic, label, href, target]) =>
     `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''} data-dd-item tabindex="-1"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;

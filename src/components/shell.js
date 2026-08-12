@@ -106,9 +106,18 @@ const mainMax = (v) => {
 const SHAPES = {
   nav: toItems, crumbs: toCrumbs, account: toReader, maxWidth: mainMax, topbar: toTopbar,
 };
+
+// The text options settle too, by the same argument the rest of them do. A
+// default parameter covers `undefined` and not `null`, so `body: null` from a
+// record with no description drew the word "null" on the page, and `word: null`
+// left the brand link with no accessible name at all. Dropping the key is what
+// lets the declared default apply.
+const TEXT = ['word', 'brandHref', 'navLabel', 'title', 'sub', 'body', 'signOutHref', 'active'];
+
 function settle(options) {
   const out = { ...options };
   for (const key of Object.keys(SHAPES)) out[key] = SHAPES[key](out[key]);
+  for (const key of TEXT) if (out[key] == null) delete out[key];
   return out;
 }
 
