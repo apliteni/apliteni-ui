@@ -86,9 +86,11 @@
  * Cost grows with theme×accent cells, close to linearly — measured 16.3s for the
  * default 2 cells and 63.4s for all 8, so about 8s a cell. The eight-cell accent
  * matrix is behind CONTRAST_ACCENTS=1 and is OFF by default; turning it on finds
- * 794 distinct failing pairs against 214 here, because the accent families carry
- * different literals under Phoenix, Ocean and Emerald and would each need their
- * own ledger entries. Whether it ever runs in CI is undecided.
+ * 760 distinct failing pairs — the count the matrix test prints at the foot of
+ * this file — against the 190 of the ledger total asserted below, because the
+ * accent families carry different literals under Phoenix, Ocean and Emerald and
+ * would each need their own ledger entries. Both numbers are re-readable from a
+ * run rather than remembered. Whether it ever runs in CI is undecided.
  * stories/a11y.test.js made the same trade explicitly, so the precedent is to
  * say so rather than drop it quietly. Anyone adding a cell should know they are
  * buying ~8s of every `npm test`, forever.
@@ -98,14 +100,14 @@
  * REGENERATES IT.
  *
  * The mandatory `why` on every entry is the anti-automation device. A
- * regenerator would have to invent the sentence explaining why twenty-five dark
- * accent rows are acceptable debt, and it cannot, so the entries stay attached to
- * a person who decided. Contrast this with stories/danger-colour.test.js, whose
- * AT_REST_EXEMPT keys on a CSS SELECTOR PARSED OUT OF THE SOURCE and whose test
- * at :141 fails when an exemption stops naming a live rule. That ledger cannot
- * rot, because a rename breaks it. This one keys on a MEASUREMENT, which changes
- * whenever a token moves — so it needs a human, and the `why` is where the human
- * is.
+ * regenerator would have to invent the sentence explaining why bucket B's four
+ * dark accent rows — its `count` a screen below — are acceptable debt, and it
+ * cannot, so the entries stay attached to a person who decided. Contrast this
+ * with stories/danger-colour.test.js, whose AT_REST_EXEMPT keys on a CSS
+ * SELECTOR PARSED OUT OF THE SOURCE and whose test at :141 fails when an
+ * exemption stops naming a live rule. That ledger cannot rot, because a rename
+ * breaks it. This one keys on a MEASUREMENT, which changes whenever a token
+ * moves — so it needs a human, and the `why` is where the human is.
  *
  * Counts are asserted with ===, never as a ceiling. A ceiling would let a fix in
  * one row mask a regression in another inside the same bucket. An exact count
