@@ -142,7 +142,11 @@ export const RULES = [
     doHtml: wordingDo,
     dontHtml: wordingDont,
     kit: [
-      { ref: 'stories/apps/Access.stories.js:37', pattern: "label: 'Revoke'" },
+      {
+        ref: 'stories/components/Confirm.stories.js:45',
+        pattern: "confirmLabel: 'Delete workspace', cancelLabel: 'Keep it'",
+      },
+      { ref: 'stories/apps/Access.stories.js:37', pattern: "label: 'Revoke access'" },
     ],
   },
   {

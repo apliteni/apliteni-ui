@@ -34,7 +34,7 @@ const tokenTable = () => `
           <td>${used}</td>
           <td class="ui-table__act">${state === 'dead'
             ? '<span style="color:var(--muted);font-size:13px">Revoked</span>'
-            : button({ label: 'Revoke', variant: 'danger', size: 'sm' })}</td>
+            : button({ label: 'Revoke access', variant: 'danger', size: 'sm' })}</td>
         </tr>`).join('')}
     </tbody>
   </table>`;
