@@ -34,20 +34,22 @@ export const mono = (s) => String(s).replace(
 // modifiers paint that row the way the rule asks (`--pink`) and the way it
 // must not be painted (`--accent`).
 //
-// `--gl-cell` is the page's one measure. The specimens run from 240px (the
-// menu panel's own min-width) to 302px (a real confirm panel around its two
-// named buttons: 260px of buttons inside 20px of panel padding either side and
-// a 1px border) of content, so a cell is the widest of those plus the stage's
-// own padding, and a page is two cells and the gap between them. Sizing the
-// page off the specimens is what keeps a cell close to what it holds; the
-// guidelines pages used to be 1120px wide, which put every one of these
-// specimens in a 526px cell. 302px is measured, not chosen — it was 260px
-// while the confirms were hand-built out of bare divs, and it grew when they
-// became the real component. The kit has no measure/container token scale to
-// take it from, which is the one literal on this page that wants a token.
+// `--gl-specimen` is the page's declared measure. The page does not re-measure
+// its own copy for it — it takes the confirm's own `--confirm-w`
+// (src/styles/confirm.css), so a specimen is the width the product renders it
+// at, and a copy edit to a title or a button label cannot quietly invalidate
+// the number. A cell is that measure plus the stage's padding, and a page is
+// two cells and the gap between them, which is what keeps a cell close to what
+// it holds.
+//
+// The width is written out here because a custom property does not travel from
+// a descendant to its ancestor: `--confirm-w` lives on `.ui-confirm`, inside
+// the element that lays the grid out. stories/guidelines/destructive-actions.test.js
+// holds the two in step. The 240px menu panel then sits in the measure with
+// slack beside it, which is what showing one component at its real width costs.
 export const SPEC_CSS = `
   <style>
-    .gl { --gl-specimen: 302px;
+    .gl { --gl-specimen: 420px;
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
     .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
@@ -147,16 +149,12 @@ export const undoDont = () => `
 // carries the file, the line, and the `pattern` that must be on that line.
 // A rule with nothing to copy from yet simply carries no `kit`.
 //
-// `doHtml`/`dontHtml` are a rule's specimen pair, and a rule can still go
-// without one — it shows its `why` in place of the pair. `undo` did, for as
-// long as the kit had only half of what the rule asks for; it gained a pair
-// once confirm() shipped beside the toast's Undo action and both halves could
-// be photographed.
+// `doHtml`/`dontHtml` are a rule's specimen pair, and are optional.
 export const RULES = [
   {
     id: 'colour',
     imperative: 'Keep destructive controls quiet at rest, and turn them --pink on hover.',
-    why: 'A destructive control painted in --accent loses that cue.',
+    why: 'A destructive control that turns --accent on hover reads as an ordinary one.',
     except: '--pink also marks an error the reader has already hit, not an action they are about to take.',
     doCaption: 'Hover turns the danger row --pink.',
     dontCaption: 'Hover repaints the row --accent.',
@@ -170,7 +168,7 @@ export const RULES = [
   },
   {
     id: 'wording',
-    imperative: 'Name what you destroy in the button label.',
+    imperative: 'Name what each button does — the one that destroys, and the one that doesn’t.',
     why: '“OK” describes nothing; “Revoke access” names the cost.',
     except: 'Cancel is right when nothing exists yet to keep, like a new form or upload.',
     doCaption: 'Each label makes sense alone.',
@@ -184,9 +182,10 @@ export const RULES = [
   {
     id: 'undo',
     imperative: 'Confirm or undo, never both — reversibility decides which.',
-    why: 'If the action can be undone, confirming only adds friction; if it cannot, undo is a promise ' +
-      'you can’t keep.',
-    except: 'Irreversible actions confirm and offer nothing to restore.',
+    why: 'If the action can be undone, confirming only costs the reader a click; if it cannot, undo ' +
+      'is a promise you can’t keep.',
+    except: 'A reversible action still confirms when it fans out: one row is one click back, ' +
+      'a whole selection is not.',
     doCaption: 'Nothing to restore, so it asks first.',
     dontCaption: 'Undo on a workspace already gone.',
     doHtml: undoDo,
