@@ -89,16 +89,17 @@ const toTopbar = (t) => {
   return out;
 };
 
-// `maxWidth` lands inside a style attribute, which is a declaration list: esc()
-// stops a quote closing the attribute, and `;` is the character that matters
-// there. So a length is all this accepts — a number and a unit the reading
-// column can use, or `none`. Anything else falls back to the default rather
-// than throwing, because a shell that throws mid-render takes the page with it.
-const MAIN_MAX = '860px';
+// `maxWidth` lands inside a style attribute, so a length is all this accepts —
+// a number and a unit, or `none`. Anything else yields '' and the caller writes
+// no style attribute, letting layout.css fall through to --measure. It must
+// REMOVE the property rather than pass a default or a bad value on: a custom
+// property accepts any token stream, so garbage is a valid declaration that
+// drops the column to `none`, the full track.
+// why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md
 const LENGTH = /^(?:\d+|\d*\.\d+)(?:px|rem|em|ch|%|vw)$/;
 const mainMax = (v) => {
   const s = str(v).trim();
-  return s === 'none' || LENGTH.test(s) ? s : MAIN_MAX;
+  return s === 'none' || LENGTH.test(s) ? s : '';
 };
 
 // The one pass. Each key names the function that settles it; nothing else in
@@ -194,7 +195,7 @@ export function appShell(options = {}) {
       ${rail}
       ${railUser(account)}
     </div>
-    <main class="ui-app__main" style="--ui-app-main: ${maxWidth}">
+    <main class="ui-app__main"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
       ${crumbs.length ? breadcrumbs({ items: crumbs }) : ''}
       ${title ? `<h1>${title}</h1>` : ''}
       ${sub ? `<p class="ui-app__sub">${sub}</p>` : ''}

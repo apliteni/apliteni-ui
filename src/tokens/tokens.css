@@ -41,6 +41,14 @@
   --space-12: 48px;
   --space-16: 64px;
 
+  /* -- Measure ------------------------------------------------------------
+   * --container is the page, gutter to gutter; --measure is the reading column
+   * INSIDE a track, beside a sidebar. Different axes, never interchangeable.
+   * Below --measure is component scale, which has no tokens yet (#208).
+   * why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md */
+  --container: 1120px;
+  --measure: 860px;
+
   /* -- Typography --------------------------------------------------------- */
   --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;

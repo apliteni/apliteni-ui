@@ -13,6 +13,9 @@ export const mono = (s) => String(s).replace(
 // `--confirm-w` (src/styles/confirm.css), written out because a custom property
 // does not travel from a descendant to its ancestor. Change either and
 // stories/guidelines/destructive-actions.test.js fails, naming both files.
+// The measure tokens #198 added do NOT replace it — this grid sizes to its
+// widest SPECIMEN, not to a page. Removed by #208.
+// why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md
 const SPEC_CSS = `
   <style>
     .gl { --gl-specimen: 420px;

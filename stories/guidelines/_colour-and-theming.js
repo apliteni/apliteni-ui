@@ -72,7 +72,7 @@ export const RULES = [
     why: '--accent is chosen to read as text on the canvas; --accent-strong is the darker sibling white clears AA on.',
     except: 'Under Phoenix, Ocean and Emerald the two are one token, so the distinction only bites on Nebula.',
     kit: [
-      { ref: 'src/tokens/tokens.css:153', pattern: '--accent-strong: #7c3aed;' },
+      { ref: 'src/tokens/tokens.css:161', pattern: '--accent-strong: #7c3aed;' },
       { ref: 'src/styles/button.css:44', pattern: 'background: var(--accent-strong);' },
       { ref: 'src/tokens/accents.css:22', pattern: '--accent-strong: var(--accent);' },
     ],

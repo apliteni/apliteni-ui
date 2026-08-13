@@ -14,7 +14,7 @@
 }
 .topbar__in {
   width: 100%;
-  max-width: 1180px;
+  max-width: var(--container);
   margin: 0 auto;
   padding: 0 clamp(14px, 2.4vw, 26px);
   display: flex;
