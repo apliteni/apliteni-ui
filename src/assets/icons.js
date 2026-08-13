@@ -6,7 +6,29 @@
 //
 // Each value is the INNER markup; icon() wraps it in the shared <svg>. Glyphs
 // are grouped by domain — the flat ICONS map is what icon() looks up, and
-// iconCategories drives the Storybook grid. Add a glyph to the right group.
+// iconCategories drives the Storybook grid.
+//
+// ---- Adding a glyph -------------------------------------------------------
+//
+// NAME it for what it depicts, not for the one place it is used: `trash`, not
+// `deleteWorkspace`. camelCase, and a modifier follows its noun — `circleX`,
+// `eyeOff`, `trendingUp` — so the family sorts together. A name is taken once;
+// a second declaration of one is a gate failure, not a merge conflict.
+//
+// GROUP it by what it depicts, again rather than by caller. `chart` lives in
+// DATA because it draws data, even when a comms panel is what renders it. If
+// two groups both look right, the glyph belongs to the one whose other members
+// it would sit beside in the catalogue. Groups are not tags: exactly one.
+//
+// PROVENANCE: the path comes from Lucide, unmodified, at the 24×24 / 1.7 house
+// stroke — that is what keeps the set looking like one hand. Say which Lucide
+// name it came from in the commit if the two differ. A hand-drawn path needs a
+// reason in the commit message, because the next person cannot tell one from a
+// traced one by looking.
+//
+// The gates: src/assets/icons.test.js holds one-group-per-glyph and the
+// emitter's numbers, and stories/guidelines/iconography.test.js holds the
+// icon-only list below. The written rules are on Guidelines / Iconography.
 
 const NAV = {
   chevronDown: '<path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -101,9 +123,6 @@ const COMMS = {
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
   plug: '<path d="M12 22v-5"/><path d="M15 8V2"/><path d="M17 8a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1z"/><path d="M9 8V2"/>',
   sparkle: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>',
-  card: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
-  doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
-  chart: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
 };
 
 const BRAND = {
@@ -139,6 +158,50 @@ export const icon = (name, cls = '') =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"${cls ? ` class="${cls}"` : ''}>${ICONS[name] || ''}</svg>`;
 
 export const iconNames = Object.keys(ICONS);
+
+// Which controls may be an icon and nothing else — a closed list, not a
+// judgement call in review.
+//
+// The accessibility half was already held: every glyph is aria-hidden, so
+// button({ iconOnly }) names itself from `label`. That says a nameless icon
+// button cannot ship; it never said when a wordless one SHOULD. This does.
+//
+// A control whose action is on this list may drop its visible text. Everything
+// else carries a label — including glyphs that feel obvious in isolation, like
+// `gear` or `externalLink`, because a reader meets them one at a time and a
+// toolbar is not a legend. Adding an entry is a decision recorded here, which
+// is the point: the alternative rules read well and could not be gated.
+export const iconOnlyAllowed = {
+  x: 'close or dismiss',
+  copy: 'copy to clipboard',
+  moreHorizontal: 'overflow menu',
+  moreVertical: 'overflow menu',
+  chevronDown: 'expand or collapse',
+  chevronUp: 'expand or collapse',
+};
+
+// What a glyph means when a component picks it for the reader rather than a
+// caller naming it. Two rules hold the map together:
+//
+//   a CIRCLED glyph is a state the system is in — circleCheck, circleX,
+//   circleAlert. It is reported to you and you cannot click it.
+//   a BARE glyph is an action you can take — x dismisses, check confirms,
+//   trash deletes.
+//
+// That split is what a danger toast needed: it used to render the same bare `x`
+// twice, once meaning "this failed" and once meaning "make this go away". The
+// bare x is now reserved for the close button, and status took the circle
+// family the kit was already shipping and never using.
+export const iconMeanings = {
+  circleCheck: 'a state: it succeeded',
+  circleX: 'a state: it failed',
+  circleAlert: 'a state: it needs attention',
+  info: 'a state: something worth knowing, no action required',
+  bolt: 'a state: it happened, with no verdict attached',
+  x: 'an action: close or dismiss this',
+  check: 'an action: confirm this',
+  trash: 'an action: delete this',
+};
 
 export const sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 export const moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
