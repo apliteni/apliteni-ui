@@ -83,7 +83,8 @@ load, as a side effect of a token cycle — and it keeps the number nothing argu
 discarding the one that was chosen deliberately enough to be paid for in CSS.
 
 **A three-step scale — `--container-narrow: 1080`, `--container: 1120`, `--container-wide: 1180`.**
-Zero visual risk: every rendered pixel holds, and every page-scale literal still becomes a `var()`.
+It carries no visual risk at all, because every rendered pixel holds while every page-scale
+literal still becomes a `var()`.
 Rejected because it names the disagreement instead of settling it. The question was whether 1120
 and 1180 are *meant* to disagree, and there is no reason to write into the token comment beyond
 "they always have". Three container steps is also more vocabulary than any surface here asked for,
