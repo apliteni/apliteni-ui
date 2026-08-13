@@ -69,14 +69,11 @@ reads the whole history. Run them locally before pushing with
 Issues and PR bodies aren't covered by gitleaks — a separate workflow warns on
 internal identifiers posted there, but the responsibility is yours.
 
-The files those gates are *made of* — `.github/`, `.gitleaks.toml`,
-`.pre-commit-config.yaml`, the `scripts/*.check.mjs` — are owned, and the owner is
-named in [.github/CODEOWNERS](.github/CODEOWNERS). A pull request is graded by the
-gate as that pull request defines it, so a diff loosening a rule is checked by the
-loosened rule: the review is the part that catches it. Touch one of those files and
-the Security workflow says so in a warning on the run — nothing blocks the merge, so
-get the owner to read it. `scripts/codeowners.check.mjs` keeps the record honest; a
-new workflow or a new check script has to end up covered by it.
+A diff that loosens one of those gates is graded by the loosened gate, so no check
+catches it. The files this applies to are the ones the gates are *made of* —
+`.github/`, `.gitleaks.toml`, `.pre-commit-config.yaml`, the `scripts/*.check.mjs`.
+Because nothing in CI flags a change to them, please say so in the pull request body
+when you touch one, so the reviewer reads the diff itself rather than the run.
 
 ## Add a component
 
