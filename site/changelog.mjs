@@ -3,12 +3,19 @@
 
 export const RELEASES = [
   {
-    v: '0.11.1', date: '2026-08-13', tag: 'latest',
+    v: '0.11.2', date: '2026-08-13', tag: 'latest',
     changes: [
       ['added', 'The kit has guidelines — five pages in Storybook under **Guidelines**, with an index that says what each covers and how many of its rules the kit actually meets. Colour and theming, the full state set, which component suits which job, microcopy and tone, and destructive actions. Every rule shows a live do and don\'t built from real components, and cites the lines of the kit that implement it.'],
       ['added', 'Two rules say the kit does not meet them yet, and name the issue tracking each. A guideline nobody has implemented is worth more written down and marked than left out, and worth less than nothing asserted as if it were true.'],
       ['changed', 'The design rules left `CONTRIBUTING.md`. Tokens over literals, signal colours staying constant, the states a component owes, both themes and all accents, and a control naming the state it is in — all five are in the guidelines now, and deleted from the contributing guide rather than copied. Nothing you install changes; if you had bookmarked a golden rule by its number, it has a page instead.'],
       ['fixed', 'The wording guideline cited a button labelled `Revoke`, which fails the test the rule states out loud — does the label make sense on its own? The example screen says `Revoke access` now, and the rule cites the kit\'s own confirmation first.'],
+    ],
+  },
+  {
+    v: '0.11.1', date: '2026-08-13',
+    changes: [
+      ['fixed', 'A drawer stops taking clicks the moment it starts closing. Its panel and scrim stayed hit-testable for the length of the close fade, so a click landing in that window still reached a control inside the panel and ran your handler a second time — a double-click on a drawer\'s own button was enough. The closing animation is unchanged.', ['Drawer']],
+      ['fixed', 'Where two overlays are rendered open together, the one you can see is the one Escape closes. A confirm paints a layer above a drawer, but the keyboard went to whichever root came later in the markup — so a confirm written before the drawer it asks about went inert while Escape closed the drawer underneath it. Opening a confirm over a live drawer with `openConfirm()` was never affected.', ['Drawer', 'Confirm']],
     ],
   },
   {
