@@ -95,6 +95,7 @@ documented as “markup” (e.g. a card `title` carrying a badge) are inserted v
 | `.ui-toolbar` (class, no factory) | A row of controls above a list — a field, a filter, a button. Give the row the class and it lays them out; a text field in it shares the line and takes the slack, and the row wraps only when the field would be squeezed too narrow to read. Written for the shell's reading column, where a plain flex row either overflowed a phone or gave the field the whole line on a desktop. |
 | `feedbackWidget()` + `wireFeedback(...)` | Inline “select a passage → give feedback” widget. `nearestSection(node, root)` resolves which section a selection landed in. |
 | `icon(name, cls)` · `iconNames` · `iconCategories` · `illo(name)` · `illoNames` | Line icons and illustrations, as `<svg>` strings. `sun` and `moon` are exported as bare markup as well — `themeIcon()` picks between them. |
+| `iconOnlyAllowed` · `iconMeanings` | The two icon rulings, as data. `iconOnlyAllowed` is the closed list of actions a control may go wordless for; `iconMeanings` says what a glyph means when a component picks it for the reader — circled is a state, bare is an action. Both are gated: see Guidelines / Iconography. |
 | `esc(s)` | HTML-escape a text value. Every factory already applies it to its own text args; you need it for markup you assemble yourself. |
 
 The public JS surface is whatever `src/index.js` re-exports — add a factory there to

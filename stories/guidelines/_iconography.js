@@ -12,7 +12,7 @@ export const SPEC_CSS = `
     /* The meaning pairs read as a table, so they get one. */
     .gl-mean { border-collapse: collapse; font-size: var(--text-sm); }
     .gl-mean td { padding: var(--space-2) var(--space-3); vertical-align: middle; }
-    .gl-mean td:first-child svg { width: 22px; height: 22px; display: block; }
+    .gl-mean td:first-child { line-height: 0; }
     .gl-mean code { font-family: var(--font-mono); font-size: .9em; }
     .gl-mean .gl-mean__what { color: var(--muted); }
   </style>`;
@@ -59,7 +59,7 @@ export const RULES = [
     dontHtml: listDont,
     kit: [
       { ref: 'src/assets/icons.js:174', pattern: 'export const iconOnlyAllowed' },
-      { ref: 'stories/guidelines/iconography.test.js:96', pattern: 'every icon-only control is one the closed list allows' },
+      { ref: 'stories/guidelines/iconography.test.js:105', pattern: 'every icon-only control is one the closed list allows' },
       { ref: 'src/components/index.js:39', pattern: 'const named = iconOnly' },
     ],
   },
@@ -89,7 +89,7 @@ export const RULES = [
       + 'comms panel renders it.',
     kit: [
       { ref: 'src/assets/icons.test.js:41', pattern: "test('no glyph is declared in more than one group'" },
-      { ref: 'src/assets/icons.js:174', pattern: 'export const iconOnlyAllowed' },
+      { ref: 'src/assets/icons.test.js:59', pattern: "test('the groups declare exactly as many glyphs as the kit ships'" },
     ],
   },
   {

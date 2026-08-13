@@ -91,8 +91,8 @@ export const RULES = [
     dontHtml: errorDont,
     kit: [
       { ref: 'src/components/index.js:188', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
-      { ref: 'src/components/index.js:170', pattern: "'aria-describedby': msgId," },
-      { ref: 'src/components/index.js:156', pattern: "markup rather than in the label's wording" },
+      { ref: 'src/components/index.js:174', pattern: "'aria-describedby': msgId," },
+      { ref: 'src/components/index.js:160', pattern: "markup rather than in the label's wording" },
     ],
   },
   {
