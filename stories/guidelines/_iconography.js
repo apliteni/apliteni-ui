@@ -105,4 +105,21 @@ export const RULES = [
       { ref: 'src/assets/icons.test.js:72', pattern: "test('the emitter ships the numbers its header argues for'" },
     ],
   },
+  {
+    id: 'stroke-earns-the-bar',
+    imperative: 'A glyph that carries a status is stroked at 1.5 CSS px or wider, or it is held to '
+      + 'the text bar rather than the graphic one.',
+    why: 'WCAG 1.4.11 asks 3:1 of a graphic, and that is the right bar for a graphic — but a '
+      + 'stroke-width is stated in the glyph’s 24-unit box, so what a reader sees is '
+      + '`stroke-width × box ÷ 24`. The toast check was 2 at 13px, which is 1.08 CSS px, and it '
+      + 'cleared 3:1 by a tenth and still read as a smudge. Under 1.5 CSS px the mark is optically a '
+      + 'text stem, so it takes 4.5:1 instead. #206, and '
+      + 'docs/adr/0010-a-stroked-glyph-earns-the-graphic-bar-by-its-width.md.',
+    except: 'A glyph that carries no status — a close button, a chevron — is not measured by this: '
+      + 'there is no five-status pair to keep, and its own contrast is the control’s to answer for.',
+    kit: [
+      { ref: 'src/styles/callout.css:16', pattern: 'stroke-width: 2.1;' },
+      { ref: 'stories/signal-contrast.test.js:635', pattern: 'const barFor = (px) =>' },
+    ],
+  },
 ];

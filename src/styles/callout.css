@@ -13,18 +13,18 @@
   color: var(--dim);
 }
 .ui-callout__icon { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--muted); }
-.ui-callout__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.ui-callout__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.1; } /* 2.1 of a 24 box drawn at 18px = 1.58 CSS px, which is what buys the 3:1 graphic bar rather than the 4.5:1 text one. docs/adr/0010-a-stroked-glyph-earns-the-graphic-bar-by-its-width.md */
 .ui-callout b { color: var(--text); font-weight: var(--weight-semibold); }
 .ui-callout code { font-family: var(--font-mono); font-size: 0.92em; color: var(--text); }
 
 .ui-callout--info { background: var(--glow-cyan); }
-.ui-callout--info .ui-callout__icon { color: var(--cyan); }
+.ui-callout--info .ui-callout__icon { color: var(--chip-info-ink); } /* the chip inks, not the raw signals: in light the raw signal cleared the graphic bar by a tenth on its own wash and read as a smudge, and a stroke is read the way text is. The two are the same value in dark by construction, so only light moves. #206 */
 .ui-callout--success { background: var(--glow-green); }
-.ui-callout--success .ui-callout__icon { color: var(--green); }
+.ui-callout--success .ui-callout__icon { color: var(--chip-success-ink); }
 .ui-callout--warn { background: color-mix(in srgb, var(--amber) 13%, transparent); }
-.ui-callout--warn .ui-callout__icon { color: var(--amber); }
+.ui-callout--warn .ui-callout__icon { color: var(--chip-warn-ink); }
 .ui-callout--danger { background: var(--glow-pink); }
-.ui-callout--danger .ui-callout__icon { color: var(--pink); }
+.ui-callout--danger .ui-callout__icon { color: var(--chip-danger-ink); }
 
 /* ----------------------------------------------------------------------------
  * Toast — a floating, dismissible notification.
@@ -57,15 +57,15 @@
    fill is: the accent is a graphic colour, sized for a 3px rule and a 22px
    circle, and in the light theme it is not a colour text can be set in. The
    trailing action is the one part of a toast that is BOTH the status colour and
-   a piece of text, so it takes the chip inks, which are the text-grade version
-   of the same five statuses. In the dark theme the two are the same value by
-   construction — --chip-success-ink IS --green there — so this splits the light
-   theme apart and leaves the dark one exactly as it was. */
+   a piece of text, so it takes the chip inks — the text-grade version of the
+   same five statuses, and the same value as the accent in dark by construction.
+   neutral's --toast-on is --signal-solid-ink because the neutral circle IS
+   --signal-solid-neutral: one fill, so one ink, chosen once. #206 */
 .ui-toast--success { --toast-accent: var(--green); --toast-action-ink: var(--chip-success-ink); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); }
 .ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); }
 .ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }
 .ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
-.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--muted);            --toast-glow: var(--surface-2); --toast-on: var(--strong); --toast-solid: var(--signal-solid-neutral); }
+.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--muted);            --toast-glow: var(--surface-2); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
 
 /* left status marker (soft + outline; solid is already a full fill) */
 .ui-toast--soft::before,
@@ -75,7 +75,7 @@
 }
 
 .ui-toast__icon { width: 22px; height: 22px; flex: none; margin-top: 1px; display: grid; place-items: center; border-radius: 50%; background: var(--toast-accent); color: var(--toast-on); }
-.ui-toast__icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+.ui-toast__icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; } /* 2.8 of a 24 box drawn at 13px = 1.52 CSS px. The circle has no room for a bigger glyph, so the weight comes out of the stroke. docs/adr/0010-a-stroked-glyph-earns-the-graphic-bar-by-its-width.md */
 .ui-toast__body { flex: 1; min-width: 0; }
 .ui-toast__title { font-weight: var(--weight-medium); color: var(--strong); }
 .ui-toast__text { color: var(--dim); }

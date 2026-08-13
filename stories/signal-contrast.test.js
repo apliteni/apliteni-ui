@@ -475,11 +475,43 @@ test('the --glow-purple gate actually measures something', () => {
  * the pair used to leak away: .ui-toast__text is the message copy, and diluting
  * it undoes the contrast the pair was picked for. The declared `opacity` is
  * folded into the ink's alpha here for exactly that reason. */
-const SOLID_STATUSES = ['success', 'danger', 'warn', 'info', 'neutral'];
 const CALLOUT = cssOf('../src/styles/callout.css');
 
 /** Selectors of a rule, comma list split out and trimmed. */
 const selectorsOf = (sel) => sel.split(',').map((s) => s.trim());
+
+/** The statuses the toast matrix declares, discovered rather than typed out: a
+ *  `.ui-toast--<name>` rule that sets --toast-accent is a status. The style
+ *  modifiers — soft, solid, outline — set no accent, so they are not. */
+function toastStatuses() {
+  const found = new Map();
+  for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
+    if (!/--toast-accent\s*:/.test(body)) continue;
+    for (const s of selectorsOf(sel)) {
+      const m = /^\.ui-toast--([a-z]+)$/.exec(s);
+      if (m) found.set(m[1], body);
+    }
+  }
+  return found;
+}
+const SOLID_STATUSES = [...toastStatuses().keys()];
+
+/* A status half-declared is the failure this catches: it would still be found
+ * above, and every gate that walks the list would then measure a token that
+ * falls through to whatever a neighbouring rule happened to leave in scope. */
+test('every toast status declares the whole set of paint tokens', () => {
+  assert.ok(SOLID_STATUSES.length >= 5, `only ${SOLID_STATUSES.length} toast statuses found — the scan is broken`);
+  for (const [status, body] of toastStatuses()) {
+    const missing = ['--toast-accent', '--toast-action-ink', '--toast-glow', '--toast-on', '--toast-solid']
+      .filter((token) => !new RegExp(`${token}\\s*:`).test(body));
+    assert.deepStrictEqual(
+      missing, [],
+      `.ui-toast--${status} declares no ${missing.join(', ')}.\n`
+      + 'Every style below reads all five, so the ones missing here resolve to whatever\n'
+      + 'is in scope instead of to this status — and every gate over them measures that.',
+    );
+  }
+});
 
 /** Custom properties in scope on a toast carrying every one of `selectors`,
  *  over the theme's tokens — walked in source order, so the later rule wins
@@ -571,62 +603,201 @@ for (const theme of ['dark', 'light']) {
   }
 }
 
-/* ---- the status icon: a signal that is a fill at 22px ----------------------
- * The soft and outline toasts sit on a card, so their title and body are read
- * against that card and the rules above cover them. The one place those two
- * styles turn a signal into a fill is .ui-toast__icon — a --toast-accent circle
- * with a --toast-on glyph on it, the same independent-axes shape the solid
- * toast had: the circle comes from the status, the glyph from a global, and
- * nothing makes the two clear each other.
+/* ---- the stroked glyph: 3:1 is the bar, and the stroke is what earns it ----
+ * Two families in callout.css paint a status as a mark instead of as text, and
+ * both are stroked outlines drawn in a 24-unit box:
  *
- * A glyph is a graphic, so the bar is the 3:1 of WCAG 1.4.11, not 4.5:1.
+ *   .ui-toast__icon    a 13px glyph on an opaque 22px --toast-accent circle
+ *   .ui-callout__icon  an 18px glyph straight on the callout's own wash
  *
- * Cycle 2's rule for the solid toast — move the fill to its theme's extreme so
- * one ink clears all five — only half transfers here, because the circle's fill
- * is not free to move: --toast-accent also paints the 3px left marker and the
- * outline border, so a circle that left the accent would put two different
- * pinks in one toast. What is left is the ink, and it has to be chosen against
- * the accent it lands on. In dark it can still be one value: the five dark
- * accents are the bright signals (the same five --signal-solid-* takes), so
- * near-black clears all of them. In light it cannot: the accents there are
- * deepened to read as INK on white, which parks them mid-luminance, and neither
- * pole dominates — near-black bottoms out at 3.20 on --muted, white at 3.81 on
- * --cyan. So light keeps a per-status ink and this gate is what holds it. */
-const ICON_AA = 3;
+ * WCAG 1.4.11 asks 3:1 of a graphical object. #206 asked what the standard does
+ * not answer: is 3:1 the right bar for a stroke this thin? The ruling is that
+ * 3:1 is the right bar for a GRAPHIC, and a stroke has to be wide enough to be
+ * one. Its width is stated in the glyph's own box, so what a reader sees is
+ * stroke-width x box / 24 — 1.8 at 18px was 1.35 CSS px, 2 at 13px was 1.08 —
+ * and under 1.5 CSS px a mark is optically a text stem, so it takes the text
+ * bar instead. Why 1.5, why 4.5:1 could not simply be declared, and what
+ * GLYPH_FLOOR is doing here:
+ * docs/adr/0010-a-stroked-glyph-earns-the-graphic-bar-by-its-width.md.
+ *
+ * The circle's fill is still not free to move — --toast-accent also paints the
+ * 3px left marker and the outline border, so a circle that left the accent
+ * would put two different pinks in one toast. The ink is what moves, to the
+ * pole that clears THIS accent. Dark does that with one value, because its five
+ * accents are the bright signals; light cannot, because the accents there are
+ * deepened to read as ink on white, so it keeps a per-status ink. */
+const GRAPHIC_AA = 3;      // WCAG 1.4.11, for a graphical object
+const SOLID_STROKE = 1.5;  // CSS px at which a stroke paints as one
+const GLYPH_FLOOR = 4.39;  // a ratchet on where the twenty pairs landed, not a bar
+const VIEWBOX = 24;        // the box every kit glyph is drawn in
 
-/** The glyph read on its own circle, for a soft or outline toast. The circle is
- *  opaque, so the card under it cannot change this ratio — which is why one
- *  measurement stands for both styles, and why the assertion below that no
- *  style rule re-paints the icon is the thing keeping that true. */
-function measureIcon(status, theme) {
+/** The bar a mark is held to, decided by the width its stroke renders at. */
+const barFor = (px) => (px >= SOLID_STROKE ? GRAPHIC_AA : AA);
+
+test('the bar a stroked glyph is held to follows its width', () => {
+  assert.strictEqual(barFor(SOLID_STROKE), GRAPHIC_AA, 'a stroke at the line is a graphic');
+  assert.strictEqual(barFor(SOLID_STROKE - 0.01), AA, 'a stroke under it is a text stem');
+});
+
+test('every kit glyph is drawn in the box these stroke widths are read against', () => {
+  const factory = /export const icon =[\s\S]*?viewBox="0 0 (\d+) (\d+)"/
+    .exec(read('../src/assets/icons.js'));
+  assert.ok(factory, 'src/assets/icons.js no longer emits a viewBox this gate can read');
+  assert.deepStrictEqual(
+    [Number(factory[1]), Number(factory[2])], [VIEWBOX, VIEWBOX],
+    `the icon factory draws in a ${factory[1]}x${factory[2]} box, not ${VIEWBOX}x${VIEWBOX}.\n`
+    + 'Every rendered width below is stroke-width x box / 24, so a different viewBox\n'
+    + 'changes what the reader sees without changing a single stylesheet.',
+  );
+});
+
+/** The width a family's stroke renders at, in CSS px. `width: 100%` on the svg
+ *  hands the box to the slot, so the slot's own width is read instead. */
+function strokePx(family) {
+  const svg = declOf(`${family} svg`, 'stroke-width|width');
+  const px = (v) => Number(/^([\d.]+)px$/.exec(v ?? '')?.[1] ?? NaN);
+  const box = svg.width === '100%' ? px(declOf(family, 'width').width) : px(svg.width);
+  const width = Number(svg['stroke-width']);
+  assert.ok(box > 0, `${family} gives its glyph no px box to be drawn in`);
+  assert.ok(width > 0, `${family} svg declares no stroke-width`);
+  return (width * box) / VIEWBOX;
+}
+
+/** Every stroked glyph in this stylesheet that carries a status: an `__icon`
+ *  slot whose svg is stroked. Discovered rather than listed, so a third one is
+ *  gated the day it lands. `.ui-toast__close` is deliberately not one — it is a
+ *  control's glyph, carries no status, and has no pair to keep. */
+function glyphFamilies() {
+  const found = new Set();
+  for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
+    if (!/stroke-width\s*:/.test(body)) continue;
+    for (const s of selectorsOf(sel)) {
+      const m = /^(\.[\w-]+__icon) svg$/.exec(s);
+      if (m) found.add(m[1]);
+    }
+  }
+  return [...found];
+}
+
+/** The statuses a callout paints, discovered the way the toast's are. The base
+ *  rule is the fifth: `.ui-callout` with no modifier is the neutral one, and it
+ *  comes back as undefined so its caller reads it from the base rule. */
+function calloutStatuses() {
+  const found = new Set();
+  for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
+    for (const s of selectorsOf(sel)) {
+      const m = /^\.ui-callout--([a-z]+)$/.exec(s);
+      if (m && /(?:^|;)\s*background\s*:/.test(body)) found.add(m[1]);
+    }
+  }
+  return [undefined, ...found];
+}
+
+/* The opaque surfaces a callout is read on. Its status washes are translucent,
+ * so what sits behind decides the ground, and the three differ: --surface-2 is
+ * the harsher one in light, --surface in dark. Every pair is held on all three
+ * rather than on a guess about where callouts get used. */
+const CALLOUT_ON = ['var(--bg)', 'var(--surface)', 'var(--surface-2)'];
+
+/** The glyph on its own circle, for one status. The circle is opaque, so the
+ *  card under it cannot change this — which is why one measurement stands for
+ *  both soft and outline, and why the assertion below that no style rule
+ *  re-paints the icon is the thing keeping that true. */
+function toastGlyph(theme, status) {
   const status_ = `.ui-toast--${status}`;
   const { vars, seen } = toastVars(theme, [status_]);
-  assert.ok(seen.has(status_), `.ui-toast--${status} is gone from callout.css`);
+  assert.ok(seen.has(status_), `${status_} is gone from callout.css`);
   const decl = declOf('.ui-toast__icon');
   assert.ok(decl.background, '.ui-toast__icon declares no background');
   assert.ok(decl.color, '.ui-toast__icon declares no color');
 
   const fill = resolve(decl.background, vars);
   assert.strictEqual(fill.alpha, 1, `the icon circle must be opaque, got ${decl.background}`);
-  const circle = fill.rgb;
-  const glyph = composite(resolve(decl.color, vars), circle);
-  return { circle, glyph, ratio: contrast(glyph, circle), fill: decl.background, ink: decl.color };
+  const glyph = composite(resolve(decl.color, vars), fill.rgb);
+  return [{
+    on: decl.background, ink: decl.color, ground: fill.rgb, glyph,
+    ratio: contrast(glyph, fill.rgb),
+  }];
 }
 
+/** The glyph on the callout's own wash, for one status — once per surface the
+ *  wash can be read over, or once outright where the wash is opaque. */
+function calloutGlyph(theme, status) {
+  const vars = tokensFor(theme);
+  const neutral = status === 'neutral';
+  const wash = declOf(neutral ? '.ui-callout' : `.ui-callout--${status}`).background;
+  const ink = declOf(neutral ? '.ui-callout__icon' : `.ui-callout--${status} .ui-callout__icon`).color;
+  assert.ok(wash, `the ${status} callout declares no background to read its icon on`);
+  assert.ok(ink, `the ${status} callout paints its icon no colour`);
+
+  const tint = resolve(wash, vars);
+  const over = tint.alpha === 1 ? [undefined] : CALLOUT_ON;
+  return over.map((on) => {
+    const ground = on ? composite(tint, resolve(on, vars).rgb) : tint.rgb;
+    const glyph = composite(resolve(ink, vars), ground);
+    return { on: on ?? `${wash}, which is opaque`, ink, ground, glyph, ratio: contrast(glyph, ground) };
+  });
+}
+
+/* Discovery finds the subjects; this says what each one is measured with. A
+ * family that turns up without an entry here is a failure, not a silence. */
+const GLYPH = {
+  '.ui-toast__icon': { statuses: () => SOLID_STATUSES, measure: toastGlyph },
+  '.ui-callout__icon': { statuses: () => calloutStatuses().map((s) => s ?? 'neutral'), measure: calloutGlyph },
+};
+
+test('every stroked status glyph in callout.css is measured here', () => {
+  const families = glyphFamilies();
+  assert.ok(families.length >= 2, `only ${families.length} stroked status glyph(s) found — the scan is broken`);
+  assert.deepStrictEqual(
+    families.filter((f) => !(f in GLYPH)), [],
+    'a stroked status glyph landed in callout.css that nothing below measures.\n'
+    + 'Give it an entry in GLYPH saying what its ink and its ground are, or, if it\n'
+    + 'carries no status, name it in the comment above glyphFamilies() and exclude it.',
+  );
+});
+
+test('both stroked-glyph families carry the same statuses', () => {
+  assert.deepStrictEqual(
+    [...GLYPH['.ui-callout__icon'].statuses()].sort(),
+    [...GLYPH['.ui-toast__icon'].statuses()].sort(),
+    'a callout and a toast no longer report the same set of statuses.\n'
+    + 'One of them gained a status the other cannot express, which is a design\n'
+    + 'decision and not a gate change — make it deliberately or undo it.',
+  );
+});
+
 for (const theme of ['dark', 'light']) {
-  for (const status of SOLID_STATUSES) {
-    test(`the ${status} status icon clears 3:1 on its own circle — ${theme}`, () => {
-      const m = measureIcon(status, theme);
-      assert.ok(
-        m.ratio >= ICON_AA,
-        `the ${status} glyph in ${theme} measures ${show(m.ratio)}:1 on its circle, `
-        + `under the ${ICON_AA}:1 bar WCAG 1.4.11 sets for a graphic.\n`
-        + `It paints color: ${m.ink} (${hex(m.glyph)}) on background: ${m.fill} (${hex(m.circle)}).\n`
-        + 'The circle cannot leave --toast-accent — the left marker and the outline\n'
-        + 'border are the same value — so the ink is what moves, and it moves to the\n'
-        + 'pole that clears THIS accent, not to whichever global the family used to take.',
-      );
-    });
+  for (const [family, { statuses, measure }] of Object.entries(GLYPH)) {
+    for (const status of statuses()) {
+      test(`the ${status} ${family} glyph clears the bar its stroke earns — ${theme}`, () => {
+        const px = strokePx(family);
+        const bar = barFor(px);
+        for (const m of measure(theme, status)) {
+          assert.ok(
+            m.ratio >= bar,
+            `the ${status} ${family} glyph in ${theme} measures ${show(m.ratio)}:1 on ${m.on}, `
+            + `under the ${bar}:1 bar its stroke earns.\n`
+            + `It paints color: ${m.ink} (${hex(m.glyph)}) on ${hex(m.ground)}, at a stroke `
+            + `rendering ${px.toFixed(2)} CSS px.\n`
+            + (bar === AA
+              ? `A stroke under ${SOLID_STROKE} CSS px is read the way a text stem is, so it is\n`
+                + `held at ${AA}:1. Widen the stroke back to a graphic's width, or move the ink.`
+              : 'The accent cannot move — the left marker and the outline border are the same\n'
+                + 'value — so the ink is what moves, to the pole that clears THIS accent.'),
+          );
+          assert.ok(
+            m.ratio >= GLYPH_FLOOR,
+            `the ${status} ${family} glyph in ${theme} measures ${show(m.ratio)}:1 on ${m.on}, `
+            + `under the ${GLYPH_FLOOR}:1 these pairs were left at.\n`
+            + `It paints color: ${m.ink} (${hex(m.glyph)}) on ${hex(m.ground)}.\n`
+            + 'This is a ratchet, not the bar: something moved a token under a pair that was\n'
+            + 'measured above it. Either put the pair back, or lower GLYPH_FLOOR on purpose\n'
+            + 'and say in ADR 0010 what it bought.',
+          );
+        }
+      });
+    }
   }
 }
 
