@@ -79,6 +79,11 @@ const HEX = '0123456789abcdef';
 // watermark rule anchors on, and the reason that rule needs no prefix.
 const MARK = 'T3BlbkFJ';
 
+// One of the stopwords in gitleaks' DEFAULT global allowlist, which
+// `useDefault = true` pulls in. Ordinary text, not a credential shape: the run
+// of letters a-z. See onepassword-stopword-suppressed.md below.
+const DEFAULT_STOPWORD = 'abcdefghijklmnopqrstuvwxyz';
+
 // Assembled from pieces so the literal name never appears in this file — the
 // Security workflow's denylist greps tracked files for it followed by '='.
 const DEPLOY_VAR = ['LESSLY', 'DEPLOY', 'TOKEN'].join('_');
@@ -197,6 +202,66 @@ const CASES = [
     ours: '1password-service-account-token',
     why: 'truncated to 30 characters total — the floor, and equally a wrap leaving 30 on the anchor line',
     body: note(`ops_eyJ${stream('c', 23)}`),
+  },
+
+  // ── The entropy floor, pinned from both sides ─────────────────────────────
+  //
+  // The loaded 1Password rule carries constraints its regex cannot show, and
+  // this is the FOURTH: a Shannon floor of 4 on the whole match. It used to
+  // arrive unwritten, by sharing an id with upstream's rule; .gitleaks.toml
+  // declares it now, and these two cases are what hold it at 4 rather than
+  // anywhere in the gap the rungs on either side of them leave — 3.90 to 4.17.
+  // A fifth constraint is still unwritten and cannot be written here at all;
+  // onepassword-stopword-suppressed.md below is what pins that one.
+  //
+  // Both payloads are shape-perfect — right prefix, right class, well over the
+  // length floor — so entropy is the only thing separating them, and it is a
+  // function of how wide an alphabet they are drawn from. Fifteen characters of
+  // the alnum alphabet puts the match at 3.9978; sixteen puts it at 4.0370. The
+  // seeds were searched to land the pair 0.04 apart across the step, and that
+  // narrowness is the point: a floor pinned by 3.7 and 5.8 would be satisfied by
+  // any number between them.
+  {
+    file: 'onepassword-below-entropy-floor.md',
+    ours: null,
+    why: 'entropy 3.9978, a hair UNDER the declared floor — nothing of ours may name it',
+    body: note(`ops_eyJ${stream('under3056', 260, ALNUM.slice(0, 15))}`),
+  },
+  {
+    file: 'onepassword-above-entropy-floor.md',
+    ours: '1password-service-account-token',
+    why: 'entropy 4.0370, a hair OVER it — the same shape, and caught',
+    body: note(`ops_eyJ${stream('over3179', 260, ALNUM.slice(0, 16))}`),
+  },
+
+  {
+    // THE FIFTH CONSTRAINT, and this case pins COMPOSED behaviour we do not
+    // own. `useDefault = true` pulls in gitleaks' default GLOBAL allowlist,
+    // whose stopwords are matched case-insensitively as a SUBSTRING of the
+    // secret. The a-z run is one of them, so a token carrying it is dropped
+    // before any rule of ours gets a verdict — nothing in .gitleaks.toml can
+    // show you that, which is why it is here rather than in a comment there.
+    //
+    // Measured on gitleaks 8.30.1, on this exact fixture. It is shape-perfect:
+    // right prefix, right class, 37 characters against a floor of 30, entropy
+    // 4.9392 against a floor of 4 — and it is NOT reported. The same shape with
+    // a scrambled 30-character payload, ops_eyJ + stream('sw2', 30, ALNUM), is
+    // 37 characters and entropy 4.7026 and IS reported, so neither length nor
+    // entropy is what silences this one. Isolated twice: with a stand-in rule
+    // whose id does NOT collide with upstream's, useDefault = false catches it
+    // and useDefault = true does not, so this is the global allowlist and not
+    // the id merge. figd_, apify_api_ and *.lessly.run go the same way. It is
+    // not a regression — base behaves identically — and the practical weight is
+    // near nil, since a real token is a hash and a real hostname label is not
+    // the alphabet in order.
+    //
+    // A RED HERE MEANS UPSTREAM'S GLOBAL ALLOWLIST MOVED — the stopword is gone
+    // or the matching changed, and this shape is now ours to name. That is
+    // news, not a broken test: re-measure, and say so here.
+    file: 'onepassword-stopword-suppressed.md',
+    ours: null,
+    why: "a stopword in gitleaks' DEFAULT global allowlist suppresses a shape-perfect token — composed, not ours",
+    body: note(`ops_eyJ${DEFAULT_STOPWORD}${stream('sw', 4, UPPER)}`),
   },
 
   // ── OpenAI ────────────────────────────────────────────────────────────────
@@ -351,6 +416,25 @@ const CASES = [
     ours: 'infra-lessly-run',
     why: 'an internal runtime hostname',
     body: note(`${stream('h1', 14, LOWER)}.lessly.run`),
+  },
+  // The two shapes the rule missed while it carried a leading \b, and the reason
+  // it no longer does: \b sits between a word character and a non-word one, and
+  // there is no such pair between "_" and a letter or between a capital and a
+  // letter. Both are ordinary internal hostnames. They are cases rather than a
+  // note in .gitleaks.toml because a comment cannot go red — put the leading \b
+  // back and these two do. The interpolation sits against `.lessly.run` for the
+  // reason the box above gives.
+  {
+    file: 'lessly-host-underscore-label.md',
+    ours: 'infra-lessly-run',
+    why: 'a hostname label reached from "_" — no word boundary there, so a leading \\b misses it',
+    body: note(`api_${stream('h2', 10, LOWER)}.lessly.run`),
+  },
+  {
+    file: 'lessly-host-capital-label.md',
+    ours: 'infra-lessly-run',
+    why: 'a hostname label reached from a capital — likewise no boundary, and likewise missed',
+    body: note(`API${stream('h3', 10, LOWER)}.lessly.run`),
   },
   {
     // The dash sits second, right behind the anchor, rather than somewhere in
@@ -690,9 +774,12 @@ const RAISED_FLOOR = Math.max(...CASES.map((c) => c.body.length)) + 1;
  * 7.0 is above the Shannon entropy of ANY ASCII match, not just of these
  * fixtures: the printable set is 95 characters, so log2(95) ≈ 6.57 is the
  * ceiling, and a base64 payload caps at log2(64) = 6. A rule carrying this
- * floor reports nothing at all, which is the point — it stands for "someone
- * added an entropy line", the field .gitleaks.toml never writes and the one
- * our 1Password rule already inherits from the upstream rule it replaces.
+ * floor reports nothing at all, which is the point — it stands for an entropy
+ * line arriving on a rule, whether someone writes it or it is inherited by an
+ * id collision. Where a rule ALREADY declares one, this replaces the value
+ * rather than adding a line: TOML refuses a duplicate key, and a config that
+ * will not load is the exit-2 "cannot tell" path, not a mutation anything here
+ * detected.
  */
 const RAISED_ENTROPY = '7.0';
 
@@ -786,9 +873,12 @@ function upstreamIds(candidates, root, counter) {
 /**
  * Every mutation this config earns, generated from the config itself.
  *
- * Seven axes. The first four weaken a rule the four ways a rule in this file
- * can be weakened by hand — its classes, its floors, its boundaries, its name.
- * The fifth stands for an entropy line appearing, inherited or written.
+ * Eight axes. The first four weaken a rule the four ways a rule in this file can
+ * be weakened by hand — its classes, its floors, its boundaries, its name. The
+ * next two are entropy from both directions: a floor arriving that no match can
+ * clear, and a declared floor going away. The second of those only exists for a
+ * rule that writes one down, which is a thing this file did not do until the
+ * 1Password rule's inherited floor was made explicit.
  *
  * The last two are the ALLOWLIST, and they are the other half of the gate: an
  * allowlist edit switches rules off without touching a rule. Removing an entry
@@ -855,9 +945,20 @@ function planMutations(text, upstream) {
 
     // (3) anchor-drop — every \b, one at a time, so a leading and a trailing
     // boundary are two separate claims rather than one.
+    //
+    // The label is POSITIONAL, not ordinal: a \b at pattern index 0 is leading,
+    // one whose match ends at the end of the pattern is trailing, and anything
+    // else is #n. By ordinal, the FIRST boundary of any rule read "leading" — so
+    // a rule carrying exactly one boundary was always called leading whichever
+    // end it sat at. That was latent while every single-boundary rule here
+    // happened to be leading-anchored, and infra-lessly-run stopped being one:
+    // its remaining \b is the trailing one, and under the ordinal rule the
+    // justification written for its LEADING anchor would have gone on matching
+    // a mutation that no longer exists. A justification is looked up by this
+    // key, so an excuse outliving its subject is precisely what must go red.
     const boundaries = [...pattern.matchAll(/\\b/g)];
     for (const [n, b] of boundaries.entries()) {
-      const where = n === 0 ? 'leading' : n === boundaries.length - 1 ? 'trailing' : `#${n + 1}`;
+      const where = b.index === 0 ? 'leading' : b.index + b[0].length === pattern.length ? 'trailing' : `#${n + 1}`;
       make('anchor-drop', `the ${where} \\b removed`, b.index, patch(b.index, b.index + 2, ''));
     }
 
@@ -885,15 +986,58 @@ function planMutations(text, upstream) {
       );
     }
 
-    // (5) entropy-raise — a floor no match can clear. Written after the regex
-    // line so the block stays a block.
-    const lineEnd = text.indexOf('\n', reSpan.end);
-    make(
-      'entropy-raise',
-      `entropy = ${RAISED_ENTROPY} added`,
-      null,
-      `${text.slice(0, lineEnd + 1)}entropy = ${RAISED_ENTROPY}\n${text.slice(lineEnd + 1)}`,
-    );
+    // The block's own entropy line, if it declares one. `fieldSpan` reads the two
+    // QUOTED literal forms this file writes and an entropy is a bare number, so
+    // it needs its own reader. Exactly one rule carries one today, and only
+    // because it shares an id with upstream: writing the inherited floor down is
+    // what turns it into something the two axes below can move at all.
+    const entropyLine = /^entropy\s*=\s*([0-9]+(?:\.[0-9]+)?)[^\n]*\n/m.exec(text.slice(sec.start, sec.end));
+    const entropyAt = entropyLine ? sec.start + entropyLine.index : null;
+
+    // (5) entropy-raise — a floor no match can clear. Where the block declares
+    // one the VALUE is replaced; where it does not, the line is added after the
+    // regex so the block stays a block. Replacing rather than always adding is
+    // load-bearing: two `entropy` keys in one block is a TOML error, gitleaks
+    // refuses to start, and that run reaches no verdict on any rule rather than
+    // reporting this one as unkillable.
+    if (entropyLine) {
+      const valueAt = entropyAt + entropyLine[0].indexOf(entropyLine[1]);
+      make(
+        'entropy-raise',
+        `entropy = ${entropyLine[1]} → ${RAISED_ENTROPY}`,
+        null,
+        text.slice(0, valueAt) + RAISED_ENTROPY + text.slice(valueAt + entropyLine[1].length),
+      );
+    } else {
+      const lineEnd = text.indexOf('\n', reSpan.end);
+      make(
+        'entropy-raise',
+        `entropy = ${RAISED_ENTROPY} added`,
+        null,
+        `${text.slice(0, lineEnd + 1)}entropy = ${RAISED_ENTROPY}\n${text.slice(lineEnd + 1)}`,
+      );
+    }
+
+    // (5b) entropy-remove — the declared floor deleted, for a rule that has one.
+    // The mirror of the axis above, and it asks a different question: not "does
+    // this rule still fire when nothing can clear its floor" but "does the floor
+    // this file writes down do anything". On a rule whose id collides with
+    // upstream's the honest answer can be no, because the inherited value takes
+    // over — which is a reading of upstream, and JUSTIFIED is where it is read.
+    if (entropyLine) {
+      out.push(
+        mutation({
+          subject: id,
+          axis: 'entropy-remove',
+          key: `the entropy = ${entropyLine[1]} line removed`,
+          note: `the entropy = ${entropyLine[1]} line removed`,
+          edit: `the line reading "entropy = ${entropyLine[1]}" deleted from the block`,
+          text: text.slice(0, entropyAt) + text.slice(entropyAt + entropyLine[0].length),
+          original: text,
+          sec,
+        }),
+      );
+    }
   }
 
   // (6) The allowlist, entry by entry. An entry is not a rule — it turns rules
@@ -992,18 +1136,26 @@ const JUSTIFIED = [
       'would refuse every commit in the repo.',
   },
   {
-    subject: 'infra-lessly-run',
-    axis: 'anchor-drop',
-    mutation: 'the leading \\b removed',
+    subject: '1password-service-account-token',
+    axis: 'entropy-remove',
+    mutation: 'the entropy = 4 line removed',
     why:
-      'Dropping an anchor only WIDENS what a rule matches, so no positive case can die under it — only a ' +
-      'negative case could, and the honest negative case does not exist here. Probing for one named a real ' +
-      'weakness instead: api_staging.<domain> and APIstaging.<domain> are internal hostnames this rule ' +
-      'MISSES today, because \\b sits between a word character and a non-word one and there is no boundary ' +
-      'between "_" and "s" or between "I" and "s". Nothing escapes the repo — the internal-terms denylist in ' +
-      '.github/workflows/security.yml greps tracked files for the same shape without the anchor and catches ' +
-      'both, measured. Fixing the rule is its own change: see the open issue on infra-lessly-run\'s leading ' +
-      'anchor. This check never edits .gitleaks.toml, so it records the hole rather than closing it.',
+      'A SENSOR, not an excuse — this one is here to go red one day, and the day it does is the news. Our ' +
+      'rule shares its id with the rule gitleaks 8.30.1 ships, and gitleaks merges an extended config into ' +
+      'its default BY RULE ID, field by field, so deleting OUR entropy = 4 falls back on UPSTREAM\'s ' +
+      'entropy = 4. The same number, so the same verdicts, and no honest case can die: measured with the ' +
+      'line gone, onepassword-below-entropy-floor.md at 3.9978 is still refused and ' +
+      'onepassword-above-entropy-floor.md at 4.0370 is still caught. What survives here is the collision, ' +
+      'not the rule. So this mutation reads UPSTREAM rather than us, and it starts killing the moment ' +
+      'upstream moves. Drop the field there and the mutant has no floor at all, the low case is caught and ' +
+      'dies; raise it past 4.04 and the high case stops being caught and dies. Either way the ' +
+      'stale-justification failure turns the run RED naming this paragraph — which is the point, because ' +
+      'that is how this repo learns that the floor it inherits changed, here rather than in production. A ' +
+      'red is therefore not a broken test: re-measure the ladder, write the new number into ' +
+      '.gitleaks.toml, and restate this. That red was staged rather than reasoned about: on a scratch copy ' +
+      'of both files whose rule id does NOT collide — the stand-in for the field going away, since nothing ' +
+      'is inherited under a name upstream does not have — this mutation kills the low case and the run ' +
+      'exits 1 naming this paragraph. Full argument: #194.',
   },
   {
     subject: '[allowlist] paths (?i)\\.svg$',
