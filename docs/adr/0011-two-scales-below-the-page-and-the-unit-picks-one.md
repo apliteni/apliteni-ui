@@ -95,7 +95,7 @@ and a gate discovers every `@media (max-width: Npx)` in the swept trees and fail
 is not on that list. Same guarantee against drift, no compiler, and the source stays readable.
 
 **We take the convention.** The gate that enforces it is not built here — this lane leaves the six
-literals exactly where they are — and is filed as its own issue, because a list of legal
+literals exactly where they are — and is filed as #221, because a list of legal
 breakpoints is a design decision about how many the kit wants, not a discovery about how many it
 happens to have. Note that two of the six already coincide with tokens (`560` = `--panel-lg`,
 `860` = `--measure`), which is the kind of thing that list will have to take a position on.
