@@ -48,6 +48,7 @@ export const styles = {
   layout: read('styles/layout.css'),
   feedback: read('styles/feedback.css'),
   success: read('styles/success.css'),
+  loading: read('styles/loading.css'),
 };
 
 // Everything, in the same order as index.css. `tokensCss` first so cascade is right.
@@ -74,4 +75,5 @@ export const cssText = [
   styles.layout,
   styles.feedback,
   styles.success,
+  styles.loading,
 ].join('\n');

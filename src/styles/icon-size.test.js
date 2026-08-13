@@ -43,7 +43,10 @@ const src = path.resolve(here, '..');
 // hand-written `.ui-side` rail any more and its `.ui-side a svg` rule went with
 // it — width and height, the two subjects that left. The rail's icons are
 // sidebarNav()'s now, sized by `.ui-nav__ic svg`, which this gate already holds.
-const EXPECTED_SUBJECTS = 54;
+// Was 54: #128 gave the kit a permission-denied treatment, and its lock sits in
+// a seal the same way .ui-empty__icon holds its glyph — so `.ui-denied__seal
+// svg` sizes width and height, the two subjects that arrived.
+const EXPECTED_SUBJECTS = 56;
 
 const SHEETS = kitSheetNames(src);
 

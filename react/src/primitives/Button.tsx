@@ -8,14 +8,16 @@ export type ButtonProps = {
   iconRight?: string;
   iconOnly?: boolean;
   block?: boolean;
+  /** In flight: aria-busy, disabled, and the kit's indeterminate bars. */
+  busy?: boolean;
   children?: ReactNode;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 export function Button({
-  variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, children,
-  type = 'button', ...rest
+  variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, busy, children,
+  type = 'button', disabled, ...rest
 }: ButtonProps) {
   const cls = cx(
     'ui-btn',
@@ -33,11 +35,23 @@ export function Button({
   const named = iconOnly && !labelled && fallback
     ? { 'aria-label': fallback, title: rest.title ?? fallback }
     : {};
+  // busy ⇒ disabled, exactly as button() decides it in components/index.js. A
+  // control that still takes clicks while it works submits twice, and the two
+  // implementations of this button must not disagree about that.
   return (
-    <button type={type} className={cls} {...rest} {...named}>
+    <button
+      type={type}
+      className={cls}
+      disabled={disabled || busy}
+      aria-disabled={disabled || busy ? true : undefined}
+      aria-busy={busy ? true : undefined}
+      {...rest}
+      {...named}
+    >
       {icon && <Icon name={icon} />}
       {!iconOnly && children != null && <span>{children}</span>}
       {iconRight && <Icon name={iconRight} />}
+      {busy && <span className="ui-btn__bars"><i /><i /></span>}
     </button>
   );
 }

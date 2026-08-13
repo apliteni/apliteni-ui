@@ -46,14 +46,13 @@ Two repo-wide gates render every story in `stories/`, including these, in both t
 - `stories/contrast.test.js` measures every text-owning element against the background
   composited above it.
 
-So a don't that is a genuine accessibility failure cannot be drawn. Three rules carry
+So a don't that is a genuine accessibility failure cannot be drawn. Two rules carry
 no pair, and one specimen is drawn short of what it would otherwise show:
 
 | Where | What is missing | Why |
 |---|---|---|
 | `accent-strong` (Colour and theming) | the pair | The honest don't is white on `--accent`, which measures 3.87:1 in dark Nebula. Drawing it turns `contrast.test.js` red. |
 | `both-themes` (Colour and theming) | the pair | "Check both themes" is an act, not an appearance. There is nothing to photograph. |
-| `loading` (The full state set) | the pair | The kit has no screen-scale pending state to photograph, which is the rule's own point (#128). |
 | `transientDont` (Component choice) | the toast's `action` | A warn `toast()` with an action paints `--amber` ink that misses AA in light (#131), and a specimen of one rule must not also be a specimen of an unrelated fault. |
 
 A rule with no pair stands on its `why` instead.
