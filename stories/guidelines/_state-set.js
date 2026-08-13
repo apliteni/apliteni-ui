@@ -75,7 +75,7 @@ export const RULES = [
     doHtml: busyDo,
     dontHtml: busyDont,
     kit: [
-      { ref: 'src/components/index.js:33', pattern: 'busy ⇒ disabled' },
+      { ref: 'src/components/index.js:37', pattern: 'busy ⇒ disabled' },
       { ref: 'src/styles/button.css:98', pattern: '.ui-btn[aria-busy="true"] {' },
       { ref: 'stories/contrast.test.js:54', pattern: 'Inactive components, and everything inside them.' },
     ],
@@ -90,9 +90,9 @@ export const RULES = [
     doHtml: errorDo,
     dontHtml: errorDont,
     kit: [
-      { ref: 'src/components/index.js:184', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
-      { ref: 'src/components/index.js:170', pattern: "'aria-describedby': msgId," },
-      { ref: 'src/components/index.js:156', pattern: "markup rather than in the label's wording" },
+      { ref: 'src/components/index.js:188', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
+      { ref: 'src/components/index.js:174', pattern: "'aria-describedby': msgId," },
+      { ref: 'src/components/index.js:160', pattern: "markup rather than in the label's wording" },
     ],
   },
   {
@@ -108,7 +108,7 @@ export const RULES = [
         + 'only the vanilla button gates one.',
     },
     kit: [
-      { ref: 'src/components/index.js:239', pattern: 'role="status" aria-live="polite"' },
+      { ref: 'src/components/index.js:253', pattern: 'role="status" aria-live="polite"' },
     ],
   },
 ];

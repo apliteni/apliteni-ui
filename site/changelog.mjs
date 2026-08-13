@@ -3,6 +3,16 @@
 
 export const RELEASES = [
   {
+    v: '0.12.0', date: '2026-08-13', tag: 'latest',
+    changes: [
+      ['fixed', 'A status glyph and a close button no longer share a shape. A danger `toast()` rendered the same bare `x` twice — once on the left meaning *this failed*, once on the right meaning *make this go away* — and the reader had to work out which from position. Status now uses the circled glyphs the kit was already shipping and never using: `circleCheck`, `circleX`, `circleAlert`. The bare `x` belongs to the close button alone. The rule underneath is worth knowing if you pick your own: **a circled glyph is a state the system reports, a bare glyph is an action you can take.** `info` and `neutral` are unchanged, and anything you pass as `icon` still wins.', ['Toast', 'Callout']],
+      ['added', '`iconOnlyAllowed` — the closed list of actions a control may drop its visible label for: close or dismiss, copy, overflow menu, expand or collapse. Every kit glyph is `aria-hidden`, so an icon-only button has always been forced to name itself; that said a nameless one cannot ship, never that a wordless one should. This does. A gate reviews the kit\'s own call sites against it, and found one — a settings cog in the button stories — on its first run.', ['Button']],
+      ['added', '`iconMeanings` — what a glyph means when a component picks it for you rather than you naming it, covering the eight the kit wires to semantics.'],
+      ['fixed', '`card`, `chart` and `doc` are declared once each. The `COMMS` group re-declared all three with byte-identical path data, so the icon catalogue filed one glyph under two headings and the file carried three lines nobody could tell from a real glyph. Nothing you call changes — `icon(\'card\')` resolved the whole time — and a gate now fails a name declared in more than one group.', ['Icons']],
+      ['added', 'A **Guidelines / Iconography** page: when a control may go wordless, what a glyph means, and what adding one costs — naming, which group it belongs to, and where its path came from. Each rule links the gate that holds it.'],
+    ],
+  },
+  {
     v: '0.11.4', date: '2026-08-13', tag: 'latest',
     changes: [
       ['fixed', 'A toast\'s trailing action is readable on every status. It was painted in the status accent — a colour picked for a 3px rule and a 22px icon circle, not for text — so in the light theme a warn action measured 3.29:1 on its own wash where AA asks 4.5:1, and success, info and danger were short on at least one style each. The action takes the kit\'s text-grade signal inks now, the same ones the chips are set in. Its hover has changed direction too: it used to wash the ground with a second helping of the status colour, which moved the ground *towards* the ink it has to clear, so a hovered action read worse than a resting one. It lifts towards the page instead. The dark theme is unchanged, because there the two inks are already the same value. Nothing you pass to `toast()` changes.', ['Toast']],

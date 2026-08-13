@@ -77,7 +77,7 @@ export const States = {
       button({ label: 'Saving…', variant: 'secondary', busy: true }),
     )),
     specimen('Icon-only', row(
-      button({ label: 'Settings', variant: 'secondary', icon: 'gear', iconOnly: true }),
+      button({ label: 'More actions', variant: 'secondary', icon: 'moreHorizontal', iconOnly: true }),
       button({ label: 'Copy', variant: 'ghost', icon: 'copy', iconOnly: true }),
       button({ label: 'Close', variant: 'danger', icon: 'x', iconOnly: true }),
     )),
