@@ -154,6 +154,15 @@ Add it to the toolbar (`.storybook/preview.js` globalTypes.accent), the
 `accentPicker()` swatches, and the `Sub-themes` story maps. Verify contrast of the
 primary button (`--accent` bg × `--accent-contrast` text) in both themes.
 
+The swatch is machine-checked, so you do not get to pick its colours.
+`stories/accent-swatch.test.js` derives it from your tokens: it fades from the next
+distinct step up your dark ramp — of `--purple`, `--purple-light` and `--purple-mid`,
+the darkest one still lighter than `--accent` — down to dark `--accent` itself. Most
+accents land on `--purple-light`; Nebula's *is* its own `--accent`, so it walks on to
+`--purple-mid`. The same gate holds the site's two hand-kept copies
+(`site/chrome.mjs`, `site/index.html`) character for character identical to
+`accentPicker()`, so add your swatch to all three at once.
+
 ## Brand tokens (synced from design-system)
 
 `src/tokens/brand.generated.css` is **generated — never hand-edit it.** It holds
