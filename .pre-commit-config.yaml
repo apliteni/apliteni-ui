@@ -6,7 +6,19 @@ repos:
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1 # pin; matches the CI gitleaks version
     hooks:
-      - id: gitleaks # auto-loads .gitleaks.toml
+      - id: gitleaks
+        # DO NOT DELETE --config AS "REDUNDANT WITH AUTO-DISCOVERY". Without it
+        # gitleaks looks for .gitleaks.toml and, not finding one, silently falls
+        # back to its built-in default rules — so a renamed, moved or unreadable
+        # config gives you a PASSING hook running rules that are not ours. That
+        # is the hole: our 1password-service-account-token rule exists because
+        # the upstream default misses a base64url token, and with the config
+        # gone the commit sails through. Named explicitly, the same situation is
+        # a hook FAILURE with a config-load error, which is what a gate should
+        # do when it cannot find what it enforces. pre-commit appends these args
+        # after the hook's own entry (gitleaks git --pre-commit --redact
+        # --staged --verbose).
+        args: [--config, .gitleaks.toml]
 
   - repo: local
     hooks:
