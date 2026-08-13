@@ -3,7 +3,13 @@
 
 export const RELEASES = [
   {
-    v: '0.11.2', date: '2026-08-13', tag: 'latest',
+    v: '0.11.3', date: '2026-08-13', tag: 'latest',
+    changes: [
+      ['fixed', 'The accent picker shows Nebula as the violet you actually get. Its swatch was a fixed gradient, and it stopped tracking the tokens in 0.11.0 when the default accent lifted to clear AA on its own wash — so the chip you pressed to choose the kit\'s default accent held neither colour that accent resolves to. Phoenix, Ocean and Emerald were always right and are unchanged. Every swatch is now made of its own accent\'s ramp, and a test holds it there rather than a line in the contributing guide.', ['Footer']],
+    ],
+  },
+  {
+    v: '0.11.2', date: '2026-08-13',
     changes: [
       ['added', 'The kit has guidelines — five pages in Storybook under **Guidelines**, with an index that says what each covers and how many of its rules the kit actually meets. Colour and theming, the full state set, which component suits which job, microcopy and tone, and destructive actions. Every rule shows a live do and don\'t built from real components, and cites the lines of the kit that implement it.'],
       ['added', 'Two rules say the kit does not meet them yet, and name the issue tracking each. A guideline nobody has implemented is worth more written down and marked than left out, and worth less than nothing asserted as if it were true.'],

@@ -25,7 +25,7 @@ export function topbar(active = '') {
 }
 
 const ACCENTS = `<div class="accents" role="group" aria-label="Accent">
-        <button data-acc="default" class="on" style="background:linear-gradient(135deg,#9b5dff,#6a2dcc)" title="Nebula" aria-label="Nebula accent"></button>
+        <button data-acc="default" class="on" style="background:linear-gradient(135deg,#bd8cff,#b479ff)" title="Nebula" aria-label="Nebula accent"></button>
         <button data-acc="phoenix" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)" title="Phoenix" aria-label="Phoenix accent"></button>
         <button data-acc="ocean" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)" title="Ocean" aria-label="Ocean accent"></button>
         <button data-acc="emerald" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)" title="Emerald" aria-label="Emerald accent"></button>
