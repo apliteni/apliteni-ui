@@ -1,47 +1,22 @@
-// ---------------------------------------------------------------------------
-// Content for the "Guidelines / Microcopy and tone" page: the strings a control
-// carries — the one it announces itself by, and the one a screen says when it
-// has nothing to show.
-//
-// Two of the pairs here render identical pixels. That is the subject: the
-// difference lives in the accessible name, so the caption under each half is
-// what carries it, and both halves are real factory calls that pass axe.
-//
-// Naming what a destructive button costs belongs to rule `wording` on the
-// Destructive actions page and is not restated here.
-//
-// Every `kit` entry carries a `pattern` that must appear on the cited line;
-// stories/guidelines/refs.test.js resolves them all.
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, emptyState, switchToggle } from '../../src/components/index.js';
 
-// ---- The rule -------------------------------------------------------------
 export const TITLE = 'Microcopy and tone';
 
-// One line for the Overview index, which lists this page beside the other
-// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'What a control announces itself by, and what a screen says when empty.';
-
-// ---- Live specimens -------------------------------------------------------
-// Each returns a string of real component markup on the shared stage from
-// _layout.js, so this page adds no CSS of its own.
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
-// Both switches are on, and both are the same call: `label` is the input's
-// accessible name and nothing else, so the two render pixel for pixel alike.
-/** The name reports the state the switch is in. */
+// This pair renders identical pixels on purpose — `label` is the accessible
+// name and nothing else — so the captions are what carry the difference.
 export const stateDo = () => stage(switchToggle({
   checked: true, label: 'In-app notifications, on',
 }));
-/** The name reports the state a click would leave behind. */
 export const stateDont = () => stage(switchToggle({
   checked: true, label: 'Turn off in-app notifications',
 }));
 
-/** An icon-only button whose `label` names it. */
 export const namedDo = () => stage(button({ label: 'Dismiss', icon: 'x', iconOnly: true }));
-/** The same button with an empty label, falling back to the icon's name. */
 export const namedDont = () => stage(button({ label: '', icon: 'x', iconOnly: true }));
 
 const FILTERED = {
@@ -50,15 +25,12 @@ const FILTERED = {
   sub: 'Try widening the date range or clearing a filter.',
 };
 
-/** A list emptied by a filter: a nudge, and no action. */
 export const emptyDo = () => stage(emptyState(FILTERED));
-/** The same list carrying a first-run action. */
 export const emptyDont = () => stage(emptyState({
   ...FILTERED,
   actions: button({ label: '+ Add invoice', variant: 'primary' }),
 }));
 
-// ---- The three sub-rules --------------------------------------------------
 export const RULES = [
   {
     id: 'state-not-destination',

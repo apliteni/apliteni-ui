@@ -1,7 +1,4 @@
-// ---------------------------------------------------------------------------
-// Guidelines — Colour and theming. The page is the shell in ./_layout.js; the
-// rules, the specimens and the specimen CSS are in ./_colour-and-theming.js.
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { guidelinePage } from './_layout.js';
 import { TITLE, RULES, SPEC_CSS } from './_colour-and-theming.js';
 

@@ -1,48 +1,21 @@
-// ---------------------------------------------------------------------------
-// Guidelines — Overview.
-//
-// The front door of the collection: one row per page, and a column that says
-// plainly how much of each page the kit currently lives up to. It is the shape
-// IBM's Carbon uses for its accessibility status and USWDS for its test
-// results — the one with published precedent for being honest about a gap, and
-// the one that survives more pages and more rules without a redesign.
-//
-// ONE ROW PER PAGE, not per rule. The reader is choosing where to go, so the
-// unit is the page; the count in "Kit meets them" is what tells them a page has
-// something outstanding. A row per rule would answer "which rules exist"
-// instead, which is the pages' own job.
-//
-// The titles, the blurbs, the counts, the gaps, the links and the sentence
-// above the table all come from _overview.js, which reads them off the five
-// pages. Nothing on this page is typed twice.
-// ---------------------------------------------------------------------------
+// The index: one row per page. Every title, blurb, count, gap and link comes
+// from _overview.js — nothing on this page is typed twice.
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { pad } from '../_gallery.js';
 import { badge } from '../../src/components/index.js';
 import { INTRO, PAGES } from './_overview.js';
 
-// The marker a rule the kit does not meet wears here: the kit's own warn badge,
-// which is the one warning pair that clears AA in both themes (--amber as ink
-// does not — see the Except label in _layout.js), carrying the issue number so
-// the marker is also the address of the fix.
+// The kit's warn badge, which is the one warning pair that clears AA in both
+// themes — --amber as ink does not.
 const gapBadge = (rule) => badge(`Gap #${rule.unmet.issue}`, 'warn');
 
-// The measure is the one every guideline page uses (`--gl-page` in _layout.js):
-// two specimen cells and the gap between them. That property is declared on
-// `.gl`, which this page is not inside, so the calc is written out here — it
-// keeps the index in the same column as the pages it lists.
+// `--gl-page` is declared on `.gl` (_layout.js) and this page is not inside
+// one, so the same measure is written out below.
 //
-// The kit's `.ui-table__title` is not used for the first cell, and that is
-// deliberate. It carries `width: 99%` (src/styles/table.css) — the cell that
-// absorbs all the slack, which is right for the kit's ledgers, where the title
-// is the only prose in the row. This table has two prose columns, and 99% on
-// the first one starves the second: the blurbs wrapped to four and five lines
-// and the table measured 949px, nearly all of it text the design never asked
-// for. Worse, the column widths then depended on the content, so removing the
-// two markers to weigh them made the table TALLER.
-//
-// So the widths are declared instead, with `table-layout: fixed`, and the title
-// cell takes its --strong ink from a class of its own. The kit's row rules,
-// hairlines and uppercase head are unchanged.
+// The widths are declared, with table-layout: fixed, rather than left to the
+// kit's `.ui-table__title`: that carries width: 99% (src/styles/table.css),
+// which is right for a ledger with one prose column and starves the second of
+// the two here.
 const CSS = `
   <style>
     .gi { max-width: calc((420px + var(--space-5) * 2) * 2 + var(--space-4)); }
@@ -67,6 +40,7 @@ const met = (page) => {
     + `${page.gaps.map(gapBadge).join('')}</div>`;
 };
 
+// target="_top" on the link, or Storybook loads inside its own preview pane.
 const row = (page) => `
   <tr>
     <td class="gi-name"><a href="${page.href}" target="_top">${page.title}</a></td>

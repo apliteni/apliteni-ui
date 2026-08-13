@@ -1,32 +1,12 @@
-// ---------------------------------------------------------------------------
-// Content for the "Guidelines / The full state set" page: the states a control
-// owes beyond rest — focus, busy, error — and the one the kit still owes a
-// screen.
-//
-// Same contract as _destructive-actions.js: every specimen is a real kit
-// factory rendered live, the wrongness on show is pattern and never broken
-// markup, and every `kit` entry carries the literal `pattern` that must be on
-// the line it cites (stories/guidelines/refs.test.js resolves them all).
-//
-// One rule here carries `unmet`: the kit does not do what it asks, and says so
-// with the issue it is tracked under rather than quietly overclaiming.
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, callout, field, input } from '../../src/components/index.js';
 
-// ---- The page -------------------------------------------------------------
 export const TITLE = 'The full state set';
 
-// One line for the Overview index, which lists this page beside the other
-// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'The states a control owes beyond rest — focus, busy, error, pending.';
 
-// ---- Specimen CSS ---------------------------------------------------------
-// A focus ring exists only under a live keyboard, so `.gl-ring` pins what
-// :focus-visible paints (src/styles/base.css) and holds it still for a
-// screenshot — the same trick `.gl-hovering` plays for hover on the destructive
-// actions page. `.gl-ring--adhoc` then takes the ring off one of the two
-// controls and gives it a hand-rolled outline instead, which is the whole of
-// the wrongness on show.
+// `.gl-ring` pins what :focus-visible paints (src/styles/base.css), because a
+// focus ring exists only under a live keyboard and cannot be screenshotted.
 export const SPEC_CSS = `
   <style>
     .gl-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
@@ -38,7 +18,6 @@ export const SPEC_CSS = `
     .gl-ring--adhoc .ui-input { box-shadow: none; outline: 2px solid var(--muted); outline-offset: 2px; }
   </style>`;
 
-// ---- Live specimens -------------------------------------------------------
 const stage = (html, mod = '') => `<div class="gl-stage ${mod}">${html}</div>`;
 
 const ringed = (mod) => `
@@ -50,37 +29,26 @@ const ringed = (mod) => `
     <div class="gl-cursor">Both reached by Tab</div>
   </div>`;
 
-/** Two controls, one ring token. */
 export const focusDo = () => ringed('');
-/** The input opts out and draws its own. */
 export const focusDont = () => ringed('gl-ring--adhoc');
 
 const saving = (busy) => stage(button({ label: 'Saving…', variant: 'primary', busy }));
 
-/** Busy, so disabled and aria-busy, from one flag. */
 export const busyDo = () => saving(true);
-/** The same label with none of the state behind it. */
 export const busyDont = () => saving(false);
 
-// field() mints the message an id and points the control at it with
-// aria-describedby (src/components/index.js). The don't keeps the red and the
-// aria-invalid — input({ invalid: true }) carries both — and moves the reason
-// into a callout beside it, where nothing connects the two.
 const WHY_INVALID = 'Must start with https://';
 const urlControl = () => input({ value: 'acme.io/hooks', invalid: true });
 
-/** The reason travels with the field. */
 export const errorDo = () => stage(field({
   label: 'Webhook URL', error: WHY_INVALID, control: urlControl(),
 }));
-/** The reason sits beside it, tied to nothing. */
 export const errorDont = () => `
   <div class="gl-stage gl-stack">
     ${field({ label: 'Webhook URL', control: urlControl() })}
     ${callout({ variant: 'danger', icon: 'alert', body: WHY_INVALID })}
   </div>`;
 
-// ---- The rules ------------------------------------------------------------
 export const RULES = [
   {
     id: 'focus-visible',
@@ -129,8 +97,8 @@ export const RULES = [
   },
   {
     id: 'loading',
-    // No specimen: there is no screen-scale pending state in the kit to
-    // photograph, which is the rule's own point.
+    // No specimen: the kit has no screen-scale pending state to photograph,
+    // which is the rule's own point. See docs/guidelines.md.
     imperative: 'Design the pending state of a screen, not only of its button — and announce it.',
     why: 'A screen that changes silently in flight leaves a screen-reader user with no event at all.',
     except: 'A toast carries its own live region, so a screen that reports through the toast stack needs no second one.',

@@ -1,36 +1,14 @@
-// ---------------------------------------------------------------------------
-// Content for the "Guidelines / Colour and theming" page: where a colour comes
-// from, which colours are allowed to move when the accent does, and the two
-// checks a colour change owes before it ships.
-//
-// Same contract as _destructive-actions.js: every specimen is a real kit
-// factory rendered live, the wrongness on show is colour and never broken
-// markup, and every `kit` entry carries the literal `pattern` that must be on
-// the line it cites (stories/guidelines/refs.test.js resolves them all).
-//
-// One rule here carries `unmet`: the kit does not fully do what it asks, and
-// says so with the issue it is tracked under rather than quietly overclaiming.
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { callout, field, input } from '../../src/components/index.js';
 
-// ---- The page -------------------------------------------------------------
 export const TITLE = 'Colour and theming';
 
-// One line for the Overview index, which lists this page beside the other
-// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'Where a colour comes from, and which colours may move when the accent does.';
 
-// ---- Specimen CSS ---------------------------------------------------------
-// A literal can only be shown the way a literal behaves: frozen. `.gl-literal`
-// writes out the exact colours the dark theme composites — rgba(32, 220, 245,
-// .14) over --surface is #22394a, and the body ink is dark --dim — so the two
-// cells are the same picture in dark, and the flip to light is what separates
-// them. Nothing here is scanned by stories/colour-tokens.test.js, which gates
-// src/styles only; these hexes are the subject, not a slip.
-//
-// `.gl-drift` re-points --pink at the accent — the one move the accent files
-// forbid. A custom property inherits, so declaring it on the stage repaints
-// every consumer inside it in both themes.
+// The frozen hexes below are the specimen's subject, not a slip: `.gl-literal`
+// writes out what the dark theme composites, so the pair is one picture in dark
+// and the flip to light is what separates them. stories/colour-tokens.test.js
+// scans src/styles only, so it never sees them.
 export const SPEC_CSS = `
   <style>
     .gl-literal .ui-callout { background: #22394a; color: #c6c2d6; }
@@ -38,31 +16,22 @@ export const SPEC_CSS = `
     .gl-drift { --pink: var(--accent); }
   </style>`;
 
-// ---- Live specimens -------------------------------------------------------
 const stage = (html, mod = '') => `<div class="gl-stage ${mod}">${html}</div>`;
 
 const NOTE = 'Rotating this token invalidates every client using it.';
 
-/** An info callout painted from --glow-cyan and --dim. */
 export const tokensDo = () => stage(callout({ variant: 'info', body: NOTE }));
-/** The same callout with its ground and its ink written out as hex. */
 export const tokensDont = () => stage(callout({ variant: 'info', body: NOTE }), 'gl-literal');
 
-// .ui-field__error and .ui-input.is-invalid both read --pink directly
-// (src/styles/input.css), so the danger signal is visible at rest in either
-// theme — no hover to pin, and nothing that changes shape between themes.
 const bouncedEmail = () => field({
   label: 'Billing email',
   error: 'That address bounced twice this week.',
   control: input({ value: 'ops@acme.io', invalid: true }),
 });
 
-/** The error keeps the danger signal. */
 export const signalsDo = () => stage(bouncedEmail());
-/** The same error with --pink following the accent. */
 export const signalsDont = () => stage(bouncedEmail(), 'gl-drift');
 
-// ---- The rules ------------------------------------------------------------
 export const RULES = [
   {
     id: 'tokens',
@@ -96,9 +65,9 @@ export const RULES = [
   },
   {
     id: 'accent-strong',
-    // No specimen. The don't here is a real AA failure — white on --accent
-    // measures 3.87:1 in dark Nebula — and stories/contrast.test.js walks this
-    // page, so rendering it would be the kit gating itself red to make a point.
+    // No specimen: the honest don't is white on --accent at 3.87:1 in dark
+    // Nebula, and stories/contrast.test.js walks this page. Drawing it is a red
+    // build. See docs/guidelines.md.
     imperative: 'Paint an accent ground with --accent-strong and accent ink with --accent.',
     why: '--accent is chosen to read as text on the canvas; --accent-strong is the darker sibling white clears AA on.',
     except: 'Under Phoenix, Ocean and Emerald the two are one token, so the distinction only bites on Nebula.',

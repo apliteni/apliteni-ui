@@ -1,39 +1,18 @@
-// ---------------------------------------------------------------------------
-// The shared shell every guideline page is rendered through: the furniture a
-// specimen sits on, the page layout around the rules, and the one renderer that
-// turns a content module's TITLE and RULES into a story.
-//
-// A page brings its own TITLE, its own RULES and — optionally — its own
-// specimen CSS, which is appended after the CSS here so a page can still style
-// the stage its own specimens need.
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { badge } from '../../src/components/index.js';
 import { pad } from '../_gallery.js';
 
-// Wrap the technical fragments of a plain-text sentence — file references,
-// token names, selectors — in <code>. Keeping the data plain text means the
-// layout can style those fragments however it wants.
+// Rule text is stored as plain prose; this is what wraps its file references,
+// token names and selectors in <code> at render time.
 export const mono = (s) => String(s).replace(
   /(?:[\w/-]+(?:\.[\w-]+)*\.(?:css|js)(?::\d+)?|var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?)/g,
   (m) => `<code>${m}</code>`,
 );
 
-// ---- Specimen CSS ---------------------------------------------------------
-// `.gl-stage` is the neutral surface every specimen sits on.
-//
-// `--gl-specimen` is the page's declared measure. The page does not re-measure
-// its own copy for it — it takes the confirm's own `--confirm-w`
-// (src/styles/confirm.css), so a specimen is the width the product renders it
-// at, and a copy edit to a title or a button label cannot quietly invalidate
-// the number. A cell is that measure plus the stage's padding, and a page is
-// two cells and the gap between them, which is what keeps a cell close to what
-// it holds.
-//
-// The width is written out here because a custom property does not travel from
-// a descendant to its ancestor: `--confirm-w` lives on `.ui-confirm`, inside
-// the element that lays the grid out. stories/guidelines/destructive-actions.test.js
-// holds the two in step. The 240px menu panel then sits in the measure with
-// slack beside it, which is what showing one component at its real width costs.
+// The 420px below is not this page's number: it is the confirm's own
+// `--confirm-w` (src/styles/confirm.css), written out because a custom property
+// does not travel from a descendant to its ancestor. Change either and
+// stories/guidelines/destructive-actions.test.js fails, naming both files.
 const SPEC_CSS = `
   <style>
     .gl { --gl-specimen: 420px;
@@ -47,51 +26,32 @@ const SPEC_CSS = `
       font: 500 11px/1 Poppins; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
     .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
       background: var(--muted); box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 22%, transparent); }
-    /* A confirm is fixed to the viewport, so left alone its scrim leaves the
-       cell and covers the whole page. In a specimen the panel is the subject
-       rather than something laid over a page, so it joins the flow and the
-       scrim goes with the fixed positioning it belonged to. Two pages show a
-       confirm in a cell now — Destructive actions and Component choice — which
-       is what makes this stage furniture rather than one page's business. */
+    /* A specimen confirm joins the flow; its scrim would else cover the page. */
     .gl-stage--confirm .ui-confirm { position: static; }
     .gl-stage--confirm .ui-confirm__scrim { display: none; }
     .gl-stage--confirm .ui-confirm__panel { position: static; translate: none; width: auto; }
   </style>`;
 
-// ---- Page CSS -------------------------------------------------------------
 const PAGE_CSS = `
   <style>
-    /* Two specimen cells wide, and nothing on this page is wider than a specimen. */
     .gc { max-width: var(--gl-page); }
     .gc h1 { font: 700 27px/1.2 Poppins; letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
-    /* The page styles its own heading by name. A bare ".gc h2" also matched
-       .ui-confirm__title — a confirm's question is an h2 — and beat the
-       component's own rule on specificity, so the specimen wore the page's
-       type instead of the kit's. */
+    /* By name, not ".gc h2": that also matched .ui-confirm__title and outranked it. */
     .gc-imperative { font: 600 16px/1.45 Poppins; color: var(--strong); margin: 0 0 var(--space-3); }
 
-    /* No card. A hairline is enough to say "next rule", and it costs 1px where
-       a card costs its padding twice over. */
     .gc-rule + .gc-rule { margin-top: var(--space-8); padding-top: var(--space-8);
       border-top: 1px solid var(--border); }
 
-    /* A squeezed cell deforms the specimen inside it, so the pair goes
-       single-file at exactly the width where a cell stops fitting rather than
-       at a number guessed in advance: min() lets a column shrink below the
-       measure only once the measure is wider than the row itself. */
+    /* min() drops the pair single-file only once a cell stops fitting. */
     .gc-pair { display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(var(--gl-cell), 100%), 1fr));
       gap: var(--space-4); }
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .gc-cell__cap { font: 400 12px/1.55 Poppins; color: var(--muted); }
 
-    /* The sentence a rule gets when it has no specimen to look at. */
     .gc-why { font: 400 13px/1.65 Poppins; color: var(--dim); margin: 0; max-width: 72ch; }
 
-    /* The boundary of the rule. The amber edge is the marker that says "this is
-       where the rule stops"; it rides on the text instead of a panel, so it
-       costs its own line height and nothing else. The label stays --muted,
-       which clears AA in both themes where --amber on the page does not. */
+    /* Label stays --muted: --amber as text misses AA on this page. */
     .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
       box-shadow: inset 2px 0 0 var(--amber);
       font: 400 12.5px/1.65 Poppins; color: var(--text); max-width: 72ch; }
@@ -109,7 +69,6 @@ const PAGE_CSS = `
       max-width: 72ch; }
   </style>`;
 
-// ---- Small shared atoms ---------------------------------------------------
 const doBadge = () => badge('Do', 'live');
 const dontBadge = () => badge('Don’t', 'danger');
 
@@ -120,8 +79,6 @@ const cell = (badgeHtml, caption, html) => `
     <div class="gc-cell__cap">${mono(caption)}</div>
   </div>`;
 
-// A rule shows either its pair or its sentence, never both: the pair says what
-// the sentence would have said, and says it faster.
 const figure = (rule) => (rule.doHtml ? `
   <div class="gc-pair">
     ${cell(doBadge(), rule.doCaption, rule.doHtml())}
@@ -129,19 +86,14 @@ const figure = (rule) => (rule.doHtml ? `
   </div>` : `
   <p class="gc-why">${mono(rule.why)}</p>`);
 
-// Not every rule has a boundary, and a rule that has none used to render the
-// words "Except undefined". Two page authors met that and both went looking for
-// a boundary to invent, which is the one thing this field must never invite.
+// Guarded because an unguarded version rendered "Except undefined", and two
+// page authors met that and invented a boundary to get rid of it.
 const exceptLine = (rule) => (rule.except ? `
   <p class="gc-except"><span class="gc-except__label">Except</span>${mono(rule.except)}</p>` : '');
 
-// A rule the kit does not meet yet is still a rule, and says so: the sentence
-// and the issue it is tracked under. stories/guidelines/refs.test.js checks the
-// shape. Plain on purpose — the treatment it will wear is not decided here.
 const unmetLine = (rule) => (rule.unmet ? `
   <p class="gc-unmet">${mono(rule.unmet.note)} #${rule.unmet.issue}</p>` : '');
 
-// Rules with nothing in the kit to copy from yet carry no addresses at all.
 const refs = (rule) => (rule.kit?.length ? `
   <div class="gc-refs">${rule.kit.map((k) => mono(k.ref)).join(' ')}</div>` : '');
 
@@ -154,10 +106,6 @@ const ruleBlock = (rule) => `
     ${refs(rule)}
   </section>`;
 
-/**
- * The whole story string for one guideline page.
- * `css` is the page's own specimen CSS, appended after the shared CSS.
- */
 export const guidelinePage = ({ title, rules, css = '' }) => `${SPEC_CSS}${PAGE_CSS}${css}${pad(`<div class="gl gc">
     <h1>${title}</h1>
     ${rules.map(ruleBlock).join('')}

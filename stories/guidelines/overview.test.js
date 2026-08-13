@@ -1,26 +1,9 @@
 /* Rule: the Overview lists every guideline page, and every link it builds is a
- * story id Storybook actually publishes.
+ * story id Storybook actually publishes. See docs/guidelines.md.
  *
  * An index that misses a page is worse than no index — the reader believes they
  * have seen the collection. So this gate never enumerates the pages: it
- * discovers them, the way ADR 0004 asks a gate to. A sixth content module that
- * publishes RULES fails this test until stories/guidelines/_overview.js lists
- * it.
- *
- * The links are the other half. A story's URL id comes from its EXPORT NAME,
- * not its title: 'Guidelines/The full state set' is story `state-set`, and an
- * href built from the title alone is a 404 on two of the five pages.
- * _overview.js reproduces Storybook's id rule rather than importing it, so the
- * page bundles no Storybook internals — which is only safe if something holds
- * the reproduction to the original. That is what this file does, twice:
- *
- *   1. by deriving every id again through Storybook's own `toId` and
- *      `storyNameFromExport`, which is the code that names the stories, and
- *   2. against storybook-static/index.json, the ids the last build published.
- *
- * The second runs only when that build exists. It is a gitignored artefact, so
- * a fresh clone and any CI job that tests before it builds would otherwise fail
- * on nothing; the first check needs no build and carries the gate on its own.
+ * discovers them, the way ADR 0004 asks a gate to.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -123,10 +106,8 @@ test('the id rule the page reproduces is the id rule Storybook applies', () => {
   }
 });
 
-// Every hand-typed pointer at the collection, checked against the ids above.
-// Three files link the Overview by id — the two READMEs and the landing page —
-// and a story id is exactly the kind of string that is right when it is written
-// and wrong a rename later.
+// The three files that link the Overview by id — a story id is the kind of
+// string that is right when it is written and wrong a rename later.
 test('the pointers into the collection name a story that exists', () => {
   const ids = new Set(storyPages.map((p) => p.id));
   const problems = [];

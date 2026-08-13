@@ -1,38 +1,17 @@
-// ---------------------------------------------------------------------------
-// Content for the "Guidelines / Component choice" page: four places where two
-// of the kit's components look interchangeable and are not, and the line the
-// kit's own code already draws between them.
-//
-// Same shape as _destructive-actions.js: every specimen is a real factory
-// rendered live, the don'ts included, so what is wrong on show is the choice of
-// component and never the markup — and stories/a11y.test.js stays green on both
-// halves of every pair.
-//
-// Every `kit` entry carries a `pattern` that must appear on the cited line;
-// stories/guidelines/refs.test.js resolves them all.
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { callout, card, segmented, successPanel, toast } from '../../src/components/index.js';
 import { confirm } from '../../src/components/confirm.js';
 import { success } from '../../src/components/success.js';
 import { tabs } from '../../src/components/tabs.js';
 
-// ---- The rule -------------------------------------------------------------
 export const TITLE = 'Component choice';
 
-// One line for the Overview index, which lists this page beside the other
-// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'Four pairs of components that look interchangeable, and the line between them.';
-
-// ---- Live specimens -------------------------------------------------------
-// Each returns a string of real component markup. The stage furniture — and the
-// containment an overlay needs to sit in the flow of a cell rather than over the
-// page — comes from _layout.js, so this page adds no CSS of its own.
 
 const stage = (html, mod = '') => `<div class="gl-stage${mod ? ` ${mod}` : ''}">${html}</div>`;
 
-// `specimen: true` renders the dialog open and inert: a picture of one, with no
-// data-confirm hook and no aria-modal, so the page does not claim a modal owns it.
-/** The ask that stops the page, because it has an answer. */
+// `specimen: true` keeps the dialog open and inert — no aria-modal, no hook, so
+// the page does not claim a modal owns it.
 export const interruptDo = () => stage(confirm({
   title: 'Rotate this token?',
   body: 'The current token stops working the moment you do.',
@@ -40,21 +19,18 @@ export const interruptDo = () => stage(confirm({
   confirmLabel: 'Rotate token',
   specimen: true,
 }), 'gl-stage--confirm');
-/** The same ask put in the page, where there is nothing to answer it with. */
 export const interruptDont = () => stage(callout({
   variant: 'info',
   body: 'Rotate this token? The current one stops working the moment you do.',
 }));
 
-/** A condition that is still true, in something that stays. */
 export const transientDo = () => stage(callout({
   variant: 'warn',
   icon: 'alert',
   body: 'This token is shown once. Copy it now — you won’t see it again.',
 }));
-/** The same condition in something that leaves. No `action`: a warn toast that
- *  carries one paints --amber ink that misses AA in light (#131), and a
- *  specimen of a rule must not be a specimen of a second, unrelated fault. */
+// No `action` here on purpose: a warn toast carrying one paints --amber ink
+// that misses AA in light (#131), and stories/contrast.test.js walks this page.
 export const transientDont = () => stage(toast({
   variant: 'warn',
   style: 'soft',
@@ -64,26 +40,21 @@ export const transientDont = () => stage(toast({
 
 const FILTERS = ['Any', 'Verified', 'Pending'];
 
-/** A filter strip: `role="toolbar"`, one Tab stop, no panel promised. */
 export const panelsDo = () => stage(segmented({
   ariaLabel: 'Status filter', options: FILTERS, active: 2,
 }));
-/** The same three filters as a tablist, over panels that hold nothing. */
 export const panelsDont = () => stage(tabs({
   name: 'gl-status', ariaLabel: 'Status filter', active: 2,
   items: FILTERS.map((label) => ({ label })),
 }));
 
-/** The block-sized confirmation, in the page the reader is already on. */
 export const scaleDo = () => stage(card({
   body: successPanel({ title: 'Feedback sent', sub: 'It goes straight to the strategy owner.' }),
 }));
-/** The page-sized one in the same slot, with no page to fill. */
 export const scaleDont = () => stage(card({
   body: success({ layout: 'hero', backdrop: 'aurora', title: 'Feedback sent' }),
 }));
 
-// ---- The four sub-rules ---------------------------------------------------
 export const RULES = [
   {
     id: 'interrupt',

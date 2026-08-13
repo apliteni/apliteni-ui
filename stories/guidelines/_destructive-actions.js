@@ -1,42 +1,17 @@
-// ---------------------------------------------------------------------------
-// Content for the "Guidelines / Destructive actions" page: one guideline about
-// destructive and dangerous actions, three sub-rules, live specimens, the
-// boundary of each rule, and pointers into kit code that already applies it.
-//
-// Everything here is token-driven (no raw hex, no magic colour) and every
-// specimen is a real kit component rendered live — including the "don't" ones.
-// The wrongness on show is colour, wording and pattern, never broken markup,
-// so the axe gate in stories/a11y.test.js stays green on the bad examples too.
-//
-// Every `kit` entry carries a `pattern` — a literal substring that must appear
-// on the cited line. stories/guidelines/refs.test.js resolves all of them, so a
-// reference that drifts out of date fails CI instead of misleading a reader.
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { toast } from '../../src/components/index.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { confirm } from '../../src/components/confirm.js';
 
-// ---- The rule -------------------------------------------------------------
 export const TITLE = 'Destructive actions';
 
-// One line for the Overview index, which lists this page beside the other
-// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'What a delete looks like, what its buttons say, and when undo lies.';
 
-// ---- Specimen CSS ---------------------------------------------------------
-// `.gl-hovering` pins a dropdown's danger row into its hover appearance so the
-// difference is visible in a screenshot instead of only under a live mouse; the
-// two modifiers paint that row the way the rule asks (`--pink`) and the way it
-// must not be painted (`--accent`).
+// `.gl-hovering` pins the dropdown's danger row into its hover appearance,
+// because hover cannot be screenshotted.
 export const SPEC_CSS = `
   <style>
-    /* An open menu panel is absolutely positioned, so it contributes no height
-       and the stage had to hold itself open around it — a hand-measured
-       min-height, 24px of which nothing ever covered, and a note pinned to the
-       bottom edge to stay clear. In a specimen the panel is the subject, not an
-       overlay on top of the page, so it joins the flow: the stage is then
-       exactly as tall as what it shows, at every width, and there is no number
-       to keep in sync when the menu gains a row. */
+    /* The panel joins the flow, so the stage is as tall as what it shows. */
     .gl-stage--menu { display: flex; flex-direction: column; align-items: flex-start; }
     .gl-stage--menu .ui-dropdown { display: flex; flex-direction: column; align-items: flex-start; }
     .gl-stage--menu .ui-dropdown__panel { position: static; transform: none; margin-top: var(--space-2); }
@@ -44,9 +19,6 @@ export const SPEC_CSS = `
     .gl-hovering--accent .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--accent); }
     .gl-hovering--pink   .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
   </style>`;
-
-// ---- Live specimens -------------------------------------------------------
-// Each returns a string of real component markup.
 
 const MENU_ITEMS = [
   { label: 'Rename token', icon: 'edit' },
@@ -61,41 +33,33 @@ const menu = (mod) => `
     <div class="gl-cursor">Pointer resting on “Revoke access”</div>
   </div>`;
 
-/** Danger menu row that turns `--pink` on hover. */
 export const menuDo = () => menu('pink');
-/** The same row repainted `--accent` on hover, which drops the danger cue. */
 export const menuDont = () => menu('accent');
 
-// `specimen: true` renders the dialog open and inert as documentation: no
-// data-confirm hook, no aria-modal. A page with three live confirms on it claims
-// three modal dialogs own it, traps a keyboard reader in the first, and loses a
-// specimen for good the first time someone answers one.
+// `specimen: true` keeps the dialog open and inert — no aria-modal, no hook. A
+// page of live confirms claims three modals own it and traps a keyboard reader.
 const confirmSpec = (opts) => `
   <div class="gl-stage gl-stage--confirm">
     ${confirm({ ...opts, specimen: true })}
   </div>`;
 
-/** Buttons that name the consequence. */
 export const wordingDo = () => confirmSpec({
   title: 'Revoke access for Research bot?',
   cancelLabel: 'Keep access',
   confirmLabel: 'Revoke access',
 });
-/** Buttons that name nothing. */
 export const wordingDont = () => confirmSpec({
   title: 'Are you sure?',
   cancelLabel: 'Cancel',
   confirmLabel: 'OK',
 });
 
-/** An irreversible delete asks first, because there is nothing to restore. */
 export const undoDo = () => confirmSpec({
   title: 'Delete workspace “Acme”?',
   body: 'Its boards, tokens and history go with it.',
   cancelLabel: 'Keep workspace',
   confirmLabel: 'Delete workspace',
 });
-/** The same delete offering a way back it does not have. */
 export const undoDont = () => `
   <div class="gl-stage">
     ${toast({
@@ -104,14 +68,6 @@ export const undoDont = () => `
   })}
   </div>`;
 
-// ---- The three sub-rules --------------------------------------------------
-// `except` is the boundary of the rule: the one place it stops applying.
-// `kit` points at code in this repository that already applies the rule, so a
-// reader can copy a working implementation instead of writing one. Each entry
-// carries the file, the line, and the `pattern` that must be on that line.
-// A rule with nothing to copy from yet simply carries no `kit`.
-//
-// `doHtml`/`dontHtml` are a rule's specimen pair, and are optional.
 export const RULES = [
   {
     id: 'colour',

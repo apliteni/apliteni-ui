@@ -1,7 +1,4 @@
-// ---------------------------------------------------------------------------
-// Guidelines — Component choice. Content, specimens and citations live in
-// ./_component-choice.js; the shell around them is guidelinePage().
-// ---------------------------------------------------------------------------
+// The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { guidelinePage } from './_layout.js';
 import { TITLE, RULES } from './_component-choice.js';
 
