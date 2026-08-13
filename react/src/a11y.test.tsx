@@ -13,20 +13,17 @@
 // A + AA violations only, and a count that proves nothing was skipped.
 //
 // Same two rules the vanilla gate follows:
-//   - color-contrast stays off: axe cannot resolve var() in a headless DOM. In
-//     the vanilla kit that job belongs to stories/contrast.test.js, which
-//     resolves the cascade and composites the background chain itself. That gate
-//     does NOT cover this workspace — it discovers `*.stories.js` and reads the
-//     kit's stylesheets, so react/src/DataTable.css and Modal.css, and the
-//     rx-* classes no vanilla story renders, are currently ungated for contrast.
+//   - color-contrast stays off: axe cannot resolve var() in a headless DOM, so
+//     the job belongs to a gate that resolves the cascade and composites the
+//     background chain itself. The vanilla kit's is stories/contrast.test.js,
+//     which cannot reach here — it discovers `*.stories.js` and reads only the
+//     kit's own stylesheets. This workspace's is react/src/contrast.test.tsx,
+//     which mounts these same stories against the kit's sheet plus every CSS
+//     file under react/src, tokens substituted per theme. Between the two,
+//     .rx-* and the React tree are covered.
 //   - a story that won't render is a failure, not a skip. The suite asserts the
 //     number of checks equals stories discovered × themes, so a story cannot
 //     drop out of coverage without turning this red.
-//
-// NOTE — phantom dependency: axe-core is NOT in react/package.json. It resolves
-// today only because the root workspace declares it and npm hoists it. Adding a
-// direct dependency is a gated change, so this uses the hoisted copy for now;
-// react/package.json should declare `axe-core` as a devDependency.
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import axe from 'axe-core';

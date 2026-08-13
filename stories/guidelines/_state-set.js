@@ -77,7 +77,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/index.js:33', pattern: 'busy ⇒ disabled' },
       { ref: 'src/styles/button.css:98', pattern: '.ui-btn[aria-busy="true"] {' },
-      { ref: 'stories/contrast.test.js:35', pattern: 'Inactive components. Skipped on purpose per WCAG 1.4.3.' },
+      { ref: 'stories/contrast.test.js:54', pattern: 'Inactive components, and everything inside them.' },
     ],
   },
   {

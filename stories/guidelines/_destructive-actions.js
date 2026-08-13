@@ -115,7 +115,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/confirm.js:62', pattern: 'role="alertdialog"' },
       { ref: 'src/components/index.js:227', pattern: 'class="ui-toast__action"' },
-      { ref: 'src/styles/callout.css:75', pattern: '.ui-toast__action { flex: none;' },
+      { ref: 'src/styles/callout.css:91', pattern: '.ui-toast__action { flex: none;' },
     ],
   },
 ];

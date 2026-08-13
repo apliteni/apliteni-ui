@@ -90,7 +90,7 @@ export const RULES = [
     kit: [
       { ref: 'stories/accent-contrast.test.js:1', pattern: '--accent clears WCAG AA as text on every ground the kit paints under it' },
       { ref: 'stories/accent-contrast.test.js:2', pattern: 'in all eight theme × accent cells' },
-      { ref: 'react/src/a11y.test.tsx:39', pattern: "'color-contrast': { enabled: false }" },
+      { ref: 'react/src/a11y.test.tsx:36', pattern: "'color-contrast': { enabled: false }" },
     ],
   },
 ];
