@@ -1,0 +1,25 @@
+# Who reviews a change to the gates themselves.
+#
+# The Security workflow runs on `pull_request`, so it reads the .gitleaks.toml
+# and the check scripts that the pull request itself carries. That is the right
+# trigger — a rule change has to be tested by the rules as changed — and it is
+# also the reason these particular files want a named reviewer: a diff that
+# weakens them is graded by the weakened gate.
+#
+# Deliberately NO `*` rule. A catch-all would put every pull request in the repo
+# behind one reviewer, which is a bigger change than this record is for. What is
+# listed here is the gate's own definition and nothing else.
+#
+# CODEOWNERS is LAST-MATCH-WINS: a later line covering the same path replaces
+# the owners of an earlier one, and a later line with no owner at all removes
+# them. Append carefully. scripts/codeowners.check.mjs reads this file with those
+# semantics and asserts every gate-defining file in the tree still ends up owned.
+#
+# This is inert until branch protection requires code-owner reviews. Today it
+# names the reviewer and feeds the pull-request warning; it does not block a
+# merge.
+
+/.github/                 @asabirov
+/.gitleaks.toml           @asabirov
+/.pre-commit-config.yaml  @asabirov
+/scripts/*.check.mjs      @asabirov
