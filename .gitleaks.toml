@@ -26,10 +26,34 @@ regex = '''\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?
 tags = ["infra", "ip"]
 
 # ── Internal Lessly runtime hostnames (*.lessly.run) ─────────────────────────
+#
+# NO leading \b, and that is the measured answer rather than a tidy-up. A leading
+# boundary earns its place in two shapes in this file, and this rule is neither.
+# The four vendor rules further down anchor on a PREFIX, and the boundary is what
+# makes prefix mean prefix — the argument is written out above them, with the five
+# ordinary identifiers it keeps from being refused. pii-private-ip, infra-uuid and
+# infra-ttlsh-tag anchor on a SHAPE, and the boundary stops that shape being found
+# inside a longer one; each has a case pinning it.
+#
+# This rule anchors on a SUFFIX. The literal .lessly.run is what carries the
+# specificity — the same trade the ops_eyJ and T3BlbkFJ rules below make — so
+# there is nothing in front of the anchor for a boundary to protect, and a \b
+# there only costs matches. It sits between a word character and a non-word one,
+# and neither "_" then a letter nor a capital then a letter is such a pair, so
+# api_staging.<domain> and APIstaging.<domain> were MISSED. Measured on gitleaks
+# 8.30.1, six hostname shapes: with the leading \b, four caught and those two
+# missed; without it, all six caught and nothing else changed. Both misses are now
+# cases in scripts/gitleaks-rules.check.mjs.
+#
+# The trailing \b STAYS, on the shape argument above: without it a filename ending
+# .lessly.runbook.md reads as a hostname, and identifier-lessly-runbook.ts is the
+# case that proves it. The domain is redacted in the two hostnames named here for
+# the same reason the check script redacts it — a whole one written out would be
+# a finding against this very rule. Full argument: #195.
 [[rules]]
 id = "infra-lessly-run"
 description = "Internal Lessly runtime hostname"
-regex = '''\b[a-z0-9-]+\.lessly\.run\b'''
+regex = '''[a-z0-9-]+\.lessly\.run\b'''
 tags = ["infra", "hostname"]
 
 # ── ttl.sh ephemeral image tags ──────────────────────────────────────────────

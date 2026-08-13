@@ -352,6 +352,25 @@ const CASES = [
     why: 'an internal runtime hostname',
     body: note(`${stream('h1', 14, LOWER)}.lessly.run`),
   },
+  // The two shapes the rule missed while it carried a leading \b, and the reason
+  // it no longer does: \b sits between a word character and a non-word one, and
+  // there is no such pair between "_" and a letter or between a capital and a
+  // letter. Both are ordinary internal hostnames. They are cases rather than a
+  // note in .gitleaks.toml because a comment cannot go red — put the leading \b
+  // back and these two do. The interpolation sits against `.lessly.run` for the
+  // reason the box above gives.
+  {
+    file: 'lessly-host-underscore-label.md',
+    ours: 'infra-lessly-run',
+    why: 'a hostname label reached from "_" — no word boundary there, so a leading \\b misses it',
+    body: note(`api_${stream('h2', 10, LOWER)}.lessly.run`),
+  },
+  {
+    file: 'lessly-host-capital-label.md',
+    ours: 'infra-lessly-run',
+    why: 'a hostname label reached from a capital — likewise no boundary, and likewise missed',
+    body: note(`API${stream('h3', 10, LOWER)}.lessly.run`),
+  },
   {
     // The dash sits second, right behind the anchor, rather than somewhere in
     // the middle: the class after it is '+' quantified, so a dash further along
@@ -855,9 +874,20 @@ function planMutations(text, upstream) {
 
     // (3) anchor-drop — every \b, one at a time, so a leading and a trailing
     // boundary are two separate claims rather than one.
+    //
+    // The label is POSITIONAL, not ordinal: a \b at pattern index 0 is leading,
+    // one whose match ends at the end of the pattern is trailing, and anything
+    // else is #n. By ordinal, the FIRST boundary of any rule read "leading" — so
+    // a rule carrying exactly one boundary was always called leading whichever
+    // end it sat at. That was latent while every single-boundary rule here
+    // happened to be leading-anchored, and infra-lessly-run stopped being one:
+    // its remaining \b is the trailing one, and under the ordinal rule the
+    // justification written for its LEADING anchor would have gone on matching
+    // a mutation that no longer exists. A justification is looked up by this
+    // key, so an excuse outliving its subject is precisely what must go red.
     const boundaries = [...pattern.matchAll(/\\b/g)];
     for (const [n, b] of boundaries.entries()) {
-      const where = n === 0 ? 'leading' : n === boundaries.length - 1 ? 'trailing' : `#${n + 1}`;
+      const where = b.index === 0 ? 'leading' : b.index + b[0].length === pattern.length ? 'trailing' : `#${n + 1}`;
       make('anchor-drop', `the ${where} \\b removed`, b.index, patch(b.index, b.index + 2, ''));
     }
 
@@ -990,20 +1020,6 @@ const JUSTIFIED = [
       'pretending to be a hostname rather than a hostname. The domain is redacted in these strings for ' +
       'the reason the header gives: the denylist grep does not exclude scripts/, and a literal here ' +
       'would refuse every commit in the repo.',
-  },
-  {
-    subject: 'infra-lessly-run',
-    axis: 'anchor-drop',
-    mutation: 'the leading \\b removed',
-    why:
-      'Dropping an anchor only WIDENS what a rule matches, so no positive case can die under it — only a ' +
-      'negative case could, and the honest negative case does not exist here. Probing for one named a real ' +
-      'weakness instead: api_staging.<domain> and APIstaging.<domain> are internal hostnames this rule ' +
-      'MISSES today, because \\b sits between a word character and a non-word one and there is no boundary ' +
-      'between "_" and "s" or between "I" and "s". Nothing escapes the repo — the internal-terms denylist in ' +
-      '.github/workflows/security.yml greps tracked files for the same shape without the anchor and catches ' +
-      'both, measured. Fixing the rule is its own change: see the open issue on infra-lessly-run\'s leading ' +
-      'anchor. This check never edits .gitleaks.toml, so it records the hole rather than closing it.',
   },
   {
     subject: '[allowlist] paths (?i)\\.svg$',
