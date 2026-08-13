@@ -60,9 +60,9 @@ A box that holds a **component** takes a `--panel-*` step in px. A box that hold
 a `--prose-*` step in ch. Nothing has to be looked up to choose: the thing being bounded picks the
 unit, and the unit picks the scale.
 
-The steps are almost entirely numbers that were already there. Of the eighteen declarations
-reconciled, thirteen did not move at all; the five that did moved a total of 6ch, 2ch, 2ch, 20px
-and 60px, and each is listed in the changelog.
+The steps are almost entirely numbers that were already there. Nineteen declarations across
+`src/styles` and `site` read a token now; nine of them resolve to exactly the width they resolved
+to before, and the ten that move are all listed below and in the changelog.
 
 `--prose-*` steps are named for what is being read rather than sized `s`/`m`/`l`, because the
 writer knows which of those they are writing and does not know which t-shirt it is. They are also
@@ -128,7 +128,7 @@ the mask deleted.
 
 ## What this costs
 
-Five visible changes, all of them small and none crossing a breakpoint:
+Ten declarations move, all of them small and none crossing a breakpoint:
 
 | | before | after |
 |---|---|---|
@@ -137,6 +137,7 @@ Five visible changes, all of them small and none crossing a breakpoint:
 | `.ui-fbc__done p` | 38ch | 44ch |
 | `.ui-hero__sub` | 52ch | 54ch |
 | `.ui-app__sub` | 60ch | 62ch |
+| `.ui-empty__sub` | 340px | 44ch (≈343px at 13px) |
 | `.ui-denied__sub` | 380px | 44ch (≈343px at 13px) |
 | `site/changelog.html .wrap` | 820px | `--measure` (860px) |
 | `site/index.html` inline block | 840px | `--measure` (860px) |
