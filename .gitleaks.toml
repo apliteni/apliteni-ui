@@ -181,6 +181,12 @@ regexes = [
   '''[A-Za-z0-9._%+\-]+@example\.(?:com|org)''',
   # Fabricated "shown once" demo API token in Access.stories.js — not a real secret.
   '''apli_sk_live_9f2c4b7e1a06d8f3c5b2e9a1d4f70c83''',
+  # One made-up address in a guideline page's example markup. The exact literal, and
+  # not `@acme\.io`, because acme.io is a domain somebody actually owns — unlike the
+  # reserved names above it, where RFC 2606 guarantees nothing is deliverable. Exempting
+  # the domain would wave through a real address at it; exempting the string waves
+  # through this one. Another address there is meant to fail, and should.
+  '''ops@acme\.io''',
 ]
 # Anchored, and that is the point: a path entry switches off EVERY rule in this file
 # for anything it matches, and gitleaks matches these as a substring search. Unanchored,
