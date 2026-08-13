@@ -9,6 +9,13 @@
 //
 // Internal — not re-exported from src/index.js.
 
+// What each overlay paints on, as its stylesheet resolves it today: a drawer at
+// `--z-overlay` (src/styles/drawer.css) and a confirm one above it
+// (src/styles/confirm.css). Absolute values, not ranks, so a sheet that moves and
+// a table that did not is a failed test rather than a keyboard on the wrong layer
+// — stories/overlay-css.test.js holds these two numbers to those two rules.
+export const OVERLAY_LAYER = { drawer: 100, confirm: 101 };
+
 const FOCUSABLE = [
   'a[href]', 'button:not([disabled])', 'input:not([disabled])',
   'select:not([disabled])', 'textarea:not([disabled])',
@@ -17,7 +24,7 @@ const FOCUSABLE = [
 
 // Per document, not per module: JSDOM tests and Storybook iframes each get their
 // own page, and one global stack would let one page's overlays decide another's.
-//   stack   open overlays, bottom → top: { root, panel, dismiss }
+//   stack   open overlays, bottom → top: { root, panel, dismiss, layer }
 //   marked  what the current top hid, with the state to give back
 const pages = new WeakMap();
 function pageOf(doc) {
@@ -110,23 +117,38 @@ function ownKeys(page, doc) {
 const PRECEDING = 2;
 
 // One way onto the stack. `where` picks the slot; everything after it — the
-// duplicate guard, the key owner, the recompute — is the same either way.
-function place(root, panel, dismiss, where) {
+// duplicate guard, the key owner, the recompute — is the same either way. Every
+// entry carries its layer, so the comparisons in adoptOverlay never meet undefined.
+function place(root, panel, dismiss, layer, where) {
   const doc = root.ownerDocument;
   const page = pageOf(doc);
   if (page.stack.some((e) => e.root === root)) return;
-  page.stack.splice(where(page), 0, { root, panel, dismiss });
+  page.stack.splice(where(page), 0, { root, panel, dismiss, layer });
   ownKeys(page, doc);
   sync(doc);
+}
+
+// The layer this root actually paints on. In a browser the live z-index is the
+// truth, so a consumer who moves either overlay in their own stylesheet gets the
+// keyboard on the layer they can see. JSDOM has no cascade to resolve: it hands
+// back the declared text — `calc(var(--z-overlay) + 1)` with the kit's sheets,
+// `auto` with none — and neither is a number, so under test the passed constant
+// stands. `auto` must not read as 0; anything unparseable falls through.
+function paintedLayer(root, layer) {
+  const painted = root.ownerDocument.defaultView?.getComputedStyle(root)?.zIndex;
+  const live = painted ? Number(painted) : NaN;
+  return Number.isFinite(live) ? live : layer;
 }
 
 /**
  * Put an overlay on top of the page. `dismiss` is what Escape calls — pass null
  * for one that refuses to be dismissed, and Escape then does nothing rather than
- * falling through to the overlay underneath.
+ * falling through to the overlay underneath. This one goes on top whatever layer
+ * it paints on, because opening is history the stack can order by: the thing just
+ * opened is the thing the reader is looking at.
  */
-export function pushOverlay(root, panel, dismiss) {
-  place(root, panel, dismiss, (page) => page.stack.length);
+export function pushOverlay(root, panel, dismiss, layer) {
+  place(root, panel, dismiss, layer, (page) => page.stack.length);
 }
 
 /**
@@ -134,18 +156,28 @@ export function pushOverlay(root, panel, dismiss) {
  * which nobody called open…() for. Without this its aria-modal is a claim the
  * page contradicts: nothing is inert, Tab walks out, Escape has no owner.
  *
- * It goes in at its own place in the document rather than on top, because
- * wiring has no history to order by: every overlay here opened before the page
- * was live. The overlays share one z-index, so the root drawn later is the one
- * painted over the other, and it is the one the keyboard belongs to — whichever
- * component's wiring happened to run first. A root that renders closed is left
- * alone: wiring is not an opening, and it waits for the one that is. A specimen
- * never reaches here at all — it carries no hook for the wiring to find.
+ * It goes in by paint order, because wiring has no history to order by and the
+ * overlay the reader is looking at is the one drawn over the rest: a confirm sits
+ * a layer above a drawer whichever component's wiring ran first, and whichever
+ * root the markup happens to put first. Document position only separates two
+ * overlays on the same layer, and there it is the right answer rather than a
+ * fallback — at equal stack levels the later root paints on top (CSS 2.2 Appendix
+ * E, steps 8 and 9). That comparison earns its keep whenever adoption order and
+ * document order disagree: a root inserted above one already on the stack and
+ * wired after it, and — in a browser only — a consumer stylesheet that lifts the
+ * drawer onto the confirm's layer, where wiring runs drawer-first however the
+ * markup is ordered. A browser refines the layer from the live z-index; JSDOM has
+ * none to give, so the tests hold OVERLAY_LAYER to the sheets instead. A root that
+ * renders closed is left alone: wiring is not an opening, and it waits for the one
+ * that is. A specimen never reaches here at all — it carries no hook for the
+ * wiring to find.
  */
-export function adoptOverlay(root, panel, dismiss) {
+export function adoptOverlay(root, panel, dismiss, layer) {
   if (!root.classList.contains('is-open')) return;
-  place(root, panel, dismiss, (page) => {
-    const at = page.stack.findIndex((e) => e.root.compareDocumentPosition(root) & PRECEDING);
+  const level = paintedLayer(root, layer);
+  place(root, panel, dismiss, level, (page) => {
+    const at = page.stack.findIndex((e) => e.layer > level
+      || (e.layer === level && (e.root.compareDocumentPosition(root) & PRECEDING)));
     return at === -1 ? page.stack.length : at;
   });
 }

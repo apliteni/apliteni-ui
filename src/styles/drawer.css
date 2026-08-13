@@ -34,12 +34,18 @@
 }
 .ui-drawer.is-open { visibility: visible; transition: none; }
 
+/* Hit-testable only while open. The root stays visible for --dur-med after
+   closeDrawer() has stopped trapping, and any control still clickable in that
+   window — the footer's actions, the close button — runs the caller's handler
+   again on the way out. */
+.ui-drawer.is-open .ui-drawer__scrim,
+.ui-drawer.is-open .ui-drawer__panel { pointer-events: auto; }
+
 /* Scrim — fades in and out; the drawer root decides when it stops existing. */
 .ui-drawer__scrim {
   position: absolute;
   inset: 0;
   background: var(--drawer-scrim);
-  pointer-events: auto;
   opacity: 0;
   transition: opacity var(--dur-med) var(--ease);
 }
@@ -52,7 +58,6 @@
   flex-direction: column;
   background: var(--drawer-surface);
   box-shadow: var(--drawer-shadow);
-  pointer-events: auto;
   opacity: 1;
   transition:
     transform var(--dur-med) var(--ease),

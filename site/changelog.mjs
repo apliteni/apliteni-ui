@@ -3,7 +3,14 @@
 
 export const RELEASES = [
   {
-    v: '0.11.0', date: '2026-08-12', tag: 'latest',
+    v: '0.11.1', date: '2026-08-13', tag: 'latest',
+    changes: [
+      ['fixed', 'A drawer stops taking clicks the moment it starts closing. Its panel and scrim stayed hit-testable for the length of the close fade, so a click landing in that window still reached a control inside the panel and ran your handler a second time — a double-click on a drawer\'s own button was enough. The closing animation is unchanged.', ['Drawer']],
+      ['fixed', 'Where two overlays are rendered open together, the one you can see is the one Escape closes. A confirm paints a layer above a drawer, but the keyboard went to whichever root came later in the markup — so a confirm written before the drawer it asks about went inert while Escape closed the drawer underneath it. Opening a confirm over a live drawer with `openConfirm()` was never affected.', ['Drawer', 'Confirm']],
+    ],
+  },
+  {
+    v: '0.11.0', date: '2026-08-12',
     changes: [
       ['added', '`appShell()` — the kit has one page shell now. A full-height rail built from the kit\'s own `sidebarNav()`, beside exactly one `<main>`. The breadcrumb trail is yours: pass `crumbs` and it renders `breadcrumbs()`, pass nothing and there is no trail. The topbar is off unless you ask for one.', ['Shell']],
       ['added', 'The rail folds to icons below 720px instead of disappearing. Every row keeps its accessible name at every width, and the icon target measures 45×44px on a phone. Before this, a 375px screen got three navigation links, none of them reachable.', ['Shell']],
