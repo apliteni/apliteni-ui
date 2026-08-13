@@ -88,7 +88,7 @@ a {
 }
 
 /* Layout helpers used by the example apps */
-.ui-container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 clamp(14px, 2.4vw, 26px); }
+.ui-container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 clamp(14px, 2.4vw, 26px); }
 .ui-stack > * + * { margin-top: var(--space-4); }
 
 /* Section eyebrow — uppercase caption used across cards and headers */

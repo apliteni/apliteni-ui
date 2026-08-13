@@ -15,7 +15,7 @@
      The bar itself is the kit's own .topbar component — the landing eats its own
      dog food. These rules only make it sticky + translucent for a marketing page. */
   body { overflow-x: hidden; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
+  .wrap { max-width: var(--container); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
   section { position: relative; }
 
   {{CHROME_CSS}}

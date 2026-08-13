@@ -114,12 +114,14 @@
    The width is what keeps the auto margins honest: an auto inline margin takes
    a grid item out of stretch, and Chrome then lays it out at its max-content
    width, which is how the payout ledger pushed the page 529px sideways at 375.
-   The 860px is the floor for hand-written markup — shell.js validates what it
-   writes into --ui-app-main and falls back to this same number. */
+   --measure is the ONE source for this width now. shell.js used to carry its
+   own copy of the number and a test held the two in step; it now omits the
+   property rather than writing a default, so an absent or unparseable maxWidth
+   lands here, on the token, instead of on a second literal. See issue #198. */
 .ui-app__main {
   min-width: 0;
   width: 100%;
-  max-width: var(--ui-app-main, 860px);
+  max-width: var(--ui-app-main, var(--measure));
   margin-inline: auto;
   padding: 40px clamp(24px, 4vw, 56px) 72px;
 }
@@ -298,7 +300,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
-  max-width: 1080px;
+  /* Was 1080px — a third page-scale number with nothing arguing for it. The
+     feature row is a top-level band and lines up with the page it sits on. */
+  max-width: var(--container);
   margin: 0 auto;
   padding: 0 26px;
 }

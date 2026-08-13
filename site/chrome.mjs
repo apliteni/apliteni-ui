@@ -50,7 +50,12 @@ export const CHROME_CSS = `
   .site-topbar { position: sticky; top: 0; z-index: 20; height: 60px;
     background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(14px);
     border-bottom: 0; }
-  .site-topbar .topbar__in { max-width: 1120px; padding: 0 clamp(18px, 4vw, 34px); gap: 15px; }
+  /* No max-width here any more. This line used to override the kit's own
+     .topbar__in from 1180px down to 1120px — the site paying a declaration to
+     disagree with the component it borrows. The kit is --container now, and
+     --container is this number, so the override has nothing left to do. The
+     padding and gap are still the site's own. See issue #198. */
+  .site-topbar .topbar__in { padding: 0 clamp(18px, 4vw, 34px); gap: 15px; }
   .site-topbar .brand__word { font-size: 15px; letter-spacing: -0.01em; }
   .site-topbar .lk { color: var(--dim); font-size: 14px; text-decoration: none; transition: color .15s ease; }
   .site-topbar .lk:hover { color: var(--strong); }
@@ -63,7 +68,7 @@ export const CHROME_CSS = `
   .accents button.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
 
   .site-footer { border-top: 1px solid var(--border); padding: 34px 0; margin-top: 20px; }
-  .site-footer__in { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px);
+  .site-footer__in { max-width: var(--container); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px);
     display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
     color: var(--muted); font-size: 13px; }
   .site-footer a { color: var(--muted); text-decoration: none; transition: color .15s ease; }

@@ -92,13 +92,25 @@ const toTopbar = (t) => {
 // `maxWidth` lands inside a style attribute, which is a declaration list: esc()
 // stops a quote closing the attribute, and `;` is the character that matters
 // there. So a length is all this accepts — a number and a unit the reading
-// column can use, or `none`. Anything else falls back to the default rather
-// than throwing, because a shell that throws mid-render takes the page with it.
-const MAIN_MAX = '860px';
+// column can use, or `none`. Anything else yields '' and the caller writes NO
+// style attribute at all, rather than throwing: a shell that throws mid-render
+// takes the page with it.
+//
+// '' and not a default width, because the default is not this file's to hold.
+// It used to be `const MAIN_MAX = '860px'`, a second copy of the number in
+// layout.css that stories/apps/shell.test.js kept in step by comparing the two.
+// Omitting the property is what lets `max-width: var(--ui-app-main, var(--measure))`
+// fall through to the token, so --measure in src/tokens/tokens.css is the only
+// place the width is written. Setting the property to garbage would NOT fall
+// through — a custom property accepts any token stream, so `--ui-app-main: wibble`
+// is a valid declaration that makes max-width invalid at computed-value time and
+// drops the column to `none`, the full track. That is the fault this guard
+// exists for, and it is why an unusable value has to remove the property rather
+// than pass it on. See issue #198.
 const LENGTH = /^(?:\d+|\d*\.\d+)(?:px|rem|em|ch|%|vw)$/;
 const mainMax = (v) => {
   const s = str(v).trim();
-  return s === 'none' || LENGTH.test(s) ? s : MAIN_MAX;
+  return s === 'none' || LENGTH.test(s) ? s : '';
 };
 
 // The one pass. Each key names the function that settles it; nothing else in
@@ -194,7 +206,7 @@ export function appShell(options = {}) {
       ${rail}
       ${railUser(account)}
     </div>
-    <main class="ui-app__main" style="--ui-app-main: ${maxWidth}">
+    <main class="ui-app__main"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
       ${crumbs.length ? breadcrumbs({ items: crumbs }) : ''}
       ${title ? `<h1>${title}</h1>` : ''}
       ${sub ? `<p class="ui-app__sub">${sub}</p>` : ''}

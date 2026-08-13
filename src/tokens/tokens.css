@@ -41,6 +41,31 @@
   --space-12: 48px;
   --space-16: 64px;
 
+  /* -- Measure ------------------------------------------------------------
+   * Two widths, because a page has two of them and they are different axes.
+   *
+   *   --container  the page, gutter to gutter. The topbar, the footer and
+   *                .ui-container are one track, so they take one number.
+   *   --measure    the reading column INSIDE a track — .ui-app__main sitting
+   *                beside a sidebar. Never a page width: a shell whose main
+   *                column is --container has no sidebar.
+   *
+   * 1120px is the marketing site's number, and it won on evidence rather than
+   * taste. The kit said 1180px in three places (base.css, topbar.css,
+   * footer.css) and site/chrome.mjs overrode the kit's own topbar back down to
+   * 1120 — a line of CSS the site paid to disagree. Nothing in the tree argued
+   * for 1180, so the override is the only recorded intent there was, and it is
+   * now unnecessary. The usual reason for a split runs backwards here anyway: a
+   * marketing hero normally gets the WIDER container, not the tighter one.
+   * See issue #198 and stories/guidelines/_layout-and-density.js.
+   *
+   * Below --measure is component scale — a callout, an empty state, a drawer —
+   * which has no token scale yet. stories/measure-tokens.test.js draws the line
+   * exactly there, and reads it from --measure rather than repeating a number.
+   */
+  --container: 1120px;
+  --measure: 860px;
+
   /* -- Typography --------------------------------------------------------- */
   --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;

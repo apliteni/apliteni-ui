@@ -653,7 +653,12 @@ test('a maxWidth carrying a second declaration cannot reach the style attribute'
     'the caller\'s `;` opened a second declaration — the reading column is now a '
     + 'full-viewport overlay over whatever page the shell was mounted in',
   );
-  assert.match(html, /style="--ui-app-main: 860px"/, 'the fallback is not the documented default');
+  // The rejected value leaves NO property behind, so the column takes --measure
+  // from the stylesheet. Asserting the absence is what makes the line above
+  // mean something: `doesNotMatch(/position: fixed/)` would also pass if the
+  // shell had silently stopped emitting a style attribute for every input.
+  assert.match(html, /<main class="ui-app__main">/, 'the rejected value left something behind');
+  assert.doesNotMatch(html, /860px/, 'the sanitised prefix of the payload reached the sheet');
 });
 
 // Scoped to the style attribute on purpose: the rail head's brand mark clips
@@ -662,12 +667,18 @@ test('a maxWidth carrying a second declaration cannot reach the style attribute'
 test('a url() in maxWidth cannot reach the style attribute either', () => {
   const html = appShell({ maxWidth: 'none; background: url(https://example.test/a.png)' });
   const style = /<main[^>]*style="([^"]*)"/.exec(html);
-  assert.ok(style, 'the reading column stopped carrying its width as a style attribute');
-  assert.doesNotMatch(
-    style[1], /url\(/,
-    'a rejected value still reached the sheet, so the shell makes an outbound request '
-    + 'for whoever wrote the config',
-  );
+  // A rejected value now removes the attribute rather than replacing its value,
+  // so there are two ways to be safe here and both have to be stated: either no
+  // style attribute at all, or one that carries no url(). Asserting only the
+  // second would pass vacuously the moment the attribute stopped being written.
+  if (style) {
+    assert.doesNotMatch(
+      style[1], /url\(/,
+      'a rejected value still reached the sheet, so the shell makes an outbound request '
+      + 'for whoever wrote the config',
+    );
+  }
+  assert.doesNotMatch(html, /example\.test/, 'the payload reached the document by some other route');
 });
 
 test('a plain CSS length is what the caller asked for', () => {
@@ -676,27 +687,58 @@ test('a plain CSS length is what the caller asked for', () => {
   }
 });
 
-test('a value that is not a length falls back to the default rather than throwing', () => {
+// Setting the property to something unusable is WORSE than not setting it: a
+// custom property accepts any token stream, so `--ui-app-main: wibble` is a
+// valid declaration that makes max-width invalid at computed-value time and
+// drops the column to `none` — the full track. Removing the property is what
+// lets the var() fallback fire. See issue #198.
+test('a value that is not a length leaves the property off rather than passing it on', () => {
   for (const w of ['', 'wide', 'calc(100% - 40px)', '860', '860 px', null, undefined, 42]) {
     const html = appShell({ maxWidth: w });
     assert.match(
-      html, /style="--ui-app-main: 860px"/,
-      `${JSON.stringify(w)} left the column without the documented default. An empty or `
-      + 'unparseable value makes the declaration invalid at computed-value time, and the '
-      + 'column falls to max-width: none — the full track, not 860px',
+      html, /<main class="ui-app__main">/,
+      `${JSON.stringify(w)} reached the style attribute. An unparseable value makes the `
+      + 'declaration invalid at computed-value time and the column falls to max-width: none '
+      + '— the full track. The property has to be absent so the token can answer.',
     );
+    assert.doesNotMatch(html, /--ui-app-main/, `${JSON.stringify(w)} still wrote the property`);
   }
 });
 
-// The `860px` in `max-width: var(--ui-app-main, 860px)` can never fire while
-// shell.js always writes the property. It is the floor for hand-written markup,
-// so the two have to say the same number or the floor is a different shell.
-test('the CSS fallback and the shell\'s default are the same width', () => {
+// The width is written in ONE place. shell.js used to carry `const MAIN_MAX =
+// '860px'` beside layout.css's `var(--ui-app-main, 860px)`, and the test here
+// compared the two strings — which keeps two copies honest instead of removing
+// the second one. Now the CSS falls through to --measure and the shell writes
+// nothing, so there is no second copy to hold in step. This asserts that: the
+// fallback names a token, and shell.js states no width at all.
+test('the reading column has one source, and it is a token', () => {
   const css = read('src/styles/layout.css');
-  const m = /--ui-app-main,\s*([^)]+)\)/.exec(css);
+  // Not `[^)]+` — the fallback is itself a var() now, so a lazy match to the
+  // declaration's own `;` is what reads it whole instead of stopping inside it.
+  const m = /max-width:\s*var\(--ui-app-main,\s*(.+?)\);/.exec(css);
   assert.ok(m, 'layout.css no longer reads --ui-app-main with a fallback');
-  const shell = /style="--ui-app-main: ([^"]+)"/.exec(appShell({}));
-  assert.equal(m[1].trim(), shell[1], 'the stylesheet floor and the shell default drifted apart');
+  assert.equal(
+    m[1].trim(), 'var(--measure)',
+    'the .ui-app__main fallback must be the --measure token, not a literal — a literal here '
+    + 'is the second copy of the width that issue #198 removed',
+  );
+
+  // Comments blanked first: this file's own comment explains which literal was
+  // removed and why, and a rule that cannot tell prose from code would read
+  // that explanation as the offence it describes.
+  const shell = read('src/components/shell.js').replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, '');
+  const literals = [...shell.matchAll(/\b\d+(?:px|rem|em|ch|vw)\b/g)].map((x) => x[0]);
+  assert.deepStrictEqual(
+    literals, [],
+    `src/components/shell.js states a width of its own (${literals.join(', ')}). The reading `
+    + 'column is --measure in src/tokens/tokens.css and nothing else may name a number for it.',
+  );
+
+  assert.doesNotMatch(
+    appShell({}), /--ui-app-main/,
+    'a shell built with no maxWidth must write no --ui-app-main, so the CSS fallback resolves '
+    + 'to --measure. Writing a default here re-creates the copy #198 removed.',
+  );
 });
 
 test('an absent or oddly-typed reader degrades instead of throwing', () => {

@@ -21,7 +21,7 @@
 }
 .ui-footer__in {
   width: 100%;
-  max-width: 1180px;
+  max-width: var(--container);
   margin: 0 auto;
   padding: 40px clamp(14px, 2.4vw, 26px) 30px;
 }
