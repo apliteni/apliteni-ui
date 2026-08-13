@@ -224,17 +224,34 @@ mark in the sidebar logo keeps `#9b5dff` on purpose: that violet is the brand ra
 the mark's own colour, and it never tracked `--accent`. Nothing gates any of the three.
 
 **Three further copies do not move, and are filed rather than fixed.** The accent-picker swatch for
-Nebula is written as a literal gradient in three places — `src/components/index.js:97`
-(`ACCENT_SWATCH.default`, which renders in the Footer and Preferences stories), `site/chrome.mjs:28`
-and `site/index.html:177` — all three `linear-gradient(135deg,#9b5dff,#6a2dcc)`. The other three
-swatches are each their dark cell's `--purple-light → --accent`; Nebula's holds the retired
-`#9b5dff` where they hold theirs, so after the ramp move the swatch for the accent you are about to
-pick contains neither value that accent now resolves to in the dark theme. `CONTRIBUTING.md:160`
+Nebula is written as a literal gradient in three places — `ACCENT_SWATCH.default` in
+`src/components/index.js`, which renders in the Footer and Preferences stories, and the site's two
+hand-kept copies in `site/chrome.mjs` and `site/index.html` — all three
+`linear-gradient(135deg,#9b5dff,#6a2dcc)`. The other three swatches are each their dark cell's
+`--purple-light → --accent`; Nebula's holds the retired `#9b5dff` where they hold theirs, so after
+the ramp move the swatch for the accent you are about to pick contains neither value that accent
+now resolves to in the dark theme. The "Add an accent sub-theme" section of `CONTRIBUTING.md`
 already names the `accentPicker()` swatches as one of the places to touch when an accent is added,
 which is exactly why these three should have moved together with the token — the sync point was
 written down and the change did not follow it. They stay as they are on purpose:
 `site/index.html` belongs to another lane, and fixing two of three would leave one literal holding
 two different states. #190 covers all three.
+
+**Resolved by #190**, which is worth reading before this paragraph is used as evidence for
+anything. All three copies now paint `linear-gradient(135deg,#bd8cff,#b479ff)`, and the rule is
+not the one this ADR states above. `--purple-light → --accent` cannot be written for Nebula at
+all, because #157 left the two holding the same value — that rule emits a gradient from a colour
+to itself. What the other three satisfy, and what is now gated, is the next *distinct* step up the
+ramp: of `--purple`, `--purple-light` and `--purple-mid`, the darkest one still lighter than
+`--accent`. That lands on `--purple-light` for Phoenix, Ocean and Emerald and on `--purple-mid` for
+Nebula, with no accent named in the rule. `stories/accent-swatch.test.js` holds it, which is the
+part this record got wrong twice over: the sync point being written down is what failed here, and
+#190's own first attempt at that gate passed a swatch whose first stop was black.
+
+That gate would also have been red *before* #157 — the pre-#157 ramp had `--purple-light` equal to
+`--accent` too, and the swatch resolved that degeneracy by walking down to `--purple` instead of up.
+So the swatch was never derived from the tokens; #157 is when it started showing a colour the
+accent had stopped being.
 
 **The floor is held by a test, not by this record.** `stories/accent-contrast.test.js` measures all
 eight cells on every `npm test` — the accent on five flat grounds and on the wash over the four base
