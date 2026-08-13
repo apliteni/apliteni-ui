@@ -15,7 +15,7 @@
 // stack in ./overlay.js so the two can never disagree about which of them the
 // keyboard currently belongs to.
 import { esc, icon } from './index.js';
-import { adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
+import { OVERLAY_LAYER, adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -84,7 +84,7 @@ export function openDrawer(root, returnFocusTo) {
   root.classList.add('is-open');
   const panel = root.querySelector('[data-drawer-panel]');
   const dismissible = !root.hasAttribute('data-drawer-static');
-  pushOverlay(root, panel, dismissible ? () => closeDrawer(root) : null);
+  pushOverlay(root, panel, dismissible ? () => closeDrawer(root) : null, OVERLAY_LAYER.drawer);
   // Focus the first focusable control, else the panel itself.
   const first = panel && focusablesIn(panel)[0];
   (first || panel)?.focus();
@@ -116,7 +116,8 @@ export function wireDrawer(root = document) {
 
     // Rendered with `open: true`, so nothing called openDrawer() and nothing put
     // it on the stack. Adopting it here is what makes its aria-modal true.
-    adoptOverlay(dr, dr.querySelector('[data-drawer-panel]'), dismissible ? () => closeDrawer(dr) : null);
+    adoptOverlay(dr, dr.querySelector('[data-drawer-panel]'), dismissible ? () => closeDrawer(dr) : null,
+      OVERLAY_LAYER.drawer);
   });
 
   const doc = root === document ? document : (root.ownerDocument || document);

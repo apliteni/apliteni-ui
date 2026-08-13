@@ -16,7 +16,7 @@
 // every overlay on the page, so a confirm over a drawer never has to guess which
 // of the two the keyboard belongs to.
 import { button, esc } from './index.js';
-import { adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
+import { OVERLAY_LAYER, adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -78,7 +78,7 @@ export function openConfirm(root, returnFocusTo) {
     || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
   root.classList.add('is-open');
   const panel = root.querySelector('[data-confirm-panel]');
-  pushOverlay(root, panel, () => closeConfirm(root));
+  pushOverlay(root, panel, () => closeConfirm(root), OVERLAY_LAYER.confirm);
   // The safe answer, else the first control, else the panel itself. Asked for by
   // name and not by position: DOM order puts the safe answer first today, and a
   // preference that only agrees with the order proves nothing about either.
@@ -110,7 +110,7 @@ export function wireConfirm(scope = document) {
 
     // Rendered with `open: true`, so nothing called openConfirm() and nothing
     // put it on the stack. Adopting it here is what makes its aria-modal true.
-    adoptOverlay(cf, cf.querySelector('[data-confirm-panel]'), () => closeConfirm(cf));
+    adoptOverlay(cf, cf.querySelector('[data-confirm-panel]'), () => closeConfirm(cf), OVERLAY_LAYER.confirm);
   });
 
   const doc = scope === document ? document : (scope.ownerDocument || document);

@@ -13,10 +13,11 @@
 // brand.generated.css ships `--easing-spring` recommending itself for "modals,
 // cards" — and it flips mid-fade instead.
 //
-// The third is about the window between "closed" and "gone". A confirm guards a
-// destructive action; if its accept button is still on screen and still
-// hit-testable while the panel fades out, a double-click fires the caller's
-// destructive handler twice.
+// The third is about the window between "closed" and "gone". Both roots stay
+// visible for --dur-med after the close call has stopped trapping focus, so a
+// panel still hit-testable while it fades out takes one more click. On a confirm
+// that runs the caller's destructive handler a second time; on a drawer any
+// control in the panel re-runs the handler behind it.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -51,12 +52,26 @@ const transitions = (rule) => [...rule.body.matchAll(/transition(?:-property)?\s
 
 // The two overlays are one behaviour with two skins, so both sheets answer the
 // same questions.
+// `close` names the call that stops trapping; `cost` finishes the sentence "a
+// second click in that window …", because what a stray click costs is the whole
+// reason the gate is there and it is not the same cost twice.
 const SHEETS = [
-  { file: 'src/styles/drawer.css', block: 'ui-drawer' },
-  { file: 'src/styles/confirm.css', block: 'ui-confirm' },
+  {
+    file: 'src/styles/drawer.css',
+    block: 'ui-drawer',
+    close: 'closeDrawer()',
+    cost: 'reaches a control in the panel — the footer\'s actions, the close button — and re-runs '
+      + 'the caller\'s handler while the panel is already sliding away',
+  },
+  {
+    file: 'src/styles/confirm.css',
+    block: 'ui-confirm',
+    close: 'closeConfirm()',
+    cost: 'reaches the accept button and fires the caller\'s destructive handler twice',
+  },
 ];
 
-for (const { file, block } of SHEETS) {
+for (const { file, block, close, cost } of SHEETS) {
   const css = read(file);
   const all = rules(css);
 
@@ -113,29 +128,27 @@ for (const { file, block } of SHEETS) {
       }
     }
   });
-}
 
-// ---- The closing window, which only the confirm can lose money on ---------
+  // The window between "closed" and "gone" belongs to both of them.
+  test(`${file}: a closing overlay stops being clickable at once`, () => {
+    const live = /pointer-events\s*:\s*auto/;
 
-test('src/styles/confirm.css: a closing confirm stops being clickable at once', () => {
-  const all = rules(read('src/styles/confirm.css'));
-  const live = /pointer-events\s*:\s*auto/;
+    for (const sel of [`.${block}__panel`, `.${block}__scrim`]) {
+      const ungated = all.filter((r) => selects(r, sel) && live.test(r.body));
+      assert.deepEqual(
+        ungated.map((r) => r.selector), [],
+        `${sel} is hit-testable whether or not the overlay is open. ${close} stops trapping `
+        + 'immediately but the root stays visible for --dur-med, so a second click in that window '
+        + cost,
+      );
+    }
 
-  for (const sel of ['.ui-confirm__panel', '.ui-confirm__scrim']) {
-    const ungated = all.filter((r) => selects(r, sel) && live.test(r.body));
-    assert.deepEqual(
-      ungated.map((r) => r.selector), [],
-      `${sel} is hit-testable whether or not the dialog is open. closeConfirm() stops trapping `
-      + 'immediately but the root stays visible for --dur-med, so a second click in that window '
-      + 'reaches the accept button and fires the caller\'s destructive handler twice',
+    assert.ok(
+      all.some((r) => r.selector.includes(`.${block}.is-open`) && live.test(r.body)),
+      `nothing turns .${block} on while it IS open — the overlay would not be clickable at all`,
     );
-  }
-
-  assert.ok(
-    all.some((r) => r.selector.includes('.ui-confirm.is-open') && live.test(r.body)),
-    'nothing turns the panel on while it IS open — the dialog would not be clickable at all',
-  );
-});
+  });
+}
 
 // ---- Which of the two paints on top --------------------------------------
 
@@ -155,18 +168,48 @@ function stackingLevel(rule, tokens) {
   return base + (sign === '-' ? -Number(offset) : Number(offset ?? 0));
 }
 
-test('a confirm paints above a drawer, whatever order they are mounted in', () => {
+// The sheets are the only place these numbers are real; the module keeps a copy so
+// the keyboard can be given to whichever overlay is painted on top. Reading them
+// needs no DOM — overlay.js touches `document` only in a default parameter — so the
+// copy is checked here, next to the rules it copies.
+const { OVERLAY_LAYER } = await import('../src/components/overlay.js');
+
+const zTokens = () => {
   const tokens = new Map(
     [...read('src/tokens/tokens.css').matchAll(/(--z-[\w-]+)\s*:\s*(\d+)\s*;/g)]
       .map(([, name, value]) => [name, Number(value)]),
   );
   assert.ok(tokens.size > 0, 'the z tokens were found — did the token file move?');
+  return tokens;
+};
 
-  const rootOf = (file, block) => {
-    const root = rules(read(file)).find((r) => selects(r, `.${block}`));
-    assert.ok(root, `.${block} is missing from ${file}`);
-    return root;
-  };
+const rootOf = (file, block) => {
+  const root = rules(read(file)).find((r) => selects(r, `.${block}`));
+  assert.ok(root, `.${block} is missing from ${file}`);
+  return root;
+};
+
+test("the stack's layers are the ones the sheets resolve to", () => {
+  const tokens = zTokens();
+  const pairs = [
+    ['confirm', 'src/styles/confirm.css', 'ui-confirm'],
+    ['drawer', 'src/styles/drawer.css', 'ui-drawer'],
+  ];
+
+  for (const [name, file, block] of pairs) {
+    const level = stackingLevel(rootOf(file, block), tokens);
+    assert.equal(
+      OVERLAY_LAYER[name], level,
+      `${file} paints .${block} at z-index ${level}, but OVERLAY_LAYER.${name} in `
+      + `src/components/overlay.js still says ${OVERLAY_LAYER[name]}. The sheet moved and the `
+      + "stack's idea of which overlay is on top did not follow, so Escape and the Tab trap go to "
+      + 'the layer underneath the one the reader can see',
+    );
+  }
+});
+
+test('a confirm paints above a drawer, whatever order they are mounted in', () => {
+  const tokens = zTokens();
 
   const confirmZ = stackingLevel(rootOf('src/styles/confirm.css', 'ui-confirm'), tokens);
   const drawerZ = stackingLevel(rootOf('src/styles/drawer.css', 'ui-drawer'), tokens);
