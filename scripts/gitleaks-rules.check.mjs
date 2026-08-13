@@ -420,6 +420,23 @@ const CASES = [
     body: note(`${stream('m6', 10, LOWER)}@example.com`),
   },
   {
+    // The one entry here that is NOT a domain. acme.io is a domain somebody
+    // really owns, so .gitleaks.toml exempts the exact string rather than the
+    // domain — exempting the domain would wave through a real address at it.
+    // That makes this case a literal where its neighbours are generated: a
+    // generated local part would not be the allowlisted string and the file
+    // would be flagged, which is the opposite of what this asserts.
+    //
+    // This entry arrived on main in #191 ahead of the guideline page that uses
+    // it, so nothing in the tree exercised it and the entry-remove mutation
+    // survived. That is the pass doing its job on the first entry added after
+    // it existed; the answer is this case, not a justification.
+    file: 'approved-guideline-example.md',
+    ours: null,
+    why: 'the one made-up address a guideline page quotes — exempted as a literal, not as a domain',
+    body: note('ops@acme.io'),
+  },
+  {
     // The one entry whose suppression is invisible to `ours`: no rule of ours
     // matches this shape, upstream's generic-api-key does, and `forbidden` is
     // how a case can say so. See the note on `forbidden` above.
