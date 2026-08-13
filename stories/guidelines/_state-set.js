@@ -90,9 +90,9 @@ export const RULES = [
     doHtml: errorDo,
     dontHtml: errorDont,
     kit: [
-      { ref: 'src/components/index.js:178', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
-      { ref: 'src/components/index.js:164', pattern: "'aria-describedby': msgId," },
-      { ref: 'src/components/index.js:150', pattern: "markup rather than in the label's wording" },
+      { ref: 'src/components/index.js:184', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
+      { ref: 'src/components/index.js:170', pattern: "'aria-describedby': msgId," },
+      { ref: 'src/components/index.js:156', pattern: "markup rather than in the label's wording" },
     ],
   },
   {
@@ -108,7 +108,7 @@ export const RULES = [
         + 'only the vanilla button gates one.',
     },
     kit: [
-      { ref: 'src/components/index.js:233', pattern: 'role="status" aria-live="polite"' },
+      { ref: 'src/components/index.js:239', pattern: 'role="status" aria-live="polite"' },
     ],
   },
 ];
