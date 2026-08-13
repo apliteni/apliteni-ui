@@ -16,6 +16,10 @@ export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => (
 // stops being decoration and becomes the control's ONLY accessible name. It is
 // mirrored into aria-label + title, and an empty label falls back to the icon
 // name rather than shipping a nameless button.
+//
+// That is the accessibility half, and it is not permission. WHEN a control may
+// go wordless is a closed list — `iconOnlyAllowed` in src/assets/icons.js — and
+// stories/guidelines/iconography.test.js reviews call sites against it.
 export function button({
   label = 'Button', variant = 'secondary', size = 'md', icon: ic, iconSvg, iconRight,
   block = false, disabled = false, busy = false, type = 'button', href, iconOnly = false,
@@ -217,8 +221,18 @@ export function switchToggle({ checked = false, disabled = false, name, label = 
 export function callout({ variant, icon: ic = 'info', body } = {}) {
   return `<div class="${cx('ui-callout', variant && `ui-callout--${variant}`)}"><span class="ui-callout__icon">${icon(ic)}</span><div>${body}</div></div>`;
 }
-// Default icon per status — overridable with `icon`.
-const TOAST_ICON = { success: 'check', danger: 'x', warn: 'alert', info: 'info', neutral: 'bolt' };
+// Default icon per status — overridable with `icon`. The circle family is not
+// decoration: a circled glyph is a STATE the system reports, a bare one is an
+// ACTION you can take (iconMeanings in src/assets/icons.js).
+//
+// This used to read `success: 'check', danger: 'x', warn: 'alert'`, which made
+// a danger toast render the same bare `x` twice — once as the status, meaning
+// "this failed", once as the close button, meaning "make this go away". Status
+// took the circle glyphs the kit already shipped and never used, and the bare
+// `x` now belongs to the close button alone.
+const TOAST_ICON = {
+  success: 'circleCheck', danger: 'circleX', warn: 'circleAlert', info: 'info', neutral: 'bolt',
+};
 // A toast carries a status (colour) and a style (surface). Everything visual is
 // token-driven: the status modifier sets --toast-accent/-glow/-on, the style
 // modifier consumes them. `action` adds a trailing button ("Undo"/"Retry"),

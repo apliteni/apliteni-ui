@@ -6,6 +6,7 @@ import * as colourContent from './_colour-and-theming.js';
 import * as stateContent from './_state-set.js';
 import * as componentContent from './_component-choice.js';
 import * as microcopyContent from './_microcopy.js';
+import * as iconographyContent from './_iconography.js';
 
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
 import * as destructiveStory from './DestructiveActions.stories.js';
@@ -13,6 +14,7 @@ import * as colourStory from './ColourAndTheming.stories.js';
 import * as stateStory from './StateSet.stories.js';
 import * as componentStory from './ComponentChoice.stories.js';
 import * as microcopyStory from './Microcopy.stories.js';
+import * as iconographyStory from './Iconography.stories.js';
 
 const ENTRIES = [
   [destructiveContent, destructiveStory],
@@ -20,6 +22,7 @@ const ENTRIES = [
   [stateContent, stateStory],
   [componentContent, componentStory],
   [microcopyContent, microcopyStory],
+  [iconographyContent, iconographyStory],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page
