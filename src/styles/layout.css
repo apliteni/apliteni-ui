@@ -136,7 +136,7 @@
   letter-spacing: var(--tracking-tight);
   margin-bottom: 8px;
 }
-.ui-app__sub { color: var(--dim); font-size: 15px; line-height: 1.6; max-width: 60ch; margin-bottom: 32px; }
+.ui-app__sub { color: var(--dim); font-size: 15px; line-height: 1.6; max-width: var(--prose-body); margin-bottom: 32px; }
 .ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling
@@ -221,7 +221,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 420px;
+  max-width: var(--panel-md);
   background: var(--surface);
   border-radius: 22px;
   padding: 38px 36px 32px;
@@ -277,7 +277,7 @@
   letter-spacing: -0.025em;
   font-weight: 700;
   color: var(--strong);
-  max-width: 14ch;
+  max-width: var(--prose-display);
   margin: 0 auto 22px;
 }
 .ui-hero__title .grad {
@@ -289,7 +289,7 @@
 .ui-hero__sub {
   font-size: clamp(16px, 2.1vw, 20px);
   color: var(--dim);
-  max-width: 52ch;
+  max-width: var(--prose-lede);
   margin: 0 auto 34px;
   line-height: 1.6;
 }
@@ -318,6 +318,6 @@
 .ui-feature h3 { color: var(--strong); font-size: 17px; font-weight: 600; margin-bottom: 7px; }
 .ui-feature p { color: var(--dim); font-size: 14.5px; line-height: 1.6; }
 
-.ui-section-head { text-align: center; max-width: 620px; margin: 0 auto clamp(40px, 6vh, 64px); }
+.ui-section-head { text-align: center; max-width: var(--panel-lg); margin: 0 auto clamp(40px, 6vh, 64px); }
 .ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
 .ui-section-head p { color: var(--dim); font-size: 17px; line-height: 1.6; }

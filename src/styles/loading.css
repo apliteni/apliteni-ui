@@ -126,7 +126,7 @@
 }
 .ui-denied__sub {
   font-size: var(--text-sm);
-  max-width: 380px;
+  max-width: var(--prose-caption);
   margin: 0;
   line-height: 1.55;
 }

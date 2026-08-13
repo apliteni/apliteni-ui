@@ -14,7 +14,7 @@
   --drawer-surface: var(--surface-2);
   --drawer-shadow: var(--shadow-lg);
   --drawer-scrim: var(--scrim);
-  --drawer-w: 420px;   /* left|right panels: width  */
+  --drawer-w: var(--panel-md);   /* left|right panels: width  */
   --drawer-h: 45vh;    /* top|bottom panels: height */
 
   position: fixed;
@@ -102,9 +102,9 @@
 
 /* -- Sizes ----------------------------------------------------------------- */
 /* left|right → width; top|bottom → height. Same names, axis chosen by side. */
-.ui-drawer--right.ui-drawer--sm, .ui-drawer--left.ui-drawer--sm { --drawer-w: 320px; }
-.ui-drawer--right.ui-drawer--md, .ui-drawer--left.ui-drawer--md { --drawer-w: 420px; }
-.ui-drawer--right.ui-drawer--lg, .ui-drawer--left.ui-drawer--lg { --drawer-w: 560px; }
+.ui-drawer--right.ui-drawer--sm, .ui-drawer--left.ui-drawer--sm { --drawer-w: var(--panel-sm); }
+.ui-drawer--right.ui-drawer--md, .ui-drawer--left.ui-drawer--md { --drawer-w: var(--panel-md); }
+.ui-drawer--right.ui-drawer--lg, .ui-drawer--left.ui-drawer--lg { --drawer-w: var(--panel-lg); }
 .ui-drawer--top.ui-drawer--sm, .ui-drawer--bottom.ui-drawer--sm { --drawer-h: 30vh; }
 .ui-drawer--top.ui-drawer--md, .ui-drawer--bottom.ui-drawer--md { --drawer-h: 45vh; }
 .ui-drawer--top.ui-drawer--lg, .ui-drawer--bottom.ui-drawer--lg { --drawer-h: 72vh; }
