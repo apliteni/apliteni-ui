@@ -13,11 +13,11 @@
 <style>
   body { overflow-x: hidden; }
   {{CHROME_CSS}}
-  .wrap { max-width: 820px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
+  .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
 
   .head { padding: clamp(48px, 8vh, 90px) 0 10px; }
   .head h1 { font: 700 clamp(34px, 5vw, 48px)/1.05 var(--font-sans); color: var(--strong); letter-spacing: -.02em; margin-bottom: 12px; }
-  .head p { color: var(--dim); font-size: 17px; line-height: 1.6; max-width: 54ch; }
+  .head p { color: var(--dim); font-size: 17px; line-height: 1.6; max-width: var(--prose-lede); }
 
   .log { padding: 40px 0 100px; }
   .rel { display: grid; grid-template-columns: 22px 1fr; gap: 20px; }

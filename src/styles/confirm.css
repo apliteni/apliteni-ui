@@ -19,7 +19,7 @@
   --confirm-surface: var(--surface-2);
   --confirm-shadow: var(--shadow-lg);
   --confirm-scrim: var(--scrim);
-  --confirm-w: 420px;
+  --confirm-w: var(--panel-md);
 
   position: fixed;
   inset: 0;

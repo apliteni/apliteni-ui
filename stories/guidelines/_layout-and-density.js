@@ -145,20 +145,39 @@ export const RULES = [
   },
   {
     id: 'below-the-page',
-    imperative: 'Below the reading column the kit has no scale yet — say which it is, do not invent a step.',
-    why: 'Component widths (400px, 340px, 420px, 620px), prose measures (38ch, 44ch, 52ch, 60ch, '
-      + '72ch) and breakpoints (460, 560, 600, 720, 760, 860) are all still literal, and the gate '
-      + 'draws its floor at --measure for that reason: below it there is nothing to replace a '
-      + 'literal with. Adding a token for one component now would look like a scale and be a '
-      + 'sample of one.',
-    unmet: {
-      issue: 208,
-      note: 'The page-scale half landed in #198. Component widths, prose measures and breakpoints '
-        + 'are unreconciled, and breakpoints need more than a token — a media query cannot read a '
-        + 'custom property, so that one is a build step or a convention.',
-    },
+    imperative: 'Below the reading column the unit picks the scale: a box that holds a component takes --panel-* in px, a box that holds a line takes --prose-* in ch.',
+    why: 'Nothing has to be looked up to choose — the thing being bounded picks the unit, and the '
+      + 'unit picks the scale. Neither scale was invented for this: the drawer had shipped sm/md/lg '
+      + 'at 320/420/560 since it was written, and confirm, the auth card and the toast each wrote '
+      + 'one of those numbers out again. The two 420s the kit was asked about were three. The prose '
+      + 'steps are named for what is being read — caption, lede, body, dense — because a writer '
+      + 'knows which of those they are writing and does not know which t-shirt it is.',
+    except: 'ch resolves against the font-size of the element carrying it, so a prose step goes on '
+      + 'the paragraph, never on a wrapper holding two type sizes. .ui-section-head is a centred '
+      + 'block with a 40px heading above 17px copy, so it takes --panel-lg instead. '
+      + '.ui-footer__brand keeps a literal 300px: it is a flex track whose width decides when the '
+      + 'footer wraps, so it answers to the row rather than to a scale.',
     kit: [
-      { ref: 'stories/measure-tokens.test.js:104', pattern: 'no literal page-scale width outside src/tokens' },
+      { ref: 'stories/measure-tokens.test.js:150', pattern: 'no literal box width outside src/tokens' },
+      { ref: 'stories/measure-tokens.test.js:169', pattern: 'no literal prose measure outside src/tokens' },
+    ],
+  },
+  {
+    id: 'breakpoints',
+    imperative: 'A breakpoint stays a literal. It is the one width a token cannot express, and the kit takes a convention over a build step.',
+    why: 'A media query cannot read a custom property — @media (max-width: var(--panel-lg)) is '
+      + 'invalid, and no token discipline changes that. The two ways out are a build step that '
+      + 'inlines the value, and a convention that leaves the literal in place under a documented '
+      + 'list of legal values with a gate over it. The kit ships a plain stylesheet a consumer '
+      + 'links or imports, and putting a compiler between the source and the published file so six '
+      + 'numbers can be spelled differently costs every consumer the ability to read what they '
+      + 'shipped. @custom-media would settle it properly and is not shipping.',
+    except: 'The list of legal breakpoints is a decision about how many the kit wants, not a '
+      + 'discovery about how many it has — so the gate over it is filed separately rather than '
+      + 'inferred from the six that happen to be here (460, 560, 600, 720, 760, 860).',
+    kit: [
+      { ref: 'src/styles/layout.css:169', pattern: '@media (max-width: 720px)' },
+      { ref: 'docs/adr/0011-two-scales-below-the-page-and-the-unit-picks-one.md:1', pattern: 'Below the page there are two scales' },
     ],
   },
 ];

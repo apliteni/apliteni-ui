@@ -9,16 +9,17 @@ export const mono = (s) => String(s).replace(
   (m) => `<code>${m}</code>`,
 );
 
-// The 420px below is not this page's number: it is the confirm's own
-// `--confirm-w` (src/styles/confirm.css), written out because a custom property
-// does not travel from a descendant to its ancestor. Change either and
-// stories/guidelines/destructive-actions.test.js fails, naming both files.
-// The measure tokens #198 added do NOT replace it — this grid sizes to its
-// widest SPECIMEN, not to a page. Removed by #208.
-// why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md
+// The specimen width is not this page's number and no longer the confirm's
+// private one either: both read --panel-md now, so the copy #198 recorded here
+// is gone. It is stated rather than inherited because a custom property does
+// not travel from a descendant to its ancestor, and
+// stories/guidelines/destructive-actions.test.js still holds the two in step.
+// --measure does NOT replace it — this grid sizes to its widest SPECIMEN, not
+// to a page.
+// why: docs/adr/0011-two-scales-below-the-page-and-the-unit-picks-one.md
 const SPEC_CSS = `
   <style>
-    .gl { --gl-specimen: 420px;
+    .gl { --gl-specimen: var(--panel-md);
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
     .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
@@ -52,12 +53,12 @@ const PAGE_CSS = `
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .gc-cell__cap { font: 400 12px/1.55 Poppins; color: var(--muted); }
 
-    .gc-why { font: 400 13px/1.65 Poppins; color: var(--dim); margin: 0; max-width: 72ch; }
+    .gc-why { font: 400 13px/1.65 Poppins; color: var(--dim); margin: 0; max-width: var(--prose-dense); }
 
     /* Label stays --muted: --amber as text misses AA on this page. */
     .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
       box-shadow: inset 2px 0 0 var(--amber);
-      font: 400 12.5px/1.65 Poppins; color: var(--text); max-width: 72ch; }
+      font: 400 12.5px/1.65 Poppins; color: var(--text); max-width: var(--prose-dense); }
     .gc-except__label { font: 600 10.5px/1.7 Poppins; letter-spacing: .12em;
       text-transform: uppercase; color: var(--muted); margin-right: var(--space-2); }
 
@@ -69,7 +70,7 @@ const PAGE_CSS = `
     /* Legible and nothing more. What a rule the kit does not meet should look
        like is decided separately, and replaces this rule and unmetLine(). */
     .gc-unmet { margin: var(--space-2) 0 0; font: 400 12.5px/1.65 Poppins; color: var(--text);
-      max-width: 72ch; }
+      max-width: var(--prose-dense); }
   </style>`;
 
 const doBadge = () => badge('Do', 'live');

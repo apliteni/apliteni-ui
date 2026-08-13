@@ -56,7 +56,7 @@
 }
 .ui-empty__sub {
   font-size: var(--text-sm);
-  max-width: 340px;
+  max-width: var(--prose-caption);
   margin: 0;
   line-height: 1.55;
 }

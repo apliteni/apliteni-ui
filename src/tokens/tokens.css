@@ -44,7 +44,7 @@
   /* -- Measure ------------------------------------------------------------
    * --container is the page, gutter to gutter; --measure is the reading column
    * INSIDE a track, beside a sidebar. Different axes, never interchangeable.
-   * Below --measure is component scale, which has no tokens yet (#208).
+   * Below --measure are --panel-* and --prose-*, at the end of this file (#208).
    * why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md */
   --container: 1120px;
   --measure: 860px;
@@ -352,4 +352,48 @@
 
   --grad-from: var(--purple-light);
   --grad-to: var(--cyan);
+}
+
+/* ============================================================================
+ * WIDTHS BELOW THE PAGE — the box, and the line
+ *
+ * --container is the page and --measure the reading column inside it (both
+ * above). Underneath them the kit has two scales and one rule for choosing
+ * between them: THE UNIT SAYS WHICH SCALE YOU ARE ON.
+ *
+ *   a box that holds a COMPONENT   ->  --panel-*   (px)
+ *   a box that holds a LINE        ->  --prose-*   (ch)
+ *
+ * Both are theme-invariant, which is why they sit outside the palette blocks.
+ * why: docs/adr/0011-two-scales-below-the-page-and-the-unit-picks-one.md
+ * ========================================================================== */
+:root {
+  /* -- Panel widths -------------------------------------------------------
+   * Not a new scale: the drawer has shipped sm/md/lg at exactly these three
+   * values since it was written, and confirm, the auth card and the toast each
+   * wrote one of them out again on their own. --panel-md answers the question
+   * #208 asked — the two 420s were three (--confirm-w, --drawer-w md and
+   * .ui-auth__card), and they are one measure now. */
+  --panel-sm: 320px;
+  --panel-md: 420px;
+  --panel-lg: 560px;
+
+  /* -- Prose measures -----------------------------------------------------
+   * ch resolves against the font-size of the element it is DECLARED on, so a
+   * step goes on the paragraph itself — never on a wrapper holding two type
+   * sizes, where the same token would mean two different widths.
+   *
+   * The four steps are the reading band (44–72ch), named for what is being
+   * read rather than sized s/m/l, so the choice is made by the writer:
+   *   caption  one or two sentences under a glyph, centred
+   *   lede     the line under a title
+   *   body     a left-aligned column of copy
+   *   dense    reference prose set below 13px, where the band runs wider
+   * --prose-display is NOT a measure. It is where a display headline rags, and
+   * it is far under the band on purpose. */
+  --prose-display: 14ch;
+  --prose-caption: 44ch;
+  --prose-lede: 54ch;
+  --prose-body: 62ch;
+  --prose-dense: 72ch;
 }
