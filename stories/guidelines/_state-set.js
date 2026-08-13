@@ -16,8 +16,8 @@ import { button, callout, field, input } from '../../src/components/index.js';
 // ---- The page -------------------------------------------------------------
 export const TITLE = 'The full state set';
 
-// One line for an index that lists this page beside the other four. Same
-// register as the imperatives, and short enough to sit on one line in a card.
+// One line for the Overview index, which lists this page beside the other
+// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'The states a control owes beyond rest — focus, busy, error, pending.';
 
 // ---- Specimen CSS ---------------------------------------------------------

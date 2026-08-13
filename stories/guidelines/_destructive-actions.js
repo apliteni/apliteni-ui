@@ -19,8 +19,8 @@ import { confirm } from '../../src/components/confirm.js';
 // ---- The rule -------------------------------------------------------------
 export const TITLE = 'Destructive actions';
 
-// One line for an index that lists this page beside the other four. Same
-// register as the imperatives, and short enough to sit on one line in a card.
+// One line for the Overview index, which lists this page beside the other
+// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'What a delete looks like, what its buttons say, and when undo lies.';
 
 // ---- Specimen CSS ---------------------------------------------------------

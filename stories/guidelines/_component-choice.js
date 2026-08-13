@@ -19,8 +19,8 @@ import { tabs } from '../../src/components/tabs.js';
 // ---- The rule -------------------------------------------------------------
 export const TITLE = 'Component choice';
 
-// One line for an index that lists this page beside the other four. Same
-// register as the imperatives, and short enough to sit on one line in a card.
+// One line for the Overview index, which lists this page beside the other
+// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'Four pairs of components that look interchangeable, and the line between them.';
 
 // ---- Live specimens -------------------------------------------------------

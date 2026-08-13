@@ -110,8 +110,8 @@ const PAGE_CSS = `
   </style>`;
 
 // ---- Small shared atoms ---------------------------------------------------
-export const doBadge = () => badge('Do', 'live');
-export const dontBadge = () => badge('Don’t', 'danger');
+const doBadge = () => badge('Do', 'live');
+const dontBadge = () => badge('Don’t', 'danger');
 
 const cell = (badgeHtml, caption, html) => `
   <div class="gc-cell">

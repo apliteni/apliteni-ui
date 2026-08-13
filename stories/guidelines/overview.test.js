@@ -21,10 +21,6 @@
  * The second runs only when that build exists. It is a gitignored artefact, so
  * a fresh clone and any CI job that tests before it builds would otherwise fail
  * on nothing; the first check needs no build and carries the gate on its own.
- *
- * It lives under stories/ on purpose: `npm test` only walks src, stories, site
- * and scripts, so a test outside those four trees is never executed and passes
- * by never running.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

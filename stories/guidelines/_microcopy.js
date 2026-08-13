@@ -18,8 +18,8 @@ import { button, emptyState, switchToggle } from '../../src/components/index.js'
 // ---- The rule -------------------------------------------------------------
 export const TITLE = 'Microcopy and tone';
 
-// One line for an index that lists this page beside the other four. Same
-// register as the imperatives, and short enough to sit on one line in a card.
+// One line for the Overview index, which lists this page beside the other
+// four. Same register as the imperatives, and short enough for a table cell.
 export const BLURB = 'What a control announces itself by, and what a screen says when empty.';
 
 // ---- Live specimens -------------------------------------------------------
