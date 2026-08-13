@@ -16,6 +16,10 @@ import { callout, field, input } from '../../src/components/index.js';
 // ---- The page -------------------------------------------------------------
 export const TITLE = 'Colour and theming';
 
+// One line for an index that lists this page beside the other four. Same
+// register as the imperatives, and short enough to sit on one line in a card.
+export const BLURB = 'Where a colour comes from, and which colours may move when the accent does.';
+
 // ---- Specimen CSS ---------------------------------------------------------
 // A literal can only be shown the way a literal behaves: frozen. `.gl-literal`
 // writes out the exact colours the dark theme composites — rgba(32, 220, 245,

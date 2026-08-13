@@ -19,6 +19,10 @@ import { tabs } from '../../src/components/tabs.js';
 // ---- The rule -------------------------------------------------------------
 export const TITLE = 'Component choice';
 
+// One line for an index that lists this page beside the other four. Same
+// register as the imperatives, and short enough to sit on one line in a card.
+export const BLURB = 'Four pairs of components that look interchangeable, and the line between them.';
+
 // ---- Live specimens -------------------------------------------------------
 // Each returns a string of real component markup. The stage furniture — and the
 // containment an overlay needs to sit in the flow of a cell rather than over the

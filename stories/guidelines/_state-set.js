@@ -16,6 +16,10 @@ import { button, callout, field, input } from '../../src/components/index.js';
 // ---- The page -------------------------------------------------------------
 export const TITLE = 'The full state set';
 
+// One line for an index that lists this page beside the other four. Same
+// register as the imperatives, and short enough to sit on one line in a card.
+export const BLURB = 'The states a control owes beyond rest — focus, busy, error, pending.';
+
 // ---- Specimen CSS ---------------------------------------------------------
 // A focus ring exists only under a live keyboard, so `.gl-ring` pins what
 // :focus-visible paints (src/styles/base.css) and holds it still for a

@@ -32,9 +32,10 @@ as the vanilla kit, so the two layers can't drift.
 factories below. Yes → the [React components](#react-components-stateful-surfaces).
 
 Either layer follows the same UI rules — which component to reach for, the states it
-owes, how colour and wording work. They live in the **Guidelines** section of Storybook —
-[ui.apli.tech/storybook](https://ui.apli.tech/storybook/) — and are worth reading before
-you design a screen.
+owes, how colour and wording work. They live in the **Guidelines** section of Storybook,
+which opens on
+[an overview of the five pages](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview)
+and what the kit does and does not yet meet. Worth reading before you design a screen.
 
 ## Install
 
