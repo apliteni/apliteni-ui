@@ -1,14 +1,14 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
-import { card, badge } from '../../src/components/index.js';
+import { card } from '../../src/components/index.js';
 
 export const TITLE = 'Layout and density';
 
-export const BLURB = 'The two widths a page has, and why the kit ships one density.';
+export const BLURB = 'The two widths a page has, and where density comes from when the kit has no mode for it.';
 
 // The specimens here are rows in a card, because density is a rhythm and a
 // rhythm needs more than one row to be visible. `.gl-rows` is the do — every
 // gap and pad a step of the spacing scale. `.gl-rows--hand` is the don't, and
-// what is wrong with it is the numbers: 13px, 17px, 11px, 22px, picked one at a
+// what is wrong with it is the numbers: 13, 9, 14, 6 and 17px, picked one at a
 // time until each row looked right on its own. Nothing here is broken markup,
 // and both halves clear axe and contrast.gate — the fault is rhythm, which is
 // exactly what a picture can carry and a sentence cannot.
@@ -104,7 +104,7 @@ export const RULES = [
       + 'beside it. A shell whose main column is --container has no sidebar. Reconciling the two '
       + 'as if they competed is what made nine widths look like one disagreement.',
     kit: [
-      { ref: 'src/styles/layout.css:122', pattern: 'var(--ui-app-main, var(--measure))' },
+      { ref: 'src/styles/layout.css:124', pattern: 'var(--ui-app-main, var(--measure))' },
       { ref: 'src/tokens/tokens.css:67', pattern: '--measure: 860px' },
     ],
   },
@@ -117,27 +117,30 @@ export const RULES = [
       + 'and there is nothing left to hold in step.',
     except: 'A caller may still pass an explicit maxWidth — an override is a decision, not a copy.',
     kit: [
-      { ref: 'src/components/shell.js:110', pattern: "s === 'none' || LENGTH.test(s) ? s : ''" },
-      { ref: 'stories/apps/shell.test.js:704', pattern: 'the reading column has one source' },
+      { ref: 'src/components/shell.js:113', pattern: "s === 'none' || LENGTH.test(s) ? s : ''" },
+      { ref: 'stories/apps/shell.test.js:714', pattern: 'the reading column has one source' },
     ],
   },
   {
     id: 'density',
-    imperative: 'Set density with the spacing scale. The kit has one density and no modifier.',
-    why: 'There is no compact mode and no comfortable mode, and that is the position rather than '
-      + 'an omission: the ten-step spacing scale already is the control. A dense table takes '
-      + '--space-2 between rows, a roomy form takes --space-5, and both are legible as steps of '
-      + 'one system. What would change this is a surface needing both densities at once, switched '
-      + 'at runtime — a user preference, not a designer\'s choice per screen. None exists in the '
-      + 'kit today, and adding the modifier before that surface does would be building the '
-      + 'mechanism and guessing at the values.',
+    imperative: 'Set density with the spacing scale. There is no kit-wide density mode.',
+    why: 'No compact mode, no comfortable mode, no data-density attribute and no row-height scale '
+      + '— and that is the position rather than an omission. The ten-step spacing scale already is '
+      + 'the control: a tight row takes --space-2, a roomy one --space-5, and both stay legible as '
+      + 'steps of one system. What would earn a mode is a surface needing both densities at once, '
+      + 'switched at runtime — a reader\'s preference rather than a designer\'s choice per screen. '
+      + 'No such surface exists here, and building the mechanism first means guessing at its values.',
+    except: '.ui-table--dense is the one modifier in the kit, and it is component-local on purpose '
+      + '— a many-column ledger is the one place where a tighter rhythm is a property of the data, '
+      + 'not of the page around it. Its own numbers (14px, 10px, 12px) are literals rather than '
+      + 'steps, which is the rule not being met by the one component that has an exception to it.',
     doCaption: 'Every gap and pad a step: --space-3 rows inside a card.',
     dontCaption: '13px, 9px, 14px, 6px, 17px — each row settled on its own, none against the others.',
     doHtml: densityDo,
     dontHtml: densityDont,
     kit: [
-      { ref: 'src/tokens/tokens.css:56', pattern: '--space-3: 12px' },
-      { ref: 'src/styles/table.css', pattern: 'var(--space-' },
+      { ref: 'src/tokens/tokens.css:35', pattern: '--space-3: 12px' },
+      { ref: 'src/styles/table.css:62', pattern: '.ui-table--dense td' },
     ],
   },
   {
@@ -155,7 +158,7 @@ export const RULES = [
         + 'custom property, so that one is a build step or a convention.',
     },
     kit: [
-      { ref: 'stories/measure-tokens.test.js:114', pattern: 'no literal page-scale width outside src/tokens' },
+      { ref: 'stories/measure-tokens.test.js:115', pattern: 'no literal page-scale width outside src/tokens' },
     ],
   },
 ];
