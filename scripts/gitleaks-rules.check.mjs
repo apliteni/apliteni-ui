@@ -24,12 +24,21 @@
  * they pass, this weakens every rule in .gitleaks.toml along each axis that
  * rule actually has — its character classes, its length floors, its word
  * boundaries, its id, its entropy — and re-runs every case against the weakened
- * config. The bar is per RULE: a rule none of whose mutations kills a case is
- * not proven, and fails. Every INDIVIDUAL mutation that survives is printed, and
- * one that survives with no written justification fails too — see JUSTIFIED
+ * config. The bar is per SUBJECT: a subject none of whose mutations kills a case
+ * is not proven, and fails. Every INDIVIDUAL mutation that survives is printed,
+ * and one that survives with no written justification fails too — see JUSTIFIED
  * below, which is also where a justification that has stopped being true turns
  * the run red. The mutation table is DERIVED from the config text, never listed
  * here.
+ *
+ * A SUBJECT IS A RULE OR AN ALLOWLIST ENTRY, because a gate can be switched off
+ * from either side. Adding two lines to [allowlist] regexes takes this repo's
+ * scan from "leaks found: 1" to "no leaks found" without touching a rule, and
+ * the pass used to be blind to it: an unanchored paths entry generated no
+ * mutation at all, and regexes had no axis whatsoever. So every entry in both
+ * lists is mutated by being REMOVED, and is proven when some case goes red
+ * without it. An entry no case exercises fails, exactly like a rule with no
+ * case — which is what an exemption added for a shape nobody tests looks like.
  *
  * NOT named *.test.js on purpose. `npm test` globs scripts/**\/*.test.js and
  * runs on a machine with no gitleaks; this check needs the pinned binary and
@@ -73,6 +82,12 @@ const MARK = 'T3BlbkFJ';
 // Assembled from pieces so the literal name never appears in this file — the
 // Security workflow's denylist greps tracked files for it followed by '='.
 const DEPLOY_VAR = ['LESSLY', 'DEPLOY', 'TOKEN'].join('_');
+
+// The fabricated "shown once" value in Access.stories.js, which the [allowlist]
+// regexes exempt by exact string. Assembled for the same reason as everything
+// else here: written whole it would be a credential-shaped literal in a tracked
+// file, and the point of this file is that it contains none.
+const STORY_PLACEHOLDER = ['apli', 'sk', 'live', ['9f2c4b7e', '1a06d8f3', 'c5b2e9a1', 'd4f70c83'].join('')].join('_');
 
 /**
  * A deterministic hash stream, so a failure is reproducible and every payload
@@ -150,6 +165,14 @@ const note = (value) =>
  * default ruleset is not ours to depend on. generic-api-key names
  * deploy-token.md today and is deliberately ignored, so that a stopword or
  * entropy tweak upstream cannot turn this check red.
+ *
+ * `forbidden` — the mirror, and it exists for exactly one job: an [allowlist]
+ * entry whose only effect is to silence an UPSTREAM rule cannot be proven by
+ * `ours` at all, because no rule of ours ever names the shape. The demo-token
+ * entry is that entry. Naming the upstream rule here does tie one case to
+ * upstream's ruleset, which the paragraph above avoids on purpose — but the
+ * alternative is an allowlist entry nothing exercises, which is the hole this
+ * whole axis closes. Used nowhere else.
  */
 const CASES = [
   // ── 1Password ─────────────────────────────────────────────────────────────
@@ -351,6 +374,60 @@ const CASES = [
     ours: 'infra-deploy-token',
     why: "a deploy-token assignment carrying a real-looking value — '-' and '_' pinned, so the class is falsifiable",
     body: note(`${DEPLOY_VAR}=${streamUrlSafe('dt', 24)}`),
+  },
+
+  // ── The allowlist's own entries, one case each ────────────────────────────
+  //
+  // An [allowlist] entry is held to the same bar as a rule: the mutation is
+  // REMOVING it, and it is proven when some case goes red without it. An entry
+  // exists to suppress something, so a case that relies on the suppression is
+  // the honest test — and until these existed, five of the six `regexes`
+  // entries were exercised by nothing at all. That is what makes an entry added
+  // to switch the gate off (AKIA…, gh[pousr]_… — measured: they take the scan
+  // from one finding to none) look exactly like the entries already there.
+  //
+  // Each address below is one the pii-email rule DOES match; the allowlist is
+  // the only reason the file is clean. Domains are real approved ones, so the
+  // case tests the entry as written rather than a paraphrase of it.
+  {
+    file: 'approved-corporate.md',
+    ours: null,
+    why: 'mail on the corporate domain — allowlisted, and flagged the moment that entry goes',
+    body: note(`${stream('m1', 10, LOWER)}@apliteni.com`),
+  },
+  {
+    file: 'approved-reserved-tld.md',
+    ours: null,
+    why: 'RFC 2606 reserves .test, so no address there can be deliverable — the fixtures below use it',
+    body: note(`${stream('m2', 10, LOWER)}@apliteni.test`),
+  },
+  {
+    file: 'approved-personal-domain.md',
+    ours: null,
+    why: 'the second approved domain, exempt by its own entry and nothing else',
+    body: note(`${stream('m3', 10, LOWER)}@sabirov.io`),
+  },
+  {
+    file: 'approved-github-noreply.md',
+    ours: null,
+    why: 'the address every commit made through the GitHub UI carries',
+    body: note(`${stream('m4', 8, DIGITS)}+${stream('m5', 10, LOWER)}@users.noreply.github.com`),
+  },
+  {
+    file: 'approved-example-domain.md',
+    ours: null,
+    why: 'RFC 2606 again — the placeholder domain documentation and fixtures use',
+    body: note(`${stream('m6', 10, LOWER)}@example.com`),
+  },
+  {
+    // The one entry whose suppression is invisible to `ours`: no rule of ours
+    // matches this shape, upstream's generic-api-key does, and `forbidden` is
+    // how a case can say so. See the note on `forbidden` above.
+    file: 'access-demo.stories.js',
+    ours: null,
+    forbidden: ['generic-api-key'],
+    why: 'the fabricated “shown once” value in Access.stories.js — exempt by exact string, not by shape',
+    body: `export const Access = { args: { apiKey: '${STORY_PLACEHOLDER}' } };\n`,
   },
 
   // ── Path allowlist, both directions ───────────────────────────────────────
@@ -622,7 +699,7 @@ function diffSpan(a, b) {
  * is measured: the text must differ, in exactly one region, and that region
  * must lie inside the block it was meant to change.
  */
-function mutation({ subject, axis, key, note, text, original, sec }) {
+function mutation({ subject, axis, key, note, text, original, sec, edit }) {
   const span = diffSpan(original, text);
   if (!span) {
     fail(
@@ -636,7 +713,19 @@ function mutation({ subject, axis, key, note, text, original, sec }) {
         ` outside the ${sec.header} block at ${sec.start}..${sec.end}.`,
     );
   }
-  return { subject, axis, key, note, text, edit: `${JSON.stringify(span.from)} → ${JSON.stringify(span.to)}` };
+  // `edit` is what the report prints. It is the measured span by default, and
+  // an override where the span reads worse than the truth: deleting a whole
+  // line out of a list of near-identical lines leaves diffSpan describing the
+  // change as a slice across two neighbours, which is correct and unreadable.
+  // The span is still what the guard above checks — only the wording differs.
+  return {
+    subject,
+    axis,
+    key,
+    note,
+    text,
+    edit: edit ?? `${JSON.stringify(span.from)} → ${JSON.stringify(span.to)}`,
+  };
 }
 
 /**
@@ -680,11 +769,14 @@ function upstreamIds(candidates, root, counter) {
 /**
  * Every mutation this config earns, generated from the config itself.
  *
- * Six axes. The first four weaken a rule the four ways a rule in this file can
- * be weakened by hand — its classes, its floors, its boundaries, its name. The
- * fifth stands for an entropy line appearing, inherited or written. The sixth
- * un-anchors a path allowlist entry, which switches every rule in the file off
- * for anything whose path merely CONTAINS the pattern.
+ * Seven axes. The first four weaken a rule the four ways a rule in this file
+ * can be weakened by hand — its classes, its floors, its boundaries, its name.
+ * The fifth stands for an entropy line appearing, inherited or written.
+ *
+ * The last two are the ALLOWLIST, and they are the other half of the gate: an
+ * allowlist edit switches rules off without touching a rule. Removing an entry
+ * asks whether anything relies on it; un-anchoring a path entry widens it to
+ * every path that merely CONTAINS the pattern.
  */
 function planMutations(text, upstream) {
   const secs = sections(text);
@@ -787,29 +879,59 @@ function planMutations(text, upstream) {
     );
   }
 
-  // (6) allowlist paths un-anchored. A path entry is not a rule — it turns
-  // EVERY rule off for what it matches — so its mutations are grouped under the
-  // allowlist rather than under any rule id.
+  // (6) The allowlist, entry by entry. An entry is not a rule — it turns rules
+  // OFF for what it matches — but it is held to the same bar, and EVERY entry
+  // is a subject of its own rather than one lump called "the allowlist". That
+  // is the difference between "some path entry is exercised" and "this entry
+  // is", and it is the whole point: an entry added to switch the gate off is
+  // one nothing exercises, and a lumped subject hides it behind its neighbours.
   for (const sec of secs.filter((s) => s.header === '[allowlist]')) {
     const body = text.slice(sec.start, sec.end);
-    const list = /^paths\s*=\s*\[([\s\S]*?)^\]/m.exec(body);
-    if (!list) continue;
-    const listAt = sec.start + list.index + list[0].indexOf('[') + 1;
-    for (const entry of list[1].matchAll(/'''([\s\S]*?)'''/g)) {
-      const at = listAt + entry.index + 3;
-      const loose = entry[1].replace(/^\(\?:\^\|\/\)/, '').replace(/^\^/, '').replace(/\$$/, '');
-      if (loose === entry[1]) continue; // nothing to un-anchor
-      out.push(
-        mutation({
-          subject: '[allowlist] paths',
-          axis: 'paths-unanchor',
-          key: `${entry[1]} → ${loose}`,
-          note: `${entry[1]} → ${loose}`,
-          text: text.slice(0, at) + loose + text.slice(at + entry[1].length),
-          original: text,
-          sec,
-        }),
-      );
+    for (const list of ['paths', 'regexes']) {
+      const found = new RegExp(`^${list}\\s*=\\s*\\[([\\s\\S]*?)^\\]`, 'm').exec(body);
+      if (!found) continue;
+      const listAt = sec.start + found.index + found[0].indexOf('[') + 1;
+      for (const entry of found[1].matchAll(/'''([\s\S]*?)'''/g)) {
+        const at = listAt + entry.index + 3;
+        const subject = `[allowlist] ${list} ${entry[1]}`;
+
+        // (6a) entry-remove — the entry is gone, which is what an edit that
+        // switches the gate off looks like in reverse. An entry no case
+        // exercises survives this, and an unexercised entry is exactly the
+        // shape of an exemption added for something nobody tests.
+        const lineStart = text.lastIndexOf('\n', at) + 1;
+        const lineEnd = text.indexOf('\n', at + entry[1].length) + 1;
+        out.push(
+          mutation({
+            subject,
+            axis: 'entry-remove',
+            key: 'the entry removed',
+            note: 'the entry removed',
+            edit: `the line holding '''${entry[1]}''' deleted from ${list}`,
+            text: text.slice(0, lineStart) + text.slice(lineEnd),
+            original: text,
+            sec,
+          }),
+        );
+
+        // (6b) paths-unanchor — gitleaks matches a path entry as an unanchored
+        // substring search, so the unanchored form is the WIDER one: it exempts
+        // anything whose path merely contains the pattern.
+        if (list !== 'paths') continue;
+        const loose = entry[1].replace(/^\(\?:\^\|\/\)/, '').replace(/^\^/, '').replace(/\$$/, '');
+        if (loose === entry[1]) continue; // nothing to un-anchor
+        out.push(
+          mutation({
+            subject,
+            axis: 'paths-unanchor',
+            key: `${entry[1]} → ${loose}`,
+            note: `${entry[1]} → ${loose}`,
+            text: text.slice(0, at) + loose + text.slice(at + entry[1].length),
+            original: text,
+            sec,
+          }),
+        );
+      }
     }
   }
 
@@ -866,6 +988,31 @@ const JUSTIFIED = [
       'both, measured. Fixing the rule is its own change: see the open issue on infra-lessly-run\'s leading ' +
       'anchor. This check never edits .gitleaks.toml, so it records the hole rather than closing it.',
   },
+  {
+    subject: '[allowlist] paths (?i)\\.svg$',
+    axis: 'entry-remove',
+    mutation: 'the entry removed',
+    why:
+      'Our entry is belt-and-braces over a default that already covers it, so removing OURS changes nothing ' +
+      'and no honest case can die. Measured on gitleaks 8.30.1: gitleaks\' own default allowlist exempts ' +
+      '.svg (with .png/.jpg/.gif/.pdf/.doc/.bin), useDefault pulls it in, and a real .svg carrying a planted ' +
+      'Apify token stays clean with our entry deleted. The case exempt-fixture.svg says the same thing in its ' +
+      'own comment. What our entry is worth is the day that default changes, which is not a thing a case here ' +
+      'can stage. The entry is still PROVEN as a subject: un-anchoring it kills fixture.svg.ts, because the ' +
+      'default entry is anchored and does not exempt a path merely containing .svg.',
+  },
+  {
+    subject: '[allowlist] paths (?:^|/)package-lock\\.json$',
+    axis: 'entry-remove',
+    mutation: 'the entry removed',
+    why:
+      'The same argument as the .svg entry above, and measured the same way: gitleaks\' default allowlist ' +
+      'already exempts package-lock.json, so a lockfile carrying a planted Apify token stays clean with our ' +
+      'entry deleted. Measured twice, because the default could have been the looser one: against a config ' +
+      'that is nothing but our rule, with no allowlist and no useDefault, that same lockfile IS flagged — so ' +
+      'the exemption is upstream\'s and not an artefact of the fixture. Un-anchoring this entry does kill ' +
+      'package-lock.json.md, which is what proves the entry as a subject.',
+  },
 ];
 
 /**
@@ -920,9 +1067,9 @@ function fold(text, columns = 96) {
  *
  * A config that will not load is NOT a detected mutation — gitleaks refusing to
  * start says nothing about whether a rule has teeth — so it takes the exit-code
- * 2 "cannot tell" path above, naming the config that broke.
+ * 2 "cannot tell" path above, naming the substitution that broke it.
  */
-function scanWith(configPath, scanDir, root, counter, label) {
+function scanWith(configPath, scanDir, root, counter, label, edit) {
   const report = join(root, `report-${counter.runs}.json`); // outside the scanned directory
   counter.runs++;
   const run = spawnSync(
@@ -946,10 +1093,16 @@ function scanWith(configPath, scanDir, root, counter, label) {
   }
   if (run.error) fail(`gitleaks-rules.check: could not run "${GITLEAKS}": ${run.error.message}`);
   if (run.status !== 0) {
+    // The substitution, not a path to the mutated file. Every mutant is written
+    // under the run's temp root, and the process.on('exit') handler below
+    // removes that root before any message printed here can be acted on — this
+    // used to promise "config kept at …" and the path was always already gone.
+    // The substitution is what reproduces the failure anyway.
     fail(
       `gitleaks-rules.check: "${GITLEAKS}" exited ${run.status} on ${label}.\n` +
         'A config that does not load is not a mutation this pass detected — it is a\n' +
-        `verdict this run cannot reach. Config kept at ${configPath}\n${(run.stderr ?? '').trim()}`,
+        `verdict this run cannot reach. The substitution was ${edit ?? '(none — this was the unmutated config)'}\n` +
+        `${(run.stderr ?? '').trim()}`,
     );
   }
   if (!existsSync(report)) fail(`gitleaks-rules.check: gitleaks wrote no report at ${report} for ${label}`);
@@ -1007,6 +1160,11 @@ function judge(byFile, ruleIds) {
         failures.push(`${c.file} — upstream ${up} no longer names it (${c.why})`);
       }
     }
+    for (const no of c.forbidden ?? []) {
+      if (named.includes(no)) {
+        failures.push(`${c.file} — ${no} names it, and this case exists to assert nothing does (${c.why})`);
+      }
+    }
     if (failures.length > before) dead.push(c.file);
   }
   return { failures, dead };
@@ -1015,14 +1173,26 @@ function judge(byFile, ruleIds) {
 /**
  * The exit-code contract, stated where the codes are chosen.
  *
- * 0 — every case passed.
- * 1 — one or more assertions failed. Only ever set at the end of main(), and
- *     only after every case has been evaluated, so a run lists all failures
- *     rather than the first.
+ * 0 — every case passed, and every rule and allowlist entry is proven.
+ * 1 — one or more assertions failed in the MUTATION PASS. Only ever set at the
+ *     end of main(), and only after every mutation has been judged, so a run
+ *     lists all failures rather than the first.
  * 2 — the check could not reach a verdict: no binary, the scanner refused to
  *     start, no report, unreadable report, a renamed field. Never a raw Node
  *     stack — a security gate that dies in a traceback reads as a broken
  *     script, and a broken script is what people skip.
+ *
+ * A RED BASELINE IS A 2, and that is deliberate rather than an oversight in the
+ * wording. Every case is evaluated and every failure is printed first — so by
+ * the letter of "1" above it could be a 1 — but the run then stops before a
+ * single mutation is generated, because on a red baseline every mutation reads
+ * as detected by the case that was already failing. The mutation pass reached no
+ * verdict at all, and that is what the exit code carries. The distinction is
+ * worth having: a 1 says the config is weaker than it claims, a 2 says nobody
+ * knows yet. Measured rather than reasoned about, which is what the argument in
+ * ADR 0002 asks of a comment like this one: point this check at a copy of
+ * .gitleaks.toml with a rule deleted — the path argument exists for exactly that
+ * — and it prints every failing case and exits 2, not 1.
  *
  * `fail` is 2 and only 2. It is used for every "cannot tell" path below.
  */
@@ -1036,8 +1206,9 @@ function fail(message) {
  *
  * Three things fail here, and they are separate claims:
  *
- *   - a RULE none of whose mutations kills a case. That is the bar: the rule is
- *     unproven, whatever its cases do on the unmutated config.
+ *   - a SUBJECT none of whose mutations kills a case — a rule, or an allowlist
+ *     entry. That is the bar: it is unproven, whatever the cases do on the
+ *     unmutated config.
  *   - a rule with no case at all, which is the same hole one step earlier.
  *   - a surviving MUTATION carrying no justification. A survivor is printed
  *     either way, justified or not — a green tick that hides one is the shape of
@@ -1084,13 +1255,15 @@ function report(rows, ruleSubjects, casesFor) {
       console.log(`      ${r.axis.padEnd(16)} ${r.note}\n        ${r.edit}\n        ${verdict}`);
       if (r.justified) for (const line of fold(r.justified.why)) console.log(`          ${line}`);
     }
-    // The bar. Checked over the rule rather than over each mutation, so a rule
-    // may carry a justified survivor and still be proven — by a different
-    // mutation, on a different axis, killing a real case.
-    if (isRule && mine.length > 0 && killed === 0) {
+    // The bar. Checked over the SUBJECT rather than over each mutation, so a
+    // subject may carry a justified survivor and still be proven — by a
+    // different mutation, on a different axis, killing a real case. Allowlist
+    // entries are subjects too, and are held to it identically: an entry no
+    // case exercises is as unproven as a rule no case names.
+    if (mine.length > 0 && killed === 0) {
       failures.push(
-        `${subject} — UNPROVEN: none of its ${mine.length} mutations killed a case,` +
-          ' so nothing here shows this rule has teeth',
+        `${subject} — UNPROVEN: none of its ${mine.length} mutations killed a case, so nothing here shows` +
+          (isRule ? ' this rule has teeth' : ' any case relies on this allowlist entry'),
       );
     }
   }
@@ -1146,12 +1319,16 @@ function main() {
     const path = join(root, `mutant-${i}.toml`);
     writeFileSync(path, m.text);
     const label = `${m.subject} / ${m.axis} — ${m.note}`;
-    const { dead } = judge(scanWith(path, scanDir, root, counter, label), configuredRuleIds(m.text));
+    const { dead } = judge(scanWith(path, scanDir, root, counter, label, m.edit), configuredRuleIds(m.text));
     rmSync(path, { force: true });
     return { ...m, dead };
   });
 
-  console.log(`\nmutation pass — ${ruleSubjects.length} rules, ${rows.length} mutations`);
+  const entrySubjects = [...new Set(rows.map((r) => r.subject))].filter((s) => !ruleSubjects.includes(s));
+  console.log(
+    `\nmutation pass — ${ruleSubjects.length} rules, ${entrySubjects.length} allowlist entries,` +
+      ` ${rows.length} mutations`,
+  );
   console.log(
     `  ids of ours gitleaks 8.30.1 already defines, so extending REPLACES rather than adds: ${
       collide.length > 0 ? collide.join(', ') : 'none'
@@ -1172,7 +1349,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `\ngitleaks mutation pass: every rule has a case that dies under a mutation;` +
+    `\ngitleaks mutation pass: every rule and every allowlist entry has a case that dies under a mutation;` +
       ` ${survivors.length} of ${rows.length} mutations survive, each with a justification above (${summary})`,
   );
 }

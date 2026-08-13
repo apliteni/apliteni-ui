@@ -32,11 +32,25 @@
  * runs on machines with no gitleaks. This needs the pinned binary and belongs to
  * the security workflow, which downloads it.
  *
+ * EXIT CODES — the same contract as its sibling, and for the same reason:
+ *
+ *   0 — every scenario behaved as the workflow claims it does.
+ *   1 — one or more scenarios failed, after ALL of them have been run, so a run
+ *       lists every failure rather than the first. The `${{ }}` assertion is
+ *       also a 1: the workflow is wrong, and this check reached that verdict.
+ *   2 — this check could not reach a verdict: the workflow would not parse, the
+ *       step is gone or has no body, git or gitleaks would not run. "Cannot
+ *       tell" is not "passed", and it is not "failed" either — a gate that
+ *       reports a broken harness as a failed assertion sends the reader to look
+ *       for a leak that was never claimed.
+ *
  * Usage: node scripts/secret-scan-range.check.mjs [path-to-workflow.yml]
  *        GITLEAKS_BIN=./gitleaks node scripts/secret-scan-range.check.mjs
  *
  * The argument exists so the check can be pointed at an older or deliberately
- * mutated workflow to prove it still fails there. Default is this repo's own.
+ * mutated workflow to prove it still fails there. Default is this repo's own —
+ * and it is how each scenario below was shown failing against the body that
+ * preceded it, which is the only thing that makes a green run mean anything.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -75,7 +89,14 @@ const PAYLOAD = [10, 11, 12, 13].join('.');
 const LEAK_FILE = 'notes/deploy-target.md';
 const leakText = ['The staging box we were told never to write down:', '', `    ${PAYLOAD}`, ''].join('\n');
 
+/** "Cannot tell." See the exit-code contract in the header. */
 function fail(message) {
+  console.error(message);
+  process.exit(2);
+}
+
+/** "The workflow is wrong." A verdict was reached; it is a bad one. */
+function refuse(message) {
   console.error(message);
   process.exit(1);
 }
@@ -162,7 +183,7 @@ function commit(dir, path, contents, message) {
  * The config is copied in rather than committed, so the file that defines the
  * rules is not itself part of the history being scanned.
  */
-function buildRepo(dir, { leakOn, head }) {
+function buildRepo(dir, { leakOn, head, evilMerge }) {
   mkdirSync(dir, { recursive: true });
   git(dir, 'init', '-q', '-b', 'main');
   git(dir, 'config', 'user.email', 'checks@apliteni.test');
@@ -171,6 +192,7 @@ function buildRepo(dir, { leakOn, head }) {
   copyFileSync(CONFIG, join(dir, '.gitleaks.toml'));
 
   const main = commit(dir, 'README.md', '# fixture\n', 'the branch point');
+  if (evilMerge) return buildEvilMerge(dir, main);
 
   const shas = { main };
   for (const branch of ['other', 'feature']) {
@@ -186,18 +208,68 @@ function buildRepo(dir, { leakOn, head }) {
   return shas;
 }
 
+/**
+ * The same repository, ending in an EVIL MERGE: a merge commit whose conflict
+ * resolution introduces the payload, so the payload exists in no ordinary
+ * commit's diff.
+ *
+ * This is not a corner case, it is the ordinary shape of a resolved conflict —
+ * and `gitleaks detect` on a git source is `git log -p` underneath, which prints
+ * no diff for a merge commit. So a secret written into a conflict resolution is
+ * in NO patch: not in a pull request's base..head range, and not in the
+ * whole-clone walk on the branch it lands on either. Squash and rebase merges
+ * rewrite the change into an ordinary commit and do not carry it; this
+ * repository allows merge commits and uses them.
+ *
+ * The builder proves its own premise before handing the fixture over: if
+ * `git log -p` over the range already shows the payload, the fixture is not the
+ * thing it claims to be and the scenario built on it would prove nothing.
+ */
+function buildEvilMerge(dir, main) {
+  const contested = 'the deploy target for staging is still being decided\n';
+  git(dir, 'checkout', '-q', '-b', 'other', main);
+  const other = commit(dir, LEAK_FILE, `${contested}decided on other\n`, 'other picks a target');
+  git(dir, 'checkout', '-q', '-b', 'feature', main);
+  const feature = commit(dir, LEAK_FILE, `${contested}decided on feature\n`, 'feature picks a target');
+
+  const merge = spawnSync('git', ['merge', '--no-ff', '--no-commit', 'other'], { cwd: dir, encoding: 'utf8' });
+  if (merge.status === 0) {
+    throw new Error('the evil-merge fixture merged cleanly — there is no conflict for a resolution to hide in');
+  }
+  // The resolution: neither side's text, and a secret that was on neither side.
+  writeFileSync(join(dir, LEAK_FILE), leakText);
+  git(dir, 'add', '--', LEAK_FILE);
+  git(dir, 'commit', '-q', '--no-edit');
+  const head = git(dir, 'rev-parse', 'HEAD');
+
+  const patches = git(dir, 'log', '-p', `${main}..${head}`);
+  if (patches.includes(PAYLOAD)) {
+    throw new Error(
+      'the evil-merge fixture is not evil: `git log -p` over its own range already shows the payload,\n' +
+        '  so a history scan would find it and the scenario would pass without the tree scan existing.',
+    );
+  }
+  const shas = { main, other, feature, merge: head, leak: head };
+  shas.leakShort = git(dir, 'rev-parse', '--short', head);
+  return shas;
+}
+
 /** Run the extracted body the way the runner would, with only `env:` for input. */
 function runBody(body, dir, env) {
   const child = {
     ...process.env,
     GITLEAKS_BIN: GITLEAKS,
-    // The scenario owns these four completely. Inherited values would otherwise
-    // decide the answer when this check runs inside Actions, where
-    // GITHUB_EVENT_NAME is already `pull_request`.
+    // The scenario owns every one of these completely. Inherited values would
+    // otherwise decide the answer when this check runs inside Actions, where
+    // GITHUB_EVENT_NAME is already `pull_request` and GITHUB_REF_NAME is set.
     GITHUB_EVENT_NAME: '',
+    GITHUB_REF_NAME: '',
+    DEFAULT_BRANCH: '',
     PR_BASE_SHA: '',
     PR_HEAD_SHA: '',
     PR_HEAD_REF: '',
+    PUSH_BEFORE: '',
+    PUSH_AFTER: '',
     ...env,
   };
   const r = spawnSync('bash', ['-c', body], { cwd: dir, encoding: 'utf8', env: child });
@@ -206,9 +278,9 @@ function runBody(body, dir, env) {
 }
 
 /**
- * The four things the scan has to get right. `expect` is the exit status the
- * body must produce; `contains` are substrings its output must carry, built
- * from the fixture's own shas so an assertion cannot pass on a coincidence.
+ * Everything the scan has to get right. `expect` is the exit status the body
+ * must produce; `contains` are substrings its output must carry, built from the
+ * fixture's own shas so an assertion cannot pass on a coincidence.
  */
 const SCENARIOS = [
   {
@@ -241,7 +313,7 @@ const SCENARIOS = [
     name: 'a push to main still fails on a leak sitting on an unmerged branch',
     why: 'main keeps the whole-clone walk — it is the backstop',
     repo: { leakOn: 'other', head: 'main' },
-    env: () => ({ GITHUB_EVENT_NAME: 'push' }),
+    env: () => ({ GITHUB_EVENT_NAME: 'push', GITHUB_REF_NAME: 'main' }),
     expect: 1,
     // The branch is not given to a push run, so the body has to ask git which
     // ref holds the commit. `other` is the answer, and it is never in its env.
@@ -263,6 +335,77 @@ const SCENARIOS = [
     // finding is on, and naming it there would send the reader to a clean branch.
     contains: (s) => ['falling back to scanning the whole clone', 'pii-private-ip', s.leakShort, 'other'],
   },
+  {
+    name: 'a secret that exists only in a merge commit’s conflict resolution is caught',
+    why: 'no patch anywhere carries it — `git log -p` prints no diff for a merge, so only the tree scan sees it',
+    repo: { evilMerge: true },
+    env: (s) => ({
+      GITHUB_EVENT_NAME: 'pull_request',
+      PR_BASE_SHA: s.main,
+      PR_HEAD_SHA: s.merge,
+      PR_HEAD_REF: 'feature',
+    }),
+    expect: 1,
+    // No commit is named: a tree finding has none. 'in the working tree' is
+    // printed by the tree reporting and by nothing else, so this asserts WHICH
+    // of the two scans spoke — the history scan over this same range says
+    // nothing at all, which is the whole point of the scenario.
+    contains: (s) => ['pii-private-ip', LEAK_FILE, 'in the working tree', `${s.main}..${s.merge}`],
+  },
+  {
+    name: 'a pull request whose range spans no commits falls back to the whole clone, loudly',
+    why: '0 commits scanned exits 0 and reads exactly like a clean pull request — the failure this design exists to prevent',
+    repo: { leakOn: 'other', head: 'feature' },
+    env: (s) => ({
+      GITHUB_EVENT_NAME: 'pull_request',
+      // base == head. A head already merged into base does the same thing:
+      // `git rev-list --count base..head` is 0 either way, and one guard covers both.
+      PR_BASE_SHA: s.feature,
+      PR_HEAD_SHA: s.feature,
+      PR_HEAD_REF: 'feature',
+    }),
+    expect: 1,
+    contains: (s) => ['falling back to scanning the whole clone', 'pii-private-ip', s.leakShort, 'other'],
+  },
+  {
+    name: 'a push to a branch with no pull request open is scanned on its own range',
+    why: 'the branches: [main] filter left every other branch scanned by nothing at all',
+    repo: { leakOn: 'feature', head: 'feature' },
+    env: (s) => ({
+      GITHUB_EVENT_NAME: 'push',
+      GITHUB_REF_NAME: 'feature',
+      PUSH_BEFORE: s.main,
+      PUSH_AFTER: s.feature,
+    }),
+    expect: 1,
+    contains: (s) => ['pii-private-ip', LEAK_FILE, s.leakShort, `${s.main}..${s.feature}`, 'feature'],
+  },
+  {
+    name: 'a push to a branch is not reddened by a leak on another branch',
+    why: 'the same narrowing a pull request gets, for the same reason — otherwise nobody can push anything',
+    repo: { leakOn: 'other', head: 'feature' },
+    env: (s) => ({
+      GITHUB_EVENT_NAME: 'push',
+      GITHUB_REF_NAME: 'feature',
+      PUSH_BEFORE: s.main,
+      PUSH_AFTER: s.feature,
+    }),
+    expect: 0,
+    contains: (s) => [`${s.main}..${s.feature}`],
+  },
+  {
+    name: 'the first push of a new branch falls back to the whole clone, loudly',
+    why: 'github.event.before is forty zeros on a branch’s first push — measured here, not assumed',
+    repo: { leakOn: 'other', head: 'feature' },
+    env: (s) => ({
+      GITHUB_EVENT_NAME: 'push',
+      GITHUB_REF_NAME: 'feature',
+      PUSH_BEFORE: '0'.repeat(40),
+      PUSH_AFTER: s.feature,
+    }),
+    expect: 1,
+    contains: (s) => ['falling back to scanning the whole clone', 'pii-private-ip', s.leakShort, 'other'],
+  },
 ];
 
 function main() {
@@ -278,7 +421,7 @@ function main() {
     throw new Error(`the "${STEP}" step has no \`run: |\` body — this check has nothing to execute`);
   }
   if (scan.run.includes('${{')) {
-    fail(
+    refuse(
       `secret-scan-range.check: the "${STEP}" body interpolates a \${{ }} expression. This repo is public and\n` +
         '  accepts fork pull requests: a branch name reaches that body as attacker-controlled text, and an\n' +
         '  expression is pasted in before bash parses the script. Pass the value through the step\'s `env:`\n' +

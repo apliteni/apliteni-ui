@@ -35,13 +35,30 @@ teeth loses a case; a rule that has stopped meaning anything loses nothing.
 | `id-onto-upstream` | the `id`, onto one gitleaks already ships | a "tidy-up" that replaces an upstream rule instead of standing beside it |
 | `entropy-raise` | an `entropy = 7.0` line added | a floor inherited or written that silences the rule |
 | `paths-unanchor` | one `[allowlist] paths` entry's `^`/`$` | an exemption that leaks to every path merely containing the pattern |
+| `entry-remove` | one `[allowlist]` entry, `paths` or `regexes`, deleted | an exemption no case relies on — the shape of one added to switch the gate off |
+
+**A subject is a rule *or* an allowlist entry.** A gate can be switched off from either side, and
+for a while this one only watched the rules. Adding two lines to `[allowlist] regexes` —
+`AKIA[A-Z0-9]{16}` and `gh[pousr]_[A-Za-z0-9]{36}` — takes a scan carrying both shapes from "leaks
+found: 2" to "no leaks found", and the check said `every rule has a case that dies under a mutation`
+and exited 0 over it. Worse, the pass punished the *safe* form of the edit and ignored the dangerous
+one: an unanchored `paths` entry generated no mutation at all, because there was nothing to
+un-anchor, and gitleaks matches paths as an unanchored substring search — so the unanchored form is
+the wider one. `regexes` had no axis whatsoever.
+
+So every entry in both lists is a subject in its own right, held to the bar a rule already meets.
+The mutation is removing the entry, and it is proven when a case goes red without it: an entry
+exists to suppress something, so a case relying on that suppression is the honest test. An entry no
+case exercises fails, exactly like a rule with no case. Five of the six `regexes` entries were
+exercised by nothing before this — an approved-domain address that must *not* be flagged is a
+legitimate case, and there was none.
 
 **The axes are derived from the config text, never listed.** A rule earns its mutations by existing:
-its classes are parsed out, its `{n,}` and `\b` counted, its id read. This is
-[0004](0004-the-gates-discover-their-subjects.md)'s argument applied to mutations — a table of
-mutations beside a table of rules is an undercount waiting to happen, and the undercount reads as
-coverage. Today that derivation yields 55 mutations over 12 rules and the allowlist, run as 69
-gitleaks invocations in 2.2 seconds.
+its classes are parsed out, its `{n,}` and `\b` counted, its id read; an allowlist entry earns its
+by being an entry. This is [0004](0004-the-gates-discover-their-subjects.md)'s argument applied to
+mutations — a table of mutations beside a table of rules is an undercount waiting to happen, and the
+undercount reads as coverage. Today that derivation yields 63 mutations over 12 rules and 8
+allowlist entries, run as 77 gitleaks invocations in 2.4 seconds, against 46 cases.
 
 **Every edit is measured before it is trusted.** A substitution that matches nothing produces a
 mutated config identical to the original, every case stays green, and the run reports "nothing
@@ -49,9 +66,11 @@ detects this" — which reads as a rule with no teeth when it means the edit was
 mutation must differ from the original in exactly one contiguous region, and that region must lie
 inside the block it was meant to change. Neither holds: exit 2, "cannot tell", not exit 1.
 
-**The bar is per rule.** A rule fails when *no* case dies under *any* of its mutations. A rule may
-carry a surviving mutation and still be proven, by a different mutation on a different axis killing
-a real case.
+**The bar is per subject.** A subject — a rule, or an allowlist entry — fails when *no* case dies
+under *any* of its mutations. It may carry a surviving mutation and still be proven, by a different
+mutation on a different axis killing a real case. Each allowlist entry is its own subject rather
+than one lump called "the allowlist": lumped, a new entry that nothing exercises hides behind its
+neighbours, which is the whole thing being caught.
 
 **A mutation nothing can kill carries a written justification, and it goes stale loudly.** Survivors
 are printed every run, justified or not — a green tick that hides one is the shape of failure this
@@ -60,7 +79,17 @@ longer planned fails, because the reason it records is then checked against noth
 justification on a mutation that some case has *since started* killing fails, naming the case: an
 exception that outlives its reason is silent green with extra steps.
 
-Two justifications exist, both on `infra-lessly-run` (`\b[a-z0-9-]+\.lessly\.run\b`), which clears
+Four justifications exist. Two are on the `[allowlist] paths` entries, and they are the same
+argument twice: gitleaks' own default allowlist already exempts `.svg` and `package-lock.json`, so
+removing *ours* changes nothing and no honest case can die. Measured on 8.30.1, both ways round — a
+real `.svg` and a real `package-lock.json` each carrying a planted Apify token stay clean with our
+entry deleted, and the lockfile *is* flagged against a config with our rule and no allowlist at all,
+so the exemption is upstream's rather than an artefact of the fixture. Both entries are still proven
+as subjects, because un-anchoring them kills `fixture.svg.ts` and `package-lock.json.md`: the
+default entries are anchored and do not exempt a path merely containing the pattern. What ours are
+worth is the day that default changes, which is not something a case here can stage.
+
+The other two are on `infra-lessly-run` (`\b[a-z0-9-]+\.lessly\.run\b`), which clears
 the bar because three of its five mutations do kill cases. Narrowing its class is unkillable because
 the rule matches a suffix behind a `+` quantifier — `staging-box-01.<redacted>` is still flagged
 under the narrowed class, and the only string that flips is a label ending in a hyphen, which is not
@@ -97,6 +126,12 @@ surviving mutation and that it has not gone false — not that it is right.
 **Rules that are too wide.** Every axis here weakens; none strengthens. A rule that fires on
 something innocent is caught by a negative case (`ours: null`), which the mutation pass re-runs but
 does not generate.
+
+**An allowlist entry that silences only an *upstream* rule.** The demo-token entry is one: no rule
+of ours matches that string, so `ours: null` cannot notice it going away. Its case names
+`generic-api-key` in a `forbidden` list instead — the one place in the suite that depends on
+gitleaks' default ruleset on purpose. If upstream stops flagging that shape, the entry becomes
+unprovable and the run says so, loudly, which is the right direction to fail.
 
 **`infra-lessly-run`'s leading anchor.** Recorded in the justification and filed as its own issue.
 This check never edits `.gitleaks.toml`, so it names the hole rather than closing it.
