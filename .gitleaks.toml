@@ -89,11 +89,43 @@ tags = ["infra", "token"]
 # miss a 36-character fragment. The low floor is safe because of the anchor, not the
 # length: `ops_eyJ` is the 1Password prefix plus the base64 of the `{"` opening the
 # token's JSON claims, and ordinary text essentially never contains it.
-# Full argument: #179 and asabirov/claude#68.
+#
+# THERE ARE FIVE CONSTRAINTS ON A MATCH HERE, AND THE REGEX SHOWS YOU THREE. The
+# anchor, the class and the length floor the paragraph above argues about are all on
+# the regex line. The fourth is a Shannon floor of 4 on the whole match, and it used
+# to arrive unwritten, by sharing an id: gitleaks merges an extended config into its
+# default one BY RULE ID, field by field, so this block replaces upstream's regex and
+# keywords and INHERITS every field it does not mention. Entropy is the one that bites
+# here, but the cost is general — anything upstream adds to this id tomorrow is ours
+# tomorrow, unread. `entropy = 4` below is upstream's own number written out, which
+# removes ONE unwritten constraint: the floor is now ours to move rather than theirs.
+#
+# The fifth cannot be written here at all, so read this rule as three-plus-two rather
+# than as the whole story. `useDefault = true` at the top of this file pulls in
+# gitleaks' DEFAULT GLOBAL allowlist, and its stopwords are matched case-insensitively
+# as a SUBSTRING of the candidate secret — a hit suppresses the finding whatever this
+# block says. Measured on 8.30.1: `ops_eyJ` plus the letters a-z in order plus four
+# more is 37 characters at entropy 4.9392, over every floor above, and is NOT reported;
+# the same shape with a scrambled payload is. It reaches figd_, apify_api_ and
+# *.lessly.run the same way. This file does not enumerate that list and cannot — it is
+# upstream's, and it moves when upstream moves. What we do instead is pin the behaviour
+# from outside: onepassword-stopword-suppressed.md in scripts/gitleaks-rules.check.mjs
+# is that case, and it reddens the day the list changes. Practical weight is near nil,
+# since real tokens are hashes; the reason it is written down is that a reader
+# counting constraints off the regex would otherwise count wrong.
+#
+# Measured on gitleaks 8.30.1, `ops_eyJ` plus 260 characters drawn from alphabets of
+# growing size: the same regex in a bare config with no floor catches every one of them,
+# down to entropy 3.70. Under this file the same six payloads are caught from 4.0370 up
+# and refused from 3.9978 down. The two either side of that step are cases in
+# scripts/gitleaks-rules.check.mjs, 0.04 apart, which is what pins the floor at 4 rather
+# than anywhere in the gap the next rungs out leave — 3.90 to 4.17.
+# Full argument: #179, #194 and asabirov/claude#68.
 [[rules]]
 id = "1password-service-account-token"
 description = "1Password service account token (base64 or base64url, wrapped or whole)"
 regex = '''ops_eyJ[A-Za-z0-9+/_-]{23,}={0,3}'''
+entropy = 4
 keywords = ["ops_eyj"]
 tags = ["secret", "1password"]
 
