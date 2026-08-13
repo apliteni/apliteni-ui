@@ -23,23 +23,81 @@
  *    drawer over its scrim. This is the largest gap and only a real browser
  *    closes it. Playwright is the honest upgrade path; it is a new dependency
  *    plus a browser download in CI, which is why it is not here.
- *  - Pseudo-elements. ::before / ::after are not computed. Most of the kit's are
- *    markers and bars, which carry no text — but the gate does not judge them.
- *  - Gradients and images. --ui-fb-pill-grad (src/styles/feedback.css), the
- *    brand gradient stops, the ambient glows (src/styles/base.css), the story
- *    avatars and the motion chips. Reported as unjudgeable, which is the honest
- *    answer rather than a fix or a silent pass.
- *  - filter, mix-blend-mode, backdrop-filter. .ui-btn--primary:hover uses
- *    filter: brightness(1.1) (src/styles/button.css); the gate reads the
- *    pre-filter colour.
- *  - Inactive components. Skipped on purpose per WCAG 1.4.3. A disabled control
- *    is exempt from the contrast requirement; it is not exempt from being
- *    readable, and nothing here checks that.
- *  - Anything with no story. The gate sees what the catalogue renders.
+ *  - A PAINT LAYER THE WALK CANNOT SEE, which is the one that costs most. The
+ *    background chain is built from an element's own ancestors, so any layer that
+ *    is not an ancestor is invisible and the text above it is measured against
+ *    the ground UNDERNEATH that layer. Two live shapes, both measured:
+ *      · a pseudo-element. Every .ui-bg-* backdrop (src/styles/base.css) paints
+ *        its gradient on ::before at inset 0, and
+ *        stories/foundations/Backgrounds.stories.js renders real copy over all
+ *        four. Nine pairs per backdrop come back JUDGED, none unjudgeable.
+ *      · a sibling overlay. The ambient glows (.ui-glow--*, src/styles/base.css)
+ *        are gradients on empty spans beside the content, never an ancestor of
+ *        it. Backgrounds:Glow reports nine judged pairs and zero unjudgeable.
+ *    What is proved is that these pairs are rated against the wrong ground. What
+ *    is NOT proved is that any current pair's verdict flips: bounding the
+ *    translucent spotlight and wash moved the worst pair 5.82 -> 4.92, still over
+ *    the floor. The opaque grid and dot fields cannot be bounded without a
+ *    browser. So: a wrong ground today, and no way to know it stays harmless.
+ *  - ::before / ::after as TEXT are not computed either. The kit's carry none —
+ *    every content: declaration in src/styles is the empty string.
+ *  - Gradients and images an element owns itself, or inherits from an ancestor.
+ *    The brand gradient stops (src/styles/layout.css) are the verified case:
+ *    h1.ui-hero__title > span.grad comes back unjudgeable, which is the honest
+ *    answer rather than a fix or a silent pass. Forty-one such records in a dark
+ *    walk. The bullet above is the shape that does NOT reach this path.
+ *  - filter. .ui-btn--primary:hover uses filter: brightness(1.1)
+ *    (src/styles/button.css); the gate reads the pre-filter colour. No
+ *    mix-blend-mode ships anywhere. backdrop-filter ships once, and not in what
+ *    this file walks: .rx-scrim (react/src/Modal.css) blurs what is behind the
+ *    modal, and it is react/src/contrast.test.tsx that measures over it.
+ *  - Inactive components, and everything inside them. Skipped on purpose per WCAG
+ *    1.4.3, but the skip is by closest(), so a disabled CONTAINER takes its whole
+ *    subtree out of the walk. A disabled control is exempt from the contrast
+ *    requirement; it is not exempt from being readable, and nothing checks that.
+ *  - Anything with no story — and "story" is narrower than it sounds: files
+ *    ending .stories.js under stories/. The React workspace's .stories.tsx are
+ *    not walked here; react/src/contrast.test.tsx gates those instead.
+ *  - Anything not visible at rest. display:none, visibility:hidden and opacity:0
+ *    are dropped BEFORE anything else is asked of the element, and that is the
+ *    resting state of four families: the dropdown panel (src/styles/dropdown.css),
+ *    the confirm scrim and panel (src/styles/confirm.css), the drawer
+ *    (src/styles/drawer.css), and the whole feedback overlay — pill, scrim and
+ *    composer (src/styles/feedback.css). Each is measured only where a story
+ *    ships it already open. This drop happens first, which is why the pill's
+ *    --ui-fb-pill-grad is not reported unjudgeable either: it is not reported.
+ *  - States past four. The walk FORCES hover, focus-visible, focus and active,
+ *    and forces nothing else — not :focus-within, ::placeholder, ::selection, nor
+ *    any class-driven state (.open, .is-open, .is-active) a story does not ship.
+ *    Read that precisely: :checked and :disabled are matched natively by JSDOM,
+ *    so markup a story ships already checked or disabled IS styled by those
+ *    rules. It is the forcing that is absent, not the matching.
+ *  - Anything a script would do. The body is set from a static string, so the
+ *    wiring .storybook/preview.js imports — wireTopbar, wireNav, wireDrawer,
+ *    wireConfirm, initTabs — never runs, and no class the live app applies at
+ *    runtime is ever measured.
+ *  - Custom properties a story pins INLINE. Every var() is flattened against one
+ *    theme-wide token map before mount, so the accent panels of
+ *    stories/foundations/SubThemes.stories.js, which set --accent and its family
+ *    in a style attribute, are every one of them measured as the DEFAULT accent.
  *  - Non-text contrast (WCAG 1.4.11) — borders, focus rings, icon strokes. The
  *    3:1 rule is against ADJACENT colours, which needs geometry. Say so, because
  *    "the contrast gate is green" will otherwise be read as covering it.
+ *  - Text that is not a text node: placeholder, value, alt, title, aria-label.
+ *  - More than one accent. The default run is two themes at the default accent.
+ *    The eight-cell matrix behind CONTRAST_ACCENTS=1 counts pairs and asserts a
+ *    floor on that count — never that any pair clears AA.
  *  - Whether the colour is readable. The AA floor is a floor, not a verdict.
+ *
+ * AND WHAT COVERS SOME OF IT INSTEAD. This file is the STORY WALK, which is not
+ * the whole of the kit's contrast measurement — a gap named above may already be
+ * closed by a sibling, and saying so is part of not overstating this one.
+ * stories/accent-contrast.test.js is a token contract: it renders nothing, costs
+ * milliseconds, and so affords all eight theme x accent cells, seeing pairs no
+ * story happens to render. stories/signal-contrast.test.js reads declarations out
+ * of the source rather than rendering, and gates the signal inks and the solid
+ * toast in both themes. react/src/contrast.test.tsx mounts the React workspace.
+ * What none of the four reaches is the first bullet above: layout.
  *
  * JSDOM AND THE CASCADE. JSDOM applies AUTHOR rules by specificity and source
  * order faithfully, and that is the whole of the guarantee — it does not rank by
@@ -86,8 +144,8 @@
  * Cost grows with theme×accent cells, close to linearly — measured 16.3s for the
  * default 2 cells and 63.4s for all 8, so about 8s a cell. The eight-cell accent
  * matrix is behind CONTRAST_ACCENTS=1 and is OFF by default; turning it on finds
- * 760 distinct failing pairs — the count the matrix test prints at the foot of
- * this file — against the 190 of the ledger total asserted below, because the
+ * 739 distinct failing pairs — the count the matrix test prints at the foot of
+ * this file — against the 185 of the ledger total asserted below, because the
  * accent families carry different literals under Phoenix, Ocean and Emerald and
  * would each need their own ledger entries. Both numbers are re-readable from a
  * run rather than remembered. Whether it ever runs in CI is undecided.
@@ -220,48 +278,46 @@ const LEDGER = [
     themes: ['light'],
     bg: 'the success wash and plain white in the light theme',
     example: 'div.ui-sx__eyebrow',
-    count: 6,
-    worst: 3.31,
+    count: 4,
+    worst: 3.92,
     why: 'Light --green has to stay recognisably green while carrying text, and green is the '
       + 'hue that darkens worst without turning into a colour nobody reads as success. #155 '
       + 'took the live pill and the badge over the line; what is left is the eyebrow on the '
-      + 'success screen, the shell glyphs in a revealed snippet, and the toast action on its own '
-      + 'soft wash. Each of these repeats a meaning that is already carried by an icon or by '
+      + 'success screen and the shell glyphs in a revealed snippet. Each of these repeats a '
+      + 'meaning that is already carried by an icon or by '
       + 'wording next to it, which is why they were allowed to lag the components that carry '
-      + 'meaning alone. The floor moved once since: #158 re-tinted --glow-green from a colour '
-      + 'that matched no token to an exact tint of --green, which darkens the success wash by '
-      + 'about one level per channel and takes the toast action down with it. Same six rows, '
-      + 'same cause, a slightly deeper worst. Closing them is #149\'s lane.',
+      + 'meaning alone. The toast action used to be here too, on its own soft wash and again on '
+      + 'the outline card, and #131 closed those rows: the action is the one part of a toast '
+      + 'that is both the status colour and a piece of text, so it stopped taking the accent and '
+      + 'took the text-grade chip ink instead. That left the rows above, which are not the '
+      + 'accent used as text but the accent used as itself. The floor moved once before that: '
+      + '#158 re-tinted --glow-green from a colour '
+      + 'that matched no token to an exact tint of --green, which darkened the success wash by '
+      + 'about one level per channel and took the toast action down with it — which is how deep '
+      + 'the bucket was when the action left it.',
   },
-  {
-    id: 'D',
-    fg: '--signal-solid-ink',
-    themes: ['light'],
-    bg: 'the solid danger toast\'s fill, darkened under the hover wash',
-    example: 'div.ui-toast.ui-toast--danger.ui-toast--solid > button.ui-toast__action',
-    count: 1,
-    worst: 4.40,
-    why: 'A solid toast paints white ink on a saturated status fill, and its action button adds '
-      + 'a further wash of that same ink on hover. #156 fixed the resting pairs by giving the '
-      + 'solid statuses their own fill tokens; the hover wash is the one surface that was not '
-      + 'part of that change, because it is generated by a color-mix rather than named by a '
-      + 'token. It falls a hair short and only while the pointer is down on it. The fix is a '
-      + 'hover treatment that darkens the fill instead of lightening the ink.',
-  },
+  /* D — --signal-solid-ink on a solid toast's fill under the action's hover wash —
+     is closed. #131 did what this entry's own `why` said the fix was: the hover
+     darkens the fill with a wash of --signal-contrast instead of lightening the
+     ink towards it. Deleted rather than zeroed, because a bucket holding nothing
+     matches nothing and would pass whatever happened to that surface next. */
   {
     id: 'E',
     fg: '--cyan',
     themes: ['light'],
     bg: 'the info wash and plain white in the light theme',
-    example: 'div.ui-toast.ui-toast--info.ui-toast--outline > button.ui-toast__action',
-    count: 4,
-    worst: 3.22,
+    example: 'div.ui-snippet > pre > span.f',
+    count: 2,
+    worst: 3.53,
     why: 'Cyan in the light theme is the same problem as green and for the same reason: the hue '
-      + 'runs out of room before it runs out of contrast. #155 moved the info badge; the '
-      + 'remainder are the outline toast\'s action, its hovered state, and the flag and URL '
+      + 'runs out of room before it runs out of contrast. #155 moved the info badge; what is '
+      + 'left is the flag and URL '
       + 'fragments the snippet colours inside a shell command. The snippet fragments are syntax '
       + 'highlighting, where the colour is a second signal on top of text that is already '
-      + 'readable in its own right. Closing them is #149\'s lane.',
+      + 'readable in its own right. The outline toast\'s action and its hovered state were here '
+      + 'too until #131, which gave the action the text-grade info ink rather than the accent — '
+      + 'a toast action is read as text, a syntax fragment is read as a hint over text that is '
+      + 'already legible, and that difference is why one moved and the other stays.',
   },
   {
     id: 'F',
@@ -523,34 +579,61 @@ test('a color-mix background resolves to a translucent colour, not to transparen
   );
 });
 
-test('the five toast statuses resolve to five different accents', () => {
+test('the five toast statuses resolve to five different accents and five different action inks', () => {
   // Guards the A1 rewrite. Before it, --toast-accent flattened first-wins and
   // all five statuses reported the success green.
-  const expected = {
+  //
+  // Two properties are probed, not one. A toast's status rule sets --toast-accent
+  // for the graphic marks and --toast-action-ink for the one mark that is text,
+  // and #131 split them because in the light theme they cannot be the same value.
+  // A flattening bug does not care which property it hits, so a probe that read
+  // only one of them would leave the other guarded by nothing. They are read off
+  // different elements on purpose: the timer bar is the accent at its plainest —
+  // an opaque background, no mix, no state — and the action is the ink.
+  const accents = {
     success: '--green', danger: '--pink', warn: '--amber', info: '--cyan', neutral: '--muted',
+  };
+  const inks = {
+    success: '--chip-success-ink',
+    danger: '--chip-danger-ink',
+    warn: '--chip-warn-ink',
+    info: '--chip-info-ink',
+    neutral: '--muted',
   };
   for (const theme of THEMES) {
     const { vars, css } = kitCssFor(theme, ACCENT);
-    const html = Object.keys(expected)
-      .map((s) => `<div class="ui-toast ui-toast--${s}" id="t-${s}"><button class="ui-toast__action">Go</button></div>`)
+    const html = Object.keys(accents)
+      .map((s) => `<div class="ui-toast ui-toast--${s}" id="t-${s}">`
+        + '<div class="ui-toast__timer"></div><button class="ui-toast__action">Go</button></div>')
       .join('');
     const win = new JSDOM(
       `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head>`
       + `<body>${html}</body></html>`,
       { pretendToBeVisual: true },
     ).window;
-    const seen = new Set();
-    for (const [status, token] of Object.entries(expected)) {
-      const el = win.document.querySelector(`#t-${status} .ui-toast__action`);
-      const got = win.getComputedStyle(el).color;
+    const probes = [
+      ['accent', '.ui-toast__timer', 'backgroundColor', accents],
+      ['action ink', '.ui-toast__action', 'color', inks],
+    ];
+    for (const [what, sel, prop, tokens] of probes) {
+      const seen = new Set();
+      for (const [status, token] of Object.entries(tokens)) {
+        const el = win.document.querySelector(`#t-${status} ${sel}`);
+        const got = win.getComputedStyle(el)[prop];
+        // Through `substitute`, because a token may be declared as an alias of
+        // another: dark's --chip-*-ink ARE the dark accents, written as var().
+        assert.equal(
+          got, rgbOf(substitute(vars.get(token), vars)),
+          `in ${theme}, the ${status} toast's ${what} resolved to ${got}, not ${token}. `
+          + 'A contextual custom property has flattened — every toast is reporting one status\'s colour.',
+        );
+        seen.add(got);
+      }
       assert.equal(
-        got, rgbOf(vars.get(token)),
-        `in ${theme}, the ${status} toast's action resolved to ${got}, not ${token}. `
-        + 'A contextual custom property has flattened — every toast is reporting one status\'s colour.',
+        seen.size, 5,
+        `the five toast ${what}s collapsed to ${seen.size} colour(s) in ${theme}`,
       );
-      seen.add(got);
     }
-    assert.equal(seen.size, 5, `the five toast statuses collapsed to ${seen.size} colour(s) in ${theme}`);
     win.close();
   }
 });

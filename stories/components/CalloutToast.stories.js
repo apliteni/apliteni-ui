@@ -41,23 +41,33 @@ export const StatusAndStyle = {
   )),
 };
 
+// The trailing action is the one part of a toast that carries its own ink on
+// the toast's own ground, so it is drawn for every status × style. Three of the
+// fifteen used to stand in for all of them, which is how a failing pair stayed
+// out of the contrast gate's sight.
+const ACTIONS = { success: 'Undo', info: 'Reload', warn: 'Rotate', danger: 'Retry', neutral: 'Open' };
+const actionColumnFor = (style) => col(...STATUSES.map(([variant, title, body]) =>
+  toast({ variant, style, title, body, action: ACTIONS[variant] })));
+
 // Affordances: action buttons, a compact single-line form, and the auto-dismiss
 // timer bar (shown here static; it animates in the Stack story).
 export const Affordances = {
-  render: () => pad(stack(
-    specimen('With an action', col(
-      toast({ variant: 'info', style: 'outline', title: 'A new version is available', body: 'Reload to pick up v0.4.0.', action: 'Reload' }),
-      toast({ variant: 'success', style: 'soft', title: 'Note deleted', body: '“Q3 plan” was removed.', action: 'Undo' }),
-      toast({ variant: 'danger', style: 'solid', icon: 'x', title: "Couldn't save", body: 'Check your connection and try again.', action: 'Retry' }),
-    )),
-    specimen('Compact (title only)', col(
-      toast({ variant: 'success', style: 'soft', title: 'Copied to clipboard', compact: true }),
-      toast({ variant: 'neutral', style: 'soft', title: 'Reconnecting…', compact: true }),
-    )),
-    specimen('Auto-dismiss timer', col(
-      toast({ variant: 'info', style: 'soft', title: 'Uploading report.csv', body: 'This dismisses on its own.', timer: 5 }),
-    )),
-  )),
+  render: () => pad(`<div style="display:flex;flex-direction:column;gap:26px">
+    ${specimen('With an action', grid(3,
+      specimen('Soft', actionColumnFor('soft')),
+      specimen('Solid', actionColumnFor('solid')),
+      specimen('Outline', actionColumnFor('outline')),
+    ))}
+    ${stack(
+      specimen('Compact (title only)', col(
+        toast({ variant: 'success', style: 'soft', title: 'Copied to clipboard', compact: true }),
+        toast({ variant: 'neutral', style: 'soft', title: 'Reconnecting…', compact: true }),
+      )),
+      specimen('Auto-dismiss timer', col(
+        toast({ variant: 'info', style: 'soft', title: 'Uploading report.csv', body: 'This dismisses on its own.', timer: 5 }),
+      )),
+    )}
+  </div>`),
 };
 
 // Interactive: buttons queue toasts onto a live stack (newest on top). Each

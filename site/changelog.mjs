@@ -3,7 +3,15 @@
 
 export const RELEASES = [
   {
-    v: '0.11.3', date: '2026-08-13', tag: 'latest',
+    v: '0.11.4', date: '2026-08-13', tag: 'latest',
+    changes: [
+      ['fixed', 'A toast\'s trailing action is readable on every status. It was painted in the status accent — a colour picked for a 3px rule and a 22px icon circle, not for text — so in the light theme a warn action measured 3.29:1 on its own wash where AA asks 4.5:1, and success, info and danger were short on at least one style each. The action takes the kit\'s text-grade signal inks now, the same ones the chips are set in. Its hover has changed direction too: it used to wash the ground with a second helping of the status colour, which moved the ground *towards* the ink it has to clear, so a hovered action read worse than a resting one. It lifts towards the page instead. The dark theme is unchanged, because there the two inks are already the same value. Nothing you pass to `toast()` changes.', ['Toast']],
+      ['added', '`--toast-action-ink` — the trailing action\'s colour is its own custom property, set per status alongside `--toast-accent`. Override it if you want an action in a colour of your own; `--toast-accent` still drives the marker, the icon circle, the timer bar and the outline border.', ['Toast']],
+      ['fixed', 'The React data table\'s sort caret is legible. It painted the muted ink at half opacity, which took a glyph carrying the sort direction down to 2.16:1 in the light theme — under half the AA floor. The opacity is gone, so the caret is the muted ink at full strength.', ['DataTable']],
+    ],
+  },
+  {
+    v: '0.11.3', date: '2026-08-13',
     changes: [
       ['fixed', 'The accent picker shows Nebula as the violet you actually get. Its swatch was a fixed gradient, and it stopped tracking the tokens in 0.11.0 when the default accent lifted to clear AA on its own wash — so the chip you pressed to choose the kit\'s default accent held neither colour that accent resolves to. Phoenix, Ocean and Emerald were always right and are unchanged. Every swatch is now made of its own accent\'s ramp, and a test holds it there rather than a line in the contributing guide.', ['Footer']],
     ],

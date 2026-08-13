@@ -10,6 +10,11 @@
   color: inherit;
 }
 .rx-sort:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-.rx-caret { opacity: .5; margin-left: 2px; }
+/* No opacity. The caret is a text glyph carrying the sort direction, so WCAG
+   1.4.3 applies to it, and opacity: .5 took --muted from 6.11 to 2.16 in light
+   and 5.82 to 2.39 in dark — under half the floor. --muted is already the kit's
+   quiet ink; diluting a quiet ink is how a colour stops being read. Found by
+   react/src/contrast.test.tsx on its first run. See #131. */
+.rx-caret { margin-left: 2px; }
 .rx-pager { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 .rx-pager__info { color: var(--muted); font-size: var(--text-sm); margin-right: auto; }

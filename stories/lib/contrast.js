@@ -525,7 +525,18 @@ function serialize(out) {
   return null;
 }
 
-const hasOwnText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+/**
+ * Does this element own text, rather than merely contain a descendant that does?
+ *
+ * The unit of a contrast measurement is the element whose `color` actually
+ * paints a glyph. A wrapper whose only children are elements paints nothing, and
+ * measuring it reports a pair no reader ever sees.
+ *
+ * Exported for react/src/contrast.test.tsx, which walks a mounted React tree
+ * rather than the HTML string `walkStories` mounts, and so cannot reuse the walk
+ * but must apply the identical rule about what counts as a pair.
+ */
+export const hasOwnText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
 
 /** Install the DOM globals stories build their markup with. Idempotent. */
 export function installDomGlobals(win) {
