@@ -93,8 +93,14 @@ export function segmented({ options = [], active = 0, size, block, name = 'seg',
 }
 
 // ---- Accent picker -------------------------------------------------------
+// Each swatch is made of the tokens its accent selects: it fades from the next
+// distinct step up that accent's dark ramp down to dark --accent. Most accents
+// land on --purple-light; Nebula's is its own --accent since #157, so it walks
+// on to --purple-mid. site/chrome.mjs and site/index.html hand-keep the same
+// four strings and must change with these. Held by stories/accent-swatch.test.js,
+// which derives both sides rather than restating them. See issue #190.
 const ACCENT_SWATCH = {
-  default: 'linear-gradient(135deg,#9b5dff,#6a2dcc)',
+  default: 'linear-gradient(135deg,#bd8cff,#b479ff)',
   phoenix: 'linear-gradient(135deg,#ff8a5c,#ff6a3d)',
   ocean: 'linear-gradient(135deg,#5ab0ff,#3b9dff)',
   emerald: 'linear-gradient(135deg,#3ad9a0,#16c98a)',

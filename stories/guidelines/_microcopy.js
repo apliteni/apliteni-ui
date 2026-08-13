@@ -74,7 +74,7 @@ export const RULES = [
     kit: [
       { ref: 'stories/apps/EmptyStates.stories.js:14', pattern: 'illustration + nudge, no action' },
       { ref: 'stories/apps/EmptyStates.stories.js:36', pattern: 'illustration + guidance + a clear action' },
-      { ref: 'src/components/index.js:254', pattern: 'export function emptyState(' },
+      { ref: 'src/components/index.js:260', pattern: 'export function emptyState(' },
     ],
   },
 ];
