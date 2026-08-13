@@ -13,17 +13,9 @@ export const mono = (s) => String(s).replace(
 // `--confirm-w` (src/styles/confirm.css), written out because a custom property
 // does not travel from a descendant to its ancestor. Change either and
 // stories/guidelines/destructive-actions.test.js fails, naming both files.
-//
-// #198 gave the kit --container and --measure, and this borrow still stands,
-// because a measure token would not answer the question this line asks. The
-// grid here has to be exactly as wide as the widest SPECIMEN it lays out, and
-// that specimen is a confirm dialog — so the number wanted is the component's
-// width, not the page's. Taking --measure here would size the guideline grid to
-// a reading column that has nothing to do with what is in the cells, and the
-// pair would stop lining up with the thing it is a picture of. What would
-// remove the copy is a component measure scale that --confirm-w itself reads
-// from, which is #208; until then the honest form is a stated copy with a test
-// on it, which is what this is.
+// The measure tokens #198 added do NOT replace it — this grid sizes to its
+// widest SPECIMEN, not to a page. Removed by #208.
+// why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md
 const SPEC_CSS = `
   <style>
     .gl { --gl-specimen: 420px;

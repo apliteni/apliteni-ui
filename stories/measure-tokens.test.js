@@ -1,28 +1,17 @@
 /* Rule: a page-scale width comes from a token, never a literal.
  *
  * Scanned by PROPERTY, never by a file/line allowlist — the shape ADR 0004 asks
- * for, and the same shape as stories/colour-tokens.test.js next door. Every
- * `max-width` declaration in scope is a subject by existing; a new stylesheet, a
- * new site page or a new chrome module joins by being in the directory, and one
- * that stops declaring a width leaves the count on its own.
+ * for, and the same shape as stories/colour-tokens.test.js next door.
  *
- * WHERE THE LINE IS. "Page-scale" is not a number written here: it is
- * `--measure`, read out of src/tokens/tokens.css at run time. A width at or
- * above the reading column is a page width and has to be a token. Below it is
- * component scale — a callout at 400px, an empty state at 340px, a drawer — and
- * the kit has no component measure scale yet. That gap is real and this gate
- * does not pretend to close it; #198 reconciled the page-scale values and left
- * the component ones, and the character measures (38ch, 44ch, 52ch, 60ch, 72ch)
- * with them. If a component scale ever lands, the floor here drops and this
- * comment is what should be deleted first.
+ * The floor is not a number written here: it is --measure, read out of
+ * src/tokens/tokens.css. Below it is component scale, which has no tokens yet
+ * (#208), so there is nothing for a literal down there to become.
  *
- * WHY A MEDIA QUERY IS NOT A SUBJECT. `@media (max-width: 860px)` is a
- * breakpoint — a question about the viewport, not a width assigned to a box.
- * The declaration regex only matches a property that follows `;`, `{`, `}` or
- * the start of the text, and the one inside `@media (…)` follows `(`, so it is
- * never picked up. That is load-bearing rather than lucky, and the last test in
- * this file is what says so: site/index.html really does carry a breakpoint at
- * exactly the threshold, so a leak would turn this gate red on a correct file.
+ * A media query is a question about the viewport, not a width assigned to a
+ * box, and the declaration regex never matches inside `@media (…)`. The last
+ * test here says so against a live breakpoint at exactly the floor.
+ *
+ * why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

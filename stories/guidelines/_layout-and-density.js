@@ -93,7 +93,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/base.css:91', pattern: 'max-width: var(--container)' },
       { ref: 'src/styles/topbar.css:17', pattern: 'max-width: var(--container)' },
-      { ref: 'src/tokens/tokens.css:66', pattern: '--container: 1120px' },
+      { ref: 'src/tokens/tokens.css:49', pattern: '--container: 1120px' },
     ],
   },
   {
@@ -105,7 +105,7 @@ export const RULES = [
       + 'as if they competed is what made nine widths look like one disagreement.',
     kit: [
       { ref: 'src/styles/layout.css:124', pattern: 'var(--ui-app-main, var(--measure))' },
-      { ref: 'src/tokens/tokens.css:67', pattern: '--measure: 860px' },
+      { ref: 'src/tokens/tokens.css:50', pattern: '--measure: 860px' },
     ],
   },
   {
@@ -117,7 +117,7 @@ export const RULES = [
       + 'and there is nothing left to hold in step.',
     except: 'A caller may still pass an explicit maxWidth — an override is a decision, not a copy.',
     kit: [
-      { ref: 'src/components/shell.js:113', pattern: "s === 'none' || LENGTH.test(s) ? s : ''" },
+      { ref: 'src/components/shell.js:102', pattern: "s === 'none' || LENGTH.test(s) ? s : ''" },
       { ref: 'stories/apps/shell.test.js:714', pattern: 'the reading column has one source' },
     ],
   },
@@ -158,7 +158,7 @@ export const RULES = [
         + 'custom property, so that one is a build step or a convention.',
     },
     kit: [
-      { ref: 'stories/measure-tokens.test.js:115', pattern: 'no literal page-scale width outside src/tokens' },
+      { ref: 'stories/measure-tokens.test.js:104', pattern: 'no literal page-scale width outside src/tokens' },
     ],
   },
 ];
