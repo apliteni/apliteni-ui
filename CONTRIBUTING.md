@@ -69,11 +69,17 @@ reads the whole history. Run them locally before pushing with
 Issues and PR bodies aren't covered by gitleaks — a separate workflow warns on
 internal identifiers posted there, but the responsibility is yours.
 
-A diff that loosens one of those gates is graded by the loosened gate, so no check
-catches it. The files this applies to are the ones the gates are *made of* —
-`.github/`, `.gitleaks.toml`, `.pre-commit-config.yaml`, the `scripts/*.check.mjs`.
-Because nothing in CI flags a change to them, please say so in the pull request body
-when you touch one, so the reviewer reads the diff itself rather than the run.
+Two of those gates check themselves, and it is worth knowing which two.
+`scripts/gitleaks-rules.check.mjs` mutation-tests every rule in `.gitleaks.toml`, and
+`scripts/secret-scan-range.check.mjs` lifts the scan step's own logic out of
+`security.yml` and runs it against synthetic repositories. Because both sit inside the
+required Secret scan job, a diff that loosens a scanner rule or the scan's commit range
+turns that job red.
+
+What nothing checks is the checkers. Those two scripts are graded by themselves, and
+`.pre-commit-config.yaml` and the rest of `.github/` by nothing at all, so a diff that
+guts one of them passes every gate this repo has. Please say so in the pull request body
+when you touch one, so the reviewer reads the change itself rather than the run.
 
 ## Add a component
 
