@@ -155,13 +155,24 @@ Add it to the toolbar (`.storybook/preview.js` globalTypes.accent), the
 primary button (`--accent` bg × `--accent-contrast` text) in both themes.
 
 The swatch is machine-checked, so you do not get to pick its colours.
-`stories/accent-swatch.test.js` derives it from your tokens: it fades from the next
-distinct step up your dark ramp — of `--purple`, `--purple-light` and `--purple-mid`,
-the darkest one still lighter than `--accent` — down to dark `--accent` itself. Most
-accents land on `--purple-light`; Nebula's *is* its own `--accent`, so it walks on to
-`--purple-mid`. The same gate holds the site's two hand-kept copies
-(`site/chrome.mjs`, `site/index.html`) character for character identical to
-`accentPicker()`, so add your swatch to all three at once.
+`stories/accent-swatch.test.js` derives it from your tokens: at `135deg`, it fades
+from the next distinct step up your dark ramp — of `--purple`, `--purple-light` and
+`--purple-mid`, the darkest one still lighter than `--accent` — down to dark
+`--accent` itself. Most accents land on `--purple-light`; Nebula's *is* its own
+`--accent`, so it walks on to `--purple-mid`. Two ramp steps tied at that luminance
+make the rule unanswerable and the gate says so rather than picking one.
+
+Write the dark block as `:root[data-theme="dark"][data-accent="<name>"]`, attributes
+in that order, and declare `--accent` and all three `--purple*` in it. Any other
+legal spelling is invisible to the resolver, which then hands your accent Nebula's
+ramp; the gate checks for your block by name and fails if it cannot find it.
+
+The same gate holds the site's two hand-kept copies (`site/chrome.mjs`,
+`site/index.html`), so add your swatch to all three at once. What it compares is the
+`linear-gradient(…)` text each picker paints for each accent — it never sees whether
+you deliver it as `--swatch:` or `background:`, what the aria-labels say, or what
+order the accents are written in. Those three still want to match by hand, for the
+next person reading the diff; the gate only holds the colours.
 
 ## Brand tokens (synced from design-system)
 
