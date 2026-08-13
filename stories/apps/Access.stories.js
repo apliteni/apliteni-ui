@@ -1,5 +1,6 @@
 import { appShell, ACCOUNT_NAV } from '../../src/components/shell.js';
 import { card, button, badge, input, snippet, hlShell, callout, icon } from '../../src/components/index.js';
+import { busyRegion, skeletonTable, deniedState } from '../../src/components/loading.js';
 
 export default {
   title: 'Apps/Access & Agents',
@@ -83,5 +84,56 @@ export const Empty = {
           <div style="margin-top:18px">${button({ label: 'Create token', variant: 'primary', icon: 'key' })}</div>
         </div>` })}
     `,
+  }),
+};
+
+// The state this screen is in for as long as the token list is in flight — and
+// the state it had no drawing of until #128. The skeleton takes the shape of
+// the table that is coming, so the page does not jump when the rows land, and
+// the region says "Loading your agents…" to a reader who cannot see either.
+//
+// The Create-token button is busy in the same breath: one flag, two scales.
+// The button alone was what the kit shipped, and a lit button surrounded by a
+// finished-looking page is exactly the lie this state has to stop telling.
+export const Loading = {
+  render: () => screen({
+    sub: 'Connect agents to read over MCP.',
+    body: `
+      ${card({ title: 'Your agents', body: `
+        ${busyRegion({ label: 'Loading your agents…', body: skeletonTable({ rows: 3, cols: 4 }) })}
+        <div style="display:flex;gap:10px;margin-top:20px">
+          ${input({ placeholder: 'New agent name — e.g. Research bot', ariaLabel: 'New agent name', disabled: true })}
+          ${button({ label: 'Create token', variant: 'primary', icon: 'key', busy: true })}
+        </div>
+      ` })}
+    `,
+  }),
+};
+
+// 403. A reader on a scoped token — the thing this very screen hands out — will
+// meet this page, so the kit owes it a drawing. `need` names the scope verbatim
+// because a reader who can name what they lack can ask for it; "insufficient
+// permissions" sends them to a ticket to find out what to ask for.
+//
+// It sits inside busyRegion({ busy: false }): denial is how the fetch RESOLVED,
+// so it is announced by the region that was already saying "Loading…" rather
+// than by a second live region of its own.
+export const Denied = {
+  name: 'Permission denied',
+  render: () => screen({
+    sub: 'Connect agents to read over MCP.',
+    body: card({ body: busyRegion({
+      busy: false,
+      readyLabel: 'You don’t have access to agent tokens.',
+      body: deniedState({
+        title: 'You don’t have access to agent tokens',
+        sub: 'Tokens are managed by account owners and admins. Your role can read the account, but not the credentials that reach it.',
+        need: 'tokens.read',
+        actions: [
+          { label: 'Request access', variant: 'primary', icon: 'mail' },
+          { label: 'Back to overview', variant: 'secondary', href: '#overview' },
+        ],
+      }),
+    }) }),
   }),
 };

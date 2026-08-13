@@ -1,0 +1,144 @@
+/* ============================================================================
+ * Loading and permission-denied — the screen-scale states.
+ *
+ * Markup comes from components/loading.js:
+ *
+ *   <div class="ui-busy" role="status" aria-live="polite" aria-busy="true">
+ *     <span class="ui-sr">Loading your report…</span>
+ *     <div class="ui-busy__body">
+ *       <div class="ui-skel" aria-hidden="true">
+ *         <span class="ui-skel__bar m-skeleton"></span>…
+ *
+ *   <div class="ui-denied">
+ *     <div class="ui-denied__seal">…lock…</div>
+ *     <div class="ui-denied__title">You don’t have access</div>
+ *     <div class="ui-denied__sub">…</div>
+ *     <div class="ui-denied__need">Needs <code class="ui-code">reports.read</code></div>
+ *     <div class="ui-denied__actions">…</div>
+ *
+ * The shimmer is .m-skeleton from styles/motion.css — this file owns layout and
+ * nothing else about the animation, so reduced motion is already handled by the
+ * global block at the end of that file and there is one shimmer in the kit.
+ *
+ * .ui-denied deliberately borrows every colour .ui-empty uses. To a reader the
+ * two are the same event — what you came for is not here — and giving denial
+ * its own red made it read as a fault the reader had committed. The lock says
+ * which of the two it is.
+ * ========================================================================== */
+
+/* Visually hidden, still read aloud. The kit had no such utility, and the live
+   region needs one: its message is for assistive tech only — the sighted
+   reader is already looking at the skeleton. */
+.ui-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* -- The live region ------------------------------------------------------- */
+.ui-busy {
+  display: block;
+}
+
+/* -- Skeleton -------------------------------------------------------------- */
+.ui-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ui-skel__bar {
+  display: block;
+  height: 13px;
+  width: 100%;
+  border-radius: var(--radius-xs);
+}
+/* Last line of a paragraph run stops short, the way real prose does — a block
+   of four identical full-width bars reads as a table, not as text. Any explicit
+   width from skeleton({ lines: [...] }) is inline and still wins. */
+.ui-skel > .ui-skel__bar:last-child:not(:only-child) {
+  width: 62%;
+}
+
+/* Table shape: the column rhythm the real table will have, so the placeholder
+   does not resize the page out from under the reader when the rows land. */
+.ui-skel--table {
+  gap: 0;
+}
+.ui-skel--table .ui-skel__row {
+  display: grid;
+  grid-template-columns: 1.6fr repeat(calc(var(--skel-cols) - 1), 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.ui-skel--table .ui-skel__row:last-child {
+  border-bottom: 0;
+}
+.ui-skel--table .ui-skel__bar {
+  height: 11px;
+}
+.ui-skel--table .ui-skel__row--head .ui-skel__bar {
+  height: 9px;
+  width: 58%;
+  opacity: 0.7;
+}
+
+/* -- Permission denied ----------------------------------------------------- */
+.ui-denied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+  color: var(--muted);
+}
+.ui-denied__seal {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--dim);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.ui-denied__seal svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+}
+.ui-denied__title {
+  color: var(--text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  margin: 2px 0 0;
+}
+.ui-denied__sub {
+  font-size: var(--text-sm);
+  max-width: 380px;
+  margin: 0;
+  line-height: 1.55;
+}
+/* The missing scope, verbatim. A reader who can name what they lack can ask
+   for it; "insufficient permissions" sends them to a ticket to find out. */
+.ui-denied__need {
+  font-size: var(--text-sm);
+  margin-top: 4px;
+}
+.ui-denied__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
