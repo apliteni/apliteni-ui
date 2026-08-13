@@ -3,7 +3,16 @@
 
 export const RELEASES = [
   {
-    v: '0.11.0', date: '2026-08-12', tag: 'latest',
+    v: '0.11.1', date: '2026-08-13', tag: 'latest',
+    changes: [
+      ['added', 'The kit has guidelines — five pages in Storybook under **Guidelines**, with an index that says what each covers and how many of its rules the kit actually meets. Colour and theming, the full state set, which component suits which job, microcopy and tone, and destructive actions. Every rule shows a live do and don\'t built from real components, and cites the lines of the kit that implement it.'],
+      ['added', 'Two rules say the kit does not meet them yet, and name the issue tracking each. A guideline nobody has implemented is worth more written down and marked than left out, and worth less than nothing asserted as if it were true.'],
+      ['changed', 'The design rules left `CONTRIBUTING.md`. Tokens over literals, signal colours staying constant, the states a component owes, both themes and all accents, and a control naming the state it is in — all five are in the guidelines now, and deleted from the contributing guide rather than copied. Nothing you install changes; if you had bookmarked a golden rule by its number, it has a page instead.'],
+      ['fixed', 'The wording guideline cited a button labelled `Revoke`, which fails the test the rule states out loud — does the label make sense on its own? The example screen says `Revoke access` now, and the rule cites the kit\'s own confirmation first.'],
+    ],
+  },
+  {
+    v: '0.11.0', date: '2026-08-12',
     changes: [
       ['added', '`appShell()` — the kit has one page shell now. A full-height rail built from the kit\'s own `sidebarNav()`, beside exactly one `<main>`. The breadcrumb trail is yours: pass `crumbs` and it renders `breadcrumbs()`, pass nothing and there is no trail. The topbar is off unless you ask for one.', ['Shell']],
       ['added', 'The rail folds to icons below 720px instead of disappearing. Every row keeps its accessible name at every width, and the icon target measures 45×44px on a phone. Before this, a 375px screen got three navigation links, none of them reachable.', ['Shell']],
