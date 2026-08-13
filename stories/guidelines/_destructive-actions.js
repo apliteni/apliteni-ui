@@ -98,7 +98,7 @@ export const RULES = [
         ref: 'stories/components/Confirm.stories.js:45',
         pattern: "confirmLabel: 'Delete workspace', cancelLabel: 'Keep it'",
       },
-      { ref: 'stories/apps/Access.stories.js:37', pattern: "label: 'Revoke access'" },
+      { ref: 'stories/apps/Access.stories.js:38', pattern: "label: 'Revoke access'" },
     ],
   },
   {

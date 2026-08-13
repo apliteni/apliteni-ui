@@ -7,3 +7,5 @@ export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { DataTable } from './DataTable';
 export type { Column, DataTableProps } from './DataTable';
+export { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
+export type { SkeletonProps, SkeletonTableProps, BusyRegionProps, DeniedProps } from './Loading';

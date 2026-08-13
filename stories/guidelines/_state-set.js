@@ -1,5 +1,6 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
-import { button, callout, field, input } from '../../src/components/index.js';
+import { button, callout, field, input, card } from '../../src/components/index.js';
+import { busyRegion, skeletonTable } from '../../src/components/loading.js';
 
 export const TITLE = 'The full state set';
 
@@ -49,6 +50,23 @@ export const errorDont = () => `
     ${callout({ variant: 'danger', icon: 'alert', body: WHY_INVALID })}
   </div>`;
 
+// The pending pair. Same screen, same in-flight moment, twice: on the left the
+// region draws the shape that is coming and says so through the live region;
+// on the right the button is the only thing that knows, and everything around
+// it looks finished. Neither picture can show the announcement — the do side
+// carries a real role="status", so a screen reader on this page hears it.
+const pendingScreen = (body) => card({ title: 'Payouts', body });
+
+export const pendingDo = () => stage(pendingScreen(
+  busyRegion({ label: 'Loading 3 payouts…', body: skeletonTable({ rows: 3, cols: 3 }) })
+  + `<div class="gl-row" style="margin-top:var(--space-3)">${button({ label: 'Refresh', busy: true })}</div>`,
+));
+
+export const pendingDont = () => stage(pendingScreen(
+  '<p style="color:var(--muted);margin:0">Nothing here.</p>'
+  + `<div class="gl-row" style="margin-top:var(--space-3)">${button({ label: 'Refresh', busy: true })}</div>`,
+));
+
 export const RULES = [
   {
     id: 'focus-visible',
@@ -97,17 +115,16 @@ export const RULES = [
   },
   {
     id: 'loading',
-    // No specimen: the kit has no screen-scale pending state to photograph,
-    // which is the rule's own point. See docs/guidelines.md.
     imperative: 'Design the pending state of a screen, not only of its button — and announce it.',
     why: 'A screen that changes silently in flight leaves a screen-reader user with no event at all.',
     except: 'A toast carries its own live region, so a screen that reports through the toast stack needs no second one.',
-    unmet: {
-      issue: 128,
-      note: 'No screen in stories/apps has a loading state, and no React component takes a busy flag; '
-        + 'only the vanilla button gates one.',
-    },
+    doCaption: 'The shape that is coming, in a region that says so.',
+    dontCaption: 'Only the button knows. The page reads as finished.',
+    doHtml: pendingDo,
+    dontHtml: pendingDont,
     kit: [
+      { ref: 'src/components/loading.js:93', pattern: 'export function busyRegion({' },
+      { ref: 'src/components/loading.js:115', pattern: 'export function setBusy(root,' },
       { ref: 'src/components/index.js:253', pattern: 'role="status" aria-live="polite"' },
     ],
   },

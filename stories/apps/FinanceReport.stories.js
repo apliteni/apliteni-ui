@@ -1,4 +1,5 @@
 import { badge, card, segmented, icon } from '../../src/components/index.js';
+import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
 import { financeShell } from './_finance-nav.js';
 
 export default {
@@ -88,6 +89,40 @@ export const Default = {
       ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
       ${kpiStrip()}
       ${payoutsCard()}
+    `,
+  }),
+};
+
+// The same screen while the ledger is still in flight. Two regions, not one:
+// the numbers and the rows arrive from different queries and finish at
+// different times, so a single region would have to lie about one of them.
+//
+// The KPI skeleton keeps the strip's own layout — the container query in
+// KPI_CSS still governs it — so the three columns do not collapse into one
+// shape while loading and snap into another when the numbers land. That is the
+// whole job of a skeleton over a spinner: it reserves the shape that is coming.
+//
+// The period control stays live. It is the one thing a reader can usefully do
+// while waiting, and disabling every control on a loading screen is how a slow
+// query becomes a locked page.
+export const Loading = {
+  render: () => KPI_CSS + financeShell({
+    active: 'payouts',
+    crumb: 'Payouts',
+    title: 'Payouts',
+    sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
+    body: `
+      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${card({ body: busyRegion({
+        label: 'Loading cashflow for the last year…',
+        body: `<div class="fr-kpis__box"><div class="fr-kpis">
+          ${['', '', ''].map(() => `<div style="flex:1;min-width:0">
+            ${skeleton({ lines: ['64%', '86%', '48%'] })}
+          </div>`).join('<div class="fr-kpis__sep"></div>')}
+        </div></div>`,
+      }) })}
+      ${card({ title: `${icon('card')} Payouts`, sub: 'Stripe payouts reconciled to bank transactions.',
+        body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: 6, cols: 7 }) }) })}
     `,
   }),
 };
