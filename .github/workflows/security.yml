@@ -106,10 +106,23 @@ jobs:
       #
       # A green scan proves nothing on its own: a rule that stopped matching looks
       # exactly like a clean repo. This plants a fabricated instance of every
-      # covered shape and asserts the right rule names it. GITLEAKS_BIN points at
-      # the binary the step above extracted, rather than prepending $PWD to PATH —
-      # that would let a file named `node` committed at the repo root stand in for
-      # the interpreter and take this gate green without running anything.
+      # covered shape and asserts the right rule names it.
+      #
+      # Then it does the same to the cases themselves, in the same run — a fixture
+      # can quietly stop testing anything, and three of them had. It weakens every
+      # rule in .gitleaks.toml along each axis that rule actually has (its classes,
+      # its length floors, its \b boundaries, its id, an entropy floor, and the
+      # allowlist's path anchors), re-runs every case against each weakened copy,
+      # and requires a case to die. A rule nothing kills fails; so does a single
+      # surviving mutation carrying no written justification, and so does a
+      # justification that some case has since started killing. The mutated
+      # configs are written to a temp directory and never to .gitleaks.toml.
+      # See docs/adr/0008-a-rule-is-proven-by-the-mutation-that-kills-its-case.md.
+      #
+      # GITLEAKS_BIN points at the binary the step above extracted, rather than
+      # prepending $PWD to PATH — that would let a file named `node` committed at
+      # the repo root stand in for the interpreter and take this gate green
+      # without running anything.
       - name: Rule regression check
         run: GITLEAKS_BIN=./gitleaks node scripts/gitleaks-rules.check.mjs
       # The scan step above decides how much history to walk, and getting that

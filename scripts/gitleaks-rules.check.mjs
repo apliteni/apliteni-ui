@@ -19,6 +19,18 @@
  * that keep that true are stated above the fixture builder, where editing
  * happens — read them before touching a fixture.
  *
+ * A case, though, can quietly stop testing anything: three of them did, and a
+ * throwaway script found all three. So the cases are not the whole gate. After
+ * they pass, this weakens every rule in .gitleaks.toml along each axis that
+ * rule actually has — its character classes, its length floors, its word
+ * boundaries, its id, its entropy — and re-runs every case against the weakened
+ * config. The bar is per RULE: a rule none of whose mutations kills a case is
+ * not proven, and fails. Every INDIVIDUAL mutation that survives is printed, and
+ * one that survives with no written justification fails too — see JUSTIFIED
+ * below, which is also where a justification that has stopped being true turns
+ * the run red. The mutation table is DERIVED from the config text, never listed
+ * here.
+ *
  * NOT named *.test.js on purpose. `npm test` globs scripts/**\/*.test.js and
  * runs on a machine with no gitleaks; this check needs the pinned binary and
  * belongs to the security workflow, which downloads it.
@@ -28,6 +40,12 @@
  *
  * The argument exists so the check can be pointed at an older or deliberately
  * mutated config to prove it still fails there. Default is this repo's own.
+ * The mutation pass uses that same seam from the inside: each mutated config is
+ * written to the run's temp directory and judged by the same engine. Nothing
+ * ever writes to .gitleaks.toml.
+ *
+ * why: docs/adr/0008-a-rule-is-proven-by-the-mutation-that-kills-its-case.md
+ * why: docs/adr/0004-the-gates-discover-their-subjects.md
  */
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -178,6 +196,18 @@ const CASES = [
     body: note(wrap(`sk-proj-${streamUrlSafe('p1', 74)}${MARK}${streamUrlSafe('p2', 74)}`, 80)),
   },
   {
+    // The watermark rule is an alternation, and each branch carries its own
+    // class and its own floor. Narrowing or raising ONE branch leaves the other
+    // matching, so a fixture that both branches can reach proves neither. This
+    // one ends at the watermark, so only the leading branch can match it;
+    // openai-wrapped-80col.md is the mirror, reachable only by the trailing
+    // branch. Between them every branch of that rule is falsifiable.
+    file: 'openai-watermark-tail.md',
+    ours: 'openai-api-key-watermark',
+    why: 'a key quoted only as far as its watermark — the leading branch alone can match',
+    body: note(`sk-proj-${streamUrlSafe('w1', 30)}${MARK}`),
+  },
+  {
     // Upstream's rule, and ours, both name this shape — which is the point:
     // our watermark rule took a NEW id rather than overriding openai-api-key,
     // so upstream's stays live. `upstream` is what pins that.
@@ -271,6 +301,23 @@ const CASES = [
     body: note(`${stream('e1', 10, LOWER)}@${stream('e2', 12, LOWER)}.test`),
   },
   {
+    // Both classes in the email rule carry '_' and '-', and both are '+'
+    // quantified, so narrowing one only SHORTENS the match on an ordinary
+    // address — the rule still names the file and nothing reddens. The two
+    // cases below are the positions where narrowing breaks the match outright:
+    // the character adjacent to the '@' on each side.
+    file: 'email-underscore-local.md',
+    ours: 'pii-email',
+    why: "a local part that is punctuation — narrow the local class and this stops being an email",
+    body: note(`_@${stream('e3', 12, LOWER)}.test`),
+  },
+  {
+    file: 'email-hyphen-domain.md',
+    ours: 'pii-email',
+    why: 'a hyphenated domain — narrow the domain class and the run to the TLD breaks',
+    body: note(`${stream('e4', 8, LOWER)}@${stream('e5', 6, LOWER)}-${stream('e6', 6, LOWER)}.test`),
+  },
+  {
     file: 'private-ip.md',
     ours: 'pii-private-ip',
     why: 'an RFC1918 address',
@@ -283,10 +330,13 @@ const CASES = [
     body: note(`${stream('h1', 14, LOWER)}.lessly.run`),
   },
   {
+    // The dash sits second, right behind the anchor, rather than somewhere in
+    // the middle: the class after it is '+' quantified, so a dash further along
+    // would leave a shorter run still matching and the class would be untested.
     file: 'ttlsh-ref.md',
     ours: 'infra-ttlsh-tag',
-    why: 'an ephemeral registry reference',
-    body: note(`ttl.sh/${stream('t1', 12, LOWER)}:1h`),
+    why: 'an ephemeral registry reference, dashed the way real tags are — and dashed against the anchor',
+    body: note(`ttl.sh/${stream('t0', 1, LOWER)}-${stream('t1', 10, LOWER)}:1h`),
   },
   {
     file: 'uuid.md',
@@ -299,8 +349,8 @@ const CASES = [
   {
     file: 'deploy-token.md',
     ours: 'infra-deploy-token',
-    why: 'a deploy-token assignment carrying a real-looking value',
-    body: note(`${DEPLOY_VAR}=${stream('dt', 24)}`),
+    why: "a deploy-token assignment carrying a real-looking value — '-' and '_' pinned, so the class is falsifiable",
+    body: note(`${DEPLOY_VAR}=${streamUrlSafe('dt', 24)}`),
   },
 
   // ── Path allowlist, both directions ───────────────────────────────────────
@@ -312,6 +362,15 @@ const CASES = [
     ours: 'apify-api-token',
     why: 'a path merely CONTAINING .svg must not inherit the .svg exemption',
     body: note(`apify_api_${stream('sv3', 32)}`),
+  },
+  {
+    // The same claim for the other path entry. `package-lock.json` is anchored
+    // to both ends; un-anchored it would exempt any path merely CONTAINING the
+    // name, and a note ABOUT the lockfile is the ordinary way that happens.
+    file: 'package-lock.json.md',
+    ours: 'apify-api-token',
+    why: 'a path merely containing package-lock.json must not inherit the lockfile exemption',
+    body: note(`apify_api_${stream('pl', 32)}`),
   },
   {
     // The other half: genuine SVGs stay exempt, so anchoring cannot have lit up
@@ -368,6 +427,54 @@ const CASES = [
     body: `const spk_12345_${stream('x5', 32, UPPER)} = 5;\n`,
   },
 
+  // ── Shapes the infra rules must NOT claim, one per boundary ───────────────
+  //
+  // The four rules above are anchored on a prefix; these three are anchored on
+  // a SHAPE, and the \b at each end is what stops the shape being found inside
+  // a longer one. Each case below satisfies every boundary but one, so removing
+  // that one boundary — and only that one — reddens it. None of these is the
+  // thing its rule is for: a five-part number is not an address, a 12-hex group
+  // is not a UUID, and myttl.sh is somebody else's domain.
+  {
+    file: 'identifier-ip-prefixed.ts',
+    ours: null,
+    why: 'a four-part build stamp whose first part ENDS in 10 — an address only if the leading \\b goes',
+    body: `const buildStamp = '2110.${stream('n4', 2, DIGITS)}.${stream('n5', 2, DIGITS)}.${stream('n6', 2, DIGITS)}';\n`,
+  },
+  {
+    file: 'identifier-ip-suffixed.ts',
+    ours: null,
+    why: 'a last group of four digits — no octet is that long, so only dropping the trailing \\b matches it',
+    body: `const serial = '10.${stream('n7', 2, DIGITS)}.${stream('n8', 2, DIGITS)}.${stream('n9', 4, DIGITS)}';\n`,
+  },
+  {
+    file: 'identifier-uuid-prefixed.ts',
+    ours: null,
+    why: 'a 12-hex first group — a UUID hides inside it only if the leading \\b goes',
+    body: `const digest = '${stream('v1', 12, HEX)}-${stream('v2', 4, HEX)}-4${stream('v3', 3, HEX)}-a${stream('v4', 3, HEX)}-${stream('v5', 12, HEX)}';\n`,
+  },
+  {
+    file: 'identifier-uuid-suffixed.ts',
+    ours: null,
+    why: 'a 14-hex last group — likewise, but for the trailing \\b',
+    body: `const digest = '${stream('v6', 8, HEX)}-${stream('v7', 4, HEX)}-4${stream('v8', 3, HEX)}-a${stream('v9', 3, HEX)}-${stream('v10', 14, HEX)}';\n`,
+  },
+  {
+    // Written with the interpolation against the prefix for the reason the box
+    // above gives: the denylist grep looks for ttl.sh/ followed by a lowercase
+    // character in tracked files, and it does not exclude scripts/.
+    file: 'identifier-ttlsh-lookalike.ts',
+    ours: null,
+    why: 'myttl.sh is a different domain — ours only without the leading \\b',
+    body: `const registry = 'myttl.sh/${stream('x6', 12, LOWER)}:1h';\n`,
+  },
+  {
+    file: 'identifier-lessly-runbook.ts',
+    ours: null,
+    why: 'a runbook filename ending in .lessly.runbook is not a hostname — ours only without the trailing \\b',
+    body: `const doc = '${stream('x7', 8, LOWER)}.lessly.runbook.md';\n`,
+  },
+
   // ── Control ───────────────────────────────────────────────────────────────
   {
     // If the rule set has degenerated into flagging everything, this notices.
@@ -394,6 +501,517 @@ function gitleaksVersion() {
   return v.status === 0 ? (v.stdout ?? '').trim() : 'unknown';
 }
 
+// ── The mutation pass ──────────────────────────────────────────────────────
+//
+// Everything below reads .gitleaks.toml as TEXT and derives what to weaken from
+// what each rule actually contains. There is no table of rules here on purpose:
+// a rule added tomorrow gets its mutations by existing, which is the same
+// argument ADR 0004 makes for the icon gates.
+
+/** Every top-level TOML table header, with the span of text it owns. */
+function sections(text) {
+  const heads = [...text.matchAll(/^\[[^\n]*$/gm)];
+  return heads.map((h, i) => ({
+    header: h[0].trim(),
+    start: h.index,
+    end: i + 1 < heads.length ? heads[i + 1].index : text.length,
+  }));
+}
+
+/**
+ * A field's value, as absolute offsets into the config text. Both literal forms
+ * this file uses are handled — '''raw''' and "basic" — because a rule written
+ * in the other one must not silently fall out of the pass.
+ */
+function fieldSpan(text, sec, name) {
+  const body = text.slice(sec.start, sec.end);
+  for (const [pattern, quote] of [
+    [new RegExp(`^${name}\\s*=\\s*'''([\\s\\S]*?)'''`, 'm'), "'''"],
+    [new RegExp(`^${name}\\s*=\\s*"([^"\\n]*)"`, 'm'), '"'],
+  ]) {
+    const m = pattern.exec(body);
+    if (!m) continue;
+    const at = sec.start + m.index + m[0].indexOf(quote) + quote.length;
+    return { start: at, end: at + m[1].length, value: m[1] };
+  }
+  return null;
+}
+
+/**
+ * The character classes in a regex, with offsets. Written out rather than done
+ * with a regex because `[` is legal inside a class and `\[` is legal outside
+ * one, and getting either wrong silently drops a class from the pass.
+ */
+function charClasses(pattern) {
+  const out = [];
+  for (let i = 0; i < pattern.length; i++) {
+    if (pattern[i] === '\\') {
+      i++;
+      continue;
+    }
+    if (pattern[i] !== '[') continue;
+    let j = i + 1;
+    if (pattern[j] === '^') j++;
+    if (pattern[j] === ']') j++; // a ']' first in the class is literal
+    for (; j < pattern.length; j++) {
+      if (pattern[j] === '\\') {
+        j++;
+        continue;
+      }
+      if (pattern[j] === ']') break;
+    }
+    out.push({ start: i, end: j + 1, body: pattern.slice(i + 1, j) });
+    i = j;
+  }
+  return out;
+}
+
+/** Base64url narrowed to alphanumerics: drop '_' and a LITERAL '-' from a class. */
+function narrowClass(body) {
+  let out = body.replaceAll('\\-', '').replaceAll('_', '');
+  // A bare '-' is literal only at the very start or the very end of a class
+  // body. Anywhere else it is a range operator and removing it would change
+  // the class into something else entirely.
+  if (out.endsWith('-')) out = out.slice(0, -1);
+  if (out.startsWith('-')) out = out.slice(1);
+  return out;
+}
+
+const NARROWABLE = (body) => body.includes('_') || body.includes('\\-') || body.startsWith('-') || body.endsWith('-');
+
+/**
+ * The floor every {n,} is raised to.
+ *
+ * Derived, not chosen: one more than the longest fixture body in this file. A
+ * quantifier asking for more characters than the whole file contains cannot be
+ * satisfied by anything planted here, whatever the payload inside that file is
+ * — so this is provably above every fixture's payload without having to know
+ * where each payload starts.
+ */
+const RAISED_FLOOR = Math.max(...CASES.map((c) => c.body.length)) + 1;
+
+/**
+ * The entropy floor every rule is given.
+ *
+ * 7.0 is above the Shannon entropy of ANY ASCII match, not just of these
+ * fixtures: the printable set is 95 characters, so log2(95) ≈ 6.57 is the
+ * ceiling, and a base64 payload caps at log2(64) = 6. A rule carrying this
+ * floor reports nothing at all, which is the point — it stands for "someone
+ * added an entropy line", the field .gitleaks.toml never writes and the one
+ * our 1Password rule already inherits from the upstream rule it replaces.
+ */
+const RAISED_ENTROPY = '7.0';
+
+/** The one contiguous region in which two texts differ, or null if identical. */
+function diffSpan(a, b) {
+  if (a === b) return null;
+  let head = 0;
+  while (head < a.length && head < b.length && a[head] === b[head]) head++;
+  let tail = 0;
+  while (tail < a.length - head && tail < b.length - head && a[a.length - 1 - tail] === b[b.length - 1 - tail]) tail++;
+  return { at: head, from: a.slice(head, a.length - tail), to: b.slice(head, b.length - tail) };
+}
+
+/**
+ * Build one mutation, and refuse to hand back a no-op.
+ *
+ * This is the guard the throwaway script that found the vacuous fixtures did
+ * not have. If a text edit matches nothing, the mutated config is the original,
+ * every case stays green, and the pass reports "nothing detects this" — which
+ * reads as a rule with no teeth when it means the edit was wrong. So the edit
+ * is measured: the text must differ, in exactly one region, and that region
+ * must lie inside the block it was meant to change.
+ */
+function mutation({ subject, axis, key, note, text, original, sec }) {
+  const span = diffSpan(original, text);
+  if (!span) {
+    fail(
+      `gitleaks-rules.check: mutation "${subject} / ${axis} — ${note}" changed nothing.\n` +
+        'The substitution did not land, so this run could not tell a toothless rule from a bad edit.',
+    );
+  }
+  if (span.at < sec.start || span.at > sec.end) {
+    fail(
+      `gitleaks-rules.check: mutation "${subject} / ${axis} — ${note}" edited offset ${span.at},` +
+        ` outside the ${sec.header} block at ${sec.start}..${sec.end}.`,
+    );
+  }
+  return { subject, axis, key, note, text, edit: `${JSON.stringify(span.from)} → ${JSON.stringify(span.to)}` };
+}
+
+/**
+ * Which of these ids gitleaks' own shipped ruleset already defines.
+ *
+ * Asked of the binary rather than of a list here, and rather than of a copy of
+ * upstream's TOML fetched over the network: `--enable-rule` resolves against
+ * the merged ruleset, so pointing it at a config that is nothing but
+ * `useDefault = true` answers exactly "does upstream ship this id". An id it
+ * cannot find is a fatal error naming the id; one it finds scans and exits 0.
+ *
+ * This matters because gitleaks merges an extended config into its default one
+ * BY RULE ID, field by field. A rule of ours that reuses an upstream id
+ * replaces that rule's regex and keywords and INHERITS everything it does not
+ * mention — which is how our 1Password rule ends up with upstream's entropy
+ * floor of 4 without .gitleaks.toml saying so anywhere.
+ */
+function upstreamIds(candidates, root, counter) {
+  const probeConfig = join(root, 'upstream-probe.toml');
+  const probeDir = join(root, 'upstream-probe');
+  writeFileSync(probeConfig, '[extend]\nuseDefault = true\n');
+  mkdirSync(probeDir, { recursive: true });
+  const found = new Set();
+  for (const id of candidates) {
+    counter.runs++;
+    const run = spawnSync(
+      GITLEAKS,
+      ['detect', '--no-git', '--source', probeDir, '--config', probeConfig, '--enable-rule', id, '--no-banner'],
+      { encoding: 'utf8' },
+    );
+    if (run.error) fail(`gitleaks-rules.check: could not probe upstream rule ids: ${run.error.message}`);
+    const missing = (run.stderr ?? '').includes(`Requested rule ${id} not found in rules`);
+    if (!missing && run.status !== 0) {
+      fail(`gitleaks-rules.check: upstream probe for "${id}" exited ${run.status}\n${(run.stderr ?? '').trim()}`);
+    }
+    if (!missing) found.add(id);
+  }
+  return found;
+}
+
+/**
+ * Every mutation this config earns, generated from the config itself.
+ *
+ * Six axes. The first four weaken a rule the four ways a rule in this file can
+ * be weakened by hand — its classes, its floors, its boundaries, its name. The
+ * fifth stands for an entropy line appearing, inherited or written. The sixth
+ * un-anchors a path allowlist entry, which switches every rule in the file off
+ * for anything whose path merely CONTAINS the pattern.
+ */
+function planMutations(text, upstream) {
+  const secs = sections(text);
+  const out = [];
+
+  for (const sec of secs.filter((s) => s.header === '[[rules]]')) {
+    const idSpan = fieldSpan(text, sec, 'id');
+    const reSpan = fieldSpan(text, sec, 'regex');
+    if (!idSpan) fail(`gitleaks-rules.check: a [[rules]] block at offset ${sec.start} has no id`);
+    if (!reSpan) fail(`gitleaks-rules.check: rule "${idSpan.value}" has no regex this pass can read`);
+    const id = idSpan.value;
+    const pattern = reSpan.value;
+    const patch = (from, to, replacement) =>
+      text.slice(0, reSpan.start + from) + replacement + text.slice(reSpan.start + to);
+    // `key` names a mutation the way a human would — the substitution, not where
+    // it landed — and `at` carries the offset for the printed line. They are
+    // separate because JUSTIFIED below is looked up by key: editing a DIFFERENT
+    // part of the same regex shifts every later offset, and a justification that
+    // fell off for that reason would be noise. Editing the shape a justification
+    // names DOES drop it, and that is the loud failure this wants.
+    const make = (axis, key, at, mutated) =>
+      out.push(
+        mutation({
+          subject: id,
+          axis,
+          key,
+          note: at === null ? key : `${key} (regex offset ${at})`,
+          text: mutated,
+          original: text,
+          sec,
+        }),
+      );
+
+    // (1) class-narrow — one variant per class, not one per rule. A rule whose
+    // alternatives each carry their own class is only half-tested by narrowing
+    // both at once: the other branch keeps matching and nothing goes red.
+    for (const cls of charClasses(pattern).filter((c) => NARROWABLE(c.body))) {
+      const narrowed = `[${narrowClass(cls.body)}]`;
+      // The offset is in the label because a rule can carry the same class
+      // twice — the watermark rule does, once in each branch — and two lines
+      // reading the same thing make a matrix that cannot be checked.
+      make(
+        'class-narrow',
+        `${pattern.slice(cls.start, cls.end)} → ${narrowed}`,
+        cls.start,
+        patch(cls.start, cls.end, narrowed),
+      );
+    }
+
+    // (2) floor-raise — every open-ended length floor, one at a time.
+    for (const q of pattern.matchAll(/\{(\d+),\}/g)) {
+      make(
+        'floor-raise',
+        `{${q[1]},} → {${RAISED_FLOOR},}`,
+        q.index,
+        patch(q.index, q.index + q[0].length, `{${RAISED_FLOOR},}`),
+      );
+    }
+
+    // (3) anchor-drop — every \b, one at a time, so a leading and a trailing
+    // boundary are two separate claims rather than one.
+    const boundaries = [...pattern.matchAll(/\\b/g)];
+    for (const [n, b] of boundaries.entries()) {
+      const where = n === 0 ? 'leading' : n === boundaries.length - 1 ? 'trailing' : `#${n + 1}`;
+      make('anchor-drop', `the ${where} \\b removed`, b.index, patch(b.index, b.index + 2, ''));
+    }
+
+    // (4) id-rename — the rule keeps its regex and stops answering to its name.
+    // Nothing but a case naming that id notices, which is what makes this the
+    // test for "this rule has no case at all".
+    make(
+      'id-rename',
+      `id "${id}" → "${id}-mutant"`,
+      null,
+      `${text.slice(0, idSpan.end)}-mutant${text.slice(idSpan.end)}`,
+    );
+
+    // (4b) id-rename onto an UPSTREAM id — the specific tidy-up .gitleaks.toml
+    // warns against in prose. Taking an upstream id does not add a rule, it
+    // REPLACES one, and the pair is derived from what the cases already assert
+    // upstream owns, gated on the binary confirming that id ships.
+    for (const target of [...new Set(CASES.filter((c) => c.ours === id).flatMap((c) => c.upstream ?? []))]) {
+      if (!upstream.has(target) || target === id) continue;
+      make(
+        'id-onto-upstream',
+        `id "${id}" → "${target}" (replaces upstream's rule instead of standing beside it)`,
+        null,
+        text.slice(0, idSpan.start) + target + text.slice(idSpan.end),
+      );
+    }
+
+    // (5) entropy-raise — a floor no match can clear. Written after the regex
+    // line so the block stays a block.
+    const lineEnd = text.indexOf('\n', reSpan.end);
+    make(
+      'entropy-raise',
+      `entropy = ${RAISED_ENTROPY} added`,
+      null,
+      `${text.slice(0, lineEnd + 1)}entropy = ${RAISED_ENTROPY}\n${text.slice(lineEnd + 1)}`,
+    );
+  }
+
+  // (6) allowlist paths un-anchored. A path entry is not a rule — it turns
+  // EVERY rule off for what it matches — so its mutations are grouped under the
+  // allowlist rather than under any rule id.
+  for (const sec of secs.filter((s) => s.header === '[allowlist]')) {
+    const body = text.slice(sec.start, sec.end);
+    const list = /^paths\s*=\s*\[([\s\S]*?)^\]/m.exec(body);
+    if (!list) continue;
+    const listAt = sec.start + list.index + list[0].indexOf('[') + 1;
+    for (const entry of list[1].matchAll(/'''([\s\S]*?)'''/g)) {
+      const at = listAt + entry.index + 3;
+      const loose = entry[1].replace(/^\(\?:\^\|\/\)/, '').replace(/^\^/, '').replace(/\$$/, '');
+      if (loose === entry[1]) continue; // nothing to un-anchor
+      out.push(
+        mutation({
+          subject: '[allowlist] paths',
+          axis: 'paths-unanchor',
+          key: `${entry[1]} → ${loose}`,
+          note: `${entry[1]} → ${loose}`,
+          text: text.slice(0, at) + loose + text.slice(at + entry[1].length),
+          original: text,
+          sec,
+        }),
+      );
+    }
+  }
+
+  return out;
+}
+
+/**
+ * The individual mutations nothing here can kill, and why — beside the code
+ * that generates them, because that is where the next person edits an axis.
+ *
+ * The bar this check enforces is per RULE: a rule none of whose mutations kills
+ * a case is unproven and fails. But a single surviving mutation under a rule
+ * that IS proven is still a hole in the argument, so it does not get to pass in
+ * silence. It carries a written reason here, and that reason is itself checked
+ * two ways every run:
+ *
+ *   - a justification whose mutation is no longer planned FAILS. The key below
+ *     is the substitution, so rewording the rule's class or moving its \b out of
+ *     the leading position drops the match and the run says so.
+ *   - a justification on a mutation that a case DOES now kill FAILS, naming the
+ *     case. An exception that outlives its reason is the same silent green this
+ *     whole check exists to close, so it goes stale loudly rather than quietly.
+ *
+ * `mutation` matches the `key` a mutation is built with, not its printed `note`
+ * — the offset is deliberately not part of the key. Both entries below were
+ * measured on gitleaks 8.30.1, not reasoned about.
+ */
+const JUSTIFIED = [
+  {
+    subject: 'infra-lessly-run',
+    axis: 'class-narrow',
+    mutation: '[a-z0-9-] → [a-z0-9]',
+    why:
+      'The rule matches a SUFFIX, and the label in front of the domain is "+" quantified, so narrowing ' +
+      'the class changes how much of a hostname the match covers, almost never WHETHER the file is ' +
+      'flagged. Measured under the narrowed class: staging-box-01.<domain> is still flagged, because ' +
+      '01.<domain> matches on its own. The only string that flips is a label ENDING in a hyphen — ' +
+      'x-.<domain> — and that is not a valid DNS label, so a case carrying it would be a fixture ' +
+      'pretending to be a hostname rather than a hostname. The domain is redacted in these strings for ' +
+      'the reason the header gives: the denylist grep does not exclude scripts/, and a literal here ' +
+      'would refuse every commit in the repo.',
+  },
+  {
+    subject: 'infra-lessly-run',
+    axis: 'anchor-drop',
+    mutation: 'the leading \\b removed',
+    why:
+      'Dropping an anchor only WIDENS what a rule matches, so no positive case can die under it — only a ' +
+      'negative case could, and the honest negative case does not exist here. Probing for one named a real ' +
+      'weakness instead: api_staging.<domain> and APIstaging.<domain> are internal hostnames this rule ' +
+      'MISSES today, because \\b sits between a word character and a non-word one and there is no boundary ' +
+      'between "_" and "s" or between "I" and "s". Nothing escapes the repo — the internal-terms denylist in ' +
+      '.github/workflows/security.yml greps tracked files for the same shape without the anchor and catches ' +
+      'both, measured. Fixing the rule is its own change: see the open issue on infra-lessly-run\'s leading ' +
+      'anchor. This check never edits .gitleaks.toml, so it records the hole rather than closing it.',
+  },
+];
+
+/**
+ * Attach each justification to the one mutation it excuses.
+ *
+ * Exactly one: a justification matching nothing has outlived its subject, and
+ * one matching several cannot say which it means — a rule can carry the same
+ * class twice, as the watermark rule does. Both are failures rather than
+ * best-effort matches, because a mis-aimed excuse silences a mutation nobody
+ * chose to silence.
+ */
+function matchJustifications(rows) {
+  const failures = [];
+  for (const j of JUSTIFIED) {
+    const named = `justification for ${j.subject} / ${j.axis} — ${j.mutation}`;
+    const hits = rows.filter((r) => r.subject === j.subject && r.axis === j.axis && r.key === j.mutation);
+    if (hits.length === 0) {
+      failures.push(
+        `${named}: no such mutation is planned any more, so the reason it records is checked against nothing.` +
+          ' Restate it against the mutation that replaced it, or delete it.',
+      );
+    } else if (hits.length > 1) {
+      failures.push(`${named}: matches ${hits.length} planned mutations, so it cannot say which one it excuses.`);
+    } else if (hits[0].justified) {
+      failures.push(`${named}: a second justification already excuses that mutation.`);
+    } else {
+      hits[0].justified = j;
+    }
+  }
+  return failures;
+}
+
+/** Word-wrap a justification so a paragraph in the report stays readable. */
+function fold(text, columns = 96) {
+  const lines = [];
+  let line = '';
+  for (const word of text.split(/\s+/)) {
+    if (line.length > 0 && line.length + 1 + word.length > columns) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line.length > 0 ? `${line} ${word}` : word;
+    }
+  }
+  if (line.length > 0) lines.push(line);
+  return lines;
+}
+
+/**
+ * Run gitleaks once over the planted files with one config, and return which
+ * rule ids named each file.
+ *
+ * A config that will not load is NOT a detected mutation — gitleaks refusing to
+ * start says nothing about whether a rule has teeth — so it takes the exit-code
+ * 2 "cannot tell" path above, naming the config that broke.
+ */
+function scanWith(configPath, scanDir, root, counter, label) {
+  const report = join(root, `report-${counter.runs}.json`); // outside the scanned directory
+  counter.runs++;
+  const run = spawnSync(
+    GITLEAKS,
+    // prettier-ignore
+    [
+      'detect', '--no-git', '--source', scanDir, '--config', configPath,
+      '--report-format', 'json', '--report-path', report,
+      '--redact', '--no-banner', '--exit-code', '0',
+    ],
+    { encoding: 'utf8' },
+  );
+
+  if (run.error?.code === 'ENOENT') {
+    fail(
+      `gitleaks not found (tried "${GITLEAKS}").\n` +
+        'The Security workflow (.github/workflows/security.yml) downloads the pinned\n' +
+        'v8.30.1 binary into the working directory and runs this check with\n' +
+        'GITLEAKS_BIN=./gitleaks. Locally, put gitleaks on PATH or set GITLEAKS_BIN.',
+    );
+  }
+  if (run.error) fail(`gitleaks-rules.check: could not run "${GITLEAKS}": ${run.error.message}`);
+  if (run.status !== 0) {
+    fail(
+      `gitleaks-rules.check: "${GITLEAKS}" exited ${run.status} on ${label}.\n` +
+        'A config that does not load is not a mutation this pass detected — it is a\n' +
+        `verdict this run cannot reach. Config kept at ${configPath}\n${(run.stderr ?? '').trim()}`,
+    );
+  }
+  if (!existsSync(report)) fail(`gitleaks-rules.check: gitleaks wrote no report at ${report} for ${label}`);
+
+  let findings;
+  try {
+    findings = JSON.parse(readFileSync(report, 'utf8'));
+  } catch (err) {
+    fail(`gitleaks-rules.check: report at ${report} is not valid JSON: ${err.message}`);
+  }
+  if (!Array.isArray(findings)) fail('gitleaks-rules.check: report JSON is not an array of findings');
+
+  const byFile = new Map();
+  for (const f of findings) {
+    if (typeof f?.File !== 'string' || typeof f?.RuleID !== 'string') {
+      fail('gitleaks-rules.check: a finding is missing File or RuleID — report format changed');
+    }
+    const key = basename(f.File);
+    if (!byFile.has(key)) byFile.set(key, new Set());
+    byFile.get(key).add(f.RuleID);
+  }
+  return byFile;
+}
+
+/** Judge every case against one scan. Returns the failures, and which cases died. */
+function judge(byFile, ruleIds) {
+  const failures = [];
+  const dead = [];
+  for (const c of CASES) {
+    const named = [...(byFile.get(c.file) ?? [])].sort();
+    // Two claims, deliberately different in scope. Ours is an EXACT set over
+    // config-defined rules, so a rule growing into another's territory fails.
+    // Upstream is a subset check over everything, so gitleaks' defaults firing
+    // where we did not ask is not our failure.
+    const oursNamed = named.filter((id) => ruleIds.has(id));
+    const expected = c.ours ? [c.ours] : [];
+    const missing = expected.filter((id) => !oursNamed.includes(id));
+    const extra = oursNamed.filter((id) => !expected.includes(id));
+    const before = failures.length;
+
+    if (missing.length > 0 && oursNamed.length === 0) {
+      failures.push(`${c.file} — NOT CAUGHT, expected ${c.ours} (${c.why})`);
+    } else if (missing.length > 0) {
+      failures.push(`${c.file} — named by ${oursNamed.join(', ')}, expected ${c.ours} (${c.why})`);
+    } else if (extra.length > 0) {
+      failures.push(
+        expected.length === 0
+          ? `${c.file} — flagged by ${extra.join(', ')}, expected no rule of ours (${c.why})`
+          : `${c.file} — ${c.ours} is correct, but ${extra.join(', ')} also claims it (${c.why})`,
+      );
+    }
+
+    for (const up of c.upstream ?? []) {
+      if (!named.includes(up)) {
+        failures.push(`${c.file} — upstream ${up} no longer names it (${c.why})`);
+      }
+    }
+    if (failures.length > before) dead.push(c.file);
+  }
+  return { failures, dead };
+}
+
 /**
  * The exit-code contract, stated where the codes are chosen.
  *
@@ -413,102 +1031,150 @@ function fail(message) {
   process.exit(2);
 }
 
+/**
+ * The matrix, printed rule by rule, and the verdict.
+ *
+ * Three things fail here, and they are separate claims:
+ *
+ *   - a RULE none of whose mutations kills a case. That is the bar: the rule is
+ *     unproven, whatever its cases do on the unmutated config.
+ *   - a rule with no case at all, which is the same hole one step earlier.
+ *   - a surviving MUTATION carrying no justification. A survivor is printed
+ *     either way, justified or not — a green tick that hides one is the shape of
+ *     failure this check exists to close. See JUSTIFIED, and the stale-exception
+ *     failure raised there and below.
+ *
+ * That is ADR 0004's second half applied to mutations: where a count cannot see,
+ * a test says so.
+ */
+function report(rows, ruleSubjects, casesFor) {
+  const failures = [];
+  const subjects = [...new Set([...ruleSubjects, ...rows.map((r) => r.subject)])];
+  for (const subject of subjects) {
+    const mine = rows.filter((r) => r.subject === subject);
+    const isRule = ruleSubjects.includes(subject);
+    const cases = casesFor(subject);
+    const owned = isRule ? `${cases.length} case${cases.length === 1 ? '' : 's'}, ` : '';
+    const killed = mine.filter((r) => r.dead.length > 0).length;
+    console.log(`  ${subject} — ${owned}${mine.length} mutations, ${killed} killed a case`);
+    if (isRule && cases.length === 0) {
+      failures.push(`${subject} — NO CASE plants this rule's shape, so nothing here can prove it fires`);
+    }
+    for (const r of mine) {
+      let verdict;
+      if (r.dead.length > 0 && r.justified) {
+        // The stale exception. Loud on purpose: the reason below is now false,
+        // and a false reason left in place is how an exception list rots.
+        verdict = `killed ${r.dead.join(', ')} — but it carries a justification saying nothing can`;
+        failures.push(
+          `${subject} / ${r.axis} — ${r.note}: justified as unkillable, and ${r.dead.join(', ')} just killed it.` +
+            ' The justification is now false and must be removed from JUSTIFIED.',
+        );
+      } else if (r.dead.length > 0) {
+        verdict = `killed ${r.dead.join(', ')}`;
+      } else if (r.justified) {
+        verdict = 'SURVIVED — justified, nothing here can kill it';
+      } else {
+        verdict = 'SURVIVED — no case noticed, and no justification says why none can';
+        failures.push(
+          `${subject} / ${r.axis} — ${r.note}: survived, every case stayed green.` +
+            ' Add the case that kills it, or a justification in JUSTIFIED saying why none can.',
+        );
+      }
+      console.log(`      ${r.axis.padEnd(16)} ${r.note}\n        ${r.edit}\n        ${verdict}`);
+      if (r.justified) for (const line of fold(r.justified.why)) console.log(`          ${line}`);
+    }
+    // The bar. Checked over the rule rather than over each mutation, so a rule
+    // may carry a justified survivor and still be proven — by a different
+    // mutation, on a different axis, killing a real case.
+    if (isRule && mine.length > 0 && killed === 0) {
+      failures.push(
+        `${subject} — UNPROVEN: none of its ${mine.length} mutations killed a case,` +
+          ' so nothing here shows this rule has teeth',
+      );
+    }
+  }
+  return failures;
+}
+
 function main() {
   if (!existsSync(CONFIG)) fail(`gitleaks-rules.check: no config at ${CONFIG}`);
-  const ruleIds = configuredRuleIds(readFileSync(CONFIG, 'utf8'));
+  const configText = readFileSync(CONFIG, 'utf8');
 
   const root = mkdtempSync(join(tmpdir(), 'gitleaks-rules-'));
   // Registered before anything is planted, and on 'exit' rather than in a
   // `finally`: a `finally` does NOT run after process.exit, so every early
   // bail below would otherwise leave eight credential-shaped files on disk.
+  // The mutated configs land here too, so a run that dies mid-pass leaves no
+  // weakened copy of .gitleaks.toml anywhere on the machine.
   process.on('exit', () => rmSync(root, { recursive: true, force: true }));
   for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => process.exit(130));
 
   const scanDir = join(root, 'files');
-  const report = join(root, 'report.json'); // outside the scanned directory
   mkdirSync(scanDir);
   for (const c of CASES) writeFileSync(join(scanDir, c.file), `${c.body}\n`);
 
-  const run = spawnSync(
-    GITLEAKS,
-    // prettier-ignore
-    [
-      'detect', '--no-git', '--source', scanDir, '--config', CONFIG,
-      '--report-format', 'json', '--report-path', report,
-      '--redact', '--no-banner', '--exit-code', '0',
-    ],
-    { encoding: 'utf8' },
-  );
-
-  if (run.error?.code === 'ENOENT') {
-    fail(
-      `gitleaks not found (tried "${GITLEAKS}").\n` +
-        'The Security workflow (.github/workflows/security.yml) downloads the pinned\n' +
-        'v8.30.1 binary into the working directory and runs this check with\n' +
-        'GITLEAKS_BIN=./gitleaks. Locally, put gitleaks on PATH or set GITLEAKS_BIN.',
-    );
-  }
-  if (run.error) fail(`gitleaks-rules.check: could not run "${GITLEAKS}": ${run.error.message}`);
-  if (run.status !== 0) fail(`gitleaks-rules.check: "${GITLEAKS}" exited ${run.status}\n${(run.stderr ?? '').trim()}`);
-  if (!existsSync(report)) fail(`gitleaks-rules.check: gitleaks wrote no report at ${report}`);
-
-  let findings;
-  try {
-    findings = JSON.parse(readFileSync(report, 'utf8'));
-  } catch (err) {
-    fail(`gitleaks-rules.check: report at ${report} is not valid JSON: ${err.message}`);
-  }
-  if (!Array.isArray(findings)) fail('gitleaks-rules.check: report JSON is not an array of findings');
-
-  const byFile = new Map();
-  for (const f of findings) {
-    if (typeof f?.File !== 'string' || typeof f?.RuleID !== 'string') {
-      fail('gitleaks-rules.check: a finding is missing File or RuleID — report format changed');
-    }
-    const key = basename(f.File);
-    if (!byFile.has(key)) byFile.set(key, new Set());
-    byFile.get(key).add(f.RuleID);
-  }
-
-  const failures = [];
-  for (const c of CASES) {
-    const named = [...(byFile.get(c.file) ?? [])].sort();
-    // Two claims, deliberately different in scope. Ours is an EXACT set over
-    // config-defined rules, so a rule growing into another's territory fails.
-    // Upstream is a subset check over everything, so gitleaks' defaults firing
-    // where we did not ask is not our failure.
-    const oursNamed = named.filter((id) => ruleIds.has(id));
-    const expected = c.ours ? [c.ours] : [];
-    const missing = expected.filter((id) => !oursNamed.includes(id));
-    const extra = oursNamed.filter((id) => !expected.includes(id));
-
-    if (missing.length > 0 && oursNamed.length === 0) {
-      failures.push(`${c.file} — NOT CAUGHT, expected ${c.ours} (${c.why})`);
-    } else if (missing.length > 0) {
-      failures.push(`${c.file} — named by ${oursNamed.join(', ')}, expected ${c.ours} (${c.why})`);
-    } else if (extra.length > 0) {
-      failures.push(
-        expected.length === 0
-          ? `${c.file} — flagged by ${extra.join(', ')}, expected no rule of ours (${c.why})`
-          : `${c.file} — ${c.ours} is correct, but ${extra.join(', ')} also claims it (${c.why})`,
-      );
-    }
-
-    for (const up of c.upstream ?? []) {
-      if (!named.includes(up)) {
-        failures.push(`${c.file} — upstream ${up} no longer names it (${c.why})`);
-      }
-    }
-  }
-
+  const counter = { runs: 0 };
+  const started = Date.now();
   const where = `config: ${CONFIG} — ${gitleaksVersion()}`;
-  if (failures.length > 0) {
-    console.error(`gitleaks rule regression: ${failures.length} of ${CASES.length} cases failed`);
+
+  // ── The baseline, first and on its own ──────────────────────────────────
+  // Mutation results mean nothing on a red baseline: every mutation would look
+  // "detected" by the case that was already failing. So a red baseline stops
+  // the run before a single mutation is generated, and takes the "cannot tell"
+  // exit rather than reporting a matrix nobody can read.
+  const baseline = judge(scanWith(CONFIG, scanDir, root, counter, 'the unmutated config'), configuredRuleIds(configText));
+  if (baseline.failures.length > 0) {
+    console.error(`gitleaks rule regression: ${baseline.failures.length} of ${CASES.length} cases failed`);
     console.error(where);
+    for (const f of baseline.failures) console.error(`  ✗ ${f}`);
+    fail('The mutation pass did not run: on a red baseline every mutation reads as detected.');
+  }
+  console.log(`gitleaks rule regression: all ${CASES.length} cases pass (${where})`);
+
+  // ── The mutation pass ───────────────────────────────────────────────────
+  const ruleSubjects = sections(configText)
+    .filter((s) => s.header === '[[rules]]')
+    .map((s) => fieldSpan(configText, s, 'id')?.value)
+    .filter(Boolean);
+  const wanted = [...new Set([...ruleSubjects, ...CASES.flatMap((c) => c.upstream ?? [])])];
+  const upstream = upstreamIds(wanted, root, counter);
+  const collide = ruleSubjects.filter((id) => upstream.has(id));
+
+  const mutations = planMutations(configText, upstream);
+  const rows = mutations.map((m, i) => {
+    const path = join(root, `mutant-${i}.toml`);
+    writeFileSync(path, m.text);
+    const label = `${m.subject} / ${m.axis} — ${m.note}`;
+    const { dead } = judge(scanWith(path, scanDir, root, counter, label), configuredRuleIds(m.text));
+    rmSync(path, { force: true });
+    return { ...m, dead };
+  });
+
+  console.log(`\nmutation pass — ${ruleSubjects.length} rules, ${rows.length} mutations`);
+  console.log(
+    `  ids of ours gitleaks 8.30.1 already defines, so extending REPLACES rather than adds: ${
+      collide.length > 0 ? collide.join(', ') : 'none'
+    }`,
+  );
+  // Before the matrix is printed: each justification is attached to the one
+  // mutation it excuses, so report() can tell a justified survivor from a bare
+  // one — and so an excuse aimed at nothing fails rather than being ignored.
+  const orphaned = matchJustifications(rows);
+  const failures = [...report(rows, ruleSubjects, (subject) => CASES.filter((c) => c.ours === subject)), ...orphaned];
+
+  const survivors = rows.filter((r) => r.dead.length === 0);
+  const seconds = ((Date.now() - started) / 1000).toFixed(1);
+  const summary = `${rows.length} mutations, ${counter.runs} gitleaks invocations, ${seconds}s`;
+  if (failures.length > 0) {
+    console.error(`\ngitleaks mutation pass: ${failures.length} unproven (${summary})`);
     for (const f of failures) console.error(`  ✗ ${f}`);
     process.exit(1);
   }
-  console.log(`gitleaks rule regression: all ${CASES.length} cases pass (${where})`);
+  console.log(
+    `\ngitleaks mutation pass: every rule has a case that dies under a mutation;` +
+      ` ${survivors.length} of ${rows.length} mutations survive, each with a justification above (${summary})`,
+  );
 }
 
 try {
