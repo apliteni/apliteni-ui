@@ -34,11 +34,11 @@ const decl = (css, prop) => {
 // change the component's width and this fails, naming both files.
 test('the specimen measure is the confirm component\'s own declared width', () => {
   const kit = decl(read('src/styles/confirm.css'), '--confirm-w');
-  const page = decl(read('stories/guidelines/_destructive-actions.js'), '--gl-specimen');
+  const page = decl(read('stories/guidelines/_layout.js'), '--gl-specimen');
 
   assert.equal(
     page, kit,
-    '--gl-specimen in stories/guidelines/_destructive-actions.js must be the --confirm-w'
+    '--gl-specimen in stories/guidelines/_layout.js must be the --confirm-w'
     + ' declared in src/styles/confirm.css, so the page shows the confirm at the width the'
     + ` product shows it (page: ${page}, kit: ${kit})`,
   );

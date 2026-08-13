@@ -11,13 +11,13 @@
 // and every background is painted with the exact colour that ratio was measured
 // against. Number and pixel cannot drift apart.
 //
-// Colour literals. Golden rule 1 says tokens, never literals — and every piece
-// of page chrome here obeys it. The literals below are the subject matter: a
-// token value as src/tokens/tokens.css holds it today, a composited wash, or a
-// value that used to be in the file and is kept for the comparison. Each block
-// is marked with where its value comes from. The gate in
-// stories/signal-contrast.test.js reads the same tokens out of the stylesheets,
-// so a token that moves without this page moving turns that test red.
+// Colour literals. Guidelines → Colour and theming says tokens, never
+// literals — and every piece of page chrome here obeys it. The literals below
+// are the subject matter: a token value as src/tokens/tokens.css holds it
+// today, a composited wash, or a value that used to be in the file and is kept
+// for the comparison. Each block is marked with where its value comes from. The
+// gate in stories/signal-contrast.test.js reads the same tokens out of the
+// stylesheets, so a token that moves without this page moving turns it red.
 //
 // Themes. Section 1 shows live kit components, so it follows the toolbar theme
 // and carries both themes' measurements as labels. Sections 2-6 are painted

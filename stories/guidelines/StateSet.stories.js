@@ -1,13 +1,13 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { guidelinePage } from './_layout.js';
-import { TITLE, RULES, SPEC_CSS } from './_destructive-actions.js';
+import { TITLE, RULES, SPEC_CSS } from './_state-set.js';
 
 export default {
-  title: 'Guidelines/Destructive actions',
+  title: 'Guidelines/The full state set',
   parameters: { layout: 'fullscreen' },
 };
 
-export const DestructiveActions = {
-  name: 'Destructive actions',
+export const StateSet = {
+  name: 'The full state set',
   render: () => guidelinePage({ title: TITLE, rules: RULES, css: SPEC_CSS }),
 };
