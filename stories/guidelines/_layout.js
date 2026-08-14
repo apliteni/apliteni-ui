@@ -83,12 +83,20 @@ const cell = (badgeHtml, caption, html) => `
     <div class="gc-cell__cap">${mono(caption)}</div>
   </div>`;
 
+// A rule's `why` renders whether or not it has a specimen pair. It used not to:
+// the pair and the why were alternatives, so a rule that set both showed only
+// the pair and its reasoning reached nobody. Twenty of them were in that state,
+// written and reviewed and invisible — found in #219, whose own why would have
+// been the twenty-first.
+const whyLine = (rule) => (rule.why ? `
+  <p class="gc-why">${mono(rule.why)}</p>` : '');
+
 const figure = (rule) => (rule.doHtml ? `
   <div class="gc-pair">
     ${cell(doBadge(), rule.doCaption, rule.doHtml())}
     ${cell(dontBadge(), rule.dontCaption, rule.dontHtml())}
-  </div>` : `
-  <p class="gc-why">${mono(rule.why)}</p>`);
+  </div>
+  ${whyLine(rule)}` : whyLine(rule));
 
 // Guarded because an unguarded version rendered "Except undefined", and two
 // page authors met that and invented a boundary to get rid of it.
