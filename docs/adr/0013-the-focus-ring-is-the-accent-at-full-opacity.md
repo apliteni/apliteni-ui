@@ -1,4 +1,4 @@
-# 0012. The focus ring is the accent at full opacity, declared once
+# 0013. The focus ring is the accent at full opacity, declared once
 
 - **Date:** 2026-08-14
 - **Status:** accepted
