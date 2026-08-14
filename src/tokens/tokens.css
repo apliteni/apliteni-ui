@@ -154,7 +154,8 @@
      wash over a card. This value was already in the ramp as --purple-mid, so no
      new colour entered it; the ramp then moved up a step above so --accent is
      --purple-light, which is how every other Nebula and Ocean cell is written.
-     --glow-purple and --ring follow it down the file. Held by
+     --glow-purple follows it down the file; --ring is written as var(--accent)
+     and so follows it by reference. Held by
      stories/accent-contrast.test.js. See issue #157.
      why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md */
   --accent: #b479ff;
@@ -222,12 +223,13 @@
   /* Resting elevation for a card. Dark cards are borderless — the surface does
      the grouping on its own — so they cast nothing. */
   --shadow-card: none;
-  /* The accent's own rgb at a fixed alpha, so it moves whenever --accent moves —
-     otherwise a token points at a colour the accent no longer is. At this alpha
-     the band sits under the 3:1 WCAG 1.4.11 asks of a focus indicator, before
-     this change and after it; nothing here closes that. See issue #157 and the
-     ADR's closing section. */
-  --ring: 0 0 0 3px rgba(180, 121, 255, 0.35);
+  /* THE ONLY --ring in the kit — light and every data-accent sub-theme declare
+     an --accent and inherit this line. Opaque because a translucent ring is a
+     glow: the eight rgba() literals this replaced all missed the 3:1 of WCAG
+     1.4.11, at 1.35:1 worst. Held at 4.22:1 worst by
+     stories/guidelines/accessibility-floor.test.js. See issue #218.
+     why: docs/adr/0013-the-focus-ring-is-the-accent-at-full-opacity.md */
+  --ring: 0 0 0 3px var(--accent);
 
   /* The ink a cast shadow is made of, and the specular white that reads as
      gloss on a raised surface. Effects mix these instead of writing rgba(). */
@@ -343,7 +345,7 @@
   /* A white card on a white page needs its own, flatter-than-sm elevation:
      a hairline contact shadow plus a wide soft one (see card.css). */
   --shadow-card: 0 1px 2px rgba(20, 25, 45, 0.04), 0 4px 14px rgba(20, 25, 45, 0.05);
-  --ring: 0 0 0 3px rgba(106, 45, 204, 0.25);
+  /* No --ring here. :root's is var(--accent), and light re-points --accent. */
 
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;

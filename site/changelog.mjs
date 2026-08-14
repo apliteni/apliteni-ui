@@ -3,6 +3,14 @@
 
 export const RELEASES = [
   {
+    v: '0.18.0', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['fixed', 'The focus ring is the accent at **full opacity**, and it is declared once. Every ring in the kit was a hand-written `rgba()` at 0.25–0.38 alpha — one per theme in `tokens.css` and six more in `accents.css` — and measured against the grounds it actually lands on, **not one of the eight theme × accent cells cleared 3:1**. The spread ran **1.35:1** (light Emerald) to **2.21:1** (dark Emerald), against the 3:1 WCAG 1.4.11 asks of a focus indicator. Alpha was the whole gap: `--ring: 0 0 0 3px var(--accent)` clears everywhere, worst cell 4.22:1. Re-pointing `--accent` now re-points the ring, so a sub-theme cannot forget one.', ['Focus']],
+      ['changed', 'Seven `--ring` declarations are gone — the light one in `tokens.css` and all six in `accents.css`. A sub-theme re-points the accent family and inherits the ring, which is the shape the rest of that file already had. `docs/adr/0013` records the decision and the eight measurements behind it.'],
+      ['added', 'The accessibility floor page states a **ring floor of 4.22:1** rather than a gap. `stories/guidelines/accessibility-floor.test.js` sweeps all eight theme × accent cells with the accents discovered from `accents.css`, holds the ring to a hard 3:1, and fails if `--ring` is ever declared more than once anywhere under `src/` — so the seven that were deleted cannot come back one file at a time.'],
+    ],
+  },
+  {
     v: '0.17.0', date: '2026-08-14', tag: 'latest',
     changes: [
       ['changed', 'The table\'s row rhythm reads the **spacing scale** — the base rhythm as much as `--dense`, because the base was as off-scale as the modifier it was being compared against. Six numbers move: the header\'s under-padding 11px → `--space-3`, the body cell 15px → `--space-4`, the dense header and cell 14px → `--space-3` across and 10px → `--space-2` down, and the hover row inset 6px → `--space-2`. A base row is 2px taller and a dense row 4px shorter, which makes the modifier **more** distinct rather than less: a dense row was 77% of a base row and is now 67%, saving 369px over a twenty-row ledger where it saved 249px.', ['Table']],

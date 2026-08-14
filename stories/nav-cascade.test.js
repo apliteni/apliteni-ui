@@ -227,8 +227,17 @@ test("the active nested row's marker paints inside the nav box", () => {
 for (const [theme, accent] of THEMES) {
   test(`every focusable row shows the ring on :focus-visible — ${theme} / ${accent}`, () => {
     const r = rail(theme, accent);
-    const ring = r.vars.get('--ring');
+    // --ring is `0 0 0 3px var(--accent)` since #218 — one declaration that
+    // every theme and accent re-points through --accent. vars holds raw
+    // declarations, so the reference is resolved here the way the cascade
+    // resolves it, before it is compared against a computed box-shadow.
+    const deref = (v) => String(v ?? '').replace(
+      /var\(\s*(--[\w-]+)\s*(?:,([^()]*))?\)/g,
+      (m, name, fallback) => (r.vars.has(name) ? r.vars.get(name) : (fallback ?? m).trim()),
+    ).trim();
+    const ring = deref(r.vars.get('--ring'));
     assert.ok(ring, `no --ring token resolved for ${theme}/${accent} — the harness is not reading the kit`);
+    assert.ok(!ring.includes('var('), `--ring did not resolve for ${theme}/${accent}: ${ring}`);
 
     const rows = {
       'a plain row': '.ui-nav__item:not(.is-active):not(.is-danger):not(.is-disabled)',

@@ -17,10 +17,13 @@ export default {
 // accent family is pinned per panel, so the page shows ONE theme at a time.
 // One key per token in that family: `a` --accent, `as` --accent-strong (the
 // AA-safe button background), `ac` --accent-contrast, `p` --purple, `pl`
-// --purple-light, `pm` --purple-mid, `g` --glow-purple, `rg` the --ring colour,
-// `gf`/`gt` the gradient stops. Bright accents (Phoenix/Ocean/Emerald) pair with
-// their dark --accent-contrast, so accent-strong == accent; the default purple
-// darkens to #7c3aed for white text.
+// --purple-light, `pm` --purple-mid, `g` --glow-purple, `gf`/`gt` the gradient
+// stops. There is no ring key: --ring is `var(--accent)` at full opacity now,
+// declared once for every accent (ADR 0012), so a panel that pinned its own
+// would paint a ring the kit no longer has.
+// Bright accents (Phoenix/Ocean/Emerald) pair with their dark
+// --accent-contrast, so accent-strong == accent; the default purple darkens to
+// #7c3aed for white text.
 //
 // A HAND-COPIED MIRROR GOES STALE, and this one twice did: two accents #96
 // deepened and four washes #157 thinned were still here as their old literals,
@@ -31,25 +34,25 @@ export default {
 // the failure names.
 export const ACCENT = {
   Nebula: {
-    dark: { a: '#b479ff', as: '#7c3aed', ac: '#fff', p: '#6a2dcc', pl: '#b479ff', pm: '#bd8cff', g: 'rgba(180,121,255,.12)', rg: 'rgba(180,121,255,.35)', gf: '#9b5dff', gt: '#20dcf5' },
-    light: { a: '#6a2dcc', as: '#6a2dcc', ac: '#fff', p: '#6a2dcc', pl: '#6a2dcc', pm: '#7a3be0', g: 'rgba(106,45,204,.09)', rg: 'rgba(106,45,204,.25)', gf: '#6a2dcc', gt: '#0c8fa8' },
+    dark: { a: '#b479ff', as: '#7c3aed', ac: '#fff', p: '#6a2dcc', pl: '#b479ff', pm: '#bd8cff', g: 'rgba(180,121,255,.12)', gf: '#9b5dff', gt: '#20dcf5' },
+    light: { a: '#6a2dcc', as: '#6a2dcc', ac: '#fff', p: '#6a2dcc', pl: '#6a2dcc', pm: '#7a3be0', g: 'rgba(106,45,204,.09)', gf: '#6a2dcc', gt: '#0c8fa8' },
   },
   Phoenix: {
-    dark: { a: '#ff6a3d', as: '#ff6a3d', ac: '#241006', p: '#e0531f', pl: '#ff8a5c', pm: '#ffa273', g: 'rgba(255,106,61,.15)', rg: 'rgba(255,106,61,.38)', gf: '#ff7a45', gt: '#ffcf6a' },
-    light: { a: '#a8370c', as: '#a8370c', ac: '#fff', p: '#c2400f', pl: '#d64a12', pm: '#b8420f', g: 'rgba(214,74,18,.1)', rg: 'rgba(214,74,18,.28)', gf: '#d64a12', gt: '#e8992a' },
+    dark: { a: '#ff6a3d', as: '#ff6a3d', ac: '#241006', p: '#e0531f', pl: '#ff8a5c', pm: '#ffa273', g: 'rgba(255,106,61,.15)', gf: '#ff7a45', gt: '#ffcf6a' },
+    light: { a: '#a8370c', as: '#a8370c', ac: '#fff', p: '#c2400f', pl: '#d64a12', pm: '#b8420f', g: 'rgba(214,74,18,.1)', gf: '#d64a12', gt: '#e8992a' },
   },
   Ocean: {
-    dark: { a: '#3b9dff', as: '#3b9dff', ac: '#04121f', p: '#1f7fe0', pl: '#5ab0ff', pm: '#7cc0ff', g: 'rgba(59,157,255,.15)', rg: 'rgba(59,157,255,.38)', gf: '#3b9dff', gt: '#20dcf5' },
-    light: { a: '#005bc8', as: '#005bc8', ac: '#fff', p: '#1156b8', pl: '#1568d6', pm: '#1560c8', g: 'rgba(21,104,214,.1)', rg: 'rgba(21,104,214,.28)', gf: '#1568d6', gt: '#17a2c0' },
+    dark: { a: '#3b9dff', as: '#3b9dff', ac: '#04121f', p: '#1f7fe0', pl: '#5ab0ff', pm: '#7cc0ff', g: 'rgba(59,157,255,.15)', gf: '#3b9dff', gt: '#20dcf5' },
+    light: { a: '#005bc8', as: '#005bc8', ac: '#fff', p: '#1156b8', pl: '#1568d6', pm: '#1560c8', g: 'rgba(21,104,214,.1)', gf: '#1568d6', gt: '#17a2c0' },
   },
   Emerald: {
-    dark: { a: '#16c98a', as: '#16c98a', ac: '#04180f', p: '#0fa876', pl: '#3ad9a0', pm: '#5fe3b4', g: 'rgba(22,201,138,.18)', rg: 'rgba(22,201,138,.38)', gf: '#16c98a', gt: '#20dcf5' },
-    light: { a: '#087a52', as: '#087a52', ac: '#fff', p: '#0a865a', pl: '#0b9c68', pm: '#0a9060', g: 'rgba(11,156,104,.08)', rg: 'rgba(11,156,104,.28)', gf: '#0b9c68', gt: '#12b0a0' },
+    dark: { a: '#16c98a', as: '#16c98a', ac: '#04180f', p: '#0fa876', pl: '#3ad9a0', pm: '#5fe3b4', g: 'rgba(22,201,138,.18)', gf: '#16c98a', gt: '#20dcf5' },
+    light: { a: '#087a52', as: '#087a52', ac: '#fff', p: '#0a865a', pl: '#0b9c68', pm: '#0a9060', g: 'rgba(11,156,104,.08)', gf: '#0b9c68', gt: '#12b0a0' },
   },
 };
 
 export const accentVars = (ac) =>
-  `--accent:${ac.a};--accent-strong:${ac.as};--accent-contrast:${ac.ac};--purple:${ac.p};--purple-light:${ac.pl};--purple-mid:${ac.pm};--glow-purple:${ac.g};--ring:0 0 0 3px ${ac.rg};--grad-from:${ac.gf};--grad-to:${ac.gt}`;
+  `--accent:${ac.a};--accent-strong:${ac.as};--accent-contrast:${ac.ac};--purple:${ac.p};--purple-light:${ac.pl};--purple-mid:${ac.pm};--glow-purple:${ac.g};--grad-from:${ac.gf};--grad-to:${ac.gt}`;
 
 const panel = (name, theme) => {
   const ac = ACCENT[name][theme];

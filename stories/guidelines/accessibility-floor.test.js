@@ -65,7 +65,7 @@ import {
 } from '../lib/contrast.js';
 import {
   TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
-  RING_LEDGER, DISABLED_LEDGER, GATES,
+  DISABLED_LEDGER, GATES, RULES,
 } from './_accessibility-floor.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -376,14 +376,28 @@ test('target size: the sm size the kit ships is measured, and is on the record',
 
 // ---- 2. the ring's contrast ------------------------------------------------
 
+// Every accent the kit ships, discovered from the file that declares them —
+// #218 found --ring written out eight times, and the two this gate measured
+// were the two that were least wrong. The sub-themes re-point --accent, --ring
+// is var(--accent), so each cell paints a different ring on the same surfaces.
+// A new data-accent block is in the gate the moment it is written.
+const ACCENTS = ['default', ...new Set(
+  [...readFileSync(path.join(root, 'src/tokens/accents.css'), 'utf8')
+    .matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]),
+)];
+const CELLS = THEMES.flatMap((theme) => ACCENTS.map((accent) => ({ theme, accent })));
+
 const ringRun = await (async () => {
   const selectors = ringSelectors(sheet());
-  const byTheme = {};
-  for (const theme of THEMES) {
-    const { vars, css } = kitCssFor(theme);
+  const byCell = {};
+  for (const { theme, accent } of CELLS) {
+    const { vars, css } = kitCssFor(theme, accent);
     const win = windowFor(theme, css);
     const styles = makeStyleCache(win);
-    const ring = parseColour((/rgba?\([^)]*\)|#[0-9a-f]{3,8}/i.exec(vars.get('--ring')) || [])[0]);
+    // --ring is a var() now, not a literal, so it is resolved through the same
+    // token map the sheet is. Reading the raw declaration would find no colour.
+    const ringValue = substitute(vars.get('--ring') || '', vars);
+    const ring = parseColour((/rgba?\([^)]*\)|#[0-9a-f]{3,8}/i.exec(ringValue) || [])[0]);
     const landings = new Map();
     const { stories } = await walk(win, styles, vars, () => {
       for (const sel of selectors) {
@@ -408,57 +422,76 @@ const ringRun = await (async () => {
         }
       }
     });
-    byTheme[theme] = { ring: vars.get('--ring'), stories, landings: [...landings.values()], selectors };
+    byCell[`${theme}/${accent}`] = {
+      theme, accent, ring: ringValue.trim(), stories, landings: [...landings.values()], selectors,
+    };
   }
-  return byTheme;
+  return byCell;
 })();
 
+const CELL_KEYS = Object.keys(ringRun);
+
 test('ring: every selector the sheet paints a ring on is landed somewhere by a story', () => {
-  for (const theme of THEMES) {
-    const run = ringRun[theme];
-    assert.ok(run.selectors.length >= 15, `${theme}: only ${run.selectors.length} ring selectors found in the sheet`);
+  for (const key of CELL_KEYS) {
+    const run = ringRun[key];
+    assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
     // `.ui-focusable` is the kit's opt-in focus class (src/styles/base.css:130).
     // No component wears it and no story renders one, so it has no ground to be
     // measured against — which is a fact about the class, not a hole here. It
     // is named rather than filtered so it cannot quietly become two.
     const orphans = run.selectors.filter((s) => !landed.has(s));
-    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${theme}: a ring selector no story renders is a ring nobody measured`);
+    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${key}: a ring selector no story renders is a ring nobody measured`);
   }
 });
 
-test(`ring: ${RING_MIN}:1 against the ground it lands on, or named in the ledger`, () => {
-  for (const theme of THEMES) {
-    const failing = ringRun[theme].landings
-      .filter((l) => l.ratio != null && l.ratio < RING_MIN)
-      .map((l) => `${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`);
-    if (!failing.length) continue;
-    assert.ok(
-      RING_LEDGER.issue,
-      `${theme}: ${failing.length} landings under ${RING_MIN}:1 and no ledger entry:\n  ${failing.join('\n  ')}`,
-    );
-  }
-});
-
-test(`ring: nothing has drifted below ${RING_FLOOR}:1, the worst measured when the number was written`, () => {
-  for (const theme of THEMES) {
-    const worse = ringRun[theme].landings
-      .filter((l) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR)
-      .map((l) => `${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`);
-    assert.deepEqual(worse, [], `${theme}: a token moved a ring landing below where #201 measured it`);
-  }
-});
-
-test('ring: the ledger states the gap it is holding open, and it is still open', () => {
-  const worst = Math.min(...THEMES.flatMap((t) => ringRun[t].landings.map((l) => l.ratio ?? Infinity)));
-  const best = Math.max(...THEMES.flatMap((t) => ringRun[t].landings.map((l) => l.ratio ?? -Infinity)));
-  assert.ok(worst < RING_MIN, 'the ring now clears the bar — retire the ledger rather than leaving it');
-  assert.ok(
-    RING_LEDGER.measured.worst === Math.round(worst * 100) / 100
-    && RING_LEDGER.measured.best === Math.round(best * 100) / 100,
-    `the ledger says ${RING_LEDGER.measured.worst}–${RING_LEDGER.measured.best}, the kit measures `
-    + `${(Math.round(worst * 100) / 100)}–${(Math.round(best * 100) / 100)}`,
+// Every accent is swept, not just the two themes: the ring is var(--accent) and
+// each sub-theme re-points it, so `phoenix` is a different ring on the same
+// surfaces. #201 measured the default accent only and reported 1.50 as the
+// worst the kit had; light emerald was 1.35 the whole time.
+test(`ring: ${RING_MIN}:1 against every ground it lands on, in every theme x accent cell`, () => {
+  const failing = CELL_KEYS.flatMap((key) => ringRun[key].landings
+    .filter((l) => l.ratio != null && l.ratio < RING_MIN)
+    .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
+  assert.deepEqual(
+    failing, [],
+    `${failing.length} ring landings under the ${RING_MIN}:1 of WCAG 1.4.11:\n  ${failing.join('\n  ')}`,
   );
+});
+
+// The bar above is what WCAG asks; this is what the kit actually reaches. They
+// are the same shape and different numbers on purpose — the ratchet catches a
+// token moving the ring DOWN long before it reaches the bar, which is the only
+// warning anyone gets. It is the measured worst, so it moves only by being
+// re-measured (ADR 0002).
+test(`ring: nothing has drifted below ${RING_FLOOR}:1, the worst the kit measures today`, () => {
+  const worse = CELL_KEYS.flatMap((key) => ringRun[key].landings
+    .filter((l) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR)
+    .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
+  assert.deepEqual(worse, [], 'a token moved a ring landing below the worst #218 measured');
+});
+
+// #218 retired the ledger this gate used to carry. The ring clears the bar in
+// all eight cells now, so there is no gap to hold open — and the floor page
+// must not still badge one.
+test('ring: the floor page claims no gap, because there is none', () => {
+  const ring = RULES.find((r) => r.id === 'ring-contrast');
+  assert.ok(ring, 'the ring-contrast rule is gone from the floor page');
+  assert.equal(ring.unmet, undefined, 'the ring clears the bar — retire the ledger rather than leaving it');
+});
+
+// Every ring in the kit is the same one declaration. A second --ring anywhere
+// is a copy that will drift, which is exactly what #218 found eight of.
+test('ring: --ring is declared once, and it is the accent', () => {
+  // Every stylesheet under src/, found rather than listed — a ninth --ring in a
+  // file nobody thought to name is the failure this is here to catch.
+  const declared = readdirSync(path.join(root, 'src'), { recursive: true })
+    .map((f) => String(f).split(path.sep).join('/'))
+    .filter((f) => f.endsWith('.css'))
+    .sort()
+    .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
+      .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
+  assert.deepEqual(declared, ['src/tokens/tokens.css: 0 0 0 3px var(--accent)']);
 });
 
 // ---- 3. the disabled legibility floor --------------------------------------
