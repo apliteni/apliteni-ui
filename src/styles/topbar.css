@@ -79,7 +79,7 @@
 }
 .toggle:hover { transform: translateY(-1px); border-color: var(--border-strong); }
 .toggle .ic { width: 17px; height: 17px; display: inline-block; color: var(--accent); }
-.toggle .ic svg { display: block; width: 100%; height: 100%; }
+.toggle .ic svg { display: block; width: 100%; height: 100%; stroke-width: 2.2; }
 
 /* Version switcher */
 .vsw { position: relative; }
@@ -196,7 +196,7 @@
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: 13px; cursor: pointer; }
 .amenu a:hover { background: var(--surface); }
 .amenu a.cur { color: var(--accent); }
-.amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; opacity: 0.85; }
+.amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
 .amenu a.aout { color: var(--muted); }
 .amenu a.aout:hover { color: var(--pink); }

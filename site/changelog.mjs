@@ -3,6 +3,14 @@
 
 export const RELEASES = [
   {
+    v: '0.19.0', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['changed', 'Every stroked glyph in the kit is drawn at **1.5 CSS px or wider**. ADR 0010 drew that line and ruled on the two glyphs that carry a status; ten of the other thirteen were under it, `.ui-snippet__copy` at 0.98 and `.ui-nav__crumb .ui-nav__ic` at 1.06. Eighteen rules were widened or given a stroke they had been borrowing, all landing between 1.51 and 1.60 — the band the status glyphs already sat in, so a glyph\'s weight no longer depends on which slot it fell into. **No token moved:** widening a stroke changes how much of a colour reaches the eye, not which colour it is.'],
+      ['added', 'A gate that renders the kit rather than reading it. Two shapes hide from a stylesheet scan — a box override that inherits its stroke from a rule seventy lines up, and a stroke that comes from `icons.js` rather than any stylesheet — so the subjects are elements: every story is built into a DOM and every glyph measured with the cascade resolved. It also refuses a sizing rule no story renders, which is how `.ui-feature__icon` turned out to be shipping with no specimen anywhere. `docs/adr/0014` records the rule and why a second bar for a control\'s glyph was rejected.'],
+      ['added', '`.ui-field__error` sizes its glyph. The error row rendered an icon and left it at the reset\'s `1.1em`, so its box followed whatever font-size it landed in.'],
+    ],
+  },
+  {
     v: '0.18.0', date: '2026-08-14', tag: 'latest',
     changes: [
       ['fixed', 'The focus ring is the accent at **full opacity**, and it is declared once. Every ring in the kit was a hand-written `rgba()` at 0.25–0.38 alpha — one per theme in `tokens.css` and six more in `accents.css` — and measured against the grounds it actually lands on, **not one of the eight theme × accent cells cleared 3:1**. The spread ran **1.35:1** (light Emerald) to **2.21:1** (dark Emerald), against the 3:1 WCAG 1.4.11 asks of a focus indicator. Alpha was the whole gap: `--ring: 0 0 0 3px var(--accent)` clears everywhere, worst cell 4.22:1. Re-pointing `--accent` now re-points the ring, so a sub-theme cannot forget one.', ['Focus']],

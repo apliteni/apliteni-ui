@@ -89,4 +89,4 @@
   color: var(--accent);
   flex: none;
 }
-.ui-card__icon svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.ui-card__icon svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2; }

@@ -188,7 +188,17 @@ export const GATES = [
     file: 'stories/signal-contrast.test.js',
     does: 'Reads declarations out of the source and holds twenty status-glyph pairs to the bar '
       + 'ADR 0010 sets by stroke width.',
-    blind: ['Every other stroked glyph in the kit — ten of them sit under that line (#217).'],
+    blind: ['Colour for every glyph that carries no status — width is held next door, ratio is not.'],
+  },
+  {
+    file: 'stories/glyph-stroke.test.js',
+    does: 'Renders every story and measures the width each stroked glyph actually paints at, '
+      + 'inheritance and the icons.js default resolved, against ADR 0010’s 1.5 CSS px line.',
+    blind: [
+      'Colour. It measures width and nothing else — which bar a glyph then takes is ADR 0010’s.',
+      'Anything no story renders, which is why it also refuses a sizing rule with no specimen.',
+      'State: the corpus is what a story renders at rest, so a stroke stated in :hover is unseen.',
+    ],
   },
   {
     file: 'stories/guidelines/accessibility-floor.test.js',

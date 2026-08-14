@@ -96,15 +96,11 @@ have been recording the wrong thing.
 
 ## What this does not cover
 
-- **Every other stroked glyph in the kit.** `.ui-dropdown__tick` renders at 1.47 CSS px,
-  `.ui-scope__icon` at 1.49, `.ui-card__icon` and `.ui-drawer__close` at 1.35, `.ui-nav__ic` at
-  1.20, `.ui-snippet__copy` at 0.98. All are under the line this record draws and none is
-  measured by anything. `.ui-success__check`, at 2.2 CSS px, is the one glyph in `src/styles`
-  that already clears it. This ruling is about the two glyphs that carry a *status*; the rest is
-  a real question and a separate one.
-- **`.ui-toast__close`**, three lines from one of the two, at 1.125 CSS px. It is a control's
-  glyph, carries no status, and has no five-status pair to keep — so the discovery in the gate
-  excludes it by name rather than by accident.
+- **Every other stroked glyph in the kit**, including `.ui-toast__close` three lines from one of
+  the two. This ruling is about the glyphs that carry a *status*, and the list that stood here
+  was hand-written and named six of the ten that were under the line. #217 measured the rest and
+  [0013](0014-a-glyphs-stroke-is-decided-where-its-box-is.md) rules on them: the same 1.5 px
+  line, held by a gate that renders the kit rather than reading it.
 - **The cascade.** [0003](0003-an-icons-size-is-measured-not-reasoned-about.md) mounts icon
   `width`/`height` and reads them back; `stroke-width` is not one of its subjects, and this gate
   reads the declaration in `callout.css` instead of resolving it. The reset in `base.css` is
