@@ -1,27 +1,19 @@
-/* ============================================================================
- * apliteni-ui — MOTION LIBRARY
- *
- * A small, token-driven, framework-agnostic motion system: reusable entrance,
- * micro-interaction, attention, and scroll-reveal effects as plain classes.
- * Every timing reads the brand motion vocabulary (--duration-* / --easing-*,
- * synced from design-system) so motion re-themes and stays consistent.
+/* apliteni-ui — motion library. Reusable entrance, micro-interaction, attention
+ * and scroll-reveal effects as plain classes, every timing reading the brand
+ * motion vocabulary.
  *
  * Per-effect overrides via custom properties on the element:
- *   --m-dur    duration        (default: per effect)
- *   --m-ease   timing function (default: per effect)
- *   --m-delay  start delay      (default: 0s)
- *   --m-dist   travel distance for slides (default: 16px)
+ *   --m-dur  duration   --m-ease  timing function
+ *   --m-delay  start delay   --m-dist  slide travel (default 16px)
  *
- * Scroll reveals need one line of JS — the optional `initReveal()` hook from
- * apliteni-ui/motion. Without JS, [data-reveal] content stays fully visible
- * (progressive enhancement, never hidden behind a script that didn't run).
+ * Scroll reveals need `initReveal()` from apliteni-ui/motion. Without JS,
+ * [data-reveal] content stays fully visible.
  *
- * The global prefers-reduced-motion net that neutralises ALL of the above — plus
- * any component animation in the kit — lives in reduced-motion.css, because the
- * React bundle needs the same net and two copies would drift. index.css imports
- * it beside this file; it is NOT @imported from here, because the icon gates read
- * each stylesheet on its own and refuse a sheet that pulls in another.
- * ========================================================================== */
+ * The global prefers-reduced-motion net lives in reduced-motion.css and is NOT
+ * @imported from here — the icon gates read each stylesheet on its own and
+ * refuse a sheet that pulls in another.
+ *
+ * why: docs/specification.md#motion */
 
 /* -- Entrances -------------------------------------------------------------
  * `both` fill so the element starts at the "from" frame (hidden) and holds

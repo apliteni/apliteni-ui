@@ -2,25 +2,15 @@
  *
  * why: docs/README.md#where-a-decision-gets-recorded
  *
- * Code cites documentation — `why:` lines in test and script headers, comments
- * beside a token, a sentence in a changelog entry. Those citations rot in two
- * ways and both read as though the reason still exists:
+ * A citation rots two ways and both read as though the reason still exists: the
+ * file is renamed or deleted, or the heading is reworded and the reader lands at
+ * the top of a long page. A broken `why:` is worse than no `why:`, so the file
+ * has to exist and an anchor has to be a heading in it.
  *
- *   the file is renamed or deleted   the reader follows a path to nothing
- *   the heading is reworded          the reader lands at the top of a long
- *                                    page with no idea which part was meant
+ * The subject set is every file git tracks, so a new citation joins by being
+ * written. It lives under scripts/ because `npm test` only walks four trees.
  *
- * A broken `why:` is worse than no `why:`, so this gate resolves every one of
- * them: the file has to exist, and an anchor has to be a heading in it.
- *
- * SUBJECTS ARE DISCOVERED, NEVER LISTED — see CONTRIBUTING.md, "A gate
- * discovers its subjects and never enumerates them". The subject set is every
- * file git tracks, scanned for anything shaped like a path to a markdown page.
- * A new citation joins this gate by being written; nothing is added here.
- *
- * It lives under scripts/ because `npm test` only walks src, stories, site and
- * scripts, so a test outside those four trees is never executed and passes by
- * never running.
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -38,16 +28,11 @@ const root = path.resolve(here, '..');
 const CITATION = /(?<![\w#-])((?:[\w.-]+\/)*[\w.-]+\.md)(?![\w])(#[\w-]+)?/g;
 const URL_BEFORE = /:\/\/[^\s)'"`]*$/;
 
-/* Not every string ending in `.md` is a citation. The gates in this repo build
- * synthetic repositories to test themselves, and the files they plant are named
- * the same way real ones are: `gitleaks-rules.check.mjs` has a fixture per rule
- * (`uuid.md`, `email.md`, `openai-legacy.md`), and `secret-scan-range.check.mjs`
- * writes a leak into `notes/deploy-target.md`. None of those exist on disk and
- * none of them should. A gate that reports them is noise, and a gate people mute
- * is not a gate.
- *
- * So a reference counts when it is written one of the three ways a citation is
- * actually written — a form test, never a list of filenames:
+/* Not every string ending in `.md` is a citation: the gates here plant fixture
+ * files named the way real ones are, none of which exist on disk. A gate that
+ * reports them is noise, and a gate people mute is not a gate. So a reference
+ * counts when it is written one of the three ways a citation actually is — a
+ * form test, never a list of filenames:
  *
  *   docs/specification.md      it names a page in the documentation tree
  *   CONTRIBUTING.md#the-rule   it carries an anchor, so it points inside a page

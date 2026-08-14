@@ -10,28 +10,17 @@ export default {
   excludeStories: ['ACCENT', 'accentVars'],
 };
 
-// The real token values (mirrors tokens.css + accents.css) so each preview panel
-// is fully self-contained via inline CSS variables — every accent shows in both
-// themes at once, independent of the toolbar.
-// Surfaces / text / signal colours inherit from the toolbar theme — only the
-// accent family is pinned per panel, so the page shows ONE theme at a time.
-// One key per token in that family: `a` --accent, `as` --accent-strong (the
-// AA-safe button background), `ac` --accent-contrast, `p` --purple, `pl`
+// The real token values, mirrored so each preview panel is self-contained via
+// inline CSS variables. Only the accent family is pinned per panel: `a`
+// --accent, `as` --accent-strong, `ac` --accent-contrast, `p` --purple, `pl`
 // --purple-light, `pm` --purple-mid, `g` --glow-purple, `gf`/`gt` the gradient
-// stops. There is no ring key: --ring is `var(--accent)` at full opacity now,
-// declared once for every accent (the rhythm rule), so a panel that pinned its own
-// would paint a ring the kit no longer has.
-// Bright accents (Phoenix/Ocean/Emerald) pair with their dark
-// --accent-contrast, so accent-strong == accent; the default purple darkens to
-// #7c3aed for white text.
+// stops. There is no ring key — --ring is var(--accent) declared once for every
+// accent, so a panel pinning its own would paint a ring the kit no longer has.
 //
-// A HAND-COPIED MIRROR GOES STALE, and this one twice did: two accents #96
-// deepened and four washes #157 thinned were still here as their old literals,
-// and every panel painted --purple and --ring from the wrong field. So it is no
-// longer trusted — stories/accent-contrast.test.js resolves accentVars() below
-// against the two token files, cell by cell and property by property, and fails
-// on the first value that has drifted. Move a token, and fix the row here that
-// the failure names.
+// A HAND-COPIED MIRROR GOES STALE, and this one twice did. So it is no longer
+// trusted: stories/accent-contrast.test.js resolves accentVars() below against
+// the two token files, property by property, and fails on the first value that
+// has drifted. Move a token, and fix the row the failure names.
 export const ACCENT = {
   Nebula: {
     dark: { a: '#b479ff', as: '#7c3aed', ac: '#fff', p: '#6a2dcc', pl: '#b479ff', pm: '#bd8cff', g: 'rgba(180,121,255,.12)', gf: '#9b5dff', gt: '#20dcf5' },

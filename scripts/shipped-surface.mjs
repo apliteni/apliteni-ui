@@ -3,27 +3,16 @@
  * shipped-surface — fail a pull request that changes what the package publishes
  * without changing the version that would publish it.
  *
- * The subject is the tarball, never the changed paths: the caller packs the
- * package at the base of the pull request and at its head, fingerprints every
- * file npm would put inside, and hands both maps to `assessShippedSurface`.
- * `version` — that field alone, not package.json — is excluded, or the only fix
- * for a red gate would be a change that keeps it red.
- *
- * The second assertion is folded into the same job: a bump has to be upwards and
- * site/changelog.mjs must have a RELEASES entry for it. scripts/release-notes.mjs
- * is imported rather than reimplemented, so there is one definition of "the
- * changelog describes this release".
- *
- * Same two halves as scripts/version-drift.mjs — pure above the
- * `import.meta.url` check, effects below it, no judgement in them.
- *
- * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+ * The subject is the TARBALL, never the changed paths. `version` — that field
+ * alone, not package.json — is excluded. A second assertion is folded into the
+ * same job: a bump has to be upwards and site/changelog.mjs must describe it.
  *
  * Usage: node scripts/shipped-surface.mjs --base <path-to-base-checkout>
  *
- * The head is this script's own repository. Exit 0 and a sentence when the pull
- * request is consistent, exit 1 and the list of what would and would not ship
- * when it is not.
+ * Exit 0 and a sentence when the pull request is consistent, exit 1 and the list
+ * of what would and would not ship when it is not.
+ *
+ * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
  */
 
 import { createHash } from 'node:crypto';
@@ -172,20 +161,13 @@ function compareSemver(a, b) {
 /**
  * Decide whether a pull request's effect on the published package is coherent.
  *
- * Three questions, and which ones get asked depends on the version:
+ * Three questions, and which get asked depends on the version:
  *
- *   version unchanged → does the tarball differ? A difference here is a change
- *                       that will never be published, so it fails.
- *   version changed   → did it go up? Only a greater version has no tag yet,
- *                       and only a version with no tag releases anything. A
- *                       version merely different ships nothing.
- *                     → and is it described? The surface may do whatever it
- *                       likes; a release is going out either way, and a release
- *                       with no changelog entry is the 0.8.0/0.8.1 hole.
- *
- * Both version questions are asked on any change, including one that leaves the
- * tarball otherwise identical — the version still publishes, and the page still
- * needs to say what it was for.
+ *   unchanged → does the tarball differ? That is a change that will never
+ *               be published, so it fails.
+ *   changed   → did it go UP, and is it described? Both are asked on any
+ *               change, including one that leaves the tarball otherwise
+ *               identical: the version still publishes.
  *
  * @param {object} facts
  * @param {Record<string,string>} facts.base  fingerprints at the base of the PR

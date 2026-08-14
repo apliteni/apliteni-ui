@@ -131,6 +131,29 @@ Compose from source, never from a built site. CI runs `npm test` before
 in CI — and one that skips when the directory is absent drops coverage in silence, which
 is worse.
 
+### A gate that skips is worse than a gate that is absent
+
+`stories/a11y.test.js` renders every story in both themes and runs axe-core over the result, and
+it refuses two things it used to do.
+
+**Skipping quietly.** A story that threw — anything calling `document.createElement` blew up in
+bare Node — or returned a DOM node instead of a string was silently `continue`d. Five stories,
+including the whole Feedback file, were "covered" by a test that checked nothing. Stories now
+render inside a JSDOM, DOM output is serialised, and a story that still cannot be rendered is a
+**failure**. The per-file tests assert that checks run equals stories discovered × themes, and a
+tally test re-checks that across every file, so a story cannot fall out unnoticed.
+
+**Gating one theme.** Light mode had never been checked. Both run now; accents stay out, since
+they only repaint tokens and the matrix costs runtime. One JSDOM is created per file and axe is
+evaluated into it once, so the second theme costs a rerun rather than a fresh browser.
+
+Two rule families are kept quiet on purpose. Best-practice heuristics like `region` flag story
+content sitting outside a landmark inside the Storybook iframe, which is framing rather than a
+bug. And `color-contrast` is off because axe cannot resolve `var()` in a headless DOM: it reads
+the kit's tokens as no colour at all and would only add flake. Contrast is
+[the walk's](#the-contrast-walk) job. The rule set is the one the Storybook panel runs, so the
+panel and CI never disagree.
+
 ### A number a comment argues for is pinned by a measured test
 
 A comment that explains why a wait is two minutes or a threshold is three is an assertion
@@ -405,6 +428,48 @@ subject — `.a:not(:is(svg))` selects everything that is *not* an svg, and harv
 `:is()` out of it made that an icon rule, which the gate then tried to mount and hard-errored
 on the `:`. A red on correct CSS, out of the one exclusion the function is built around.
 
+Every raw-text scan in `icon-cascade.js` has to answer the same question, and the two languages
+answer it differently. CSS folds case on keywords and property names; JavaScript folds none.
+Getting it backwards is silent in one direction and noisy in the other, so the decision is
+written down per scan rather than re-derived:
+
+| the scan | reads | because |
+| --- | --- | --- |
+| property names (`declRe`) | **any case** | `WIDTH: 40px` sizes an element and `cssstyle` stores it lower-cased, so a lower-case-only scan read a file the CSSOM did not have |
+| `@import` keyword | **any case** | `@IMPORT "./zz.css"` parses into a real `CSSImportRule`, so the sheet ships and no gate opens it |
+| `@import` specifier | **as written** | it goes straight to `readFileSync`, and a file name is case-sensitive on Linux however the keyword reads |
+| pseudo-class names | **any case** | `:WHERE(svg)` selects what `:where(svg)` selects |
+| class names | **as written** | `.Ic` and `.ic` are two classes, and every consumer compares the set exactly |
+| JS `import` and its extension | **as written** | `IMPORT './x.css'` is a syntax error, and esbuild fails the build outright on `.CSS` — both are loud at build time |
+| `icon()` calls | **as written** | `icon` is a JavaScript identifier; `ICON(…)` calls nothing this kit exports |
+| the `*.test.*` skip | **as written** | `node --test` matches its glob as written, so `Widget.Test.js` is ordinary source and folding the skip would drop it from the sweep |
+
+In every case the flag folds case **in the pattern, not in the text**, so a name comes back
+spelled the way the file spells it. A caller that keys on a property name, or hands one to
+`cssstyle`, has to lower-case it first: `getPropertyValue()` is case-sensitive even though
+`setProperty()` is not, so `MAX-WIDTH` asked as written reads back empty and looks like a value
+jsdom threw away.
+
+One of these has a loud twin worth knowing about. `scripts/stylesheet-manifest.test.js` derives
+the kit's sheet list with the same pattern **minus** the case flag, so an `@IMPORT` in
+`index.css` is a sheet the gate finds and the manifest guard does not — it reds there, saying
+the sheet is missing from `index.css` when what is missing is the lower-case spelling. Loud, and
+pointing one file off, which is the direction to leave it in.
+
+**Strings are blanked before every raw-text scan, and offsets are preserved.** A string is
+content rather than CSS: the data URI in `src/styles/input.css` holds
+`style='height:12px;width:12px'` and a `content` can hold `{ width: 5px`, and read as
+declarations both make a gate refuse a file a browser is perfectly happy with — and a gate that
+reds on correct code gets switched off. Blanking replaces the *contents* and leaves the quotes
+and every offset where they were, which is what lets a scan match against the blanked text and
+read the answer out of the original. `importsIn()` needs exactly that, since the specifier of a
+real `@import` is itself a string.
+
+Comments come out first, everywhere. A commented-out `width: 20px` is not a declaration, and the
+patterns anchor on `;` or `{`, so a comment sitting between `{` and the first declaration hides
+that declaration from every one of them. That leaves one shape unhandled: a comment opener
+written **inside** a string, which `stripComments()` cuts from, taking real CSS with it.
+
 ### The CSSOM stops describing a block that repeats a property
 
 `cssstyle` keeps a repeated property once, in its **first** position carrying its **last**
@@ -485,6 +550,24 @@ written twice or a rule like `svg:not([width])` at (0,1,1), which out-ranks ever
 svg` in the kit from the one file whose rules are not subjects — #148 arriving again with
 every gate green. Two rules sharing one selector are one reset, since that is one rule split
 across two blocks.
+
+### The reset is a floor, and its specificity is the whole of that
+
+The icon reset is written `svg:where(:not([width]):not([height]))`, and the `:where()` is not
+decoration: it holds the whole filter at zero specificity, so the rule weighs (0,0,1) — one
+element, nothing more — and any component rule that sizes an icon out-ranks it. Written bare,
+`:not([width]):not([height])` counts both attribute selectors and weighs (0,2,1), which beats
+every `.ui-btn svg`-shaped rule in the kit whatever order the files load in. It did, for all of
+them bar three, and for `.ui-fbck` besides — a class on the svg itself, so easy to miss when you
+go looking.
+
+Two gates keep the rules competing with it honest, each over the ground it actually sweeps:
+`src/styles/icon-size.test.js` reads the stylesheets `src/index.css` imports, and
+`scripts/icon-size-surfaces.test.js` reads the surfaces the kit renders. Neither claims more.
+Two gaps are worth knowing: a reset scoped to an ancestor that a subject's own selector does not
+name is out of reach of both, and `.storybook/preview.js` imports `src/index.css` into every
+story iframe, which makes `.storybook/` a third rendering surface neither gate sweeps. Nothing
+in there sizes an icon today.
 
 ### A declaration jsdom drops leaves no subject to count
 
@@ -695,6 +778,143 @@ part a source scan of the resolver could never reach.
 
 [i148]: https://github.com/apliteni/apliteni-ui/issues/148
 
+## The contrast walk
+
+`stories/contrast.test.js` renders every story in both themes, mounts its real markup in JSDOM
+against the kit's real stylesheets with the token files substituted per theme, and measures
+every text-owning element against the background chain composited above it. Adding a component
+adds its pairs with no human step. Each gate states its own blind spots in its own header, per
+the `name-the-gap` rule the Guidelines publish; what follows is the reasoning behind them.
+
+### The cascade JSDOM ranks, and the one boundary it does not
+
+JSDOM applies **author** rules by specificity and source order faithfully, and that is the whole
+of the guarantee — it does not rank by origin. There is one known exception, at the user-agent
+boundary: the UA sheet's `a:link` out-ranks a same-specificity author `a` rule, so a linked
+anchor reads back as the UA's `rgb(0, 0, 238)`. The resolver rewrites the kit's single bare `a`
+rule to carry `:link`/`:visited`, and a self-check asserts that colour appears nowhere in the
+walk. Do not repeat the unqualified claim that JSDOM's cascade matches a browser's; it holds
+among author rules only.
+
+A custom property re-declared per component variant — `--toast-accent`, once per toast status —
+would flatten to whichever status came first, repainting every toast one colour. The resolver
+emits a variant-scoped copy of each consuming declaration instead, immediately after the rule it
+specialises, so a later override of equal weight still wins. That relies on a base rule
+preceding its variants, which is the kit's convention throughout, and a five-toast self-check
+pins it.
+
+### The React workspace gets its own walk, over the same arithmetic
+
+`walkStories` cannot reach `react/src`: it discovers `stories/**.stories.js`, calls each story's
+render fn as a plain function and assigns the result to `innerHTML`. A React story returns a
+`ReactElement`, which serialises to `null`, and its render fn calls hooks — so it has to *be* a
+component and has to actually mount. `react/src/contrast.test.tsx` therefore borrows the
+resolver's **pure** half and re-expresses the walk through vitest and
+`@testing-library/react`. The arithmetic is shared; only the mounting differs.
+`react/src/a11y.test.tsx` made the same trade for axe, per
+[one gate per workspace, over one shared implementation](#one-gate-per-workspace-over-one-shared-implementation).
+
+The stylesheet does **not** come from Vite. Vitest's `css` option would make
+`import './Modal.css'` land in the test DOM, but it would land verbatim — and every colour in
+that workspace is a `var()` onto a vanilla-kit token, which JSDOM does not resolve. `color:
+var(--muted)` reads back as the literal string, `parseColour` returns null, and the gate would
+measure nothing while reporting green. So the CSS is read off disk and the theme's token file is
+substituted into it first, exactly as the vanilla gate does. Turning `css` on would only add a
+second, unresolvable copy of each sheet to the same document.
+
+Discovery is still Vite's: `import.meta.glob('./**/*.css')` is evaluated for its **keys** only —
+not eager, nothing is imported — so a new component stylesheet is in the gate the moment it
+exists, and the count is asserted.
+
+Two differences from the vanilla walk, both narrowing. There is **no state pass**: nothing under
+`react/` declares a colour in a state, and `.rx-sort:focus-visible` sets an outline, which is
+non-text contrast the gate does not judge either way — so the pass would cost two more renders
+to measure zero new pairs. Add it when a state rule paints text. And **one accent**, like the
+vanilla default cell.
+
+### What the walk costs, and why the gate on it is a ratio
+
+The walk is the most expensive thing in `npm test`, it runs on every invocation, and it is the
+suite's critical path: `node --test` runs files as parallel child processes and this one
+outlasts all the others put together. Measured on a 10-core laptop, the suite runs in ~18s with
+it and ~8s without, so the gate still roughly doubles it. Cost grows close to linearly with
+theme × accent cells — 16.3s for the default 2 and 63.4s for all 8, so about 8s a cell. The
+eight-cell matrix is behind `CONTRAST_ACCENTS=1` and off by default; anyone adding a cell should
+know they are buying ~8s of every `npm test`, forever.
+
+It used to be worse. The walk asked JSDOM for a computed style 138,534 times across the two
+cells, because every text element was walked up its ancestor chain three separate times —
+background, hidden test, opacity — and siblings share almost all of that chain. Memoising the
+lookup per element between DOM writes cut that to 28,706 calls and the walk from ~23s to ~16s.
+Not the 3× the call count suggests: what remains is dominated by the 5,738 DOM writes the state
+passes make, each of which throws away JSDOM's own style cache for the whole document and forces
+the next lookups to resolve the cascade from scratch. That is JSDOM's invalidation rule and
+nothing here can safely be cleverer than it.
+
+All three numbers are asserted rather than remembered, per
+[a number a comment argues for is pinned by a measured test](#a-number-a-comment-argues-for-is-pinned-by-a-measured-test).
+The **miss rate** is the deterministic half of the cost gate: a wall-clock ceiling cannot see a
+2× regression through machine noise, but the walk asks for a computed style a fixed number of
+times for a fixed catalogue, and how many of those reach JSDOM is arithmetic rather than
+weather — two identical runs give identical numbers.
+
+It is gated as a **ratio and not as the 28,706**, because the absolute count is a fact about the
+catalogue as much as about the cache: it moves every time a story is added, so an exact
+assertion would have to be re-pinned by whoever adds one, to a number carrying no judgement. The
+miss rate is the quantity the cache actually controls — 1.0 by definition before the cache
+existed, 0.2072 now — and adding a story moves numerator and denominator together, which is why
+the two themes agree to three decimal places (0.2068 / 0.2077). The absolute figures are logged
+rather than asserted, so a human reading a CI log still sees them move.
+
+The ceiling is **0.30**: about 1.45× today's rate and comfortably below the 0.41 a doubling of
+lookups would produce, so a single added story cannot trip it and the person adding one is not
+taxed. What trips it is the cache being neutered, or a DOM write appearing inside the
+per-element loop — either of which turns hits back into misses across the whole walk. It does
+not see a new ancestor walk that reads through the cache and hits every time: that raises
+`queries`, leaves `lookups` alone, and moves the ratio *down* while making the walk slower. The
+miss rate is a gate on the cache, not on the walk's shape. The 5,738 writes are gated too, as
+the anti-vacuity counter for the invariant that keeps the cache honest — every DOM write goes
+through `mutate`, and the cache refuses to answer if one did not.
+
+### The two cost gates fail for different reasons, so they are kept apart
+
+The **wall-clock ceiling** is 120s. Measured on a 10-core laptop over two default cells:
+15.7–16.5s run alone, 16.4–18.3s inside `npm test` where it shares those cores with 21 other
+files, and 47.6s with all ten cores deliberately saturated by competing processes. The ceiling
+is set off that last number rather than the first — ~2.5× the worst measurement and ~7× the
+normal one.
+
+Stated narrowly, because a ceiling that overstates itself is worse than none: it catches a
+runaway — a walk that stopped terminating, or a theme × accent cell added to `THEMES`/`ACCENT`
+without anyone costing it. It does **not** catch a 2× performance regression, and no wall-clock
+number can. Contention alone spans 3× on one machine, so any threshold tight enough to see a
+doubling flakes on a busy laptop, and a ceiling that flakes gets deleted by the next person.
+
+The doubling is the miss rate's job. A runaway shows up on the clock and not in the ratio — a
+walk that stopped terminating keeps a perfectly good miss rate — and a doubling shows up in the
+ratio and not on the clock.
+
+### A ledger that keys on a measurement is written by hand, on purpose
+
+Do not build a script that regenerates the contrast ledger. The mandatory `why` on every entry
+is the anti-automation device: a regenerator would have to invent the sentence explaining why a
+bucket's four dark accent rows are acceptable debt, and it cannot, so the entries stay attached
+to a person who decided.
+
+Contrast this with `stories/danger-colour.test.js`, whose `AT_REST_EXEMPT` keys on a CSS
+**selector parsed out of the source** and whose test fails when an exemption stops naming a live
+rule. That ledger cannot rot, because a rename breaks it. The contrast ledger keys on a
+**measurement**, which changes whenever a token moves — so it needs a human, and the `why` is
+where the human is. It is the same reasoning as
+[an exception is a note at the site, read by the gate](#an-exception-is-a-note-at-the-site-read-by-the-gate),
+arriving at the opposite mechanism because the key is different.
+
+Counts are asserted with `===`, never as a ceiling. A ceiling would let a fix in one row mask a
+regression in another inside the same bucket. An exact count costs a one-line edit whenever a
+story is added that renders an already-failing component, and that edit is the point: a human
+then looks at the new row. A total ceiling over everything means a finding that matches no
+bucket has nowhere to hide.
+
 ## The two security checks
 
 `scripts/gitleaks-rules.check.mjs` and `scripts/secret-scan-range.check.mjs` are deliberately
@@ -753,6 +973,50 @@ than the first, **2** the check could not reach a verdict — the workflow would
 step is gone, git or gitleaks would not run. "Cannot tell" is not "passed" and is not "failed"
 either: a gate that reports a broken harness as a failed assertion sends the reader looking for
 a leak that was never claimed.
+
+**Each planted file carries three separate claims**, and the shape of them is the oracle.
+
+`ours` is the **exact** set of this config's rules that may name the file — exact rather than
+"at least", because nothing else detects one of our rules eating another's territory. Widening
+`clickup-api-token` until it also matched `figd_…` left every case green under the old
+"expected ∈ named" oracle, and for a config whose recent history is deliberate loosening of
+character classes that is the likeliest failure. A control case is simply `ours: null`, the same
+claim rather than a special case.
+
+`upstream` is gitleaks' own rules that must **also** fire, asserted only where upstream
+genuinely owns the shape and never as a general requirement: the default ruleset is not ours to
+depend on. `generic-api-key` names `deploy-token.md` today and is deliberately ignored, so a
+stopword or entropy tweak upstream cannot turn the check red.
+
+`forbidden` is the mirror, and it exists for one job: an `[allowlist]` entry whose only effect
+is to silence an **upstream** rule cannot be proven by `ours` at all, because no rule of ours
+ever names the shape.
+
+**Two constraints are pinned by measurement rather than by reading the config.** The loaded
+1Password rule carries a Shannon floor of 4 on the whole match, which used to arrive unwritten
+by sharing an id with upstream's rule. Two shape-perfect payloads hold it: fifteen characters of
+the alnum alphabet puts the match at 3.9978 and sixteen puts it at 4.0370, and the seeds were
+searched to land the pair 0.04 apart across the step. That narrowness is the point — a floor
+pinned by 3.7 and 5.8 would be satisfied anywhere in the gap.
+
+The other cannot be written in `.gitleaks.toml` at all. `useDefault = true` pulls in gitleaks'
+default **global** allowlist, whose stopwords are matched case-insensitively as a substring of
+the secret; the a–z run is one of them, so a token carrying it is dropped before any rule of
+ours reaches a verdict. Measured on gitleaks 8.30.1: a shape-perfect fixture at 37 characters
+and entropy 4.9392 is **not** reported, while the same shape with a scrambled 30-character
+payload at entropy 4.7026 **is** — so neither length nor entropy silences it. Isolated twice,
+with a stand-in rule whose id does not collide with upstream's: `useDefault = false` catches it
+and `true` does not, so it is the global allowlist rather than the id merge. A red on that case
+means upstream's global allowlist moved.
+
+**An evil merge hides a secret from every patch.** `gitleaks detect` on a git source is
+`git log -p` underneath, which prints no diff for a merge commit — so a payload introduced by a
+conflict resolution is in *no* patch: not in a pull request's `base..head` range, and not in the
+whole-clone walk on the branch it lands on. That is not a corner case, it is the ordinary shape
+of a resolved conflict. Squash and rebase merges rewrite the change into an ordinary commit and
+do not carry it; this repository allows merge commits and uses them. The fixture builder proves
+its own premise before handing the repository over — if `git log -p` over the range already
+shows the payload, the fixture is not the thing it claims to be.
 
 **No fixture may ever be written into the tree.** Every one is generated at runtime into a temp
 directory removed on every exit path. This repo is public, its own scan runs over `scripts/`,

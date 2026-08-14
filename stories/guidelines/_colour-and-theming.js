@@ -58,9 +58,9 @@ export const RULES = [
     doHtml: signalsDo,
     dontHtml: signalsDont,
     kit: [
-      { ref: 'src/tokens/accents.css:7', pattern: 'Each sub-theme only re-points the accent family' },
-      { ref: 'src/tokens/accents.css:9', pattern: 'live, pink = danger) stay put' },
-      { ref: 'stories/danger-colour.test.js:6', pattern: 'Under Phoenix the accent is ember and under Nebula' },
+      { ref: 'src/tokens/accents.css:6', pattern: 'Each sub-theme only re-points the accent family' },
+      { ref: 'src/tokens/accents.css:7', pattern: 'live, pink = danger) stay put' },
+      { ref: 'stories/danger-colour.test.js:5', pattern: 'Under Phoenix the accent is ember and under Nebula' },
     ],
   },
   {
@@ -74,7 +74,7 @@ export const RULES = [
     kit: [
       { ref: 'src/tokens/tokens.css:182', pattern: '--accent-strong: #7c3aed;' },
       { ref: 'src/styles/button.css:44', pattern: 'background: var(--accent-strong);' },
-      { ref: 'src/tokens/accents.css:28', pattern: '--accent-strong: var(--accent);' },
+      { ref: 'src/tokens/accents.css:24', pattern: '--accent-strong: var(--accent);' },
     ],
   },
   {
@@ -85,7 +85,7 @@ export const RULES = [
     kit: [
       { ref: 'stories/accent-contrast.test.js:1', pattern: '--accent clears WCAG AA as text on every ground the kit paints under it' },
       { ref: 'stories/accent-contrast.test.js:2', pattern: 'in all eight theme × accent cells' },
-      { ref: 'react/src/a11y.test.tsx:36', pattern: "'color-contrast': { enabled: false }" },
+      { ref: 'react/src/a11y.test.tsx:27', pattern: "'color-contrast': { enabled: false }" },
     ],
   },
 ];

@@ -1,23 +1,14 @@
 // Registry guard — "is this version published?" has to have three answers.
 //
-// tag-on-bump used to decide whether a release still needed doing by asking
-// whether the tag existed. The tag is created before the publish, so it only
-// ever proved the attempt had *started*. One failed publish and every later
-// push to main read the tag, decided there was nothing to do, skipped the
-// publish step and went green — for good. The registry is the only thing that
-// knows whether a version shipped, so the registry is what gets asked.
+// Asking is easy to get wrong in the quiet direction: `npm view` exits non-zero
+// for a version that is not there AND for a DNS failure, so the classifier has
+// three outcomes and the middle one — "I could not find out" — stops the job.
 //
-// Asking is easy to get wrong in the quiet direction. `npm view` exits non-zero
-// for a version that is not there AND for a DNS failure, and collapsing those
-// two into one answer is how an npm outage either re-publishes a released
-// version or waves an unpublished one through. So the classifier below has
-// three outcomes and the middle one — "I could not find out" — is a first-class
-// answer that stops the job.
+// Everything here is the pure half; the one case that runs the CLI end to end
+// stubs `npm` on PATH, because the three exit codes are the contract the
+// workflow reads.
 //
-// Everything here is the pure half: an exit code and whatever npm printed go
-// in, a verdict comes out, and no network is touched. The one case that does
-// run the CLI end to end stubs `npm` on PATH, because the three exit codes are
-// the actual contract the workflow reads.
+// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';

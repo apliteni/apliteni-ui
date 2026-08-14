@@ -34,23 +34,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const src = path.resolve(here, '..');
 
 // If a rule stops being collected, it stops being checked, and a shrinking
-// suite looks exactly like a passing one. This is the tripwire for that: it is
-// the real count, not a floor with slack in it. Raise it when you add a sizing
-// rule. If you REMOVE one — which #148's Definition of Done explicitly allows,
-// "or is removed because the element does not need one" — lower it in the same
-// commit and say why there. The number is meant to be inconvenient.
-// Was 56: #127 made appShell() the kit's one shell, so nothing emits the
-// hand-written `.ui-side` rail any more and its `.ui-side a svg` rule went with
-// it — width and height, the two subjects that left. The rail's icons are
-// sidebarNav()'s now, sized by `.ui-nav__ic svg`, which this gate already holds.
-// Was 54: #128 gave the kit a permission-denied treatment, and its lock sits in
-// a seal the same way .ui-empty__icon holds its glyph — so `.ui-denied__seal
-// svg` sizes width and height, the two subjects that arrived.
-// Was 56: #217 gave `.ui-field__error` a glyph rule. The error row renders
-// icon('alert') and sized it with nothing but the reset's 1.1em, so its box
-// followed whatever font-size it landed in and its stroke rendered at 1.25 CSS
-// px — under the stroke-width rule's line. Stating the box is what lets the stroke beside it
-// be stated too, so width and height are the two subjects that arrived.
+// suite looks exactly like a passing one. This is the tripwire: the real count,
+// not a floor with slack in it. Raise it when you add a sizing rule; lower it in
+// the same commit that removes one, and say why. It is meant to be inconvenient.
+// Was 56 (#127: the hand-written .ui-side rail went, taking `.ui-side a svg`);
+// 54 (#128: `.ui-denied__seal svg` arrived); 56 (#217: `.ui-field__error` got a
+// glyph rule, so its stroke could be stated beside its box).
 const EXPECTED_SUBJECTS = 58;
 
 const SHEETS = kitSheetNames(src);

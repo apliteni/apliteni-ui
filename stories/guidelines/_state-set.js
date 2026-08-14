@@ -78,9 +78,9 @@ export const RULES = [
     doHtml: focusDo,
     dontHtml: focusDont,
     kit: [
-      { ref: 'src/styles/base.css:130', pattern: '.ui-focusable:focus-visible,' },
-      { ref: 'src/styles/base.css:136', pattern: 'box-shadow: var(--ring);' },
-      { ref: 'src/tokens/tokens.css:252', pattern: '--ring: 0 0 0 3px var(--accent);' },
+      { ref: 'src/styles/base.css:117', pattern: '.ui-focusable:focus-visible,' },
+      { ref: 'src/styles/base.css:123', pattern: 'box-shadow: var(--ring);' },
+      { ref: 'src/tokens/tokens.css:244', pattern: '--ring: 0 0 0 3px var(--accent);' },
     ],
   },
   {
@@ -95,7 +95,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/index.js:37', pattern: 'busy ⇒ disabled' },
       { ref: 'src/styles/button.css:111', pattern: '.ui-btn[aria-busy="true"] {' },
-      { ref: 'stories/contrast.test.js:54', pattern: 'Inactive components, and everything inside them.' },
+      { ref: 'stories/contrast.test.js:34', pattern: 'Inactive components, and everything inside them.' },
     ],
   },
   {
@@ -108,9 +108,9 @@ export const RULES = [
     doHtml: errorDo,
     dontHtml: errorDont,
     kit: [
-      { ref: 'src/components/index.js:188', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
-      { ref: 'src/components/index.js:174', pattern: "'aria-describedby': msgId," },
-      { ref: 'src/components/index.js:160', pattern: "markup rather than in the label's wording" },
+      { ref: 'src/components/index.js:184', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
+      { ref: 'src/components/index.js:170', pattern: "'aria-describedby': msgId," },
+      { ref: 'src/components/index.js:156', pattern: "markup rather than in the label's wording" },
     ],
   },
   {
@@ -125,7 +125,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/loading.js:54', pattern: 'export function busyRegion({' },
       { ref: 'src/components/loading.js:74', pattern: 'export function setBusy(root,' },
-      { ref: 'src/components/index.js:253', pattern: 'role="status" aria-live="polite"' },
+      { ref: 'src/components/index.js:249', pattern: 'role="status" aria-live="polite"' },
     ],
   },
 ];

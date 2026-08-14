@@ -113,9 +113,9 @@ export const RULES = [
     doHtml: undoDo,
     dontHtml: undoDont,
     kit: [
-      { ref: 'src/components/confirm.js:62', pattern: 'role="alertdialog"' },
-      { ref: 'src/components/index.js:247', pattern: 'class="ui-toast__action"' },
-      { ref: 'src/styles/callout.css:91', pattern: '.ui-toast__action { flex: none;' },
+      { ref: 'src/components/confirm.js:61', pattern: 'role="alertdialog"' },
+      { ref: 'src/components/index.js:243', pattern: 'class="ui-toast__action"' },
+      { ref: 'src/styles/callout.css:83', pattern: '.ui-toast__action { flex: none;' },
     ],
   },
 ];

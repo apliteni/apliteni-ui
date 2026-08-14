@@ -53,18 +53,12 @@
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
   border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
 
-/* ── Data-table modifiers (composable) ──────────────────────────────────────
- * Compose for a dense financial ledger: .ui-table--dense --zebra --hover.
- *   --dense  compact row rhythm for many-row / many-column data: --space-3
- *            across and --space-2 down, one step in from the base table's
- *            --space-4 across and --space-4 down. Both of its old numbers sat
- *            exactly between two steps — 14px between 12 and 16, 10px between 8
- *            and 12 — and both round DOWN, because the modifier exists to fit
+/* Data-table modifiers, composable: .ui-table--dense --zebra --hover.
+ *   --dense  --space-3 across, --space-2 down — one step in from the base
+ *            table, and both round DOWN, because the modifier exists to fit
  *            more rows and rounding up spends the distinction it is for.
- *   --zebra  row striping instead of per-row rules; 2px header rule; the
- *            (accent) hover tint out-ranks the stripe (defined after it)
- * Cell helpers: .ui-table__num (right, tabular), .ui-table__code (plain
- * monospace id — never a boxed code chip inside a table).
+ *   --zebra  row striping; 2px header rule; the hover tint out-ranks the stripe
+ * Cell helpers: .ui-table__num (right, tabular), .ui-table__code.
  * why: docs/specification.md#spacing-and-rhythm
  * held by: stories/table-rhythm.test.js */
 .ui-table--dense th { padding: 0 var(--space-3) var(--space-2) 0; }

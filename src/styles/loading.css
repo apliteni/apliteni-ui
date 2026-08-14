@@ -1,30 +1,15 @@
-/* ============================================================================
- * Loading and permission-denied — the screen-scale states.
+/* Loading and permission-denied — the screen-scale states. Markup comes from
+ * components/loading.js; this file owns layout and nothing else.
  *
- * Markup comes from components/loading.js:
+ * The shimmer is .m-skeleton from styles/motion.css, so reduced motion is
+ * already handled by the global net and there is one shimmer in the kit.
  *
- *   <div class="ui-busy" role="status" aria-live="polite" aria-busy="true">
- *     <span class="ui-sr">Loading your report…</span>
- *     <div class="ui-busy__body">
- *       <div class="ui-skel" aria-hidden="true">
- *         <span class="ui-skel__bar m-skeleton"></span>…
+ * .ui-denied deliberately borrows every colour .ui-empty uses: to a reader the
+ * two are the same event — what you came for is not here — and giving denial its
+ * own red made it read as a fault the reader had committed. The lock says which
+ * of the two it is.
  *
- *   <div class="ui-denied">
- *     <div class="ui-denied__seal">…lock…</div>
- *     <div class="ui-denied__title">You don’t have access</div>
- *     <div class="ui-denied__sub">…</div>
- *     <div class="ui-denied__need">Needs <code class="ui-code">reports.read</code></div>
- *     <div class="ui-denied__actions">…</div>
- *
- * The shimmer is .m-skeleton from styles/motion.css — this file owns layout and
- * nothing else about the animation, so reduced motion is already handled by the
- * global block at the end of that file and there is one shimmer in the kit.
- *
- * .ui-denied deliberately borrows every colour .ui-empty uses. To a reader the
- * two are the same event — what you came for is not here — and giving denial
- * its own red made it read as a fault the reader had committed. The lock says
- * which of the two it is.
- * ========================================================================== */
+ * why: docs/specification.md#pending-and-denied-states */
 
 /* Visually hidden, still read aloud. The kit had no such utility, and the live
    region needs one: its message is for assistive tech only — the sighted

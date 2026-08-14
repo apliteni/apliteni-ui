@@ -14,168 +14,76 @@
  * only, in two themes at one accent". A gate that overstates itself is how
  * contrast came to be "verified visually" in the first place.
  *
- * WHAT IT WILL NOT CATCH:
+ * WHAT IT WILL NOT CATCH — the ledger of this gate's own holes, kept here
+ * because the person it has to reach is whoever is about to trust the green:
  *
- *  - Anything layout decides. JSDOM has no layout. The gate uses DOM ancestry as
- *    a proxy for visual stacking, and the proxy is wrong wherever an element is
- *    painted over something that is not its ancestor: a toast over the page, a
- *    dropdown panel over a card, a sticky topbar over scrolled content, the
- *    drawer over its scrim. This is the largest gap and only a real browser
- *    closes it. Playwright is the honest upgrade path; it is a new dependency
- *    plus a browser download in CI, which is why it is not here.
- *  - A PAINT LAYER THE WALK CANNOT SEE, which is the one that costs most. The
- *    background chain is built from an element's own ancestors, so any layer that
- *    is not an ancestor is invisible and the text above it is measured against
- *    the ground UNDERNEATH that layer. Two live shapes, both measured:
- *      · a pseudo-element. Every .ui-bg-* backdrop (src/styles/base.css) paints
- *        its gradient on ::before at inset 0, and
- *        stories/foundations/Backgrounds.stories.js renders real copy over all
- *        four. Nine pairs per backdrop come back JUDGED, none unjudgeable.
- *      · a sibling overlay. The ambient glows (.ui-glow--*, src/styles/base.css)
- *        are gradients on empty spans beside the content, never an ancestor of
- *        it. Backgrounds:Glow reports nine judged pairs and zero unjudgeable.
- *    What is proved is that these pairs are rated against the wrong ground. What
- *    is NOT proved is that any current pair's verdict flips: bounding the
- *    translucent spotlight and wash moved the worst pair 5.82 -> 4.92, still over
- *    the floor. The opaque grid and dot fields cannot be bounded without a
- *    browser. So: a wrong ground today, and no way to know it stays harmless.
- *  - ::before / ::after as TEXT are not computed either. The kit's carry none —
- *    every content: declaration in src/styles is the empty string.
- *  - Gradients and images an element owns itself, or inherits from an ancestor.
- *    The brand gradient stops (src/styles/layout.css) are the verified case:
- *    h1.ui-hero__title > span.grad comes back unjudgeable, which is the honest
- *    answer rather than a fix or a silent pass. Forty-one such records in a dark
- *    walk. The bullet above is the shape that does NOT reach this path.
- *  - filter. .ui-btn--primary:hover uses filter: brightness(1.1)
- *    (src/styles/button.css); the gate reads the pre-filter colour. No
- *    mix-blend-mode ships anywhere. backdrop-filter ships once, and not in what
- *    this file walks: .rx-scrim (react/src/Modal.css) blurs what is behind the
- *    modal, and it is react/src/contrast.test.tsx that measures over it.
- *  - Inactive components, and everything inside them. Skipped on purpose per WCAG
- *    1.4.3, but the skip is by closest(), so a disabled CONTAINER takes its whole
- *    subtree out of the walk. A disabled control is exempt from the contrast
- *    requirement and is not exempt from being readable — which is the hole
- *    stories/guidelines/accessibility-floor.test.js fills, at the floor #220
- *    settled. It is still a hole HERE.
- *  - Anything with no story — and "story" is narrower than it sounds: files
- *    ending .stories.js under stories/. The React workspace's .stories.tsx are
- *    not walked here; react/src/contrast.test.tsx gates those instead.
+ *  - Anything layout decides. JSDOM has none, so DOM ancestry stands in for
+ *    visual stacking and the proxy is wrong wherever an element is painted over
+ *    something that is not its ancestor: a toast over the page, a dropdown over
+ *    a card, a sticky topbar over scrolled content, the drawer over its scrim.
+ *    The largest gap, and only a real browser closes it.
+ *  - A PAINT LAYER THE WALK CANNOT SEE, which costs most. A pseudo-element
+ *    backdrop and a sibling overlay are both measured against the ground
+ *    UNDERNEATH them. What is proved is that those pairs are rated against the
+ *    wrong ground; what is NOT proved is that any verdict flips.
+ *  - ::before / ::after as TEXT. The kit's carry none.
+ *  - Gradients and images an element owns or inherits — reported unjudgeable,
+ *    which is the honest answer rather than a fix or a silent pass.
+ *  - filter. .ui-btn--primary:hover reads pre-filter. backdrop-filter ships once,
+ *    on .rx-scrim, which react/src/contrast.test.tsx measures over.
+ *  - Inactive components, and everything inside them. Skipped per WCAG 1.4.3,
+ *    but by closest(), so a disabled CONTAINER takes its whole subtree out of
+ *    the walk. stories/guidelines/accessibility-floor.test.js fills that at the
+ *    floor #220 settled; it is still a hole HERE.
+ *  - Anything with no story, and "story" is narrower than it sounds: files
+ *    ending .stories.js under stories/. The React workspace has its own gate.
  *  - Anything not visible at rest. display:none, visibility:hidden and opacity:0
- *    are dropped BEFORE anything else is asked of the element, and that is the
- *    resting state of four families: the dropdown panel (src/styles/dropdown.css),
- *    the confirm scrim and panel (src/styles/confirm.css), the drawer
- *    (src/styles/drawer.css), and the whole feedback overlay — pill, scrim and
- *    composer (src/styles/feedback.css). Each is measured only where a story
- *    ships it already open. This drop happens first, which is why the pill's
- *    --ui-fb-pill-grad is not reported unjudgeable either: it is not reported.
- *  - States past four. The walk FORCES hover, focus-visible, focus and active,
- *    and forces nothing else — not :focus-within, ::placeholder, ::selection, nor
- *    any class-driven state (.open, .is-open, .is-active) a story does not ship.
- *    Read that precisely: :checked and :disabled are matched natively by JSDOM,
- *    so markup a story ships already checked or disabled IS styled by those
- *    rules. It is the forcing that is absent, not the matching.
- *  - Anything a script would do. The body is set from a static string, so the
- *    wiring .storybook/preview.js imports — wireTopbar, wireNav, wireDrawer,
- *    wireConfirm, initTabs — never runs, and no class the live app applies at
- *    runtime is ever measured.
+ *    are dropped BEFORE anything else is asked, which is the resting state of
+ *    the dropdown panel, the confirm scrim and panel, the drawer, and the whole
+ *    feedback overlay. Each is measured only where a story ships it open.
+ *  - States past four. hover, focus-visible, focus and active are FORCED and
+ *    nothing else is — not :focus-within, ::placeholder, ::selection, nor any
+ *    class-driven state. :checked and :disabled are matched natively, so it is
+ *    the forcing that is absent, not the matching.
+ *  - Anything a script would do. The body is a static string, so none of
+ *    preview.js's wiring runs.
  *  - Custom properties a story pins INLINE. Every var() is flattened against one
- *    theme-wide token map before mount, so the accent panels of
- *    stories/foundations/SubThemes.stories.js, which set --accent and its family
- *    in a style attribute, are every one of them measured as the DEFAULT accent.
+ *    theme-wide map before mount, so the sub-theme panels are every one of them
+ *    measured as the DEFAULT accent.
  *  - Non-text contrast (WCAG 1.4.11) — borders, focus rings, icon strokes. The
- *    3:1 rule is against ADJACENT colours, which needs geometry. Say so, because
- *    "the contrast gate is green" will otherwise be read as covering it.
+ *    3:1 rule is against ADJACENT colours, which needs geometry.
  *  - Text that is not a text node: placeholder, value, alt, title, aria-label.
- *  - More than one accent. The default run is two themes at the default accent.
- *    The eight-cell matrix behind CONTRAST_ACCENTS=1 counts pairs and asserts a
- *    floor on that count — never that any pair clears AA.
+ *  - More than one accent. The eight-cell matrix behind CONTRAST_ACCENTS=1
+ *    counts pairs and asserts a floor on that count — never that any pair
+ *    clears AA.
  *  - Whether the colour is readable. The AA floor is a floor, not a verdict.
  *
- * AND WHAT COVERS SOME OF IT INSTEAD. This file is the STORY WALK, which is not
- * the whole of the kit's contrast measurement — a gap named above may already be
- * closed by a sibling, and saying so is part of not overstating this one.
- * stories/accent-contrast.test.js is a token contract: it renders nothing, costs
- * milliseconds, and so affords all eight theme x accent cells, seeing pairs no
- * story happens to render. stories/signal-contrast.test.js reads declarations out
- * of the source rather than rendering, and gates the signal inks and the solid
- * toast in both themes. react/src/contrast.test.tsx mounts the React workspace.
- * What none of the four reaches is the first bullet above: layout.
+ * AND WHAT COVERS SOME OF IT INSTEAD. A gap named above may already be closed
+ * by a sibling: accent-contrast.test.js is a token contract over all eight
+ * cells, signal-contrast.test.js reads declarations rather than rendering, and
+ * react/src/contrast.test.tsx mounts the React workspace. What none of the four
+ * reaches is the first bullet: layout.
  *
- * JSDOM AND THE CASCADE. JSDOM applies AUTHOR rules by specificity and source
- * order faithfully, and that is the whole of the guarantee — it does not rank by
- * origin. There is one known exception, at the user-agent boundary: the UA
- * sheet's `a:link` out-ranks a same-specificity author `a` rule, so a linked
- * anchor reads back as the UA's rgb(0, 0, 238). The resolver rewrites the kit's
- * single bare `a` rule to carry :link/:visited, and a self-check below asserts
- * that colour appears nowhere in the walk. JSDOM's cascade matches a browser's
- * among author rules only, and the claim is worth stating no other way:
+ * The resolver's two rewrites — the UA `a:link` boundary, and the variant-scoped
+ * copy that stops a per-variant custom property flattening to whichever status
+ * came first — are pinned by self-checks below.
+ *
  * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
  *
- * A custom property re-declared per component variant (--toast-accent, once per
- * toast status) would flatten to whichever status came first, repainting every
- * toast one colour. The resolver emits a variant-scoped copy of each consuming
- * declaration instead, immediately after the rule it specialises so a later
- * override of equal weight still wins. That relies on a base rule preceding its
- * variants, which is the kit's convention throughout; the five-toast self-check
- * below pins it.
+ * COST. This walk is the suite's critical path and roughly doubles `npm test`.
+ * Three numbers are asserted rather than remembered — 138,534 style reads,
+ * 28,706 of them missing the memo, and 5,738 DOM writes — and the miss RATE is
+ * what the gate holds. Cost grows close to linearly with theme x accent cells,
+ * about 8s a cell, and the eight-cell matrix is behind CONTRAST_ACCENTS=1.
  *
- * COST, HONESTLY. The walk is the most expensive thing in `npm test` and it runs
- * on every invocation. It is also the suite's critical path: `node --test` runs
- * files as parallel child processes, and this one outlasts all the others put
- * together. Measured on a 10-core laptop: the suite runs in ~18s with this file
- * and ~8s without it, so the gate still roughly doubles it.
+ * why: CONTRIBUTING.md#what-the-walk-costs-and-why-the-gate-on-it-is-a-ratio
+ * why: CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart
  *
- * It used to be worse. The walk asked JSDOM for a computed style 138,534 times
- * across the two cells, because every text element was walked up its ancestor
- * chain three separate times — background, hidden test, opacity — and siblings
- * share almost all of that chain. Memoising the lookup per element between DOM
- * writes (makeStyleCache in stories/lib/contrast.js) cut that to 28,706 calls,
- * and the walk from ~23s to ~16s. Not the 3x the call count suggests: what
- * remains is dominated by the 5,738 DOM writes the state passes make, each of
- * which throws away JSDOM's own style cache for the whole document and forces
- * the next lookups to resolve the cascade from scratch. That is JSDOM's own
- * invalidation rule and nothing here can safely be cleverer than it.
+ * THE LEDGER IS WRITTEN BY HAND ON PURPOSE. Do not build a script that
+ * regenerates it: the mandatory `why` on every entry is the anti-automation
+ * device, and counts are asserted with === rather than as a ceiling.
  *
- * All three of those numbers are now asserted rather than remembered. The miss
- * rate they imply — 28,706 of 138,534 reads — is gated below, and it is the only
- * cost assertion here that is deterministic enough to see a doubling. The 5,738
- * writes are gated too, as the anti-vacuity counter for the invariant that keeps
- * the cache honest: every DOM write in the walk goes through `mutate`, and the
- * cache now refuses to answer if one did not. See makeStyleCache.
- *
- * Cost grows with theme×accent cells, close to linearly — measured 16.3s for the
- * default 2 cells and 63.4s for all 8, so about 8s a cell. The eight-cell accent
- * matrix is behind CONTRAST_ACCENTS=1 and is OFF by default; turning it on finds
- * 739 distinct failing pairs — the count the matrix test prints at the foot of
- * this file — against the 185 of the ledger total asserted below, because the
- * accent families carry different literals under Phoenix, Ocean and Emerald and
- * would each need their own ledger entries. Both numbers are re-readable from a
- * run rather than remembered. Whether it ever runs in CI is undecided.
- * stories/a11y.test.js made the same trade explicitly, so the precedent is to
- * say so rather than drop it quietly. Anyone adding a cell should know they are
- * buying ~8s of every `npm test`, forever.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * THE LEDGER IS WRITTEN BY HAND ON PURPOSE. DO NOT BUILD A SCRIPT THAT
- * REGENERATES IT.
- *
- * The mandatory `why` on every entry is the anti-automation device. A
- * regenerator would have to invent the sentence explaining why bucket B's four
- * dark accent rows — its `count` a screen below — are acceptable debt, and it
- * cannot, so the entries stay attached to a person who decided. Contrast this
- * with stories/danger-colour.test.js, whose AT_REST_EXEMPT keys on a CSS
- * SELECTOR PARSED OUT OF THE SOURCE and whose test at :141 fails when an
- * exemption stops naming a live rule. That ledger cannot rot, because a rename
- * breaks it. This one keys on a MEASUREMENT, which changes whenever a token
- * moves — so it needs a human, and the `why` is where the human is.
- *
- * Counts are asserted with ===, never as a ceiling. A ceiling would let a fix in
- * one row mask a regression in another inside the same bucket. An exact count
- * costs a one-line edit whenever a story is added that renders an
- * already-failing component, and that edit is the point: a human then looks at
- * the new row. A total ceiling over everything means a finding that matches no
- * bucket has nowhere to hide.
- * ─────────────────────────────────────────────────────────────────────────────
+ * why: CONTRIBUTING.md#a-ledger-that-keys-on-a-measurement-is-written-by-hand-on-purpose
  */
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -641,40 +549,11 @@ test('the five toast statuses resolve to five different accents and five differe
 });
 
 test('the style cache is still serving four reads in five from memory', () => {
-  // THE DETERMINISTIC HALF OF THE COST GATE. The wall-clock ceiling below cannot
-  // see a 2x regression through machine noise, and says so. This can: the walk
-  // asks for a computed style a fixed number of times for a fixed catalogue, and
-  // how many of those reach JSDOM is arithmetic, not weather. Two identical runs
-  // give identical numbers.
+  // The deterministic half of the cost gate: a fixed catalogue asks for a
+  // computed style a fixed number of times, so how many of those reach JSDOM is
+  // arithmetic rather than weather. Gated as a RATIO, not as the absolute count.
   //
-  // THE NUMBERS. Measured over both default cells: 138,534 queries — every read
-  // the walk performs, which is exactly the number of getComputedStyle calls the
-  // walk made before the cache existed — of which 28,706 miss and reach JSDOM.
-  // A miss rate of 0.2072.
-  //
-  // WHY A RATIO AND NOT THE 28,706. The absolute count is a fact about the
-  // catalogue as much as about the cache: it moves every time a story is added,
-  // so an exact assertion on it would have to be re-pinned by whoever adds one,
-  // and the number they would re-pin it to carries no judgement. The miss rate
-  // is the quantity the cache actually controls. It was 1.0 by definition before
-  // the cache existed, it is 0.2072 now, and adding a story moves the numerator
-  // and the denominator together — the two themes, which walk identical markup
-  // through different colours, agree to three decimal places (0.2068 / 0.2077).
-  // The absolute figures are logged rather than asserted, so a human reading a
-  // CI log still sees them move.
-  //
-  // THE CEILING. 0.30: about 1.45x today's rate, and comfortably below the 0.41
-  // a doubling of lookups would produce. A single added story cannot shift an
-  // aggregate over 138,534 reads by that much, so this does not tax the person
-  // adding one. What trips it is the cache being neutered, or a DOM write
-  // appearing inside the per-element loop — either of which turns hits back into
-  // misses across the whole walk.
-  //
-  // WHAT IT DOES NOT SEE, stated because the wall-clock note below earns its
-  // keep by being honest about the same thing: a new ancestor walk that reads
-  // through the cache and hits every time raises `queries` and leaves `lookups`
-  // alone, which moves this ratio DOWN while making the walk slower. The miss
-  // rate is a gate on the cache, not on the walk's shape.
+  // why: CONTRIBUTING.md#what-the-walk-costs-and-why-the-gate-on-it-is-a-ratio
   const { queries, lookups } = walk.cache;
   console.log(
     `contrast walk: ${lookups} style lookups served from ${queries} reads `
@@ -696,23 +575,11 @@ test('the style cache is still serving four reads in five from memory', () => {
 });
 
 test('the walk has not run away with the clock', () => {
-  // WHAT THIS NUMBER IS. Measured on a 10-core laptop, two default cells:
-  // 15.7-16.5s run alone, 16.4-18.3s inside `npm test` where it shares those
-  // cores with 21 other files, and 47.6s with all ten cores deliberately
-  // saturated by competing processes. The ceiling is set off that last number,
-  // not the first: 120s is ~2.5x the worst measurement and ~7x the normal one.
+  // 120s is ~2.5x the worst measurement on a fully contended 10-core laptop. It
+  // catches a runaway, and no wall-clock number can catch a 2x regression — that
+  // is the miss-rate test's job, immediately above.
   //
-  // WHAT IT PROTECTS AGAINST, stated narrowly because a ceiling that overstates
-  // itself is worse than none. It catches a runaway — a walk that stopped
-  // terminating, or a theme×accent cell added to THEMES/ACCENT without anyone
-  // costing it, which is ~8s each and 63s for all eight. It does NOT catch a 2x
-  // performance regression, and no wall-clock number can: contention alone
-  // spans 3x on one machine, so any threshold tight enough to see a doubling
-  // flakes on a busy laptop, and a ceiling that flakes gets deleted by the next
-  // person. The doubling is the miss-rate test's job, immediately above; the two
-  // are kept apart because they fail for different reasons. A runaway shows up
-  // here and not there — a walk that stopped terminating keeps a perfectly good
-  // miss rate — and a doubling shows up there and not here.
+  // why: CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart
   console.log(
     `contrast walk: ${(walk.elapsed / 1000).toFixed(1)}s for ${THEMES.length} theme×accent cell(s), `
     + `${walk.stats.judged} pairs judged, ${walk.findings.length} distinct failures`,

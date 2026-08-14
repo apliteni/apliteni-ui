@@ -1,32 +1,19 @@
 // The landing page's segmented strip, held against the kit's own.
 //
-// The strip in the bento's "Controls" cell is a specimen: it demonstrates what
-// a segmented control looks like, and it switches nothing. That does not excuse
-// it from the contract — it is a real focusable control on a real page, like
-// the four buttons in "Buttons & actions" and the switch beside it in the same
-// cell. #147 shipped it with the kit's class name and none of the kit's
-// behaviour: no accessible name, no pressed state, one Tab stop per button and
-// dead arrow keys.
+// The strip in the bento's "Controls" cell is a specimen and switches nothing,
+// which does not excuse it from the contract: it is a real focusable control on
+// a real page. #147 shipped it with the kit's class name and none of the kit's
+// behaviour.
 //
-// So this file does not assert a list of attributes someone wrote down. It
-// imports segmented() and wireTopbar() FROM THE KIT, builds the kit's own strip
-// next to the site's, drives both through the same keys, and asserts they came
-// out in the same state. That is what makes the fourth item of #147 true: the
-// gate fails if the site drifts, and it fails just as loudly if the KIT changes
-// and the site is not brought along. A test that hard-coded role="toolbar"
-// would sit green through a kit that had moved on.
+// So this file asserts no list of attributes. It imports segmented() and
+// wireTopbar() FROM THE KIT, builds the kit's own strip beside the site's,
+// drives both through the same keys and asserts they came out in the same
+// state — so the gate fails if the site drifts, and just as loudly if the KIT
+// moves on and the site is not brought along.
 //
-// Two things differ from site/audience-switcher.test.js next door, both
-// deliberate:
-//
-//   - It substitutes the REAL chrome. That file blanks {{CHROME_JS}} because the
-//     audience switcher's behaviour lives in index.html's own <script>. The
-//     .ui-seg handler lives in site/chrome.mjs, so blanking the chrome here
-//     would leave the page with no handler bound at all. The topbar and footer
-//     come in with it: CHROME_JS reaches for #tglIc on load, and a page without
-//     the topbar throws before it binds anything.
-//   - It compares against the kit rather than against a fixed expectation, for
-//     the reason above.
+// Unlike site/audience-switcher.test.js next door it substitutes the REAL
+// chrome, because the .ui-seg handler lives in site/chrome.mjs and blanking it
+// would leave the page with no handler bound at all.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

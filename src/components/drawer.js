@@ -1,19 +1,15 @@
-// Drawer — the kit's edge-anchored overlay panel (a.k.a. Sheet / Slide-over): a
-// panel that slides in from any screen edge over a scrim. Header (title + close)
-// / scrollable body / footer actions. Sizes sm|md|lg — full-height for
-// left|right, full-width for top|bottom.
+// Drawer — the kit's edge-anchored overlay panel: a panel that slides in from
+// any screen edge over a scrim. Header / scrollable body / footer actions, sizes
+// sm|md|lg along the slide axis.
 //
 //   container.innerHTML = drawer({ side: 'right', title: 'Filters', body });
 //   wireDrawer(container);   // scrim/Esc/close-button + focus trap
 //
-// A page trigger opens it by id:  <button data-drawer-open="ID">…</button>
-// (or call openDrawer(rootEl) directly). Pass `open: true` to render it already
-// open, or `specimen: true` for a picture of one on a documentation page.
-//
-// Inertness, Escape and the focus trap are shared with confirm(): both are
+// A page trigger opens it by id: <button data-drawer-open="ID">. Inertness,
+// Escape and the focus trap are shared with confirm(): both are
 // "content over a scrim, focus-trapped, Esc-dismissable", and they push onto one
-// stack in ./overlay.js so the two can never disagree about which of them the
-// keyboard currently belongs to.
+// stack in ./overlay.js, so the two can never disagree about which of them the
+// keyboard belongs to.
 import { esc, icon } from './index.js';
 import { OVERLAY_LAYER, adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
@@ -23,23 +19,26 @@ const cx = (...a) => a.filter(Boolean).join(' ');
 let _uid = 0;
 const nextId = (p = 'drawer') => `${p}-${++_uid}`;
 
-// The public factory. Returns an HTML string; wire it with wireDrawer().
-//   side        'right' (default) | 'left' | 'top' | 'bottom' — the edge it hugs
-//   size        'sm' | 'md' (default) | 'lg' — panel extent along the slide axis
-//   title       header heading (also the dialog's accessible name)
-//   body        scrollable body HTML (trusted markup)
-//   footer      pinned footer actions HTML (trusted markup)
-//   open        render already-open, as a real panel: wireDrawer() adopts it onto
-//               the overlay stack, so the page behind it goes inert, Tab is
-//               trapped in the panel and Escape closes it
-//   specimen    render open as a *picture* of the panel: same markup, minus the
-//               data-drawer hook and aria-modal, so no wiring and no key handler
-//               can reach it. See confirm() for why a documentation page wants
-//               that; `open` is the one to use when the drawer is real.
-//   id          root id — a [data-drawer-open="id"] trigger targets it
-//   ariaLabel   accessible name when there's no visible title
-//   dismissible show the close button + allow scrim/Esc dismiss (default true)
-//   closeLabel  accessible name for the close button (default 'Close')
+/**
+ * The public factory. Returns an HTML string; wire it with wireDrawer().
+ *
+ * `specimen` renders open as a *picture* of the panel — see confirm() for why a
+ * documentation page wants that. Use `open` when the drawer is real.
+ *
+ * @param {object} [o]
+ * @param {string} [o.side]        'right' (default) | 'left' | 'top' | 'bottom'
+ * @param {string} [o.size]        'sm' | 'md' (default) | 'lg', along the slide axis
+ * @param {string} [o.title]       header heading, also the accessible name
+ * @param {string} [o.body]        scrollable body HTML (trusted markup)
+ * @param {string} [o.footer]      pinned footer actions HTML (trusted markup)
+ * @param {boolean} [o.open]       render already-open, as a real panel
+ * @param {boolean} [o.specimen]   render open as a picture of the panel
+ * @param {string} [o.id]          root id a [data-drawer-open] trigger targets
+ * @param {string} [o.ariaLabel]   accessible name when there is no visible title
+ * @param {boolean} [o.dismissible] close button + scrim/Esc dismiss (default true)
+ * @param {string} [o.closeLabel]  accessible name for the close button
+ * @returns {string} html
+ */
 export function drawer({
   side = 'right', size = 'md', title, body = '', footer = '',
   open = false, specimen = false, id, ariaLabel, dismissible = true, closeLabel = 'Close',

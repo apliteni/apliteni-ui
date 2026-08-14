@@ -1,19 +1,17 @@
 // The drawer's opening focus — the half JSDOM can see, and the half it cannot.
 //
-// openDrawer() moves focus to the first control in the panel and then marks
-// everything outside inert, so if that focus() is a no-op the reader is left on
-// <body> with the trigger already inert behind them. In Chrome it WAS a no-op:
-// `visibility` sat in the panel's transition list, a transitioned visibility is
-// still `hidden` in the frame the transition starts, and focus() on a hidden
-// element does nothing. Measured on Components/Drawer → Playground:
+// openDrawer() moves focus into the panel and then marks everything outside
+// inert, so a focus() that no-ops leaves the reader on <body> with the trigger
+// already inert behind them. In Chrome it WAS a no-op, because a transitioned
+// `visibility` is still `hidden` in the frame the transition starts. Measured on
+// Components/Drawer → Playground:
 //
 //   [["pre-click","hidden","trigger"],["sync-after-open","hidden","trigger"],
 //    ["t=50","visible","BODY"],["t=500","visible","BODY"]]
 //
-// JSDOM has no CSS and no transitions, so it cannot reproduce that. It can only
-// prove the aim — focus is asked to move. The stylesheet rule that broke is
-// pinned in stories/overlay-css.test.js, which reads both overlay sheets as text
-// and asks the same questions of each.
+// JSDOM has no CSS and no transitions, so it can only prove the AIM — focus is
+// asked to move. The stylesheet rule that broke is pinned in
+// stories/overlay-css.test.js.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -3,6 +3,12 @@
 
 export const RELEASES = [
   {
+    v: '0.23.2', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['changed', 'The published stylesheets and components stopped carrying arguments in their headers. `src/tokens/tokens.css` explained why a signal colour that becomes a fill takes its own ink — one near-black clears all five signals in dark, while light needs a token of its own because its signals are deepened to read on white — and `src/styles/callout.css` explained why a toast\'s accent, its solid fill and its trailing action are three colours rather than one. Both are now **Colour and contrast** in `docs/specification.md`, with the measurements that decided them. `src/styles/base.css` argued for the `:where()` in the icon reset, which holds the whole filter at zero specificity so every component rule out-ranks it; written bare it weighs (0,2,1) and beats every `.ui-btn svg` in the kit, which it once did. That is now **The reset is a floor** in `CONTRIBUTING.md`. `src/styles/motion.css`, `reduced-motion.css`, `confirm.css` and `loading.css` keep a short note and a `why:` pointer each. No behaviour changed: every edit under `src/` is a comment.'],
+    ],
+  },
+  {
     v: '0.23.1', date: '2026-08-14', tag: 'latest',
     changes: [
       ['changed', 'Two published files stopped carrying their own design document. `src/assets/icons.js` had a 31-line header whose second half was the contributor rules for adding a glyph — naming, grouping, provenance — and those are now **Add a glyph** in `CONTRIBUTING.md`, with the incident behind the one-group rule (`card`, `chart` and `doc` each filed under two headings until #199) written out rather than alluded to. `src/components/loading.js` had a 43-line header stating what the busy region guarantees, and that is a guarantee a consumer relies on, so it is now **Pending and denied states** in `docs/specification.md`: one live region that outlives its content, a skeleton that is `aria-hidden`, a `deniedState()` with no role of its own, and no spinner factory. Each file keeps a short note and a `why:` pointer the doc-refs gate resolves. No behaviour changed.'],

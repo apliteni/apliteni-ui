@@ -1,23 +1,16 @@
 // Version-drift guard — the verdict has to be decidable without a network and
 // without waiting a day for the clock to catch up.
 //
-// The failure this exists for is a silent one. `main` said 0.7.0 and npm said
-// 0.6.0 and nothing anywhere said the two disagreed; the ./react subpath sat
-// unpublished for a day, and later main ran thirteen commits and a changed
-// export surface ahead of the registry. Both were found by a person happening
-// to look.
+// A check whose only exercise is "wait a day, hit the registry, see what
+// happens" is the same class of thing as the bug it watches for, so `assessDrift`
+// takes the three facts as arguments and everything touching npm, git or the
+// clock stays in the CLI half these tests never reach.
 //
-// A scheduled job now looks instead, and that job is the reason this file is
-// split the way it is. A check whose only exercise is "wait a day, hit the
-// registry, see what happens" is the same class of thing as the bug — nobody
-// runs it, so nobody knows it works. So `assessDrift` takes the three facts as
-// arguments and returns a verdict, and everything that touches npm, git or the
-// clock lives in the CLI half of version-drift.mjs where these tests never go.
+// The one judgement call worth stating: the threshold is EXCLUSIVE. A bump
+// exactly `thresholdHours` old is not yet drift, because an inclusive boundary
+// would make the verdict depend on which side of a second the runner started on.
 //
-// The one judgement call worth stating out loud: the threshold is exclusive. A
-// bump that is exactly `thresholdHours` old is not yet drift. The job runs on a
-// daily cron and "more than a day" is what we mean; an inclusive boundary would
-// make the verdict depend on which side of a second the runner started on.
+// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';

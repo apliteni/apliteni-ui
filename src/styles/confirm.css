@@ -1,19 +1,16 @@
-/* ============================================================================
- * Confirm — the kit's confirmation dialog: a centred panel over a scrim, for
- * the question a destructive action has to ask. Fully token-driven so it
- * re-themes across accents + light/dark. Shares its scrim + focus-trap
- * behaviour with the drawer (see overlay.js).
+/* Confirm — the kit's confirmation dialog: a centred panel over a scrim, for the
+ * question a destructive action has to ask. Fully token-driven, and it shares
+ * its scrim and focus-trap behaviour with the drawer (see overlay.js).
  *
- * Motion is the drawer's, deliberately: --dur-med/--ease, and `visibility`
- * switched rather than transitioned. A transitioned visibility is still
+ * `visibility` is SWITCHED rather than transitioned: transitioned, it is still
  * `hidden` in the frame the class lands, so openConfirm()'s focus() would have
- * nothing to focus and the reader would be left on <body>. The root owns the
- * switch; the panel and scrim inherit it.
+ * nothing to focus. The root owns the switch; panel and scrim inherit it.
  *
- * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
+ * Local tokens so the panel and scrim re-theme cleanly:
  *   --confirm-surface  panel background     --confirm-shadow  panel elevation
- *   --confirm-scrim    backdrop colour (--scrim already re-themes per theme)
- * ========================================================================== */
+ *   --confirm-scrim    backdrop colour
+ *
+ * why: docs/specification.md#motion */
 
 .ui-confirm {
   --confirm-surface: var(--surface-2);

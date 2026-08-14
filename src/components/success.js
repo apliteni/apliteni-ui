@@ -1,22 +1,13 @@
-// Success / confirmation surface — the emotional high point of a flow, done
-// with craft. One factory, three layouts and three backdrops, an SVG check
-// that draws itself in, optional confetti and an optional auto-redirect
-// countdown. Every motion path is reduced-motion safe (static check, no burst,
-// no confetti, no sweep). Accent-aware via the kit tokens; the success mark
-// stays on the --green family. Styles ship in styles/success.css.
+// Success / confirmation surface. One factory, three layouts and three
+// backdrops, an SVG check that draws itself in, optional confetti and an
+// optional auto-redirect countdown. Every motion path is reduced-motion safe.
+// Accent-aware, but the success mark stays on the --green family.
 //
-//   container.innerHTML = success({
-//     title: 'Feedback sent',
-//     body: 'It goes straight to the strategy owner.',
-//     actions: [
-//       { label: 'Back to strategy', variant: 'primary', icon: 'compass' },
-//       { label: 'Send another', variant: 'ghost' },
-//     ],
-//   });
+//   container.innerHTML = success({ title, body, actions: [{ label, variant }] });
 //
-// The check animation is pure CSS, so string-rendered markup animates on its
-// own once mounted. A live countdown (ticking numbers + redirect) is opt-in via
-// wireSuccess(); the markup alone shows the ring sweep + a static number.
+// The check animation is pure CSS, so string-rendered markup animates on its own
+// once mounted. A live countdown is opt-in via wireSuccess(); the markup alone
+// shows the ring sweep and a static number.
 import { esc, button } from './index.js';
 
 // Self-drawing check: a faint track disc, a filled accent disc that springs in,

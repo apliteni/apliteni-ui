@@ -3,29 +3,15 @@
  * version-drift — say out loud when `main`'s version and the version on npm
  * have disagreed for long enough to be a mistake rather than a gap.
  *
- * Nothing used to say it. The ./react subpath sat on main unpublished for a
- * day with no signal; later main ran thirteen commits and one changed export
- * surface ahead of the registry, again with no signal. Both were noticed by a
- * person happening to look at two numbers side by side.
- *
- * A gap on its own is not a fault — a version bump lands on main minutes before
- * the tag that publishes it, and for those minutes the two numbers differ
- * exactly as they should. What makes it a fault is time. So the verdict is a
- * function of the gap *and* its age, and the default age is a day.
- *
- * The file is deliberately in two halves. `assessDrift` is pure: it takes the
- * three facts and returns a verdict, with no registry, no git and no clock
- * inside it, so the whole decision is testable in milliseconds without a
- * network. Everything that reaches out to the world lives below the
- * `import.meta.url` check, runs only when the file is executed directly, and
- * has no judgement in it beyond "here is what I found, or here is why I found
- * nothing".
+ * A gap on its own is not a fault — a bump lands on main minutes before the tag
+ * that publishes it — so the verdict is a function of the gap AND its age.
  *
  * Usage: node scripts/version-drift.mjs [--threshold-hours N]
  *
- * Prints one JSON object (the verdict, for a workflow to read) and one human
- * line to stderr. Exit 0 always, drift or not — the caller decides what a
- * verdict means, and a non-zero exit would make a red run out of a report.
+ * Prints one JSON object and one human line to stderr. Exit 0 always: a non-zero
+ * exit would make a red run out of a report.
+ *
+ * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
  */
 
 import { readFile } from 'node:fs/promises';
@@ -187,27 +173,17 @@ async function readPublishedVersion(name) {
  * The committer date of the last commit that changed the version field.
  *
  * `git log -L` traces one line's history and follows it as the file is edited
- * around it, which is exactly the question being asked. The two obvious
- * alternatives both mislead:
+ * around it. The two obvious alternatives both mislead: `-S` is the pickaxe and
+ * matches a string's COUNT, so a bump leaves it at one and every release is
+ * skipped; `-G` is a regex over the diff, and git's default POSIX engine matches
+ * nothing for `\s`, reading as "the version has never changed".
  *
- *   -S'"version":'  is the pickaxe, and it matches on the *count* of a string,
- *                   not its content. A bump leaves the count at one, so this
- *                   silently skips every release and answers with whichever
- *                   ancient commit last added or removed the line. On this
- *                   repo it returns b39ed24 (July 20) instead of 05b0e0d.
- *   -G'\s*"version"' is a regex over the diff, but git's default engine is
- *                   POSIX, where `\s` matches nothing at all — it returns no
- *                   commits and reads as "the version has never changed".
+ * Needs full history and degrades silently without it: in a shallow clone the
+ * boundary commit looks parentless, so this returns the boundary's date with
+ * exit 0 — a bump that is always minutes old and therefore never drift. Hence
+ * fetch-depth: 0 in the workflow.
  *
- * Needs full history, and degrades silently without it. In a shallow clone the
- * boundary commit looks parentless, so the version line appears to have been
- * introduced there and this returns the boundary's date with exit 0 — a bump
- * that is always minutes old and therefore never drift. Hence fetch-depth: 0 in
- * the workflow.
- *
- * Exported, and takes the directory as an argument, only so the pathspec can be
- * exercised against real repositories in scripts/version-drift.test.js. Nothing
- * above the divider imports it.
+ * Exported only so the pathspec can be exercised against real repositories.
  */
 export async function readVersionChangedAt(cwd = root) {
   try {

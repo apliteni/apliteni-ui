@@ -1,23 +1,20 @@
 // What the overlay stylesheets have to say, for both the drawer and the confirm.
 //
-// These are the rules JSDOM cannot check, because JSDOM has no CSS and no
-// transitions — and they are the ones that broke in a real browser. So the
-// stylesheets are read as text and the claims are made about the rules
-// themselves.
+// These are the rules JSDOM cannot check — it has no CSS and no transitions —
+// and they are the ones that broke in a real browser, so the stylesheets are
+// read as text.
 //
-// Two of them are about `visibility`, which is a discrete property: a transition
-// holds it at the OLD value for the whole duration. Transition it on the way in
-// and the panel is still `hidden` in the frame the class lands, so openDrawer()'s
-// focus() has nothing to focus and the reader is left on <body> with the trigger
-// already inert behind them. Ease it with a curve that leaves [0, 1] — and
-// brand.generated.css ships `--easing-spring` recommending itself for "modals,
-// cards" — and it flips mid-fade instead.
+// Two are about `visibility`, a discrete property a transition holds at the OLD
+// value for the whole duration: transitioned on the way in, the panel is still
+// `hidden` in the frame the class lands; eased with a curve that leaves [0, 1],
+// it flips mid-fade.
 //
-// The third is about the window between "closed" and "gone". Both roots stay
-// visible for --dur-med after the close call has stopped trapping focus, so a
-// panel still hit-testable while it fades out takes one more click. On a confirm
-// that runs the caller's destructive handler a second time; on a drawer any
-// control in the panel re-runs the handler behind it.
+// The third is the window between "closed" and "gone": both roots stay visible
+// for --dur-med after the close call stops trapping focus, so a panel still
+// hit-testable while it fades takes one more click — which on a confirm runs the
+// caller's destructive handler a second time.
+//
+// why: docs/specification.md#motion
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

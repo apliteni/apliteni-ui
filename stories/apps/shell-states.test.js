@@ -1,25 +1,15 @@
 /* Rule: the page shell reads the same at every width, in every theme, under
  * every accent — and nothing it draws goes missing at one of them.
  *
- * shell.test.js gates the shell's composition: what markup comes out. This file
- * gates what a reader can reach and see once that markup meets the stylesheet —
- * so every assertion here is resolved through the real cascade rather than
- * grepped off a declaration.
+ * shell.test.js gates what markup comes out; this file gates what a reader can
+ * reach once that markup meets the stylesheet, resolved through the real cascade
+ * rather than grepped off a declaration.
  *
- * Two things JSDOM cannot do, and how each is handled:
- *
- *   @media   JSDOM resolves no media block at all (src/styles/icon-size.test.js
- *            says the same about icon sizes), so the narrow-rail rules would be
- *            invisible to getComputedStyle. `narrow: true` lifts the 720px
- *            block's body out and appends it where a browser applies it — after
- *            every rule before it. That is what "the viewport is 375px" means to
- *            the cascade, and it is the only claim being made: no box is being
- *            laid out here.
- *
- *   layout   getBoundingClientRect is always zero, so "does this row fit" is not
- *            a question this file can ask. It asks the structural one instead —
- *            can the box that holds the rows scroll — and the measured answer
- *            lives in the lane report.
+ * Two things JSDOM cannot do. It resolves no @media, so `narrow: true` lifts the
+ * 720px block's body out and appends it where a browser applies it — that is all
+ * "the viewport is 375px" means here, and no box is being laid out. And
+ * getBoundingClientRect is always zero, so "does this row fit" is not a question
+ * this file can ask; it asks whether the box that holds the rows can scroll.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -1,26 +1,15 @@
-// Stylesheet manifest guard — the kit lists its stylesheets twice, and nothing
-// used to make the two lists agree.
-//
-//   src/index.css  — an `@import` per stylesheet. This is what a bundler/browser
-//                    consumer gets through the `./css` export.
-//   src/inline.js  — an explicit `read('…')` per stylesheet. This is what a
-//                    server-render consumer gets through `./inline`, and it is
-//                    what site/build.mjs concatenates into ui.apli.tech's
-//                    assets/kit.css.
+// Stylesheet manifest guard — the kit lists its stylesheets twice, in
+// src/index.css (`@import` per sheet, what a bundler consumer gets) and
+// src/inline.js (`read('…')` per sheet, what a server-render consumer gets and
+// what site/build.mjs concatenates).
 //
 // Two hand-maintained lists of the same thing drift, and both directions ship a
-// consumer with missing CSS:
+// consumer with missing CSS. It has been needed twice: empty.css sat in one and
+// not the other for two releases, and 0.4.0's changelog records the same
+// omission for the aurora CSS. Both lists are read from the files themselves — a
+// hard-coded list here would be a third thing to drift.
 //
-//   in index.css, not in inline.js  → the CDN/server-render consumer gets no
-//                                     styling. empty.css sat here for two
-//                                     releases; `emptyState()` reached
-//                                     ui.apli.tech completely unstyled.
-//   in inline.js, not in index.css  → the npm/bundler consumer gets no styling.
-//
-// This guard has already been needed twice: 0.4.0's changelog records the same
-// omission for the aurora CSS. So the fix is not another careful edit, it is
-// this test. Both lists are read from the files themselves — a hard-coded list
-// here would just be a third thing to drift.
+// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';

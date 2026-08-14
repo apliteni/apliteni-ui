@@ -1,20 +1,17 @@
-// Dropdown — the kit's one popover-list primitive. A trigger (label + optional
-// value + rotating chevron) opens a panel of item rows (label, optional
-// description, optional leading icon, optional trailing badge, selected +
-// disabled state). Two flavours share the same panel + the same open/close JS:
+// Dropdown — the kit's one popover-list primitive. A trigger opens a panel of
+// item rows; two flavours share the same panel and the same open/close JS:
 //
 //   variant: 'select'  → role="listbox" / role="option", value shown in trigger
 //   variant: 'menu'    → role="menu"    / role="menuitem", action list
 //
-// "dropdown" (not "menu" or "select") is deliberate: `menu` implies actions
-// only and `select` implies a form control bound to a value — this factory is
-// the umbrella both of those are specialisations of, and it's the word the
-// issue and the topbar already use. The topbar's version switcher and account
-// menu are thin consumers of the SAME wiring (wireDropdown) so there is exactly
-// one open/close/click-outside/Esc/keyboard implementation in the kit.
+// The name is deliberate: `menu` implies actions only and `select` implies a
+// form control bound to a value, and this factory is the umbrella both are
+// specialisations of. The topbar's version switcher and account menu are thin
+// consumers of the SAME wiring, so there is one open/close/Esc/keyboard
+// implementation in the kit.
 //
 //   container.innerHTML = dropdown({ label: 'version:', value: '…', items });
-//   wireDropdown(container);   // or let wireTopbar() do it (it calls this)
+//   wireDropdown(container);   // or let wireTopbar() do it
 import { esc, icon } from './index.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
@@ -66,18 +63,24 @@ function ddBody({ items, sections }, listbox) {
   return (items || []).map((it) => ddItem(it, listbox)).join('');
 }
 
-// The public factory. Returns an HTML string; wire it with wireDropdown().
-//   label       muted prefix in the trigger (e.g. "version:")
-//   value       current value shown in the trigger (single-select)
-//   placeholder shown when there's no value
-//   variant     'select' (listbox) | 'menu' (default inferred from items)
-//   items       [{ label, value?, description?, icon?, badge?, selected?, disabled?, href?, danger? }]
-//   sections    [{ label, items }] — grouped alternative to items
-//   header/footer  raw HTML blocks pinned top/bottom of the panel
-//   align       'start' (default) | 'end'  — which edge the panel hugs
-//   scroll      true | maxHeight px — cap panel height and scroll
-//   open        render already-open (handy for screenshots)
-//   ariaLabel   accessible name for the panel (and trigger, if no visible text)
+/**
+ * The public factory. Returns an HTML string; wire it with wireDropdown().
+ *
+ * @param {object} [o]
+ * @param {string} [o.label]       muted prefix in the trigger (e.g. "version:")
+ * @param {string} [o.value]       current value shown in the trigger
+ * @param {string} [o.placeholder] shown when there is no value
+ * @param {string} [o.variant]     'select' (listbox) | 'menu' (inferred from items)
+ * @param {Array}  [o.items]       [{ label, value?, description?, icon?, badge?, selected?, disabled?, href?, danger? }]
+ * @param {Array}  [o.sections]    [{ label, items }] — grouped alternative to items
+ * @param {string} [o.header]      raw HTML pinned to the top of the panel
+ * @param {string} [o.footer]      raw HTML pinned to the bottom of the panel
+ * @param {string} [o.align]       'start' (default) | 'end' — the edge the panel hugs
+ * @param {boolean|number} [o.scroll] true, or a maxHeight in px, to cap and scroll
+ * @param {boolean} [o.open]       render already-open (handy for screenshots)
+ * @param {string} [o.ariaLabel]   accessible name for the panel and trigger
+ * @returns {string} html
+ */
 export function dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
   header = '', footer = '', triggerContent, triggerClass = '', chevron = true,

@@ -1,20 +1,15 @@
 /* Rule: a screen's own content lays out from the space it has, not from the
  * width of the window.
  *
- * The finance report's three cashflow numbers need about 620px between them —
- * the story says so itself. It asked for that in a viewport media query keyed to
- * the shell's 720px fold, and the two are not the same question: the rail folds
- * at 720 but is still 249px wide above it, so between 721 and 1023 the column is
- * roughly 460–760px and every number orphaned its € onto a second line. The
- * strip was 57px tall where it is 29px from 1024 up.
+ * The finance report's three cashflow numbers need about 620px between them, and
+ * asking for that in a VIEWPORT query keyed to the shell's 720px fold is a
+ * different question: the rail folds at 720 but is still 249px wide above it, so
+ * between 721 and 1023 the column is roughly 460–760px and every number orphaned
+ * its € onto a second line. The shell's fold is not the place to fix that — it
+ * belongs to every screen — so a container query asks about the column instead.
  *
- * The shell's fold is not the place to fix that — it was chosen from a measured
- * touch target and it belongs to every screen. A container query asks about the
- * column the strip is actually in, which is the thing that varies.
- *
- * JSDOM resolves no @container (it resolves no @media either), so this gate is
- * structural: it reads the style block the story ships and checks what that
- * block is keyed to. The widths are measured in a browser, in the lane report.
+ * JSDOM resolves no @container, so this gate is structural: it reads the style
+ * block the story ships and checks what it is keyed to.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

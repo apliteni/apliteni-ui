@@ -3,22 +3,16 @@
  * release-notes — turn the changelog entry for a version into the body of its
  * GitHub Release, and refuse to produce anything at all when there is no entry.
  *
- * The refusal is the point: the release body is read out of the entry, so a
- * missing entry is a release that cannot be built rather than an oversight to
- * catch later. The changelog is imported, not scraped — site/changelog.mjs
- * exports `RELEASES` as data, so a change to its shape fails a test instead of
- * handing back empty notes.
- *
- * Same two halves as scripts/version-drift.mjs: `renderReleaseNotes` is pure,
- * and the CLI below the `import.meta.url` check has no judgement in it.
- *
- * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+ * The refusal is the point: a missing entry is a release that cannot be built
+ * rather than an oversight to catch later. The changelog is imported, not
+ * scraped.
  *
  * Usage: node scripts/release-notes.mjs [version]
  *
- * With no argument it uses the version in package.json, which is what the
- * tagging workflow releases. Exit 0 and markdown on stdout, or exit 1 and a
- * sentence on stderr saying which version has no entry.
+ * With no argument it uses the version in package.json. Exit 0 and markdown on
+ * stdout, or exit 1 and a sentence saying which version has no entry.
+ *
+ * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
  */
 
 import { readFile } from 'node:fs/promises';

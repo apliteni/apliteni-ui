@@ -4,6 +4,8 @@
  * An index that misses a page is worse than no index — the reader believes they
  * have seen the collection. So this gate never enumerates the pages: it
  * discovers them, the way the discovery rule asks a gate to.
+ *
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

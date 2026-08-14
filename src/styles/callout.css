@@ -49,18 +49,10 @@
 
 /* status → the paint tokens every style below consumes.
    --toast-accent is the status as a line or a small mark, --toast-glow its wash,
-   --toast-on the glyph ink on the accent circle. --toast-solid is separate on
-   purpose: a full fill is a different job from a 22px circle, and it is chosen
-   as a PAIR with --signal-solid-ink rather than against a global. See #149.
-
-   --toast-action-ink is separate from --toast-accent for the same reason the
-   fill is: the accent is a graphic colour, sized for a 3px rule and a 22px
-   circle, and in the light theme it is not a colour text can be set in. The
-   trailing action is the one part of a toast that is BOTH the status colour and
-   a piece of text, so it takes the chip inks — the text-grade version of the
-   same five statuses, and the same value as the accent in dark by construction.
-   neutral's --toast-on is --signal-solid-ink because the neutral circle IS
-   --signal-solid-neutral: one fill, so one ink, chosen once. #206 */
+   --toast-on the glyph ink on the accent circle. --toast-solid and
+   --toast-action-ink are separate from the accent on purpose: a fill and a piece
+   of text are different jobs from a 22px circle.
+   why: docs/specification.md#colour-and-contrast */
 .ui-toast--success { --toast-accent: var(--green); --toast-action-ink: var(--chip-success-ink); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); }
 .ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); }
 .ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }

@@ -1,20 +1,16 @@
 // Keyboard + assistive-technology gate — the half axe cannot see.
 //
-// The a11y gate next door (stories/a11y.test.js) runs axe over every story in
-// both themes. It is a real gate and it catches real bugs, but it reads static
-// markup and nothing else. Issue #130 shipped a control that announced itself as
-// a tablist, had no arrow keys and controlled no panel, and axe passed it clean
-// in both themes on every screen that used it — because role="tablist" with
-// role="tab" children satisfies every parent/child rule axe owns, and axe has no
-// rule for "a tab that controls nothing" or "arrow keys that do nothing".
+// The a11y gate next door reads static markup and nothing else. #130 shipped a
+// control that announced itself as a tablist, had no arrow keys and controlled
+// no panel, and axe passed it clean everywhere — role="tablist" with role="tab"
+// children satisfies every parent/child rule axe owns, and axe has no rule for
+// "a tab that controls nothing".
 //
-// So this file presses keys and asserts what moved. It builds real markup, wires
-// it with the kit's own wiring (wireTopbar / initTabs — the same two calls
-// .storybook/preview.js makes after every render), sends real KeyboardEvents,
-// and checks document.activeElement and the announced state afterwards.
+// So this file presses keys and asserts what moved: real markup, the kit's own
+// wiring, real KeyboardEvents, then document.activeElement and the announced
+// state.
 //
-// Every test here should fail if you delete the behaviour it names. That is the
-// point: a test that passes with the fix reverted is not a test.
+// why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

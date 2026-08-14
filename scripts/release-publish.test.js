@@ -1,21 +1,16 @@
 // Release guard — the command that publishes has to work on a path with a slash
 // in it.
 //
-// 0.8.0 was tagged, built, packed and never published. The release workflow ran
-// `npm publish "$TGZ"` with `TGZ=dist-pack/apliteni-apliteni-ui-0.8.0.tgz`, and
-// npm read that bare `a/b` string as a GitHub shorthand rather than a file. It
-// went off to `git ls-remote` an ssh URL built from the tarball's own name, and
-// died on a public-key permission error before it ever looked at the file.
+// 0.8.0 was tagged, built, packed and never published: npm read the bare `a/b`
+// tarball path as a GitHub shorthand and died on a public-key error before it
+// looked at the file. A leading `./` is the whole fix, and the failure only
+// appears when the path contains a slash, which is why it survived review twice.
 //
-// A leading `./` is the whole fix. The failure only appears when the path
-// contains a slash, which is why it survived review twice and only surfaced at
-// release time, on the one step no test covered.
+// Grepping the workflow would pin nothing — the string is the thing under
+// suspicion — so this reads the publish command out of the workflow and runs it
+// against a real packed tarball in a subdirectory.
 //
-// Grepping the workflow for the string would pin nothing — the string is the
-// thing under suspicion. So this test reads the publish command out of the
-// workflow, runs it against a real packed tarball placed in a subdirectory, and
-// asserts npm resolves it as a file. `--dry-run` does everything except upload:
-// it resolves the spec, reads the tarball and needs no credentials.
+// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -42,20 +37,12 @@ test('the workflow publishes a file path, not a git shorthand', () => {
     // pass while the real workflow, which packs into dist-pack/, fails.
     const sub = path.join(scratch, 'dist-pack');
     mkdirSync(sub);
-    // --ignore-scripts is load-bearing, and removing it makes another test fail
-    // rather than this one. A root `npm pack` runs `prepare`, which is tsup with
-    // `clean: true`: it deletes react/dist and re-emits it, JS and CSS in about
-    // 50ms and the types roughly 1.3s later in CI. scripts/packaging.test.js
-    // packs the root too, and node --test runs the two files at once, so without
-    // this flag two builds race — one pack archives react/dist in the gap where
-    // the other build's clean has removed index.d.ts and not yet rewritten it,
-    // and ships a package with JS, CSS and no types. That is the packaging gate
-    // going red on a defect nobody introduced.
-    //
-    // Nothing here reads the tarball. It exists to be a real .tgz at a path with
-    // a slash in it, which is the only thing the publish command below is being
-    // asked about, so a pack that skips the build is the same pack for this
-    // test's purposes.
+    // --ignore-scripts is load-bearing, and removing it makes ANOTHER test fail
+    // rather than this one: a root `npm pack` runs tsup with `clean: true`, and
+    // scripts/packaging.test.js packs the root too, so without this flag the two
+    // builds race and one archives react/dist in the gap where the other's clean
+    // has removed index.d.ts. Nothing here reads the tarball — it only has to be
+    // a real .tgz at a path with a slash in it.
     execFileSync('npm', ['pack', '--ignore-scripts', '--pack-destination', sub], {
       cwd: root,
       encoding: 'utf8',

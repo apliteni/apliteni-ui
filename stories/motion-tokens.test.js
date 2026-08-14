@@ -1,22 +1,15 @@
 /* Rule: a duration in the kit is a token, an easing is a token or `linear`, and
  * the only stylesheets allowed to write a number are the ones that say why.
  *
- * The drawer already held the reasoning — 250ms on cubic-bezier(0.4, 0, 0.2, 1),
- * transform and opacity only, visibility discrete on `linear` — and
- * stories/overlay-css.test.js held it for drawer.css and confirm.css and nothing
- * else, which is why twenty-six hand-written durations landed in the six sheets it
- * does not read. This gate reads all of them, and it finds them by walking the
- * tree rather than by holding a list.
+ * The previous gate held the reasoning for two sheets and nothing else, which is
+ * why twenty-six hand-written durations landed in the six it does not read. This
+ * one walks the tree rather than holding a list.
  *
- * The vocabulary is NOT written here. It is read out of the table under
- * `## Motion` in docs/specification.md at run time, the way breakpoints.test.js
- * reads its steps: two copies of four numbers drift exactly the way twenty-six
- * literals in six files drifted.
- *
- * The numbers are resolved, not asserted. `--dur-med` is `var(--duration-normal,
- * 0.25s)` and `--duration-normal` is `250ms` in the generated brand file, so both
- * ends are followed and both have to agree with the table. A comment claiming
- * 250ms next to a token that resolves to 200 would pass a gate that read comments.
+ * The vocabulary is NOT written here: it is read out of the table in
+ * docs/specification.md at run time. And the numbers are RESOLVED rather than
+ * asserted — both ends of `var(--duration-normal, 0.25s)` are followed, because
+ * a comment claiming 250ms next to a token that resolves to 200 would pass a
+ * gate that read comments.
  *
  * why: docs/specification.md#motion
  */

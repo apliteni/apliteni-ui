@@ -2,18 +2,15 @@
  * scale. A box holding a COMPONENT takes a --panel-* step in px; a box holding
  * a LINE takes a --prose-* step in ch.
  *
- * Scanned by PROPERTY, never by a file/line allowlist — the shape the discovery rule asks
- * for, and the same shape as stories/colour-tokens.test.js next door.
+ * Scanned by PROPERTY, never by a file/line allowlist. The floor is not written
+ * here either: it is the smallest step of the panel scale, read out of
+ * tokens.css, so adding a smaller step moves the floor on its own.
  *
- * The floor is not a number written here: it is the smallest step of the panel
- * scale, read out of src/tokens/tokens.css. Add a smaller step and the floor
- * follows it down on its own.
- *
- * A media query is a question about the viewport, not a width assigned to a
- * box, and the declaration regex never matches inside `@media (…)`. The last
- * test here says so against whatever live breakpoints sit at or above the floor.
+ * A media query is a question about the viewport rather than a width assigned to
+ * a box, and the declaration regex never matches inside `@media (…)`.
  *
  * why: docs/specification.md#boxes-below-the-page
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

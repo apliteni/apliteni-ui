@@ -1,24 +1,11 @@
-// Navigation — the kit's primary wayfinding primitives. One umbrella factory,
-// `nav({ variant })`, dispatches to three shapes that share tokens + classes but
-// almost no markup, so each is also exported directly for ergonomic use:
+// Navigation — the kit's primary wayfinding primitives. `nav({ variant })`
+// dispatches to sidebarNav(), navTabs() and breadcrumbs(), each also exported
+// directly: the three share tokens and classes but almost no markup, so a single
+// options bag would mean wildly different fields per variant.
 //
-//   variant: 'sidebar'      → sidebarNav()   vertical rail: sections, icon+label
-//                             items, active state, collapsible groups, an
-//                             icon-only collapsed mode, optional per-item badge.
-//   variant: 'tabs'         → navTabs()      horizontal page tabs with an active
-//                             underline (default) or pill.
-//   variant: 'breadcrumbs'  → breadcrumbs()  the `Finance / Payouts` trail.
-//
-// Why an umbrella AND named exports (unlike dropdown, which is one factory): the
-// three variants don't share a body the way select/menu share a panel, so a
-// single options bag would mean wildly different fields per variant. The named
-// exports keep each call site honest; `nav()` stays the discoverable entry the
-// issue asks for and the one thing to import when the variant is data-driven.
-//
-// These are NAVIGATION controls (links between locations), not tab panels — so
-// tabs render as <nav> + <a aria-current="page">, not role="tablist" (that's
-// what segmented() is for). Only the collapsible sidebar groups need JS; wire
-// them once after mount with wireNav() (preview.js does this for Storybook).
+// These are NAVIGATION controls, not tab panels — so tabs render as
+// <nav> + <a aria-current="page">, not role="tablist" (that is what segmented()
+// is for). Only the collapsible sidebar groups need JS; wire with wireNav().
 import { esc, icon } from './index.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');

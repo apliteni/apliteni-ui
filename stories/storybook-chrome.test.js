@@ -1,32 +1,21 @@
-// Storybook chrome guard — the flags in .storybook/main.js that keep Storybook's
-// own onboarding out of our workbench are asked of Storybook, not of the file.
+// Storybook chrome guard — the flags in .storybook/main.js are asked of
+// Storybook, not of the file.
 //
-// Storybook does not validate `main.js`. An unknown key is neither an error nor a
-// warning: it is loaded, ignored, and the default stands. So `sidebarOnbordingChecklist`
-// (one letter short) reads exactly like the real thing in a diff, in review, and in
-// the file itself — and the widget it was meant to remove is still there. Asserting
-// the file contains the string we wrote proves nothing about that, because the string
-// we wrote is the thing under suspicion.
+// Storybook does not validate `main.js`: an unknown key is loaded, ignored, and
+// the default stands. So `sidebarOnbordingChecklist` — one letter short — reads
+// exactly like the real thing in a diff, in review and in the file, while the
+// widget it was meant to remove is still there. Asserting the file contains the
+// string we wrote proves nothing, because that string is what is under suspicion.
 //
-// This asks the two consumers instead, each the way it actually asks:
+// So each consumer is asked the way it actually asks: the what's-new handler
+// re-reads the config file and evaluates `.core?.disableWhatsNewNotifications
+// === true`, while the onboarding flags are resolved through the real preset
+// chain, which is what the manager builder serialises into `window.FEATURES`.
 //
-//  - `core.disableWhatsNewNotifications` is never merged through presets. The
-//    what's-new handler re-reads the config file itself and evaluates
-//    `.core?.disableWhatsNewNotifications === true` before it decides to show the
-//    card, so that is the expression checked here.
+// Two onboarding flags, not one — turning off only the sidebar widget leaves
+// "Get started" one click away in the menu.
 //
-//  - the onboarding flags ARE merged, and the merge is the part worth pinning.
-//    Storybook's own common preset sets both to `true`; ours has to win. Resolving
-//    `features` through the real preset chain is what the manager builder does
-//    before serialising the result into `window.FEATURES`, which is where the
-//    sidebar widget and the menu's Guide page read it from.
-//
-// Two onboarding flags, not one: Storybook gates the sidebar widget on
-// `sidebarOnboardingChecklist` and the menu's Guide page on `menuOnboardingChecklist`.
-// Turning off only the first leaves "Get started" one click away in the menu.
-//
-// If a Storybook upgrade renames a flag or moves the core preset, this fails loudly.
-// That is the point: silence would mean the config had quietly stopped doing anything.
+// why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -102,23 +91,17 @@ test('our toolbar selector uses the attribute Storybook actually renders', () =>
   }
 });
 
-// ── Composition (#137) ──────────────────────────────────────────────────────
+// Composition (#137). A PORT IS NOT AN IDENTITY: `storybook dev -p 6007` treats
+// the port as a wish and moves to the next free one when it is taken, so whoever
+// got there first ends up in our sidebar under "React components" — on this
+// machine, 244 stories of a different product's library.
 //
-// `refs` used to hand Storybook a bare `http://localhost:6007` and trust it. A
-// port is not an identity: `storybook dev -p 6007` treats the port as a wish and
-// moves to the next free one when it is taken, so whoever got there first ends up
-// in our sidebar under the heading "React components". On this machine that was a
-// different product's component library, 244 stories of it.
+// So the ref FOLLOWS rather than pins. main.js probes the range Storybook's own
+// port-finder can hand out and composes the first port that proves it is the
+// React workspace's Storybook: its index.json must list every story file the
+// workspace has on disk, and a stranger's index does not.
 //
-// So the ref follows rather than pins. Neither Storybook script uses --exact-port:
-// pinning would only trade a wrong sidebar for a workbench that refuses to boot at
-// all when the port is taken, which on this machine it always is. Instead main.js
-// probes the whole range Storybook's own port-finder can hand out and composes the
-// first port that proves it is the React workspace's Storybook — its index.json
-// must list every story file the workspace has on disk. A stranger's index does not.
-//
-// These tests drive that probe against real HTTP servers on ephemeral ports: the
-// same code path, without squatting on 6007 in CI.
+// These tests drive that probe against real HTTP servers on ephemeral ports.
 
 const repoRoot = path.resolve(configDir, '..');
 

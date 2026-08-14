@@ -66,21 +66,17 @@ export function card({ title, sub, body = '', variant, pad, icon: ic } = {}) {
 }
 
 // ---- Segmented control ---------------------------------------------------
-// A strip of mutually exclusive toggle buttons — a filter, a unit switch, a
-// language picker. It is NOT a tablist: it controls no panel, so it must not
-// announce one. `role="toolbar"` with a roving tabindex is the honest shape —
-// one Tab stop for the whole strip, ArrowLeft/ArrowRight to move between the
-// options, Home/End to jump to the ends, and `aria-pressed` to say which is on.
-// wireTopbar() ships that keyboard behaviour (see topbar.js); the markup here
-// carries the state it reads.
+// A strip of mutually exclusive toggle buttons.
+// It is NOT a tablist: it controls no panel, so it must not announce one.
+// `role="toolbar"` with a roving tabindex is the honest shape, and wireTopbar()
+// ships the keyboard behaviour.
 //
-// When the pill drives a real change of view with content behind it, reach for
-// tabs() instead — that one owns panels and earns the tab announcement.
+// When the pill drives a real change of view, reach for tabs() instead —
+// that one owns panels and earns the tab announcement.
 //
-// `ariaLabel` names the strip. `name` seeds data-seg (a hook for callers) and
-// is deliberately not an accessible name — it is an identifier, not prose.
-// Defaults to "Options" so a strip is never left unlabelled, the same way
-// switchToggle() defaults its label.
+// `ariaLabel` names the strip. `name` seeds data-seg and is deliberately
+// not an accessible name — it is an identifier, not prose, defaulting to
+// "Options" so a strip is never left unlabelled.
 export function segmented({ options = [], active = 0, size, block, name = 'seg', ariaLabel = 'Options' } = {}) {
   const cls = cx('ui-seg', size && `ui-seg--${size}`, block && 'ui-seg--block');
   // Exactly one option holds the Tab stop. If `active` points nowhere (nothing
