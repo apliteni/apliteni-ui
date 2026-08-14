@@ -3,8 +3,8 @@
 // Three of the numbers on this page did not exist anywhere in this tree before
 // #201, and each is pinned by a measurement in
 // stories/guidelines/accessibility-floor.test.js rather than by this comment
-// (the measured-pin rule). Two of the three are settled by a standard. The third is not
-// settled by anybody, and says so.
+// (the measured-pin rule). Two of the three are settled by a standard. The third
+// is settled by this repo, in #220, because no standard settles it.
 import { button, checkbox } from '../../src/components/index.js';
 
 export const TITLE = 'The accessibility floor';
@@ -21,12 +21,24 @@ export const TARGET_MIN = 24;
 export const RING_MIN = 3;
 
 /**
- * PROPOSED. No standard sets a floor for a disabled control — 1.4.3 exempts it
- * outright — so this number is an argument, not a rule, and #220 holds the
- * decision. The argument: 3:1 is the bar WCAG already uses twice for "make it
- * out, do not read it comfortably" (large text, and a graphic), and a disabled
- * label has to stay identifiable as the word it is or a reader cannot tell
- * which control is unavailable.
+ * SETTLED IN #220, by this repo, because no standard settles it — 1.4.3 exempts
+ * a disabled control outright. 3:1 is the bar WCAG already uses twice for "make
+ * it out, do not read it comfortably" (large text, and a graphic), and a
+ * disabled label has to stay identifiable as the word it is or a reader cannot
+ * tell which control is unavailable.
+ *
+ * It is 3 and not 4.5 because of what the measurement showed about the OTHER
+ * pressure. A disabled control also has to look weaker than an enabled one, and
+ * the obvious reading — hold the disabled pair below the enabled one — does not
+ * survive contact with a number: the kit's disabled primary button measures
+ * 5.56:1 and the same button enabled measures 5.70:1, a factor of 1.03, and
+ * nobody would mistake the two. White on purple and grey on grey are the same
+ * ratio and a different control. So contrast is not the axis the state travels
+ * on; the paint is. This number carries legibility only. What keeps the floor
+ * from being cleared by making a disabled control look enabled is the second
+ * half of the rule below it — the pair a control shows when it is off is not
+ * the pair it shows when it is on, and the gate proves it by taking the
+ * disabled attribute off the element and reading the cascade again.
  */
 export const DISABLED_MIN = 3;
 
@@ -39,15 +51,13 @@ export const DISABLED_MIN = 3;
 // fires while the ring is still legal rather than once it is not. It was 1.5
 // while the ring failed everywhere and a ledger held the gate open.
 export const RING_FLOOR = 4.22;
-export const DISABLED_FLOOR = 1.48;
-
-/** The disabled floor is proposed, and the kit does not meet it. */
-export const DISABLED_LEDGER = {
-  issue: 220,
-  measured: { worst: 1.48, best: 4.46 },
-  note: 'Worst is a disabled primary button in light — white on a faded accent. No disabled '
-    + 'control in the light theme reaches 3:1.',
-};
+// DISABLED_FLOOR sits well above its bar for the same reason RING_FLOOR does.
+// It was 1.48 while a ledger held the gate open — #220 took the opacity out of
+// every disabled rule that has a label under it and gave the state a paint of
+// its own, and the whole kit collapsed into a band 5.56–6.11 wide. That band is
+// narrow because a dedicated ink and surface composite predictably: the ink is
+// read on the surface beside it, and neither is dragged toward the ground.
+export const DISABLED_FLOOR = 5.56;
 
 /**
  * Controls under 24px that the gate lets through, each with the reason.
@@ -71,7 +81,7 @@ export const TARGET_EXEMPT = [
 // ---- what the kit aims at above the floor ----------------------------------
 
 /**
- * stories/contrast.test.js:90 says the AA floor is a floor and not a verdict.
+ * stories/contrast.test.js:92 says the AA floor is a floor and not a verdict.
  * These are the four things the kit aims at above it, each stated so it can be
  * applied to a component nobody has written yet.
  */
@@ -189,8 +199,12 @@ export const GATES = [
     does: 'Pins the three numbers on this page: target size against every control the stories '
       + 'render — the box it draws UNION the pseudo-elements it generates, which is what a '
       + 'pointer can land on — the ring against every ground it lands on, and the composite a '
-      + 'disabled control leaves on the page.',
+      + 'disabled control leaves on the page, measured twice: as the story renders it, and again '
+      + 'with the disabled attribute taken off, so the state has to change the pair.',
     blind: [
+      'A disabled input’s VALUE. The walk measures text nodes, and an input holds its value in a '
+        + 'property — so .ui-input:disabled is discovered, is repainted, and contributes no pair. '
+        + 'The tokens it takes are measured on every other control that takes them.',
       'Width, for anything a line of text sizes — reported unmeasurable rather than passed. An '
         + 'overlay can only widen a width already known, never supply one.',
       '2.5.8’s spacing exception, which is a layout question end to end.',
@@ -350,7 +364,7 @@ export const RULES = [
       + 'gate says so about itself.',
     kit: [
       { ref: 'src/styles/button.css:75', pattern: '.ui-btn--sm' },
-      { ref: 'src/styles/input.css:111', pattern: '.ui-check input::before' },
+      { ref: 'src/styles/input.css:118', pattern: '.ui-check input::before' },
     ],
   },
   {
@@ -366,20 +380,27 @@ export const RULES = [
   },
   {
     id: 'disabled-legibility',
-    imperative: `Keep a disabled label readable at ${DISABLED_MIN}:1 — proposed, not settled.`,
-    why: 'No standard sets this: 1.4.3 exempts a disabled control outright, which is exactly '
-      + 'why nothing checks it. The number here is an argument — 3:1 is the bar WCAG already '
-      + 'uses for large text and for a graphic, and a disabled label has to stay identifiable as '
-      + 'the word it is. Nobody has accepted it, and #220 is where that decision goes.',
-    except: 'A disabled control also has to look weaker than an enabled one, and that pulls the '
-      + 'other way. A floor set too high erases the difference the state exists to show; where '
-      + 'the two meet has not been ruled on.',
-    unmet: {
-      issue: DISABLED_LEDGER.issue,
-      note: `Measured ${DISABLED_LEDGER.measured.worst}:1 at worst — a disabled primary button in `
-        + 'light. Not one disabled control in the light theme reaches 3:1.',
-    },
-    kit: [{ ref: 'src/styles/button.css:86', pattern: '.ui-btn[aria-disabled="true"]' }],
+    imperative: `Paint a disabled control, never fade it: ${DISABLED_MIN}:1 for the label, and a `
+      + 'pair it does not show when it is on.',
+    why: 'No standard sets this — 1.4.3 exempts a disabled control outright, which is exactly why '
+      + 'nothing checks it — so #220 settled it here. `opacity` is a group property: it takes the '
+      + 'label and the box under it toward the ground TOGETHER, and what a reader is left with is '
+      + 'wherever that composite lands. A disabled primary button landed at 1.48:1, white on a '
+      + 'washed-out accent, and not one disabled control in the light theme reached 3:1. The '
+      + '--disabled-ink / --disabled-surface / --disabled-border trio composites predictably '
+      + 'instead: the ink is read on the surface beside it, both opaque. Every disabled label in '
+      + `the kit now measures between ${DISABLED_FLOOR}:1 and 6.11:1.`,
+    except: 'A disabled control also has to look weaker than an enabled one — and the measurement '
+      + 'says that is not a contrast question. The disabled primary reads 5.56:1 and the enabled '
+      + 'one reads 5.70:1; white on purple and grey on grey are the same ratio and nobody confuses '
+      + 'them. Contrast carries legibility, the paint carries the state, and the second half of '
+      + 'the imperative is what holds the state: the pair changes, and the accent goes. The one '
+      + 'rule still fading with opacity is the switch track, which has no label inside it — its '
+      + 'pair is 1.4.11’s, and no gate here measures it.',
+    kit: [
+      { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
+      { ref: 'src/tokens/tokens.css:163', pattern: '--disabled-ink' },
+    ],
   },
   {
     id: 'floor-not-verdict',
@@ -387,7 +408,7 @@ export const RULES = [
     why: 'Every number above is the least the kit accepts, not what it is trying to be. The '
       + 'four aims below the rules say what it reaches for, and a component that lands one '
       + 'thousandth over AA has passed the gate and is still the worst thing on the page.',
-    kit: [{ ref: 'stories/contrast.test.js:90', pattern: 'The AA floor is a floor, not a verdict.' }],
+    kit: [{ ref: 'stories/contrast.test.js:92', pattern: 'The AA floor is a floor, not a verdict.' }],
   },
   {
     id: 'name-the-gap',

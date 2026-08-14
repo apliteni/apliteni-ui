@@ -150,6 +150,20 @@
   --dim: #c6c2d6;
   --muted: #948fa8;
 
+  /* The paint of a control that is off. NOT an opacity: `opacity` is a group
+     property, so it fades a label and the box under it toward the ground
+     TOGETHER and the pair a reader is left with is whatever that composite
+     lands on — a disabled primary button measured 1.48:1 that way, white on a
+     faded accent. These three composite predictably instead: the ink is read on
+     the surface beside it, and both are opaque. They are aliases, not new
+     colours — the ramp gains nothing to keep in sync. A disabled control drops
+     its accent, which is most of what makes it read as inert; the ink going
+     quiet is the rest. Held by stories/guidelines/accessibility-floor.test.js.
+     why: docs/specification.md#colour-and-contrast */
+  --disabled-ink: var(--muted);
+  --disabled-surface: var(--surface-2);
+  --disabled-border: var(--border);
+
   /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own
      wash over a card. This value was already in the ramp as --purple-mid, so no
      new colour entered it; the ramp then moved up a step above so --accent is
@@ -282,6 +296,13 @@
   --strong: #0c0e13;
   --dim: #3a404b;
   --muted: #5c6270;
+
+  /* Same three aliases as dark, same reasoning. Light moves the disabled
+     surface AWAY from white for the same reason dark moves it away from the
+     card: a control that is off should sink, not rise. */
+  --disabled-ink: var(--muted);
+  --disabled-surface: var(--surface-2);
+  --disabled-border: var(--border);
 
   --accent: #6a2dcc;
   --accent-strong: #6a2dcc; /* already dark enough for white text */

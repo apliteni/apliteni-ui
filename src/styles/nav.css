@@ -82,7 +82,9 @@
 /* Tabbing onto it is the same "about to click this" the pointer means. The ring
    says where you are; only this says what the row does. */
 .ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); color: var(--pink); }
-.ui-nav__item.is-disabled { color: var(--muted); opacity: 0.55; cursor: default; pointer-events: none; }
+/* A row that is off. No opacity: the label was already --muted and the fade
+   only pulled it toward the rail behind it (#220). */
+.ui-nav__item.is-disabled { color: var(--disabled-ink); cursor: default; pointer-events: none; }
 
 /* The current row under the pointer. It rests on --surface-3, which is also what
    a resting row hovers to, so the one row with no hover response was the row the
@@ -216,7 +218,7 @@
   color: var(--accent);
 }
 
-.ui-nav__tab.is-disabled { color: var(--muted); opacity: 0.5; cursor: default; }
+.ui-nav__tab.is-disabled { color: var(--disabled-ink); cursor: default; }
 .ui-nav__tab .ui-nav__badge { height: 18px; }
 
 /* -- Breadcrumbs --------------------------------------------------------- */

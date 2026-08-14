@@ -47,8 +47,15 @@
 .ui-input::placeholder,
 .ui-textarea::placeholder { color: var(--muted); opacity: 0.9; }
 
+/* The value a reader typed is still the value; it goes quiet, it does not fade
+   into the field under it the way an opacity would take both down together. #220 */
 .ui-input:disabled,
-.ui-textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+.ui-textarea:disabled {
+  background: var(--disabled-surface);
+  border-color: var(--disabled-border);
+  color: var(--disabled-ink);
+  cursor: not-allowed;
+}
 
 .ui-input.is-invalid,
 .ui-textarea.is-invalid { border-color: var(--pink); }

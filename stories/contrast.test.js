@@ -54,7 +54,9 @@
  *  - Inactive components, and everything inside them. Skipped on purpose per WCAG
  *    1.4.3, but the skip is by closest(), so a disabled CONTAINER takes its whole
  *    subtree out of the walk. A disabled control is exempt from the contrast
- *    requirement; it is not exempt from being readable, and nothing checks that.
+ *    requirement and is not exempt from being readable — which is the hole
+ *    stories/guidelines/accessibility-floor.test.js fills, at the floor #220
+ *    settled. It is still a hole HERE.
  *  - Anything with no story — and "story" is narrower than it sounds: files
  *    ending .stories.js under stories/. The React workspace's .stories.tsx are
  *    not walked here; react/src/contrast.test.tsx gates those instead.

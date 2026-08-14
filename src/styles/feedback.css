@@ -85,7 +85,13 @@
 .ui-fbbtn.ghost:hover { color: var(--strong); background: var(--surface-2); }
 .ui-fbbtn.primary { background: var(--accent-strong); color: var(--accent-contrast); display: inline-flex; align-items: center; gap: 9px; }
 .ui-fbbtn.primary:hover { filter: brightness(1.08); }
-.ui-fbbtn.primary:disabled { opacity: .6; cursor: default; filter: none; }
+/* Same flat pair as .ui-btn:disabled, for the same reason (#220). */
+.ui-fbbtn.primary:disabled {
+  background: var(--disabled-surface);
+  color: var(--disabled-ink);
+  cursor: default;
+  filter: none;
+}
 .ui-fbc__send { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .ui-fbspin { flex: none; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; border: 2px solid color-mix(in srgb, currentColor 40%, transparent); border-top-color: currentColor; animation: uiFbSpin .7s linear infinite; }
 @keyframes uiFbSpin { to { transform: rotate(360deg); } }
