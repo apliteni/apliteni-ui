@@ -3,30 +3,15 @@
  * registry-status — ask the registry whether one exact version is published,
  * and be able to say "I could not find out".
  *
- * tag-on-bump.yml used to decide whether a release still needed doing by asking
- * whether the tag existed. The tag is created before the publish, so its
- * existence only ever proved that the attempt had started. One failed publish —
- * and with a reviewer required on the `npm-publish` environment, a slow approval
- * is enough — left the tag behind, and every later push to `main` read that tag,
- * concluded there was nothing to do, skipped the publish and exited green. The
- * pipeline reported healthy for as long as anyone cared to look while nothing
- * was on npm. That is the silence the whole release automation exists to end,
- * rebuilt inside it.
- *
- * The registry is the only thing that knows whether a version shipped. So the
- * registry is what gets asked, and this is the asking.
- *
  * Three answers, not two. `npm view` exits non-zero for a version that is not
- * there and for a DNS failure alike, and folding those together is how an npm
- * outage becomes either a re-publish of a released version or a green tick over
- * an unpublished one. `unknown` is a first-class verdict and the caller is
- * expected to stop on it, exactly as the `git ls-remote` check beside it in the
- * workflow stops on exit 128.
+ * there and for a DNS failure alike, so `unknown` is a first-class verdict and
+ * the caller is expected to stop on it, exactly as the `git ls-remote` check
+ * beside it in the workflow stops on exit 128.
  *
- * The file is in two halves, like scripts/version-drift.mjs. `classifyRegistryAnswer`
- * is pure — an exit code and whatever npm printed go in, a verdict comes out —
- * so every branch is testable in milliseconds with no network. Everything that
- * runs npm lives below the `import.meta.url` check and has no judgement in it.
+ * Two halves, like scripts/version-drift.mjs: `classifyRegistryAnswer` is pure,
+ * and everything that runs npm lives below the `import.meta.url` check.
+ *
+ * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
  *
  * Usage: node scripts/registry-status.mjs <version>
  *

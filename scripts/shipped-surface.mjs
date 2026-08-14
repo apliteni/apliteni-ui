@@ -3,78 +3,21 @@
  * shipped-surface — fail a pull request that changes what the package publishes
  * without changing the version that would publish it.
  *
- * A version bump landing on `main` is now the whole trigger for a release: the
- * sibling workflow tags whatever version has no tag yet and dispatches the
- * publish. Which means the inverse is also true and nothing said so — a change
- * to what we ship, merged without a bump, is a change that never reaches anyone
- * who installed the package. It sits on `main` looking merged.
+ * The subject is the tarball, never the changed paths: the caller packs the
+ * package at the base of the pull request and at its head, fingerprints every
+ * file npm would put inside, and hands both maps to `assessShippedSurface`.
+ * `version` — that field alone, not package.json — is excluded, or the only fix
+ * for a red gate would be a change that keeps it red.
  *
- * That has happened twice. The ./react subpath shipped to `main` and stayed off
- * npm. `footer()`, `success()`, `successCheck()` and `wireSuccess()` sat on
- * `main` exported from the entry point and unreachable by every consumer.
- * Neither was caught by review, because a diff does not tell you whether the
- * thing it changes is published.
+ * The second assertion is folded into the same job: a bump has to be upwards and
+ * site/changelog.mjs must have a RELEASES entry for it. scripts/release-notes.mjs
+ * is imported rather than reimplemented, so there is one definition of "the
+ * changelog describes this release".
  *
- * ---------------------------------------------------------------------------
- * Why this measures the artefact and not the paths
- * ---------------------------------------------------------------------------
- * The obvious implementation — match the changed paths against `files` in
- * package.json — cannot work here, in both directions:
+ * Same two halves as scripts/version-drift.mjs — pure above the
+ * `import.meta.url` check, effects below it, no judgement in them.
  *
- *   react/dist   is built and gitignored, so a change to what it contains
- *                never appears in a `git diff` at all. That is precisely the
- *                surface that caused this issue.
- *   react/src/** is never published, but it is what produces react/dist. A
- *                glob wide enough to catch it also catches
- *                react/src/*.test.tsx, which ships nothing.
- *
- * So the subject is the tarball. The caller packs the package at the base of
- * the pull request and at its head, fingerprints every file npm would put
- * inside, and hands both maps to `assessShippedSurface`. Paths never enter the
- * decision.
- *
- * ---------------------------------------------------------------------------
- * How the contents get compared
- * ---------------------------------------------------------------------------
- * `npm pack --dry-run --json` gives paths and sizes, and sizes are not enough:
- * an edit that changes a colour token or an off-by-one keeps the byte count and
- * changes what ships. So the pack list is used for *which* files ship, and each
- * of those files is then read off disk and hashed. Reading from disk rather
- * than extracting the tarball keeps this to node builtins — no tar, no
- * dependency — and the tarball's contents are those files, so the two answers
- * are the same answer.
- *
- * ---------------------------------------------------------------------------
- * The one field that is deliberately ignored
- * ---------------------------------------------------------------------------
- * package.json is inside the tarball, so the version bump that satisfies this
- * gate is itself a change to the shipped surface. Counted naively, the only fix
- * for a red gate would be a change that keeps it red. So `version` — that field
- * alone, not the file — is excluded from package.json's fingerprint. `exports`
- * and `files` still count, and they are the two fields that decided both of the
- * failures above.
- *
- * ---------------------------------------------------------------------------
- * The second assertion, folded into the same job
- * ---------------------------------------------------------------------------
- * If the pull request does bump the version, the bump has to be upwards and
- * site/changelog.mjs must have a RELEASES entry for it. Upwards because a
- * version that is merely *different* releases nothing: set it to something
- * already tagged and `tag-on-bump` finds the tag on `main`, no-ops, and the
- * change sits merged and unpublished — the original bug, wearing a bump. An
- * intentional rollback goes forwards too, since npm will not re-serve a version
- * it has already served. It is the same decision as the surface one — is this
- * a release, and is it a complete one — asked at the only moment it can still
- * be answered cheaply. Without it a bump merges, `tag-on-bump` runs on `main`,
- * and the release fails *after* the version is already there: bumped,
- * unreleased, and needing a second pull request to fix. The check itself is
- * scripts/release-notes.mjs, imported rather than reimplemented — its refusal
- * to render is the gate, so there is exactly one definition of "the changelog
- * describes this release".
- *
- * Same two halves as scripts/version-drift.mjs and scripts/release-notes.mjs.
- * Everything above the `import.meta.url` check is pure and takes its facts as
- * arguments; everything below runs npm, reads files and has no judgement in it.
+ * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
  *
  * Usage: node scripts/shipped-surface.mjs --base <path-to-base-checkout>
  *

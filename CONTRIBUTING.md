@@ -590,5 +590,82 @@ If `main` and npm disagree for more than a day, a scheduled job opens an issue
 saying so. It is the backstop for a release that was tagged and never reached
 the registry.
 
+### What the release gates are shaped by
+
+Each of the three has a shape that looks over-built until you know which failure it was
+built after. None of them was designed; all three were extracted from something that had
+already shipped wrong and reported green.
+
+**`shipped-surface.mjs` measures the artefact, never the paths.** Twice a change to what we
+publish merged without a bump and stayed off npm while sitting on `main` looking merged: the
+`./react` subpath, and `footer()` / `success()` / `successCheck()` / `wireSuccess()` exported
+from the entry point and unreachable by every consumer. Review caught neither, because a diff
+does not tell you whether the thing it changes is published.
+
+Matching changed paths against `files` fails in both directions. `react/dist` is built and
+gitignored, so a change to what it contains never appears in a `git diff` at all — precisely
+the surface that caused the first failure. `react/src/**` is never published but is what
+produces `react/dist`, and a glob wide enough to catch it also catches `react/src/*.test.tsx`,
+which ships nothing. So the subject is the tarball: pack at the base of the pull request and
+at its head, fingerprint every file npm would put inside, compare. Paths never enter the
+decision.
+
+Sizes are not enough — an edit that changes a colour token or an off-by-one keeps the byte
+count and changes what ships — so the pack list decides *which* files ship and each is then
+read off disk and hashed. Reading from disk rather than extracting the tarball keeps the
+script to node builtins, and the tarball's contents are those files, so the two answers are
+the same answer.
+
+One field is deliberately ignored. `package.json` is inside the tarball, so the version bump
+that satisfies the gate is itself a change to the shipped surface; counted naively, the only
+fix for a red gate would be a change that keeps it red. So `version` — that field alone, not
+the file — is excluded from `package.json`'s fingerprint. `exports` and `files` still count,
+and those two fields decided both failures above.
+
+The bump has to be **upwards**, because a version that is merely *different* releases
+nothing: set it to something already tagged and `tag-on-bump` finds the tag on `main`,
+no-ops, and the change sits merged and unpublished — the original bug, wearing a bump. An
+intentional rollback goes forwards too, since npm will not re-serve a version it has already
+served.
+
+**`release-notes.mjs` refuses to render, and the refusal is the point.** 0.8.0 and 0.8.1 both
+went out with nothing on `ui.apli.tech/changelog`: the page jumped from 0.7.2 to the version
+after them and two releases were invisible to anyone reading it. Writing the entry was a step
+somebody was supposed to remember, and it went unnoticed for two releases because nothing
+depended on it existing. Now the release body is read out of that entry, so a missing entry
+is not an oversight to catch later — it is a release that cannot be built. The
+`Shipped surface vs version` job imports this script rather than reimplementing the check,
+so there is exactly one definition of "the changelog describes this release", and it fails
+in the pull request rather than after the bump is already on `main`.
+
+The changelog is **imported, not scraped**. `site/changelog.mjs` exports `RELEASES` as data
+with a renderer beside it, so a change to its shape shows up as a failure a test can catch
+rather than as a regex that quietly matches nothing and hands back empty notes. A regex would
+also have to understand nested brackets, escaped quotes and the backticks in almost every
+entry. Breaking changes sort first, because a release page is read top-down and abandoned
+halfway, and no entry is obliged to open with its breaking change.
+
+**`registry-status.mjs` has three answers, not two.** `tag-on-bump.yml` used to decide
+whether a release still needed doing by asking whether the tag existed. The tag is created
+before the publish, so its existence only ever proved the attempt had started — and with a
+reviewer required on the `npm-publish` environment, a slow approval is enough to leave the
+tag behind. Every later push to `main` then read that tag, concluded there was nothing to do,
+skipped the publish and exited green. The pipeline reported healthy for as long as anyone
+cared to look while nothing was on npm: the silence the whole release automation exists to
+end, rebuilt inside it.
+
+So the registry is what gets asked. `npm view` exits non-zero for a version that is not there
+and for a DNS failure alike, and folding those together turns an npm outage into either a
+re-publish of a released version or a green tick over an unpublished one. `unknown` is a
+first-class verdict and the caller stops on it, exactly as the `git ls-remote` check beside
+it in the workflow stops on exit 128. The registry asked is `publishConfig.registry` and not
+npm's ambient default, because "did our publish land" is a different question from what an
+`.npmrc`, an `npm_config_registry` or a corporate mirror would answer.
+
+All three scripts are in **two halves**, like `scripts/version-drift.mjs`: everything above
+the `import.meta.url` check is pure and takes its facts as arguments, so every branch —
+including the failure branches — is exercised in milliseconds with no filesystem and no
+network; everything below runs npm, reads files and has no judgement in it.
+
 The `ui.apli.tech` site rebuilds from the repo (landing + Storybook) — see the
 README for the image build/deploy.

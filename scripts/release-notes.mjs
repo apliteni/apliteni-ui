@@ -3,27 +3,16 @@
  * release-notes — turn the changelog entry for a version into the body of its
  * GitHub Release, and refuse to produce anything at all when there is no entry.
  *
- * The refusal is the point. 0.8.0 and 0.8.1 both went out with nothing on
- * ui.apli.tech/changelog: the page jumped from 0.7.2 to the version after them,
- * and two releases were simply invisible to anyone reading it. Writing the
- * entry was a step somebody was supposed to remember, and it stayed unnoticed
- * for two releases because nothing anywhere depended on it existing. Now the
- * release body is read out of that entry, so a missing entry is not an
- * oversight to catch later — it is a release that cannot be built.
+ * The refusal is the point: the release body is read out of the entry, so a
+ * missing entry is a release that cannot be built rather than an oversight to
+ * catch later. The changelog is imported, not scraped — site/changelog.mjs
+ * exports `RELEASES` as data, so a change to its shape fails a test instead of
+ * handing back empty notes.
  *
- * The changelog is imported, not scraped. site/changelog.mjs exports `RELEASES`
- * as data with a renderer beside it, and importing the array means a change to
- * its shape shows up as a type of failure a test can catch, rather than as a
- * regex that quietly matches nothing and hands back empty notes. A regex would
- * also have to understand nested brackets, escaped quotes and the backticks
- * that appear in almost every entry.
+ * Same two halves as scripts/version-drift.mjs: `renderReleaseNotes` is pure,
+ * and the CLI below the `import.meta.url` check has no judgement in it.
  *
- * Same two halves as scripts/version-drift.mjs. `renderReleaseNotes` is pure:
- * it takes the array and a version and returns a string, so every branch —
- * including both failure branches — is exercised in milliseconds with no
- * filesystem and no network. Below the `import.meta.url` check is a CLI that
- * reads the real array, writes markdown to stdout and exits non-zero when
- * there is nothing to write.
+ * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
  *
  * Usage: node scripts/release-notes.mjs [version]
  *
@@ -37,13 +26,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 /**
- * The order sections appear in, and the heading each type gets.
- *
- * Breaking is first because a release page is read top-down and abandoned
- * halfway. The changelog lists changes in whatever order they were written —
- * 0.9.0 happens to open with its breaking change, and no later entry is
- * obliged to. Sorting here rather than trusting the entry means "what will
- * this upgrade cost me" is always the first thing on the page.
+ * The order sections appear in, and the heading each type gets. Breaking is
+ * first — see CONTRIBUTING.md#what-the-release-gates-are-shaped-by.
  */
 const SECTIONS = [
   ['breaking', 'Breaking'],
