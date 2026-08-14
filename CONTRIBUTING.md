@@ -173,6 +173,25 @@ accepts `ambient` and `choreographed`, so a third would need arguing for in
 sits **on the declaration**, so it is read by whoever is about to change the number, which a
 list in a test file never is.
 
+### A subject a gate cannot check is a failure, never a skip
+
+A gate that walks a set has to say what happened to every member of it. The temptation, every
+time, is to `continue` past the one that will not cooperate — and in the output a `continue`
+is indistinguishable from a pass.
+
+`stories/a11y.test.js` did exactly that. A story that threw (anything calling
+`document.createElement` blew up in bare Node) or returned a DOM node instead of a string was
+skipped in silence: five stories, the whole Feedback file among them, were "covered" by a test
+that checked nothing. Stories now render inside a jsdom, DOM output is serialised, and a story
+that still cannot be rendered fails. `stories/lib/contrast.js` walks the same catalogue under
+the same rule, and `walkStories()` returns an unrenderable story as a problem.
+
+Refusing to skip is only half of it, because a subject that never reaches the walk is not
+skipped — it is absent, and absence has no line in the output at all. So the count is asserted
+beside it: each per-file test checks that checks-run equals stories-discovered × themes, and a
+tally test at the end re-checks that across every file. A story cannot fall out of the set
+unnoticed.
+
 ### One gate per workspace, over one shared implementation
 
 Each workspace gets its own gate, because a shared count cancels: a React rule dropping out
@@ -372,6 +391,122 @@ shared-shell refactor itself: one ordinary rule next to `${SHELL_CSS}` and the b
 fully measured. A marker inside a declaration's *value* is left alone whatever the property,
 because a surface interpolates a colour or an image far more often than a size and refusing
 `background: ${theme.bg}` is a red on correct code.
+
+### Resolving the cascade rather than reading the stylesheet
+
+`stories/nav-cascade.test.js`, `stories/contrast.test.js` and the resolver the second is built
+on, `stories/lib/contrast.js`, all answer a question a grep over the stylesheet cannot. Every
+defect the nav gate was built after was a rule that looked right in the file and never applied:
+the nested indent lost to the `.ui-nav ul` reset, the active child's marker was offset against
+that missing indent and painted outside the nav box, and the active nested row's focus ring was
+cancelled by a later rule of equal specificity. All three declarations were present. All three
+were dead. Grepping for them passes on every one.
+
+So the shape is: load the stylesheets the surface actually ships with, substitute their `var()`
+references from the token files for the theme under test, mount real factory markup in jsdom,
+and read `getComputedStyle` back. jsdom applies author rules by specificity and source order, so
+a declaration that loses to another author rule resolves to the winner's value there exactly as
+it does in a browser.
+
+**Author rules are the whole of that guarantee.** jsdom does not rank by origin, so a bare type
+selector loses to the user-agent sheet it would beat in a browser — `a { color }` on a linked
+`<a>` reads back as the UA's `rgb(0, 0, 238)`. Every selector `nav-cascade` asserts on carries a
+class, and a class outranks the UA sheet correctly. The contrast resolver cannot impose that
+restriction, because it walks whatever the stories happen to render, so it rewrites the bare `a`
+rule into `:link` / `:visited` forms instead.
+
+**What jsdom will not match is rewritten, and every rewrite preserves specificity** — otherwise
+the cascade under test is no longer the shipped one.
+
+- `:hover` / `:focus-visible` never match. Each becomes an attribute selector, also (0,1,0),
+  that the test sets on the element it is exercising.
+- `::before` is not computed. Each `X::before` rule becomes `X > [data-pseudo="before"]` with a
+  stand-in child injected. Every `::before` rule gains the same (0,1,0), so their order among
+  themselves is untouched.
+- A custom property re-declared per component variant (`--toast-accent`, once per toast status)
+  cannot be flattened first-wins, or every toast reports the first status's colour. One
+  variant-scoped copy of each consuming declaration is emitted instead.
+
+That last one has a limitation worth carrying rather than hiding. A specialised copy holds one
+more class of specificity than the rule it came from, so it can out-rank a rule the browser
+would let win. Each copy is therefore emitted immediately after its source rule rather than at
+the end of the sheet, which keeps source order intact against a later override of equal weight.
+That is correct exactly when a base rule precedes the variants overriding it — `.ui-btn` before
+`.ui-btn--sm`, `.ui-toast__action` before `.ui-toast--solid .ui-toast__action` — which is the
+kit's convention throughout. The gate pins the toast case with a self-check, so a regression in
+that convention is visible rather than silent.
+
+**Layout is not modelled, because jsdom has none.** The nav marker's position is derived
+arithmetically from resolved values, and the derivation is validated against the running
+Storybook: the unrepaired rail measured `markerX = navLeft − 11px` there, and the arithmetic
+gave −11 for the same CSS.
+
+The division of labour between the resolver and its callers is deliberate. `stories/lib/contrast.js`
+is everything mechanical — parse a colour, composite an alpha chain, compute a WCAG ratio — and
+it decides nothing. Which failures are acceptable is written by hand, in the gate.
+
+### The style cache holds values, and refuses to answer for a stale document
+
+`makeStyleCache()` in `stories/lib/contrast.js` memoises `getComputedStyle` for one window,
+between DOM writes. The walk asks for a computed style far more often than there are elements:
+every text-owning element is walked up its ancestor chain three separate times — once for the
+background composite, once to test whether an ancestor hides it, once to accumulate ancestor
+opacity — and siblings share almost all of that chain. Measured over both themes before the
+cache existed: **137,206** `getComputedStyle` calls, of which the background walk was only
+24,840. The hidden test (57,630) and the opacity accumulation (47,894) were larger, and both
+run to the root with no early exit. That is expensive in jsdom twice over — a miss resolves the
+whole cascade, and a hit still deep-copies the cached declaration property by property.
+
+**It memoises the lookup and nothing else.** Not `effectiveBackground`'s composite, which is
+the tempting version and the one that can go quietly wrong: a composite cached against an
+element would have to argue that source-over stays associative down a chain shared by siblings
+with different translucent backgrounds of their own. The composite is cheap once the lookups
+are free, so it is rebuilt for every element and that argument never has to be made.
+
+**It stores values, not declarations, and that is not a detail.** jsdom resolves `color-mix()`
+lazily — on the first read of the property — and what it resolves to depends on what else has
+been looked up by then. Hold a declaration, look at anything else, then read `.color`, and back
+comes the raw `color-mix(in srgb, …)` instead of the `color(srgb …)` the same declaration would
+have given a moment earlier. `parseColour` cannot read the raw form, so the element leaves the
+walk without a word: not a failure, not an unjudgeable, just gone. Caching the declaration
+object did precisely that to the twelve solid toasts' text — every reported finding stayed
+identical while the gate quietly stopped looking at twelve pairs. So the cache reads the
+properties it needs at the moment it stores them, freezes them, and serves those. Reading one
+it does not hold throws rather than answering `undefined`, because `undefined` here means
+"skipped in silence" — [the same failure](#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip)
+wearing a different hat.
+
+**It cannot serve a colour from the wrong render**, for three reasons together. The memo is a
+`WeakMap` keyed on the element *object*, and an element belongs to exactly one document, so no
+entry of one render is reachable from another. There is no cache at module scope: `walkStories`
+builds one per call and drops it on return, so one theme pass cannot seed the next. And within
+a single document every DOM write in the walk goes through `mutate`, which drops the memo whole
+— including when the write throws. That last one is the one that matters, because the walk
+toggles `data-ui-state` to exercise `:hover` and a surviving memo would report the at-rest
+colour for the hovered pass. It is also exactly as conservative as jsdom itself: an attribute
+change on an attached element runs `_attrModified` → `_modified` → `_clearStyleCache`, which
+throws away jsdom's own cache for the whole document. This memo is invalidated wherever jsdom's
+is. Between writes, `getComputedStyle` is a pure function of the element, which is what makes
+the memo sound at all.
+
+**That third reason is checked rather than promised.** Routing every write through `mutate` used
+to be a convention held by three call sites and a comment, and a fourth site added with a bare
+`setAttribute` would leave the memo describing the document as it was one render ago — the gate
+reporting a colour nobody painted, confidently, with no test failing. So the cache no longer
+trusts its caller. It attaches a `MutationObserver` to the document and drains the record queue
+on every read: `MutationObserver` queues synchronously and `takeRecords()` drains synchronously,
+so "has anything changed since I last looked?" is a question that can be asked on the hot path
+with a standard DOM API and no jsdom internals. A non-empty queue at a read means a write
+reached the document without the memo being dropped, and the cache throws instead of answering.
+The failure is latched: a cache that has once seen an unrouted write stays dead, so the error
+cannot be thrown once and walked past.
+
+Stated exactly, because a guard that overstates itself is worse than none: this enforces *the
+cache never answers a question about a document that has moved since it last looked*. It does
+not enforce *no write happens outside `mutate`*. A write with no read after it is invisible to
+the guard, and harmless, because nothing was served from the memo it invalidated. In exchange it
+catches a write from anywhere, including one made by a story's own render code, which is the
+part a source scan of the resolver could never reach.
 
 [i148]: https://github.com/apliteni/apliteni-ui/issues/148
 
