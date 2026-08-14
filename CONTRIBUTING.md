@@ -735,6 +735,25 @@ until it was put back. `gitleaks-rules.check` assembles its payloads with a temp
 and `secret-scan-range.check` with a join, and each carries the warning at the site where
 editing happens.
 
+## Traps this repo has already paid for
+
+**A fix-forward commit does not unsay a secret.** `gitleaks detect` walks `git log -p`, so
+redacting a hostname in a later commit leaves the branch scanning red — six findings stayed
+six. `git reset --soft <base>` plus one clean recommit is the fix, and only before the first
+push, because a commit on a public repo stays fetchable by SHA after its branch is deleted.
+So run both gates over the branch *range*, never over the working tree. `docs/` and `scripts/`
+are scanned, which makes prose documenting a gate the prose most likely to trip it.
+
+**`refs.test.js` pins references by `file:line`.** Inserting a block into a widely-cited file
+therefore renumbers guideline pages outside your diff, so prefer appending to
+`src/tokens/tokens.css`. The same file checks an `unmet: { issue: N }` marker's shape but never
+whether the gap is still real — grep `unmet` when an issue closes, or the Guidelines Overview
+goes on advertising it publicly.
+
+**A checkout with no `node_modules` reds exactly one test.** `scripts/packaging.test.js` links
+this tree's own React into a scratch consumer rather than downloading one, so an absent install
+stops it at setup while everything else passes. Run `npm ci` first.
+
 ## Add a component
 
 1. `src/styles/<name>.css` — token-driven, `.ui-<name>` class namespace.
