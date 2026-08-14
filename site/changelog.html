@@ -34,6 +34,8 @@
   .rel__list li { display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: baseline; color: var(--dim); font-size: 15px; line-height: 1.55; }
   .rel__list li > span:last-child { min-width: 0; }
 
+  /* Uppercase here is the kit's chip idiom (badge.css, table.css, nav.css), not a kicker: a `.tag`
+     is the change's category inline in the list item, and no heading follows it. */
   .tag { justify-self: start; font: 700 10px/1 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
   .tag--added { color: var(--chip-success-ink); background: var(--chip-success-fill); }
   .tag--fixed { color: var(--amber); background: color-mix(in srgb, var(--amber) 15%, transparent); }
