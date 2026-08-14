@@ -99,7 +99,7 @@ const FAMILIES = [
     darkGlowWas: { rgb: [227, 91, 143], a: 0.16 },
     short: 'Revoke',
     // The nav row has no type-only class to borrow; these three values are
-    // .ui-nav__item's own (src/styles/nav.css:40-42).
+    // .ui-nav__item's own (src/styles/nav.css:39-41).
     cls: '',
     type: 'font:400 14.5px/1.2 var(--font-sans)',
     setAt: '14.5px — the nav row label',

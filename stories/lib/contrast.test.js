@@ -193,7 +193,7 @@ test('specialiseContextual never emits a bare :root into a selector list', () =>
 test('a specialised copy never out-ranks a later override of the same property', () => {
   // The copy gains a class of specificity. Emitted at the end of the sheet it
   // beats a later, equally specific override written for the same element —
-  // which is how `.ui-toast--solid .ui-toast__action` (src/styles/callout.css:110)
+  // which is how `.ui-toast--solid .ui-toast__action` (src/styles/callout.css:145)
   // lost to `.ui-toast--danger .ui-toast__action` and the solid danger toast's
   // action was reported as pink on pink, a fabricated 1.00:1. The copy must
   // therefore sit immediately after the rule it specialises, not at the end.
