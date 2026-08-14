@@ -370,6 +370,33 @@ fails the tsup build outright with *No loader is configured for '.CSS' files*. R
 a stylesheet would hand the React gate a sheet no build produces and send the reader to rename
 something the bundler never saw. `dangerouslySetInnerHTML` and `__html` stay case-sensitive for
 the same reason — React props rather than HTML attributes — while the tag in front of them folds.
+`icon()` is the same case: a JavaScript identifier, so `ICON('check', 'ui-fbck')` calls a
+function this kit does not export, nothing renders, and reading it would hand a gate a rule to
+mount against markup that does not exist. So is the `.test.js` skip in `svgClassSet()` — `node
+--test` matches its glob as written, so `Widget.Test.js` is ordinary source, and folding the skip
+would drop it from the sweep in the silent direction.
+
+A CSS **property** name folds, and the value read back for it does not. `WIDTH: 40px` sizes an
+element in every browser and cssstyle stores it lower-cased, so `declRe()` carries `i` — a scan
+matching lower case only read a file the CSSOM did not have, and the guards that exist to catch
+those two disagreeing were the ones it blinded. The anchor survives the flag: `MAX-WIDTH` still
+cannot read as `width`. A vendor prefix is part of the name, which is why the raw-text scan for
+`-webkit-writing-mode` folds too — `-WEBKIT-WRITING-MODE` turns the axes in exactly the browsers
+the lower-case spelling does, and jsdom parses both away before the CSSOM loop can see either.
+The name comes back spelled as the file spells it, which is right for a report and wrong for
+anything else: `getPropertyValue()` is case-sensitive even though `setProperty()` is not, so
+`MAX-WIDTH` asked as written reads back empty and looks like a value jsdom threw away.
+
+`@import` splits the same way inside one pattern. The keyword is an at-rule keyword and folds, so
+a sheet listed as `@IMPORT` is a sheet `index.css` really pulls in; missed, it never joins the
+document any gate builds, and the surfaces and React gates then measure every rule they sweep
+against a cascade the kit does not have with no count of theirs moving to say so. The specifier
+is a path that goes straight to `readFileSync` and is case-sensitive on Linux however the keyword
+in front of it reads, so it must come back exactly as written — the flag folds case in the
+pattern, not in the text. `scripts/stylesheet-manifest.test.js` derives the same list without the
+flag, so an `@IMPORT` is a sheet `kitSheetNames()` finds and that guard does not: it reds there,
+saying the sheet is missing from `index.css` when what is missing is the lower-case spelling.
+Loud and pointing one file off, which is the direction to leave it in.
 
 Only the **top level** of a compound is harvested for what the subject may be. `:has()` and
 `:not()` are excluded: the first is about a different element and the second says what the

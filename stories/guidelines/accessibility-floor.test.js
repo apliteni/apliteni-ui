@@ -3,8 +3,9 @@
 // The floor page (stories/guidelines/_accessibility-floor.js) states a minimum target
 // size, a contrast for `--ring` and a legibility floor for a disabled control, none of
 // which existed in this tree before #201. This file measures all three against what the
-// kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md; the ledger
-// of what the walk does not reach sits above the walk.
+// kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md. The ledger of
+// what the walk does not reach sits above the walk; move it out and this file's last test reds.
+// why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
 //
 // WHAT IS DISCOVERED, AND FROM WHERE:
 //

@@ -11,14 +11,17 @@
  * win the cascade against the reset in src/styles/base.css — and all three
  * answer it the same way: mount an element matching the rule's selector against
  * the real kit stylesheets and read getComputedStyle back. Only the source of
- * the rules differs, and each gate keeps a subject count of its own so a rule
- * leaving one sweep cannot be cancelled out by a rule arriving in another. This
- * file is the shared half, so no gate can drift into measuring something subtly
- * different from the others.
+ * the rules differs. This file is the shared half.
+ * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
  *
  * It lives under scripts/ on purpose. `files` in package.json excludes test
  * files from src/ but nothing else, so a plain .js helper under src/ would ship
  * to consumers; scripts/ is outside the tarball entirely, and this one does not.
+ *
+ * The long comments left below are each about the scanner directly beneath them
+ * — the shape it gets wrong, and the silent pass that shape produces. They are
+ * kept at the code because that is the only place the next reader meets them;
+ * the arguments they used to repeat are in CONTRIBUTING, cited by `why:` lines.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -59,17 +62,8 @@ export const CLAMP_PROPS = [
  * asserts it rather than trusting it. Fresh each call because the `g` flag makes
  * lastIndex state a shared regex would carry between callers.
  *
- * Case-insensitive because CSS property names are. `WIDTH: 40px` sizes an
- * element in every browser and cssstyle stores it lower-cased, so a scan that
- * only matched lower case read a file the CSSOM did not have — and the guards
- * below, which exist to catch the two of them disagreeing, were the ones blinded
- * by it. The anchor survives the flag: `MAX-WIDTH` still cannot read as `width`.
- *
- * The name comes back spelled as the file spells it, which is right for a report
- * and wrong for anything else. A caller that KEYS on it, or hands it to
- * cssstyle, has to lower-case it first — getPropertyValue() is case-sensitive
- * even though setProperty() is not, so `MAX-WIDTH` asked as written reads back
- * empty and looks like a value jsdom threw away. */
+ * The `i` flag, and why the name still comes back as the file spells it:
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export const declRe = (props) => new RegExp(
   `(?:^|[;{])\\s*(${props.join('|')})\\s*:\\s*([^;}]*)`, 'gi');
 
@@ -108,11 +102,9 @@ export const blankStrings = (css) => {
 /* Build output and vendored code, skipped by directory name. Two of these exist
  * on a dev machine and never in CI, which is the dangerous shape: site/public/
  * is gitignored, and site/build.mjs folds the entire built Storybook into
- * site/public/storybook/. A developer who has run a full build would otherwise
- * have every sweep below read that vendor bundle — harvesting `<svg class="…">`
- * out of it and deriving a different class set than CI derives from the same
- * commit. This repo has already shipped one local-green/CI-red defect; a walk
- * that reads untracked build output is how you get the next one. */
+ * site/public/storybook/, so a developer who has run a full build would have
+ * every sweep below harvest `<svg class="…">` out of that vendor bundle.
+ * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation */
 export const SKIP_DIRS = new Set(['node_modules', 'dist', 'public', 'storybook-static']);
 
 /* Every file under `dir`, depth-first, build output excluded. The pruning is by
@@ -135,26 +127,9 @@ export function walk(dir, acc = [], skipped = null) {
  * are read, because a sheet written with the other one would leave this list and
  * take its rules out of coverage with the suite still green.
  *
- * The two halves of this pattern want opposite answers on case, and it is worth
- * being explicit about which is which. `@import` is an at-rule keyword, so it
- * folds case: a sheet listed as `@IMPORT` is a sheet index.css really pulls in.
- * Missed here it never joins the document any gate builds — and the surfaces and
- * React gates then measure every rule they sweep against a cascade the kit does
- * not have, with no count of theirs moving to say so. The kit gate's own count
- * does move, which is loud, but it names the wrong thing: it reports a handful
- * of rules having left coverage rather than a sheet having left the list.
- *
- * The specifier is the other half. It is a path, it goes straight to
- * readFileSync, and a file name is case-sensitive on Linux however the keyword
- * in front of it reads — so it must come back exactly as written. It does: the
- * flag folds case in the pattern, not in the text, and `[^"']+` matches every
- * character either way.
- *
- * scripts/stylesheet-manifest.test.js derives the same list with the same
- * pattern minus this flag, so an `@IMPORT` in index.css is a sheet this finds
- * and that guard does not — it reds there, saying the sheet is missing from
- * index.css when what is missing is the lower-case spelling. Loud and pointing
- * one file off, which is the direction to leave it in. */
+ * The two halves of this pattern want opposite answers on case — the keyword
+ * folds, the path must not:
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export function kitSheetNames(src) {
   return [...readFileSync(path.join(src, 'index.css'), 'utf8')
     .matchAll(/^\s*@import\s+["']\.\/([^"']+)["']/gmi)].map((m) => m[1]);
@@ -181,19 +156,12 @@ const svgClassRes = () => [/<svg[^>]*\sclass="([^"${]+)"/gi, /<svg[^>]*\sclassNa
  * listed here, so a new one joins coverage by existing. Two ways a class gets
  * onto an svg: written into the tag, or passed as icon()'s second argument.
  *
- * The icon() call is read case-sensitively, and for the reason styleImportsIn()
- * is: `icon` is a JavaScript identifier, JavaScript folds no case, and
- * `ICON('check', 'ui-fbck')` calls a function this kit does not export. Nothing
- * renders, no svg carries that class, and reading it would hand a gate a rule to
- * mount against markup that does not exist.
- *
  * `dirs` are scanned depth-first; `exts` says which files count. Test files are
  * always skipped, in every extension the repo tests in — a class that only a
- * test writes onto an svg is not a class the kit renders. That skip is
- * case-sensitive too: `node --test` is handed a glob ending `.test.js` and
- * matches it as written, so `Widget.Test.js` is not a file it runs. It is
- * ordinary source, and folding the skip would drop it from the sweep in the
- * silent direction. */
+ * test writes onto an svg is not a class the kit renders.
+ *
+ * The icon() call and that skip are both read case-sensitively:
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export function svgClassSet(dirs, exts = ['.js']) {
   const found = new Set();
   for (const dir of dirs) {
@@ -573,16 +541,11 @@ export function foldLogicalDims(sheet, name) {
    * honours the prefixed spelling turns the axes exactly as the unprefixed one
    * does, which is what the fold cannot survive.
    *
-   * Case-insensitive for the same reason declRe() is: a property name folds case
-   * in CSS and the vendor prefix is part of the name, so `-WEBKIT-WRITING-MODE`
-   * lays an icon out along the other axis in exactly the browsers the lower-case
-   * spelling does. The loop above is no help — jsdom parses the capital spelling
-   * away as readily — so this scan reading lower case only left the fold
-   * measuring the wrong axis with every gate green. The unprefixed name needs no
-   * flag: cssstyle stores it lower-cased, so `WRITING-MODE` reaches the loop
-   * above under the name it asks for. Nothing downstream keys on the match — the
-   * value is folded again by turnsTheAxes() and the name is only ever printed —
-   * so the flag is the whole of the fix.
+   * Case-insensitive for the same reason declRe() is, the vendor prefix being
+   * part of the property name. The unprefixed spelling needs no flag: cssstyle
+   * stores it lower-cased, so `WRITING-MODE` reaches the loop above under the
+   * name it asks for.
+   * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence
    *
    * EVERY declaration rather than the first, which is a second way this went
    * quiet. `horizontal-tb` is the mode the fold assumes and is right not to be
@@ -738,14 +701,10 @@ export function resetSelectorOf(sheet, name, classes) {
  * no name. Blanking keeps every offset, which is what lets the two be different
  * texts.
  *
- * The keyword is matched in any case, because an at-rule keyword folds case and
- * jsdom agrees: `@IMPORT "./zz.css"` parses into a real CSSImportRule, so the
- * sheet ships, no gate opens it, and its rules are measured by nobody. This
- * refusal is the only thing watching for that — an unfollowed import contributes
- * no subject, so no count moves when one arrives — and reading lower case only
- * blinded it to the one spelling that is easy to write by accident. The flag
- * reaches nothing else: `[^;]*` has no case to fold, and the specifier is sliced
- * out of the untouched text, so a file name comes back exactly as written. */
+ * The keyword is matched in any case — jsdom agrees, parsing `@IMPORT "./zz.css"`
+ * into a real CSSImportRule — and this refusal is the only thing watching for an
+ * unfollowed import, since one contributes no subject and moves no count.
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export const importsIn = (css) => {
   const text = stripComments(css);
   return [...blankStrings(text).matchAll(/@import\s+([^;]*)/dgi)]
@@ -768,15 +727,9 @@ const STYLE_EXTS = ['css', 'pcss', 'postcss', 'scss', 'sass', 'less', 'styl', 's
  * is not reported — and the gate's header says so rather than implying the
  * sweep covers it.
  *
- * Case-SENSITIVE, unlike the two CSS scans above, and for two separate reasons.
- * `import` here is a JavaScript keyword rather than an at-rule, and JavaScript
- * does not fold case, so `IMPORT './x.css'` is a syntax error and not a sheet
- * the workspace loads; reporting it would name a file no build ever reads. And
- * the extension goes the same way because esbuild, which tsup builds this
- * workspace with, matches its loaders on the extension as written — `.CSS`
- * fails the build outright, "No loader is configured for '.CSS' files", so that
- * spelling is a red at build time rather than a stylesheet slipping past the
- * sweep. */
+ * Case-SENSITIVE, unlike the two CSS scans above — the keyword is JavaScript's
+ * and the extension is esbuild's loader match, and neither folds:
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export const styleImportsIn = (source) => [...source.matchAll(
   new RegExp(String.raw`^\s*import\s+(?:[^'"]*\bfrom\s+)?['"](\.[^'"]+\.(?:${STYLE_EXTS.join('|')})(?:\?[^'"]*)?)['"]`,
     'gm'))].map((m) => m[1]);
@@ -840,12 +793,11 @@ function unwrapExpression(body) {
  * The expression is found by balancing brackets rather than by matching to the
  * first `}}`, because the CSS itself is full of braces.
  *
- * The TAG folds case with the one below and the props do not, which is the split
- * both patterns want: `style` is an HTML element name and `dangerouslySetInnerHTML`
- * and `__html` are React props, so JavaScript decides those and a browser decides
- * that. Folding the tag here as well as below is what keeps the blanking aligned
- * — a block the pattern below can see is a block this pass has already taken out
- * of its way, which is the whole job of reading these first. */
+ * The TAG folds case with the one below and the props do not. Folding it here as
+ * well as below is what keeps the blanking aligned — a block the pattern below
+ * can see is a block this pass has already taken out of its way, which is the
+ * whole job of reading these first.
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 function dangerousStyles(source) {
   const found = [];
   const open = /<style\b[^<]*?dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*/gi;

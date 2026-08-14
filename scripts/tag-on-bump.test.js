@@ -3,6 +3,11 @@
 //
 // why: CONTRIBUTING.md#release
 // why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+//
+// The long comments below sit on the test they belong to, and each says what
+// that scenario proves and which shipped defect it exists for — a release the
+// job called green, a deadline read from the wrong side. Moved to a document
+// they would stop being reachable from the assertion that holds them.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -761,7 +766,8 @@ exit 0
 
 /**
  * What a missing jq means — which is not the same thing in both places it can
- * happen.
+ * happen. This is the ledger of what this suite does not reach.
+ * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
  *
  * Every test carrying `needsJq` runs the publish step, which hands the
  * workflow's own `--jq` programs to the real jq through the gh stub. Without it
