@@ -3,46 +3,17 @@
  * gitleaks-rules.check — prove every rule in .gitleaks.toml still catches the
  * thing it was written for, and still names itself when it does.
  *
- * A rule that has quietly stopped matching looks exactly like a repo with no
- * secrets in it: the scan is green either way. So this plants a fabricated
- * instance of each covered shape and asserts the scanner finds it. The rule ID
- * is half the assertion, not decoration — several of these shapes would
- * otherwise be picked up by gitleaks' generic-api-key, which needs a
- * credential-ish word next to the value and stands down on its own stopword
- * list. Being caught by that instead of by the intended rule is the footing
- * issue #179 exists to replace, so the check calls it a failure.
+ * Each covered shape is planted as a fabricated instance and the scanner has to
+ * find it, under the intended rule ID. Then every rule and every allowlist entry
+ * in .gitleaks.toml is weakened along the axes it actually has and every case is
+ * re-run against the weakened config; a subject none of whose mutations kills a
+ * case is not proven, and fails. The mutation table is DERIVED from the config
+ * text, never listed here.
  *
- * Every fixture is generated here, at runtime, into a temp directory removed on
- * every exit path. None is real, and none may ever be written into the tree:
- * this repo is public, its own scan runs over scripts/, and the Security
- * workflow's denylist greps tracked files for the infra shapes below. The rules
- * that keep that true are stated above the fixture builder, where editing
- * happens — read them before touching a fixture.
- *
- * A case, though, can quietly stop testing anything: three of them did, and a
- * throwaway script found all three. So the cases are not the whole gate. After
- * they pass, this weakens every rule in .gitleaks.toml along each axis that
- * rule actually has — its character classes, its length floors, its word
- * boundaries, its id, its entropy — and re-runs every case against the weakened
- * config. The bar is per SUBJECT: a subject none of whose mutations kills a case
- * is not proven, and fails. Every INDIVIDUAL mutation that survives is printed,
- * and one that survives with no written justification fails too — see JUSTIFIED
- * below, which is also where a justification that has stopped being true turns
- * the run red. The mutation table is DERIVED from the config text, never listed
- * here.
- *
- * A SUBJECT IS A RULE OR AN ALLOWLIST ENTRY, because a gate can be switched off
- * from either side. Adding two lines to [allowlist] regexes takes this repo's
- * scan from "leaks found: 1" to "no leaks found" without touching a rule, and
- * the pass used to be blind to it: an unanchored paths entry generated no
- * mutation at all, and regexes had no axis whatsoever. So every entry in both
- * lists is mutated by being REMOVED, and is proven when some case goes red
- * without it. An entry no case exercises fails, exactly like a rule with no
- * case — which is what an exemption added for a shape nobody tests looks like.
- *
- * NOT named *.test.js on purpose. `npm test` globs scripts/**\/*.test.js and
- * runs on a machine with no gitleaks; this check needs the pinned binary and
- * belongs to the security workflow, which downloads it.
+ * Every fixture is generated at runtime into a temp directory removed on every
+ * exit path. None is real, and none may ever be written into the tree — the
+ * rules that keep that true are stated above the fixture builder, where editing
+ * happens. Read them before touching a fixture.
  *
  * Usage: node scripts/gitleaks-rules.check.mjs [path-to-.gitleaks.toml]
  *        GITLEAKS_BIN=./gitleaks node scripts/gitleaks-rules.check.mjs
@@ -53,6 +24,7 @@
  * written to the run's temp directory and judged by the same engine. Nothing
  * ever writes to .gitleaks.toml.
  *
+ * why: CONTRIBUTING.md#the-two-security-checks
  * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  */

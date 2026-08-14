@@ -4,45 +4,18 @@
  * history it means to walk: a pull request's own commits on a pull request, the
  * whole clone on a push to main.
  *
- * How much history a scan covers is invisible from its result. `gitleaks detect
- * --source .` walks EVERY ref in the clone, so a leak on one unmerged branch
- * turned the check red on every other open pull request at once (issue #186) —
- * and the opposite mistake, a range that quietly covers nothing, looks exactly
- * like a clean repository. Neither is visible in a green tick. So this file
- * lifts the scan step's real `run:` body out of .github/workflows/security.yml
- * and EXECUTES it against synthetic repositories where the right answer is
- * known: a leak planted on a branch nobody is reviewing, and a leak planted in
- * the commits under review.
+ * The scan step's real `run:` body is lifted out of .github/workflows/security.yml
+ * and EXECUTED against synthetic repositories where the right answer is known.
+ * That it can be executed at all is a property of how the body is written: every
+ * value comes from the environment and never from a `${{ }}` expression, which
+ * is a security rule first and a testability property second. The check asserts
+ * that rule, so the two cannot drift apart.
  *
- * That the body can be executed at all is a property of how it is written: it
- * reads every value from the environment (GITHUB_EVENT_NAME, PR_BASE_SHA,
- * PR_HEAD_SHA, PR_HEAD_REF) and never from a `${{ }}` expression. That is a
- * security rule first — this repo is public and takes fork pull requests, and a
- * branch name pasted into a shell script by the expression evaluator is a
- * command-injection hole — and it is what makes the body testable second. The
- * check asserts the rule below, so the two cannot drift apart.
+ * EXIT CODES: 0 every scenario behaved as the workflow claims; 1 one or more
+ * failed, after ALL of them have been run; 2 this check could not reach a
+ * verdict at all.
  *
- * The YAML parser here is hand-rolled and throws the moment the file's shape
- * changes, in the style of parseSteps() in scripts/tag-on-bump.test.js. A parser
- * that shrugs and matches nothing would take this check green over a workflow it
- * never read.
- *
- * NOT named *.test.js on purpose, for the same reason as
- * scripts/gitleaks-rules.check.mjs: `npm test` globs scripts/**\/*.test.js and
- * runs on machines with no gitleaks. This needs the pinned binary and belongs to
- * the security workflow, which downloads it.
- *
- * EXIT CODES — the same contract as its sibling, and for the same reason:
- *
- *   0 — every scenario behaved as the workflow claims it does.
- *   1 — one or more scenarios failed, after ALL of them have been run, so a run
- *       lists every failure rather than the first. The `${{ }}` assertion is
- *       also a 1: the workflow is wrong, and this check reached that verdict.
- *   2 — this check could not reach a verdict: the workflow would not parse, the
- *       step is gone or has no body, git or gitleaks would not run. "Cannot
- *       tell" is not "passed", and it is not "failed" either — a gate that
- *       reports a broken harness as a failed assertion sends the reader to look
- *       for a leak that was never claimed.
+ * why: CONTRIBUTING.md#the-two-security-checks
  *
  * Usage: node scripts/secret-scan-range.check.mjs [path-to-workflow.yml]
  *        GITLEAKS_BIN=./gitleaks node scripts/secret-scan-range.check.mjs
@@ -70,15 +43,12 @@ const STEP = 'Scan for secrets';
 // installed on a developer machine.
 const GITLEAKS = process.env.GITLEAKS_BIN ? resolve(process.env.GITLEAKS_BIN) : 'gitleaks';
 
-// ┌─ READ THIS BEFORE EDITING THE PAYLOAD ──────────────────────────────────┐
-// │ The planted secret is ASSEMBLED, never written out. A literal private   │
-// │ IP in this file is a real finding: this repo's own gitleaks scan reads  │
-// │ scripts/, and the workflow's internal-terms denylist greps tracked      │
-// │ files for the same shape without excluding scripts/. Written out, this  │
-// │ file would refuse every commit in the repo, for everyone, until it was  │
-// │ put back. gitleaks-rules.check.mjs holds the same warning over its own  │
-// │ fixtures — the trick there is a template literal, here it is a join.    │
-// └─────────────────────────────────────────────────────────────────────────┘
+// READ THIS BEFORE EDITING THE PAYLOAD. The planted secret is ASSEMBLED, never
+// written out: a literal private IP here is a real finding, and written out this
+// file would refuse every commit in the repo, for everyone, until it was put
+// back. gitleaks-rules.check.mjs holds the same warning over its own fixtures —
+// the trick there is a template literal, here it is a join.
+// why: CONTRIBUTING.md#the-two-security-checks
 //
 // An RFC1918 address, caught by the `pii-private-ip` rule in .gitleaks.toml. A
 // token shape would do as well, but tokens carry entropy floors and character
