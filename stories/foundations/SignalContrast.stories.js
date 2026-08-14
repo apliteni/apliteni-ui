@@ -402,11 +402,7 @@ const sectionLive = () => {
 // ===========================================================================
 // 2 — Why the wash binds and not white
 // ===========================================================================
-// Six cells per family, ordered by how dark the background is. The kit's own
-// grey inset surface is dropped into the sequence at the point its contrast
-// puts it: between the 0% and 5% wash, every time. Reading left to right is
-// reading the mechanism. This argument holds whatever the tokens are, which is
-// why it stays on the page now the values are settled.
+// The section's own copy states the mechanism; this is the ramp it walks.
 const RAMP = [0, 5, 10, 15, 20];
 
 const sectionWhy = () => `

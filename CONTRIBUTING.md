@@ -93,7 +93,7 @@ when you touch one, so the reviewer reads the change itself rather than the run.
 
 ## How the gates work
 
-Five rules govern every gate in this repo. They are about the gates rather than about the
+Six rules govern every gate in this repo. They are about the gates rather than about the
 kit, which is why they live here and not in
 [docs/specification.md](docs/specification.md).
 
@@ -108,13 +108,23 @@ stroked glyphs that named six of ten and missed four. The icon gate collected on
 selectors ending in `svg` until `.ui-fbck` — a class the kit puts *on* an svg — turned out
 to be losing to the same reset as everything else, unmeasured.
 
-Two riders come with it:
+Three riders come with it:
 
 - **The count is asserted.** A file that stops carrying a subject leaves the count, so
   coverage cannot quietly shrink to zero and stay green.
 - **Where a count cannot see, a test says so.** `.storybook/` contributes no subject
   today, so a count cannot tell whether it was read at all. A test named for the surface
   is what proves it was.
+- **The subject is the element, not the declaration**, wherever the two can disagree. Two
+  shapes in this kit make them disagree, and a stylesheet scan gets both wrong. A rule can
+  re-size an icon's box and let the stroke come from a rule further up
+  (`.ui-nav--side.is-collapsed .ui-nav__ic svg`), which read one declaration at a time looks
+  like a rule with no stroke in it. And a stroke can arrive from the markup: `src/assets/icons.js`
+  puts `stroke-width` on every icon it emits, `feedback.js` emits its own with a different one,
+  and `sun` and `moon` hard-code a third — so a rule that sets only a box still paints a stroked
+  glyph, at a width decided in a file no stylesheet scan opens. `stories/glyph-stroke.test.js`
+  therefore renders every story and measures the `<svg>` elements that come out, cascade already
+  resolved.
 
 Compose from source, never from a built site. CI runs `npm test` before
 `build-storybook` and never runs `site/build.mjs`, so a gate reading `site/public/` fails
@@ -192,6 +202,27 @@ beside it: each per-file test checks that checks-run equals stories-discovered �
 tally test at the end re-checks that across every file. A story cannot fall out of the set
 unnoticed.
 
+### A gate carries a ledger of what it does not reach
+
+A green run is a claim, and the claim is only as wide as the walk behind it. So each gate ends
+its header with a ledger of its own holes. `stories/contrast.test.js`, `react/src/contrast.test.tsx`,
+`stories/guidelines/accessibility-floor.test.js`, `stories/accent-swatch.test.js` and
+`stories/glyph-stroke.test.js` each carry one, and that ledger stays at the gate rather than
+moving into this file: the person it has to reach is whoever is about to trust the green, and
+they are reading the test, not this.
+
+What moves here is the argument under a hole, when the hole is not particular to one gate. No
+width for anything a line of text sizes is jsdom having no layout, described once in
+[Where jsdom stops being a browser](#where-jsdom-stops-being-a-browser) and named at the gate in
+a line. A hole that is a **decision** — the accessibility floor reads WCAG 2.5.8 without its
+spacing exception, so 24×24 is absolute — belongs to the issue that decided it. What is left at
+the gate is one line per hole, saying what is not measured and what a reader should not conclude
+from the pass.
+
+A ledger is maintained. A hole that has been closed comes out of it, and a gate that narrows
+gains a line — an entry describing a limit that no longer exists sends the next reader to fix
+something that is fine.
+
 ### What the signal-colour gate models, and the edits it exists to refuse
 
 `stories/signal-contrast.test.js` holds the guarantee in
@@ -266,6 +297,17 @@ should say so in its own red.
 Underneath, one implementation. The icon gates all import `scripts/lib/icon-cascade.js`
 rather than copying it, so three gates asking one question cannot drift into asking three.
 
+Sometimes the walk cannot be shared even when the arithmetic can. `stories/lib/contrast.js`'s
+`walkStories` discovers `stories/**.stories.js`, calls each story's render fn as a plain function
+and assigns the result to `innerHTML` — none of which a React story survives. Its render fn calls
+hooks, so it has to be mounted rather than called, and `serialize()` returns null for the
+ReactElement it hands back. So `react/src/contrast.test.tsx` imports the resolver's pure half
+(`tokensFor`, `substitute`, `desugar`, `parseColour`, `composite`, `ratio`, `effectiveBackground`,
+`hasOwnText`, `selectorPath`, `groupFindings`, `kitCssFor`) and re-expresses only the walk, through
+vitest and `@testing-library/react`. `react/src/a11y.test.tsx` made the same trade for axe. The
+split to hold is arithmetic shared, mounting per workspace — a second copy of the compositing
+maths is the drift this rule is against, and a second walk is not.
+
 Read source, not built output. `react/dist` is gitignored and built by `prepare`, and
 `release.yml` installs with `--ignore-scripts`, so a gate reading `dist` measures something
 CI does not have — the local-green/CI-red defect this area keeps producing.
@@ -312,6 +354,22 @@ the document the gate builds, the bare one the reset owns included, and the asse
 fail are the ones about the reset — in files that are fine, while the rule that did it is
 named nowhere. Recognised as a subject, the shape is refused by name and the reader is sent
 to the rule.
+
+A tag name folds with the rest of the HTML, and the `<style>` sweep has to fold with it. The
+surfaces gate reads the story files, and a story is a `.js` module returning HTML out of a
+template literal, so `<STYLE>` in one is the element every browser and jsdom parses — its CSS
+applies in every iframe that renders the shell. Missed, it is silent at both ends: a story that
+spells it that way from the day it is added contributes no block, no subject and no count, and
+the sweep reads 14 with the rule measured and 14 without it. Proved by writing one in:
+`<style>` reds with `collected 15, expected 14`, and `<STYLE>` leaves all 22 assertions green
+over a rule that sizes an icon to 33px.
+
+The fold stops at the JavaScript. `import './x.css'` is a JS keyword and a bundler's loader
+match, neither of which folds case: `IMPORT './x.css'` is a syntax error, and `import './x.CSS'`
+fails the tsup build outright with *No loader is configured for '.CSS' files*. Reading either as
+a stylesheet would hand the React gate a sheet no build produces and send the reader to rename
+something the bundler never saw. `dangerouslySetInnerHTML` and `__html` stay case-sensitive for
+the same reason — React props rather than HTML attributes — while the tag in front of them folds.
 
 Only the **top level** of a compound is harvested for what the subject may be. `:has()` and
 `:not()` are excluded: the first is about a different element and the second says what the
@@ -509,6 +567,42 @@ The division of labour between the resolver and its callers is deliberate. `stor
 is everything mechanical — parse a colour, composite an alpha chain, compute a WCAG ratio — and
 it decides nothing. Which failures are acceptable is written by hand, in the gate.
 
+### An unresolved `var()` measures nothing and reports green
+
+jsdom does not resolve `var()` into a longhand. `color: var(--muted)` reads back as the literal
+string `var(--muted)`, `parseColour` returns null, and the element leaves the walk unmeasured
+while the run stays green. Every colour and every size in this kit is a `var()`, so this decides
+how a stylesheet reaches a test DOM, and the two gates that face it answer in opposite
+directions — deliberately.
+
+**Substitute, where one value per theme is the right answer.** The contrast walks read the sheets
+off disk and substitute the token file for the theme under test into them before mounting.
+`react/src/contrast.test.tsx` does this rather than turning on Vitest's `css` option, which would
+make `import './Modal.css'` land in the test DOM verbatim: every colour in it is a `var()` onto a
+vanilla-kit token, so the gate would measure nothing and report green — and turning it on now
+would only add a second, unresolvable copy of each sheet to the same document. Discovery is still
+Vite's there: `import.meta.glob('./**/*.css')` is evaluated for its **keys** only, nothing eager
+and nothing imported, so a new component stylesheet is in the gate the moment it exists.
+
+**Probe, where the answer has to differ per element.** Substitution flattens: it gives one value
+for the whole document, which is right for a token and wrong for a geometry that the cascade
+decides per element. `.ui-btn--sm` has to read its own 6px rather than the base 9px. jsdom does
+two things correctly — it cascades custom properties per element and it inherits them — so
+`stories/guidelines/accessibility-floor.test.js` mounts the sheet **unsubstituted** and copies
+every geometry declaration into a probe custom property beside itself: `padding: var(--btn-pad-y) …`
+also emits `--tsz-padding: var(--btn-pad-y) …`. Reading the probe back gives the declaration that
+won for that element, vars and all, and each var is then resolved from the same element. Nothing
+is rewritten or removed and the copy is appended to its own block, so the sheet still says what it
+said.
+
+A `sel::before { … }` rule gets a second copy onto `sel` itself, under `--tsz-before-*`. jsdom
+computes no style for a pseudo-element, but a custom property set on the element is readable from
+the element, and the element is what the pseudo belongs to. Stated exactly: the retargeted rule
+carries one point less specificity than the pseudo selector it came from — a pseudo-element weighs
+as much as a type selector — so two pseudo rules disagreeing on one element resolve here by source
+order where CSS would resolve them by weight. No rule in the kit has that shape, and it is the same
+approximation the file makes elsewhere.
+
 ### The style cache holds values, and refuses to answer for a stale document
 
 `makeStyleCache()` in `stories/lib/contrast.js` memoises `getComputedStyle` for one window,
@@ -647,7 +741,23 @@ editing happens.
 2. `@import` it in `src/index.css`, and add it to `src/inline.js` (`styles` map +
    `cssText`) so server-render consumers get it.
 3. A factory in `src/components/index.js` returning an HTML string.
-4. `stories/components/<Name>.stories.js` — a Playground + a states gallery.
+4. Re-export it from `src/index.js`.
+5. `stories/components/<Name>.stories.js` — a Playground + a states gallery.
+
+**Shipping a module is not publishing it**, which is what step 4 is for. `files` in
+`package.json` is `["src", …]`, so every component module lands in the tarball; the package has
+no `./components/*` subpath, so `src/index.js` is the only thing a consumer can see. `footer()`
+and `success()` sat in the gap through 0.8.1 — fully built, fully shipped, reachable by nobody —
+and Storybook rendered both the whole time, because a story deep-imports the module path
+(`from '../../src/components/footer.js'`) rather than the entry. *Does this render?* is a
+different question from *can anyone import this?*, and only the second one is the published
+surface. The gap is silent in the other direction too: a name in `src/index.js` with no file
+behind it throws `ERR_MODULE_NOT_FOUND` and the whole kit fails to load.
+
+`scripts/entry-reachability.test.js` holds both directions, reading each side off the files
+rather than off a list of expected exports — a third copy of the same thing would only give the
+first two something new to drift from. The contract it enforces is stated in
+[docs/library.md](docs/library.md).
 
 ## Add a glyph
 
@@ -767,6 +877,25 @@ from the next distinct step up your dark ramp — of `--purple`, `--purple-light
 `--accent`, so it walks on to `--purple-mid`. Two ramp steps tied at that luminance
 make the rule unanswerable and the gate says so rather than picking one.
 
+**The angle is the one literal in that gate, and it is there on purpose.** The rule is
+directional — up the ramp at stop 1, down to `--accent` at stop 2 — so which end of the gradient
+is which is decided by the angle, and a gate checking only the two colours would pass `315deg`
+painting the identical pair backwards. Two weaker checks were available and both were refused:
+*field 0 parses as an angle* passes `315deg`, and *all four swatches agree* passes all four
+reversed together. Neither holds what the rule says, so `135deg` is written down — what all four
+ship, and what the kit uses for every other gradient.
+
+Dark and not light, because there is one swatch and it can only be one colour. The picker renders
+in both themes; the accent's identity is its dark cell, where the accent is at its most saturated
+and most itself.
+
+Read the gate as a new invariant rather than a regression detector. It would have been red before
+[#157][i157] too: the dark ramp then had `--purple-light` equal to `--accent`, the same degeneracy
+Nebula has today, and the swatch resolved it by walking **down** to `--purple` instead of up. The
+rule picks the other end for every accent alike, and the day it was written was the first day any
+version of Nebula's swatch satisfied it. The shipped colours moved under [#190][i190] because the
+rule is stricter than the eyeballing before it, not because #157 knocked something loose.
+
 Write the dark block as `:root[data-theme="dark"][data-accent="<name>"]`, attributes
 in that order, and declare `--accent` and all three `--purple*` in it. Any other
 legal spelling is invisible to the resolver, which then hands your accent Nebula's
@@ -778,6 +907,9 @@ The same gate holds the site's two hand-kept copies (`site/chrome.mjs`,
 you deliver it as `--swatch:` or `background:`, what the aria-labels say, or what
 order the accents are written in. Those three still want to match by hand, for the
 next person reading the diff; the gate only holds the colours.
+
+[i157]: https://github.com/apliteni/apliteni-ui/issues/157
+[i190]: https://github.com/apliteni/apliteni-ui/issues/190
 
 ## Brand tokens (synced from design-system)
 

@@ -473,19 +473,9 @@ test('an icon named inside :is() or :where() is the subject those select', () =>
 });
 
 test('an icon named inside a pseudo spelled in capitals is the same subject', () => {
-  /* A pseudo-class name folds case in CSS, so `:WHERE(svg)` selects what
-   * `:where(svg)` selects and a rule written that way decides an icon's size the
-   * same way. Read lower case only, the alternatives inside it were never
-   * collected, the compound looked like a rule about nothing, and the rule left
-   * the subject count without moving it.
-   *
-   * jsdom is worse than blind here, which is what makes the reading matter. Its
-   * selector engine does not know `:WHERE()`: querySelectorAll throws "Unknown
-   * pseudo-class :WHERE()", and matches() and the style resolution answer TRUE
-   * for every element — so `.ui-btn :WHERE(svg)` sizes every icon in the
-   * document, including the bare one the reset owns. Recognised here it is a
-   * subject, mount() refuses the shape by name, and the reader is sent to the
-   * rule. Missed here it reds on the reset instead, in a file that is fine. */
+  /* CSS folds a pseudo-class name, so `:WHERE(svg)` decides an icon's size exactly as
+   * `:where(svg)` does, and jsdom is worse than blind about it. Both halves are in
+   * CONTRIBUTING.md, "A spelling the sweep cannot see costs coverage in silence". */
   const classes = new Set(['ic']);
   for (const sel of ['.a :WHERE(svg)', '.a :IS(svg)', '.a :Matches(svg)', '.a :Where(.ic)',
     '.a :IS(div, svg)']) {
@@ -909,22 +899,12 @@ test('the kit sheet list reads the at-rule in any case and the file name in one'
 });
 
 test('a <style> block is read whatever case the markup spells the tag in', () => {
-  /* The surfaces gate hands this the STORY files, and a story is a `.js` module
-   * returning an HTML string out of a template literal — stories/apps/Landing.stories.js
-   * is one. So `<STYLE>` in there is the HTML element, folded by every browser
-   * and by jsdom, and the CSS inside it applies in every story iframe that
-   * renders the shell.
-   *
-   * Missed here it is silent in the worst way. A story that writes the tag in
-   * capitals from the day it is added contributes no block, no subject and no
-   * count — the sweep reads 14 with the rule measured and 14 without it. Proved
-   * by adding one: `<style>` reds with "collected 15, expected 14" and `<STYLE>`
-   * leaves all 22 assertions green over a rule that sizes an icon to 33px.
-   *
-   * `dangerouslySetInnerHTML` and `__html` inside it stay case-sensitive, being
-   * React props rather than HTML attributes, and the tag in front of them folds
-   * with the rest so that a block this scan can see is a block the blanking pass
-   * has already taken out of its way. */
+  /* The surfaces gate hands this the story files, where `<STYLE>` is the HTML element
+   * every browser and jsdom folds — and missing it costs a block, a subject and no
+   * movement in the count. CONTRIBUTING.md, "A spelling the sweep cannot see costs
+   * coverage in silence", holds the fold and the measurement behind it. The self-closing
+   * case is asserted too: unblanked, the paired scan reads the source between it and the
+   * next closing tag as CSS. */
   assert.deepEqual(styleBlocksOf('<STYLE>.a svg { width: 33px }</STYLE>'),
     ['.a svg { width: 33px }']);
   assert.deepEqual(styleBlocksOf('<Style media="screen">.a svg { width: 12px }</Style>'),
@@ -938,21 +918,15 @@ test('a <style> block is read whatever case the markup spells the tag in', () =>
 });
 
 test('both shapes a .tsx writes a <style> block in are still recognised', () => {
-  /* THE TRIPWIRE UNDER THE OTHER HALF OF THE REACT SWEEP.
-   *
-   * scripts/icon-size-react.test.js collects two things: every *.css under
-   * react/src, and every <style> block in the .ts and .tsx there. The first half
-   * has a `length > 0` behind it, because the workspace has stylesheets. The
-   * second collects nothing today — nothing under react/src writes a block — so
-   * a `length > 0` there would red on a workspace that is fine, and without one
-   * a recogniser that stopped reading the idiom would leave that half sitting at
-   * a healthy-looking zero for ever.
-   *
-   * So the guard is here rather than in the gate, and it proves the RECOGNISER
-   * still works instead of proving the workspace uses it. Break either shape and
-   * this reds while the sweep's zero stays honest. Both are asserted because the
-   * gate's header claims both: the CSS between the tags of a template literal,
-   * and the string a `dangerouslySetInnerHTML` hands them. */
+  /* This is the tripwire under the other half of the React sweep. Nothing under
+   * react/src writes a <style> block today, so scripts/icon-size-react.test.js cannot
+   * put a `length > 0` behind that half the way it does behind the .css half — it would
+   * red on a workspace that is fine. Without one, a recogniser that stopped reading the
+   * idiom would leave that half at a healthy-looking zero for ever. So the guard sits
+   * here and proves the recogniser rather than the workspace: break either shape the
+   * gate's header claims — the CSS between the tags of a template literal, or the string
+   * a `dangerouslySetInnerHTML` hands them — and this reds while the sweep's zero stays
+   * honest. */
   const source = 'export const Table = () => (<>\n'
     + '  <style>{`.rx-tbl svg { width: 14px }`}</style>\n'
     + '  <style dangerouslySetInnerHTML={{ __html: ".rx-btn svg{width:16px}" }} />\n'
@@ -1040,19 +1014,10 @@ test('a stylesheet reached by anything but a relative path is not reported', () 
 });
 
 test('this one is read case-sensitively, because JavaScript and esbuild are', () => {
-  /* The CSS scans beside it were made case-insensitive, and this one must not
-   * be. `@import` is an at-rule keyword and CSS folds case; `import` here is a
-   * JavaScript keyword and JavaScript does not, so `IMPORT './x.css'` is a
-   * syntax error rather than a sheet the workspace loads. Reporting it would
-   * hand the React gate a file that never ships and tell the reader to rename
-   * something the bundler never saw.
-   *
-   * The extension is the same answer for a different reason. tsup builds this
-   * workspace with esbuild, and esbuild matches its loaders on the extension as
-   * written: `import './x.CSS'` fails the build outright — "No loader is
-   * configured for '.CSS' files" — so it is a red at build time rather than a
-   * stylesheet shipping past this sweep. Reading it as CSS here would report a
-   * sheet no build produces. */
+  /* The CSS scans beside it fold case and this one must not: `import` is a JavaScript
+   * keyword and the extension is an esbuild loader match, so `IMPORT` and `.CSS` are a
+   * syntax error and a build failure rather than sheets the workspace loads.
+   * CONTRIBUTING.md, "A spelling the sweep cannot see costs coverage in silence". */
   assert.deepEqual(styleImportsIn("IMPORT './DataTable.css';"), []);
   assert.deepEqual(styleImportsIn("import './DataTable.CSS';"), []);
 });

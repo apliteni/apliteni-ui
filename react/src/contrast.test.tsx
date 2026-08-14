@@ -2,53 +2,26 @@
 //
 // Same rule as stories/contrast.test.js: a foreground/background pair this
 // workspace renders as text must clear WCAG AA, or be named in the ledger below
-// by a person who decided it is acceptable. There is no hand-maintained list of
-// pairs — every `*.stories.tsx` under react/src is mounted in both themes and
-// every text-owning element is measured against the background chain composited
-// above it.
+// by a person who decided it is acceptable. Nothing is listed — every
+// `*.stories.tsx` under react/src is mounted in both themes and every text-owning
+// element is measured against the background chain composited above it, and the
+// count is asserted at the foot of this file.
 //
-// WHY IT IS A SECOND FILE AND NOT A SECOND GLOB. stories/lib/contrast.js's
-// `walkStories` cannot reach this workspace: it discovers `stories/**.stories.js`,
-// calls each story's render fn as a plain function and assigns the result to
-// `innerHTML`. A React story returns a ReactElement — `serialize()` returns null
-// for one — and its render fn calls hooks, so it has to BE a component and has
-// to actually mount. So this file borrows the resolver's PURE half (tokensFor,
-// substitute, desugar, parseColour, composite, ratio, effectiveBackground,
-// hasOwnText, selectorPath, groupFindings, kitCssFor) and re-expresses the walk
-// through vitest + @testing-library/react. The arithmetic is shared; only the
-// mounting differs. react/src/a11y.test.tsx made the same trade for axe.
+// Why a second file and not a second glob, and why the sheets are read off disk and
+// substituted rather than imported through Vitest's `css`: CONTRIBUTING.md, "One gate
+// per workspace, over one shared implementation" and "An unresolved var() measures
+// nothing and reports green".
 //
-// WHERE THE STYLESHEET COMES FROM, AND WHY NOT FROM VITE. Vitest's `css` option
-// would make `import './Modal.css'` land in the test DOM, but it would land
-// verbatim — and every colour in this workspace is a var() onto a vanilla-kit
-// token, which JSDOM does not resolve. `color: var(--muted)` reads back as the
-// literal string `var(--muted)`, parseColour returns null, and the gate would
-// measure nothing while reporting green. So the CSS is read off disk and the
-// token file for the theme under test is substituted into it first, exactly as
-// the vanilla gate does. `css` stays off; turning it on would only add a second,
-// unresolvable copy of each sheet to the same document.
+// WHAT THIS GATE WILL NOT CATCH. The vanilla ledger (stories/contrast.test.js,
+// header) applies here unchanged. Three differences of its own:
 //
-// Discovery is still Vite's: `import.meta.glob('./**/*.css')` is evaluated for
-// its KEYS only (not eager — nothing is imported), so a new component stylesheet
-// is in the gate the moment it exists. Nobody has to remember to list it, and
-// the count is asserted at the foot of this file.
-//
-// WHAT THIS GATE WILL NOT CATCH. The vanilla gate's list of blind spots
-// (stories/contrast.test.js, header) applies here unchanged and is not repeated.
-// Two differences are worth naming, both narrowing:
-//
-//  - No state pass. The vanilla walk desugars :hover/:focus-visible into
-//    attribute selectors and sets them. Nothing under react/ declares a colour
-//    in a state — .rx-sort:focus-visible sets an outline, which is non-text
-//    contrast the gate does not judge either way — so the pass would cost two
-//    more renders to measure zero new pairs. Add it when a state rule paints text.
-//  - One accent. Like the vanilla gate's default cell, this measures `default`
-//    only. The accent matrix there is behind CONTRAST_ACCENTS=1 and off.
-//
-// And one that is wider here than there: this walks a REAL React tree, so what
-// is measured is what the component renders for the props the story passes —
-// including Modal's portal, which lands in document.body outside the render
-// container. The walk scans document.body for exactly that reason.
+//  - No state pass. Nothing under react/ paints text in a state, so desugaring
+//    :hover/:focus-visible would cost two more renders to measure zero new pairs.
+//    Add it when a state rule paints text.
+//  - One accent — `default`, as there. The accent matrix is behind CONTRAST_ACCENTS=1.
+//  - Wider here: this walks a real React tree, so Modal's portal is measured. It lands
+//    in document.body outside the render container, which is why the walk scans
+//    document.body.
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
