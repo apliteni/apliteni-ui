@@ -70,7 +70,7 @@
 .ui-nav__item.is-active:focus-visible { box-shadow: var(--ring); }
 
 .ui-nav__ic { display: inline-flex; flex: none; }
-.ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; opacity: 0.72; }
+.ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
 .ui-nav__item.is-active .ui-nav__ic svg,
 .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); }
 .ui-nav__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -165,7 +165,7 @@
 .ui-nav--side.is-collapsed .ui-nav__caret,
 .ui-nav--side.is-collapsed .ui-nav__sub { display: none; }
 .ui-nav--side.is-collapsed .ui-nav__item { justify-content: center; padding: 11px 0; gap: 0; }
-.ui-nav--side.is-collapsed .ui-nav__ic svg { width: 19px; height: 19px; }
+.ui-nav--side.is-collapsed .ui-nav__ic svg { width: 19px; height: 19px; stroke-width: 2; }
 .ui-nav--side.is-collapsed .ui-nav__item.is-active::before { left: 3px; }
 .ui-nav--side.is-collapsed .ui-nav__foot { text-align: center; }
 
@@ -248,4 +248,4 @@
 a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); }
 a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
-.ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }

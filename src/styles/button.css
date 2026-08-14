@@ -37,7 +37,7 @@
 }
 .ui-btn:active { transform: translateY(1px); }
 
-.ui-btn svg { width: 16px; height: 16px; flex: none; }
+.ui-btn svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 
 /* -- Variants ----------------------------------------------------------- */
 .ui-btn--primary {

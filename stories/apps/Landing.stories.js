@@ -42,7 +42,7 @@ export const Default = {
     .lx-ico { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; flex:none;
       background:color-mix(in srgb, var(--lx-hue) 20%, var(--surface-3));
       box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--lx-hue) 40%, transparent); }
-    .lx-ico svg { width:21px; height:21px; color:var(--lx-hue); }
+    .lx-ico svg { width:21px; height:21px; stroke-width:1.8; color:var(--lx-hue); }
     .lx-demo { margin-top:auto; padding-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .lx-mono { font:500 12px/1 var(--font-mono); color:var(--accent);
       background:color-mix(in srgb, var(--accent) 12%, transparent); border-radius:7px; padding:6px 10px; }

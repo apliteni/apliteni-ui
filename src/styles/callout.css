@@ -92,7 +92,7 @@
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); }
 
 .ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; }
-.ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 .ui-toast__close:hover { color: var(--text); }
 
 /* auto-dismiss progress bar — .is-running is added by wireToastStack() */

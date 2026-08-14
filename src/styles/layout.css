@@ -247,7 +247,7 @@
   background: var(--glow-purple);
   color: var(--accent);
 }
-.ui-scope__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.ui-scope__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 .ui-scope__t { color: var(--strong); font-size: 14px; font-weight: 500; }
 .ui-scope__d { color: var(--dim); font-size: 13px; margin-top: 2px; line-height: 1.5; }
 

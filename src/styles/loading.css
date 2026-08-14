@@ -116,7 +116,7 @@
   height: 20px;
   stroke: currentColor;
   fill: none;
-  stroke-width: 1.6;
+  stroke-width: 1.9;
 }
 .ui-denied__title {
   color: var(--text);

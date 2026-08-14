@@ -15,6 +15,7 @@
 .ui-field__req { color: var(--pink); margin-left: 4px; }
 .ui-field__hint { color: var(--muted); font-size: var(--text-sm); margin-top: 7px; line-height: 1.5; }
 .ui-field__error { color: var(--pink); font-size: var(--text-sm); margin-top: 7px; display: flex; align-items: center; gap: 6px; }
+.ui-field__error svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 
 .ui-input,
 .ui-textarea,
@@ -64,7 +65,7 @@
   color: var(--muted);
   pointer-events: none;
 }
-.ui-input-group__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.ui-input-group__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
 .ui-select {
   appearance: none;

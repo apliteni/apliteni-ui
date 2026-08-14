@@ -52,7 +52,13 @@ const rel = (p) => path.relative(root, p);
 // Was seven across five: stories/apps/_appShell.js was a story-local fork of the
 // page shell, and #127 replaced it with the kit's own appShell(), whose icons are
 // sized in src/styles — the other gate's territory, not this one's.
-const EXPECTED_SUBJECTS = 12;
+// Was 12: #217 held every stroked glyph the stories render to ADR 0010's 1.5 CSS
+// px line, and two glyphs in the Consent demo were sized by nothing but the
+// reset's 1.1em — so their box followed the font-size they landed in and their
+// stroke rendered at 1.40 and 0.97. Saying the box is what lets the stroke
+// beside it be said, so `.cn-arrow svg` and `.cn-note svg` arrived, width and
+// height apiece.
+const EXPECTED_SUBJECTS = 16;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes

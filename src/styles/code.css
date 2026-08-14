@@ -45,7 +45,7 @@
   transition: color var(--dur-fast) var(--ease);
 }
 .ui-snippet__copy:hover { color: var(--accent); }
-.ui-snippet__copy svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.ui-snippet__copy svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; }
 
 /* Shell token highlighting (matches viz/account.mjs classes) */
 .ui-snippet pre .k { color: var(--purple-mid); font-weight: var(--weight-medium); }

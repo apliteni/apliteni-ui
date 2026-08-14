@@ -78,11 +78,11 @@
 .ui-dropdown__label { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: 11px; color: var(--muted); line-height: 1.35; }
 .ui-dropdown__ic { display: inline-flex; flex: none; color: var(--muted); }
-.ui-dropdown__ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.ui-dropdown__ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
 
 /* Trailing selected tick (listbox variant) */
 .ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--accent); }
-.ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+.ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
 .ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; }
 .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--accent); }
 

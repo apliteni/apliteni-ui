@@ -55,7 +55,7 @@ const PAYOUTS = [
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` in
 // card.css is what scrolls seven columns of ledger on a phone, and a wrapper
 // around the table turns that selector off.
-const payoutsCard = () => card({ title: `${icon('card')} Payouts`, sub: 'Stripe payouts reconciled to bank transactions.', body: `
+const payoutsCard = () => card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts reconciled to bank transactions.', body: `
   <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr>
       <th>ID</th><th>Payout ID</th><th>Arrival</th>
@@ -121,7 +121,7 @@ export const Loading = {
           </div>`).join('<div class="fr-kpis__sep"></div>')}
         </div></div>`,
       }) })}
-      ${card({ title: `${icon('card')} Payouts`, sub: 'Stripe payouts reconciled to bank transactions.',
+      ${card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts reconciled to bank transactions.',
         body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: 6, cols: 7 }) }) })}
     `,
   }),

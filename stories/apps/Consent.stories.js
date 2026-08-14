@@ -12,7 +12,15 @@ const scope = (ic, t, d) => `
     <div><div class="ui-scope__t">${t}</div><div class="ui-scope__d">${d}</div></div>
   </div>`;
 
+/* Two glyphs here are sized by the demo rather than by a kit slot, so the demo
+ * states their stroke as well as their box — that is the whole rule in
+ * docs/adr/0014-a-glyphs-stroke-is-decided-where-its-box-is.md, and
+ * stories/glyph-stroke.test.js holds this markup to it like any other. */
 const shell = (inner, prefix) => `
+  <style>
+    .cn-arrow svg { width: 20px; height: 20px; stroke-width: 1.9; }
+    .cn-note svg { width: 15px; height: 15px; stroke-width: 2.5; }
+  </style>
   <div class="ui-auth">
     <span class="ui-glow ui-glow--purple" style="top:-60px;right:16%"></span>
     <span class="ui-glow ui-glow--green" style="bottom:-90px;left:12%;width:300px;height:300px"></span>
@@ -27,7 +35,7 @@ export const Grant = {
   render: () => shell(`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
       <span style="width:46px;height:46px;border-radius:13px;background:var(--glow-purple);color:var(--accent);display:grid;place-items:center;font-size:23px">${icon('plug')}</span>
-      <div style="display:flex;align-items:center;gap:9px;color:var(--muted);font-size:18px">${icon('arrowRight')}</div>
+      <div class="cn-arrow" style="display:flex;align-items:center;gap:9px;color:var(--muted)">${icon('arrowRight')}</div>
       <span style="width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#2b6b4b,#1d4a5e);color:#fff;display:grid;place-items:center;font:600 14px Poppins">AL</span>
     </div>
     <h1 class="ui-auth__title" style="font-size:21px"><b style="color:var(--accent);font-weight:600">Research bot</b> wants to read your account</h1>
@@ -36,7 +44,7 @@ export const Grant = {
       ${scope('compass', 'Read your content', 'View the content and version history your account can see.')}
       ${scope('key', 'Read as you', 'Access the same content your account can see — nothing more.')}
     </div>
-    <div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;margin:14px 0 22px">
+    <div class="cn-note" style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;margin:14px 0 22px">
       ${icon('lock')} <span>Read-only — you can revoke this anytime in Access &amp; agents.</span>
     </div>
     <div style="display:flex;gap:10px">

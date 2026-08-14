@@ -42,6 +42,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
+import { SOLID_STROKE, VIEWBOX } from './lib/glyph-stroke.js';
 
 const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 
@@ -627,9 +628,12 @@ for (const theme of ['dark', 'light']) {
  * accents are the bright signals; light cannot, because the accents there are
  * deepened to read as ink on white, so it keeps a per-status ink. */
 const GRAPHIC_AA = 3;      // WCAG 1.4.11, for a graphical object
-const SOLID_STROKE = 1.5;  // CSS px at which a stroke paints as one
 const GLYPH_FLOOR = 4.39;  // a ratchet on where the twenty pairs landed, not a bar
-const VIEWBOX = 24;        // the box every kit glyph is drawn in
+/* SOLID_STROKE — the 1.5 CSS px line — and VIEWBOX are imported rather than
+ * declared: #217 extended the same line to every stroked glyph in the kit, and
+ * stories/glyph-stroke.test.js holds them to it. Two gates reading one number
+ * from one file is the point; two gates each carrying their own copy of 1.5 is
+ * how the line moves in one of them. */
 
 /** The bar a mark is held to, decided by the width its stroke renders at. */
 const barFor = (px) => (px >= SOLID_STROKE ? GRAPHIC_AA : AA);

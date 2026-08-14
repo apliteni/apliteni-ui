@@ -19,7 +19,7 @@ const PAYOUTS = [
 
 export const FinanceData = {
   render: () => pad(`<div class="ui-card" style="max-width:1040px">
-    <div class="ui-card__title">${icon('key')} Payouts</div>
+    <div class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Payouts</div>
     <div class="ui-card__sub">Stripe payouts reconciled to bank transactions.</div>
     <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
       <thead><tr>
@@ -51,7 +51,7 @@ const AGENTS = [
 
 export const AgentTokens = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
-    <div class="ui-card__title">${icon('key')} Access &amp; agents</div>
+    <div class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Access &amp; agents</div>
     <div class="ui-card__sub">Personal tokens agents use to read the strategy over MCP.</div>
     <table class="ui-table ui-table--hover">
       <thead><tr><th>Agent</th><th>Scope</th><th>Last used</th><th></th></tr></thead>
@@ -72,7 +72,7 @@ export const AgentTokens = {
 
 export const Empty = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
-    <div class="ui-card__title">${icon('key')} Access &amp; agents</div>
+    <div class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Access &amp; agents</div>
     <div class="ui-empty">
       <div class="ui-empty__icon">${icon('plug')}</div>
       <div class="ui-empty__title">No agents connected yet</div>
