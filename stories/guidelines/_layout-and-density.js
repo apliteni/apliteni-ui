@@ -167,20 +167,27 @@ export const RULES = [
   },
   {
     id: 'breakpoints',
-    imperative: 'A breakpoint stays a literal. It is the one width a token cannot express, and the kit takes a convention over a build step.',
+    imperative: 'A breakpoint stays a literal, and it is one of the three steps listed in the specification. Break somewhere else and the gate says so.',
     why: 'A media query cannot read a custom property — @media (max-width: var(--panel-lg)) is '
       + 'invalid, and no token discipline changes that. The two ways out are a build step that '
       + 'inlines the value, and a convention that leaves the literal in place under a documented '
       + 'list of legal values with a gate over it. The kit ships a plain stylesheet a consumer '
-      + 'links or imports, and putting a compiler between the source and the published file so six '
-      + 'numbers can be spelled differently costs every consumer the ability to read what they '
-      + 'shipped. @custom-media would settle it properly and is not shipping.',
-    except: 'The list of legal breakpoints is a decision about how many the kit wants, not a '
-      + 'discovery about how many it has — so the gate over it is filed separately rather than '
-      + 'inferred from the six that happen to be here (460, 560, 600, 720, 760, 860).',
+      + 'links or imports, and putting a compiler between the source and the published file so a '
+      + 'few numbers can be spelled differently costs every consumer the ability to read what they '
+      + 'shipped. @custom-media would settle it properly and is not shipping. So the discipline is '
+      + 'the list: three steps with what changes at each, and a gate that reads them out of the '
+      + 'specification rather than restating them — a second copy of the list is the same defect '
+      + 'as the six values in ten files it replaced. Three surfaces each had a value of their own '
+      + 'and each moved to the step above it, because a reflow at a wider viewport gives a layout '
+      + 'more room than it had, never less.',
+    except: 'Two steps coincide with tokens — 560 is also --panel-lg, 860 is also --measure — and '
+      + 'nothing marks it at the query. A breakpoint asks about the viewport and a token bounds a '
+      + 'box; the numbers match today and neither follows the other, so a comment claiming a link '
+      + 'that does not exist would cost a reader more than the silence does.',
     kit: [
       { ref: 'src/styles/layout.css:169', pattern: '@media (max-width: 720px)' },
-      { ref: 'docs/specification.md:68', pattern: 'Below the page there are two scales' },
+      { ref: 'stories/breakpoints.test.js:127', pattern: 'every breakpoint is one of the documented steps' },
+      { ref: 'stories/breakpoints.test.js:149', pattern: 'every documented step is a step something queries' },
     ],
   },
 ];

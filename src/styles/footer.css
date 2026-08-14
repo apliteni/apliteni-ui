@@ -114,13 +114,15 @@
 .ui-footer--app .ui-footer__in { max-width: none; padding: 12px clamp(14px, 2.4vw, 22px); }
 .ui-footer--app .ui-footer__bar { padding-top: 0; border-top: 0; font-size: 12.5px; }
 
-/* Responsive — columns collapse to a stacked layout on narrow screens. */
+/* Responsive — columns collapse to a stacked layout on narrow screens. Two of
+   the kit's three steps, and the second one is the phone step rather than a
+   fourth value of the footer's own: docs/specification.md#breakpoints. */
 @media (max-width: 720px) {
   .ui-footer__top { flex-direction: column; gap: 30px; }
   .ui-footer__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 30px; }
   .ui-footer__brand { max-width: none; }
 }
-@media (max-width: 460px) {
+@media (max-width: 560px) {
   .ui-footer__nav { grid-template-columns: 1fr; }
   .ui-footer__bar { flex-direction: column; align-items: flex-start; }
   .ui-footer__switcher { margin-left: 0; }

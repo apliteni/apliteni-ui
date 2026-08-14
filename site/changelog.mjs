@@ -3,7 +3,15 @@
 
 export const RELEASES = [
   {
-    v: '0.20.0', date: '2026-08-14', tag: 'latest',
+    v: '0.21.0', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['changed', 'The kit has **three breakpoints**, not six. `860px` is where the page stops holding three tracks, `720px` is where the shell folds, and `560px` is one column — each a viewport class with what changes at it, listed under **Breakpoints** in `docs/specification.md`. The three values that belonged to a single surface each moved to the step above the one they wrote: the footer\'s second collapse from 460 to 560, the version switcher\'s label from 600 to 720, and the site\'s split hero from 760 to 860. Folding **up** rather than to the nearest step is the point — a layout that reflows at a wider viewport has more room than it had, never less, so nothing lost space to the tidy-up.'],
+      ['added', 'A gate over the convention. `stories/breakpoints.test.js` reads the three steps out of the specification\'s own table at run time — not a second copy of the list — and fails any `@media` prelude in `src/styles/` or `site/` whose px value is not one of them. It holds the list from both ends: a step nothing queries fails too, so the table cannot grow a row to legalise a stray. Subjects are swept rather than listed, from raw text, which is what reaches the stylesheet inside `site/chrome.mjs`\'s template literal; `site/public/` is build output and is never read.'],
+      ['changed', 'The Layout and density guideline states the position on the two coincidences: `560` is also `--panel-lg` and `860` is also `--measure`, and nothing marks it at the query. A breakpoint asks about the viewport and a token bounds a box — the numbers match today and neither follows the other.'],
+    ],
+  },
+  {
+    v: '0.20.0', date: '2026-08-14',
     changes: [
       ['fixed', 'The three controls that sat under the kit\'s **24 × 24 CSS px** target floor now reach it, and two of them did it **without being redrawn**. WCAG 2.5.8 measures the target, not the ink: a pointer landing on a control\'s `::before` hits the control, so `.ui-toast__close` and the `.ui-check` input keep the 19 × 19 boxes they are drawn at and each carries a centred 24 × 24 overlay — 2.5px of overhang on every side, against 12px of gap to the toast\'s action and 11px to the checkbox\'s own label. `.ui-snippet__copy` took a real box instead: it was **0.56px** short, and a `min-height` nobody can see beat an overlay nobody can measure.', ['Targets']],
       ['changed', 'The target gate measures **what a pointer can land on**, not what the stylesheet draws. Every `sel::before` / `sel::after` rule is probed onto `sel`, and a control\'s box is the union of its border box and the pseudo-elements it generates — sized from a declared width and height, or from insets against the padding box, which is where the checkbox\'s 1.5px border is the difference between a 24px overlay and a 21px one. Without it a hit-area fix would have failed every test in that file and passed none.'],

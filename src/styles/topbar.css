@@ -151,7 +151,9 @@
 }
 .vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 .vbadge.arch { color: var(--muted); background: var(--surface); }
-@media (max-width: 600px) { .vsw__btn .lbl { display: none; } }
+/* The switcher keeps its glyph and drops its label where the shell folds — the
+   same step the rail folds at: docs/specification.md#breakpoints. */
+@media (max-width: 720px) { .vsw__btn .lbl { display: none; } }
 
 /* Account — avatar + dropdown. Gated: hidden until the app confirms a session
    and adds `.on` (mirrors the portal's /auth/me reveal). */

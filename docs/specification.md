@@ -91,16 +91,40 @@ Decided in [#208](https://github.com/apliteni/apliteni-ui/issues/208).
 
 ## Breakpoints
 
-The kit's six breakpoints — 460, 560, 600, 720, 760, 860 — are written as literals, and that is a
-convention rather than an oversight. A media query cannot read a custom property, so
-`@media (max-width: var(--panel-lg))` is invalid however much token discipline is applied to it.
+The kit has three breakpoints, and every media query in `src/styles/` and `site/` is at one of
+them. This is the list:
 
-The two ways out are a build step that inlines the value, or a documented list with a gate over
-it. The kit takes the second, because its distribution story is a plain stylesheet a consumer
-reads and edits, and putting a compiler between the source and that file costs more than the
-duplication it removes.
+| step    | what changes at it                                                                     |
+| ------- | -------------------------------------------------------------------------------------- |
+| `860px` | the page stops holding three tracks — a three-across grid drops to two, a side-by-side pair stacks |
+| `720px` | the shell folds — the app rail becomes an icon strip, link columns halve, a secondary label drops out |
+| `560px` | one column — every remaining grid is a single track, and a floating panel goes edge to edge |
 
-Decided in [#208](https://github.com/apliteni/apliteni-ui/issues/208).
+A step is a viewport class, not a surface's preference. Three surfaces had a fourth, fifth and
+sixth value of their own — 460, 600 and 760 — and each is now at the step above the one it wrote,
+so each reflow happens at a wider viewport than before and no layout has less room than it had.
+
+The values are written as literals, and that is a convention rather than an oversight. A media
+query cannot read a custom property, so `@media (max-width: var(--panel-lg))` is invalid however
+much token discipline is applied to it. The two ways out are a build step that inlines the value,
+or a documented list with a gate over it. The kit takes the second, because its distribution story
+is a plain stylesheet a consumer reads and edits, and putting a compiler between the source and
+that file costs more than the duplication it removes.
+
+`560` is also `--panel-lg` and `860` is also `--measure`. That is arithmetic and not a
+relationship: a breakpoint asks about the viewport, a token bounds a box, and neither number
+follows the other — move the reading column and the wide step stays where it is. Nothing marks the
+coincidence at the query, because a comment claiming a link that does not exist costs a reader
+more than the silence does.
+
+Held by `stories/breakpoints.test.js`, which reads the three steps out of the table above at run
+time and fails any `@media` prelude in the swept trees carrying a px value that is not one of
+them. It fails the other way too: a step nobody queries is a list that has outgrown the kit, so
+adding a fourth means adding the query that needs it. `site/public/` is build output and is not
+swept.
+
+Decided in [#208](https://github.com/apliteni/apliteni-ui/issues/208) and
+[#221](https://github.com/apliteni/apliteni-ui/issues/221).
 
 ## Spacing and rhythm
 
