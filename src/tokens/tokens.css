@@ -45,7 +45,7 @@
    * --container is the page, gutter to gutter; --measure is the reading column
    * INSIDE a track, beside a sidebar. Different axes, never interchangeable.
    * Below --measure are --panel-* and --prose-*, at the end of this file (#208).
-   * why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md */
+   * why: docs/specification.md#widths */
   --container: 1120px;
   --measure: 860px;
 
@@ -117,7 +117,7 @@
      the shape light Nebula and light Ocean already ship and which dark Nebula
      held until #157 lifted the accent onto the old --purple-mid. Left alone,
      the two tokens would resolve to one colour and the ramp would carry a
-     duplicate step. #bd8cff is the value docs/adr/0006 reasons about and
+     duplicate step. #bd8cff is the value docs/specification.md#colour-and-contrast reasons about and
      rejects as the accent; it becomes the ramp's top step instead. Light
      Nebula's ramp does not move. See issue #157. */
   --purple-light: #b479ff;
@@ -157,7 +157,7 @@
      --glow-purple follows it down the file; --ring is written as var(--accent)
      and so follows it by reference. Held by
      stories/accent-contrast.test.js. See issue #157.
-     why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md */
+     why: docs/specification.md#colour-and-contrast */
   --accent: #b479ff;
   --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA at 5.70:1 */
   --accent-contrast: #ffffff;
@@ -228,7 +228,7 @@
      glow: the eight rgba() literals this replaced all missed the 3:1 of WCAG
      1.4.11, at 1.35:1 worst. Held at 4.22:1 worst by
      stories/guidelines/accessibility-floor.test.js. See issue #218.
-     why: docs/adr/0013-the-focus-ring-is-the-accent-at-full-opacity.md */
+     why: docs/specification.md#the-focus-ring */
   --ring: 0 0 0 3px var(--accent);
 
   /* The ink a cast shadow is made of, and the specular white that reads as
@@ -367,7 +367,7 @@
  *   a box that holds a LINE        ->  --prose-*   (ch)
  *
  * Both are theme-invariant, which is why they sit outside the palette blocks.
- * why: docs/adr/0011-two-scales-below-the-page-and-the-unit-picks-one.md
+ * why: docs/specification.md#boxes-below-the-page
  * ========================================================================== */
 :root {
   /* -- Panel widths -------------------------------------------------------

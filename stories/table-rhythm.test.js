@@ -3,11 +3,11 @@
  * rhythm and --dense modifier alike.
  *
  * Scope is one sheet, and that is the rule's scope rather than a shortcut:
- * ADR 0012 decided the rhythm of the table, which is the component the kit
+ * The rhythm rule settled the table, which is the component the kit
  * hands a density modifier. Inside that scope nothing is enumerated — the
  * subjects are every box-spacing declaration the sweep finds, so a
  * `.ui-table--airy { padding: 7px }` added tomorrow is caught without anyone
- * editing this file (ADR 0004). Widening to the rest of src/styles is one
+ * editing this file (the discovery rule). Widening to the rest of src/styles is one
  * string here and ~160 declarations of argument about which of them are rhythm
  * and which are a component's own interior; that argument is not this gate's.
  *
@@ -15,7 +15,7 @@
  * step and it becomes legal on its own; rename the scale and this fails loudly
  * rather than passing over nothing.
  *
- * why: docs/adr/0012-a-row-rhythm-is-steps-of-the-scale-and-ties-go-to-the-job.md
+ * why: docs/specification.md#spacing-and-rhythm
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -185,7 +185,7 @@ test('the sweep sees every padding in the sheet', () => {
 });
 
 // The mechanism, on input this file controls: the rule has to reject a literal
-// and accept a step, or the green above says nothing about either (ADR 0008).
+// and accept a step, or the green above says nothing about either (the mutation rule).
 test('the check rejects a literal and accepts a step', () => {
   const specimen = `
     .a { padding: 7px; }

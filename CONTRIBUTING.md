@@ -49,8 +49,18 @@ you start, not at review.
 
 **No visual slop.** Run the AI-slop detector on any new example page. It reads
 comments too: past about twenty-five lines, a comment block has stopped being a
-comment and become a design document. The argument goes in `docs/adr/` and the
-code keeps a one-line pointer — see [docs/adr/README.md](docs/adr/README.md).
+comment and become a design document. What the kit guarantees goes in
+[docs/specification.md](docs/specification.md), how the repo works goes below, why
+this shape and not another goes in the issue — see
+[docs/README.md](docs/README.md#where-a-decision-gets-recorded). The code keeps a
+one-line pointer:
+
+```js
+// why: docs/specification.md#icons-and-glyphs
+```
+
+`scripts/doc-refs.test.js` resolves every such pointer in the tree, so a citation
+that stops landing fails a build instead of misleading whoever follows it.
 
 ## Data handling
 
@@ -80,6 +90,82 @@ What nothing checks is the checkers. Those two scripts are graded by themselves,
 `.pre-commit-config.yaml` and the rest of `.github/` by nothing at all, so a diff that
 guts one of them passes every gate this repo has. Please say so in the pull request body
 when you touch one, so the reviewer reads the change itself rather than the run.
+
+## How the gates work
+
+Four rules govern every gate in this repo. They are about the gates rather than about the
+kit, which is why they live here and not in
+[docs/specification.md](docs/specification.md).
+
+### A gate discovers its subjects and never enumerates them
+
+A gate sweeps a surface and works on whatever it finds there. A new page, a new story, a
+new stylesheet beside `preview.js`: in scope by existing, with nothing to add to a list.
+
+A hand-written list of selectors is the thing this rule exists to prevent, and the cost of
+breaking it is on record. `stories/glyph-stroke.test.js` replaced a prose enumeration of
+stroked glyphs that named six of ten and missed four. The icon gate collected only
+selectors ending in `svg` until `.ui-fbck` — a class the kit puts *on* an svg — turned out
+to be losing to the same reset as everything else, unmeasured.
+
+Two riders come with it:
+
+- **The count is asserted.** A file that stops carrying a subject leaves the count, so
+  coverage cannot quietly shrink to zero and stay green.
+- **Where a count cannot see, a test says so.** `.storybook/` contributes no subject
+  today, so a count cannot tell whether it was read at all. A test named for the surface
+  is what proves it was.
+
+Compose from source, never from a built site. CI runs `npm test` before
+`build-storybook` and never runs `site/build.mjs`, so a gate reading `site/public/` fails
+in CI — and one that skips when the directory is absent drops coverage in silence, which
+is worse.
+
+### A number a comment argues for is pinned by a measured test
+
+A comment that explains why a wait is two minutes or a threshold is three is an assertion
+with nothing behind it. Pin it by **measuring** rather than by reading the source: the
+workflow harness runs the real `run:` bodies on a virtual clock, so a deadline is held by
+the seconds a step actually spends and a retry count by how many times a stub is actually
+called. Asserting on the YAML would prove nothing, because the strings under suspicion are
+exactly the ones a grep would look for.
+
+Where a value cannot be exercised at all, pin it as a **relation** instead of a figure.
+`timeout-minutes` is one: the three waits are measured at their worst, the costs no clock
+can see are added, and the total is related to the ceiling read out of the YAML — it must
+fit in two thirds of it and be at least half of it.
+
+### A rule is proven by the mutation that kills its case
+
+A passing test proves the case runs, not that the rule has teeth. After the cases pass,
+weaken the rule one axis at a time and re-run every case against each weakened copy: a rule
+that means something loses a case, and a rule that has stopped meaning anything loses
+nothing.
+
+`scripts/gitleaks-rules.check.mjs` does this to every rule in `.gitleaks.toml` across eight
+axes. The lesson that shaped it is worth carrying to the next gate — **a check can be
+switched off from either side.** For a while it watched only the rules, so two lines added
+to `[allowlist] regexes` took a scan carrying both shapes from "leaks found: 2" to "no
+leaks found" while the check reported that every rule had a case that dies under a
+mutation. Every entry in both lists is a subject in its own right now.
+
+When you mutate to prove a pin, put the edit on disk, diff to confirm it landed, watch the
+test fail, and revert. A mutation that never reached the mechanism proves nothing, and a
+green run is not evidence that it did.
+
+### One gate per workspace, over one shared implementation
+
+Each workspace gets its own gate, because a shared count cancels: a React rule dropping out
+of coverage and a site rule arriving in the same commit leave the number where it was and
+the tripwire says nothing. The two also fail for different people, and a broken React sweep
+should say so in its own red.
+
+Underneath, one implementation. The icon gates all import `scripts/lib/icon-cascade.js`
+rather than copying it, so three gates asking one question cannot drift into asking three.
+
+Read source, not built output. `react/dist` is gitignored and built by `prepare`, and
+`release.yml` installs with `--ignore-scripts`, so a gate reading `dist` measures something
+CI does not have — the local-green/CI-red defect this area keeps producing.
 
 ## Add a component
 
@@ -248,6 +334,17 @@ registry rather than from the tag: once the version is on npm, any run after
 that reads the release as done. Or re-run the failed job by hand — same thing.
 Either way nothing needs undoing: whatever part of the release is missing gets
 picked up from where it stopped.
+
+**The registry decides, not the tag**, and that is the rule the whole workflow
+turns on. A version is released when npm serves it, so the plan step asks npm
+rather than asking git — otherwise a failed publish becomes permanently green
+the moment a tag exists. `scripts/tag-on-bump.test.js` holds it by running the
+workflow's real `run:` bodies against a stubbed registry and evaluating the
+`if:` expressions the way Actions evaluates them, per
+[a number a comment argues for is pinned by a measured
+test](#a-number-a-comment-argues-for-is-pinned-by-a-measured-test). Asserting on
+the YAML would prove nothing: the strings under suspicion are exactly the ones a
+grep would be looking for.
 
 Two things have to be in the pull request. The `Shipped surface vs version` job
 checks both and goes red without either. Since it is not one of the checks

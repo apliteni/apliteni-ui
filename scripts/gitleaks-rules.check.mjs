@@ -53,8 +53,8 @@
  * written to the run's temp directory and judged by the same engine. Nothing
  * ever writes to .gitleaks.toml.
  *
- * why: docs/adr/0008-a-rule-is-proven-by-the-mutation-that-kills-its-case.md
- * why: docs/adr/0004-the-gates-discover-their-subjects.md
+ * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  */
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -684,7 +684,7 @@ function gitleaksVersion() {
 // Everything below reads .gitleaks.toml as TEXT and derives what to weaken from
 // what each rule actually contains. There is no table of rules here on purpose:
 // a rule added tomorrow gets its mutations by existing, which is the same
-// argument ADR 0004 makes for the icon gates.
+// argument the discovery rule makes for the icon gates.
 
 /** Every top-level TOML table header, with the span of text it owns. */
 function sections(text) {
@@ -1359,7 +1359,7 @@ function judge(byFile, ruleIds) {
  * verdict at all, and that is what the exit code carries. The distinction is
  * worth having: a 1 says the config is weaker than it claims, a 2 says nobody
  * knows yet. Measured rather than reasoned about, which is what the argument in
- * ADR 0002 asks of a comment like this one: point this check at a copy of
+ * The measured-pin rule asks of a comment like this one: point this check at a copy of
  * .gitleaks.toml with a rule deleted — the path argument exists for exactly that
  * — and it prints every failing case and exits 2, not 1.
  *
@@ -1384,7 +1384,7 @@ function fail(message) {
  *     failure this check exists to close. See JUSTIFIED, and the stale-exception
  *     failure raised there and below.
  *
- * That is ADR 0004's second half applied to mutations: where a count cannot see,
+ * That is the discovery rule's second half applied to mutations: where a count cannot see,
  * a test says so.
  */
 function report(rows, ruleSubjects, casesFor) {

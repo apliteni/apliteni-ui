@@ -3,9 +3,9 @@
 // The floor page (stories/guidelines/_accessibility-floor.js) states three
 // numbers that existed nowhere in this tree before #201: a minimum target size,
 // a contrast for `--ring`, and a legibility floor for a disabled control. A
-// number a comment argues for is pinned by a measured test (ADR 0002), so this
+// number a comment argues for is pinned by a measured test (the measured-pin rule), so this
 // file measures all three against what the kit actually ships, and every list it
-// works from is discovered rather than typed (ADR 0004).
+// works from is discovered rather than typed (the discovery rule).
 //
 // WHAT IS DISCOVERED, AND FROM WHERE:
 //
@@ -463,7 +463,7 @@ test(`ring: ${RING_MIN}:1 against every ground it lands on, in every theme x acc
 // are the same shape and different numbers on purpose — the ratchet catches a
 // token moving the ring DOWN long before it reaches the bar, which is the only
 // warning anyone gets. It is the measured worst, so it moves only by being
-// re-measured (ADR 0002).
+// re-measured (the measured-pin rule).
 test(`ring: nothing has drifted below ${RING_FLOOR}:1, the worst the kit measures today`, () => {
   const worse = CELL_KEYS.flatMap((key) => ringRun[key].landings
     .filter((l) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR)
@@ -582,7 +582,7 @@ test('disabled: the ledger states the range it is holding open, and it is still 
 // The page names every gate and what it admits. This holds the two in step the
 // way overview.test.js holds ENTRIES in step with the pages beside it: the list
 // is discovered from disk, and a gate the page has never heard of fails the
-// build (ADR 0004).
+// build (the discovery rule).
 
 test('the floor page names every accessibility gate in the tree, and no gate it does not', () => {
   const files = [

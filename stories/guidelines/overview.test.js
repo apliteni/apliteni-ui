@@ -3,7 +3,7 @@
  *
  * An index that misses a page is worse than no index — the reader believes they
  * have seen the collection. So this gate never enumerates the pages: it
- * discovers them, the way ADR 0004 asks a gate to.
+ * discovers them, the way the discovery rule asks a gate to.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

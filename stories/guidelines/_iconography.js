@@ -114,7 +114,7 @@ export const RULES = [
       + '`stroke-width × box ÷ 24`. The toast check was 2 at 13px, which is 1.08 CSS px, and it '
       + 'cleared 3:1 by a tenth and still read as a smudge. Under 1.5 CSS px the mark is optically a '
       + 'text stem, so it takes 4.5:1 instead. #206, and '
-      + 'docs/adr/0010-a-stroked-glyph-earns-the-graphic-bar-by-its-width.md.',
+      + 'docs/specification.md#icons-and-glyphs.',
     except: 'A glyph that carries no status — a close button, a chevron — is not measured by this: '
       + 'there is no five-status pair to keep, and its own contrast is the control’s to answer for.',
     kit: [

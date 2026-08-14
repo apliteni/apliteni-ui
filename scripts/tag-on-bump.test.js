@@ -1,8 +1,8 @@
 // Release automation — a failed publish must not become permanently green, and
 // every number tag-on-bump.yml argues for is pinned by a measured test.
 //
-// why: docs/adr/0001-the-registry-decides-whether-a-release-happened.md
-// why: docs/adr/0002-a-number-a-comment-argues-for-is-pinned-by-a-measured-test.md
+// why: CONTRIBUTING.md#release
+// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';

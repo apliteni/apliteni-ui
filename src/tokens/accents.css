@@ -13,7 +13,7 @@
  * re-pointing --accent above re-points the focus ring too. Six hand-written
  * rgba() rings used to sit in this file and every one of them missed the 3:1
  * of WCAG 1.4.11 — 1.35:1 at worst. See #218 and
- * docs/adr/0013-the-focus-ring-is-the-accent-at-full-opacity.md.
+ * docs/specification.md#the-focus-ring.
  *
  * Selectors carry two attributes + :root, so they always out-specify the
  * single-attribute theme blocks in tokens.css regardless of import order.

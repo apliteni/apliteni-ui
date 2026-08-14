@@ -16,7 +16,7 @@ export const mono = (s) => String(s).replace(
 // stories/guidelines/destructive-actions.test.js still holds the two in step.
 // --measure does NOT replace it — this grid sizes to its widest SPECIMEN, not
 // to a page.
-// why: docs/adr/0011-two-scales-below-the-page-and-the-unit-picks-one.md
+// why: docs/specification.md#boxes-below-the-page
 const SPEC_CSS = `
   <style>
     .gl { --gl-specimen: var(--panel-md);

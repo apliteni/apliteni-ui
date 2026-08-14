@@ -1,11 +1,11 @@
 /* The 1.5 CSS px line, and the arithmetic that puts a glyph on one side of it.
  *
- * ADR 0010 drew the line and stories/signal-contrast.test.js was the only thing
- * that knew it. ADR 0014 extends it to every stroked glyph in the kit, so the
+ * The stroke-width rule drew the line and stories/signal-contrast.test.js was the only thing
+ * that knew it. The glyph-box rule extends it to every stroked glyph in the kit, so the
  * number now decides two gates and lives in neither of them.
  *
- * why: docs/adr/0010-a-stroked-glyph-earns-the-graphic-bar-by-its-width.md
- *      docs/adr/0014-a-glyphs-stroke-is-decided-where-its-box-is.md */
+ * why: docs/specification.md#icons-and-glyphs
+ *      docs/specification.md#icons-and-glyphs */
 
 /** CSS px at which a stroke paints as one. Under this a stroke cannot put three
  *  quarters of its colour into any device pixel row at 1x — worst-case sub-pixel

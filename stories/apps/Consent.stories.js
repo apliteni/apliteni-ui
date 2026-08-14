@@ -14,7 +14,7 @@ const scope = (ic, t, d) => `
 
 /* Two glyphs here are sized by the demo rather than by a kit slot, so the demo
  * states their stroke as well as their box — that is the whole rule in
- * docs/adr/0014-a-glyphs-stroke-is-decided-where-its-box-is.md, and
+ * docs/specification.md#icons-and-glyphs, and
  * stories/glyph-stroke.test.js holds this markup to it like any other. */
 const shell = (inner, prefix) => `
   <style>

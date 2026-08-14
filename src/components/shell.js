@@ -3,7 +3,7 @@
 // with a breadcrumb trail the caller owns. `accountShell()` is a thin preset
 // over it that keeps the topbar, so the published /account API still works.
 // Call wireTopbar() once after mounting to wire the account menu + theme toggle.
-// why: docs/adr/0007-one-page-shell-built-from-the-kits-own-nav.md
+// why: docs/specification.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs } from './nav.js';
@@ -95,7 +95,7 @@ const toTopbar = (t) => {
 // REMOVE the property rather than pass a default or a bad value on: a custom
 // property accepts any token stream, so garbage is a valid declaration that
 // drops the column to `none`, the full track.
-// why: docs/adr/0009-a-page-has-two-widths-and-the-site-owns-the-container.md
+// why: docs/specification.md#widths
 const LENGTH = /^(?:\d+|\d*\.\d+)(?:px|rem|em|ch|%|vw)$/;
 const mainMax = (v) => {
   const s = str(v).trim();

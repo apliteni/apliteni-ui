@@ -9,7 +9,7 @@
  * been wordless in the first place — a `gear` with a perfect aria-label is
  * still a reader meeting an unlabelled cog one at a time. That is this gate.
  *
- * The call sites are DISCOVERED, never listed (ADR 0004): every .js/.mjs/.jsx/
+ * The call sites are DISCOVERED, never listed (the discovery rule): every .js/.mjs/.jsx/
  * .tsx under src, stories, site and react/src — the trees `npm test` and the
  * build actually read — is swept for the word `iconOnly`. A new component or
  * story joins coverage by existing. Nothing is skipped by name; a file that
@@ -115,7 +115,7 @@ test('every icon-only control is one the closed list allows', () => {
 // window too narrow, a regex that stopped matching the kit's spelling, a tree
 // dropped from TREES — each leaves the gate green against a violation. So the
 // check is run once more against a list with the commonest allowance removed:
-// the call sites that rely on it have to fail (ADR 0008).
+// the call sites that rely on it have to fail (the mutation rule).
 test('removing an allowance turns the gate red — it is reading real call sites', () => {
   const weakened = Object.keys(iconOnlyAllowed).filter((g) => g !== 'x');
   const caught = callSites.filter((c) => !weakened.includes(c.glyph));

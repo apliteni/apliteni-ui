@@ -180,7 +180,7 @@ export const RULES = [
       + 'inferred from the six that happen to be here (460, 560, 600, 720, 760, 860).',
     kit: [
       { ref: 'src/styles/layout.css:169', pattern: '@media (max-width: 720px)' },
-      { ref: 'docs/adr/0011-two-scales-below-the-page-and-the-unit-picks-one.md:1', pattern: 'Below the page there are two scales' },
+      { ref: 'docs/specification.md:68', pattern: 'Below the page there are two scales' },
     ],
   },
 ];

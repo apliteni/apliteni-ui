@@ -10,7 +10,7 @@ const CSS = readFileSync(
 );
 
 /**
- * The inset is written as a step of the spacing scale (ADR 0012), so what this test needs
+ * The inset is written as a step of the spacing scale (the rhythm rule), so what this test needs
  * from a declaration is its resolved width in px — the step looked up in the token file,
  * never a number repeated here. A bare px still resolves: the rule this test holds is
  * "the end cells are inset", and which of the two ways it is spelled is a different rule,
