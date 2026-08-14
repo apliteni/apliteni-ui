@@ -450,6 +450,39 @@ editing happens.
 3. A factory in `src/components/index.js` returning an HTML string.
 4. `stories/components/<Name>.stories.js` — a Playground + a states gallery.
 
+## Add a glyph
+
+`src/assets/icons.js` holds the set: Lucide paths at the house 24×24 / 1.7 stroke, round
+caps and joins. Lucide is the maintained Feather and our glyphs match it 1:1. Each value is
+the inner markup and `icon()` wraps it in the shared `<svg>`, so a glyph inherits
+`currentColor` and sits right next to our type with no runtime dependency anywhere.
+
+**Name it for what it depicts, not for the one place it is used** — `trash`, not
+`deleteWorkspace`. camelCase, and a modifier follows its noun (`circleX`, `eyeOff`,
+`trendingUp`) so the family sorts together. A name is taken once. A second declaration of
+one is a gate failure rather than a merge conflict, because the flat `ICONS` map takes the
+last of the two and nothing breaks loudly: `card`, `chart` and `doc` sat filed under two
+headings each until [#199][i199], and the file grew lines no reader could tell from a real
+glyph.
+
+**Group it by what it depicts, again rather than by caller.** `chart` lives in `DATA`
+because it draws data, even when a comms panel is what renders it. If two groups both look
+right, the glyph belongs to the one whose other members it would sit beside in the
+catalogue. Groups are not tags: exactly one.
+
+**Take the path from Lucide unmodified**, at the house stroke and box. That is what keeps
+the set looking like one hand, and a year later a traced glyph and a copied one are
+indistinguishable by eye — so the commit message is the only place the difference survives.
+Say which Lucide name it came from when the two differ, and give a reason for a hand-drawn
+path. Brand marks are the exception with no original to take: `github` and `linkedin` are
+the vendor's own and live in `BRAND` for that reason.
+
+`src/assets/icons.test.js` holds one-group-per-glyph and the emitter's numbers;
+`stories/guidelines/iconography.test.js` holds the icon-only list. The rules as a reader
+meets them are on Guidelines / Iconography.
+
+[i199]: https://github.com/apliteni/apliteni-ui/issues/199
+
 ## React components (`react/`)
 
 `react/` is a **private workspace** — it is not a package anyone installs. Its build

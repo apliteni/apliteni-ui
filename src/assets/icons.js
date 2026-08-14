@@ -1,34 +1,13 @@
-// Line-icon set — 24×24, stroke=currentColor, 1.7 weight, round caps/joins.
-// House style is Feather/Lucide (Lucide is the maintained Feather; our glyphs
-// match it 1:1). Delivery is inline SVG strings: no runtime dependency, works
-// in any framework, and every glyph inherits `currentColor` + a consistent
-// stroke so it sits right next to our type.
+// Line-icon set — 24×24, stroke=currentColor, 1.7 weight, round caps/joins,
+// Lucide house style. Delivery is inline SVG strings, so there is no runtime
+// dependency and every glyph inherits `currentColor`.
 //
 // Each value is the INNER markup; icon() wraps it in the shared <svg>. Glyphs
 // are grouped by domain — the flat ICONS map is what icon() looks up, and
 // iconCategories drives the Storybook grid.
 //
-// ---- Adding a glyph -------------------------------------------------------
-//
-// NAME it for what it depicts, not for the one place it is used: `trash`, not
-// `deleteWorkspace`. camelCase, and a modifier follows its noun — `circleX`,
-// `eyeOff`, `trendingUp` — so the family sorts together. A name is taken once;
-// a second declaration of one is a gate failure, not a merge conflict.
-//
-// GROUP it by what it depicts, again rather than by caller. `chart` lives in
-// DATA because it draws data, even when a comms panel is what renders it. If
-// two groups both look right, the glyph belongs to the one whose other members
-// it would sit beside in the catalogue. Groups are not tags: exactly one.
-//
-// PROVENANCE: the path comes from Lucide, unmodified, at the 24×24 / 1.7 house
-// stroke — that is what keeps the set looking like one hand. Say which Lucide
-// name it came from in the commit if the two differ. A hand-drawn path needs a
-// reason in the commit message, because the next person cannot tell one from a
-// traced one by looking.
-//
-// The gates: src/assets/icons.test.js holds one-group-per-glyph and the
-// emitter's numbers, and stories/guidelines/iconography.test.js holds the
-// icon-only list below. The written rules are on Guidelines / Iconography.
+// Naming, grouping and provenance, and the gates that hold them:
+// why: CONTRIBUTING.md#add-a-glyph
 
 const NAV = {
   chevronDown: '<path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>',

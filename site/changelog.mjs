@@ -3,7 +3,13 @@
 
 export const RELEASES = [
   {
-    v: '0.23.0', date: '2026-08-14', tag: 'latest',
+    v: '0.23.1', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['changed', 'Two published files stopped carrying their own design document. `src/assets/icons.js` had a 31-line header whose second half was the contributor rules for adding a glyph — naming, grouping, provenance — and those are now **Add a glyph** in `CONTRIBUTING.md`, with the incident behind the one-group rule (`card`, `chart` and `doc` each filed under two headings until #199) written out rather than alluded to. `src/components/loading.js` had a 43-line header stating what the busy region guarantees, and that is a guarantee a consumer relies on, so it is now **Pending and denied states** in `docs/specification.md`: one live region that outlives its content, a skeleton that is `aria-hidden`, a `deniedState()` with no role of its own, and no spinner factory. Each file keeps a short note and a `why:` pointer the doc-refs gate resolves. No behaviour changed.'],
+    ],
+  },
+  {
+    v: '0.23.0', date: '2026-08-14',
     changes: [
       ['changed', 'Every transition in the kit reads a **duration token and an easing token**. Twenty-six declarations across six stylesheets wrote their own number instead, at five speeds — `0.15s`, `0.16s`, `0.18s`, `0.2s`, `0.35s` — and thirty-six named a bare `ease`, which is `cubic-bezier(0.25, 0.1, 0.25, 1)` and not the kit\'s `cubic-bezier(0.4, 0, 0.2, 1)`: a second motion vocabulary that looked like the first. The scale they moved onto is the drawer\'s, because the drawer is the one transition whose reasoning was written down — a surface arriving or leaving takes `--dur-med`, a control changing state takes `--dur-fast`, an entrance takes `--dur-slow`. Listed with what each times under **Motion** in `docs/specification.md`.'],
       ['fixed', 'Two menus in the topbar and the dropdown panel transitioned **`all`**, which includes `visibility` — a discrete property held at its OLD value for the whole duration, so the menu was still `hidden` in the frame it opened. `transition: 0.18s ease` and `transition: 0.16s ease` name no property at all; all three now name theirs, and every `visibility` in the kit is timed `linear`, which until now only the drawer and the confirm were held to.'],

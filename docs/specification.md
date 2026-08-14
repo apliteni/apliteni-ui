@@ -307,6 +307,43 @@ Decided in [#148](https://github.com/apliteni/apliteni-ui/issues/148),
 [#206](https://github.com/apliteni/apliteni-ui/issues/206) and
 [#217](https://github.com/apliteni/apliteni-ui/issues/217).
 
+## Pending and denied states
+
+Two states every screen has: it is still fetching, and the reader is not allowed to see this.
+`button({ busy: true })` had answered the first for one control — `aria-busy`, disabled — and
+nothing said what the screen around that button does while the fetch is in flight, so every
+consumer invented its own and none of them announced. `src/components/loading.js` is the kit's
+answer for the screen.
+
+What it guarantees:
+
+- **One region, three renders.** `busyRegion()` is a live region that *outlives* the thing it
+  reports on. It renders once, with `skeleton()` inside; `setBusy()` swaps its body and writes a
+  line into the `ui-sr` node the region already contains. A live region whose text changes is
+  the only thing assistive tech reliably speaks — inserting a fresh `role="status"` together
+  with its text, the obvious shortcut, announces nothing on several screen readers, and that is
+  the bug this file exists to stop. Whatever is in the body, the announcement comes from the
+  region.
+- **It reuses the announcement the kit already ships**, `role="status" aria-live="polite"` — the
+  same pair `toast()` and `success()` carry. There is no second mechanism.
+- **A skeleton is `aria-hidden`.** A shimmer is a picture of content, not content; what a screen
+  reader gets is the region's message rather than a description of grey bars. The shimmer is
+  `.m-skeleton` from the motion library, so it is inside that library's reduced-motion net.
+- **`deniedState()` carries no role of its own.** Dropped into the region it is announced by the
+  region; rendered as a whole page it needs no announcement, because nothing changed — that *is*
+  the page. Two live regions racing over one event is how a screen says things twice.
+- **No spinner factory.** The kit already spins in two places that own their context —
+  `.ui-btn__bars` inside a busy button, `.ui-fbspin` inside the feedback composer — and a third
+  would be a third thing to keep in sync. At screen scale a skeleton says more anyway: it says
+  what shape is coming.
+
+```js
+const el = document.querySelector('#report');
+el.innerHTML = busyRegion({ label: 'Loading your report…', lines: 4 });
+const rows = await fetch(…);
+setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
+```
+
 ## The page shell
 
 `appShell()` is the kit's one answer for composing a page, built from the kit's own nav
