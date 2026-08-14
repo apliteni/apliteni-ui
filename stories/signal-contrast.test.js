@@ -30,7 +30,7 @@
  *     full precision, not because it is what the browser paints. The two models
  *     disagree by at most a few hundredths, and a value that close to the bar is
  *     chosen to clear under either. See
- *     docs/adr/0006-the-accent-is-measured-against-its-own-wash.md.
+ *     docs/specification.md#colour-and-contrast.
  *   - accents (Phoenix, Ocean, Emerald) redefine only the purple family, so the
  *     signal ratios below are the same under every accent. One theme axis is
  *     enough.
@@ -619,7 +619,7 @@ for (const theme of ['dark', 'light']) {
  * and under 1.5 CSS px a mark is optically a text stem, so it takes the text
  * bar instead. Why 1.5, why 4.5:1 could not simply be declared, and what
  * GLYPH_FLOOR is doing here:
- * docs/adr/0010-a-stroked-glyph-earns-the-graphic-bar-by-its-width.md.
+ * docs/specification.md#icons-and-glyphs.
  *
  * The circle's fill is still not free to move — --toast-accent also paints the
  * 3px left marker and the outline border, so a circle that left the accent
@@ -797,7 +797,7 @@ for (const theme of ['dark', 'light']) {
             + `It paints color: ${m.ink} (${hex(m.glyph)}) on ${hex(m.ground)}.\n`
             + 'This is a ratchet, not the bar: something moved a token under a pair that was\n'
             + 'measured above it. Either put the pair back, or lower GLYPH_FLOOR on purpose\n'
-            + 'and say in ADR 0010 what it bought.',
+            + 'and say in docs/specification.md what it bought.',
           );
         }
       });

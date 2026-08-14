@@ -26,7 +26,7 @@
  * inline per panel, and that mirror is resolved against the token files property
  * by property, because a mirror kept by hand goes stale and this one twice did.
  *
- * why: docs/adr/0006-the-accent-is-measured-against-its-own-wash.md
+ * why: docs/specification.md#colour-and-contrast
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

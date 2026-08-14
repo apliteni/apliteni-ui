@@ -67,7 +67,7 @@ test('the groups declare exactly as many glyphs as the kit ships', () => {
 // The header at the top of icons.js promises 24×24, a 1.7 stroke, currentColor
 // and no fill, and every glyph is drawn against those. They lived only in the
 // template literal, so a stray edit could change all 79 glyphs at once and no
-// test would notice (ADR 0002: a number a comment argues for is pinned by a
+// test would notice (the measured-pin rule: a number a comment argues for is pinned by a
 // measured test).
 test('the emitter ships the numbers its header argues for', () => {
   for (const [attr, value] of Object.entries({

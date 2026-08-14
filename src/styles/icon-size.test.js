@@ -1,6 +1,6 @@
 /* Rule: a component rule that sizes an icon is the rule that decides its size.
  *
- * why: docs/adr/0003-an-icons-size-is-measured-not-reasoned-about.md */
+ * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -49,7 +49,7 @@ const src = path.resolve(here, '..');
 // Was 56: #217 gave `.ui-field__error` a glyph rule. The error row renders
 // icon('alert') and sized it with nothing but the reset's 1.1em, so its box
 // followed whatever font-size it landed in and its stroke rendered at 1.25 CSS
-// px — under ADR 0010's line. Stating the box is what lets the stroke beside it
+// px — under the stroke-width rule's line. Stating the box is what lets the stroke beside it
 // be stated too, so width and height are the two subjects that arrived.
 const EXPECTED_SUBJECTS = 58;
 

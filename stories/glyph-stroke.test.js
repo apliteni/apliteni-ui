@@ -1,6 +1,6 @@
 /* Rule: every stroked glyph the kit renders paints at 1.5 CSS px or wider.
  *
- * ADR 0010 ruled that 3:1 is the right bar for a graphic and that a stroke has
+ * The stroke-width rule set 3:1 as the right bar for a graphic, and made a stroke
  * to be wide enough to be one, then scoped itself to the two glyph families that
  * carry a status. #217 is the rest of the kit: ten of thirteen glyphs measured
  * from src/styles were under the line and nothing held any of them.
@@ -23,8 +23,8 @@
  * So the subjects here are elements, not declarations: every story in stories/
  * is rendered into a JSDOM carrying the kit's stylesheets, and every <svg> that
  * comes out is measured with the cascade already resolved. That is also the
- * discovery ADR 0004 asks for — a glyph joins this gate by being rendered, not
- * by being listed. The prose list in ADR 0010 is the counter-example: it named
+ * discovery this repo asks of a gate — a glyph joins by being rendered, not by
+ * being listed. The prose list that rule shipped with is the counter-example: it named
  * six of these and missed four.
  *
  * WHAT IS NOT A SUBJECT. An svg whose effective `stroke` is `none` — SVG's own
@@ -32,7 +32,7 @@
  * the provider logos and the footer's social icons are filled shapes and drop
  * out here by their own paint rather than by name.
  *
- * why: docs/adr/0014-a-glyphs-stroke-is-decided-where-its-box-is.md */
+ * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -177,11 +177,11 @@ function measure(el) {
   return { paint, stroke, box, units, px: box.px === null || !units ? null : renderedPx(stroke.value, box.px, units) };
 }
 
-test('the measurement can fail, and fails where ADR 0010 says it does', () => {
-  /* The arithmetic, exercised on the two widths ADR 0010 measured by hand: 1.8
+test('the measurement can fail, and fails where the stroke-width rule says it does', () => {
+  /* The arithmetic, exercised on the two widths the stroke-width rule measured by hand: 1.8
    * at an 18px box was 1.35 CSS px and did not clear, 2.1 at the same box is
    * 1.575 and does. A gate whose comparison cannot go red is a gate that passes
-   * because it checks nothing — see ADR 0008. */
+   * because it checks nothing — see the mutation rule. */
   assert.ok(renderedPx(1.8, 18, VIEWBOX) < SOLID_STROKE, '1.8 at 18px should be under the line');
   assert.ok(renderedPx(2.1, 18, VIEWBOX) >= SOLID_STROKE, '2.1 at 18px should clear it');
   assert.equal(needsWidth(18, VIEWBOX), 2, 'an 18px box needs 2 to reach the line');
@@ -313,13 +313,13 @@ test('no rule in the kit decides a glyph that nothing renders', () => {
 test('every stroked glyph the kit renders clears the 1.5 CSS px line', () => {
   assert.deepEqual(thin, [],
     `${thin.length} glyph(s) paint a stroke narrower than ${SOLID_STROKE} CSS px, so what a reader `
-    + 'sees is not the ratio a contrast gate computes — ADR 0010 holds those to the 4.5:1 text bar, '
+    + 'sees is not the ratio a contrast gate computes — the stroke-width rule holds those to the 4.5:1 text bar, '
     + 'and nothing here measures colour:\n\n    '
     + `${thin.join('\n    ')}\n\n`
     + 'A stroke-width is stated in the glyph\'s own box, so widen the stroke or grow the box. Where '
     + 'a rule states a box and no stroke, the stroke it gets is whatever the markup emitted — state '
     + 'it in the rule that decides the box. See '
-    + 'docs/adr/0014-a-glyphs-stroke-is-decided-where-its-box-is.md.');
+    + 'docs/specification.md#icons-and-glyphs.');
 });
 
 test('the widest thing this gate can say about the kit is still true', () => {
@@ -330,7 +330,7 @@ test('the widest thing this gate can say about the kit is still true', () => {
    * decides to, and say why there. */
   assert.ok(worst.px >= 1.51,
     `the narrowest stroked glyph in the kit renders at ${worst.px.toFixed(3)} CSS px — ${worst.where}. `
-    + 'That is above ADR 0010\'s line and below where this kit was left, which means something got '
+    + 'That is above the stroke-width rule\'s line and below where this kit was left, which means something got '
     + 'thinner without anyone deciding it.');
 });
 

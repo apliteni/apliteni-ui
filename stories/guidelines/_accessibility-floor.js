@@ -3,7 +3,7 @@
 // Three of the numbers on this page did not exist anywhere in this tree before
 // #201, and each is pinned by a measurement in
 // stories/guidelines/accessibility-floor.test.js rather than by this comment
-// (ADR 0002). Two of the three are settled by a standard. The third is not
+// (the measured-pin rule). Two of the three are settled by a standard. The third is not
 // settled by anybody, and says so.
 import { button, toast } from '../../src/components/index.js';
 
@@ -17,7 +17,7 @@ export const BLURB = 'The three numbers under every control, what the kit aims a
 /** WCAG 2.5.8, AA. Not ours to choose; ours to hold and to measure against. */
 export const TARGET_MIN = 24;
 
-/** WCAG 1.4.11 for a focus indicator, and ADR 0010 says a 3px band earns it. */
+/** WCAG 1.4.11 for a focus indicator, and the stroke-width rule says a 3px band earns it. */
 export const RING_MIN = 3;
 
 /**
@@ -32,7 +32,7 @@ export const DISABLED_MIN = 3;
 
 // Ratchets, not bars. Each is the worst the kit measures, so a token that makes
 // one of them worse is a decision somebody writes, not a drift nobody notices.
-// Same device as GLYPH_FLOOR in ADR 0010.
+// Same device as the GLYPH_FLOOR ratchet in stories/signal-contrast.test.js.
 //
 // RING_FLOOR sits ABOVE its bar, which is the point: #218 made --ring opaque
 // and the worst cell now measures 4.22, so the ratchet is the warning that
@@ -101,7 +101,7 @@ export const AIMS = [
   {
     aim: 'A status is carried by a mark and a word, never by a hue alone.',
     apply: 'Five statuses, and two of them are red and green. Every signal component in the '
-      + 'kit pairs its colour with a glyph and a label, and ADR 0010 gives the glyph a width '
+      + 'kit pairs its colour with a glyph and a label, and the stroke-width rule gives the glyph a width '
       + 'wide enough to be a graphic rather than a smudge.',
   },
   {
@@ -187,15 +187,15 @@ export const GATES = [
   {
     file: 'stories/signal-contrast.test.js',
     does: 'Reads declarations out of the source and holds twenty status-glyph pairs to the bar '
-      + 'ADR 0010 sets by stroke width.',
+      + 'the stroke-width rule sets by stroke width.',
     blind: ['Colour for every glyph that carries no status — width is held next door, ratio is not.'],
   },
   {
     file: 'stories/glyph-stroke.test.js',
     does: 'Renders every story and measures the width each stroked glyph actually paints at, '
-      + 'inheritance and the icons.js default resolved, against ADR 0010’s 1.5 CSS px line.',
+      + 'inheritance and the icons.js default resolved, against the stroke-width rule’s 1.5 CSS px line.',
     blind: [
-      'Colour. It measures width and nothing else — which bar a glyph then takes is ADR 0010’s.',
+      'Colour. It measures width and nothing else — which bar a glyph then takes is the stroke-width rule’s.',
       'Anything no story renders, which is why it also refuses a sizing rule with no specimen.',
       'State: the corpus is what a story renders at rest, so a stroke stated in :hover is unseen.',
     ],
@@ -264,7 +264,7 @@ export const GATES = [
     file: 'stories/guidelines/iconography.test.js',
     does: 'A control goes wordless only for an action on the closed list \u2014 the question a '
       + 'perfect aria-label cannot answer.',
-    blind: ['Whether the glyph is legible at its size. ADR 0010 governs that, for two families.'],
+    blind: ['Whether the glyph is legible at its size. The stroke-width rule governs that, for two families.'],
   },
   {
     file: 'react/src/Modal.test.tsx',
@@ -346,7 +346,7 @@ export const RULES = [
   {
     id: 'ring-contrast',
     imperative: `Hold a focus indicator to ${RING_MIN}:1 against the ground it lands on.`,
-    why: 'WCAG 1.4.11, and ADR 0010’s rider does not let this one out: --ring is a 3px spread, '
+    why: 'WCAG 1.4.11, and the stroke-width rule’s rider does not let this one out: --ring is a 3px spread, '
       + 'twice the 1.5 CSS px under which a stroke stops being a graphic and takes the text bar '
       + 'instead. The ground is the outer neighbour, so it is the pair that decides. #218 made '
       + `the ring opaque and it clears the bar everywhere now — ${RING_FLOOR}:1 at worst, in `

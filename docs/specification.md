@@ -1,0 +1,240 @@
+# What the kit ships and guarantees
+
+This is the contract. Everything below is a statement a consumer may build on, and every one of
+them is held by a gate that runs on `npm test` — so a guarantee that stops being true turns a
+build red rather than quietly becoming a lie in a document.
+
+What this is not: an argument. Where a number came from, what else was considered and who chose
+between them lives in the issue that settled it, and each section below names its issue. Read
+[README.md](README.md) for where a decision gets recorded from now on, and
+[CONTRIBUTING.md](../CONTRIBUTING.md) for how the gates that hold these guarantees are built.
+
+- **[The package](#the-package)** — what installing it gets you
+- **[Widths](#widths)** — the page and the reading column
+- **[Boxes below the page](#boxes-below-the-page)** — panels in px, prose in ch
+- **[Breakpoints](#breakpoints)** — six literals, on purpose
+- **[Spacing and rhythm](#spacing-and-rhythm)** — one scale, and how a tie breaks
+- **[Colour and contrast](#colour-and-contrast)** — what every accent clears
+- **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
+- **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
+- **[The page shell](#the-page-shell)** — one shell, and what it emits
+- **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
+
+## The package
+
+`@apliteni/apliteni-ui` is tokens, component CSS and HTML-string factories, framework-agnostic.
+There is no runtime dependency and no build step between the source and the stylesheet a consumer
+reads: `src/index.css` is plain CSS with `@import`s, and a consumer may ship it as it stands.
+
+A React wrapper is published under the `./react` subpath. It is a wrapper — the tokens and the CSS
+are the same file the HTML entry point serves.
+
+`docs/library.md` is the catalogue: the `src/` layout, the theming model, and every component the
+kit exports. This page states what those components guarantee; that one states what they are.
+
+## Widths
+
+A page has two widths, and they are separate tokens because they answer different questions.
+
+```css
+--container: 1120px;   /* the page, gutter to gutter */
+--measure:    860px;   /* the reading column inside a track */
+```
+
+`--container` is the page's outer bound and `--measure` is the column prose is set in. A box that
+bounds the page takes the first; a box that bounds a line of text takes the second. Both are
+declared once, in `src/tokens/tokens.css`, and nothing in `src/`, `stories/` or `site/` writes a
+page-scale width as a literal.
+
+`appShell()` writes no `--ui-app-main` when the caller passes none, so the reading column falls
+through to `var(--measure)` rather than being copied into JavaScript. A caller who passes an
+unusable `maxWidth` gets the property removed, not replaced — a custom property accepts any token
+stream, so `--ui-app-main: wibble` would be a valid declaration that drops the column to the full
+track.
+
+Held by `stories/measure-tokens.test.js`, which discovers subjects by scanning the `max-width`
+property across `src/styles/*.css` and the `<style>` blocks of `site/*.html` and `site/*.mjs`, and
+reads its floor out of `tokens.css` at run time rather than carrying a number. A media query is
+not a subject: `@media (max-width: 860px)` is a question about the viewport, not a width assigned
+to a box.
+
+Decided in [#198](https://github.com/apliteni/apliteni-ui/issues/198) and
+[#208](https://github.com/apliteni/apliteni-ui/issues/208). 1120 over 1180 was the owner's call
+between three options rather than a derivation: the site's number was the only recorded intent in
+the tree, and 1180 was drift nothing argued for.
+
+## Boxes below the page
+
+Below the page there are two scales, and the unit says which one applies.
+
+```css
+--panel-sm: 320px;   --prose-display: 14ch;   /* not a measure: where a headline rags */
+--panel-md: 420px;   --prose-caption: 44ch;   /* a sentence under a glyph */
+--panel-lg: 560px;   --prose-lede:    54ch;   /* the line under a title */
+                     --prose-body:    62ch;   /* a left-aligned column */
+                     --prose-dense:   72ch;   /* reference prose set below 13px */
+```
+
+A box that holds a **component** takes a `--panel-*` step in px. A box that holds a **line** takes
+a `--prose-*` step in ch. Nothing has to be looked up to choose — the thing being bounded picks
+the unit, and the unit picks the scale.
+
+The `--prose-*` steps are declared on the paragraph, never on a wrapper. `ch` resolves against the
+font-size of the element carrying it, so the same token on a wrapper holding an `h2` and a `p`
+means two different widths.
+
+One literal survives: `.ui-footer__brand` keeps 300px, because it is a flex track in a wrapping
+row whose width decides when the footer breaks into columns. It answers to the row rather than to
+a scale.
+
+Decided in [#208](https://github.com/apliteni/apliteni-ui/issues/208).
+
+## Breakpoints
+
+The kit's six breakpoints — 460, 560, 600, 720, 760, 860 — are written as literals, and that is a
+convention rather than an oversight. A media query cannot read a custom property, so
+`@media (max-width: var(--panel-lg))` is invalid however much token discipline is applied to it.
+
+The two ways out are a build step that inlines the value, or a documented list with a gate over
+it. The kit takes the second, because its distribution story is a plain stylesheet a consumer
+reads and edits, and putting a compiler between the source and that file costs more than the
+duplication it removes.
+
+Decided in [#208](https://github.com/apliteni/apliteni-ui/issues/208).
+
+## Spacing and rhythm
+
+Every padding, margin and gap in the kit's stylesheets is `0` or a `--space-*` step. That holds
+for modifiers as well as base rules, so a density variant is the same scale at a different index
+rather than a second vocabulary.
+
+Where a value sat exactly between two steps, **the tie is broken by what the value is for** —
+not by rounding half up, and not by whichever step is closer to the number that was there before:
+
+- `.ui-table--dense` rounds **down**. The modifier exists so a many-column ledger fits more rows,
+  and rounding a tie up would put it one step from the base rhythm and spend the distinction it
+  is for.
+- the hover inset rounds **up**. It exists so the rounded hover fill clears a container's border,
+  and clearance rounds away from the edge.
+
+Each value's job is stated where the value is written, and the job decides the direction.
+
+Held by `stories/table-rhythm.test.js`. Decided in
+[#211](https://github.com/apliteni/apliteni-ui/issues/211).
+
+## Colour and contrast
+
+**The accent is measured against its own wash, not against the surfaces.** Across all eight theme
+× accent cells, the worst pair is the accent on the wash over a surface and never on a flat one —
+which is why closing a failing cell means moving the wash or the ink under it rather than the
+surfaces.
+
+Every cell clears 4.5:1 on the worse of two composite models. The dark accent is `#b479ff` and
+`--glow-purple` is that same rgb at a lower alpha, because the wash *is* the accent at low alpha
+and re-tinting one without the other is half a change.
+
+Held by `stories/accent-contrast.test.js` and `stories/signal-contrast.test.js`, both of which
+take the accent list from `accents.css` rather than from a list typed into the gate.
+
+Decided in [#157](https://github.com/apliteni/apliteni-ui/issues/157).
+
+## The focus ring
+
+`--ring` is the accent at full opacity, declared once:
+
+```css
+--ring: 0 0 0 3px var(--accent);
+```
+
+**Opaque**, because alpha was the entire gap. No alpha under 0.75 clears 3:1 in dark and none
+under 0.63 clears it in light, and both sit on the bar with nothing to spare. At full opacity the
+worst of the eight cells measures 4.22:1 and the best 8.40:1. A focus ring is a graphic; a
+translucent one is a glow, and the kit's glow is `--glow-purple`.
+
+**Derived, not copied.** Re-pointing `--accent` re-points the ring. Light declares an accent and
+inherits the ring, and so does every sub-theme — there is no second declaration to keep in step.
+
+The gate sweeps all eight theme × accent cells and carries two numbers: the 3:1 the standard asks
+for, and a 4.22 ratchet at what the kit actually reaches. The ratchet fires while the ring is
+still legal, which is the only warning anyone gets before it is not.
+
+Decided in [#218](https://github.com/apliteni/apliteni-ui/issues/218).
+
+## Icons and glyphs
+
+**An icon's size is settled by measuring the cascade, not by reading the stylesheet.** The kit
+sizes icons in two places and they compete, so the gate mounts an element matching each rule's
+selector against the kit's real stylesheets, in the order `src/index.css` imports them, and reads
+`getComputedStyle` back. A subject is any rule setting `width` or `height` on an element that is
+an `<svg>` — including a class the kit puts *on* an svg, which a selector-shape scan misses.
+
+**A stroked glyph earns the graphic bar by its width.** What a reader sees is
+`stroke-width × box ÷ viewBox`, so a stroke stated once and reused at a second box is two
+different marks. At or above **1.5 CSS px** a mark is a graphic and takes the 3:1 bar. Below it a
+stroke cannot put three quarters of its colour into any device pixel row at 1× — worst-case
+sub-pixel phase splits it evenly across two rows — so the mark is optically a text stem and takes
+the 4.5:1 text bar instead.
+
+**Every stroked glyph in the kit clears 1.5 CSS px.** They land between 1.51 and 1.60, so a
+glyph's weight does not depend on which slot it fell into. A rule that decides a glyph's box
+decides its stroke, and both travel together.
+
+Held by `stories/glyph-stroke.test.js`, which renders rather than reads: it builds every story
+into a JSDOM carrying the kit's stylesheets and measures every `<svg>` that comes out, cascade
+resolved. Its subjects are elements, so a stroke inherited from a rule seventy lines up and a
+stroke that arrives from `icons.js` are both ordinary. It also refuses a sizing rule that no story
+renders, which is how `.ui-feature__icon` turned out to be shipping with no specimen anywhere.
+
+Decided in [#148](https://github.com/apliteni/apliteni-ui/issues/148),
+[#171](https://github.com/apliteni/apliteni-ui/issues/171),
+[#206](https://github.com/apliteni/apliteni-ui/issues/206) and
+[#217](https://github.com/apliteni/apliteni-ui/issues/217).
+
+## The page shell
+
+`appShell()` is the kit's one answer for composing a page, built from the kit's own nav
+primitives. `accountShell()` stays as a preset over it for the `/account` pages already on it, and
+`docs/library.md` marks it as such, so nobody has to be told which of two exported factories to
+reach for.
+
+What the shell guarantees:
+
+- **A `<main>` landmark**, always.
+- **The caller owns the breadcrumb trail.** `appShell()` renders `breadcrumbs()` from a `crumbs`
+  array and invents nothing. Pass no crumbs and there is no trail and no breadcrumb landmark.
+- **The topbar is off by default.** `appShell()` renders none unless the caller passes one;
+  `accountShell()` passes one, because `versions`, `showSwitch` and `wireTopbar()` are published
+  behaviour.
+- **The narrow rail is CSS, not JavaScript.** `sideLeaf()` emits `aria-label` at every width, so
+  `layout.css` folds `.ui-nav__label` out of view below 720px with the accessible name intact.
+  Nothing re-renders on resize and the consumer wires no listener.
+- **A nav entry carries the same icon and label everywhere it appears.**
+
+The nav's own rules beat a host stylesheet: `.ui-nav .ui-nav__item` is (0,2,0) and a host sheet's
+`a:link` is (0,1,1), so dropping the kit into a page that styles its links does not restyle the
+navigation.
+
+Decided in [#127](https://github.com/apliteni/apliteni-ui/issues/127). `appShell()` was the
+owner's choice between three shells built and rendered side by side, not a derivation.
+
+## What the kit does not do
+
+Stated so nobody has to discover it by trying:
+
+- **No JavaScript framework.** The factories return HTML strings. Anything stateful is the
+  consumer's, and the React subpath is a wrapper over the same CSS rather than a second kit.
+- **No build step.** No Sass, no PostCSS, no token compiler. The consequence is
+  [breakpoints as literals](#breakpoints), and that is the trade taken deliberately.
+- **No density system.** `.ui-table--dense` is the only density modifier and it is
+  component-local, because a tighter rhythm in a ledger is a property of the data rather than of
+  the page around it.
+- **No container scale.** There is one `--container`, not a narrow/wide set. Naming a
+  disagreement is not settling it, and the next width would land on whichever step is closest
+  rather than on the one that is right.
+- **No second bar for a control's glyph.** 1.5 CSS px is the line for every stroked mark. A glyph
+  inside a button is not exempt for being small.
+- **No hand-written markup contract.** `.ui-side` and `.ui-shell` were removed when nothing
+  emitted them. Call the factory; the class names are not a supported surface on their own.
+- **No support for a vertical writing mode.** The icon gate folds `inline-size` onto `width`,
+  which is only correct horizontally, and asserts the assumption rather than taking it: a
+  `writing-mode` declaration anywhere in these stylesheets stops the gate.

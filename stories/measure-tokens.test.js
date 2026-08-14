@@ -2,7 +2,7 @@
  * scale. A box holding a COMPONENT takes a --panel-* step in px; a box holding
  * a LINE takes a --prose-* step in ch.
  *
- * Scanned by PROPERTY, never by a file/line allowlist — the shape ADR 0004 asks
+ * Scanned by PROPERTY, never by a file/line allowlist — the shape the discovery rule asks
  * for, and the same shape as stories/colour-tokens.test.js next door.
  *
  * The floor is not a number written here: it is the smallest step of the panel
@@ -13,7 +13,7 @@
  * box, and the declaration regex never matches inside `@media (…)`. The last
  * test here says so against whatever live breakpoints sit at or above the floor.
  *
- * why: docs/adr/0011-two-scales-below-the-page-and-the-unit-picks-one.md
+ * why: docs/specification.md#boxes-below-the-page
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -102,7 +102,7 @@ const cssOnly = (html) => {
  * Every page and chrome module in site/, composed from source. Directories are
  * skipped, which is what keeps site/public out: it is a build artefact that does
  * not exist in CI, and a gate that read it would either fail there or silently
- * drop coverage. See ADR 0004.
+ * drop coverage. See the discovery rule.
  *
  * An .html contributes its CSS, wherever it is written; an .mjs contributes its
  * whole text, because the CSS lives in a template literal and pulling the

@@ -65,7 +65,7 @@
  *            (accent) hover tint out-ranks the stripe (defined after it)
  * Cell helpers: .ui-table__num (right, tabular), .ui-table__code (plain
  * monospace id — never a boxed code chip inside a table).
- * why: docs/adr/0012-a-row-rhythm-is-steps-of-the-scale-and-ties-go-to-the-job.md
+ * why: docs/specification.md#spacing-and-rhythm
  * held by: stories/table-rhythm.test.js */
 .ui-table--dense th { padding: 0 var(--space-3) var(--space-2) 0; }
 .ui-table--dense td { padding: var(--space-2) var(--space-3); font-size: var(--text-sm); white-space: nowrap; }

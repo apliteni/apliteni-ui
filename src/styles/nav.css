@@ -46,7 +46,7 @@
   font-family: inherit;
   transition: background 0.16s var(--ease), color 0.16s var(--ease);
 }
-.ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/adr/0007-one-page-shell-built-from-the-kits-own-nav.md */
+.ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/specification.md#the-page-shell */
 .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
 .ui-nav__item.is-active {
   background: var(--surface-3);
@@ -123,7 +123,7 @@
    4.08 in dark Nebula, where the flat surface reads 4.92 — and no alpha reaches
    it, the largest that clears being 0.06 in dark Nebula and 0.02 in light
    Emerald. So the accent wash is painted on a base surface, never a raised one.
-   See #157 and docs/adr/0006-the-accent-is-measured-against-its-own-wash.md. */
+   See #157 and docs/specification.md#colour-and-contrast. */
 .ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface-3); color: var(--accent); }
 
 /* Collapsible group */

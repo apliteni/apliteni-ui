@@ -19,7 +19,7 @@ export default {
 // AA-safe button background), `ac` --accent-contrast, `p` --purple, `pl`
 // --purple-light, `pm` --purple-mid, `g` --glow-purple, `gf`/`gt` the gradient
 // stops. There is no ring key: --ring is `var(--accent)` at full opacity now,
-// declared once for every accent (ADR 0012), so a panel that pinned its own
+// declared once for every accent (the rhythm rule), so a panel that pinned its own
 // would paint a ring the kit no longer has.
 // Bright accents (Phoenix/Ocean/Emerald) pair with their dark
 // --accent-contrast, so accent-strong == accent; the default purple darkens to

@@ -198,7 +198,7 @@ jobs:
       # carrying no written justification, and so does a justification that some
       # case has since started killing. The mutated configs are written to a temp
       # directory and never to .gitleaks.toml.
-      # See docs/adr/0008-a-rule-is-proven-by-the-mutation-that-kills-its-case.md.
+      # See CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case.
       #
       # GITLEAKS_BIN points at the binary the step above extracted, rather than
       # prepending its directory to PATH — that would let a file named `node`

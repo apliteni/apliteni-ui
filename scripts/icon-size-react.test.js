@@ -1,7 +1,7 @@
 /* Rule: an icon-sizing rule in the React workspace is measured too.
  *
- * why: docs/adr/0005-one-gate-per-workspace-one-implementation.md
- * why: docs/adr/0003-an-icons-size-is-measured-not-reasoned-about.md */
+ * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

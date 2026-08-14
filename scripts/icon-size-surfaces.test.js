@@ -1,8 +1,8 @@
 /* Rule: an icon-sizing rule is measured wherever the kit renders one — not only
  * in the stylesheets the package ships.
  *
- * why: docs/adr/0004-the-gates-discover-their-subjects.md
- * why: docs/adr/0003-an-icons-size-is-measured-not-reasoned-about.md */
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -52,7 +52,7 @@ const rel = (p) => path.relative(root, p);
 // Was seven across five: stories/apps/_appShell.js was a story-local fork of the
 // page shell, and #127 replaced it with the kit's own appShell(), whose icons are
 // sized in src/styles — the other gate's territory, not this one's.
-// Was 12: #217 held every stroked glyph the stories render to ADR 0010's 1.5 CSS
+// Was 12: #217 held every stroked glyph the stories render to the stroke-width rule's 1.5 CSS
 // px line, and two glyphs in the Consent demo were sized by nothing but the
 // reset's 1.1em — so their box followed the font-size they landed in and their
 // stroke rendered at 1.40 and 0.97. Saying the box is what lets the stroke
