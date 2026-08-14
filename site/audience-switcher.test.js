@@ -1,17 +1,14 @@
 // The landing page's Humans / Agents switcher — the rendered relationships, not
 // the attribute strings.
 //
-// The switcher announces itself as a tablist. A tablist is a contract: each tab
-// names the panel it controls, each panel names the tab that labels it, arrows
-// move between tabs, and the strip costs one Tab stop. #134 shipped the
-// announcement without the contract, and axe passed it — role="tablist" with
-// role="tab" children satisfies every rule axe owns, and axe has no rule for a
-// tab that controls nothing.
+// A tablist is a contract: each tab names the panel it controls, each panel
+// names the tab that labels it, arrows move between tabs, and the strip costs
+// one Tab stop. #134 shipped the announcement without the contract and axe
+// passed it, having no rule for a tab that controls nothing.
 //
 // So this file loads the real page, runs its real inline script, presses real
-// keys, and reads what came back off the DOM. Every test here fails if you take
-// away the behaviour it names. The kit's own gate does the same next door in
-// stories/keyboard.test.js; the site and the kit are held to one standard.
+// keys and reads what came back off the DOM — the same standard
+// stories/keyboard.test.js holds the kit to.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

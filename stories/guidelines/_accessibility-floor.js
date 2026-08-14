@@ -5,6 +5,8 @@
 // stories/guidelines/accessibility-floor.test.js rather than by this comment
 // (the measured-pin rule). Two of the three are settled by a standard. The third
 // is settled by this repo, in #220, because no standard settles it.
+//
+// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
 import { button, checkbox } from '../../src/components/index.js';
 
 export const TITLE = 'The accessibility floor';
@@ -81,7 +83,7 @@ export const TARGET_EXEMPT = [
 // ---- what the kit aims at above the floor ----------------------------------
 
 /**
- * stories/contrast.test.js:92 says the AA floor is a floor and not a verdict.
+ * stories/contrast.test.js says the AA floor is a floor and not a verdict.
  * These are the four things the kit aims at above it, each stated so it can be
  * applied to a component nobody has written yet.
  */
@@ -238,7 +240,8 @@ export const GATES = [
     does: 'Holds three repaired rail declarations to the element they were written for — every '
       + 'one of them was present in the stylesheet and dead, including a cancelled focus ring.',
     blind: ['JSDOM ranks author rules faithfully and does not rank by origin; the UA boundary '
-      + 'is a known exception (stories/contrast.test.js:102-110).'],
+      + 'is a known exception \u2014 see '
+      + 'CONTRIBUTING.md#the-cascade-jsdom-ranks-and-the-one-boundary-it-does-not.'],
   },
   {
     file: 'stories/apps/shell.test.js',
@@ -376,7 +379,7 @@ export const RULES = [
       + `the ring opaque and it clears the bar everywhere now — ${RING_FLOOR}:1 at worst, in `
       + 'dark Nebula. It was eight rgba() literals reaching 1.35:1 at worst, and every one of '
       + 'them missed. A translucent focus ring is a glow; the bar wants a graphic.',
-    kit: [{ ref: 'src/styles/base.css:136', pattern: 'box-shadow: var(--ring);' }],
+    kit: [{ ref: 'src/styles/base.css:123', pattern: 'box-shadow: var(--ring);' }],
   },
   {
     id: 'disabled-legibility',
@@ -408,7 +411,7 @@ export const RULES = [
     why: 'Every number above is the least the kit accepts, not what it is trying to be. The '
       + 'four aims below the rules say what it reaches for, and a component that lands one '
       + 'thousandth over AA has passed the gate and is still the worst thing on the page.',
-    kit: [{ ref: 'stories/contrast.test.js:92', pattern: 'The AA floor is a floor, not a verdict.' }],
+    kit: [{ ref: 'stories/contrast.test.js:59', pattern: 'The AA floor is a floor, not a verdict.' }],
   },
   {
     id: 'name-the-gap',

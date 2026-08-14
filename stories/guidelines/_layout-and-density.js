@@ -142,8 +142,8 @@ export const RULES = [
     dontHtml: densityDont,
     kit: [
       { ref: 'src/tokens/tokens.css:35', pattern: '--space-3: 12px' },
-      { ref: 'src/styles/table.css:71', pattern: 'padding: var(--space-2) var(--space-3)' },
-      { ref: 'stories/table-rhythm.test.js:89', pattern: 'writes no row rhythm as a literal' },
+      { ref: 'src/styles/table.css:65', pattern: 'padding: var(--space-2) var(--space-3)' },
+      { ref: 'stories/table-rhythm.test.js:86', pattern: 'writes no row rhythm as a literal' },
     ],
   },
   {
@@ -161,8 +161,8 @@ export const RULES = [
       + '.ui-footer__brand keeps a literal 300px: it is a flex track whose width decides when the '
       + 'footer wraps, so it answers to the row rather than to a scale.',
     kit: [
-      { ref: 'stories/measure-tokens.test.js:150', pattern: 'no literal box width outside src/tokens' },
-      { ref: 'stories/measure-tokens.test.js:169', pattern: 'no literal prose measure outside src/tokens' },
+      { ref: 'stories/measure-tokens.test.js:147', pattern: 'no literal box width outside src/tokens' },
+      { ref: 'stories/measure-tokens.test.js:166', pattern: 'no literal prose measure outside src/tokens' },
     ],
   },
   {
@@ -186,8 +186,8 @@ export const RULES = [
       + 'that does not exist would cost a reader more than the silence does.',
     kit: [
       { ref: 'src/styles/layout.css:169', pattern: '@media (max-width: 720px)' },
-      { ref: 'stories/breakpoints.test.js:127', pattern: 'every breakpoint is one of the documented steps' },
-      { ref: 'stories/breakpoints.test.js:149', pattern: 'every documented step is a step something queries' },
+      { ref: 'stories/breakpoints.test.js:117', pattern: 'every breakpoint is one of the documented steps' },
+      { ref: 'stories/breakpoints.test.js:139', pattern: 'every documented step is a step something queries' },
     ],
   },
 ];

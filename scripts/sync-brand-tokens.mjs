@@ -3,17 +3,10 @@
  * sync-brand-tokens — pull the Apliteni brand colour primitives from
  * apliteni/design-system into src/tokens/brand.generated.css.
  *
- * This is the downstream leg of the design-system -> apliteni-ui sync (RFC #42,
- * Option B). The upstream owns the brand palette; we import only the
- * `--color-apliteni-*` primitives — the violet + supporting ramps this kit
- * lacks. Semantic tokens (--bg, --surface, --accent) stay hand-authored in
- * tokens.css: the purple deck theme is a deliberate product choice (RFC Q1,
- * Option 1). Nothing here overrides the dark-theme feel; the file only ADDS
- * namespaced primitives that our own tokens may reference over time.
- *
- * Source of truth for the shape: design-system/dist/tokens.css (Style Dictionary).
- * We deliberately drop the upstream's generic --radius/--space/--shadow/--font
- * tokens — those are apliteni-ui's own and must not be clobbered.
+ * The downstream leg of the design-system -> apliteni-ui sync (RFC #42, Option
+ * B). Only the `--color-apliteni-*` primitives are imported; semantic tokens
+ * stay hand-authored, and the upstream's generic --radius/--space/--shadow/
+ * --font tokens are deliberately dropped, being apliteni-ui's own.
  *
  * Usage:
  *   node scripts/sync-brand-tokens.mjs --from <path/to/tokens.css> [--sha <upstream-sha>]

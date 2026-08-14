@@ -154,23 +154,14 @@ export function pushOverlay(root, panel, dismiss, layer) {
 /**
  * Take on a root that arrived already open — markup rendered with `open: true`,
  * which nobody called open…() for. Without this its aria-modal is a claim the
- * page contradicts: nothing is inert, Tab walks out, Escape has no owner.
+ * page contradicts.
  *
- * It goes in by paint order, because wiring has no history to order by and the
- * overlay the reader is looking at is the one drawn over the rest: a confirm sits
- * a layer above a drawer whichever component's wiring ran first, and whichever
- * root the markup happens to put first. Document position only separates two
- * overlays on the same layer, and there it is the right answer rather than a
- * fallback — at equal stack levels the later root paints on top (CSS 2.2 Appendix
- * E, steps 8 and 9). That comparison earns its keep whenever adoption order and
- * document order disagree: a root inserted above one already on the stack and
- * wired after it, and — in a browser only — a consumer stylesheet that lifts the
- * drawer onto the confirm's layer, where wiring runs drawer-first however the
- * markup is ordered. A browser refines the layer from the live z-index; JSDOM has
- * none to give, so the tests hold OVERLAY_LAYER to the sheets instead. A root that
- * renders closed is left alone: wiring is not an opening, and it waits for the one
- * that is. A specimen never reaches here at all — it carries no hook for the
- * wiring to find.
+ * It goes in by PAINT ORDER, because wiring has no history to order by. Document
+ * position only separates two overlays on the same layer, and there it is the
+ * right answer rather than a fallback: at equal stack levels the later root
+ * paints on top (CSS 2.2 Appendix E, steps 8 and 9).
+ *
+ * A root that renders closed is left alone — wiring is not an opening.
  */
 export function adoptOverlay(root, panel, dismiss, layer) {
   if (!root.classList.contains('is-open')) return;

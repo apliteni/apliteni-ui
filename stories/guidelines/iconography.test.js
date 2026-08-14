@@ -4,20 +4,18 @@
  * their visible text. This walks every call site that asks for one and checks
  * the glyph it hands over against that list.
  *
- * The accessibility gate next door (src/assets/icons.test.js) proves an
- * icon-only button always has a name. It cannot prove the button should have
- * been wordless in the first place — a `gear` with a perfect aria-label is
- * still a reader meeting an unlabelled cog one at a time. That is this gate.
+ * The accessibility gate next door proves an icon-only button always has a
+ * NAME. It cannot prove the button should have been wordless in the first place
+ * — a `gear` with a perfect aria-label is still a reader meeting an unlabelled
+ * cog one at a time. That is this gate.
  *
- * The call sites are DISCOVERED, never listed (the discovery rule): every .js/.mjs/.jsx/
- * .tsx under src, stories, site and react/src — the trees `npm test` and the
- * build actually read — is swept for the word `iconOnly`. A new component or
- * story joins coverage by existing. Nothing is skipped by name; a file that
- * stops asking for an icon-only control leaves the count, and the count is
- * asserted so a walk that silently reads nothing cannot pass.
+ * The call sites are DISCOVERED, never listed: every .js/.mjs/.jsx/.tsx under
+ * the four trees `npm test` and the build actually read is swept for the word
+ * `iconOnly`, and the count is asserted so a walk that reads nothing cannot
+ * pass.
  *
- * It lives under stories/ because `npm test` only walks src, stories, site and
- * scripts — a test outside those four trees passes by never running.
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

@@ -2,20 +2,17 @@
  * margin and gap in the table's sheet is either 0 or a --space-* step, base
  * rhythm and --dense modifier alike.
  *
- * Scope is one sheet, and that is the rule's scope rather than a shortcut:
- * The rhythm rule settled the table, which is the component the kit
- * hands a density modifier. Inside that scope nothing is enumerated — the
- * subjects are every box-spacing declaration the sweep finds, so a
- * `.ui-table--airy { padding: 7px }` added tomorrow is caught without anyone
- * editing this file (the discovery rule). Widening to the rest of src/styles is one
- * string here and ~160 declarations of argument about which of them are rhythm
- * and which are a component's own interior; that argument is not this gate's.
+ * Scope is ONE SHEET, and that is the rule's scope rather than a shortcut: the
+ * table is the component the kit hands a density modifier. Inside it nothing is
+ * enumerated. Widening to the rest of src/styles is one string here and ~160
+ * declarations of argument about which are rhythm and which are a component's
+ * own interior; that argument is not this gate's.
  *
- * The steps are read out of src/tokens/tokens.css, never repeated here. Add a
- * step and it becomes legal on its own; rename the scale and this fails loudly
- * rather than passing over nothing.
+ * The steps are read out of tokens.css, never repeated here.
  *
  * why: docs/specification.md#spacing-and-rhythm
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

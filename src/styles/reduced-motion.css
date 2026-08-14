@@ -1,24 +1,13 @@
-/* ============================================================================
- * apliteni-ui — REDUCED-MOTION NET
+/* apliteni-ui — reduced-motion net. One file, because it has to reach every
+ * bundle the kit publishes and a second copy would drift; a consumer who imports
+ * both bundles gets it twice, which costs nothing, since every rule here is
+ * idempotent and `!important`.
  *
- * One file, because it has to reach every bundle the kit publishes and a second
- * copy of it would drift. `src/styles/motion.css` imports it, so `apliteni-ui/css`
- * carries it; `react/src/index.ts` imports it, so `apliteni-ui/react/css` carries
- * it too. A consumer who imports both gets it twice, which costs nothing: every
- * rule here is idempotent and `!important`.
+ * `iteration-count: 1` lets one-shot animations settle on their final frame — a
+ * checkmark stays drawn — instead of snapping back to the start.
  *
- * It neutralises every animation and transition in whatever bundle it lands in —
- * the motion library's effects, component motion (button loader, badge pulse,
- * feedback check), and smooth scroll. `iteration-count: 1` lets one-shot
- * animations settle on their final frame (a checkmark stays drawn) instead of
- * snapping back to the start.
- *
- * `0.01ms` is the kill-switch idiom, not a duration: it is short enough that
- * nothing is perceptible and non-zero so `transitionend`/`animationend` still
- * fire, which is what scripts that wait for a close animation depend on. It is
- * the one time literal in the kit that is not a timing — see
- * docs/specification.md#motion.
- * ========================================================================== */
+ * why: docs/specification.md#reduced-motion-travels-with-the-stylesheet
+ * why: docs/specification.md#motion */
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto !important; }

@@ -1,27 +1,17 @@
 /* Rule: a media query breaks at one of the kit's documented steps, and nowhere
  * else.
  *
- * A breakpoint is the one width a token cannot express — a media query cannot
- * read a custom property — so the value stays a literal and the discipline has
- * to come from somewhere else. That somewhere is a documented list with a gate
- * over it, which is this file.
+ * A breakpoint is the one width a token cannot express, so the value stays a
+ * literal and the discipline comes from a documented list with a gate over it.
  *
- * The list is NOT written here. It is read out of the table under `## Breakpoints`
- * in docs/specification.md at run time, because two copies of three numbers is
- * the defect this gate exists to prevent — a list in the docs and a list in a
- * test drift the same way six literals in ten files drifted.
+ * The list is NOT written here: it is read out of the table in
+ * docs/specification.md at run time, because two copies of three numbers drift
+ * the way six literals in ten files drifted.
  *
- * Subjects are swept, never enumerated: every `@media` prelude in src/styles and
- * site contributes whatever px values it carries, and a file is in scope by
- * existing. The sweep reads RAW TEXT rather than parsed <style> blocks. site's
- * pages carry CSS in `style="…"` attributes as well as in <style>, and chrome.mjs
- * carries a whole stylesheet inside a template literal; raw text is the stricter
- * reading of all three, and a false positive from prose that happened to spell
- * `@media (max-width: 900px)` is a failure that points at something real.
- *
- * Directories are skipped, which is what keeps site/public out: it is build
- * output that does not exist in CI, so a gate reading it would measure the last
- * build rather than the source.
+ * Subjects are swept, never enumerated, and the sweep reads RAW TEXT rather than
+ * parsed <style> blocks — site's pages carry CSS in `style="…"` attributes too.
+ * Directories are skipped, which keeps site/public out: build output that does
+ * not exist in CI.
  *
  * why: docs/specification.md#breakpoints
  */

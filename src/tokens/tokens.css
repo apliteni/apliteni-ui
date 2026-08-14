@@ -184,18 +184,10 @@
   --ink: #e9e7f0;
 
   /* Ink that reads on a SIGNAL colour once that colour becomes a fill — the
-     glyph in a success circle, the glyph on a toast's status circle.
-     In dark every signal is a bright hue, so one near-black ink clears all
-     five: 15.87 on --green, 7.35 on --pink, 13.40 on --amber, 11.75 on --cyan
-     and 6.29 on --muted. Danger keeps a token of its own only because LIGHT
-     still needs it: there the signals are deepened to read as ink on white,
-     which parks them mid-luminance, and --pink is the one that comes out ahead
-     against white (5.78) rather than against near-black (3.39).
-     Dark danger was white until now, which was correct while --pink was
-     #e35b8f. Issue #131 lightened it to #e97ca5 to clear AA as INK on its own
-     glow, and that carried the fill up past the point where white could read on
-     it — 2.66 on the toast's status circle, under the 3:1 of WCAG 1.4.11. The
-     ten status x theme icon pairs are gated in stories/signal-contrast.test.js. */
+     glyph in a success circle, the glyph on a toast's status circle. One
+     near-black ink clears all five in dark; danger keeps a token of its own
+     because LIGHT still needs one.
+     why: docs/specification.md#colour-and-contrast */
   --signal-contrast: #0c0c0c;
   --danger-contrast: var(--signal-contrast);
 

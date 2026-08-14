@@ -1,23 +1,19 @@
-/* ============================================================================
- * Accent sub-themes — an orthogonal `data-accent` dimension on top of
- * `data-theme` (dark/light). Set both on <html>:
+/* Accent sub-themes — an orthogonal `data-accent` dimension on top of
+ * `data-theme`. Set both on <html>:
  *
  *     <html data-theme="dark" data-accent="phoenix">
  *
- * Each sub-theme only re-points the accent family (--accent, --purple*,
- * --glow-purple, --grad-*). Surfaces, text and signal colours (green =
- * live, pink = danger) stay put, so every accent works in light AND dark and
- * every component follows with zero component-level changes.
+ * Each sub-theme only re-points the accent family. Surfaces, text and signal
+ * colours (green = live, pink = danger) stay put, so every accent works in
+ * light AND dark and every component follows with no component-level change.
  *
- * --ring is NOT here. It is declared once, in tokens.css, as var(--accent), so
- * re-pointing --accent above re-points the focus ring too. Six hand-written
- * rgba() rings used to sit in this file and every one of them missed the 3:1
- * of WCAG 1.4.11 — 1.35:1 at worst. See #218 and
- * docs/specification.md#the-focus-ring.
+ * --ring is NOT here: it is declared once in tokens.css as var(--accent), so
+ * re-pointing --accent re-points the focus ring too.
  *
  * Selectors carry two attributes + :root, so they always out-specify the
  * single-attribute theme blocks in tokens.css regardless of import order.
- * ========================================================================== */
+ *
+ * why: docs/specification.md#the-focus-ring */
 
 /* ---- Phoenix — ember / rising fire (the strategy's namesake) ------------- */
 :root[data-theme="dark"][data-accent="phoenix"] {

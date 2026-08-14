@@ -2,6 +2,8 @@
 // leans on: because icon() is hidden, an icon-only control has to name itself.
 // If this file ever goes green with the attributes removed, that contract is
 // broken and every icon-only button in the kit quietly loses its name.
+//
+// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { icon, iconNames, iconCategories, iconOnlyAllowed, sun, moon } from './icons.js';
@@ -35,9 +37,9 @@ test('a class still lands on the svg alongside the a11y attributes', () => {
 // one glyph under two headings, and the file grew three lines that no reader
 // could tell from a real glyph.
 //
-// The groups are discovered from iconCategories rather than named here (ADR
-// 0004). A group added to that array joins this gate by existing; one renamed
-// or removed leaves it without a line to edit.
+// The groups are discovered from iconCategories rather than named here; a group
+// added to that array joins this gate by existing, and one renamed or removed
+// leaves it without a line to edit.
 test('no glyph is declared in more than one group', () => {
   const homes = new Map();
   for (const { name, names } of iconCategories) {

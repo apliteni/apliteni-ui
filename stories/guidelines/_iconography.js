@@ -59,7 +59,7 @@ export const RULES = [
     dontHtml: listDont,
     kit: [
       { ref: 'src/assets/icons.js:153', pattern: 'export const iconOnlyAllowed' },
-      { ref: 'stories/guidelines/iconography.test.js:105', pattern: 'every icon-only control is one the closed list allows' },
+      { ref: 'stories/guidelines/iconography.test.js:103', pattern: 'every icon-only control is one the closed list allows' },
       { ref: 'src/components/index.js:39', pattern: 'const named = iconOnly' },
     ],
   },
@@ -75,7 +75,7 @@ export const RULES = [
     dontHtml: meaningDont,
     kit: [
       { ref: 'src/assets/icons.js:174', pattern: 'export const iconMeanings' },
-      { ref: 'src/components/index.js:233', pattern: 'const TOAST_ICON = {' },
+      { ref: 'src/components/index.js:229', pattern: 'const TOAST_ICON = {' },
     ],
   },
   {
@@ -88,8 +88,8 @@ export const RULES = [
     except: 'A glyph is grouped by what it draws, not by who calls it: `chart` is data even when a '
       + 'comms panel renders it.',
     kit: [
-      { ref: 'src/assets/icons.test.js:41', pattern: "test('no glyph is declared in more than one group'" },
-      { ref: 'src/assets/icons.test.js:59', pattern: "test('the groups declare exactly as many glyphs as the kit ships'" },
+      { ref: 'src/assets/icons.test.js:43', pattern: "test('no glyph is declared in more than one group'" },
+      { ref: 'src/assets/icons.test.js:61', pattern: "test('the groups declare exactly as many glyphs as the kit ships'" },
     ],
   },
   {
@@ -102,7 +102,7 @@ export const RULES = [
       + 'live in BRAND for that reason.',
     kit: [
       { ref: 'src/assets/icons.js:137', pattern: 'stroke-width="1.7"' },
-      { ref: 'src/assets/icons.test.js:72', pattern: "test('the emitter ships the numbers its header argues for'" },
+      { ref: 'src/assets/icons.test.js:74', pattern: "test('the emitter ships the numbers its header argues for'" },
     ],
   },
   {

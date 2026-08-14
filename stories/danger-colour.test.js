@@ -1,23 +1,15 @@
 /* Rule: a destructive control is quiet at rest and --pink on hover.
  *
- * Two halves, and this file gates both.
+ * Two halves. NEVER THE ACCENT: a rule that names itself destructive must not
+ * paint with the brand accent.
+ * Under Phoenix the accent is ember and under Nebula
+ * it is purple; either way "delete" would light up in the colour the kit uses
+ * for "go". QUIET UNTIL YOU POINT AT IT: a control already shouting --pink
+ * before the pointer reaches it spends the signal on a row the reader is
+ * scrolling past, and leaves hover with nothing to say.
  *
- * 1. Never the accent. A rule that names itself destructive must never paint
- *    with the brand accent. Under Phoenix the accent is ember and under Nebula
- *    it is purple; either way "delete" would light up in the colour the kit
- *    uses for "go".
- *
- * 2. Quiet until you point at it. A destructive control that already shouts
- *    --pink before the pointer reaches it spends the signal on a row the
- *    reader is only scrolling past, and leaves hover with nothing to say. The
- *    reference implementations are button.css (.ui-btn--danger), dropdown.css
- *    (.ui-dropdown__item.is-danger) and nav.css (.ui-nav__item.is-danger):
- *    --muted at rest, --pink on hover.
- *
- * The at-rest gate is default-deny. Anything in src/styles that marks itself
- * destructive and paints with the danger signal outside a hover/focus/active
- * state is an offence unless it appears in AT_REST_EXEMPT below with a reason.
- * A new component that gets this wrong is caught without anyone naming it.
+ * The at-rest gate is DEFAULT-DENY, so a new component that gets this wrong is
+ * caught without anyone naming it.
  */
 import { test } from 'node:test';
 import assert from 'node:assert';

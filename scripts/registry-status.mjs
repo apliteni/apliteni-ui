@@ -3,20 +3,14 @@
  * registry-status — ask the registry whether one exact version is published,
  * and be able to say "I could not find out".
  *
- * Three answers, not two. `npm view` exits non-zero for a version that is not
- * there and for a DNS failure alike, so `unknown` is a first-class verdict and
- * the caller is expected to stop on it, exactly as the `git ls-remote` check
- * beside it in the workflow stops on exit 128.
- *
- * Two halves, like scripts/version-drift.mjs: `classifyRegistryAnswer` is pure,
- * and everything that runs npm lives below the `import.meta.url` check.
- *
- * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+ * Three answers, not two: `unknown` is a first-class verdict and the caller is
+ * expected to stop on it, exactly as the `git ls-remote` check beside it in the
+ * workflow stops on exit 128.
  *
  * Usage: node scripts/registry-status.mjs <version>
+ * Exits 0 published / 2 unpublished / 1 unknown.
  *
- * Prints the verdict word on stdout and a sentence for a human on stderr, and
- * exits 0 published / 2 unpublished / 1 unknown.
+ * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
  */
 
 import { readFile } from 'node:fs/promises';

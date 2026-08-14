@@ -3,18 +3,13 @@
 //   container.innerHTML = confirm({ title, body, confirmLabel, cancelLabel });
 //   wireConfirm(container);   // scrim/Esc/answers + focus trap
 //
-// A page trigger opens it by id:  <button data-confirm-open="ID">…</button>
-// (or call openConfirm(rootEl) directly). Pass `open: true` to render it already
-// open, or `specimen: true` for a picture of one on a documentation page.
+// A page trigger opens it by id: <button data-confirm-open="ID">. Answering is
+// the caller's job — a listener on [data-confirm-accept] is where the
+// destructive work goes — and focus opens on the SAFE answer, so a reader who
+// hits Enter out of habit keeps what they have.
 //
-// Answering is the caller's job: both answers close the dialog, and a listener
-// on [data-confirm-accept] is where the destructive work goes. Focus opens on
-// the SAFE answer, never the destructive one, so a reader who hits Enter out of
-// habit keeps what they have.
-//
-// Inertness, Escape and the focus trap come from ./overlay.js — one stack for
-// every overlay on the page, so a confirm over a drawer never has to guess which
-// of the two the keyboard belongs to.
+// Inertness, Escape and the focus trap come from ./overlay.js: one stack for
+// every overlay on the page.
 import { button, esc } from './index.js';
 import { OVERLAY_LAYER, adoptOverlay, focusablesIn, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 
@@ -24,23 +19,27 @@ const cx = (...a) => a.filter(Boolean).join(' ');
 let _uid = 0;
 const nextId = (p = 'confirm') => `${p}-${++_uid}`;
 
-// The public factory. Returns an HTML string; wire it with wireConfirm().
-//   title         the question — also the dialog's accessible name
-//   body          the consequence — the dialog's accessible description
-//   confirmLabel  the destructive answer (default 'Confirm')
-//   cancelLabel   the safe answer (default 'Cancel')
-//   variant       'danger' (default) | 'primary' — which button the answer is
-//   open          render already-open, as a real dialog: wireConfirm() adopts it
-//                 onto the overlay stack, so the page behind it goes inert, Tab
-//                 is trapped in the panel and Escape closes it
-//   specimen      render open as a *picture* of the dialog: same markup, minus
-//                 the data-confirm hook and aria-modal, so no wiring and no key
-//                 handler can reach it. A documentation page shows several at
-//                 once and none of them owns the page or answers Escape — an
-//                 answered specimen would erase itself with nothing to bring it
-//                 back, and three modal dialogs on one page trap the reader in
-//                 the first. `open` is the one to use when the dialog is real.
-//   id            root id — a [data-confirm-open="id"] trigger targets it
+/**
+ * The public factory. Returns an HTML string; wire it with wireConfirm().
+ *
+ * `specimen` renders open as a *picture* of the dialog — same markup, minus the
+ * data-confirm hook and aria-modal, so no wiring and no key handler can reach
+ * it. A documentation page shows several at once and none of them may own the
+ * page or answer Escape: an answered specimen would erase itself with nothing to
+ * bring it back, and three modal dialogs on one page trap the reader in the
+ * first. Use `open` when the dialog is real.
+ *
+ * @param {object} [o]
+ * @param {string} [o.title]         the question — also the accessible name
+ * @param {string} [o.body]          the consequence — the accessible description
+ * @param {string} [o.confirmLabel]  the destructive answer (default 'Confirm')
+ * @param {string} [o.cancelLabel]   the safe answer (default 'Cancel')
+ * @param {string} [o.variant]       'danger' (default) | 'primary'
+ * @param {boolean} [o.open]         render already-open, as a real dialog
+ * @param {boolean} [o.specimen]     render open as a picture of the dialog
+ * @param {string} [o.id]            root id a [data-confirm-open] trigger targets
+ * @returns {string} html
+ */
 export function confirm({
   title = 'Are you sure?', body = '', confirmLabel = 'Confirm', cancelLabel = 'Cancel',
   variant = 'danger', id, open = false, specimen = false,

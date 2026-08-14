@@ -59,7 +59,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/index.js:15', pattern: 'kit glyphs are aria-hidden' },
       { ref: 'src/components/index.js:17', pattern: 'an empty label falls back to the icon' },
-      { ref: 'src/components/index.js:81', pattern: 'not an accessible name' },
+      { ref: 'src/components/index.js:78', pattern: 'not an accessible name' },
     ],
   },
   {
@@ -74,7 +74,7 @@ export const RULES = [
     kit: [
       { ref: 'stories/apps/EmptyStates.stories.js:14', pattern: 'illustration + nudge, no action' },
       { ref: 'stories/apps/EmptyStates.stories.js:36', pattern: 'illustration + guidance + a clear action' },
-      { ref: 'src/components/index.js:274', pattern: 'export function emptyState(' },
+      { ref: 'src/components/index.js:270', pattern: 'export function emptyState(' },
     ],
   },
 ];

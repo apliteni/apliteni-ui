@@ -6,24 +6,15 @@
  *
  * The scan step's real `run:` body is lifted out of .github/workflows/security.yml
  * and EXECUTED against synthetic repositories where the right answer is known.
- * That it can be executed at all is a property of how the body is written: every
- * value comes from the environment and never from a `${{ }}` expression, which
- * is a security rule first and a testability property second. The check asserts
- * that rule, so the two cannot drift apart.
+ * Every value in that body comes from the environment and never from a `${{ }}`
+ * expression, which is a security rule first and what makes it testable second.
  *
  * EXIT CODES: 0 every scenario behaved as the workflow claims; 1 one or more
- * failed, after ALL of them have been run; 2 this check could not reach a
- * verdict at all.
- *
- * why: CONTRIBUTING.md#the-two-security-checks
+ * failed, after ALL of them ran; 2 no verdict could be reached.
  *
  * Usage: node scripts/secret-scan-range.check.mjs [path-to-workflow.yml]
- *        GITLEAKS_BIN=./gitleaks node scripts/secret-scan-range.check.mjs
  *
- * The argument exists so the check can be pointed at an older or deliberately
- * mutated workflow to prove it still fails there. Default is this repo's own —
- * and it is how each scenario below was shown failing against the body that
- * preceded it, which is the only thing that makes a green run mean anything.
+ * why: CONTRIBUTING.md#the-two-security-checks
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -183,17 +174,11 @@ function buildRepo(dir, { leakOn, head, evilMerge }) {
  * resolution introduces the payload, so the payload exists in no ordinary
  * commit's diff.
  *
- * This is not a corner case, it is the ordinary shape of a resolved conflict —
- * and `gitleaks detect` on a git source is `git log -p` underneath, which prints
- * no diff for a merge commit. So a secret written into a conflict resolution is
- * in NO patch: not in a pull request's base..head range, and not in the
- * whole-clone walk on the branch it lands on either. Squash and rebase merges
- * rewrite the change into an ordinary commit and do not carry it; this
- * repository allows merge commits and uses them.
- *
  * The builder proves its own premise before handing the fixture over: if
  * `git log -p` over the range already shows the payload, the fixture is not the
  * thing it claims to be and the scenario built on it would prove nothing.
+ *
+ * why: CONTRIBUTING.md#the-two-security-checks
  */
 function buildEvilMerge(dir, main) {
   const contested = 'the deploy target for staging is still being decided\n';

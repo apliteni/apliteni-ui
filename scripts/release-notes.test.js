@@ -1,23 +1,16 @@
-// Release-notes gate — the changelog entry is the release, and its absence has
+// Release-notes gate — the changelog entry IS the release, and its absence has
 // to stop the release rather than be noticed two versions later.
 //
-// 0.8.0 and 0.8.1 both shipped with no entry on ui.apli.tech/changelog. Nobody
-// spotted it at 0.8.0, so nobody spotted it at 0.8.1 either; the page simply
-// skipped from 0.7.2 to whatever came next, and the two releases that had gone
-// out in between were invisible to anyone reading it. Writing the entry was a
-// step in somebody's head, and steps in heads are the ones that get skipped.
+// The notes are read out of site/changelog.mjs, so an entry that does not exist
+// cannot be rendered and a release that cannot be rendered does not happen. The
+// gate is not bolted on next to the renderer; it IS the renderer failing.
 //
-// So the release notes are no longer written at release time — they are read
-// out of site/changelog.mjs, which means an entry that does not exist cannot be
-// rendered, and a release that cannot be rendered does not happen. That is the
-// whole design: the gate is not an extra check bolted on next to the renderer,
-// it *is* the renderer failing.
+// `renderReleaseNotes` takes the array as an argument, so these tests hand it
+// three lines of fixture. One test at the bottom runs the REAL array through it,
+// because a pure function that never meets the shape of the actual data proves
+// nothing.
 //
-// `renderReleaseNotes` takes the array as an argument rather than reaching for
-// the module itself, so these tests can hand it three lines of fixture and
-// assert on the exact markdown. One test at the bottom runs the real array
-// through it, because a pure function that is perfect on fixtures and never
-// meets the shape of the actual data is a pure function that proves nothing.
+// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

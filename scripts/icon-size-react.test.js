@@ -80,21 +80,13 @@ const IMPORTED_SHEETS = [...new Set(REACT_FILES.filter(isSource)
     .map((spec) => rel(path.resolve(path.dirname(p), spec)))))].sort();
 
 /* An imported sheet the walk cannot reach, because it is not under react/src at
- * all: react/src/index.ts imports the kit's reduced-motion net by relative path,
- * and tsup inlines it into react/dist/index.css. So it reaches a React consumer,
- * which is the only question this gate asks — where the file sits is not.
+ * all — it still reaches a React consumer, which is the only question this gate
+ * asks. The split is DERIVED: a sheet src/index.css already imports is mounted
+ * as part of KIT and swept by the kit gate, so adopting it into OWN would count
+ * every rule twice; anything else has no other gate over it.
  *
- * What it takes to be in coverage depends on which sheet it is, and the split is
- * derived rather than declared. A sheet src/index.css already imports is one of
- * the kit's: src/styles/icon-size.test.js sweeps it, and this document mounts it
- * as part of KIT, so it is measured — adopting it into OWN as well would mount a
- * second copy and count every rule in it twice. Anything else has no other gate
- * over it and joins the sweep here.
- *
- * Only `.css`, and only what exists: jsdom parses CSS, so a `.pcss` or a
- * `./x.css?inline` is a sheet this gate still cannot read, and adopting it would
- * turn a refusal into a parse of the wrong thing. Those fall through to the
- * coverage test below, which is what they were always meant to fail. */
+ * Only `.css`, and only what exists. A `.pcss` or a `./x.css?inline` is a sheet
+ * this gate cannot read, so it falls through to the coverage test below. */
 const ADOPTED = IMPORTED_SHEETS.filter((p) => (
   !WALKED_SHEETS.includes(p)
   && !KIT_SHEETS.has(p)
@@ -257,20 +249,10 @@ test('the sweep still recognises a class put directly on an svg', () => {
 
 test('no sizing declaration in the React CSS is one this gate cannot read', () => {
   /* Two ways a rule that sizes an icon can be here and be invisible, neither of
-   * which moves the subject count — and a gate whose count is 0 has nothing else
-   * to notice with.
+   * which moves the subject count: a declaration jsdom drops, and an `@import`
+   * this gate never opens while esbuild inlines it for consumers.
    *
-   * jsdom keeps the declarations it understands and discards the rest without a
-   * word: `width: fit-content(20%)` leaves the rule it was written in with no
-   * width at all, so the rule reads as if it sized nothing. Every sizing and
-   * clamp declaration a rule that decides an icon carries is therefore re-parsed
-   * on its own and asked whether it survived — see droppedDecls(), which the
-   * other two gates ask the same question with, and which says which shapes it
-   * asks of every rule regardless because scoping them would silence them.
-   *
-   * And an `@import` is a sheet this gate never opens. It reads the files under
-   * react/src one by one; esbuild inlines what they import, so an imported sheet
-   * that lives anywhere else ships to consumers with its rules unmeasured. */
+   * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
   const dropped = [];
   const unfollowed = [];
   const blind = [];

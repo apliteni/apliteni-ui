@@ -1,29 +1,20 @@
 // Accessibility gate for the React workspace.
 //
-// The vanilla kit has had one since day one (stories/a11y.test.js), but it
-// discovers `*.stories.js` and React's stories are `*.stories.tsx` — so this
-// workspace shipped with no axe gate at all. The only `axe` under react/ lived
-// inside storybook-static/: the addon's browser panel, which is a thing you look
-// at, not a thing that fails a build.
+// The vanilla gate discovers `*.stories.js` and React's stories are
+// `*.stories.tsx`, so this workspace shipped with no axe gate at all — the only
+// `axe` under react/ was the addon's browser panel, a thing you look at rather
+// than a thing that fails a build.
 //
-// It can't share the vanilla file. That one eval's axe.min.js into a raw JSDOM
-// and feeds it HTML strings; React stories are components with hooks and portals
-// that have to actually mount. So this is the same CONTRACT expressed through
-// vitest + @testing-library/react: every story, every theme, real WCAG 2.0/2.1
-// A + AA violations only, and a count that proves nothing was skipped.
+// It cannot share the vanilla file: that one eval's axe into a raw JSDOM and
+// feeds it HTML strings, while React stories have to actually mount. So this is
+// the same CONTRACT through vitest + @testing-library/react.
 //
-// Same two rules the vanilla gate follows:
-//   - color-contrast stays off: axe cannot resolve var() in a headless DOM, so
-//     the job belongs to a gate that resolves the cascade and composites the
-//     background chain itself. The vanilla kit's is stories/contrast.test.js,
-//     which cannot reach here — it discovers `*.stories.js` and reads only the
-//     kit's own stylesheets. This workspace's is react/src/contrast.test.tsx,
-//     which mounts these same stories against the kit's sheet plus every CSS
-//     file under react/src, tokens substituted per theme. Between the two,
-//     .rx-* and the React tree are covered.
-//   - a story that won't render is a failure, not a skip. The suite asserts the
-//     number of checks equals stories discovered × themes, so a story cannot
-//     drop out of coverage without turning this red.
+// Same two rules the vanilla gate follows: color-contrast stays off, because
+// axe cannot resolve var() in a headless DOM and react/src/contrast.test.tsx
+// owns that question; and a story that will not render is a failure, not a skip.
+//
+// why: CONTRIBUTING.md#the-react-workspace-gets-its-own-walk-over-the-same-arithmetic
+// why: CONTRIBUTING.md#a-gate-that-skips-is-worse-than-a-gate-that-is-absent
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import axe from 'axe-core';
