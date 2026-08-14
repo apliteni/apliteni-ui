@@ -99,6 +99,24 @@
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
 }
+/* The target, not the ink. The box above is drawn at 19x19 because that is what
+   sits beside a 15px label without shouting; WCAG 2.5.8 wants 24 CSS px of
+   pointer target, which is a different question. This overlay answers it and
+   the checkbox keeps its size. ::after is the tick and the dot, so the target
+   is ::before — it paints first, under both, and is transparent anyway.
+   Centred, so the overhang is 2.5px on every side: 11px of gap to the label
+   inside the same <label> (which toggles the same input, so an overlap there
+   would cost nothing) and 14px between stacked rows in the specimen. Measured
+   in stories/guidelines/accessibility-floor.test.js. #219 */
+.ui-check input::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+}
 .ui-check input[type="radio"] { border-radius: 50%; }
 .ui-check input:hover { border-color: var(--accent); }
 .ui-check input:checked { background: var(--accent); border-color: var(--accent); }
