@@ -375,6 +375,73 @@ because a surface interpolates a colour or an image far more often than a size a
 
 [i148]: https://github.com/apliteni/apliteni-ui/issues/148
 
+## The two security checks
+
+`scripts/gitleaks-rules.check.mjs` and `scripts/secret-scan-range.check.mjs` are deliberately
+**not** named `*.test.js`. `npm test` globs `scripts/**/*.test.js` and runs on machines with
+no gitleaks; both need the pinned binary and belong to the security workflow, which downloads
+it. Each takes an optional path argument so it can be pointed at an older or deliberately
+mutated config to prove it still fails there — which is the only thing that makes a green run
+mean anything.
+
+**A rule that has quietly stopped matching looks exactly like a repo with no secrets in it.**
+The scan is green either way, so `gitleaks-rules.check` plants a fabricated instance of each
+covered shape and asserts the scanner finds it. The rule ID is half the assertion rather than
+decoration: several of these shapes would otherwise be picked up by gitleaks' `generic-api-key`,
+which needs a credential-ish word next to the value and stands down on its own stopword list,
+and being caught by that instead of by the intended rule is the footing
+[#179](https://github.com/apliteni/apliteni-ui/issues/179) exists to replace.
+
+Cases alone are not the gate, because a case can quietly stop testing anything — three of them
+did, and a throwaway script found all three. So after the cases pass, every rule is weakened
+along the axes it actually has (character classes, length floors, word boundaries, id, entropy)
+and every case is re-run against the weakened config. The bar is per **subject**: a subject
+none of whose mutations kills a case is not proven and fails. An individual mutation that
+survives is printed, and one that survives with no written justification fails too — as does a
+justification that has stopped being true. The mutation table is derived from the config text,
+never listed in the check.
+
+A subject is a rule **or an allowlist entry**, per
+[a rule is proven by the mutation that kills its case](#a-rule-is-proven-by-the-mutation-that-kills-its-case).
+Every entry in both lists is mutated by being removed and is proven when some case goes red
+without it. An entry no case exercises fails exactly like a rule with no case — which is what
+an exemption added for a shape nobody tests looks like.
+
+**How much history a scan covers is invisible from its result.** `gitleaks detect --source .`
+walks every ref in the clone, so a leak on one unmerged branch turned the check red on every
+other open pull request at once
+([#186](https://github.com/apliteni/apliteni-ui/issues/186)) — and the opposite mistake, a
+range that quietly covers nothing, looks exactly like a clean repository. So
+`secret-scan-range.check` lifts the scan step's real `run:` body out of
+`.github/workflows/security.yml` and executes it against synthetic repositories where the
+right answer is known: a leak on a branch nobody is reviewing, and a leak in the commits under
+review.
+
+That the body can be executed at all is a property of how it is written. It reads every value
+from the environment — `GITHUB_EVENT_NAME`, `PR_BASE_SHA`, `PR_HEAD_SHA`, `PR_HEAD_REF` — and
+never from a `${{ }}` expression. That is a **security** rule first: this repo is public and
+takes fork pull requests, and a branch name pasted into a shell script by the expression
+evaluator is a command-injection hole. Being testable is the second consequence, and the check
+asserts the rule so the two cannot drift apart. Its YAML parser is hand-rolled and throws the
+moment the file's shape changes, in the style of `parseSteps()` in
+`scripts/tag-on-bump.test.js` — a parser that shrugged and matched nothing would take the
+check green over a workflow it never read.
+
+Both share an exit-code contract: **0** every scenario behaved as the workflow claims, **1**
+one or more scenarios failed after all of them have run so a run lists every failure rather
+than the first, **2** the check could not reach a verdict — the workflow would not parse, the
+step is gone, git or gitleaks would not run. "Cannot tell" is not "passed" and is not "failed"
+either: a gate that reports a broken harness as a failed assertion sends the reader looking for
+a leak that was never claimed.
+
+**No fixture may ever be written into the tree.** Every one is generated at runtime into a temp
+directory removed on every exit path. This repo is public, its own scan runs over `scripts/`,
+and the Security workflow's denylist greps tracked files for the same infra shapes — so a
+literal private IP or token in either file would refuse every commit in the repo, for everyone,
+until it was put back. `gitleaks-rules.check` assembles its payloads with a template literal
+and `secret-scan-range.check` with a join, and each carries the warning at the site where
+editing happens.
+
 ## Add a component
 
 1. `src/styles/<name>.css` — token-driven, `.ui-<name>` class namespace.
