@@ -1,7 +1,9 @@
 // The React package publishes its own stylesheet (`apliteni-ui/react/css`), and a
 // consumer who imports only that one gets no reduced-motion net from the kit. So the
-// net travels with this bundle too — the same file the kit's motion.css imports, not
-// a second copy. why: docs/specification.md#motion
+// net travels with this bundle too — the same file src/index.css imports, not a second
+// copy. It is imported from the entry rather than from motion.css because both icon
+// gates read each sheet under src/styles/ alone and refuse an @import inside one.
+// why: docs/specification.md#motion
 import '../../src/styles/reduced-motion.css';
 
 export { Icon } from './primitives/Icon';

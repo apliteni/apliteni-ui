@@ -28,6 +28,7 @@ export const topbarCss = read('styles/topbar.css');
 // Individual component stylesheets, addressable by name.
 export const styles = {
   base: baseCss,
+  reducedMotion: read('styles/reduced-motion.css'),
   motion: read('styles/motion.css'),
   button: read('styles/button.css'),
   card: read('styles/card.css'),
@@ -55,6 +56,7 @@ export const styles = {
 export const cssText = [
   tokensCss,
   styles.base,
+  styles.reducedMotion,
   styles.motion,
   styles.button,
   styles.card,

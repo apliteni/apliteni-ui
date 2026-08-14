@@ -1,6 +1,9 @@
 /* ============================================================================
  * apliteni-ui — full stylesheet.
- * Import once (`import 'apliteni-ui/css'`) or cherry-pick from src/styles/*.
+ * Import once: `import 'apliteni-ui/css'`. A single component sheet is NOT
+ * addressable — package.json `exports` has no wildcard for ./styles/*, so a deep
+ * path into src/styles/ does not resolve. To take one component, read it by name
+ * through `apliteni-ui/inline` (`import { topbarCss } from …`).
  * Requires the Poppins font (loaded by the host page or Storybook preview).
  * ========================================================================== */
 @import "./tokens/brand.generated.css";
