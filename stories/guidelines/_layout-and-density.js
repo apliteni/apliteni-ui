@@ -132,15 +132,18 @@ export const RULES = [
       + 'No such surface exists here, and building the mechanism first means guessing at its values.',
     except: '.ui-table--dense is the one modifier in the kit, and it is component-local on purpose '
       + '— a many-column ledger is the one place where a tighter rhythm is a property of the data, '
-      + 'not of the page around it. Its own numbers (14px, 10px, 12px) are literals rather than '
-      + 'steps, which is the rule not being met by the one component that has an exception to it.',
+      + 'not of the page around it. It is an exception to the mode, not to the scale: --space-3 '
+      + 'across and --space-2 down, one step in from the base table\'s --space-4. Where one of its '
+      + 'old numbers sat exactly between two steps the tie went to the job — a modifier that exists '
+      + 'to fit more rows rounds down.',
     doCaption: 'Every gap and pad a step: --space-3 rows inside a card.',
     dontCaption: '13px, 9px, 14px, 6px, 17px — each row settled on its own, none against the others.',
     doHtml: densityDo,
     dontHtml: densityDont,
     kit: [
       { ref: 'src/tokens/tokens.css:35', pattern: '--space-3: 12px' },
-      { ref: 'src/styles/table.css:62', pattern: '.ui-table--dense td' },
+      { ref: 'src/styles/table.css:71', pattern: 'padding: var(--space-2) var(--space-3)' },
+      { ref: 'stories/table-rhythm.test.js:89', pattern: 'writes no row rhythm as a literal' },
     ],
   },
   {

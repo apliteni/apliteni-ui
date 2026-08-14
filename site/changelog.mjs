@@ -3,6 +3,14 @@
 
 export const RELEASES = [
   {
+    v: '0.17.0', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['changed', 'The table\'s row rhythm reads the **spacing scale** — the base rhythm as much as `--dense`, because the base was as off-scale as the modifier it was being compared against. Six numbers move: the header\'s under-padding 11px → `--space-3`, the body cell 15px → `--space-4`, the dense header and cell 14px → `--space-3` across and 10px → `--space-2` down, and the hover row inset 6px → `--space-2`. A base row is 2px taller and a dense row 4px shorter, which makes the modifier **more** distinct rather than less: a dense row was 77% of a base row and is now 67%, saving 369px over a twenty-row ledger where it saved 249px.', ['Table']],
+      ['changed', 'Three of those numbers sat exactly between two steps — 14 between 12 and 16, 10 between 8 and 12, 6 between 4 and 8 — and where they did **the tie goes to what the value is for**. `--dense` rounds down, because a modifier that exists to fit more rows spends its own distinction by rounding up; the hover inset rounds up, because what it buys is clearance from a container\'s edge and clearance rounds away. `docs/adr/0012` records the rule, and why no `--row-*` scale was invented for it.'],
+      ['added', 'A gate over the table\'s box spacing. It reads the steps out of the token file rather than repeating them, discovers every padding, margin and gap in the sheet rather than listing them, and holds the tie-break itself: `--dense` has to stay tighter than the rhythm it modifies, which a tie rounded the other way would have quietly ended with every other check still green. The Layout and density page stops recording a gap it no longer has — its `except` says what the modifier\'s steps are.'],
+    ],
+  },
+  {
     v: '0.16.0', date: '2026-08-14', tag: 'latest',
     changes: [
       ['added', 'Two scales for everything under the reading column, and **the unit picks which one you are on**. A box that holds a component takes `--panel-sm|md|lg` (320/420/560px); a box that holds a line takes `--prose-caption|lede|body|dense` (44/54/62/72ch), plus `--prose-display` (14ch), which is not a measure but where a display headline rags. Neither scale is new: the drawer has shipped sm/md/lg at exactly those three values since it was written, and `--confirm-w`, `.ui-auth__card` and the toast each wrote one of them out again — so the two 420s the kit was asked about were three. Prose steps are named for what is being read rather than sized s/m/l, because a writer knows which of those they are writing.'],
