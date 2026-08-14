@@ -3,13 +3,6 @@
  * gitleaks-rules.check — prove every rule in .gitleaks.toml still catches the
  * thing it was written for, and still names itself when it does.
  *
- * Each covered shape is planted as a fabricated instance and the scanner has to
- * find it, under the intended rule ID. Then every rule and every allowlist entry
- * in .gitleaks.toml is weakened along the axes it actually has and every case is
- * re-run against the weakened config; a subject none of whose mutations kills a
- * case is not proven, and fails. The mutation table is DERIVED from the config
- * text, never listed here.
- *
  * Every fixture is generated at runtime into a temp directory removed on every
  * exit path. None is real, and none may ever be written into the tree — the
  * rules that keep that true are stated above the fixture builder, where editing
@@ -18,15 +11,17 @@
  * Usage: node scripts/gitleaks-rules.check.mjs [path-to-.gitleaks.toml]
  *        GITLEAKS_BIN=./gitleaks node scripts/gitleaks-rules.check.mjs
  *
- * The argument exists so the check can be pointed at an older or deliberately
- * mutated config to prove it still fails there. Default is this repo's own.
- * The mutation pass uses that same seam from the inside: each mutated config is
- * written to the run's temp directory and judged by the same engine. Nothing
+ * The mutation pass uses that path argument from the inside: each mutated config
+ * is written to the run's temp directory and judged by the same engine. Nothing
  * ever writes to .gitleaks.toml.
  *
  * why: CONTRIBUTING.md#the-two-security-checks
  * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ *
+ * The long comments below are kept where they are: each states what one planted
+ * case claims, or what one mutation axis reaches, and a reader deciding whether
+ * to trust a green here is reading that case or that axis when they need it.
  */
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -1072,8 +1067,10 @@ function planMutations(text, upstream) {
 }
 
 /**
- * The individual mutations nothing here can kill, and why — beside the code
- * that generates them, because that is where the next person edits an axis.
+ * The individual mutations nothing here can kill, and why — this gate's ledger,
+ * beside the code that generates them, because that is where the next person
+ * edits an axis.
+ * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
  *
  * The bar this check enforces is per RULE: a rule none of whose mutations kills
  * a case is unproven and fails. But a single surviving mutation under a rule
@@ -1330,10 +1327,10 @@ function judge(byFile, ruleIds) {
  * as detected by the case that was already failing. The mutation pass reached no
  * verdict at all, and that is what the exit code carries. The distinction is
  * worth having: a 1 says the config is weaker than it claims, a 2 says nobody
- * knows yet. Measured rather than reasoned about, which is what the argument in
- * The measured-pin rule asks of a comment like this one: point this check at a copy of
+ * knows yet. Measured rather than reasoned about: point this check at a copy of
  * .gitleaks.toml with a rule deleted — the path argument exists for exactly that
  * — and it prints every failing case and exits 2, not 1.
+ * why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
  *
  * `fail` is 2 and only 2. It is used for every "cannot tell" path below.
  */
