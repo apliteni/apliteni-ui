@@ -18,9 +18,13 @@
 //    the story that renders it, composited down the ancestor chain. #157's
 //    hand-written six-ground table missed the pair that decided the answer;
 //    this one is not written by hand.
-//  - the disabled rules, from the stylesheets. Every rule that dims a control
-//    with `opacity` under a disabled selector is a subject, and its opacity is
-//    read off the declaration rather than assumed.
+//  - the disabled rules, from the stylesheets. Every rule with a disabled
+//    SELECTOR is a subject — not every rule that sets `opacity`, which is what
+//    this looked for until #220 and which would have gone quiet the moment the
+//    kit stopped fading. The mechanism is read off the declarations (an
+//    `opacity` if one is there, 1 if not), never assumed, and every subject is
+//    measured twice: as the story renders it, and with the disabled attribute
+//    removed and the cascade read again, which is the enabled counterpart.
 //  - a control's OVERLAYS, from the stylesheets. WCAG 2.5.8 measures the target
 //    and not the ink, so a control may keep the size it is drawn at and put a
 //    24px pseudo-element over it — a pointer landing on a ::before hits the
@@ -82,7 +86,7 @@ import {
 } from '../lib/contrast.js';
 import {
   TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
-  DISABLED_LEDGER, GATES, RULES,
+  GATES, RULES,
 } from './_accessibility-floor.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -114,16 +118,73 @@ function ringSelectors(css) {
   return [...new Set(out)];
 }
 
-/** Rules that dim a control because it is disabled, with the alpha they use. */
+/**
+ * The three ways this kit's sheet spells "off", written once. Each spelling
+ * knows how it appears in a selector, how it appears on an element, and how to
+ * take it off — so the regex that finds a disabled rule, the query that finds
+ * the element carrying the state, and the undo that turns it back on cannot
+ * drift apart. A fourth spelling is one entry here, not three edits.
+ */
+const DISABLED_SPELLINGS = [
+  {
+    inSelector: ':disabled',
+    inDom: '[disabled]',
+    off: (el) => { el.removeAttribute('disabled'); return () => el.setAttribute('disabled', ''); },
+  },
+  {
+    inSelector: '[aria-disabled',
+    inDom: '[aria-disabled="true"]',
+    off: (el) => {
+      const was = el.getAttribute('aria-disabled');
+      el.removeAttribute('aria-disabled');
+      return () => el.setAttribute('aria-disabled', was);
+    },
+  },
+  {
+    inSelector: '.is-disabled',
+    inDom: '.is-disabled',
+    off: (el) => { el.classList.remove('is-disabled'); return () => el.classList.add('is-disabled'); },
+  },
+];
+const DISABLED_SEL = new RegExp(
+  DISABLED_SPELLINGS.map((s) => s.inSelector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+);
+const DISABLED_STATE = DISABLED_SPELLINGS.map((s) => s.inDom).join(', ');
+
+/**
+ * Rules that paint a control because it is disabled, with the alpha each one
+ * leaves it at. A selector is the subject and `opacity` is only its mechanism —
+ * looking for the mechanism was how this list was built until #220, and a gate
+ * keyed on one technique goes silent the moment the technique changes. Where a
+ * selector appears in more than one rule the worst alpha wins.
+ */
 function disabledRules(css) {
-  const out = [];
+  const out = new Map();
   for (const [sel, body] of rules(css)) {
-    if (!/:disabled|\.is-disabled|\[aria-disabled/.test(sel)) continue;
+    if (!DISABLED_SEL.test(sel)) continue;
     const m = body.match(/(?:^|;)\s*opacity\s*:\s*([\d.]+)/);
-    if (!m) continue;
-    for (const s of sel.split(',')) out.push({ selector: s.trim(), opacity: Number(m[1]) });
+    for (const s of sel.split(',')) {
+      const selector = s.trim();
+      if (!DISABLED_SEL.test(selector)) continue;
+      const opacity = m ? Number(m[1]) : 1;
+      const prev = out.get(selector);
+      if (!prev || opacity < prev.opacity) out.set(selector, { selector, opacity });
+    }
   }
-  return out;
+  return [...out.values()];
+}
+
+/**
+ * Turn a rendered control back on, and hand back the undo. The state is not
+ * always on the element the rule selects — `.ui-dropdown__item.is-disabled
+ * .ui-dropdown__label` paints a label whose ancestor carries the class — so the
+ * nearest element actually holding a spelling is the one turned off.
+ */
+function enable(el) {
+  const host = el.closest(DISABLED_STATE);
+  if (!host) return () => {};
+  const undo = DISABLED_SPELLINGS.filter((s) => host.matches(s.inDom)).map((s) => s.off(host));
+  return () => undo.forEach((f) => f());
 }
 
 // Interactive BY ROLE, never by kit class — a class list is a list somebody
@@ -688,23 +749,53 @@ const disabledRun = await (async () => {
           // group property, so the subtree's text and its own background fade
           // against the ground TOGETHER, and that composite is the pair a
           // reader actually sees.
-          const ground = effectiveBackground(dimmed.parentElement || dimmed, win, styles.of);
-          if (ground === 'IMAGE') continue;
-          for (const el of [dimmed, ...dimmed.querySelectorAll('*')]) {
-            const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-            if (!hasText || el.tagName === 'STYLE' || el.tagName === 'SCRIPT') continue;
+          // A pair, at the alpha the state leaves the subtree at. `opacity` is a
+          // group property, so at anything under 1 the subtree's text and its
+          // own background fade against the ground TOGETHER, and that composite
+          // is what a reader sees. At 1 — where #220 left every rule with a
+          // label under it — the pair is simply the ink on the surface beside
+          // it, which is the point of a dedicated paint.
+          const pairOf = (el, ground, alpha) => {
             const cs = styles.of(el);
             const ink = parseColour(cs.color);
-            if (!ink) continue;
+            if (!ink) return null;
             const own = effectiveBackground(el, win, styles.of);
-            if (own === 'IMAGE') continue;
-            const fade = (c) => [c[0], c[1], c[2], (c[3] ?? 1) * opacity];
+            if (own === 'IMAGE') return null;
+            const fade = (c) => [c[0], c[1], c[2], (c[3] ?? 1) * alpha];
             const bg = composite(fade(own), ground);
-            const fg = composite(fade([ink[0], ink[1], ink[2], (ink[3] ?? 1)]), bg);
+            const fg = composite(fade([ink[0], ink[1], ink[2], ink[3] ?? 1]), bg);
+            return { ratio: ratio(fg, bg), paint: `${fg.join()}|${bg.join()}` };
+          };
+          const ground = effectiveBackground(dimmed.parentElement || dimmed, win, styles.of);
+          if (ground === 'IMAGE') continue;
+          const labels = (el) => (
+            el.tagName !== 'STYLE' && el.tagName !== 'SCRIPT'
+            && [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())
+          );
+          const texts = [...dimmed.querySelectorAll('*')].filter(labels);
+          // The subject's OWN paint as well as its labels', so a control with no
+          // text node in it — an input holds its value in a property, a switch
+          // track holds nothing at all — is still held to the repaint rule.
+          const off = [dimmed, ...texts].map((el) => pairOf(el, ground, opacity));
+          let restore;
+          styles.mutate(() => { restore = enable(hit); });
+          const onGround = effectiveBackground(dimmed.parentElement || dimmed, win, styles.of);
+          const on = [dimmed, ...texts].map((el) => (
+            onGround === 'IMAGE' ? null : pairOf(el, onGround, 1)));
+          styles.mutate(() => restore());
+          [dimmed, ...texts].forEach((el, i) => {
+            if (!off[i]) return;
             const key = `${selector}|${selectorPath(el)}`;
-            if (found.has(key)) continue;
-            found.set(key, { selector, opacity, ratio: ratio(fg, bg), path: selectorPath(el) });
-          }
+            if (found.has(key)) return;
+            found.set(key, {
+              selector,
+              opacity,
+              ratio: off[i].ratio,
+              repaints: !on[i] || on[i].paint !== off[i].paint,
+              labelled: labels(el),
+              path: selectorPath(el),
+            });
+          });
         }
       }
     });
@@ -721,31 +812,44 @@ test('disabled: every rule that dims a control is found, and a story renders it'
   }
 });
 
-test(`disabled: ${DISABLED_MIN}:1 is PROPOSED, and the kit does not meet it — the ledger says so`, () => {
+test(`disabled: every label a disabled control shows clears ${DISABLED_MIN}:1, in both themes`, () => {
   const under = THEMES.flatMap((theme) => disabledRun[theme].found
-    .filter((f) => f.ratio < DISABLED_MIN)
+    .filter((f) => f.labelled && f.ratio < DISABLED_MIN)
     .map((f) => `${theme} ${f.path} at opacity ${f.opacity} — ${f.ratio.toFixed(2)}:1`));
-  assert.ok(
-    DISABLED_LEDGER.issue,
-    `${under.length} disabled labels under the proposed ${DISABLED_MIN}:1 and no ledger entry:\n  ${under.join('\n  ')}`,
-  );
-  assert.ok(under.length, 'the kit now meets the proposal — settle the number and retire the ledger');
+  assert.deepEqual(under, [], `disabled labels under the ${DISABLED_MIN}:1 floor #220 settled`);
 });
 
-test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst measured when the number was written`, () => {
+test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst the kit measures today`, () => {
   for (const theme of THEMES) {
     const worse = disabledRun[theme].found
-      .filter((f) => Math.round(f.ratio * 100) / 100 < DISABLED_FLOOR)
+      .filter((f) => f.labelled && Math.round(f.ratio * 100) / 100 < DISABLED_FLOOR)
       .map((f) => `${f.path} at opacity ${f.opacity} — ${f.ratio.toFixed(2)}:1`);
-    assert.deepEqual(worse, [], `${theme}: a token moved a disabled pair below where #201 measured it`);
+    assert.deepEqual(worse, [], `${theme}: a token moved a disabled pair below the ratchet`);
   }
 });
 
-test('disabled: the ledger states the range it is holding open, and it is still true', () => {
-  const all = THEMES.flatMap((t) => disabledRun[t].found.map((f) => f.ratio));
-  const round = (n) => Math.round(n * 100) / 100;
-  assert.equal(round(Math.min(...all)), DISABLED_LEDGER.measured.worst, 'the ledger\'s worst has moved');
-  assert.equal(round(Math.max(...all)), DISABLED_LEDGER.measured.best, 'the ledger\'s best has moved');
+// The second half of the rule, and the half that stops the first from being
+// cleared the wrong way: a control could pass any legibility floor by simply
+// looking enabled. It cannot pass this too. The comparison is the same element
+// with the disabled state taken off it, so it costs no specimen and no list.
+test('disabled: the state repaints — off never looks the same as on', () => {
+  const same = THEMES.flatMap((theme) => disabledRun[theme].found
+    .filter((f) => !f.repaints)
+    .map((f) => `${theme} ${f.path} — ${f.selector} paints exactly what the enabled control paints`));
+  assert.deepEqual(same, [], 'a disabled control that is indistinguishable from an enabled one');
+});
+
+// The mechanism, held rather than argued. `opacity` under a disabled selector
+// drags a label and its box toward the ground together, and the pair a reader
+// is left with is wherever the composite lands — 1.48:1, for the primary button
+// #220 was opened about. The rule the kit settled on is that a control with a
+// LABEL under it takes a paint, not a fade. The switch track is what is left:
+// it fades, and there is nothing written inside it to fade.
+test('disabled: a rule that fades with opacity has no label under it', () => {
+  const faded = THEMES.flatMap((theme) => disabledRun[theme].found
+    .filter((f) => f.opacity < 1 && f.labelled)
+    .map((f) => `${theme} ${f.path} — ${f.selector} at opacity ${f.opacity}`));
+  assert.deepEqual(faded, [], 'a disabled label faded by opacity instead of painted');
 });
 
 // ---- the collection -------------------------------------------------------

@@ -3,7 +3,17 @@
 
 export const RELEASES = [
   {
-    v: '0.21.0', date: '2026-08-14', tag: 'latest',
+    v: '0.22.0', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['changed', 'A disabled control is now **painted, not faded**. `opacity` is a group property: it pulls a label and the box under it toward the ground together, so what a reader is left with is wherever that composite lands — a disabled `.ui-btn--primary` measured **1.48:1**, white on a washed-out accent, and no disabled control in the light theme reached 3:1. Every disabled rule with a label under it now takes `--disabled-ink` on `--disabled-surface` at full opacity, which composites predictably. Every disabled label in the kit now measures between **5.56:1 and 6.11:1**, in both themes.', ['Button', 'Input', 'Nav', 'Dropdown']],
+      ['added', '`--disabled-ink`, `--disabled-surface` and `--disabled-border` — aliases onto `--muted`, `--surface-2` and `--border`, so the ramp gains nothing to keep in sync. They are neutral, so a disabled control does not move with the accent and drops the accent by construction, which is most of what makes it read as inert.'],
+      ['added', '**The floor is 3:1, and it has a second half.** `docs/specification.md#colour-and-contrast` records both. It is not higher because the counter-pressure turns out not to live on this axis: the disabled primary reads 5.56:1 and the enabled one reads 5.70:1, and nobody confuses white on purple with grey on grey. Contrast carries legibility; the paint carries the state. So the guarantee also says a disabled control never shows the pair it shows enabled — the half a control cannot satisfy by looking available.'],
+      ['changed', 'The floor gate takes its subjects from every **disabled selector** in the sheet rather than from every rule that sets `opacity` — a gate keyed on one technique goes silent the moment the technique changes. It measures each subject twice, once as a story renders it and once with the disabled state taken off the element and the cascade read again, and it refuses an `opacity` under a disabled selector that has a label beneath it. The one rule still fading is the switch track, which has nothing written inside it.'],
+      ['changed', 'The accessibility floor page\'s disabled gap is retired: the ledger is gone and the ratchet states a real number.'],
+    ],
+  },
+  {
+    v: '0.21.0', date: '2026-08-14',
     changes: [
       ['changed', 'The kit has **three breakpoints**, not six. `860px` is where the page stops holding three tracks, `720px` is where the shell folds, and `560px` is one column — each a viewport class with what changes at it, listed under **Breakpoints** in `docs/specification.md`. The three values that belonged to a single surface each moved to the step above the one they wrote: the footer\'s second collapse from 460 to 560, the version switcher\'s label from 600 to 720, and the site\'s split hero from 760 to 860. Folding **up** rather than to the nearest step is the point — a layout that reflows at a wider viewport has more room than it had, never less, so nothing lost space to the tidy-up.'],
       ['added', 'A gate over the convention. `stories/breakpoints.test.js` reads the three steps out of the specification\'s own table at run time — not a second copy of the list — and fails any `@media` prelude in `src/styles/` or `site/` whose px value is not one of them. It holds the list from both ends: a step nothing queries fails too, so the table cannot grow a row to legalise a stray. Subjects are swept rather than listed, from raw text, which is what reaches the stylesheet inside `site/chrome.mjs`\'s template literal; `site/public/` is build output and is never read.'],

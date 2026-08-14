@@ -82,11 +82,24 @@
 .ui-btn--block { width: 100%; }
 
 /* -- States ------------------------------------------------------------- */
+/* Off, in every variant. A disabled button has no variant identity — primary,
+   secondary and danger all take the same flat pair, because the accent IS the
+   "press me" and keeping a faded version of it was what put a disabled primary
+   at 1.48:1 (white on a washed-out purple). Dropping the accent is most of what
+   makes this read as inert; the quiet ink is the rest. #220 */
 .ui-btn:disabled,
 .ui-btn[aria-disabled="true"] {
-  opacity: 0.45;
+  background: var(--disabled-surface);
+  border-color: var(--disabled-border);
+  color: var(--disabled-ink);
   cursor: not-allowed;
   pointer-events: none;
+}
+/* A ghost button draws no box when it is on, so it draws none when it is off. */
+.ui-btn--ghost:disabled,
+.ui-btn--ghost[aria-disabled="true"] {
+  background: transparent;
+  border-color: transparent;
 }
 
 /* Busy: keep the label, run an indeterminate accent shimmer along the base, and

@@ -162,6 +162,32 @@ take the accent list from `accents.css` rather than from a list typed into the g
 
 Decided in [#157](https://github.com/apliteni/apliteni-ui/issues/157).
 
+**A disabled control is painted, never faded.** `opacity` is a group property: it pulls a label
+and the box under it toward the ground together, so what a reader is left with is wherever that
+composite lands. A disabled primary button measured 1.48:1 that way — white on a washed-out accent
+— and no disabled control in the light theme reached 3:1. Every disabled rule with a label under
+it now takes `--disabled-ink` on `--disabled-surface` at full opacity, which composites
+predictably, and every disabled label in the kit measures between 5.56:1 and 6.11:1.
+
+The floor is **3:1**, the bar WCAG uses for large text and for a graphic — a disabled label has to
+stay identifiable as the word it is, and no standard sets this because 1.4.3 exempts the control
+outright. It is not higher, because the other pressure turns out not to live on this axis: the
+disabled primary reads 5.56:1 and the enabled one reads 5.70:1, and nobody confuses white on
+purple with grey on grey. Contrast carries legibility; the paint carries the state. So the
+guarantee has a second half — **a disabled control never shows the pair it shows enabled** — and
+that is what a control cannot satisfy by looking available.
+
+The trio is neutral, so it does not move with the accent, and a disabled control drops the accent
+by construction. One rule still fades: the switch track, which has no label inside it.
+
+Held by `stories/guidelines/accessibility-floor.test.js`, which takes its subjects from every
+disabled selector in the sheet rather than from every rule that sets `opacity` — the mechanism is
+not the subject — and measures each one twice, once as a story renders it and once with the
+disabled state taken off the element and the cascade read again.
+
+Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured in
+[#201](https://github.com/apliteni/apliteni-ui/issues/201).
+
 ## The focus ring
 
 `--ring` is the accent at full opacity, declared once:
