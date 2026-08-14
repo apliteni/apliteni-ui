@@ -82,11 +82,6 @@ export const RULES = [
     imperative: 'Check dark and light, and at least two accents, before you open a PR.',
     why: 'A pair that clears AA in dark can fail in light over a card’s wash.',
     except: '--surface-3 is not measured: nothing paints the accent wash on a raised surface any more.',
-    unmet: {
-      issue: 131,
-      note: 'Nothing under react/ measures contrast at all, and a warn toast’s action ink — '
-        + 'never rendered anywhere — measures about 3.9:1 in light.',
-    },
     kit: [
       { ref: 'stories/accent-contrast.test.js:1', pattern: '--accent clears WCAG AA as text on every ground the kit paints under it' },
       { ref: 'stories/accent-contrast.test.js:2', pattern: 'in all eight theme × accent cells' },
