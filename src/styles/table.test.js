@@ -10,6 +10,32 @@ const CSS = readFileSync(
 );
 
 /**
+ * The inset is written as a step of the spacing scale (ADR 0012), so what this test needs
+ * from a declaration is its resolved width in px — the step looked up in the token file,
+ * never a number repeated here. A bare px still resolves: the rule this test holds is
+ * "the end cells are inset", and which of the two ways it is spelled is a different rule,
+ * held next door in stories/table-rhythm.test.js.
+ */
+const SPACE = Object.fromEntries(
+  [
+    ...readFileSync(
+      path.join(path.dirname(fileURLToPath(import.meta.url)), "../tokens/tokens.css"),
+      "utf8",
+    ).matchAll(/--(space-[\w-]+):\s*(\d+(?:\.\d+)?)px/g),
+  ].map((m) => [`--${m[1]}`, Number(m[2])]),
+);
+
+const insetOf = (declaration) => {
+  const m = declaration.match(/padding-(?:left|right):\s*([^;}]+)/);
+  if (!m) return null;
+  const value = m[1].trim();
+  const token = /^var\(\s*(--[\w-]+)\s*\)$/.exec(value);
+  if (token) return SPACE[token[1]] ?? null;
+  const px = /^(\d+(?:\.\d+)?)px$/.exec(value);
+  return px ? Number(px[1]) : null;
+};
+
+/**
  * The zebra stripe is full-bleed on purpose, so its end cells have to be inset by the
  * recipe itself.
  *
@@ -48,10 +74,13 @@ test("the zebra recipe insets its own end cells, without needing --dense", () =>
   );
   assert.ok(declarations.length > 0, "no zebra end-cell rule found at all");
   for (const d of declarations) {
-    const px = d.match(/padding-(?:left|right):\s*(\d+)px/);
-    assert.ok(px, `a zebra end-cell rule with no padding declaration: ${d}`);
+    const inset = insetOf(d);
     assert.ok(
-      Number(px[1]) > 0,
+      inset !== null,
+      `a zebra end-cell rule with no padding this test can resolve: ${d}`,
+    );
+    assert.ok(
+      inset > 0,
       `zebra end-cell padding must be greater than zero — 0 is the defect: ${d}`,
     );
   }
