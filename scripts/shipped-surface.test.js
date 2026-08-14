@@ -17,6 +17,8 @@
 // subject here is the artefact — the file list npm would actually pack, and the
 // contents of those files — and never the paths a commit touched.
 //
+// why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+//
 // The one deliberate blind spot, and the reason it is deliberate: the `version`
 // field of package.json is excluded from the comparison. package.json is inside
 // the tarball, so a bump is itself a change to the shipped surface; counting it

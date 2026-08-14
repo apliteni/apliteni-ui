@@ -6,6 +6,12 @@
 // kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md; the ledger
 // of what the walk does not reach sits above the walk.
 //
+// This header is load-bearing rather than long-winded. The floor page's own rule is
+// "Say what a gate cannot see, in the gate", and the test at the bottom of this file
+// fails when a gate this repo discovers states no blind spot — so cutting the ledger
+// out to a document would red the gate that enforces it.
+// why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+//
 // WHAT IS DISCOVERED, AND FROM WHERE:
 //
 //  - the controls, from the rendered stories: every element interactive BY ROLE. A new

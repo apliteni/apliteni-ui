@@ -47,7 +47,8 @@ const rel = (p) => path.relative(root, p);
 // Same tripwire as EXPECTED_SUBJECTS in src/styles/icon-size.test.js, and the
 // same deliberate inconvenience: a rule that quietly leaves coverage looks
 // exactly like a rule that passes, so the number is the real count with no slack
-// in it. Six rules across four files, width and height apiece. Raise it when
+// in it.
+// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip Six rules across four files, width and height apiece. Raise it when
 // you add one; lower it in the same commit as the removal, and say why there.
 // Was seven across five: stories/apps/_appShell.js was a story-local fork of the
 // page shell, and #127 replaced it with the kit's own appShell(), whose icons are
