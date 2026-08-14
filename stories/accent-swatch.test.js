@@ -1,81 +1,33 @@
 /* Rule: the accent picker's swatch is made of the tokens that accent selects,
  * and all three copies of the picker paint the same one.
  *
- * A swatch is a promise about what happens when you press it. It is also the only
- * thing on the page that describes an accent you are not currently looking at, so
- * a stale swatch is not a cosmetic drift — it is the picker lying about the theme
- * it is offering. Nebula's swatch was painting the ramp two steps below its own
- * --accent, so the accent you got was visibly lighter than the accent you picked.
+ * A swatch is a promise about what happens when you press it, and the only thing on the
+ * page describing an accent you are not looking at — so a stale one is the picker lying
+ * about the theme it offers. Nebula's painted two ramp steps below its own --accent.
  *
- * THIS IS A NEW INVARIANT, NOT A REGRESSION DETECTOR. It is tempting to read the
- * Nebula fix as #157 breaking something that used to hold, and that is not what
- * happened: this gate would have been red before #157 too. The dark ramp then
- * (d76c929:src/tokens/tokens.css:107-138) was --purple #6a2dcc / --purple-light
- * #9b5dff / --purple-mid #b479ff with --accent #9b5dff, so --purple-light already
- * WAS --accent — the same degeneracy Nebula has today — and the swatch resolved it
- * by walking DOWN to --purple (#9b5dff → #6a2dcc) rather than up to --purple-mid.
- * The rule below picks the other end, for every accent alike, and the day it was
- * written was the first day any version of Nebula's swatch satisfied it. So the
- * shipped colours changed under #190 because the rule is stricter than the
- * eyeballing that preceded it, not because #157 knocked something loose.
- *
- * THE RULE, stated once and applied to every accent alike:
+ * THE RULE, applied to every accent alike and never special-cased by name:
  *
  *   angle  135deg, the kit's one diagonal, the same for every swatch.
  *   stop2  the accent's DARK --accent — the colour the kit actually paints.
  *   stop1  the next DISTINCT step up that accent's ramp: of --purple,
  *          --purple-light and --purple-mid, the one with the LOWEST relative
- *          luminance strictly GREATER than --accent's. If two ramp steps tie at
- *          that luminance the rule has no answer and the gate says so, rather
- *          than letting the order an array happens to be written in pick a hue.
+ *          luminance strictly GREATER than --accent's. Two steps tied there leave the
+ *          rule no answer and the gate says so, rather than letting the order an array
+ *          happens to be written in pick a hue.
  *
- * THE ANGLE IS PINNED, and it is the one literal here. The rule is directional —
- * up the ramp at stop1, down to --accent at stop2 — so which end of the gradient
- * is which is decided by the angle, and a gate that only checked the two colours
- * would pass `315deg` painting the identical pair backwards. Two weaker checks
- * were available: "field 0 parses as an angle" (which 315deg passes) and "all four
- * swatches share one angle" (which all four reversed together passes). Neither
- * holds what the rule says, so the angle is written down: 135deg, which is what
- * all four ship and what the kit uses for every other gradient.
+ * The angle's pin, the dark cell rather than the light one, the new-invariant reading and
+ * the site's two hand-kept copies: CONTRIBUTING.md, "Add an accent sub-theme".
  *
- * "Strictly greater" is the whole of the Nebula fix. Every other accent's ramp
- * has --purple-light sitting one step above --accent, so that is what they get;
- * dark Nebula's --purple-light IS --accent (tokens.css:115, :152), so the rule
- * walks on to --purple-mid rather than emitting a gradient from a colour to
- * itself. Nothing here special-cases an accent by name — a fifth accent is
- * judged the day accents.css declares it, and gets whichever ramp step its own
- * numbers put above its accent.
+ * Both sides are derived — the colours out of src/tokens/, the painted ones out of each
+ * picker's render — so nothing here restates a literal it guards. And the lookup is
+ * checked: tokensFor('dark', X) matches one exact selector, so an accent whose dark block
+ * is spelled otherwise falls through to :root and inherits Nebula's ramp. Each accent's
+ * own block is located before its ramp is read.
  *
- * Dark and not light, because there is one swatch and it has to be one colour.
- * The picker sits in a footer that renders in both themes; the accent's identity
- * — the thing the swatch is naming — is the dark cell, which is where every
- * accent is at its most saturated and most itself.
- *
- * BOTH SIDES ARE DERIVED. The colours are read out of src/tokens/, and the
- * painted ones out of the picker's own render. Neither is restated here, so this
- * file cannot go stale the way the literals it guards did.
- *
- * AND THE LOOKUP IS CHECKED, not trusted. tokensFor('dark', X) matches one exact
- * selector, so an accent whose dark block is written any other way falls through
- * to :root and quietly inherits NEBULA's ramp — which would make this gate demand
- * a purple swatch for an orange accent, and go green once the author complied.
- * Every accent's own dark block is therefore located before its ramp is read.
- *
- * THREE COPIES. The kit's accentPicker() is not the only picker: the marketing
- * site ships two more by hand, one in the footer chrome and one in the landing
- * page's live playground. They must move together — a swatch that depends on
- * where you met the picker is worse than one that is merely wrong, because now
- * the page disagrees with itself. So the copies are compared to each other, and
- * only the kit's is compared to the tokens. What is compared is the gradient
- * TEXT each picker paints per accent: not how it is delivered (the kit writes a
- * --swatch custom property, the site writes `background`), not the labels around
- * it, and not the order the accents are written in.
- *
- * WHAT THIS GATE CANNOT READ, said plainly so its failures do not send you to fix
- * a swatch that is fine: it reads #rgb / #rrggbb, rgb()/rgba() and color(srgb …)
- * stops, opaque, two of them, with no stop positions. Eight-digit hex, hsl(),
- * named colours, a third stop and `#bd8cff 99%` are all legal CSS this test was
- * not written to judge, and it fails naming its own limit rather than yours.
+ * WHAT THIS GATE CANNOT READ, so a failure does not send you to fix a swatch that is
+ * fine: it reads two opaque #rgb / #rrggbb, rgb()/rgba() or color(srgb …) stops with no
+ * positions. Eight-digit hex, hsl(), named colours, a third stop and `#bd8cff 99%` are
+ * legal CSS it was not written to judge, and it fails naming its own limit, not yours.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

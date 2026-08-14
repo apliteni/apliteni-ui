@@ -1,35 +1,8 @@
-// Packaging guard — every subpath a consumer can import must ship, resolve and
-// yield something, proven against a real installed copy of the package.
-//
-// 0.7.2 shipped an `exports` map that looked complete and a `files` array that
-// dropped every React file, and nobody noticed: an export entry is just a string
-// in a JSON file, so reading it back proves nothing. The first version of this
-// guard read the real pack list, which caught that — but it compared paths as
-// strings and never resolved a specifier, so it still passed while
-// `exports["./react"]` was unreachable from `require()` and while the bundle
-// behind it was zero bytes.
-//
-// Resolving the specifiers fixed that, but from the wrong place: the repository
-// working tree. `react/package.json` is deliberately kept out of the tarball, and
-// it is precisely that absence which lets Node's self-reference resolution find
-// the root manifest — so the bare `import { icon } from "@apliteni/apliteni-ui"`
-// inside `react/dist/index.js` resolves only once the package is INSTALLED. In
-// the working tree there is a `react/package.json` in the way, and the import
-// fails; it passed on the authoring machine only because an ancestor directory
-// happened to hold a stale `node_modules/@apliteni/apliteni-ui` from an earlier
-// install, which a clean CI checkout does not have.
-//
-// So the guard now does what a consumer does. It packs the tarball, installs it
-// into a scratch directory outside the repository, and resolves and imports every
-// subpath from a module that lives there. That is the only vantage point where
-// the published resolution semantics — self-reference, the `exports` map, the
-// `default` condition — actually apply, and it makes the guard exercise what a
-// consumer receives rather than what the repository happens to contain.
-//
-// The install is offline: the kit declares no runtime dependencies, so the
-// tarball needs nothing from the registry. React is the one thing a real consumer
-// of ./react supplies, and the guard links the repo's own copy in AFTER asserting
-// that installing the kit alone brought no React with it.
+// Packaging guard — every subpath a consumer can import must ship, resolve and yield
+// something, proven from a scratch install outside the repository rather than from the
+// working tree, which is the only vantage point where the published resolution semantics
+// apply. What it checks, why the install is what makes it honest, and what to do when you
+// add an export: CONTRIBUTING.md, "Packaging guard".
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';

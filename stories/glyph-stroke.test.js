@@ -1,36 +1,19 @@
 /* Rule: every stroked glyph the kit renders paints at 1.5 CSS px or wider.
  *
- * The stroke-width rule set 3:1 as the right bar for a graphic, and made a stroke
- * to be wide enough to be one, then scoped itself to the two glyph families that
- * carry a status. #217 is the rest of the kit: ten of thirteen glyphs measured
- * from src/styles were under the line and nothing held any of them.
+ * The stroke-width rule set 3:1 as the bar for a graphic and scoped itself to the two
+ * glyph families carrying a status; #217 is the rest of the kit, where ten of thirteen
+ * glyphs measured from src/styles were under the line with nothing holding any of them.
  *
- * WHY THIS GATE RENDERS RATHER THAN READS. A stylesheet scan gets two shapes
- * wrong, and both of them are in the kit:
- *
- *   A box override with no stroke beside it. `.ui-nav--side.is-collapsed
- *   .ui-nav__ic svg` re-sizes the rail's icon and lets the stroke come from
- *   `.ui-nav__ic svg`. Reading one declaration at a time reports that rule as
- *   having no stroke at all, when what it actually does is change the width the
- *   inherited one renders at.
- *
- *   A stroke that comes from the markup. src/assets/icons.js puts stroke-width
- *   on every icon it emits, feedback.js emits its own svgs with a different one,
- *   and `sun` and `moon` hard-code a third. So a rule that sets only a box still
- *   produces a stroked glyph, and its width is decided in a file no stylesheet
- *   scan opens.
- *
- * So the subjects here are elements, not declarations: every story in stories/
- * is rendered into a JSDOM carrying the kit's stylesheets, and every <svg> that
- * comes out is measured with the cascade already resolved. That is also the
- * discovery this repo asks of a gate — a glyph joins by being rendered, not by
- * being listed. The prose list that rule shipped with is the counter-example: it named
- * six of these and missed four.
+ * The subjects here are elements, not declarations: every story in stories/ is rendered
+ * into a JSDOM carrying the kit's stylesheets, and every <svg> that comes out is measured
+ * with the cascade resolved. Why a stylesheet scan gets that wrong — an inherited stroke,
+ * a stroke that arrives from the markup — is in CONTRIBUTING.md, "A gate discovers its
+ * subjects and never enumerates them".
  *
  * WHAT IS NOT A SUBJECT. An svg whose effective `stroke` is `none` — SVG's own
  * initial value — paints no stroke, so it has no width to hold: the brand marks,
- * the provider logos and the footer's social icons are filled shapes and drop
- * out here by their own paint rather than by name.
+ * the provider logos and the footer's social icons drop out by their own paint
+ * rather than by name.
  *
  * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';

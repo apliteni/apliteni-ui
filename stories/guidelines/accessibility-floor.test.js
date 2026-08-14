@@ -1,77 +1,30 @@
 // The three numbers the accessibility floor stands on, each measured.
 //
-// The floor page (stories/guidelines/_accessibility-floor.js) states three
-// numbers that existed nowhere in this tree before #201: a minimum target size,
-// a contrast for `--ring`, and a legibility floor for a disabled control. A
-// number a comment argues for is pinned by a measured test (the measured-pin rule), so this
-// file measures all three against what the kit actually ships, and every list it
-// works from is discovered rather than typed (the discovery rule).
+// The floor page (stories/guidelines/_accessibility-floor.js) states a minimum target
+// size, a contrast for `--ring` and a legibility floor for a disabled control, none of
+// which existed in this tree before #201. This file measures all three against what the
+// kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md; the ledger
+// of what the walk does not reach sits above the walk.
 //
 // WHAT IS DISCOVERED, AND FROM WHERE:
 //
-//  - the controls, from the rendered stories. Every story in stories/ is
-//    mounted and every element that is interactive BY ROLE — a button, a link
-//    with an href, a form control, an explicit widget role — is a subject. A
-//    new component is in the gate the moment a story renders it.
-//  - the ring's landings, from the stylesheets. Every rule whose body consumes
-//    `var(--ring)` is a landing, and the GROUND each one lands on is taken from
-//    the story that renders it, composited down the ancestor chain. #157's
-//    hand-written six-ground table missed the pair that decided the answer;
-//    this one is not written by hand.
-//  - the disabled rules, from the stylesheets. Every rule with a disabled
-//    SELECTOR is a subject — not every rule that sets `opacity`, which is what
-//    this looked for until #220 and which would have gone quiet the moment the
-//    kit stopped fading. The mechanism is read off the declarations (an
-//    `opacity` if one is there, 1 if not), never assumed, and every subject is
-//    measured twice: as the story renders it, and with the disabled attribute
-//    removed and the cascade read again, which is the enabled counterpart.
-//  - a control's OVERLAYS, from the stylesheets. WCAG 2.5.8 measures the target
-//    and not the ink, so a control may keep the size it is drawn at and put a
-//    24px pseudo-element over it — a pointer landing on a ::before hits the
-//    element it belongs to. Every `sel::before` / `sel::after` rule is probed
-//    onto `sel`, and a control's box is the union of what it draws and what it
-//    generates. #219 fixed two controls that way, and until this saw them a
-//    hit-area fix would have failed every test here and passed none.
+//  - the controls, from the rendered stories: every element interactive BY ROLE. A new
+//    component is in the gate the moment a story renders it.
+//  - the ring's landings, from the stylesheets: every rule consuming `var(--ring)`, each
+//    ground taken from the story that renders it and composited down the ancestor chain.
+//    #157's hand-written six-ground table missed the pair that decided the answer.
+//  - the disabled rules, from the stylesheets: every rule with a disabled SELECTOR, not
+//    every rule that sets `opacity` — which is what this looked for until #220, and which
+//    would have gone quiet the moment the kit stopped fading. The mechanism is read off
+//    the declarations rather than assumed, and each subject is measured twice: as the
+//    story renders it, and with the disabled attribute removed for the enabled counterpart.
+//  - a control's OVERLAYS, from the stylesheets. WCAG 2.5.8 measures the target and not
+//    the ink, so every `sel::before` / `sel::after` rule is probed onto `sel` and a box is
+//    the union of what a control draws and what it generates. #219 fixed two controls that
+//    way, and until this saw them a hit-area fix failed every test here and passed none.
 //
-// HOW GEOMETRY IS RESOLVED WITHOUT LAYOUT. JSDOM has no layout, so `offsetWidth`
-// is 0 and `getComputedStyle().padding` is empty wherever the value is a var().
-// It does two things correctly: it cascades custom properties per element, and
-// it inherits them. So the sheet is mounted UNSUBSTITUTED — no token map, no
-// global flattening — and every geometry declaration is copied into a probe
-// custom property beside itself (`padding: var(--btn-pad-y) …` also emits
-// `--tsz-padding: var(--btn-pad-y) …`). Reading the probe back gives the
-// declaration that won the cascade FOR THAT ELEMENT, and the vars inside it are
-// resolved one at a time from the same element. That is why `.ui-btn--sm` reads
-// its own 6px here and not the base 9px: the cascade is JSDOM's, not ours.
-//
-// WHAT THIS GATE WILL NOT CATCH:
-//
-//  - Width, for anything a line of text sizes. A text control's width is
-//    layout's answer and JSDOM has none, so width is reported UNMEASURABLE
-//    rather than passed. It is measured only where the box declares it or where
-//    the control's whole content is a sized glyph.
-//  - Spacing exceptions. WCAG 2.5.8 lets an undersized target pass if a 24px
-//    circle centred on it overlaps no other target's circle. That is a layout
-//    question end to end, so the floor here is the stricter reading: the target
-//    itself is 24x24 or it is named.
-//  - Where an overlay SITS, and therefore whether it reaches a neighbour. Only
-//    the size of a pseudo-element is read, not its offset: an overlay pushed
-//    clear of the control it belongs to would still be counted, and one that
-//    overhangs onto the target beside it would not be reported. Both are the
-//    same layout question as the spacing exception above, and each overhang in
-//    the kit is instead reasoned about in the rule that declares it, against
-//    the flex gap next to it (src/styles/callout.css, src/styles/input.css).
-//  - Clipping. An `overflow: hidden` ancestor can cut an overlay down, and this
-//    walk composites no boxes. .ui-toast clips, and its close button's overlay
-//    is 2.5px into 15px of padding — checked by hand, not here.
-//  - Anything with no story, and anything a script paints at runtime — the same
-//    two holes stories/contrast.test.js names, for the same reasons.
-//  - The ring's INNER edge. A ring is painted outside the border box, so its two
-//    adjacent colours are the ground outside and the control's own border
-//    inside. Only the outer pair is measured, because it is also the pair the
-//    ring is composited ONTO and so is structurally the worse of the two.
-//  - The React workspace. react/src has its own ring, its own controls and its
-//    own gates; nothing here reaches them.
+// How the geometry is resolved with no layout is in CONTRIBUTING.md, "An unresolved
+// var() measures nothing and reports green".
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -234,23 +187,10 @@ const PSEUDO_GEOMETRY = [
 ];
 
 /**
- * Copy every geometry declaration into a probe custom property beside itself.
- *
- * JSDOM will not substitute a var() into `padding`, but it cascades and
- * inherits custom properties correctly, so `--tsz-padding` comes back holding
- * the declaration that won for this element — vars and all — and those are
- * resolved per element afterwards. Nothing is rewritten or removed; the copy is
- * appended to the same block, so the sheet still says what it said.
- *
- * A `sel::before { … }` rule gets a second copy, onto `sel` itself, under
- * `--tsz-before-*`. JSDOM does not resolve a pseudo-element's own computed
- * style, but a custom property set on the element is readable from the element,
- * and the element is what the pseudo belongs to. The retargeted rule carries one
- * point less specificity than the pseudo selector it came from (a pseudo-element
- * weighs as much as a type selector), so two pseudo rules that disagree on the
- * same element resolve by source order here where CSS would resolve them by
- * weight — the same approximation this file already makes, and no rule in the
- * kit has that shape.
+ * Copy every geometry declaration into a probe custom property beside itself, and every
+ * `sel::before { … }` rule onto `sel` under `--tsz-before-*`. Why that reads the cascade
+ * JSDOM will not resolve, and the one specificity approximation it makes, are in
+ * CONTRIBUTING.md, "An unresolved var() measures nothing and reports green".
  */
 function probeGeometry(css) {
   const reset = `*{${[
@@ -448,6 +388,25 @@ function glyphOf(el, win) {
 }
 
 // ---- the walks ------------------------------------------------------------
+
+// WHAT THIS WALK DOES NOT REACH — the ledger, so a pass is not read wider than it is:
+//
+//  - Width, for anything a line of text sizes: layout's answer, and JSDOM has none. It is
+//    reported UNMEASURABLE rather than passed, and measured only where the box declares it
+//    or where a control's whole content is a sized glyph.
+//  - WCAG 2.5.8's spacing exception, which is a layout question end to end. The floor here
+//    is the stricter reading: the target is 24x24 or it is named.
+//  - Where an overlay SITS, so whether it reaches a neighbour. Only a pseudo-element's size
+//    is read, not its offset. Each overhang in the kit is reasoned about instead in the rule
+//    that declares it, against the flex gap beside it (src/styles/callout.css, input.css).
+//  - Clipping. An `overflow: hidden` ancestor can cut an overlay down and this walk
+//    composites no boxes. .ui-toast clips; its close button's overlay is 2.5px into 15px of
+//    padding, checked by hand.
+//  - Anything with no story, and anything a script paints at runtime — the same two holes
+//    stories/contrast.test.js names, for the same reasons.
+//  - The ring's INNER edge. Only the outer pair is measured: it is the pair the ring is
+//    composited ONTO, and so structurally the worse of the two.
+//  - The React workspace, which has its own ring, its own controls and its own gates.
 
 /** Mount every story once and hand each one's body to `visit`. */
 async function walk(win, styles, vars, visit) {

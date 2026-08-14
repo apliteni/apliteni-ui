@@ -1,38 +1,14 @@
-// Entry-reachability guard — the kit ships every component module, and nothing
-// used to check that a consumer can reach them.
+// Entry-reachability guard — the kit ships every component module, and only what
+// src/index.js re-exports can be imported.
 //
-//   src/components/*.js — the modules. `files` in package.json is ["src", …], so
-//                         every one of them lands in the published tarball.
-//   src/index.js        — the `.` export. This is the ONLY thing a consumer who
-//                         writes `import { … } from '@apliteni/apliteni-ui'` can
-//                         see. The package has no `./components/*` subpath, so a
-//                         module the entry never re-exports is unreachable.
+//   src/components/*.js — the modules; `files` puts every one in the tarball.
+//   src/index.js        — the `.` export, and all a consumer sees; no `./components/*`.
 //
-// Shipping a file and publishing a factory are two different things, and the gap
-// between them is silent in both directions:
-//
-//   in the tarball, not in index.js  → the consumer gets bytes they cannot
-//                                      import. footer() and success() sat here
-//                                      through 0.8.1 — fully built, fully
-//                                      shipped, reachable by nobody.
-//   in index.js, not on disk         → the entry throws ERR_MODULE_NOT_FOUND on
-//                                      import, so the whole kit fails to load.
-//
-// It went unnoticed because the kit's own stories deep-import the module path
-// rather than the entry (stories/components/Footer.stories.js:1 and friends do
-// `from '../../src/components/footer.js'`), so Storybook rendered both
-// components perfectly while the published surface was missing them. The stories
-// answer "does this render?", which is a different question from "can anyone
-// import this?".
-//
-// This is the same class as the stylesheet drift gated in
-// scripts/stylesheet-manifest.test.js — two hand-maintained lists of the same
-// thing, and nothing making them agree. So, as there: both sides are read from
-// the files themselves. A hard-coded list of expected exports here would just be
-// a third thing to drift.
-//
-// docs/library.md states the contract this file enforces: "The public JS surface
-// is whatever src/index.js re-exports — add a factory there to publish it."
+// Both directions are silent without this: shipped-but-unexported is bytes nobody can
+// import (footer() and success(), through 0.8.1), exported-but-absent throws
+// ERR_MODULE_NOT_FOUND at load. Why a rendering story is evidence of neither, and why
+// both sides are read off the files rather than a list: CONTRIBUTING.md, "Add a
+// component". docs/library.md states the contract.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
