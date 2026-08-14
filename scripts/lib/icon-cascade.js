@@ -169,34 +169,12 @@ export function kitStyleHtml(src, names) {
     .join('\n');
 }
 
-/* An svg carrying a class, in the two languages this repo writes markup in. They
- * are one shape and they answer differently on case, so they are two patterns
- * rather than one with a flag over the whole of it.
+/* An svg carrying a class, in the two languages this repo writes markup in.
+ * HTML folds case and JSX does not, so they are two patterns rather than one
+ * with a flag over the whole of it. Neither flag reaches the captured text: a
+ * class name is case-sensitive, and every consumer compares this set exactly.
  *
- * HTML is the case-insensitive one, and a browser is what decides it. A tag name
- * and an attribute name both fold, so `<SVG CLASS="ic">` parses to an element
- * whose localName is `svg`, in the SVG namespace, matched by `.ic` and sized by
- * every rule that targets it — jsdom included. This is the spelling the sweep
- * was blind to, and blind in the silent direction: a class it does not find is a
- * class every rule targeting it stops being measured against, with no count
- * moving to say so. That is how .ui-fbck was missed in the kit the first time,
- * and the `ic` tripwire in scripts/icon-size-surfaces.test.js does not catch it
- * coming back this way — that guards one class that already exists, and a class
- * introduced in capitals never joins the set for it to miss.
- *
- * JSX is the case-sensitive one. `className` is a prop rather than an attribute
- * and JavaScript folds no case, so `CLASSNAME` is a different prop, which React
- * hands to the DOM as an attribute named `classname` and not as a class at all;
- * `<SVG …>` in JSX is a component reference rather than the intrinsic element.
- * Reading either would put a class in the set that no svg carries, and a rule
- * naming it would then be mounted as an icon and measured against the reset.
- *
- * Neither flag reaches the captured value. A class name is case-SENSITIVE —
- * `.Ic` and `.ic` are two classes — and every consumer compares this set
- * exactly: compoundIsSvg() asks classes.has() of the name in the selector, and
- * mount() asks it again to decide whether to build an <svg> or a <div>. The flag
- * folds case in the pattern, not in the text, so the class comes back spelled
- * the way the markup spells it. */
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 const svgClassRes = () => [/<svg[^>]*\sclass="([^"${]+)"/gi, /<svg[^>]*\sclassName="([^"${]+)"/g];
 
 /* The classes the kit puts on an <svg>, read out of the source rather than
@@ -314,37 +292,13 @@ const withoutArgs = (compound) => {
 };
 
 /* The argument lists of the pseudo-classes that name what the subject may BE.
- * `:has()` and `:not()` are deliberately not among them: the first is about a
- * different element and the second says what the subject is not, so neither
- * makes the subject an icon however its argument reads.
+ * `:has()` and `:not()` are excluded, and only the TOP level of the compound is
+ * collected, so an `:is()` nested inside either stays that pseudo's argument.
+ * The NAME is read in any case, because a pseudo-class name folds case in CSS;
+ * the flag reaches the name and nothing else, since what is inside the
+ * parentheses is sliced out by offset and handed back untouched.
  *
- * Which is why only the TOP level of the compound is collected. An `:is()`
- * nested inside one of the excluded two is that pseudo's argument, not the
- * subject's: `.a:not(:is(svg))` selects everything that is not an svg, and
- * harvesting the `:is()` out of it turned that into an icon rule — a subject the
- * gate then tried to mount, which hard-errors on the `:`. A red on correct CSS,
- * from the one exclusion this function is built around.
- *
- * The NAME is read in any case, because a pseudo-class name folds case in CSS:
- * `:WHERE(svg)` selects what `:where(svg)` selects, so a rule written that way
- * decides an icon's size and this read lower case only, collected no
- * alternatives out of it, and let the rule leave the subject count without
- * moving it.
- *
- * jsdom is worse than blind about that spelling, which is what turns a silence
- * into a red on the wrong file. Its selector engine does not know `:WHERE()`:
- * querySelectorAll throws "Unknown pseudo-class :WHERE()", and matches() and the
- * style resolution answer TRUE for every element. So `.ui-btn :WHERE(svg)` sizes
- * every icon in the document the gate builds, the bare one the reset owns
- * included — and the three assertions that fail are the ones about the reset, in
- * files that are fine, while the rule that did it is not a subject and is named
- * nowhere. Recognised here it is a subject, mount() refuses the shape by name,
- * and the reader is sent to the rule.
- *
- * The flag reaches the name and nothing else. What is inside the parentheses is
- * sliced out of `compound` by offset and handed back untouched, so the class
- * names and element names in there are still compared exactly — which is what
- * they need, since `.Ic` and `.ic` are two different classes. */
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 function alternativesIn(compound) {
   const top = new Set();
   scanTop(compound, (_ch, isTop, i) => { if (isTop) top.add(i); });
@@ -544,85 +498,19 @@ function topLevelBlocks(css) {
 }
 
 /* A top-level block the CSSOM stops describing — the shapes where what every
- * gate measures is not what a browser renders.
+ * gate measures is not what a browser renders. Two of them, both wrong numbers
+ * rather than errors, and nothing in the CSSOM can recover the truth, so this
+ * refuses rather than guessing.
  *
- * cssstyle keeps a repeated property once, in its FIRST position carrying its
- * LAST value and its LAST importance. That bookkeeping is what every gate here
- * reads, and it is right whenever it still describes the file. There are two
- * ways it stops, and they are not the same failure.
- *
- * THE WINNER. A browser takes the important declaration wherever it sits, and
- * only then the last one, so the winner of
- *
- *   .ui-btn svg { width: 40px !important; width: 16px }
- *
- * is 40px. The CSSOM holds 16px, not important, because that is the last
- * declaration — and the gate mounts an element, reads 16px back, agrees with
- * itself and reports the rule as measured while the browser renders something
- * else. No logical twin is anywhere near it and none is needed: the measurement
- * is already wrong before the fold is asked anything. That is why this is scoped
- * to the measurement rather than to the fold, and it is the whole of #148 —
- * a rule deciding an icon's size with the thing meant to notice staying quiet —
- * rebuilt inside the fix for it.
- *
- * The line is exactly this: a repeat is misread when SOME declaration of the
- * property is important and the LAST one is not. Nothing else about the repeat
- * matters. Working through the cases —
- *
- *   width: 100%; width: fit-content      no importance anywhere, last wins in
- *                                        both, so the fallback idiom is read
- *                                        correctly and must stay green
- *   width: 10px; width: 12px !important  importance arrives and stays; the last
- *                                        declaration IS the winner
- *   width: 10px !important; width: 12px  importance drops; a browser takes 10px
- *                                        and the CSSOM says 12px — refused
- *   10px !imp; 12px; 14px                the winner is 10px, the CSSOM says 14px
- *   10px; 12px !imp; 14px                the winner is 12px, the CSSOM says 14px
- *   10px; 12px !imp; 14px !imp           the winner is the last one — read right
- *
- * The same holds for `height` and for both logical spellings, since cssstyle
- * deduplicates all four the same way, so all four are asked. Value equality is
- * not a way out: `width: 16px !important; width: 16px` computes the same number
- * and still loses the importance, which is the one thing that decides a contest
- * against an `!important` reset.
- *
- * How the file SPELLS the property is a separate question, and one this scan
- * used to get wrong. `WIDTH` and `width` are one property to CSS and one entry
- * in the CSSOM, so a capital walked past a check that only matched lower case
- * and handed every gate the losing declaration — #148 again, arriving through
- * the spelling. declRe() now reads the name the way CSS does and this keys on it
- * lower-cased, so the two spellings are one repeat here as they are one property
- * there. Two spellings are still outside what it can see, and nothing in this
- * repo writes either. An ESCAPED name, `wid\74 h`, is `width` to a browser and
- * nothing at all to jsdom, which throws the declaration away before the CSSOM
- * has it — so there is no repeat left to refuse and the gate measures whichever
- * declaration survived. A name led by a NO-BREAK SPACE or a BOM goes the other
- * way: a browser drops it, jsdom drops it, the two agree, and the scan counts it
- * regardless, because `\s` in a JavaScript regex covers characters CSS
- * whitespace does not. The first under-reads; the second would refuse a block
- * that is fine.
- *
- * THE ORDER, which is about the fold and needs the twin. In
- *
- *   .a { width: 10px; inline-size: 33px; width: 12px }
- *
- * `width` sits on both sides of its twin, so keeping it in its first position
- * moves it in front of a declaration the file puts it behind. A browser renders
- * 12px and the fold gives 33. Every other arrangement survives: with all the
- * repeats on one side of the twin, whichever side, the deduplicated order is
- * still the file's, and the fold picks the winner a browser picks.
- *
- * Both are wrong numbers rather than errors, which every gate would report as a
- * pass, and nothing in the CSSOM can recover the truth — rule.cssText is
- * serialised from the same deduplicated block. So this refuses rather than
- * guessing.
+ * THE WINNER: a repeat is misread when SOME declaration of the property is
+ * important and the LAST one is not. Nothing else about the repeat matters.
+ * THE ORDER: a repeat straddling its logical twin is moved in front of a
+ * declaration the file puts it behind when the fold keeps it in first position.
  *
  * Neither check asks whether the rule sizes an icon, so a repeat in a rule that
- * sizes nothing of the sort is refused with the rest. Telling the two apart
- * would mean handing this function the icon classes — which every gate derives,
- * but two of them derive after they have folded. Refusing is the safe direction,
- * and neither shape is CSS somebody writes on purpose: a declaration that a
- * browser can never take is dead either way. */
+ * sizes nothing of the sort is refused with the rest.
+ *
+ * why: CONTRIBUTING.md#the-cssom-stops-describing-a-block-that-repeats-a-property */
 function refuseMisreadRepeats(css, name) {
   for (const [selector, body, holdsBlock] of topLevelBlocks(css)) {
     // Not a style rule, or a rule with a rule inside it — the fold skips both,
@@ -804,36 +692,12 @@ export function* rulesOf(sheet, name, classes) {
 }
 
 /* The selector the reset is written under, found by what makes it the reset
- * rather than by what it looks like.
+ * rather than by what it looks like: it sizes an icon with no class on it, no
+ * attribute and nothing around it. Asked of an element rather than of a
+ * selector's parts, per selector rather than per block, and only of the rules
+ * that SIZE an icon. Exactly one, and the count is the point.
  *
- * The reset and the rules measured against it can share a file, so provenance
- * alone cannot tell them apart — which is the hole this closes. A gate that
- * excluded base.css wholesale swallowed any component rule anybody wrote there,
- * and `.ui-nav__ic svg { width: 40px }` in that file was measured by nothing.
- *
- * So the reset is identified positively, and by the one thing only it does: it
- * sizes an icon with no class on it, no attribute and nothing around it. Every
- * component rule in the kit names a class, on the icon or on an ancestor, so a
- * bare <svg> matches none of them. That is the same icon the gate's own
- * bare-icon test measures, which is what makes this the reset's definition and
- * not a heuristic about its shape.
- *
- * Shape is what must not decide it. jsdom serialises `.x { svg { … } }` as
- * `& svg`, so "the rule with no class in it" reads a nested component rule as
- * the reset and drops it in silence. Nothing here reads a selector's parts:
- * rulesOf() refuses a nested rule by name before this can classify it, and the
- * question below is asked of an element.
- *
- * Asked per selector, since a selector list can hold the reset and a component
- * rule in one block, and asked only of the rules that SIZE an icon — `*` matches
- * a bare svg and decides nothing about it.
- *
- * Exactly one, and the count is the point. A second rule sizing a bare icon is
- * either a reset written twice or a rule like `svg:not([width])` at (0,1,1),
- * which out-ranks every `.ui-btn svg` in the kit from the one file whose rules
- * are not subjects — #148 arriving again with every gate green. Two rules
- * sharing one selector are one reset, since that is one rule split across two
- * blocks. */
+ * why: CONTRIBUTING.md#the-reset-is-found-by-what-only-the-reset-does */
 export function resetSelectorOf(sheet, name, classes) {
   const bare = sheet.ownerNode.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const found = new Set();
@@ -1054,29 +918,17 @@ export function styleBlocksOf(source) {
  * commented-out `width: 20px` is not a declaration, and the patterns start at
  * `{` or `;`, so a comment sitting in front of the first declaration in a block
  * hides that declaration from every one of them. Strings are blanked after
- * them, for the reason in blankStrings(): a surface interpolates into a data URI
- * as readily as into a size, and what comes out is an image. */
+ * them, for the reason in blankStrings(). */
 /* Whether an unresolved interpolation stands where a RULE or a DECLARATION would
  * be — `<style>${SHELL_CSS}</style>`, a `${SHARED}` after the last rule in a
- * block, `.a { ${DECLS} }`. Each of those can hold a rule that sizes an icon, and
- * each is invisible to the three scans in blindSpots(): the value and property
- * scans both need a `:` beside the marker, and the selector scan needs a `{`
- * after it.
- *
- * Asked by POSITION, because the question the guard used to ask — is the marker
- * here and did the sheet parse to no rules — is answered "no" by any one
- * parseable rule written beside the shell. That is the shared-shell refactor
- * itself: one ordinary rule next to `${SHELL_CSS}` and the block reads as fully
- * measured.
- *
- * A marker inside a declaration's VALUE is left alone, whatever the property. A
- * surface interpolates a colour or an image far more often than a size, and
- * refusing `background: ${theme.bg}` is a red on correct code. The sizing and
- * clamp properties are the ones that matter there, and blindSpots() scans them
- * by name.
+ * block, `.a { ${DECLS} }`. Asked by POSITION, not by whether the sheet parsed
+ * to no rules. A marker inside a declaration's VALUE is left alone, whatever the
+ * property; blindSpots() scans the sizing and clamp properties by name.
  *
  * The text arrives with comments out and strings blanked, so every brace left in
- * it is a brace a CSS parser sees. */
+ * it is a brace a CSS parser sees.
+ *
+ * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
 function standsWhereCssWouldBe(text) {
   for (let i = text.indexOf(UNRESOLVED); i !== -1; i = text.indexOf(UNRESOLVED, i + 1)) {
     const before = text.slice(0, i);
@@ -1218,65 +1070,17 @@ function survivesParsing(prop, value) {
 }
 
 /* Every sizing or clamp declaration in `css` that would not survive being
- * parsed — the hole a subject count cannot see.
+ * parsed — the hole a subject count cannot see, because jsdom discards what it
+ * does not understand without a word and a rule added and dropped in the same
+ * breath leaves the count where it was.
  *
- * jsdom keeps the declarations it understands and discards the rest without a
- * word, so `.zz svg { width: fit-content(20%) }` reaches the CSSOM as a rule
- * that sizes nothing. It contributes no subject; a count only moves when a
- * subject appears or disappears; so a rule added and dropped in the same breath
- * leaves the number exactly where it was, and the rule applies in a browser with
- * nothing watching it. All three gates ask it.
+ * Asked of the raw text, and of the rules that decide an icon rather than of
+ * every rule in the sheet. A conditional group is descended into rather than
+ * read flat; three shapes are asked anyway, because scoping them is what would
+ * make them silent. A logical declaration is asked under its PHYSICAL name and
+ * reported as written.
  *
- * The question is asked of the raw text, because the CSSOM is precisely where
- * the answer is missing, and each declaration is re-parsed on its own rather
- * than being looked for by value. `fit-content(20%)` and `anchor-size(width)`
- * are what jsdom drops today and the set grows every time CSS does, so a list of
- * values here would be out of date by the release after this one.
- *
- * ASKED OF THE RULES THAT DECIDE AN ICON, not of every rule in the sheet. What
- * jsdom drops has nothing to do with icons — `width: env(safe-area-inset-left)`
- * on a drawer, `height: CALC(1px + 2px)` on a toast — and refusing those is a
- * red on CSS somebody is going to write and be right to write. Over react/src,
- * two small files, asking everything cost nothing; over src/styles it is a wide
- * net across CSS with no icon anywhere near it. The dropped declaration is gone
- * from the CSSOM, so there is no rule object to ask — but topLevelBlocks()
- * yields the selector out of the raw text and isSvgSubject() answers from that.
- *
- * A CONDITIONAL GROUP IS DESCENDED INTO rather than read flat, because the
- * argument above holds at every depth and the code used to make it only at brace
- * depth 0. `@media` is a wrapper: the declarations under it belong to the rules
- * further in, and each of those has an element selector of its own to be scoped
- * by — bar a keyframe, whose `from` and `50%` name no element and so scope to
- * nothing, which is the right answer, since no icon's cascade runs through a
- * keyframe. Read flat, the block's selector was the at-rule, no selector
- * starting with `@` is an icon, and so every declaration inside was asked
- * about — which refused `width: env(safe-area-inset-left)` on a drawer in a
- * media query while allowing the same declaration one brace out. An icon inside
- * the group is still refused, and has to be: the declaration is gone from the
- * CSSOM, so rulesOf() reads that rule as sizing nothing and this is the only
- * thing that sees it.
- *
- * Three shapes are asked anyway, because scoping them is what would make them
- * silent: an at-rule holding declarations rather than rules, where there is
- * nothing further in to descend to and the prelude is not a selector; a rule
- * with a rule nested inside it, where the inner selector is relative to the
- * outer one and says nothing on its own; and a selector computed at render time,
- * where "not an icon" is a guess rather than an answer. Each is reported with
- * the ground it sits on named, which is coarser than a rule and still sends the
- * reader to the right place.
- *
- * A logical declaration is asked under its PHYSICAL name, which is not the name
- * the file spells. cssstyle waves `inline-size` through whatever the value, so
- * asked as written it always survives — and then foldLogicalDims() rewrites it
- * onto `width`, which refuses the value, and the rule ends up empty anyway. The
- * cascade every gate measures is the physical one, so that is the cascade the
- * declaration has to reach. It is REPORTED as written, since that is the
- * declaration the reader has to go and find.
- *
- * A value holding an unresolved interpolation is left alone: jsdom drops that
- * too, but blindSpots() already reports it and can say what is actually wrong
- * with it, and one rule drawing two refusals under two different messages sends
- * the reader looking for two problems. */
+ * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
 export function droppedDecls(from, css, classes) {
   const out = [];
   const scan = (text) => {

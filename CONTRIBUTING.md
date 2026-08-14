@@ -187,6 +187,194 @@ Read source, not built output. `react/dist` is gitignored and built by `prepare`
 `release.yml` installs with `--ignore-scripts`, so a gate reading `dist` measures something
 CI does not have — the local-green/CI-red defect this area keeps producing.
 
+## Where jsdom stops being a browser
+
+The icon gates mount real elements against the kit's real CSS and ask jsdom what size came
+out, over one shared implementation in `scripts/lib/icon-cascade.js`. jsdom is close enough
+to a browser that the gaps are the whole difficulty, and each one below is a shape where a
+gate measured something a browser does not render. None of them was reasoned out in advance;
+every one shipped first and is written down here so the next gate does not rediscover it.
+
+### A spelling the sweep cannot see costs coverage in silence
+
+The set of classes the kit puts on an `<svg>` is read out of markup, and `mount()` asks that
+set whether to build an `<svg>` or a `<div>`. Read it wrong in either direction and the gate
+still passes.
+
+HTML folds case and a browser is what decides that: `<SVG CLASS="ic">` parses to an element
+whose `localName` is `svg`, in the SVG namespace, matched by `.ic` and sized by every rule
+targeting it — jsdom included. A sweep that misses that spelling drops every rule naming the
+class out of measurement with no count moving to say so, which is how `.ui-fbck` went
+unmeasured the first time. The `ic` tripwire in `scripts/icon-size-surfaces.test.js` does not
+catch it coming back: that guards one class that already exists, and a class introduced in
+capitals never joins the set for it to miss.
+
+JSX folds no case, because `className` is a prop rather than an attribute. `CLASSNAME` is a
+different prop, which React hands to the DOM as an attribute named `classname` and not as a
+class at all, and `<SVG …>` is a component reference rather than the intrinsic element.
+Reading either would put a class in the set that no `<svg>` carries, and a rule naming it
+would be mounted as an icon and measured against the reset.
+
+Neither flag may reach the captured text. A class name is case-**sensitive** — `.Ic` and
+`.ic` are two classes — and consumers compare the set exactly, so the class has to come back
+spelled the way the markup spells it.
+
+The same split runs through pseudo-class names, where CSS folds case as HTML does.
+`:WHERE(svg)` selects what `:where(svg)` selects, so a rule written that way decides an
+icon's size; a scan matching lower case only collected no alternatives out of it and let the
+rule leave the subject count without moving it. jsdom is worse than blind there:
+`querySelectorAll` throws `Unknown pseudo-class :WHERE()`, while `matches()` and the style
+resolution answer **true** for every element. So `.ui-btn :WHERE(svg)` sizes every icon in
+the document the gate builds, the bare one the reset owns included, and the assertions that
+fail are the ones about the reset — in files that are fine, while the rule that did it is
+named nowhere. Recognised as a subject, the shape is refused by name and the reader is sent
+to the rule.
+
+Only the **top level** of a compound is harvested for what the subject may be. `:has()` and
+`:not()` are excluded: the first is about a different element and the second says what the
+subject is not. An `:is()` nested inside either belongs to that pseudo's argument, not to the
+subject — `.a:not(:is(svg))` selects everything that is *not* an svg, and harvesting the
+`:is()` out of it made that an icon rule, which the gate then tried to mount and hard-errored
+on the `:`. A red on correct CSS, out of the one exclusion the function is built around.
+
+### The CSSOM stops describing a block that repeats a property
+
+`cssstyle` keeps a repeated property once, in its **first** position carrying its **last**
+value and its **last** importance. Every gate here reads that bookkeeping and it is right
+whenever it still describes the file. It stops in two ways, and they are not the same
+failure.
+
+**The winner.** A browser takes the important declaration wherever it sits, and only then the
+last one, so the winner of `.ui-btn svg { width: 40px !important; width: 16px }` is 40px. The
+CSSOM holds 16px, not important, because that is the last declaration — the gate mounts an
+element, reads 16px back, agrees with itself and reports the rule as measured while the
+browser renders something else. That is the whole of [#148][i148] rebuilt inside the fix for
+it: a rule deciding an icon's size with the thing meant to notice staying quiet.
+
+The line is exactly this: a repeat is misread when **some** declaration of the property is
+important and the **last** one is not. Nothing else about the repeat matters.
+
+| the block | why |
+| --- | --- |
+| `width: 100%; width: fit-content` | no importance anywhere, last wins in both — the fallback idiom, read correctly, must stay green |
+| `width: 10px; width: 12px !important` | importance arrives and stays; the last declaration **is** the winner |
+| `width: 10px !important; width: 12px` | importance drops; a browser takes 10px and the CSSOM says 12px — refused |
+| `10px !imp; 12px; 14px` | the winner is 10px, the CSSOM says 14px — refused |
+| `10px; 12px !imp; 14px` | the winner is 12px, the CSSOM says 14px — refused |
+| `10px; 12px !imp; 14px !imp` | the winner is the last one — read right |
+
+`height` and both logical spellings are asked too, since `cssstyle` deduplicates all four the
+same way. Value equality is no way out: `width: 16px !important; width: 16px` computes the
+same number and still loses the importance, which is the one thing that decides a contest
+against an `!important` reset.
+
+How the file **spells** the property is a separate question this scan used to get wrong.
+`WIDTH` and `width` are one property to CSS and one entry in the CSSOM, so a capital walked
+past a lower-case-only check and handed every gate the losing declaration — #148 again,
+arriving through the spelling. The name is now read the way CSS reads it and keyed
+lower-cased. Two spellings stay outside what it can see, and nothing in this repo writes
+either: an **escaped** name, `wid\74 h`, is `width` to a browser and nothing at all to jsdom,
+which throws the declaration away before the CSSOM has it, so there is no repeat left to
+refuse; a name led by a no-break space or a BOM goes the other way, dropped by browser and
+jsdom alike but counted here regardless, because `\s` in a JavaScript regex covers characters
+CSS whitespace does not. The first under-reads and the second would refuse a block that is
+fine.
+
+**The order**, which is about the logical fold. In `.a { width: 10px; inline-size: 33px;
+width: 12px }` the property sits on both sides of its twin, so keeping it in its first
+position moves it in front of a declaration the file puts it behind: a browser renders 12px
+and the fold gives 33. Every other arrangement survives — with the repeats on one side of the
+twin, whichever side, the deduplicated order is still the file's.
+
+Both are wrong numbers rather than errors, which every gate reports as a pass, and nothing in
+the CSSOM recovers the truth: `rule.cssText` is serialised from the same deduplicated block.
+So the gate refuses rather than guessing, and it refuses without asking whether the rule sizes
+an icon at all. Telling the two apart would mean handing the check the icon classes, which
+two of the three gates derive only after they have folded — and neither shape is CSS anybody
+writes on purpose, since a declaration a browser can never take is dead either way.
+
+### The reset is found by what only the reset does
+
+The reset and the rules measured against it can share a file, so provenance cannot tell them
+apart. A gate that excluded `base.css` wholesale swallowed any component rule written there,
+and `.ui-nav__ic svg { width: 40px }` in that file was measured by nothing.
+
+So the reset is identified positively, by the one thing only it does: it sizes an icon with no
+class on it, no attribute and nothing around it. Every component rule in the kit names a
+class, on the icon or on an ancestor, so a bare `<svg>` matches none of them — the same icon
+the bare-icon test measures, which is what makes this a definition rather than a heuristic
+about shape.
+
+Shape must not decide it. jsdom serialises `.x { svg { … } }` as `& svg`, so "the rule with no
+class in it" reads a nested component rule as the reset and drops it in silence. Nothing here
+reads a selector's parts: a nested rule is refused by name first, and the question is asked of
+an element. It is asked per selector, since one block's selector list can hold the reset and a
+component rule, and only of rules that **size** an icon — `*` matches a bare svg and decides
+nothing about it.
+
+Exactly one, and the count is the point. A second rule sizing a bare icon is either a reset
+written twice or a rule like `svg:not([width])` at (0,1,1), which out-ranks every `.ui-btn
+svg` in the kit from the one file whose rules are not subjects — #148 arriving again with
+every gate green. Two rules sharing one selector are one reset, since that is one rule split
+across two blocks.
+
+### A declaration jsdom drops leaves no subject to count
+
+jsdom keeps the declarations it understands and discards the rest without a word, so
+`.zz svg { width: fit-content(20%) }` reaches the CSSOM as a rule that sizes nothing. It
+contributes no subject, a count only moves when a subject appears or disappears, and so a rule
+added and dropped in the same breath leaves the number exactly where it was while the rule
+applies in a browser with nothing watching it. All three gates ask about it.
+
+The question goes to the raw text, since the CSSOM is precisely where the answer is missing,
+and each declaration is re-parsed on its own rather than looked for by value: `fit-content(20%)`
+and `anchor-size(width)` are what jsdom drops today, and a list of values here would be out of
+date by the release after this one.
+
+It is asked **of the rules that decide an icon**, not of every rule in the sheet. What jsdom
+drops has nothing to do with icons — `width: env(safe-area-inset-left)` on a drawer,
+`height: CALC(1px + 2px)` on a toast — and refusing those is a red on CSS somebody is going to
+write and be right to write. Over two small React files, asking everything cost nothing; over
+`src/styles` it is a wide net across CSS with no icon near it. The dropped declaration is gone
+from the CSSOM, so the selector comes out of the raw text instead.
+
+A conditional group is **descended into** rather than read flat, because that argument holds at
+every depth and the code used to make it only at brace depth 0. `@media` is a wrapper: the
+declarations under it belong to the rules further in, each with an element selector of its own
+to be scoped by — bar a keyframe, whose `from` and `50%` name no element and so scope to
+nothing, which is right, since no icon's cascade runs through a keyframe. Read flat, the
+block's selector was the at-rule, no selector starting with `@` is an icon, and every
+declaration inside got asked about — which refused `width: env(safe-area-inset-left)` on a
+drawer inside a media query while allowing the same declaration one brace out.
+
+Three shapes are asked anyway, because scoping them is what would make them silent: an at-rule
+holding declarations rather than rules, where there is nothing further in to descend to and the
+prelude is not a selector; a rule with a rule nested inside it, where the inner selector is
+relative to the outer one and says nothing alone; and a selector computed at render time, where
+"not an icon" is a guess rather than an answer. Each is reported with the ground it sits on
+named, which is coarser than a rule and still sends the reader to the right place.
+
+A logical declaration is asked under its **physical** name, which is not the name the file
+spells. `cssstyle` waves `inline-size` through whatever the value, so asked as written it
+always survives — and then the fold rewrites it onto `width`, which refuses the value, and the
+rule ends up empty anyway. The cascade every gate measures is the physical one, so that is the
+cascade the declaration has to reach. It is *reported* as written, since that is the
+declaration the reader has to go and find.
+
+The other half of the same hole is a stylesheet a gate cannot see the whole of: an
+interpolation standing where a rule or a declaration would be — `<style>${SHELL_CSS}</style>`,
+a `${SHARED}` after the last rule in a block, `.a { ${DECLS} }`. Each can hold a rule that
+sizes an icon and each is invisible to a scan keyed on punctuation, since the value and
+property scans need a `:` beside the marker and the selector scan needs a `{` after it. So it
+is asked by **position**. The older question — is the marker here and did the sheet parse to no
+rules — is answered "no" by any one parseable rule written beside the shell, which is the
+shared-shell refactor itself: one ordinary rule next to `${SHELL_CSS}` and the block reads as
+fully measured. A marker inside a declaration's *value* is left alone whatever the property,
+because a surface interpolates a colour or an image far more often than a size and refusing
+`background: ${theme.bg}` is a red on correct code.
+
+[i148]: https://github.com/apliteni/apliteni-ui/issues/148
+
 ## Add a component
 
 1. `src/styles/<name>.css` — token-driven, `.ui-<name>` class namespace.
