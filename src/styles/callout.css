@@ -91,8 +91,27 @@
 .ui-toast__action { flex: none; align-self: center; background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); }
 
-.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; }
+.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; }
 .ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+/* The target, not the ink. WCAG 2.5.8 measures what a pointer can land on, and
+   the drawn button is 19x19 — a 15px glyph in 2px of padding. Growing the box
+   to 24 would push the glyph 2.5px off the corner it is aligned to, so the
+   TARGET grows instead and the glyph does not move at all.
+   Centred, so the overhang is 2.5px on every side. It has 12px of flex gap to
+   .ui-toast__action beside it and 12px between stacked toasts, so it reaches no
+   neighbouring target; .ui-toast's overflow: hidden clips at 15px of padding,
+   well outside it. Measured, not asserted:
+   stories/guidelines/accessibility-floor.test.js reads this rule out of the
+   sheet and reports the target it makes. #219 */
+.ui-toast__close::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+}
 .ui-toast__close:hover { color: var(--text); }
 
 /* auto-dismiss progress bar — .is-running is added by wireToastStack() */

@@ -5,7 +5,7 @@
 // stories/guidelines/accessibility-floor.test.js rather than by this comment
 // (the measured-pin rule). Two of the three are settled by a standard. The third is not
 // settled by anybody, and says so.
-import { button, toast } from '../../src/components/index.js';
+import { button, checkbox } from '../../src/components/index.js';
 
 export const TITLE = 'The accessibility floor';
 
@@ -52,9 +52,11 @@ export const DISABLED_LEDGER = {
 /**
  * Controls under 24px that the gate lets through, each with the reason.
  *
- * An entry is not an excuse: three of these four are failures with an issue on
- * them, and the fourth is not kit code. The gate refuses an entry that names a
- * control no story renders, or one that has since grown past the floor.
+ * An entry is not an excuse. #219 emptied this list of the three kit controls
+ * that were on it, and what is left is not kit code. The gate refuses an entry
+ * that names a control no story renders, or one that has since grown past the
+ * floor — a fix retires its own entry, and the page's gap badge is derived from
+ * whether any entry here still carries an issue.
  */
 export const TARGET_EXEMPT = [
   {
@@ -63,24 +65,6 @@ export const TARGET_EXEMPT = [
       + 'stories/apps/AccountPreset.stories.js, styled by that story’s own <style> block. '
       + 'Measured at 21.06px and reported rather than hidden, because a walk that skipped '
       + 'story chrome would also skip a component that had not been moved into src yet.',
-  },
-  {
-    control: 'button.ui-snippet__copy',
-    issue: 219,
-    why: 'Fails at 23.44px, short by 0.56px — padding 2 and a 12px label at line-height 1.62. '
-      + 'The cheapest of the three to fix and the one nobody would notice moving.',
-  },
-  {
-    control: 'button.ui-toast__close',
-    issue: 219,
-    why: 'Fails at 19x19. Five px on both axes is a visible change to a shipped component, '
-      + 'and it sits beside the toast’s action, so 2.5.8’s spacing exception does not save it.',
-  },
-  {
-    control: 'input.',
-    issue: 219,
-    why: 'Fails at 19x19 — the checkbox input under .ui-check, which is the target itself '
-      + 'rather than a hidden input behind a painted box the way the switch works.',
   },
 ];
 
@@ -203,11 +187,17 @@ export const GATES = [
   {
     file: 'stories/guidelines/accessibility-floor.test.js',
     does: 'Pins the three numbers on this page: target size against every control the stories '
-      + 'render, the ring against every ground it lands on, and the composite a disabled '
-      + 'control leaves on the page.',
+      + 'render — the box it draws UNION the pseudo-elements it generates, which is what a '
+      + 'pointer can land on — the ring against every ground it lands on, and the composite a '
+      + 'disabled control leaves on the page.',
     blind: [
-      'Width, for anything a line of text sizes — reported unmeasurable rather than passed.',
+      'Width, for anything a line of text sizes — reported unmeasurable rather than passed. An '
+        + 'overlay can only widen a width already known, never supply one.',
       '2.5.8’s spacing exception, which is a layout question end to end.',
+      'Where an overlay sits. Its size is read, its offset is not, so one pushed clear of its '
+        + 'control would still count and one overhanging a neighbour would not be reported.',
+      'Clipping. An overflow: hidden ancestor can cut an overlay down and no boxes are '
+        + 'composited here — .ui-toast clips, and its close was checked by hand.',
       'The ring’s inner edge. Only the ground outside is measured.',
     ],
   },
@@ -310,38 +300,58 @@ export const UNGATED = [
 export const SPEC_CSS = `
   <style>
     .gl-stage--row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+
+    /* The Do cell renders the real checkbox and REVEALS its target: the dashed
+       square is the ::before src/styles/input.css declares, not a drawing of
+       one, so an overlay that changed size would change this picture. */
+    .gl-target .ui-check input::before { outline: 1.5px dashed var(--accent); }
+
+    /* The Don't cell cannot be a live control. Every story in the tree is walked
+       by the target gate next door, so a real 19px control here would fail the
+       kit's own floor — the picture of the failure has to be inert. This is the
+       checkbox's own paint at the size its target used to stop at, with the
+       dashed line on the same square as the solid one, which IS the mistake. */
+    .gl-target__ink { width: 19px; height: 19px;
+      border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs);
+      background: var(--surface-2); outline: 1.5px dashed var(--pink); }
   </style>`;
 
-const row = (...html) => `<div class="gl-stage gl-stage--row">${html.join('')}</div>`;
+const row = (...html) => `<div class="gl-stage gl-stage--row gl-target">${html.join('')}</div>`;
 
 export const targetDo = () => row(
+  checkbox({ label: 'Revoke on expiry', checked: true }),
   button({ label: 'Revoke', variant: 'secondary', size: 'sm' }),
-  // moreHorizontal, not gear: the icon-only closed list is a rule of this same
-  // collection, and a specimen of one rule must not break another.
-  button({ label: 'More actions', icon: 'moreHorizontal', iconOnly: true, variant: 'secondary' }),
 );
 export const targetDont = () => row(
-  button({ label: 'Revoke', variant: 'secondary', size: 'sm' }),
-  toast({ variant: 'success', title: 'Token revoked', body: 'The close is 19px square.' }),
+  `<span class="gl-target__ink" aria-hidden="true"></span>`,
 );
 
 export const RULES = [
   {
     id: 'target-size',
     imperative: `Give every pointer target at least ${TARGET_MIN}x${TARGET_MIN} CSS px.`,
-    doCaption: 'A sm button measures 26.5px high — 6 + 12.5 + 6 and two hairlines. It clears.',
-    dontCaption: 'The toast’s close is 19x19. It is the smallest target the kit ships.',
+    doCaption: '2.5.8 measures the TARGET, not the ink. The checkbox is drawn 19x19 and hit at '
+      + '24x24 — the dashed square is a centred ::before, which a pointer landing on hits the '
+      + 'input, and nothing about the box under it moved. Reach for an overlay where the drawn '
+      + 'box IS the design, and grow the box where it is not: the sm button beside it needs '
+      + 'neither at 26.5px high, and .ui-snippet__copy was 0.56px short, where a min-height '
+      + 'nobody can see beat an overlay nobody can measure.',
+    dontCaption: 'Target and ink the same 19x19 square — five px short on both axes. Three of the '
+      + 'kit’s controls sat here until #219.',
     doHtml: targetDo,
     dontHtml: targetDont,
     except: 'WCAG 2.5.8 lets five cases through — spacing, an equivalent control elsewhere, a '
       + 'target inline in a sentence, a size the user agent decides, and a presentation that is '
-      + 'essential. None of them covers a control that is simply small, and none of the three '
-      + 'the kit ships under the floor qualifies for one.',
-    unmet: {
-      issue: 219,
-      note: '.ui-snippet__copy at 23.44px, .ui-toast__close and the .ui-check input at 19x19.',
-    },
-    kit: [{ ref: 'src/styles/button.css:75', pattern: '.ui-btn--sm' }],
+      + 'essential. None of them covers a control that is simply small, and none of the three the '
+      + 'kit shipped under the floor qualified for one. An overlay has its own boundary instead: '
+      + 'it must not reach a neighbouring target. The close has 12px of flex gap to the toast’s '
+      + 'action and 12px between stacked toasts against 2.5px of overhang; the checkbox has 11px '
+      + 'to a label that toggles the same input. Neither is measured — that is layout, and the '
+      + 'gate says so about itself.',
+    kit: [
+      { ref: 'src/styles/button.css:75', pattern: '.ui-btn--sm' },
+      { ref: 'src/styles/input.css:111', pattern: '.ui-check input::before' },
+    ],
   },
   {
     id: 'ring-contrast',

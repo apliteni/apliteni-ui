@@ -3,7 +3,16 @@
 
 export const RELEASES = [
   {
-    v: '0.19.1', date: '2026-08-14', tag: 'latest',
+    v: '0.20.0', date: '2026-08-14', tag: 'latest',
+    changes: [
+      ['fixed', 'The three controls that sat under the kit\'s **24 × 24 CSS px** target floor now reach it, and two of them did it **without being redrawn**. WCAG 2.5.8 measures the target, not the ink: a pointer landing on a control\'s `::before` hits the control, so `.ui-toast__close` and the `.ui-check` input keep the 19 × 19 boxes they are drawn at and each carries a centred 24 × 24 overlay — 2.5px of overhang on every side, against 12px of gap to the toast\'s action and 11px to the checkbox\'s own label. `.ui-snippet__copy` took a real box instead: it was **0.56px** short, and a `min-height` nobody can see beat an overlay nobody can measure.', ['Targets']],
+      ['changed', 'The target gate measures **what a pointer can land on**, not what the stylesheet draws. Every `sel::before` / `sel::after` rule is probed onto `sel`, and a control\'s box is the union of its border box and the pseudo-elements it generates — sized from a declared width and height, or from insets against the padding box, which is where the checkbox\'s 1.5px border is the difference between a 24px overlay and a 21px one. Without it a hit-area fix would have failed every test in that file and passed none.'],
+      ['added', 'Three tests that keep the new path honest: one fails if no control in the kit reaches the floor through an overlay (so the machinery cannot rot untested), one refuses an out-of-flow pseudo-element whose size the gate cannot read (so nothing hides behind an unmeasurable target), and one derives the floor page\'s gap badge from the exemption list rather than letting the two be written separately. The gate now also states two blind spots it did not have: where an overlay sits, and whether an `overflow: hidden` ancestor clips it.'],
+      ['changed', 'The accessibility floor page\'s target-size gap is retired — the exemption list is down to one entry, and that one is a story\'s own demo topbar rather than kit code.'],
+    ],
+  },
+  {
+    v: '0.19.1', date: '2026-08-14',
     changes: [
       ['added', '`docs/specification.md` — what the kit ships, what it guarantees, what a consumer may rely on, and what it deliberately does not do. Every statement in it is held by a gate that already runs on `npm test`, so a guarantee that stops being true turns a build red rather than becoming a lie in a document.'],
       ['changed', '`docs/adr/` is gone, and its reasoning was split by who needs it. What the kit guarantees went to the specification; how the repo works — how a gate finds its subjects, how a number gets pinned, how a rule is proven by the mutation that kills its case — went to `CONTRIBUTING.md`, because it never reaches a consumer at all. Why a shape is the way it is stays in the issue that settled it. **No code behaviour changed:** every edit under `src/` is a comment pointing somewhere new.'],

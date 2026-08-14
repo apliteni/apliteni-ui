@@ -21,6 +21,13 @@
 //  - the disabled rules, from the stylesheets. Every rule that dims a control
 //    with `opacity` under a disabled selector is a subject, and its opacity is
 //    read off the declaration rather than assumed.
+//  - a control's OVERLAYS, from the stylesheets. WCAG 2.5.8 measures the target
+//    and not the ink, so a control may keep the size it is drawn at and put a
+//    24px pseudo-element over it — a pointer landing on a ::before hits the
+//    element it belongs to. Every `sel::before` / `sel::after` rule is probed
+//    onto `sel`, and a control's box is the union of what it draws and what it
+//    generates. #219 fixed two controls that way, and until this saw them a
+//    hit-area fix would have failed every test here and passed none.
 //
 // HOW GEOMETRY IS RESOLVED WITHOUT LAYOUT. JSDOM has no layout, so `offsetWidth`
 // is 0 and `getComputedStyle().padding` is empty wherever the value is a var().
@@ -43,6 +50,16 @@
 //    circle centred on it overlaps no other target's circle. That is a layout
 //    question end to end, so the floor here is the stricter reading: the target
 //    itself is 24x24 or it is named.
+//  - Where an overlay SITS, and therefore whether it reaches a neighbour. Only
+//    the size of a pseudo-element is read, not its offset: an overlay pushed
+//    clear of the control it belongs to would still be counted, and one that
+//    overhangs onto the target beside it would not be reported. Both are the
+//    same layout question as the spacing exception above, and each overhang in
+//    the kit is instead reasoned about in the rule that declares it, against
+//    the flex gap next to it (src/styles/callout.css, src/styles/input.css).
+//  - Clipping. An `overflow: hidden` ancestor can cut an overlay down, and this
+//    walk composites no boxes. .ui-toast clips, and its close button's overlay
+//    is 2.5px into 15px of padding — checked by hand, not here.
 //  - Anything with no story, and anything a script paints at runtime — the same
 //    two holes stories/contrast.test.js names, for the same reasons.
 //  - The ring's INNER edge. A ring is painted outside the border box, so its two
@@ -139,6 +156,22 @@ const GEOMETRY = [
 const INHERITED = ['font-size', 'line-height'];
 const NONE = '·none·';
 
+// A control's target is not its ink. 2.5.8 measures what a pointer can land on,
+// and a pointer landing on a control's ::before or ::after hits the CONTROL —
+// the pseudo is a box the element generates, not a child that could take the
+// event away. So an overlay inset past the drawn box is a real 24px target with
+// the drawn control left at whatever size the design gave it, and this gate has
+// to see it or a hit-area fix would fail every test and pass none.
+//
+// The two pseudos are probed under SEPARATE names on purpose: .ui-check input
+// carries a tick on ::after and its hit area on ::before, and one namespace
+// would have let the 10px tick overwrite the 24px target.
+const PSEUDOS = ['before', 'after'];
+const PSEUDO_GEOMETRY = [
+  'content', 'position', 'pointer-events',
+  'width', 'height', 'inset', 'top', 'right', 'bottom', 'left',
+];
+
 /**
  * Copy every geometry declaration into a probe custom property beside itself.
  *
@@ -147,20 +180,49 @@ const NONE = '·none·';
  * the declaration that won for this element — vars and all — and those are
  * resolved per element afterwards. Nothing is rewritten or removed; the copy is
  * appended to the same block, so the sheet still says what it said.
+ *
+ * A `sel::before { … }` rule gets a second copy, onto `sel` itself, under
+ * `--tsz-before-*`. JSDOM does not resolve a pseudo-element's own computed
+ * style, but a custom property set on the element is readable from the element,
+ * and the element is what the pseudo belongs to. The retargeted rule carries one
+ * point less specificity than the pseudo selector it came from (a pseudo-element
+ * weighs as much as a type selector), so two pseudo rules that disagree on the
+ * same element resolve by source order here where CSS would resolve them by
+ * weight — the same approximation this file already makes, and no rule in the
+ * kit has that shape.
  */
 function probeGeometry(css) {
-  const reset = `*{${GEOMETRY.map((p) => `--tsz-${p}:${NONE}`).join(';')}}`;
+  const reset = `*{${[
+    ...GEOMETRY.map((p) => `--tsz-${p}:${NONE}`),
+    // A custom property inherits, so without this a control would read its
+    // ANCESTOR's pseudo geometry: .ui-toast--soft::before is a 3px marker, and
+    // every button inside the toast would have reported carrying one.
+    ...PSEUDOS.flatMap((ps) => PSEUDO_GEOMETRY.map((p) => `--tsz-${ps}-${p}:${NONE}`)),
+  ].join(';')}}`;
   return reset + css.replace(RULE, (whole, sel, body) => {
     if (sel.trimStart().startsWith('@')) return whole;
     const extra = [];
+    const bases = { before: [], after: [] };
+    for (const part of sel.split(',')) {
+      const m = /^(.*?)::?(before|after)$/.exec(part.trim());
+      if (m && m[1]) bases[m[2]].push(m[1]);
+    }
+    const retarget = { before: [], after: [] };
     for (const decl of body.split(';')) {
       const i = decl.indexOf(':');
       if (i < 0) continue;
       const prop = decl.slice(0, i).trim().toLowerCase();
-      if (!GEOMETRY.includes(prop) && !INHERITED.includes(prop)) continue;
-      extra.push(`--tsz-${prop}:${decl.slice(i + 1).replace(/!important/g, '').trim()}`);
+      const value = decl.slice(i + 1).replace(/!important/g, '').trim();
+      if (GEOMETRY.includes(prop) || INHERITED.includes(prop)) extra.push(`--tsz-${prop}:${value}`);
+      if (PSEUDO_GEOMETRY.includes(prop)) {
+        for (const ps of PSEUDOS) if (bases[ps].length) retarget[ps].push(`--tsz-${ps}-${prop}:${value}`);
+      }
     }
-    return extra.length ? `${sel}{${body};${extra.join(';')}}` : whole;
+    const rule = extra.length ? `${sel}{${body};${extra.join(';')}}` : whole;
+    return rule + PSEUDOS
+      .filter((ps) => bases[ps].length && retarget[ps].length)
+      .map((ps) => `${bases[ps].join(',')}{${retarget[ps].join(';')}}`)
+      .join('');
   });
 }
 
@@ -194,12 +256,49 @@ function side(v, which) {
 }
 
 /**
- * The border-box size of one control, with `null` on an axis layout decides.
+ * The box one pseudo-element of a control generates, or null when it makes none.
  *
- * Height is padding + border + content, where content is the taller of the
- * resolved line-height and any glyph the control holds. Width is only answered
- * when the box declares it, or when the control's content is a glyph and
- * nothing else — a label's width is a line of text, and that is layout's.
+ * Out of flow only: an in-flow pseudo is content, and the drawn box already
+ * counted it. `pointer-events: none` is a box no pointer can land on, so it is
+ * not a target either — everything else the element generates is.
+ *
+ * Size comes from a declared width/height where there is one, and otherwise
+ * from the two insets biting into the containing block, which for an absolutely
+ * positioned pseudo is the control's PADDING box. That second form is how the
+ * radio's dot is written (`inset: 4px` — an 8px dot in a 16px padding box), and
+ * it is the form a hit area takes when it is written as a negative inset.
+ */
+function pseudoBox(cs, which, paddingBox) {
+  const p = (name) => probe(cs, `${which}-${name}`);
+  const content = p('content');
+  if (!content || content === 'none') return null; // no content, no box
+  if (!/^(absolute|fixed)$/.test(p('position'))) return null;
+  if (p('pointer-events') === 'none') return null;
+  const axis = (declared, near, far, block) => {
+    const own = px(p(declared));
+    if (own != null) return own;
+    const edge = (w) => px(p(w)) ?? side(p('inset'), w);
+    const [a, b] = [edge(near), edge(far)];
+    return a == null || b == null || block == null ? null : block - a - b;
+  };
+  return {
+    height: axis('height', 'top', 'bottom', paddingBox.height),
+    width: axis('width', 'left', 'right', paddingBox.width),
+  };
+}
+
+/**
+ * The target size of one control, with `null` on an axis layout decides.
+ *
+ * The DRAWN box is padding + border + content, where content is the taller of
+ * the resolved line-height and any glyph the control holds. Width is only
+ * answered when the box declares it, or when the control's content is a glyph
+ * and nothing else — a label's width is a line of text, and that is layout's.
+ *
+ * The TARGET is that box widened by any pseudo-element the control generates,
+ * because a pointer landing on one of those hits the control. The two are
+ * reported separately: `drawn` is what a reader sees, and height/width are what
+ * a reader can hit, which is the pair 2.5.8 is about.
  */
 function boxOf(el, cs, glyph) {
   const pad = (which) => {
@@ -245,7 +344,33 @@ function boxOf(el, cs, glyph) {
   if (width == null && !hasText && glyph.w != null) width = glyph.w + chrome('left') + chrome('right');
   if (width != null && minW != null) width = Math.max(width, minW);
 
-  return { height: Math.round(height * 100) / 100, width: width == null ? null : Math.round(width * 100) / 100 };
+  const round = (n) => Math.round(n * 100) / 100;
+  const drawn = { height: round(height), width: width == null ? null : round(width) };
+
+  // What a pointer can land on. The containing block of an absolutely
+  // positioned pseudo is this control's padding box, which is the border box
+  // less its borders — the 1.5px the checkbox draws is the difference between a
+  // 24px overlay and a 21px one, and no comment would have caught that.
+  const paddingBox = {
+    height: drawn.height - border('top') - border('bottom'),
+    width: drawn.width == null ? null : drawn.width - border('left') - border('right'),
+  };
+  let hitH = drawn.height;
+  let hitW = drawn.width;
+  const unreadable = [];
+  for (const which of PSEUDOS) {
+    const box = pseudoBox(cs, which, paddingBox);
+    if (!box) continue;
+    if (box.height == null && box.width == null) { unreadable.push(`::${which}`); continue; }
+    if (box.height != null) hitH = Math.max(hitH, box.height);
+    // A pseudo can only WIDEN a width already known. It cannot supply one: the
+    // target is at least the drawn box, and where that is layout's answer the
+    // union of the two is layout's answer as well. Introducing it read the
+    // 3px active marker on .ui-nav__item as a 3px-wide nav item.
+    if (box.width != null && hitW != null) hitW = Math.max(hitW, box.width);
+  }
+
+  return { height: round(hitH), width: hitW == null ? null : round(hitW), drawn, unreadable };
 }
 
 /** The largest glyph a control holds, in px, or nulls when it holds none. */
@@ -364,6 +489,52 @@ test('target size: every exemption names a control that is really there and real
     assert.ok(under, `${e.control} measures ${got.height}x${got.width ?? '?'} and clears ${TARGET_MIN}px — the exemption is stale`);
     assert.ok(e.why && e.why.length > 20, `${e.control}'s exemption has no reason`);
   }
+});
+
+// 2.5.8 is about the TARGET, so a control may keep its ink and grow only what a
+// pointer can land on. Two in the kit do, and this is the test that proves the
+// gate can see it: delete the pseudo probe and this fails, where the floor tests
+// above would go on passing on the two controls that no longer reach it.
+test('target size: the overlay path is exercised, and the ink under it is still small', () => {
+  const short = (b) => b.height < TARGET_MIN || (b.width != null && b.width < TARGET_MIN);
+  const byOverlay = targetRun.controls.filter((c) => short(c.drawn) && !short(c));
+  assert.ok(
+    byOverlay.length,
+    'no control reaches the floor through an overlay, so nothing here measures one — if the kit '
+    + 'really has none left, take the pseudo probe out rather than leaving it untested',
+  );
+  for (const c of byOverlay) {
+    assert.ok(
+      c.drawn.height < c.height || (c.drawn.width != null && c.drawn.width < c.width),
+      `${c.key}: the overlay is no larger than the box it is on — it is not doing anything`,
+    );
+  }
+});
+
+test('target size: no control carries an overlay this gate cannot measure', () => {
+  const opaque = targetRun.controls
+    .filter((c) => c.unreadable.length)
+    .map((c) => `${c.key} — ${c.unreadable.join(', ')} (${c.where})`);
+  assert.deepEqual(
+    opaque, [],
+    'an out-of-flow pseudo-element with no size this gate can read is a target reported as absent. '
+    + 'Give it a width and a height, or insets against a padding box that is itself measurable.',
+  );
+});
+
+// The page badges its own gaps (`unmet`), and a badge that outlives its failure
+// is the same rot in the other direction. Derived from the exemptions rather
+// than asserted, so retiring the last one retires the badge with it.
+test('target size: the page badges a gap exactly when an exemption is still holding one open', () => {
+  const rule = RULES.find((r) => r.id === 'target-size');
+  assert.ok(rule, 'the target-size rule is gone from the floor page');
+  const open = TARGET_EXEMPT.filter((e) => e.issue).map((e) => e.control);
+  assert.equal(
+    Boolean(rule.unmet), open.length > 0,
+    open.length
+      ? `the kit is still short at ${open.join(', ')} and the page claims no gap`
+      : 'no exemption is a failure any more — take the gap off the page',
+  );
 });
 
 test('target size: the sm size the kit ships is measured, and is on the record', () => {

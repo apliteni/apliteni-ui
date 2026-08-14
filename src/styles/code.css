@@ -42,6 +42,12 @@
   align-items: center;
   gap: 6px;
   padding: 2px 4px;
+  /* WCAG 2.5.8's 24 CSS px target floor, taken as a real box rather than as an
+     overlay: 2 + a 12px label at line-height 1.62 + 2 came to 23.44, so the
+     drawn button grows by 0.56px and the bar it sits in grows with it. Nothing
+     smaller than a rounding error moves, which is why this one is not a hit
+     area. Measured in stories/guidelines/accessibility-floor.test.js. #219 */
+  min-height: 24px;
   transition: color var(--dur-fast) var(--ease);
 }
 .ui-snippet__copy:hover { color: var(--accent); }
