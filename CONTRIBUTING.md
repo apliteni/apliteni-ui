@@ -192,6 +192,70 @@ beside it: each per-file test checks that checks-run equals stories-discovered �
 tally test at the end re-checks that across every file. A story cannot fall out of the set
 unnoticed.
 
+### What the signal-colour gate models, and the edits it exists to refuse
+
+`stories/signal-contrast.test.js` holds the guarantee in
+[specification.md](docs/specification.md#colour-and-contrast) that a signal colour's ink clears
+AA on the surface it actually sits on. The trap it was built after is that most of those rules
+do not sit on `--bg` at all: they paint the signal onto its own translucent glow, and a hue
+picked to read on the dark canvas is nowhere near dark enough once that wash lands on white.
+
+The two fixes it gates are deliberately different shapes, and the difference is the lesson.
+For **success**, the deepened chip pair already existed and already cleared AA, so every
+green-on-glow-green rule is simply repointed at `--chip-success-ink` / `--chip-success-fill` and
+no token value moves. For **danger** the failing consumers are not chips at all — a nav row on
+hover, a form error — and they cannot borrow `--chip-danger-ink` without giving a chip token a
+second job its own comment disclaims. So `--pink` itself moved: darker in light
+(`#d63c72` → `#b63361`), lighter in dark (`#e35b8f` → `#e97ca5`). Reach for the token only when
+the consumers are not the family the existing pair was named for.
+
+Three modelling choices, all deliberate:
+
+- **Each rule names the surface it lands on**, because they differ — a nav badge sits on `--bg`,
+  a dropdown badge sits inside a `--surface-2` menu, and a danger menu row is read while its row
+  is hovered to `--surface`. Where a rule declares its own background, that background is
+  composited over the named surface first.
+- **Compositing rounds to 8 bits**, because that is closer to a framebuffer than full precision
+  is — not because it is what the browser paints. The two models disagree by at most a few
+  hundredths, and a value that close to the bar is chosen to clear under either.
+- **One theme axis is enough.** Accents redefine only the purple family, so the signal ratios are
+  the same under Phoenix, Ocean and Emerald as under the default.
+
+**A glow is its own colour at low alpha, and nothing more.** That is not decoration: the same hue
+is spent at low alpha in places that do *not* read `--glow-*`, so a glow that drifts off its
+token puts two different washes of one colour side by side in the same app. `--pink` is the
+worked example — spent at 10% both as `--glow-pink` and as the `color-mix` in
+`.ui-btn--danger:hover` — and `--green` the same, as the `color-mix` in the `.ui-dot.is-live`
+pulse. Every glow is gated in **both** themes: it is the same invariant, it already holds for all
+four, and a gate watching only light would let the next hand-authored dark value through
+unchallenged. Nothing about a wash makes drift acceptable in one theme and not the other.
+
+**`--glow-purple` is the exception, and it is gated separately.** The other three tint a token
+that means one thing in both themes; this one tints the accent family, where the theme changes
+*which member* is the display hue. In dark, `--accent` is the display hue and `--glow-purple`
+tints it. In light, `--accent` is a text ink and `--purple-light` is the display hue, so
+`--glow-purple` tints `--purple-light`.
+
+Light's `--accent` is deepened on purpose: [#96][i96] (shipped in [#101][i101]) found the light
+Phoenix and Emerald accents failing AA as text on white — Phoenix `#d64a12` at 4.33:1, Emerald
+`#0b9c68` at 3.52:1 — and deepened **only** `--accent`, to `#a8370c` (6.53:1) and `#087a52`
+(5.36:1). Before that commit those two cells held `--accent` and `--purple-light` at the same
+value, so every light cell agreed with either reading and the split did not exist to be seen.
+
+Be straight about the provenance: no comment in either token file says the washes were
+deliberately left behind. #101 scoped itself to the AA failure and moved nothing else, so the
+light rule is what that narrow commit *left*, and the gate is the first place it is written down.
+It is still the right rule — a 10% wash is not text and gains nothing from AA, and dragging it
+down with the ink would darken every accented surface in the light app to fix a problem those
+surfaces do not have. `--ring` was left the same way and agrees, cell for cell.
+
+So do **not** "fix" the light glows onto `--accent` to make the two themes agree. That uniformity
+would undo #96's reasoning and mud every light wash. Stopping that edit is what the gate is for,
+and that edit is the mutation it was written against.
+
+[i96]: https://github.com/apliteni/apliteni-ui/issues/96
+[i101]: https://github.com/apliteni/apliteni-ui/issues/101
+
 ### One gate per workspace, over one shared implementation
 
 Each workspace gets its own gate, because a shared count cancels: a React rule dropping out
