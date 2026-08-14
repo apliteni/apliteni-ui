@@ -72,7 +72,7 @@
 .ui-dot.is-live {
   background: var(--green);
   box-shadow: 0 0 0 0 var(--glow-green);
-  animation: ui-pulse 2s var(--ease) infinite;
+  animation: ui-pulse 2s var(--ease) infinite; /* motion: ambient — a liveness heartbeat, not a response to anything the reader did */
 }
 @keyframes ui-pulse {
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 55%, transparent); }

@@ -146,6 +146,73 @@ Each value's job is stated where the value is written, and the job decides the d
 Held by `stories/table-rhythm.test.js`. Decided in
 [#211](https://github.com/apliteni/apliteni-ui/issues/211).
 
+## Motion
+
+**The drawer is the kit's default motion, and everything else copies it.** A panel that appears
+takes 250ms, on `cubic-bezier(0.4, 0, 0.2, 1)`, moving `transform` and `opacity` and nothing else.
+That is not a preference — it is the one transition in the kit whose reasoning was written down and
+held by a gate, so it is the one the rest is reconciled against.
+
+Every duration is one of four tokens. This is the list:
+
+| token           | resolves to | what it times                                                        |
+| --------------- | ----------- | -------------------------------------------------------------------- |
+| `--dur-instant` | `80ms`      | a press: the frame of feedback under a finger, too short to read as motion |
+| `--dur-fast`    | `150ms`     | a control changing state — hover, focus, a colour, a border, a caret turning |
+| `--dur-med`     | `250ms`     | a surface arriving or leaving — drawer, confirm, dropdown, menu, toast, scrim |
+| `--dur-slow`    | `400ms`     | an entrance or a reveal: the motion library's effects, scroll reveals   |
+
+Every easing is a token too — `--ease` (symmetric, the default), `--ease-out` (arriving),
+`--ease-in` (leaving), `--ease-sharp` (dismissing), `--ease-spring` (overshoot) — or `linear`.
+All five alias the brand's `--easing-*` primitives, so the curve is one vocabulary and the
+fallback is written once rather than at each use.
+
+`linear` is not a lesser easing: `visibility` is a discrete property, so a curve buys nothing on
+it, and one whose output leaves `[0, 1]` — `--ease-spring` does — flips it in the middle of the
+fade. **Any transition of `visibility` is timed `linear`.**
+
+Twenty-six declarations across six stylesheets wrote their own number instead, at five speeds —
+`0.15s`, `0.16s`, `0.18s`, `0.2s`, `0.35s` — and thirty-six named a bare `ease`, which is
+`cubic-bezier(0.25, 0.1, 0.25, 1)` and not the kit's curve. Two of the twenty-six
+(`transition: 0.18s ease`) named no property at all, which is `all`, which includes
+`visibility`. They are now the tokens above.
+
+### The two kinds that keep a literal
+
+A `transition` is a response: something the reader did, timed against how long they will wait for
+it. It always reads a token. An `animation` is not always a response, and two kinds of it keep
+their own numbers because a token would be the wrong unit:
+
+- **ambient** — motion with no interaction origin, or whose length is set by something other than
+  a response: a loader that loops until the work returns, a spinner, a skeleton sweep, a background
+  glow drifting on a 14s period, a countdown ring spending a timer the caller set.
+- **choreographed** — a fixed sequence whose parts are timed against each other. The success
+  check's disc, tick and burst ring are `.5s`, `.5s @ .28s` and `.7s @ .2s`; retiming one piece to
+  the nearest token breaks its relationship to the other two, which is the whole effect.
+
+Each of these carries its reason at the declaration, as `/* motion: ambient — why */` or
+`/* motion: choreographed — why */`. There is no third kind and no unannotated exception.
+
+`0.01ms` in the reduced-motion net is not a duration and is not tokenised. It is the kill-switch
+idiom: short enough to be imperceptible, non-zero so `transitionend` and `animationend` still fire
+for scripts that wait on a close animation.
+
+### Reduced motion travels with the stylesheet
+
+The net — `@media (prefers-reduced-motion: reduce)` neutralising every animation and transition —
+lives in `src/styles/reduced-motion.css`, one copy. `src/index.css` imports it, so
+`apliteni-ui/css` carries it. `react/src/index.ts` imports the same file, so `apliteni-ui/react/css`
+carries it as well: a consumer who takes only the React stylesheet is not left with motion and no
+net. Taking both is harmless — every rule in it is idempotent and `!important`.
+
+Held by `stories/motion-tokens.test.js`, which reads the four tokens out of the table above at run
+time, resolves each through `tokens.css` into the brand primitive it aliases and checks the
+milliseconds match, then fails any transition in the swept sheets that carries a literal time or a
+bare easing keyword, any `visibility` not timed `linear`, any animation literal without its
+`motion:` note, and any published CSS entry that ships motion without the net.
+
+Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200).
+
 ## Colour and contrast
 
 **The accent is measured against its own wash, not against the surfaces.** Across all eight theme

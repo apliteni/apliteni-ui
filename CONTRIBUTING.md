@@ -93,7 +93,7 @@ when you touch one, so the reviewer reads the change itself rather than the run.
 
 ## How the gates work
 
-Four rules govern every gate in this repo. They are about the gates rather than about the
+Five rules govern every gate in this repo. They are about the gates rather than about the
 kit, which is why they live here and not in
 [docs/specification.md](docs/specification.md).
 
@@ -152,6 +152,26 @@ mutation. Every entry in both lists is a subject in its own right now.
 When you mutate to prove a pin, put the edit on disk, diff to confirm it landed, watch the
 test fail, and revert. A mutation that never reached the mechanism proves nothing, and a
 green run is not evidence that it did.
+
+### An exception is a note at the site, read by the gate
+
+Most rules here are absolute, and the ones that are not have a problem: the exceptions cannot
+be listed in the gate without becoming the enumeration the first rule forbids. A list of
+"selectors allowed to keep a literal" is a list of selectors.
+
+So the exception is written where the exception is, in a shape the gate parses.
+`stories/motion-tokens.test.js` forbids a hand-written duration anywhere in the kit's CSS
+except in an `animation` that says which of two kinds it is and why —
+`/* motion: ambient — a spinner turns until the request answers */`. The gate knows the two
+kind names and demands a reason after them; it knows nothing about which sheets or selectors
+have one. Add an ambient loop tomorrow and the gate has an opinion about it without being
+edited.
+
+Two things make this an exception rather than a hole. The kinds are **closed** — the gate
+accepts `ambient` and `choreographed`, so a third would need arguing for in
+[docs/specification.md](docs/specification.md) rather than typed at a use site. And the note
+sits **on the declaration**, so it is read by whoever is about to change the number, which a
+list in a test file never is.
 
 ### One gate per workspace, over one shared implementation
 

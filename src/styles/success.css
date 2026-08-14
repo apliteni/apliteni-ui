@@ -35,13 +35,13 @@
 .ui-sx__glow--a {
   width: 58%; top: -14%; left: 50%; translate: -50% 0;
   background: radial-gradient(circle at center, var(--sx-tint), transparent 68%);
-  animation: ui-sx-float 14s ease-in-out infinite alternate;
+  animation: ui-sx-float 14s ease-in-out infinite alternate; /* motion: ambient — a background glow that drifts on its own clock; `alternate` needs a symmetric curve, which var(--ease) is not */
 }
 .ui-sx__glow--b {
   width: 52%; bottom: -20%; left: 12%;
   background: radial-gradient(circle at center,
     color-mix(in srgb, var(--accent) 30%, transparent), transparent 68%);
-  animation: ui-sx-float 18s ease-in-out -6s infinite alternate;
+  animation: ui-sx-float 18s ease-in-out -6s infinite alternate; /* motion: ambient — the second glow, offset in period and phase so the pair never lines up */
 }
 :root[data-theme="light"] .ui-sx__glow { opacity: 0.7; }
 @keyframes ui-sx-float {
@@ -104,21 +104,21 @@
 /* Soft tinted disc that springs in behind the tick. */
 .ui-sx__disc {
   fill: var(--sx-tint); stroke: var(--sx-track); stroke-width: 1.5;
-  transform-origin: center; animation: ui-sx-pop .5s cubic-bezier(.22,1,.3,1) both;
+  transform-origin: center; animation: ui-sx-pop .5s cubic-bezier(.22,1,.3,1) both; /* motion: choreographed — first beat of the check: disc, then tick at .28s, then ring at .2s */
 }
 /* The tick, stroked on via dash-offset (path length ~34). */
 .ui-sx__tick {
   fill: none; stroke: var(--sx-green); stroke-width: 5;
   stroke-linecap: round; stroke-linejoin: round;
   stroke-dasharray: 34; stroke-dashoffset: 34;
-  animation: ui-sx-draw .5s cubic-bezier(.6,0,.35,1) .28s forwards;
+  animation: ui-sx-draw .5s cubic-bezier(.6,0,.35,1) .28s forwards; /* motion: choreographed — the tick draws while the disc is still settling */
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--green) 55%, transparent));
 }
 /* Burst ring that expands and fades once, framing the moment. */
 .ui-sx__ring {
   fill: none; stroke: var(--sx-green); stroke-width: 2;
   transform-origin: center; opacity: 0;
-  animation: ui-sx-burst .7s cubic-bezier(.3,.7,.4,1) .2s forwards;
+  animation: ui-sx-burst .7s cubic-bezier(.3,.7,.4,1) .2s forwards; /* motion: choreographed — the ring outlives the tick so the moment ends on the frame */
 }
 
 @keyframes ui-sx-pop {
@@ -137,7 +137,7 @@
 .ui-sx__piece {
   position: absolute; top: -8%; width: 8px; height: 8px; border-radius: 2px;
   opacity: 0; transform-origin: center;
-  animation: ui-sx-fall 2.4s cubic-bezier(.2,.6,.35,1) var(--sx-d, 0s) forwards;
+  animation: ui-sx-fall 2.4s cubic-bezier(.2,.6,.35,1) var(--sx-d, 0s) forwards; /* motion: ambient — fall time is set by the height of the panel, not by an interaction */
   scale: var(--sx-s, 1);
 }
 .ui-sx__piece--a { background: var(--accent); }
@@ -162,7 +162,7 @@
   background: conic-gradient(var(--green) var(--sx-a, 360deg), var(--surface-2) 0);
   mask: radial-gradient(circle, transparent 5px, #000 6px);
   -webkit-mask: radial-gradient(circle, transparent 5px, #000 6px);
-  animation: ui-sx-sweep var(--sx-secs, 5s) linear forwards;
+  animation: ui-sx-sweep var(--sx-secs, 5s) linear forwards; /* motion: ambient — the caller sets the countdown; the ring just spends it */
 }
 @keyframes ui-sx-sweep { from { --sx-a: 360deg; } to { --sx-a: 0deg; } }
 .ui-sx__count-text { color: var(--muted); font-size: 13px; }
