@@ -30,20 +30,16 @@ export const RING_MIN = 3;
  */
 export const DISABLED_MIN = 3;
 
-// Ratchets, not bars. Each is the worst the kit measured when #201 wrote the
-// number down, so a token that makes one of them worse is a decision somebody
-// writes, not a drift nobody notices. Same device as GLYPH_FLOOR in ADR 0010.
-export const RING_FLOOR = 1.5;
+// Ratchets, not bars. Each is the worst the kit measures, so a token that makes
+// one of them worse is a decision somebody writes, not a drift nobody notices.
+// Same device as GLYPH_FLOOR in ADR 0010.
+//
+// RING_FLOOR sits ABOVE its bar, which is the point: #218 made --ring opaque
+// and the worst cell now measures 4.22, so the ratchet is the warning that
+// fires while the ring is still legal rather than once it is not. It was 1.5
+// while the ring failed everywhere and a ledger held the gate open.
+export const RING_FLOOR = 4.22;
 export const DISABLED_FLOOR = 1.48;
-
-/** The ring misses its own bar everywhere. What holds the gate open, and why. */
-export const RING_LEDGER = {
-  issue: 218,
-  measured: { worst: 1.5, best: 1.82 },
-  note: 'The ring clears nothing: 1.50:1 at worst in light, 1.82:1 at best in dark, across '
-    + '64 selector x ground landings. src/tokens/tokens.css already said so and pointed at a '
-    + 'closed issue.',
-};
 
 /** The disabled floor is proposed, and the kit does not meet it. */
 export const DISABLED_LEDGER = {
@@ -342,13 +338,10 @@ export const RULES = [
     imperative: `Hold a focus indicator to ${RING_MIN}:1 against the ground it lands on.`,
     why: 'WCAG 1.4.11, and ADR 0010’s rider does not let this one out: --ring is a 3px spread, '
       + 'twice the 1.5 CSS px under which a stroke stops being a graphic and takes the text bar '
-      + 'instead. The ground is the outer neighbour and also what the translucent band is '
-      + 'composited onto, so it is the pair that decides.',
-    unmet: {
-      issue: RING_LEDGER.issue,
-      note: `--ring measures ${RING_LEDGER.measured.worst}:1 at worst and `
-        + `${RING_LEDGER.measured.best}:1 at best, over 64 landings in two themes. It clears nothing.`,
-    },
+      + 'instead. The ground is the outer neighbour, so it is the pair that decides. #218 made '
+      + `the ring opaque and it clears the bar everywhere now — ${RING_FLOOR}:1 at worst, in `
+      + 'dark Nebula. It was eight rgba() literals reaching 1.35:1 at worst, and every one of '
+      + 'them missed. A translucent focus ring is a glow; the bar wants a graphic.',
     kit: [{ ref: 'src/styles/base.css:136', pattern: 'box-shadow: var(--ring);' }],
   },
   {

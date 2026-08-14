@@ -5,9 +5,15 @@
  *     <html data-theme="dark" data-accent="phoenix">
  *
  * Each sub-theme only re-points the accent family (--accent, --purple*,
- * --glow-purple, --ring, --grad-*). Surfaces, text and signal colours (green =
+ * --glow-purple, --grad-*). Surfaces, text and signal colours (green =
  * live, pink = danger) stay put, so every accent works in light AND dark and
  * every component follows with zero component-level changes.
+ *
+ * --ring is NOT here. It is declared once, in tokens.css, as var(--accent), so
+ * re-pointing --accent above re-points the focus ring too. Six hand-written
+ * rgba() rings used to sit in this file and every one of them missed the 3:1
+ * of WCAG 1.4.11 — 1.35:1 at worst. See #218 and
+ * docs/adr/0012-the-focus-ring-is-the-accent-at-full-opacity.md.
  *
  * Selectors carry two attributes + :root, so they always out-specify the
  * single-attribute theme blocks in tokens.css regardless of import order.
@@ -25,7 +31,6 @@
      but not its own wash over a card, which lifts the ground toward the ink. The
      hue is untouched. See issue #157. */
   --glow-purple: rgba(255, 106, 61, 0.15);
-  --ring: 0 0 0 3px rgba(255, 106, 61, 0.38);
   --grad-from: #ff7a45;
   --grad-to: #ffcf6a;
 }
@@ -39,7 +44,6 @@
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   --glow-purple: rgba(214, 74, 18, 0.10);
-  --ring: 0 0 0 3px rgba(214, 74, 18, 0.28);
   --grad-from: #d64a12;
   --grad-to: #e8992a;
 }
@@ -55,7 +59,6 @@
   /* Thinned from 0.18 for WCAG AA, the same wash-over-a-card pair as dark
      Phoenix and from the same alpha. The hue is untouched. See issue #157. */
   --glow-purple: rgba(59, 157, 255, 0.15);
-  --ring: 0 0 0 3px rgba(59, 157, 255, 0.38);
   --grad-from: #3b9dff;
   --grad-to: #20dcf5;
 }
@@ -83,7 +86,6 @@
      rather than the accent — in light a glow tints --purple-light, which
      stories/signal-contrast.test.js holds. See issue #157. */
   --glow-purple: rgba(21, 104, 214, 0.10);
-  --ring: 0 0 0 3px rgba(21, 104, 214, 0.28);
   --grad-from: #1568d6;
   --grad-to: #17a2c0;
 }
@@ -97,7 +99,6 @@
   --accent-strong: var(--accent);
   --accent-contrast: #04180f;
   --glow-purple: rgba(22, 201, 138, 0.18);
-  --ring: 0 0 0 3px rgba(22, 201, 138, 0.38);
   --grad-from: #16c98a;
   --grad-to: #20dcf5;
 }
@@ -113,7 +114,6 @@
   /* Thinned from 0.10 for WCAG AA, the same grey-panel pair as light Ocean and
      from the same alpha. See issue #157. */
   --glow-purple: rgba(11, 156, 104, 0.08);
-  --ring: 0 0 0 3px rgba(11, 156, 104, 0.28);
   --grad-from: #0b9c68;
   --grad-to: #12b0a0;
 }
