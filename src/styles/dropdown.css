@@ -21,7 +21,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   padding: 7px 11px 7px 13px;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .ui-dropdown__trigger:hover { border-color: var(--accent); }
 .ui-dropdown__trigger:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
@@ -34,7 +34,7 @@
   border-right: 1.6px solid var(--muted);
   border-bottom: 1.6px solid var(--muted);
   transform: rotate(45deg) translateY(-1px);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-fast) var(--ease);
   flex: none;
 }
 .ui-dropdown.open .ui-dropdown__chevron { transform: rotate(-135deg) translateY(2px); }
@@ -53,7 +53,12 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  transition:
+    opacity var(--dur-med) var(--ease),
+    transform var(--dur-med) var(--ease),
+    /* `linear`, not var(--ease): visibility is discrete, so easing it buys nothing and a
+       curve leaving [0, 1] flips it mid-fade. Same rule the drawer states at length. */
+    visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
@@ -70,7 +75,7 @@
   cursor: pointer;
   text-decoration: none;
   color: var(--text);
-  transition: background 0.15s ease;
+  transition: background var(--dur-fast) var(--ease);
 }
 .ui-dropdown__item:hover { background: var(--surface); }
 .ui-dropdown__item:focus-visible { outline: none; background: var(--surface); box-shadow: var(--ring); }

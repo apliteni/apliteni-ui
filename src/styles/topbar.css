@@ -59,7 +59,7 @@
   color: var(--muted);
   padding: 4px 13px;
   border-radius: 24px;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .dtsw a:hover { color: var(--text); }
 .dtsw a.cur { color: var(--strong); background: var(--surface); box-shadow: var(--shadow-sm); }
@@ -75,7 +75,10 @@
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 10px;
-  transition: transform 0.15s ease, background 0.35s ease, border-color 0.35s ease;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 .toggle:hover { transform: translateY(-1px); border-color: var(--border-strong); }
 .toggle .ic { width: 17px; height: 17px; display: inline-block; color: var(--accent); }
@@ -96,7 +99,7 @@
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 7px 11px 7px 13px;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .vsw__btn:hover { border-color: var(--accent); }
 .vsw__btn .lbl { color: var(--muted); }
@@ -106,7 +109,7 @@
   border-right: 1.6px solid var(--muted);
   border-bottom: 1.6px solid var(--muted);
   transform: rotate(45deg) translateY(-1px);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-fast) var(--ease);
 }
 .vsw.open .vsw__btn .car { transform: rotate(-135deg) translateY(2px); }
 .vsw__menu {
@@ -122,7 +125,13 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);
-  transition: 0.18s ease;
+  /* Named properties, not the bare shorthand: `transition: 0.18s` is `all`, and `all`
+     includes visibility — held at the OLD value for the whole duration, so the menu is
+     still `hidden` in the frame it opens. */
+  transition:
+    opacity var(--dur-med) var(--ease),
+    transform var(--dur-med) var(--ease),
+    visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
 .vsw.open .vsw__menu { opacity: 1; visibility: visible; transform: translateY(0); }
@@ -133,7 +142,7 @@
   padding: 10px 13px;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--dur-fast) var(--ease);
 }
 .vopt:hover { background: var(--surface); }
 .vopt .vname { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
@@ -171,7 +180,7 @@
   place-items: center;
   cursor: pointer;
   letter-spacing: 0.02em;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 .acct .avatar:hover { border-color: var(--accent); }
 .amenu {
@@ -186,7 +195,11 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);
-  transition: 0.16s ease;
+  /* Named properties — see .vsw__menu above. */
+  transition:
+    opacity var(--dur-med) var(--ease),
+    transform var(--dur-med) var(--ease),
+    visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
 .acct.open .amenu { opacity: 1; visibility: visible; transform: translateY(0); }

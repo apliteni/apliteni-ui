@@ -16,8 +16,11 @@
  * apliteni-ui/motion. Without JS, [data-reveal] content stays fully visible
  * (progressive enhancement, never hidden behind a script that didn't run).
  *
- * A single global prefers-reduced-motion block at the end neutralises ALL of
- * the above — plus any component animation in the kit — as the safety net.
+ * The global prefers-reduced-motion net that neutralises ALL of the above — plus
+ * any component animation in the kit — lives in reduced-motion.css, because the
+ * React bundle needs the same net and two copies would drift. index.css imports
+ * it beside this file; it is NOT @imported from here, because the icon gates read
+ * each stylesheet on its own and refuse a sheet that pulls in another.
  * ========================================================================== */
 
 /* -- Entrances -------------------------------------------------------------
@@ -31,7 +34,7 @@
 .m-scale-in,
 .m-blur-in {
   animation-duration: var(--m-dur, var(--dur-slow));
-  animation-timing-function: var(--m-ease, var(--easing-ease-out, cubic-bezier(0, 0, 0.2, 1)));
+  animation-timing-function: var(--m-ease, var(--ease-out));
   animation-delay: var(--m-delay, 0s);
   animation-fill-mode: both;
 }
@@ -78,7 +81,7 @@
   box-shadow: var(--shadow-md);
 }
 .m-press {
-  transition: transform var(--duration-instant, 80ms) var(--easing-sharp, cubic-bezier(0.4, 0, 0.6, 1));
+  transition: transform var(--dur-instant) var(--ease-sharp);
 }
 .m-press:active { transform: scale(0.97); }
 
@@ -100,12 +103,12 @@
     color-mix(in srgb, var(--text) 12%, transparent),
     transparent
   );
-  animation: m-shimmer var(--duration-crawl, 1s) var(--easing-linear, linear) infinite;
+  animation: m-shimmer var(--duration-crawl, 1s) linear infinite; /* motion: ambient — a skeleton sweeps while the data is away */
 }
 @keyframes m-shimmer { to { transform: translateX(100%); } }
 
 /* -- Attention ------------------------------------------------------------- */
-.m-pulse { animation: m-pulse 2s var(--ease) infinite; }
+.m-pulse { animation: m-pulse 2s var(--ease) infinite; } /* motion: ambient — attention loop with no interaction origin */
 @keyframes m-pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50%      { transform: scale(1.04); opacity: 0.86; }
@@ -126,7 +129,7 @@
 .m-draw [data-draw] {
   stroke-dasharray: var(--m-len, 48);
   stroke-dashoffset: var(--m-len, 48);
-  animation: m-draw var(--dur-slow) var(--easing-ease-out, cubic-bezier(0, 0, 0.2, 1)) forwards;
+  animation: m-draw var(--dur-slow) var(--ease-out) forwards;
   animation-delay: var(--m-delay, 0s);
 }
 @keyframes m-draw { to { stroke-dashoffset: 0; } }
@@ -140,8 +143,8 @@
   opacity: 0;
   transform: translateY(18px);
   transition:
-    opacity var(--dur-slow) var(--easing-ease-out, cubic-bezier(0, 0, 0.2, 1)),
-    transform var(--dur-slow) var(--easing-ease-out, cubic-bezier(0, 0, 0.2, 1));
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
   transition-delay: calc(var(--reveal-i, 0) * var(--delay-2));
 }
 .js-reveal [data-reveal].is-revealed {
@@ -149,18 +152,5 @@
   transform: none;
 }
 
-/* -- Global reduced-motion safety net -------------------------------------
- * Neutralises every animation/transition in the kit — the library's effects,
- * component motion (button loader, badge pulse, feedback check), and smooth
- * scroll. iteration-count:1 lets one-shot animations settle on their final
- * frame (e.g. a checkmark stays drawn) instead of snapping to the start. */
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto !important; }
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  [data-reveal] { opacity: 1 !important; transform: none !important; }
-}
+/* The global reduced-motion net lives in reduced-motion.css, imported beside this
+ * file from src/index.css — it has to reach the React bundle as well. */

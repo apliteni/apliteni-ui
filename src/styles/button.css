@@ -122,7 +122,7 @@
   overflow: hidden;
   /* Clean entrance: grow + fade in on state change, once. */
   transform-origin: center;
-  animation: ui-bars-in 180ms var(--ease) both;
+  animation: ui-bars-in var(--dur-fast) var(--ease) both;
 }
 .ui-btn--sm .ui-btn__bars { left: 7px; right: 7px; bottom: 4px; }
 .ui-btn--lg .ui-btn__bars { left: 14px; right: 14px; bottom: 7px; }
@@ -143,8 +143,8 @@
     color-mix(in srgb, var(--accent-contrast) 35%, transparent),
     var(--accent-contrast));
 }
-.ui-btn__bars i:nth-child(1) { width: 38%; animation: ui-bars1 2s cubic-bezier(0.65, 0.05, 0.35, 1) infinite; }
-.ui-btn__bars i:nth-child(2) { width: 22%; animation: ui-bars2 2s cubic-bezier(0.65, 0.05, 0.35, 1) 0.8s infinite; }
+.ui-btn__bars i:nth-child(1) { width: 38%; animation: ui-bars1 2s cubic-bezier(0.65, 0.05, 0.35, 1) infinite; } /* motion: ambient — an indeterminate loader loops until the work returns; its period is not a response time */
+.ui-btn__bars i:nth-child(2) { width: 22%; animation: ui-bars2 2s cubic-bezier(0.65, 0.05, 0.35, 1) 0.8s infinite; } /* motion: ambient — the second bar runs the same loop 0.8s out of phase */
 @keyframes ui-bars1 { 0% { left: -45%; } 100% { left: 110%; } }
 @keyframes ui-bars2 { 0% { left: -28%; } 100% { left: 120%; } }
 @keyframes ui-bars-in { from { opacity: 0; transform: scaleX(0.72); } to { opacity: 1; transform: scaleX(1); } }

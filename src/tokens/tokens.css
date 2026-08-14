@@ -87,6 +87,12 @@
    * without brand.generated.css. Delays are the kit's own (not a brand
    * concern). The reusable effect layer lives in styles/motion.css. */
   --ease: var(--easing-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+  --ease-out: var(--easing-ease-out, cubic-bezier(0, 0, 0.2, 1));
+  --ease-in: var(--easing-ease-in, cubic-bezier(0.4, 0, 1, 1));
+  --ease-sharp: var(--easing-sharp, cubic-bezier(0.4, 0, 0.6, 1));
+  --ease-spring: var(--easing-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+
+  --dur-instant: var(--duration-instant, 0.08s); /* 80ms — press, tick */
   --dur-fast: var(--duration-fast, 0.15s);   /* 150ms — hover, press */
   --dur-med: var(--duration-normal, 0.25s);  /* 250ms — panels, dropdowns */
   --dur-slow: var(--duration-slow, 0.4s);    /* 400ms — enters, reveals */

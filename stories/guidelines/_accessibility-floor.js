@@ -399,7 +399,7 @@ export const RULES = [
       + 'pair is 1.4.11’s, and no gate here measures it.',
     kit: [
       { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
-      { ref: 'src/tokens/tokens.css:163', pattern: '--disabled-ink' },
+      { ref: 'src/tokens/tokens.css:169', pattern: '--disabled-ink' },
     ],
   },
   {

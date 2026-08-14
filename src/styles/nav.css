@@ -44,7 +44,7 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/specification.md#the-page-shell */
 .ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
@@ -136,7 +136,7 @@
   border-right: 1.6px solid var(--muted);
   border-bottom: 1.6px solid var(--muted);
   transform: rotate(-45deg);
-  transition: transform 0.18s var(--ease);
+  transition: transform var(--dur-fast) var(--ease);
 }
 .ui-nav__group.is-open > .ui-nav__toggle .ui-nav__caret { transform: rotate(45deg); }
 .ui-nav__sub {
@@ -190,7 +190,7 @@
   font-size: 14px;
   font-weight: 500;
   border-radius: 10px 10px 0 0;
-  transition: color 0.16s var(--ease), background 0.16s var(--ease);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .ui-nav__tab:hover { color: var(--strong); }
 .ui-nav__tab:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
@@ -206,7 +206,7 @@
   background: var(--accent);
   opacity: 0;
   transform: scaleX(0.4);
-  transition: opacity 0.16s var(--ease), transform 0.16s var(--ease);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { opacity: 1; transform: scaleX(1); }
 
@@ -241,7 +241,7 @@
   border-radius: 7px;
   text-decoration: none;
   font-size: 13px;
-  transition: color 0.16s var(--ease), background 0.16s var(--ease);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 /* Carries the block's class as well as its own, for the reason .ui-nav__item
    does above: a linked crumb is an <a>, and a host stylesheet's `a:link` is

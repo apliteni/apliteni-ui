@@ -44,7 +44,7 @@
   width: 100%;
   max-width: var(--panel-md);
   overflow: hidden; /* clips the timer bar + left marker to the rounded corners */
-  animation: ui-toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: ui-toast-in var(--dur-med) var(--ease-out) both;
 }
 
 /* status → the paint tokens every style below consumes.
@@ -116,7 +116,7 @@
 
 /* auto-dismiss progress bar — .is-running is added by wireToastStack() */
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
-.ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; }
+.ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; /* motion: ambient — the bar spends the toast's dismiss timer, which the caller sets */ }
 
 /* style: soft — tinted surface */
 .ui-toast--soft { background: var(--toast-glow); box-shadow: var(--shadow-sm); }
@@ -161,7 +161,7 @@
 @keyframes ui-toast-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
 @keyframes ui-toast-out { to { opacity: 0; transform: translateX(24px); } }
 @keyframes ui-toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-.ui-toast.is-leaving { animation: ui-toast-out 0.2s ease forwards; }
+.ui-toast.is-leaving { animation: ui-toast-out var(--dur-fast) var(--ease-sharp) forwards; }
 
 @media (prefers-reduced-motion: reduce) {
   .ui-toast, .ui-toast.is-leaving { animation: none; }

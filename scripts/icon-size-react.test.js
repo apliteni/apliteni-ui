@@ -4,7 +4,7 @@
  * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -60,9 +60,15 @@ const REACT_FILES = walk(reactSrc, [], SKIPPED_DIRS).sort();
 const isTest = (p) => /\.test\.[cm]?[jt]sx?$/.test(p);
 const isSource = (p) => /\.[cm]?[jt]sx?$/.test(p) && !isTest(p);
 
-/* Every stylesheet the React components import, discovered rather than listed.
- * Path order, which is stable across machines in a way readdir order is not. */
-const REACT_SHEETS = REACT_FILES.filter((p) => p.endsWith('.css')).map(rel);
+/* The kit's stylesheets, in the order src/index.css imports them. Read here
+ * rather than beside the document below because the sweep needs to know what is
+ * already the kit's before it decides what is its own. */
+const SHEETS = kitSheetNames(src);
+const KIT_SHEETS = new Set(SHEETS.map((name) => `src/${name}`));
+
+/* The *.css the walk finds under react/src. Path order, which is stable across
+ * machines in a way readdir order is not. */
+const WALKED_SHEETS = REACT_FILES.filter((p) => p.endsWith('.css')).map(rel);
 
 /* Every stylesheet a React source imports — the `import './DataTable.css'` at
  * the top of DataTable.tsx. That is the list the workspace actually loads, and
@@ -72,6 +78,32 @@ const REACT_SHEETS = REACT_FILES.filter((p) => p.endsWith('.css')).map(rel);
 const IMPORTED_SHEETS = [...new Set(REACT_FILES.filter(isSource)
   .flatMap((p) => styleImportsIn(readFileSync(p, 'utf8'))
     .map((spec) => rel(path.resolve(path.dirname(p), spec)))))].sort();
+
+/* An imported sheet the walk cannot reach, because it is not under react/src at
+ * all: react/src/index.ts imports the kit's reduced-motion net by relative path,
+ * and tsup inlines it into react/dist/index.css. So it reaches a React consumer,
+ * which is the only question this gate asks — where the file sits is not.
+ *
+ * What it takes to be in coverage depends on which sheet it is, and the split is
+ * derived rather than declared. A sheet src/index.css already imports is one of
+ * the kit's: src/styles/icon-size.test.js sweeps it, and this document mounts it
+ * as part of KIT, so it is measured — adopting it into OWN as well would mount a
+ * second copy and count every rule in it twice. Anything else has no other gate
+ * over it and joins the sweep here.
+ *
+ * Only `.css`, and only what exists: jsdom parses CSS, so a `.pcss` or a
+ * `./x.css?inline` is a sheet this gate still cannot read, and adopting it would
+ * turn a refusal into a parse of the wrong thing. Those fall through to the
+ * coverage test below, which is what they were always meant to fail. */
+const ADOPTED = IMPORTED_SHEETS.filter((p) => (
+  !WALKED_SHEETS.includes(p)
+  && !KIT_SHEETS.has(p)
+  && p.endsWith('.css')
+  && existsSync(path.join(root, p))
+));
+
+/** Every stylesheet this sweep reads, discovered rather than listed. */
+const REACT_SHEETS = [...WALKED_SHEETS, ...ADOPTED].sort();
 
 /* And the CSS a component writes in a <style> block of its own, which is the
  * idiom this repo's vanilla stories already use and which react/src is free to
@@ -89,7 +121,6 @@ const OWN = [
   ...STYLE_BLOCKS,
 ];
 
-const SHEETS = kitSheetNames(src);
 const KIT = kitStyleHtml(src, SHEETS);
 
 const OWN_HTML = OWN
@@ -141,7 +172,11 @@ OWN.forEach(({ from }, j) => {
 });
 
 test('the sweep still finds the React workspace stylesheets', () => {
-  assert.ok(REACT_SHEETS.length > 0,
+  /* On the WALK, not on the union: a sweep that also adopts sheets from outside
+   * react/src can come back non-empty with the walk returning nothing at all,
+   * and every assertion below would then pass over a workspace this gate never
+   * opened. */
+  assert.ok(WALKED_SHEETS.length > 0,
     'found no *.css under react/src — the sweep is broken, not the workspace. Every assertion '
     + 'below would pass on an empty sweep, including the count.');
 });
@@ -155,14 +190,19 @@ test('the sweep enters every directory under react/src', () => {
     + 'paths where build output actually lands.');
 });
 
-test('the sweep reads every stylesheet a React component imports', () => {
-  const unswept = IMPORTED_SHEETS.filter((p) => !REACT_SHEETS.includes(p));
-  assert.deepEqual(unswept, [],
-    'a React source imports a stylesheet this sweep does not read. It collects *.css under '
-    + 'react/src, so a sheet under any other extension is loaded by the workspace, shipped through '
-    + 'react/dist/index.css and measured by nothing — and the subject count cannot say so, because '
-    + 'it is 0 whether the sheet is read or not. Name it .css, or widen the sweep to whatever the '
-    + 'workspace now writes.');
+test('every stylesheet a React component imports is in coverage', () => {
+  /* A sheet the workspace loads is measured either here or by
+   * src/styles/icon-size.test.js, and this asks which. The sweep follows an
+   * import wherever it points, so living outside react/src is no longer a way
+   * out — what is left is a sheet this gate cannot read at all: another
+   * extension (`./DataTable.pcss`), a bundler query (`./x.css?inline`), or a
+   * specifier pointing at nothing. Each is loaded by the workspace, shipped
+   * through react/dist/index.css and measured by nobody, and the subject count
+   * cannot say so, because it is 0 whether the sheet is read or not. */
+  const uncovered = IMPORTED_SHEETS.filter((p) => !REACT_SHEETS.includes(p) && !KIT_SHEETS.has(p));
+  assert.deepEqual(uncovered, [],
+    'a React source imports a stylesheet nothing measures. Name it .css and point it at a file '
+    + 'that exists, or widen the sweep to whatever the workspace now writes.');
 });
 
 test('the React workspace still renders against the kit stylesheets', () => {
