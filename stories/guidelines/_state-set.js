@@ -123,8 +123,8 @@ export const RULES = [
     doHtml: pendingDo,
     dontHtml: pendingDont,
     kit: [
-      { ref: 'src/components/loading.js:93', pattern: 'export function busyRegion({' },
-      { ref: 'src/components/loading.js:115', pattern: 'export function setBusy(root,' },
+      { ref: 'src/components/loading.js:54', pattern: 'export function busyRegion({' },
+      { ref: 'src/components/loading.js:74', pattern: 'export function setBusy(root,' },
       { ref: 'src/components/index.js:253', pattern: 'role="status" aria-live="polite"' },
     ],
   },

@@ -1,39 +1,15 @@
 /* Rule: a signal colour's ink clears WCAG AA on the surface it actually sits on.
  *
  * 10px uppercase badge text is not large text, so 4.5:1 is the bar, and the
- * 13-14px form text and menu rows below are not large either. The trap is that
- * these rules do not sit on --bg: most of them paint the signal onto its own
- * translucent glow, and a hue picked to read on the dark canvas is nowhere near
- * dark enough once that wash lands on white. That is why the kit carries
- * deepened --chip-*-ink / --chip-*-fill pairs for the white app.
+ * 13-14px form text and menu rows below are not large either. Most of these
+ * rules do not sit on --bg: they paint the signal onto its own translucent glow,
+ * which is why the kit carries deepened --chip-*-ink / --chip-*-fill pairs for
+ * the white app, and why --pink itself moved rather than borrowing one.
  *
- * Two fixes are gated here, and they are deliberately different shapes:
+ * Each rule names the surface it lands on, because they differ. Both themes are
+ * read; accents are not, since they redefine only the purple family.
  *
- *   success — the chip pair already existed and already cleared AA, so every
- *   green-on-glow-green rule is simply repointed at --chip-success-ink /
- *   --chip-success-fill. No token value moves. Reading the ink and the fill out
- *   of each stylesheet means pointing any of them back at --green turns this red.
- *
- *   danger — the failing consumers are not chips. A nav row on hover and a form
- *   error cannot borrow --chip-danger-ink without giving a chip token a second
- *   job its own comment disclaims, so --pink itself moved: darker in light
- *   (#d63c72 -> #b63361), lighter in dark (#e35b8f -> #e97ca5). Every rule below
- *   inherits that, so this gate is what stops the token drifting back.
- *
- * Modelling choices, all deliberate:
- *   - each rule names the surface it lands on, because they differ: a nav badge
- *     sits on --bg, a dropdown badge sits inside a --surface-2 menu, and a
- *     danger menu row is read while its row is hovered to --surface. Where a
- *     rule declares its own background, that background is composited over the
- *     named surface first.
- *   - compositing rounds to 8 bits because that is closer to a framebuffer than
- *     full precision, not because it is what the browser paints. The two models
- *     disagree by at most a few hundredths, and a value that close to the bar is
- *     chosen to clear under either. See
- *     docs/specification.md#colour-and-contrast.
- *   - accents (Phoenix, Ocean, Emerald) redefine only the purple family, so the
- *     signal ratios below are the same under every accent. One theme axis is
- *     enough.
+ * why: CONTRIBUTING.md#what-the-signal-colour-gate-models-and-the-edits-it-exists-to-refuse
  *
  * The second half of this file gates a different shape of the same rule: the
  * SOLID toast, where a signal stops being ink and becomes the fill. See the
@@ -236,22 +212,13 @@ for (const theme of ['dark', 'light']) {
 }
 
 /* ---- the glows stay tints of their own token -----------------------------
- * A glow is its own colour at low alpha — nothing more. That is not decoration:
- * the same hue gets spent at low alpha in places that do NOT read --glow-*, so a
- * glow that drifts off its token puts two different washes of one colour side by
- * side in the same app. --pink is the worked example: it is spent at 10% both as
- * --glow-pink and as the color-mix in .ui-btn--danger:hover, and --green the
- * same, as the color-mix in the .ui-dot.is-live pulse.
+ * A glow is its own colour at low alpha — nothing more. The same hue is spent at
+ * low alpha in places that do NOT read --glow-*, so a glow that drifts off its
+ * token puts two washes of one colour side by side in the same app. Gated in
+ * both themes; --glow-purple is gated separately below, because the accent
+ * family's display hue is a different token in each theme.
  *
- * Every glow is gated, in BOTH themes. Dark belongs here for the same reason
- * light does — it is the same invariant, it already holds for all four, and a
- * gate that only watched light would let the next hand-authored dark value in
- * unchallenged. There is no property of a wash that makes drift acceptable in
- * one theme and not the other.
- *
- * Three of the four glows tint a token that means the same thing in both
- * themes. --glow-purple does not, so it is gated separately, below, across both
- * token files. */
+ * why: CONTRIBUTING.md#what-the-signal-colour-gate-models-and-the-edits-it-exists-to-refuse */
 const GLOW_PAIRS = {
   '--glow-green': '--green',
   '--glow-cyan': '--cyan',
@@ -281,33 +248,13 @@ for (const theme of ['dark', 'light']) {
 }
 
 /* ---- --glow-purple: the same invariant, against a token that moves ---------
- * The three glows above tint a token that means one thing in both themes.
- * --glow-purple tints the accent family, and there the theme changes WHICH
- * member is the display hue:
+ * dark  — --accent IS the display hue, and --glow-purple tints it.
+ * light — --accent is a text INK deepened by #96, and --purple-light is the
+ *         display hue, so --glow-purple tints --purple-light.
  *
- *   dark  — --accent IS the display hue, and --glow-purple tints it.
- *   light — --accent is a text INK, and --purple-light is the display hue, so
- *           --glow-purple tints --purple-light.
- *
- * Light's --accent is deepened on purpose. Issue #96 (shipped in #101) found the
- * light Phoenix and Emerald accents failing AA as text on white — Phoenix
- * #d64a12 at 4.33:1, Emerald #0b9c68 at 3.52:1 — and deepened ONLY --accent, to
- * #a8370c (6.53:1) and #087a52 (5.36:1). Before that commit those two cells held
- * --accent and --purple-light at the same value, so every light cell agreed with
- * either reading and the split below did not exist to be seen.
- *
- * Be straight about provenance: no comment in either token file says the washes
- * were deliberately left behind. #101 scoped itself to the AA failure and moved
- * nothing else. So the light rule is what that narrow commit LEFT, and this gate
- * is the first place it is written down. It is still the right rule: a 10% wash
- * is not text and gains nothing from AA, and dragging it down with the ink would
- * darken every accented surface in the light app to fix a problem those surfaces
- * do not have. --ring was left the same way and agrees, cell for cell.
- *
- * So do NOT "fix" the light glows onto --accent to make the two themes agree.
- * That uniformity would undo #96's reasoning and mud every light wash. This gate
- * is here to stop exactly that edit, and the mutation it was written against was
- * that edit.
+ * Do NOT "fix" the light glows onto --accent to make the two themes agree; that
+ * edit is the mutation this gate was written against.
+ * why: CONTRIBUTING.md#what-the-signal-colour-gate-models-and-the-edits-it-exists-to-refuse
  *
  * Read across BOTH token files. tokens.css carries the default accent (nebula);
  * accents.css carries Phoenix, Ocean and Emerald as :root[data-theme][data-accent]

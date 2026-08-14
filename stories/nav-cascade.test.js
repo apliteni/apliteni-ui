@@ -1,42 +1,13 @@
 /* Rule: the sidebar rail's three repaired declarations must keep reaching the
  * element they are written for.
  *
- * Every defect this file gates was a rule that LOOKED right in the stylesheet
- * and never applied: the nested indent lost to the `.ui-nav ul` reset, the
- * active child's marker was offset against that missing indent and painted
- * outside the nav box, and the active nested row's focus ring was cancelled by
- * a later rule of equal specificity. Grepping the file for those declarations
- * would have passed on every one of them — they were all present, all dead.
+ * Every defect gated here was a rule that looked right in the stylesheet and
+ * never applied, so this file resolves the cascade instead of reading it:
+ * base.css + nav.css with their var() references substituted, real sidebarNav()
+ * markup mounted in a JSDOM, getComputedStyle read back. The marker's position
+ * is derived arithmetically, because JSDOM models no layout.
  *
- * So this file resolves the cascade instead of reading it. It loads the two
- * stylesheets the rail actually ships with (base.css + nav.css) with their
- * var() references substituted from the token files, mounts real sidebarNav()
- * markup in a JSDOM, and reads getComputedStyle — JSDOM applies author rules by
- * specificity and source order, so a declaration that loses to another author
- * rule resolves to the winner's value here exactly as it does in a browser.
- * Author rules are the whole of that guarantee: JSDOM does not rank by origin,
- * so a bare type selector loses to the user-agent sheet it would beat in a
- * browser — `a { color }` on a linked <a> reads back as the UA's blue. Every
- * selector asserted on below carries a class, and a class outranks the UA sheet
- * correctly.
- *
- * Two things JSDOM cannot do, and how they are modelled without weakening the
- * gate. Both rewrites are specificity-preserving, so the cascade being tested is
- * the shipped one:
- *
- *   :hover / :focus-visible  never match in JSDOM. Each is rewritten to an
- *                            attribute selector — also (0,1,0) — that the test
- *                            sets on the element it is exercising.
- *   ::before                 is not computed in JSDOM. Each `X::before` rule is
- *                            rewritten to `X > [data-pseudo="before"]` and a
- *                            stand-in child is injected. Every ::before rule
- *                            gains the same (0,1,0), so their order among
- *                            themselves is untouched.
- *
- * Layout is not modelled — JSDOM has none. The marker's position is derived
- * arithmetically from resolved values; the derivation is validated against the
- * running Storybook, where the unrepaired rail measured markerX = navLeft − 11px
- * and this file's arithmetic gave −11 for the same CSS.
+ * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

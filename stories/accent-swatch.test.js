@@ -122,7 +122,7 @@ const ACCENT_RULES = [...read('src/tokens/accents.css')
 /**
  * The custom properties an accent's OWN dark block declares.
  *
- * The selector is matched the way stories/lib/contrast.js:75-79 matches it —
+ * The selector is matched the way stories/lib/contrast.js:53-57 matches it —
  * whole-string, against one exact form — because that is the lookup whose result
  * this gate then judges. Anything else (a light-first block, or the legal
  * `[data-accent="x"][data-theme="dark"]` with the attributes the other way
@@ -153,7 +153,7 @@ function requireOwnDarkBlock(accent) {
     own.size,
     `src/tokens/accents.css declares the accent "${accent}" but this gate cannot find its dark `
     + `block. It looks for exactly one selector — :root[data-theme="dark"][data-accent="${accent}"] `
-    + '— because that is the only form stories/lib/contrast.js:75-79 resolves. Written any other '
+    + '— because that is the only form stories/lib/contrast.js:53-57 resolves. Written any other '
     + `way (light block only, or [data-accent="${accent}"][data-theme="dark"] with the attributes `
     + 'reversed, both perfectly legal CSS) the lookup finds nothing accent-specific and falls '
     + "through to :root — i.e. to NEBULA's purple ramp. This gate would then demand a purple "

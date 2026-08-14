@@ -1,37 +1,15 @@
 /* The contrast resolver: everything mechanical, nothing judgemental.
  *
- * This module resolves the kit's real cascade the way stories/nav-cascade.test.js
- * resolves the nav rail's — substitute the token files per theme, desugar the
- * state pseudo-classes to attribute selectors of identical weight, mount real
- * story markup in JSDOM and read getComputedStyle back. It knows how to parse a
- * colour, composite an alpha chain and compute a WCAG ratio. It decides nothing:
- * which failures are acceptable lives in stories/contrast.test.js, by hand.
+ * Resolves the kit's real cascade the way stories/nav-cascade.test.js resolves
+ * the nav rail's, and knows how to parse a colour, composite an alpha chain and
+ * compute a WCAG ratio. It decides nothing: which failures are acceptable lives
+ * in stories/contrast.test.js, by hand.
  *
- * Three rewrites happen before the CSS reaches JSDOM, each fixing a place where
- * a naive resolver reports a colour the browser never paints. All three are
- * specificity-preserving, so the cascade under test stays the shipped one:
+ * specialiseContextual, expandAnchors and desugar rewrite the CSS before it
+ * reaches JSDOM, each closing a place where a naive resolver would report a
+ * colour the browser never paints.
  *
- *   specialiseContextual  A custom property re-declared per component variant
- *                         (--toast-accent, once per toast status) cannot be
- *                         flattened first-wins, or every toast reports the first
- *                         status's colour. One variant-scoped copy of each
- *                         consuming declaration is emitted instead.
- *   expandAnchors         JSDOM ranks its UA sheet's `a:link` above a
- *                         same-specificity author `a` rule, so an anchor with an
- *                         href reads back as the UA's rgb(0,0,238). The bare `a`
- *                         rule gains :link/:visited forms.
- *   desugar               :hover / :focus-visible never match in JSDOM. Each
- *                         becomes a (0,1,0) attribute selector the walker sets.
- *
- * Known limitation of specialiseContextual: a specialised copy carries one more
- * class of specificity than the rule it came from, so it can out-rank a rule the
- * browser would let win. Each copy is therefore emitted immediately after its
- * source rule rather than at the end of the sheet, which keeps source order
- * intact against a later override of equal weight. That is correct exactly when
- * a base rule precedes the variants that override it (.ui-btn before .ui-btn--sm,
- * .ui-toast__action before .ui-toast--solid .ui-toast__action), which is the
- * kit's convention throughout. The gate pins the toast case with a self-check so
- * a regression in that convention is visible rather than silent.
+ * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -259,84 +237,13 @@ function capture(cs) {
 /**
  * Memoise getComputedStyle for one window, between DOM writes.
  *
- * WHY. The walk asks for a computed style far more often than there are
- * elements: every text-owning element is walked up its ancestor chain three
- * separate times — once for the background composite, once to test whether an
- * ancestor hides it, once to accumulate ancestor opacity — and siblings share
- * almost all of that chain. Measured over both themes before this existed:
- * 137,206 getComputedStyle calls, of which the background walk was only 24,840.
- * The hidden test (57,630) and the opacity accumulation (47,894) were larger,
- * and both run to the root without an early exit.
+ * It caches the LOOKUP only, and stores frozen VALUES rather than declarations,
+ * because JSDOM resolves color-mix() lazily and a held declaration hands back
+ * the raw form parseColour cannot read. Reading a property it does not hold
+ * throws; so does a read after a DOM write that did not go through `mutate`,
+ * which a MutationObserver detects rather than the convention promising it.
  *
- * That is expensive in JSDOM twice over. A miss resolves the whole cascade; a
- * hit still deep-copies the cached declaration property by property
- * (node_modules/jsdom/.../css/helpers/computed-style.js). Memoising the lookup
- * skips both.
- *
- * WHAT IS CACHED, AND WHAT IS NOT. This memoises the LOOKUP — getComputedStyle
- * per element — and nothing else. It deliberately does not memoise
- * effectiveBackground's composite, which is the tempting version and the one
- * that can go quietly wrong: a composite cached against an element would have to
- * argue that source-over stays associative down a chain shared by siblings with
- * different translucent backgrounds of their own. The composite is cheap once
- * the lookups are free, so it is still built from scratch for every element and
- * that argument never has to be made.
- *
- * VALUES, NOT DECLARATIONS, and this is not a detail. JSDOM resolves color-mix()
- * lazily — on the first read of the property — and what it resolves to depends
- * on what else has been looked up by then. Hold a declaration, look at anything
- * else, then read .color, and back comes the raw `color-mix(in srgb, …)` instead
- * of the `color(srgb …)` the same declaration would have given a moment earlier.
- * parseColour cannot read the raw form, so the element leaves the walk without a
- * word: not a failure, not an unjudgeable, just gone. Caching the declaration
- * object did precisely that to the twelve solid toasts' text — every reported
- * finding stayed identical while the gate quietly stopped looking at twelve
- * pairs. So the cache reads the properties it needs at the moment it stores
- * them, freezes them, and serves those. Reading one it does not hold throws
- * rather than answering undefined, because undefined here means "skipped in
- * silence" — the same failure wearing a different hat.
- *
- * WHY IT CANNOT SERVE A COLOUR FROM THE WRONG RENDER. Three things, together:
- *
- *   1. The memo is a WeakMap keyed on the element OBJECT. An entry can only be
- *      read back by the identical object, and an element belongs to exactly one
- *      document — so no entry of one document's render is reachable from
- *      another's, whatever the markup or the selector.
- *   2. There is no cache at module scope. walkStories builds one per call and
- *      drops it on return, so one theme pass cannot seed the next.
- *   3. Within a single document, every DOM write in the walk goes through
- *      `mutate`, which drops the memo whole — including when the write throws.
- *      This is the one that matters, because the walk toggles data-ui-state to
- *      exercise :hover and a surviving memo would report the at-rest colour for
- *      the hovered pass. It is also exactly as conservative as JSDOM itself:
- *      an attribute change on an attached element runs _attrModified →
- *      _modified → _clearStyleCache, which throws away JSDOM's own cache for
- *      the whole document. This memo is invalidated wherever JSDOM's is.
- *
- * Between writes, getComputedStyle is a pure function of the element, which is
- * what makes the memo sound in the first place.
- *
- * WHY THE THIRD POINT IS CHECKED RATHER THAN PROMISED. Routing every write
- * through `mutate` used to be a convention, held by three call sites and a
- * comment. A fourth site added with a bare setAttribute would leave the memo
- * describing the document as it was one render ago, and the gate would report a
- * colour nobody painted — confidently, with no test failing. So the cache no
- * longer trusts its caller. It attaches a MutationObserver to the document and,
- * on every read, drains the record queue: MutationObserver queues synchronously
- * and takeRecords() drains synchronously, so "has anything changed since I last
- * looked?" is a question that can be asked on the hot path with a standard DOM
- * API and no JSDOM internals. A non-empty queue at a read means a write reached
- * the document without the memo being dropped, and the cache throws instead of
- * answering. The failure is latched: a cache that has once seen an unrouted
- * write stays dead, so the error cannot be thrown once and then walked past.
- *
- * Stated exactly, because a guard that overstates itself is worse than none:
- * this enforces "the cache never answers a question about a document that has
- * moved since it last looked". It does not enforce "no write happens outside
- * mutate". A write with no read after it is invisible to the guard — and
- * harmless, because nothing was served from the memo it invalidated. It catches
- * any write from anywhere, including one made by a story's own render code,
- * which is the part a source scan of this file could never reach.
+ * why: CONTRIBUTING.md#the-style-cache-holds-values-and-refuses-to-answer-for-a-stale-document
  */
 export function makeStyleCache(win) {
   let memo = new WeakMap();
@@ -564,8 +471,9 @@ export const storyFiles = readdirSync(path.join(root, 'stories'), { recursive: t
  * Walk every story's text-owning elements against their real background.
  *
  * Returns { records, stats, problems, cache }. A story that will not render is a
- * problem, never a skip — the lesson stories/a11y.test.js:144-147 already
- * encodes. One shared JSDOM per theme, body replaced per story: measured
+ * problem, never a skip, the same rule stories/a11y.test.js walks under:
+ * why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+ * One shared JSDOM per theme, body replaced per story: measured
  * identical output to a fresh window per story, and much cheaper.
  *
  * `cache` is instrumentation about the RESOLVER and is deliberately not folded

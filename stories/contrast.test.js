@@ -107,9 +107,9 @@
  * sheet's `a:link` out-ranks a same-specificity author `a` rule, so a linked
  * anchor reads back as the UA's rgb(0, 0, 238). The resolver rewrites the kit's
  * single bare `a` rule to carry :link/:visited, and a self-check below asserts
- * that colour appears nowhere in the walk. Do not repeat the unqualified claim
- * in stories/nav-cascade.test.js:11-16 that JSDOM's cascade matches a browser's;
- * it holds among author rules only.
+ * that colour appears nowhere in the walk. JSDOM's cascade matches a browser's
+ * among author rules only, and the claim is worth stating no other way:
+ * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
  *
  * A custom property re-declared per component variant (--toast-accent, once per
  * toast status) would flatten to whichever status came first, repainting every

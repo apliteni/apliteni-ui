@@ -1,37 +1,17 @@
 // Accessibility gate — a real lifesaver, not noise.
 //
-// Renders EVERY story in stories/ — in both themes — and runs axe-core over the
-// result. It fails CI on genuine WCAG 2.0/2.1 A + AA violations: a control with
-// no accessible name, an ARIA attribute on a role that forbids it, an unlabelled
-// field, and so on.
+// Renders EVERY story in stories/, in both themes but not every accent, and
+// runs axe-core over the result — the same rule set the Storybook panel runs
+// (.storybook/preview.js), so the two never disagree.
 //
-// Two things this gate refuses to do, because it used to do both:
+// A story that will not render is a failure rather than a skip, and the count is
+// asserted so a story cannot fall out of the set unnoticed:
+// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
 //
-//  1. Skip quietly. A story that threw (anything calling document.createElement
-//     blew up in bare Node) or returned a DOM node instead of a string was
-//     silently `continue`d — five stories, including the whole Feedback file,
-//     were "covered" by a test that checked nothing. Stories now render inside a
-//     JSDOM, DOM output is serialised, and a story that still can't be rendered
-//     is a FAILURE, not a skip. The per-file tests also assert that the number of
-//     checks run equals stories discovered × themes, and a tally test at the end
-//     re-checks that across every file — so a story cannot fall out unnoticed.
-//
-//  2. Gate one theme. Light mode had never been checked. Both themes run now;
-//     accents stay out (they only repaint tokens, and the matrix costs runtime).
-//     One JSDOM is created for the whole file and axe is evaluated into it once,
-//     so covering the second theme costs a rerun, not a fresh browser each time.
-//
-// Deliberately NOT gated (kept quiet, on purpose):
-//  - best-practice heuristics like `region` — they flag story content sitting
-//    outside a landmark inside the Storybook iframe, which is framing, not a bug.
-//  - `color-contrast` — axe cannot resolve var() in a headless DOM, so it reads
-//    the kit's tokens as no colour at all and would only add flake. Contrast is
-//    gated by stories/contrast.test.js, which substitutes the token files per
-//    theme, resolves the cascade itself and composites the background chain
-//    above every text-owning element.
-//
-// This is the same rule set the Storybook panel runs (see .storybook/preview.js),
-// so the panel and CI never disagree.
+// `region` and `color-contrast` stay deliberately quiet — the first flags story
+// content outside a landmark inside the Storybook iframe, the second reads the
+// kit's unresolved var() as no colour at all. stories/contrast.test.js gates
+// contrast instead.
 
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';

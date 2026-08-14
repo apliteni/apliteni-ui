@@ -58,7 +58,7 @@ export const RULES = [
     doHtml: listDo,
     dontHtml: listDont,
     kit: [
-      { ref: 'src/assets/icons.js:174', pattern: 'export const iconOnlyAllowed' },
+      { ref: 'src/assets/icons.js:153', pattern: 'export const iconOnlyAllowed' },
       { ref: 'stories/guidelines/iconography.test.js:105', pattern: 'every icon-only control is one the closed list allows' },
       { ref: 'src/components/index.js:39', pattern: 'const named = iconOnly' },
     ],
@@ -74,7 +74,7 @@ export const RULES = [
     doHtml: meaningDo,
     dontHtml: meaningDont,
     kit: [
-      { ref: 'src/assets/icons.js:195', pattern: 'export const iconMeanings' },
+      { ref: 'src/assets/icons.js:174', pattern: 'export const iconMeanings' },
       { ref: 'src/components/index.js:233', pattern: 'const TOAST_ICON = {' },
     ],
   },
@@ -101,7 +101,7 @@ export const RULES = [
     except: 'A brand mark has no Lucide original — `github` and `linkedin` are the vendor’s own, and '
       + 'live in BRAND for that reason.',
     kit: [
-      { ref: 'src/assets/icons.js:158', pattern: 'stroke-width="1.7"' },
+      { ref: 'src/assets/icons.js:137', pattern: 'stroke-width="1.7"' },
       { ref: 'src/assets/icons.test.js:72', pattern: "test('the emitter ships the numbers its header argues for'" },
     ],
   },
@@ -119,7 +119,7 @@ export const RULES = [
       + 'there is no five-status pair to keep, and its own contrast is the control’s to answer for.',
     kit: [
       { ref: 'src/styles/callout.css:16', pattern: 'stroke-width: 2.1;' },
-      { ref: 'stories/signal-contrast.test.js:639', pattern: 'const barFor = (px) =>' },
+      { ref: 'stories/signal-contrast.test.js:586', pattern: 'const barFor = (px) =>' },
     ],
   },
 ];

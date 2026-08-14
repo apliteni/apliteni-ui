@@ -1,46 +1,11 @@
-// The two states every screen has and the kit had no answer for: it is still
-// fetching, and the reader is not allowed to see this.
+// The pending and denied states of a SCREEN, not of one control.
 //
-// The kit already shipped busy for ONE control — button({ busy: true }) sets
-// aria-busy and disables (components/index.js). Nothing said what the screen
-// around that button does while the fetch is in flight, so every consumer
-// invented its own, and none of them announced.
+// busyRegion() is one live region that outlives what it reports on; setBusy()
+// swaps its body and writes a line into the sr-only node already inside it.
+// Three things land in that body: skeleton() while it fetches, your markup once
+// the rows arrive, deniedState() when the answer came back 403.
 //
-// One region, three renders
-// ------------------------
-// busyRegion() is a live region that OUTLIVES the thing it reports on. It is
-// rendered once, with skeleton inside; setBusy() swaps its body and writes a
-// line into the sr-only node it already contains. That is the whole mechanism —
-// a live region whose text changes is the only thing assistive tech reliably
-// speaks. Inserting a fresh role="status" together with its text (the obvious
-// shortcut) announces nothing on several screen readers, which is exactly the
-// bug this file exists to stop.
-//
-// It reuses the announcement the kit already ships: role="status"
-// aria-live="polite", the same pair toast() and success() carry. There is no
-// second mechanism here.
-//
-// Three things can land in that body:
-//
-//   skeleton()      the placeholder while it fetches — aria-hidden, because a
-//                   shimmer is a picture of content, not content
-//   your markup     the rows, once they arrive
-//   deniedState()   the answer came back 403
-//
-// deniedState() therefore carries no role of its own. Dropped into the region
-// it is announced by the region; rendered as a whole page it needs no
-// announcement, because nothing changed — that IS the page. Two live regions
-// racing over one event is how a screen ends up saying things twice.
-//
-//   const el = document.querySelector('#report');
-//   el.innerHTML = busyRegion({ label: 'Loading your report…', lines: 4 });
-//   const rows = await fetch(…);
-//   setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
-//
-// No spinner factory. The kit already spins in two places that own their
-// context — .ui-btn__bars inside a busy button, .ui-fbspin inside the feedback
-// composer — and a third would be a third thing to keep in sync. At screen
-// scale a skeleton says more anyway: it says what shape is coming.
+// why: docs/specification.md#pending-and-denied-states
 import { icon } from '../assets/icons.js';
 import { button, esc } from './index.js';
 
@@ -49,13 +14,9 @@ const cx = (...a) => a.filter(Boolean).join(' ');
 // ---- Skeleton ------------------------------------------------------------
 // The placeholder shape. `lines` is a count, or an array of widths when the
 // varied ragged edge of real prose matters (['100%','92%','60%']). `height`
-// makes it one solid block instead — a chart, a map, an avatar.
-//
-// aria-hidden throughout: the shimmer is scaffolding. What a screen reader
-// gets is the region's message, not a description of grey bars.
-//
-// The shimmer itself is .m-skeleton from the motion library, so it is already
-// inside that library's reduced-motion net and there is one animation to own.
+// makes it one solid block instead — a chart, a map, an avatar. The shimmer is
+// .m-skeleton from the motion library, so there is one animation to own and it
+// is already inside that library's reduced-motion net.
 export function skeleton({ lines = 3, width, height, radius, className = '' } = {}) {
   const widths = Array.isArray(lines) ? lines : Array.isArray(width) ? width : null;
   const n = widths ? widths.length : Math.max(1, lines | 0);
@@ -103,12 +64,10 @@ export function busyRegion({
     + '</div>';
 }
 
-// Flip a region between busy and ready, and say so.
-//
-// Writing into [data-busy-msg] is the announcement — the node is already in the
-// document, so changing its text is an event assistive tech acts on. Callers
-// pass `message` for the specific line ("14 invoices", "You don't have access
-// to this report"); the region's own labels are the fallback.
+// Flip a region between busy and ready, and say so. Writing into
+// [data-busy-msg] IS the announcement. Callers pass `message` for the specific
+// line ("14 invoices", "You don't have access to this report"); the region's
+// own labels are the fallback.
 //
 // Accepts the region, a selector, or any ancestor of it. Returns the region, or
 // null when there is nothing to update — safe to call against a torn-down view.
