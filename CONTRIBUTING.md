@@ -1041,6 +1041,24 @@ therefore renumbers guideline pages outside your diff, so prefer appending to
 whether the gap is still real — grep `unmet` when an issue closes, or the Guidelines Overview
 goes on advertising it publicly.
 
+### A shorthand resets the axis it does not mention
+
+`padding` sets all four sides, including the ones you leave out. So `style="padding:70px 0"`
+on an element whose class supplies the page gutter deletes that gutter, and the section runs
+edge to edge at every width below the container — invisible on a desktop, where the container
+is narrower than the viewport and the centring margin fakes a margin. Three sections of
+`site/index.html` shipped that way and reached the live site. Write `padding-block` when only
+the vertical axis is meant.
+
+`site/gutter.test.js` holds it, and how it holds it is the part worth copying. It reads the
+source rather than a layout: jsdom resolves none, and its CSSOM drops rules it cannot parse, so
+measuring computed padding reported a missing gutter on nine healthy elements. It also pins the
+container — a token `max-width` plus the centring margin, which is what tells a container from
+a bounded paragraph — because the first version discovered gutter classes and checked only
+those, and deleting the gutter simply dropped the class out of the set. The gate passed with
+the defect in the tree, which is [a skip wearing a different
+hat](#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip).
+
 **A checkout with no `node_modules` reds exactly one test.** `scripts/packaging.test.js` links
 this tree's own React into a scratch consumer rather than downloading one, so an absent install
 stops it at setup while everything else passes. Run `npm ci` first.
