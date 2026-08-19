@@ -30,16 +30,12 @@ test('a class still lands on the svg alongside the a11y attributes', () => {
 
 // Rule: a glyph is declared in exactly one group.
 //
-// `card`, `chart` and `doc` were once declared twice — COMMS re-declared what
-// DATA and FILES already owned, with byte-identical path data. Nothing broke:
-// the flat ICONS map takes the last spread, so icon() still resolved. What went
-// wrong was quieter — iconCategories still listed both, so the catalogue filed
-// one glyph under two headings, and the file grew three lines that no reader
-// could tell from a real glyph.
+// `card`, `chart` and `doc` were once declared twice, and nothing broke: the flat ICONS
+// map takes the last spread, so icon() still resolved. What went wrong was quieter —
+// iconCategories listed both, so the catalogue filed one glyph under two headings.
 //
-// The groups are discovered from iconCategories rather than named here; a group
-// added to that array joins this gate by existing, and one renamed or removed
-// leaves it without a line to edit.
+// The groups are discovered from iconCategories rather than named here, so a group added
+// to that array joins this gate by existing.
 test('no glyph is declared in more than one group', () => {
   const homes = new Map();
   for (const { name, names } of iconCategories) {
@@ -53,11 +49,9 @@ test('no glyph is declared in more than one group', () => {
   );
 });
 
-// The count the gate above cannot see on its own. iconNames comes from the flat
-// map, which silently collapses a re-declaration; the groups still carry both.
-// Holding the two totals equal is what makes a duplicate arithmetic rather than
-// a judgement, and it is the same count whether the copy is byte-identical or
-// a different glyph wearing a taken name.
+// The count the gate above cannot see on its own. iconNames comes from the flat map,
+// which silently collapses a re-declaration while the groups still carry both, so holding
+// the two totals equal is what makes a duplicate arithmetic rather than a judgement.
 test('the groups declare exactly as many glyphs as the kit ships', () => {
   const declared = iconCategories.reduce((n, { names }) => n + names.length, 0);
   assert.equal(declared, iconNames.length,
@@ -66,11 +60,10 @@ test('the groups declare exactly as many glyphs as the kit ships', () => {
 
 // Rule: the numbers icon()'s own header argues for are the numbers it emits.
 //
-// The header at the top of icons.js promises 24×24, a 1.7 stroke, currentColor
-// and no fill, and every glyph is drawn against those. They lived only in the
-// template literal, so a stray edit could change all 79 glyphs at once and no
-// test would notice (the measured-pin rule: a number a comment argues for is pinned by a
-// measured test).
+// The header at the top of icons.js promises 24×24, a 1.7 stroke, currentColor and no
+// fill, and every glyph is drawn against those. They lived only in the template literal,
+// so a stray edit could change every glyph at once and no test would notice.
+// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
 test('the emitter ships the numbers its header argues for', () => {
   for (const [attr, value] of Object.entries({
     viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7',

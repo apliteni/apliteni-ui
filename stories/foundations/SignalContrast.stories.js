@@ -1,28 +1,18 @@
 // ---------------------------------------------------------------------------
 // Foundations — Signal contrast.
 //
-// The record of why the signal tokens hold the values they hold. In the light
-// theme --pink, --cyan and --green all missed WCAG AA for normal text, worst of
-// all on the surface the kit puts them on deliberately: a 10% wash of the same
-// colour. Dark --pink missed it too. This page is what was decided and what it
-// measures, kept beside the values it replaced.
+// The record of why the signal tokens hold the values they hold: in the light
+// theme --pink, --cyan and --green all missed WCAG AA for normal text, worst on
+// the 10% wash of the same colour the kit puts them on, and dark --pink too.
+// Every ratio is COMPUTED at render time by the WCAG 2.x formula below, against
+// the exact colour it is painted on.
 //
-// Every ratio here is COMPUTED at render time by the WCAG 2.x formula below,
-// and every background is painted with the exact colour that ratio was measured
-// against. Number and pixel cannot drift apart.
+// The colour literals are the subject matter rather than a breach of Guidelines →
+// Colour and theming; each block is marked with where its value comes from, and
+// stories/signal-contrast.test.js reds when a token moves without this page moving.
 //
-// Colour literals. Guidelines → Colour and theming says tokens, never
-// literals — and every piece of page chrome here obeys it. The literals below
-// are the subject matter: a token value as src/tokens/tokens.css holds it
-// today, a composited wash, or a value that used to be in the file and is kept
-// for the comparison. Each block is marked with where its value comes from. The
-// gate in stories/signal-contrast.test.js reads the same tokens out of the
-// stylesheets, so a token that moves without this page moving turns it red.
-//
-// Themes. Section 1 shows live kit components, so it follows the toolbar theme
-// and carries both themes' measurements as labels. Sections 2-6 are painted
-// with fixed light- or dark-theme literals and read the same in either theme —
-// the point is to compare light against dark without toggling.
+// Sections 2-6 use fixed literals and read the same in either theme; section 1
+// is live kit components, so it follows the toolbar theme and labels both.
 // ---------------------------------------------------------------------------
 import { pad } from '../_gallery.js';
 import { badge, pill, field, input } from '../../src/components/index.js';

@@ -1266,21 +1266,17 @@ function judge(byFile, ruleIds) {
 
 /**
  * The exit-code contract, stated where the codes are chosen.
- *
  * 0 — every case passed, and every rule and allowlist entry is proven.
  * 1 — an assertion failed in the MUTATION PASS. Only set at the end of main(),
  *     after every mutation is judged, so a run lists all failures not the first.
- * 2 — no verdict reached: no binary, no report, a renamed field. Never a raw
- *     Node stack — a gate that dies in a traceback reads as a broken script.
+ * 2 — no verdict reached: no binary, no report, a renamed field, never a raw
+ *     Node stack. `fail()` exits this code and only this code, on every path.
  *
  * A RED BASELINE IS A 2: every case is evaluated and printed, but the run stops
- * before a mutation is generated, since on a red baseline every mutation reads
- * as detected by the case already failing. A 1 says the config is weaker than it
- * claims, a 2 says nobody knows yet. Measured: point this at a copy of
+ * before a mutation is generated, since on a red baseline every mutation reads as
+ * detected by the case already failing. Measured: point this at a copy of
  * .gitleaks.toml with a rule deleted and it exits 2, not 1.
  * why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
- *
- * `fail` is 2 and only 2, used for every "cannot tell" path below.
  */
 function fail(message) {
   console.error(message);

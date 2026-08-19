@@ -88,8 +88,8 @@ export const RULES = [
     except: 'A glyph is grouped by what it draws, not by who calls it: `chart` is data even when a '
       + 'comms panel renders it.',
     kit: [
-      { ref: 'src/assets/icons.test.js:43', pattern: "test('no glyph is declared in more than one group'" },
-      { ref: 'src/assets/icons.test.js:61', pattern: "test('the groups declare exactly as many glyphs as the kit ships'" },
+      { ref: 'src/assets/icons.test.js:39', pattern: "test('no glyph is declared in more than one group'" },
+      { ref: 'src/assets/icons.test.js:55', pattern: "test('the groups declare exactly as many glyphs as the kit ships'" },
     ],
   },
   {
@@ -102,7 +102,7 @@ export const RULES = [
       + 'live in BRAND for that reason.',
     kit: [
       { ref: 'src/assets/icons.js:137', pattern: 'stroke-width="1.7"' },
-      { ref: 'src/assets/icons.test.js:74', pattern: "test('the emitter ships the numbers its header argues for'" },
+      { ref: 'src/assets/icons.test.js:67', pattern: "test('the emitter ships the numbers its header argues for'" },
     ],
   },
   {
