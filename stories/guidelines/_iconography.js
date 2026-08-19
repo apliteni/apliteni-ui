@@ -59,7 +59,7 @@ export const RULES = [
     dontHtml: listDont,
     kit: [
       { ref: 'src/assets/icons.js:153', pattern: 'export const iconOnlyAllowed' },
-      { ref: 'stories/guidelines/iconography.test.js:103', pattern: 'every icon-only control is one the closed list allows' },
+      { ref: 'stories/guidelines/iconography.test.js:95', pattern: 'every icon-only control is one the closed list allows' },
       { ref: 'src/components/index.js:39', pattern: 'const named = iconOnly' },
     ],
   },
@@ -119,7 +119,7 @@ export const RULES = [
       + 'there is no five-status pair to keep, and its own contrast is the control’s to answer for.',
     kit: [
       { ref: 'src/styles/callout.css:16', pattern: 'stroke-width: 2.1;' },
-      { ref: 'stories/signal-contrast.test.js:586', pattern: 'const barFor = (px) =>' },
+      { ref: 'stories/signal-contrast.test.js:563', pattern: 'const barFor = (px) =>' },
     ],
   },
 ];

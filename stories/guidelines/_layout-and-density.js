@@ -143,7 +143,7 @@ export const RULES = [
     kit: [
       { ref: 'src/tokens/tokens.css:29', pattern: '--space-3: 12px' },
       { ref: 'src/styles/table.css:59', pattern: 'padding: var(--space-2) var(--space-3)' },
-      { ref: 'stories/table-rhythm.test.js:86', pattern: 'writes no row rhythm as a literal' },
+      { ref: 'stories/table-rhythm.test.js:85', pattern: 'writes no row rhythm as a literal' },
     ],
   },
   {
