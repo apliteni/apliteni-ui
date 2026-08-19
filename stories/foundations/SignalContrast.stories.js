@@ -99,7 +99,7 @@ const FAMILIES = [
     darkGlowWas: { rgb: [227, 91, 143], a: 0.16 },
     short: 'Revoke',
     // The nav row has no type-only class to borrow; these three values are
-    // .ui-nav__item's own (src/styles/nav.css:39-41).
+    // .ui-nav__item's own (src/styles/nav.css:39-41 `font-size: 14.5px;`).
     cls: '',
     type: 'font:400 14.5px/1.2 var(--font-sans)',
     setAt: '14.5px — the nav row label',
@@ -250,7 +250,8 @@ const CSS = `
       font: 400 12px/1.5 var(--font-sans); color: var(--muted); }
     .sc-live__nums b { font-weight: 600; color: var(--strong); font-variant-numeric: tabular-nums; }
 
-    /* The nav row's danger paint only exists on :hover (src/styles/nav.css:81).
+    /* The nav row's danger paint only exists on :hover
+       (src/styles/nav.css:81 \`.ui-nav__item.is-danger:hover\`).
        A specimen cannot be hovered, so the same two declarations are restated
        here — tokens, identical values — to hold the row in its hover state. */
     .sc-hover .ui-nav__item.is-danger { background: var(--glow-pink); color: var(--pink); }
@@ -361,19 +362,19 @@ const sectionLive = () => {
           active: 'keys',
           ariaLabel: 'Account settings',
         }),
-        `${code('--pink')} on ${code('--glow-pink')} — ${code('src/styles/nav.css:81')}`,
+        `${code('--pink')} on ${code('--glow-pink')} — ${code('src/styles/nav.css:81')} ${code('.ui-nav__item.is-danger:hover')}`,
         both(byKey.pink, glowHex(byKey.pink), dGlow(byKey.pink)),
       )}
       ${liveSpecimen(
         'Live pill',
         pill('Live', 'live'),
-        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:60')}`,
+        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:60')} ${code('.ui-pill--live')}`,
         chip('success', byKey.green),
       )}
       ${liveSpecimen(
         'Info badge',
         badge('Preview', 'info'),
-        `now ${code('--chip-info-*')} — ${code('src/styles/badge.css:27')}`,
+        `now ${code('--chip-info-*')} — ${code('src/styles/badge.css:27')} ${code('.ui-badge--info')}`,
         chip('info', byKey.cyan),
       )}
       ${liveSpecimen(
@@ -385,7 +386,8 @@ const sectionLive = () => {
           control: input({ value: 'apliteni-core' }),
         })}</div>`,
         `${code('--pink')} on plain ${code('--surface')}, no wash involved —
-         ${code('src/styles/input.css:15')} and ${code('src/styles/input.css:17')}`,
+         ${code('src/styles/input.css:15')} ${code('.ui-field__req')} and
+         ${code('src/styles/input.css:17')} ${code('.ui-field__error')}`,
         both(byKey.pink, LIGHT.surface, DARK.surface),
       )}
     </div>

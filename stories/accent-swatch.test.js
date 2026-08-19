@@ -74,7 +74,8 @@ const ACCENT_RULES = [...read('src/tokens/accents.css')
 /**
  * The custom properties an accent's OWN dark block declares.
  *
- * The selector is matched the way stories/lib/contrast.js:53-57 matches it —
+ * The selector is matched the way stories/lib/contrast.js:53-57 `const wanted = [`
+ * matches it —
  * whole-string, against one exact form — because that is the lookup whose result
  * this gate then judges. Anything else (a light-first block, or the legal
  * `[data-accent="x"][data-theme="dark"]` with the attributes the other way
@@ -105,7 +106,8 @@ function requireOwnDarkBlock(accent) {
     own.size,
     `src/tokens/accents.css declares the accent "${accent}" but this gate cannot find its dark `
     + `block. It looks for exactly one selector — :root[data-theme="dark"][data-accent="${accent}"] `
-    + '— because that is the only form stories/lib/contrast.js:53-57 resolves. Written any other '
+    + '— because that is the only form stories/lib/contrast.js:53-57 `const wanted = [` resolves. '
+    + 'Written any other '
     + `way (light block only, or [data-accent="${accent}"][data-theme="dark"] with the attributes `
     + 'reversed, both perfectly legal CSS) the lookup finds nothing accent-specific and falls '
     + "through to :root — i.e. to NEBULA's purple ramp. This gate would then demand a purple "
@@ -282,7 +284,8 @@ function swatchesIn(file, html) {
       + 'page paints, and this gate cannot tell you which: keeping the last one silently is how a '
       + 'retired picker left under the live one — or commented out beside it — becomes the thing '
       + 'that gets validated. Delete the old one. (If a second REAL picker ever lands in one file '
-      + '— inlining the {{FOOTER}} placeholder at site/index.html:379 would put one there — then '
+      + '— inlining the {{FOOTER}} placeholder at site/index.html:379 `{{FOOTER}}` would put one '
+      + 'there — then '
       + 'this gate has to learn to read a picker group rather than a file, which is a change to '
       + 'make deliberately.)',
     );

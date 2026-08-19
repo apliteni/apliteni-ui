@@ -23,7 +23,8 @@ import { topbar, footer, CHROME_CSS, CHROME_JS } from './chrome.mjs';
 
 // The kit's wiring needs a DOM in place before it is imported: wireDropdown()
 // compares its scope against the global `document` and throws without one. Same
-// preamble as stories/keyboard.test.js:23-28, for the same reason. It scopes the
+// preamble as stories/keyboard.test.js:23-28 `Object.defineProperty(globalThis, key`,
+// for the same reason. It scopes the
 // KIT's side only — the site's page gets its own JSDOM below and runs its own
 // scripts inside it.
 const kitDom = new JSDOM('<!doctype html><html lang="en"><body></body></html>', { pretendToBeVisual: true });
@@ -107,7 +108,7 @@ function site() {
 // The kit's strip: segmented() for the markup, wireTopbar() for the behaviour —
 // the same two calls .storybook/preview.js makes after every render. Mounted
 // into the one kit DOM the globals above point at, the way
-// stories/keyboard.test.js:35-42 does it.
+// stories/keyboard.test.js:35-42 `wireTopbar(host);` does it.
 function kit() {
   const host = kitDom.window.document.createElement('div');
   host.innerHTML = segmented({ options: OPTIONS, ariaLabel: LABEL });

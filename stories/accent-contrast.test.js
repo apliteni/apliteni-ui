@@ -12,7 +12,8 @@
  * The wash is measured over the four BASE surfaces and not over --surface-3.
  * That is a claim about the kit rather than a gap here: --surface-3 is a RAISED
  * surface, and nothing paints the accent wash on one any more.
- * src/styles/nav.css:120-129 is the rule that used to, and its comment carries
+ * src/styles/nav.css:120-129 `.ui-nav__item.is-active .ui-nav__badge.is-accent` is
+ * the rule that used to, and its comment carries
  * the numbers. Nothing holds that rule mechanically — a token gate cannot see a
  * component that stacks the wash again, and no story renders the pair either,
  * which is why it went unmeasured until a person read the CSS by hand.
