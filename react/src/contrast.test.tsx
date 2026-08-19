@@ -1,27 +1,25 @@
 // Contrast gate for the React workspace.
 //
+// why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+// why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green
+//
 // Same rule as stories/contrast.test.js: a foreground/background pair this
-// workspace renders as text must clear WCAG AA, or be named in the ledger below
-// by a person who decided it is acceptable. Nothing is listed — every
-// `*.stories.tsx` under react/src is mounted in both themes and every text-owning
-// element is measured against the background chain composited above it, and the
-// count is asserted at the foot of this file.
-//
-// Why a second file and not a second glob, and why the sheets are read off disk and
-// substituted rather than imported through Vitest's `css`: CONTRIBUTING.md, "One gate
-// per workspace, over one shared implementation" and "An unresolved var() measures
-// nothing and reports green".
-//
+// workspace renders as text clears WCAG AA, or is named in the ledger below by a
+// person who decided it is acceptable. Nothing is listed — every `*.stories.tsx`
+// under react/src is mounted in both themes, every text-owning element measured
+// against the background chain composited above it, and the count asserted at the
+// foot of this file.
+
 // WHAT THIS GATE WILL NOT CATCH. The vanilla ledger (stories/contrast.test.js,
 // header) applies here unchanged. Three differences of its own:
 //
 //  - No state pass. Nothing under react/ paints text in a state, so desugaring
-//    :hover/:focus-visible would cost two more renders to measure zero new pairs.
-//    Add it when a state rule paints text.
+//    :hover/:focus-visible would measure zero new pairs. Add it when a state rule
+//    paints text.
 //  - One accent — `default`, as there. The accent matrix is behind CONTRAST_ACCENTS=1.
-//  - Wider here: this walks a real React tree, so Modal's portal is measured. It lands
-//    in document.body outside the render container, which is why the walk scans
-//    document.body.
+//  - Wider here: this walks a real React tree, so Modal's portal is measured. It
+//    lands in document.body outside the render container, which is why the walk
+//    scans document.body.
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
@@ -41,25 +39,20 @@ type Theme = (typeof THEMES)[number];
 /* ─────────────────────────────────────────────────────────────────────────────
  * THE LEDGER IS WRITTEN BY HAND ON PURPOSE. DO NOT BUILD A SCRIPT THAT
  * REGENERATES IT. The reasoning is stories/contrast.test.js's, in full, and it
- * governs this list too: the mandatory `why` is the anti-automation device,
- * because a regenerator would have to invent the sentence explaining why a
- * failure is acceptable debt, and it cannot.
+ * governs this list too.
  *
  * An entry names a CAUSE, not an element instance. `match` is tested against a
- * grouped finding's key, which carries the measured literals — so a token move
- * stops the entry matching and turns the gate red rather than absorbing the
- * change. `count` is asserted with === so a fix in one row cannot mask a
- * regression in another.
+ * grouped finding's key, which carries the measured literals, so a token move
+ * turns the gate red rather than absorbing the change. `count` is asserted with
+ * === so a fix in one row cannot mask a regression in another.
  * ────────────────────────────────────────────────────────────────────────── */
 type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string };
 
 // Empty, and that is the current truth rather than an aspiration. This gate
-// found exactly one cause on its first run — the sort caret, which painted
-// --muted at opacity .5 and so measured 2.39:1 dark and 2.16:1 light against a
-// 4.5 floor. It was recorded here rather than accepted, and #131 then removed
-// the opacity instead of ledgering it, which is why the list is empty. An entry
-// belongs here only when a person has decided a failure is debt and written down
-// why; until then the gate is simply green.
+// found one cause on its first run — the sort caret, which painted --muted at
+// opacity .5 and measured 2.39:1 dark and 2.16:1 light against a 4.5 floor. #131
+// removed the opacity rather than ledgering it. An entry belongs here only when a
+// person has decided a failure is debt and written down why.
 const LEDGER: LedgerEntry[] = [];
 
 type Finding = {

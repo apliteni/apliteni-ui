@@ -100,12 +100,10 @@ test('every icon sizing rule in the kit is still gated', () => {
 });
 
 test('the reset is not measured against itself', () => {
-  /* It is the rule every subject above is compared with, so collecting it as a
-   * subject would compare it with itself: the declaration under test and the
-   * expectation would be the same declaration, and taking it away would change
-   * both — so the non-vacuity check would call the one rule this file cannot do
-   * without redundant. That is why the reset is left out, and why it is the only
-   * rule in base.css that is. */
+  /* It is the rule every subject above is compared with, so collecting it as a subject
+   * would compare it with itself: taking it away would change both sides, and the
+   * non-vacuity check would call the one rule this file cannot do without redundant.
+   * That is why it is the only rule in base.css left out. */
   assert.deepEqual(subjects.filter(({ sheet, sel }) => sheet === BASE && sel === RESET), [],
     'the reset is a subject, so the gate is measuring it against itself');
 });
@@ -142,18 +140,15 @@ test('no kit stylesheet imports a sheet this gate never opens', () => {
 });
 
 test('no icon in the kit is sized by a value this gate cannot read', () => {
-  /* A value jsdom cannot parse takes the whole declaration out of the CSSOM, and
-   * the count above cannot notice: a rule that never reached the CSSOM
-   * contributes no subject, so adding one leaves the number where it was. The
-   * rule still applies in a browser. base.css is asked too — the reset is the
-   * rule every subject is measured against, and a reset that quietly stopped
-   * being parsed would hand every contest to the component rule.
+  /* A value jsdom cannot parse takes the whole declaration out of the CSSOM and the count
+   * above cannot notice, though the rule still applies in a browser. base.css is asked too
+   * — a reset that quietly stopped being parsed would hand every contest to the component
+   * rule.
    *
-   * Asked of the rules that decide an icon, which is why the class set is handed
-   * over. What jsdom drops is ordinary CSS elsewhere in these sheets — a bare
-   * `env()`, an uppercase `CALC()` — and refusing it on a rule with no icon in it
-   * is a red nobody here can act on. droppedDecls() says which shapes stay loud
-   * anyway. */
+   * Asked only of the rules that decide an icon, which is why the class set is handed
+   * over: what jsdom drops elsewhere in these sheets is ordinary CSS, and refusing it on a
+   * rule with no icon in it is a red nobody here can act on. droppedDecls() says which
+   * shapes stay loud anyway. */
   const dropped = SHEETS.flatMap((name) => droppedDecls(
     name, readFileSync(path.join(src, name), 'utf8'), SVG_CLASSES));
   assert.deepEqual(dropped, [], DROPPED_REFUSAL);

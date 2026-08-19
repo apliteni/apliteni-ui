@@ -2,29 +2,14 @@
 // has to change the version too, and these tests are how that decision is
 // exercised without a runner, two checkouts and four minutes of npm.
 //
-// The failure it exists for happened twice. The ./react subpath landed on main
-// and stayed off npm. `footer()`, `success()`, `successCheck()` and
-// `wireSuccess()` sat on main for weeks, exported from the entry point and
-// unreachable by anyone who had actually installed the package. Both times the
-// diff was reviewed, approved and merged, and nothing anywhere asked the one
-// question that would have caught it: does this change what we publish, and if
-// so, does it ship?
-//
-// Two things make that question harder than a path glob. `react/dist` is built
-// and gitignored, so a React change never appears in a `git diff` of the
-// published paths at all; and `react/src/**` is never published, so matching on
-// "anything under react/" fires on a test file that ships nothing. So the
-// subject here is the artefact — the file list npm would actually pack, and the
-// contents of those files — and never the paths a commit touched.
+// The subject is the artefact — the file list npm would actually pack and the
+// contents of those files — never the paths a commit touched; and `version` is
+// the one field excluded from package.json's fingerprint, because a bump is
+// itself a change to the shipped surface. Why each is that shape, and the two
+// releases that sat on main unpublished behind it:
+// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
 //
 // why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
-//
-// The one deliberate blind spot, and the reason it is deliberate: the `version`
-// field of package.json is excluded from the comparison. package.json is inside
-// the tarball, so a bump is itself a change to the shipped surface; counting it
-// would mean the only fix for a red gate is a change that keeps it red. Every
-// other field — `exports` and `files` especially, the two that decide what a
-// consumer can reach — still counts.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';

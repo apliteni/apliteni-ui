@@ -10,9 +10,8 @@ import { sidebarNav, breadcrumbs } from './nav.js';
 import { prism } from '../assets/brand.js';
 import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
 
-// The one account navigation definition lives in account-nav.js, because
-// topbar.js needs it too and this file already imports topbar.js. Re-exported
-// here so the published name docs/library.md documents keeps working.
+// The one account navigation definition lives in account-nav.js because topbar.js needs
+// it too; re-exported here so the name docs/library.md publishes keeps working.
 export { ACCOUNT_NAV };
 
 const str = (v) => (v == null ? '' : String(v));
@@ -20,32 +19,24 @@ const isRecord = (v) => typeof v === 'object' && v !== null;
 
 // ---- the options bag, settled once --------------------------------------
 //
-// Every option below carries a shape, and a default parameter covers
-// `undefined` and nothing else — so `nav: null` from an /auth/me, a `maxWidth`
-// out of tenant config, a `crumbs` string written by somebody reading the
-// migration note all arrived as they were. A shell that throws mid-render takes
-// the page with it, so each is settled here, before the first sink sees it, and
-// a parameter is protected by being declared rather than by what it crashes
-// into. Adding one to appShell() means adding it to SHAPES or deciding in the
-// open that it needs nothing.
+// A default parameter covers `undefined` and nothing else, so `nav: null` from an
+// /auth/me and a `crumbs` string from somebody reading the migration note both arrived
+// as they were. A shell that throws mid-render takes the page with it, so each option is
+// settled here, before the first sink sees it. Adding one to appShell() means adding it
+// to SHAPES or deciding in the open that it needs nothing.
 
-// accountShell() has always taken its nav as [id, icon, label, href?, target?].
-// Accept that shape and nav.js's object shape side by side, so a consumer's
-// existing tuples and the exported ACCOUNT_NAV both work. A nav that is not a
-// list at all falls back to the default; an entry inside one that is neither
-// shape is dropped, because sideItem() reads `.items` off whatever it is given.
-// An empty list is an answer, not a mistake — it stays empty.
+// accountShell()'s tuple nav — [id, icon, label, href?, target?] — and nav.js's object
+// shape are accepted side by side. A nav that is not a list falls back to the default;
+// an entry that is neither shape is dropped. An empty list is an answer and stays.
 const toItems = (nav) => (Array.isArray(nav) ? nav : ACCOUNT_NAV)
   .filter(isRecord)
   .map((n) => (Array.isArray(n)
     ? { id: n[0], icon: n[1], label: n[2], href: n[3], target: n[4] }
     : n));
 
-// The trail is the caller's, and `crumbs` is the one option whose shape changed
-// in this release: the old API was `crumb: 'Payouts'`, a string, and the new one
-// is `crumbs: [{ label }]`. One letter apart. A value that is not a list is not
-// read as a one-crumb trail — that would draw a plausible page and hide the
-// migration mistake — so it is no trail at all, which is the visible answer. A
+// The trail is the caller's, and `crumbs` changed shape this release: `crumb: 'Payouts'`
+// became `crumbs: [{ label }]`, one letter apart. A non-list is NOT read as a one-crumb
+// trail — that hides the migration mistake — so it is no trail at all, which shows. A
 // crumb with no label would draw an empty cell, so it goes too.
 const toCrumbs = (crumbs) => (Array.isArray(crumbs) ? crumbs : [])
   .filter((c) => isRecord(c) && !Array.isArray(c) && str(c.label) !== '');
@@ -56,23 +47,16 @@ const toReader = (a) => (isRecord(a) ? { name: str(a.name), email: str(a.email) 
 
 // ---- the topbar, which interpolates where the rail escapes ----------------
 //
-// brand() writes `word` straight into its markup and accountMenu() does the
-// same with the reader's name, address and menu entries. So the escaping is
-// here, on the one path into productTopbar(), and not in each caller:
-// accountShell() escaped for itself and the `topbar` option underneath it
-// escaped for nobody. The caller passes text either way.
+// brand() writes `word` straight into its markup and accountMenu() does the same with
+// the reader's name, address and menu entries, so the escaping is here on the one path
+// into productTopbar() rather than in each caller. The caller passes text either way.
 
-// The reader the menu draws. Both fields are always written, empty when the
-// caller gave none — accountMenu()'s own defaults are a demo identity, and a
-// key dropped here is a key its default fills in, which is how a consumer's
-// page came to name its own reader in the rail and the kit's fixture beside it.
-//
-// `initials` travels with them because it is derived, and a derived value comes
-// from what the caller passed, not from the entities made of it: `<Ada>` and
-// `&lt;Ada&gt;` do not start with the same character. The entries land in the
-// same sink and toMenuTuple() is what escapes them; it reads item objects, so
-// tuples go through toItems() first. A nav nobody passed stays unpassed, and
-// accountMenu() falls back to its own derived default rather than to nothing.
+// The reader the menu draws. Both fields are always written, empty when the caller gave
+// none: accountMenu()'s defaults are a demo identity, so a key dropped here is a key its
+// fixture fills in. `initials` is derived from what the caller passed rather than from
+// the entities made of it — `<Ada>` and `&lt;Ada&gt;` do not start with the same
+// character. toMenuTuple() escapes the entries and reads item objects, so tuples go
+// through toItems() first; a nav nobody passed stays unpassed.
 const toMenuReader = (a) => {
   const { name, email } = toReader(a);
   const rest = isRecord(a) && !Array.isArray(a) ? a : {};
@@ -89,12 +73,11 @@ const toTopbar = (t) => {
   return out;
 };
 
-// `maxWidth` lands inside a style attribute, so a length is all this accepts —
-// a number and a unit, or `none`. Anything else yields '' and the caller writes
-// no style attribute, letting layout.css fall through to --measure. It must
-// REMOVE the property rather than pass a default or a bad value on: a custom
-// property accepts any token stream, so garbage is a valid declaration that
-// drops the column to `none`, the full track.
+// `maxWidth` lands inside a style attribute, so a length is all this accepts — a number
+// and a unit, or `none`. Anything else yields '' and the caller writes no style
+// attribute, falling through to --measure. It must REMOVE the property rather than pass
+// a bad value on: a custom property accepts any token stream, so garbage is a valid
+// declaration that drops the column to `none`, the full track.
 // why: docs/specification.md#widths
 const LENGTH = /^(?:\d+|\d*\.\d+)(?:px|rem|em|ch|%|vw)$/;
 const mainMax = (v) => {
@@ -108,11 +91,9 @@ const SHAPES = {
   nav: toItems, crumbs: toCrumbs, account: toReader, maxWidth: mainMax, topbar: toTopbar,
 };
 
-// The text options settle too, by the same argument the rest of them do. A
-// default parameter covers `undefined` and not `null`, so `body: null` from a
-// record with no description drew the word "null" on the page, and `word: null`
-// left the brand link with no accessible name at all. Dropping the key is what
-// lets the declared default apply.
+// The text options settle by the same argument. `body: null` from a record with no
+// description drew the word "null" on the page and `word: null` left the brand link with
+// no accessible name; dropping the key is what lets the declared default apply.
 const TEXT = ['word', 'brandHref', 'navLabel', 'title', 'sub', 'body', 'signOutHref', 'active'];
 
 function settle(options) {
@@ -122,23 +103,18 @@ function settle(options) {
   return out;
 }
 
-// Signing out is a navigation action, so it belongs in the rail nav's footer
-// slot. Opt-in: a shell that renders it unasked puts a dead link on a page with
-// no session behind it.
+// Signing out is a navigation action, so it belongs in the rail nav's footer slot.
+// Opt-in: rendering it unasked puts a dead link on a page with no session behind it.
 const signOut = (href) =>
   `<a class="ui-nav__item is-danger" href="${esc(href)}" aria-label="Sign out">` +
   `<span class="ui-nav__ic">${icon('logout')}</span>` +
   `<span class="ui-nav__label">Sign out</span></a>`;
 
-// Who is signed in. A sibling of the <nav>, not its footer: a reader's name and
-// address are not navigation, and inside the landmark a screen reader announces
-// the address as an entry. Empty when nobody is — a shell must not invent an
-// identity for a reader it does not know.
-//
-// The initials carry the name, and the spelled-out half is aria-hidden. The
-// narrow rail folds `.ui-app__who` out of view, so a name that lived only there
-// left the initials on screen with nothing at all in the accessibility tree.
-// Naming the mark instead makes the two agree at every width, and says it once.
+// Who is signed in. A sibling of the <nav>, not its footer: a name and address are not
+// navigation, and inside the landmark a screen reader announces the address as an entry.
+// Empty when nobody is. The initials carry the name and the spelled-out half is
+// aria-hidden, because the narrow rail folds `.ui-app__who` out of view and a name that
+// lived only there left nothing in the accessibility tree.
 function railUser({ name, email }) {
   if (!name && !email) return '';
   const who = [name, email].filter(Boolean).join(', ');
@@ -179,16 +155,14 @@ export function appShell(options = {}) {
     ariaLabel: navLabel,
     footer: signOutHref ? signOut(signOutHref) : '',
   });
-  // The topbar already says the product word. Two lockups on one screen is one
-  // product word too many, so the rail head steps aside when there is a topbar.
-  // The word is the link's only text and the narrow rail folds it out of view,
-  // so the name is written out — the mark itself is aria-hidden.
+  // The topbar already says the product word, so the rail head steps aside when there is
+  // one. The word is the link's only text and the narrow rail folds it out of view, so
+  // the name is written out — the mark itself is aria-hidden.
   const brand = topbar ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}" aria-label="${esc(word)}">`
     + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
-  // A <div>, not an <aside>: <aside> is the `complementary` landmark — content
-  // related to the page but separable from it — and this holds the page's
-  // primary navigation and the reader who is signed in. The <nav> inside it is
-  // already the landmark that names the menu.
+  // A <div>, not an <aside>: <aside> is the `complementary` landmark, and this holds the
+  // page's primary navigation and the signed-in reader. The <nav> inside it is already
+  // the landmark that names the menu.
   const grid = `<div class="ui-app">
     <div class="ui-app__rail">
       ${brand}
@@ -225,11 +199,9 @@ export function accountShell({
   // topbar menu are handed one list rather than two readings of `nav`.
   const items = toItems(nav);
   const trail = [{ label: cap }, { label: crumb || title }];
-  // The preset hands the topbar the caller's text, exactly as it hands the rail
-  // the caller's text. toTopbar() is what escapes for the menu's raw sinks, and
-  // it runs once inside appShell() — escaping here as well would reach the menu
-  // as entities, and escaping nowhere is what the public `topbar` option used
-  // to do.
+  // The preset hands the topbar the caller's text, as it does the rail. toTopbar()
+  // escapes for the menu's raw sinks and runs once inside appShell(); escaping here as
+  // well would reach the menu as entities.
   return appShell({
     word,
     nav: items,

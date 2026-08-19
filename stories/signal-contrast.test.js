@@ -10,10 +10,6 @@
  * read; accents are not, since they redefine only the purple family.
  *
  * why: CONTRIBUTING.md#what-the-signal-colour-gate-models-and-the-edits-it-exists-to-refuse
- *
- * The second half of this file gates a different shape of the same rule: the
- * SOLID toast, where a signal stops being ink and becomes the fill. See the
- * comment above SOLID_STATUSES.
  */
 import { test } from 'node:test';
 import assert from 'node:assert';
@@ -399,30 +395,20 @@ test('the --glow-purple gate actually measures something', () => {
 });
 
 /* ---- the solid toast: a signal that has become the fill --------------------
- * Every rule above paints a signal AS INK. The solid toast inverts that: the
- * signal becomes the background and something else has to read on top of it.
+ * Every rule above paints a signal AS INK. The solid toast inverts that: the signal becomes the
+ * background and something else has to read on top of it.
  *
- * The defect this gates is structural, not three bad numbers. callout.css set
- * the fill (--toast-accent) from the status and the ink (--toast-on) from one of
- * two globals, on independent axes, so nothing made a status's fill and its ink
- * clear each other. Four of the ten status x theme combinations did not: dark
- * danger (white on #e97ca5, 2.66), dark neutral (white on #948fa8, 3.11), light
- * success (near-black on #1c8a2c, 4.40) and light neutral (near-black on
- * #5c6270, 3.16). Light success is the proof that no ink could rescue it — that
- * fill sits mid-range, near-black measures 4.40 and white 4.45, so the FILL had
- * to move. Fill and ink are one choice.
+ * The defect this gates is structural, not three bad numbers. callout.css set the fill from the
+ * status and the ink from one of two globals, on independent axes, so nothing made a status's
+ * fill and its ink clear each other; four of the ten status x theme combinations did not, and
+ * light success proved no ink could rescue it — that fill sits mid-range, so the FILL had to move.
  *
- * The rule that replaces the two axes: a solid fill is the status at its
- * theme's extreme, and the ink is the pole opposite it. Dark fills are the
- * bright signals, so one ink (near-black) clears all five; light fills are the
- * deepened ones, so one ink (white) clears all five. A new status adds one
- * token, --signal-solid-<status>, on the correct side of its theme's midline,
- * and inherits the ink — there is no per-status ink decision left to get wrong.
- *
- * Both inks a solid toast paints are gated, because the quieter one is where
- * the pair used to leak away: .ui-toast__text is the message copy, and diluting
- * it undoes the contrast the pair was picked for. The declared `opacity` is
- * folded into the ink's alpha here for exactly that reason. */
+ * So a solid fill is the status at its theme's extreme and the ink is the pole opposite it, which
+ * one ink per theme clears. A new status adds one token, --signal-solid-<status>, on the correct
+ * side of its theme's midline, and inherits the ink. Both inks are gated: .ui-toast__text is the
+ * message copy and is where the pair used to leak away, so its declared `opacity` is folded into
+ * the ink's alpha here. */
+
 const CALLOUT = cssOf('../src/styles/callout.css');
 
 /** Selectors of a rule, comma list split out and trimmed. */
@@ -552,28 +538,19 @@ for (const theme of ['dark', 'light']) {
 }
 
 /* ---- the stroked glyph: 3:1 is the bar, and the stroke is what earns it ----
- * Two families in callout.css paint a status as a mark instead of as text, and
- * both are stroked outlines drawn in a 24-unit box:
+ * Two families in callout.css paint a status as a mark instead of as text, both stroked outlines
+ * drawn in a 24-unit box:
  *
  *   .ui-toast__icon    a 13px glyph on an opaque 22px --toast-accent circle
  *   .ui-callout__icon  an 18px glyph straight on the callout's own wash
  *
- * WCAG 1.4.11 asks 3:1 of a graphical object. #206 asked what the standard does
- * not answer: is 3:1 the right bar for a stroke this thin? The ruling is that
- * 3:1 is the right bar for a GRAPHIC, and a stroke has to be wide enough to be
- * one. Its width is stated in the glyph's own box, so what a reader sees is
- * stroke-width x box / 24 — 1.8 at 18px was 1.35 CSS px, 2 at 13px was 1.08 —
- * and under 1.5 CSS px a mark is optically a text stem, so it takes the text
- * bar instead. Why 1.5, why 4.5:1 could not simply be declared, and what
- * GLYPH_FLOOR is doing here:
- * docs/specification.md#icons-and-glyphs.
+ * WCAG 1.4.11 asks 3:1 of a graphical object; #206 ruled that 3:1 is the bar for a GRAPHIC and a
+ * stroke has to be wide enough to be one. What a reader sees is stroke-width x box / 24, and
+ * under 1.5 CSS px a mark is optically a text stem, so it takes the text bar instead. Why 1.5,
+ * and what GLYPH_FLOOR is doing here: docs/specification.md#icons-and-glyphs.
  *
- * The circle's fill is still not free to move — --toast-accent also paints the
- * 3px left marker and the outline border, so a circle that left the accent
- * would put two different pinks in one toast. The ink is what moves, to the
- * pole that clears THIS accent. Dark does that with one value, because its five
- * accents are the bright signals; light cannot, because the accents there are
- * deepened to read as ink on white, so it keeps a per-status ink. */
+ * The circle's fill is not free to move — --toast-accent also paints the 3px left marker and the
+ * outline border — so the INK is what moves, to the pole that clears this accent. */
 const GRAPHIC_AA = 3;      // WCAG 1.4.11, for a graphical object
 const GLYPH_FLOOR = 4.39;  // a ratchet on where the twenty pairs landed, not a bar
 /* SOLID_STROKE — the 1.5 CSS px line — and VIEWBOX are imported rather than

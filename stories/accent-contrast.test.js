@@ -1,31 +1,15 @@
-/* Rule: --accent clears WCAG AA as text on every ground the kit paints under it,
- * in all eight theme × accent cells — or a person names the cell and says why.
+/* Rule: --accent clears WCAG AA as text on every ground the kit paints under it, in all eight
+ * theme × accent cells — or a person names the cell and says why.
  *
- * The accents, their token family and the grounds are all DISCOVERED from the
- * two semantic token files rather than listed here, and the size of each
- * derivation is asserted, so one that stopped matching fails instead of passing
- * by measuring nothing. What a person writes by hand is the SURFACE_NAME
- * pattern, plus a reason for every candidate that pattern finds and this gate
- * does not measure (EXEMPT_GROUNDS), and for every pair allowed under the floor
- * (EXEMPT).
+ * The accents, their token family and the grounds are all DISCOVERED from the two semantic token
+ * files, and the size of each derivation is asserted, so one that stopped matching fails instead
+ * of passing by measuring nothing. What a person writes by hand is the SURFACE_NAME pattern, a
+ * reason for every candidate it finds that this gate does not measure (EXEMPT_GROUNDS), and one
+ * for every pair allowed under the floor (EXEMPT).
  *
- * The wash is measured over the four BASE surfaces and not over --surface-3.
- * That is a claim about the kit rather than a gap here: --surface-3 is a RAISED
- * surface, and nothing paints the accent wash on one any more.
- * src/styles/nav.css:120-129 `.ui-nav__item.is-active .ui-nav__badge.is-accent` is
- * the rule that used to, and its comment carries
- * the numbers. Nothing holds that rule mechanically — a token gate cannot see a
- * component that stacks the wash again, and no story renders the pair either,
- * which is why it went unmeasured until a person read the CSS by hand.
- *
- * This is a TOKEN contract, not a render: milliseconds, where the story walk in
- * contrast.test.js costs seconds a cell. That is why this file affords all eight
- * cells while that one runs two, and the two are complements — it sees pairs no
- * story happens to render, and misses both a ground a component mixes for itself
- * and a pair a story invents out of literals. One story invents them on purpose,
- * and the last test here is why: the sub-theme page pins a whole accent family
- * inline per panel, and that mirror is resolved against the token files property
- * by property, because a mirror kept by hand goes stale and this one twice did.
+ * A TOKEN contract, not a render: milliseconds against the seconds a cell that contrast.test.js
+ * costs, which is why this file affords all eight cells and that one runs two. The two are
+ * complements; neither reaches a ground a component mixes for itself.
  *
  * why: docs/specification.md#colour-and-contrast
  */
@@ -64,10 +48,7 @@ const declaredIn = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/(
  * — and would bury the real grounds under a page of exemptions. Naming is the
  * kit's own signal for what a surface is, and it is the narrowest honest one.
  *
- * brand.generated.css is not swept: it carries the synced brand primitives the
- * semantic tokens are built FROM, and nothing paints text on a primitive.
- * accents.css declares no surface today and is swept anyway, so the day it does
- * the sweep already covers it.
+ * brand.generated.css is not swept: nothing paints text on a synced primitive.
  */
 const SURFACE_NAME = /^--(bg|surface)(-|$)|-bg$/;
 
@@ -104,9 +85,12 @@ const EXEMPT_GROUNDS = [
 const NOT_MEASURED = new Set(EXEMPT_GROUNDS.map((e) => e.ground));
 const GROUNDS = CANDIDATE_GROUNDS.filter((g) => !NOT_MEASURED.has(g));
 
-/** The grounds the accent WASH is measured over: the base surfaces only. See the
- *  header — --surface-3 is raised, and the rule is that the wash is not stacked
- *  on it. Derived by subtraction so a sixth surface joins both lists at once. */
+/** The grounds the accent WASH is measured over: the base surfaces only, derived by subtraction
+ *  so a sixth surface joins both lists at once. Leaving --surface-3 out is a claim about the kit
+ *  rather than a gap here — it is a RAISED surface, and nothing paints the wash on one any more.
+ *  src/styles/nav.css:120-129 `.ui-nav__item.is-active .ui-nav__badge.is-accent` is the rule that
+ *  used to, and its comment carries the numbers. Nothing holds that mechanically: a token gate
+ *  cannot see a component that stacks the wash again, and no story renders the pair either. */
 const WASHED_GROUNDS = GROUNDS.filter((g) => g !== '--surface-3');
 
 const DECLARED = [...new Set([...ACCENTS_CSS.matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]))];
@@ -132,27 +116,17 @@ const keyOf = ({ theme, accent, ground, washed }) =>
 const EXEMPTED = new Set(EXEMPT.map(keyOf));
 
 /**
- * The two ways to composite a wash over a ground, because neither of them is
- * what the browser paints and they disagree.
+ * The two ways to composite a wash over a ground, because neither of them is what the browser
+ * paints and they disagree. `rounded` rounds each layer to 8 bits — the wash is painted before
+ * the ink is painted over it, so the rounding happens twice — which is closer to a framebuffer
+ * than full precision without being it: read back out of a headless Chromium screenshot,
+ * rgba(180,121,255,0.12) over #221f2e paints rgb(51,42,71), where rounding predicts rgb(52,42,71)
+ * and full precision gives (51.52,41.80,71.08). The three readings of that pair agree to a
+ * hundredth, and no model is the truth to three decimals.
  *
- * `rounded` rounds each layer to 8 bits — the wash is painted before the ink is
- * painted over it, so the rounding happens twice, once per layer. That is closer
- * to a framebuffer than full precision, which is why it is here at all, but it
- * is not the framebuffer: rendered in headless Chromium and read back out of the
- * screenshot, rgba(180,121,255,0.12) over #221f2e paints rgb(51,42,71), where
- * rounding predicts rgb(52,42,71) and full precision gives (51.52,41.80,71.08).
- * The three readings of that pair are 4.555, 4.540 and 4.555 — the same number to
- * a hundredth, and no model is the truth to three decimals.
- *
- * Which model is harsher flips from pair to pair, so a pair is judged on the
- * WORSE of the two and a value is only chosen when it clears in both. Light
- * Ocean is where that earned its keep: its wash was thinned to 0.05 because at
- * 0.06 over --surface-2 it read 4.501 at full precision and 4.491 rounded, and
- * the pixel Chromium actually paints read 4.483 — a failing pair either way, and
- * one this gate would have carried as an exemption if it had believed a single
- * model. The wash is back at 0.10 now: #157 deepened that cell's --accent
- * instead, which is what a thinner wash had been standing in for. The rule that
- * refused 0.06 is the reason the deeper ink was looked for at all.
+ * Which model is harsher flips from pair to pair, so a pair is judged on the WORSE of the two and
+ * a value is only chosen when it clears in both. That rule refused light Ocean's wash at 0.06;
+ * #157 deepened that cell's --accent instead, which is what a thinner wash stood in for.
  */
 const MODELS = {
   rounded: (fg, bg) => composite(fg, bg).map(Math.round),

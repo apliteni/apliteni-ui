@@ -1,89 +1,16 @@
 /* Rule: a foreground/background pair the kit renders as text must clear WCAG AA,
  * or be named in the ledger below by a person who decided it is acceptable.
  *
- * There is no hand-maintained list of pairs. Every story in stories/ is rendered
- * in both themes, its real markup mounted in JSDOM against the kit's real
- * stylesheets with the token files substituted per theme, and every text-owning
- * element is measured against the background chain composited above it. Adding a
- * component adds its pairs with no human step. The resolver lives in
- * stories/lib/contrast.js and is unit-tested against hand-computed values in
- * stories/lib/contrast.test.js.
- *
- * WHAT THIS GATE ACTUALLY CHECKS, stated weakly on purpose. Not "the pairs the
- * kit renders" — "the pairs a story renders, resolved without layout, for text
- * only, in two themes at one accent". A gate that overstates itself is how
- * contrast came to be "verified visually" in the first place.
- *
- * WHAT IT WILL NOT CATCH — the ledger of this gate's own holes, kept here
- * because the person it has to reach is whoever is about to trust the green:
- *
- *  - Anything layout decides. JSDOM has none, so DOM ancestry stands in for
- *    visual stacking and the proxy is wrong wherever an element is painted over
- *    something that is not its ancestor: a toast over the page, a dropdown over
- *    a card, a sticky topbar over scrolled content, the drawer over its scrim.
- *    The largest gap, and only a real browser closes it.
- *  - A PAINT LAYER THE WALK CANNOT SEE, which costs most. A pseudo-element
- *    backdrop and a sibling overlay are both measured against the ground
- *    UNDERNEATH them. What is proved is that those pairs are rated against the
- *    wrong ground; what is NOT proved is that any verdict flips.
- *  - ::before / ::after as TEXT. The kit's carry none.
- *  - Gradients and images an element owns or inherits — reported unjudgeable,
- *    which is the honest answer rather than a fix or a silent pass.
- *  - filter. .ui-btn--primary:hover reads pre-filter. backdrop-filter ships once,
- *    on .rx-scrim, which react/src/contrast.test.tsx measures over.
- *  - Inactive components, and everything inside them. Skipped per WCAG 1.4.3,
- *    but by closest(), so a disabled CONTAINER takes its whole subtree out of
- *    the walk. stories/guidelines/accessibility-floor.test.js fills that at the
- *    floor #220 settled; it is still a hole HERE.
- *  - Anything with no story, and "story" is narrower than it sounds: files
- *    ending .stories.js under stories/. The React workspace has its own gate.
- *  - Anything not visible at rest. display:none, visibility:hidden and opacity:0
- *    are dropped BEFORE anything else is asked, which is the resting state of
- *    the dropdown panel, the confirm scrim and panel, the drawer, and the whole
- *    feedback overlay. Each is measured only where a story ships it open.
- *  - States past four. hover, focus-visible, focus and active are FORCED and
- *    nothing else is — not :focus-within, ::placeholder, ::selection, nor any
- *    class-driven state. :checked and :disabled are matched natively, so it is
- *    the forcing that is absent, not the matching.
- *  - Anything a script would do. The body is a static string, so none of
- *    preview.js's wiring runs.
- *  - Custom properties a story pins INLINE. Every var() is flattened against one
- *    theme-wide map before mount, so the sub-theme panels are every one of them
- *    measured as the DEFAULT accent.
- *  - Non-text contrast (WCAG 1.4.11) — borders, focus rings, icon strokes. The
- *    3:1 rule is against ADJACENT colours, which needs geometry.
- *  - Text that is not a text node: placeholder, value, alt, title, aria-label.
- *  - More than one accent. The eight-cell matrix behind CONTRAST_ACCENTS=1
- *    counts pairs and asserts a floor on that count — never that any pair
- *    clears AA.
- *  - Whether the colour is readable. The AA floor is a floor, not a verdict.
- *
- * AND WHAT COVERS SOME OF IT INSTEAD. A gap named above may already be closed
- * by a sibling: accent-contrast.test.js is a token contract over all eight
- * cells, signal-contrast.test.js reads declarations rather than rendering, and
- * react/src/contrast.test.tsx mounts the React workspace. What none of the four
- * reaches is the first bullet: layout.
- *
- * The resolver's two rewrites — the UA `a:link` boundary, and the variant-scoped
- * copy that stops a per-variant custom property flattening to whichever status
- * came first — are pinned by self-checks below.
+ * Stated weakly on purpose, because a gate that overstates itself is how contrast
+ * came to be "verified visually": not "the pairs the kit renders" but the pairs a
+ * STORY renders, resolved without layout, for text only, in two themes at one
+ * accent. Nothing is enumerated — every file ending .stories.js under stories/ is
+ * mounted in JSDOM against the kit's real stylesheets per theme, and every
+ * text-owning element is measured against the background chain composited above
+ * it. The resolver is stories/lib/contrast.js; its two rewrites are pinned by the
+ * self-checks below.
  *
  * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
- *
- * COST. This walk is the suite's critical path and roughly doubles `npm test`.
- * Three numbers are asserted rather than remembered — 138,534 style reads,
- * 28,706 of them missing the memo, and 5,738 DOM writes — and the miss RATE is
- * what the gate holds. Cost grows close to linearly with theme x accent cells,
- * about 8s a cell, and the eight-cell matrix is behind CONTRAST_ACCENTS=1.
- *
- * why: CONTRIBUTING.md#what-the-walk-costs-and-why-the-gate-on-it-is-a-ratio
- * why: CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart
- *
- * THE LEDGER IS WRITTEN BY HAND ON PURPOSE. Do not build a script that
- * regenerates it: the mandatory `why` on every entry is the anti-automation
- * device, and counts are asserted with === rather than as a ceiling.
- *
- * why: CONTRIBUTING.md#a-ledger-that-keys-on-a-measurement-is-written-by-hand-on-purpose
  */
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -119,7 +46,10 @@ const DOC_STORIES = {
 };
 
 /**
- * One entry per CAUSE, not per row.
+ * One entry per CAUSE, not per row. Written by hand on purpose: the mandatory
+ * `why` is the anti-automation device, so do not build a regenerator.
+ *
+ * why: CONTRIBUTING.md#a-ledger-that-keys-on-a-measurement-is-written-by-hand-on-purpose
  *
  * `fg` names a TOKEN, resolved per theme at run time, so moving a token's value
  * does not silently re-point a bucket at a different colour — it changes the
@@ -303,6 +233,17 @@ const walk = {
   cache: { queries: 0, lookups: 0, routedWrites: 0 },
 };
 
+// What the walk never puts in front of the resolver, so the gate cannot see it:
+//  - anything not visible at rest. display:none, visibility:hidden and opacity:0 are dropped
+//    first, so the dropdown panel, confirm scrim, drawer and feedback overlay are measured only
+//    where a story ships them open.
+//  - states past four. hover, focus-visible, focus and active are FORCED and nothing else is —
+//    not :focus-within, ::placeholder, ::selection, nor any class-driven state.
+//  - inactive components and their whole subtree — by closest(), per WCAG 1.4.3, so a disabled
+//    CONTAINER drops everything in it. #220's floor covers that; it is still a hole here.
+//  - anything a script would do: the body is a static string, so no preview.js wiring runs.
+//  - custom properties a story pins INLINE. Every var() is flattened against one theme-wide map,
+//    so the sub-theme panels are every one of them measured as the DEFAULT accent.
 before(async () => {
   const started = Date.now();
   const records = [];
@@ -337,6 +278,18 @@ function bucketsFor(finding) {
 }
 
 const show = (f) => `${f.ratio.toFixed(2)} (needs ${f.need}) ${f.key}\n      ${[...f.paths][0]}\n      in ${[...f.stories].join(', ')}`;
+
+// What a pass does not claim, for whoever is about to trust the green. Layout is the largest
+// hole and only a real browser closes it: JSDOM has none, so DOM ancestry stands in for visual
+// stacking and is wrong wherever an element is painted over something that is not its ancestor —
+// a toast over the page, a dropdown over a card, a sticky topbar, the drawer over its scrim.
+// A paint layer the walk cannot see costs next most: a pseudo-element backdrop and a sibling
+// overlay are both measured against the ground UNDERNEATH them, so what is proved is that those
+// pairs are rated against the wrong ground, not that any verdict flips. Gradients and images an
+// element owns or inherits are reported unjudgeable rather than passed; filter is not applied,
+// so .ui-btn--primary:hover reads pre-filter. Never measured at all: non-text contrast (WCAG
+// 1.4.11), text that is not a text node, more than one accent, and whether the colour is
+// readable — the AA floor is a floor, not a verdict.
 
 // ---- the gate -------------------------------------------------------------
 
@@ -402,7 +355,8 @@ test('the ledger totals exactly what the walk found', () => {
 test('the ledger is not empty and every entry carries a hand-written why', () => {
   assert.ok(LEDGER.length >= 5, 'an emptied ledger would make every assertion above vacuous');
   for (const e of LEDGER) {
-    assert.ok(e.why && e.why.length > 200, `ledger ${e.id} has no real \`why\` — see this file's header`);
+    assert.ok(e.why && e.why.length > 200, `ledger ${e.id} has no real \`why\` — see `
+      + 'CONTRIBUTING.md#a-ledger-that-keys-on-a-measurement-is-written-by-hand-on-purpose');
     assert.ok(
       !/\d+(\.\d+)?\s*:\s*1|\b\d\.\d{2}\b/.test(e.why),
       `ledger ${e.id}'s \`why\` quotes a ratio. Numbers live in \`count\` and \`worst\`, which `

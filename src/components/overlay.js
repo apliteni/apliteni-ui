@@ -1,19 +1,12 @@
-// Overlay primitives — the page state the kit's modal surfaces share.
-//
-// Drawer and Confirm are the same problem twice: content over a scrim that owns
-// the keyboard until it is answered. Three of the questions they raise are
-// properties of the *page*, not of either component — what is inert right now,
-// which overlay Escape talks to, and where Tab may go — and an overlay that
-// answers them from its own storage gets them wrong as soon as a second one is
-// open. So they are answered here, once, from one stack per document.
-//
-// Internal — not re-exported from src/index.js.
+// Overlay primitives — the page state the kit's modal surfaces share. Drawer and Confirm
+// are the same problem twice: content over a scrim that owns the keyboard until it is
+// answered. What is inert, which overlay Escape talks to and where Tab may go are
+// properties of the *page*, so they are answered here from one stack per document rather
+// than from either component's own storage. Internal — not re-exported from src/index.js.
 
-// What each overlay paints on, as its stylesheet resolves it today: a drawer at
-// `--z-overlay` (src/styles/drawer.css) and a confirm one above it
-// (src/styles/confirm.css). Absolute values, not ranks, so a sheet that moves and
-// a table that did not is a failed test rather than a keyboard on the wrong layer
-// — stories/overlay-css.test.js holds these two numbers to those two rules.
+// What each overlay paints on today: a drawer at `--z-overlay` (styles/drawer.css) and a
+// confirm above it (styles/confirm.css). Absolute values, not ranks, so a sheet that moves
+// and a table that did not is a failed test — stories/overlay-css.test.js holds both.
 export const OVERLAY_LAYER = { drawer: 100, confirm: 101 };
 
 const FOCUSABLE = [
@@ -33,10 +26,9 @@ function pageOf(doc) {
   return page;
 }
 
-// Focusable to the *browser*, not merely matching the selector. A control in a
-// closed overlay, an inert subtree or a hidden ancestor is skipped by the real
-// tab order, so a trap that counts it wraps at an element focus never reaches
-// and Tab walks straight out of the modal.
+// Focusable to the *browser*, not merely matching the selector. A control in a closed
+// overlay, an inert subtree or a hidden ancestor is skipped by the real tab order, so a
+// trap that counts it wraps at an element focus never reaches.
 function reachable(el) {
   for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
     if (n.inert || n.hasAttribute('inert') || n.hasAttribute('hidden')) return false;
@@ -53,10 +45,9 @@ export function focusablesIn(panel) {
   return Array.from(panel.querySelectorAll(FOCUSABLE)).filter(reachable);
 }
 
-// Hide everything *outside* `root` from AT + the tab order: walk root→body and
-// mark each ancestor's other children. The scrim and panel live inside the root
-// so they stay interactive; an overlay one layer down is outside it, so it does
-// not — a drawer under an aria-modal alertdialog must not be tabbable.
+// Hide everything *outside* `root` from AT + the tab order: walk root→body and mark each
+// ancestor's other children. Scrim and panel live inside the root so they stay
+// interactive; a drawer under an aria-modal alertdialog is outside it and must not be.
 function mark(page, doc, root) {
   let node = root;
   while (node && node.parentElement && node !== doc.body) {
@@ -81,10 +72,9 @@ function unmark(page) {
   page.marked = [];
 }
 
-// Recompute the page from the stack — never replay a snapshot taken when an
-// overlay opened, because by the time it closes that snapshot describes a page
-// that has moved on. Roots torn down while open drop out here, so the record of
-// what to give back outlives the node that hid it.
+// Recompute the page from the stack — never replay a snapshot taken when an overlay
+// opened, because by the time it closes that snapshot describes a page that has moved on.
+// Roots torn down while open drop out here.
 function sync(doc) {
   const page = pageOf(doc);
   for (let i = page.stack.length - 1; i >= 0; i--) {
@@ -128,12 +118,11 @@ function place(root, panel, dismiss, layer, where) {
   sync(doc);
 }
 
-// The layer this root actually paints on. In a browser the live z-index is the
-// truth, so a consumer who moves either overlay in their own stylesheet gets the
-// keyboard on the layer they can see. JSDOM has no cascade to resolve: it hands
-// back the declared text — `calc(var(--z-overlay) + 1)` with the kit's sheets,
-// `auto` with none — and neither is a number, so under test the passed constant
-// stands. `auto` must not read as 0; anything unparseable falls through.
+// The layer this root actually paints on. In a browser the live z-index is the truth, so
+// a consumer who moves an overlay in their own stylesheet gets the keyboard on the layer
+// they can see. JSDOM hands back declared text rather than a number, so under test the
+// passed constant stands — `auto` must not read as 0, and anything unparseable falls
+// through.
 function paintedLayer(root, layer) {
   const painted = root.ownerDocument.defaultView?.getComputedStyle(root)?.zIndex;
   const live = painted ? Number(painted) : NaN;
@@ -152,16 +141,11 @@ export function pushOverlay(root, panel, dismiss, layer) {
 }
 
 /**
- * Take on a root that arrived already open — markup rendered with `open: true`,
- * which nobody called open…() for. Without this its aria-modal is a claim the
- * page contradicts.
- *
- * It goes in by PAINT ORDER, because wiring has no history to order by. Document
- * position only separates two overlays on the same layer, and there it is the
- * right answer rather than a fallback: at equal stack levels the later root
- * paints on top (CSS 2.2 Appendix E, steps 8 and 9).
- *
- * A root that renders closed is left alone — wiring is not an opening.
+ * Take on a root that arrived already open — markup rendered with `open: true`, which
+ * nobody called open…() for. Without this its aria-modal is a claim the page contradicts.
+ * It goes in by PAINT ORDER, because wiring has no history to order by; document position
+ * separates two overlays on the same layer, where the later root paints on top (CSS 2.2
+ * Appendix E, steps 8 and 9). A root that renders closed is left alone.
  */
 export function adoptOverlay(root, panel, dismiss, layer) {
   if (!root.classList.contains('is-open')) return;

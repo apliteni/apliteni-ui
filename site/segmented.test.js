@@ -1,19 +1,17 @@
 // The landing page's segmented strip, held against the kit's own.
 //
-// The strip in the bento's "Controls" cell is a specimen and switches nothing,
-// which does not excuse it from the contract: it is a real focusable control on
-// a real page. #147 shipped it with the kit's class name and none of the kit's
-// behaviour.
+// The strip in the bento's "Controls" cell switches nothing, which does not
+// excuse it from the contract: it is a real focusable control on a real page (#147).
 //
 // So this file asserts no list of attributes. It imports segmented() and
-// wireTopbar() FROM THE KIT, builds the kit's own strip beside the site's,
-// drives both through the same keys and asserts they came out in the same
-// state — so the gate fails if the site drifts, and just as loudly if the KIT
-// moves on and the site is not brought along.
+// wireTopbar() FROM THE KIT, builds the kit's own strip beside the site's, drives
+// both through the same keys and asserts they came out in the same state — so the
+// gate fails if the site drifts, and as loudly if the KIT moves on and the site is
+// not brought along.
 //
-// Unlike site/audience-switcher.test.js next door it substitutes the REAL
-// chrome, because the .ui-seg handler lives in site/chrome.mjs and blanking it
-// would leave the page with no handler bound at all.
+// Unlike site/audience-switcher.test.js next door it substitutes the REAL chrome:
+// the .ui-seg handler lives in site/chrome.mjs, and blanking it would leave the
+// page with no handler bound at all.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

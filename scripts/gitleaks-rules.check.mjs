@@ -3,25 +3,18 @@
  * gitleaks-rules.check — prove every rule in .gitleaks.toml still catches the
  * thing it was written for, and still names itself when it does.
  *
- * Every fixture is generated at runtime into a temp directory removed on every
- * exit path. None is real, and none may ever be written into the tree — the
- * rules that keep that true are stated above the fixture builder, where editing
- * happens. Read them before touching a fixture.
+ * Every fixture is generated at runtime into a temp directory and none may ever
+ * be written into the tree — the rules are above the fixture builder.
  *
  * Usage: node scripts/gitleaks-rules.check.mjs [path-to-.gitleaks.toml]
  *        GITLEAKS_BIN=./gitleaks node scripts/gitleaks-rules.check.mjs
  *
- * The mutation pass uses that path argument from the inside: each mutated config
- * is written to the run's temp directory and judged by the same engine. Nothing
- * ever writes to .gitleaks.toml.
+ * The mutation pass writes each mutated config to the run's temp directory and
+ * passes it as that argument; nothing ever writes to .gitleaks.toml.
  *
  * why: CONTRIBUTING.md#the-two-security-checks
  * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
- *
- * The long comments below are kept where they are: each states what one planted
- * case claims, or what one mutation axis reaches, and a reader deciding whether
- * to trust a green here is reading that case or that axis when they need it.
  */
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -122,29 +115,17 @@ const note = (value) =>
   ['A note quoting something that must never reach this repo.', '', `    ${value}`, '', 'That is all.'].join('\n');
 
 /**
- * One planted file per case, carrying two separate claims.
+ * One planted file per case, carrying three separate claims, each EXACT rather
+ * than "at least" — see CONTRIBUTING.md#the-two-security-checks.
  *
- * `ours` — the EXACT set of rules defined in this config that may name the
- * file: {ours} when set, {} when null. Exact, not "at least", because nothing
- * else detects one of our rules eating another's territory. Widening
- * clickup-api-token until it also matched figd_… left every case green under
- * the old "expected ∈ named" oracle; for a file whose recent history is
- * deliberate loosening of character classes, that is the likeliest failure.
- * A control case is simply `ours: null` — the same claim, not a special case.
- *
- * `upstream` — gitleaks' own rules that must ALSO fire. Only asserted where
- * upstream genuinely owns the shape, never as a general requirement: the
- * default ruleset is not ours to depend on. generic-api-key names
- * deploy-token.md today and is deliberately ignored, so that a stopword or
- * entropy tweak upstream cannot turn this check red.
- *
- * `forbidden` — the mirror, and it exists for exactly one job: an [allowlist]
- * entry whose only effect is to silence an UPSTREAM rule cannot be proven by
- * `ours` at all, because no rule of ours ever names the shape. The demo-token
- * entry is that entry. Naming the upstream rule here does tie one case to
- * upstream's ruleset, which the paragraph above avoids on purpose — but the
- * alternative is an allowlist entry nothing exercises, which is the hole this
- * whole axis closes. Used nowhere else.
+ * `ours` — the exact set of rules defined in this config that may name the file:
+ * {ours} when set, {} when null. A control case is `ours: null`, the same claim.
+ * `upstream` — gitleaks' own rules that must ALSO fire, asserted only where
+ * upstream genuinely owns the shape.
+ * `forbidden` — the mirror: an [allowlist] entry whose only effect is to silence
+ * an UPSTREAM rule cannot be proven by `ours` at all, because no rule of ours
+ * ever names the shape. The demo-token entry is that entry, and naming an
+ * upstream rule here buys not leaving it unexercised. Used nowhere else.
  */
 const CASES = [
   // ── 1Password ─────────────────────────────────────────────────────────────
@@ -174,20 +155,16 @@ const CASES = [
   // ── The entropy floor, pinned from both sides ─────────────────────────────
   //
   // The loaded 1Password rule carries constraints its regex cannot show, and
-  // this is the FOURTH: a Shannon floor of 4 on the whole match. It used to
-  // arrive unwritten, by sharing an id with upstream's rule; .gitleaks.toml
-  // declares it now, and these two cases are what hold it at 4 rather than
-  // anywhere in the gap the rungs on either side of them leave — 3.90 to 4.17.
-  // A fifth constraint is still unwritten and cannot be written here at all;
-  // onepassword-stopword-suppressed.md below is what pins that one.
+  // this is the FOURTH: a Shannon floor of 4 on the whole match, which used to
+  // arrive unwritten by sharing an id with upstream's rule. A fifth is still
+  // unwritten and cannot be written here at all — onepassword-stopword-
+  // suppressed.md below pins that one.
   //
-  // Both payloads are shape-perfect — right prefix, right class, well over the
-  // length floor — so entropy is the only thing separating them, and it is a
-  // function of how wide an alphabet they are drawn from. Fifteen characters of
-  // the alnum alphabet puts the match at 3.9978; sixteen puts it at 4.0370. The
-  // seeds were searched to land the pair 0.04 apart across the step, and that
-  // narrowness is the point: a floor pinned by 3.7 and 5.8 would be satisfied by
-  // any number between them.
+  // Both payloads are shape-perfect, so entropy is the only thing separating
+  // them: fifteen characters of the alnum alphabet puts the match at 3.9978 and
+  // sixteen puts it at 4.0370. The seeds were searched to land the pair 0.04
+  // apart across the step, and that narrowness is the point — a floor pinned by
+  // 3.7 and 5.8 would be satisfied anywhere in the gap.
   {
     file: 'onepassword-below-entropy-floor.md',
     ours: null,
@@ -202,29 +179,18 @@ const CASES = [
   },
 
   {
-    // THE FIFTH CONSTRAINT, and this case pins COMPOSED behaviour we do not
-    // own. `useDefault = true` pulls in gitleaks' default GLOBAL allowlist,
-    // whose stopwords are matched case-insensitively as a SUBSTRING of the
-    // secret. The a-z run is one of them, so a token carrying it is dropped
-    // before any rule of ours gets a verdict — nothing in .gitleaks.toml can
-    // show you that, which is why it is here rather than in a comment there.
+    // THE FIFTH CONSTRAINT, and this case pins COMPOSED behaviour we do not own.
+    // `useDefault = true` pulls in gitleaks' default GLOBAL allowlist, whose
+    // stopwords match case-insensitively as a SUBSTRING of the secret; the a-z
+    // run is one, so a token carrying it is dropped before any rule of ours gets
+    // a verdict, and nothing in .gitleaks.toml can show you that.
     //
-    // Measured on gitleaks 8.30.1, on this exact fixture. It is shape-perfect:
-    // right prefix, right class, 37 characters against a floor of 30, entropy
-    // 4.9392 against a floor of 4 — and it is NOT reported. The same shape with
-    // a scrambled 30-character payload, ops_eyJ + stream('sw2', 30, ALNUM), is
-    // 37 characters and entropy 4.7026 and IS reported, so neither length nor
-    // entropy is what silences this one. Isolated twice: with a stand-in rule
-    // whose id does NOT collide with upstream's, useDefault = false catches it
-    // and useDefault = true does not, so this is the global allowlist and not
-    // the id merge. figd_, apify_api_ and *.lessly.run go the same way. It is
-    // not a regression — base behaves identically — and the practical weight is
-    // near nil, since a real token is a hash and a real hostname label is not
-    // the alphabet in order.
-    //
-    // A RED HERE MEANS UPSTREAM'S GLOBAL ALLOWLIST MOVED — the stopword is gone
-    // or the matching changed, and this shape is now ours to name. That is
-    // news, not a broken test: re-measure, and say so here.
+    // Measured on gitleaks 8.30.1: this fixture is shape-perfect at 37 chars and
+    // entropy 4.9392 and is NOT reported, while ops_eyJ + stream('sw2', 30,
+    // ALNUM) at 37 chars and 4.7026 IS — so neither length nor entropy silences
+    // it. Isolated twice with a stand-in id that does not collide with
+    // upstream's. A RED HERE MEANS UPSTREAM'S GLOBAL ALLOWLIST MOVED: that is
+    // news, not a broken test — re-measure, and say so here.
     file: 'onepassword-stopword-suppressed.md',
     ours: null,
     why: "a stopword in gitleaks' DEFAULT global allowlist suppresses a shape-perfect token — composed, not ours",
@@ -914,15 +880,13 @@ function planMutations(text, upstream) {
     // boundary are two separate claims rather than one.
     //
     // The label is POSITIONAL, not ordinal: a \b at pattern index 0 is leading,
-    // one whose match ends at the end of the pattern is trailing, and anything
-    // else is #n. By ordinal, the FIRST boundary of any rule read "leading" — so
-    // a rule carrying exactly one boundary was always called leading whichever
-    // end it sat at. That was latent while every single-boundary rule here
-    // happened to be leading-anchored, and infra-lessly-run stopped being one:
-    // its remaining \b is the trailing one, and under the ordinal rule the
-    // justification written for its LEADING anchor would have gone on matching
-    // a mutation that no longer exists. A justification is looked up by this
-    // key, so an excuse outliving its subject is precisely what must go red.
+    // one whose match ends at the end of the pattern is trailing, anything else
+    // is #n. By ordinal the FIRST boundary of any rule read "leading", so a rule
+    // carrying exactly one was called leading whichever end it sat at — latent
+    // until infra-lessly-run's remaining \b became the trailing one, at which
+    // point the justification written for its LEADING anchor would have gone on
+    // matching a mutation that no longer exists. A justification is looked up by
+    // this key, so an excuse outliving its subject must go red.
     const boundaries = [...pattern.matchAll(/\\b/g)];
     for (const [n, b] of boundaries.entries()) {
       const where = b.index === 0 ? 'leading' : b.index + b[0].length === pattern.length ? 'trailing' : `#${n + 1}`;
@@ -1072,18 +1036,10 @@ function planMutations(text, upstream) {
  * edits an axis.
  * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
  *
- * The bar this check enforces is per RULE: a rule none of whose mutations kills
- * a case is unproven and fails. But a single surviving mutation under a rule
- * that IS proven is still a hole in the argument, so it does not get to pass in
- * silence. It carries a written reason here, and that reason is itself checked
- * two ways every run:
- *
- *   - a justification whose mutation is no longer planned FAILS. The key below
- *     is the substitution, so rewording the rule's class or moving its \b out of
- *     the leading position drops the match and the run says so.
- *   - a justification on a mutation that a case DOES now kill FAILS, naming the
- *     case. An exception that outlives its reason is the same silent green this
- *     whole check exists to close, so it goes stale loudly rather than quietly.
+ * A survivor under a rule that IS proven is still a hole, so it carries a
+ * written reason here, and that reason is checked two ways every run: a
+ * justification whose mutation is no longer planned FAILS, and one on a mutation
+ * a case DOES now kill FAILS, naming the case.
  *
  * `mutation` matches the `key` a mutation is built with, not its printed `note`
  * — the offset is deliberately not part of the key. Both entries below were
@@ -1310,29 +1266,17 @@ function judge(byFile, ruleIds) {
 
 /**
  * The exit-code contract, stated where the codes are chosen.
- *
  * 0 — every case passed, and every rule and allowlist entry is proven.
- * 1 — one or more assertions failed in the MUTATION PASS. Only ever set at the
- *     end of main(), and only after every mutation has been judged, so a run
- *     lists all failures rather than the first.
- * 2 — the check could not reach a verdict: no binary, the scanner refused to
- *     start, no report, unreadable report, a renamed field. Never a raw Node
- *     stack — a security gate that dies in a traceback reads as a broken
- *     script, and a broken script is what people skip.
+ * 1 — an assertion failed in the MUTATION PASS. Only set at the end of main(),
+ *     after every mutation is judged, so a run lists all failures not the first.
+ * 2 — no verdict reached: no binary, no report, a renamed field, never a raw
+ *     Node stack. `fail()` exits this code and only this code, on every path.
  *
- * A RED BASELINE IS A 2, and that is deliberate rather than an oversight in the
- * wording. Every case is evaluated and every failure is printed first — so by
- * the letter of "1" above it could be a 1 — but the run then stops before a
- * single mutation is generated, because on a red baseline every mutation reads
- * as detected by the case that was already failing. The mutation pass reached no
- * verdict at all, and that is what the exit code carries. The distinction is
- * worth having: a 1 says the config is weaker than it claims, a 2 says nobody
- * knows yet. Measured rather than reasoned about: point this check at a copy of
- * .gitleaks.toml with a rule deleted — the path argument exists for exactly that
- * — and it prints every failing case and exits 2, not 1.
+ * A RED BASELINE IS A 2: every case is evaluated and printed, but the run stops
+ * before a mutation is generated, since on a red baseline every mutation reads as
+ * detected by the case already failing. Measured: point this at a copy of
+ * .gitleaks.toml with a rule deleted and it exits 2, not 1.
  * why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
- *
- * `fail` is 2 and only 2. It is used for every "cannot tell" path below.
  */
 function fail(message) {
   console.error(message);
@@ -1340,21 +1284,15 @@ function fail(message) {
 }
 
 /**
- * The matrix, printed rule by rule, and the verdict.
- *
- * Three things fail here, and they are separate claims:
+ * The matrix, printed rule by rule, and the verdict. Three things fail here,
+ * and they are separate claims:
  *
  *   - a SUBJECT none of whose mutations kills a case — a rule, or an allowlist
- *     entry. That is the bar: it is unproven, whatever the cases do on the
- *     unmutated config.
- *   - a rule with no case at all, which is the same hole one step earlier.
+ *     entry. That is the bar, whatever the cases do on the unmutated config.
+ *   - a rule with no case at all, the same hole one step earlier.
  *   - a surviving MUTATION carrying no justification. A survivor is printed
- *     either way, justified or not — a green tick that hides one is the shape of
- *     failure this check exists to close. See JUSTIFIED, and the stale-exception
- *     failure raised there and below.
- *
- * That is the discovery rule's second half applied to mutations: where a count cannot see,
- * a test says so.
+ *     either way: a green tick that hides one is the failure this check closes.
+ *     See JUSTIFIED, and the stale-exception failure raised there and below.
  */
 function report(rows, ruleSubjects, casesFor) {
   const failures = [];

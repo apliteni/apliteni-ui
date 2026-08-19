@@ -1,21 +1,16 @@
-/* Rule: every stroked glyph the kit renders paints at 1.5 CSS px or wider.
+/* Rule: every stroked glyph the kit renders paints at 1.5 CSS px or wider (#217).
  *
- * The stroke-width rule set 3:1 as the bar for a graphic and scoped itself to the two
- * glyph families carrying a status; #217 is the rest of the kit, where ten of thirteen
- * glyphs measured from src/styles were under the line with nothing holding any of them.
+ * The subjects are elements, not declarations: every story in stories/ is rendered into a
+ * JSDOM carrying the kit's stylesheets, and every <svg> that comes out is measured with
+ * the cascade resolved — an inherited stroke, or one arriving from the markup, is what a
+ * stylesheet scan gets wrong.
  *
- * The subjects here are elements, not declarations: every story in stories/ is rendered
- * into a JSDOM carrying the kit's stylesheets, and every <svg> that comes out is measured
- * with the cascade resolved. Why a stylesheet scan gets that wrong — an inherited stroke,
- * a stroke that arrives from the markup — is in CONTRIBUTING.md, "A gate discovers its
- * subjects and never enumerates them".
+ * NOT A SUBJECT: an svg whose effective `stroke` is `none` — SVG's own initial value —
+ * paints no stroke, so it has no width to hold. The brand marks, the provider logos and
+ * the footer's social icons drop out by their own paint rather than by name.
  *
- * WHAT IS NOT A SUBJECT. An svg whose effective `stroke` is `none` — SVG's own
- * initial value — paints no stroke, so it has no width to hold: the brand marks,
- * the provider logos and the footer's social icons drop out by their own paint
- * rather than by name.
- *
- * why: docs/specification.md#icons-and-glyphs */
+ * why: docs/specification.md#icons-and-glyphs
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';

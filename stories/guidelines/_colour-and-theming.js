@@ -72,7 +72,7 @@ export const RULES = [
     why: '--accent is chosen to read as text on the canvas; --accent-strong is the darker sibling white clears AA on.',
     except: 'Under Phoenix, Ocean and Emerald the two are one token, so the distinction only bites on Nebula.',
     kit: [
-      { ref: 'src/tokens/tokens.css:182', pattern: '--accent-strong: #7c3aed;' },
+      { ref: 'src/tokens/tokens.css:158', pattern: '--accent-strong: #7c3aed;' },
       { ref: 'src/styles/button.css:44', pattern: 'background: var(--accent-strong);' },
       { ref: 'src/tokens/accents.css:24', pattern: '--accent-strong: var(--accent);' },
     ],
@@ -84,8 +84,8 @@ export const RULES = [
     except: '--surface-3 is not measured: nothing paints the accent wash on a raised surface any more.',
     kit: [
       { ref: 'stories/accent-contrast.test.js:1', pattern: '--accent clears WCAG AA as text on every ground the kit paints under it' },
-      { ref: 'stories/accent-contrast.test.js:2', pattern: 'in all eight theme × accent cells' },
-      { ref: 'react/src/a11y.test.tsx:27', pattern: "'color-contrast': { enabled: false }" },
+      { ref: 'stories/accent-contrast.test.js:2', pattern: 'theme × accent cells' },
+      { ref: 'react/src/a11y.test.tsx:23', pattern: "'color-contrast': { enabled: false }" },
     ],
   },
 ];

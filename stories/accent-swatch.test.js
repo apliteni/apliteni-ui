@@ -1,33 +1,28 @@
-/* Rule: the accent picker's swatch is made of the tokens that accent selects,
- * and all three copies of the picker paint the same one.
- *
- * A swatch is a promise about what happens when you press it, and the only thing on the
- * page describing an accent you are not looking at — so a stale one is the picker lying
- * about the theme it offers. Nebula's painted two ramp steps below its own --accent.
+/* Rule: the accent picker's swatch is made of the tokens that accent selects, and all three
+ * copies of the picker paint the same one.
  *
  * THE RULE, applied to every accent alike and never special-cased by name:
  *
  *   angle  135deg, the kit's one diagonal, the same for every swatch.
  *   stop2  the accent's DARK --accent — the colour the kit actually paints.
- *   stop1  the next DISTINCT step up that accent's ramp: of --purple,
- *          --purple-light and --purple-mid, the one with the LOWEST relative
- *          luminance strictly GREATER than --accent's. Two steps tied there leave the
- *          rule no answer and the gate says so, rather than letting the order an array
- *          happens to be written in pick a hue.
+ *   stop1  the next DISTINCT step up that accent's ramp: of --purple, --purple-light and
+ *          --purple-mid, the one with the LOWEST relative luminance strictly GREATER than
+ *          --accent's. Two steps tied there leave the rule no answer and the gate says so,
+ *          rather than letting the order an array happens to be written in pick a hue.
  *
- * The angle's pin, the dark cell rather than the light one, the new-invariant reading and
- * the site's two hand-kept copies: CONTRIBUTING.md, "Add an accent sub-theme".
+ * why: CONTRIBUTING.md#add-an-accent-sub-theme
+ */
+
+/* Both sides are derived — the colours out of src/tokens/, the painted ones out of each picker's
+ * render — so nothing here restates a literal it guards. And the lookup is checked:
+ * tokensFor('dark', X) matches one exact selector, so an accent whose dark block is spelled
+ * otherwise falls through to :root and inherits Nebula's ramp. Each accent's own block is
+ * located before its ramp is read.
  *
- * Both sides are derived — the colours out of src/tokens/, the painted ones out of each
- * picker's render — so nothing here restates a literal it guards. And the lookup is
- * checked: tokensFor('dark', X) matches one exact selector, so an accent whose dark block
- * is spelled otherwise falls through to :root and inherits Nebula's ramp. Each accent's
- * own block is located before its ramp is read.
- *
- * WHAT THIS GATE CANNOT READ, so a failure does not send you to fix a swatch that is
- * fine: it reads two opaque #rgb / #rrggbb, rgb()/rgba() or color(srgb …) stops with no
- * positions. Eight-digit hex, hsl(), named colours, a third stop and `#bd8cff 99%` are
- * legal CSS it was not written to judge, and it fails naming its own limit, not yours.
+ * WHAT THIS GATE CANNOT READ, so a failure does not send you to fix a swatch that is fine: it
+ * reads two opaque #rgb / #rrggbb, rgb()/rgba() or color(srgb …) stops with no positions.
+ * Eight-digit hex, hsl(), named colours, a third stop and `#bd8cff 99%` are legal CSS it was not
+ * written to judge, and it fails naming its own limit, not yours.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

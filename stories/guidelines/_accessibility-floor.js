@@ -23,24 +23,16 @@ export const TARGET_MIN = 24;
 export const RING_MIN = 3;
 
 /**
- * SETTLED IN #220, by this repo, because no standard settles it — 1.4.3 exempts
- * a disabled control outright. 3:1 is the bar WCAG already uses twice for "make
- * it out, do not read it comfortably" (large text, and a graphic), and a
- * disabled label has to stay identifiable as the word it is or a reader cannot
- * tell which control is unavailable.
+ * SETTLED IN #220, because no standard settles it — 1.4.3 exempts a disabled
+ * control outright. 3:1 is the bar WCAG already uses twice for "make it out, do
+ * not read it comfortably", and a disabled label has to stay identifiable as the
+ * word it is or a reader cannot tell which control is unavailable.
  *
- * It is 3 and not 4.5 because of what the measurement showed about the OTHER
- * pressure. A disabled control also has to look weaker than an enabled one, and
- * the obvious reading — hold the disabled pair below the enabled one — does not
- * survive contact with a number: the kit's disabled primary button measures
- * 5.56:1 and the same button enabled measures 5.70:1, a factor of 1.03, and
- * nobody would mistake the two. White on purple and grey on grey are the same
- * ratio and a different control. So contrast is not the axis the state travels
- * on; the paint is. This number carries legibility only. What keeps the floor
- * from being cleared by making a disabled control look enabled is the second
- * half of the rule below it — the pair a control shows when it is off is not
- * the pair it shows when it is on, and the gate proves it by taking the
- * disabled attribute off the element and reading the cascade again.
+ * It is 3 and not 4.5 because contrast is not the axis the state travels on: the
+ * kit's disabled primary button measures 5.56:1 against 5.70:1 enabled, a factor
+ * of 1.03, and nobody would mistake the two. The paint carries the state, this
+ * number carries legibility only, and what stops the floor being cleared by
+ * making a disabled control look enabled is the second half of the rule below.
  */
 export const DISABLED_MIN = 3;
 
@@ -402,7 +394,7 @@ export const RULES = [
       + 'pair is 1.4.11’s, and no gate here measures it.',
     kit: [
       { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
-      { ref: 'src/tokens/tokens.css:169', pattern: '--disabled-ink' },
+      { ref: 'src/tokens/tokens.css:149', pattern: '--disabled-ink' },
     ],
   },
   {
@@ -411,7 +403,7 @@ export const RULES = [
     why: 'Every number above is the least the kit accepts, not what it is trying to be. The '
       + 'four aims below the rules say what it reaches for, and a component that lands one '
       + 'thousandth over AA has passed the gate and is still the worst thing on the page.',
-    kit: [{ ref: 'stories/contrast.test.js:59', pattern: 'The AA floor is a floor, not a verdict.' }],
+    kit: [{ ref: 'stories/contrast.test.js:292', pattern: 'the AA floor is a floor, not a verdict.' }],
   },
   {
     id: 'name-the-gap',
@@ -419,6 +411,6 @@ export const RULES = [
     why: 'Thirteen gates in this repo state their own blind spots in a header comment, and the '
       + 'table below is that collection rather than a fresh audit. A gate that overstates itself '
       + 'is how contrast came to be "verified visually" in the first place.',
-    kit: [{ ref: 'stories/contrast.test.js:17', pattern: 'WHAT IT WILL NOT CATCH' }],
+    kit: [{ ref: 'stories/contrast.test.js:236', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
   },
 ];

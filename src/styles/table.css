@@ -34,14 +34,10 @@
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
 
 /* Row hover: an inset, rounded fill so the highlight never sits flush against a
- * container's border (issue #71 — the full-bleed rectangle collided with a card's
- * left edge). Separate border model with zero spacing keeps the row separators
- * continuous while letting the row ends round; table padding (which only applies
- * in the separate model) insets the rows so the fill clears the container edge.
- * Zebra tables keep the original full-bleed tint (finance ledger), so they're
- * excluded here — their hover rule lives further down.
- * The inset was 6px, which is a tie between --space-1 and --space-2; it rounds
- * up, because what it buys is clearance and clearance rounds away from the edge. */
+ * container's border (#71). The separate border model with zero spacing keeps the row
+ * separators continuous while letting the row ends round, and table padding — which
+ * only applies in that model — insets the rows. Zebra keeps the original full-bleed
+ * tint (finance ledger) and is excluded here; its hover rule is below. */
 .ui-table--hover:not(.ui-table--zebra) {
   border-collapse: separate;
   border-spacing: 0;
@@ -54,9 +50,7 @@
   border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
 
 /* Data-table modifiers, composable: .ui-table--dense --zebra --hover.
- *   --dense  --space-3 across, --space-2 down — one step in from the base
- *            table, and both round DOWN, because the modifier exists to fit
- *            more rows and rounding up spends the distinction it is for.
+ *   --dense  --space-3 across, --space-2 down — one step in from the base table
  *   --zebra  row striping; 2px header rule; the hover tint out-ranks the stripe
  * Cell helpers: .ui-table__num (right, tabular), .ui-table__code.
  * why: docs/specification.md#spacing-and-rhythm
@@ -71,15 +65,11 @@
 .ui-table--zebra th { border-bottom-width: 2px; }
 .ui-table--zebra td { border-bottom: 0; }
 .ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); }
-/* The stripe is full-bleed on purpose — the hover note above inset the hover fill for
- * #71 and deliberately left the ledger stripe alone. But full-bleed only reads right if
- * the end cells are inset from the tint's own edge, and the base rhythm does not inset
- * them: `.ui-table td` sets `padding-left: 0`. Only `--dense` supplied the inset, so a
- * `--zebra` table composed WITHOUT `--dense` put the first cell's content at exactly
- * x=0 of the stripe. `DataTable` is that composition — it writes `ui-table
- * ui-table--hover ui-table--zebra` and no `--dense` — so its select-all and per-row
- * checkboxes sat flush against the tint with a measured 0px gap.
- * Header and body are inset together, or the columns stop lining up. */
+/* The stripe stays full-bleed (the #71 inset above is hover only), but it only reads right
+ * if the end cells are inset from the tint's own edge, and `.ui-table td` sets
+ * `padding-left: 0`. Only `--dense` supplied that inset, so `--zebra` without `--dense` —
+ * `DataTable`'s composition — sat its checkboxes at x=0 of the stripe. Head and body are
+ * inset together, or the columns stop lining up. */
 .ui-table--zebra th:first-child,
 .ui-table--zebra td:first-child { padding-left: var(--space-3); }
 .ui-table--zebra th:last-child,
