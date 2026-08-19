@@ -1,98 +1,57 @@
-/* Shared machinery for the three icon-size gates.
+/* Shared machinery for the three icon-size gates:
  *
- *   src/styles/icon-size.test.js       — the rules inside the package's own stylesheets
- *   scripts/icon-size-surfaces.test.js — the rules on the surfaces the kit renders
- *                                        (the landing site, the Storybook stories
- *                                        and the chrome under .storybook/)
- *   scripts/icon-size-react.test.js    — the rules in the CSS under react/src, in
- *                                        stylesheets and <style> blocks alike
+ *   src/styles/icon-size.test.js       — the package's own stylesheets
+ *   scripts/icon-size-surfaces.test.js — the surfaces the kit renders
+ *   scripts/icon-size-react.test.js    — the CSS under react/src
  *
- * All three ask the same question — does the rule that sizes this icon actually
- * win the cascade against the reset in src/styles/base.css — and all three
- * answer it the same way: mount an element matching the rule's selector against
- * the real kit stylesheets and read getComputedStyle back. Only the source of
- * the rules differs. This file is the shared half.
+ * All three ask whether the rule sizing this icon beats the reset in
+ * src/styles/base.css, and all three answer by mounting an element against the
+ * real kit stylesheets and reading getComputedStyle back. It lives under
+ * scripts/ because `files` in package.json would ship a plain .js helper under
+ * src/ to consumers, and scripts/ is outside the tarball.
  * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
- *
- * It lives under scripts/ on purpose. `files` in package.json excludes test
- * files from src/ but nothing else, so a plain .js helper under src/ would ship
- * to consumers; scripts/ is outside the tarball entirely, and this one does not.
- *
- * The long comments left below are each about the scanner directly beneath them
- * — the shape it gets wrong, and the silent pass that shape produces. They are
- * kept at the code because that is the only place the next reader meets them;
- * the arguments they used to repeat are in CONTRIBUTING, cited by `why:` lines.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 
-/* The two dimensions every contest here is decided in. A rule can name either of
- * them in two spellings, and the second spelling is why this file has a
- * normalization step: jsdom keeps `inline-size` in a cascade of its own that
- * `width` never enters, so a logical declaration measured as written wins every
- * contest it is in, including the ones a browser makes it lose.
- * foldLogicalDims() rewrites it onto its physical counterpart before anything is
- * measured. The argument is under TWO SPELLINGS, ONE CONTEST in the header of
- * src/styles/icon-size.test.js. */
+/* The two dimensions every contest here is decided in. jsdom keeps `inline-size`
+ * in a cascade of its own that `width` never enters, so foldLogicalDims()
+ * rewrites it onto its physical counterpart before anything is measured. */
 export const DIMS = ['width', 'height'];
 export const LOGICAL_DIMS = new Map([['inline-size', 'width'], ['block-size', 'height']]);
 
 /** Both spellings, for the checks that read a rule before it has been folded. */
 export const SIZING_PROPS = [...DIMS, ...LOGICAL_DIMS.keys()];
 
-/* Sizing an icon by clamping it, which no gate measures anything about — the
- * argument is in CLAMP_REFUSAL below. Each gate asserts this list lands on no
- * icon, which is how a clamp on an icon reaches a reader instead of passing in
- * silence. Both spellings again, for the same reason as above:
- * `min-inline-size` is `min-width` while the writing mode is horizontal. */
+/* Sizing an icon by clamping it, which no gate measures anything about — see
+ * CLAMP_REFUSAL. Each gate asserts this list lands on no icon. */
 export const CLAMP_PROPS = [
   'min-width', 'max-width', 'min-height', 'max-height',
   'min-inline-size', 'max-inline-size', 'min-block-size', 'max-block-size',
 ];
 
 /* A declaration of one of `props`, matched in the raw text of a stylesheet
- * rather than in the CSSOM — which is the only place some of them survive, since
- * jsdom drops a declaration whose value it cannot parse and a surface that
- * computes its value at render time hands it exactly that.
- *
- * Anchored on `;` or `{` so that `min-width` cannot be read as `width`. That
- * anchor is the whole reason a caller can ask about SIZING_PROPS and CLAMP_PROPS
- * separately and get two different answers, so scripts/lib/icon-cascade.test.js
- * asserts it rather than trusting it. Fresh each call because the `g` flag makes
- * lastIndex state a shared regex would carry between callers.
- *
- * The `i` flag, and why the name still comes back as the file spells it:
+ * rather than in the CSSOM — the only place some survive, since jsdom drops a
+ * declaration whose value it cannot parse. Anchored on `;` or `{` so that
+ * `min-width` cannot be read as `width`, and fresh each call because the `g`
+ * flag makes lastIndex state a shared regex would carry between callers.
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export const declRe = (props) => new RegExp(
   `(?:^|[;{])\\s*(${props.join('|')})\\s*:\\s*([^;}]*)`, 'gi');
 
 /* CSS with its comments taken out, for every scan that reads raw text rather
- * than the CSSOM. A commented-out `width: 20px` is not a declaration, and a
- * comment warning people off `-webkit-writing-mode` is not one either — read as
- * text, both fire guards on a file that is perfectly fine. The patterns above
- * also stop at `;` or `}`, so a comment sitting between `{` and the first
- * declaration hides that declaration from them entirely. */
+ * than the CSSOM: a commented-out `width: 20px` is not a declaration, and read
+ * as text it fires a guard on a file that is perfectly fine. */
 export const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
 
-/* The same text with the CONTENTS of every string replaced by spaces — the
- * quotes left where they are, and every offset unmoved. A string is content and
- * not CSS: the data URI in src/styles/input.css can hold
- * `style='height:12px;width:12px'` and a `content` can hold `{ width: 5px`, and
- * read as declarations both make a gate refuse a file a browser is perfectly
- * happy with. A gate that reds on correct code gets switched off.
- *
- * Every scan below that reads raw CSS goes through it first, bar one:
- * kitSheetNames() matches on the quoted sheet name itself, which blanking
- * erases, and the file it reads is nothing but @import lines. A scan that needs
- * the text of a string as well as its position — importsIn() — matches here and
- * reads there, which the preserved offsets are what allow.
- *
- * It walks with the same scanner the selector splits use, so one place knows
- * where a string starts and ends rather than one per caller. Comments come out
- * first everywhere this is called, which leaves one shape unhandled: a comment
- * opener written INSIDE a string, which stripComments() cuts from, taking real
- * CSS with it. That was true before this and is true after it. */
+/* The same text with the CONTENTS of every string replaced by spaces — quotes
+ * left where they are, every offset unmoved, so a caller can match here and read
+ * the string back out of the original text. A string is content and not CSS: the
+ * data URI in src/styles/input.css holds `style='height:12px;width:12px'` and a
+ * `content` can hold `{ width: 5px`, and read as declarations both make a gate
+ * refuse a file a browser is happy with. kitSheetNames() is the one raw scan
+ * that skips this, since it matches on the quoted sheet name blanking erases. */
 export const blankStrings = (css) => {
   let out = '';
   scanTop(css, (ch, _top, _i, inString) => { out += inString ? ' ' : ch; });
@@ -100,18 +59,14 @@ export const blankStrings = (css) => {
 };
 
 /* Build output and vendored code, skipped by directory name. Two of these exist
- * on a dev machine and never in CI, which is the dangerous shape: site/public/
- * is gitignored, and site/build.mjs folds the entire built Storybook into
- * site/public/storybook/, so a developer who has run a full build would have
- * every sweep below harvest `<svg class="…">` out of that vendor bundle.
- * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation */
+ * on a dev machine and never in CI: site/public/ is gitignored and holds the
+ * built Storybook, so a developer who has run a build would have every sweep
+ * below harvest `<svg class="…">` out of that bundle. */
 export const SKIP_DIRS = new Set(['node_modules', 'dist', 'public', 'storybook-static']);
 
-/* Every file under `dir`, depth-first, build output excluded. The pruning is by
- * NAME and so applies at any depth, including inside a directory of hand-written
- * source; pass `skipped` an array and every directory refused lands in it, so a
- * caller sweeping somewhere build output has no business being can say so
- * instead of quietly reading less. */
+/* Every file under `dir`, depth-first, build output excluded. Pruning is by NAME
+ * and applies at any depth; pass `skipped` an array and every directory refused
+ * lands in it, so a caller can say so instead of quietly reading less. */
 export function walk(dir, acc = [], skipped = null) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
@@ -124,11 +79,8 @@ export function walk(dir, acc = [], skipped = null) {
 }
 
 /* The kit's stylesheets, in the order src/index.css imports them. Both quotes
- * are read, because a sheet written with the other one would leave this list and
- * take its rules out of coverage with the suite still green.
- *
- * The two halves of this pattern want opposite answers on case — the keyword
- * folds, the path must not:
+ * are read, since a sheet written with the other one would leave this list with
+ * the suite still green. The keyword folds case and the path must not:
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export function kitSheetNames(src) {
   return [...readFileSync(path.join(src, 'index.css'), 'utf8')
@@ -145,22 +97,15 @@ export function kitStyleHtml(src, names) {
 }
 
 /* An svg carrying a class, in the two languages this repo writes markup in.
- * HTML folds case and JSX does not, so they are two patterns rather than one
- * with a flag over the whole of it. Neither flag reaches the captured text: a
- * class name is case-sensitive, and every consumer compares this set exactly.
- *
+ * HTML folds case and JSX does not, so they are two patterns; neither flag
+ * reaches the captured text, a class name being case-sensitive.
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 const svgClassRes = () => [/<svg[^>]*\sclass="([^"${]+)"/gi, /<svg[^>]*\sclassName="([^"${]+)"/g];
 
 /* The classes the kit puts on an <svg>, read out of the source rather than
- * listed here, so a new one joins coverage by existing. Two ways a class gets
- * onto an svg: written into the tag, or passed as icon()'s second argument.
- *
- * `dirs` are scanned depth-first; `exts` says which files count. Test files are
- * always skipped, in every extension the repo tests in — a class that only a
- * test writes onto an svg is not a class the kit renders.
- *
- * The icon() call and that skip are both read case-sensitively:
+ * listed here, so a new one joins coverage by existing — written into the tag,
+ * or passed as icon()'s second argument. Test files are always skipped: a class
+ * only a test writes onto an svg is not a class the kit renders.
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export function svgClassSet(dirs, exts = ['.js']) {
   const found = new Set();
@@ -185,16 +130,12 @@ export function svgClassSet(dirs, exts = ['.js']) {
 }
 
 /* Walk a selector at the top level, stepping over anything inside () or [], and
- * call `at` for every character that is not. Every split below is built on this,
- * because the characters that separate a selector are the same characters an
- * argument list is full of: the `>` in `:has(> .ui-table)` separates nothing and
- * the comma in `:where(ul, ol)` does not start a second selector.
- *
- * Quoted strings are stepped over as well, and for a sharper reason than the
- * separators: `[data-x="]"]` closes no bracket, so counting that `]` takes the
- * depth below zero and NOTHING after it is ever top level again. The leaf of
- * `.a[data-x="]"] svg` stops being `svg`, the rule stops being an icon rule, and
- * it leaves coverage in silence — no error, and no count moves to say so. */
+ * call `at` for every character that is not. Every split below is built on this:
+ * the `>` in `:has(> .ui-table)` separates nothing and the comma in
+ * `:where(ul, ol)` starts no second selector. Quoted strings are stepped over
+ * too, for a sharper reason — `[data-x="]"]` closes no bracket, so counting that
+ * `]` takes the depth below zero and nothing after it is ever top level again,
+ * which drops the rule out of coverage with no count moving to say so. */
 function scanTop(sel, at) {
   let depth = 0;
   let quote = '';
@@ -216,9 +157,8 @@ function scanTop(sel, at) {
 }
 
 /* The selectors a selector list holds — `.a, .b` is two, `:where(ul, ol)` is
- * one. Every caller that used to split on ',' goes through this, since the
- * halves that split produces out of a functional pseudo are not selectors and
- * cannot be reasoned about as if they were. */
+ * one. A plain split on ',' produces halves of a functional pseudo that are not
+ * selectors at all. */
 export function selectorParts(selectorText) {
   const parts = [''];
   scanTop(selectorText, (ch, top) => {
@@ -229,10 +169,9 @@ export function selectorParts(selectorText) {
 }
 
 /* One complex selector split into its compound selectors, each paired with the
- * combinator in front of it. `.a>svg` and `.a > svg` are the same two compounds,
- * which is the point: read as whitespace-separated tokens the first is one
- * token, `svg` is not its leaf, and the rule that decides the icon looks like a
- * rule about nothing. */
+ * combinator in front of it. `.a>svg` and `.a > svg` are the same two compounds:
+ * split on whitespace the first is one token, `svg` is not its leaf, and the
+ * rule deciding the icon looks like a rule about nothing. */
 export function compoundsOf(sel) {
   const out = [];
   let cur = '';
@@ -262,10 +201,7 @@ const withoutArgs = (compound) => {
 /* The argument lists of the pseudo-classes that name what the subject may BE.
  * `:has()` and `:not()` are excluded, and only the TOP level of the compound is
  * collected, so an `:is()` nested inside either stays that pseudo's argument.
- * The NAME is read in any case, because a pseudo-class name folds case in CSS;
- * the flag reaches the name and nothing else, since what is inside the
- * parentheses is sliced out by offset and handed back untouched.
- *
+ * The name folds case; what is inside the parentheses is sliced out by offset.
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 function alternativesIn(compound) {
   const top = new Set();
@@ -293,25 +229,13 @@ function alternativesIn(compound) {
  *   .ui-fbck             — a CLASS the kit puts ON an svg (the CHECK markup in
  *                          src/components/feedback.js)
  *
- * The second shape is not cosmetic: .ui-fbck is the largest icon in the kit and
- * an earlier gate that collected only selectors ending in `svg` was blind to it.
- * Outside the package the same shape appears as `.term__copy .ic { width: 15px }`
- * in site/index.html — `ic` is a class written onto the svg tag itself.
- *
- * Asked of the leaf compound, and asked recursively through `:is()`/`:where()`,
- * so the shape a selector is written in decides nothing. `.rx-tbl>svg` and
- * `.rx-tbl+svg` select an svg exactly as `.rx-tbl svg` does; answering "not an
- * icon" for them left a rule that beats the reset with no gate over it and no
- * complaint either, which is the one failure this machinery is for.
- *
- * `.a :where(svg)` selects one too, and is recognised here — but mount() cannot
- * build an element for it and refuses, so the rule is reported rather than
- * measured. That is the two halves of this file disagreeing on purpose. The
- * alternative is answering "not an icon", which is the silence above; a refusal
- * naming the selector sends the reader to the rule instead. Teaching mount() the
- * shape would mean choosing one alternative out of the argument list and
- * building it, which the argument's own complex selectors and attribute
- * selectors make more than a pseudo taken off. */
+ * .ui-fbck is the largest icon in the kit, and an earlier gate collecting only
+ * selectors ending in `svg` was blind to it. Asked of the leaf compound and
+ * recursively through `:is()`/`:where()`, so the shape a selector is written in
+ * decides nothing: `.rx-tbl>svg` selects an svg exactly as `.rx-tbl svg` does,
+ * and answering "not an icon" leaves a rule that beats the reset ungated.
+ * `.a :where(svg)` is recognised here and refused by mount(); refuse() says
+ * why. */
 function compoundIsSvg(compound, classes) {
   const bare = withoutArgs(compound);
   if (/^svg\b/.test(bare)) return true;
@@ -336,14 +260,10 @@ function* everyRule(container) {
 const preludeOf = (rule) => rule.cssText.slice(0, rule.cssText.indexOf('{')).trim();
 
 /* Every style rule inside a conditional group, at any depth, paired with the
- * at-rules it sits under — innermost first, so a refusal can name them in the
- * order a reader unwraps them.
- *
- * Depth is the point. jsdom parses `@layer x { @media screen { … } }` happily
- * and applies none of it, so a rule buried two levels down contributes no
- * subject, loses no contest and — until this recursed — drew no complaint
- * either. Style rules are descended into as well, because CSS nesting puts a
- * rule under a rule the same way. */
+ * at-rules it sits under, innermost first. Depth is the point: jsdom parses
+ * `@layer x { @media screen { … } }` happily and applies none of it, so a rule
+ * two levels down contributes no subject and loses no contest. Style rules are
+ * descended into too, CSS nesting putting a rule under a rule the same way. */
 function* nestedIn(group, chain) {
   for (const rule of group.cssRules ?? []) {
     if (rule.selectorText) yield [rule, chain];
@@ -356,15 +276,11 @@ function* nestedIn(group, chain) {
 const FOLDED = new WeakSet();
 const AS_WRITTEN = new WeakMap();
 
-/* What a gate says when a stylesheet turns the axes the fold assumes. `what`
- * names the declaration, since the two spellings are found in different places
- * and only one of them can name the rule it sits in. */
 /* Whether a declared writing mode leaves the inline axis horizontal. Only the
- * modes that turn it break the fold, and `horizontal-tb` is the mode the fold
- * assumes — refusing it would tell a reader to delete the declaration that makes
- * this gate correct, and a gate that reds on correct code gets switched off.
- * `initial` is horizontal-tb; `inherit` and `unset` name a mode set somewhere
- * this cannot see, so they are refused with the rest. */
+ * modes that turn it break the fold; `initial` is horizontal-tb, while `inherit`
+ * and `unset` name a mode set somewhere this cannot see and are refused. `what`
+ * names the declaration, since only one of the two spellings can name the rule
+ * it sits in. */
 const turnsTheAxes = (mode) => !!mode && !['horizontal-tb', 'initial'].includes(mode.trim().toLowerCase());
 
 const writingModeRefusal = (name, what) => `${name}: ${what}. This gate folds inline-size onto `
@@ -372,33 +288,12 @@ const writingModeRefusal = (name, what) => `${name}: ${what}. This gate folds in
   + 'horizontally. Take the declaration out, or teach the gate to fold along the writing mode '
   + 'each icon is actually in.';
 
-/* Rewrite `inline-size` onto `width` and `block-size` onto `height` in every
- * rule of `sheet`, so a logical declaration competes in the cascade jsdom does
- * model. Every gate runs this over every sheet of a document as it builds it,
- * and rulesOf() refuses a sheet that has not been through it.
- *
- * Before anything is measured, and that ordering is load-bearing: jsdom clears
- * its computed-style cache when the DOM or a sheet's rule list changes, but not
- * when a declaration inside a rule does, so a fold that ran after a
- * getComputedStyle call would leave the element reading its old size.
- *
- * Order inside the block is respected rather than overwritten, because CSS
- * respects it: `width: 10px; inline-size: 20px` is 20px and the same pair the
- * other way round is 10px, and an `!important` on either side wins over the
- * other regardless of where it sits.
- *
- * The property as the author wrote it is kept, so a test named after this
- * subject can say `inline-size` where the file says `inline-size` — a gate that
- * renamed the rule it measures would send the next reader looking for a
- * declaration that is not there. */
 /* The text a sheet was parsed from, which two of the checks below have no other
  * source for: jsdom drops `-webkit-writing-mode` and deduplicates a repeated
  * declaration before either reaches the CSSOM. A sheet with no <style> element
- * behind it has no such text, and reading that as an empty string turns both
- * checks off — a constructed CSSStyleSheet has a null ownerNode and a <link>
- * has an element whose textContent is '', so each folds with no complaint
- * whatever it carries. Every gate here builds its document out of <style>
- * elements, which is what makes that a refusal rather than a limitation. */
+ * behind it has no such text, and reading that as '' would turn both checks off
+ * silently — a constructed CSSStyleSheet has a null ownerNode and a <link>'s
+ * textContent is '' — so it is refused instead. */
 function rawTextOf(sheet, name) {
   const node = sheet.ownerNode;
   if (node?.nodeName?.toLowerCase() !== 'style') {
@@ -411,25 +306,17 @@ function rawTextOf(sheet, name) {
 }
 
 /* The two axes, each in the two spellings that share it. Order matters between
- * the members of a pair and nowhere else, which is what makes the refusal below
- * as narrow as it is. */
+ * the members of a pair and nowhere else. */
 const AXES = [...LOGICAL_DIMS].map(([logical, physical]) => [physical, logical]);
 
-/* Every top-level block of a stylesheet's raw text, as [selector, body] — which
- * is exactly the set foldLogicalDims() rewrites, and the reason the check below
- * can be as narrow as it is.
- *
- * A scan rather than a regex, because both halves are things `\{([^{}]*)\}` gets
- * wrong. A `}` inside a string closes a block that is still open, so everything
- * after it in that block goes unread — silently, and in the direction that
- * passes. And the selector taken as "whatever precedes the brace" lands inside a
- * string for `content: "{"`, or swallows the `@import` line above the rule, so a
- * refusal names something the file does not contain.
- *
- * Blocks nested inside another — inside `@media`, or under CSS nesting — are not
- * reported at all: they are at brace depth 1 and the fold never reaches them.
- * Each block says whether it HOLDS one, since the fold skips those too and a `{`
- * looked for in the body text would find the one in `content: "{"`. */
+/* Every top-level block of a stylesheet's raw text, as [selector, body,
+ * holdsBlock] — exactly the set foldLogicalDims() rewrites. A scan rather than a
+ * regex, because `\{([^{}]*)\}` gets both halves wrong: a `}` inside a string
+ * closes a block that is still open and everything after it goes unread, and the
+ * selector taken as "whatever precedes the brace" lands inside a string for
+ * `content: "{"`. Nested blocks are not reported — they sit at brace depth 1 and
+ * the fold never reaches them — but each block says whether it HOLDS one, since
+ * looking for a `{` in the body text would find the one in `content: "{"`. */
 function topLevelBlocks(css) {
   const out = [];
   let depth = 0;
@@ -465,19 +352,9 @@ function topLevelBlocks(css) {
   return out;
 }
 
-/* A top-level block the CSSOM stops describing — the shapes where what every
- * gate measures is not what a browser renders. Two of them, both wrong numbers
- * rather than errors, and nothing in the CSSOM can recover the truth, so this
- * refuses rather than guessing.
- *
- * THE WINNER: a repeat is misread when SOME declaration of the property is
- * important and the LAST one is not. Nothing else about the repeat matters.
- * THE ORDER: a repeat straddling its logical twin is moved in front of a
- * declaration the file puts it behind when the fold keeps it in first position.
- *
- * Neither check asks whether the rule sizes an icon, so a repeat in a rule that
- * sizes nothing of the sort is refused with the rest.
- *
+/* A top-level block the CSSOM stops describing — two shapes, both wrong numbers
+ * rather than errors, neither recoverable from the CSSOM, so this refuses rather
+ * than guessing. Neither check asks whether the rule sizes an icon.
  * why: CONTRIBUTING.md#the-cssom-stops-describing-a-block-that-repeats-a-property */
 function refuseMisreadRepeats(css, name) {
   for (const [selector, body, holdsBlock] of topLevelBlocks(css)) {
@@ -534,24 +411,13 @@ export function foldLogicalDims(sheet, name) {
     if (turnsTheAxes(mode)) throw new Error(writingModeRefusal(name, `"${rule.selectorText}" declares `
       + `writing-mode: ${mode}`));
   }
-  /* And the same question of the sheet's raw text, because the CSSOM cannot
-   * answer it alone. jsdom drops `-webkit-writing-mode` outright — the rule
-   * carrying it reads as empty — and drops any value it does not recognise with
-   * it, so the loop above sees nothing in either case. Every browser that
-   * honours the prefixed spelling turns the axes exactly as the unprefixed one
-   * does, which is what the fold cannot survive.
-   *
-   * Case-insensitive for the same reason declRe() is, the vendor prefix being
-   * part of the property name. The unprefixed spelling needs no flag: cssstyle
-   * stores it lower-cased, so `WRITING-MODE` reaches the loop above under the
-   * name it asks for.
-   * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence
-   *
-   * EVERY declaration rather than the first, which is a second way this went
-   * quiet. `horizontal-tb` is the mode the fold assumes and is right not to be
-   * refused, so a sheet that declares it on <html> put an allowed value in front
-   * of every later declaration and answered for all of them. Reading the first
-   * match is only ever correct in a file with one. */
+  /* And the same question of the sheet's raw text: jsdom drops
+   * `-webkit-writing-mode` outright, so the loop above sees nothing, while every
+   * browser honouring the prefixed spelling turns the axes exactly as the
+   * unprefixed one does. Every declaration is checked rather than the first —
+   * `horizontal-tb` on <html> is allowed and would otherwise answer for every
+   * later declaration in the file.
+   * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
   const raw = rawTextOf(sheet, name);
   const prefixed = [...blankStrings(raw)
     .matchAll(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/gi)]
@@ -654,12 +520,9 @@ export function* rulesOf(sheet, name, classes) {
   }
 }
 
-/* The selector the reset is written under, found by what makes it the reset
- * rather than by what it looks like: it sizes an icon with no class on it, no
- * attribute and nothing around it. Asked of an element rather than of a
- * selector's parts, per selector rather than per block, and only of the rules
- * that SIZE an icon. Exactly one, and the count is the point.
- *
+/* The selector the reset is written under, found by what makes it the reset: it
+ * sizes an icon with no class on it, no attribute and nothing around it. Exactly
+ * one, and the count is the point.
  * why: CONTRIBUTING.md#the-reset-is-found-by-what-only-the-reset-does */
 export function resetSelectorOf(sheet, name, classes) {
   const bare = sheet.ownerNode.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -689,21 +552,13 @@ export function resetSelectorOf(sheet, name, classes) {
   return first;
 }
 
-/* Every @import in a stylesheet's raw text. An @import names a sheet that ships
- * to consumers and that no gate here opens: each one composes the files it finds
- * and nothing else, so the imported rules are measured only if that sheet is
- * itself one of them. src/index.css is the deliberate exception — it is nothing
- * but @imports, and the kit gate's sheet list is derived FROM them, so it is the
- * one sheet whose imports are already followed. */
-/* Matched against the text with strings blanked, so `content: "@import zz"` is
- * not an import — but READ back out of the text as written, since the specifier
- * of a real @import is itself a string and blanking it would report a sheet with
- * no name. Blanking keeps every offset, which is what lets the two be different
- * texts.
- *
- * The keyword is matched in any case — jsdom agrees, parsing `@IMPORT "./zz.css"`
- * into a real CSSImportRule — and this refusal is the only thing watching for an
- * unfollowed import, since one contributes no subject and moves no count.
+/* Every @import in a stylesheet's raw text. No gate here opens one — each
+ * composes the files it finds — so the imported rules are measured only if that
+ * sheet is itself one of them; src/index.css is the exception, being nothing but
+ * the @imports the kit gate's sheet list is derived FROM. Matched against the
+ * text with strings blanked, so `content: "@import zz"` is not an import, and
+ * read back at the same offsets out of the unblanked text, a real specifier
+ * being itself a string. The keyword folds case, as jsdom's parser does:
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export const importsIn = (css) => {
   const text = stripComments(css);
@@ -711,24 +566,16 @@ export const importsIn = (css) => {
     .map(({ indices }) => text.slice(...indices[1]).trim());
 };
 
-/* The extensions a stylesheet is written under. The list is what lets the React
- * gate tell `import './DataTable.pcss'` — a sheet its *.css sweep would miss, and
- * the whole reason that guard exists — from `import './polyfills'`, which is a
- * TypeScript module and no concern of a sweep for stylesheets. */
+/* The extensions a stylesheet is written under. The list lets the React gate
+ * tell `import './DataTable.pcss'`, which its *.css sweep would miss, from
+ * `import './polyfills'`, which is no concern of a sweep for stylesheets. */
 const STYLE_EXTS = ['css', 'pcss', 'postcss', 'scss', 'sass', 'less', 'styl', 'stylus'];
 
 /* Every stylesheet a source file imports by a RELATIVE path, however it binds
- * it: bare for the side effect, or to a name the way a CSS module is imported.
- * A query suffix — `?inline`, `?raw` — is kept on the specifier, since it is
- * part of what the bundler was asked for.
- *
- * Relative only. An import through a path alias (`@/styles/x.css`) resolves
- * through tsconfig or the bundler's config, neither of which this reads, so it
- * is not reported — and the gate's header says so rather than implying the
- * sweep covers it.
- *
- * Case-SENSITIVE, unlike the two CSS scans above — the keyword is JavaScript's
- * and the extension is esbuild's loader match, and neither folds:
+ * it, keeping any `?inline`/`?raw` suffix. An import through a path alias
+ * resolves through tsconfig or the bundler's config, neither of which this
+ * reads, so it is not reported and the gate's header says so. Case-SENSITIVE,
+ * unlike the two CSS scans above — the keyword is JavaScript's:
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 export const styleImportsIn = (source) => [...source.matchAll(
   new RegExp(String.raw`^\s*import\s+(?:[^'"]*\bfrom\s+)?['"](\.[^'"]+\.(?:${STYLE_EXTS.join('|')})(?:\?[^'"]*)?)['"]`,
@@ -739,10 +586,9 @@ export const IMPORT_REFUSAL = 'a stylesheet imports another sheet, and no gate h
   + 'Import the sheet from the component or the page instead, so it is a file the sweep finds, or '
   + 'teach the gate to follow @import.';
 
-/* An interpolation no gate could resolve becomes this token. It is a valid CSS
+/* An interpolation no gate could resolve becomes this token. A valid CSS
  * identifier on purpose: substituting something invalid would make jsdom drop
- * the declaration, and a dropped icon rule is indistinguishable from a rule that
- * was never there. Kept as a marker so the gates can refuse it. */
+ * the declaration, which is indistinguishable from a rule never written. */
 export const UNRESOLVED = 'ui-unresolved-interpolation';
 
 /* Resolve `${NAME}` against a `const NAME = \`…\`` in the same file — the shape
@@ -760,12 +606,10 @@ export function resolveInterpolations(body, source, depth = 0) {
   });
 }
 
-/* The CSS an expression states outright. A template literal and a quoted string
- * both say it plainly; anything else — a call, a concatenation, a name from
- * another file — is handed back as an interpolation so it reaches UNRESOLVED
- * rather than silence. A string carrying a backslash goes the same way: `\7d` is
- * a CSS escape and `\\n` is a JS one, and reading it as either would put a
- * character in the CSS the file does not have. */
+/* The CSS an expression states outright. Anything that is not a template literal
+ * or a quoted string is handed back as an interpolation so it reaches UNRESOLVED
+ * rather than silence — a string carrying a backslash included, since `\7d` is a
+ * CSS escape and `\\n` a JS one. */
 function literalCss(expr) {
   const text = expr.trim();
   const template = text.match(/^`([\s\S]*)`$/);
@@ -774,10 +618,9 @@ function literalCss(expr) {
   return quoted ? quoted[1] : `\${${text}}`;
 }
 
-/* A JSX expression container with its braces taken off. `.tsx` cannot write CSS
- * between the tags the way a template-literal story does — it writes
- * <style>{`…`}</style> — and handing those braces and backticks to a CSS parser
- * yields a block with no rules in it, which reads as a component with no CSS. */
+/* A JSX expression container with its braces taken off. `.tsx` writes
+ * <style>{`…`}</style>, and handing those braces and backticks to a CSS parser
+ * yields a block with no rules, which reads as a component with no CSS. */
 function unwrapExpression(body) {
   const container = body.match(/^\s*\{([\s\S]*)\}\s*$/);
   return container ? literalCss(container[1]) : body;
@@ -786,17 +629,10 @@ function unwrapExpression(body) {
 /* The `__html` of every `<style dangerouslySetInnerHTML={{__html: …}} />`, with
  * the span each one occupies. That is THE React idiom for injecting a CSS
  * string, and the paired-tag pattern below cannot see it — a self-closing tag
- * has nothing between it and `</style>` but the rest of the file, which the
- * pattern would take in as CSS if a later block gave it a closing tag to reach.
- * So these are read first and blanked out of the source the pattern then scans.
- *
- * The expression is found by balancing brackets rather than by matching to the
- * first `}}`, because the CSS itself is full of braces.
- *
- * The TAG folds case with the one below and the props do not. Folding it here as
- * well as below is what keeps the blanking aligned — a block the pattern below
- * can see is a block this pass has already taken out of its way, which is the
- * whole job of reading these first.
+ * has nothing between it and `</style>` but the rest of the file. So these are
+ * read first and blanked out of the source that pattern then scans. The
+ * expression is found by balancing brackets, the CSS being full of braces. The
+ * tag folds case exactly as it does below, which keeps the blanking aligned:
  * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
 function dangerousStyles(source) {
   const found = [];
@@ -830,23 +666,13 @@ function dangerousStyles(source) {
 }
 
 /* The CSS of every <style> block in a source file, resolved as far as it can be.
- *
- * The tag is read in any case, and the surfaces gate is why. It hands this the
- * STORY files, and a story is a `.js` module returning an HTML string out of a
- * template literal — stories/apps/Landing.stories.js is one — so `<STYLE>` there is the
- * HTML element, folded by every browser and by jsdom, applying in every story
- * iframe that renders the shell. Read lower case only it was not a block at all,
- * and a story that spells it that way from the day it is added contributes no
- * block, no subject and no count: the sweep reads 14 with the rule measured and
- * 14 without it. The same story written `<style>` reds with "collected 15,
- * expected 14", which is what the gate is for.
- *
- * The React gate hands this `.tsx` instead, where a capitalised tag is a
- * component rather than the element — so folding over-reads a component named
- * exactly `Style`. Nothing under react/src writes one, and the over-read is
- * loud: the block parses to no rules and blindSpots() reds naming the file.
- * Silence in the other direction is the failure this family is about, so that is
- * the direction to be wrong in. */
+ * The tag is read in any case: the surfaces gate hands this the story files,
+ * where `<STYLE>` inside a template literal is the HTML element, folded by every
+ * browser and by jsdom, and read lower case only such a story contributes no
+ * block, no subject and no count. The React gate hands this `.tsx`, where
+ * folding over-reads a component named exactly `Style` — nobody writes one, and
+ * the over-read is loud, the block parsing to no rules and blindSpots() redding
+ * by name. Silence is the failure this family is about. */
 export function styleBlocksOf(source) {
   const dangerous = dangerousStyles(source);
   let rest = source;
@@ -858,28 +684,13 @@ export function styleBlocksOf(source) {
     .map(({ body }) => resolveInterpolations(body, source));
 }
 
-/* Everything in one block of CSS that a gate cannot see the whole of, split into
- * what it merely could not read and the clamps, which ask for something
- * different — a width nobody could resolve is a gap in resolveInterpolations and
- * nothing more, while a clamp is a shape no gate measures at all, so resolving
- * it is only the first half of the answer and the clamp test is the second.
- *
- * The raw text is asked as well as the parsed sheet, because the parsed sheet
- * cannot answer alone: `width: ${sizeOf(1)}px` becomes a value jsdom rejects, so
- * the declaration is simply gone from the CSSOM. Comments come out first — a
- * commented-out `width: 20px` is not a declaration, and the patterns start at
- * `{` or `;`, so a comment sitting in front of the first declaration in a block
- * hides that declaration from every one of them. Strings are blanked after
- * them, for the reason in blankStrings(). */
 /* Whether an unresolved interpolation stands where a RULE or a DECLARATION would
  * be — `<style>${SHELL_CSS}</style>`, a `${SHARED}` after the last rule in a
  * block, `.a { ${DECLS} }`. Asked by POSITION, not by whether the sheet parsed
- * to no rules. A marker inside a declaration's VALUE is left alone, whatever the
- * property; blindSpots() scans the sizing and clamp properties by name.
- *
- * The text arrives with comments out and strings blanked, so every brace left in
- * it is a brace a CSS parser sees.
- *
+ * to no rules; a marker inside a declaration's VALUE is left to blindSpots(),
+ * which scans the sizing and clamp properties by name. The text arrives with
+ * comments out and strings blanked, so every brace left in it is one a CSS
+ * parser sees.
  * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
 function standsWhereCssWouldBe(text) {
   for (let i = text.indexOf(UNRESOLVED); i !== -1; i = text.indexOf(UNRESOLVED, i + 1)) {
@@ -905,24 +716,14 @@ function standsWhereCssWouldBe(text) {
   return false;
 }
 
-/* Whether every statement in this text is an at-rule — which is what tells a
- * block cssom modelled nothing of from a block cssom could not read.
- *
- * `@property` and `@charset` reach the CSSOM as no rule at all, so a block that
- * holds one of them and nothing else parses to zero rules exactly as an empty
- * block does. Both are CSS a browser honours, and a gate that reds on correct
- * code gets switched off. Every other at-rule this repo could write is modelled
- * — @media, @supports, @layer, @font-face, @namespace, @import all become a rule
- * — so a block carrying one of those never reaches the caller's question.
- *
- * An at-rule nobody closed is not one of these: it reads to the end of the text
- * with its block still open, which is neither a shape a browser honours nor a
- * reason to go quiet, so it is answered no. So is anything that is not an
- * at-rule at all, which is the concatenated `' + CSS + '` the caller's refusal
- * exists for.
- *
- * The text arrives with comments out and strings blanked, so every brace and
- * every `;` left in it is one a CSS parser sees. */
+/* Whether every statement in this text is an at-rule — which tells a block the
+ * CSSOM modelled nothing of from a block it could not read. `@property` and
+ * `@charset` reach the CSSOM as no rule at all, so a block holding one of them
+ * and nothing else parses to zero rules exactly as an empty block does, and both
+ * are CSS a browser honours. Every other at-rule this repo could write becomes a
+ * rule and never reaches the caller's question. An at-rule nobody closed is
+ * answered no, as is anything that is not an at-rule — the concatenated
+ * `' + CSS + '` the caller's refusal exists for. */
 function onlyAtRules(text) {
   let i = 0;
   for (;;) {
@@ -954,28 +755,20 @@ export function blindSpots(from, css, sheet) {
       blind.push(`${from}: ${rule.selectorText} { ${dims.join(', ')} }`);
     }
   }
-  /* An interpolation nothing could resolve, standing where CSS would be —
-   * `<style>${SHELL_CSS}</style>`, a `${SHARED}` after the last rule, a
-   * `.a { ${DECLS} }`. Nothing was dropped from a count either, because the count
-   * never rose: the block reads as a surface with no CSS in it, and the gate
-   * would swear it had measured the page. The argument for asking by position
-   * rather than by rule count is in standsWhereCssWouldBe(). */
+  /* An interpolation nothing could resolve, standing where CSS would be. Nothing
+   * was dropped from a count either, because the count never rose: the block
+   * reads as a surface with no CSS in it and the gate would swear it had
+   * measured the page. */
   if (standsWhereCssWouldBe(text)) {
     blind.push(`${from}: an unresolved interpolation where a rule or a declaration would be`);
   }
-  /* And a block that parsed to nothing at all. `'<style>' + CSS + '</style>'` in
-   * a source hands this a fragment of JavaScript between the tags: no rules to
-   * read, no marker to find, and every guard here quiet while the CSS it
-   * concatenates ships and applies.
-   *
-   * An EMPTY block is not that. `<style></style>`, and one holding nothing but a
-   * comment, parse to no rules because there are none, and a gate that reds on
-   * correct code gets switched off. Nor is a block that is nothing but an
-   * at-rule cssom models nothing of — see onlyAtRules(). Comments are already out
-   * of `text` and strings are blanked, so what is left is what the parser was
-   * handed. A marker in there is the guard above's to report, since it can say
-   * what is actually wrong with it — one block drawing two refusals sends the
-   * reader looking for two problems. */
+  /* And a block that parsed to nothing at all. `'<style>' + CSS + '</style>'`
+   * hands this a fragment of JavaScript between the tags: no rules to read, no
+   * marker to find, every guard quiet while the CSS it concatenates ships. An
+   * empty block is not that, nor is one holding only an at-rule the CSSOM models
+   * nothing of — see onlyAtRules(). A marker in there is the guard above's to
+   * report, one block drawing two refusals sending the reader after two
+   * problems. */
   if (sheet.cssRules.length === 0 && text.trim() && !text.includes(UNRESOLVED)
     && !onlyAtRules(text)) {
     blind.push(`${from}: a <style> block this gate parsed to no rules at all`);
@@ -1000,10 +793,9 @@ export function blindSpots(from, css, sheet) {
   return { blind, clampedBlind };
 }
 
-/* One sheet, reused, for asking whether a declaration survives being parsed.
- * Built on first use and emptied after each question. A JSDOM per declaration
- * answers the same thing and costs about two seconds across the three gates — a
- * tax big enough to get the check deleted rather than fixed. */
+/* One sheet, reused, for asking whether a declaration survives being parsed. A
+ * JSDOM per declaration answers the same thing and costs about two seconds
+ * across the three gates — a tax big enough to get the check deleted. */
 let probeSheet = null;
 function survivesParsing(prop, value) {
   if (!probeSheet) {
@@ -1022,16 +814,10 @@ function survivesParsing(prop, value) {
 }
 
 /* Every sizing or clamp declaration in `css` that would not survive being
- * parsed — the hole a subject count cannot see, because jsdom discards what it
- * does not understand without a word and a rule added and dropped in the same
- * breath leaves the count where it was.
- *
- * Asked of the raw text, and of the rules that decide an icon rather than of
- * every rule in the sheet. A conditional group is descended into rather than
- * read flat; three shapes are asked anyway, because scoping them is what would
- * make them silent. A logical declaration is asked under its PHYSICAL name and
- * reported as written.
- *
+ * parsed — the hole a subject count cannot see. Asked of the raw text, and of
+ * the rules that decide an icon rather than every rule in the sheet; a
+ * conditional group is descended into, and a logical declaration is asked under
+ * its PHYSICAL name and reported as written.
  * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
 export function droppedDecls(from, css, classes) {
   const out = [];
@@ -1080,43 +866,32 @@ export const CLAMPED_BLIND_REFUSAL = 'a surface clamps a size with a value compu
   + '— and if it does, that test refuses it, because no gate measures anything about a clamp. The '
   + 'argument is in CLAMP_REFUSAL.';
 
-/* One attribute selector at the head of what is left of a compound. The
- * operators are all satisfied by setting the attribute to the value written —
- * `~=` on a single token, `^=`/`$=`/`*=` on the whole string — so they take one
- * code path. A case-insensitivity flag (`[a="v" i]`) does not match, which is the
- * safe direction: it is refused rather than built wrong. */
+/* One attribute selector at the head of what is left of a compound. Every
+ * operator is satisfied by setting the attribute to the value written, so they
+ * take one code path; a case-insensitivity flag (`[a="v" i]`) does not match and
+ * is refused rather than built wrong. */
 const ATTR = /^\[\s*(-?[_a-zA-Z][\w-]*)\s*(?:[~|^$*]?=\s*("[^"]*"|'[^']*'|[^\s\]]*)\s*)?\]/;
 
 /* Pseudo-classes naming a STATE of the element. jsdom has no pointer, no focus
- * and no navigation, so none of them can be mounted at all — a limit of the
- * environment rather than a gap in this builder. Pseudo-elements go with them:
- * jsdom gives them no box.
- *
- * This list and the one below decide nothing about coverage — a selector that
- * reaches either of them is refused whichever case it is written in. What they
- * decide is WHICH refusal the reader gets, and a pseudo-class name folds case,
- * so `:HOVER` matched none of them and fell through to the words kept for a
- * shape nobody taught this builder. That sends the reader to teach it something
- * no teaching reaches. */
+ * and no navigation, so none can be mounted at all, and pseudo-elements go with
+ * them. This list decides nothing about coverage — a selector reaching it is
+ * refused in whichever case it is written — only WHICH refusal the reader gets,
+ * and a pseudo-class name folds case, so `:HOVER` fell through to the words kept
+ * for a shape nobody taught this builder. */
 const STATE_PSEUDO = /^:(?:hover|active|focus|focus-visible|focus-within|target|link|visited|checked|disabled|enabled|indeterminate|default|placeholder-shown|autofill|user-invalid|user-valid)$/i;
 
 /* Pseudo-classes naming the element's POSITION among its siblings. This builder
  * gives each compound one element and no siblings, so it cannot place a subject
- * at a position — buildable in principle by padding the parent, and not built,
- * because nothing in the repo sizes an icon that way. */
+ * at a position — buildable by padding the parent, and not built. */
 const POSITION_PSEUDO = /^:(?:first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|nth-child|nth-last-child|nth-of-type|nth-last-of-type|empty|scope)$/i;
 
 /* One compound as the element it describes: a tag name, the classes and ids and
  * attributes on it, and whether it is the document element. Anything this cannot
- * account for gives null, and mount() turns that into a refusal shaped to what it
- * found. `:root` is stripped from the front because that is where every rule in
- * this repo writes it, and read in any case because a pseudo-class name folds
- * case. `:ROOT[data-theme="light"] .ui-nav__ic svg` is the themed idiom badge.css
- * already writes, and a browser applies it identically. Matched lower case only
- * it was not the document element, nothing else in the compound parsed either,
- * and the rule came back refused as a shape nobody had taught this builder — a
- * red on correct CSS. Only the length is used to slice, which every spelling
- * shares, and nothing downstream reads the text. */
+ * account for gives null, and mount() turns that into a refusal shaped to what
+ * it found. `:root` is stripped from the front, where every rule in this repo
+ * writes it, and read in any case, a pseudo-class name folding case — matched
+ * lower case only, `:ROOT[data-theme="light"] .ui-nav__ic svg` came back refused
+ * as an untaught shape, which is a red on correct CSS. */
 function parseCompound(part) {
   const out = { tag: '', classes: [], attrs: [], root: false };
   let rest = part;
@@ -1136,13 +911,10 @@ function parseCompound(part) {
   return out;
 }
 
-/* `isLeaf` is what tells the two `:is()` shapes apart, and they are different
- * problems. On the leaf the pseudo names the ICON — `.a :where(svg)` — and the
- * refusal is the two halves of this file disagreeing on purpose. In front of it
- * the pseudo names an ANCESTOR — `:is(.ui-btn, .ui-chip) svg` — where the icon
- * is the plain `svg` at the end, compoundIsSvg() had nothing to do with it, and
- * a reader sent there to read about an icon named inside `:is()` finds no such
- * thing in their selector. The second is the commoner shape by far. */
+/* `isLeaf` tells the two `:is()` shapes apart, and they are different problems.
+ * On the leaf the pseudo names the ICON — `.a :where(svg)`. In front of it it
+ * names an ANCESTOR — `:is(.ui-btn, .ui-chip) svg` — where the icon is the plain
+ * `svg` at the end, and that is the commoner shape by far. */
 const refuse = (part, sel, isLeaf) => {
   const pseudo = part.match(/::?[-\w]+/)?.[0] ?? '';
   let why = 'This builds a chain of compounds out of tag names, classes, ids and attributes, and '
@@ -1175,28 +947,22 @@ const refuse = (part, sel, isLeaf) => {
 };
 
 /* The smallest DOM satisfying a descendant selector such as
- * `.ui-nav--side.is-collapsed .ui-nav__ic svg`, or
- * `:root[data-theme="light"] .ui-nav__ic svg`. Anything a compound can carry that
- * this cannot set on an element throws — and the mounted element is checked
- * against the selector afterwards, which is the catch-all for shapes this builder
- * gets subtly wrong.
- *
- * The whole selector is parsed before anything is built, so a refusal leaves the
- * document exactly as it found it. That matters more than it used to: a `:root`
- * compound is set on <html> rather than created, and every gate here shares one
- * document across every subject in the file. */
+ * `:root[data-theme="light"] .ui-nav__ic svg`. Anything a compound can carry
+ * that this cannot set on an element throws, and the caller checks the mounted
+ * element against the selector afterwards. The whole selector is parsed before
+ * anything is built, so a refusal leaves the document as it found it — a `:root`
+ * compound is set on <html> rather than created, and every gate shares one
+ * document across every subject. */
 export function mount(document, sel, classes) {
   const parts = compoundsOf(sel).map(([comb, part], i, all) => {
     const spec = parseCompound(part);
     if (!spec) throw refuse(part, sel, i === all.length - 1);
     return [comb, spec, part];
   });
-  /* `:root` is the document element, so the only chains it can head are the ones
-   * a document can hold: a descendant of <html>, or a child of it. Both are built
-   * below. The two that no document holds are refused here, and refused in their
-   * own words — routed through refuse() they came back as "unsupported selector
-   * part: :root", which reads as a shape this builder was never taught and sends
-   * the reader off to teach it something it has done since badge.css. */
+  /* `:root` is the document element, so the only chains it can head are a
+   * descendant of <html> or a child of it. The two that no document holds are
+   * refused here in their own words: routed through refuse() they read as a
+   * shape this builder was never taught, which it has done since badge.css. */
   const rootAt = parts.findIndex(([, spec]) => spec.root);
   if (rootAt > 0) {
     throw new Error(`unplaceable selector: ${sel}. :root is the document element, and every element `
@@ -1208,23 +974,20 @@ export function mount(document, sel, classes) {
       + 'element has no siblings, so no document matches this rule. Write the icon\'s ancestor as a '
       + 'descendant or a child of :root.');
   }
-  /* Everything goes inside one container, which is also what the caller
-   * removes. A sibling combinator at the top of the chain builds two elements
-   * rather than nesting one inside the other, so "the last child of body" stops
-   * being the whole of what was mounted. */
+  /* Everything goes inside one container, which is what the caller removes. A
+   * sibling combinator at the top of the chain builds two elements, so "the last
+   * child of body" stops being the whole of what was mounted. */
   const top = document.body.appendChild(document.createElement('div'));
   const html = document.documentElement;
   const was = new Map();
   const keep = (name) => { if (!was.has(name)) was.set(name, html.getAttribute(name)); };
-  /* Putting <html> back is the container's own job, because every gate cleans up
-   * with `top.remove()` in a finally and shares one document across every
-   * subject. A theme left behind would be the theme every later subject is
-   * measured in — green, and measuring the wrong contest. */
+  /* Putting <html> back is the container's own job: every gate cleans up with
+   * `top.remove()` in a finally and shares one document, so a theme left behind
+   * is the theme every later subject is measured in. */
   const drop = top.remove.bind(top);
-  /* Everything mounted outside `top`, which is only ever the head of a chain
-   * hanging straight off <html> — see the child combinator below. It cannot go
-   * inside the container, because the container would then stand between it and
-   * the document element and the rule would stop matching. */
+  /* Everything mounted outside `top`, only ever the head of a chain hanging
+   * straight off <html> — the container would otherwise stand between it and the
+   * document element and the rule would stop matching. */
   const outside = [];
   top.remove = () => {
     for (const node of outside) node.remove();
@@ -1254,13 +1017,10 @@ export function mount(document, sel, classes) {
     for (const cls of spec.classes) node.classList.add(cls);
     for (const [name, value] of spec.attrs) node.setAttribute(name, value);
     /* A child combinator builds the same nesting a descendant one does; the two
-     * sibling combinators put the element beside its predecessor instead, which
-     * `+` and `~` both match when it is the one that comes next.
-     *
-     * The one place the two combinators part company is straight after `:root`,
-     * where the descendant form is satisfied by the container inside <body> and
-     * the child form is not — `:root > .sbc svg` needs `.sbc` to be a child of
-     * <html> itself, so it is mounted there and taken down by top.remove(). */
+     * sibling combinators put the element beside its predecessor instead. The
+     * one place child and descendant part company is straight after `:root`:
+     * `:root > .sbc svg` needs `.sbc` to be a child of <html> itself, so it is
+     * mounted there and taken down by top.remove(). */
     const parent = placed === null
       ? (rootAt === 0 && comb === '>' ? html : top)
       : ('+~'.includes(comb) ? placed.parentNode : placed);
@@ -1273,28 +1033,17 @@ export function mount(document, sel, classes) {
 }
 
 /* What the declared value resolves to in this element's own context. Comparing
- * the computed px against the declared literal would call a winning rule
- * written `1.0625rem` a failure and blame the reset for it. */
+ * computed px against the declared literal would call a winning rule written
+ * `1.0625rem` a failure and blame the reset for it. */
 export function resolve(getComputedStyle, el, dim, value) {
   const probe = el.cloneNode(false);
-  /* The probe is a clone, so it matches every rule the real element matches. A
-   * non-important inline declaration loses to an author `!important`, which then
-   * wins on the probe exactly as it wins on the real element: got === expected,
-   * green, whichever rule actually decided. Since #148 made the reset
-   * `svg:where(…)` at (0,0,1) it can no longer out-specify a component rule, so
-   * `!important` on the reset is the one remaining way to reintroduce #148's
-   * defect — and this comparison cannot tell the two apart unless the probe
-   * declares important too.
-   *
-   * Belt-and-braces rather than the mechanism, though: without() catches that
-   * same regression on its own, so the flag is not what makes an `!important`
-   * reset detectable. What it buys is which assertion fires. Putting
-   * `!important` on base.css's two reset declarations fails the kit gate and the
-   * surfaces gate by the same counts either way — 56 and 15, the React gate
-   * having no subject to fail — but with the flag every kit-gate failure reads
-   * "the cascade gives 110px", naming the rule that won, and without it they
-   * read "changes nothing", which describes a symptom and sends the reader
-   * looking for a redundant rule rather than an important one. */
+  /* The probe is a clone, so it matches every rule the real element matches, and
+   * its declaration is `!important` so an `!important` reset — the one remaining
+   * way to reintroduce #148 now the reset sits at (0,0,1) — cannot win on the
+   * probe and read as agreement. Belt-and-braces: without() catches that
+   * regression on its own. What the flag buys is which assertion fires — with it
+   * a kit-gate failure names the rule that won, without it it reads "changes
+   * nothing" and sends the reader after a redundant rule. */
   probe.style.setProperty(dim, value, 'important');
   el.parentNode.appendChild(probe);
   const got = getComputedStyle(probe).getPropertyValue(dim);
@@ -1303,26 +1052,16 @@ export function resolve(getComputedStyle, el, dim, value) {
 }
 
 /* What this element computes to with `rule`'s own declaration of `dim` taken
- * away, the rule put back before returning.
+ * away, the rule put back before returning — how a gate proves its comparison
+ * was capable of failing. .ui-badge declares 11px and the reset's 1.1em over
+ * badge.css's font-size: 10px is also 11px, so that assertion agreed with the
+ * winner and the loser alike.
  *
- * This is how a gate proves its comparison was capable of failing. A declared
- * value that coincides with what the reset gives at this element's font-size
- * makes the assertion a green no-op: .ui-badge declares 11px and the reset's
- * 1.1em over badge.css's font-size: 10px is also 11px, so the measurement
- * agreed with the winner and the loser alike. That hole was found by hand once;
- * asserting non-vacuity is what stops the next instance needing to be.
- *
- * It only works because resolve() ran first, and that is not obvious from
- * either function. jsdom caches an element's computed style and throws the cache
- * away when the DOM changes, never when a declaration inside a rule does — so
- * this reads the same element the caller already measured and would hand back
- * the cached answer. What clears it is resolve() appending a probe and removing
- * it again. Call the two in the other order, or drop resolve() as redundant once
- * `want` is a px literal, and every one of these checks reports `gone` equal to
- * `expected`: a false red on every subject, telling the reader a working rule is
- * redundant and should go. Measured on `.a svg { width: 33px }` under the reset:
- * with resolve(), gone is 110px and the check passes; without it, gone is 33px
- * and it fails. */
+ * It only works because resolve() ran first: jsdom throws its computed-style
+ * cache away when the DOM changes, never when a declaration inside a rule does,
+ * and what clears it here is resolve() appending a probe and removing it. Call
+ * the two in the other order and every check reports `gone` equal to `expected`
+ * — a false red on every subject. */
 export function without(getComputedStyle, el, rule, dim) {
   const value = rule.style.getPropertyValue(dim);
   const priority = rule.style.getPropertyPriority(dim);

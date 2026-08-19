@@ -1,26 +1,14 @@
 /* Rule: folding a logical declaration onto its physical counterpart leaves the
  * cascade saying what a browser would say.
  *
- * The three icon-size gates measure `inline-size` by rewriting it onto `width`
- * before anything is mounted, because jsdom keeps the two in separate cascades
- * and would let the logical declaration win contests a browser makes it lose —
- * see foldLogicalDims() in icon-cascade.js. That rewrite is the one piece of
- * this machinery with a right answer of its own: inside a block the later
- * declaration wins, `!important` wins over both, and getting either wrong
- * produces a number rather than an error, so all three gates would keep passing
- * and measure the wrong rule.
- *
- * These cases are the ones a browser answers unambiguously. Each is written so
- * that the two candidate values are far enough apart that no arithmetic can make
- * a wrong fold look right.
- *
- * The refusals below are here for a different reason. foldLogicalDims() stops on
- * a writing-mode declaration, rulesOf() stops on an unfolded sheet and on a
- * sizing rule inside a conditional group, and clampsOn() reports the min-/max-
- * forms no gate measures. Every one of those fires only when a stylesheet
- * carries the shape it refuses, so the only way to find out whether one still
- * worked was to write that shape into the kit and watch a gate go red. Each case
- * here puts the shape in a sheet of its own instead.
+ * foldLogicalDims() is the one piece of this machinery with a right answer of
+ * its own — inside a block the later declaration wins and `!important` wins over
+ * both — and getting it wrong produces a number rather than an error, so all
+ * three gates would keep passing on the wrong rule. Each case here puts the two
+ * candidate values far enough apart that no arithmetic makes a wrong fold look
+ * right. The refusals are here because each fires only on a stylesheet carrying
+ * the shape it refuses, so proving one used to mean writing that shape into the
+ * kit and watching a gate go red; each gets a sheet of its own instead.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -108,12 +96,10 @@ test('within a block an important declaration wins wherever it sits', () => {
 
 test('a block that straddles one axis with both spellings is refused', () => {
   /* The fold decides this contest by position, and position is the one thing the
-   * CSSOM cannot report here: cssstyle keeps a repeated property once, in its
-   * FIRST position carrying its LAST value. So the first case below reads as
-   * `width: 12px; inline-size: 33px` and folds to 33px where a browser renders
-   * 12, and the second folds to 12px where a browser renders 44 — a wrong number
-   * rather than an error, which is what all three gates would then report as a
-   * pass. Nothing here can recover the order, so nothing here guesses at it. */
+   * CSSOM cannot report: cssstyle keeps a repeated property once, in its FIRST
+   * position carrying its LAST value, so the first case below folds to 33px
+   * where a browser renders 12. Nothing here can recover the order, so nothing
+   * here guesses at it. */
   assert.throws(
     () => foldLogicalDims(sheetOf('.a svg { width: 10px; inline-size: 33px; width: 12px }'), 'probe.css'),
     /declares width both before and after inline-size/);
@@ -123,16 +109,11 @@ test('a block that straddles one axis with both spellings is refused', () => {
 });
 
 test('a repeat that leaves its !important behind is refused, twin or no twin', () => {
-  /* The other half of the same bookkeeping, and the half that is not about the
-   * fold at all. Deduplication keeps the LAST importance, and the last
-   * importance is not the one that wins: a browser takes the important
-   * declaration wherever it sits, so it renders 40px while the CSSOM — and
-   * therefore every gate that measures it — holds 16px and says so.
-   *
-   * The first case has no logical twin in it, which is the point. Nothing folds
-   * there and nothing needs to: the measurement is already wrong before the fold
-   * is asked anything. Scoping this to the fold reported a size a browser does
-   * not render, in silence, on a green build. */
+  /* The other half of the same bookkeeping, and not about the fold at all.
+   * Deduplication keeps the LAST importance, which is not the one that wins: a
+   * browser takes the important declaration wherever it sits and renders 40px
+   * while the CSSOM holds 16px. The first case has no logical twin in it, since
+   * the measurement is already wrong before the fold is asked anything. */
   for (const decls of [
     'width: 40px !important; width: 16px',
     'height: 40px !important; height: 16px',
@@ -152,13 +133,10 @@ test('a repeat that leaves its !important behind is refused, twin or no twin', (
 
 test('a repeat spelled in capitals is refused like any other', () => {
   /* CSS property names are case-insensitive and cssstyle normalizes them, so
-   * `WIDTH` and `width` are one property in the CSSOM and are deduplicated
-   * together — first position, last value, last importance, exactly as two
-   * lower-case spellings would be. The scan that refuses that shape reads the
-   * raw text, where the two spellings are two different strings, so the capital
-   * one walked past it and handed every gate 16px on a rule a browser renders at
-   * 40. That is the defect the refusal above exists for, arriving through the
-   * spelling of the property name. */
+   * `WIDTH` and `width` deduplicate together. The scan that refuses that shape
+   * reads the raw text, where they are two different strings, so the capital one
+   * walked past it and handed every gate 16px on a rule a browser renders at
+   * 40 — the defect above, arriving through the spelling. */
   for (const decls of [
     'WIDTH: 40px !important; width: 16px',
     'width: 40px !important; WIDTH: 16px',
@@ -176,14 +154,11 @@ test('a repeat spelled in capitals is refused like any other', () => {
 });
 
 test('a repeat whose last declaration is the one a browser takes is folded, not refused', () => {
-  /* The other side of that line, and it has to stay green: an !important that
-   * ARRIVES between the repeats leaves the CSSOM holding exactly the declaration
-   * a browser takes, value and importance alike, so there is nothing to recover
-   * and nothing to refuse. Same for repeats that never touch importance at all,
-   * which is the ordinary fallback in src/styles.
-   *
-   * Refusing these reds on CSS somebody is right to write, and a gate that reds
-   * on correct code gets switched off. */
+  /* The other side of that line, and it has to stay green: an !important
+   * arriving between the repeats leaves the CSSOM holding exactly the
+   * declaration a browser takes, so there is nothing to recover and nothing to
+   * refuse. Same for repeats that never touch importance, the ordinary fallback
+   * in src/styles. */
   assert.equal(measure('.a svg { width: 10px; width: 33px !important }').width, '33px');
   assert.equal(measure('.a svg { width: 10px !important; width: 33px !important }').width, '33px');
   assert.equal(
@@ -200,12 +175,10 @@ test('a repeat whose last declaration is the one a browser takes is folded, not 
 });
 
 test('a repeat the CSSOM keeps in source order is folded, not refused', () => {
-  /* Only the STRADDLING order is unresolvable. cssstyle keeps a repeated
-   * property in its first position carrying its last value, which is the source
-   * order still whenever every repeat sits on one side of its twin — so the fold
-   * picks the winner a browser picks and there is nothing to refuse. Refusing
-   * these reds on ordinary CSS, a px-to-rem fallback beside a logical
-   * declaration among it. */
+  /* Only the STRADDLING order is unresolvable: whenever every repeat sits on one
+   * side of its twin, first-position-last-value is still the source order, the
+   * fold picks the winner a browser picks, and refusing it would red on ordinary
+   * CSS such as a px-to-rem fallback beside a logical declaration. */
   assert.equal(measure('.a svg { width: 10px; width: 12px; inline-size: 33px }').width, '33px');
   assert.equal(measure('.a svg { inline-size: 33px; width: 10px; width: 12px }').width, '12px');
   assert.doesNotThrow(() => foldLogicalDims(
@@ -279,15 +252,11 @@ test('a vendor-prefixed writing-mode stops the fold too', () => {
 });
 
 test('a vendor-prefixed writing-mode spelled in capitals stops the fold too', () => {
-  /* CSS property names are case-insensitive and the vendor prefix is part of the
-   * name, so `-WEBKIT-WRITING-MODE` turns the axes in exactly the browsers the
-   * lower-case spelling turns them in. jsdom parses it away like the other
-   * spelling, so the declaration loop sees nothing and this raw-text scan is the
-   * only thing left — which read lower case only, and handed every gate a sheet
-   * whose icons are laid out along the axis the fold assumes they are not.
-   *
-   * The value is folded too, since a browser reads that case-insensitively as
-   * well and `VERTICAL-RL` names the same mode. */
+  /* The vendor prefix is part of the property name, so `-WEBKIT-WRITING-MODE`
+   * turns the axes in exactly the browsers the lower-case spelling does. jsdom
+   * parses it away, so this raw-text scan is the only thing left — and read
+   * lower case only it handed every gate a sheet whose icons run along the axis
+   * the fold assumes they do not. The value folds too: `VERTICAL-RL`. */
   for (const decl of ['-WEBKIT-WRITING-MODE: vertical-rl', '-Webkit-Writing-Mode: VERTICAL-RL']) {
     assert.throws(() => foldLogicalDims(sheetOf(`.a svg { ${decl} }`), 'probe.css'),
       /writing-mode/i, `"${decl}" turns the axes the fold assumes and walked past this gate`);
@@ -313,13 +282,10 @@ test('a prefixed writing mode is refused wherever in the sheet it sits', () => {
 });
 
 test('a sheet whose text this gate cannot read is refused, not waved through', () => {
-  /* Two of the checks in foldLogicalDims() are raw-text scans, because jsdom
-   * drops `-webkit-writing-mode` and deduplicates a repeated declaration before
-   * the CSSOM sees either. A sheet with no <style> element behind it has no text
-   * to scan, and reading that as an empty string turns both checks off: the
-   * constructed sheet below carries the exact declaration the gate exists to
-   * refuse and folds without a word. A <link> sheet reads the same way — its
-   * ownerNode is an element whose textContent is ''. */
+  /* Two of the checks in foldLogicalDims() are raw-text scans, and a sheet with
+   * no <style> element behind it has no text to scan. Reading that as '' turns
+   * both off: the constructed sheet below carries the exact declaration the gate
+   * exists to refuse and folds without a word. A <link> reads the same way. */
   const { window } = new JSDOM('<!doctype html>');
   const constructed = new window.CSSStyleSheet();
   constructed.replaceSync('.a svg { -webkit-writing-mode: vertical-rl; inline-size: 33px }');
@@ -572,14 +538,11 @@ test('an attribute selector is an element this builder can make', () => {
 });
 
 test(':root is the document element, and the document is put back afterwards', () => {
-  /* `:root[data-theme="light"] .ui-nav__ic svg` is this repo's own idiom — live
-   * in badge.css and card.css — and `:root` matches one element in the document
-   * and no element this could create. So the attribute goes on <html>, and the
-   * chain hangs where it always does, which is inside <html> already.
-   *
-   * Putting it back is the half that has to be automatic. Every gate here shares
-   * one document across every subject in the file, so a theme left on <html>
-   * would be the theme every subject after it is measured in. */
+  /* `:root[data-theme="light"] .ui-nav__ic svg` is this repo's own idiom, and
+   * `:root` matches one element no builder could create, so the attribute goes
+   * on <html>. Putting it back has to be automatic: every gate shares one
+   * document, so a theme left behind is the theme every later subject is
+   * measured in. */
   const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
   const { document } = dom.window;
   document.documentElement.setAttribute('data-theme', 'dark');
@@ -715,17 +678,10 @@ test('a structural pseudo-class is refused as buildable and not built', () => {
 
 test('a refusal reads the pseudo-class name the way CSS does', () => {
   /* Every one of these is refused whichever case it is written in, so nothing is
-   * unmeasured here — what changes is which of the four explanations the reader
-   * gets. Written in capitals they all fell through to the last one, "write the
-   * rule in a shape it can mount, or teach it this shape", which is wrong advice
-   * on all four counts: the shape IS taught, and the reader is sent to build
-   * something that already exists rather than to the ancestor, the state or the
-   * position that actually stopped it.
-   *
-   * The leaf `:WHERE()` is the one this round put here. compoundIsSvg() now reads
-   * it as the icon rule it is, so it reaches this refusal for the first time —
-   * and a refusal that arrives with the wrong explanation is the disposition the
-   * fix was meant to move away from. */
+   * unmeasured — what changes is which of the four explanations the reader gets.
+   * Written in capitals they all fell through to "write the rule in a shape it
+   * can mount", which sends the reader to build something that already exists
+   * rather than to the ancestor, the state or the position that stopped it. */
   const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
   const cases = [
     ['.a :WHERE(svg)', /compoundIsSvg\(\)/],
@@ -755,16 +711,11 @@ test('a comment in front of a declaration does not hide it from the raw-text sca
 });
 
 test('a declaration named only inside a comment is not read as one', () => {
-  /* The other edge of the same anchor — the test above is the one that fails when
-   * a comment hides a real declaration, and this is the one that fails when a
-   * commented-out declaration is read as a real one. A commented-out rule is not
-   * a rule, and refusing a file for one is a red nobody can act on.
-   *
-   * The comment carries a `;` of its own, and that semicolon is the whole of what
-   * makes this a test. declRe() anchors a property on `{` or `;`, so a `width`
-   * written in a comment that holds neither is already invisible to the pattern,
-   * and a fixture built from one reads the same whether the comments came out or
-   * stayed exactly where they were. */
+  /* The other edge of the same anchor: the test above fails when a comment hides
+   * a real declaration, this one when a commented-out declaration is read as
+   * real. The comment carries a `;` of its own, and that semicolon is what makes
+   * this a test — declRe() anchors on `{` or `;`, so a fixture whose comment
+   * holds neither reads the same whether the comments came out or not. */
   const css = `.zz svg { /* height: 12px; width: ${UNRESOLVED}px */ height: 13px }`;
   assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)), { blind: [], clampedBlind: [] });
   // The clamp scan reads the same text through the same anchor, and has its own
@@ -863,14 +814,10 @@ test('an @import is reported wherever a stylesheet carries one', () => {
 });
 
 test('an @import spelled in capitals is reported like any other', () => {
-  /* An at-rule keyword is case-insensitive, and jsdom agrees: `@IMPORT` parses
-   * into a real CSSImportRule, so the sheet it names ships and no gate opens it.
-   * A scan that read lower case only was blind to exactly the shape the refusal
-   * exists for, and the refusal is the only thing watching — an unfollowed
-   * @import contributes no subject, so no count moves when one arrives.
-   *
-   * The specifier comes back as the file writes it, since it is a file name and
-   * a file name is case-sensitive on Linux. */
+  /* An at-rule keyword is case-insensitive and jsdom agrees, so `@IMPORT` names
+   * a sheet that ships and no gate opens. The refusal is the only thing watching
+   * — an unfollowed @import contributes no subject, so no count moves. The
+   * specifier comes back as written, a file name being case-sensitive. */
   assert.deepEqual(importsIn('@IMPORT "./Zz.css";\n.a svg { width: 42px }'), ['"./Zz.css"']);
   assert.deepEqual(importsIn('@Import url(./zz.css);'), ['url(./zz.css)']);
   // And the two shapes that are not imports stay not-imports in capitals.
@@ -879,15 +826,11 @@ test('an @import spelled in capitals is reported like any other', () => {
 });
 
 test('the kit sheet list reads the at-rule in any case and the file name in one', () => {
-  /* Two halves of one pattern with opposite answers. `@import` is an at-rule
-   * keyword, so a sheet listed as `@IMPORT` is a sheet index.css really pulls in
-   * — missed here it never joins the document, and the surfaces and React gates
-   * then measure every rule they sweep against a cascade the kit does not have,
-   * with no count of theirs moving to say so.
-   *
-   * The specifier is the other half: it is a path, it is handed straight to
-   * readFileSync, and file names are case-sensitive on Linux however the keyword
-   * in front of them reads. So it comes back exactly as written. */
+  /* Two halves of one pattern with opposite answers. `@IMPORT` is a sheet
+   * index.css really pulls in, and missed here it never joins the document, so
+   * the other two gates measure every rule they sweep against a cascade the kit
+   * does not have. The specifier is a path handed to readFileSync, and file
+   * names are case-sensitive on Linux, so it comes back exactly as written. */
   const dir = sourceDir({
     'index.css': '@import "./tokens/Brand.generated.css";\n@IMPORT "./styles/base.css";\n',
   });
@@ -918,15 +861,11 @@ test('a <style> block is read whatever case the markup spells the tag in', () =>
 });
 
 test('both shapes a .tsx writes a <style> block in are still recognised', () => {
-  /* This is the tripwire under the other half of the React sweep. Nothing under
-   * react/src writes a <style> block today, so scripts/icon-size-react.test.js cannot
-   * put a `length > 0` behind that half the way it does behind the .css half — it would
-   * red on a workspace that is fine. Without one, a recogniser that stopped reading the
-   * idiom would leave that half at a healthy-looking zero for ever. So the guard sits
-   * here and proves the recogniser rather than the workspace: break either shape the
-   * gate's header claims — the CSS between the tags of a template literal, or the string
-   * a `dangerouslySetInnerHTML` hands them — and this reds while the sweep's zero stays
-   * honest. */
+  /* The tripwire under the other half of the React sweep. Nothing under react/src
+   * writes a <style> block today, so the gate cannot put a `length > 0` behind
+   * that half without redding on a workspace that is fine — and a recogniser
+   * that stopped reading the idiom would leave it at a healthy-looking zero for
+   * ever. So this proves the recogniser rather than the workspace. */
   const source = 'export const Table = () => (<>\n'
     + '  <style>{`.rx-tbl svg { width: 14px }`}</style>\n'
     + '  <style dangerouslySetInnerHTML={{ __html: ".rx-btn svg{width:16px}" }} />\n'
@@ -993,16 +932,11 @@ test('a stylesheet is read as one whatever the extension and whatever binds it',
 });
 
 test('a stylesheet reached by anything but a relative path is not reported', () => {
-  /* RELATIVE ONLY, and that is the whole shape of this scan. A bare specifier
-   * resolves through node_modules and an aliased one through tsconfig or the
-   * bundler's config, and this reads neither — so a path built out of one names a
-   * file that does not exist.
-   *
-   * The React gate turns this list into "a sheet the workspace loads that the
-   * sweep does not read", and tells the reader to rename it .css or widen the
-   * glob. Said about `bootstrap/dist/bootstrap.css` that is a hard red on ordinary
-   * code with advice nobody can follow. The gate's header names the gap instead;
-   * this is what keeps the two agreeing. */
+  /* RELATIVE ONLY, and that is the whole shape of this scan: a bare specifier
+   * resolves through node_modules and an aliased one through the bundler's
+   * config, neither of which this reads. The React gate turns the list into
+   * "rename it .css or widen the glob", which said about
+   * `bootstrap/dist/bootstrap.css` is advice nobody can follow. */
   for (const spec of ['bootstrap/dist/bootstrap.css', '@/styles/tokens.css',
     '~/styles/tokens.css', 'normalize.css/normalize.css']) {
     assert.deepEqual(styleImportsIn(`import '${spec}';`), [],
@@ -1055,17 +989,11 @@ test('a class only a test writes onto an svg is skipped whatever the extension',
 });
 
 test('an svg tag and a class attribute are found however the markup spells them', () => {
-  /* HTML tag names and attribute names fold case, and the browser is the one
-   * that decides: `<SVG CLASS="ic">` parses to an element whose localName is
-   * `svg`, in the SVG namespace, matched by `.ic` and sized by every rule that
-   * targets it. Read lower case only, that class never entered the set — and a
-   * class this scan does not find is a class every rule targeting it stops being
-   * measured against, with no count moving to say so. That is how .ui-fbck was
-   * missed in the kit, arriving again through the spelling.
-   *
-   * The tripwire in scripts/icon-size-surfaces.test.js is no help against it: it
-   * guards `ic`, one class that already exists, and a class introduced in
-   * capitals never joins the set for it to miss. */
+  /* HTML tag names and attribute names fold case, and the browser decides:
+   * `<SVG CLASS="ic">` parses to an element matched by `.ic` and sized by every
+   * rule targeting it. Read lower case only, that class never enters the set and
+   * every rule targeting it stops being measured, with no count moving to say
+   * so. The `ic` tripwire is no help — it guards a class that already exists. */
   const dir = sourceDir({
     'page.html': '<SVG class="cap-tag"></SVG>\n<svg CLASS="cap-attr"></svg>\n'
       + '<Svg Class="cap-mixed"></Svg>\n',
@@ -1080,12 +1008,9 @@ test('an svg tag and a class attribute are found however the markup spells them'
 
 test('the JSX prop is read case-sensitively, because JSX is JavaScript', () => {
   /* `className` is the other half of the same scan and wants the opposite
-   * answer. It is a JSX prop rather than an HTML attribute, and JSX folds no
-   * case: `CLASSNAME` is a different prop, which React hands to the DOM as an
-   * attribute named `classname` and not as a class at all. `<SVG …>` in JSX is a
-   * component reference rather than the intrinsic element, so the tag goes with
-   * it. Reading either would put a class in the set that no svg carries, and a
-   * rule naming it would then be mounted as an icon and measured. */
+   * answer: JSX folds no case, so `CLASSNAME` reaches the DOM as an attribute
+   * named `classname` and `<SVG …>` is a component reference. Reading either
+   * would put a class in the set that no svg carries. */
   const dir = sourceDir({
     'Widget.tsx': '<svg className="rx-real" />\n<svg CLASSNAME="rx-phantom" />\n'
       + '<SVG className="rx-component" />\n',
@@ -1098,18 +1023,11 @@ test('the JSX prop is read case-sensitively, because JSX is JavaScript', () => {
 });
 
 test('the class the markup carries comes back spelled the way it is written', () => {
-  /* The flag folds the tag and the attribute and must reach no further. A CSS
-   * class name is case-SENSITIVE — `.probeIC` and `.probeic` are two classes —
-   * and every consumer of this set compares it exactly: compoundIsSvg() asks
-   * `classes.has()` of the name in the selector, and mount() asks it again to
-   * decide whether to build an <svg> or a <div>. Folding the captured value
-   * would make a rule targeting `.probeic` an icon rule against markup carrying
-   * `probeIC`, and this gate would then mount an svg for a rule that selects
-   * nothing in a browser.
-   *
-   * The class here is deliberately MIXED case. With an all-lowercase value this
-   * test passed whether or not the capture was folded, so the claim it is named
-   * for had nothing holding it. */
+  /* The flag folds the tag and the attribute and must reach no further: a CSS
+   * class name is case-SENSITIVE, and folding the captured value would make a
+   * rule targeting `.probeic` an icon rule against markup carrying `probeIC`.
+   * The class here is deliberately MIXED case — with an all-lowercase value this
+   * test passed whether or not the capture was folded. */
   const dir = sourceDir({ 'page.html': '<SVG class="probeIC"></SVG>' });
   try {
     const classes = svgClassSet([dir], ['.html']);
@@ -1182,13 +1100,10 @@ test('a clamp jsdom cannot parse is reported too', () => {
 });
 
 test('a property spelled in capitals is asked the same question, and asked in lower case', () => {
-  /* The scan reads property names case-insensitively, so these arrive here
-   * spelled as the file spells them. cssstyle's getPropertyValue() is
-   * case-sensitive even though setProperty() is not, so a name handed on as
-   * written reads back empty and every uppercase declaration would look like one
-   * jsdom threw away — a red on CSS a browser is perfectly happy with. And the
-   * logical mapping is keyed lower case too, so `INLINE-SIZE` asked as written
-   * would be asked as itself, which cssstyle waves through whatever the value. */
+  /* The scan reads property names case-insensitively, so these arrive spelled as
+   * the file spells them. cssstyle's getPropertyValue() is case-sensitive though
+   * setProperty() is not, so a name asked as written reads back empty and every
+   * uppercase declaration looks like one jsdom threw away. */
   const classes = new Set(['ic']);
   for (const decl of ['WIDTH: 1.25rem', 'MAX-WIDTH: 40px', 'INLINE-SIZE: 33px', 'Height: 17px']) {
     assert.deepEqual(droppedDecls('probe.css', `.a svg { ${decl} }`, classes), [],
@@ -1201,13 +1116,10 @@ test('a property spelled in capitals is asked the same question, and asked in lo
 });
 
 /* Values a browser resolves and this guard must not refuse. It asks jsdom
- * whether a declaration survived being parsed, which is the right question and
- * one whose answer moves with the parser rather than with CSS — so the list is
- * long on purpose. `var()`, `calc()` and the viewport units are what the kit
- * writes today; the container and font-relative units, the newer math
- * functions and the wide keywords are what somebody writes next. Every one of
- * them refused is a red on correct code, and a gate that does that gets
- * switched off. */
+ * whether a declaration survived parsing — the right question, and one whose
+ * answer moves with the parser rather than with CSS, so the list is long on
+ * purpose: what the kit writes today, plus the container units, newer math
+ * functions and wide keywords somebody writes next. */
 const RESOLVABLE = [
   'width: var(--ic-size)', 'width: var(--a, var(--b, 3px))', 'height: calc(1em + 2px)',
   'width: calc(100% - env(safe-area-inset-left))', 'width: clamp(1px, 2vw, 3px)',
@@ -1256,13 +1168,9 @@ test('a value nothing could resolve is left to the blind-spot machinery', () => 
 
 test('a value named only inside a comment is not read as a dropped declaration', () => {
   /* The raw text is where a comment still lives, and a commented-out rule is not
-   * a rule — the same argument stripComments() carries everywhere else.
-   *
-   * The commented-out declarations keep their own trailing `;`, because that
-   * semicolon is the whole of what makes this a test. declRe() anchors a property
-   * on `{` or `;`, so a property named in a comment that holds neither is already
-   * invisible to the pattern, and a fixture built from one reads the same whether
-   * the comments were stripped or left exactly where they were. */
+   * a rule. The commented-out declarations keep their own trailing `;`, since
+   * declRe() anchors on `{` or `;` and a fixture without one reads the same
+   * whether the comments were stripped or left where they were. */
   assert.deepEqual(droppedDecls('probe.css',
     '.zz svg { height: 12px; /* width: 12px; height: fit-content(20%) */ }', new Set()), []);
   /* The other edge of that same anchor, and the reason stripping beats widening
@@ -1292,15 +1200,11 @@ test('an icon named inside :is() or :where() is refused by mount, and says why',
 });
 
 test('an :is() naming the icon\'s ancestor is refused in its own words', () => {
-  /* The commonest shape that reaches this refusal, and the one the refusal was
-   * wrong about. `:is(.ui-btn, .ui-chip) svg` names the icon plainly — it is the
-   * `svg` at the end — and the `:is()` is the ancestor in front of it, which is
-   * what this builder cannot make. Sent to compoundIsSvg() to read about "an
-   * icon named inside :is()", the reader goes looking for a disagreement that is
-   * not in their selector and finds nothing to fix.
-   *
-   * So the two shapes are told apart by where the compound sits. The leaf keeps
-   * the message above; an ancestor gets one about the ancestor. */
+  /* The commonest shape reaching this refusal, and the one it was wrong about.
+   * `:is(.ui-btn, .ui-chip) svg` names the icon plainly and the `:is()` is the
+   * ancestor in front of it; sent to read about "an icon named inside :is()",
+   * the reader looks for a disagreement their selector does not have. So the two
+   * are told apart by where the compound sits. */
   const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>');
   assert.throws(() => mount(dom.window.document, ':is(.ui-btn, .ui-chip) svg', new Set()), (err) => {
     assert.match(err.message, /:is\(\.ui-btn, \.ui-chip\)/);
@@ -1315,26 +1219,19 @@ test('an :is() naming the icon\'s ancestor is refused in its own words', () => {
 });
 
 /* A data URI carrying an inline `style` attribute — the shape src/styles/input.css
- * writes for the select chevron, with the two attributes moved into a style. Valid
- * CSS, no icon anywhere in the string, and to a pattern that does not know where a
- * string starts it holds two declarations.
- *
- * ON AN ICON SELECTOR, because the scan is scoped to the rules that decide an icon
- * and a rule this scan skips proves nothing about how it reads a string. The `svg`
- * leaf is what carries it past that guard and into the text. */
+ * writes for the select chevron. Valid CSS, no icon in the string, and two
+ * declarations to a pattern that does not know where a string starts. It sits on
+ * an icon selector, since the scan is scoped to the rules that decide an icon and
+ * a rule it skips proves nothing about how it reads a string. */
 const DATA_URI = ".ui-select svg { background-image: url(\"data:image/svg+xml,%3Csvg "
   + "style='height:12px;width:12px'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\") }";
 
 test('a sizing declaration written inside a string is not a declaration', () => {
-  /* The raw-text scans read the text a browser hands to a CSS parser, and a
-   * string in that text is content rather than CSS. Read as CSS it is a rule the
-   * gate then refuses — a red on correct code, which is how a gate gets switched
-   * off. Both the shapes this repo already has: a data URI holding an inline
-   * style, and a `content` string holding a brace.
-   *
-   * Both fixtures are icon rules, by the two routes into the scan — an `svg` leaf
-   * and a class the kit puts on an svg — so each one reaches the string rather
-   * than being turned back at the door. */
+  /* A string in a stylesheet is content rather than CSS; read as CSS it is a rule
+   * the gate then refuses. Both shapes this repo already has: a data URI holding
+   * an inline style, and a `content` string holding a brace. Both fixtures are
+   * icon rules by the two routes into the scan, so each reaches the string
+   * rather than being turned back at the door. */
   assert.deepEqual(droppedDecls('probe.css', DATA_URI, new Set()), []);
   assert.deepEqual(droppedDecls('probe.css', '.a::after { content: "{ width: 5px" }',
     new Set(['a'])), []);
@@ -1396,17 +1293,11 @@ test('a dropped declaration on an icon rule is refused, and named with its selec
 });
 
 test('a rule inside a conditional group is scoped by its own selector', () => {
-  /* A conditional group is a wrapper, not a rule. The declarations in it belong
-   * to the rules further in, and every one of those has a selector of its own to
-   * be asked — so the scan goes in rather than reading the body flat, and the
-   * same question gets the same answer at either depth.
-   *
-   * Read flat, `@media` was the selector for everything under it, no selector
-   * that starts with `@` is an icon, and the scan therefore asked about every
-   * declaration in the block. That refused `width: env(safe-area-inset-left)` on
-   * a drawer inside a media query while allowing it verbatim one brace out —
-   * a red on CSS somebody is right to write, which is the argument this scoping
-   * exists for and the argument it was not honouring. */
+  /* A conditional group is a wrapper, not a rule, so the scan descends rather
+   * than reading the body flat and the same question gets the same answer at
+   * either depth. Read flat, `@media` was the selector for everything under it,
+   * which refused `width: env(safe-area-inset-left)` on a drawer inside a media
+   * query while allowing it verbatim one brace out. */
   assert.deepEqual(
     droppedDecls('probe.css', '@media screen { .drawer { width: env(safe-area-inset-left) } }',
       new Set(['ic'])), []);
@@ -1424,14 +1315,10 @@ test('a rule inside a conditional group is scoped by its own selector', () => {
 
 test('a dropped declaration this gate cannot scope to a rule stays loud', () => {
   /* Scoping asks a selector whether it targets an icon, so the shapes with no
-   * selector to ask are the shapes scoping would silence. Three of them.
-   *
-   * An at-rule holding declarations rather than rules — there is nothing further
-   * in to descend to, and the prelude is not a selector. A rule with a rule
-   * nested inside it, where the inner selector is relative to the outer one and
-   * means nothing on its own. And a selector computed at render time, where "not
-   * an icon" is a guess rather than an answer. Each is reported with the ground
-   * it sits on named, since that is what the reader has to go and open. */
+   * selector to ask are the ones scoping would silence. Three: an at-rule
+   * holding declarations rather than rules, a rule with a rule nested inside it
+   * whose inner selector means nothing on its own, and a selector computed at
+   * render time, where "not an icon" is a guess rather than an answer. */
   assert.deepEqual(
     droppedDecls('probe.css', '@media screen { width: fit-content(20%) }', new Set()),
     ['probe.css: @media screen { width: fit-content(20%) }']);
