@@ -68,30 +68,37 @@ const IS_MODULE = /\.(js|mjs|cjs|jsx|ts|tsx)$/;
  * tree that is not this one, and this gate has no business resolving it. */
 const SHA_BEFORE = /\b[0-9a-f]{7,40}:$/;
 
-/* The anchor follows the citation. Prose wraps, so a comment-continuation marker
- * and ONE newline may sit between the two — more than that and the next
- * backticked span in the file is somebody else's. */
-const ANCHOR_RUN = /^[\s)\]},;:.—–-]*(?:\*|\/\/|#)?[\s([\\]*`([^`\n]+)`/;
+/* The anchor sits immediately after the citation, and there are three ways to
+ * write one — a prose page, a structured entry, and copy a reader sees rendered.
+ * Each captures the anchor text in group 1, and the first that matches wins.
+ *
+ *   prose       …/callout.css:137 `.ui-toast--solid .ui-toast__action`
+ *   structured  { ref: '…/button.css:68', pattern: '.ui-btn--danger:hover' }
+ *   rendered    ${code('…/nav.css:81')} ${code('.ui-nav__item.is-danger:hover')}
+ *
+ * The rendered form exists because a literal backtick in story copy would land
+ * on the page; the anchor is the next one-argument helper call instead, and it
+ * renders as the thing it names. Which helper is that story's business. */
+const ANCHORS = [
+  /^[\s)\]},;:.—–-]*(?:\*|\/\/|#)?[\s([\\]*`([^`\n]+)`/,
+  /^['"]\s*,\s*pattern:\s*['"]([^'"\n]+)['"]/,
+  /^['"]\)\}[^\S\n]*\$\{\w+\(['"]([^'"\n]+)['"]\)/,
+];
+
 const anchorAfter = (after) => {
-  const m = ANCHOR_RUN.exec(after);
-  if (!m) return null;
-  /* One line-wrap is prose; two means the next backticked span in the file
-   * belongs to somebody else's sentence. */
-  if (m[0].slice(0, m[0].lastIndexOf('`', m[0].length - 2)).split('\n').length > 2) return null;
-  /* A comment inside a template literal escapes its backticks, and the backslash
-   * is the source's, not the anchor's. */
-  return [m[0], m[1].replace(/\\$/, '')];
+  for (const form of ANCHORS) {
+    const m = form.exec(after);
+    /* Prose wraps, so a comment-continuation marker and ONE newline may sit
+     * between citation and anchor. Two lines away, the next backticked span in
+     * the file belongs to somebody else's sentence. An anchor holds no newline
+     * of its own, so counting the whole match counts only what came before it. */
+    if (!m || m[0].split('\n').length > 2) continue;
+    /* A comment inside a template literal escapes its backticks, and that
+     * backslash is the source's rather than the anchor's. */
+    return m[1].replace(/\\$/, '');
+  }
+  return null;
 };
-
-/* The structured form's anchor: `{ ref: '<path>:<line>', pattern: '<anchor>' }`. */
-const PATTERN_AFTER = /^['"]\s*,\s*pattern:\s*['"]([^'"\n]+)['"]/;
-
-/* The rendered form's anchor. A story that shows a reader where to look writes
- * the citation through a helper — `${code('src/styles/nav.css:81')}` — and a
- * literal backtick there would land on the page. So the anchor is the next such
- * helper call, and it renders as the thing it names: the selector. Any one-argument
- * helper counts, because which one a story uses is that story's business. */
-const RENDERED_AFTER = /^['"]\)\}[^\S\n]*\$\{\w+\(['"]([^'"\n]+)['"]\)/;
 
 /* Everything git tracks at the top level. A citation whose first segment is not
  * one of these points outside the repo — into node_modules, or into a package's
@@ -107,14 +114,14 @@ export const scan = (text, page = '') => {
     const [raw, file, from, to] = m;
     const before = text.slice(0, m.index);
     const after = text.slice(m.index + raw.length);
-    const anchor = anchorAfter(after) || PATTERN_AFTER.exec(after) || RENDERED_AFTER.exec(after);
+    const anchor = anchorAfter(after);
     found.push({
       raw,
       file,
       from: Number(from),
       to: to === undefined ? Number(from) : Number(to),
       ranged: to !== undefined,
-      anchor: anchor ? anchor[1] : null,
+      anchor,
       historical: SHA_BEFORE.test(before),
       delegated: IS_MODULE.test(page)
         && REF_KEYED_BEFORE.test(before)
@@ -365,7 +372,11 @@ test('the anchor may wrap one line with the comment, and no further', () => {
 });
 
 test('a `ref:` in a module is handed to refs.test.js; the same shape in prose is resolved here', () => {
-  const entry = "{ ref: 'fixture/a.css:1', pattern: '.ui-btn--danger:hover' }";
+  /* Assembled rather than written out, for the reason the other fixtures are:
+   * spelled in full it would be a `ref:` the sweep above counts as a real one,
+   * and the delegation tally would answer for a citation nobody cites. */
+  const key = "ref: '";
+  const entry = `{ ${key}fixture/a.css:1', pattern: '.ui-btn--danger:hover' }`;
   const read = () => '.ui-btn--danger:hover {';
 
   const { problems, counted } = check(`kit: [${entry}]`, read, 'fixture/page.js');

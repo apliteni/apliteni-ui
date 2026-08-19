@@ -1103,6 +1103,13 @@ those, and deleting the gutter simply dropped the class out of the set. The gate
 the defect in the tree, which is [a skip wearing a different
 hat](#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip).
 
+**A gate that sweeps `git ls-files` cannot see itself until it is committed.** `git ls-files`
+lists tracked files, so a new gate's first green run is taken with its own file outside the
+subject set — and `scripts/code-refs.test.js` went green that way while carrying a fixture that
+read as a real citation. The commit added the file to its own sweep and the run went red. So a
+gate whose subjects come from git is proven **after** the first commit, never before it, and
+`git add -N` beforehand is the cheaper version of the same check.
+
 **A checkout with no `node_modules` reds exactly one test.** `scripts/packaging.test.js` links
 this tree's own React into a scratch consumer rather than downloading one, so an absent install
 stops it at setup while everything else passes. Run `npm ci` first.
