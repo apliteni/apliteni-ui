@@ -1,18 +1,12 @@
 /* Rule: a control goes wordless only for an action on the closed list.
  *
- * `iconOnlyAllowed` in src/assets/icons.js names the actions that may drop
- * their visible text. This walks every call site that asks for one and checks
- * the glyph it hands over against that list.
+ * `iconOnlyAllowed` in src/assets/icons.js names the actions that may drop their visible
+ * text. This walks every call site that asks for one and checks the glyph it hands over
+ * against that list.
  *
- * The accessibility gate next door proves an icon-only button always has a
- * NAME. It cannot prove the button should have been wordless in the first place
- * — a `gear` with a perfect aria-label is still a reader meeting an unlabelled
- * cog one at a time. That is this gate.
- *
- * The call sites are DISCOVERED, never listed: every .js/.mjs/.jsx/.tsx under
- * the four trees `npm test` and the build actually read is swept for the word
- * `iconOnly`, and the count is asserted so a walk that reads nothing cannot
- * pass.
+ * The accessibility gate next door proves an icon-only button always has a NAME. It
+ * cannot prove the button should have been wordless — a `gear` with a perfect aria-label
+ * is still a reader meeting an unlabelled cog one at a time. That is this gate.
  *
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
@@ -50,9 +44,7 @@ const sources = TREES
 // takes, and the JSX attribute `icon="x"` that <Button> takes.
 //
 // Nearest, not first: three icon-only buttons in a row sit inside one window,
-// and taking the first match reported all three as the first one's glyph. That
-// version named a real violation and two invented ones, which is the failure
-// mode a gate can least afford — the next reader stops trusting the list.
+// and taking the first match reported all three as the first one's glyph.
 const WINDOW = 220;
 const GLYPH = /\bicon\s*[:=]\s*['"]([A-Za-z][A-Za-z0-9]*)['"]/g;
 

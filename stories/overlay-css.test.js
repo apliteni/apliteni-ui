@@ -1,18 +1,16 @@
 // What the overlay stylesheets have to say, for both the drawer and the confirm.
 //
-// These are the rules JSDOM cannot check — it has no CSS and no transitions —
-// and they are the ones that broke in a real browser, so the stylesheets are
-// read as text.
+// These are the rules JSDOM cannot check — it has no CSS and no transitions — and they
+// are the ones that broke in a real browser, so the stylesheets are read as text.
 //
-// Two are about `visibility`, a discrete property a transition holds at the OLD
-// value for the whole duration: transitioned on the way in, the panel is still
-// `hidden` in the frame the class lands; eased with a curve that leaves [0, 1],
-// it flips mid-fade.
+// Two are about `visibility`, a discrete property a transition holds at the OLD value for
+// the whole duration: transitioned on the way in, the panel is still `hidden` in the frame
+// the class lands; eased with a curve that leaves [0, 1], it flips mid-fade.
 //
-// The third is the window between "closed" and "gone": both roots stay visible
-// for --dur-med after the close call stops trapping focus, so a panel still
-// hit-testable while it fades takes one more click — which on a confirm runs the
-// caller's destructive handler a second time.
+// The third is the window between "closed" and "gone": both roots stay visible for
+// --dur-med after the close call stops trapping focus, so a panel still hit-testable while
+// it fades takes one more click — which on a confirm runs the caller's destructive handler
+// a second time.
 //
 // why: docs/specification.md#motion
 

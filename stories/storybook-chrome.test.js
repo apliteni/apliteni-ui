@@ -1,19 +1,15 @@
 // Storybook chrome guard — the flags in .storybook/main.js are asked of
 // Storybook, not of the file.
 //
-// Storybook does not validate `main.js`: an unknown key is loaded, ignored, and
-// the default stands. So `sidebarOnbordingChecklist` — one letter short — reads
-// exactly like the real thing in a diff, in review and in the file, while the
-// widget it was meant to remove is still there. Asserting the file contains the
-// string we wrote proves nothing, because that string is what is under suspicion.
+// Storybook does not validate `main.js`: an unknown key is loaded, ignored, and the
+// default stands, so `sidebarOnbordingChecklist` — one letter short — reads exactly like
+// the real thing. Asserting the file contains the string we wrote proves nothing.
 //
 // So each consumer is asked the way it actually asks: the what's-new handler
 // re-reads the config file and evaluates `.core?.disableWhatsNewNotifications
-// === true`, while the onboarding flags are resolved through the real preset
-// chain, which is what the manager builder serialises into `window.FEATURES`.
-//
-// Two onboarding flags, not one — turning off only the sidebar widget leaves
-// "Get started" one click away in the menu.
+// === true`, while BOTH onboarding flags — the sidebar widget alone leaves "Get
+// started" one click away in the menu — resolve through the real preset chain,
+// which is what the manager builder serialises into `window.FEATURES`.
 //
 // why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
 

@@ -80,7 +80,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/base.css:117', pattern: '.ui-focusable:focus-visible,' },
       { ref: 'src/styles/base.css:123', pattern: 'box-shadow: var(--ring);' },
-      { ref: 'src/tokens/tokens.css:244', pattern: '--ring: 0 0 0 3px var(--accent);' },
+      { ref: 'src/tokens/tokens.css:211', pattern: '--ring: 0 0 0 3px var(--accent);' },
     ],
   },
   {

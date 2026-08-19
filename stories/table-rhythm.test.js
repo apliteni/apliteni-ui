@@ -3,10 +3,9 @@
  * rhythm and --dense modifier alike.
  *
  * Scope is ONE SHEET, and that is the rule's scope rather than a shortcut: the
- * table is the component the kit hands a density modifier. Inside it nothing is
- * enumerated. Widening to the rest of src/styles is one string here and ~160
- * declarations of argument about which are rhythm and which are a component's
- * own interior; that argument is not this gate's.
+ * table is the component the kit hands a density modifier. Widening to the rest
+ * of src/styles is ~160 declarations of argument about which are rhythm and
+ * which are a component's own interior; that argument is not this gate's.
  *
  * The steps are read out of tokens.css, never repeated here.
  *

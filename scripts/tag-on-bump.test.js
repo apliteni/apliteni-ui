@@ -765,28 +765,19 @@ exit 0
 `;
 
 /**
- * What a missing jq means — which is not the same thing in both places it can
- * happen. This is the ledger of what this suite does not reach.
+ * What a missing jq means, which differs by where it happens — and the ledger
+ * of what this suite does not reach.
  * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
  *
  * Every test carrying `needsJq` runs the publish step, which hands the
- * workflow's own `--jq` programs to the real jq through the gh stub. Without it
- * they all skip, and `node --test` exits 0 having executed none of them: the
- * whole of the publish step's coverage, gone without a word. Counted rather
- * than guessed at, and left uncounted here on purpose — the figure moves every
- * time a test is added, and a number nothing holds to the code is the thing
- * this file is about. On a developer machine that is a reasonable trade — the
- * rest of the suite still runs. On CI it is the coverage quietly not existing,
- * resting on an assumption about the runner image that nothing checks.
- * `ubuntu-latest` has jq today; the point is that nothing would say so if it
- * stopped.
+ * workflow's own `--jq` programs to the real jq through the gh stub. Without
+ * jq they all skip and `node --test` exits 0 having run none of them — the
+ * publish step's whole coverage gone without a word, resting on nothing but
+ * `ubuntu-latest` carrying jq. No count is given: it moves with every test.
  *
- * The Release step and the rollback step are deliberately not gated, and this
- * sentence used to claim they were the same case. Neither `run:` body contains
- * a single `--jq`, and the gh stub's `release view|create|delete` paths never
- * reach for jq either — they answer out of the scenario and exit. So the gate
- * was skipping tests that pass perfectly well without jq, for a reason that was
- * not true of them. Read the `run:` body before gating anything else on this.
+ * The Release and rollback steps are deliberately NOT gated — neither `run:`
+ * body contains a `--jq`, and the gh stub's `release view|create|delete` paths
+ * answer out of the scenario. Read the `run:` body before gating anything else.
  */
 function jqRequirement({ hasJq, ci }) {
   if (hasJq) return 'run';
@@ -1111,26 +1102,18 @@ test('a chatty gh is not a run id', needsJq, () => {
 });
 
 test('a publish still waiting at the follow deadline says so and goes green', needsJq, () => {
-  // A run held at its approval used to be red, and 0.9.1's release proved what
-  // that costs: the publish was approved 35 minutes later and succeeded, the
-  // version is on npm, and the job that started it is red for ever over a human
-  // who took longer than sixty seconds to click. This job's responsibility is
-  // that a release is started and not silently lost, and at this point it has
-  // discharged all of it. So it says where to go and click, names
-  // version-drift.yml as the thing that notices if nobody ever does, exits 0.
+  // A run held at its approval used to be red, and 0.9.1's release proved the
+  // cost: approved 35 minutes later, published, and the job that started it red
+  // for ever over a human who took longer than a minute to click. What the job
+  // owes is that a release is started and not silently lost, and by here it has
+  // paid all of it — see CONTRIBUTING.md#release.
   //
   // THE GREEN IS EARNED BY THE FULL DEADLINE, NOT BY THE FIRST SIGHT OF
-  // `waiting`. Breaking the follow loop on `waiting` is how this was first
-  // written, and it is the defect the test below this one exists for:
-  // release.yml reaches `waiting` about half a minute in, so the job left
-  // before the publish had done anything and every failure downstream of the
-  // gate — the tarball check, the `./`-prefix publish bug that burned v0.8.0,
-  // provenance — arrived here as a green tick. That half minute is measured;
-  // tag-on-bump.yml's header holds the figures and the two `gh` commands that
-  // redo them. So the deadline is pinned from both sides. 605s is the follow
-  // loop's own 600 plus the appear loop's single five-second poll, which this
-  // scenario pays because it dispatches; a `waiting_deadline` of 120s reads 125
-  // here and 900 reads 905.
+  // `waiting`. Breaking the follow loop there is how this was first written and
+  // is the defect the test below exists for: release.yml reaches `waiting` about
+  // half a minute in, so every failure downstream — the tarball check, the
+  // `./`-prefix publish bug that burned v0.8.0, provenance — arrived as a green
+  // tick. 605s is the follow loop's 600 plus the appear loop's one five-second poll.
   const result = runPublishStep({ dispatch: { timeline: [{ at: 0, status: 'waiting' }] } });
 
   assert.equal(result.status, 0, result.log);
@@ -1245,20 +1228,14 @@ test('a confirming read that finds the run building takes the red, not the green
   // The other answer the confirming read can come back with, and the one a
   // narrowing to `completed` threw away. The approval landed inside the last
   // fifteen-second gap and release.yml is building; the read at the deadline
-  // 502s, so the loop leaves on a `waiting` that stopped being true a moment
-  // ago. Honour only `completed` and the stale value stands: the job prints a
-  // warning telling the reader to go and approve a run it has just read as
-  // running, and exits 0 — the "page with nothing to approve on it" the branch
-  // below this one names as a defect that was fixed.
+  // 502s, so the loop leaves on a `waiting` that stopped being true. Honour only
+  // `completed` and the stale value stands: the job warns the reader to approve
+  // a run it has just read as running, and exits 0.
   //
-  // It is a colour inconsistency too. Two runs both `in_progress` at the
-  // deadline get opposite verdicts on whether the previous poll happened to
-  // blip. `in_progress` at the deadline is red on purpose — the step has run
-  // out of anything useful to say — and a blip must not exempt one run from it.
-  //
+  // `in_progress` at the deadline is red on purpose — the step has run out of
+  // anything useful to say — and a blip must not exempt one run from that.
   // Timed to the gap: `waiting` throughout, `in_progress` from 595s, and the
-  // forty-first and last follow read failing. The fortieth read lands at 590s
-  // and still sees `waiting`, so the loop has no way to know.
+  // forty-first and last follow read failing; the fortieth lands at 590s.
   const result = runPublishStep({
     dispatch: {
       timeline: [
@@ -1373,27 +1350,17 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // quite both be spent on one run. A ceiling check wants the pessimistic sum.
   const sleeps = appear.waited + follow.waited + tail.waited;
 
-  // The two costs the comment names that no clock here can see. Both are built
-  // out of the one timeout registry-status.mjs gives npm, read back out of that
-  // file rather than written down again here — so 60_000 → 120_000 there fails
-  // this test instead of quietly making the job's arithmetic three minutes
-  // short. Held by `the timeout registry-status.mjs gives npm is read out of
-  // it, not written down again here` above.
+  // The two costs the comment names that no clock here can see, both built out
+  // of the one timeout registry-status.mjs gives npm and read back out of that
+  // file — so 60_000 → 120_000 there fails `the timeout registry-status.mjs
+  // gives npm is read out of it, not written down again here` above.
   //
-  // The first cost is the call in flight when a deadline expires, because a
-  // deadline is checked between calls and not during one. It is one allowance
-  // rather than one per deadline, and it is the npm ask specifically: that is
-  // the only call in the job carrying a timeout of its own, so it is the only
-  // overrun with a number on it. A `gh` read that hangs has no timeout and so
-  // no figure here; what it would add comes out of the headroom the first
-  // assertion below keeps free.
-  //
-  // The second is the plan step's asks of the registry, which are spent before
-  // this step is reached at all: three of them, each able to sit out that same
-  // npm timeout, with a five- and then a ten-second sleep between them. The
-  // three and the two sleeps are not guesses either — `a registry that stays
-  // unreachable still stops the job` counts the calls and reads the waits off
-  // the sleep stub.
+  // The first is the call in flight when a deadline expires, since a deadline is
+  // checked between calls and not during one: one allowance, and the npm ask
+  // specifically, that being the only call in the job with a timeout of its own.
+  // The second is the plan step's three asks of the registry, spent before this
+  // step is reached, with a five- and then a ten-second sleep between them —
+  // all counted by `a registry that stays unreachable still stops the job`.
   const npmTimeout = npmTimeoutSeconds(registryStatusSource);
   const CALL_IN_FLIGHT = npmTimeout;
   const PLAN_STEP_RETRIES = 3 * npmTimeout + 5 + 10;
@@ -1420,33 +1387,18 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
       `job nobody hears about for that long.`,
   );
 
-  // The other half of the arithmetic: the comment counts round trips, not just
-  // seconds, and the sleeps inside the loops are what set them. Halving one
+  // The other half of the arithmetic: round trips, not seconds — halving a sleep
   // leaves every wall-clock assertion above green and doubles the traffic.
+  // Measured on one run rather than by adding the two loops' maxima, which
+  // described a job that cannot exist: a run that never appears exits before the
+  // follow loop, so 24 + 41 was unreachable. The genuine worst is a single run
+  // paying both loops in full, and it costs more than the sum did, because the
+  // calls around the loops count too.
   //
-  // Measured on one run rather than by adding the two loops' maxima together,
-  // which is what this did and which described a job that cannot exist: a run
-  // that never appears exits the step before the follow loop is reached, so
-  // 24 + 41 was a worst case nothing could reach. The genuine worst is a single
-  // run that pays both loops in full — dispatched, appearing on the last poll
-  // of the two-minute appear window, and still going when the ten-minute follow
-  // deadline expires — and it costs more than the sum did, not less, because
-  // the calls around the loops count too.
-  //
-  // It also pays every blip the step is built to absorb, because those are
-  // round trips like any other and this is the traffic ceiling. Two of the
-  // three loops cannot be made to spend one: a failed lookup in the appear or
-  // the follow loop consumes a poll slot rather than adding a call, so both
-  // stay at 24 and 41 however badly the API behaves. The conclusion loop is the
-  // one with no clock over it, and its three tries are three calls. So the run
-  // measured here is `waiting` all the way to the deadline, has its
-  // forty-first and last follow read 502 — which is the read the confirming
-  // ask below exists for — finishes while that read is failing, and then needs
-  // all three tries to get its conclusion out of GitHub.
-  //
-  // The seconds the same run spends are not the sum above and do not need to
-  // be: 730 against the 885 those three measurements come to. The pessimistic
-  // sum stays the pessimistic sum.
+  // It also pays every blip the step absorbs. A failed lookup in the appear or
+  // the follow loop consumes a poll slot rather than adding a call, so those two
+  // stay at 24 and 41 however badly the API behaves; the conclusion loop has no
+  // clock over it and its three tries are three calls.
   const worst = runPublishStep({
     dispatch: {
       appearAfter: 120,
@@ -1612,16 +1564,14 @@ test('three failed lookups in a row while waiting for the run is the lookup fail
   // The appear loop tolerates blips on purpose — that is what it is for — but
   // a token without actions:read, a malformed jq program and a rate limit all
   // fail every time, and reading those as patience burns the whole two minutes
-  // and then reports that the run never appeared. Three in a row is not a blip,
-  // and the difference matters to whoever reads the annotation: one says look
-  // at the Actions tab, the other says fix your token.
+  // and then reports that the run never appeared. Three in a row is not a blip:
+  // one annotation says look at the Actions tab, the other says fix your token.
   //
-  // Exactly three failures and then a working lookup, rather than a lookup
-  // that never works again. A stream of failures with no end to it fails this
-  // step at a threshold of four as readily as at three — the annotation even
-  // says "three times in a row" whatever the number is, because that string is
-  // written out by hand. Three and then recovery is what tells the two apart:
-  // at four the loop would go on, find the run, and end green.
+  // Exactly three failures and then a working lookup, rather than a stream with
+  // no end to it: a stream fails this step at a threshold of four as readily as
+  // at three, and the annotation says "three times in a row" whatever the number
+  // is, because that string is written by hand. Three then recovery tells them
+  // apart — at four the loop would go on, find the run, and end green.
   const result = runPublishStep({
     dispatch: { appearAfter: 40, timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
     failures: {

@@ -93,7 +93,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/base.css:91', pattern: 'max-width: var(--container)' },
       { ref: 'src/styles/topbar.css:17', pattern: 'max-width: var(--container)' },
-      { ref: 'src/tokens/tokens.css:49', pattern: '--container: 1120px' },
+      { ref: 'src/tokens/tokens.css:42', pattern: '--container: 1120px' },
     ],
   },
   {
@@ -105,7 +105,7 @@ export const RULES = [
       + 'as if they competed is what made nine widths look like one disagreement.',
     kit: [
       { ref: 'src/styles/layout.css:124', pattern: 'var(--ui-app-main, var(--measure))' },
-      { ref: 'src/tokens/tokens.css:50', pattern: '--measure: 860px' },
+      { ref: 'src/tokens/tokens.css:43', pattern: '--measure: 860px' },
     ],
   },
   {
@@ -141,7 +141,7 @@ export const RULES = [
     doHtml: densityDo,
     dontHtml: densityDont,
     kit: [
-      { ref: 'src/tokens/tokens.css:35', pattern: '--space-3: 12px' },
+      { ref: 'src/tokens/tokens.css:29', pattern: '--space-3: 12px' },
       { ref: 'src/styles/table.css:59', pattern: 'padding: var(--space-2) var(--space-3)' },
       { ref: 'stories/table-rhythm.test.js:86', pattern: 'writes no row rhythm as a literal' },
     ],

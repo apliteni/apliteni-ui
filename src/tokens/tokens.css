@@ -1,10 +1,8 @@
 /* ============================================================================
- * apliteni-ui — design tokens. Single source of truth for the Apliteni deck
- * theme; colour semantics are identical to viz/ (deck index.html, account.mjs):
- * purple accent, near-black surfaces, green = live, cyan = link/flag. Two
- * themes, dark (default) and light, toggled with `data-theme` on <html>.
- * Everything downstream references the SEMANTIC tokens (--bg, --surface,
- * --accent, --text…), never the raw ramp.
+ * apliteni-ui — design tokens. Single source of truth for the Apliteni deck theme,
+ * with viz/'s colour semantics: purple accent, near-black surfaces, green = live,
+ * cyan = link/flag. Two themes, dark (default) and light, toggled with `data-theme`
+ * on <html>. Everything downstream references the SEMANTIC tokens, never the ramp.
  * ========================================================================== */
 
 :root {
@@ -132,9 +130,8 @@
   --surface-2: #1b1927;
   --surface-3: #2a2739;
   --seg-active-bg: #34314a; /* raised pill — clearly above the inset track in dark */
-  /* The raised handle on a control track (switch knob). Stays white in both
-     themes and under every accent: it has to read on the plain track AND on
-     the accent fill the track takes when the control is on. */
+  /* The raised handle on a control track (switch knob). White in both themes and under
+     every accent: it reads on the plain track AND on the accent fill of an on control. */
   --control-knob: #ffffff;
   --border: #332f45;
   --border-strong: #453f5c;
@@ -146,18 +143,17 @@
 
   /* The paint of a control that is off. NOT an opacity: `opacity` is a group property,
      so it fades label and box toward the ground TOGETHER — a disabled primary button
-     measured 1.48:1 that way. These three composite predictably instead, the ink read
-     on the surface beside it and both opaque, and they are aliases rather than new
-     colours. Held by stories/guidelines/accessibility-floor.test.js.
+     measured 1.48:1 that way. These three are aliases that composite predictably, the
+     ink read on the surface beside it. Held by guidelines/accessibility-floor.test.js.
      why: docs/specification.md#colour-and-contrast */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface-2);
   --disabled-border: var(--border);
 
-  /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own wash
-     over a card; the value was already in the ramp, so no new colour entered it. --ring
-     is var(--accent) and follows by reference. Held by stories/accent-contrast.test.js.
-     See issue #157. why: docs/specification.md#colour-and-contrast */
+  /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own wash over
+     a card; the value was already in the ramp. --ring is var(--accent) and follows by
+     reference. Held by stories/accent-contrast.test.js. #157.
+     why: docs/specification.md#colour-and-contrast */
   --accent: #b479ff;
   --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA at 5.70:1 */
   --accent-contrast: #ffffff;
@@ -177,9 +173,8 @@
   --glow-cyan: rgba(32, 220, 245, 0.14);
   --glow-pink: rgba(233, 124, 165, 0.16);
 
-  /* Status-chip paint — the ink + fill of a badge / pill. Dark tints with the
-     signal's own glow; light needs a solid, deepened pair (the glows wash out
-     on white), which is why these are a token pair and not just --green etc. */
+  /* Status-chip paint — the ink + fill of a badge / pill. Dark tints with the signal's
+     own glow; light needs a solid, deepened pair, which is why these are a token pair. */
   --chip-success-ink: var(--green);
   --chip-success-fill: var(--glow-green);
   --chip-warn-ink: var(--amber);
@@ -192,8 +187,7 @@
   /* Solid signal surfaces — a status that has stopped being ink and become the FILL (a
      solid toast). Fill and ink are ONE pair, never two independent picks: the fill is the
      status at this theme's extreme and the ink the pole opposite it, so a single ink
-     clears all five. --muted is already its own fill-strength form, so neutral needs no
-     chip pair to take part. See issues #131 and #149. */
+     clears all five. --muted is already its own fill-strength form. See #131, #149. */
   --signal-solid-ink: var(--signal-contrast);
   --signal-solid-success: var(--green);
   --signal-solid-danger: var(--pink);
@@ -206,8 +200,8 @@
   --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.5);
   /* Tight elevation for the active segmented pill — stays contained in its track. */
   --shadow-seg: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
-  /* Resting elevation for a card. Dark cards are borderless — the surface does
-     the grouping on its own — so they cast nothing. */
+  /* Resting elevation for a card. Dark cards are borderless — the surface groups on
+     its own — so they cast nothing. */
   --shadow-card: none;
   /* THE ONLY --ring in the kit — light and every data-accent sub-theme declare an
      --accent and inherit this line. Opaque because a translucent ring is a glow, and the
@@ -216,8 +210,8 @@
      why: docs/specification.md#the-focus-ring */
   --ring: 0 0 0 3px var(--accent);
 
-  /* The ink a cast shadow is made of, and the specular white that reads as
-     gloss on a raised surface. Effects mix these instead of writing rgba(). */
+  /* The ink a cast shadow is made of, and the specular white that reads as gloss on a
+     raised surface. Effects mix these instead of writing rgba(). */
   --shadow-ink: #000000;
   --sheen: #ffffff;
 
@@ -247,8 +241,8 @@
   --pink: #b63361;
   --amber: #b5730a;
 
-  /* A WHITE app: the page and cards are both white; cards are delineated by a
-     hairline border + soft shadow (see card.css), not a grey canvas. */
+  /* A WHITE app: page and cards are both white, and cards are delineated by a hairline
+     border + soft shadow (see card.css), not a grey canvas. */
   --bg: #ffffff;
   --bg-elevated: #ffffff;
   --surface: #ffffff;
@@ -281,8 +275,7 @@
   /* Re-tinted from --green; it was rgba(30, 150, 50, .1), a colour that exists nowhere
      else in the kit while the other three light glows are exact tints of their own token.
      The wash over white moves at most two levels on a channel and no verdict moves with
-     it. The success chips are untouched — light's --chip-success-fill is the solid
-     #dff3e4, not this. Gated for all four glows in stories/signal-contrast.test.js. */
+     it. Gated for all four glows in stories/signal-contrast.test.js. */
   --glow-green: rgba(28, 138, 44, 0.1);
   --glow-purple: rgba(106, 45, 204, 0.09);
   --glow-cyan: rgba(12, 143, 168, 0.1);
@@ -318,8 +311,8 @@
   --shadow-lg: 0 18px 50px rgba(30, 30, 50, 0.16);
   /* Tight elevation for the active segmented pill — stays contained in its track. */
   --shadow-seg: 0 1px 2px rgba(30, 30, 50, 0.12), 0 2px 4px rgba(30, 30, 50, 0.1);
-  /* A white card on a white page needs its own, flatter-than-sm elevation:
-     a hairline contact shadow plus a wide soft one (see card.css). */
+  /* A white card on a white page needs its own flatter-than-sm elevation: a hairline
+     contact shadow plus a wide soft one (see card.css). */
   --shadow-card: 0 1px 2px rgba(20, 25, 45, 0.04), 0 4px 14px rgba(20, 25, 45, 0.05);
   /* No --ring here. :root's is var(--accent), and light re-points --accent. */
 
@@ -333,40 +326,32 @@
 }
 
 /* ============================================================================
- * WIDTHS BELOW THE PAGE — the box, and the line
- *
- * --container is the page and --measure the reading column inside it (both
- * above). Underneath them the kit has two scales and one rule for choosing
- * between them: THE UNIT SAYS WHICH SCALE YOU ARE ON.
+ * WIDTHS BELOW THE PAGE — the box, and the line. Two scales, and one rule for
+ * choosing between them: THE UNIT SAYS WHICH SCALE YOU ARE ON.
  *
  *   a box that holds a COMPONENT   ->  --panel-*   (px)
  *   a box that holds a LINE        ->  --prose-*   (ch)
  *
- * Both are theme-invariant, which is why they sit outside the palette blocks.
+ * Both are theme-invariant, so they sit outside the palette blocks.
  * why: docs/specification.md#boxes-below-the-page
  * ========================================================================== */
 :root {
   /* -- Panel widths -------------------------------------------------------
-   * Not a new scale: the drawer has shipped sm/md/lg at exactly these three
-   * values, and confirm, the auth card and the toast each wrote one out again
-   * on their own. They are one measure now (#208). */
+   * Not a new scale: the drawer has shipped sm/md/lg at these three values, and
+   * confirm, the auth card and the toast each wrote one out again (#208). */
   --panel-sm: 320px;
   --panel-md: 420px;
   --panel-lg: 560px;
 
   /* -- Prose measures -----------------------------------------------------
-   * ch resolves against the font-size of the element it is DECLARED on, so a
-   * step goes on the paragraph itself — never on a wrapper holding two type
-   * sizes, where the same token would mean two different widths.
-   *
-   * The four steps are the reading band (44–72ch), named for what is being read
-   * rather than sized s/m/l, so the choice is made by the writer:
+   * ch resolves against the font-size of the element it is DECLARED on, so a step
+   * goes on the paragraph itself, never on a wrapper holding two type sizes. The
+   * four steps are the reading band (44–72ch), named for what is being read:
    *   caption  one or two sentences under a glyph, centred
    *   lede     the line under a title
    *   body     a left-aligned column of copy
    *   dense    reference prose set below 13px, where the band runs wider
-   * --prose-display is NOT a measure. It is where a display headline rags, and
-   * it is far under the band on purpose. */
+   * --prose-display is NOT a measure — it is where a display headline rags. */
   --prose-display: 14ch;
   --prose-caption: 44ch;
   --prose-lede: 54ch;

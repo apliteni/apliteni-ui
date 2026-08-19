@@ -355,7 +355,7 @@ test('the ledger totals exactly what the walk found', () => {
 test('the ledger is not empty and every entry carries a hand-written why', () => {
   assert.ok(LEDGER.length >= 5, 'an emptied ledger would make every assertion above vacuous');
   for (const e of LEDGER) {
-    assert.ok(e.why && e.why.length > 200, `ledger ${e.id} has no real \`why\` — see \n`
+    assert.ok(e.why && e.why.length > 200, `ledger ${e.id} has no real \`why\` — see `
       + 'CONTRIBUTING.md#a-ledger-that-keys-on-a-measurement-is-written-by-hand-on-purpose');
     assert.ok(
       !/\d+(\.\d+)?\s*:\s*1|\b\d\.\d{2}\b/.test(e.why),
