@@ -84,8 +84,8 @@ export const RULES = [
     except: '--surface-3 is not measured: nothing paints the accent wash on a raised surface any more.',
     kit: [
       { ref: 'stories/accent-contrast.test.js:1', pattern: '--accent clears WCAG AA as text on every ground the kit paints under it' },
-      { ref: 'stories/accent-contrast.test.js:2', pattern: 'in all eight theme × accent cells' },
-      { ref: 'react/src/a11y.test.tsx:27', pattern: "'color-contrast': { enabled: false }" },
+      { ref: 'stories/accent-contrast.test.js:2', pattern: 'theme × accent cells' },
+      { ref: 'react/src/a11y.test.tsx:23', pattern: "'color-contrast': { enabled: false }" },
     ],
   },
 ];
