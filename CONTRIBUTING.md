@@ -93,7 +93,7 @@ when you touch one, so the reviewer reads the change itself rather than the run.
 
 ## How the gates work
 
-Six rules govern every gate in this repo. They are about the gates rather than about the
+The rules below govern every gate in this repo. They are about the gates rather than about the
 kit, which is why they live here and not in
 [docs/specification.md](docs/specification.md).
 
@@ -167,6 +167,50 @@ Where a value cannot be exercised at all, pin it as a **relation** instead of a 
 `timeout-minutes` is one: the three waits are measured at their worst, the costs no clock
 can see are added, and the total is related to the ceiling read out of the YAML — it must
 fit in two thirds of it and be at least half of it.
+
+### A prose citation carries an anchor
+
+A `file:line` written in a comment, a test message or story copy is a pointer, and it rots
+the way a `kit` entry rots — except that nothing was watching it. It fails **silently and
+legibly**: everything parses, the suite passes, and a reader who follows it lands on real
+code, just not the code the sentence is about.
+
+That is not a worry, it is a bill this repo has paid. Commit `f222104` deleted 29 lines from
+`base.css` and `callout.css` and broke five citations in one stroke. `callout.css:145` became
+a blank line while two comments went on discussing a specificity override; `base.css:130` ran
+off the end of a 124-line file. Nothing turned red for five commits.
+
+So write the line, then write what is **on** it:
+
+```
+src/styles/callout.css:137 `.ui-toast--solid .ui-toast__action`
+src/styles/nav.css:39-41 `font-size: 14.5px;`
+```
+
+`scripts/code-refs.test.js` resolves every one of them — the file exists, the line exists,
+and the anchor appears on it. A range passes when the anchor is on any line inside it.
+File-and-line-exists would not do: **every one of the five wrong lines was a real line**, so
+only the anchor tells a moved rule from a rule that is still there.
+
+Four things the form asks of you, and the reason for each:
+
+- **Cite from the repo root.** A bare `nav.css:113` leaves the gate guessing a directory, and
+  it will not guess. Unanchored, a bare filename is not read as a citation at all — it is
+  indistinguishable from a fixture or a stack frame — so that one is a hole rather than a
+  gate, and it is named in the gate's ledger.
+- **Put the anchor after the citation**, within one line-wrap. Two lines away, the next
+  backticked span belongs to somebody else's sentence.
+- **A guideline `kit` entry keeps its own form** — `{ ref, pattern }`, resolved by
+  `stories/guidelines/refs.test.js`. `code-refs.test.js` stands off those and asserts its
+  count against what the pages declare, so a `ref:` written where that walk cannot see it
+  makes the two disagree rather than falling between them.
+- **Story copy a reader sees anchors with a second code span**, not a backtick that would
+  land on the page: `${code('src/styles/nav.css:81')} ${code('.ui-nav__item.is-danger:hover')}`.
+
+Two forms are exempt by construction, never by a list. A `<sha>:` prefix makes the citation
+historical — a claim about a tree that is not this one. And a path whose first segment is not
+tracked at the repo root points into a dependency, whose line numbers move on an upgrade this
+repo does not pin here.
 
 ### A rule is proven by the mutation that kills its case
 

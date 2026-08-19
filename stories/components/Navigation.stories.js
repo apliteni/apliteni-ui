@@ -73,7 +73,8 @@ export const Sidebar = {
     // ink on a raised surface. The rail above cannot also show it: only one row
     // is ever active, and that one carries the neutral counter. It is here so
     // the contrast walk measures the pair rather than a person's reading of it.
-    // nav.css:113 gives the counter the active row's own --surface-3 instead of
+    // src/styles/nav.css:113 `background: var(--surface-3);` gives the counter the
+    // active row's own --surface-3 instead of
     // laying --glow-purple over it; deleted, that rule broke nothing in the
     // suite until this specimen existed. See #157.
     specimen(

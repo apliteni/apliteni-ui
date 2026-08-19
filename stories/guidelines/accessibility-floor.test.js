@@ -628,7 +628,8 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     const run = ringRun[key];
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
-    // `.ui-focusable` is the kit's opt-in focus class (src/styles/base.css:130).
+    // `.ui-focusable` is the kit's opt-in focus class
+    // (src/styles/base.css:117 `.ui-focusable:focus-visible,`).
     // No component wears it and no story renders one, so it has no ground to be
     // measured against — which is a fact about the class, not a hole here. It
     // is named rather than filtered so it cannot quietly become two.
