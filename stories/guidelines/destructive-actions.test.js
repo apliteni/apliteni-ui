@@ -7,9 +7,8 @@
  * rule written against an element type reaches into a specimen and repaints the
  * component the page is supposed to be showing.
  *
- * It lives under stories/ on purpose: `npm test` only walks src, stories, site
- * and scripts, so a test outside those four trees is never executed and passes
- * by never running.
+ * It lives under stories/ on purpose: `npm test` walks src, stories, site and
+ * scripts only, so a test outside those four trees passes by never running.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

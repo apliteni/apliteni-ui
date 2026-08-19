@@ -1,9 +1,6 @@
-// The finance portal's own shell — a demo portal's, not the kit's, which is why
-// it lives here beside the screens that draw it and not in src/. Two screens
-// draw it (Empty states and Finance report), and each used to carry a copy of
-// the nav with a comment asking the reader to keep it in step with the other.
-// That is the drift #127 is about, so the demo layer does not get to reproduce
-// it — in the nav, in the reader, or in the composition around them.
+// The finance portal's own shell — a demo portal's, not the kit's, which is why it lives
+// here beside the screens that draw it. Two screens draw it, and each used to carry its
+// own copy of the nav, which is the drift #127 is about.
 import { appShell } from '../../src/components/shell.js';
 
 export const FINANCE_NAV = [
@@ -16,21 +13,14 @@ export const FINANCE_NAV = [
 // Who is signed in on both screens. One reader, said once.
 export const FINANCE_READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 
-// The portal's column. The payout ledger is seven columns wide and asked for
-// 960px; the empty-state screens took the shell's 860px default and nobody
-// chose that — it is what a screen gets when it says nothing. Two widths for
-// two screens of one portal is the same drift as two navs, so the portal
-// answers once and the ledger's number is the answer.
+// The portal's column: the ledger is seven columns wide and asked for 960px while the
+// empty-state screens took the shell's unchosen 860px default. One portal answers once.
 const FINANCE_MAX = '960px';
 
-// appShell() ships with no topbar, so none of the example screens asks for one.
-// The rail already answers who is signed in and how to leave; a topbar beside it
-// drew a second product word and a second account menu saying the same two
-// things. accountShell() is the one preset that keeps a topbar, because
-// `versions`, `showSwitch` and wireTopbar() are published behaviour on that page.
-//
-// The trail is built here too. Both screens sit one level under Finance, and a
-// crumb trail rebuilt by hand on each is a third copy of the same fact.
+// appShell() ships with no topbar, so no example screen asks for one: the rail already
+// answers who is signed in and how to leave. accountShell() is the one preset that keeps
+// one — `versions`, `showSwitch` and wireTopbar() are published behaviour there. The
+// trail is built here too, so neither screen rebuilds the same crumb by hand.
 export const financeShell = ({ active, crumb, title, sub, body }) => appShell({
   word: 'Finance',
   nav: FINANCE_NAV,
