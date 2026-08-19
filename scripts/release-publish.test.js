@@ -1,14 +1,9 @@
 // Release guard — the command that publishes has to work on a path with a slash
-// in it.
-//
-// 0.8.0 was tagged, built, packed and never published: npm read the bare `a/b`
-// tarball path as a GitHub shorthand and died on a public-key error before it
-// looked at the file. A leading `./` is the whole fix, and the failure only
-// appears when the path contains a slash, which is why it survived review twice.
-//
-// Grepping the workflow would pin nothing — the string is the thing under
-// suspicion — so this reads the publish command out of the workflow and runs it
-// against a real packed tarball in a subdirectory.
+// in it. 0.8.0 was tagged, built, packed and never published: npm read the bare
+// `a/b` tarball path as a GitHub shorthand and died on a public-key error before
+// it looked at the file, and a leading `./` is the whole fix. So this runs the
+// publish command read out of the workflow — grepping for the string under
+// suspicion would pin nothing — against a real tarball in a subdirectory.
 //
 // why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
 import { test } from 'node:test';
@@ -37,12 +32,10 @@ test('the workflow publishes a file path, not a git shorthand', () => {
     // pass while the real workflow, which packs into dist-pack/, fails.
     const sub = path.join(scratch, 'dist-pack');
     mkdirSync(sub);
-    // --ignore-scripts is load-bearing, and removing it makes ANOTHER test fail
-    // rather than this one: a root `npm pack` runs tsup with `clean: true`, and
-    // scripts/packaging.test.js packs the root too, so without this flag the two
-    // builds race and one archives react/dist in the gap where the other's clean
-    // has removed index.d.ts. Nothing here reads the tarball — it only has to be
-    // a real .tgz at a path with a slash in it.
+    // --ignore-scripts is load-bearing, and dropping it reds scripts/packaging.test.js
+    // rather than this one: both pack the root, and tsup's `clean: true` removes
+    // index.d.ts in the gap where the other build archives react/dist. Nothing here
+    // reads the tarball; it only has to be a real .tgz at a path with a slash in it.
     execFileSync('npm', ['pack', '--ignore-scripts', '--pack-destination', sub], {
       cwd: root,
       encoding: 'utf8',
@@ -52,17 +45,12 @@ test('the workflow publishes a file path, not a git shorthand', () => {
     assert.ok(tgz, 'npm pack produced no tarball');
 
     // Run the workflow's own command, with TGZ set the way the workflow sets it:
-    // relative to the working directory, with a slash in it.
-    //
-    // The exit code is deliberately ignored, and both streams are kept. An
-    // unauthenticated `--dry-run` resolves the spec, reads the tarball and
-    // prints it, and *then* exits non-zero — but only when the version is
-    // already on the registry. On the version bump itself it resolves the same
-    // way and exits zero, so a branch that reads stdout alone loses everything:
-    // npm writes the tarball report to stderr as `npm notice` lines, and stdout
-    // carries one `+ name@version`. Read one stream and this guard passes only
-    // when the publish would have failed anyway, which is to say it is blind on
-    // the one pull request it exists to protect.
+    // relative to the working directory, with a slash in it. Exit code ignored and
+    // both streams kept: an unauthenticated `--dry-run` exits zero on the version
+    // bump itself and non-zero only when the version is already published, and it
+    // writes the tarball report to stderr as `npm notice` lines while stdout carries
+    // one `+ name@version`. Branch on either and this goes blind on the one pull
+    // request it exists to protect.
     const command = `${publishCommand()} --dry-run`;
     const run = spawnSync('bash', ['-c', command], {
       cwd: scratch,

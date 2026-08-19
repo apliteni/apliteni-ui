@@ -1,14 +1,10 @@
 /* ============================================================================
- * apliteni-ui — design tokens
- * Single source of truth for the Apliteni deck theme.
- *
- * Colour semantics are identical to viz/ (deck index.html, account.mjs):
- *   purple accent, near-black surfaces, green = live, cyan = link/flag.
- * Two themes: dark (default) and light. Toggle with `data-theme` on <html>.
- *
+ * apliteni-ui — design tokens. Single source of truth for the Apliteni deck
+ * theme; colour semantics are identical to viz/ (deck index.html, account.mjs):
+ * purple accent, near-black surfaces, green = live, cyan = link/flag. Two
+ * themes, dark (default) and light, toggled with `data-theme` on <html>.
  * Everything downstream references the SEMANTIC tokens (--bg, --surface,
- * --accent, --text…), never the raw ramp. Swap a ramp value once, and every
- * component follows.
+ * --accent, --text…), never the raw ramp.
  * ========================================================================== */
 
 :root {
@@ -44,7 +40,6 @@
   /* -- Measure ------------------------------------------------------------
    * --container is the page, gutter to gutter; --measure is the reading column
    * INSIDE a track, beside a sidebar. Different axes, never interchangeable.
-   * Below --measure are --panel-* and --prose-*, at the end of this file (#208).
    * why: docs/specification.md#widths */
   --container: 1120px;
   --measure: 860px;
@@ -79,13 +74,12 @@
   --tracking-caps: 0.14em;
 
   /* -- Motion -------------------------------------------------------------
-   * Durations + easings are the Apliteni brand's motion vocabulary, synced
-   * from design-system into brand.generated.css (--duration-*, --easing-*).
-   * The kit's legacy --dur-* and --ease names alias onto them, so every existing
-   * component transitively consumes the brand primitives — one vocabulary,
-   * zero drift. Fallbacks keep tokens.css self-sufficient when imported
-   * without brand.generated.css. Delays are the kit's own (not a brand
-   * concern). The reusable effect layer lives in styles/motion.css. */
+   * The kit's legacy --dur-* and --ease names alias onto the brand's
+   * --duration-* and --easing-* primitives, so every component consumes one
+   * vocabulary; the fallbacks keep tokens.css self-sufficient when imported
+   * without brand.generated.css. Delays are the kit's own, and the reusable
+   * effect layer lives in styles/motion.css.
+   * why: CONTRIBUTING.md#brand-tokens-synced-from-design-system */
   --ease: var(--easing-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
   --ease-out: var(--easing-ease-out, cubic-bezier(0, 0, 0.2, 1));
   --ease-in: var(--easing-ease-in, cubic-bezier(0.4, 0, 1, 1));
@@ -119,22 +113,16 @@
   color-scheme: dark;
 
   --purple: #6a2dcc;
-  /* The ramp moves up one step so --accent is --purple-light again, which is
-     the shape light Nebula and light Ocean already ship and which dark Nebula
-     held until #157 lifted the accent onto the old --purple-mid. Left alone,
-     the two tokens would resolve to one colour and the ramp would carry a
-     duplicate step. #bd8cff is the value docs/specification.md#colour-and-contrast reasons about and
-     rejects as the accent; it becomes the ramp's top step instead. Light
-     Nebula's ramp does not move. See issue #157. */
+  /* The ramp moves up one step so --accent is --purple-light again, the shape light
+     Nebula and light Ocean already ship; left alone the two tokens would resolve to
+     one colour. #bd8cff becomes the ramp's top step instead. See issue #157. */
   --purple-light: #b479ff;
   --purple-mid: #bd8cff;
   --cyan: #20dcf5;
   --green: #98ff8f;
-  /* Lighter than it looks like it should be, and deliberately so: --pink is read
-     mostly ON its own 16% glow, and that wash lifts the ground faster than the
-     hue lifts the ink. #e35b8f measured 3.82:1 on --glow-pink over a card —
-     under AA — so danger moved AWAY from the canvas, not toward it. Light moves
-     the opposite way for the same reason. See issue #131. */
+  /* Lighter than it looks like it should be: --pink is read mostly ON its own 16%
+     glow, and that wash lifts the ground faster than the hue lifts the ink, so danger
+     moved AWAY from the canvas. Light moves the opposite way. See issue #131. */
   --pink: #e97ca5;
   --amber: #ffcf6a;
 
@@ -156,46 +144,35 @@
   --dim: #c6c2d6;
   --muted: #948fa8;
 
-  /* The paint of a control that is off. NOT an opacity: `opacity` is a group
-     property, so it fades a label and the box under it toward the ground
-     TOGETHER and the pair a reader is left with is whatever that composite
-     lands on — a disabled primary button measured 1.48:1 that way, white on a
-     faded accent. These three composite predictably instead: the ink is read on
-     the surface beside it, and both are opaque. They are aliases, not new
-     colours — the ramp gains nothing to keep in sync. A disabled control drops
-     its accent, which is most of what makes it read as inert; the ink going
-     quiet is the rest. Held by stories/guidelines/accessibility-floor.test.js.
+  /* The paint of a control that is off. NOT an opacity: `opacity` is a group property,
+     so it fades label and box toward the ground TOGETHER — a disabled primary button
+     measured 1.48:1 that way. These three composite predictably instead, the ink read
+     on the surface beside it and both opaque, and they are aliases rather than new
+     colours. Held by stories/guidelines/accessibility-floor.test.js.
      why: docs/specification.md#colour-and-contrast */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface-2);
   --disabled-border: var(--border);
 
-  /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own
-     wash over a card. This value was already in the ramp as --purple-mid, so no
-     new colour entered it; the ramp then moved up a step above so --accent is
-     --purple-light, which is how every other Nebula and Ocean cell is written.
-     --glow-purple follows it down the file; --ring is written as var(--accent)
-     and so follows it by reference. Held by
-     stories/accent-contrast.test.js. See issue #157.
-     why: docs/specification.md#colour-and-contrast */
+  /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own wash
+     over a card; the value was already in the ramp, so no new colour entered it. --ring
+     is var(--accent) and follows by reference. Held by stories/accent-contrast.test.js.
+     See issue #157. why: docs/specification.md#colour-and-contrast */
   --accent: #b479ff;
   --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA at 5.70:1 */
   --accent-contrast: #ffffff;
   --ink: #e9e7f0;
 
-  /* Ink that reads on a SIGNAL colour once that colour becomes a fill — the
-     glyph in a success circle, the glyph on a toast's status circle. One
-     near-black ink clears all five in dark; danger keeps a token of its own
-     because LIGHT still needs one.
+  /* Ink that reads on a SIGNAL colour once that colour becomes a fill — the glyph in a
+     success circle, or on a toast's status circle. One near-black ink clears all five in
+     dark; danger keeps its own token because LIGHT still needs one.
      why: docs/specification.md#colour-and-contrast */
   --signal-contrast: #0c0c0c;
   --danger-contrast: var(--signal-contrast);
 
   --glow-green: rgba(152, 255, 143, 0.16);
-  /* Dropped from 0.18: the wash, not the surface beneath it, is what put --accent
-     under AA — it lifts the ground toward the ink faster than the ink lifts off
-     it. Re-tinted from the new --accent, which signal-contrast.test.js requires.
-     See issue #157. */
+  /* Dropped from 0.18: the wash, not the surface beneath it, is what put --accent under
+     AA. Re-tinted from the new --accent, which signal-contrast.test.js requires. #157. */
   --glow-purple: rgba(180, 121, 255, 0.12);
   --glow-cyan: rgba(32, 220, 245, 0.14);
   --glow-pink: rgba(233, 124, 165, 0.16);
@@ -212,14 +189,11 @@
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);
 
-  /* Solid signal surfaces — a status that has stopped being ink and become the
-     FILL (a solid toast). The fill and its ink are ONE pair, never two
-     independent picks: the fill is the status at this theme's extreme, and the
-     ink is the pole opposite it, so a single ink clears all five. Dark fills are
-     the bright signals, so the ink is near-black — it measures 15.87 on --green,
-     7.35 on --pink, 13.40 on --amber, 11.75 on --cyan and 6.29 on --muted.
-     Neutral needs no chip pair to take part: --muted is already its
-     fill-strength form. See issues #131 and #149. */
+  /* Solid signal surfaces — a status that has stopped being ink and become the FILL (a
+     solid toast). Fill and ink are ONE pair, never two independent picks: the fill is the
+     status at this theme's extreme and the ink the pole opposite it, so a single ink
+     clears all five. --muted is already its own fill-strength form, so neutral needs no
+     chip pair to take part. See issues #131 and #149. */
   --signal-solid-ink: var(--signal-contrast);
   --signal-solid-success: var(--green);
   --signal-solid-danger: var(--pink);
@@ -235,11 +209,10 @@
   /* Resting elevation for a card. Dark cards are borderless — the surface does
      the grouping on its own — so they cast nothing. */
   --shadow-card: none;
-  /* THE ONLY --ring in the kit — light and every data-accent sub-theme declare
-     an --accent and inherit this line. Opaque because a translucent ring is a
-     glow: the eight rgba() literals this replaced all missed the 3:1 of WCAG
-     1.4.11, at 1.35:1 worst. Held at 4.22:1 worst by
-     stories/guidelines/accessibility-floor.test.js. See issue #218.
+  /* THE ONLY --ring in the kit — light and every data-accent sub-theme declare an
+     --accent and inherit this line. Opaque because a translucent ring is a glow, and the
+     eight rgba() literals it replaced all missed WCAG 1.4.11's 3:1 (#218). Held by
+     stories/guidelines/accessibility-floor.test.js.
      why: docs/specification.md#the-focus-ring */
   --ring: 0 0 0 3px var(--accent);
 
@@ -252,10 +225,8 @@
   --scrim: rgba(0, 0, 0, 0.58);
 
   /* Accent gradient stops (hero headline, marketing) — overridden per sub-theme.
-     --grad-from is pinned to the literal rather than tracking --purple-light,
-     which #157 moved up a step: following it would lighten the hero gradient's
-     first stop, a visible change nobody asked for. Every --grad-from in
-     src/tokens/accents.css is already written as a literal for the same reason. */
+     --grad-from is pinned to a literal rather than tracking --purple-light, which #157
+     moved up a step; every --grad-from in accents.css is a literal for the same reason. */
   --grad-from: #9b5dff;
   --grad-to: var(--cyan);
 }
@@ -271,10 +242,8 @@
   --purple-mid: #7a3be0;
   --cyan: #0c8fa8;
   --green: #1c8a2c;
-  /* Deeper than the dark pink for the same reason dark's is lighter: the wash
-     under it is white, so the ink has to come down to meet it. #d63c72 measured
-     3.87:1 on --glow-pink over white and 4.42:1 on plain white — the required
-     marker and the form error missed AA on nothing at all. See issue #131. */
+  /* Deeper than the dark pink for the same reason dark's is lighter: the wash under it
+     is white, so the ink has to come down to meet it. See issue #131. */
   --pink: #b63361;
   --amber: #b5730a;
 
@@ -295,9 +264,8 @@
   --dim: #3a404b;
   --muted: #5c6270;
 
-  /* Same three aliases as dark, same reasoning. Light moves the disabled
-     surface AWAY from white for the same reason dark moves it away from the
-     card: a control that is off should sink, not rise. */
+  /* Same three aliases as dark. Light moves the disabled surface AWAY from white for the
+     same reason dark moves it away from the card: a control that is off should sink. */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface-2);
   --disabled-border: var(--border);
@@ -310,45 +278,34 @@
   --signal-contrast: #0c0c0c;
   --danger-contrast: #ffffff;
 
-  /* Re-tinted from --green. It was rgba(30, 150, 50, .1) — a colour that exists
-     nowhere else in the kit, carried unedited since the initial commit while the
-     other three light glows are exact tints of their own token. The wash over
-     white moves #e9f5eb -> #e8f3ea, at most two levels on a channel, which is
-     0.86 of a deltaE — under the 1.0 that is normally called imperceptible. No
-     verdict moves with it: body copy on the success wash goes 9.29 -> 9.15
-     against the 4.5 AA bar, and the --green icon on it 3.97 -> 3.91 against the
-     3.0 bar WCAG 1.4.11 sets for a graphic. The success chips are untouched —
-     light's --chip-success-fill is the solid #dff3e4, not this. Gated for all
-     four glows in stories/signal-contrast.test.js. See issue #131. */
+  /* Re-tinted from --green; it was rgba(30, 150, 50, .1), a colour that exists nowhere
+     else in the kit while the other three light glows are exact tints of their own token.
+     The wash over white moves at most two levels on a channel and no verdict moves with
+     it. The success chips are untouched — light's --chip-success-fill is the solid
+     #dff3e4, not this. Gated for all four glows in stories/signal-contrast.test.js. */
   --glow-green: rgba(28, 138, 44, 0.1);
   --glow-purple: rgba(106, 45, 204, 0.09);
   --glow-cyan: rgba(12, 143, 168, 0.1);
   --glow-pink: rgba(182, 51, 97, 0.1);
 
-  /* Solid chip pairs for the white app. Each ink is deepened past its signal
-     hue so 10px uppercase text clears WCAG AA on its own pale fill —
-     e.g. --pink (#b63361) on #fbe0ea is 4.66:1, #b7295f is 4.85:1. */
+  /* Solid chip pairs for the white app. Each ink is deepened past its signal hue so 10px
+     uppercase text clears WCAG AA on its own pale fill. */
   --chip-success-ink: #1f7a38;
   --chip-success-fill: #dff3e4;
   --chip-warn-ink: #8a5e00;
   --chip-warn-fill: #fbedd2;
   --chip-danger-ink: #b7295f;
   --chip-danger-fill: #fbe0ea;
-  /* Info was the one signal family without a pair, so the info badge was still
-     painting --cyan (#0c8fa8) on --glow-cyan over white, which is 3.39:1 —
-     under AA. #0a7286 on #ddeff3 is 4.71:1, inside the 4.64–4.93 band the other
-     three pairs already sit in. See issue #131. */
+  /* Info was the one signal family without a pair, so the info badge painted --cyan on
+     --glow-cyan over white and missed AA. This pair sits in the band the other three
+     already occupy. See issue #131. */
   --chip-info-ink: #0a7286;
   --chip-info-fill: #ddeff3;
 
-  /* Light runs the same rule the other way. The signals are mid-tone here — a
-     solid --green fill measures 4.40 against near-black and 4.45 against white,
-     so NO ink rescues it and the fill is what has to move. It moves to the
-     deepened form the chip pair already carries, and the pole above it, white,
-     clears every one: #ffffff measures 5.39 on --chip-success-ink, 6.01 on
-     --chip-danger-ink, 5.70 on --chip-warn-ink, 5.58 on --chip-info-ink and 6.11
-     on --muted. A future status supplies one --signal-solid-* value dark enough
-     for white and inherits the ink. See issues #131 and #149. */
+  /* Light runs the same rule the other way. The signals are mid-tone here, so NO ink
+     rescues them and the fill is what has to move: it takes the deepened form the chip
+     pair already carries, and white clears every one. A future status supplies one
+     --signal-solid-* value dark enough for white and inherits the ink. See #131, #149. */
   --signal-solid-ink: #ffffff;
   --signal-solid-success: var(--chip-success-ink);
   --signal-solid-danger: var(--chip-danger-ink);
@@ -391,10 +348,8 @@
 :root {
   /* -- Panel widths -------------------------------------------------------
    * Not a new scale: the drawer has shipped sm/md/lg at exactly these three
-   * values since it was written, and confirm, the auth card and the toast each
-   * wrote one of them out again on their own. --panel-md answers the question
-   * #208 asked — the two 420s were three (--confirm-w, --drawer-w md and
-   * .ui-auth__card), and they are one measure now. */
+   * values, and confirm, the auth card and the toast each wrote one out again
+   * on their own. They are one measure now (#208). */
   --panel-sm: 320px;
   --panel-md: 420px;
   --panel-lg: 560px;
@@ -404,8 +359,8 @@
    * step goes on the paragraph itself — never on a wrapper holding two type
    * sizes, where the same token would mean two different widths.
    *
-   * The four steps are the reading band (44–72ch), named for what is being
-   * read rather than sized s/m/l, so the choice is made by the writer:
+   * The four steps are the reading band (44–72ch), named for what is being read
+   * rather than sized s/m/l, so the choice is made by the writer:
    *   caption  one or two sentences under a glyph, centred
    *   lede     the line under a title
    *   body     a left-aligned column of copy

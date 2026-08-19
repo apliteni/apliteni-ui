@@ -181,23 +181,17 @@ test('the entry actually re-exports the names those modules define', async () =>
 });
 
 /* ---------------------------------------------------------------------------
- * The other kind of unreachable: a factory a consumer can import but cannot
- * find. Reaching a name and knowing it exists are the same problem one step
- * apart, and the catalog in docs/library.md drifted exactly the way src/index.js
- * did — dropdown(), drawer(), nav(), footer() and success() were all published
- * and none of them were written down. Two hand-maintained lists again.
+ * The other kind of unreachable: a factory a consumer can import but cannot find.
+ * The catalog in docs/library.md drifted the way src/index.js did — dropdown(),
+ * drawer(), nav(), footer() and success() were published and written down nowhere.
  *
- * Only inline code spans count. A word search over the prose is not sound: the
- * catalog says "select a passage" about the feedback widget, which would read as
- * coverage for select(), a form control it says nothing about. Fenced blocks are
- * stripped for the same reason — a directory listing is not documentation.
+ * Only inline code spans count: the catalog says "select a passage" about the
+ * feedback widget, which a word search would read as coverage for select().
+ * Fenced blocks are stripped for the same reason.
  *
- * What this does NOT prove: that the row says anything useful, or that a name is
- * documented in its own right. A short name that doubles as another factory's
- * option reads as covered from that signature alone — delete the `footer()` row
- * and `footer` still appears inside `drawer({ …, footer, … })`. Thirteen of the
- * seventy exports sit in that position today. So this is a floor: a factory added
- * with no row anywhere is always caught, which is the drift that actually happens.
+ * A floor rather than a proof: a short name that doubles as another factory's
+ * option reads as covered — delete the `footer()` row and `footer` still appears
+ * inside `drawer({ …, footer, … })`. A factory with no row anywhere is caught.
  * ------------------------------------------------------------------------- */
 const docFile = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'library.md');
 

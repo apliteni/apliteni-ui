@@ -44,23 +44,14 @@ const storiesDir = path.join(root, 'stories');
 const sbDir = path.join(root, '.storybook');
 const rel = (p) => path.relative(root, p);
 
-// Same tripwire as EXPECTED_SUBJECTS in src/styles/icon-size.test.js, and the
-// same deliberate inconvenience: a rule that quietly leaves coverage looks
-// exactly like a rule that passes, so the number is the real count with no slack
-// in it.
+// Same tripwire as EXPECTED_SUBJECTS in src/styles/icon-size.test.js: the number
+// is the real count with no slack in it, because a rule that quietly leaves
+// coverage looks exactly like a rule that passes.
 // why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
 //
 // Six rules across four files, width and height apiece. Raise it when you add
-// one; lower it in the same commit as the removal, and say why there.
-// Was seven across five: stories/apps/_appShell.js was a story-local fork of the
-// page shell, and #127 replaced it with the kit's own appShell(), whose icons are
-// sized in src/styles — the other gate's territory, not this one's.
-// Was 12: #217 held every stroked glyph the stories render to the stroke-width rule's 1.5 CSS
-// px line, and two glyphs in the Consent demo were sized by nothing but the
-// reset's 1.1em — so their box followed the font-size they landed in and their
-// stroke rendered at 1.40 and 0.97. Saying the box is what lets the stroke
-// beside it be said, so `.cn-arrow svg` and `.cn-note svg` arrived, width and
-// height apiece.
+// one; lower it in the same commit as the removal, and say why there. Was seven
+// across five before #127, and 12 before #217.
 const EXPECTED_SUBJECTS = 16;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
@@ -134,28 +125,15 @@ function storybookChrome() {
 /* One entry per FILE the kit renders, carrying that file's <style> blocks in
  * document order.
  *
- * Grouped by file, not one entry per block, and that is a correctness point
- * rather than bookkeeping. Two <style> blocks on one page are one cascade and
- * have to compete, exactly as they do in a browser. Giving each block its own
- * document put every rule somewhere nothing could out-rank it: a page declaring
- * `.bIcon svg { width: 24px }` in one block and `.bIcon svg { width: 8px }` in a
- * later one renders at 8px, and split into two documents both rules reported they
- * decided the icon's width. Grouped, the 24px rule fails by name and says what
- * beat it. Split, the only red available was the count — whose own message tells
- * you to raise EXPECTED_SUBJECTS and go green. That is the defect this gate
- * exists to end, reintroduced inside the gate.
+ * Grouped by file rather than per block: two <style> blocks on one page are one
+ * cascade and have to compete as they do in a browser. Split, a rule a later
+ * block out-ranks still reported that it decided the icon's width, and the only
+ * red left was the count — whose own message tells you to raise
+ * EXPECTED_SUBJECTS and go green. Unrelated files stay separate documents, so a
+ * class name two of them share still cannot decide the other's contests.
  *
- * Grouping does not reach a rule that wins on SPECIFICITY rather than on order.
- * `.bento .bIcon svg { width: 8px }` beats `.bIcon svg { width: 24px }` on the
- * page, and both pass here either way, because a subject is mounted with only the
- * ancestors its own selector names — so the `.bIcon svg` subject has no `.bento`
- * above it to lose to and wins a contest the page does not hold. That is the
- * first entry under WHAT THIS WILL NOT CATCH in the header of this file, met from
- * the other side.
- *
- * The original reason for splitting survives grouping: two UNRELATED surfaces
- * that happen to share a class name are still separate files, so they still get
- * separate documents and still cannot decide each other's contests. */
+ * Grouping does not reach a rule that wins on SPECIFICITY rather than on order —
+ * the first entry under WHAT THIS WILL NOT CATCH in this file's header. */
 function chunks() {
   const byFile = new Map();
   const add = (from, css) => {

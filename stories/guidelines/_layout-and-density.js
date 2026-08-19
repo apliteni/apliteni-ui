@@ -142,7 +142,7 @@ export const RULES = [
     dontHtml: densityDont,
     kit: [
       { ref: 'src/tokens/tokens.css:35', pattern: '--space-3: 12px' },
-      { ref: 'src/styles/table.css:65', pattern: 'padding: var(--space-2) var(--space-3)' },
+      { ref: 'src/styles/table.css:59', pattern: 'padding: var(--space-2) var(--space-3)' },
       { ref: 'stories/table-rhythm.test.js:86', pattern: 'writes no row rhythm as a literal' },
     ],
   },

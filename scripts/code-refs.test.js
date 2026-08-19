@@ -1,35 +1,20 @@
 /* Rule: every file:line a comment or a story cites still says what the prose claims.
  *
  * why: CONTRIBUTING.md#a-prose-citation-carries-an-anchor
- *
- * `stories/guidelines/refs.test.js` already holds this contract for a guideline
- * page's `kit` entries. Everywhere else the same citation was gated by nothing,
- * and it fails silently and legibly: everything parses, the test passes, and a
- * reader who follows the pointer lands on real code — just not the code the
- * sentence is about.
- *
- * That is not hypothetical. Commit f222104 deleted 29 lines from base.css and
- * callout.css and broke three citations in one stroke; `callout.css:145` became
- * a blank line while two comments went on discussing a specificity override, and
- * `base.css:130` ran off the end of a 124-line file. Nothing turned red.
- *
- * So a citation carries an ANCHOR: a backticked snippet that has to appear on
- * the cited line. File-and-line-exists would have caught none of the three,
- * because every wrong line was a real line.
- *
- * The subject set is every file git tracks, so a new citation joins by being
- * written. It lives under scripts/ because `npm test` only walks four trees.
- *
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  *
+ * The subject set is every file git tracks, so a new citation joins by being
+ * written; it lives under scripts/ because `npm test` walks only four trees.
+ */
+
+/* why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+ *
  * WHAT THIS GATE DOES NOT REACH:
- *   - A citation with no anchor AND no directory in its path — `nav.css:113` on
- *     its own. It is indistinguishable from a fixture, a log line or a stack
- *     frame, so it is not read as a citation at all. Give it a path and it is
- *     checked; that is the whole of rule 1 in CONTRIBUTING.
- *   - A citation into a dependency (`storybook/dist/core-server/index.js:11654`).
- *     The line belongs to a version this repo does not pin here, so resolving it
- *     would red the build on an unrelated upgrade. It is counted, never resolved.
+ *   - A citation with no anchor AND no directory — `nav.css:113` on its own. It
+ *     is indistinguishable from a fixture, a log line or a stack frame, so it is
+ *     not read as a citation at all.
+ *   - A citation into a dependency, whose line numbers move on an upgrade this
+ *     repo does not pin here. It is counted, never resolved.
  *   - Whether the anchor is the RIGHT thing to have quoted. A citation that
  *     lands on its line and describes it wrongly reads as green.
  */

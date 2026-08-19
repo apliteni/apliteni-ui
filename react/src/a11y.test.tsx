@@ -1,20 +1,16 @@
 // Accessibility gate for the React workspace.
 //
-// The vanilla gate discovers `*.stories.js` and React's stories are
-// `*.stories.tsx`, so this workspace shipped with no axe gate at all — the only
-// `axe` under react/ was the addon's browser panel, a thing you look at rather
-// than a thing that fails a build.
-//
-// It cannot share the vanilla file: that one eval's axe into a raw JSDOM and
-// feeds it HTML strings, while React stories have to actually mount. So this is
-// the same CONTRACT through vitest + @testing-library/react.
-//
-// Same two rules the vanilla gate follows: color-contrast stays off, because
-// axe cannot resolve var() in a headless DOM and react/src/contrast.test.tsx
-// owns that question; and a story that will not render is a failure, not a skip.
-//
 // why: CONTRIBUTING.md#the-react-workspace-gets-its-own-walk-over-the-same-arithmetic
 // why: CONTRIBUTING.md#a-gate-that-skips-is-worse-than-a-gate-that-is-absent
+//
+// The vanilla gate discovers `*.stories.js` and React's stories are `*.stories.tsx`,
+// so this workspace shipped with no axe gate at all. It cannot share the vanilla
+// file either: that one evals axe into a raw JSDOM and feeds it HTML strings, while
+// React stories have to mount. Same CONTRACT, through vitest + testing-library.
+//
+// Same two rules the vanilla gate follows: color-contrast stays off, because axe
+// cannot resolve var() in a headless DOM and react/src/contrast.test.tsx owns that
+// question; and a story that will not render is a failure, not a skip.
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import axe from 'axe-core';

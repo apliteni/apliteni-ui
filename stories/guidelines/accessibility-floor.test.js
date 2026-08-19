@@ -3,29 +3,15 @@
 // The floor page (stories/guidelines/_accessibility-floor.js) states a minimum target
 // size, a contrast for `--ring` and a legibility floor for a disabled control, none of
 // which existed in this tree before #201. This file measures all three against what the
-// kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md. The ledger of
-// what the walk does not reach sits above the walk; move it out and this file's last test reds.
-// why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+// kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md.
 //
-// WHAT IS DISCOVERED, AND FROM WHERE:
+// Every subject is discovered: controls from the rendered stories, interactive BY ROLE;
+// the ring's landings and the disabled rules read off the stylesheet declarations rather
+// than assumed (#157, #220); and a control's OVERLAYS probed onto their host, because
+// WCAG 2.5.8 measures the target and not the ink (#219).
 //
-//  - the controls, from the rendered stories: every element interactive BY ROLE. A new
-//    component is in the gate the moment a story renders it.
-//  - the ring's landings, from the stylesheets: every rule consuming `var(--ring)`, each
-//    ground taken from the story that renders it and composited down the ancestor chain.
-//    #157's hand-written six-ground table missed the pair that decided the answer.
-//  - the disabled rules, from the stylesheets: every rule with a disabled SELECTOR, not
-//    every rule that sets `opacity` — which is what this looked for until #220, and which
-//    would have gone quiet the moment the kit stopped fading. The mechanism is read off
-//    the declarations rather than assumed, and each subject is measured twice: as the
-//    story renders it, and with the disabled attribute removed for the enabled counterpart.
-//  - a control's OVERLAYS, from the stylesheets. WCAG 2.5.8 measures the target and not
-//    the ink, so every `sel::before` / `sel::after` rule is probed onto `sel` and a box is
-//    the union of what a control draws and what it generates. #219 fixed two controls that
-//    way, and until this saw them a hit-area fix failed every test here and passed none.
-//
-// How the geometry is resolved with no layout is in CONTRIBUTING.md, "An unresolved
-// var() measures nothing and reports green".
+// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -389,25 +375,6 @@ function glyphOf(el, win) {
 }
 
 // ---- the walks ------------------------------------------------------------
-
-// WHAT THIS WALK DOES NOT REACH — the ledger, so a pass is not read wider than it is:
-//
-//  - Width, for anything a line of text sizes: layout's answer, and JSDOM has none. It is
-//    reported UNMEASURABLE rather than passed, and measured only where the box declares it
-//    or where a control's whole content is a sized glyph.
-//  - WCAG 2.5.8's spacing exception, which is a layout question end to end. The floor here
-//    is the stricter reading: the target is 24x24 or it is named.
-//  - Where an overlay SITS, so whether it reaches a neighbour. Only a pseudo-element's size
-//    is read, not its offset. Each overhang in the kit is reasoned about instead in the rule
-//    that declares it, against the flex gap beside it (src/styles/callout.css, input.css).
-//  - Clipping. An `overflow: hidden` ancestor can cut an overlay down and this walk
-//    composites no boxes. .ui-toast clips; its close button's overlay is 2.5px into 15px of
-//    padding, checked by hand.
-//  - Anything with no story, and anything a script paints at runtime — the same two holes
-//    stories/contrast.test.js names, for the same reasons.
-//  - The ring's INNER edge. Only the outer pair is measured: it is the pair the ring is
-//    composited ONTO, and so structurally the worse of the two.
-//  - The React workspace, which has its own ring, its own controls and its own gates.
 
 /** Mount every story once and hand each one's body to `visit`. */
 async function walk(win, styles, vars, visit) {
