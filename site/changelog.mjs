@@ -3,6 +3,12 @@
 
 export const RELEASES = [
   {
+    v: '0.23.3', date: '2026-08-19', tag: 'latest',
+    changes: [
+      ['changed', 'Five published files stopped carrying a second copy of an argument the documentation already held. This is the tail of the same sweep as 0.23.1 and 0.23.2, and it reads differently: nothing new was written into `docs/specification.md` or `CONTRIBUTING.md`, because every argument cut was already there behind a `why:` pointer the file was carrying. `src/tokens/tokens.css` loses 54 lines of prose — the spacing scale, the ring and the signal ramps each restated a measurement the specification records and the gates assert. `src/components/shell.js` loses 33, `src/components/overlay.js` 13, `src/tokens/accents.css` 10, and `src/styles/table.css` 10, where the argument that `--dense` rounds its spacing tie downward was a second, unproven copy of what `stories/table-rhythm.test.js` already holds under a section reading "The tie-break, held rather than argued for". Each file keeps its `why:` pointers, and `scripts/doc-refs.test.js` resolves every one. No behaviour changed: every edit under `src/` is a comment.'],
+    ],
+  },
+  {
     v: '0.23.2', date: '2026-08-14', tag: 'latest',
     changes: [
       ['changed', 'The published stylesheets and components stopped carrying arguments in their headers. `src/tokens/tokens.css` explained why a signal colour that becomes a fill takes its own ink — one near-black clears all five signals in dark, while light needs a token of its own because its signals are deepened to read on white — and `src/styles/callout.css` explained why a toast\'s accent, its solid fill and its trailing action are three colours rather than one. Both are now **Colour and contrast** in `docs/specification.md`, with the measurements that decided them. `src/styles/base.css` argued for the `:where()` in the icon reset, which holds the whole filter at zero specificity so every component rule out-ranks it; written bare it weighs (0,2,1) and beats every `.ui-btn svg` in the kit, which it once did. That is now **The reset is a floor** in `CONTRIBUTING.md`. `src/styles/motion.css`, `reduced-motion.css`, `confirm.css` and `loading.css` keep a short note and a `why:` pointer each. No behaviour changed: every edit under `src/` is a comment.'],
