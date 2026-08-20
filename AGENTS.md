@@ -31,4 +31,13 @@ has already published moves `latest` backwards. When several are waiting, compar
 `npm view @apliteni/apliteni-ui version` and approve only those newer than what is published.
 Say so rather than approving a stale one.
 
-You cannot approve on the owner's behalf — hand over the URL as text and let him decide.
+Open it. The owner asked for the window itself, not for a link he has to click — that is the
+whole point of this rule, and it is the one place in this repo where an agent opens a browser
+without being asked in the moment:
+
+```bash
+open -a Comet "<url>"
+```
+
+Hand over the URL as text as well, so the run is still findable if the window is lost. You
+cannot approve on his behalf; opening the window is where your part ends.
