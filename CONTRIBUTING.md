@@ -1103,6 +1103,14 @@ those, and deleting the gutter simply dropped the class out of the set. The gate
 the defect in the tree, which is [a skip wearing a different
 hat](#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip).
 
+**A superlative asserted per entry is never cleared.** `site/changelog.mjs` gave each release a
+`tag: 'latest'`, set by hand when that release shipped and removed by nobody afterwards, so
+**eleven** releases badged themselves Latest at once on the live page. Nothing was broken at the
+moment each one was written — the defect is that the flag records an ordering the list already
+holds, and only the newest writer has a reason to touch it. A badge naming a superlative is
+computed over the whole set or it is wrong, and the gate that holds it counts badges in the
+rendered page rather than flags in the data, so a renderer that stops deriving fails too.
+
 **A gate that sweeps `git ls-files` cannot see itself until it is committed.** `git ls-files`
 lists tracked files, so a new gate's first green run is taken with its own file outside the
 subject set — and `scripts/code-refs.test.js` went green that way while carrying a fixture that
