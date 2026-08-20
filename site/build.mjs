@@ -5,7 +5,7 @@
 // Storybook fold; without it the landing site still builds.
 import { cssText } from '../src/inline.js';
 import { changelogMain } from './changelog.mjs';
-import { RELEASES, parseContributors } from './changelog.mjs';
+import { RELEASES, parseContributors, parseIssues } from './changelog.mjs';
 import { execFileSync } from 'node:child_process';
 import { topbar, footer, CHROME_CSS, CHROME_JS } from './chrome.mjs';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, cpSync } from 'node:fs';
@@ -33,15 +33,16 @@ const chrome = (s, active) => s
 
 const html = ver(chrome(readFileSync(new URL('index.html', here), 'utf8'), ''));
 
-// Contributors per release, derived from git between version tags. RELEASES is
-// newest-first, so a release's predecessor tag sits at a HIGHER index. Every git
-// call is guarded: a missing tag or absent git leaves that release without a
-// contributor row and never fails the build.
+// Contributors and issue refs per release, derived from git between version
+// tags. RELEASES is newest-first, so a release's predecessor tag sits at a
+// HIGHER index. Every git call is guarded: a missing tag or absent git leaves
+// that release without a contributor row or refs, and never fails the build.
 const hasTag = (t) => {
   try { execFileSync('git', ['rev-parse', '--verify', `refs/tags/${t}`], { stdio: 'ignore' }); return true; }
   catch { return false; }
 };
 const contributorsByVersion = {};
+const issuesByVersion = {};
 RELEASES.forEach((r, i) => {
   try {
     const tag = `v${r.v}`;
@@ -55,11 +56,14 @@ RELEASES.forEach((r, i) => {
     const out = execFileSync('git', ['log', '--format=%an%x09%ae', range], { encoding: 'utf8' });
     const people = parseContributors(out);
     if (people.length) contributorsByVersion[r.v] = people;
-  } catch { /* no contributors for this release */ }
+    const subjects = execFileSync('git', ['log', '--format=%s', range], { encoding: 'utf8' });
+    const issues = parseIssues(subjects);
+    if (issues.length) issuesByVersion[r.v] = issues;
+  } catch { /* no contributors or issue refs for this release */ }
 });
 
 const changelog = ver(chrome(readFileSync(new URL('changelog.html', here), 'utf8'), 'changelog')
-  .replace('{{MAIN}}', () => changelogMain(contributorsByVersion)));
+  .replace('{{MAIN}}', () => changelogMain(contributorsByVersion, issuesByVersion)));
 
 // Brand mark — the "sub-theme prism": one rounded tile, the four ready-made
 // accents (Nebula / Phoenix / Ocean / Emerald). Emitted as a file so the pages

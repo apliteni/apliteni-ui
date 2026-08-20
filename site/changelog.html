@@ -32,7 +32,16 @@
   .rel__date { font-size: 13px; color: var(--muted); }
   .rel__list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
   .rel__list li { display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: baseline; color: var(--dim); font-size: 15px; line-height: 1.55; }
-  .rel__list li > span:last-child { min-width: 0; }
+  .rel__list li > .chg { min-width: 0; }
+
+  /* A change shows its summary; the reasoning after the first sentence is not
+     rendered, and the issue refs under a release are where the argument lives.
+     Both are derived — see site/changelog.mjs. */
+  .issues { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 16px; }
+  .issues__label { font: 600 10px/1 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+  .iss { font: 600 12px/1 var(--font-sans); color: var(--muted); background: var(--surface-2); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; text-decoration: none; font-variant-numeric: tabular-nums; }
+  .iss:hover { color: var(--strong); border-color: var(--border-strong); }
+  .iss:focus-visible { outline: none; box-shadow: var(--ring); }
 
   /* Uppercase here is the kit's chip idiom (badge.css, table.css, nav.css), not a kicker: a `.tag`
      is the change's category inline in the list item, and no heading follows it. */
