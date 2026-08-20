@@ -140,7 +140,8 @@ test('contributorChips escapes a quote in the avatar URL attribute', () => {
 // resolves no layout and all three defects have an exact source form, so the
 // source is what this reads. Not reached, therefore: whether the fold is
 // legible, whether <details> is styled, and how any of it wraps.
-import { RELEASES, marksOf, cmpVersion, splitChange, HEADLINE_MAX, changelogMain } from './changelog.mjs';
+import { RELEASES, marksOf, cmpVersion, splitChange, HEADLINE_MAX, changelogMain,
+  parseIssues, issueChips } from './changelog.mjs';
 
 const CHANGES = RELEASES.flatMap((r) => r.changes.map(([type, text]) => ({ v: r.v, type, text })));
 const PAGE = changelogMain();
@@ -228,7 +229,7 @@ test('#246 the ceiling is a number a summary can exceed', () => {
   assert.ok(words(splitChange(essay).headline) > HEADLINE_MAX);
 });
 
-test('#246 the fold shows the prose, it never rewrites it', () => {
+test('#246 the summary is a slice of the prose, never a rewrite', () => {
   const rewritten = CHANGES.filter((c) => {
     const text = c.text.trimEnd();
     const { headline, why } = splitChange(c.text);
@@ -238,16 +239,39 @@ test('#246 the fold shows the prose, it never rewrites it', () => {
     return !/^[\s:;—]*$/.test(text.slice(headline.length, text.length - why.length));
   }).map(at);
   assert.deepEqual(rewritten, [],
-    'both halves are slices of one authored string. This page compresses by choosing what '
-    + 'to show, never by writing something the release did not say.');
+    'the summary is a slice of the authored string and the remainder is the rest of it. '
+    + 'This page compresses by choosing what to show, never by writing something the release '
+    + 'did not say.');
 });
 
-test('#246 a change folds exactly when it has reasoning to fold', () => {
-  const withWhy = CHANGES.filter((c) => splitChange(c.text).why).length;
-  assert.equal((PAGE.match(/<details class="chg__why">/g) || []).length, withWhy,
-    'a fold was rendered for a change with nothing behind it, or withheld from one that has.');
-  assert.ok(withWhy > 0 && withWhy < CHANGES.length,
-    'real data exercises both branches — some changes are one sentence and get no toggle.');
+test('#246 the page shows the summary and nothing behind it', () => {
+  assert.ok(!PAGE.includes('<details'),
+    'the reasoning after the first sentence is not rendered — a consumer reading a changelog '
+    + 'wants what changed, and the argument belongs in the issue that settled it.');
+  const carried = CHANGES.filter((c) => splitChange(c.text).why).length;
+  assert.ok(carried > 0,
+    'no change carries reasoning past its first sentence, so this check has no subject — '
+    + 'the prose was cut from RELEASES rather than left whole and unshown.');
+  // The prose stays in RELEASES: the page chooses what to show, and the slice
+  // check below is what proves the summary was never rewritten to compensate.
+});
+
+test('#246 issue refs are read out of git, never written beside an entry', () => {
+  assert.deepEqual(parseIssues('feat: a (#12)\nfix: b (#3)\nchore: c (#12)'), [3, 12],
+    'refs are deduped and ordered, so the row does not depend on commit order.');
+  assert.deepEqual(parseIssues('no refs here at all'), [],
+    'a release that closed nothing named gets no row rather than an empty one.');
+  assert.deepEqual(parseIssues(''), []);
+  assert.equal(issueChips([]), '');
+  assert.equal(issueChips(), '');
+  const row = issueChips([7, 41]);
+  assert.match(row, /href="https:\/\/github\.com\/apliteni\/apliteni-ui\/issues\/7">#7</);
+  assert.match(row, />#41</);
+  // Sized past any cap somebody might reach for: v0.5.0 really did close 24.
+  const many = Array.from({ length: 24 }, (_, i) => i + 1);
+  assert.equal((issueChips(many).match(/class="iss"/g) || []).length, many.length,
+    'refs were truncated. Nothing here is capped — a release that closed 24 issues says so, '
+    + 'and a silent cap reads as coverage it does not have.');
 });
 
 test('#246 a summary is never empty, and never the whole essay', () => {

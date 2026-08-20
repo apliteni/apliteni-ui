@@ -2,8 +2,10 @@
 // One entry per published release; grouped changes with typed tags.
 //
 // A change is written as one summary sentence followed by its reasoning. The
-// page shows the summary and folds the reasoning, so both are slices of the
-// same string rather than two authored fields — see splitChange below.
+// page shows the summary and drops the reasoning: a consumer reading a
+// changelog wants what changed, and the argument behind it belongs in the issue
+// that settled it — which is why each release carries its issue refs instead.
+// The prose stays whole in RELEASES; splitChange chooses what is shown.
 //
 // Nothing here is asserted that can be derived: the Latest and First badges
 // come from the release list, not from a flag on an entry.
@@ -529,18 +531,30 @@ export const splitChange = (text) => {
   return split;
 };
 
-/** One change: the tag chip, the summary, its component chips, and the folded
- *  reasoning when there is any. `<details>` is native — no script, so this page
- *  keeps working with the site chrome untouched. */
-const change = ([t, text, comps]) => {
-  const { headline, why } = splitChange(text);
-  return `<li><span class="tag tag--${TAG[t].cls}">${TAG[t].label}</span>`
-    + `<div class="chg"><p class="chg__what">${fmt(headline)}${componentChips(comps)}</p>`
-    + (why ? `<details class="chg__why"><summary>Why</summary><p>${fmt(why)}</p></details>` : '')
-    + `</div></li>`;
+/** One change: the tag chip, the summary, and its component chips. The
+ *  reasoning after the first sentence is not rendered — see the file header. */
+const change = ([t, text, comps]) => `<li><span class="tag tag--${TAG[t].cls}">${TAG[t].label}</span>`
+  + `<span class="chg">${fmt(splitChange(text).headline)}${componentChips(comps)}</span></li>`;
+
+const REPO = 'https://github.com/apliteni/apliteni-ui';
+
+/** Issue and PR refs a release closed, read out of `git log --format=%s` over
+ *  its tag range. Derived from the history rather than written beside the
+ *  entry, for the same reason the Latest badge is: a hand-kept list of numbers
+ *  is a second copy of something the repo already knows. Ascending, deduped. */
+export const parseIssues = (logText) => [...new Set(
+  (logText.match(/\(#(\d+)\)/g) || []).map((m) => Number(m.slice(2, -1))),
+)].sort((a, b) => a - b);
+
+/** The refs row under a release's changes. Nothing is capped: a release that
+ *  closed twenty-four issues says so. */
+export const issueChips = (nums) => {
+  if (!nums || !nums.length) return '';
+  const one = (n) => `<a class="iss" href="${REPO}/issues/${n}">#${n}</a>`;
+  return `<p class="issues"><span class="issues__label">Issues</span>${nums.map(one).join('')}</p>`;
 };
 
-export const release = (r, contributors, marks = marksOf()) => `
+export const release = (r, contributors, marks = marksOf(), issues) => `
   <section class="rel">
     <div class="rel__rail"><span class="rel__dot${r.v === marks.newest ? ' is-latest' : ''}"></span></div>
     <div class="rel__body">
@@ -554,11 +568,12 @@ export const release = (r, contributors, marks = marksOf()) => `
       <ul class="rel__list">
         ${r.changes.map(change).join('')}
       </ul>
+      ${issueChips(issues)}
       ${contributorChips(contributors)}
     </div>
   </section>`;
 
-export const changelogMain = (contributorsByVersion = {}) => {
+export const changelogMain = (contributorsByVersion = {}, issuesByVersion = {}) => {
   const marks = marksOf();
-  return RELEASES.map((r) => release(r, contributorsByVersion[r.v], marks)).join('');
+  return RELEASES.map((r) => release(r, contributorsByVersion[r.v], marks, issuesByVersion[r.v])).join('');
 };
