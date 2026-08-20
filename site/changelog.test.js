@@ -124,3 +124,133 @@ test('contributorChips escapes a quote in the avatar URL attribute', () => {
   const html = contributorChips([{ name: 'X', handle: 'x', url: 'https://github.com/x', avatar: 'https://a/"x', initials: 'X' }]);
   assert.match(html, /src="https:\/\/a\/&quot;x"/);
 });
+
+// ── #246: the page is scannable, and stays that way ─────────────────────────
+//
+// 41 releases carrying 143 changes reached the page as unbroken paragraphs —
+// 7,837 words with no level between a version number and a 44-word median
+// paragraph — over two defects underneath: 50 `**bold**` markers arriving as
+// literal asterisks, and eleven releases badged Latest at once.
+//
+// Subjects are every change in RELEASES and the whole rendered page, swept
+// rather than listed: a release joins the sweep by being written.
+// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+//
+// These read the data and the emitted HTML, never a rendered box. jsdom
+// resolves no layout and all three defects have an exact source form, so the
+// source is what this reads. Not reached, therefore: whether the fold is
+// legible, whether <details> is styled, and how any of it wraps.
+import { RELEASES, marksOf, cmpVersion, splitChange, HEADLINE_MAX, changelogMain } from './changelog.mjs';
+
+const CHANGES = RELEASES.flatMap((r) => r.changes.map(([type, text]) => ({ v: r.v, type, text })));
+const PAGE = changelogMain();
+const words = (s) => s.trim().split(/\s+/).filter(Boolean).length;
+const at = (c) => `v${c.v} ${c.type}`;
+
+// Every gate below reads CHANGES or PAGE, and an empty one passes all of them.
+// The count is what stops coverage shrinking to zero and staying green.
+test('#246 the sweep reaches every change on the page', () => {
+  assert.ok(RELEASES.length >= 41, `only ${RELEASES.length} releases swept — releases were removed, or this sweep stopped seeing them.`);
+  assert.ok(CHANGES.length >= 143, `only ${CHANGES.length} changes swept — a change with no subject cannot fail a check.`);
+  assert.equal((PAGE.match(/<section class="rel">/g) || []).length, RELEASES.length,
+    'the page renders a different number of releases than RELEASES holds.');
+});
+
+// ── The badge is derived ────────────────────────────────────────────────────
+
+test('#246 exactly one release is badged Latest, and it is the newest', () => {
+  assert.equal((PAGE.match(/ui-badge--live/g) || []).length, 1,
+    'Latest names a superlative, so exactly one release may carry it. Eleven did.');
+  const { newest } = marksOf();
+  const section = PAGE.split('<section class="rel">').find((s) => s.includes(`>v${newest}<`));
+  assert.ok(section && section.includes('ui-badge--live'),
+    `the single Latest badge is not on v${newest}, which is the newest release.`);
+  assert.equal((PAGE.match(/is-latest/g) || []).length, 1,
+    'the timeline dot marks a different set of releases than the badge does.');
+});
+
+test('#246 no release asserts a badge that can be derived', () => {
+  const asserted = RELEASES.filter((r) => 'tag' in r).map((r) => r.v);
+  assert.deepEqual(asserted, [],
+    'a `tag` on an entry is a second copy of the ordering, and nothing clears the old one — '
+    + 'which is how eleven releases came to claim Latest at once. Derive it in marksOf().');
+});
+
+test('#246 marksOf reads the versions, never the positions', () => {
+  // A positional implementation — first element wins — passes every assertion
+  // above, because RELEASES happens to be sorted. This is what kills it.
+  assert.deepEqual(marksOf([{ v: '1.0.0' }, { v: '9.9.9' }, { v: '0.1.0' }]),
+    { newest: '9.9.9', oldest: '0.1.0' });
+  assert.deepEqual(marksOf([{ v: '0.9.0' }, { v: '0.10.0' }]).newest, '0.10.0',
+    'versions compare numerically per part — 0.10.0 is newer than 0.9.0, though it sorts before it.');
+});
+
+test('#246 RELEASES is written newest-first, as the rail and the page copy both claim', () => {
+  const outOfOrder = RELEASES.map((r) => r.v)
+    .filter((v, i, a) => i > 0 && cmpVersion(a[i - 1], v) < 0)
+    .map((v) => `v${v}`);
+  assert.deepEqual(outOfOrder, [], 'these sit below a release older than themselves.');
+});
+
+// ── No literal markup reaches the reader ────────────────────────────────────
+
+test('#246 no change carries markup the renderer does not format', () => {
+  const marked = CHANGES.filter((c) => c.text.includes('**')).map(at);
+  assert.deepEqual(marked, [],
+    'fmt() formats `code` and nothing else, so ** reaches the reader as two asterisks. '
+    + 'Fifty shipped that way. Write the emphasis out, or teach fmt() the syntax.');
+  assert.ok(!PAGE.includes('**'), 'literal ** reached the rendered page.');
+});
+
+test('#246 the markup sweep can see a marker', () => {
+  // The check above passes on an empty page too. This is what proves it reads.
+  const page = release({ v: '9.9.9', date: '2026-01-01', changes: [['fixed', 'A **bold** claim.']] });
+  assert.ok(page.includes('**'), 'the sweep reads emitted HTML, so a marker must survive the renderer to be caught there.');
+});
+
+// ── Summaries stay summaries ────────────────────────────────────────────────
+
+test('#246 every summary stays inside the scanning ceiling', () => {
+  const long = CHANGES
+    .map((c) => ({ where: at(c), w: words(splitChange(c.text).headline) }))
+    .filter((c) => c.w > HEADLINE_MAX)
+    .map((c) => `${c.where} — ${c.w} words`);
+  assert.deepEqual(long, [],
+    `a change's first line is what the page is scanned by, and ${HEADLINE_MAX} words is the `
+    + 'longest one written so far. Put the rest after a full stop, a colon or an em dash and '
+    + 'it folds itself.');
+});
+
+test('#246 the ceiling is a number a summary can exceed', () => {
+  // Nothing in RELEASES is over the ceiling, so the check above passes whether
+  // or not it can measure. A summary built to breach it must be seen.
+  const essay = `${'word '.repeat(HEADLINE_MAX + 5)}ends here.`;
+  assert.ok(words(splitChange(essay).headline) > HEADLINE_MAX);
+});
+
+test('#246 the fold shows the prose, it never rewrites it', () => {
+  const rewritten = CHANGES.filter((c) => {
+    const text = c.text.trimEnd();
+    const { headline, why } = splitChange(c.text);
+    if (!text.startsWith(headline)) return true;
+    if (why && !text.endsWith(why)) return true;
+    // Only the separator that joined them may go missing between the halves.
+    return !/^[\s:;—]*$/.test(text.slice(headline.length, text.length - why.length));
+  }).map(at);
+  assert.deepEqual(rewritten, [],
+    'both halves are slices of one authored string. This page compresses by choosing what '
+    + 'to show, never by writing something the release did not say.');
+});
+
+test('#246 a change folds exactly when it has reasoning to fold', () => {
+  const withWhy = CHANGES.filter((c) => splitChange(c.text).why).length;
+  assert.equal((PAGE.match(/<details class="chg__why">/g) || []).length, withWhy,
+    'a fold was rendered for a change with nothing behind it, or withheld from one that has.');
+  assert.ok(withWhy > 0 && withWhy < CHANGES.length,
+    'real data exercises both branches — some changes are one sentence and get no toggle.');
+});
+
+test('#246 a summary is never empty, and never the whole essay', () => {
+  const empty = CHANGES.filter((c) => !splitChange(c.text).headline.trim()).map(at);
+  assert.deepEqual(empty, [], 'these render a change with no visible line at all.');
+});

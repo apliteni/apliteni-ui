@@ -32,7 +32,21 @@
   .rel__date { font-size: 13px; color: var(--muted); }
   .rel__list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
   .rel__list li { display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: baseline; color: var(--dim); font-size: 15px; line-height: 1.55; }
-  .rel__list li > span:last-child { min-width: 0; }
+  .rel__list li > .chg { min-width: 0; }
+
+  /* A change shows its summary and folds its reasoning. Both are slices of one
+     authored string (site/changelog.mjs splitChange) — the fold is a reading
+     aid, never a second field somebody has to fill in. <details> is native, so
+     the page needs no script of its own. */
+  .chg__what { color: var(--dim); }
+  .chg__why { margin-top: 7px; }
+  .chg__why > summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; font: 600 12px/1 var(--font-sans); color: var(--muted); padding: 3px 0; width: fit-content; }
+  .chg__why > summary::-webkit-details-marker { display: none; }
+  .chg__why > summary::before { content: ""; width: 0; height: 0; border-left: 4px solid currentColor; border-block: 3.5px solid transparent; transition: transform .14s; }
+  .chg__why[open] > summary::before { transform: rotate(90deg); }
+  .chg__why > summary:hover { color: var(--strong); }
+  .chg__why > summary:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 4px; }
+  .chg__why > p { margin-top: 8px; padding-inline-start: 12px; border-inline-start: 2px solid var(--border); color: var(--muted); font-size: 14px; line-height: 1.6; }
 
   /* Uppercase here is the kit's chip idiom (badge.css, table.css, nav.css), not a kicker: a `.tag`
      is the change's category inline in the list item, and no heading follows it. */
