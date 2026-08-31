@@ -363,6 +363,9 @@ What the shell guarantees:
   `layout.css` folds `.ui-nav__label` out of view below 720px with the accessible name intact.
   Nothing re-renders on resize and the consumer wires no listener.
 - **A nav entry carries the same icon and label everywhere it appears.**
+- **The rail holds nothing that has to escape it.** `.ui-app__rail` is `position: sticky` with
+  `overflow-y: auto`, and each of those traps a popover on its own — see
+  [The dropdown panel](#the-dropdown-panel). A dropdown mounted in the rail passes `portal: true`.
 
 The nav's own rules beat a host stylesheet: `.ui-nav .ui-nav__item` is (0,2,0) and a host sheet's
 `a:link` is (0,1,1), so dropping the kit into a page that styles its links does not restyle the
@@ -370,6 +373,57 @@ navigation.
 
 Decided in [#127](https://github.com/apliteni/apliteni-ui/issues/127). `appShell()` was the
 owner's choice between three shells built and rendered side by side, not a derivation.
+
+## The dropdown panel
+
+`dropdown()` places its panel; a consuming page never writes a rule to move it. Two things are
+guaranteed, and each exists because the page had to write one.
+
+**One offset, both directions.** `--ui-dropdown-gap` is declared once on `.ui-dropdown__panel` and
+read by the downward `top`, by the upward `bottom` and by the portal's JS. `direction` picks which:
+`'down'` is the default, `'up'` opens into the space above the trigger, and `'auto'` measures on
+each open and flips only when there is not room below and there is more room above.
+
+The upward rule releases the kit's own `top`. That is the whole of
+[#255](https://github.com/apliteni/apliteni-ui/issues/255): an absolutely positioned box with both
+edges pinned is stretched between them, so a page that set `bottom` and left the kit's `top`
+standing got a panel fourteen pixels tall. Measured in a browser at 1280×800, the same menu at the
+foot of a 249px rail went from 128.8px tall and hanging 66px below the fold to 128.8px tall and
+inside it, at the same 9px from the trigger.
+
+**A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` mount the panel on
+`<body>` as `position: fixed`, with the trigger's viewport coordinates written inline, repositioned
+on scroll and resize. Two ancestor properties make that the only remedy, and `.ui-app__rail` has
+both:
+
+- An `overflow` other than `visible` on one axis makes the other non-visible too, so the rail's
+  `overflow-y: auto` clips the panel on X as well — a 304px panel in a 249px rail loses its right
+  edge mid-word.
+- `position: sticky` opens a stacking context whatever its `z-index`, unlike `relative`. The panel's
+  `--z-dropdown` is then sealed inside the rail, and raising it to `--z-overlay` changes nothing.
+  Reported in [#252](https://github.com/apliteni/apliteni-ui/issues/252) with the measurement:
+  `document.elementFromPoint()` on the panel's right edge returned the page's `.ui-card`, which is
+  positioned and later in the DOM.
+
+A portalled panel cannot take its open state from `.ui-dropdown.open .ui-dropdown__panel`, because
+that selector stops matching the moment the panel is moved. It carries `is-open` on itself instead,
+and the wiring keeps `.open` on the container so the chevron, `aria-expanded`, click-outside and
+Escape are unchanged. Keyboard handling is bound to the panel as well as the container, since a
+keystroke on a row no longer bubbles to it, and a panel whose container has been re-rendered away
+is swept off `<body>` rather than accumulating.
+
+`portal: true` is opt-in and not the default because it has a cost: the panel leaves its trigger's
+place in the reading order and lands at the end of `<body>`. Opening it still moves focus onto a
+row, and `aria-haspopup`, `aria-expanded` and the panel's own `role` and `aria-label` are unchanged,
+so nothing is unreachable — but a reader moving linearly meets the two apart. Reach for it when an
+ancestor traps the panel, which is what the rail does, and not otherwise.
+
+The default renders byte-for-byte what it rendered before either variant existed. Both are opt-in,
+so a page already working around this keeps working.
+
+Held by `src/components/dropdown.test.js`, which reads the offsets out of the stylesheet — any
+panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
+property — and feeds the wiring measured rects, JSDOM having no layout of its own.
 
 ## What the kit does not do
 
