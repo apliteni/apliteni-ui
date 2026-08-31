@@ -10,14 +10,15 @@ export default {
 // KPI stat — label / value / sub, income green & net pink when negative.
 const kpi = (label, value, sub, tone) =>
   `<div style="flex:1;min-width:0">
-     <div style="font:600 var(--text-xs)/1 Poppins;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">${label}</div>
-     <div style="font:600 26px/1.1 Poppins;margin-top:8px;font-variant-numeric:tabular-nums;color:${
+     <div style="font:600 var(--text-xs)/1 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">${label}</div>
+     <div style="font:600 26px/1.1 var(--font-display);margin-top:8px;font-variant-numeric:tabular-nums;color:${
        tone === 'pos' ? 'var(--green)' : tone === 'neg' ? 'var(--pink)' : 'var(--strong)'}">${value}</div>
-     <div style="font:400 12px/1.4 Poppins;color:var(--muted);margin-top:5px">${sub}</div>
+     <div style="font:400 12px/1.4 var(--font-sans);color:var(--muted);margin-top:5px">${sub}</div>
    </div>`;
 
 // Three numbers side by side need about 620px between them, measured at the
-// 26px Poppins the values are set in. That is a fact about this strip and not
+// 26px display face the values are set in — which #253 left as Poppins, so the
+// 620px still holds. That is a fact about this strip and not
 // about the window, and the two stopped agreeing once the shell grew a rail:
 // the rail folds at 720px but is still 249px wide above it, so from 721 to 1023
 // the column is narrower than the strip needs and every number orphaned its €

@@ -387,7 +387,7 @@ export const RULES = [
       + `the ring opaque and it clears the bar everywhere now — ${RING_FLOOR}:1 at worst, in `
       + 'dark Nebula. It was eight rgba() literals reaching 1.35:1 at worst, and every one of '
       + 'them missed. A translucent focus ring is a glow; the bar wants a graphic.',
-    kit: [{ ref: 'src/styles/base.css:123', pattern: 'box-shadow: var(--ring);' }],
+    kit: [{ ref: 'src/styles/base.css:145', pattern: 'box-shadow: var(--ring);' }],
   },
   {
     id: 'disabled-legibility',
@@ -410,7 +410,7 @@ export const RULES = [
       + 'pair is 1.4.11’s, and no gate here measures it.',
     kit: [
       { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
-      { ref: 'src/tokens/tokens.css:149', pattern: '--disabled-ink' },
+      { ref: 'src/tokens/tokens.css:158', pattern: '--disabled-ink' },
     ],
   },
   {

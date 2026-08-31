@@ -19,14 +19,14 @@ export default {
 const behind = (inner = '') => `
   <div style="min-height:100vh;padding:40px">
     <div style="max-width:560px">
-      <h1 style="font:600 22px/1.2 Poppins;color:var(--strong);margin:0 0 10px">Workspace “Nebula”</h1>
-      <p style="font:400 13px/1.6 Poppins;color:var(--muted);margin:0 0 24px">
+      <h1 style="font:600 22px/1.2 var(--font-display);color:var(--strong);margin:0 0 10px">Workspace “Nebula”</h1>
+      <p style="font:400 13px/1.6 var(--font-sans);color:var(--muted);margin:0 0 24px">
         A confirm stops the page until the question is answered. Focus opens on the
         answer that changes nothing; Tab cannot leave the panel; Escape or the safe
         answer returns focus to the trigger.
       </p>
       ${inner}
-      <p style="font:400 11px/1.6 Poppins;color:var(--muted);margin:24px 0 0">
+      <p style="font:400 11px/1.6 var(--font-sans);color:var(--muted);margin:24px 0 0">
         This link is here to Tab to: <a href="#nebula">workspace settings</a>.
       </p>
     </div>

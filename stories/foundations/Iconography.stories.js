@@ -8,7 +8,7 @@ export default {
 
 const STYLE = `
   .ic-wrap { padding: 40px 44px 90px; max-width: 1000px; margin: 0 auto; --ic-size: 24px; }
-  .ic-head h1 { font: 700 30px/1.1 Poppins; color: var(--strong); letter-spacing: -.02em; margin-bottom: 6px; }
+  .ic-head h1 { font: 700 30px/1.1 var(--font-display); color: var(--strong); letter-spacing: -.02em; margin-bottom: 6px; }
   .ic-head p { color: var(--dim); margin-bottom: 20px; max-width: 60ch; line-height: 1.55; }
   .ic-head code { font-family: var(--font-mono); font-size: .9em; color: var(--text); }
   .ic-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
@@ -16,7 +16,7 @@ const STYLE = `
     border: 1px solid var(--surface-2); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
   .ic-search:focus { outline: none; border-color: var(--accent); }
   .ic-cat { margin-top: 34px; }
-  .ic-cat__h { font: 600 12px/1 Poppins; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  .ic-cat__h { font: 600 12px/1 var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
     margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
   .ic-cat__n { color: var(--dim); font-weight: 500; }
   .ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }

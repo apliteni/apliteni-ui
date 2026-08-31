@@ -35,6 +35,28 @@ a {
   text-decoration: none;
 }
 
+/* -- The two typeface roles -----------------------------------------------
+ * A heading is the display face, running text is the text face, and the
+ * ELEMENT decides which — never the size. A size threshold would change a
+ * heading's typeface halfway through a resize, which is the one thing a
+ * reader notices. A component that wants a heading tag set in the text face
+ * says so on its own rule, which outranks this one at (0,1,0); .ui-drawer__title
+ * and .ui-confirm__title are the two that do.
+ * why: docs/specification.md#typefaces */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* The browser default for b/strong is 700, and at the 13px the kit's tables and
+ * chat feeds run at, 700 stops reading as emphasis and starts reading as a
+ * filled-in shape. The semibold step is the emphasis; the bold step stays
+ * available to anything that asks for it by name.
+ * why: docs/specification.md#typefaces */
+b,
+strong {
+  font-weight: var(--weight-semibold);
+}
+
 /* Ambient blurred glow — the deck's signature background depth.
    Place <span class="ui-glow ui-glow--purple"> absolutely inside a positioned
    parent. Two colour variants ship; scale/position with inline styles. */

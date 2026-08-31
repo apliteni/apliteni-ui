@@ -7,7 +7,7 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
-const h3 = (t) => `<h3 style="font:600 13px/1 Poppins;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 18px">${t}</h3>`;
+const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 18px">${t}</h3>`;
 
 // A size ramp for a mark: the mark rendered at each px size with a caption.
 const ramp = (mark, prefix, sizes) => `<div style="display:flex;gap:40px;align-items:flex-end;flex-wrap:wrap;margin-bottom:26px">${
@@ -37,7 +37,7 @@ const uniq = (svg) => {
 export const Marks = {
   name: 'Marks',
   render: () => pad(`
-    <h1 style="font:700 30px/1.1 Poppins;color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Brand</h1>
+    <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Brand</h1>
     <p style="color:var(--dim);max-width:60ch;margin-bottom:44px">Two marks, two jobs. The <b style="color:var(--strong)">seedling</b> is Apliteni — the company. The <b style="color:var(--strong)">prism</b> is apliteni-ui — this kit. Don't swap them: products carry the Apliteni seedling, the kit carries the prism.</p>
 
     <section style="margin-bottom:52px">
@@ -61,9 +61,9 @@ export const Marks = {
 export const Umbrella = {
   name: 'Umbrella (synced)',
   render: () => pad(`
-    <h1 style="font:700 30px/1.1 Poppins;color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Umbrella brand</h1>
+    <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Umbrella brand</h1>
     <p style="color:var(--dim);max-width:60ch;margin-bottom:8px">The canonical Apliteni wordmark + mark, synced from <code style="font-family:var(--font-mono);font-size:12px">apliteni/design-system</code> into <code style="font-family:var(--font-mono);font-size:12px">src/assets/brand.generated/</code>. Use these for anything that represents <b style="color:var(--strong)">Apliteni the company</b> — the kit's own <b style="color:var(--strong)">prism</b> (see Marks) is separate.</p>
-    <p style="color:var(--muted);max-width:60ch;margin-bottom:40px;font:400 13px/1.5 Poppins">Generated — edit upstream, never here.</p>
+    <p style="color:var(--muted);max-width:60ch;margin-bottom:40px;font:400 13px/1.5 var(--font-sans)">Generated — edit upstream, never here.</p>
 
     <section style="margin-bottom:40px">
       ${h3('Wordmark')}

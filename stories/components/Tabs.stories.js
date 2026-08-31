@@ -9,7 +9,7 @@ export default {
 };
 
 const bay = (html) => `<div style="width:min(560px,92vw)">${html}</div>`;
-const p = (t) => `<p style="color:var(--dim);font:400 14px/1.6 Poppins;margin:0 0 16px">${t}</p>`;
+const p = (t) => `<p style="color:var(--dim);font:400 14px/1.6 var(--font-sans);margin:0 0 16px">${t}</p>`;
 const row = (...h) => `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${h.join('')}</div>`;
 
 export const Default = {
@@ -38,7 +38,7 @@ export const Default = {
               ['Ada updated Preferences', 'Token “ci-bot” created', 'Access revoked for legacy-admin']
                 .map(
                   (t) =>
-                    `<li style="display:flex;gap:10px;align-items:center;color:var(--text);font:400 13.5px Poppins">` +
+                    `<li style="display:flex;gap:10px;align-items:center;color:var(--text);font:400 13.5px var(--font-sans)">` +
                     `<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none"></span>${t}</li>`,
                 )
                 .join('') +

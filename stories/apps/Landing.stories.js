@@ -37,8 +37,8 @@ export const Default = {
       padding:22px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
     .lx-cell::before { content:""; position:absolute; inset:0 0 auto 0; height:3px;
       background:linear-gradient(90deg, var(--lx-hue), transparent 70%); }
-    .lx-cell h3 { font:600 17px/1.2 Poppins; color:var(--strong); }
-    .lx-cell p { font:400 14px/1.55 Poppins; color:var(--dim); }
+    .lx-cell h3 { font:600 17px/1.2 var(--font-display); color:var(--strong); }
+    .lx-cell p { font:400 14px/1.55 var(--font-sans); color:var(--dim); }
     .lx-ico { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; flex:none;
       background:color-mix(in srgb, var(--lx-hue) 20%, var(--surface-3));
       box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--lx-hue) 40%, transparent); }
@@ -88,7 +88,7 @@ export const Default = {
     <section style="max-width:900px;margin:0 auto 100px;padding:0 26px;position:relative;z-index:1">
       <div class="ui-card ui-card--accent ui-card--pad-lg" style="text-align:center">
         <div style="margin:0 auto 10px;display:inline-flex">${badge('For agents', 'soon')}</div>
-        <h2 style="font:700 30px/1.1 Poppins;color:var(--strong);letter-spacing:-.02em;margin-bottom:12px">Give your agent the strategy</h2>
+        <h2 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:12px">Give your agent the strategy</h2>
         <p style="color:var(--dim);font-size:16px;max-width:48ch;margin:0 auto 26px;line-height:1.6">One command connects an agent over MCP. Scoped to read-only, revocable anytime from your account.</p>
         <div style="display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center">
           ${button({ label: 'Connect an agent', variant: 'primary', size: 'lg', icon: 'plug' })}

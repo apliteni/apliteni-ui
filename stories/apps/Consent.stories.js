@@ -36,7 +36,7 @@ export const Grant = {
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
       <span style="width:46px;height:46px;border-radius:13px;background:var(--glow-purple);color:var(--accent);display:grid;place-items:center;font-size:23px">${icon('plug')}</span>
       <div class="cn-arrow" style="display:flex;align-items:center;gap:9px;color:var(--muted)">${icon('arrowRight')}</div>
-      <span style="width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#2b6b4b,#1d4a5e);color:#fff;display:grid;place-items:center;font:600 14px Poppins">AL</span>
+      <span style="width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#2b6b4b,#1d4a5e);color:#fff;display:grid;place-items:center;font:600 14px var(--font-sans)">AL</span>
     </div>
     <h1 class="ui-auth__title" style="font-size:21px"><b style="color:var(--accent);font-weight:600">Research bot</b> wants to read your account</h1>
     <p class="ui-auth__sub">Signed in as <b style="color:var(--dim)">ada@apliteni.com</b>. This agent is asking to:</p>

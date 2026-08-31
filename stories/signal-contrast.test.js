@@ -309,7 +309,7 @@ function accentCells() {
       !bare.length || theme === 'dark',
       `accents.css puts a bare :root[data-accent="${accent}"] on the LIGHT cell. The bare form\n`
       + 'is what an unstamped document gets, and an unstamped document is dark (see\n'
-      + 'src/tokens/tokens.css:109 `:root,`) — so it belongs on the dark cell only. On the light\n'
+      + 'src/tokens/tokens.css:118 `:root,`) — so it belongs on the dark cell only. On the light\n'
       + "one it would paint light values over the dark theme's surfaces.",
     );
     const vars = new Map(tokensFor(theme));

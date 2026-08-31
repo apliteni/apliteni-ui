@@ -5,13 +5,18 @@ import { wireDrawer } from '../src/components/drawer.js';
 import { wireConfirm } from '../src/components/confirm.js';
 import { initTabs } from '../src/components/tabs.js';
 
-// Load Poppins once (Storybook manager/preview iframe).
-if (!document.getElementById('ui-poppins')) {
+// Load both faces once (Storybook manager/preview iframe). The kit names two
+// families — Poppins for --font-display, IBM Plex Sans for --font-sans — and a
+// token whose family never loads is a token that silently resolves to the system
+// fallback, which is the failure scripts/font-loading.test.js exists to catch.
+// Weights 300-700 in both, the span --weight-light .. --weight-bold covers.
+if (!document.getElementById('ui-fonts')) {
   const pre1 = document.createElement('link');
   pre1.rel = 'preconnect'; pre1.href = 'https://fonts.gstatic.com'; pre1.crossOrigin = 'anonymous';
   const link = document.createElement('link');
-  link.id = 'ui-poppins'; link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap';
+  link.id = 'ui-fonts'; link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700'
+    + '&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap';
   document.head.append(pre1, link);
 }
 

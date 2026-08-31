@@ -47,7 +47,7 @@ const panel = (name, theme) => {
   const ac = ACCENT[name][theme];
   return `<div style="${accentVars(ac)};background:var(--bg);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:inset 0 0 0 1px var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between">
-      <span style="font:700 20px/1 Poppins;letter-spacing:-.01em"><span style="background:linear-gradient(120deg,var(--grad-from),var(--grad-to));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${name}</span></span>
+      <span style="font:700 20px/1 var(--font-display);letter-spacing:-.01em"><span style="background:linear-gradient(120deg,var(--grad-from),var(--grad-to));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${name}</span></span>
       <span style="display:flex;gap:6px">${badge(theme, theme === 'dark' ? 'archive' : 'archive')}${badge('Live', 'live')}</span>
     </div>
     <div class="ui-card" style="padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:13px">
@@ -55,7 +55,7 @@ const panel = (name, theme) => {
       ${segmented({ options: ['Deck', 'Text'], active: 0, size: 'sm', ariaLabel: 'View' })}
       <div style="display:flex;align-items:center;gap:10px">
         <label class="ui-switch"><input type="checkbox" checked aria-label="accent drives every control"><span class="ui-switch__track"></span></label>
-        <span style="color:var(--dim);font:400 13px Poppins">accent drives every control</span>
+        <span style="color:var(--dim);font:400 13px var(--font-sans)">accent drives every control</span>
       </div>
     </div>
   </div>`;
@@ -70,7 +70,7 @@ export const Overview = {
   render: (_args, ctx) => {
     const theme = ctx && ctx.globals && ctx.globals.theme === 'light' ? 'light' : 'dark';
     return pad(`
-    <h1 style="font:700 30px/1.1 Poppins;color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Accent sub-themes</h1>
+    <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Accent sub-themes</h1>
     <p style="color:var(--dim);margin-bottom:32px;max-width:64ch">One orthogonal <code style="font-family:var(--font-mono)">data-accent</code> dimension, on top of dark/light. All four accents at once — only the accent family moves; surfaces, text and signal colours (green = live) stay put. Flip <b>Theme</b> in the toolbar to see them in light or dark.</p>
     ${wall(theme)}
   `);

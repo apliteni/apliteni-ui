@@ -52,9 +52,9 @@ const EFFECTS = [
 const CSS = `
   <style>
     .mz { --mz-gap: 22px; padding: 40px; min-height: 100vh; }
-    .mz h1 { font: 700 30px/1.1 Poppins; color: var(--strong); letter-spacing: -.02em; margin-bottom: 6px; }
+    .mz h1 { font: 700 30px/1.1 var(--font-display); color: var(--strong); letter-spacing: -.02em; margin-bottom: 6px; }
     .mz .lead { color: var(--dim); max-width: 62ch; }
-    .mz h3 { font: 600 13px/1 Poppins; letter-spacing: .1em; text-transform: uppercase;
+    .mz h3 { font: 600 13px/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase;
       color: var(--muted); margin: 52px 0 20px; }
     .mz code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent);
       background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 3px 7px; }
@@ -64,7 +64,7 @@ const CSS = `
       gap: 18px; padding: 13px 0; border-bottom: 1px solid var(--border); }
     .mz-tok:last-child { border-bottom: 0; }
     .mz-tok__name { display: flex; flex-direction: column; gap: 5px; }
-    .mz-tok__use { font: 400 12px/1.4 Poppins; color: var(--muted); }
+    .mz-tok__use { font: 400 12px/1.4 var(--font-sans); color: var(--muted); }
     .mz-track { position: relative; height: 30px; border-radius: 8px;
       background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; }
     .mz-dot { position: absolute; top: 50%; margin-top: -7px; width: 14px; height: 14px; border-radius: 50%;
@@ -86,13 +86,13 @@ const CSS = `
       box-shadow: inset 0 0 0 1px var(--border); display: flex; flex-direction: column; gap: 14px; min-height: 168px; }
     .mz-stage { flex: 1; display: grid; place-items: center; }
     .mz-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px;
-      font: 600 13px/1 Poppins; color: #fff;
+      font: 600 13px/1 var(--font-sans); color: #fff;
       background: linear-gradient(135deg, var(--accent), var(--accent-strong));
       box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent); }
     .mz-skel { width: 100%; height: 54px; }
     .mz-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .mz-hint { font: 500 11px/1 Poppins; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-    .mz-replay { font: 600 12px/1 Poppins; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
+    .mz-hint { font: 500 11px/1 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .mz-replay { font: 600 12px/1 var(--font-sans); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
       border: 0; border-radius: 8px; padding: 7px 12px; cursor: pointer;
       transition: background var(--dur-fast) var(--ease); }
     .mz-replay:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
@@ -101,12 +101,12 @@ const CSS = `
     /* Reveal demo */
     .mz-reveal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
     .mz-reveal-card { background: var(--surface); border-radius: 14px; padding: 18px;
-      box-shadow: inset 0 0 0 1px var(--border); font: 600 14px/1.2 Poppins; color: var(--strong); }
-    .mz-reveal-card small { display: block; font: 400 12px/1.4 Poppins; color: var(--muted); margin-top: 5px; }
+      box-shadow: inset 0 0 0 1px var(--border); font: 600 14px/1.2 var(--font-sans); color: var(--strong); }
+    .mz-reveal-card small { display: block; font: 400 12px/1.4 var(--font-sans); color: var(--muted); margin-top: 5px; }
 
     .mz-note { margin-top: 46px; padding: 16px 18px; border-radius: 12px;
       background: color-mix(in srgb, var(--accent) 8%, var(--surface));
-      box-shadow: inset 0 0 0 1px var(--border); color: var(--dim); font: 400 13px/1.6 Poppins; max-width: 72ch; }
+      box-shadow: inset 0 0 0 1px var(--border); color: var(--dim); font: 400 13px/1.6 var(--font-sans); max-width: 72ch; }
   </style>`;
 
 const durationRow = ([token, val, use]) => `

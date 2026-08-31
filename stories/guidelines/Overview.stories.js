@@ -19,8 +19,8 @@ const gapBadge = (rule) => badge(`Gap #${rule.unmet.issue}`, 'warn');
 const CSS = `
   <style>
     .gi { max-width: calc((420px + var(--space-5) * 2) * 2 + var(--space-4)); }
-    .gi h1 { font: 700 27px/1.2 Poppins; letter-spacing: -.02em; color: var(--strong); margin: 0; }
-    .gi-intro { font: 400 15px/1.7 Poppins; color: var(--text); max-width: 62ch;
+    .gi h1 { font: 700 27px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--strong); margin: 0; }
+    .gi-intro { font: 400 15px/1.7 var(--font-sans); color: var(--text); max-width: 62ch;
       margin: var(--space-4) 0 0; }
     .gi-table { margin-top: var(--space-6); table-layout: fixed; }
     .gi-table td { white-space: normal; }

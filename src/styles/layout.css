@@ -55,6 +55,9 @@
   gap: var(--space-2);
   padding: 2px 6px;
   text-decoration: none;
+  /* display: brand — the rail's lockup is the same mark topbar.css sets, and the
+     two have to be the same face or the shell reads as two products. */
+  font-family: var(--font-display);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
 }

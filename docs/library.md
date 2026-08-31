@@ -59,6 +59,12 @@ Everything visual is a CSS custom property, driven by two orthogonal attributes 
   — re-points only the accent family. Because it touches nothing else, every accent
   works in both themes with no component change.
 
+Type is the one axis neither attribute touches: `--font-display` (Poppins) is the brand
+voice for headings and brand marks, `--font-sans` (IBM Plex Sans) is what text, tables,
+fields and chat are set in, and `--font-mono` is code. Neither family ships with the
+package — the host page loads both. See
+[the spec](specification.md#typefaces) for which element takes which.
+
 Runtime helpers (re-exported from the root): `applyTheme('light')` and
 `applyAccent('phoenix')` both persist to `localStorage`, and `ACCENTS` is the list of
 names `applyAccent` takes. Or ship `accentPicker()` and let `wireTopbar()` handle it.

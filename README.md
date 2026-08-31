@@ -48,12 +48,32 @@ npm install @apliteni/apliteni-ui
 ## Use it
 
 ```js
-import '@apliteni/apliteni-ui/css';           // once, at app root (needs the Poppins font)
+import '@apliteni/apliteni-ui/css';           // once, at app root (load the two fonts too — see below)
 import { button, card, topbar, wireTopbar } from '@apliteni/apliteni-ui';
 
 el.innerHTML = topbar({ word: 'Strategy', account: { name, email } })
              + card({ title: 'Appearance', body: button({ label: 'Save', variant: 'primary' }) });
 wireTopbar(document);                          // theme toggle, menus, segmented, copy buttons
+```
+
+### The two fonts
+
+The kit names two families and bundles neither, so the host page loads them. Poppins is
+`--font-display` — headings, brand marks, large readouts. IBM Plex Sans is `--font-sans` —
+tables, fields, paragraphs, chat, which is most of an application. Weights 300-700 in both:
+
+```html
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+```
+
+Load only one of them and the other falls through to the system stack behind it, without
+saying so. Want the old
+single-family look back? Set both roles to the same family in your own stylesheet, after the
+kit's:
+
+```css
+:root { --font-sans: var(--font-display); }
 ```
 
 ### Reuse the account page

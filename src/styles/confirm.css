@@ -85,7 +85,10 @@
 /* -- Slots ----------------------------------------------------------------- */
 /* The question and the answers keep their size; the consequence between them is
    the one that gives, and scrolls — the same split the drawer's header / body /
-   footer makes. */
+   footer makes. The title is an h2 and opts out of the display face base.css
+   gives a heading, for the same reason .ui-drawer__title does: at --text-md it
+   is the question on a dialog, set at the size the answer beneath it is set at.
+   why: docs/specification.md#typefaces */
 .ui-confirm__title {
   margin: 0;
   flex: none;

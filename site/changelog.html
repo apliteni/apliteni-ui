@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?{{CSSHASH}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/kit.css?{{CSSHASH}}">
 <style>
   body { overflow-x: hidden; }
@@ -16,7 +16,7 @@
   .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
 
   .head { padding: clamp(48px, 8vh, 90px) 0 10px; }
-  .head h1 { font: 700 clamp(34px, 5vw, 48px)/1.05 var(--font-sans); color: var(--strong); letter-spacing: -.02em; margin-bottom: 12px; }
+  .head h1 { font: 700 clamp(34px, 5vw, 48px)/1.05 var(--font-display); color: var(--strong); letter-spacing: -.02em; margin-bottom: 12px; }
   .head p { color: var(--dim); font-size: 17px; line-height: 1.6; max-width: var(--prose-lede); }
 
   .log { padding: 40px 0 100px; }
@@ -28,7 +28,9 @@
   .rel__dot.is-latest { background: var(--accent); box-shadow: 0 0 0 4px var(--bg), 0 0 0 6px var(--glow-purple); }
   .rel__body { padding-bottom: 40px; min-width: 0; }
   .rel__head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-  .rel__v { font: 700 20px/1 var(--font-sans); color: var(--strong); letter-spacing: -.01em; }
+  /* The version is the release's name and its number at once — the display face's
+     third job after headings and brand marks. */
+  .rel__v { font: 700 20px/1 var(--font-display); color: var(--strong); letter-spacing: -.01em; }
   .rel__date { font-size: 13px; color: var(--muted); }
   .rel__list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
   .rel__list li { display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: baseline; color: var(--dim); font-size: 15px; line-height: 1.55; }
