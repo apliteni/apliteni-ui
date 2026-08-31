@@ -102,15 +102,27 @@
 }
 .ui-dropdown__panel--portal.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
 
-/* Item row — [icon] [main: label + desc] [badge] [tick] */
+/* Item row — [icon] [main: label + desc] [badge] [tick]. A row is a <div>, an
+   <a href> or a <button>: `is-selected` and __tick below mean a row gets
+   chosen, and choosing is a button's job. So the tag's own styling is reset
+   here, the way .ui-nav__item resets it, and the three render identically.
+   why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-dropdown__item {
   display: flex;
   gap: 11px;
   align-items: center;
+  width: 100%;
   padding: 9px 12px;
+  border: 0;
   border-radius: var(--radius-sm);
+  background: none;
   cursor: pointer;
+  text-align: left;
   text-decoration: none;
+  /* `font`, not `font-family`: the UA writes one shorthand, `font: 400 13.3333px
+     Arial`, so answering its family alone leaves the size and the line-height
+     standing. The same answer .ui-toast__action gives. */
+  font: inherit;
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
