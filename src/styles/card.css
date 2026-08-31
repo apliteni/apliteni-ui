@@ -43,6 +43,13 @@
 /* Interactive card (link / button semantics) */
 .ui-card--interactive {
   cursor: pointer;
+  /* Written as a <button>, the card would take the browser's frame, centred text
+     and `font: 400 13.3333px Arial` — a shorthand, so `font: inherit` and not the
+     family longhand. .ui-card already states its own background, and the light
+     theme's border rule is (0,3,0) so `border: 0` here cannot reach it. #251 */
+  border: 0;
+  text-align: left;
+  font: inherit;
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-med) var(--ease);
 }
 .ui-card--interactive:hover {

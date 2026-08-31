@@ -153,6 +153,33 @@ Beyond the factories, the entry re-exports the theming helpers described above, 
 mark (`seedling`, `prism`, `brand`) and the motion helpers in `src/motion.js`
 (`prefersReducedMotion`, `staggerDelay`, `initReveal`, `replay`).
 
+### A dropdown row you write yourself
+
+`<button class="ui-dropdown__item">` is supported and renders as the row `dropdown()` emits —
+the class cancels the chrome a browser paints on a button. Write one when the row has to be a
+native control.
+
+```html
+<button type="button" class="ui-dropdown__item" data-dd-item role="menuitem" tabindex="-1">
+  <span class="ui-dropdown__main"><span class="ui-dropdown__label">Rename</span></span>
+</button>
+```
+
+`wireDropdown()` finds rows by `data-dd-item` inside `[data-dropdown-panel]` and never by
+class, so it is the attributes that make the row work:
+
+- `data-dd-item` — without it the row is in neither the arrow-key ring nor the panel's click
+  handler, so it neither selects nor closes the panel
+- `role="menuitem"` in a `menu` dropdown, `role="option"` in a `select` one
+- `tabindex="-1"` — the panel moves focus itself, and a `<button>` is in the tab order by
+  default, which would put every row in it
+- `type="button"`, as the factory's trigger carries — a row inside a form otherwise submits it
+- `aria-disabled="true"` for a disabled row, not the native `disabled` attribute: that is what
+  the item walk filters on
+- `aria-selected="true|false"` on a `select` row, and keep the `.ui-dropdown__label` span — the
+  pick is written into the first, and the trigger's value is copied out of the second
+- `data-value="…"` if you read the pick back off the element
+
 ### Segmented or tabs?
 
 Ask what is behind the choice. If picking an option reveals a different block of content,

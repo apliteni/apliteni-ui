@@ -543,8 +543,10 @@ Stated so nobody has to discover it by trying:
   rather than on the one that is right.
 - **No second bar for a control's glyph.** 1.5 CSS px is the line for every stroked mark. A glyph
   inside a button is not exempt for being small.
-- **No hand-written markup contract.** `.ui-side` and `.ui-shell` were removed when nothing
-  emitted them. Call the factory; the class names are not a supported surface on their own.
+- **No hand-written markup contract, except a row the kit renders as a control.** `.ui-side` and
+  `.ui-shell` were layout scaffolding nothing emitted. A control row — a `<div>` with a role and
+  a tabindex, or an `<a>` — is a consumer's to rewrite as a `<button>` when it must be operable
+  from the keyboard, so those class names are a supported surface, and cancel a button's chrome.
 - **No support for a vertical writing mode.** The icon gate folds `inline-size` onto `width`,
   which is only correct horizontally, and asserts the assumption rather than taking it: a
   `writing-mode` declaration anywhere in these stylesheets stops the gate.

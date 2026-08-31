@@ -236,6 +236,46 @@ export const GATES = [
       + 'CONTRIBUTING.md#the-cascade-jsdom-ranks-and-the-one-boundary-it-does-not.'],
   },
   {
+    file: 'stories/button-chrome.test.js',
+    does: 'Mounts every clickable class the kit ships in the place a story renders it, once '
+      + 'against the chrome a browser paints on a <button> and once against its absence, and '
+      + 'holds the two readings equal on background, border, font-family, font-size, line-height, '
+      + 'text-align and width. The three font facets are read separately because Chrome writes '
+      + 'them as one shorthand \u2014 `font: 400 13.3333px Arial` \u2014 so a rule that answers '
+      + 'with the `font-family` longhand restores the face and leaves the size and the leading. '
+      + 'Width is the one facet where equal readings are not enough: `width: auto` and '
+      + '`width: fit-content` make the two readings agree and ARE the defect, so the value is '
+      + 'rejected as well as compared. The three classes it fails on are pinned by name, and so '
+      + 'are the three it leaves out, because a derived count does not move when a subject stops '
+      + 'being one.',
+    blind: [
+      'Layout. JSDOM computes no boxes, so shrink-to-fit is modelled as a width declaration '
+        + 'rather than measured, and a row that fills its line for another reason reads as repaired.',
+      'The chrome itself. The stand-in\u2019s values are Chromium\u2019s, measured on the branch '
+        + 'that wrote this gate and not re-measured after; a browser that restyles its buttons '
+        + 'leaves the stand-in stale with nothing to say so.',
+      'Weight and style. `font: inherit` resets both, so a rule that means to keep one has to '
+        + 'write it after the shorthand, and no facet here reads whether it did.',
+      'State. Every reading is taken at rest, so chrome that only shows under :hover is unseen.',
+      'The rows in its own ledger. A class the kit renders as a <button> is measured and counted '
+        + 'there rather than failed, so sixteen rows keep chrome that nobody is repairing \u2014 '
+        + 'twelve on text-align, four on line-height.',
+      'Every ancestry of a deferred row. A class that fails here is read in every distinct '
+        + 'ancestry a story gives it; a class the ledger holds is read in one. Fourteen classes '
+        + 'rendered 415 times across 232 ancestries, fourteen read \u2014 218 cascades under a '
+        + 'ledgered row nothing measures.',
+      'A class that stops being clickable. The sweep starts at `cursor: pointer`, so a rule that '
+        + 'moves the declaration onto a wrapper or a :hover takes the class out of the sweep '
+        + 'entirely. The three subjects are pinned by name against that; the fourteen deferred '
+        + 'classes are not.',
+      'What is deliberately left out, and it is one bucket: a form control the browser owns, or '
+        + 'decoration inside one \u2014 the `select` behind .ui-select, the `label` round the '
+        + 'checkbox in .ui-check, the `span` .ui-switch__track draws on. It used to leave out far '
+        + 'more, on a markup technicality, and .ui-fbpill sat unmeasured in it carrying the whole '
+        + 'defect.',
+    ],
+  },
+  {
     file: 'stories/apps/shell.test.js',
     does: 'The shell\u2019s composition: one <main>, a named navigation landmark, a rail item that '
       + 'stays named at every width, and the crumb trail the caller owns.',

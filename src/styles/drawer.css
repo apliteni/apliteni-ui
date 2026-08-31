@@ -142,6 +142,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
+  font: inherit;
   transition:
     color var(--dur-fast) var(--ease),
     background var(--dur-fast) var(--ease),
