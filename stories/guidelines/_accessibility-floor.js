@@ -260,6 +260,22 @@ export const GATES = [
     blind: ['Whether the accent it promises is legible once selected; accent-contrast has that.'],
   },
   {
+    file: 'stories/accent-without-theme.test.js',
+    does: 'Renders the kit with data-theme absent and asserts it is still painted, still dark, '
+      + 'and still wearing whatever accent data-accent asks for \u2014 the state a host produces by '
+      + 'stamping nothing, which no other gate mounts.',
+    blind: [
+      '--accent alone. It reads the one token that names the sub-theme and not the ramp '
+        + 'beside it, so a bare cell that re-points --accent and forgets --purple-light passes '
+        + 'here on the strength of the one it did.',
+      'Contrast, entirely. It measures that a colour arrives, never that the colour is legible '
+        + 'once it does \u2014 accent-contrast reads all eight stamped cells and neither reads the '
+        + 'unstamped one.',
+      'prefers-color-scheme, which the kit does not ship. An unstamped document is dark on a '
+        + 'light machine and this gate holds that as the intended answer (#250).',
+    ],
+  },
+  {
     file: 'stories/guidelines/iconography.test.js',
     does: 'A control goes wordless only for an action on the closed list \u2014 the question a '
       + 'perfect aria-label cannot answer.',

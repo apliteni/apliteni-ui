@@ -264,6 +264,12 @@ const ACCENTS = cssOf('../src/tokens/accents.css');
  *  rather than one of the single-attribute theme blocks over in tokens.css. */
 const CELL_SELECTOR = /^:root\[data-theme="(dark|light)"\]\[data-accent="([\w-]+)"\]$/;
 
+/** The bare form a dark cell also answers to, so `data-accent` paints in the
+ *  attribute-less state the default theme already paints in (#250). It names no
+ *  theme, so it cannot place a cell on its own — it is read here only to be
+ *  recognised, and refused when it disagrees with the stamped line above it. */
+const BARE_SELECTOR = /^:root\[data-accent="([\w-]+)"\]$/;
+
 /** Every accent × theme cell accents.css declares, each resolved the way the
  *  cascade resolves it: the theme's tokens first, then the cell's overrides on
  *  top. Anything in the file that is NOT such a cell is refused rather than
@@ -272,15 +278,40 @@ const CELL_SELECTOR = /^:root\[data-theme="(dark|light)"\]\[data-accent="([\w-]+
 function accentCells() {
   const cells = [];
   for (const [, sel, body] of ACCENTS.matchAll(RULE)) {
-    const m = CELL_SELECTOR.exec(sel.trim());
-    assert.ok(
-      m,
+    const parts = sel.trim().split(',').map((s) => s.trim().replace(/\s+/g, ' '));
+    const stamped = parts.map((s) => CELL_SELECTOR.exec(s)).filter(Boolean);
+    const bare = parts.map((s) => BARE_SELECTOR.exec(s)).filter(Boolean);
+    assert.equal(
+      stamped.length + bare.length, parts.length,
       `accents.css declares a rule this gate cannot place: ${sel.trim()}\n`
-      + 'Every block in that file is expected to be one accent × theme cell. If a\n'
-      + 'new shape of rule belongs there, teach this parser about it — do not let\n'
-      + 'it fall through, because a cell that is not parsed is a cell that is not gated.',
+      + 'Every block in that file is expected to be one accent × theme cell, on its\n'
+      + 'stamped selector and optionally the bare :root[data-accent="…"] beside it.\n'
+      + 'If a new shape of rule belongs there, teach this parser about it — do not\n'
+      + 'let it fall through, because a cell that is not parsed is a cell that is\n'
+      + 'not gated.',
     );
-    const [, theme, accent] = m;
+    assert.equal(
+      stamped.length, 1,
+      `accents.css gives ${sel.trim()} ${stamped.length} stamped selectors. A cell is placed by\n`
+      + 'its [data-theme][data-accent] line and there has to be exactly one: the bare\n'
+      + 'line names no theme, so a block carrying only bare selectors would be judged\n'
+      + "against a theme this parser had to guess, and two stamped lines would mean one\n"
+      + 'body is two cells at once.',
+    );
+    const [, theme, accent] = stamped[0];
+    assert.deepEqual(
+      bare.map((m) => m[1]), bare.length ? [accent] : [],
+      `accents.css pairs ${sel.trim()} with a bare selector for a different accent. The bare\n`
+      + 'line exists so this cell paints without data-theme; pointing it at another\n'
+      + "accent's name hands that accent this cell's ramp.",
+    );
+    assert.ok(
+      !bare.length || theme === 'dark',
+      `accents.css puts a bare :root[data-accent="${accent}"] on the LIGHT cell. The bare form\n`
+      + 'is what an unstamped document gets, and an unstamped document is dark (see\n'
+      + 'src/tokens/tokens.css:109 `:root,`) — so it belongs on the dark cell only. On the light\n'
+      + "one it would paint light values over the dark theme's surfaces.",
+    );
     const vars = new Map(tokensFor(theme));
     for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
     cells.push({ theme, accent, file: 'src/tokens/accents.css', vars });

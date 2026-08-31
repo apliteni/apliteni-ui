@@ -63,6 +63,39 @@ Runtime helpers (re-exported from the root): `applyTheme('light')` and
 `applyAccent('phoenix')` both persist to `localStorage`, and `ACCENTS` is the list of
 names `applyAccent` takes. Or ship `accentPicker()` and let `wireTopbar()` handle it.
 
+### An absent attribute means dark
+
+Both attributes are optional, and leaving either off is a supported state rather than a
+broken one. `data-theme` and `data-accent` are **overrides**: dark and Nebula are what the
+kit paints when neither is present.
+
+```html
+<html>                              <!-- dark, Nebula -->
+<html data-accent="ocean">          <!-- dark, Ocean -->
+<html data-theme="light">           <!-- light, Nebula -->
+```
+
+The dark palette is declared on a two-line selector list in `src/tokens/tokens.css` —
+`:root,` above `:root[data-theme="dark"]` — so an unstamped document is fully painted, and
+each accent's dark cell repeats that shape so an accent paints there too. Both halves are
+held by `stories/accent-without-theme.test.js`.
+
+What an absent `data-theme` does **not** mean is "follow the operating system". The kit
+ships no `prefers-color-scheme` rule, so a host that wants the OS preference has to resolve
+it and stamp the attribute, which is what the kit's own pages do:
+
+```js
+const mq = matchMedia('(prefers-color-scheme: dark)');
+const apply = () => applyTheme(saved || (mq.matches ? 'dark' : 'light'));
+mq.addEventListener('change', () => { if (!saved) apply(); });
+apply();
+```
+
+Expressing "as in the system" by removing the attribute gets dark on a light machine. That
+is a real cost and a deliberate one: a `prefers-color-scheme` fallback would change what the
+unstamped state means for every consumer already shipping without the attribute. See
+[issue #250](https://github.com/apliteni/apliteni-ui/issues/250).
+
 ## Component catalog
 
 Every factory returns an HTML string, and the `wire*` / `init*` functions beside them bind

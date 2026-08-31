@@ -1,7 +1,8 @@
 /* Accent sub-themes — an orthogonal `data-accent` dimension on top of
- * `data-theme`. Set both on <html>:
+ * `data-theme`. On <html>, with or without a theme:
  *
  *     <html data-theme="dark" data-accent="phoenix">
+ *     <html data-accent="phoenix">              <!-- default theme, same accent -->
  *
  * Each sub-theme only re-points the accent family. Surfaces, text and signal
  * colours (green = live, pink = danger) stay put, so every accent works in
@@ -10,12 +11,24 @@
  * --ring is NOT here: it is declared once in tokens.css as var(--accent), so
  * re-pointing --accent re-points the focus ring too.
  *
- * Selectors carry two attributes + :root, so they always out-specify the
- * single-attribute theme blocks in tokens.css regardless of import order.
+ * Every dark cell is a two-line selector list — a bare `:root[data-accent]`
+ * above the stamped form — which is the shape tokens.css gives the dark theme
+ * one file earlier, and for the same reason: the default theme needs no
+ * attribute, so neither may the accent. Written stamped-only, `data-accent`
+ * paints nothing at all in the state hosts use to mean "follow the system",
+ * where data-theme is simply absent. See issue #250.
+ *
+ * That bare line ties on specificity with :root[data-theme="light"] and wins on
+ * import order, so LIGHT is what the cascade has to be careful about: each light
+ * cell carries three attributes to out-specify it, and declares the same
+ * properties as its dark twin so none of the dark ramp leaks past it. Adding a
+ * property to one half of a pair and not the other is what breaks that, and
+ * stories/accent-without-theme.test.js is the gate that says so.
  *
  * why: docs/specification.md#the-focus-ring */
 
 /* ---- Phoenix — ember / rising fire (the strategy's namesake) ------------- */
+:root[data-accent="phoenix"],
 :root[data-theme="dark"][data-accent="phoenix"] {
   --purple: #e0531f;
   --purple-light: #ff8a5c;
@@ -45,6 +58,7 @@
 }
 
 /* ---- Ocean — azure ------------------------------------------------------- */
+:root[data-accent="ocean"],
 :root[data-theme="dark"][data-accent="ocean"] {
   --purple: #1f7fe0;
   --purple-light: #5ab0ff;
@@ -77,6 +91,7 @@
 }
 
 /* ---- Emerald — jade ------------------------------------------------------ */
+:root[data-accent="emerald"],
 :root[data-theme="dark"][data-accent="emerald"] {
   --purple: #0fa876;
   --purple-light: #3ad9a0;

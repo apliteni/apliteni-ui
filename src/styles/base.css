@@ -16,7 +16,7 @@ html {
 
 body {
   background: var(--bg);
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font-sans);
   font-weight: var(--weight-normal);
   font-size: var(--text-base);
