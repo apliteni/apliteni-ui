@@ -18,33 +18,33 @@ const swatch = ([token, name, use]) => `
   <div style="display:flex;flex-direction:column;gap:11px">
     <div style="height:88px;background:var(${token});border-radius:14px;box-shadow:inset 0 0 0 1px var(--border)"></div>
     <div>
-      <div style="font:600 13px/1 Poppins;color:var(--strong)">${name}</div>
+      <div style="font:600 13px/1 var(--font-sans);color:var(--strong)">${name}</div>
       <code style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${token}</code>
-      <div style="font:400 12px/1.45 Poppins;color:var(--muted);margin-top:5px">${use}</div>
+      <div style="font:400 12px/1.45 var(--font-sans);color:var(--muted);margin-top:5px">${use}</div>
     </div>
   </div>`;
 
 const glowPanel = (label, glows) => `
   <div style="position:relative;height:190px;background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--border)">
     ${glows}
-    <div style="position:relative;z-index:1;display:grid;place-items:center;height:100%;font:500 13px Poppins;color:var(--dim)">${label}</div>
+    <div style="position:relative;z-index:1;display:grid;place-items:center;height:100%;font:500 13px var(--font-sans);color:var(--dim)">${label}</div>
   </div>`;
 
 const bgPanel = (cls, name, desc) => `
   <div class="${cls}" style="height:190px;background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--border);display:grid;place-items:center;text-align:center;padding:18px">
     <div>
-      <div style="font:600 14px/1 Poppins;color:var(--strong);margin-bottom:9px">${name}</div>
+      <div style="font:600 14px/1 var(--font-sans);color:var(--strong);margin-bottom:9px">${name}</div>
       <code style="font-family:var(--font-mono);font-size:11.5px;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:6px;padding:4px 9px">.${cls}</code>
-      <div style="font:400 12px/1.5 Poppins;color:var(--muted);margin-top:11px;max-width:32ch">${desc}</div>
+      <div style="font:400 12px/1.5 var(--font-sans);color:var(--muted);margin-top:11px;max-width:32ch">${desc}</div>
     </div>
   </div>`;
 
-const h3 = (t) => `<h3 style="font:600 13px/1 Poppins;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:52px 0 20px">${t}</h3>`;
+const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:52px 0 20px">${t}</h3>`;
 const g = (min, ...items) => `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${min},1fr));gap:22px">${items.join('')}</div>`;
 
 export const Default = {
   render: () => pad(`
-    <h1 style="font:700 30px/1.1 Poppins;color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Backgrounds</h1>
+    <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Backgrounds</h1>
     <p style="color:var(--dim);max-width:60ch">Every backdrop in the kit — the flat surface layers, the signature ambient glow, and drop-in backdrop treatments. All read the accent tokens, so they re-theme with the sub-theme and hold up in dark and light.</p>
 
     ${h3('Surface layers')}
@@ -87,14 +87,14 @@ const fullBleed = ({ bgClass = '', layer = '', eyebrow, title, body }) => `
     <div style="position:relative;z-index:1;min-height:100vh;display:grid;place-items:center;padding:40px">
       <div style="max-width:46ch;text-align:center">
         <div class="ui-eyebrow" style="justify-content:center;margin-bottom:14px">${eyebrow}</div>
-        <h1 style="font:700 clamp(30px,5vw,50px)/1.05 Poppins;color:var(--strong);letter-spacing:-.025em;margin-bottom:16px">${title}</h1>
-        <p style="font:400 16px/1.6 Poppins;color:var(--dim);margin-bottom:28px">${body}</p>
+        <h1 style="font:700 clamp(30px,5vw,50px)/1.05 var(--font-display);color:var(--strong);letter-spacing:-.025em;margin-bottom:16px">${title}</h1>
+        <p style="font:400 16px/1.6 var(--font-sans);color:var(--dim);margin-bottom:28px">${body}</p>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px">
           ${button({ label: 'Get started', variant: 'primary' })}
           ${button({ label: 'View tokens', variant: 'secondary' })}
         </div>
         <div style="max-width:340px;margin:0 auto;text-align:left">
-          ${card({ title: 'Legible on top', sub: 'A card keeps its own surface', body: '<p style="color:var(--dim);font:400 13px/1.5 Poppins;margin:0">Real content sits above the field with a normal stacking context — the backdrop never fights the copy.</p>' })}
+          ${card({ title: 'Legible on top', sub: 'A card keeps its own surface', body: '<p style="color:var(--dim);font:400 13px/1.5 var(--font-sans);margin:0">Real content sits above the field with a normal stacking context — the backdrop never fights the copy.</p>' })}
         </div>
       </div>
     </div>

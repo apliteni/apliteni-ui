@@ -158,10 +158,10 @@ const SOLID = {
 const CSS = `
   <style>
     .sc { max-width: 1060px; font-family: var(--font-sans); }
-    .sc h1 { font: 700 27px/1.2 var(--font-sans); letter-spacing: -.02em; color: var(--strong);
+    .sc h1 { font: 700 27px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--strong);
       margin: 0 0 var(--space-3); }
-    .sc h2 { font: 600 16px/1.4 var(--font-sans); color: var(--strong); margin: 0 0 var(--space-2); }
-    .sc h3 { font: 600 13px/1.4 var(--font-sans); color: var(--strong); margin: 0; }
+    .sc h2 { font: 600 16px/1.4 var(--font-display); color: var(--strong); margin: 0 0 var(--space-2); }
+    .sc h3 { font: 600 13px/1.4 var(--font-display); color: var(--strong); margin: 0; }
     .sc p { font: 400 13.5px/1.65 var(--font-sans); color: var(--dim); margin: 0; max-width: 74ch; }
     .sc-lede { font-size: 15px !important; color: var(--text) !important; }
 

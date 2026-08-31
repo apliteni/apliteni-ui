@@ -14,6 +14,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[Boxes below the page](#boxes-below-the-page)** — panels in px, prose in ch
 - **[Breakpoints](#breakpoints)** — six literals, on purpose
 - **[Spacing and rhythm](#spacing-and-rhythm)** — one scale, and how a tie breaks
+- **[Typefaces](#typefaces)** — two roles, and which one an element takes
 - **[Colour and contrast](#colour-and-contrast)** — what every accent clears
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
@@ -145,6 +146,60 @@ Each value's job is stated where the value is written, and the job decides the d
 
 Held by `stories/table-rhythm.test.js`. Decided in
 [#211](https://github.com/apliteni/apliteni-ui/issues/211).
+
+## Typefaces
+
+The kit names **two** families, and the split is a role split rather than a preference:
+
+```css
+--font-display: 'Poppins', …;        /* headings, brand lockups, large readouts */
+--font-sans:    'IBM Plex Sans', …;  /* text, tables, fields, chat — most of an app */
+--font-mono:    ui-monospace, …;     /* code, identifiers, tabular figures */
+```
+
+**The element decides, never the size.** `h1`–`h6` take the display face from `base.css`; every
+other element takes the text face from `body`. A size threshold was the obvious alternative and
+is worse: it changes a heading's typeface halfway through a resize, which is the one thing a
+reader notices. A component that wants a heading tag set in the text face says so on its own
+rule, which outranks a bare element selector — `.ui-drawer__title` and `.ui-confirm__title` are
+the two that do, and both say why at the declaration.
+
+**A brand mark is not text.** A wordmark keeps the display face at whatever size it is set at,
+down to the 13px `.topbar .brand` runs at. That is the one exception to "the element decides",
+and it is written where the exception is, in the shape the gate parses:
+
+```css
+/* display: brand — <why this one is a mark rather than text> */
+font-family: var(--font-display);
+```
+
+**`b` and `strong` are `--weight-semibold`.** The browser default is 700, and at the 13px a
+table or a chat feed runs at, 700 stops reading as emphasis and starts reading as a filled-in
+shape. 700 stays available to anything that asks for it by name.
+
+**Neither family is bundled.** The kit is CSS with no build step, so the host page loads the
+fonts — and a family a token names but nothing loads resolves to the system fallback in
+silence, which looks like a rendering bug rather than a missing link tag. So every place in
+this repository that loads a font loads *both* families, and a gate holds that over whatever
+places exist rather than over a list.
+
+Poppins is a geometric display grotesque: wide, round counters, single-storey `a`, low stroke
+contrast. It holds its character as a heading and smears as a paragraph, worst of all in
+Cyrillic. Measured on one dense table, only the text face swapped: mean row height 62.27px →
+56.40px, table height 778.08px → 707.63px, because three of twelve titles stopped wrapping to a
+second line. On a 380px chat column, feed length 1567.45px → 1507.03px. Where nothing re-wraps
+the two faces measure identically — the kit's line-heights are unitless, so a face only moves a
+box by changing where a line breaks.
+
+**A panel that leaves its subtree states its own role.** `portal: true` mounts a dropdown's panel
+on `<body>` ([The dropdown panel](#the-dropdown-panel)), so what it inherits is decided by where it
+landed rather than by the trigger it came out of. Measured on one dropdown inside a display-face
+subtree: `var(--font-display)` in place, `var(--font-sans)` once portalled. `.ui-dropdown__panel`
+names the text face itself, so both placements answer the same — a flag that positions a panel does
+not change what it is set in.
+
+Held by `src/styles/typeface-roles.test.js` and `scripts/font-loading.test.js`. Decided in
+[#253](https://github.com/apliteni/apliteni-ui/issues/253).
 
 ## Motion
 

@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?{{CSSHASH}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/kit.css?{{CSSHASH}}">
 <style>
   /* page-only chrome; everything else is kit tokens/components.
@@ -34,7 +34,7 @@
   .play-accents button:hover { transform: translateY(-2px); color: var(--strong); }
   .play-accents button.on { color: var(--strong); box-shadow: 0 0 0 2px var(--accent); }
   .play-accents .play-sw { width: 18px; height: 18px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
-  .play-grad { font: 700 clamp(30px, 5vw, 44px)/1 var(--font-sans); letter-spacing: -.02em;
+  .play-grad { font: 700 clamp(30px, 5vw, 44px)/1 var(--font-display); letter-spacing: -.02em;
     background: linear-gradient(120deg, var(--grad-from), var(--grad-to));
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   @media (max-width: 860px) { .play { grid-template-columns: 1fr; gap: 26px; } }
@@ -105,7 +105,7 @@
     border-radius: 14px; padding: 15px 18px; cursor: pointer; font: inherit; transition: border-color .15s; }
   .path-card:hover { border-color: var(--border-strong); }
   .path-card.is-active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .path-card b { display: block; color: var(--strong); font: 600 15px Poppins; }
+  .path-card b { display: block; color: var(--strong); font: 600 15px var(--font-sans); }
   .path-card span { color: var(--muted); font-size: 12.5px; }
   /* Focus ring — same shape the kit gives a tab and its panel in
      src/styles/tabs.css. Without it the only ring is the browser's own 1px

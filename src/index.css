@@ -4,7 +4,12 @@
  * addressable — package.json `exports` has no wildcard for ./styles/*, so a deep
  * path into src/styles/ does not resolve. To take one component, read it by name
  * through `apliteni-ui/inline` (`import { topbarCss } from …`).
- * Requires the Poppins font (loaded by the host page or Storybook preview).
+ * Requires two families, loaded by the host page or the Storybook preview:
+ * Poppins (--font-display, headings and brand marks) and IBM Plex Sans
+ * (--font-sans, everything else). Weights 300-700 in both. Neither is
+ * bundled; a family that never loads falls back to the system stack behind
+ * it, in silence.
+ * why: docs/specification.md#typefaces
  * ========================================================================== */
 @import "./tokens/brand.generated.css";
 @import "./tokens/tokens.css";

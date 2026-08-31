@@ -45,6 +45,14 @@
      the portal's JS, so an upward panel cannot drift from a downward one.
      why: docs/specification.md#the-dropdown-panel */
   --ui-dropdown-gap: 9px;
+  /* The panel states its own role rather than inheriting one, because `portal:
+     true` moves it onto <body> and an inherited face is then decided by where
+     the panel was MOUNTED rather than by what it is. Measured: the same dropdown
+     inside a display-face subtree resolved to var(--font-display) in place and
+     var(--font-sans) once portalled — a positioning flag changing the typeface.
+     A list of item rows is text, so it is the text face in both placements.
+     why: docs/specification.md#typefaces */
+  font-family: var(--font-sans);
   position: absolute;
   top: calc(100% + var(--ui-dropdown-gap));
   left: 0;

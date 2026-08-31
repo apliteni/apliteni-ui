@@ -3,7 +3,9 @@ import { create } from 'storybook/theming';
 import { SET_GLOBALS, GLOBALS_UPDATED } from 'storybook/internal/core-events';
 import { THEME_TOOL_ID, THEME_TOOL_TITLE, renderThemeToggle } from './theme-toggle.jsx';
 
-// The prism mark + wordmark as the sidebar logo (kit tokens, Poppins). The
+// The prism mark + wordmark as the sidebar logo (kit tokens). The wordmark is a
+// brand mark, so it keeps the display face (Poppins) while the chrome around it
+// takes the text face — the same split src/tokens/tokens.css makes. The
 // wordmark ink flips with the theme so it reads on both dark and light chrome.
 // The mark's violet is the brand ramp's --purple-500 (#9b5dff) — the mark's own
 // colour, which does not follow --accent and did not move with it in #157.
@@ -19,7 +21,9 @@ const logo = (ink) =>
 
 const brand = (ink) => 'data:image/svg+xml;utf8,' + encodeURIComponent(logo(ink));
 
-const fontBase = '"Poppins", system-ui, -apple-system, sans-serif';
+// Storybook's own chrome is dense UI text — a sidebar of story names, panel
+// labels, toolbar toggles — so it takes the kit's text face, not the display one.
+const fontBase = '"IBM Plex Sans", system-ui, -apple-system, sans-serif';
 const fontCode = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
 // The kit's dark palette, so the workbench reads as our design system — not

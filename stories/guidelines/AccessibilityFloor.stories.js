@@ -13,23 +13,23 @@ const CSS = `
   <style>
     .af { max-width: var(--gl-page); margin-top: var(--space-8);
       padding-top: var(--space-8); border-top: 1px solid var(--border); }
-    .af h2 { font: 700 19px/1.3 Poppins; letter-spacing: -.01em; color: var(--strong);
+    .af h2 { font: 700 19px/1.3 var(--font-display); letter-spacing: -.01em; color: var(--strong);
       margin: 0 0 var(--space-2); }
-    .af h2 + p { font: 400 13px/1.65 Poppins; color: var(--dim); margin: 0 0 var(--space-5);
+    .af h2 + p { font: 400 13px/1.65 var(--font-sans); color: var(--dim); margin: 0 0 var(--space-5);
       max-width: 72ch; }
     .af + .af { margin-top: var(--space-8); }
     .af-aim { margin: 0 0 var(--space-4); }
-    .af-aim__what { font: 600 14.5px/1.5 Poppins; color: var(--strong); margin: 0; }
-    .af-aim__how { font: 400 13px/1.65 Poppins; color: var(--dim); margin: var(--space-1) 0 0;
+    .af-aim__what { font: 600 14.5px/1.5 var(--font-sans); color: var(--strong); margin: 0; }
+    .af-aim__how { font: 400 13px/1.65 var(--font-sans); color: var(--dim); margin: var(--space-1) 0 0;
       max-width: 72ch; }
     .af-table { table-layout: fixed; }
     .af-table td { white-space: normal; vertical-align: top; }
     .af-table th:last-child { text-align: left; }
     .af-file { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
-    .af-blind { margin: 0; padding-left: var(--space-4); font: 400 12.5px/1.6 Poppins;
+    .af-blind { margin: 0; padding-left: var(--space-4); font: 400 12.5px/1.6 var(--font-sans);
       color: var(--dim); }
     .af-blind li + li { margin-top: var(--space-1); }
-    .af-does { font: 400 12.5px/1.6 Poppins; color: var(--text); }
+    .af-does { font: 400 12.5px/1.6 var(--font-sans); color: var(--text); }
   </style>`;
 
 const aim = (a) => `

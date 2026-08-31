@@ -42,8 +42,17 @@
   --container: 1120px;
   --measure: 860px;
 
-  /* -- Typography --------------------------------------------------------- */
-  --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* -- Typography ---------------------------------------------------------
+   * Two roles, not one family. --font-display is the brand voice — headings,
+   * brand lockups, large readouts — and --font-sans is what an application is
+   * actually made of: tables, fields, paragraphs, chat. Poppins is a geometric
+   * display grotesque and holds its character at heading sizes; at 13-14px it
+   * smears, worst of all in Cyrillic, which is where the kit spends most of its
+   * pixels. IBM Plex Sans is humanist and narrower, and its Cyrillic was drawn
+   * by the same team as its Latin.
+   * why: docs/specification.md#typefaces */
+  --font-display: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   --text-xs:   11px;

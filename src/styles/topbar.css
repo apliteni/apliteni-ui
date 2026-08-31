@@ -30,6 +30,10 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
+  /* display: brand — a wordmark is the mark, not text. It is two words beside a
+     glyph and it is what the product is recognised by, so it keeps the display
+     face at every size it is set at, including the 13px below. */
+  font-family: var(--font-display);
   font-weight: 600;
   color: var(--strong);
   text-decoration: none;

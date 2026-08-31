@@ -78,9 +78,9 @@ export const RULES = [
     doHtml: focusDo,
     dontHtml: focusDont,
     kit: [
-      { ref: 'src/styles/base.css:117', pattern: '.ui-focusable:focus-visible,' },
-      { ref: 'src/styles/base.css:123', pattern: 'box-shadow: var(--ring);' },
-      { ref: 'src/tokens/tokens.css:210', pattern: '--ring: 0 0 0 3px var(--accent);' },
+      { ref: 'src/styles/base.css:139', pattern: '.ui-focusable:focus-visible,' },
+      { ref: 'src/styles/base.css:145', pattern: 'box-shadow: var(--ring);' },
+      { ref: 'src/tokens/tokens.css:219', pattern: '--ring: 0 0 0 3px var(--accent);' },
     ],
   },
   {
