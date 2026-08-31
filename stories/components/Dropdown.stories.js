@@ -1,5 +1,5 @@
 import { dropdown } from '../../src/components/dropdown.js';
-import { pad, specimen } from '../_gallery.js';
+import { pad, row, specimen } from '../_gallery.js';
 
 const VERSIONS = [
   { label: 'phoenix.2026.002', description: 'Product units, animated deck', badge: 'live', selected: true },
@@ -174,4 +174,36 @@ export const InAppRail = {
       ],
     }),
   ),
+};
+
+// The three tags a row can be, side by side and hand-written, because the
+// factory emits two of them and this story is about the third. `is-selected`
+// and __tick mean a row gets chosen, and choosing is a <button>'s job — so a
+// page builds one, and .ui-dropdown__item takes the browser's button skin back
+// off. why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button
+const GUTS = '<span class="ui-dropdown__main">'
+  + '<span class="ui-dropdown__label">phoenix.2026.002</span>'
+  + '<span class="ui-dropdown__desc">Product units, animated deck</span></span>'
+  + '<span class="ui-dropdown__badge is-live">live</span>'
+  + '<span class="ui-dropdown__tick" aria-hidden="true">'
+  + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">'
+  + '<path d="M20 6 9 17l-5-5"/></svg></span>';
+
+// A panel with no trigger: `position: static` is the specimen, not the
+// component — an open panel is absolutely positioned against one.
+const flat = (rows) =>
+  `<div class="ui-dropdown__panel" role="listbox" aria-label="Version" `
+  + `style="position:static;opacity:1;visibility:visible;transform:none;width:280px">${rows}</div>`;
+
+export const RowTags = {
+  name: 'A row as div, link and button',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(row(
+    specimen('&lt;div&gt; — what the factory emits',
+      flat(`<div class="ui-dropdown__item is-selected" role="option" aria-selected="true" tabindex="-1">${GUTS}</div>`)),
+    specimen('&lt;a href&gt; — an item carrying href',
+      flat(`<a class="ui-dropdown__item is-selected" href="#version" role="option" aria-selected="true" tabindex="-1">${GUTS}</a>`)),
+    specimen('&lt;button&gt; — a page writing its own row',
+      flat(`<button class="ui-dropdown__item is-selected" type="button" role="option" aria-selected="true" tabindex="-1">${GUTS}</button>`)),
+  )),
 };

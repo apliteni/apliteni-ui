@@ -80,8 +80,12 @@ const familyDecls = () => {
  * why. It is meant to be inconvenient.
  * Was 31 at #253, the change that split one role into two: 22 text, 3 display,
  * 4 mono, and 2 that name no family at all. 32 once .ui-dropdown__panel stopped
- * inheriting a face it could be portalled away from (below). */
-const EXPECTED_SUBJECTS = 32;
+ * inheriting a face it could be portalled away from (below). 33 with
+ * `.ui-dropdown__item { font: inherit }`, which names no family either: it is
+ * the reset that takes the browser's `font: 400 13.3333px Arial` back off a row
+ * written as a <button>, and it reads the face the panel above it just pinned
+ * rather than naming the same role twice (#251). */
+const EXPECTED_SUBJECTS = 33;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

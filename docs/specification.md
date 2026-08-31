@@ -480,6 +480,53 @@ Held by `src/components/dropdown.test.js`, which reads the offsets out of the st
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
 property — and feeds the wiring measured rects, JSDOM having no layout of its own.
 
+## A dropdown row is a div, a link or a button
+
+`.ui-dropdown__item` renders identically under all three tags, and which one a row is written as
+is the page's decision rather than the kit's.
+
+The kit had already said a row gets chosen — `.ui-dropdown__tick` is the listbox variant's trailing
+check, and `.ui-dropdown__item.is-selected` is what shows it — and choosing is a `<button>`'s job.
+The rule reset nothing the browser puts on one, so a hand-written
+`<button class="ui-dropdown__item">` arrived wearing the browser's own skin. Measured in Chromium
+150 on the dark theme, and reported against 0.23.3 in
+[#251](https://github.com/apliteni/apliteni-ui/issues/251):
+
+| | before | after |
+|---|---|---|
+| `background-color` | `rgb(107, 107, 107)` | `rgba(0, 0, 0, 0)` |
+| `border`           | `2px outset rgb(255, 255, 255)` | `0px none` |
+| `font-family`      | `Arial` | the panel's own face |
+| `text-align`       | `center` | `left` |
+| `width`            | `196.86px` | `226px`, the panel's own |
+
+That reads as broken stacking rather than a missing reset, which is what it actually cost: twenty
+minutes inside `z-index` before the computed styles were pulled.
+
+The row answers the UA's `font` **shorthand** in kind, with `font: inherit` rather than
+`font-family: inherit`. `font: 400 13.3333px Arial` is one declaration setting three things, so
+replacing only the family leaves 13.3333px and `line-height: normal` behind. `.ui-nav__item` escapes
+that only because it declares a size and a line-height of its own; this rule declares neither.
+
+Inheriting is also what keeps the face in one place. `.ui-dropdown__panel` pins `--font-sans` on
+itself so a portalled panel cannot take its typeface from wherever it was mounted — see
+[Typefaces](#typefaces) — and the row reads that rather than naming the same token a second time.
+
+One difference is left standing on purpose: a `<button>` keeps `appearance: auto` where a `<div>`
+resolves `none`. It paints nothing once the background and the border are authored — the same two
+rows shot before and after are pixel-identical — and `.ui-nav__item` and `.ui-toast__action` have
+both shipped without it.
+
+`dropdown()` emits a `<div>`, or an `<a>` when an item carries `href`. It emits no `<button>` and
+takes no option asking for one, so a page that needs the row to be a real button writes that row
+itself — which is the case this guarantee exists for.
+
+Held by `stories/dropdown-tag-parity.test.js`, which mounts a row under each of the three tags
+against the browser defaults transcribed out of that measurement, and goes red when any of the five
+declarations is taken back out. It carries one gap it cannot close: jsdom pins `text-align: center`
+onto a `<button>` above any author rule, whatever the specificity and whatever the source order, so
+that one declaration is held on the other two tags and by name in the rule all three share.
+
 ## What the kit does not do
 
 Stated so nobody has to discover it by trying:
