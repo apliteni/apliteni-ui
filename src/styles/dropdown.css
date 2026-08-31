@@ -41,8 +41,12 @@
 
 /* Panel — the popover surface */
 .ui-dropdown__panel {
+  /* One number for the trigger-to-panel offset, read by both edges here and by
+     the portal's JS, so an upward panel cannot drift from a downward one.
+     why: docs/specification.md#the-dropdown-panel */
+  --ui-dropdown-gap: 9px;
   position: absolute;
-  top: calc(100% + 9px);
+  top: calc(100% + var(--ui-dropdown-gap));
   left: 0;
   min-width: 240px;
   background: var(--surface-2);
@@ -63,7 +67,32 @@
 }
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
 .ui-dropdown__panel.is-scroll { max-height: 300px; overflow-y: auto; }
+
+/* Opening upward. The kit releases its own `top` here so that nothing outside
+   the kit has to: an absolute box with both edges pinned is stretched between
+   them, and a consumer who set `bottom` and left our `top` standing got a
+   fourteen-pixel panel. The entry travel is mirrored too, so the panel arrives
+   from the trigger whichever way it opens.
+   why: docs/specification.md#the-dropdown-panel */
+.ui-dropdown__panel.is-up {
+  top: auto;
+  bottom: calc(100% + var(--ui-dropdown-gap));
+  transform: translateY(6px);
+}
+
 .ui-dropdown.open .ui-dropdown__panel { opacity: 1; visibility: visible; transform: translateY(0); }
+
+/* Portalled panel — wireDropdown() moves it onto <body>, clear of every
+   ancestor's overflow and every ancestor's stacking context. The descendant
+   selector above stops matching the moment it leaves the trigger's subtree, so
+   its open state is a class of its own; the wiring writes the viewport
+   coordinates inline, and these `auto`s are what it writes over.
+   why: docs/specification.md#the-dropdown-panel */
+.ui-dropdown__panel--portal {
+  position: fixed;
+  top: auto; right: auto; bottom: auto; left: auto;
+}
+.ui-dropdown__panel--portal.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
 
 /* Item row — [icon] [main: label + desc] [badge] [tick] */
 .ui-dropdown__item {

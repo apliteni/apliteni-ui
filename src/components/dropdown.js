@@ -76,6 +76,8 @@ function ddBody({ items, sections }, listbox) {
  * @param {string} [o.header]      raw HTML pinned to the top of the panel
  * @param {string} [o.footer]      raw HTML pinned to the bottom of the panel
  * @param {string} [o.align]       'start' (default) | 'end' — the edge the panel hugs
+ * @param {string} [o.direction]   'down' (default) | 'up' | 'auto' — the way it opens
+ * @param {boolean} [o.portal]     mount the panel on <body>, for a clipping or sticky ancestor
  * @param {boolean|number} [o.scroll] true, or a maxHeight in px, to cap and scroll
  * @param {boolean} [o.open]       render already-open (handy for screenshots)
  * @param {string} [o.ariaLabel]   accessible name for the panel and trigger
@@ -84,7 +86,8 @@ function ddBody({ items, sections }, listbox) {
 export function dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
   header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
-  align = 'start', scroll = false, open = false, ariaLabel, id, panelClass = '',
+  align = 'start', direction = 'down', portal = false,
+  scroll = false, open = false, ariaLabel, id, panelClass = '',
 } = {}) {
   const flat = sections ? sections.flatMap((s) => s.items || []) : (items || []);
   const isSelect = variant === 'select' || (variant == null && flat.some((it) => it && (it.selected || it.value != null)));
@@ -104,15 +107,30 @@ export function dropdown({
     ariaLabel && triggerContent != null ? `aria-label="${esc(ariaLabel)}"` : '',
   ].filter(Boolean).join(' ');
 
+  // `is-open` beside `open` because the descendant selector the panel normally
+  // takes its open state from stops matching once wireDropdown() portals it.
   const panelAttrs = [
-    `class="${cx('ui-dropdown__panel', align === 'end' && 'is-end', scroll && 'is-scroll', panelClass)}"`,
+    `class="${cx(
+      'ui-dropdown__panel',
+      align === 'end' && 'is-end',
+      direction === 'up' && 'is-up',
+      scroll && 'is-scroll',
+      portal && 'ui-dropdown__panel--portal',
+      portal && open && 'is-open',
+      panelClass,
+    )}"`,
     'data-dropdown-panel',
     `role="${listRole}"`,
     ariaLabel ? `aria-label="${esc(ariaLabel)}"` : '',
     scroll && scroll !== true ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
   ].filter(Boolean).join(' ');
 
-  return `<div class="${cx('ui-dropdown', open && 'open')}" data-dropdown${isSelect ? ' data-dropdown-select' : ''}${id ? ` id="${esc(id)}"` : ''}>` +
+  const ddAttrs = 'data-dropdown'
+    + (isSelect ? ' data-dropdown-select' : '')
+    + (direction === 'auto' ? ' data-dropdown-direction="auto"' : '')
+    + (portal ? ' data-dropdown-portal' : '');
+
+  return `<div class="${cx('ui-dropdown', open && 'open')}" ${ddAttrs}${id ? ` id="${esc(id)}"` : ''}>` +
     `<button ${triggerAttrs}>${trig}${chevron ? '<span class="ui-dropdown__chevron" aria-hidden="true"></span>' : ''}</button>` +
     `<div ${panelAttrs}>${header}${ddBody({ items, sections }, isSelect)}${footer}</div>` +
     `</div>`;
@@ -129,16 +147,74 @@ export function dropdown({
 // document. Safe to call repeatedly (e.g. Storybook re-renders).
 let _ddGlobalWired = false;
 
+// The trigger-to-panel offset is --ui-dropdown-gap in src/styles/dropdown.css.
+// This is the fallback for a document that has not loaded the sheet;
+// src/components/dropdown.test.js pins the two to each other.
+const DD_GAP = 9;
+
+// A portalled panel is no longer a descendant of its container, so everything
+// below asks the container for its panel rather than querying inside it.
+const ddPanelOf = (dd) => dd.__ddPanel || dd.querySelector('[data-dropdown-panel]');
+
+function ddGap(panel) {
+  const declared = parseFloat(getComputedStyle(panel).getPropertyValue('--ui-dropdown-gap'));
+  return Number.isFinite(declared) ? declared : DD_GAP;
+}
+
 function ddItemsOf(dd) {
-  const panel = dd.querySelector('[data-dropdown-panel]');
+  const panel = ddPanelOf(dd);
   if (!panel) return [];
   return Array.from(panel.querySelectorAll('[data-dd-item]'))
     .filter((el) => el.getAttribute('aria-disabled') !== 'true');
 }
 
+// `auto` is the only direction the wiring decides; `up` and the default are the
+// panel's own class, set once at render. Flip only when below is too tight AND
+// above is roomier, so a panel that fits nowhere still opens the way it says.
+function ddResolveDirection(dd, panel) {
+  if (dd.getAttribute('data-dropdown-direction') !== 'auto') return;
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  if (!trigger || typeof trigger.getBoundingClientRect !== 'function') return;
+  const t = trigger.getBoundingClientRect();
+  const below = window.innerHeight - t.bottom;
+  panel.classList.toggle('is-up', below < panel.offsetHeight + ddGap(panel) && t.top > below);
+}
+
+// Nothing lays a portalled panel out any more, so these four inline values are
+// its layout. Inline, so no rule in any sheet can pin the opposite edge.
+function positionPortalPanel(dd, panel) {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  if (!trigger || typeof trigger.getBoundingClientRect !== 'function') return;
+  const t = trigger.getBoundingClientRect();
+  const gap = ddGap(panel);
+  const s = panel.style;
+  if (panel.classList.contains('is-up')) {
+    s.top = 'auto';
+    s.bottom = `${window.innerHeight - t.top + gap}px`;
+  } else {
+    s.bottom = 'auto';
+    s.top = `${t.bottom + gap}px`;
+  }
+  if (panel.classList.contains('is-end')) {
+    s.left = 'auto';
+    s.right = `${window.innerWidth - t.right}px`;
+  } else {
+    s.right = 'auto';
+    s.left = `${t.left}px`;
+  }
+}
+
+// A panel left on <body> outlives the container that owned it — a re-render
+// replaces the container and the old panel has nothing pointing at it.
+function sweepOrphanPanels() {
+  document.querySelectorAll('body > [data-dropdown-panel][data-dropdown-portal]')
+    .forEach((p) => { if (!p.__ddOwner || !p.__ddOwner.isConnected) p.remove(); });
+}
+
 function closeDropdown(dd) {
   if (!dd.classList.contains('open')) return;
   dd.classList.remove('open');
+  ddPanelOf(dd)?.classList.remove('is-open');
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false');
 }
 
@@ -148,6 +224,11 @@ function closeAllDropdowns(except) {
 
 function openDropdown(dd, focusIdx) {
   closeAllDropdowns(dd);
+  const panel = ddPanelOf(dd);
+  if (panel) {
+    ddResolveDirection(dd, panel);
+    if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
+  }
   dd.classList.add('open');
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'true');
   if (focusIdx != null) {
@@ -161,7 +242,7 @@ function openDropdown(dd, focusIdx) {
 function selectOption(dd, item) {
   if (!dd.hasAttribute('data-dropdown-select')) return;
   ddItemsOf(dd).forEach((el) => el.setAttribute('aria-selected', el === item ? 'true' : 'false'));
-  dd.querySelectorAll('[data-dd-item].is-selected').forEach((el) => el.classList.remove('is-selected'));
+  ddPanelOf(dd)?.querySelectorAll('[data-dd-item].is-selected').forEach((el) => el.classList.remove('is-selected'));
   item.classList.add('is-selected');
   const valueEl = dd.querySelector('[data-dropdown-trigger] .ui-dropdown__value');
   const label = item.querySelector('.ui-dropdown__label');
@@ -176,6 +257,23 @@ export function wireDropdown(root = document) {
     const trigger = dd.querySelector('[data-dropdown-trigger]');
     const panel = dd.querySelector('[data-dropdown-panel]');
     if (!trigger) return;
+
+    // Portal: lift the panel onto <body>. An ancestor whose overflow is not
+    // `visible` clips it on both axes, and one that is `position: sticky` opens
+    // a stacking context whatever z-index the panel carries — the app rail is
+    // both at once. why: docs/specification.md#the-dropdown-panel
+    if (panel && dd.hasAttribute('data-dropdown-portal')) {
+      sweepOrphanPanels();
+      panel.setAttribute('data-dropdown-portal', '');
+      panel.__ddOwner = dd;
+      dd.__ddPanel = panel;
+      document.body.appendChild(panel);
+      if (dd.classList.contains('open')) {
+        ddResolveDirection(dd, panel);
+        positionPortalPanel(dd, panel);
+        panel.classList.add('is-open');
+      }
+    }
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -196,7 +294,7 @@ export function wireDropdown(root = document) {
       });
     }
 
-    dd.addEventListener('keydown', (e) => {
+    const onKeydown = (e) => {
       const open = dd.classList.contains('open');
       const onTrigger = e.target === trigger;
       if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && (onTrigger || open)) {
@@ -217,7 +315,22 @@ export function wireDropdown(root = document) {
       } else if (e.key === 'Tab' && open) {
         closeDropdown(dd);
       }
-    });
+    };
+
+    dd.addEventListener('keydown', onKeydown);
+    if (dd.__ddPanel) {
+      // A portalled panel is no longer inside the container, so a keystroke on
+      // an item never bubbles to it. Bound here only, or it would fire twice.
+      dd.__ddPanel.addEventListener('keydown', onKeydown);
+      // It is also placed once, on open, and a trigger whose box changes after
+      // that — a webfont arriving, a longer label — leaves it adrift. Scroll
+      // and resize do not see a reflow; this does.
+      if (typeof ResizeObserver === 'function') {
+        new ResizeObserver(() => {
+          if (dd.classList.contains('open')) positionPortalPanel(dd, dd.__ddPanel);
+        }).observe(trigger);
+      }
+    }
   });
 
   if (!_ddGlobalWired) {
@@ -228,5 +341,14 @@ export function wireDropdown(root = document) {
       const open = document.querySelector('[data-dropdown].open');
       if (open) { closeDropdown(open); open.querySelector('[data-dropdown-trigger]')?.focus(); }
     });
+    // Viewport coordinates go stale the moment anything scrolls. Capture, so a
+    // scroll inside the rail the panel was lifted out of counts too.
+    const reposition = () => {
+      document.querySelectorAll('[data-dropdown].open').forEach((dd) => {
+        if (dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
+      });
+    };
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
   }
 }
