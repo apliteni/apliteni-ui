@@ -22,6 +22,16 @@
   transform: translate(-50%, -100%) translateY(-4px) scale(.82); transform-origin: bottom center;
   display: inline-flex; align-items: center; gap: 9px;
   background: var(--ui-fb-pill-grad); color: var(--accent-contrast);
+  /* The pill is a click target the kit renders as a bare <div>, so the consumer who
+     needs it from the keyboard writes it as a <button> — which brings a 2px outset
+     frame around the gradient, a centred line and `font: 400 13.3333px Arial`. Stated
+     here rather than taken from the element. `font` and not `font-family`, because
+     Chrome's rule is the shorthand; the three longhands after it keep what the pill
+     wants and only the leading comes from the shorthand, which is the 1.62 the pill
+     already inherits as a div. `text-align` paints nothing on an inline-flex box
+     either way and is declared because leaving it to the element is the dependency
+     this refuses. why: #251 */
+  border: 0; text-align: center; font: inherit;
   font-family: var(--font-sans); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: .01em;
   padding: 9px 17px 9px 15px; border-radius: 999px; cursor: pointer; white-space: nowrap; overflow: hidden;
   box-shadow: 0 10px 26px var(--ui-fb-pill-glow),
@@ -68,7 +78,7 @@
 .ui-fbc__head { display: flex; align-items: center; gap: 12px; padding: 17px 20px 0; }
 .ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ui-fbc__chip svg { width: 14px; height: 14px; flex: none; opacity: .85; stroke-width: 2.7; }
-.ui-fbc__x { margin-left: auto; background: var(--surface-2); color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; }
+.ui-fbc__x { margin-left: auto; background: var(--surface-2); color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; font: inherit; }
 .ui-fbc__x:hover { color: var(--strong); }
 .ui-fbc__x svg { width: 14px; height: 14px; stroke-width: 2.7; }
 .ui-fbc__quote { margin: 14px 20px 0; background: var(--surface-2); border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }

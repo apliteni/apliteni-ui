@@ -84,8 +84,13 @@ const familyDecls = () => {
  * `.ui-dropdown__item { font: inherit }`, which names no family either: it is
  * the reset that takes the browser's `font: 400 13.3333px Arial` back off a row
  * written as a <button>, and it reads the face the panel above it just pinned
- * rather than naming the same role twice (#251). */
-const EXPECTED_SUBJECTS = 33;
+ * rather than naming the same role twice (#251). 41 with the eight more rules
+ * that answer the same shorthand on the same issue: `.vopt`, `.avatar` and
+ * `.toggle` in topbar.css, `.ui-card--interactive`, `.ui-drawer__close`,
+ * `.ui-toast__close`, `.ui-fbpill` and `.ui-fbc__x`. Each names no family
+ * either — `font: inherit` is the reset, and the face comes from the ancestor
+ * the row already sits in. */
+const EXPECTED_SUBJECTS = 41;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

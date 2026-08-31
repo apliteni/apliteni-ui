@@ -83,7 +83,7 @@
 .ui-toast__action { flex: none; align-self: center; background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); }
 
-.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; }
+.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; font: inherit; }
 .ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 /* The target, not the ink. WCAG 2.5.8 measures what a pointer can land on, and
    the drawn button is 19x19 — a 15px glyph in 2px of padding. Growing the box
