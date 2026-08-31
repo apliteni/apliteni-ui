@@ -157,7 +157,6 @@
   --accent: #b479ff;
   --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA at 5.70:1 */
   --accent-contrast: #ffffff;
-  --ink: #e9e7f0;
 
   /* Ink that reads on a SIGNAL colour once that colour becomes a fill — the glyph in a
      success circle, or on a toast's status circle. One near-black ink clears all five in
@@ -267,7 +266,6 @@
   --accent: #6a2dcc;
   --accent-strong: #6a2dcc; /* already dark enough for white text */
   --accent-contrast: #ffffff;
-  --ink: #1e232b;
 
   --signal-contrast: #0c0c0c;
   --danger-contrast: #ffffff;

@@ -132,6 +132,12 @@ Each accent re-points only the accent family (`--accent`, `--purple*`, `--glow-p
 stay put — so **every accent works in both themes** and every component follows with no
 component-level change.
 
+Both attributes are overrides, not requirements: with neither present the kit paints dark
+Nebula, and `data-accent` alone paints that accent on the dark theme. An absent `data-theme`
+is *not* "follow the system" — the kit ships no `prefers-color-scheme` rule, so a host that
+wants the OS preference resolves it in JS and stamps the attribute. See
+[`docs/library.md`](./docs/library.md#an-absent-attribute-means-dark).
+
 Shipped accents: **Nebula** (purple, default), **Phoenix** (ember), **Ocean** (azure),
 **Emerald** (jade). Runtime helpers: `applyTheme('light')` / `applyAccent('phoenix')`
 (both persist to `localStorage`); or the `accentPicker()` component wired by `wireTopbar()`.
