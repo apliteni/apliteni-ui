@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.26.0', date: '2026-09-06',
+    changes: [
+      ['added', "React DataTable can omit selection controls and share controlled sorting with another view of its rows. Existing selection and uncontrolled sorting retain their behavior.", ['DataTable']],
+    ],
+  },
+  {
     v: '0.25.3', date: '2026-09-06',
     changes: [
       ['fixed', "The React Modal now skips hidden controls and controls disabled by a fieldset when choosing opening focus. Previously, a body containing fields inside a closed <details> could open with focus outside the dialog. Its summary now participates in the focus cycle. Negative-tabindex elements, which scripts can focus but Tab skips, are excluded from the trap's endpoints.", ['Modal']],

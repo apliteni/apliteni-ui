@@ -527,6 +527,28 @@ declarations is taken back out. It carries one gap it cannot close: jsdom pins `
 onto a `<button>` above any author rule, whatever the specificity and whatever the source order, so
 that one declaration is held on the other two tags and by name in the rule all three share.
 
+## React tables
+
+A table may omit selection controls when its consumer has no selection action. Existing
+selection-enabled tables keep their row and visible-page selection behavior.
+
+Sorting may be controlled by the consumer or managed by the table. The default remains the
+first sortable column, descending. A controlled sort reports header activation to its owner;
+the owner supplies the next state. One table stays in one of those two modes for as long as
+it is on the page: a table that is given a sort and later left to manage its own is not
+supported, and returns to its default order rather than to the order it was showing.
+
+An absent sort key preserves input order. Equal values retain input order, and ordering
+hands back a list of its own, so the rows a caller supplies are never reordered through the
+result. Sortable columns require consistently typed, comparable values. Ordering of mixed types,
+missing values and NaN is not guaranteed. The same ordering
+function is available for another presentation of those rows.
+
+Changing the sort returns the reader to the first page, whether the change came from a
+header or from anything else the consumer offers. Sort headers keep their column roles,
+keyboard buttons and sort direction announcements, and the column a table is sorted by
+announces its direction whether or not its own header offers a sort control.
+
 ## What the kit does not do
 
 Stated so nobody has to discover it by trying:

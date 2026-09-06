@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
-import { DataTable, type Column } from './DataTable';
+import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { Badge } from './primitives/Badge';
 
 type Row = { name: string; status: string; clicks: number };
@@ -32,5 +32,19 @@ export const Playground: StoryObj = {
           ns.forEach((n) => all ? x.delete(n) : x.add(n)); return x;
         })} />
     );
+  },
+};
+
+
+export const SharedOrder: StoryObj = {
+  render: function Render() {
+    const [sort, setSort] = useState<TableSort<Row>>({ key: 'clicks', dir: -1 });
+    return <>
+      <DataTable columns={columns} rows={rows} pageSize={rows.length} selectable={false}
+        sort={sort} onSortChange={setSort} />
+      <section className="ui-card" aria-label="Same rows as a list">
+        <ol>{sortTableRows(rows, sort).map(row => <li key={row.name}>{row.name}</li>)}</ol>
+      </section>
+    </>;
   },
 };
