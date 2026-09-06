@@ -322,6 +322,11 @@ export const GATES = [
     blind: ['Whether the glyph is legible at its size. The stroke-width rule governs that, for two families.'],
   },
   {
+    file: 'react/src/DataTable.test.tsx',
+    does: 'Keyboard sorting keeps semantic column headers and the announced sort direction.',
+    blind: ['Real browser focus and responsive layout; these mounted tests use jsdom.'],
+  },
+  {
     file: 'react/src/Modal.test.tsx',
     does: 'The React modal\u2019s focus and dismissal behaviour, mounted rather than serialised.',
     blind: ['The scrim\u2019s backdrop-filter, and anything else only a browser composites.'],

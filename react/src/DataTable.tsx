@@ -5,53 +5,76 @@ import './DataTable.css';
 export type Column<T> = {
   key: keyof T & string; label: string; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
 };
+export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
+type SelectionProps =
+  | { selectable: false; selected?: Set<string>; onToggle?: (name: string) => void; onTogglePage?: (names: string[]) => void }
+  | { selectable?: true; selected: Set<string>; onToggle: (name: string) => void; onTogglePage: (names: string[]) => void };
 export type DataTableProps<T> = {
   columns: Column<T>[]; rows: T[]; pageSize?: number;
-  selected: Set<string>; onToggle: (name: string) => void; onTogglePage: (names: string[]) => void;
-};
+} & SelectionProps & (
+  | { sort?: never; onSortChange?: (sort: TableSort<T>) => void }
+  | { sort: TableSort<T>; onSortChange: (sort: TableSort<T>) => void }
+);
+
+// why: docs/specification.md#react-tables
+// Every path returns a copy. Values must be comparable with JavaScript < and >.
+export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
+  if (sort.key === undefined) return [...rows];
+  const key = sort.key;
+  return [...rows].sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * sort.dir);
+}
 
 export function DataTable<T extends { name: string }>({
-  columns, rows, pageSize = 4, selected, onToggle, onTogglePage,
+  columns, rows, pageSize = 4, selectable = true, selected = new Set<string>(),
+  onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
 }: DataTableProps<T>) {
-  const [sort, setSort] = useState<{ key: string | undefined; dir: 1 | -1 }>(
+  const [localSort, setLocalSort] = useState<TableSort<T>>(
     { key: columns.find((c) => c.sortable)?.key, dir: -1 });
+  const sort = controlledSort ?? localSort;
   const [page, setPage] = useState(0);
+  // Compare values so fresh inline sort objects do not reset pagination.
+  const [pagedSort, setPagedSort] = useState(sort);
+  if (pagedSort.key !== sort.key || pagedSort.dir !== sort.dir) {
+    setPagedSort(sort);
+    setPage(0);
+  }
 
-  const sorted = useMemo(() => {
-    if (!sort.key) return rows;
-    const k = sort.key as keyof T;
-    return [...rows].sort((a, b) => (a[k] > b[k] ? 1 : a[k] < b[k] ? -1 : 0) * sort.dir);
-  }, [rows, sort]);
+  const sorted = useMemo(() => sortTableRows(rows, sort), [rows, sort.key, sort.dir]);
 
   const pages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const safePage = Math.min(page, pages - 1);
   const slice = sorted.slice(safePage * pageSize, safePage * pageSize + pageSize);
-  const onSort = (k: string) => {
-    setSort((s) => (s.key === k ? { key: k, dir: (s.dir === 1 ? -1 : 1) } : { key: k, dir: -1 }));
+  const onSort = (key: keyof T & string) => {
+    const next: TableSort<T> = sort.key === key
+      ? { key, dir: sort.dir === 1 ? -1 : 1 }
+      : { key, dir: -1 };
+    if (controlledSort === undefined) setLocalSort(next);
+    onSortChange?.(next);
     setPage(0);
   };
   const caret = (k: string) => (sort.key === k ? (sort.dir === 1 ? ' ▲' : ' ▼') : ' ↕');
-  const pageAllOn = slice.length > 0 && slice.every((r) => selected.has(r.name));
+  const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
 
   return (
     <>
       <table className="ui-table ui-table--hover ui-table--zebra">
         <thead>
           <tr>
-            <th scope="col">
+            {selectable ? <th scope="col">
               {/* No visible text: aria-label is this checkbox's whole name. */}
               <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
                 onChange={() => onTogglePage(slice.map((r) => r.name))} />
-            </th>
+            </th> : null}
             {columns.map((c) => (
               // The sort control is a real <button> inside the header cell. It used to be
               // role="button" ON the <th>, which threw away the columnheader role and put
               // aria-sort on a role that forbids it.
               <th key={c.key} scope="col"
                 className={[c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
-                aria-sort={c.sortable
-                  ? (sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none')
-                  : undefined}>
+                // External sorting can select a column without an interactive header.
+                aria-sort={sort.key === c.key
+                  ? (sort.dir === 1 ? 'ascending' : 'descending')
+                  : (c.sortable ? 'none' : undefined)}>
                 {c.sortable
                   ? (
                     <button type="button" className="rx-sort" onClick={() => onSort(c.key)}>
@@ -66,8 +89,8 @@ export function DataTable<T extends { name: string }>({
         <tbody>
           {slice.map((r) => (
             <tr key={r.name}>
-              <td><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
-                onChange={() => onToggle(r.name)} /></td>
+              {selectable ? <td><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
+                onChange={() => onToggle(r.name)} /></td> : null}
               {columns.map((c) => (
                 <td key={c.key} className={c.num ? 'ui-table__num' : undefined}>
                   {c.render ? c.render(r) : String(r[c.key])}

@@ -64,3 +64,32 @@ The bare `@apliteni/apliteni-ui` specifier in this source resolves to the kit it
 once installed. In the repo there is no copy to resolve to, so `kit-alias.ts` points
 vitest and Storybook straight at `../src/` — which is why the class-name parity tests
 now compare against the working tree rather than the last published release.
+
+### Tables with another presentation of the same rows
+
+Pass `selectable={false}` to omit selection controls and their callbacks. Existing callers
+that supply selection callbacks retain the checkbox column by default.
+
+`sort` and `onSortChange` make sorting controlled. Both presentations can use the exported
+`sortTableRows` helper, so initial order, stable ties and later changes agree:
+
+```tsx
+const [sort, setSort] = useState<TableSort<Row>>({ key: 'name', dir: -1 });
+const ordered = sortTableRows(rows, sort);
+
+<DataTable columns={columns} rows={rows} selectable={false}
+  sort={sort} onSortChange={setSort} />
+```
+
+Render the sibling list from `ordered`. Omit `sort` to keep the table's own state;
+`onSortChange` can also observe that uncontrolled state. Set `key: undefined` to preserve
+input order. Import `TableSort` and `sortTableRows` from `@apliteni/apliteni-ui/react`.
+
+Changing the sort returns the table to its first page. The comparator uses JavaScript
+`<` and `>`; use consistently typed, comparable values in sortable columns. Ordering of
+mixed types, missing values and `NaN` is not guaranteed. `sortTableRows` always returns
+a new array, including when `key` is `undefined`.
+
+Choose controlled or uncontrolled once per table. Passing `sort` for a while and then
+dropping it is not supported: the table falls back to the sort state it started with, not to
+the one it was last given.
