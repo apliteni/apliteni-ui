@@ -31,6 +31,14 @@ import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 
 Components: `DataTable`, `Modal`, `Button`, `Badge`, `Card`, `Icon`.
 
+## What the Modal does with focus
+
+Opening moves focus to the first eligible control in the body, in DOM order, or to
+the dialog itself if none exists. Links and disclosure summaries are eligible; hidden
+controls, disabled controls, controls inside a closed disclosure and elements with a
+negative tabindex are skipped. Tab and Shift+Tab wrap at the ends of the same list.
+Escape and a click on the scrim dismiss the dialog and return focus to its opener.
+
 ## Work on them
 
 From the repo root — one `npm install` covers the workspace:
