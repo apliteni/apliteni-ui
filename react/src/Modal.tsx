@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './primitives/Button';
 import './Modal.css';
@@ -7,9 +7,55 @@ export type ModalProps = {
   open: boolean; title: string; onClose: () => void; footer?: ReactNode; children?: ReactNode;
 };
 
-// Everything focusable inside the panel, in DOM order.
+// The candidates, in DOM order — `tabbable` below decides which of them Tab reaches. A
+// disclosure's summary is focusable to the browser without matching any of the others.
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), '
-  + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), details > summary:first-of-type';
+
+// In the *browser's* sequential tab order, not merely matching the selector. A field
+// folded inside a closed disclosure, a hidden subtree or an inert one is skipped by that
+// order, and focus() on one is a silent no-op — a dialog that opens onto one leaves the
+// reader on <body>, outside it. Tab is the stricter of the two questions and it is the one
+// asked here, because the same list decides where the dialog opens and where the trap
+// wraps: opening on a control Tab cannot reach strands the reader at the first keystroke.
+// The vanilla overlay asks a narrower version of the same question —
+// src/components/overlay.js:32 `function reachable(el)` — and the React layer could not
+// reuse it in any case: it is internal to the kit and no export reaches it.
+function tabbable(el: HTMLElement) {
+  // A negative tabindex is focusable to a script and skipped by Tab, whatever the element,
+  // and `disabled` on an ancestor fieldset disables a control without the attribute ever
+  // reaching it — except inside that fieldset's first legend, which stays enabled and
+  // which `:disabled` already knows about.
+  const tabindex = el.getAttribute('tabindex');
+  if (tabindex !== null && Number(tabindex) < 0) return false;
+  if (el.matches(':disabled')) return false;
+  for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+    if (node.inert || node.hasAttribute('inert') || node.hasAttribute('hidden')) return false;
+    const holder: HTMLElement | null = node.parentElement;
+    const folded = holder?.tagName === 'DETAILS' && !(holder as HTMLDetailsElement).open;
+    if (folded && node !== holder.querySelector(':scope > summary')) return false;
+  }
+  // Browsers can answer the rest properly; jsdom has no layout and no such method.
+  // `visibilityProperty` and not the vanilla's second option: a skipped
+  // `content-visibility: auto` subtree reads as invisible there and Tab still reaches
+  // it, because the browser un-skips it to put focus inside.
+  return typeof el.checkVisibility !== 'function'
+    || el.checkVisibility({ visibilityProperty: true });
+}
+
+const tabbablesIn = (root: HTMLElement) =>
+  Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(tabbable);
+
+// A click on the scrim and nowhere else dismisses. preventDefault is what makes the
+// opener keep the focus the dialog hands back: mousedown's own default action moves
+// focus to the nearest focusable ancestor of what was hit — nothing, here — and it runs
+// after this handler has already closed the dialog and restored the opener, so without
+// it a complete click ends on <body> and only a synthetic mousedown looks correct.
+const dismissOnScrim = (onClose: () => void) => (e: ReactMouseEvent) => {
+  if (e.target !== e.currentTarget) return;
+  e.preventDefault();
+  onClose();
+};
 
 export function Modal({ open, title, onClose, footer, children }: ModalProps) {
   const panel = useRef<HTMLDivElement>(null);
@@ -21,14 +67,16 @@ export function Modal({ open, title, onClose, footer, children }: ModalProps) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { onClose(); return; }
       if (e.key !== 'Tab' || !panel.current) return;
-      const items = Array.from(panel.current.querySelectorAll<HTMLElement>(FOCUSABLE));
+      const items = tabbablesIn(panel.current);
       if (items.length === 0) { e.preventDefault(); panel.current.focus(); return; }
       const first = items[0];
       const last = items[items.length - 1];
       const active = document.activeElement;
       if (!panel.current.contains(active)) { e.preventDefault(); first.focus(); return; }
       if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
-      else if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+      else if (e.shiftKey && (active === first || active === panel.current)) {
+        e.preventDefault(); last.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -49,18 +97,19 @@ export function Modal({ open, title, onClose, footer, children }: ModalProps) {
     };
   }, [open]);
 
-  // Focus the first field in the body, not the header Close button.
+  // Focus the first control in the body that Tab can reach, not the header Close button —
+  // and never a field a closed disclosure folds over or a fieldset locks, which focus()
+  // would leave on <body> in silence. That is where #262 landed.
   useEffect(() => {
     if (!open) return;
-    const target = panel.current?.querySelector<HTMLElement>(
-      '.rx-modal__body input, .rx-modal__body select, .rx-modal__body textarea, .rx-modal__body button',
-    ) || panel.current;
+    const body = panel.current?.querySelector<HTMLElement>('.rx-modal__body');
+    const target = (body ? tabbablesIn(body) : [])[0] || panel.current;
     target?.focus();
   }, [open]);
 
   if (!open) return null;
   return createPortal(
-    <div className="rx-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="rx-scrim" onMouseDown={dismissOnScrim(onClose)}>
       <div className="rx-modal" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={panel}>
         <div className="rx-modal__head">
           <div className="rx-modal__title">{title}</div>

@@ -13,6 +13,15 @@
 
 export const RELEASES = [
   {
+    v: '0.25.3', date: '2026-09-06',
+    changes: [
+      ['fixed', "The React Modal now skips hidden controls and controls disabled by a fieldset when choosing opening focus. Previously, a body containing fields inside a closed <details> could open with focus outside the dialog. Its summary now participates in the focus cycle. Negative-tabindex elements, which scripts can focus but Tab skips, are excluded from the trap's endpoints.", ['Modal']],
+      ['changed', "A link or disclosure summary before the body's first field now receives opening focus. An empty body still focuses the dialog itself.", ['Modal']],
+      ['fixed', "Clicking the scrim now preserves focus on the element that opened the dialog. The scrim cancels the mousedown default action that previously undid focus restoration.", ['Modal']],
+      ['added', "Nine focus regression tests and a CollapsedForm story.", ['Modal']],
+    ],
+  },
+  {
     v: '0.25.2', date: '2026-08-31',
     changes: [
       ['changed', 'The account avatar in the topbar repaints. It is a `<button>` carrying the account initials, and `.avatar` stated no family, so those two characters painted in the browser\'s Arial in every release up to 0.25.1 while the label beside them took the kit face. The rule now states `font: inherit`, and keeps its own 600 weight and 12.5px size by writing them after the shorthand, so the initials take the text face the topbar is already set in inside the same 32 × 32 circle. Every app using the topbar sees this. No pixel offset is quoted for it: the reading was taken against 0.23.3 in Chrome 152, when `--font-sans` was Poppins, and 0.25.0 made it IBM Plex Sans, so the number it produced is not the number this release ships. Four more rules took the same declaration and repaint nothing — the drawer close, the toast close, the theme toggle and the feedback composer\'s dismiss each render one `<svg>` and no text characters at all, swept over the 60 story renderings the kit gives them.', ['Topbar', 'Drawer', 'Callout', 'Feedback']],
