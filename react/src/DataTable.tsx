@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pagination } from './Pagination';
 import './DataTable.css';
 
@@ -36,6 +36,8 @@ export function DataTable<T extends { name: string }>({
     { key: columns.find((c) => c.sortable)?.key, dir: -1 });
   const sort = controlledSort ?? localSort;
   const [page, setPage] = useState(0);
+  // Where a turned page sends the reader: onto the rows the new range describes.
+  const tableRef = useRef<HTMLTableElement>(null);
   // Compare values so fresh inline sort objects do not reset pagination.
   const [pagedSort, setPagedSort] = useState(sort);
   if (pagedSort.key !== sort.key || pagedSort.dir !== sort.dir) {
@@ -61,7 +63,7 @@ export function DataTable<T extends { name: string }>({
 
   return (
     <>
-      <table className="ui-table ui-table--hover ui-table--zebra">
+      <table className="ui-table ui-table--hover ui-table--zebra" ref={tableRef}>
         <thead>
           <tr>
             {selectable ? <th scope="col">
@@ -106,7 +108,7 @@ export function DataTable<T extends { name: string }>({
       </table>
       {pager ? (
         <Pagination page={safePage + 1} perPage={pageSize} total={sorted.length}
-          onPageChange={(to) => setPage(to - 1)} />
+          onPageChange={(to) => setPage(to - 1)} focusRef={tableRef} />
       ) : null}
     </>
   );

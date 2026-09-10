@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
@@ -200,4 +201,57 @@ it('stays quiet in link mode, because the document reloads and reads itself', ()
   const range = container.querySelector('.ui-pager__range');
   expect(range).not.toHaveAttribute('aria-live');
   expect(range).not.toHaveAttribute('aria-atomic');
+});
+
+// ---- focus, the half the factory cannot do ------------------------------
+// After a page turns the reader is still on the Next button below a table they
+// have not seen, and Tab from there walks out of the page rather than into it.
+// Primer: focus must be programmatically moved to the updated content so screen
+// reader users are made aware of the change.
+// why: stories/guidelines/_tables-at-scale.js `announce`
+
+function Paged({ link = false, missing = false }: { link?: boolean; missing?: boolean }) {
+  const [page, setPage] = useState(1);
+  const rows = useRef<HTMLTableElement>(null);
+  const nowhere = useRef<HTMLElement>(null);
+  return (
+    <>
+      <table ref={rows}><tbody><tr><td>page {page}</td></tr></tbody></table>
+      <Pagination page={page} perPage={25} total={500} focusRef={missing ? nowhere : rows}
+        onPageChange={setPage}
+        renderLink={link ? ((p, children) => <a href={`?page=${p}`}>{children}</a>) : undefined} />
+    </>
+  );
+}
+
+it('moves focus to the rows the new range describes', async () => {
+  render(<Paged />);
+  await userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
+  expect(screen.getByText('page 2')).toBeInTheDocument();
+  expect(screen.getByRole('table')).toHaveFocus();
+});
+
+// -1 makes the rows a target for focus() without putting them in the tab order,
+// so Tab from there still walks into the page rather than out of it.
+it('makes the rows focusable without putting them in the tab order', async () => {
+  render(<Paged />);
+  await userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
+  expect(screen.getByRole('table')).toHaveAttribute('tabindex', '-1');
+});
+
+it('does not steal focus on the first render', () => {
+  render(<Paged />);
+  expect(screen.getByRole('table')).not.toHaveFocus();
+});
+
+it('leaves focus alone in link mode, where the browser already moved it', async () => {
+  render(<Paged link />);
+  await userEvent.click(screen.getByRole('link', { name: 'Go to next page' }));
+  expect(screen.getByRole('table')).not.toHaveFocus();
+});
+
+it('is a no-op rather than a crash when the ref points at nothing', async () => {
+  render(<Paged missing />);
+  await userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
+  expect(screen.getByText('page 2')).toBeInTheDocument();
 });

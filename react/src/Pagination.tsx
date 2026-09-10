@@ -1,4 +1,7 @@
-import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
+import {
+  cloneElement, isValidElement, useEffect, useRef,
+  type ReactElement, type ReactNode, type RefObject,
+} from 'react';
 import { pagerRange } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 // The SAME stylesheet the vanilla pager() draws against — not a copy. Imported
@@ -26,6 +29,14 @@ export type PaginationProps = {
    * everything around one.
    */
   renderLink?: (page: number, children: ReactNode) => ReactNode;
+  /**
+   * The rows this pager is about. After an in-place page change focus is moved
+   * here, because the reader is otherwise left on a control below a table they
+   * have not seen, and Tab from there walks out of the page rather than into it.
+   * Link mode leaves it alone: the document reloaded and the browser has already
+   * placed focus. why: stories/guidelines/_tables-at-scale.js `announce`
+   */
+  focusRef?: RefObject<HTMLElement | null>;
   busy?: boolean;
   label?: string;
 };
@@ -61,8 +72,24 @@ function pageWindow(page: number, pages: number, radius = 2): (number | 'gap')[]
 export function Pagination({
   page, perPage, total, hasMore, rowsOnPage,
   tier = 'compact', perPageOptions = [10, 25, 50, 100],
-  onPageChange, onPerPageChange, renderLink, busy = false, label = 'Pagination',
+  onPageChange, onPerPageChange, renderLink, focusRef, busy = false, label = 'Pagination',
 }: PaginationProps) {
+  // Before every refusal and every early return below, so the hook order never
+  // depends on which of them fires.
+  const seen = useRef(page);
+  useEffect(() => {
+    if (seen.current === page) return;      // the first render is not a page change
+    seen.current = page;
+    if (renderLink) return;                 // the browser reloaded and moved focus itself
+    const rows = focusRef?.current;
+    if (!rows) return;
+    // A <table> is not focusable on its own, and a ref the consumer aimed at one
+    // is the ref they will actually write. -1 makes it a target for focus()
+    // without putting it in the tab order.
+    if (!rows.hasAttribute('tabindex')) rows.setAttribute('tabindex', '-1');
+    rows.focus();
+  }, [page]);
+
   if (!TIERS.includes(tier)) throw new Error(`Pagination: unknown tier "${tier}" — expected ${TIERS.join(', ')}.`);
   const known = total != null;
   if (!known && (hasMore == null || rowsOnPage == null)) {

@@ -181,3 +181,12 @@ it('pages at twenty-five when asked to page', () => {
   render(<DataTable columns={columns} rows={many} selectable={false} pager />);
   expect(screen.getAllByRole('row')).toHaveLength(26);
 });
+
+// The reader who turned the page is standing on the control, below a table they
+// have not seen. why: react/src/Pagination.tsx `focusRef`
+it('sends the reader to the rows after turning a page', async () => {
+  render(<DataTable columns={columns} rows={many} selectable={false} pager pageSize={10} />);
+  await userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
+  expect(screen.getByText('11–20 of 30')).toBeInTheDocument();
+  expect(screen.getByRole('table')).toHaveFocus();
+});
