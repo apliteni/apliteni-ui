@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
-import { pagerRange } from '@apliteni/apliteni-ui';
+import { pager, pagerRange } from '@apliteni/apliteni-ui';
 import { Pagination } from './Pagination';
 
 it('says the range the kit says, for the same inputs', () => {
@@ -254,4 +254,73 @@ it('is a no-op rather than a crash when the ref points at nothing', async () => 
   render(<Paged missing />);
   await userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
   expect(screen.getByText('page 2')).toBeInTheDocument();
+});
+
+// ---- one skin, two renderers --------------------------------------------
+// The React component and the vanilla factory draw against the SAME stylesheet
+// and nothing else holds them to it. These are what notices when one of them
+// grows a class the other does not have. why: react/kit-alias.ts
+
+const classNames = (root: ParentNode) => [...new Set(
+  [...root.querySelectorAll('[class]')].flatMap((el) => [...el.classList]),
+)].sort();
+
+const vanillaBody = (html: string) => {
+  const doc = document.implementation.createHTMLDocument('');
+  doc.body.innerHTML = html;
+  return doc.body;
+};
+
+it.each(['compact', 'advanced', 'numbered'] as const)(
+  'carries the same class names the vanilla factory emits for the %s tier',
+  (tier) => {
+    const args = { page: 3, perPage: 25, total: 500 };
+    const { container } = render(<Pagination {...args} tier={tier}
+      onPageChange={() => {}} onPerPageChange={() => {}} />);
+    expect(classNames(container)).toEqual(classNames(vanillaBody(pager({ ...args, tier }))));
+  });
+
+it('carries the same class names for an unknown total, where the last page is absent', () => {
+  const args = { page: 2, perPage: 25, hasMore: true, rowsOnPage: 25 };
+  const { container } = render(<Pagination {...args} tier="advanced"
+    onPageChange={() => {}} onPerPageChange={() => {}} />);
+  expect(classNames(container)).toEqual(classNames(vanillaBody(pager({ ...args, tier: 'advanced' }))));
+});
+
+// ---- link mode, and the fetch in flight ----------------------------------
+
+it('hands the router a real anchor rather than a button pretending to be one', () => {
+  render(<Pagination page={3} perPage={100} total={4812}
+    renderLink={(p, children) => <a href={`?page=${p}`}>{children}</a>} />);
+  expect(screen.getByRole('link', { name: 'Go to next page' })).toHaveAttribute('href', '?page=4');
+  expect(screen.queryByRole('button', { name: 'Go to next page' })).toBeNull();
+});
+
+it('keeps a className of the router\'s own instead of replacing it', () => {
+  render(<Pagination page={3} perPage={100} total={4812}
+    renderLink={(p, children) => <a href={`?page=${p}`} className="router-link">{children}</a>} />);
+  expect(screen.getByRole('link', { name: 'Go to next page' })).toHaveClass('ui-pager__btn', 'router-link');
+});
+
+// A control with nowhere to go is a disabled <button> in BOTH modes: there is no
+// URL for a page that does not exist, and aria-disabled on an anchor is a promise
+// the browser does not keep.
+it('makes a dead control a disabled button even in link mode', () => {
+  render(<Pagination page={1} perPage={100} total={4812}
+    renderLink={(p, children) => <a href={`?page=${p}`}>{children}</a>} />);
+  expect(screen.getByRole('button', { name: 'Go to previous page' })).toBeDisabled();
+});
+
+// The rows are what is loading. The position is not, and it was true a moment ago.
+// why: stories/guidelines/_tables-at-scale.js `loading`
+it('disables every control while a fetch is in flight, without clearing the range', () => {
+  render(<Pagination page={4} perPage={100} total={4812} tier="advanced" busy
+    onPageChange={() => {}} onPerPageChange={() => {}} />);
+  expect(screen.getByText(pagerRange({ page: 4, perPage: 100, total: 4812 }))).toBeInTheDocument();
+  expect(screen.getByRole('navigation', { name: 'Pagination' })).toHaveAttribute('aria-busy', 'true');
+  for (const name of ['Go to first page', 'Go to previous page', 'Go to next page', 'Go to last page']) {
+    expect(screen.getByRole('button', { name })).toBeDisabled();
+  }
+  expect(screen.getByRole('combobox', { name: 'Rows per page' })).toBeDisabled();
+  expect(screen.getByRole('spinbutton', { name: 'Go to page' })).toBeDisabled();
 });
