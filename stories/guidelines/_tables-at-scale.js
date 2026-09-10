@@ -110,7 +110,7 @@ export const RULES = [
       + 'nothing further. Next is live; there is no Last, because there is no last page to offer.',
     dontCaption: 'The same call with one argument changed — the 100 rows on this page passed as '
       + 'total. The pager reports a finished table of 100 over a server page with 4,812 rows behind '
-      + 'it, and disables the eight controls that would have carried the reader to them.',
+      + 'it, and disables all four of the controls that would have carried the reader to them.',
     doHtml: totalDo,
     dontHtml: totalDont,
     kit: [
