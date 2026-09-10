@@ -82,6 +82,12 @@ export function Pagination({
   if (tier === 'advanced' && !onPerPageChange) {
     throw new Error('Pagination: the advanced tier needs onPerPageChange — a rows-per-page control that reports nothing is a control that lies.');
   }
+  // The jump is the one control a router cannot own. Every other control in link
+  // mode has an anchor waiting for it; a page the reader has not typed yet has no
+  // URL to point at, so the tier needs a callback even when the rest navigates.
+  if (tier === 'advanced' && !onPageChange) {
+    throw new Error('Pagination: the advanced tier\'s jump needs onPageChange — there is no anchor for a page the reader has not typed yet.');
+  }
 
   const pages = known ? Math.max(1, Math.ceil(total / perPage)) : null;
   const rows = known ? total : (page - 1) * perPage + (rowsOnPage as number);
@@ -160,6 +166,7 @@ export function Pagination({
     : null;
 
   let size: ReactNode = null;
+  let jump: ReactNode = null;
   if (tier === 'advanced') {
     // A page size the caller is actually on but never offered is still the truth
     // about the table, so it joins the list rather than reading as unselected.
@@ -171,6 +178,35 @@ export function Pagination({
           value={perPage} onChange={(e) => onPerPageChange?.(Number(e.target.value))}>
           {options.map((o) => <option key={o} value={o}>{group(o)}</option>)}
         </select>
+      </label>
+    );
+    // A <select> over 49 pages is a select nobody wants; a number field with a max
+    // is the same jump in one keystroke, and it commits on Enter for free.
+    //
+    // Uncontrolled, keyed on the page: the reader types over it freely, and a page
+    // turned by any other control remounts it back onto the truth. A controlled
+    // value would fight the keystrokes, and a draft in state would need a hook the
+    // early returns below cannot promise to reach.
+    const commit = (el: HTMLInputElement) => {
+      const typed = Number(el.value);
+      const to = el.value === '' || !Number.isFinite(typed)
+        ? page
+        : Math.max(1, known ? Math.min(typed, pages as number) : typed);
+      el.value = String(to);
+      if (to !== page) onPageChange?.(to);
+    };
+    jump = (
+      <label className="ui-pager__jump">
+        <span className="ui-pager__label">Go to page</span>
+        <input key={page} className="ui-input ui-pager__input" type="number" inputMode="numeric"
+          min={1} {...(known ? { max: pages as number } : {})} defaultValue={page}
+          data-pager-jump disabled={busy}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            commit(e.currentTarget);
+          }}
+          onBlur={(e) => commit(e.currentTarget)} />
       </label>
     );
   }
@@ -185,6 +221,7 @@ export function Pagination({
       <span className="ui-pager__range">
         {pagerRange({ page, perPage, total, hasMore, rowsOnPage })}
       </span>
+      {jump}
       <div className="ui-pager__controls">{controls}</div>
     </nav>
   );

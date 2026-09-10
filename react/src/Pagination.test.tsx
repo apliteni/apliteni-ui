@@ -156,6 +156,25 @@ it('has no upper bound to offer when there is no last page', () => {
   expect(screen.getByRole('spinbutton', { name: 'Go to page' })).not.toHaveAttribute('max');
 });
 
+// The jump is the one control a router cannot own: there is no anchor for a page
+// the reader has not typed yet, so link mode still needs a callback to commit it.
+it('refuses the advanced tier in link mode with no way to commit a typed page', () => {
+  expect(() => render(
+    <Pagination page={1} perPage={25} total={4812} tier="advanced" onPerPageChange={() => {}}
+      renderLink={(p, children) => <a href={`?page=${p}`}>{children}</a>} />,
+  )).toThrow(/jump needs onPageChange/);
+});
+
+it('commits a typed page on Enter, and clamps it to the pages that exist', async () => {
+  const onPageChange = vi.fn();
+  render(<Pagination page={3} perPage={100} total={4812} tier="advanced"
+    onPageChange={onPageChange} onPerPageChange={() => {}} />);
+  const jump = screen.getByRole('spinbutton', { name: 'Go to page' });
+  await userEvent.clear(jump);
+  await userEvent.type(jump, '900{Enter}');
+  expect(onPageChange).toHaveBeenCalledWith(49);
+});
+
 it('refuses the advanced tier without a way to report the page size', () => {
   expect(() => render(
     <Pagination page={1} perPage={25} total={4812} tier="advanced" onPageChange={() => {}} />,
