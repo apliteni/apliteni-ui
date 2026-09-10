@@ -8,6 +8,7 @@ import * as componentContent from './_component-choice.js';
 import * as microcopyContent from './_microcopy.js';
 import * as iconographyContent from './_iconography.js';
 import * as layoutContent from './_layout-and-density.js';
+import * as tablesContent from './_tables-at-scale.js';
 import * as floorContent from './_accessibility-floor.js';
 
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
@@ -18,6 +19,7 @@ import * as componentStory from './ComponentChoice.stories.js';
 import * as microcopyStory from './Microcopy.stories.js';
 import * as iconographyStory from './Iconography.stories.js';
 import * as layoutStory from './LayoutAndDensity.stories.js';
+import * as tablesStory from './TablesAtScale.stories.js';
 import * as floorStory from './AccessibilityFloor.stories.js';
 
 const ENTRIES = [
@@ -28,6 +30,7 @@ const ENTRIES = [
   [microcopyContent, microcopyStory],
   [iconographyContent, iconographyStory],
   [layoutContent, layoutStory],
+  [tablesContent, tablesStory],
   [floorContent, floorStory],
 ];
 
