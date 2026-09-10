@@ -105,7 +105,7 @@ position, no deep link, and no sense of how much there is. That finding is why i
 | The indicator is a row range | `1–100 of 4,812`, never `Page 1 of 6` |
 | Unknown total is a supported state | `1–100 of more than 100` — and it resolves exactly on the last page |
 | No kit defaults a page size below 10 | The kit shipped **4**. Client paging now defaults to **25** |
-| `<nav aria-label>`, `aria-current`, per-control labels, ≥24×24px targets | The kit met **none** of these. It meets all of them |
+| `<nav aria-label>`, `aria-current`, per-control labels, ≥24×24px targets | The kit met **none** of these. It meets all four — controls are `min-width`/`min-height` **28px** (`src/styles/pagination.css:47-48`) |
 
 **One thing here is not the field's, it is ours.** On the last page of an overshoot pager the total
 *is* knowable — it is `(page - 1) * perPage + rowsOnPage` — so the range resolves to the exact
@@ -228,7 +228,7 @@ than a dead one.
 
 Invoices and Admin audit show no position today. This is what they can show instead.
 
-### 👉 The decision
+### The decision I need from you
 
 `tier` currently defaults to **`compact`**, and that is a placeholder rather than a
 recommendation — it is simply the tier that assumes least about the consumer's query, so it was
