@@ -19,6 +19,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
+- **[Pagination](#pagination)** — a page the caller computed, and what happens when nobody counted it
 - **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
 
 ## The package
@@ -560,7 +561,15 @@ its numbers legible, marks itself busy and stops taking input, and the rows it i
 their height rather than collapsing to a spinner — the pager a reader is about to press again
 must not travel while they are reaching for it.
 
+The kit shipped none of this until [#273][i273]. Its one pager sliced the rows it was
+handed, drew itself whether or not a second page existed, and could not be turned off — so
+a consumer paging 4,812 transactions a hundred at a time passed its own row count as a page
+size to stop the second slicing, and then hid the strip with `display: none` on the two
+surfaces where `Page 1 of 1 · 100 rows` sat under a server pager reading `1–100 of 4,812`.
+
 Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
+
+[i273]: https://github.com/apliteni/apliteni-ui/issues/273
 
 ## React tables
 

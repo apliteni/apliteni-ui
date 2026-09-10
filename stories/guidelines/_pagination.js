@@ -5,8 +5,7 @@ import { pagination, PAGE_SIZES, DEFAULT_PAGE_SIZE } from '../../src/components/
 
 export const TITLE = 'Pagination';
 
-export const BLURB = 'What a pager under a data-intensive table owes its reader: the count, the '
-  + 'jump, the ends, the wait.';
+export const BLURB = 'What a pager owes a reader on a table too long to show at once.';
 
 // The specimens are pagers, and a pager is a strip rather than a box — so the
 // stage here is only a surface to sit them on. Two things it does have to do:
@@ -81,20 +80,20 @@ export const RULES = [
   },
   {
     id: 'the-jump',
-    imperative: 'Choose the jump your readers actually make.',
+    imperative: 'Choose the jump your readers make.',
     doHtml: () => pager('jump-do'),
     dontHtml: () => pager('jump-dont', { variant: 'numbered' }),
     doCaption: 'Four controls, in the same place on every page. The two positions a ledger reader '
-      + 'actually asks for are the start and the end, and both are one press away.',
+      + 'asks for are the start and the end, and both are one press away.',
     dontCaption: 'Page 25 of 49, and the only pages reachable in one press are 1, 24, 26 and 49. '
-      + 'A row of numbers looks like it jumps anywhere and reaches five places; it also changes '
+      + 'A row of numbers looks like it jumps anywhere and reaches four; it also changes '
       + 'width as the reader moves, so Next is somewhere different each time.',
     why: 'Steps is the default because these tables are read by filtering and sorting rather than '
       + 'by hopping — the consumer had already written the reason down: "Forty-nine numbered links '
       + 'is a control nobody uses on a table that is read by filtering, and it is forty-nine more '
       + 'tab stops between the rows and the footer." Numbered and jump both ship; a surface whose '
-      + 'readers do go deep takes the jump variant, which is the only one of the three that '
-      + 'actually reaches page 30 in one move.',
+      + 'readers do go deep takes the jump variant, the only one of the three that reaches '
+      + 'page 30 in one move.',
     except: 'A short list somebody browses rather than searches — a changelog, a gallery — is the '
       + 'case numbered pages were invented for, and there the width is stable because the count is '
       + 'small.',
@@ -140,7 +139,8 @@ export const RULES = [
     why: 'The UK government design system puts it in one line: "Do not show pagination if '
       + 'there\'s only one page of content." The kit used to render its pager unconditionally '
       + '— no branch on the page count '
-      + 'and no way to turn it off — so thirteen-odd tables in one portal carried two dead buttons, '
+      + 'and no way to turn it off. So every admin and My Space table in one portal carried two '
+      + 'dead buttons, '
       + 'and the two surfaces where the sentence was also false hid the whole strip in CSS rather '
       + 'than argue with it.',
     kit: [{ ref: 'src/components/pagination.js:125', pattern: 'if (single && !sizes.length)' }],
@@ -163,7 +163,7 @@ export const RULES = [
   },
   {
     id: 'announce-range',
-    imperative: 'Announce the range, and let nothing else in the strip speak.',
+    imperative: 'Announce the range. Announce nothing else.',
     why: 'A page turn replaces every row without moving focus, so a reader who cannot see the '
       + 'table has no way to know it happened. WCAG 2.2 draws the line exactly here: the new rows '
       + 'are not a status message, and "1–100 of 4,812" is. So the range is a polite live region '
