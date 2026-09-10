@@ -17,9 +17,20 @@ export { DataTable, sortTableRows } from './DataTable';
 export type { Column, DataTableProps, TableSort } from './DataTable';
 export { Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
-// The page-size scale is the kit's, not this workspace's: re-exported from the
-// vanilla component so no call site writes either number.
+// The page-size scale is the kit's, not this workspace's: taken from the vanilla
+// component so no call site writes either number.
+//
+// Imported and re-declared rather than re-exported. `export … from` is copied
+// straight through into the emitted index.d.ts, and the package's "." export is
+// a bare "./src/index.js" with no `types` condition — so a consumer reading the
+// published types was sent to a module they cannot resolve (TS7016 with
+// skipLibCheck off, `any` with it on). The declaration that ships now names
+// only itself. `readonly`, because the scale is the kit's answer and not an
+// array a call site may push a fourth step onto.
 // why: docs/specification.md#pagination
-export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
+import { PAGE_SIZES as KIT_PAGE_SIZES, DEFAULT_PAGE_SIZE as KIT_DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
+
+export const PAGE_SIZES: readonly number[] = KIT_PAGE_SIZES;
+export const DEFAULT_PAGE_SIZE: number = KIT_DEFAULT_PAGE_SIZE;
 export { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
 export type { SkeletonProps, SkeletonTableProps, BusyRegionProps, DeniedProps } from './Loading';

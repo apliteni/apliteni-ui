@@ -1,4 +1,4 @@
-# Pagination for data-intensive tables: guidelines, a component, and three variants to choose from
+# Pagination for data-intensive tables: guidelines, a component, and three variants to choose from [waiting: Artur re-confirms the ghost-button trade]
 
 Closes #273.
 
@@ -198,8 +198,8 @@ rendered) is fixed by the same one rule and pinned by the same gate.
 `src/styles/button-disabled.test.js` holds it three ways: the disabled pair clears the floor
 on the surface it paints for itself; no disabled rule may hand its background back to the
 ground; and all eight measurements above are pinned exactly, so the numbers the comment
-argues from cannot drift away from the arithmetic. Restoring the deleted rule turns the
-second one red — checked, not assumed.
+argues from cannot drift away from the arithmetic. The scan refuses eighteen spellings of an
+invisible disabled box — the first draft let thirteen through, and each is now pinned.
 
 ## Before / After
 
@@ -219,8 +219,8 @@ all rendered when there is one page and no size to choose.
 
 ```
                        before      after
-root  npm test          1058       1114   (0 failing)
-react npm test           103        ---   (see React section)
+root  npm test          1058       1124   (0 failing)
+react npm test           103        213   (0 failing)
 ```
 
 ## Proof
@@ -236,6 +236,44 @@ react npm test           103        ---   (see React section)
       installs a published version, so this is provable only after a release. What would
       settle it is `finance.apli.tech` dropping its two `display: none` rules and its
       `pageSize={rows.length}` workarounds and its four hand-built pagers.
+
+## Review
+
+Two independent reviews ran on this branch: a diff review with a red-team pass, and a prose
+review. Every finding below was reproduced before it was fixed, and every fix was broken on
+purpose to watch its test go red.
+
+**Blocking, fixed.**
+- A controlled table re-sorted the page the server sent. This was the exact trap
+  `finance.apli.tech` had written down in `InvoiceRow.tsx`. The rows are now rendered as handed.
+- A controlled table with no `pageSize` announced `1–100 of 5,000` over 20 rows. The page size
+  is now the size of the page handed in.
+- `<DataTable page={1} onPageChange={f} />` compiled and drew a dead pager. A controlled table
+  must now state `total`, and `hasMore` when the total is `null`.
+- The published React types re-exported from a package with no types. They are now declared
+  locally.
+- Picking a page size fired two callbacks that undid each other.
+- The jump box sent the reader to page 1 when cleared, and to the wrong page when a step was
+  pressed mid-typing.
+- `?total=` erased the vanilla pager and `?pageSize=` meant one row per page.
+- The vanilla jump box and size control did nothing, and a re-rendered pager could not be
+  heard. `wirePagination()` and `setPagerStatus()` fix both.
+- The ghost-button gate was defeatable thirteen ways.
+
+**A claim of mine that was false.** "Nothing gets less readable" — see the correction above.
+
+**Also fixed.** Two pagers on one page shared a label id and a landmark name. `.ui-select`
+had no disabled paint. Focus dropped to the body when a pressed step became disabled. The
+changelog had no breaking entry for `.rx-pager`. Three React stories did not demonstrate what
+they were named for. One guideline don't differed from its do in control count. The guidelines
+index order and the sidebar order disagreed. The same four rules were restated in five
+documents. The numbered variant was said to reach "five places" while naming four.
+
+**Not fixed, on purpose.** The kit does not remember a reader's page size (the consumer's job,
+stated in the guidelines). The HTML pager does not restore focus itself, because its caller
+re-renders it; the guideline says so. `button({ href })` puts its `href` into the markup
+unescaped. That was already in the kit before this branch and is outside this issue; it should
+be filed as its own issue.
 
 ## What a reviewer should push on
 

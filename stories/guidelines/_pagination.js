@@ -181,8 +181,9 @@ export const RULES = [
     except: 'Moving focus into the new rows instead is the other defensible answer, and the only '
       + 'one Primer documents. The kit leaves focus on the control that was pressed so a reader '
       + 'can press it again — except at an end, where that control becomes disabled and the '
-      + 'browser drops focus to the body. The pager then puts focus on the step that still has '
-      + 'somewhere to go, which is the nearest thing to standing still.',
+      + 'browser drops focus to the body. The React pager then puts focus on the step that still '
+      + 'has somewhere to go. The HTML pager cannot: its caller re-renders the strip, so the '
+      + 'caller restores focus after the new markup lands.',
     kit: [{ ref: 'src/components/pagination.js:232', pattern: 'aria-live="polite"' }],
   },
   {

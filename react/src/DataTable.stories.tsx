@@ -40,7 +40,10 @@ export const SharedOrder: StoryObj = {
   render: function Render() {
     const [sort, setSort] = useState<TableSort<Row>>({ key: 'clicks', dir: -1 });
     return <>
-      <DataTable columns={columns} rows={rows} pageSize={rows.length} selectable={false}
+      {/* pager={false}, not pageSize={rows.length}. The second is the workaround
+          this release exists to retire, and it would read as the recommendation
+          sitting in the kit's own story. */}
+      <DataTable columns={columns} rows={rows} pager={false} selectable={false}
         sort={sort} onSortChange={setSort} />
       <section className="ui-card" aria-label="Same rows as a list">
         <ol>{sortTableRows(rows, sort).map(row => <li key={row.name}>{row.name}</li>)}</ol>
@@ -56,7 +59,15 @@ export const ServerPaged: StoryObj = {
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(2);
     const [loading, setLoading] = useState(false);
-    const fetched = rows.slice((page - 1) * size, page * size);
+    // The sort is CONTROLLED, which is what the readme tells a server-paged
+    // surface to do. A constant sort with a no-op handler compiles and looks
+    // right, and then every header press asks for page 1 again for a sort that
+    // never changed. The table itself asks for page 1 through onPageChange on a
+    // real sort change, so the handler here only records the sort.
+    const [sort, setSort] = useState<TableSort<Row>>({ key: 'clicks', dir: -1 });
+    // The server orders and slices; this stands in for both, so the rows handed
+    // over are already the page and the table divides them no further.
+    const fetched = sortTableRows(rows, sort).slice((page - 1) * size, page * size);
     const turn = (next: number, nextSize = size) => {
       setLoading(true);
       setPage(next);
@@ -65,7 +76,7 @@ export const ServerPaged: StoryObj = {
     };
     return (
       <DataTable columns={columns} rows={fetched} selectable={false}
-        sort={{ key: undefined, dir: -1 }} onSortChange={() => {}}
+        sort={sort} onSortChange={setSort}
         page={page} total={rows.length} pageSize={size} pageSizes={[2, 3, 5]}
         loading={loading} onPageChange={turn} onPageSizeChange={(s) => turn(1, s)} />
     );
@@ -75,6 +86,9 @@ export const ServerPaged: StoryObj = {
 export const NoPager: StoryObj = {
   render: () => (
     // A surface that pages elsewhere on the screen asks for no pager at all.
-    <DataTable columns={columns} rows={rows} selectable={false} pager={false} />
+    // pageSize={2} is load-bearing: at the default of 100 these five rows are one
+    // page, the pager would be absent anyway, and the story would demonstrate
+    // nothing. Take pager={false} off and a three-page strip appears.
+    <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />
   ),
 };

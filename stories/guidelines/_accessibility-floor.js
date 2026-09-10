@@ -119,6 +119,11 @@ export const AIMS = [
  */
 export const GATES = [
   {
+    file: 'react/src/Pagination.test.tsx',
+    does: 'Where focus lands when a pressed pager step turns disabled at an end or while loading, and that the jump box never commits a page the reader did not ask for.',
+    blind: ['Real browser focus: jsdom does not blur a control that turns disabled, so the drop to <body> is simulated in the tests.'],
+  },
+  {
     file: 'stories/contrast.test.js',
     does: 'Measures every text-owning element in every story, both themes, against the '
       + 'background composited above it.',

@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 
 // The React face of the kit's pagination() factory. The vanilla output is the
@@ -14,7 +14,7 @@ export type PaginationProps = {
   total?: number | null;
   /** Read only when `total` is null: whether a page exists after this one. */
   hasMore?: boolean;
-  pageSizes?: number[] | null;
+  pageSizes?: readonly number[] | null;
   variant?: 'steps' | 'numbered' | 'jump';
   label?: string;
   loading?: boolean;
@@ -31,9 +31,29 @@ const GHOST_SM = 'ui-btn ui-btn--ghost ui-btn--sm';
 
 const VARIANTS = ['steps', 'numbered', 'jump'];
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
-const int = (v: unknown, fallback: number) => {
-  const n = Math.trunc(Number(v));
-  return Number.isFinite(n) ? n : fallback;
+// Every number here arrives from a URL in real use — `?page=-2`, `?page=abc`,
+// `?page=` — so each is coerced before it is clamped and nothing that is not a
+// finite integer reaches the markup. The same rule as src/components/pagination.js,
+// line for line, and the reasons are written there: `Number()` alone reads '',
+// null and false as 0 and throws on a Symbol, and past MAX_SAFE_INTEGER a page's
+// neighbours round onto it.
+const CAP = Number.MAX_SAFE_INTEGER;
+const int = <F,>(v: unknown, fallback: F): number | F => {
+  const raw = typeof v === 'number' ? v
+    : (typeof v === 'string' && v.trim() !== '') ? Number(v)
+      : NaN;
+  if (!Number.isFinite(raw)) return fallback;
+  return Math.min(Math.max(Math.trunc(raw), -CAP), CAP);
+};
+/**
+ * A page size as the pager reads one: a positive integer, or `fallback`. Zero
+ * and below are no size rather than a size of one. Exported because <DataTable>
+ * slices with it — a table that read `2.5` as two and a half rows, or `NaN` as a
+ * slice bound, would render a page the strip under it denies.
+ */
+export const sizeOf = (v: unknown, fallback: number): number => {
+  const asked = int(v, fallback);
+  return asked > 0 ? asked : fallback;
 };
 const fmt = (n: number) => n.toLocaleString('en-US');
 
@@ -63,21 +83,59 @@ export function Pagination({
   // half-typed "1" on the way to "15" cannot turn the page under them.
   const [draft, setDraft] = useState('');
   const [drafting, setDrafting] = useState(false);
+  const nav = useRef<HTMLElement>(null);
+  // The step the reader last pressed, until the page it asked for has arrived.
+  const pressed = useRef<HTMLButtonElement | null>(null);
 
   const uid = id ?? auto;
   const kind = VARIANTS.includes(variant) ? variant : 'steps';
-  const size = Math.max(1, int(pageSize, DEFAULT_PAGE_SIZE));
-  const counted = total != null && Number.isFinite(Number(total));
-  const rows = counted ? Math.max(0, int(total, 0)) : null;
+  const size = sizeOf(pageSize, DEFAULT_PAGE_SIZE);
+  // A total that is not a number is a total nobody knows: the open shape.
+  const asRows = int(total, null);
+  const counted = total != null && asRows !== null;
+  const rows = counted ? Math.max(0, asRows as number) : null;
   const last = counted ? Math.max(1, Math.ceil((rows as number) / size)) : null;
+  // One below the cap when nothing is counted: Next targets `at + 1`.
   const at = counted
     ? Math.min(Math.max(1, int(page, 1)), last as number)
-    : Math.max(1, int(page, 1));
+    : Math.min(Math.max(1, int(page, 1)), CAP - 1);
+
+  // The page can move while a draft is pending — a poll, a filter, a second
+  // control on the same query — and a box still showing the page the reader was
+  // typing for the page they have left is a number they are one blur away from
+  // committing. So the draft belongs to one page and dies with it.
+  const [draftFor, setDraftFor] = useState(at);
+  if (draftFor !== at) {
+    setDraftFor(at);
+    setDraft('');
+    setDrafting(false);
+  }
 
   // The size in use is offered even when the caller's list forgot it: a select
   // whose value is not among its options reports a size the table is not using.
-  const offered = (Array.isArray(pageSizes) ? pageSizes : []).map((s) => int(s, 0)).filter((s) => s > 0);
+  // Twelve at most, as the factory cuts it: past any real size menu.
+  const offered = (Array.isArray(pageSizes) ? pageSizes : []).slice(0, 12)
+    .map((s) => int(s, 0)).filter((s) => s > 0);
   const sizes = offered.length ? [...new Set([...offered, size])].sort((a, b) => a - b) : [];
+
+  // A browser drops focus to <body> from a control that turns disabled. Once
+  // the page has arrived, a pressed step gets focus back, or the nearest live
+  // step does. Only focus a press lost; never while loading, never into the rows.
+  // why: docs/specification.md#pagination
+  useEffect(() => {
+    const was = pressed.current;
+    if (!was || loading) return;
+    pressed.current = null;
+    const lost = document.activeElement === document.body || document.activeElement === was;
+    if (!lost || !nav.current?.contains(was)) return;
+    if (!was.disabled) { was.focus(); return; }
+    const strip = [...nav.current.querySelectorAll<HTMLButtonElement>('.ui-pager__step')];
+    const from = strip.indexOf(was);
+    for (let d = 1; d < strip.length; d += 1) {
+      const near = [strip[from - d], strip[from + d]].find((el) => el && !el.disabled);
+      if (near) { near.focus(); return; }
+    }
+  }, [at, loading]);
 
   const single = counted && last === 1;
   // GOV.UK: "Do not show pagination if there's only one page of content." Where
@@ -97,7 +155,7 @@ export function Pagination({
     // the next control under a pointer already travelling toward it.
     <button key={label_} type="button" className={`${GHOST_SM} ui-pager__step`} data-page={target}
       disabled={loading || disabled} aria-disabled={loading || disabled ? true : undefined}
-      onClick={() => go(target)}>{label_}</button>
+      onClick={(e) => { pressed.current = e.currentTarget; go(target); }}>{label_}</button>
   );
 
   const atStart = at === 1;
@@ -106,8 +164,25 @@ export function Pagination({
 
   const commitJump = () => {
     setDrafting(false);
-    const n = Math.min(Math.max(1, int(draft, at)), last as number);
+    const typed = draft.trim();
+    // `Number('')` is 0 and passes Number.isFinite, so an empty box committed
+    // page 1 — and a number input sanitises anything unparseable to exactly
+    // that empty string. Nothing typed is nothing asked for: the box goes back
+    // to the page it is on and no one is moved.
+    if (typed === '') return;
+    const n = Math.min(Math.max(1, int(typed, at)), last as number);
     if (n !== at) go(n);
+  };
+  // Blur fires before the click that caused it. A reader who typed a page and
+  // then reached for Next chose Next: committing the draft on the way out would
+  // navigate twice, the second time from a page the first turn had already left.
+  const leaveJump = (to: Element | null) => {
+    if (to && nav.current?.contains(to)) {
+      setDrafting(false);
+      setDraft('');
+      return;
+    }
+    commitJump();
   };
 
   let steps = null;
@@ -141,7 +216,7 @@ export function Pagination({
             min={1} max={last as number} disabled={loading}
             value={drafting ? draft : String(at)}
             onChange={(e) => { setDrafting(true); setDraft(e.target.value); }}
-            onBlur={commitJump}
+            onBlur={(e) => leaveJump(e.relatedTarget as Element | null)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commitJump(); } }} />
           <span className="ui-pager__jump-of">of {fmt(last as number)}</span>
         </span>
@@ -159,7 +234,8 @@ export function Pagination({
   }
 
   return (
-    <nav className={cx('ui-pager', `ui-pager--${kind}`, !counted && 'ui-pager--open', single && 'ui-pager--single')}
+    <nav ref={nav}
+      className={cx('ui-pager', `ui-pager--${kind}`, !counted && 'ui-pager--open', single && 'ui-pager--single')}
       aria-label={label} aria-busy={loading ? true : undefined}>
       {/* The only live region in the strip: numbers, size control and four
           buttons all announcing would read one page turn out four times. */}
