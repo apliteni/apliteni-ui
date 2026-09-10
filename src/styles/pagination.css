@@ -1,0 +1,149 @@
+/* ============================================================================
+ * Pagination — .ui-pager
+ * Markup comes from pager() in components/pagination.js. The factory owns no
+ * behaviour: in link mode every control is an <a> and the browser does the work;
+ * in button mode the consumer wires [data-page].
+ *
+ * The layout deliberately mirrors .rx-pager, the control this replaces, so the
+ * old and the new read alike while the two consumer surfaces migrate: a flex row
+ * at gap 8px with the position sentence pushed to the left of it.
+ *
+ * Every control is at least 24x24 CSS px — a pager is a row of small targets and
+ * that is exactly where the floor matters.
+ * ========================================================================== */
+.ui-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* The sentence, and the reason the component exists: it says how much there is,
+   not only which page you are on. */
+.ui-pager__range {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  margin-right: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-pager__controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ui-pager__btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--dim);
+  font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+/* The same glyph rule a button carries: 16px in a 24-unit box needs stroke 2.4
+   to paint the 1.5 CSS px the contrast gates assume it does.
+   why: docs/specification.md#icons-and-glyphs */
+.ui-pager__btn > svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  stroke-width: 2.4;
+}
+.ui-pager__btn:hover:not([disabled]) {
+  color: var(--strong);
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+.ui-pager__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* A page that does not exist has no URL, so pager() renders it as a disabled
+   button in link mode too — this is the one skin both modes share. */
+.ui-pager__btn[disabled] {
+  color: var(--disabled-ink);
+  background: var(--disabled-surface);
+  border-color: var(--disabled-border);
+  cursor: not-allowed;
+}
+
+/* The numbered tier. Tabular figures so the strip does not jitter as the digits
+   change under it. */
+.ui-pager__page {
+  padding: 5px 8px;
+  font-variant-numeric: tabular-nums;
+}
+/* The page you are on, painted with the same pair as a primary button —
+   --accent-strong is the fill --accent-contrast is guaranteed to clear. */
+.ui-pager__btn.is-current {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+.ui-pager__btn.is-current:hover:not([disabled]) {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+.ui-pager__gap {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  padding: 0 2px;
+  user-select: none;
+}
+
+/* The advanced tier's two extra controls. Each is a real <label> wrapping its
+   control, so the visible words ARE the accessible name. */
+.ui-pager__size,
+.ui-pager__jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ui-pager__label {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+.ui-pager__select,
+.ui-pager__input {
+  width: auto;
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.ui-pager__input {
+  width: 4.5rem;
+}
+
+/* One column. The sentence takes its own line rather than squeezing the controls
+   into a strip too narrow to hit.
+   why: docs/specification.md#breakpoints */
+@media (max-width: 560px) {
+  .ui-pager {
+    gap: 10px;
+  }
+  .ui-pager__range {
+    flex: 1 0 100%;
+    margin-right: 0;
+  }
+}
