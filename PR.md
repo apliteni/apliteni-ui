@@ -35,8 +35,7 @@ both surfaces that hit it hid the control rather than fork away from the kit:
 >
 > — `web/src/styles/transactions.css:138`
 
-The invoices sheet files the same thing and names the fix — *"the real fix is a `pager` prop, the
-same shape as the selection gap already filed for #632"* (`web/src/styles/invoices.css:207-208`).
+The invoices sheet files the same thing and names the fix — *"the real fix is a `pager` prop"* (`web/src/styles/invoices.css:207-208`).
 
 With nothing to use, every surface improvised. **Five treatments in one portal:**
 
@@ -240,15 +239,48 @@ available whichever you pick.
 
 ---
 
-<!-- TASK4-HOLE-BREAKING: the breaking change and its migration go here, written from the merged
-     task 4 code rather than from a description of it. -->
+## Breaking: `DataTable` no longer draws a pager
+
+At `c062346`, `react/src/DataTable.tsx` rendered `.rx-pager` unconditionally (`:103`) — a **client**
+pager over whatever rows it was handed, `pageSize = 4` (`:28`), reading
+`Page {page} of {pages} · {rows} rows` (`:104`). Under a page a server had already paged, that
+sentence describes the wrong set.
+
+Now, at `react/src/DataTable.tsx:32`: **`pager = false`, `pageSize = 25`.** Without `pager` the
+table shows every row it was handed and draws nothing under it. With `pager` it pages on the client
+at 25 and draws `<Pagination>` — the same control and stylesheet as `pager()` — and a turned page
+moves focus onto the table. `.rx-pager` is gone from `DataTable.tsx` and `DataTable.css`; nothing
+emits the class any more.
+
+**Migration**
+
+| If your table… | Do this |
+|---|---|
+| relied on the old client pager | pass `pager` |
+| passed `pageSize` only to stop the kit paging a server's page a second time | drop the prop |
+| hid `.rx-pager` with CSS | delete the rule — it matches nothing now |
+
+**What this makes deletable in the Finance portal.** Both of its table surfaces hide the kit's pager
+and say why in their own comments. As of `finance.apli.tech@2683589`:
+
+- `.fin-txn .rx-pager { display: none }` — `web/src/styles/transactions.css:154`, under the banner at
+  `:138`: *"THE KIT'S OWN PAGER IS HIDDEN ON THIS SURFACE, AND THAT IS A KIT GAP, NOT A PREFERENCE."*
+- `.fin-inv .rx-pager { display: none }` — `web/src/styles/invoices.css:209`, under the comment at
+  `:207-208`: *"the real fix is a `pager` prop"*.
+
+Line numbers in another repository drift; the selectors and the quoted text do not. Deleting those
+rules is a Finance change and is not part of this PR.
+
+---
+
 
 ## This PR bumps the version to 0.27.0 — merging it cuts a release
 
 Read this before you merge, because it is a one-line edit now and a published version afterwards.
 
 This branch changes the **published surface** — `src/components/pagination.js`,
-`src/styles/pagination.css` and three registration points — and `scripts/shipped-surface.mjs`
+`src/styles/pagination.css` and three registration points, and in `react/dist` the new
+`<Pagination>` and the `DataTable` change above — and `scripts/shipped-surface.mjs`
 states the rule in the repo's own words: *"To ship it: bump `version` in package.json and add a
 matching entry to the RELEASES array in site/changelog.mjs."* A changed surface with no bump is
 its own failure verdict, so both land together: `package.json` **0.26.0 → 0.27.0**, and a matching

@@ -586,12 +586,20 @@ control under it.
 
 Every specimen the kit renders for this control clears WCAG AA contrast in both themes.
 
+The React `DataTable` draws no pager unless it is passed `pager`, and then pages its rows on the
+client at 25 a page, drawing `<Pagination>` — the same control over the same stylesheet. A table
+handed a page a server has already paged therefore shows every row it was given and makes no claim
+about how much data there is. Turning a page moves focus onto the table the new range describes.
+
 Held by `src/components/pagination.test.js`, which holds the range in both total shapes, the two
 refusals, the truncation window, the link and button modes, the aria attributes and the live region,
 and the tiers that draw nothing; by `stories/a11y.test.js`, which renders every story in both themes
-and runs axe-core's WCAG 2.0 and 2.1 A and AA rules over the result; and by `stories/contrast.test.js`,
+and runs axe-core's WCAG 2.0 and 2.1 A and AA rules over the result; by `stories/contrast.test.js`,
 which mounts every story file against the kit's real stylesheets per theme and measures each
-text-owning element against the background chain composited above it. Decided in
+text-owning element against the background chain composited above it; and by
+`react/src/DataTable.test.tsx`, which holds that no pager is drawn unless one is asked for, that every
+row shows when the table is not paging, that it pages at twenty-five when asked, and that turning a
+page sends the reader to the rows. Decided in
 [#273](https://github.com/apliteni/apliteni-ui/issues/273).
 
 ## What the kit does not do
