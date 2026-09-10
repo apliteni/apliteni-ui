@@ -527,6 +527,41 @@ declarations is taken back out. It carries one gap it cannot close: jsdom pins `
 onto a `<button>` above any author rule, whatever the specificity and whatever the source order, so
 that one declaration is held on the other two tags and by name in the rule all three share.
 
+## Pagination
+
+The pager renders a page its caller has already computed. Rows do not go into it: it is given
+the current page, the page size and, where the caller knows it, the number of rows in the whole
+result. A page a server counted and a page sliced out of an array in memory therefore produce
+the same markup, and a surface that pages on the server does not have to defeat a second pager
+inside the component to say so.
+
+A result whose size is not known is a supported shape rather than a degraded one. Given no
+total, the pager offers only the step before and the step after, because no other control can be
+computed without a last page; whether a step after exists is the caller's to state. Nothing in
+that shape claims a page count, and nothing invents one.
+
+A control that would leave the result is disabled and stays where it is. It is never removed and
+never swapped for text: a control that disappears moves the controls beside it under a pointer
+already travelling toward one of them, and takes away the only evidence a reader has that they
+are at the start or the end.
+
+One page of content gets no steps. Offered no choice of page size, such a pager renders nothing
+at all; offered one, it keeps its row count and that control and drops the steps alone.
+
+The row range is announced. It is the only part of the pager that announces, and it announces
+politely and as a whole, so a page turn is one statement rather than four.
+
+The page size is a scale the kit names, and a table starts on the largest step a reader can
+still take in at once. Which sizes a table offers is the consumer's, and so is remembering the
+one a reader picked: the kit renders the choice and does not persist it.
+
+A page turn does not move the ground under the reader. While the next page loads the pager keeps
+its numbers legible, marks itself busy and stops taking input, and the rows it is replacing hold
+their height rather than collapsing to a spinner — the pager a reader is about to press again
+must not travel while they are reaching for it.
+
+Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
+
 ## React tables
 
 A table may omit selection controls when its consumer has no selection action. Existing

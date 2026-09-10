@@ -95,12 +95,17 @@
   cursor: not-allowed;
   pointer-events: none;
 }
-/* A ghost button draws no box when it is on, so it draws none when it is off. */
-.ui-btn--ghost:disabled,
-.ui-btn--ghost[aria-disabled="true"] {
-  background: transparent;
-  border-color: transparent;
-}
+/* A ghost button used to draw no box when it was off either, and that exemption
+   is what #273 took back out. #220 gave every disabled control an ink AND a
+   surface of its own, and the reason the kit then "collapsed into a band
+   5.56–6.11" is that the pair composites predictably: the ink is read on the
+   surface beside it rather than on whatever happens to be behind it. A
+   transparent box opts out of exactly that, so the one variant that kept it was
+   the one control in the kit whose legibility depended on where it was put —
+   5.82:1 on --bg, 5.18:1 on a card, 4.66:1 on --surface-3, all from one rule.
+   Every table in the finance portal sits in a .ui-card, so the number that
+   shipped was the middle one.
+   Held by src/styles/button-disabled.test.js, which measures all four grounds. */
 
 /* Busy: keep the label, run an indeterminate accent shimmer along the base, and
    the button is disabled (not clickable). Pass busy + the .ui-btn__bars markup.
