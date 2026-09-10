@@ -29,9 +29,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Wraps, because the numbered tier's strip is as wide as the table is deep and
+   a pager that scrolls sideways is a pager with a page you cannot reach. */
 .ui-pager__controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
@@ -84,6 +87,14 @@
   cursor: not-allowed;
 }
 
+/* Loading. The reader's place is not something to take away, so the range stays
+   exactly where it was and at full strength — only the controls go quiet. The
+   disabled ink is the kit's own inert pair (#220); this is the second half of
+   the cue, and it says the page is working rather than finished. */
+.ui-pager[aria-busy="true"] .ui-pager__controls {
+  opacity: 0.6;
+}
+
 /* The numbered tier. Tabular figures so the strip does not jitter as the digits
    change under it. */
 .ui-pager__page {
@@ -130,6 +141,13 @@
   padding: 4px 8px;
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
+}
+/* .ui-select parks its caret at `right 15px` behind 40px of padding, which is a
+   full-size field's geometry. Shrinking the box without moving both puts the
+   caret on top of the value. */
+.ui-pager__select {
+  padding-right: 26px;
+  background-position: right 8px center;
 }
 .ui-pager__input {
   width: 4.5rem;
