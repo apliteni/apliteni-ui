@@ -20,7 +20,7 @@ A rule is a plain object in a content module's `RULES` array.
 | Field | | Holds |
 |---|---|---|
 | `imperative` | required | The rule as an instruction. It is the page's `<h2>`. |
-| `why` | required without a pair | One sentence on what breaking it costs. Rendered only when the rule has no specimens — a pair says the same thing faster. |
+| `why` | required without a pair | One sentence on what breaking it costs. Rendered whether or not the rule has a pair — it used not to be, and twenty rules' reasoning reached nobody until #219. |
 | `doHtml` / `dontHtml` | both or neither | Functions returning the specimen pair's markup. |
 | `doCaption` / `dontCaption` | required with a pair | What the picture cannot say. |
 | `except` | optional | Where the rule stops applying. Leave it out rather than empty — not every rule has a boundary, and inventing one to fill the field is worse than an absent one. |

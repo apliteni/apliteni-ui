@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { toId, storyNameFromExport } from 'storybook/internal/csf';
 
-import { PAGES, storyId } from './_overview.js';
+import { PAGES, INTRO, storyId } from './_overview.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -105,6 +105,36 @@ test('the id rule the page reproduces is the id rule Storybook applies', () => {
       `stories/guidelines/${file}: storyId() in _overview.js derives a different id from `
       + `Storybook's toId(${JSON.stringify(mod.default.title)}, `
       + `storyNameFromExport(${JSON.stringify(exportName)}))`);
+  }
+});
+
+/* The intro sentence is assembled from counts, and one of its clauses only makes
+ * sense when there is something to count. Built unconditionally it read "does not
+ * meet 0 of them yet —  — and the table marks the pages that hold them": an empty
+ * em-dash pair around no issue numbers, and a closing clause pointing at a column
+ * with nothing in it. Nothing gated the sentence, so it rendered on the index of
+ * the collection for as long as no page carried an `unmet`.
+ *
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ */
+test('the Overview intro reads as a sentence whether or not the kit has gaps', () => {
+  const gaps = PAGES.flatMap((p) => p.gaps);
+  const said = (s) => `${s}\n  intro: ${INTRO}`;
+
+  assert.doesNotMatch(INTRO, /—\s*—/, said('the intro has an em-dash pair with nothing between it.'));
+  assert.doesNotMatch(INTRO, /\s{2,}/, said('the intro has a gap where a clause was dropped.'));
+
+  if (gaps.length === 0) {
+    assert.doesNotMatch(INTRO, /does not meet/, said(
+      'no page declares an `unmet`, so the intro must not open a clause about gaps.'));
+    assert.doesNotMatch(INTRO, /the table marks the pages/, said(
+      'no page declares an `unmet`, so the intro must not send a reader to a column that is empty.'));
+    return;
+  }
+
+  for (const rule of gaps) {
+    assert.ok(INTRO.includes(`#${rule.unmet.issue}`), said(
+      `rule "${rule.id}" is unmet and tracked by #${rule.unmet.issue}, and the intro names no such issue.`));
   }
 });
 

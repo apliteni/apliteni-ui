@@ -60,6 +60,16 @@ const RULE_COUNT = PAGES.reduce((n, p) => n + p.rules.length, 0);
 const GAPS = PAGES.flatMap((p) => p.gaps);
 const ISSUES = GAPS.map((r) => `#${r.unmet.issue}`);
 
+// The gap clause is built only when there are gaps to name. Built unconditionally
+// it read "does not meet 0 of them yet —  — and the table marks the pages that
+// hold them": an em-dash pair around no issue numbers, and a closing clause
+// sending a reader to a column with nothing in it. No page has carried an `unmet`
+// since the ones it was written for were closed, so that is what the index said.
+// The honest empty state is a sentence that stops after the page count.
+const GAP_CLAUSE = GAPS.length
+  ? ` The kit does not meet ${GAPS.length} of them yet — ${ISSUES.join(' and ')} — `
+    + 'and the table marks the pages that hold them.'
+  : '';
+
 export const INTRO = `${RULE_COUNT} rules for building a screen with this kit, `
-  + `on ${PAGES.length} pages. The kit does not meet ${GAPS.length} of them yet — `
-  + `${ISSUES.join(' and ')} — and the table marks the pages that hold them.`;
+  + `on ${PAGES.length} pages.${GAP_CLAUSE}`;
