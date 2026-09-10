@@ -77,6 +77,11 @@ export function Pagination({
   if (!renderLink && !onPageChange) {
     throw new Error('Pagination: pass onPageChange, or renderLink to navigate with your router.');
   }
+  // A rows-per-page control that reports nothing is the same silent break: it
+  // moves, it looks like it worked, and the table underneath does not change.
+  if (tier === 'advanced' && !onPerPageChange) {
+    throw new Error('Pagination: the advanced tier needs onPerPageChange — a rows-per-page control that reports nothing is a control that lies.');
+  }
 
   const pages = known ? Math.max(1, Math.ceil(total / perPage)) : null;
   const rows = known ? total : (page - 1) * perPage + (rowsOnPage as number);
@@ -163,7 +168,7 @@ export function Pagination({
       <label className="ui-pager__size">
         <span className="ui-pager__label">Rows per page</span>
         <select className="ui-select ui-pager__select" data-pager-per-page disabled={busy}
-          value={perPage} onChange={() => {}}>
+          value={perPage} onChange={(e) => onPerPageChange?.(Number(e.target.value))}>
           {options.map((o) => <option key={o} value={o}>{group(o)}</option>)}
         </select>
       </label>
