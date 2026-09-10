@@ -180,3 +180,24 @@ it('refuses the advanced tier without a way to report the page size', () => {
     <Pagination page={1} perPage={25} total={4812} tier="advanced" onPageChange={() => {}} />,
   )).toThrow(/advanced tier needs onPerPageChange/);
 });
+
+// ---- the announcement, and who owes it -----------------------------------
+// In button mode the document never reloads, so nothing tells a screen reader
+// the table changed under it. In link mode the browser reads the new document
+// and a live region on top of that reads the position twice.
+// why: stories/guidelines/_tables-at-scale.js `announce`
+
+it('announces the new range in button mode, where nothing else will', () => {
+  const { container } = render(<Pagination page={2} perPage={25} total={500} onPageChange={() => {}} />);
+  const range = container.querySelector('.ui-pager__range');
+  expect(range).toHaveAttribute('aria-live', 'polite');
+  expect(range).toHaveAttribute('aria-atomic', 'true');
+});
+
+it('stays quiet in link mode, because the document reloads and reads itself', () => {
+  const { container } = render(<Pagination page={2} perPage={25} total={500}
+    renderLink={(p, children) => <a href={`?page=${p}`}>{children}</a>} />);
+  const range = container.querySelector('.ui-pager__range');
+  expect(range).not.toHaveAttribute('aria-live');
+  expect(range).not.toHaveAttribute('aria-atomic');
+});

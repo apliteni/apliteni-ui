@@ -218,7 +218,11 @@ export function Pagination({
   return (
     <nav className={`ui-pager ui-pager--${tier}`} aria-label={label} aria-busy={busy || undefined}>
       {size}
-      <span className="ui-pager__range">
+      {/* Announcing the new range belongs to button mode alone. In link mode the
+          document reloads and the announcement arrives on top of the browser's own.
+          why: src/components/pagination.js:140 */}
+      <span className="ui-pager__range"
+        {...(renderLink ? {} : { 'aria-live': 'polite' as const, 'aria-atomic': 'true' })}>
         {pagerRange({ page, perPage, total, hasMore, rowsOnPage })}
       </span>
       {jump}
