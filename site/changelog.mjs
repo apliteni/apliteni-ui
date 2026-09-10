@@ -12,6 +12,19 @@
 // why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
 
 export const RELEASES = [
+  // TASK4-HOLE: the `breaking` DataTable change and the React `<Pagination>` addition
+  // are written once task 4 is merged and its code has been read.
+  {
+    v: '0.27.0', date: '2026-09-10',
+    changes: [
+      ['added', "`pager()` and `pagerRange()` draw table pagination in three tiers \u2014 `compact` is the range with a control either side of it, `advanced` adds rows per page, a jump field and first and last, and `numbered` adds a truncated page list. The position indicator is a row range rather than a page number, `1\u2013100 of 4,812`, because a page number answers which slice you are on and a range answers how much there is, which is what a reader of a ledger asks. A query that never paid for a total says `1\u2013100 of more than 100` and resolves to the exact figure on the last page, where it is arithmetic; `numbered` refuses an unknown total rather than draw a last page that does not exist. `href` makes every control a real `<a>` that works with no JavaScript, and without it every control is a real `<button>` keyed by `data-page` \u2014 never one faked with the other, since a button fires on Enter and Space and a link on Enter alone.", ['Pagination']],
+      ['added', "A `Tables at scale` guidelines page, on when a table needs pagination and which tier answers which table. It is the ninth page in the collection and the first to carry the pager as a specimen.", ['Pagination', 'Table']],
+      ['fixed', "The Guidelines sidebar sorts `The accessibility floor` into its place rather than to the end. The page was missing from the `storySort` order in `.storybook/preview.js`, so Storybook fell back to alphabetical placement after every page that was named and the eighth page of the collection read as the last one. Pre-existing, and unrelated to pagination.", ['Table']],
+      ['fixed', "`docs/guidelines.md` states the number of pages the collection ships. It said five in three places while eight shipped, and the third instance was a different claim rather than the same number repeated \u2014 pages whose export name differs from their title, which decides whether a link built from the title is a 404. That one was recounted rather than renumbered: it is three of nine, not two of five. Pre-existing, and unrelated to pagination."],
+      ['fixed', "The Guidelines Overview intro stops after the page count when no page declares an unmet rule. It read `does not meet 0 of them yet \u2014  \u2014 and the table marks the pages that hold them`: an em-dash pair around no issue numbers, and a closing clause sending a reader to a column with nothing in it. No page has carried an `unmet` since the issues it was written for were closed, so that is what the index of the collection has said since. Pre-existing, and unrelated to pagination."],
+      ['fixed', "`docs/guidelines.md` describes when a rule's `why` is rendered. It said `only when the rule has no specimens`, and `_layout.js` has rendered it in both cases since #219. Pre-existing, and unrelated to pagination."],
+    ],
+  },
   {
     v: '0.26.0', date: '2026-09-06',
     changes: [
@@ -421,6 +434,7 @@ export const RELEASES = [
 // A name absent here renders as a plain, unlinked chip.
 const COMPONENTS = {
   Table:     'components-table--finance-data',
+  Pagination: 'components-pagination--tiers',
   Badge:     'components-badge-status--badges',
   Button:    'components-button--playground',
   Card:      'components-card--variants',
