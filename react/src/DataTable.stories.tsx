@@ -25,7 +25,7 @@ export const Playground: StoryObj = {
   render: () => {
     const [sel, setSel] = useState<Set<string>>(new Set());
     return (
-      <DataTable columns={columns} rows={rows} pageSize={3} selected={sel}
+      <DataTable columns={columns} rows={rows} pageSize={3} pager selected={sel}
         onToggle={(n) => setSel((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; })}
         onTogglePage={(ns) => setSel((s) => {
           const x = new Set(s); const all = ns.every((n) => x.has(n));

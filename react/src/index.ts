@@ -13,6 +13,8 @@ export { Badge } from './primitives/Badge';
 export { Card } from './primitives/Card';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
+export { Pagination } from './Pagination';
+export type { PaginationProps, PaginationTier } from './Pagination';
 export { DataTable, sortTableRows } from './DataTable';
 export type { Column, DataTableProps, TableSort } from './DataTable';
 export { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
