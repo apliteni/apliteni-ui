@@ -19,6 +19,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
+- **[Table pagination](#table-pagination)** — the range, the three tiers, and what a total costs
 - **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
 
 ## The package
@@ -548,6 +549,50 @@ Changing the sort returns the reader to the first page, whether the change came 
 header or from anything else the consumer offers. Sort headers keep their column roles,
 keyboard buttons and sort direction announcements, and the column a table is sorted by
 announces its direction whether or not its own header offers a sort control.
+
+## Table pagination
+
+The position indicator is a row range rather than a page number: `1–100 of 4,812`, grouped by
+thousands. A query that never paid for a total states only what it bought — `1–100 of more than
+100` — and on the last page, where the total is arithmetic, it resolves to the exact figure. A
+total is never invented: an unknown total given without `hasMore` and `rowsOnPage` is refused,
+because the range would otherwise have to guess one.
+
+`pager()` draws three tiers over the same table. `compact` is the range with a control either side
+of it; `advanced` adds rows per page, a jump field, and first and last; `numbered` adds a truncated
+page list. `perPageOptions` is `[10, 25, 50, 100]`, and a page size the caller is already on but
+never offered joins that list rather than reading as unselected.
+
+The numbered tier requires a known total. An unknown total has no last page to draw, so the tier is
+refused rather than quietly served as another one. Its truncation keeps the first and last page
+always reachable and two pages either side of the current one, with an ellipsis for the rest —
+except where the gap is a single page, which is drawn as the page, since the number costs the width
+the ellipsis would have taken.
+
+`href` makes every control a real `<a>` that works with no JavaScript at all. Without it every
+control is a real `<button>` the consumer wires, keyed by `data-page`. Neither is faked with the
+other, and a control with nowhere to go is a disabled `<button>` in both modes, because
+`aria-disabled` on an anchor is a promise the browser does not keep.
+
+The control is a `<nav>` carrying an `aria-label` the caller can set, every control carries its own
+`aria-label` naming the page it goes to, and the page the reader is on carries `aria-current="page"`.
+In button mode the range is a polite live region and announces itself when it changes; in link mode
+it stays quiet, because the document reloads and an announcement on top of that reads twice. `busy`
+disables every control and leaves the range on screen.
+
+A single page draws nothing, except in `advanced`, where the rows-per-page control is reason enough
+to stay. No rows draws nothing in every tier: the empty state belongs to the table, not to the
+control under it.
+
+Every specimen the kit renders for this control clears WCAG AA contrast in both themes.
+
+Held by `src/components/pagination.test.js`, which holds the range in both total shapes, the two
+refusals, the truncation window, the link and button modes, the aria attributes and the live region,
+and the tiers that draw nothing; by `stories/a11y.test.js`, which renders every story in both themes
+and runs axe-core's WCAG 2.0 and 2.1 A and AA rules over the result; and by `stories/contrast.test.js`,
+which mounts every story file against the kit's real stylesheets per theme and measures each
+text-owning element against the background chain composited above it. Decided in
+[#273](https://github.com/apliteni/apliteni-ui/issues/273).
 
 ## What the kit does not do
 
