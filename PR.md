@@ -151,55 +151,83 @@ A fourth shape is **not** a variant and cannot be chosen: given `total: null`, e
 renders Prev and Next alone, because with no last page nothing else can be computed. That is
 the cursor/`limit + 1` case, and the invoices list and the audit trail are both already in it.
 
-## A kit defect this uncovered, and a portal-wide visual change
-
-**Read this before test-driving — buttons outside the pager change too.**
+## A kit defect this uncovered, and how it was settled
 
 The pager is the first component to put disabled ghost buttons on a card, and that measured
-5.18:1 in dark — outside the 5.56–6.11 band `#220` established for every disabled control.
-The cause was one rule: `.ui-btn--ghost:disabled` set `background: transparent`, so unlike
-every other disabled button it painted no surface of its own and its ink was read against
-whatever happened to be behind it.
+5.18:1 in dark, under the 5.56 floor `#220` settled for every disabled control. A ghost button
+paints no box, on or off (`.ui-btn--ghost:disabled` sets `background: transparent`), so its
+label is read on whatever is behind it.
 
 | `--disabled-ink` on | dark | light |
 |---|---|---|
-| `--bg` — the page | 5.82 | 6.11 |
-| `--surface` — a card, where every portal table sits | **5.18** | 6.11 |
-| `--surface-2` — what a solid disabled button paints for itself | 5.56 | 5.66 |
-| `--surface-3` — a raised surface | **4.66** | **5.26** |
+| `--bg`, the page | 5.82 | 6.11 |
+| `--surface`, a card, where every portal table sits | **5.18** | 6.11 |
+| `--surface-2`, what a solid disabled button paints for itself | 5.56 | 5.66 |
+| `--surface-3`, a raised surface | **4.66** | **5.26** |
 
-Nothing here failed WCAG — the settled floor is 3:1. What it failed is the kit's own ratchet,
-which exists to make precisely this a decision somebody writes down.
+Nothing here failed WCAG, where the floor is 3:1. It failed the kit's own ratchet, which exists
+to make this a decision somebody writes down. It took three steps to settle, and the first two
+were wrong.
 
-**Artur's call: fix the kit.** The exemption is gone, so a disabled ghost button now takes the
-flat disabled surface like every other disabled control, and every ground reads the same number:
-5.56 in dark, 5.66 in light.
+**1. The box, on a false claim.** Artur's first call was to fix the kit by removing the
+exemption, so a disabled ghost took the flat disabled box like every other disabled button and
+every ground read one number: 5.56 in dark, 5.66 in light. The question put to him said
+"nothing gets less readable anywhere". That was false, and the review caught it: `--bg` lost
+0.26 in dark and 0.46 in light, and `--surface` lost 0.46 in light. The correction went to him
+with those numbers. The box was built, tested and photographed on a specimen board:
+`docs/evidence/ghost-disabled-before-dark.png`, `…-before-light.png` (no box),
+`docs/evidence/ghost-disabled-after-dark.png`, `…-after-light.png` (the box).
 
-**A correction to what was put to Artur when he made that call.** The question said "nothing gets
-less readable anywhere". That is false, and the review caught it. Painting the pair puts every
-ground on one number, so the two below the floor come up **and three that happened to sit on a
-high-contrast ground come down**: `--bg` loses 0.26 in dark and 0.46 in light, and `--surface`
-loses 0.46 in light. Nothing lands below #220's 5.56–6.11 band afterwards, and nothing depends on
-placement any more — that is what the trade buys, and it is a trade rather than the strict win it
-was sold as. **The correction has been sent to Artur with these numbers and he has not answered
-yet.** The fix stays in as decided, because the decision it was based on still looks right with
-the true figures — but it was made on a wrong one, so it is his to remake. Reverting it is one
-commit; the alternatives are in the message.
+**2. The box, rendered where it lives.** Artur then looked at it in the real pager, at page 1,
+in a card, in both themes. The boxed, disabled First and Prev read heavier than the boxless,
+enabled Next and Last beside them: the controls that are off looked like the ones that are on.
+The variant without a border did the same, more mildly. A contrast table cannot show this, and
+the screenshot showed it at once. He reversed the call.
+`docs/evidence/pager-card-painted-dark.png`, `…-light.png`.
 
-*Before* — the disabled `Prev` is a bare label; the solid disabled `Secondary` beside it has a box:
-`docs/evidence/ghost-disabled-before-dark.png`, `…-before-light.png`
-*After* — the disabled control carries the same box everywhere; the enabled `Next` is still boxless:
-`docs/evidence/ghost-disabled-after-dark.png`, `…-after-light.png`
+**3. What shipped.** The box is reverted, and the exemption is back with its original comment:
+*"A ghost button draws no box when it is on, so it draws none when it is off."* The disabled
+ghost takes its own ink instead, `--disabled-ink-bare`, set to clear the floor on the dullest
+ground: `#a39eb7` in dark and `#585e6c` in light, which is `--muted` moved 15 steps lighter per
+channel in dark and 4 darker in light. Artur proposed the values. I measured them separately and
+got his figures to the hundredth, and nothing is lower than it was.
 
-**What changes in the portal:** every disabled ghost button gains a faint box — toolbar
-buttons, row actions, the pager. `--surface-3` (4.66, the worst case, which no story had ever
-rendered) is fixed by the same one rule and pinned by the same gate.
+| `--disabled-ink-bare` on | dark | light | the live ghost's `--dim`, same ground (dark / light) |
+|---|---|---|---|
+| `--bg` | 7.00 | 6.50 | 10.41 / 10.42 |
+| `--surface`, a card | 6.24 | 6.50 | 9.27 / 10.42 |
+| `--surface-2` | 6.69 | 6.01 | 9.95 / 9.64 |
+| `--surface-3` | 5.62 | 5.60 | 8.35 / 8.98 |
 
-`src/styles/button-disabled.test.js` holds it three ways: the disabled pair clears the floor
-on the surface it paints for itself; no disabled rule may hand its background back to the
-ground; and all eight measurements above are pinned exactly, so the numbers the comment
-argues from cannot drift away from the arithmetic. The scan refuses eighteen spellings of an
-invisible disabled box — the first draft let thirteen through, and each is now pinned.
+Final render: `docs/evidence/pager-card-final-dark.png`, `…-light.png`. First and Prev are off
+and lighter than Next and Last beside them, and there is no box.
+
+**Two points I pushed back on.**
+- *7.00 on `--bg` is above #220's 6.11.* No ink can clear 5.56 on every ground and stay under
+  6.11. A boxless label takes on the spread between the grounds, which is 1.25× in dark, and that
+  is wider than the whole 5.56–6.11 band (1.10×). These values are the smallest uniform shift of
+  `--muted` that clears 5.56 everywhere; I searched. The worry about a disabled control reading
+  too strong is right, and it is answered against the live control beside it, which still reads
+  1.5 times the contrast on every ground in dark and 1.6 in light. The gate now holds that as well.
+- *A ghost-only ink forks the token.* `--disabled-ink` is one alias per theme, and a ghost-only
+  value needs a second one. I put that to Artur as a choice instead of doing it quietly: a named
+  token (this), moving `--disabled-ink` for every disabled control, or restoring the exemption
+  alone and lowering the ratchet. FORK_DECISION
+
+**What changes in the portal:** no box appears anywhere. A disabled ghost button's label is a
+little lighter in dark and a little darker in light. Solid disabled buttons, inputs, selects,
+nav rows and dropdown items do not change.
+
+`src/styles/button-disabled.test.js` holds it:
+- both inks are pinned on all four grounds in both themes;
+- the bare ink stays above the floor everywhere, and below the live ghost ink everywhere;
+- the solid pair is unchanged;
+- any disabled rule that gives its box back to the ground has to paint `--disabled-ink-bare`,
+  and the scan refuses 25 spellings of that, four of them found by review.
+
+The floor gate in `stories/guidelines/accessibility-floor.test.js` now also measures a disabled
+ghost on a card, because the new **Components / Pagination → In a card** story puts one there.
+That is the specimen this was judged on, and no story had it before.
 
 ## Before / After
 
@@ -219,7 +247,7 @@ all rendered when there is one page and no size to choose.
 
 ```
                        before      after
-root  npm test          1058       1124   (0 failing)
+root  npm test          1058       1126   (0 failing, 2 skipped as on main)
 react npm test           103        213   (0 failing)
 ```
 
@@ -228,8 +256,9 @@ react npm test           103        213   (0 failing)
 - [x] A person meets it in something running — the Storybook gallery, screenshotted in both
       themes, is how Artur chose the variant.
 - [x] The three variants are comparable side by side, from one result set at one page size.
-- [x] The ghost-disabled change is photographed before and after, on all four grounds, in
-      both themes.
+- [x] The ghost-disabled change is photographed at each step, in both themes: the reverted
+      box on all four grounds, the reverted box in the real pager in a card, and the ink that
+      shipped in the same pager and card.
 - [x] Every rule on the guidelines page cites kit code, and `refs.test.js` resolves each
       citation to a file, a line and a literal on that line.
 - [ ] Exercised against the finance portal. Not done here and not claimed: the consumer
@@ -260,7 +289,12 @@ purpose to watch its test go red.
   heard. `wirePagination()` and `setPagerStatus()` fix both.
 - The ghost-button gate was defeatable thirteen ways.
 
-**A claim of mine that was false.** "Nothing gets less readable" — see the correction above.
+**A claim of mine that was false.** "Nothing gets less readable": see step 1 above.
+
+**A fix that passed every gate and was still wrong.** The box that step 1 put on the disabled
+ghost cleared every contrast check and read backwards in the pager: off looked heavier than on.
+Artur caught it on a screenshot, and it was reverted (step 2). The gate now also checks that
+direction, so a disabled ghost cannot read at least as strong as a live one on any ground.
 
 **Also fixed.** Two pagers on one page shared a label id and a landmark name. `.ui-select`
 had no disabled paint. Focus dropped to the body when a pressed step became disabled. The

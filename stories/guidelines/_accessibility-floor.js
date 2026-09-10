@@ -449,8 +449,11 @@ export const RULES = [
       + 'wherever that composite lands. A disabled primary button landed at 1.48:1, white on a '
       + 'washed-out accent, and not one disabled control in the light theme reached 3:1. The '
       + '--disabled-ink / --disabled-surface / --disabled-border trio composites predictably '
-      + 'instead: the ink is read on the surface beside it, both opaque. Every disabled label in '
-      + `the kit now measures between ${DISABLED_FLOOR}:1 and 6.11:1.`,
+      + 'instead: the ink is read on the surface beside it, both opaque. Every disabled label on '
+      + `a box of its own now measures between ${DISABLED_FLOOR}:1 and 6.11:1. A ghost button `
+      + 'paints no box, so its label is read on whatever is behind it; it takes '
+      + `--disabled-ink-bare, set to clear ${DISABLED_FLOOR}:1 on the dullest ground, and reads `
+      + 'up to 7.00:1 on the brightest (#273).',
     except: 'A disabled control also has to look weaker than an enabled one — and the measurement '
       + 'says that is not a contrast question. The disabled primary reads 5.56:1 and the enabled '
       + 'one reads 5.70:1; white on purple and grey on grey are the same ratio and nobody confuses '

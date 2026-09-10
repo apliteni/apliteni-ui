@@ -290,7 +290,11 @@ and the box under it toward the ground together, so what a reader is left with i
 composite lands. A disabled primary button measured 1.48:1 that way — white on a washed-out accent
 — and no disabled control in the light theme reached 3:1. Every disabled rule with a label under
 it now takes `--disabled-ink` on `--disabled-surface` at full opacity, which composites
-predictably, and every disabled label in the kit measures between 5.56:1 and 6.11:1.
+predictably, and every disabled label on a box of its own measures between 5.56:1 and 6.11:1.
+A ghost button paints no box, on or off, so its label is read on whatever is behind it. It takes
+`--disabled-ink-bare` instead, set to clear 5.56:1 on the dullest ground the kit paints, and
+reads between 5.60:1 and 7.00:1 depending on where it is put. That is still well under the
+enabled ghost beside it. Settled in [#273][i273].
 
 The floor is **3:1**, the bar WCAG uses for large text and for a graphic — a disabled label has to
 stay identifiable as the word it is, and no standard sets this because 1.4.3 exempts the control

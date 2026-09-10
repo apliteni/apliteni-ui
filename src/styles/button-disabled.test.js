@@ -8,15 +8,18 @@
  *
  * `.ui-btn--ghost` kept a `background: transparent` through that change — "a ghost
  * button draws no box when it is on, so it draws none when it is off" — which
- * quietly made it the one control in the kit whose legibility was a property of
- * its placement. Nobody measured it, because no story had put one on a card. One
- * did in #273 (a pager's First and Prev, disabled on the first page, inside the
- * .ui-card every table in the finance portal sits in) and it measured 5.18:1 —
- * outside the band, and 4.66:1 on --surface-3, which nothing had rendered at all.
+ * made it the one button whose legibility was a property of its placement. Nobody
+ * measured it, because no story had put one on a card. One did in #273 (a pager's
+ * First and Prev, disabled on the first page, inside the .ui-card every table in
+ * the finance portal sits in) and it measured 5.18:1 — under the band, and 4.66:1
+ * on --surface-3, which nothing had rendered at all.
  *
- * So this gate does not read the ghost rule. It measures the ink against EVERY
- * surface token in both themes, which is the check that would have caught it in
- * #220 and the one that catches the next variant to opt out.
+ * #273 first painted the flat box onto the ghost, and reverted that once it was
+ * rendered: the boxed disabled controls read heavier than the boxless live ones
+ * beside them. The ghost keeps no box and takes --disabled-ink-bare instead, an
+ * ink set for the dullest ground. So this gate measures that ink against EVERY
+ * surface token in both themes, and holds any disabled rule that gives its box
+ * back to the ground to that ink.
  *
  * why: docs/specification.md#pagination
  */
@@ -79,6 +82,19 @@ const contrast = (a, b) => {
 };
 
 const THEMES = ['dark', 'light'];
+const BARE_INK = '--disabled-ink-bare';
+
+/* Every ground, in both themes, for one ink token. */
+const onEveryGround = (ink) => {
+  const measured = {};
+  for (const theme of THEMES) {
+    const vars = themeVars(theme);
+    for (const ground of GROUNDS) {
+      measured[`${theme} ${ground}`] = Number(contrast(resolve(vars, ink), resolve(vars, ground)).toFixed(2));
+    }
+  }
+  return measured;
+};
 
 test('the surfaces a disabled label can land on are discovered, not listed', () => {
   assert.ok(GROUNDS.length >= 4,
@@ -87,9 +103,8 @@ test('the surfaces a disabled label can land on are discovered, not listed', () 
     '--surface-3 is the worst ground the ghost button reached, so it has to be in the set');
 });
 
-/* The invariant the fix creates: a disabled button paints --disabled-surface, so
- * its ink is only ever read on that one ground and lands in #220's band wherever
- * the button is put. This is the check that has to stay green. */
+/* A disabled button that paints --disabled-surface reads its ink on that one
+ * ground, wherever the button is put. */
 test(`disabled ink clears ${DISABLED_FLOOR}:1 on the surface a disabled button paints for itself`, () => {
   const under = [];
   for (const theme of THEMES) {
@@ -102,26 +117,16 @@ test(`disabled ink clears ${DISABLED_FLOOR}:1 on the surface a disabled button p
   assert.deepEqual(under, [], 'the disabled pair itself has drifted below the band #220 settled');
 });
 
-/* And the reason the guard above it exists, as measurements rather than as a
- * sentence. These are the ratios a disabled label WOULD be read at if a variant
- * painted no surface and inherited the ground — the numbers the comment in
- * button.css argues from, and the case #273 met on a real page.
+/* The numbers button.css argues from, pinned exactly so the argument and the
+ * arithmetic cannot drift apart: if a token moves, this fails and the comment
+ * gets rewritten with it.
  *
- * Pinned exactly, so the argument and the arithmetic cannot drift apart: if a
- * token moves, this fails and the comment gets rewritten with it. At least one
- * of them being under the floor is the whole reason the ghost exemption went,
- * and that is asserted rather than left to a reader's arithmetic.
+ * The first table is why a box-less disabled control cannot use --disabled-ink:
+ * three grounds are under the floor. The second is the ink it uses instead.
  * why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test */
-test('the grounds a transparent disabled button would have fallen back to are pinned', () => {
-  const measured = {};
-  for (const theme of THEMES) {
-    const vars = themeVars(theme);
-    const ink = resolve(vars, '--disabled-ink');
-    for (const ground of GROUNDS) {
-      measured[`${theme} ${ground}`] = Number(contrast(ink, resolve(vars, ground)).toFixed(2));
-    }
-  }
-  assert.deepEqual(measured, {
+test('the ink a box-less disabled button is read in is pinned on every ground', () => {
+  const plain = onEveryGround('--disabled-ink');
+  assert.deepEqual(plain, {
     'dark --bg': 5.82,
     'dark --surface': 5.18,
     'dark --surface-2': 5.56,
@@ -130,73 +135,109 @@ test('the grounds a transparent disabled button would have fallen back to are pi
     'light --surface': 6.11,
     'light --surface-2': 5.66,
     'light --surface-3': 5.26,
-  }, 'a surface or the disabled ink moved — rewrite the numbers in button.css with these');
+  }, 'a surface or --disabled-ink moved — rewrite the numbers in button.css with these');
+  assert.deepEqual(
+    Object.keys(plain).filter((where) => plain[where] < DISABLED_FLOOR),
+    ['dark --surface', 'dark --surface-3', 'light --surface-3'],
+    'the grounds that cannot carry --disabled-ink without a box have changed',
+  );
 
-  const below = Object.entries(measured)
-    .filter(([, ratio]) => ratio < DISABLED_FLOOR)
-    .map(([where]) => where);
-  assert.deepEqual(below, ['dark --surface', 'dark --surface-3', 'light --surface-3'],
-    'the set of grounds that cannot carry a transparent disabled button has changed');
+  assert.deepEqual(onEveryGround(BARE_INK), {
+    'dark --bg': 7.00,
+    'dark --surface': 6.24,
+    'dark --surface-2': 6.69,
+    'dark --surface-3': 5.62,
+    'light --bg': 6.50,
+    'light --surface': 6.50,
+    'light --surface-2': 6.01,
+    'light --surface-3': 5.60,
+  }, `a surface or ${BARE_INK} moved — rewrite the numbers in button.css with these`);
 });
 
-/* The mutation that puts the defect back. A variant that paints no surface when
- * it is disabled inherits the ground, and the test above stops being about that
- * variant at all — it would keep passing while the button on screen failed.
+/* The invariant: wherever a ghost is put, its disabled label clears the floor. */
+test(`${BARE_INK} clears ${DISABLED_FLOOR}:1 on every ground, in both themes`, () => {
+  const measured = onEveryGround(BARE_INK);
+  const under = Object.keys(measured).filter((where) => measured[where] < DISABLED_FLOOR);
+  assert.deepEqual(under, [], `${BARE_INK} is under the floor here`);
+});
+
+/* The other direction, which is how #273's first fix failed: a disabled ghost
+ * must not out-weigh the live ghost beside it. With no box, the ink is the only
+ * paint the two differ by, so it has to stay quieter on every ground. */
+test(`${BARE_INK} stays quieter than the live ghost ink on every ground`, () => {
+  const live = /\.ui-btn--ghost\s*\{[^}]*?\bcolor:\s*var\((--[\w-]+)\)/.exec(BUTTON_CSS);
+  assert.ok(live, '.ui-btn--ghost declares no color this gate can read');
+  const liveInk = onEveryGround(live[1]);
+  const bare = onEveryGround(BARE_INK);
+  const louder = Object.keys(bare).filter((where) => bare[where] >= liveInk[where]);
+  assert.deepEqual(louder, [], `the disabled ghost reads at least as strong as the live ${live[1]} here`);
+});
+
+/* A disabled rule may give its box back to the ground, as the ghost does. When
+ * it does, its label is read on any ground, so the same rule has to say it
+ * paints --disabled-ink-bare — the ink measured on every ground above.
  *
- * BOTH axes, because the rule #273 removed was two declarations and not one:
- * `background: transparent` AND `border-color: transparent`. Restoring only the
- * border gives back half the box the change promises.
- *
- * The first draft of this scan was defeatable thirteen ways and a review found
- * every one, so the reading is borrowed wholesale from the sibling gate next door
- * (src/styles/pagination.test.js): comments blanked first, `[^{}]*` for a body so
- * a rule nested in an at-rule is read as itself rather than swallowed by the
- * at-rule's prelude, and every declaration of the property rather than the first.
- * The spellings are named because "transparent" is only one of them — a fully
+ * The reading is the sibling gate's (src/styles/pagination.test.js): comments
+ * blanked first, `[^{}]*` for a body so a rule nested in an at-rule is read as
+ * itself, and every declaration of a property rather than the first. The
+ * spellings are named because "transparent" is only one of them: a fully
  * transparent colour is transparent however it is written, `initial`/`revert`/
- * `unset` resolve a background to transparent, and `inherit` hands it to whatever
- * is behind, which is the defect by another name.
+ * `unset` resolve a background to transparent, and `inherit` hands it to
+ * whatever is behind.
  */
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+const unimportant = (value) => value.replace(/!\s*important\s*$/i, '');
 const INVISIBLE = new RegExp(
   '^\\s*(transparent|none|initial|inherit|unset|revert(-layer)?'
   + '|#(0{3,4}|0{6}|0{8})'
-  + '|rgba?\\([^)]*[,/]\\s*0*(\\.0+)?\\s*\\)'
-  + '|hsla?\\([^)]*[,/]\\s*0*(\\.0+)?\\s*\\))\\s*$',
+  + '|rgba?\\([^)]*[,/]\\s*0*(\\.0+)?%?\\s*\\)'
+  + '|hsla?\\([^)]*[,/]\\s*0*(\\.0+)?%?\\s*\\))\\s*$',
   'i',
 );
 /* Every way the sheet can spell "this control is off". */
-const DISABLED_SELECTOR = /:disabled|\[disabled\]|\[aria-disabled\s*=\s*("true"|'true'|true)\]/i;
+const DISABLED_SELECTOR = /:disabled|:not\(\s*:enabled\s*\)|\[disabled\]|\[aria-disabled\s*=\s*("true"|'true'|true)\]/i;
+const BARE = new RegExp(`^\\s*var\\(\\s*${BARE_INK}\\s*\\)\\s*$`);
 
-test('no disabled rule hands its background or its border back to the ground', () => {
+/* The disabled rules of a sheet, at-rule bodies read as themselves, each with
+ * the last value it declares for a property. */
+const disabledRules = (css) => [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .filter(([, selector]) => !selector.trimStart().startsWith('@') && DISABLED_SELECTOR.test(selector))
+  .map(([, selector, body]) => ({
+    selector: selector.trim().replace(/\s+/g, ' '),
+    values: (pattern) => [...body.matchAll(pattern)].map((m) => unimportant(m.at(-1))),
+  }));
+const BOX = /(background(?:-color)?|border(?:-color)?)\s*:\s*([^;]+)/gi;
+const INK = /(?:^|[;\s])color\s*:\s*([^;]+)/gi;
+
+const boxlessWithoutBareInk = (css) => {
   const offenders = [];
-  for (const [, selector, body] of decomment(BUTTON_CSS).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (selector.trimStart().startsWith('@')) continue;
-    if (!DISABLED_SELECTOR.test(selector)) continue;
-    for (const [, property, value] of body.matchAll(/(background(?:-color)?|border(?:-color)?)\s*:\s*([^;]+)/gi)) {
-      if (INVISIBLE.test(value)) {
-        offenders.push(`${selector.trim().replace(/\s+/g, ' ')} → ${property}: ${value.trim()}`);
-      }
-    }
+  for (const rule of disabledRules(css)) {
+    if (!rule.values(BOX).some((value) => INVISIBLE.test(value))) continue;
+    const inks = rule.values(INK);
+    if (!inks.length || !BARE.test(inks.at(-1))) offenders.push(rule.selector);
   }
-  assert.deepEqual(offenders, [],
-    'a disabled button variant paints no surface or no border of its own, so it is read'
-    + ' against whatever is behind it — the exemption #273 removed from .ui-btn--ghost.');
+  // A rule need not touch the box to repaint the label: a later disabled ghost
+  // rule that sets only `color` wins the cascade over the one above. So the
+  // last ink any disabled ghost rule declares has to be the bare one too.
+  const ghostInks = disabledRules(css)
+    .filter((rule) => rule.selector.includes('.ui-btn--ghost'))
+    .flatMap((rule) => rule.values(INK).map((ink) => ({ ink, selector: rule.selector })));
+  const last = ghostInks.at(-1);
+  if (last && !BARE.test(last.ink)) offenders.push(`${last.selector} (color: ${last.ink.trim()})`);
+  return offenders;
+};
+
+test(`a disabled rule that gives its box back to the ground paints ${BARE_INK}`, () => {
+  assert.deepEqual(boxlessWithoutBareInk(BUTTON_CSS), [],
+    'a disabled button paints no surface or no border of its own, so its label is read on'
+    + ` whatever is behind it — and it does not paint ${BARE_INK}, the one ink measured there.`);
 });
 
 /* The scan above is only worth anything if it refuses what it is written to
- * refuse, and each of these got past its first draft. */
-test('the scan refuses every spelling of an invisible disabled box', () => {
-  const caught = (rule) => {
-    const css = `${BUTTON_CSS}\n${rule}\n`;
-    for (const [, selector, body] of decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      if (selector.trimStart().startsWith('@') || !DISABLED_SELECTOR.test(selector)) continue;
-      for (const [, , value] of body.matchAll(/(background(?:-color)?|border(?:-color)?)\s*:\s*([^;]+)/gi)) {
-        if (INVISIBLE.test(value)) return true;
-      }
-    }
-    return false;
-  };
+ * refuse. Each of these gives the box back and keeps an ink that was never
+ * measured on the ground behind it. */
+test('the scan refuses every spelling of a box-less disabled rule without the bare ink', () => {
+  const caught = (rule) => boxlessWithoutBareInk(`${BUTTON_CSS}\n${rule}\n`).length > 0;
 
   const missed = [
     '.ui-btn--ghost:disabled { background: transparent; }',
@@ -211,18 +252,28 @@ test('the scan refuses every spelling of an invisible disabled box', () => {
     '.ui-btn--ghost:disabled { background: inherit; }',
     '.ui-btn--ghost:disabled { background: revert; }',
     '.ui-btn--ghost:disabled { background: var(--disabled-surface); background: transparent; }',
+    '.ui-btn--ghost:disabled { background: transparent; color: var(--disabled-ink); }',
+    '.ui-btn--ghost:disabled { background: transparent; color: var(--disabled-ink-bare); color: var(--muted); }',
+    '.ui-btn--ghost:disabled { background: transparent; border-color: var(--disabled-ink-bare); }',
     '@media (min-width: 560px) { .ui-btn--ghost:disabled { background: transparent; } }',
     '@supports (color: red) { .ui-btn--ghost:disabled { background: transparent; } }',
     '.ui-btn--ghost[disabled] { background: transparent; }',
     ".ui-btn--ghost[aria-disabled='true'] { background: transparent; }",
     '.ui-btn--ghost[aria-disabled=true] { background: transparent; }',
-    '/* .ui-btn--ghost:disabled { background: gold; } */\n.ui-btn--ghost:disabled { background: transparent; }',
+    '/* .ui-btn--ghost:disabled { color: var(--disabled-ink-bare); } */\n.ui-btn--ghost:disabled { background: transparent; }',
+    // Found by the review of the first draft of this scan.
+    '.ui-btn--ghost:disabled { color: var(--muted); }',
+    '.ui-btn--ghost:disabled { background: transparent !important; }',
+    '.ui-btn--ghost:disabled { background: rgb(0 0 0 / 0%); }',
+    '.ui-btn--ghost:not(:enabled) { background: transparent; }',
   ].filter((rule) => !caught(rule));
-  assert.deepEqual(missed, [], 'these reintroduce the defect and the scan lets them through');
+  assert.deepEqual(missed, [], 'these give the box back with an unmeasured ink and the scan lets them through');
 
-  // And it does not fire on a rule that paints a real box, or on a comment alone.
+  // And it does not fire on a rule that paints a box, a box-less rule that
+  // paints the bare ink, a rule that is not about the disabled state, or a comment.
   for (const fine of [
     '.ui-btn--ghost:disabled { background: var(--disabled-surface); }',
+    '.ui-btn--ghost:disabled { background: transparent; color: var(--disabled-ink-bare); }',
     '.ui-btn--ghost:hover { background: transparent; }',
     '/* .ui-btn--ghost:disabled { background: transparent; } */',
   ]) {
@@ -230,9 +281,11 @@ test('the scan refuses every spelling of an invisible disabled box', () => {
   }
 });
 
-test('the disabled pair is still declared, so the rule above is checking something', () => {
+test('the rules the gate reads are still declared, so it is checking something', () => {
   assert.match(BUTTON_CSS, /\.ui-btn:disabled[\s\S]*?background:\s*var\(--disabled-surface\)/,
     '.ui-btn:disabled no longer paints --disabled-surface');
   assert.match(BUTTON_CSS, /\.ui-btn:disabled[\s\S]*?color:\s*var\(--disabled-ink\)/,
     '.ui-btn:disabled no longer paints --disabled-ink');
+  assert.match(BUTTON_CSS, /\.ui-btn--ghost:disabled[^{]*\{[^}]*color:\s*var\(--disabled-ink-bare\)/,
+    '.ui-btn--ghost:disabled no longer paints --disabled-ink-bare');
 });

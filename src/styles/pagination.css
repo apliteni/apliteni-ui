@@ -111,7 +111,7 @@
 
 /* A step given an `href` is an anchor, and a host stylesheet's `a:link` is
    (0,1,1) — which outranks `.ui-btn--ghost` at (0,1,0) and paints the enabled
-   steps in the host's link colour while the disabled ends keep --disabled-ink.
+   steps in the host's link colour while the disabled ends keep --disabled-ink-bare.
    One strip, reading as two different controls. The kit has paid for this twice
    already and both fixes are the same shape: see the (0,2,0) note on
    `.ui-nav .ui-nav__item` in nav.css. Storybook ships no `a:link`, so the "Pages

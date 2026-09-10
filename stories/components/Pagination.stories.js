@@ -1,4 +1,5 @@
 import { pagination, PAGE_SIZES, DEFAULT_PAGE_SIZE } from '../../src/components/pagination.js';
+import { card } from '../../src/components/index.js';
 import { grid, pad, specimen } from '../_gallery.js';
 
 // One table's worth of rows, paged at the kit's default, so every specimen on
@@ -134,4 +135,29 @@ export const Gallery = {
     })),
   )}
   `),
+};
+
+// Where a pager actually lives: under a table, inside the card the table sits
+// in. The gallery above is on the page ground, and a boxless disabled button
+// reads differently on every ground, so this is the specimen #273 was judged on —
+// First and Prev off beside Next and Last on, at the first page and the last.
+export const InACard = {
+  name: 'In a card',
+  render: () => pad(grid(
+    1,
+    card({
+      title: 'Transactions',
+      body: pagination({
+        page: 1, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL,
+        id: 'card-first', label: `Transactions, page 1 of ${LAST}`,
+      }),
+    }),
+    card({
+      title: 'Transactions',
+      body: pagination({
+        page: LAST, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL,
+        id: 'card-last', label: `Transactions, page ${LAST} of ${LAST}`,
+      }),
+    }),
+  )),
 };
