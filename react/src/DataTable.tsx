@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Button } from './primitives/Button';
+import { Pagination } from './Pagination';
 import './DataTable.css';
 
 export type Column<T> = {
@@ -11,6 +11,10 @@ type SelectionProps =
   | { selectable?: true; selected: Set<string>; onToggle: (name: string) => void; onTogglePage: (names: string[]) => void };
 export type DataTableProps<T> = {
   columns: Column<T>[]; rows: T[]; pageSize?: number;
+  // Client paging is opt-in. A table handed a server's page has already been
+  // paged, and a second pager over it is a second answer to how much data there
+  // is. why: stories/guidelines/_tables-at-scale.js `one-pager`
+  pager?: boolean;
 } & SelectionProps & (
   | { sort?: never; onSortChange?: (sort: TableSort<T>) => void }
   | { sort: TableSort<T>; onSortChange: (sort: TableSort<T>) => void }
@@ -25,7 +29,7 @@ export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
 }
 
 export function DataTable<T extends { name: string }>({
-  columns, rows, pageSize = 4, selectable = true, selected = new Set<string>(),
+  columns, rows, pageSize = 25, pager = false, selectable = true, selected = new Set<string>(),
   onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
 }: DataTableProps<T>) {
   const [localSort, setLocalSort] = useState<TableSort<T>>(
@@ -42,8 +46,8 @@ export function DataTable<T extends { name: string }>({
   const sorted = useMemo(() => sortTableRows(rows, sort), [rows, sort.key, sort.dir]);
 
   const pages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const safePage = Math.min(page, pages - 1);
-  const slice = sorted.slice(safePage * pageSize, safePage * pageSize + pageSize);
+  const safePage = pager ? Math.min(page, pages - 1) : 0;
+  const slice = pager ? sorted.slice(safePage * pageSize, safePage * pageSize + pageSize) : sorted;
   const onSort = (key: keyof T & string) => {
     const next: TableSort<T> = sort.key === key
       ? { key, dir: sort.dir === 1 ? -1 : 1 }
@@ -100,13 +104,10 @@ export function DataTable<T extends { name: string }>({
           ))}
         </tbody>
       </table>
-      <div className="rx-pager">
-        <span className="rx-pager__info">Page {safePage + 1} of {pages} · {sorted.length} rows</span>
-        <Button variant="ghost" size="sm" icon="chevronLeft" disabled={safePage === 0}
-          onClick={() => setPage(safePage - 1)}>Prev</Button>
-        <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={safePage >= pages - 1}
-          onClick={() => setPage(safePage + 1)}>Next</Button>
-      </div>
+      {pager ? (
+        <Pagination page={safePage + 1} perPage={pageSize} total={sorted.length}
+          onPageChange={(to) => setPage(to - 1)} />
+      ) : null}
     </>
   );
 }

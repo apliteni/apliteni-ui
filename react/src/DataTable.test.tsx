@@ -12,10 +12,16 @@ const columns: Column<Row>[] = [
   { key: 'clicks', label: 'Clicks', num: true, sortable: true },
 ];
 
+// Thirty rows: more than the new default page size of 25, so "paged" and "not
+// paged" are two visibly different row counts rather than the same one.
+const many: Row[] = Array.from({ length: 30 }, (_, i) => ({
+  name: `row-${String(i).padStart(2, '0')}`, clicks: i,
+}));
+
 function Harness() {
   const [sel, setSel] = useState<Set<string>>(new Set());
   return (
-    <DataTable columns={columns} rows={rows} pageSize={2}
+    <DataTable columns={columns} rows={rows} pageSize={2} pager
       selected={sel}
       onToggle={(n) => setSel((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; })}
       onTogglePage={(ns) => setSel((s) => {
@@ -34,9 +40,11 @@ it('sorts by a column ascending on second click of default-desc', async () => {
   expect(within(first).getByText('B')).toBeInTheDocument();
 });
 
-it('paginates (pageSize 2 → page 1 of 2)', () => {
+// The sentence is the kit's now, and the kit says a row range rather than a page
+// number: how much there is, not which slice you are on. why: react/src/Pagination.tsx
+it('paginates (pageSize 2 → the first two of three rows)', () => {
   render(<Harness />);
-  expect(screen.getByText(/Page 1 of 2/)).toBeInTheDocument();
+  expect(screen.getByText('1–2 of 3')).toBeInTheDocument();
 });
 
 it('toggles a row selection', async () => {
@@ -102,7 +110,7 @@ it('returns to the first page when something other than a header changes the sor
     return <>
       {/* A FRESH OBJECT EVERY RENDER. The page must follow the sort's value, not its
           identity — an owner that builds this inline re-renders constantly. */}
-      <DataTable columns={columns} rows={source} pageSize={2} selectable={false}
+      <DataTable columns={columns} rows={source} pageSize={2} pager selectable={false}
         sort={{ key: sort.key, dir: sort.dir }} onSortChange={setSort} />
       <button onClick={() => setSort((s) => ({ ...s }))}>Re-render</button>
       <button onClick={() => setSort({ key: 'clicks', dir: -1 })}>Newest first</button>
@@ -111,16 +119,16 @@ it('returns to the first page when something other than a header changes the sor
   render(<Controlled />);
   const order = () => screen.getAllByRole('row').slice(1).map(row => within(row).getAllByRole('cell')[0].textContent);
 
-  await userEvent.click(screen.getByRole('button', { name: /Next/ }));
-  expect(screen.getByText(/Page 2 of 3/)).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
+  expect(screen.getByText('3–4 of 6')).toBeInTheDocument();
   expect(order()).toEqual(['C', 'D']);
 
   await userEvent.click(screen.getByRole('button', { name: 'Re-render' }));
-  expect(screen.getByText(/Page 2 of 3/)).toBeInTheDocument();
+  expect(screen.getByText('3–4 of 6')).toBeInTheDocument();
   expect(order()).toEqual(['C', 'D']);
 
   await userEvent.click(screen.getByRole('button', { name: 'Newest first' }));
-  expect(screen.getByText(/Page 1 of 3/)).toBeInTheDocument();
+  expect(screen.getByText('1–2 of 6')).toBeInTheDocument();
   expect(order()).toEqual(['F', 'E']);
 });
 
@@ -150,4 +158,26 @@ it('announces the sorted column whether or not its header offers a sort control'
   // A column that neither sorts nor is sorted by says nothing at all.
   render(<DataTable columns={oneSortable} rows={rows} pageSize={3} selectable={false} />);
   expect(screen.getByRole('columnheader', { name: 'Clicks' })).not.toHaveAttribute('aria-sort');
+});
+
+
+// ---- the pager is opt-in -------------------------------------------------
+// why: react/src/Pagination.tsx. DataTable used to page on the client at four
+// rows a page, always, over whatever rows it was handed. A server-paged surface
+// got a second pager disagreeing with the first about how much data there is.
+
+it('draws no pager unless one is asked for', () => {
+  render(<DataTable columns={columns} rows={many} selectable={false} />);
+  expect(screen.queryByRole('navigation', { name: 'Pagination' })).toBeNull();
+  expect(screen.queryByText(/Page \d+ of \d+/)).toBeNull();
+});
+
+it('shows every row it was handed when it is not paging', () => {
+  render(<DataTable columns={columns} rows={many} selectable={false} />);
+  expect(screen.getAllByRole('row')).toHaveLength(many.length + 1);   // + the header
+});
+
+it('pages at twenty-five when asked to page', () => {
+  render(<DataTable columns={columns} rows={many} selectable={false} pager />);
+  expect(screen.getAllByRole('row')).toHaveLength(26);
 });
