@@ -11,10 +11,10 @@ up with a different pager on every surface.
 **What I found.** The complaint is about the look. The look is bad, but the cause is
 structural and guidelines alone would not have fixed it.
 
-- `DataTable` renders `.rx-pager` **unconditionally** — there is no branch on the page count
-  and no prop to suppress it (`react/src/DataTable.tsx:103-109`). A table whose rows fit on
-  one page still gets the sentence `Page 1 of 1 · N rows` and two permanently dead buttons.
-  That is Artur's second screenshot, and it is on thirteen-plus tables in the finance portal.
+- `DataTable` rendered its `.rx-pager` **unconditionally** — no branch on the page count and
+  no prop to suppress it. A table whose rows fit on one page still got the sentence
+  `Page 1 of 1 · N rows` and two permanently dead buttons. That is Artur's second screenshot,
+  and it was on thirteen-plus tables in the finance portal.
 - The pager slices the `rows` array it was handed, so it cannot express a page a server
   computed. `finance.apli.tech` defeats it (`pageSize={pageSize ?? rows.length}`,
   `web/src/components/Table.tsx:282`) and then hides it outright on the two surfaces where

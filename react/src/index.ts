@@ -15,5 +15,11 @@ export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { DataTable, sortTableRows } from './DataTable';
 export type { Column, DataTableProps, TableSort } from './DataTable';
+export { Pagination } from './Pagination';
+export type { PaginationProps } from './Pagination';
+// The page-size scale is the kit's, not this workspace's: re-exported from the
+// vanilla component so no call site writes either number.
+// why: docs/specification.md#pagination
+export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 export { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
 export type { SkeletonProps, SkeletonTableProps, BusyRegionProps, DeniedProps } from './Loading';

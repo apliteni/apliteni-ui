@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Button } from './primitives/Button';
+import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
+import { Pagination } from './Pagination';
 import './DataTable.css';
 
 export type Column<T> = {
@@ -9,9 +10,21 @@ export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
 type SelectionProps =
   | { selectable: false; selected?: Set<string>; onToggle?: (name: string) => void; onTogglePage?: (names: string[]) => void }
   | { selectable?: true; selected: Set<string>; onToggle: (name: string) => void; onTogglePage: (names: string[]) => void };
+// Two modes, one table, chosen once and kept — the rule the sort pair above
+// states, applied to the page. Given a `page`, the table renders the rows it is
+// handed and never slices them: the range comes from `page`, `pageSize` and
+// `total`, which is what a server-paged surface has to be able to say.
+// why: docs/specification.md#react-tables
+type PagerProps =
+  | { page?: never; onPageChange?: (page: number) => void; total?: never; hasMore?: never }
+  | { page: number; onPageChange: (page: number) => void; total?: number | null; hasMore?: boolean };
 export type DataTableProps<T> = {
-  columns: Column<T>[]; rows: T[]; pageSize?: number;
-} & SelectionProps & (
+  columns: Column<T>[]; rows: T[];
+  pageSize?: number; pageSizes?: number[] | null; onPageSizeChange?: (size: number) => void;
+  /** `false` renders no pager at all — for a surface that supplies its own. */
+  pager?: boolean;
+  loading?: boolean;
+} & SelectionProps & PagerProps & (
   | { sort?: never; onSortChange?: (sort: TableSort<T>) => void }
   | { sort: TableSort<T>; onSortChange: (sort: TableSort<T>) => void }
 );
@@ -25,32 +38,43 @@ export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
 }
 
 export function DataTable<T extends { name: string }>({
-  columns, rows, pageSize = 4, selectable = true, selected = new Set<string>(),
+  columns, rows, pageSize, pageSizes = null, onPageSizeChange, pager = true, loading = false,
+  selectable = true, selected = new Set<string>(),
   onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
+  page: controlledPage, onPageChange, total, hasMore = false,
 }: DataTableProps<T>) {
   const [localSort, setLocalSort] = useState<TableSort<T>>(
     { key: columns.find((c) => c.sortable)?.key, dir: -1 });
   const sort = controlledSort ?? localSort;
-  const [page, setPage] = useState(0);
+  const owned = controlledPage === undefined;
+  const [localPage, setLocalPage] = useState(1);
+  const [localSize, setLocalSize] = useState(DEFAULT_PAGE_SIZE);
+  const size = Math.max(1, pageSize ?? localSize);
   // Compare values so fresh inline sort objects do not reset pagination.
   const [pagedSort, setPagedSort] = useState(sort);
   if (pagedSort.key !== sort.key || pagedSort.dir !== sort.dir) {
     setPagedSort(sort);
-    setPage(0);
+    setLocalPage(1);
   }
 
   const sorted = useMemo(() => sortTableRows(rows, sort), [rows, sort.key, sort.dir]);
 
-  const pages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const safePage = Math.min(page, pages - 1);
-  const slice = sorted.slice(safePage * pageSize, safePage * pageSize + pageSize);
+  // Controlled: these rows ARE the page. Nothing is sliced and the count is the
+  // caller's, because the rows in front of us are not the whole result.
+  const pages = Math.max(1, Math.ceil(sorted.length / size));
+  const page = owned ? Math.min(Math.max(1, localPage), pages) : controlledPage;
+  const slice = owned ? sorted.slice((page - 1) * size, page * size) : sorted;
+  const goTo = (n: number) => (owned ? setLocalPage(n) : onPageChange?.(n));
+  // A page the reader is no longer on has to be left, and in the controlled mode
+  // only its owner can do that — so it is asked, exactly as a sort change is.
+  const toFirstPage = () => { if (owned) setLocalPage(1); else if (page !== 1) onPageChange?.(1); };
   const onSort = (key: keyof T & string) => {
     const next: TableSort<T> = sort.key === key
       ? { key, dir: sort.dir === 1 ? -1 : 1 }
       : { key, dir: -1 };
     if (controlledSort === undefined) setLocalSort(next);
     onSortChange?.(next);
-    setPage(0);
+    toFirstPage();
   };
   const caret = (k: string) => (sort.key === k ? (sort.dir === 1 ? ' ▲' : ' ▼') : ' ↕');
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
@@ -100,13 +124,18 @@ export function DataTable<T extends { name: string }>({
           ))}
         </tbody>
       </table>
-      <div className="rx-pager">
-        <span className="rx-pager__info">Page {safePage + 1} of {pages} · {sorted.length} rows</span>
-        <Button variant="ghost" size="sm" icon="chevronLeft" disabled={safePage === 0}
-          onClick={() => setPage(safePage - 1)}>Prev</Button>
-        <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={safePage >= pages - 1}
-          onClick={() => setPage(safePage + 1)}>Next</Button>
-      </div>
+      {/* One page and no size to choose renders nothing at all — the pager's own
+          rule, not a second copy of it here. */}
+      {pager ? (
+        <Pagination page={page} pageSize={size} total={owned ? sorted.length : total ?? null}
+          hasMore={hasMore} pageSizes={pageSizes} loading={loading}
+          onPageChange={goTo}
+          onPageSizeChange={(s) => {
+            if (pageSize === undefined) setLocalSize(s);
+            onPageSizeChange?.(s);
+            toFirstPage();
+          }} />
+      ) : null}
     </>
   );
 }

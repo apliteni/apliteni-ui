@@ -48,3 +48,33 @@ export const SharedOrder: StoryObj = {
     </>;
   },
 };
+
+export const ServerPaged: StoryObj = {
+  render: function Render() {
+    // Stands in for a server: the page is the owner's, the table renders the
+    // rows it is handed and states the range from `total`.
+    const [page, setPage] = useState(1);
+    const [size, setSize] = useState(2);
+    const [loading, setLoading] = useState(false);
+    const fetched = rows.slice((page - 1) * size, page * size);
+    const turn = (next: number, nextSize = size) => {
+      setLoading(true);
+      setPage(next);
+      setSize(nextSize);
+      setTimeout(() => setLoading(false), 400);
+    };
+    return (
+      <DataTable columns={columns} rows={fetched} selectable={false}
+        sort={{ key: undefined, dir: -1 }} onSortChange={() => {}}
+        page={page} total={rows.length} pageSize={size} pageSizes={[2, 3, 5]}
+        loading={loading} onPageChange={turn} onPageSizeChange={(s) => turn(1, s)} />
+    );
+  },
+};
+
+export const NoPager: StoryObj = {
+  render: () => (
+    // A surface that pages elsewhere on the screen asks for no pager at all.
+    <DataTable columns={columns} rows={rows} selectable={false} pager={false} />
+  ),
+};

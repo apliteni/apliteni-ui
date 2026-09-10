@@ -25,11 +25,16 @@ The kit declares no dependency on `react` or `react-dom`, so install them yourse
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
-import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, pager)
+import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, sort control)
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Modal`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `Modal`, `Button`, `Badge`, `Card`, `Icon`.
+
+`Pagination` renders the same markup as the kit's `pagination()` factory, so its styles come
+from `@apliteni/apliteni-ui/css` rather than from this bundle. `PAGE_SIZES` and
+`DEFAULT_PAGE_SIZE` are re-exported here — the scale is the kit's, so no call site writes
+either number.
 
 ## What the Modal does with focus
 
@@ -93,3 +98,36 @@ a new array, including when `key` is `undefined`.
 Choose controlled or uncontrolled once per table. Passing `sort` for a while and then
 dropping it is not supported: the table falls back to the sort state it started with, not to
 the one it was last given.
+
+### Tables paged by a server
+
+`page` and `onPageChange` make pagination controlled, the same way `sort` does — and the same
+rule applies: choose one mode per table and keep it. Given a `page`, the table renders `rows`
+exactly as handed to it and never slices them; the range comes from `page`, `pageSize` and
+`total`:
+
+```tsx
+<DataTable columns={columns} rows={pageOfRows} selectable={false}
+  page={page} total={total} pageSize={size} onPageChange={fetchPage}
+  pageSizes={PAGE_SIZES} onPageSizeChange={setSize} loading={loading} />
+```
+
+`total` is the row count of the whole result, not of `rows`. Pass `total={null}` for a result
+whose size is not known and say whether there is another page with `hasMore` — the pager then
+offers Prev and Next alone, because no other control can be computed without a last page.
+Changing the sort asks its owner for page 1 through `onPageChange`, which is the most a
+controlled table can do about it. Keep `sort` controlled too, or pass
+`sort={{ key: undefined, dir: -1 }}`: a table left to its own sort orders the rows it is
+handed, which re-orders a page the server already ordered.
+
+Omit `page` to keep the table's own paging: it slices `rows` in memory and the total is
+`rows.length`. `pageSizes` offers a size control in either mode — without a `pageSize` prop the
+table remembers the size the reader picked, with one it reports the choice through
+`onPageSizeChange` and shows what it is given. Either way, picking a size returns the reader to
+the first page.
+
+`pager={false}` renders no pager at all, for a surface that supplies its own. One page of
+content renders none either: the pager keeps GOV.UK's rule that pagination for a single page is
+not shown, and with a size control on offer it keeps the row count and that control alone.
+
+`pageSize` defaults to `DEFAULT_PAGE_SIZE` (100). **Breaking:** it used to default to 4.

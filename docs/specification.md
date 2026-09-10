@@ -584,6 +584,26 @@ header or from anything else the consumer offers. Sort headers keep their column
 keyboard buttons and sort direction announcements, and the column a table is sorted by
 announces its direction whether or not its own header offers a sort control.
 
+Paging may be controlled by the consumer or managed by the table, on the same terms as
+sorting, and one table stays in one of those two modes for as long as it is on the page. A
+table left to manage its own paging holds the rows it was given and shows one page of them
+at a time. A controlled table shows the rows it was given and shows all of them: they are
+the page, the consumer chose them, and the table neither reorders nor divides them again.
+The count such a table reports is the consumer's, because the rows in front of it are not
+the whole result — and a consumer that cannot count the whole result says so, which is the
+shape the pager already has an answer for.
+
+A table that pages under its own control returns the reader to the first page when the
+sort changes. A controlled one asks its owner to, exactly as it asks for a sort change,
+because only the owner can fetch what the first page holds.
+
+A table may render no pager at all, for a surface that supplies its own. A table whose rows
+fit on one page renders none either, on the pager's own terms rather than by a second rule
+here.
+
+The page a table starts on shows as many rows as the kit's largest page size, not as many
+as fit a demonstration.
+
 ## What the kit does not do
 
 Stated so nobody has to discover it by trying:

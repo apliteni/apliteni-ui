@@ -99,3 +99,12 @@
   border-radius: var(--radius-sm);
   text-align: center;
 }
+
+/* A pager directly after a table stands off it. The strip owns no margin of its
+   own — it is dropped under lists and cards too, and a component that carries
+   spacing everywhere is one every caller has to cancel somewhere — so the gap is
+   declared on the one adjacency the kit can see. `.rx-pager` carried a bare
+   `margin-top: 16px` for this, which is --space-4; the number moves to the scale
+   with it rather than travelling as a literal.
+   why: docs/specification.md#spacing-and-rhythm */
+.ui-table + .ui-pager { margin-top: var(--space-4); }

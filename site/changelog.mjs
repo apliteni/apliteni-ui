@@ -13,6 +13,17 @@
 
 export const RELEASES = [
   {
+    v: '0.27.0', date: '2026-09-10',
+    changes: [
+      ['added', "`pagination()` — the strip under a table or a list, and the first pager in the kit that can express a page it did not compute. Rows do not go into it: it takes the current page, the page size and, where the caller has one, the size of the whole result, so a page counted by a server and a page sliced out of an array produce the same markup. Three variants — `steps` (First/Prev/Next/Last, the default), `numbered` (a truncated strip of at most seven slots) and `jump` (a page box) — and a fourth shape nobody selects: given no total it draws Prev and Next alone, because with no last page nothing else can be computed, which is what a cursor API and a `limit + 1` fetch both need. A control at an end is disabled and stays where it is, never removed. One page of content draws no steps, and with no page size on offer it renders nothing at all. The range announces itself in a polite live region — the only part of the strip that speaks.", ['Pagination']],
+      ['added', "Guidelines / Pagination: seven rules for data-intensive tables, each citing the line of kit code that keeps it. Three of them are in none of the thirteen design systems surveyed for the page — what the controls do during a page turn, announcing the row range by default, and where the responsibility for remembering a page size sits.", ['Pagination']],
+      ['breaking', "React `DataTable` pages 100 rows by default, not 4. The old default was written for a demonstration and every consumer of a data-intensive table had to override it. `pageSize` still takes any number; `PAGE_SIZES` and `DEFAULT_PAGE_SIZE` are exported so no call site writes the numbers.", ['DataTable']],
+      ['added', "React `DataTable` takes `page` and `onPageChange`, the same controlled/uncontrolled pair `sort` already had. A controlled table renders the rows it is handed and never slices them, so a surface paged by a server can finally say so instead of passing its own row count as a page size to switch the kit's pager off. `total` and `hasMore` carry the count; `pager={false}` renders none at all.", ['DataTable']],
+      ['fixed', "React `DataTable` no longer draws a pager for a table that has one page. It used to render `Page 1 of 1 · N rows` under two permanently disabled buttons, with no branch on the page count and no way to turn it off — which is why one consumer hid the strip in CSS on the two surfaces where the sentence was also false.", ['DataTable']],
+      ['breaking', "A disabled ghost button now paints the flat disabled surface every other disabled control paints, so a faint box appears where there was none. It was the one control in the kit whose legibility depended on where it was put: `background: transparent` meant its ink was read against whatever was behind it — 5.82:1 on the page, 5.18:1 on a card, 4.66:1 on `--surface-3` — while #220 had collapsed every other disabled control into a band of 5.56–6.11. Found by putting four of them in a pager inside a card, which is where every table in a consuming portal sits. Nothing is less readable anywhere; `src/styles/button-disabled.test.js` pins all eight measurements and refuses the next variant that tries to paint no surface.", ['Button']],
+    ],
+  },
+  {
     v: '0.26.0', date: '2026-09-06',
     changes: [
       ['added', "React DataTable can omit selection controls and share controlled sorting with another view of its rows. Existing selection and uncontrolled sorting retain their behavior.", ['DataTable']],

@@ -135,8 +135,11 @@ export const RULES = [
       + 'sizes either, the component renders nothing at all.',
     dontCaption: 'A sentence that is true and tells the reader nothing, over two buttons that can '
       + 'never do anything. This was the kit\'s own output on every table shorter than a page.',
-    why: 'GOV.UK puts it in one line: "Do not show pagination if there\'s only one page of '
-      + 'content." The kit used to render its pager unconditionally — no branch on the page count '
+    // "GOV.UK" is written out as words on purpose: mono() reads a dot followed by a word as
+    // a class selector, so the literal spelling renders as GOV<code>.UK</code>.
+    why: 'The UK government design system puts it in one line: "Do not show pagination if '
+      + 'there\'s only one page of content." The kit used to render its pager unconditionally '
+      + '— no branch on the page count '
       + 'and no way to turn it off — so thirteen-odd tables in one portal carried two dead buttons, '
       + 'and the two surfaces where the sentence was also false hid the whole strip in CSS rather '
       + 'than argue with it.',
