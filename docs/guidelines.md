@@ -1,6 +1,6 @@
 # The guidelines collection
 
-Five pages of UI rules, rendered as Storybook stories under `Guidelines/`, plus an
+Nine pages of UI rules, rendered as Storybook stories under `Guidelines/`, plus an
 Overview that indexes them. A page is a **content module** holding the rules and a
 **story module** that hands them to the shared shell.
 
@@ -9,7 +9,7 @@ stories/guidelines/
   _layout.js            The shell: specimen stage, page CSS, guidelinePage().
   _<page>.js            One page's TITLE, BLURB, RULES, and its specimen CSS.
   <Page>.stories.js     The story: a Guidelines/ title and one export.
-  _overview.js          ENTRIES — the five pages in order — and the index data.
+  _overview.js          ENTRIES — the nine pages in order — and the index data.
   Overview.stories.js   The index table.
 ```
 
@@ -77,7 +77,7 @@ published still match. That last check skips when `storybook-static/` is absent.
 
 A story's URL id comes from its **export name**, not its title. `Guidelines/The full
 state set` exports `StateSet`, so the story is `guidelines-the-full-state-set--state-set`
-— a link built from the title alone is a 404 on two of the five pages.
+— a link built from the title alone is a 404 on three of the nine pages.
 
 `_overview.js` reproduces Storybook's two-step rule (`startCase`, then `sanitize`)
 rather than importing it, so the page bundles no Storybook internals. `overview.test.js`
