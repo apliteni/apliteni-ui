@@ -247,7 +247,7 @@ export function Pagination({
       {size}
       {/* Announcing the new range belongs to button mode alone. In link mode the
           document reloads and the announcement arrives on top of the browser's own.
-          why: src/components/pagination.js:140 */}
+          why: src/components/pagination.js:140 `const live = href ? '' :` */}
       <span className="ui-pager__range"
         {...(renderLink ? {} : { 'aria-live': 'polite' as const, 'aria-atomic': 'true' })}>
         {pagerRange({ page, perPage, total, hasMore, rowsOnPage })}

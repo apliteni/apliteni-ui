@@ -332,6 +332,15 @@ export const GATES = [
     blind: ['The scrim\u2019s backdrop-filter, and anything else only a browser composites.'],
   },
   {
+    file: 'react/src/Pagination.test.tsx',
+    does: 'Focus lands on the rows after a page turns, and the range announces itself in button '
+      + 'mode and stays quiet in link mode, where the document reloads and reads itself.',
+    blind: [
+      'Whether a screen reader actually reads the live region: jsdom records the attribute, not the announcement.',
+      'Real browser focus. jsdom\u2019s focus() moves activeElement; it does not scroll, or repaint, or read anything out.',
+    ],
+  },
+  {
     file: 'react/src/a11y.test.tsx',
     does: 'The same axe contract for the React workspace, through vitest and Testing Library.',
     blind: ['The same two axe cannot do next door: contrast, and anything static markup hides.'],
