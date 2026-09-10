@@ -101,11 +101,20 @@
    5.56–6.11" is that the pair composites predictably: the ink is read on the
    surface beside it rather than on whatever happens to be behind it. A
    transparent box opts out of exactly that, so the one variant that kept it was
-   the one control in the kit whose legibility depended on where it was put —
-   5.82:1 on --bg, 5.18:1 on a card, 4.66:1 on --surface-3, all from one rule.
-   Every table in the finance portal sits in a .ui-card, so the number that
-   shipped was the middle one.
-   Held by src/styles/button-disabled.test.js, which measures all four grounds. */
+   the one control in the kit whose legibility depended on where it was put. In
+   dark that was 5.82:1 on --bg, 5.18:1 on a card and 4.66:1 on --surface-3; in
+   light, 6.11 / 6.11 / 5.26. Every table in the finance portal sits in a .ui-card,
+   so the number that shipped was the middle one.
+
+   This is a TRADE and not a strict win, which is worth saying plainly because the
+   first draft of this comment claimed otherwise. Painting the pair puts every
+   ground on one number — 5.56 dark, 5.66 light — so the two cases below the band
+   come up and the two that sat on a high-contrast ground come down: --bg loses
+   0.26 in dark and 0.46 in light, and --surface loses 0.46 in light. Nothing
+   lands below #220's floor afterwards and nothing depends on placement any more,
+   which is what was bought.
+   Held by src/styles/button-disabled.test.js, which measures every ground the
+   token file declares — four today. */
 
 /* Busy: keep the label, run an indeterminate accent shimmer along the base, and
    the button is disabled (not clickable). Pass busy + the .ui-btn__bars markup.

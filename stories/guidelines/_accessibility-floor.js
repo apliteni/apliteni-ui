@@ -420,7 +420,7 @@ export const RULES = [
       + 'gate says so about itself.',
     kit: [
       { ref: 'src/styles/button.css:75', pattern: '.ui-btn--sm' },
-      { ref: 'src/styles/input.css:118', pattern: '.ui-check input::before' },
+      { ref: 'src/styles/input.css:124', pattern: '.ui-check input::before' },
     ],
   },
   {

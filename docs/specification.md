@@ -550,16 +550,20 @@ One page of content gets no steps. Offered no choice of page size, such a pager 
 at all; offered one, it keeps its row count and that control and drops the steps alone.
 
 The row range is announced. It is the only part of the pager that announces, and it announces
-politely and as a whole, so a page turn is one statement rather than four.
+politely and as a whole, so a page turn is one statement rather than four. The announcement is a
+rewrite of the range the pager already shows — `setPagerStatus()` in the HTML entry point, and
+every render in the React one. A pager replaced wholesale arrives with its text already in it, and
+is not announced, for the reason given under [Pending and denied states](#pending-and-denied-states).
 
 The page size is a scale the kit names, and a table starts on the largest step a reader can
 still take in at once. Which sizes a table offers is the consumer's, and so is remembering the
 one a reader picked: the kit renders the choice and does not persist it.
 
 A page turn does not move the ground under the reader. While the next page loads the pager keeps
-its numbers legible, marks itself busy and stops taking input, and the rows it is replacing hold
-their height rather than collapsing to a spinner — the pager a reader is about to press again
-must not travel while they are reaching for it.
+its numbers legible, marks itself busy and stops taking input, and a table waiting on a page
+reports that it is busy without discarding the rows it is showing. What replaces those rows is
+the consumer's — the kit renders what it is handed — so the guarantee here is that nothing the
+kit draws collapses on its own while the wait lasts.
 
 The kit shipped none of this until [#273][i273]. Its one pager sliced the rows it was
 handed, drew itself whether or not a second page existed, and could not be turned off — so

@@ -172,7 +172,19 @@ Nothing here failed WCAG — the settled floor is 3:1. What it failed is the kit
 which exists to make precisely this a decision somebody writes down.
 
 **Artur's call: fix the kit.** The exemption is gone, so a disabled ghost button now takes the
-flat disabled surface like every other disabled control and lands at 5.56:1 on any ground.
+flat disabled surface like every other disabled control, and every ground reads the same number:
+5.56 in dark, 5.66 in light.
+
+**A correction to what was put to Artur when he made that call.** The question said "nothing gets
+less readable anywhere". That is false, and the review caught it. Painting the pair puts every
+ground on one number, so the two below the floor come up **and three that happened to sit on a
+high-contrast ground come down**: `--bg` loses 0.26 in dark and 0.46 in light, and `--surface`
+loses 0.46 in light. Nothing lands below #220's 5.56–6.11 band afterwards, and nothing depends on
+placement any more — that is what the trade buys, and it is a trade rather than the strict win it
+was sold as. **The correction has been sent to Artur with these numbers and he has not answered
+yet.** The fix stays in as decided, because the decision it was based on still looks right with
+the true figures — but it was made on a wrong one, so it is his to remake. Reverting it is one
+commit; the alternatives are in the message.
 
 *Before* — the disabled `Prev` is a bare label; the solid disabled `Secondary` beside it has a box:
 `docs/evidence/ghost-disabled-before-dark.png`, `…-before-light.png`
@@ -180,9 +192,8 @@ flat disabled surface like every other disabled control and lands at 5.56:1 on a
 `docs/evidence/ghost-disabled-after-dark.png`, `…-after-light.png`
 
 **What changes in the portal:** every disabled ghost button gains a faint box — toolbar
-buttons, row actions, the pager. Nothing anywhere gets less readable. `--surface-3` (4.66,
-the worst case, which no story had ever rendered) is fixed by the same one rule and pinned by
-the same gate.
+buttons, row actions, the pager. `--surface-3` (4.66, the worst case, which no story had ever
+rendered) is fixed by the same one rule and pinned by the same gate.
 
 `src/styles/button-disabled.test.js` holds it three ways: the disabled pair clears the floor
 on the surface it paints for itself; no disabled rule may hand its background back to the

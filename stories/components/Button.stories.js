@@ -68,9 +68,14 @@ export const States = {
       button({ label: 'Primary', variant: 'primary' }),
       button({ label: 'Secondary', variant: 'secondary' }),
     )),
+    // Ghost is here because of #273: it used to draw no box when it was off, which
+    // made it the one control whose contrast depended on the surface behind it.
+    // It now paints the same flat pair as the others, and this is where that is
+    // looked at — the row is the specimen the change had been missing.
     specimen('Disabled', row(
       button({ label: 'Primary', variant: 'primary', disabled: true }),
       button({ label: 'Secondary', variant: 'secondary', disabled: true }),
+      button({ label: 'Ghost', variant: 'ghost', disabled: true }),
     )),
     specimen('Busy / loading', row(
       button({ label: 'Saving…', variant: 'primary', busy: true }),

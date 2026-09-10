@@ -108,3 +108,17 @@
    with it rather than travelling as a literal.
    why: docs/specification.md#spacing-and-rhythm */
 .ui-table + .ui-pager { margin-top: var(--space-4); }
+
+/* A step given an `href` is an anchor, and a host stylesheet's `a:link` is
+   (0,1,1) — which outranks `.ui-btn--ghost` at (0,1,0) and paints the enabled
+   steps in the host's link colour while the disabled ends keep --disabled-ink.
+   One strip, reading as two different controls. The kit has paid for this twice
+   already and both fixes are the same shape: see the (0,2,0) note on
+   `.ui-nav .ui-nav__item` in nav.css. Storybook ships no `a:link`, so the "Pages
+   as links" story cannot show it — which is why the rule is stated rather than
+   discovered.
+   why: docs/specification.md#pagination */
+a.ui-pager__step,
+a.ui-pager__page { color: var(--dim); }
+a.ui-pager__step:hover,
+a.ui-pager__page:hover { color: var(--strong); }

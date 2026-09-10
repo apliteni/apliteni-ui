@@ -141,20 +141,93 @@ test('the grounds a transparent disabled button would have fallen back to are pi
 
 /* The mutation that puts the defect back. A variant that paints no surface when
  * it is disabled inherits the ground, and the test above stops being about that
- * variant at all — it would keep passing while the button on screen failed. */
-test('no disabled rule hands its background back to the ground', () => {
+ * variant at all — it would keep passing while the button on screen failed.
+ *
+ * BOTH axes, because the rule #273 removed was two declarations and not one:
+ * `background: transparent` AND `border-color: transparent`. Restoring only the
+ * border gives back half the box the change promises.
+ *
+ * The first draft of this scan was defeatable thirteen ways and a review found
+ * every one, so the reading is borrowed wholesale from the sibling gate next door
+ * (src/styles/pagination.test.js): comments blanked first, `[^{}]*` for a body so
+ * a rule nested in an at-rule is read as itself rather than swallowed by the
+ * at-rule's prelude, and every declaration of the property rather than the first.
+ * The spellings are named because "transparent" is only one of them — a fully
+ * transparent colour is transparent however it is written, `initial`/`revert`/
+ * `unset` resolve a background to transparent, and `inherit` hands it to whatever
+ * is behind, which is the defect by another name.
+ */
+const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+const INVISIBLE = new RegExp(
+  '^\\s*(transparent|none|initial|inherit|unset|revert(-layer)?'
+  + '|#(0{3,4}|0{6}|0{8})'
+  + '|rgba?\\([^)]*[,/]\\s*0*(\\.0+)?\\s*\\)'
+  + '|hsla?\\([^)]*[,/]\\s*0*(\\.0+)?\\s*\\))\\s*$',
+  'i',
+);
+/* Every way the sheet can spell "this control is off". */
+const DISABLED_SELECTOR = /:disabled|\[disabled\]|\[aria-disabled\s*=\s*("true"|'true'|true)\]/i;
+
+test('no disabled rule hands its background or its border back to the ground', () => {
   const offenders = [];
-  /* Every rule whose selector carries a disabled state, with its declarations. */
-  for (const [, selector, body] of BUTTON_CSS.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
-    if (!/:disabled|\[aria-disabled="true"\]/.test(selector)) continue;
-    const background = /background(?:-color)?:\s*([^;]+)/.exec(body);
-    if (background && /transparent|none/.test(background[1])) {
-      offenders.push(`${selector.trim().replace(/\s+/g, ' ')} → background: ${background[1].trim()}`);
+  for (const [, selector, body] of decomment(BUTTON_CSS).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (selector.trimStart().startsWith('@')) continue;
+    if (!DISABLED_SELECTOR.test(selector)) continue;
+    for (const [, property, value] of body.matchAll(/(background(?:-color)?|border(?:-color)?)\s*:\s*([^;]+)/gi)) {
+      if (INVISIBLE.test(value)) {
+        offenders.push(`${selector.trim().replace(/\s+/g, ' ')} → ${property}: ${value.trim()}`);
+      }
     }
   }
   assert.deepEqual(offenders, [],
-    'a disabled button variant paints no surface of its own, so its label is read against'
-    + ' whatever is behind it — the exemption #273 removed from .ui-btn--ghost.');
+    'a disabled button variant paints no surface or no border of its own, so it is read'
+    + ' against whatever is behind it — the exemption #273 removed from .ui-btn--ghost.');
+});
+
+/* The scan above is only worth anything if it refuses what it is written to
+ * refuse, and each of these got past its first draft. */
+test('the scan refuses every spelling of an invisible disabled box', () => {
+  const caught = (rule) => {
+    const css = `${BUTTON_CSS}\n${rule}\n`;
+    for (const [, selector, body] of decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (selector.trimStart().startsWith('@') || !DISABLED_SELECTOR.test(selector)) continue;
+      for (const [, , value] of body.matchAll(/(background(?:-color)?|border(?:-color)?)\s*:\s*([^;]+)/gi)) {
+        if (INVISIBLE.test(value)) return true;
+      }
+    }
+    return false;
+  };
+
+  const missed = [
+    '.ui-btn--ghost:disabled { background: transparent; }',
+    '.ui-btn--ghost:disabled { border-color: transparent; }',
+    '.ui-btn--ghost:disabled { background: rgba(0, 0, 0, 0); }',
+    '.ui-btn--ghost:disabled { background: rgb(0 0 0 / 0); }',
+    '.ui-btn--ghost:disabled { background: hsl(0 0% 0% / 0); }',
+    '.ui-btn--ghost:disabled { background: #0000; }',
+    '.ui-btn--ghost:disabled { background: #00000000; }',
+    '.ui-btn--ghost:disabled { background: initial; }',
+    '.ui-btn--ghost:disabled { background: unset; }',
+    '.ui-btn--ghost:disabled { background: inherit; }',
+    '.ui-btn--ghost:disabled { background: revert; }',
+    '.ui-btn--ghost:disabled { background: var(--disabled-surface); background: transparent; }',
+    '@media (min-width: 560px) { .ui-btn--ghost:disabled { background: transparent; } }',
+    '@supports (color: red) { .ui-btn--ghost:disabled { background: transparent; } }',
+    '.ui-btn--ghost[disabled] { background: transparent; }',
+    ".ui-btn--ghost[aria-disabled='true'] { background: transparent; }",
+    '.ui-btn--ghost[aria-disabled=true] { background: transparent; }',
+    '/* .ui-btn--ghost:disabled { background: gold; } */\n.ui-btn--ghost:disabled { background: transparent; }',
+  ].filter((rule) => !caught(rule));
+  assert.deepEqual(missed, [], 'these reintroduce the defect and the scan lets them through');
+
+  // And it does not fire on a rule that paints a real box, or on a comment alone.
+  for (const fine of [
+    '.ui-btn--ghost:disabled { background: var(--disabled-surface); }',
+    '.ui-btn--ghost:hover { background: transparent; }',
+    '/* .ui-btn--ghost:disabled { background: transparent; } */',
+  ]) {
+    assert.equal(caught(fine), false, `false positive on: ${fine}`);
+  }
 });
 
 test('the disabled pair is still declared, so the rule above is checking something', () => {

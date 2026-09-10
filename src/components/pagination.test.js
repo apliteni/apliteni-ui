@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { button } from './index.js';
-import { pagination, PAGE_SIZES, DEFAULT_PAGE_SIZE } from './pagination.js';
+import {
+  pagination, wirePagination, setPagerStatus, PAGE_SIZES, DEFAULT_PAGE_SIZE,
+} from './pagination.js';
 
 /** Every step/page control in document order, as [tag, page, disabled, label]. */
 const controls = (html) =>
@@ -320,4 +322,158 @@ test('the kit ships one page-size scale, and starts on a step of it', () => {
 test('pagination() defaults to the shipped page size rather than a number of its own', () => {
   const html = pagination({ page: 1, total: DEFAULT_PAGE_SIZE * 3 });
   assert.match(html, new RegExp(`>1–${DEFAULT_PAGE_SIZE.toLocaleString('en-US')} of `));
+});
+
+/* ---- what a URL actually hands this factory ---------------------------------
+ *
+ * The three below were live defects, and all three came from one line: the first
+ * coercion used bare `Number()`, which reads '', '  ', null, [] and false as 0.
+ * Every value here is what a query string produces when a parameter is present
+ * and empty — `?total=`, `?pageSize=` — which is the ordinary result of a form
+ * submitting an untouched field, not a hostile input.
+ */
+
+const status = (html) => /class="ui-pager__status"[^>]*>([^<]*)</.exec(html)?.[1];
+
+test('an empty or unreadable total is a total nobody knows, not a result of zero rows', () => {
+  // `?total=` used to return the empty string: the component erased itself,
+  // because 0 rows is one page and one page with no size control draws nothing.
+  for (const total of ['', '   ', null, undefined, [], false, 'abc', NaN, {}]) {
+    const html = pagination({ page: 3, total, pageSize: 25, hasMore: true });
+    assert.notEqual(html, '', `total ${JSON.stringify(total)} erased the pager`);
+    assert.equal(status(html), 'Page 3', `total ${JSON.stringify(total)} invented a range`);
+    assert.deepEqual(labels(html), ['Prev', 'Next'],
+      `total ${JSON.stringify(total)} offered a control it cannot compute`);
+  }
+  // A real zero is still a real zero, and says so.
+  assert.equal(status(pagination({ page: 1, total: 0, pageSizes: PAGE_SIZES })), '0 of 0');
+});
+
+test('a page size that is not a size falls back to the scale, never to one row per page', () => {
+  // `?pageSize=` used to mean a page of one, i.e. 4,812 pages of a 4,812-row table.
+  for (const pageSize of ['', '  ', null, undefined, 0, -5, 'abc', NaN, [], false]) {
+    assert.equal(status(pagination({ page: 2, pageSize, total: 4812 })),
+      `${(DEFAULT_PAGE_SIZE + 1).toLocaleString('en-US')}–${(DEFAULT_PAGE_SIZE * 2).toLocaleString('en-US')} of 4,812`,
+      `pageSize ${JSON.stringify(pageSize)} was not read as absent`);
+  }
+  assert.equal(status(pagination({ page: 2, pageSize: '50', total: 4812 })), '51–100 of 4,812');
+});
+
+test('a page past the safe integer range still moves, and still prints as an integer', () => {
+  // Above 2^53 `at - 1 === at === at + 1`, so Prev and Next carried one target
+  // while both rendered live; and 1e21 prints as "1e+21", which parseInt reads as 1.
+  const html = pagination({ page: 1e21, total: null, hasMore: true });
+  const [prev, next] = controls(html);
+  assert.ok(Number.isSafeInteger(prev.page) && Number.isSafeInteger(next.page),
+    'a step carries a page no parser can read back');
+  assert.notEqual(prev.page, next.page, 'Prev and Next carry the same target');
+  assert.doesNotMatch(html, /data-page="[^"]*e\+/i, 'a page reached the markup in exponent form');
+});
+
+test('a page size list this factory cannot read is refused rather than thrown on', () => {
+  // Number(Symbol()) throws rather than returning NaN, and a factory that returns
+  // a string is a bad place to raise a TypeError.
+  assert.doesNotThrow(() => pagination({ total: 1000, pageSizes: [Symbol('x'), 25] }));
+  const html = pagination({ page: 1, total: 1000, pageSize: 25, pageSizes: [Symbol('x'), 25] });
+  assert.match(html, /<option value="25" selected>/);
+  // And it is not an amplifier: a caller cannot turn a list into megabytes of HTML.
+  const many = pagination({ page: 1, total: 10, pageSize: 5, pageSizes: Array.from({ length: 50_000 }, (_, i) => i + 1) });
+  assert.ok((many.match(/<option/g) || []).length <= 13,
+    'the size list is not capped, so a long list becomes a long document');
+});
+
+/* ---- the wiring, driven in a DOM ------------------------------------------
+ *
+ * Everything above reads a string. These press the controls, because the
+ * component shipped a `jump` variant whose input did nothing and a size control
+ * that changed nothing — inert markup reads exactly like working markup in a
+ * string assertion.
+ */
+const { JSDOM } = await import('jsdom');
+
+const mount = (html) => {
+  const dom = new JSDOM(`<!doctype html><html lang="en"><body><div id="host">${html}</div></body></html>`);
+  const host = dom.window.document.getElementById('host');
+  return { dom, host, q: (sel) => host.querySelector(sel) };
+};
+const press = (dom, el, key) =>
+  el.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+
+test('wirePagination() turns a step press into a page number', () => {
+  const { dom, host, q } = mount(pagination({ page: 3, pageSize: 25, total: 500, variant: 'steps' }));
+  const seen = [];
+  wirePagination(host, { onPage: (p) => seen.push(p) });
+  for (const label of ['First', 'Prev', 'Next', 'Last']) {
+    host.querySelectorAll('.ui-pager__step').forEach((b) => { if (b.textContent === label) b.click(); });
+  }
+  assert.deepEqual(seen, [1, 2, 4, 20]);
+  dom.window.close();
+});
+
+test('wirePagination() reports a size change, and ignores a disabled control', () => {
+  const { dom, host, q } = mount(
+    pagination({ page: 1, pageSize: 25, total: 500, pageSizes: PAGE_SIZES }),
+  );
+  const sizes = [];
+  const pages = [];
+  wirePagination(host, { onPage: (p) => pages.push(p), onPageSize: (s) => sizes.push(s) });
+
+  const select = q('.ui-pager__size-select');
+  select.value = '100';
+  select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.deepEqual(sizes, [100]);
+
+  // First and Prev are disabled on page 1 and must stay silent.
+  host.querySelectorAll('.ui-pager__step').forEach((b) => { if (b.disabled) b.click(); });
+  assert.deepEqual(pages, [], 'a disabled step reported a page');
+  dom.window.close();
+});
+
+test('the jump box commits on Enter, refuses what it cannot read, and never submits a form', () => {
+  const { dom, host, q } = mount(
+    `<form>${pagination({ page: 7, pageSize: 10, total: 200, variant: 'jump' })}</form>`,
+  );
+  const seen = [];
+  wirePagination(host, { onPage: (p) => seen.push(p) });
+  const box = q('.ui-pager__jump-input');
+
+  box.value = '12';
+  // The assertion is defaultPrevented rather than a submit listener: jsdom does
+  // not implement a browser's implicit submission, so a listener here can never
+  // fire and a test built on one passes whatever the code does. Cancelling the
+  // keydown IS the mechanism that stops the form, so that is what is read.
+  const enter = new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+  box.dispatchEvent(enter);
+  assert.deepEqual(seen, [12]);
+  assert.equal(enter.defaultPrevented, true,
+    'Enter in the jump box was left to submit the surrounding form');
+
+  // An empty box is not a request for page 1 — that is where the reader was.
+  box.value = '';
+  box.dispatchEvent(new dom.window.Event('focusout', { bubbles: true }));
+  assert.deepEqual(seen, [12], 'an empty jump box asked for a page');
+  assert.equal(box.value, '7', 'the box did not go back to the page it was showing');
+
+  // Past the end is the end, not a page that does not exist.
+  box.value = '9999';
+  press(dom, box, 'Enter');
+  assert.deepEqual(seen, [12, 20]);
+  dom.window.close();
+});
+
+test('setPagerStatus() rewrites the range in place, which is what makes it announce', () => {
+  // Replacing the <nav> inserts a fresh live region that already holds its text,
+  // and several screen readers say nothing about one that arrived complete.
+  const { dom, host, q } = mount(pagination({ page: 1, pageSize: 100, total: 4812 }));
+  const before = q('.ui-pager__status');
+  assert.equal(before.textContent, '1–100 of 4,812');
+
+  const after = setPagerStatus(host, '101–200 of 4,812');
+  assert.equal(after, before, 'the live region was replaced rather than rewritten');
+  assert.equal(before.textContent, '101–200 of 4,812');
+  assert.equal(before.getAttribute('aria-live'), 'polite');
+
+  assert.equal(setPagerStatus(host, '101–200 of 4,812'), before, 'an unchanged range is still the same node');
+  assert.equal(setPagerStatus(null, 'x'), null, 'a torn-down view threw instead of returning null');
+  dom.window.close();
 });

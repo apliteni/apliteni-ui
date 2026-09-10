@@ -94,7 +94,7 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Signal contrast', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
-          'Guidelines', ['Overview', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Iconography', 'Layout and density', 'Pagination'],
+          'Guidelines', ['Overview', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Iconography', 'Layout and density', 'The accessibility floor', 'Pagination'],
           'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Confirm', 'Table', 'Pagination', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents', 'Account preset'],
         ],

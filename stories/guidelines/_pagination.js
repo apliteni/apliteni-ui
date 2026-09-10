@@ -32,7 +32,6 @@ export const SPEC_CSS = `
 // same 4,812 rows at the kit's default page size. A reader comparing two
 // pictures should be comparing the pagers.
 const TOTAL = 4812;
-const LAST = Math.ceil(TOTAL / DEFAULT_PAGE_SIZE);
 const AT = 25;
 
 const stage = (html) => `<div class="gp-stage">${html}</div>`;
@@ -76,7 +75,7 @@ export const RULES = [
       + 'infers has-more, so it never knows. Both are correct, and they are not defaults for one '
       + 'another — a single helper that unified them would silently add a count to the second or '
       + 'take the total off the first.',
-    kit: [{ ref: 'src/components/pagination.js:107', pattern: 'const counted = total' }],
+    kit: [{ ref: 'src/components/pagination.js:137', pattern: 'const counted = total' }],
   },
   {
     id: 'the-jump',
@@ -97,26 +96,34 @@ export const RULES = [
     except: 'A short list somebody browses rather than searches — a changelog, a gallery — is the '
       + 'case numbered pages were invented for, and there the width is stable because the count is '
       + 'small.',
-    kit: [{ ref: 'src/components/pagination.js:64', pattern: 'function slotsFor' }],
+    kit: [{ ref: 'src/components/pagination.js:90', pattern: 'function slotsFor' }],
   },
   {
     id: 'ends-disable',
     imperative: 'Disable a control at an end. Never remove it.',
     doHtml: () => pager('ends-do', { page: 1 }),
+    // Only Prev is missing, and that is the whole specimen: four controls against
+    // three, so the reader is comparing one absence rather than a shorter strip.
+    // Dropping First and Last as well would make the pair differ on control COUNT,
+    // which is the confound the stage note above exists to prevent.
     dontHtml: () => hand(
       '1–100 of 4,812',
-      ghost('Next', { iconRight: 'chevronRight' }),
+      ghost('First')
+      + ghost('Next', { iconRight: 'chevronRight' })
+      + ghost('Last'),
     ),
     doCaption: 'The first page. First and Prev are still there, still in the same place, and a '
-      + 'screen reader still meets them and reports them as unavailable.',
-    dontCaption: 'The same first page with Prev taken out of the DOM. Next has slid left into the '
-      + 'space, under a pointer that was already travelling toward it.',
+      + 'screen reader still meets them and reports them as unavailable. Tab passes over them: '
+      + 'native disabled takes a control out of the sequence, which is the trade for the state '
+      + 'being real rather than announced.',
+    dontCaption: 'The same first page with Prev alone taken out of the DOM. Next and Last have '
+      + 'each slid one place left, under a pointer already travelling toward one of them.',
     why: 'Polaris states the rule as "Hint when merchants are at the first or the last page by '
       + 'disabling the corresponding button". Removal costs twice: the controls beside it move, '
       + 'and a reader who cannot see the strip loses the only evidence that they are at the start. '
       + 'Four of the six pagers in the finance portal remove; a fifth swaps the control for a '
       + 'muted span, which reads as available and does nothing.',
-    kit: [{ ref: 'src/components/pagination.js:52', pattern: 'disabled aria-disabled' }],
+    kit: [{ ref: 'src/components/pagination.js:78', pattern: 'disabled aria-disabled' }],
   },
   {
     id: 'one-page',
@@ -143,7 +150,7 @@ export const RULES = [
       + 'dead buttons, '
       + 'and the two surfaces where the sentence was also false hid the whole strip in CSS rather '
       + 'than argue with it.',
-    kit: [{ ref: 'src/components/pagination.js:125', pattern: 'if (single && !sizes.length)' }],
+    kit: [{ ref: 'src/components/pagination.js:162', pattern: 'if (single && !sizes.length)' }],
   },
   {
     id: 'page-turn',
@@ -159,7 +166,7 @@ export const RULES = [
       + 'rows. A page turn is the one moment a reader is certain to be reaching for the same '
       + 'control twice, so it is the one moment the control must not travel. The rows above hold '
       + 'their height for the same reason.',
-    kit: [{ ref: 'src/components/pagination.js:194', pattern: "loading ? ' aria-busy" }],
+    kit: [{ ref: 'src/components/pagination.js:231', pattern: "loading ? ' aria-busy" }],
   },
   {
     id: 'announce-range',
@@ -172,9 +179,11 @@ export const RULES = [
       + 'carry any live region at all, and one of those only fires if the caller supplies the '
       + 'text. There is nothing to photograph here, which is why this rule has no pair.',
     except: 'Moving focus into the new rows instead is the other defensible answer, and the only '
-      + 'one Primer documents. It is not what the kit does: focus stays on the control that was '
-      + 'pressed, so a reader can press it again.',
-    kit: [{ ref: 'src/components/pagination.js:195', pattern: 'aria-live="polite"' }],
+      + 'one Primer documents. The kit leaves focus on the control that was pressed so a reader '
+      + 'can press it again — except at an end, where that control becomes disabled and the '
+      + 'browser drops focus to the body. The pager then puts focus on the step that still has '
+      + 'somewhere to go, which is the nearest thing to standing still.',
+    kit: [{ ref: 'src/components/pagination.js:232', pattern: 'aria-live="polite"' }],
   },
   {
     id: 'page-size',

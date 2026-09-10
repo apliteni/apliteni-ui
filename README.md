@@ -107,7 +107,7 @@ import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 
 ## React components (stateful surfaces)
 
-`DataTable`, `Modal`, `Button`, `Badge`, `Card` and `Icon` — same `.ui-*` classes,
+`DataTable`, `Pagination`, `Modal`, `Button`, `Badge`, `Card` and `Icon` — same `.ui-*` classes,
 same tokens, TypeScript types included. They ship as a **subpath of this package**,
 not as a package of their own: one install, one version, one pin.
 
@@ -126,7 +126,7 @@ its tree.
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
-import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, pager)
+import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, sort control)
 import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
 ```
 
