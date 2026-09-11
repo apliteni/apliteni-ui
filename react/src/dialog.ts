@@ -2,7 +2,7 @@
 // up, and that arrives and leaves with motion. One copy, so the two cannot disagree
 // about where focus goes or when the page behind them comes back.
 import {
-  useEffect, useLayoutEffect, useState,
+  createContext, useContext, useEffect, useLayoutEffect, useRef, useState,
   type MouseEvent as ReactMouseEvent, type RefObject,
 } from 'react';
 
@@ -75,6 +75,131 @@ function transitionMs(el: Element): number {
   return Math.max(0, ...durations.map((d, i) => d + delays[i % delays.length]));
 }
 
+// ---- the page's stack --------------------------------------------------------
+// Every open React dialog, bottom → top. Which one Escape talks to, where Tab may go and
+// what is inert are properties of the page, so they are answered here, once, and never
+// from one dialog's snapshot of the page as it was when that dialog opened. The rule is
+// the vanilla overlay's (src/components/overlay.js), which the React layer cannot import.
+// The two stacks are separate: react/README.md says what that costs.
+
+/** Where a dialog sits in the React tree. One rendered inside another's content is above it. */
+export type Scope = { parent: Scope | null };
+export const DialogScope = createContext<Scope | null>(null);
+
+type Entry = {
+  scope: Scope;
+  root: HTMLElement;
+  panel: HTMLElement;
+  body: HTMLElement | null;
+  close: () => void;
+  opener: Element | null; // had focus when this one opened, and gets it back when it closes
+  resume: Element | null; // had focus in this one when another opened over it
+};
+
+const stack: Entry[] = [];
+const leaving = new Set<HTMLElement>();
+let marked: [HTMLElement, boolean][] = []; // what the top made inert, and whether it already was
+let listening = false;
+
+const firstIn = (entry: Entry) =>
+  (entry.body ? tabbablesIn(entry.body) : [])[0] || entry.panel;
+
+function trapTab(panel: HTMLElement, e: KeyboardEvent) {
+  const items = tabbablesIn(panel);
+  if (items.length === 0) { e.preventDefault(); panel.focus(); return; }
+  const first = items[0];
+  const last = items[items.length - 1];
+  const focused = document.activeElement;
+  if (!panel.contains(focused)) { e.preventDefault(); first.focus(); return; }
+  if (!e.shiftKey && focused === last) { e.preventDefault(); first.focus(); }
+  else if (e.shiftKey && (focused === first || focused === panel)) { e.preventDefault(); last.focus(); }
+}
+
+// One listener for the page. Only the top dialog answers the keyboard, so one Escape
+// closes one dialog and Tab never meets a lower dialog's trap.
+function onKey(e: KeyboardEvent) {
+  const top = stack[stack.length - 1];
+  if (!top) return;
+  if (e.key === 'Escape') top.close();
+  else if (e.key === 'Tab') trapTab(top.panel, e);
+}
+
+// Recompute the page from the stack: everything outside the top dialog is inert, lower
+// dialogs included, and a leaving root is inert and aria-hidden until it unmounts.
+function sync() {
+  for (const [el, was] of marked) if (!was) el.removeAttribute('inert');
+  marked = [];
+  const top = stack[stack.length - 1];
+  for (let node = top?.root; node?.parentElement && node !== document.body; node = node.parentElement) {
+    for (const sib of Array.from(node.parentElement.children) as HTMLElement[]) {
+      if (sib === node || leaving.has(sib)) continue;
+      marked.push([sib, sib.hasAttribute('inert')]);
+      sib.setAttribute('inert', '');
+    }
+  }
+  leaving.forEach((el) => {
+    el.toggleAttribute('inert', true);
+    if (el.getAttribute('aria-hidden') !== 'true') el.setAttribute('aria-hidden', 'true');
+  });
+  if (Boolean(top) !== listening) {
+    listening = Boolean(top);
+    if (listening) document.addEventListener('keydown', onKey);
+    else document.removeEventListener('keydown', onKey);
+  }
+}
+
+// Mirrors the vanilla overlay's returnFocus (src/components/overlay.js): the opener if it
+// is still on the page, else whatever took its id in a re-render, else the page itself.
+// overlay.js reaches the page with body.focus(), a no-op on a body with no tabindex, so
+// blur() is used instead: it lands on <body> and leaves nothing focused in the dialog.
+function returnFocus(opener: Element | null) {
+  const live = opener && !opener.isConnected && opener.id ? document.getElementById(opener.id) : opener;
+  if (live?.isConnected) (live as HTMLElement).focus?.();
+  if (document.activeElement !== live) (document.activeElement as HTMLElement | null)?.blur?.();
+}
+
+function enter(entry: Entry) {
+  // Opening is history: the dialog just opened goes on top. Inside one commit there is no
+  // history, and React runs a nested dialog's effects before its parent's — so a dialog
+  // goes beneath any already open inside its own content, and takes over their opener.
+  const at = stack.findIndex((e) => {
+    for (let s = e.scope.parent; s; s = s.parent) if (s === entry.scope) return true;
+    return false;
+  });
+  if (at !== -1) {
+    entry.opener = stack[at].opener;
+    stack[at].opener = null;
+    stack.splice(at, 0, entry);
+    sync();
+    return;
+  }
+  const covered = stack[stack.length - 1];
+  if (covered?.panel.contains(document.activeElement)) covered.resume = document.activeElement;
+  stack.push(entry);
+  sync();
+  firstIn(entry).focus();
+}
+
+function exit(entry: Entry) {
+  const at = stack.indexOf(entry);
+  if (at === -1) return;
+  stack.splice(at, 1);
+  // Closed from beneath: the one above was opened from inside it, and inherits its way back.
+  const above = stack[at];
+  if (above && (!above.opener || entry.root.contains(above.opener))) above.opener = entry.opener;
+  sync();
+  if (above) return;
+  const next = stack[stack.length - 1];
+  if (!next) { returnFocus(entry.opener); return; }
+  // The next one down is live again: focus goes back where it was in it.
+  const back = [entry.opener, next.resume].find((el) => el?.isConnected && next.panel.contains(el));
+  ((back as HTMLElement | undefined) ?? firstIn(next)).focus();
+}
+
+// A few frames past the stylesheet's own end, so the backstop timer never cuts the last
+// frame the transition paints.
+const EXIT_SLACK_MS = 50;
+
 /**
  * Mount on `open`, then add the open class once the start state has been styled, so the
  * stylesheet's transition runs from it. On close, drop the class and stay mounted until
@@ -82,11 +207,11 @@ function transitionMs(el: Element): number {
  *
  * `transitionend` is not a promise: jsdom never fires it, and a transition that did not
  * run (nothing changed, or the panel is `display: none`) fires nothing either. So a timer
- * backs it, sized from the panel's own computed transition — the stylesheet owns the
- * number. Under the reduced-motion net that computes to 0.01ms, and both paths fire.
+ * backs it, sized from the panel's own computed transition plus a little slack — the
+ * stylesheet owns the number. Under the reduced-motion net that computes to 0.01ms.
  *
- * While it is leaving the root is inert: focus has already gone back to the opener, and a
- * control that fades out must not take a second click or a Tab on the way.
+ * While it is leaving the root is inert and aria-hidden: focus has already gone back, and
+ * a dialog that fades out must not take a click, a Tab or a screen reader on the way.
  */
 export function usePresence(open: boolean, root: Ref, panel: Ref) {
   const [present, setPresent] = useState(open);
@@ -104,8 +229,17 @@ export function usePresence(open: boolean, root: Ref, panel: Ref) {
   }, [open, entered]);
 
   useIsoLayoutEffect(() => {
-    root.current?.toggleAttribute('inert', !shown);
-  }, [shown, present]);
+    const el = root.current;
+    if (open || !present || !el) return;
+    leaving.add(el);
+    sync();
+    return () => {
+      leaving.delete(el);
+      el.removeAttribute('inert');
+      el.removeAttribute('aria-hidden');
+      sync();
+    };
+  }, [open, present]);
 
   useIsoLayoutEffect(() => {
     if (open || !present) return;
@@ -121,7 +255,7 @@ export function usePresence(open: boolean, root: Ref, panel: Ref) {
     // Only the panel's own transition: a hover fade on the close button bubbles here too.
     const onEnd = (e: TransitionEvent) => { if (e.target === el) finish(); };
     el.addEventListener('transitionend', onEnd);
-    const timer = setTimeout(finish, transitionMs(el));
+    const timer = setTimeout(finish, transitionMs(el) + EXIT_SLACK_MS);
     // Re-opened mid-exit, or unmounted: the wait is abandoned, and nothing fires late.
     return () => {
       done = true;
@@ -134,55 +268,29 @@ export function usePresence(open: boolean, root: Ref, panel: Ref) {
 }
 
 /**
- * While `active`: Escape closes, Tab is trapped in the panel, the rest of the page is
- * inert, and focus starts on the first control in the body Tab can reach. When it stops
- * being active, focus goes back to whatever opened it.
+ * While `active` the dialog is on the page's stack. On top, it takes Escape and Tab, the
+ * rest of the page is inert, and focus starts on the first control in the body Tab can
+ * reach. When it stops being active, focus goes back the way `exit` above sends it.
+ * Returns the dialog's scope, which Modal and Drawer provide to what they render.
  */
 export function useDialog(active: boolean, { root, panel, body }: { root: Ref; panel: Ref; body: Ref },
-  onClose: () => void) {
-  // Esc closes, Tab is trapped. A dialog that lets Tab wander into the page
-  // behind it is a dialog only in looks — the reader leaves and never comes back.
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
-      if (e.key !== 'Tab' || !panel.current) return;
-      const items = tabbablesIn(panel.current);
-      if (items.length === 0) { e.preventDefault(); panel.current.focus(); return; }
-      const first = items[0];
-      const last = items[items.length - 1];
-      const focused = document.activeElement;
-      if (!panel.current.contains(focused)) { e.preventDefault(); first.focus(); return; }
-      if (!e.shiftKey && focused === last) { e.preventDefault(); first.focus(); }
-      else if (e.shiftKey && (focused === first || focused === panel.current)) {
-        e.preventDefault(); last.focus();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [active, onClose]);
+  onClose: () => void): Scope {
+  const parent = useContext(DialogScope);
+  const [scope] = useState<Scope>(() => ({ parent }));
+  const close = useRef(onClose);
+  useIsoLayoutEffect(() => { close.current = onClose; });
 
-  // Hide the rest of the page from assistive tech while the dialog is up, and
-  // give focus back to whatever opened it on the way out.
+  // `enter` focuses the first control in the body that Tab can reach, not the header Close
+  // button — and never a field a closed disclosure folds over or a fieldset locks, which
+  // focus() would leave on <body> in silence. That is where #262 landed.
   useEffect(() => {
-    if (!active) return;
-    const opener = document.activeElement as HTMLElement | null;
-    const portalRoot = root.current;
-    const muted = (Array.from(document.body.children) as HTMLElement[])
-      .filter((el) => el !== portalRoot && !el.hasAttribute('inert'));
-    muted.forEach((el) => el.setAttribute('inert', ''));
-    return () => {
-      muted.forEach((el) => el.removeAttribute('inert'));
-      if (opener && document.contains(opener)) opener.focus();
+    if (!active || !root.current || !panel.current) return;
+    const entry: Entry = {
+      scope, root: root.current, panel: panel.current, body: body.current,
+      close: () => close.current(), opener: document.activeElement, resume: null,
     };
+    enter(entry);
+    return () => exit(entry);
   }, [active]);
-
-  // Focus the first control in the body that Tab can reach, not the header Close button —
-  // and never a field a closed disclosure folds over or a fieldset locks, which focus()
-  // would leave on <body> in silence. That is where #262 landed.
-  useEffect(() => {
-    if (!active) return;
-    const target = (body.current ? tabbablesIn(body.current) : [])[0] || panel.current;
-    target?.focus();
-  }, [active]);
+  return scope;
 }

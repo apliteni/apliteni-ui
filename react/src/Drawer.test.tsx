@@ -1,12 +1,13 @@
 // <Drawer>: class-name parity with the vanilla drawer(), and the dialog behaviour it
 // shares with Modal through ./dialog.
 // why: CONTRIBUTING.md#react-components-react
-import { act, cleanup, createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import { drawer } from '@apliteni/apliteni-ui';
 import { Drawer, type DrawerProps } from './Drawer';
+import { Modal } from './Modal';
 import { classesOf, classesOfEl } from './test/classlist';
 
 afterEach(() => {
@@ -129,8 +130,9 @@ it('on close drops is-open and stays mounted until the panel\'s transitionend', 
   rerender(<Drawer open={false} title="Filters" onClose={noop}>body</Drawer>);
   expect(root()).not.toBeNull();
   expect(root()).not.toHaveClass('is-open');
-  // Leaving, it takes no second click and no Tab.
+  // Leaving, it takes no second click and no Tab, and assistive tech no longer sees it.
   expect(root()).toHaveAttribute('inert');
+  expect(root()).toHaveAttribute('aria-hidden', 'true');
 
   // A child's transition bubbles through the panel and is not the panel's.
   fireEvent.transitionEnd(screen.getByRole('button', { name: 'Close', hidden: true }));
@@ -142,11 +144,11 @@ it('on close drops is-open and stays mounted until the panel\'s transitionend', 
 
 it('unmounts on a timer sized from the computed transition when transitionend never comes', () => {
   vi.useFakeTimers();
-  // The longest duration + delay: 200 + 100.
+  // The longest duration + delay: 200 + 100, and 50ms of slack.
   panelTiming('transition-duration: 200ms, 0.15s; transition-delay: 100ms;');
   const { rerender } = render(<Drawer open title="Filters" onClose={noop}>body</Drawer>);
   rerender(<Drawer open={false} title="Filters" onClose={noop}>body</Drawer>);
-  act(() => { vi.advanceTimersByTime(299); });
+  act(() => { vi.advanceTimersByTime(349); });
   expect(root()).not.toBeNull();
   act(() => { vi.advanceTimersByTime(1); });
   expect(root()).toBeNull();
@@ -251,4 +253,103 @@ it('hides the page behind it and gives focus back to the opener on close', async
     expect(document.activeElement).toBe(opener);
   });
   await waitFor(() => expect(root()).toBeNull());
+});
+
+// ---- a Modal over a Drawer -------------------------------------------------
+// Two React dialogs, one page, one stack in ./dialog. Only the top one answers the
+// keyboard, and what is inert follows the stack rather than either dialog's snapshot.
+
+it('Escape in a Modal opened over a Drawer closes only the Modal', async () => {
+  const closeDrawer = vi.fn();
+  const closeModal = vi.fn();
+  render(
+    <Drawer open title="Record" onClose={closeDrawer}>
+      <input aria-label="Note" />
+      <Modal open title="Confirm" onClose={closeModal}><input aria-label="A" /><input aria-label="B" /></Modal>
+    </Drawer>,
+  );
+  await userEvent.keyboard('{Escape}');
+  expect({ modal: closeModal.mock.calls.length, drawer: closeDrawer.mock.calls.length }).toEqual({ modal: 1, drawer: 0 });
+});
+
+it('Tab moves between the fields of a Modal opened over a Drawer, and wraps inside it', async () => {
+  render(
+    <Drawer open title="Record" onClose={noop}>
+      <input aria-label="Note" />
+      <Modal open title="Confirm" onClose={noop}><input aria-label="A" /><input aria-label="B" /><button type="button">OK</button></Modal>
+    </Drawer>,
+  );
+  const modal = within(screen.getByRole('dialog', { name: 'Confirm' }));
+  screen.getByLabelText('A').focus();
+  await userEvent.tab();
+  expect(document.activeElement).toBe(screen.getByLabelText('B'));
+  await userEvent.tab();
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'OK' }));
+  await userEvent.tab();
+  expect(document.activeElement).toBe(modal.getByRole('button', { name: 'Close' }));
+  await userEvent.tab({ shift: true });
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'OK' }));
+});
+
+function RecordPage() {
+  const [open, setOpen] = useState(false);
+  const [asking, setAsking] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}>Open record</button>
+      <Drawer open={open} title="Record" onClose={() => setOpen(false)}>
+        <input aria-label="Note" />
+        <button type="button" onClick={() => setAsking(true)}>Delete</button>
+        <Modal open={asking} title="Delete record?" onClose={() => setAsking(false)}>
+          <input aria-label="Reason" />
+        </Modal>
+      </Drawer>
+    </>
+  );
+}
+
+it('closing the Modal gives the Drawer back its keyboard, and the page waits for the Drawer', async () => {
+  // Both leave slowly, so a leaving root can be looked at before it unmounts.
+  const style = document.createElement('style');
+  style.dataset.fixture = '';
+  style.textContent = '.rx-modal, .ui-drawer__panel { transition-duration: 10s; }';
+  document.head.appendChild(style);
+
+  const { container } = render(<RecordPage />);
+  const opener = screen.getByRole('button', { name: 'Open record' });
+  await userEvent.click(opener);
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Note')));
+  const del = screen.getByRole('button', { name: 'Delete' });
+  await userEvent.click(del);
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Reason')));
+  const drawerRoot = root()!;
+  const modalRoot = document.querySelector('.rx-scrim')!;
+  // Everything outside the top dialog is inert, the Drawer beneath it included.
+  expect(container).toHaveAttribute('inert');
+  expect(drawerRoot).toHaveAttribute('inert');
+
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(document.activeElement).toBe(del));
+  expect(drawerRoot).toHaveClass('is-open');
+  expect(drawerRoot).not.toHaveAttribute('inert');
+  expect(modalRoot).not.toHaveClass('is-open');
+  expect(modalRoot).toHaveAttribute('inert');
+  expect(modalRoot).toHaveAttribute('aria-hidden', 'true');
+  expect(container).toHaveAttribute('inert');
+  // The Drawer's trap answers Tab now: back from its first control wraps to its last.
+  await userEvent.tab({ shift: true });
+  expect(document.activeElement).toBe(screen.getByLabelText('Note'));
+  await userEvent.tab({ shift: true });
+  expect(document.activeElement).toBe(within(drawerRoot as HTMLElement).getByRole('button', { name: 'Close' }));
+  await userEvent.tab({ shift: true });
+  expect(document.activeElement).toBe(del);
+
+  fireEvent.transitionEnd(document.querySelector('.rx-modal')!);
+  expect(document.querySelector('.rx-scrim')).toBeNull();
+  expect(container).toHaveAttribute('inert');
+
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(document.activeElement).toBe(opener));
+  expect(container).not.toHaveAttribute('inert');
+  expect(drawerRoot).toHaveAttribute('aria-hidden', 'true');
 });

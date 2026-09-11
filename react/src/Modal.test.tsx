@@ -45,6 +45,8 @@ it('on close drops is-open and stays mounted until the panel\'s transitionend', 
   expect(scrim()).not.toBeNull();
   expect(scrim()).not.toHaveClass('is-open');
   expect(scrim()).toHaveAttribute('inert');
+  // Still role=dialog while it leaves, so it is hidden from assistive tech as well.
+  expect(scrim()).toHaveAttribute('aria-hidden', 'true');
   fireEvent.transitionEnd(document.querySelector('.rx-modal')!);
   expect(scrim()).toBeNull();
 });
@@ -54,7 +56,8 @@ it('unmounts on a timer sized from the computed transition when transitionend ne
   panelTiming('transition-duration: 250ms;');
   const { rerender } = render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
   rerender(<Modal open={false} title="New campaign" onClose={() => {}}>body</Modal>);
-  act(() => { vi.advanceTimersByTime(249); });
+  // 250ms, and the 50ms of slack that keeps the timer off the transition's last frame.
+  act(() => { vi.advanceTimersByTime(299); });
   expect(scrim()).not.toBeNull();
   act(() => { vi.advanceTimersByTime(1); });
   expect(scrim()).toBeNull();
@@ -160,6 +163,35 @@ it('hides the page behind it and gives focus back to the opener on close', async
     expect(container).not.toHaveAttribute('inert');
     expect(document.activeElement).toBe(opener);
   });
+});
+
+// The opener can leave the page while the dialog is up. Focus then goes where the vanilla
+// overlay's returnFocus sends it: to whatever took the opener's id in the re-render, or
+// else to the page — never left on a control inside the dialog that is leaving.
+function Page({ open, swapped, id }: { open: boolean; swapped: boolean; id?: string }) {
+  return (
+    <>
+      {swapped
+        ? <button key="after" type="button" id={id}>Open again</button>
+        : <button key="before" type="button" id={id}>Open</button>}
+      <Modal open={open} title="New campaign" onClose={() => {}}><input aria-label="Name" /></Modal>
+    </>
+  );
+}
+
+it.each([
+  ['whatever took its id', 'opener', () => screen.getByRole('button', { name: 'Open again' })],
+  ['the page, with no id to follow', undefined, () => document.body],
+] as const)('gives focus to %s when the opener was removed before close', async (_, id, expected) => {
+  panelTiming('transition-duration: 10s;');
+  const { rerender } = render(<Page open={false} swapped={false} id={id} />);
+  screen.getByRole('button', { name: 'Open' }).focus();
+  rerender(<Page open swapped={false} id={id} />);
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Name')));
+  rerender(<Page open swapped id={id} />);
+  rerender(<Page open={false} swapped id={id} />);
+  expect(scrim()).not.toBeNull();
+  expect(document.activeElement).toBe(expected());
 });
 
 // #262. A dialog whose body folds its fields inside a closed <details> opened with the

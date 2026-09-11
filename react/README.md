@@ -71,6 +71,11 @@ and value rows — rather than in cards; the rules are on Guidelines / Drawers.
 Focus, Escape, the scrim, Tab and the return of focus behave as the Modal's do. Like the
 Modal, it stays mounted until its exit slide ends. It is portalled to `document.body`.
 
+React Modals and Drawers share one stack. When one is open over another, only the top one
+takes Escape and Tab, and closing it hands focus back to the one below. The vanilla
+`drawer()` and `confirm()` keep a separate stack that this one cannot see, so do not open a
+React Modal or Drawer and a vanilla overlay over each other on the same page.
+
 ## Work on them
 
 From the repo root — one `npm install` covers the workspace:
