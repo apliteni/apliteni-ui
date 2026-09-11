@@ -145,7 +145,7 @@ export const RULES = [
       + 'be it; and the third row goes where the reader already is.',
     except: 'A setting the palette can flip in one move is a command — “Switch to the light '
       + 'theme” is a thing somebody types. One that needs a choice made is a page: name the page.',
-    kit: [{ ref: 'src/components/command-palette.js:200', pattern: 'function paletteItem' }],
+    kit: [{ ref: 'src/components/command-palette.js:194', pattern: 'function paletteItem' }],
   },
   {
     id: 'groups',
@@ -162,8 +162,8 @@ export const RULES = [
       + 'kit ships the grouping and not the prefixes: a product that wants > can feed the palette '
       + 'a different set of groups when it sees one.',
     kit: [
-      { ref: 'src/components/command-palette.js:257', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:132', pattern: '.ui-cmdk__group-head' },
+      { ref: 'src/components/command-palette.js:255', pattern: 'export function commandPaletteList' },
+      { ref: 'src/styles/command-palette.css:134', pattern: '.ui-cmdk__group-head' },
     ],
   },
   {
@@ -184,8 +184,8 @@ export const RULES = [
       + '`ui-command-query` event, and the kit renders the order it is given rather than ranking '
       + 'a page of results it cannot see the rest of.',
     kit: [
-      { ref: 'src/components/command-palette.js:39', pattern: 'export const SCORE' },
-      { ref: 'src/components/command-palette.js:136', pattern: 'export function rankGroups' },
+      { ref: 'src/components/command-palette.js:33', pattern: 'export const SCORE' },
+      { ref: 'src/components/command-palette.js:130', pattern: 'export function rankGroups' },
     ],
   },
   {
@@ -200,7 +200,7 @@ export const RULES = [
     except: 'Ctrl+K inside another text box is left alone: it is kill-to-end-of-line there, and a '
       + 'palette that eats it breaks a keystroke the reader had first.',
     kit: [
-      { ref: 'src/components/command-palette.js:514', pattern: 'function onKeydown' },
+      { ref: 'src/components/command-palette.js:512', pattern: 'function onKeydown' },
       { ref: 'src/components/overlay.js:94', pattern: 'function ownKeys' },
     ],
   },
@@ -214,8 +214,8 @@ export const RULES = [
       + 'all of it out again on every keystroke. On the way out the opener gets focus back, even '
       + 'when the command that ran took the opener off the page.',
     kit: [
-      { ref: 'src/components/command-palette.js:370', pattern: 'function setActive' },
-      { ref: 'src/components/command-palette.js:394', pattern: 'function announce' },
+      { ref: 'src/components/command-palette.js:368', pattern: 'function setActive' },
+      { ref: 'src/components/command-palette.js:392', pattern: 'function announce' },
       { ref: 'src/components/overlay.js:187', pattern: 'export function returnFocus' },
     ],
   },
@@ -235,8 +235,8 @@ export const RULES = [
       + 'from here at all: it renders aria-disabled, which is a visible refusal rather than a '
       + 'silent one.',
     kit: [
-      { ref: 'src/components/command-palette.js:231', pattern: 'const isRefused = (it) =>' },
-      { ref: 'src/styles/command-palette.css:207', pattern: '.ui-cmdk__item.is-danger' },
+      { ref: 'src/components/command-palette.js:229', pattern: 'const isRefused = (it) =>' },
+      { ref: 'src/styles/command-palette.css:222', pattern: '.ui-cmdk__item.is-danger' },
     ],
   },
 ];

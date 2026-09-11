@@ -140,8 +140,18 @@
 
 /* Row — [icon] [label + description] [badge] [keys]. A <div role="option">, so
    the reset a button or a link would need is not needed here. */
+/* The four declarations after `display` are the reset a row written as a
+   <button> needs: the browser gives one a 2px outset border, `font: 400
+   13.3333px Arial`, centred text and a shrink-to-fit width, and a consumer who
+   needs the row operable from the keyboard should get the row this sheet
+   describes rather than that. `font: inherit` comes before the line-height it
+   keeps. why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-cmdk__item {
   display: flex;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  width: 100%;
   align-items: center;
   gap: var(--space-3);
   padding: 8px 12px;
@@ -203,12 +213,15 @@
   color: var(--dim);
 }
 
-/* Destructive rows take the kit's danger ink, never the accent — the same rule
-   the destructive-actions guideline states for a menu. Written BEFORE the
-   disabled rules below and at the same specificity, so a destructive row the
-   palette refuses to run is painted as unavailable rather than as dangerous.
+/* Destructive rows take the kit's danger ink, never the accent, and stay quiet
+   until the reader is on them — the same pair .ui-dropdown__item.is-danger
+   writes with :hover. A palette row is reached with an arrow key far more often
+   than with a pointer, so `.is-active` carries the signal beside :hover: it is
+   the same moment, and it is the row Enter would run.
    why: docs/specification.md#colour-and-contrast */
-.ui-cmdk__item.is-danger .ui-cmdk__label { color: var(--pink); }
+.ui-cmdk__item.is-danger .ui-cmdk__label { color: var(--muted); }
+.ui-cmdk__item.is-danger:hover .ui-cmdk__label,
+.ui-cmdk__item.is-danger.is-active .ui-cmdk__label { color: var(--pink); }
 .ui-cmdk__item.is-danger.is-active .ui-cmdk__ic { color: var(--pink); }
 
 /* A disabled row is painted, never faded. It takes --disabled-ink-bare, the ink
@@ -278,9 +291,10 @@
 .ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface-2); }
 
 /* -- Narrow --------------------------------------------------------------- */
-/* On a phone the palette is the page: full width, off the top edge, and the key
-   legend goes — there is no keyboard to legend. */
-@media (max-width: 640px) {
+/* At the kit's narrowest step the palette is the page: full width, off the top
+   edge, and the key legend goes — there is no keyboard to legend.
+   why: docs/specification.md#breakpoints */
+@media (max-width: 560px) {
   .ui-cmdk { --cmdk-top: var(--space-4); --cmdk-list-h: 60vh; }
   .ui-cmdk__panel { width: calc(100vw - var(--space-4)); }
   .ui-cmdk__foot { display: none; }

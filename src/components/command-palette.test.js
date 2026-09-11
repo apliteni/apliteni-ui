@@ -114,6 +114,8 @@ test('a destructive row with nothing to ask is rendered disabled rather than run
   assert.match(html, /aria-disabled="true"/);
   assert.match(html, /is-disabled/);
   assert.doesNotMatch(html, /data-confirm-open/);
+  assert.doesNotMatch(html, /is-danger/, 'a row nothing can press is unavailable rather than '
+    + 'dangerous, and the danger signal is not spent on it');
 });
 
 test('paletteHotkey names the key the reader actually has', () => {

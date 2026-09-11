@@ -204,7 +204,7 @@ export function CommandPalette({
                   <div
                     key={item.id}
                     id={id}
-                    className={cx('ui-cmdk__item', item.danger && 'is-danger',
+                    className={cx('ui-cmdk__item', item.danger && !disabled && 'is-danger',
                       disabled && 'is-disabled', on && 'is-active')}
                     role="option"
                     tabIndex={-1}

@@ -1,16 +1,8 @@
-// The command-palette page, held against the component it describes.
-//
-// Three questions, and each one is a way the prose and the code can drift apart
-// while every other gate stays green:
-//
-//   1. The keyboard contract. The page lists the keys; this reads the keys the
-//      code actually compares against, out of both files that answer for the
-//      palette, and refuses either direction of drift.
-//   2. The label role the grouping rule claims — 13px medium, sentence case —
-//      read off the stylesheet rather than trusted.
-//   3. Every palette row ANY story renders: a row that neither goes anywhere,
-//      runs anything, asks anything nor says it is unavailable is a row that
-//      lies about what Enter will do.
+// The command-palette page, held against the component it describes — three
+// ways the prose and the code can drift apart while every other gate is green:
+// the keyboard contract, the label role the grouping rule claims, and a row
+// that neither goes anywhere, runs anything, asks anything nor says it is
+// unavailable.
 //
 // why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
 // why: CONTRIBUTING.md#a-prose-citation-carries-an-anchor

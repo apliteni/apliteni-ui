@@ -93,8 +93,13 @@ const familyDecls = () => {
  * card() emits the title as an h2 since #269, and the rule keeps the text face
  * it always rendered in rather than taking the heading's. 43 with
  * `.ui-drawer__section-title` (#272), an h3 that names the text face for the
- * reason `.ui-drawer__title` does. */
-const EXPECTED_SUBJECTS = 43;
+ * reason `.ui-drawer__title` does. 46 with the command palette's three (#274):
+ * the panel pins the text face the way the dropdown panel does, the input
+ * inherits it, and `.ui-cmdk__item { font: inherit }` is the same <button>
+ * reset again. 47 once the key legend's <kbd> named the text face too: a
+ * browser sets kbd in its monospace default, which is a family nothing in the
+ * kit asked for. */
+const EXPECTED_SUBJECTS = 47;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

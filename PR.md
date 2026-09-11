@@ -1,423 +1,333 @@
-# A quieter drawer, drawer and motion guidelines, and a React drawer that moves
+# A command palette the kit ships: the shell, the ranking, the keyboard — and no result kinds
 
-Closes #272. Closes #271.
+Closes #274.
 
 ## Premises
 
-**What this is about.** The Finance portal's transaction drawer is noisy, with a rule under
-every field and bordered cards inside a bordered panel, and it appears with no motion. The kit
-said nothing about either.
+**What this is about.** Artur asked for a command palette that comes from apliteni-ui with
+documented guidelines rather than being built once per product. Two portal issues
+(apliteni/finance.apli.tech#445 and #375) had already asked for one and closed without it.
 
-**What I found.**
+**What I found in this repo.**
 
-- The kit's HTML `drawer()` already slid in and out on `--dur-med` and `--ease`, and
-  `stories/motion-tokens.test.js` already refused a hand-written duration. The drawer #271
-  describes is not that drawer.
-- The portal's drawer is the kit's **React `Modal`**, pinned to the right edge by portal CSS
-  (`web/src/styles/transaction-drawer.css` in apliteni/finance.apli.tech), because the kit
-  shipped no React drawer. That `Modal` mounted on `open` and returned `null` on close, so it
-  had no motion at all.
-- Drawer guidelines: none. The one line about drawers was an `except` on Component choice, and
-  there was no slot for label and value rows, so every consumer hand-built them.
-- `prefers-reduced-motion` was listed as ungated on The accessibility floor.
-- The drawer's own reduced-motion block promised "a plain fade". The global net sets every
-  duration to 0.01ms, so that fade never ran.
+- There is no palette, and nothing close enough to stand in for one. `dropdown()` is a popover
+  list with a trigger and no text box; `confirm()` and `drawer()` are the two overlays, and
+  neither searches anything.
+- What a palette actually needs was already here, unused by any search surface:
+  `src/components/overlay.js` owns one stack per document — what is inert, which overlay Escape
+  talks to, where Tab may go — and `returnFocus()` already handles an opener the command has
+  deleted. A palette that invented its own Escape would be the third answer on a page that has
+  one.
+- The kit already names the two things a palette's look is made of: `--dur-med` / `--ease` for
+  the surface, and `.ui-sr` (`src/styles/loading.css:17` `.ui-sr {`) for a live region nobody sees.
+- The one thing that was missing and could not be borrowed is ranking. Nothing in the kit
+  orders anything by a query.
 
-**What I did.** Wrote drawer and motion guidelines, each rule held by a gate. Gave the drawer a
-heading-and-rows slot and a quieter default, picked by Artur from three rendered variants. Gave
-the React side a `Drawer` and a `Modal` that move. Answered #271's first-pass question with an
-inventory.
+**What I did.** Shipped `commandPalette()` as an HTML+CSS factory on that overlay stack, a React
+`<CommandPalette>` that renders the same markup and imports the same ranking, a guidelines page,
+and three gates. The kit ranks, groups and answers the keyboard; it names no result kinds.
 
-**The verdict: Changed.** Both problems are live, and the cause is in the React package rather
-than the drawer the issues assume.
+**The verdict: Built.** The request was right and the open question has an answer the survey
+supports.
 
 ## The survey
 
-Fourteen systems, read from their own guidance or source on 2026-09-11 rather than from memory.
-It sits here and not in `docs/` because
-[`docs/README.md`](docs/README.md#where-a-decision-gets-recorded) says why-this-shape belongs to
-the issue.
+Nine systems, read from their own source or published guidance on **2026-09-11**, not from
+memory. This sits in the pull request rather than in `docs/` because
+[`docs/README.md`](docs/README.md#where-a-decision-gets-recorded) says the "why this shape and not
+the other" belongs to the issue and the thread that produced it.
 
-Could not be read: SAP Fiori (every page returned 403), Adobe Spectrum (the site needs
-JavaScript, and its token package has no animation values), the m3.material.io site (Material's
-Android docs on GitHub were read instead), and Carbon for IBM Products' SidePanel. They are
-recorded as unread rather than filled in.
+| System | What it ships | Who supplies results | Selection model | Ranking | Keyboard |
+|---|---|---|---|---|---|
+| **cmdk** (`cmdk/src/index.tsx`, `command-score.ts`) | Parts: `Dialog`, `Input`, `List`, `Group`, `Item`, `Separator`, `Empty`, `Loading` | The consumer, as children | `role=combobox` input + `role=listbox` / `role=option`, `aria-activedescendant` — **DOM focus never leaves the input** | `commandScore()` 0–1: `SCORE_CONTINUE_MATCH 1`, `SCORE_SPACE_WORD_JUMP 0.9`, `SCORE_NON_SPACE_WORD_JUMP 0.8`, `SCORE_CHARACTER_JUMP 0.17`, transposition 0.1; **groups ranked by their best member**; `keywords` concatenated onto the string | ↑↓, Home/End = first/last row, Alt+↑↓ by group, Meta+↑↓ ends, Ctrl+N/P/J/K (vim). **No Escape handling at all** |
+| **kbar** (README) | `KBarProvider`, `KBarSearch`, `KBarResults`, `useMatches` | The consumer, as an **action shape**: `{ id, name, shortcut, keywords, section, perform, parent }` | Consumer renders rows via `onRender` | `useMatches()` returns one flattened array — `["Section", Action, Action, "Section", …]` | ⌘K/Ctrl+K built in, Ctrl+N/P |
+| **GitHub** (docs.github.com, command palette page) | A product feature | GitHub | — | — | Ctrl+K / ⌘K, `>` switches to command mode, prefixes `#` issues/PRs/discussions/projects, `@` users/orgs/repos, `/` files, `!` projects; Esc closes; ⌘Enter new tab; ⌘C copy URL |
+| **Primer** (primer.style/components, read 2026-09-11) | `ActionList`, `ActionMenu`, `Autocomplete` publicly — **`CommandPalette` is listed under Internal components**, with no public component page | — | — | — | — |
+| **VS Code** (code.visualstudio.com/docs) | Two surfaces: Command Palette ⇧⌘P and Quick Open ⌘P | VS Code | — | — | Prefixes `>` commands, `@` symbols in file, `#` symbols globally, `?` help. Empty Quick Open shows **recently opened** |
+| **Slack** (Quick Switcher help) | A product feature | Slack | — | — | ⌘K; `#` channels, `@` people; ↑↓ or Tab; Return opens |
+| **Linear** (docs + changelog + linear.app/now) | A product feature | Linear | — | **Contextual**: "if you are looking at cycles… the command menu will first display commands that are related to cycles" | ⌘K; shortcuts shown beside actions, which the team describes as how people learn them |
+| **Raycast** (developers.raycast.com, store guidance) | An extension platform | Extensions | — | — | Naming rules instead: `<verb> <noun>`, Title Case, no articles; **the subtitle is indexed for search**; `List.EmptyView` and "avoid a flickering empty state" |
+| **W3C ARIA APG** (combobox pattern) | The normative pattern | — | "DOM focus remains on the combobox and the combobox has `aria-activedescendant` set to… the focused element within the popup"; `aria-autocomplete="list"`, `aria-controls`, `aria-expanded`, `aria-selected` on the option | — | Escape "closes the popup and returns focus to the combobox"; ↑↓ move and select; Enter accepts. **Home/End belong to the text caret** |
 
-**Drawers**
+### What the survey actually settles
 
-| System | Ships one | When, in its words | Rules between rows | Header / footer rule |
-|---|---|---|---|---|
-| Polaris | Sheet, **deprecated** | "encourages designers to create a new layer on top of the page instead of improving the existing user interface" | not stated | not stated |
-| Atlassian | Drawer, **being deprecated** | "Please use Modal instead." | not rendered | not rendered |
-| Primer | Side sheet (Dialog) | "global actions… quick previews"; "Don't use side sheets to present create/edit forms" | not stated | footer rule "If the content area has overflow scrolling… Otherwise… optional" |
-| Ant Design | Drawer | "Use a Form to create or edit a set of information" | Descriptions: `bordered` is off by default | both, always |
-| Fluent 2 | Drawer (inline, overlay) | confirmations go to a dialog; drawers "need to be scannable" | not stated | none |
-| shadcn/ui | Sheet | "complements the main content of the screen" | n/a | none, spacing only |
-| Material 3 | Side sheet | keeps "secondary content visible" | dividers optional: full width between unrelated sections, inset within one | not stated |
-| GOV.UK | no drawer, no modal | n/a | summary list rows ruled by default: "Think carefully before you remove row borders… users who zoom in" | n/a |
-| Apple HIG | Sheet | "a scoped task that's closely related to their current context" | not stated | not stated |
-| USWDS | no drawer | a modal is "a last resort" | n/a | n/a |
+**Nobody's design system ships a public palette; the libraries ship a shell.** Primer — the
+design system of the product with the best-known command palette — keeps `CommandPalette`
+internal. cmdk and kbar are the two that ship, and both are shells: cmdk takes children, kbar
+takes an `action` shape with a free-text `section`. Neither names an issue, a file or a user.
 
-**Motion**
+**Result *kinds* live in the product, and they surface as prefixes.** GitHub's `#`, `@`, `/`,
+`!`, `>`; VS Code's `>`, `@`, `#`, `?`; Slack's `#` and `@`. Every one of those sets is that
+product's vocabulary. A kit that enumerated kinds would need a release before the finance portal
+could add "payout".
 
-| System | Durations | Enter vs exit | Reduced motion |
-|---|---|---|---|
-| Carbon | 70, 110, 150, 240, 400, 700 ms | separate entrance and exit curves | "provide alternatives" |
-| Atlassian | 50–150 interactions, 150–400 "Modals, Panels" | ease-out in, accelerate out | "motion is off and instant" |
-| Primer | micro 100, short 200, medium 300, long 500 | easeOut entering, easeIn exiting | "MUST Provide instant alternatives" |
-| Fluent 2 | 50–500 ms; drawer 250–500 by size | decelerate in, accelerate out | 1 ms by default |
-| Ant Design | 100, 200, 300 ms | spec says exits faster; the Drawer code does not | `transition: none` |
-| Material 3 | 50–1000 ms in 16 steps | decelerate in, accelerate out | not in the docs read |
-| Apple HIG | none published | not stated | "Replacing transitions in x-, y-, and z-axes with fades" |
+**Everyone agrees on the accessibility model and it is not a menu.** cmdk implements exactly the
+APG combobox: the input keeps DOM focus, rows are options, the active row is named by
+`aria-activedescendant`. That is the only model where arrows can move a selection while letters
+keep arriving.
 
-WCAG 2.3.3 does not count opacity as motion: motion animation "does not include changes of
-color, blurring, or opacity" (an erratum has since taken blurring back out of that list).
+**They disagree about how many keys to take.** cmdk binds Home/End to the first and last row,
+plus Alt+Arrow, Meta+Arrow and four vim bindings — a second keyboard with no documentation
+anywhere in its README. APG says Home and End are the caret's. The kit takes APG's answer.
 
-**Where they disagree.** Whether a drawer should exist at all: Polaris and Atlassian are
-retiring theirs for a modal, while Fluent, Ant, Material and shadcn ship one. Forms in a drawer:
-Ant says yes, Primer says no. Reduced motion: instant (Atlassian, Primer, Fluent, Ant) against a
-fade in place of movement (Apple, which WCAG allows). Row rules in a key/value list: GOV.UK on
-by default and warns against removing them, Ant off by default.
+## The decision the issue asked for
 
-**What nobody says.** No system says anything for or against cards inside a drawer, and none
-gives a general rule for when a divider beats space. Nobody gives a drawer its own
-reduced-motion treatment or says what the scrim does under it.
+> *Does the kit supply the shell and leave each product to feed it results, or does it define
+> result kinds too?*
 
-## #271's question: which components are in the first pass
+**Chosen: the shell, the ranking and the keyboard — plus the three ways a row can *behave*.
+Rejected: a closed set of result kinds.**
 
-The rule is "anything that appears or leaves after the page has loaded moves". The inventory is
-every show and hide in the kit, taken from the stylesheets and the factories. The coverage gate
-now finds the same set itself: 36 state rules today.
+Kinds are the product's words. What is not the product's is what Enter does, and there the kit
+found three cases that are genuinely different, so the item shape names them:
 
-| Change after load | Before this PR | After |
+| The row | How it is written | What Enter does |
 |---|---|---|
-| Drawer opens and closes (HTML) | slides, scrim fades, 250ms | unchanged |
-| Confirm opens and closes | fades and rises, 250ms | unchanged |
-| Dropdown, version switcher, account menu | fade and drop, 250ms | unchanged |
-| Toast arrives and leaves | slides in 250ms, out 150ms | unchanged |
-| Feedback pill, scrim, composer | fade and rise, 250ms | unchanged |
-| **React `Modal`** (the portal's drawer) | **none: mounts and unmounts** | fades and rises, in and out |
-| **React `Drawer`** | did not exist | new; the HTML drawer's markup, slide and scrim |
-| **Tabs: the panel a switch reveals** | **instant** | fades in, 150ms |
-| **Side nav: a group's sub-list** | **instant** (only the caret turned) | fades in and drops 4px, 150ms |
-| **Feedback: the error line** | **instant** | fades in, 150ms |
-| **`setBusy()`: content replacing the skeleton** | **instant** | fades in, 250ms |
-| Switch knob; a dropdown opening upward | moved | unchanged, and now counted by the gate |
-| Dropdown row's tick; nav current-row marker and icon; checkbox tick's turn | instant | still, each with its reason at the rule |
-| Collapsed side rail | instant | still, with its reason at the rule |
+| goes somewhere | `href` | closes the palette and navigates; ⌘/Ctrl+Enter opens a tab |
+| runs something | anything with an `id` | reports `ui-command` and closes |
+| destroys something | `danger` + `confirm` (React: `onConfirm`) | opens the kit's `confirm()` **above** the palette and leaves it standing |
 
-Nothing animates on first render: `playEntrance()` runs only on the change the reader caused.
+A `danger` row that names no confirm is rendered `aria-disabled` rather than run. That is the
+one opinion the kit imposes on content, and it is the destructive-actions guideline applied to
+the fastest surface in a product — the one where a reader is looking at the text box while the
+list reorders underneath them.
 
-Deferred, and why:
+The seam for a product that ranks its own results is `rank: false`: the palette reports what was
+typed as `ui-command-query` and renders what it is handed, in the order it is handed it.
+`scoreCommand`, `rankCommands` and `rankGroups` are exported so a server sorts the same way
+rather than differently.
 
-- **The toast stack closing up** after one toast leaves. The others jump into the gap. Moving
-  them needs each toast measured before and after, which is JavaScript the stack does not have.
-- **React `DataTable` rows** on a sort or a page turn. The rows are the consumer's, and the
-  pagination guideline already says a page turn must not move the ground under the reader.
-- **React `BusyRegion`** content arriving. The React tree cannot tell a first render from a
-  re-render without a key the consumer does not give it today.
-- **`.acct.on`**, the signed-in account button. It is not in the coverage gate's list of state
-  hooks: it describes a state the page loads in, not a change the reader makes.
+**The ranking is a ladder, not a score.** Exact label 100 → prefix 90 → word start 80 →
+substring 70 → keyword 60 → description 40 → initials 20, ties broken by the caller's order,
+groups carried by their best row. cmdk's continuous score ranks better and cannot be explained
+to somebody who asks why their row is third; the kit's palettes hold tens of rows, not
+thousands. With nothing typed every score is equal, so the list is exactly what the caller
+passed — which is where a product puts the four things people actually do here. The kit
+remembers nothing between openings: a palette that should show recents is one that was handed a
+recents group.
 
-## The variants, and which one is the default
+## The variants, and the default Artur chose
 
-The same fabricated record in each frame, beside the look #272 reported ("Today"). All three
-drop the cards and the rule under every row, and put each value beside its label instead of at
-the far edge of the panel.
+One markup, one stylesheet, one modifier class. Both ship; the question was only which one
+`commandPalette()` draws when nobody asks.
 
-![Drawer variants, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/684124b645893295c8ea279078977da2ece892f7/docs/evidence/drawer-variants-light.png)
+**Light**
 
-![Drawer variants, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/684124b645893295c8ea279078977da2ece892f7/docs/evidence/drawer-variants-dark.png)
+![Compact and roomy, light](docs/evidence/palette-variants-light.png)
 
-| | Lines inside the panel on this record | What you live with |
-|---|---|---|
-| Today | about 17 | the report |
-| A, space only | 0 | a long record scrolls under the header and the footer with nothing marking where either ends |
-| **B, one rule per group** *(chosen, and the default)* | 4: header, footer, two between groups | some lines still, and the header and footer stay framed while the body scrolls |
-| C, filled groups | 0, and three tinted blocks | a third surface tone, and in dark it is the heaviest of the three |
+**Dark**
 
-**Artur picked B**, on 2026-09-11, from those frames. A drawer's normal state is a long record
-scrolling under its header, and B is the one variant that stays framed while it does. A buys no
-lines at the price of no scroll edge; C gets there without lines but adds a third surface tone,
-and in dark it is the heaviest of the three.
+![Compact and roomy, dark](docs/evidence/palette-variants-dark.png)
 
-B is the smallest of the three in the diff: the line under the header and the line over the
-footer are the ones the drawer already had on `main`, so `src/styles/drawer.css` keeps them
-untouched and the only rule this PR adds inside the panel is the one between groups. Every row
-still holds its neighbour apart with space alone.
-
-## What changed
-
-- **Drawer.** `drawerSection({ title, rows, body })` puts a heading over a `<dl>` of label and
-  value rows. Labels and values are escaped; a value passed as `{ html }` is trusted markup. One
-  rule parts a group from the group above it, and nothing else inside the panel draws a line —
-  the header's and the footer's are the two the drawer already had. The drawer's and the
-  confirm's dead reduced-motion blocks are gone.
-- **Guidelines / Drawers** has four rules: one record per drawer; group under headings and never
-  put a card inside; draw three lines and no others; set each value beside its label.
-- **Guidelines / Motion** has four rules: move what appears or leaves after load; time a change
-  by what moves (150, 250 or 400ms); take the kit's curves; change at once under reduced motion.
-- **React.** A new `Drawer` renders the vanilla `drawer()` markup class for class, with a parity
-  test over 24 side, size and footer combinations. `Modal` fades and rises in and out and stays
-  mounted until its exit ends. Both share one dialog module (`react/src/dialog.ts`) for the Tab
-  trap, Escape, inert background and return of focus. While a dialog leaves, it takes no clicks.
-- **Motion.** `playEntrance()` in `src/motion.js` drives the entrances in the table above.
-  `motion: still` notes record the changes that are right to leave still.
-- **Specification.** A new "The drawer" section, and additions under "Motion".
-
-## Found along the way
-
-**Reduced motion lost keyboard focus in both overlays.** The net gives every element a 0.01ms
-transition, so a child inherits `visible` one tick after the overlay's root. The control the kit
-focuses on open is still hidden in that frame. Measured in Chrome, clicking each story's trigger:
-
-| Opening | Motion on | Reduced motion, before | Reduced motion, after |
-|---|---|---|---|
-| HTML drawer | close button | **the panel itself** | close button |
-| Confirm | Cancel | **`<body>`: focus lost** | Cancel |
-| React drawer | first field | **the panel** (reported by the builder) | first field |
-
-This dates from #200. Opening now cancels every transition inside the overlay under reduced
-motion, and `stories/overlay-css.test.js` holds it for both sheets.
-
-**The kit's own "Form in a drawer" story wrapped its intro in a card.** The new drawer gate
-caught it on its first run, and the card is gone.
-
-**The contrast walks could not resolve any `--ease*` token.** `substitute()` in
-`stories/lib/contrast.js` stopped at the first `)`, so a fallback holding `cubic-bezier()` stayed
-unresolved. It now matches each `var(` to its own bracket. The vanilla walk measures the same
-results as before; the React walk's check that every `var()` resolves passes.
-
-## Before / After
-
-**Before**, as reported in #272:
-
-The Finance portal's transaction drawer as it was reported — three bordered cards inside a bordered panel, a rule under every row — is the first screenshot in #272; it is not copied here because GitHub attachment URLs carry a UUID the repo's denylist refuses.
-
-**After**: the kit's drawer on the same kind of record, default B.
-
-![Drawer, final, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-final-light.png)
-
-![Drawer, final, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-final-dark.png)
-
-**Motion**, which a still screenshot cannot show. Each sheet is six frames of one real opening
-in Chrome, taken by pausing the running transitions at fixed times after the click. With motion
-on, opening starts two 250ms transitions: the scrim's opacity and the panel's transform.
-
-![Drawer opening, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-open-frames-dark.png)
-
-![Drawer opening, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-open-frames-light.png)
-
-Under forced reduced motion the drawer is open in the first frame. Before the focus fix below,
-Chrome listed every transition it started at 0.01ms; now opening starts none inside the panel.
-
-![Drawer opening under reduced motion](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-open-frames-reduced-dark.png)
-
-**The guideline pages**
-
-![Guidelines / Drawers, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-guidelines-light.png)
-
-![Guidelines / Drawers, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-guidelines-dark.png)
-
-![Guidelines / Motion, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/motion-guidelines-light.png)
-
-![Guidelines / Motion, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/motion-guidelines-dark.png)
-
-**The gates**
-
-```
-                          main (c9a48c8)     this branch
-root   npm test           1126 (2 skipped)   1171 (2 skipped)
-react  vitest run          213               271
-react  dist/index.css      1.55 KB           1.80 KB
-```
-
-The real tails, from the tree this body describes:
-
-```
-$ npm test
-ℹ tests 1171
-ℹ pass 1168
-ℹ fail 1           (a wall clock, and main fails it here too — see below)
-ℹ skipped 2        (the same two as on main: the accent matrix and the built-Storybook index)
-
-$ cd react && npx vitest run
- Test Files  14 passed (14)
-      Tests  271 passed (271)
-
-$ npm run build
-ESM dist/index.css 1.80 KB
-ESM ⚡️ Build success in 160ms
-DTS ⚡️ Build success in 3450ms
-```
-
-**The one failure is a clock, not a measurement.** It is `stories/contrast.test.js`'s "the walk
-has not run away with the clock", which holds the contrast walk to 120s. The default was switched
-to B on a shared 8-core machine running several agents at once: the walk took 213.1s here. On the
-same machine in the same hour, `origin/main` at c9a48c8 takes 270.9s and fails the same assertion
-— 1126 tests, 1123 pass, 1 fail, 2 skipped. The 21 contrast measurements themselves pass on both,
-this branch does not touch `stories/contrast.test.js`, and nothing it changes is on that path.
-The 0-failing tail this branch carried earlier was measured on a different machine, where the
-walk came in under the ceiling.
-
-Run against `a3dfaa0` — the commit before the switch to B — on the same machine, the test list
-differs only by this change's own two tests out and four in.
-
-## Proof
-
-- [x] A person meets it in something running: Storybook stories and both guideline pages,
-      screenshotted in both themes.
-- [x] Motion measured in a real browser, not asserted: 250ms with motion on, 0.01ms with reduced
-      motion forced.
-- [x] Focus on open measured in Chrome before and after the reduced-motion fix, for all three
-      overlays.
-- [x] Every new rule is held by a gate, and each gate was broken on purpose to watch it fail:
-  - a rule under every drawer row, a box around every group, the rule between groups deleted and
-    the header's rule deleted → `drawer-rules.test.js` red, all four re-run after the switch to B;
-  - the tabs entrance deleted → `motion-coverage.test.js` red;
-  - `transition-duration` deleted from the net → `reduced-motion.test.js` red;
-  - toasts' fallback timer deleted → the end-event check red, where the old rule passed on
-    toasts' reduced-motion branch alone;
-  - the confirm's reduced-motion open rule deleted → `overlay-css.test.js` red;
-  - React `Drawer` and `Modal` unmounting at once → six React tests red;
-  - every React dialog handling keys instead of only the top one → the three nested tests red;
-  - the React `Modal` put back at `z-index: 50` → "a React modal paints above a drawer" red;
-  - sixteen more on the tightened drawer, reduced-motion and coverage gates, listed under Review.
-- [x] **Artur's pick of the drawer default.** B, on 2026-09-11, from the rendered variants;
-      the record is below.
-- [ ] **Exercised in the Finance portal.** Not done and not claimed: the portal installs a
-      published version. What settles it is the portal replacing its `Modal` and
-      `transaction-drawer.css` with `<Drawer>` and `drawerSection`-shaped rows.
-- [ ] **CI, at the final SHA.** All five required checks — `build`, `Dependency audit`,
-      `Published artifact check`, `Secret scan (gitleaks)` and `Internal-terms denylist` — are
-      expected green, and the merge button needs all five (CONTRIBUTING → Issues & pull requests).
-      Read them on the pull request rather than here: this line is the expectation, not a
-      measurement. `Shipped surface vs version` will be red, and it is not a required check —
-      this branch carries no version bump by design. The two that were red on an earlier SHA
-      were the denylist and gitleaks, both on a bare UUID in this file's image URL; the image
-      lives in the GitHub body instead and the tree is clean under the workflow's own pattern.
-
-## Review
-
-Two independent reviews ran on this branch: a diff review (with security, testing,
-maintainability and adversarial passes, and a red team) and a prose review. Every finding below
-was reproduced before it was fixed.
-
-**Blocking, fixed.**
-
-- Two React dialogs open at once broke each other. Every open dialog listened on `document`,
-  and none checked whether it was on top. With a `Modal` over a `Drawer`, one Escape closed both,
-  Tab was swallowed, and closing one brought the page behind back to life while the other was
-  still open. `react/src/dialog.ts` now keeps one stack: only the top dialog takes keys, and
-  inertness comes from the stack. When the top dialog closes, the one below is live again with
-  focus where it left it. A dialog rendered inside another's content always sorts above it,
-  even when both mount in the same commit. Nine new tests failed against the old code, each for
-  the reason it names. Letting every dialog handle keys again turns the three nested tests red.
-- A React `Modal` opened from a React `Drawer` would have painted underneath it: the scrim sat at
-  `z-index: 50`, the drawer at 100. It now takes the confirm's layer, one above the drawer.
-- React dialogs and the vanilla `drawer()` and `confirm()` keep separate stacks. They are not
-  merged, because `overlay.js` is internal to the kit. `react/README.md` says not to open one
-  over the other.
-
-**Gates that stayed green while their rule was broken, fixed.** Each was shown green with the
-fault present, then red after the fix:
-
-- The drawer gate did not measure the body's own edges or anything inside the header and
-  footer. It read no logical `border-block` property and caught no `<hr>`. It let a four-sided
-  box without `.ui-card` pass, and asserted "at least 5" panels where it finds 12.
-- The reduced-motion checks accepted a `prefers-reduced-motion: no-preference` block. They
-  missed React's `onTransitionEnd`, and let a component's own reduced-motion block outvote the net.
-- The coverage gate was satisfied by `playEntrance`'s default argument alone. It counted a
-  `display` transition as motion, and its list of state hooks missed some the kit uses.
-
-Sixteen mutations prove it: each one stayed green before the fix and turns red after. They are a
-border on the body, a border under the title, a logical `border-block-end` under a group, an
-`<hr>`, a hand-bordered box, a deleted drawer story, a `no-preference` block, `! important` with
-a space, a React `onTransitionEnd` with no timer, an `!important` duration and an infinite loop
-inside a component's reduced-motion block, `tabs.js` no longer calling `playEntrance`, and a tick
-shown by a `display` transition. The coverage gate now finds 36 state rules; three new ones came
-from the wider hook list and each is decided. The switch knob and the upward dropdown already
-moved. The checkbox tick's turn is left still, with its reason at the rule.
-
-One subject went rather than gained a note. The collapsed rail hid a group's sub-list outright
-(`.ui-nav--side.is-collapsed .ui-nav__sub { display: none }`), which is the defect #277 is about:
-`wireNav()` toggles the list's `hidden` attribute and nothing else, so the toggle announced a list
-it could not open, and the current page's own row was gone on a folded rail. #286 deletes that
-selector; it is deleted here too, so a "take both" merge cannot quietly put it back while
-`stories/apps/shell.test.js` stays green — that gate reads the markup, and this is CSS. That is
-why the count above is 36 and not the 37 this branch found before.
-
-**The drawer gate, rewritten for B.** It reads the three lines in both directions now: a line the
-panel should not draw fails, and so does one of the three gone missing. Four mutations were run
-against this tree — the rule between groups deleted, the header's rule deleted, a rule under every
-row, and a box around every group. Each turns it red, and the tree with none of them is green.
-
-**Also fixed.** `drawerSection()` wrote its row values as markup while escaping its labels, and
-the obvious input is bank-feed data. Values are now escaped, and `{ html }` passes trusted markup.
-`substitute()` no longer stops at an unbalanced `var(`. A leaving dialog is `aria-hidden`, and
-focus has somewhere to go when its opener is gone. The panel's dead `opacity` rules are removed.
-Nine comments and doc lines the branch had made false are corrected. From the prose review, the
-spec no longer quotes a measurement the focus fix made stale.
-
-**A claim of mine that was false.** The spec said every transition the drawer starts under
-reduced motion runs 0.01ms. After the focus fix, opening starts none. The prose review caught it.
-
-**Not fixed, on purpose.**
-
-- No version bump and no changelog entry, per the brief; see "Changelog entry" below.
-- A and C do not ship as options. They were rendered for the decision and nothing more: the kit
-  has one drawer default, and a gate that holds it. A consumer who wants A takes the two rules
-  off in its own sheet and loses the gate with them.
-- A `setTimeout` anywhere in the function counts as the fallback for an end-event listener. The
-  gate says so in its ledger; telling a fallback from an unrelated timer needs a parser.
-- The `motion-css` rule parser misreads nested rules and braces inside strings. Nothing in the
-  kit writes either, and the gate's ledger says so.
-
-## What a reviewer should push on
-
-- **The default is B, and B is not the quietest of the three.** The complaint in #272 was the
-  lines, and A removes every one of them. B keeps four on this record because a drawer that
-  scrolls needs an edge at each end and a long record needs dividing; that is a judgement about
-  the normal case, not about this screenshot, and it is the one Artur made.
-- **Reduced motion means instant, not a fade.** WCAG and Apple would allow a fade. The kit keeps
-  the one net it already had (#200), because a net over every sheet is the only version a new
-  component cannot forget.
-- **The React drawer focuses the first field in its body; the HTML drawer focuses its close
-  button.** The React side follows `Modal`'s rule from #262. I left the HTML drawer as it was.
-- **The React `Modal` moved from `z-index: 50` to the confirm's layer (101).** A page that placed
-  its own layer between those two numbers now finds it under an open Modal rather than over it.
-  I think that is right for a dialog, but it is a visible change and is in the changelog below.
-- **`drawer.css` is not in the React stylesheet.** React consumers take kit styles from
-  `@apliteni/apliteni-ui/css`, as `Pagination` already does. A second copy loaded later could
-  beat a consumer's own overrides.
-- **`PR.md` at the repository root** carried #279's body. This branch replaces it with this one,
-  because that file is how a pull request is opened from this machine.
+- **Compact** — a row is one line: icon, name, note, shortcut keys. Ten rows fit where six do.
+- **Roomy** (`density: 'roomy'`) — the note drops under the name and the icon gets a tile, for
+  rows that need a sentence to tell apart: an invoice from an invoice.
 
 ## Decision record for the issues
 
-**The drawer's default look, for #272.** Chosen: **B, one rule per group** — the line under the
-header, the line over the footer, and one between each group, with nothing between rows. Rejected:
-**A, space only**, which takes every line out and with them the edge that says where a scrolling
-body ends; and **C, filled groups**, which needs no lines but pays for it with a third surface
-tone, and in dark reads heaviest of the three. Decided by Artur on 2026-09-11, from the variants
-rendered above in both themes rather than from a description of them.
+For #274, to be written into the thread when it closes:
+
+- **Chosen: the kit ships the shell, the ranking, the keyboard and the three row behaviours.**
+  Rejected: defining result kinds in the kit. Reason: every surveyed system that ships a palette
+  ships a shell (cmdk, kbar), the one design system that has a palette keeps it internal
+  (Primer), and every product's kinds surface as its own prefix vocabulary. Derived from the
+  survey above rather than chosen by preference.
+- **Chosen: Compact as the default density.** Rejected: Roomy as the default — 40% fewer rows per
+  screen, and a palette is scanned rather than read. Roomy ships as the modifier. **Chosen by
+  Artur on 2026-09-11**, from the rendered variants above.
+- **Chosen: a `danger` row without a confirm renders disabled.** Rejected: rendering it live and
+  trusting the caller. Reason: the palette reorders under the reader between keystrokes.
+- **Chosen: APG's key set.** Rejected: cmdk's Home/End, Alt+Arrow, Meta+Arrow and vim bindings —
+  Home and End are the caret's, and the rest is a keyboard nobody documents.
+
+## What is in the change
+
+**The kit**
+
+- `src/components/command-palette.js` — the factory, the ranking and the wiring. Escape,
+  inertness and the Tab trap come from `src/components/overlay.js`, which gained one entry
+  (`OVERLAY_LAYER.palette`) and learned that `data-cmdk` is an overlay root.
+- `src/styles/command-palette.css` — one sheet, two densities, tokens only. It answers the same
+  questions the drawer and the confirm sheets do, and `stories/overlay-css.test.js` now asks
+  them of all three.
+- `src/index.js`, `src/index.css`, `src/inline.js` — registered in all three manifests.
+
+**React**
+
+- `react/src/CommandPalette.tsx` — the same `.ui-cmdk` markup, and `rankGroups` imported from the
+  kit rather than reimplemented, so a server render and a keystroke cannot disagree about what
+  comes first. It reuses `Modal.tsx`'s `tabbablesIn` / `dismissOnScrim` instead of carrying a
+  third copy (see **Merge order** below).
+- Two differences from the vanilla one, both because a React host owns the state the wiring
+  would: no ⌘K binding (`open` is the host's prop), and a destructive row names an `onConfirm`
+  callback rather than a confirm's id.
+
+![React, dark](docs/evidence/palette-react-dark.png)
+![React, light](docs/evidence/palette-react-light.png)
+
+**Guidelines** — `Guidelines/The command palette`, six rules, each with a specimen pair or a
+reason, and each pointing at kit code:
+
+1. Put a thing in the palette only when a reader can name it.
+2. Group results by what they are, and name each group in the product's own word.
+3. Rank on how the query meets the name, and let the caller break every tie.
+4. Answer six keys, and leave every other key to the text box.
+5. Open focus in the text box, say how many results there are, and hand focus back.
+6. Never let the palette run a delete on its own.
+
+![Guidelines, dark](docs/evidence/palette-guidelines-dark.png)
+![Guidelines, light](docs/evidence/palette-guidelines-light.png)
+
+**States** — ranked, nothing matching, and the destructive pair:
+
+![States, light](docs/evidence/palette-states-light.png)
+![States, dark](docs/evidence/palette-states-dark.png)
+
+**The real thing over a real page**, opened from a control, scrim and all:
+
+![Open over a page, dark](docs/evidence/palette-open-dark.png)
+![Open over a page, light](docs/evidence/palette-open-light.png)
+
+## Accessibility, and the gates behind it
+
+The palette is the APG combobox inside a dialog: `role="combobox"` with `aria-autocomplete="list"`,
+`aria-expanded`, `aria-controls`; a `role="listbox"` of `role="option"` rows, each with
+`tabindex="-1"` so forty of them never land in the page's tab order; the active row named by
+`aria-activedescendant` and marked `aria-selected`. DOM focus opens in the text box and stays
+there. The page behind is `inert`. Escape closes the top overlay only — the confirm a row opened
+before the palette under it — and focus goes back to the opener, or to the page when the command
+took the opener with it. The count is announced politely in a `.ui-sr` live region, as a count
+and never as the rows.
+
+Four gates, three of them new. Every rule on the guidelines page has one:
+
+| Gate | What it holds | New? |
+|---|---|---|
+| `stories/palette-keyboard.test.js` | Presses real keys: ⌘K opens (and Ctrl+K inside a text box does not), the arrows move and wrap and skip a disabled row, typing moves the active row to the best answer, Enter runs it, Escape closes with a query typed and returns focus, Tab does not leave, the page behind is inert and is handed back, and the confirm a row opened answers the first Escape. 14 tests | new |
+| `stories/guidelines/command-palette.test.js` | The page against the component: every key the sources compare against is on the page and every key the page promises is answered; the label role the grouping rule claims, read off the sheet; and every palette row **any** story renders — a row must go somewhere, run something, ask something or say it is unavailable, and a destructive one must ask or be disabled. 7 tests | new |
+| `src/components/command-palette.test.js` | The markup, the three behaviours, and the ranking asserted as **order** rather than as numbers. 27 tests | new |
+| `react/src/CommandPalette.test.tsx` | The React palette compared to the vanilla factory shape by shape, then driven by keys. 13 tests | new |
+| `stories/overlay-css.test.js` | The palette sheet now answers the same five questions the drawer and confirm sheets do, plus: a confirm paints above a palette | extended |
+| `stories/danger-colour.test.js` | Extended with one named state class: the palette moves its active row with the arrow keys, so the state a pointer would put on it arrives from the keyboard and is a class rather than `:hover`. The entry carries its reason and the gate fails if no rule writes it | extended |
+| `stories/guidelines/_accessibility-floor.js` | The floor page names all three new gates and what each cannot see — its own gate fails the build otherwise | extended |
+
+Two failures the gates caught on this branch, both fixed rather than ledgered:
+
+- **The disabled row did not repaint.** `--disabled-ink` *is* `--muted` and `--disabled-surface`
+  *is* `--surface-2`, which is the palette's own panel — so a disabled row was pixel-identical to
+  an enabled one and the floor gate said so. It takes `--disabled-ink-bare` now, the ink for a
+  control with no box of its own, and the row's note moved from `--muted` to `--dim`.
+- **The glyphs were under the line.** The row and search icons took the `icons.js` default 1.7 in
+  a 24 box at 16 and 17px, painting 1.13 and 1.20 CSS px against the kit's 1.5. The sheet states
+  a stroke-width now, the same arithmetic as `.ui-dropdown__ic`.
+- **The destructive row shouted before anybody pointed at it.** `--pink` at rest is the danger
+  signal spent on a row the reader is scrolling past. It is `--muted` at rest now and `--pink` on
+  `:hover` and on the active row — and a destructive row the palette refuses to run drops
+  `is-danger` altogether, because a row nothing can press is unavailable rather than dangerous.
+- **A palette row is writable as a `<button>`.** The kit renders it as a `<div role="option">`,
+  so nobody had seen it as one; it now cancels the four things a browser paints on a button.
+
+## Verification
+
+Run on this branch. **This machine is an 8-core box shared with other agents — `uptime` reported
+a load average of 29.95 while these ran** — which matters for exactly one assertion, below.
+
+```
+$ npm test
+ℹ tests 1190
+ℹ pass 1187
+ℹ fail 1
+ℹ skipped 2
+```
+
+The two skips are the kit's own opt-ins, on `main` as well as here: the eight-cell
+theme x accent contrast matrix behind `CONTRAST_ACCENTS=1`, and the built-story-id check that
+needs a `storybook-static/` this run did not build.
+
+The one failure is `stories/contrast.test.js` → *the walk has not run away with the clock*, a
+120s wall-clock ceiling calibrated on a 10-core laptop against a 47.6s contended worst case. It
+is **not this branch**, and it is measured rather than asserted:
+
+| Run | Walk |
+|---|---|
+| this branch, `contrast.test.js` alone | **123.0s**; **156.6s** inside `npm test` |
+| unmodified `origin/main` in a scratch worktree on this box, alone | **320.9s**, then **140.5s** |
+
+`origin/main` fails the same assertion on this machine, by more. Every other gate is green,
+including the two that would catch a real regression in that file — the miss-rate ratio and the
+DOM-write counter, which are arithmetic rather than weather. CI runs on a machine nobody else is
+using; if it fails there, the ceiling is a real finding and not mine.
+
+```
+$ npm run build
+ESM dist/index.js  31.83 KB
+ESM dist/index.css 1.55 KB
+ESM ⚡️ Build success in 159ms
+DTS ⚡️ Build success in 5218ms
+DTS dist/index.d.ts 7.37 KB
+```
+
+```
+$ cd react && npx vitest run
+ Test Files  14 passed (14)
+      Tests  238 passed (238)
+```
+
+Four more gates went red on the way and were fixed rather than ledgered, each one a real defect
+in this branch: the disabled row that did not repaint, the glyphs under 1.5 CSS px, a `640px`
+media query that is not one of the kit's three breakpoint steps, and a destructive row shouting
+`--pink` before anybody pointed at it. The counts they key on moved with them —
+`icon-size.test.js` 58 → 62, `typeface-roles.test.js` 41 → 45, and `.ui-cmdk__item` is now pinned
+by name in `button-chrome.test.js` as a clickable row the kit never renders as a `<button>`.
 
 ## Changelog entry
 
-Not added to `docs/changelog.md` and no version bump, per the brief; the coordinator sequences
-versions at merge. The entry this would take:
+Not written into `docs/changelog.md` and no version bumped — several PRs are in flight and the
+coordinator sequences versions at merge. The lines I would write:
 
-- **Added** `drawerSection({ title, rows, body })`: a drawer group, a heading over label and
-  value rows, parted from the group above it by one rule (#272).
-- **Added** React `Drawer`, the HTML drawer's markup, slide and scrim (#271, #272).
-- **Changed (visible)** React `Modal` fades in and out, and stays mounted until its exit ends,
-  about 250ms after `open` turns false. A test that expects it gone at once needs to wait for
-  it (#271).
-- **Changed (visible)** React `Modal` paints on the confirm's layer, above a drawer, instead of
-  at `z-index: 50`. React Modals and Drawers share one dialog stack: only the top one takes
-  Escape and Tab (#271, #272).
-- **Added** `playEntrance()` and `ENTRANCE_FALLBACK_MS`. Tab panels, side-nav groups, the
-  feedback error and `setBusy()` content now fade in when they change (#271).
-- **Fixed** Under `prefers-reduced-motion`, opening a drawer or a confirm puts focus on its
-  first control again. It had landed on the panel, or fallen to `<body>`.
-- **Docs** New Guidelines pages: Drawers and Motion.
+```
+### Added
+- **Command palette** — `commandPalette()` + `wireCommandPalette()`, and `<CommandPalette>` in
+  React. ⌘K/Ctrl+K over a scrim: a text box, grouped results, ranking with the caller's order as
+  the tie-break, and the ARIA combobox keyboard. The kit ships the shell and names no result
+  kinds; a row goes somewhere, runs something, or asks a confirm first — and a destructive row
+  with nothing to ask cannot be run. `rank: false` hands the query back for a palette a server
+  feeds. Two densities, compact by default. (#274)
+- **Guidelines/The command palette** — six rules: what belongs in it, how results are grouped and
+  ranked, the six-key contract, focus and announcement, and the refusal to run a delete on its
+  own. (#274)
+```
+
+## Merge order — three things the coordinator should know
+
+1. **`feat/272-271-drawer-and-motion` moves the React dialog plumbing into `react/src/dialog.ts`.**
+   This branch exports `tabbablesIn` and `dismissOnScrim` from `Modal.tsx` so the palette is the
+   third React dialog without a third copy of them. **After that branch lands**, change one import
+   in `react/src/CommandPalette.tsx` from `./Modal` to `./dialog` and put the palette on the shared
+   dialog stack (`useDialog`), which is the one thing it cannot do today: a React confirm opened
+   over a React palette is not yet ordered by a stack. The vanilla side already is.
+2. **`src/components/overlay.js` shifted by two lines** (`reachable()` learned about `data-cmdk`).
+   The stale line reference in `react/src/Modal.tsx` is repointed here; the copy of it
+   in the drawer branch's `react/src/dialog.ts` needs the same move.
+3. **Three shared files are touched by more than one in-flight branch**:
+   `stories/guidelines/_overview.js` (one `ENTRIES` row), `stories/guidelines/_accessibility-floor.js`
+   (three `GATES` entries) and `.storybook/preview.js` (two `storySort` rows and one `wire…` call).
+   All three are append-style conflicts.
+
+## What I deliberately left out
+
+- **Prefix modes** (`>`, `#`, `@`). The survey says the vocabulary is the product's, so the kit
+  ships grouping and the `rank: false` seam instead. A product that wants `>` feeds a different
+  set of groups when it sees one.
+- **Nested pages** (cmdk's Backspace-goes-back). No surface here has asked for a palette two
+  levels deep, and it is the feature that makes Escape ambiguous.
+- **Any memory of what a reader ran before.** Recents are a group a product passes; the kit
+  stores nothing.
+- **Virtualised lists.** The list scrolls and the active row is kept in view. A palette holding
+  thousands of rows should be ranking on a server, which is what `rank: false` is for.
+- **The portal side.** This is the kit's half of #274 only; adopting it in
+  `finance.apli.tech` is that repo's issue.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01KTCn7UC3huEKwrKZke9r2K

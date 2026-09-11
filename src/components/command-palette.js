@@ -4,15 +4,9 @@
 //   container.innerHTML = commandPalette({ groups });
 //   wireCommandPalette(container);   // hotkey, ranking, keys, Esc, focus
 //
-// The kit ships the SHELL and the ranking rule, and names no result kinds:
-// "campaign", "invoice" and "domain" are the product's words, and a kit that
-// enumerated them would need a release to let a product add one. What the kit
-// does name is the three ways an item can behave, because each one answers
-// Enter differently — go somewhere (`href`), run something (an event), or ask
-// first (`confirm`, which opens the kit's confirm dialog over the palette).
-//
-// Inertness, Escape and the focus trap come from ./overlay.js, the same stack
-// the drawer and the confirm are on.
+// The kit ships the shell and the ranking and names no result kinds; a row goes
+// somewhere, runs something, or asks a confirm first. Inertness, Escape and the
+// focus trap come from ./overlay.js, the stack the drawer and the confirm share.
 // why: docs/specification.md#the-command-palette
 import { esc, icon } from './index.js';
 import { OVERLAY_LAYER, adoptOverlay, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
@@ -203,7 +197,11 @@ function paletteItem(it, uid, index, active) {
   const desc = it.description
     ? `<span class="ui-cmdk__desc">${esc(it.description)}</span>` : '';
   const attrs = [
-    `class="${cx('ui-cmdk__item', it.danger && 'is-danger', disabled && 'is-disabled', active && 'is-active')}"`,
+    // `is-danger` only while the row is actually offered: a destructive command
+    // the palette refuses to run is an unavailable row, not a dangerous one, and
+    // painting it in the danger signal would spend that signal on something
+    // nothing can press.
+    `class="${cx('ui-cmdk__item', it.danger && !disabled && 'is-danger', disabled && 'is-disabled', active && 'is-active')}"`,
     'role="option"',
     'tabindex="-1"',
     `id="${uid}-o${index}"`,
