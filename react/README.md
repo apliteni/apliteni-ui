@@ -29,7 +29,16 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `Modal`, `Drawer`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `Modal`, `Drawer`, `CommandPalette`, `Button`, `Badge`, `Card`, `Icon`.
+
+`CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
+kit's ranking rather than repeating it — so a palette a server rendered and the same palette
+after a keystroke put the same row first. Two differences from the vanilla one, both because a
+React host already owns the state the wiring would: it has no Cmd+K binding, since `open` is the
+host's prop to set from whatever key it wants; and a destructive row names an `onConfirm`
+callback rather than the id of a confirm dialog, which is refused the same way — a `danger` row
+with neither renders disabled. `rank={false}` hands the query back through `onQueryChange` for a
+palette a server feeds.
 
 `Pagination` renders the kit's `pagination()` markup, class for class, so its styles come from
 `@apliteni/apliteni-ui/css` rather than from this bundle. One deliberate difference: it takes no

@@ -93,7 +93,9 @@
   color: var(--muted);
   flex: none;
 }
-.ui-cmdk__search-ic svg { width: 17px; height: 17px; }
+/* 2.2 of a 24 box drawn at 17px = 1.56 CSS px, which is what keeps the mark a
+   graphic rather than a smudge. why: docs/specification.md#icons-and-glyphs */
+.ui-cmdk__search-ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
 /* Not .ui-input: this one has no box of its own — the panel is the box — and a
    second border inside a bordered panel reads as a form somebody has to submit. */
@@ -160,7 +162,9 @@
   color: var(--dim);
   flex: none;
 }
-.ui-cmdk__ic svg { width: 16px; height: 16px; }
+/* 2.3 of a 24 box drawn at 16px = 1.53 CSS px. Same arithmetic as the dropdown's
+   row icon next door. why: docs/specification.md#icons-and-glyphs */
+.ui-cmdk__ic svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.3; }
 .ui-cmdk__item.is-active .ui-cmdk__ic { color: var(--accent); }
 
 .ui-cmdk__main {

@@ -237,7 +237,7 @@ const isRefused = (it) => !!it.disabled || (!!it.danger && !it.confirm);
  * palette rendered open by a server already says which row Enter answers — and
  * the React component, which has no wiring step at all, renders the same thing.
  */
-export function firstEnabledIndex(groups) {
+function firstEnabledIndex(groups) {
   let n = 0;
   for (const g of groups || []) {
     for (const it of g.items || []) {

@@ -64,7 +64,7 @@ const PLACES = [
   { id: 'settings', label: 'Settings', description: 'Billing, members, API keys', icon: 'gear', href: '#s' },
 ];
 const RECENT = [
-  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc', badge: 'unpaid', href: '#i1' },
+  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc', badge: 'Unpaid', href: '#i1' },
   { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH · €960 · paid', icon: 'doc', href: '#i2' },
 ];
 
@@ -145,7 +145,7 @@ export const RULES = [
       + 'be it; and the third row goes where the reader already is.',
     except: 'A setting the palette can flip in one move is a command — “Switch to the light '
       + 'theme” is a thing somebody types. One that needs a choice made is a page: name the page.',
-    kit: [{ ref: 'src/components/command-palette.js:225', pattern: 'function paletteItem' }],
+    kit: [{ ref: 'src/components/command-palette.js:200', pattern: 'function paletteItem' }],
   },
   {
     id: 'groups',
@@ -162,8 +162,8 @@ export const RULES = [
       + 'kit ships the grouping and not the prefixes: a product that wants > can feed the palette '
       + 'a different set of groups when it sees one.',
     kit: [
-      { ref: 'src/components/command-palette.js:252', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:124', pattern: '.ui-cmdk__group-head' },
+      { ref: 'src/components/command-palette.js:257', pattern: 'export function commandPaletteList' },
+      { ref: 'src/styles/command-palette.css:132', pattern: '.ui-cmdk__group-head' },
     ],
   },
   {
@@ -185,7 +185,7 @@ export const RULES = [
       + 'a page of results it cannot see the rest of.',
     kit: [
       { ref: 'src/components/command-palette.js:39', pattern: 'export const SCORE' },
-      { ref: 'src/components/command-palette.js:145', pattern: 'export function rankGroups' },
+      { ref: 'src/components/command-palette.js:136', pattern: 'export function rankGroups' },
     ],
   },
   {
@@ -200,8 +200,8 @@ export const RULES = [
     except: 'Ctrl+K inside another text box is left alone: it is kill-to-end-of-line there, and a '
       + 'palette that eats it breaks a keystroke the reader had first.',
     kit: [
-      { ref: 'src/components/command-palette.js:493', pattern: 'function onKeydown' },
-      { ref: 'src/components/overlay.js:92', pattern: 'function ownKeys' },
+      { ref: 'src/components/command-palette.js:514', pattern: 'function onKeydown' },
+      { ref: 'src/components/overlay.js:94', pattern: 'function ownKeys' },
     ],
   },
   {
@@ -214,9 +214,9 @@ export const RULES = [
       + 'all of it out again on every keystroke. On the way out the opener gets focus back, even '
       + 'when the command that ran took the opener off the page.',
     kit: [
-      { ref: 'src/components/command-palette.js:349', pattern: 'function setActive' },
-      { ref: 'src/components/command-palette.js:369', pattern: 'function announce' },
-      { ref: 'src/components/overlay.js:170', pattern: 'export function returnFocus' },
+      { ref: 'src/components/command-palette.js:370', pattern: 'function setActive' },
+      { ref: 'src/components/command-palette.js:394', pattern: 'function announce' },
+      { ref: 'src/components/overlay.js:187', pattern: 'export function returnFocus' },
     ],
   },
   {
@@ -235,8 +235,8 @@ export const RULES = [
       + 'from here at all: it renders aria-disabled, which is a visible refusal rather than a '
       + 'silent one.',
     kit: [
-      { ref: 'src/components/command-palette.js:231', pattern: 'const unsafe = !!it.danger && !it.confirm;' },
-      { ref: 'src/styles/command-palette.css:194', pattern: '.ui-cmdk__item.is-danger' },
+      { ref: 'src/components/command-palette.js:231', pattern: 'const isRefused = (it) =>' },
+      { ref: 'src/styles/command-palette.css:207', pattern: '.ui-cmdk__item.is-danger' },
     ],
   },
 ];
