@@ -265,6 +265,36 @@ test('Escape answers the confirm a row opened, and leaves the palette standing',
   assert.equal(root.classList.contains('is-open'), true, 'and only the top one');
 });
 
+// The same question with the key pressed inside the palette rather than on the
+// document. Escape belongs to the stack, which listens on the document and
+// answers for whichever overlay is on top; a handler of the palette's own would
+// answer here and close the palette out from under the question it asked. On
+// doc.body alone that handler never fires and the gate cannot see it.
+test('a key pressed in the text box does not let the palette answer Escape itself', () => {
+  mount('pk-confirm-in', confirm({
+    id: 'pk-confirm-in-dialog',
+    title: 'Delete the workspace?',
+    body: 'Its 42 API keys stop working immediately.',
+    confirmLabel: 'Delete workspace',
+    cancelLabel: 'Keep it',
+  }));
+  const root = doc.getElementById('pk-confirm-in');
+  const dialog = doc.getElementById('pk-confirm-in-dialog');
+  const input = root.querySelector('[data-cmdk-input]');
+  const row = root.querySelector('[data-cmdk-item]');
+  row.setAttribute('data-confirm-open', 'pk-confirm-in-dialog');
+
+  press(doc.body, 'k', { metaKey: true });
+  click(row);
+  assert.equal(dialog.classList.contains('is-open'), true, 'the question is up');
+
+  press(input, 'Escape');
+  assert.equal(dialog.classList.contains('is-open'), false,
+    'the confirm is the top overlay, so it is what one Escape answers');
+  assert.equal(root.classList.contains('is-open'), true,
+    'and the palette that asked is still there — it does not close itself on a key it does not own');
+});
+
 // ---- What a screen reader is told ----------------------------------------
 
 test('the count is announced politely, and the rows are not', () => {
