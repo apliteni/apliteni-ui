@@ -664,6 +664,10 @@ moving a readout never changes the size or the place of anything else on the pag
   state the stylesheet gives it. Its open state changes `opacity` and `visibility` and nothing
   else, so it paints and takes no room. `wireTooltip()` fills and places that element and never
   inserts one on hover; a host rendered without a readout is given one when it is wired.
+- The host is the box the readout is placed against. `.ui-tip-host` makes it one, and
+  `wireTooltip()` gives `position: relative` to a host that has no position of its own, so a
+  `[data-tip-host]` without the class still places its readout on the mark. A host driven only
+  through `showTooltip()` is not wired, and needs the class.
 - It takes no pointer events. A readout covering the marks beside its own would otherwise become
   the hover target, hide, uncover the mark and come back, at pointer speed.
 - It opens above its mark, centred on it, `--ui-tip-gap` away. It flips below only when the room

@@ -151,6 +151,6 @@ export const RULES = [
       + 'with, and a table or a labelled summary of the series, carry what matters without hovering. '
       + 'Whether a chart\'s marks should take focus at all, and whether a tap should pin the readout '
       + 'or a finger scrub along the line, is not decided yet: it is the open question on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:203', pattern: "host.addEventListener('focusin'" }],
+    kit: [{ ref: 'src/components/tooltip.js:206', pattern: "host.addEventListener('focusin'" }],
   },
 ];

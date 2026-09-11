@@ -125,7 +125,7 @@ function fill(tip, mark) {
 
 // ---- Behaviour -----------------------------------------------------------
 
-/** Show the host's readout for one mark, until hideTooltip() or Escape. For a chart that does its own hit-testing. */
+/** Show the host's readout for one mark, until hideTooltip() or Escape. For a chart that does its own hit-testing; its host needs `.ui-tip-host`. */
 export function showTooltip(host, mark) {
   const tip = tipOf(host);
   if (!tip || !mark) return;
@@ -189,6 +189,9 @@ export function wireTooltip(root = document) {
   hosts.forEach((host) => {
     if (host.__tipWired) return;
     host.__tipWired = true;
+    // The readout is placed in px from its host, so the host has to be the box it
+    // is positioned against. .ui-tip-host makes it one; a host without it is given the same.
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
     if (!tipOf(host)) host.insertAdjacentHTML('beforeend', tooltip());
     const markOf = (t) => {
       const mark = t?.closest?.('[data-tip-value]');

@@ -420,3 +420,17 @@ test('Escape leaves alone a readout rendered open that the kit never showed', ()
     'the live readout closes, so the test is not vacuous');
   assert.ok(doc.querySelector('#picture [data-tip]').classList.contains('is-open'), 'the picture stays open');
 });
+
+test('wiring makes a host that places nothing the box its readout is placed in', () => {
+  const window = mount(MARKS + tooltip());
+  const host = window.document.getElementById('host');
+  host.className = '';
+  wireTooltip(window.document);
+  assert.equal(getComputedStyle(host).position, 'relative',
+    'a static host leaves the readout placed against some ancestor, px away from its mark');
+
+  const placed = mount(MARKS + tooltip(), { hostStyle: 'position: absolute' });
+  wireTooltip(placed.document);
+  assert.equal(placed.document.getElementById('host').style.position, 'absolute',
+    'a host already positioned keeps its own position');
+});
