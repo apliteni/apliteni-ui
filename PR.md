@@ -165,6 +165,11 @@ For #274, to be written into the thread when it closes:
 ![React, dark](docs/evidence/palette-react-dark.png)
 ![React, light](docs/evidence/palette-react-light.png)
 
+The React side makes the same refusal — a destructive row with an `onConfirm` beside one
+without:
+
+![React, a destructive row](docs/evidence/palette-react-destructive-dark.png)
+
 **Guidelines** — `Guidelines/The command palette`, six rules, each with a specimen pair or a
 reason, and each pointing at kit code:
 
