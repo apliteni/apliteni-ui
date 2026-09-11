@@ -98,11 +98,26 @@ test('without one, the active row is still the page', () => {
 });
 
 test('a back the shell cannot draw leaves the trail standing', () => {
-  for (const back of [{ label: 'Invoices' }, { href: 'javascript:history.back()', label: 'Invoices' }, 'Invoices', ['/invoices']]) {
+  for (const back of [
+    { label: 'Invoices' }, { href: 'javascript:history.back()', label: 'Invoices' }, 'Invoices', ['/invoices'],
+    { href: {}, label: 'Invoices' }, { href: ['/invoices'], label: 'Invoices' },
+  ]) {
     const html = appShell({ nav: NAV, active: 'invoices', crumbs, back, title: 'INV-1001' });
     assert.match(main(html), /ui-nav--crumbs/, `back ${JSON.stringify(back)} took the trail away`);
     assert.doesNotMatch(main(html), /ui-back/);
     assert.deepEqual(currentOf(html), ['page', 'Invoices']);
+  }
+});
+
+test('the shell draws what backLink() draws for the same back, and nothing else', () => {
+  for (const back of [
+    { href: '/invoices', label: 'Invoices' }, { href: '/invoices', label: {} }, { href: '/invoices', label: 42 },
+    { href: 7, label: 'Invoices' }, { href: '/invoices', label: 'Back to Invoices' }, { href: {}, label: 'A' },
+  ]) {
+    const html = main(appShell({ nav: NAV, active: 'invoices', crumbs, back, title: 'INV-1001' }));
+    const own = backLink(back);
+    const drawn = /<a class="ui-back"[\s\S]*?<\/a>/.exec(html)?.[0] ?? '';
+    assert.equal(drawn, own, `back ${JSON.stringify(back)}`);
   }
 });
 

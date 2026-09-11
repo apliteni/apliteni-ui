@@ -42,13 +42,13 @@ const toItems = (nav) => (Array.isArray(nav) ? nav : ACCOUNT_NAV)
 const toCrumbs = (crumbs) => (Array.isArray(crumbs) ? crumbs : [])
   .filter((c) => isRecord(c) && !Array.isArray(c) && str(c.label) !== '');
 
+// A back link replaces the trail rather than joining it: the two would name the same parent
+// twice. Anything but a record is no back link; its fields go through as given, so a back
+// backLink() refuses leaves the trail standing. why: docs/specification.md#the-back-link
+const toBack = (b) => (isRecord(b) && !Array.isArray(b) ? { href: b.href, label: b.label } : null);
+
 // The reader, as two strings. railUser() and initials() both read them, and an
 // /auth/me answering `account: null` or a numeric display name reached both.
-// A back link replaces the trail rather than joining it: the two would name the same
-// parent twice, one above the other. Anything but a record is no back link, and a
-// record backLink() refuses leaves the trail standing. why: docs/specification.md#the-back-link
-const toBack = (b) => (isRecord(b) && !Array.isArray(b) ? { href: str(b.href), label: str(b.label) } : null);
-
 const toReader = (a) => (isRecord(a) ? { name: str(a.name), email: str(a.email) } : { name: '', email: '' });
 
 // ---- the topbar, which interpolates where the rail escapes ----------------
