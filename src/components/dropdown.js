@@ -27,8 +27,8 @@ function ddBadge(badge) {
 }
 
 // One item row. `listbox` picks role=option (selectable) vs role=menuitem (action).
-function ddItem(it, listbox) {
-  if (it === '---' || it.separator) return '<div class="ui-dropdown__sep" role="separator"></div>';
+function ddItem(it, listbox, ext) {
+  if (it === '---' || it.separator) return `<div class="ui-dropdown__sep" role="separator"${ext?.filtering ? ' hidden' : ''}></div>`;
   const disabled = !!it.disabled;
   const selected = !!it.selected;
   const role = listbox ? 'option' : 'menuitem';
@@ -49,19 +49,89 @@ function ddItem(it, listbox) {
     disabled ? 'aria-disabled="true"' : '',
     asLink ? `href="${esc(it.href)}"` : '',
     asLink && it.target ? `target="${esc(it.target)}"` : '',
+    ext?.id ? `id="${esc(ext.id)}"` : '',
+    ext?.hidden ? 'hidden' : '',
   ].filter(Boolean).join(' ');
   return `<${tag} ${attrs}>${lead}${main}${badge}${tick}</${tag}>`;
 }
 
-// Render a flat item list or grouped sections ([{ label, items }]).
-function ddBody({ items, sections }, listbox) {
+// Render a flat item list or grouped sections ([{ label, items }]). `sx` is the
+// search variant's context; the plain dropdown passes none and its markup is
+// unchanged.
+function ddBody({ items, sections }, listbox, sx) {
+  const one = (it) => ddItem(it, listbox, sx && ddRowExt(it, sx));
   if (sections && sections.length) {
     return sections.map((s) => {
       const head = s.label ? `<div class="ui-dropdown__group" role="presentation">${esc(s.label)}</div>` : '';
-      return `<div class="ui-dropdown__section" role="group"${s.label ? ` aria-label="${esc(s.label)}"` : ''}>${head}${(s.items || []).map((it) => ddItem(it, listbox)).join('')}</div>`;
+      const gone = sx && ddFiltering(sx.q) && !(s.items || []).some((it) => ddIsRow(it) && ddMatch(it.label, sx.q));
+      return `<div class="ui-dropdown__section" role="group"${s.label ? ` aria-label="${esc(s.label)}"` : ''}${gone ? ' hidden' : ''}>${head}${(s.items || []).map(one).join('')}</div>`;
     }).join('');
   }
-  return (items || []).map((it) => ddItem(it, listbox)).join('');
+  return (items || []).map(one).join('');
+}
+
+// ---- Search --------------------------------------------------------------
+// The match is a substring of the label, anywhere in it, ignoring case and
+// accents; rows keep their order. The factory and the wiring both ask
+// ddMatch(), so a preset query and a typed one hide the same rows.
+// why: docs/specification.md#a-dropdown-with-a-search-field
+// NFD takes the mark off é or ö; ł, ø, đ and the rest are letters of their own
+// with nothing to take off, so they are mapped by hand.
+const FOLD = { ł: 'l', ø: 'o', đ: 'd', ð: 'd', ß: 'ss', æ: 'ae', œ: 'oe', ı: 'i', þ: 'th' };
+const fold = (s) => String(s == null ? '' : s).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+  .replace(/[łøđðßæœıþ]/g, (c) => FOLD[c]);
+const ddFiltering = (q) => fold(q).trim() !== '';
+const ddMatch = (label, q) => fold(label).includes(fold(q).trim());
+const ddIsRow = (it) => it && it !== '---' && !it.separator;
+
+let _ddSeq = 0;
+
+function ddSearchContext(search, id) {
+  const o = search === true ? {} : search;
+  return {
+    base: id || `ui-dd-${++_ddSeq}`,
+    n: 0,
+    q: o.query || '',
+    label: o.label,
+    placeholder: o.placeholder || 'Search',
+    empty: o.empty || 'No match for “{q}”',
+    hint: o.hint || 'Check the spelling, or try fewer letters.',
+  };
+}
+
+function ddRowExt(it, sx) {
+  if (!ddIsRow(it)) return { filtering: ddFiltering(sx.q) };
+  return { id: `${sx.base}-opt-${sx.n++}`, hidden: !ddMatch(it.label, sx.q) };
+}
+
+// The no-match state. A function replacer, so a `$&` typed into the field is
+// text rather than a replacement pattern.
+function ddNone(empty, hint, q) {
+  return `<span class="ui-dropdown__none-title">${esc(empty.replace('{q}', () => q.trim()))}</span>`
+    + `<span class="ui-dropdown__none-hint">${esc(hint)}</span>`;
+}
+
+// The field is a combobox that owns the list; the rows stay options, and the
+// one Enter would pick is named by aria-activedescendant, so focus never
+// leaves the field while the reader types.
+function ddSearchBody({ items, sections }, sx, name, scroll) {
+  const listId = `${sx.base}-list`;
+  const rows = ddBody({ items, sections }, true, sx);
+  const flat = (sections ? sections.flatMap((s) => s.items || []) : (items || [])).filter(ddIsRow);
+  const shown = flat.some((it) => ddMatch(it.label, sx.q));
+  const cap = scroll && scroll !== true ? ` style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '';
+  const input = [
+    'class="ui-dropdown__search-input"', 'type="text"', 'role="combobox"',
+    'aria-autocomplete="list"', 'aria-expanded="true"', `aria-controls="${esc(listId)}"`,
+    `aria-label="${esc(sx.label || `Search ${name}`)}"`, `placeholder="${esc(sx.placeholder)}"`,
+    'autocomplete="off"', 'spellcheck="false"', 'data-dd-search',
+    sx.q ? `value="${esc(sx.q)}"` : '',
+  ].filter(Boolean).join(' ');
+  return `<div class="ui-dropdown__search">`
+    + `<span class="ui-dropdown__search-ic" aria-hidden="true">${icon('search')}</span><input ${input}></div>`
+    + `<div class="ui-dropdown__list" role="listbox" id="${esc(listId)}" aria-label="${esc(name)}"${cap}>${rows}</div>`
+    + `<div class="ui-dropdown__none" role="status" data-dd-none data-dd-empty="${esc(sx.empty)}" data-dd-hint="${esc(sx.hint)}">`
+    + `${shown || !ddFiltering(sx.q) ? '' : ddNone(sx.empty, sx.hint, sx.q)}</div>`;
 }
 
 /**
@@ -82,18 +152,22 @@ function ddBody({ items, sections }, listbox) {
  * @param {boolean|number} [o.scroll] true, or a maxHeight in px, to cap and scroll
  * @param {boolean} [o.open]       render already-open (handy for screenshots)
  * @param {string} [o.ariaLabel]   accessible name for the panel and trigger
+ * @param {boolean|object} [o.search] true, or { placeholder, label, empty, hint, query } —
+ *   a field above the rows that filters them; `empty` may carry {q}
  * @returns {string} html
  */
 export function dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
   header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
   align = 'start', direction = 'down', portal = false,
-  scroll = false, open = false, ariaLabel, id, panelClass = '',
+  scroll = false, open = false, ariaLabel, id, panelClass = '', search = false,
 } = {}) {
   const flat = sections ? sections.flatMap((s) => s.items || []) : (items || []);
   const isSelect = variant === 'select' || (variant == null && flat.some((it) => it && (it.selected || it.value != null)));
   const listRole = isSelect ? 'listbox' : 'menu';
   const cur = value != null ? value : (isSelect ? (flat.find((it) => it && it.selected)?.label) : null);
+  const sx = search ? ddSearchContext(search, id) : null;
+  const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || 'Options';
 
   const trig = triggerContent != null
     ? triggerContent
@@ -103,7 +177,7 @@ export function dropdown({
     `class="${cx('ui-dropdown__trigger', triggerClass)}"`,
     'type="button"',
     'data-dropdown-trigger',
-    `aria-haspopup="${listRole}"`,
+    `aria-haspopup="${sx ? 'dialog' : listRole}"`,
     `aria-expanded="${open ? 'true' : 'false'}"`,
     ariaLabel && triggerContent != null ? `aria-label="${esc(ariaLabel)}"` : '',
   ].filter(Boolean).join(' ');
@@ -115,15 +189,17 @@ export function dropdown({
       'ui-dropdown__panel',
       align === 'end' && 'is-end',
       direction === 'up' && 'is-up',
-      scroll && 'is-scroll',
+      scroll && !sx && 'is-scroll',
+      sx && 'ui-dropdown__panel--search',
       portal && 'ui-dropdown__panel--portal',
       portal && open && 'is-open',
       panelClass,
     )}"`,
     'data-dropdown-panel',
-    `role="${listRole}"`,
-    ariaLabel ? `aria-label="${esc(ariaLabel)}"` : '',
-    scroll && scroll !== true ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
+    // With search the panel holds a field and a list, which a listbox may not.
+    `role="${sx ? 'dialog' : listRole}"`,
+    sx ? `aria-label="${esc(name)}"` : (ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''),
+    scroll && scroll !== true && !sx ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
   ].filter(Boolean).join(' ');
 
   const ddAttrs = 'data-dropdown'
@@ -133,7 +209,7 @@ export function dropdown({
 
   return `<div class="${cx('ui-dropdown', open && 'open')}" ${ddAttrs}${id ? ` id="${esc(id)}"` : ''}>` +
     `<button ${triggerAttrs}>${trig}${chevron ? '<span class="ui-dropdown__chevron" aria-hidden="true"></span>' : ''}</button>` +
-    `<div ${panelAttrs}>${header}${ddBody({ items, sections }, isSelect)}${footer}</div>` +
+    `<div ${panelAttrs}>${header}${sx ? ddSearchBody({ items, sections }, sx, name, scroll) : ddBody({ items, sections }, isSelect)}${footer}</div>` +
     `</div>`;
 }
 
@@ -166,7 +242,58 @@ function ddItemsOf(dd) {
   const panel = ddPanelOf(dd);
   if (!panel) return [];
   return Array.from(panel.querySelectorAll('[data-dd-item]'))
-    .filter((el) => el.getAttribute('aria-disabled') !== 'true');
+    .filter((el) => el.getAttribute('aria-disabled') !== 'true' && !el.hidden);
+}
+
+// ---- Search wiring ---------------------------------------------------------
+// why: docs/specification.md#a-dropdown-with-a-search-field
+const ddSearchOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-search]') || null;
+const ddActiveOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-item].is-active') || null;
+
+// Mark the row Enter would pick and keep it inside the list's scroll box,
+// without scrolling the page the way scrollIntoView() would.
+function ddSetActive(dd, row) {
+  const search = ddSearchOf(dd);
+  if (!search) return;
+  ddActiveOf(dd)?.classList.remove('is-active');
+  if (!row) { search.removeAttribute('aria-activedescendant'); return; }
+  row.classList.add('is-active');
+  search.setAttribute('aria-activedescendant', row.id);
+  const list = row.closest('.ui-dropdown__list');
+  if (!list || !list.clientHeight) return;
+  const top = row.offsetTop - list.offsetTop;
+  if (top < list.scrollTop) list.scrollTop = top;
+  else if (top + row.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + row.offsetHeight - list.clientHeight;
+}
+
+function ddFilter(dd) {
+  const panel = ddPanelOf(dd);
+  const search = ddSearchOf(dd);
+  if (!panel || !search) return;
+  const q = search.value;
+  let shown = 0;
+  panel.querySelectorAll('[data-dd-item]').forEach((row) => {
+    row.hidden = !ddMatch((row.querySelector('.ui-dropdown__label') || row).textContent, q);
+    if (!row.hidden) shown += 1;
+  });
+  panel.querySelectorAll('.ui-dropdown__sep').forEach((el) => { el.hidden = ddFiltering(q); });
+  panel.querySelectorAll('.ui-dropdown__section').forEach((el) => { el.hidden = !el.querySelector('[data-dd-item]:not([hidden])'); });
+  const none = panel.querySelector('[data-dd-none]');
+  if (none) {
+    none.innerHTML = shown || !ddFiltering(q) ? ''
+      : ddNone(none.getAttribute('data-dd-empty') || '', none.getAttribute('data-dd-hint') || '', q);
+  }
+  ddSetActive(dd, ddItemsOf(dd)[0] || null);
+}
+
+// Every open starts from the whole list. Reset here rather than on close, so
+// a panel fading out after a pick does not flash back to every row.
+function ddResetSearch(dd, panel, search) {
+  search.value = '';
+  ddFilter(dd);
+  panel.style.minWidth = '';
+  // Hold the width the whole list needs, so the panel does not narrow as rows go.
+  if (panel.offsetWidth) panel.style.minWidth = `${panel.offsetWidth}px`;
 }
 
 // `auto` is the only direction the wiring decides; `up` and the default are the
@@ -226,12 +353,22 @@ function closeAllDropdowns(except) {
 function openDropdown(dd, focusIdx) {
   closeAllDropdowns(dd);
   const panel = ddPanelOf(dd);
+  const search = ddSearchOf(dd);
+  if (panel && search) ddResetSearch(dd, panel, search);
   if (panel) {
     ddResolveDirection(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
   }
   dd.classList.add('open');
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'true');
+  // With search, focus goes to the field however the panel was opened, and
+  // the selected row (or the first) is the one Enter would pick.
+  if (search) {
+    const items = ddItemsOf(dd);
+    ddSetActive(dd, items.find((el) => el.getAttribute('aria-selected') === 'true') || items[0] || null);
+    search.focus();
+    return;
+  }
   if (focusIdx != null) {
     const items = ddItemsOf(dd);
     const sel = items.findIndex((el) => el.getAttribute('aria-selected') === 'true');
@@ -242,7 +379,9 @@ function openDropdown(dd, focusIdx) {
 // Single-select: reflect the picked option into aria-selected + the trigger value.
 function selectOption(dd, item) {
   if (!dd.hasAttribute('data-dropdown-select')) return;
-  ddItemsOf(dd).forEach((el) => el.setAttribute('aria-selected', el === item ? 'true' : 'false'));
+  // Every enabled row, the ones a search query has hidden included.
+  ddPanelOf(dd)?.querySelectorAll('[data-dd-item]:not([aria-disabled="true"])')
+    .forEach((el) => el.setAttribute('aria-selected', el === item ? 'true' : 'false'));
   ddPanelOf(dd)?.querySelectorAll('[data-dd-item].is-selected').forEach((el) => el.classList.remove('is-selected'));
   item.classList.add('is-selected');
   const valueEl = dd.querySelector('[data-dropdown-trigger] .ui-dropdown__value');
@@ -293,11 +432,42 @@ export function wireDropdown(root = document) {
         closeDropdown(dd);
         trigger.focus();
       });
+      const field = panel.querySelector('[data-dd-search]');
+      if (field) {
+        field.addEventListener('input', () => ddFilter(dd));
+        // The pointer moves the pick too, so Enter takes the row under it. A
+        // move to the same point is the browser's own after a scroll, not the
+        // reader's, and would snatch the pick from the arrows.
+        let at = '';
+        panel.addEventListener('mousemove', (e) => {
+          const here = `${e.clientX},${e.clientY}`;
+          if (here === at) return;
+          at = here;
+          const row = e.target.closest('[data-dd-item]');
+          if (row && row.getAttribute('aria-disabled') !== 'true' && !row.classList.contains('is-active')) ddSetActive(dd, row);
+        });
+      }
     }
 
     const onKeydown = (e) => {
       const open = dd.classList.contains('open');
       const onTrigger = e.target === trigger;
+      const search = ddSearchOf(dd);
+      if (search && open) {
+        // Arrows walk the rows still showing; focus stays in the field.
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const items = ddItemsOf(dd);
+          if (!items.length) return;
+          const i = items.indexOf(ddActiveOf(dd));
+          const next = e.key === 'ArrowDown' ? (i + 1) % items.length : (i <= 0 ? items.length - 1 : i - 1);
+          ddSetActive(dd, items[next]);
+          return;
+        }
+        if (e.target === search && e.key === 'Enter') { e.preventDefault(); ddActiveOf(dd)?.click(); return; }
+        // Home and End move the caret in a text field; they are not the list's.
+        if (e.target === search && (e.key === 'Home' || e.key === 'End')) return;
+      }
       if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && (onTrigger || open)) {
         e.preventDefault();
         if (!open) return openDropdown(dd, e.key === 'ArrowDown' ? 0 : 'selected');

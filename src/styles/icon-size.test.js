@@ -42,8 +42,9 @@ const src = path.resolve(here, '..');
 // glyph rule, so its stroke could be stated beside its box); 62 (#274: the
 // command palette's row and search glyphs, a width and a height each); 64 (#270:
 // `.ui-back svg`, the back link's arrow — a width and a height, sized and stroked
-// in one rule).
-const EXPECTED_SUBJECTS = 64;
+// in one rule); 66 (#283: `.ui-dropdown__search-ic svg` sizes the search field's
+// glyph, width and height).
+const EXPECTED_SUBJECTS = 66;
 
 const SHEETS = kitSheetNames(src);
 
