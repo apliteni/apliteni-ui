@@ -117,6 +117,11 @@
   color: var(--text);
   background: none;
   border: 0;
+  /* The one control in the kit that removes the indicator and puts no
+     box-shadow: var(--ring) back, against base.css. It is the only tab stop in
+     the dialog and it holds focus from the frame it opens, so a ring would be
+     painted the whole time the palette is up and would mark nothing; the panel
+     already carries one, and the caret says where the typing goes. */
   outline: none;
 }
 .ui-cmdk__input::placeholder { color: var(--muted); }

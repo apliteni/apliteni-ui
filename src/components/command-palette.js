@@ -400,10 +400,10 @@ function announce(root, n) {
  * Re-rank what is rendered against what is typed.
  *
  * The rows are scored where they stand — the wiring reads each row's
- * `data-value` rather than being handed the items a second time, so a palette
- * rendered by a server and one built in the browser behave the same. Groups are
- * carried by their best row, and the caller's order breaks every tie, at both
- * levels.
+ * `data-label`, `data-keywords` and `data-desc` rather than being handed the
+ * items a second time, so a palette rendered by a server and one built in the
+ * browser behave the same. Groups are carried by their best row, and the
+ * caller's order breaks every tie, at both levels.
  */
 function applyQuery(root) {
   const list = listOf(root);

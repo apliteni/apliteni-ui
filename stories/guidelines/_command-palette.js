@@ -8,7 +8,7 @@ import { commandPalette } from '../../src/components/command-palette.js';
 
 export const TITLE = 'The command palette';
 
-export const BLURB = 'What goes in it, how the list is ordered, and the five keys it owes a reader.';
+export const BLURB = 'What goes in it, how the list is ordered, and the six keys it owes a reader.';
 
 /**
  * The keys the palette answers, and what each one does.
@@ -121,12 +121,16 @@ export const askDo = () => palette({
     ],
   }],
 });
+// `danger` and no `confirm`, which is what the caption is about: the component
+// renders the pair aria-disabled rather than running them, and the picture has
+// to show that refusal. Drop `danger` and these are two live rows and the last
+// sentence of the caption describes something the reader cannot see.
 export const askDont = () => palette({
   groups: [{
     label: 'Danger zone',
     items: [
-      { id: 'del', label: 'Delete workspace', description: 'Nebula · 42 API keys', icon: 'trash' },
-      { id: 'revoke', label: 'Revoke every API key', description: 'They stop working at once', icon: 'key' },
+      { id: 'del', label: 'Delete workspace', description: 'Nebula · 42 API keys', icon: 'trash', danger: true },
+      { id: 'revoke', label: 'Revoke every API key', description: 'They stop working at once', icon: 'key', danger: true },
     ],
   }],
 });
@@ -163,7 +167,7 @@ export const RULES = [
       + 'a different set of groups when it sees one.',
     kit: [
       { ref: 'src/components/command-palette.js:255', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:137', pattern: '.ui-cmdk__group-head' },
+      { ref: 'src/styles/command-palette.css:142', pattern: '.ui-cmdk__group-head' },
     ],
   },
   {
@@ -227,16 +231,17 @@ export const RULES = [
     doCaption: 'The ellipsis says a question is coming, the ink is the kit’s danger colour and '
       + 'never the accent, and Enter opens the confirm — which paints above the palette and '
       + 'answers the first Escape.',
-    dontCaption: 'The same two commands as ordinary rows. Nothing marks them, nothing asks, and '
-      + 'they sit one arrow key from “Export rows as CSV” in a list that reorders as the reader '
-      + 'types. A row like this that names no confirm is rendered disabled by the component.',
+    dontCaption: 'The same two commands, marked destructive and naming nothing to ask. The '
+      + 'component refuses them where they stand — aria-disabled, greyed, and stepped over by the '
+      + 'arrows — one row from “Export rows as CSV” in a list that reorders as the reader types. '
+      + 'The refusal is visible, which is the most the kit can do about a row written this way.',
     why: 'The palette is the fastest surface in the product and the one where a reader is looking '
       + 'at the box rather than the list. A destructive item that names no confirm cannot be run '
       + 'from here at all: it renders aria-disabled, which is a visible refusal rather than a '
       + 'silent one.',
     kit: [
       { ref: 'src/components/command-palette.js:229', pattern: 'const isRefused = (it) =>' },
-      { ref: 'src/styles/command-palette.css:225', pattern: '.ui-cmdk__item.is-danger' },
+      { ref: 'src/styles/command-palette.css:230', pattern: '.ui-cmdk__item.is-danger' },
     ],
   },
 ];
