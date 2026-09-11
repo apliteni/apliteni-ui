@@ -65,6 +65,7 @@ const CASES: [string, StatBandProps][] = [
     stats: [
       { label: 'Margin', value: '36%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
       { label: 'New', value: '€ 1', delta: { value: null } },
+      { label: 'Toned, but nothing to compare', value: '€ 1', delta: { value: null, tone: 'bad' } },
       { label: 'Worded', value: '€ 1', delta: { value: '', none: 'New this year' } },
       { label: 'Flat', value: '€ 1', delta: { value: '0.0%' } },
       { label: 'Forced', value: '€ 1', delta: { value: '4%', direction: 'down' } },
