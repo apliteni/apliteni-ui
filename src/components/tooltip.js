@@ -124,7 +124,7 @@ function fill(tip, mark) {
 
 // ---- Behaviour -----------------------------------------------------------
 
-/** Show the host's readout for one mark. For a chart that does its own hit-testing. */
+/** Show the host's readout for one mark, until hideTooltip() or Escape. For a chart that does its own hit-testing. */
 export function showTooltip(host, mark) {
   const tip = tipOf(host);
   if (!tip || !mark) return;
@@ -139,7 +139,10 @@ export function showTooltip(host, mark) {
     mark.__tipDescribed = true;
   }
   host.__tipMark = mark;
+  host.__tipDismissed = null;
+  tip.__tipHost = host;
   tip.classList.add('is-open');
+  wireEscape(host.ownerDocument);
 }
 
 function releaseMark(host) {
@@ -151,18 +154,26 @@ function releaseMark(host) {
 /** Hide the host's readout. */
 export function hideTooltip(host) {
   releaseMark(host);
+  host.__tipDismissed = null;
   tipOf(host)?.classList.remove('is-open');
 }
 
-// Escape dismisses whatever readout is showing without the pointer having to
-// move — the reader it covers something for. The mark stays current, so the
+// Escape dismisses every readout the kit is showing without the pointer having
+// to move — the reader it covers something for. One rendered open and never
+// shown is a picture, and stays. The dismissed mark is remembered, so the
 // readout returns on the next mark rather than on the one it was dismissed from.
 function wireEscape(doc) {
   if (doc.__tipEscapeWired) return;
   doc.__tipEscapeWired = true;
   doc.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    doc.querySelectorAll('[data-tip].is-open').forEach((tip) => tip.classList.remove('is-open'));
+    doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
+      const host = tip.__tipHost;
+      if (!host) return;
+      const mark = host.__tipMark;
+      hideTooltip(host);
+      host.__tipDismissed = mark;
+    });
   });
 }
 
@@ -185,7 +196,7 @@ export function wireTooltip(root = document) {
     host.addEventListener('pointerover', (e) => {
       const mark = markOf(e.target);
       if (!mark) hideTooltip(host);
-      else if (mark !== host.__tipMark) showTooltip(host, mark);
+      else if (mark !== host.__tipMark && mark !== host.__tipDismissed) showTooltip(host, mark);
     });
     host.addEventListener('pointerleave', () => hideTooltip(host));
     host.addEventListener('focusin', (e) => {
@@ -194,5 +205,4 @@ export function wireTooltip(root = document) {
     });
     host.addEventListener('focusout', (e) => { if (!markOf(e.relatedTarget)) hideTooltip(host); });
   });
-  wireEscape(root.ownerDocument || root);
 }

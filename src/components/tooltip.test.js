@@ -364,3 +364,41 @@ test('Escape dismisses it, and it returns on the next mark, not the same one', (
   pointer(window, doc.getElementById('m2'), 'pointerover');
   assert.ok(tip.classList.contains('is-open'));
 });
+
+test('Escape takes the mark\'s description with the readout', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+  pointer(window, m1, 'pointerover');
+  assert.equal(m1.getAttribute('aria-describedby'), tip.id);
+  doc.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(m1.hasAttribute('aria-describedby'), false,
+    'a hidden readout still describes the mark that points at it');
+});
+
+test('Escape dismisses a readout showTooltip opened on a host nobody wired', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  showTooltip(doc.getElementById('host'), doc.getElementById('m2'));
+  assert.ok(tip.classList.contains('is-open'));
+  doc.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(tip.classList.contains('is-open'), false);
+  assert.equal(doc.getElementById('m2').hasAttribute('aria-describedby'), false);
+});
+
+test('Escape leaves alone a readout rendered open that the kit never showed', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  measure(window);
+  doc.getElementById('below').insertAdjacentHTML('afterend',
+    `<div class="ui-tip-host" id="picture">${tooltip({ value: '€48,210', open: true })}</div>`);
+  wireTooltip(doc);
+  pointer(window, doc.getElementById('m1'), 'pointerover');
+  doc.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(doc.querySelector('#host [data-tip]').classList.contains('is-open'), false,
+    'the live readout closes, so the test is not vacuous');
+  assert.ok(doc.querySelector('#picture [data-tip]').classList.contains('is-open'), 'the picture stays open');
+});

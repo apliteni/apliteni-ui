@@ -677,8 +677,9 @@ moving a readout never changes the size or the place of anything else on the pag
   because a tooltip with no text in it has no accessible name.
 - Focus landing on a mark shows the readout too, and describes the mark with it through
   `aria-describedby` while it shows, unless the mark already has a description of its own.
-  Escape dismisses a showing readout without the pointer having to move, and it comes back on
-  the next mark.
+- Escape dismisses every readout the kit is showing, whether `wireTooltip()` or `showTooltip()`
+  showed it, without the pointer having to move, and the mark's description goes with it. The
+  readout comes back on the next mark, not on the one it was dismissed from.
 
 **Not decided yet.** The wiring adds no tab stop to a mark, and it treats touch like any other
 pointer, so on a touch screen a tap shows the readout only while the finger is down. Whether a
