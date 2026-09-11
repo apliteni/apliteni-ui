@@ -49,8 +49,12 @@ test('the band lays out from its own width, never the window\'s', () => {
 test('colour on a change comes from its tone, never from its direction', () => {
   const painted = rules.filter((r) => /chip-(success|danger)-ink/.test(r.body));
   assert.ok(painted.length >= 4, `found ${painted.length} toned rules`);
+  // Each selector in a list on its own: `.ui-stat__delta, .ui-stat--good .ui-stat__delta`
+  // carries the tone class and still paints every change.
   for (const r of painted) {
-    assert.match(r.selector, /\.ui-stat--(good|bad) /, `${r.selector} paints a change without asking its tone`);
+    for (const one of r.selector.split(',').map((s) => s.trim())) {
+      assert.match(one, /^\.ui-stat--(good|bad) /, `${one} paints a change without asking its tone`);
+    }
   }
   assert.doesNotMatch(CSS, /--(up|down|increase|decrease|rise|fall)\b/, 'a class keyed to direction');
 });
