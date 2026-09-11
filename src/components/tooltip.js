@@ -1,10 +1,6 @@
 // Tooltip — the readout that shows a value while a pointer rests on the mark
-// holding it: a bar, a point on a sparkline, any surface whose value is read by
-// pointing at it.
-//
-// It is an overlay in every state. The readout is one element, rendered once
-// inside its host and absolutely placed there, so showing it moves nothing on
-// the page. The wiring fills and places that element; it never inserts one.
+// holding it. An overlay in every state: one element, rendered once inside its
+// host and absolutely placed there, so showing it moves nothing on the page.
 //
 //   <div class="ui-tip-host" data-tip-host>
 //     <svg>… <rect data-tip-label="Mar 2026" data-tip-value="€48,210" …/> …</svg>
@@ -12,10 +8,8 @@
 //   </div>
 //   wireTooltip(container);
 //
-// A mark is any element carrying `data-tip-value`; `data-tip-label` and
-// `data-tip-detail` sit beside it. The readout opens above the mark, or above a
-// `[data-tip-anchor]` inside it — a sparkline's dot inside a full-height slice.
-// Values are written as text, never as markup.
+// A mark carries `data-tip-value`, with `data-tip-label` and `data-tip-detail`;
+// a `[data-tip-anchor]` inside it is where the readout opens.
 // why: docs/specification.md#the-hover-readout
 import { esc } from './index.js';
 
@@ -42,13 +36,14 @@ export function tooltip({
   label = '', value = '', detail = '', placement = 'top', open = false, x, y, id,
 } = {}) {
   const text = { label, value, detail };
-  const pos = [['--ui-tip-x', px(x)], ['--ui-tip-y', px(y)]]
+  const named = value != null && String(value) !== '';
+  const pos =[['--ui-tip-x', px(x)], ['--ui-tip-y', px(y)]]
     .filter(([, v]) => v).map(([k, v]) => `${k}:${v}`).join(';');
   // A tooltip with nothing in it has no name, so an empty readout — the one a
   // chart renders before any mark is hovered — takes the role with its first value.
   const attrs = [
     `class="${cx('ui-tip', placement === 'bottom' && 'is-below', open && 'is-open')}"`,
-    value ? 'role="tooltip"' : '',
+    named ? 'role="tooltip"' : '',
     'data-tip',
     id ? `id="${esc(id)}"` : '',
     pos ? `style="${pos}"` : '',

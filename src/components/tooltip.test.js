@@ -103,6 +103,7 @@ test('the readout is a tooltip, closed and above by default', () => {
 
 test('an empty readout claims no role until it has something to name it', () => {
   assert.doesNotMatch(tooltip(), /role=/, 'a tooltip with no text has no accessible name');
+  assert.match(tooltip({ value: 0 }), /role="tooltip"/, 'zero is a value');
   const window = mount(MARKS + tooltip());
   const doc = window.document;
   const tip = measure(window);

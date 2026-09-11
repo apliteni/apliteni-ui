@@ -22,9 +22,9 @@ export const SPEC_CSS = `${CHART_CSS}
     .gh-room { padding-top: var(--space-16); }
     .gh-room--tall { padding-top: calc(var(--space-16) * 2); }
     /* A region that hides its overflow, the way a scrolling table or a clipped
-       card body does, with the tallest bar against its top edge. */
+       card body does, with less room above the tallest bar than a readout needs. */
     .gh-clip { overflow: hidden; border-radius: var(--radius-sm);
-      box-shadow: inset 0 0 0 1px var(--border); padding: 0 var(--space-3); }
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-8) var(--space-3) 0; }
   </style>`;
 
 const HOT = 10;
@@ -54,7 +54,7 @@ const overlayDo = () => {
 const overlayDont = () => {
   const { label, value, detail } = pointOf(REVENUE, HOT);
   return `<div class="gh-stack">${kpiCard(
-    `${sparkline({ hot: HOT }).svg}<p class="gh-inline">${label} · ${value} · ${detail}</p>`,
+    `${sparkline({ hot: HOT }).svg}<p class="gh-inline">${label}: ${value}, ${detail}</p>`,
   )}${nextCard()}</div>`;
 };
 
@@ -69,9 +69,9 @@ const barsOpen = (placement, { values = REVENUE, text = pointOf(REVENUE, HOT), r
 const clipped = (placement) => {
   const b = bars({ hot: HOT });
   const p = b.at(HOT);
-  return `<div class="gh-room"><div class="gh-clip">${host(b.svg + tooltip({
+  return `<div class="gh-clip">${host(b.svg + tooltip({
     ...pointOf(REVENUE, HOT), open: true, placement, x: p.x, y: p.top,
-  }))}</div></div>`;
+  }))}</div>`;
 };
 
 export const RULES = [
@@ -101,24 +101,20 @@ export const RULES = [
   {
     id: 'above-the-mark',
     imperative: 'Open the readout above the mark, and below it only where above is clipped.',
-    doHtml: () => `<div class="gh-room"><div class="gh-clip">${host((() => {
-      const b = bars({ hot: HOT });
-      const p = b.at(HOT);
-      return b.svg + tooltip({ ...pointOf(REVENUE, HOT), open: true, placement: 'bottom', x: p.x, y: p.bottom });
-    })())}</div></div>`,
+    doHtml: () => clipped('bottom'),
     dontHtml: () => clipped('top'),
-    doCaption: 'The tallest bar sits against the top of a region that hides its overflow, so there is '
-      + 'no room above it. The readout opens below the bar\'s top edge instead, whole.',
-    dontCaption: 'The same readout held above regardless. The region\'s edge takes the month and half '
-      + 'the value, which is the half the reader came for.',
-    why: 'Above is the default because a pointer arrives from below and to the side, so a readout '
+    doCaption: 'The tallest bar sits near the top of a region that hides its overflow, with less room '
+      + 'above it than the readout needs. The readout opens below the bar\'s top edge instead, whole.',
+    dontCaption: 'The same readout held above regardless. The region\'s edge takes the month and the '
+      + 'value and leaves the comparison, the one line that means nothing on its own.',
+    why: 'Above is the default because a pointer comes at a mark from underneath, so a readout '
       + 'above the mark covers neither the mark nor the pointer. Placing it is the kit\'s job rather '
       + 'than the page\'s: the wiring measures the viewport and every ancestor that clips, flips only '
       + 'when the preferred side is too tight and the other is roomier, and slides the readout along '
       + 'the mark\'s edge rather than off the screen.',
     kit: [
-      { ref: 'src/components/tooltip.js:105', pattern: 'const flip = prefersBelow' },
-      { ref: 'src/components/tooltip.js:111', pattern: 'const left = Math.max(clip.left' },
+      { ref: 'src/components/tooltip.js:100', pattern: 'const flip = prefersBelow' },
+      { ref: 'src/components/tooltip.js:106', pattern: 'const left = Math.max(clip.left' },
     ],
   },
   {
@@ -142,7 +138,7 @@ export const RULES = [
       + 'be pressed; a control the reader needs belongs on the page. Format the value the way the '
       + 'page formats it elsewhere — the same currency, the same precision — so the readout and the '
       + 'figure beside the chart never disagree.',
-    kit: [{ ref: 'src/components/tooltip.js:125', pattern: 'el.textContent = t;' }],
+    kit: [{ ref: 'src/components/tooltip.js:120', pattern: 'el.textContent = t;' }],
   },
   {
     id: 'not-only-hover',
@@ -154,6 +150,6 @@ export const RULES = [
       + 'with, and a table or a labelled summary of the series, carry what matters without hovering. '
       + 'Whether a chart\'s marks should take focus at all, and whether a tap should pin the readout '
       + 'or a finger scrub along the line, is not decided yet: it is the open question on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:196', pattern: "host.addEventListener('focusin'" }],
+    kit: [{ ref: 'src/components/tooltip.js:191', pattern: "host.addEventListener('focusin'" }],
   },
 ];

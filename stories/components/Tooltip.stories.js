@@ -1,6 +1,6 @@
 import { tooltip } from '../../src/components/tooltip.js';
 import { card } from '../../src/components/index.js';
-import { grid, pad, specimen } from '../_gallery.js';
+import { pad, row, specimen } from '../_gallery.js';
 import { CHART_CSS, EXPENSES, NET, REVENUE, bars, eur, pointOf, sparkline } from '../_chart.js';
 
 // The readout over two kinds of chart. Chart is wired by the preview's
@@ -20,7 +20,7 @@ const STORY_CSS = `
     .tt-figure { margin: var(--space-2) 0 var(--space-4); font: var(--weight-semibold) var(--text-xl)/1.2 var(--font-display);
       color: var(--strong); font-variant-numeric: tabular-nums; }
     .tt-note { margin: 0; font-size: var(--text-sm); color: var(--muted); max-width: var(--prose-body); }
-    .tt-room { padding-top: var(--space-16); }
+    .tt-room { padding-top: calc(var(--space-16) + var(--space-4)); }
     .tt-clip { overflow: hidden; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--border); padding: 0 var(--space-3); }
   </style>`;
 
@@ -81,8 +81,9 @@ export const Placement = {
     const down = bars({ hot: HOT });
     const pu = up.at(HOT);
     const pd = down.at(HOT);
-    return pad(`${CHART_CSS}${STORY_CSS}${grid(
-      2,
+    // A wrapping row, not a two-column grid: each chart is drawn in fixed
+    // pixels, so at a phone width the two have to stack rather than overlap.
+    return pad(`${CHART_CSS}${STORY_CSS}${row(
       specimen('Above the mark — the default', `<div class="tt-room">${host(
         up.svg + tooltip({ ...pointOf(REVENUE, HOT), open: true, x: pu.x, y: pu.top }),
         'width: max-content',
