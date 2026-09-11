@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Review</title>
+  <style>
+    :root {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #202b36;
+      background: #f5f6f7;
+      font-size: 16px;
+      line-height: 1.55;
+      --accent: #245ca6;
+      --muted: #536170;
+      --line: #c6cdd4;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+    }
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+    }
+    a:visited {
+      color: #68428a;
+    }
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+    button,
+    select {
+      min-height: 44px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 5px;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+    }
+    button.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 32px;
+      line-height: 1.2;
+    }
+    h2 {
+      font-size: 23px;
+    }
+    h3 {
+      font-size: 18px;
+    }
+    .muted,
+    small {
+      color: var(--muted);
+    }
+    small {
+      font-size: 14px;
+    }
+    .shell {
+      max-width: 1400px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+    }
+    aside {
+      padding: 32px 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--line);
+      overflow: auto;
+    }
+    aside strong {
+      display: block;
+      margin-bottom: 20px;
+    }
+    nav a {
+      display: block;
+      padding: 10px 0;
+      text-decoration: none;
+    }
+    main {
+      padding: 36px 40px 80px;
+      min-width: 0;
+    }
+    header {
+      max-width: 850px;
+      margin-bottom: 32px;
+    }
+    .bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 16px 0;
+    }
+    .round {
+      margin: 28px 0;
+    }
+    .decision {
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      scroll-margin-top: 16px;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .option {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 18px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .option:has(input:checked) {
+      border: 2px solid var(--accent);
+      padding: 17px;
+    }
+    .pick {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .pick input {
+      width: 20px;
+      height: 20px;
+      flex: none;
+      accent-color: var(--accent);
+    }
+    .option img {
+      display: block;
+      width: 100%;
+      max-height: 340px;
+      object-fit: contain;
+      background: #fff;
+    }
+    .option p {
+      margin: 0;
+    }
+    .recommendation {
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .comment {
+      display: block;
+      margin-top: 16px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      margin-top: 6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: white;
+      color: inherit;
+      resize: vertical;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    details {
+      margin: 20px 0;
+    }
+    summary {
+      cursor: pointer;
+      min-height: 44px;
+      padding: 8px 0;
+      font-weight: bold;
+    }
+    .prior {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+    #status {
+      min-height: 25px;
+      color: var(--muted);
+    }
+    #status.error {
+      color: #9c2626;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: white;
+      padding: 16px;
+      border: 1px solid var(--line);
+    }
+    [hidden] {
+      display: none !important;
+    }
+    .skip {
+      position: absolute;
+      left: -9999px;
+    }
+    .skip:focus {
+      left: 12px;
+      top: 12px;
+      background: white;
+      padding: 12px;
+      z-index: 10;
+    }
+    fieldset {
+      border: 0;
+      padding: 0;
+      margin: 0;
+      min-width: 0;
+    }
+    legend {
+      font-size: 18px;
+      font-weight: bold;
+      padding: 0;
+    }
+    #round {
+      max-width: 100%;
+    }
+    .context {
+      max-width: 78ch;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    @media (max-width: 760px) {
+      .shell {
+        display: block;
+      }
+      aside {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 16px 20px;
+      }
+      aside strong {
+        margin-bottom: 4px;
+      }
+      nav {
+        display: flex;
+        gap: 16px;
+        overflow: auto;
+      }
+      nav a {
+        white-space: nowrap;
+      }
+      main {
+        padding: 24px 20px 60px;
+      }
+      h1 {
+        font-size: 27px;
+      }
+      .options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <a class="skip" href="#main">Skip to review</a>
+  <div class="shell">
+    <aside>
+      <strong>Review workspace</strong>
+      <p id="progress" class="muted"></p>
+      <nav aria-label="Decisions" id="nav"></nav>
+    </aside>
+    <main id="main">
+      <header>
+        <p class="muted">Review and decide</p>
+        <h1 id="title"></h1>
+        <p id="goal"></p>
+        <ul id="constraints"></ul>
+        <a id="source">Authoritative task record</a>
+      </header>
+      <div class="bar">
+        <label for="round">Review round</label
+        ><select id="round"></select>
+      </div>
+      <div class="toolbar">
+        <button class="primary" id="copy">Copy feedback</button
+        ><button id="markdown">Download Markdown</button
+        ><button id="export">Export JSON</button
+        ><button id="import">Import JSON</button
+        ><input type="file" id="file" accept="application/json,.json" hidden />
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+      <p class="muted">
+        Choices stay as local drafts. Copy or export them to share; nothing is
+        submitted automatically.
+      </p>
+      <details id="fallback" hidden>
+        <summary>Feedback to copy manually</summary>
+        <textarea aria-label="Feedback to copy" readonly></textarea>
+      </details>
+      <section aria-label="Previous decisions" id="prior"></section>
+      <div id="decisions"></div>
+      <details>
+        <summary>Previous drafts for changed content</summary>
+        <p class="muted">
+          These choices refer to earlier content and have not been applied to
+          this round.
+        </p>
+        <div id="archive"></div>
+      </details>
+    </main>
+  </div>
+  <script type="application/json" id="review-data">
+{
+  "id": "apliteni-ui-270-back-control",
+  "title": "What should the back control on a record page look like?",
+  "goal": "Choose the kit's back control — how it looks, what it says, and where it goes — so the Finance portal's plain \"Back to invoices\" link becomes one component every portal draws the same way.",
+  "constraints": [
+    "Placeholder page names only. This repository is public, so no real customer or figure appears in the evidence.",
+    "It passes the kit's own gates in both themes: a 24px target, the focus ring, contrast, and a visible label on every control that is not on the icon-only list.",
+    "Label and eyebrow typography stays with #268, built on another branch. Nothing here changes it.",
+    "Nothing merges without Artur's approval. This branch is pushed; the coordinator opens the pull request."
+  ],
+  "source": "https://github.com/apliteni/apliteni-ui/issues/270",
+  "rounds": [
+    {
+      "id": "r1",
+      "title": "Back control · round 1",
+      "prior": [
+        {
+          "title": "What was asked",
+          "choice": "Offer variants for the back button",
+          "reason": "The reporter, on the Finance portal: \"back button is ugly - offer variants\". Today it is a plain blue \"Back to invoices\" text link above the page title, top left.",
+          "source": "https://github.com/apliteni/apliteni-ui/issues/270"
+        },
+        {
+          "title": "Scope",
+          "choice": "Capital-cased labels are #268, not this issue",
+          "reason": "From the brief for this task. Another worker owns that change on its own branch.",
+          "source": "https://github.com/apliteni/apliteni-ui/issues/268"
+        }
+      ],
+      "decisions": [
+        {
+          "id": "treatment",
+          "title": "Which treatment should the kit ship?",
+          "context": "Every screen is the same placeholder record, opened from Invoices, in the kit's own page shell. Each option shows light and dark at 1440px, then a phone at 390px. Today's link is under the first option for comparison; the kit paints it in its own link colour, where the portal's stylesheet makes it blue. Recommended: the quiet link. It is the only treatment that names where it goes, stays out of the title's way, and needs no exception to the kit's own rules — and it replaces the trail rather than adding a second line above the title. It is what this branch builds as backLink() and appShell({ back }).",
+          "recommendation": "quiet-link",
+          "options": [
+            {
+              "id": "quiet-link",
+              "title": "Quiet link above the title",
+              "summary": "A chevron and the destination's name — ‹ Invoices — in dim ink with no box, in the slot the breadcrumb trail uses. It takes the trail's place on this page.",
+              "tradeoff": "The lightest thing above the title, so the title reads first, and the same family as the trail it replaces. The cost is size: a 24px target, the kit's floor, rather than a large one.",
+              "evidence": [
+                {
+                  "label": "Quiet link — light, 1440px",
+                  "url": "../evidence/back-control/quiet-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet link — dark, 1440px",
+                  "url": "../evidence/back-control/quiet-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet link — phone, light, 390px",
+                  "url": "../evidence/back-control/quiet-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet link — phone, dark, 390px",
+                  "url": "../evidence/back-control/quiet-dark-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Today's link, for comparison — light, 1440px",
+                  "url": "../evidence/back-control/today-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Today's link, for comparison — dark, 1440px",
+                  "url": "../evidence/back-control/today-dark-1440.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "boxed-button",
+              "title": "Bordered button above the title",
+              "summary": "A small secondary button — ← Invoices — in the same slot.",
+              "tradeoff": "Easy to find and a larger target. But it reads as an action, and on a page whose own action is a button it adds a second box to compete with it.",
+              "evidence": [
+                {
+                  "label": "Bordered button — light, 1440px",
+                  "url": "../evidence/back-control/boxed-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered button — dark, 1440px",
+                  "url": "../evidence/back-control/boxed-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered button — phone, light, 390px",
+                  "url": "../evidence/back-control/boxed-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered button — phone, dark, 390px",
+                  "url": "../evidence/back-control/boxed-dark-390.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "arrow-beside-title",
+              "title": "Arrow button beside the title",
+              "summary": "An icon-only arrow on the title's line, named \"Back to Invoices\" for a screen reader. It saves the line above the title.",
+              "tradeoff": "Compact and familiar from admin tools. But the destination is not visible, the kit's closed list of icon-only controls would have to grow to allow it, and the title moves right, so it no longer lines up with the cards under it.",
+              "evidence": [
+                {
+                  "label": "Arrow beside the title — light, 1440px",
+                  "url": "../evidence/back-control/beside-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Arrow beside the title — dark, 1440px",
+                  "url": "../evidence/back-control/beside-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Arrow beside the title — phone, light, 390px",
+                  "url": "../evidence/back-control/beside-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Arrow beside the title — phone, dark, 390px",
+                  "url": "../evidence/back-control/beside-dark-390.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "trail-only",
+              "title": "No back control: keep the breadcrumb trail",
+              "summary": "The shell's existing trail — Finance › Invoices › INV-1001 — and nothing new.",
+              "tradeoff": "No new component. But it spends a line naming the app and the current page, which the rail and the title already say, to offer one useful link.",
+              "evidence": [
+                {
+                  "label": "Trail only — light, 1440px",
+                  "url": "../evidence/back-control/trail-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Trail only — dark, 1440px",
+                  "url": "../evidence/back-control/trail-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Trail only — phone, light, 390px",
+                  "url": "../evidence/back-control/trail-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Trail only — phone, dark, 390px",
+                  "url": "../evidence/back-control/trail-dark-390.png",
+                  "image": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "wording",
+          "title": "What does the control say?",
+          "context": "The arrow and the position above the title already say \"back\". The question is whether the words name the place or repeat the direction. Recommended: the destination, because it is shorter than today's wording and matches the lit sidebar row.",
+          "recommendation": "destination",
+          "options": [
+            {
+              "id": "destination",
+              "title": "The destination: Invoices",
+              "summary": "Shows the destination as the sidebar spells it. A screen reader hears \"Back to Invoices\".",
+              "tradeoff": "Short and exact, and the same word as the lit sidebar row. Every caller has to pass a label."
+            },
+            {
+              "id": "back-to",
+              "title": "Spelled out: Back to invoices",
+              "summary": "What the portal shows today.",
+              "tradeoff": "Clear even without an arrow, but twice as long, and \"Back to\" repeats what the arrow says."
+            },
+            {
+              "id": "bare",
+              "title": "Just Back",
+              "summary": "The UK government design system's default, meant for short forms that run in a straight line.",
+              "tradeoff": "No label to pass, but it says nothing about where it goes, which is what matters in a portal of lists and records."
+            }
+          ]
+        },
+        {
+          "id": "where-it-goes",
+          "title": "Where does it go, and how does it relate to the browser's Back?",
+          "context": "The rule text on the Guidelines / Going back page records the recommended answer. It is listed here so the choice is yours rather than implied. Recommended: the parent's address, because it works on a page opened from a bookmark, a new tab or a shared link.",
+          "recommendation": "parent-address",
+          "options": [
+            {
+              "id": "parent-address",
+              "title": "Up to the parent's address, with its state",
+              "summary": "A link to the list this page belongs to, with the list's filters, sort and page in the address. The browser's Back button stays the way to wherever the reader was.",
+              "tradeoff": "Works after a reload, in a new tab and from a shared link, and can itself be opened in a new tab. The caller builds the address.",
+              "evidence": [
+                {
+                  "label": "Guidelines / Going back, as rendered — light",
+                  "url": "../evidence/back-control/guideline-going-back-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Guidelines / Going back, as rendered — dark",
+                  "url": "../evidence/back-control/guideline-going-back-dark-1440.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "history",
+              "title": "A step back through the browser's history",
+              "summary": "A control that does what the browser's Back button does.",
+              "tradeoff": "Returns exactly where the reader was, but does nothing on a page opened fresh, cannot be opened in a new tab, and duplicates a button the browser already has."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <script>
+    "use strict";
+    const $ = (s) => document.querySelector(s);
+    const el = (tag, text, cls) => {
+      const n = document.createElement(tag);
+      if (text !== undefined) n.textContent = text;
+      if (cls) n.className = cls;
+      return n;
+    };
+    const notice = (text, error = false) => {
+      $("#status").textContent = text;
+      $("#status").className = error ? "error" : "";
+    };
+    const safeURL = (value) => {
+      if (typeof value !== "string" || !value.trim()) return null;
+      try {
+        const u = new URL(value, location.href);
+        return ["http:", "https:"].includes(u.protocol) ||
+          (u.protocol === "file:" && location.protocol === "file:")
+          ? u.href
+          : null;
+      } catch {
+        return null;
+      }
+    };
+    function link(label, url) {
+      const a = el("a", label),
+        u = safeURL(url);
+      if (u) {
+        a.href = u;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      } else {
+        a.removeAttribute("href");
+        a.append(" (link unavailable)");
+      }
+      return a;
+    }
+    function sourceRef(label, value) {
+      return typeof value === "string" &&
+        /^https?:\/\//i.test(value) &&
+        safeURL(value)
+        ? link(label, value)
+        : el("span", "Source: " + (value || "not recorded"), "muted");
+    }
+    let data, storageKey;
+    function unique(items) {
+      return (
+        new Set(items.map((x) => x.id)).size === items.length &&
+        items.every(
+          (x) =>
+            typeof x.id === "string" &&
+            x.id.length > 0 &&
+            !["__proto__", "constructor", "prototype"].includes(x.id),
+        )
+      );
+    }
+    function validate() {
+      if (
+        !data.id ||
+        !Array.isArray(data.rounds) ||
+        !data.rounds.length ||
+        !unique(data.rounds)
+      )
+        throw Error("Task and unique round IDs are required.");
+      for (const r of data.rounds) {
+        if (!Array.isArray(r.decisions) || !unique(r.decisions))
+          throw Error("Decision IDs must be unique.");
+        for (const d of r.decisions)
+          if (
+            !Array.isArray(d.options) ||
+            !d.options.length ||
+            !unique(d.options) ||
+            d.options.some((o) => ["defer", "custom"].includes(o.id))
+          )
+            throw Error("Use unique option IDs other than defer/custom.");
+      }
+    }
+    let book = {},
+      round,
+      signature,
+      answers,
+      storageError = "";
+    function readBook() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (!parsed || Array.isArray(parsed) || typeof parsed !== "object")
+            throw Error("Invalid draft data");
+          book = parsed;
+        }
+      } catch {
+        storageError =
+          "Saved drafts could not be read. Export before closing; existing storage will not be overwritten.";
+      }
+    }
+    function save() {
+      if (storageError) {
+        notice(storageError, true);
+        return;
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(book));
+        notice("Draft saved locally. Export a copy to keep it.");
+      } catch {
+        notice(
+          "Local saving failed. Your draft is still here; export it before closing.",
+          true,
+        );
+      }
+    }
+    function validAnswers(value, r) {
+      if (
+        !r ||
+        !Array.isArray(r.decisions) ||
+        r.decisions.some((d) => !d || !Array.isArray(d.options)) ||
+        !value ||
+        typeof value !== "object" ||
+        Array.isArray(value)
+      )
+        return false;
+      return Object.entries(value).every(([id, a]) => {
+        const d = r.decisions.find((x) => x.id === id);
+        return (
+          d &&
+          a &&
+          typeof a === "object" &&
+          typeof a.note === "string" &&
+          typeof a.choice === "string" &&
+          ["", "defer", "custom", ...d.options.map((x) => x.id)].includes(
+            a.choice,
+          )
+        );
+      });
+    }
+    function payload(entry = book[signature]) {
+      return {
+        version: 1,
+        task: data.id,
+        signature: entry.signature,
+        round: entry.round,
+        context: entry.context,
+        answers: entry.answers,
+      };
+    }
+    function markdown(entry = book[signature]) {
+      const c = entry.context,
+        r = entry.round;
+      let lines = [
+        "# " + c.title,
+        "",
+        c.goal,
+        "",
+        "Task: " + data.id,
+        "Round: " + r.id + " — " + r.title,
+        "Record: " + (c.source || "not recorded"),
+        "",
+        "## Constraints",
+        ...(c.constraints || []).map((x) => "- " + x),
+        "",
+        "## Previous decisions",
+      ];
+      for (const p of r.prior || [])
+        lines.push(
+          "",
+          p.title + ": " + p.choice,
+          "Reason: " + p.reason,
+          "Source: " + (p.source || "not recorded"),
+        );
+      lines.push("", "## Feedback");
+      for (const d of r.decisions) {
+        const a = entry.answers[d.id] || { choice: "", note: "" },
+          o = d.options.find((x) => x.id === a.choice);
+        lines.push(
+          "",
+          "### " + d.id + " — " + d.title,
+          d.context || "Context not recorded",
+          "Selection: " +
+            (o
+              ? o.title + " [" + o.id + "]"
+              : { defer: "Decide later", custom: "Suggest another approach" }[
+                  a.choice
+                ] || "Unanswered"),
+        );
+        if (a.note) lines.push("Comment: " + a.note);
+      }
+      return lines.join("\n");
+    }
+    function download(text, type, extension) {
+      const url = URL.createObjectURL(new Blob([text], { type }));
+      const a = el("a");
+      a.href = url;
+      a.download =
+        "review-" +
+        data.id.replace(/[^a-z0-9_-]/gi, "-") +
+        "-" +
+        round.id.replace(/[^a-z0-9_-]/gi, "-") +
+        "-" +
+        Date.now() +
+        "." +
+        extension;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function progress() {
+      const count = round.decisions.filter((d) => answers[d.id]?.choice).length;
+      $("#progress").textContent =
+        count + " of " + round.decisions.length + " choices made";
+      for (const a of $("#nav").children) {
+        const answer = answers[a.dataset.id];
+        a.textContent =
+          (answer?.choice ? "✓ " : "") +
+          round.decisions.find((d) => d.id === a.dataset.id).title;
+      }
+    }
+    function update(id, key, value) {
+      answers[id] ??= { choice: "", note: "" };
+      answers[id][key] = value;
+      save();
+      progress();
+    }
+    function showArchive() {
+      const root = $("#archive");
+      root.replaceChildren();
+      for (const [key, entry] of Object.entries(book)) {
+        if (
+          key === signature ||
+          entry?.round?.id !== round.id ||
+          !entry ||
+          !entry.round ||
+          !entry.context ||
+          !validAnswers(entry.answers, entry.round)
+        )
+          continue;
+        const d = el("details");
+        d.append(el("summary", entry.round.title), el("pre", markdown(entry)));
+        root.append(d);
+      }
+      if (!root.children.length)
+        root.append(el("p", "No previous drafts in this browser."));
+    }
+    function render() {
+      const root = $("#decisions"),
+        nav = $("#nav"),
+        prior = $("#prior");
+      root.replaceChildren();
+      nav.replaceChildren();
+      prior.replaceChildren();
+      if (round.prior?.length) {
+        const details = el("details");
+        details.append(el("summary", "Decisions already made"));
+        for (const p of round.prior) {
+          const row = el("div", undefined, "prior");
+          row.append(
+            el("h3", p.title),
+            el("p", p.choice),
+            el("p", "Why: " + p.reason, "muted"),
+            sourceRef("Decision source", p.source),
+          );
+          details.append(row);
+        }
+        prior.append(details);
+      }
+      round.decisions.forEach((d, index) => {
+        const section = el("section", undefined, "decision");
+        section.id = "decision-" + index;
+        const a = el("a", d.title);
+        a.href = "#" + section.id;
+        a.dataset.id = d.id;
+        nav.append(a);
+        section.append(el("h2", d.title), el("p", d.context, "context"));
+        const group = el("fieldset");
+        group.append(el("legend", "Choose an approach"));
+        const options = el("div", undefined, "options");
+        for (const o of d.options) {
+          const box = el("div", undefined, "option");
+          const label = el("label", undefined, "pick"),
+            radio = el("input");
+          radio.type = "radio";
+          radio.name = "choice-" + index;
+          radio.value = o.id;
+          radio.checked = answers[d.id]?.choice === o.id;
+          radio.addEventListener("change", () => update(d.id, "choice", o.id));
+          label.append(radio, el("span", o.title));
+          box.append(label);
+          if (d.recommendation === o.id)
+            box.append(el("span", "Agent recommendation", "recommendation"));
+          box.append(el("p", o.summary), el("p", o.tradeoff, "muted"));
+          for (const ev of o.evidence || []) {
+            const u = safeURL(ev.url);
+            if (ev.image && u) {
+              const img = el("img");
+              img.src = u;
+              img.alt = ev.label;
+              img.addEventListener("error", () => {
+                img.replaceWith(el("p", "Image unavailable: " + ev.label));
+                notice("An evidence image could not load.", true);
+              });
+              box.append(img);
+            }
+            box.append(link(ev.label, ev.url));
+          }
+          options.append(box);
+        }
+        group.append(options);
+        const other = el("div", undefined, "bar");
+        for (const [value, title] of [
+          ["defer", "Decide later"],
+          ["custom", "Suggest another approach"],
+        ]) {
+          const label = el("label", undefined, "pick"),
+            radio = el("input");
+          radio.type = "radio";
+          radio.name = "choice-" + index;
+          radio.value = value;
+          radio.checked = answers[d.id]?.choice === value;
+          radio.addEventListener("change", () => update(d.id, "choice", value));
+          label.append(radio, el("span", title));
+          other.append(label);
+        }
+        const clear = el("button", "Clear choice");
+        clear.addEventListener("click", () => {
+          update(d.id, "choice", "");
+          group.querySelectorAll("input").forEach((x) => (x.checked = false));
+        });
+        other.append(clear);
+        group.append(other);
+        section.append(group);
+        const label = el("label", "Your comment", "comment"),
+          note = el("textarea");
+        note.value = answers[d.id]?.note || "";
+        note.addEventListener("input", () => update(d.id, "note", note.value));
+        label.append(note);
+        section.append(label);
+        root.append(section);
+      });
+      progress();
+      showArchive();
+    }
+    function selectRound() {
+      round = data.rounds[Number($("#round").value)];
+      const context = {
+        title: data.title,
+        goal: data.goal,
+        constraints: data.constraints || [],
+        source: data.source,
+      };
+      signature = JSON.stringify({ context, round });
+      const entry = Object.hasOwn(book, signature) ? book[signature] : null;
+      if (entry && !validAnswers(entry.answers, round)) {
+        storageError =
+          "Saved feedback is invalid. The original is preserved; export your new draft before closing.";
+        delete book[signature];
+      }
+      const changed =
+        !entry && Object.values(book).some((e) => e?.round?.id === round.id);
+      $("#fallback").hidden = true;
+      let carried = 0;
+      const inherited = {};
+      if (!book[signature]) {
+        const previous = Object.values(book)
+          .reverse()
+          .find(
+            (e) =>
+              e?.round?.id === round.id &&
+              JSON.stringify(e.context) === JSON.stringify(context) &&
+              JSON.stringify(e.round.prior || []) ===
+                JSON.stringify(round.prior || []) &&
+              validAnswers(e.answers, e.round),
+          );
+        if (previous)
+          for (const d of round.decisions) {
+            const old = previous.round.decisions.find((o) => o.id === d.id);
+            if (
+              JSON.stringify(old) === JSON.stringify(d) &&
+              Object.hasOwn(previous.answers, d.id)
+            ) {
+              inherited[d.id] = structuredClone(previous.answers[d.id]);
+              carried++;
+            }
+          }
+      }
+      book[signature] ??= {
+        signature,
+        round: structuredClone(round),
+        context: structuredClone(context),
+        answers: inherited,
+      };
+      answers = book[signature].answers;
+      render();
+      notice(
+        storageError ||
+          (carried
+            ? "Restored feedback for unchanged decisions. Changed decisions need a fresh choice."
+            : changed
+              ? "Review content changed. Earlier drafts are preserved below; changed decisions need a fresh choice."
+              : Object.values(answers).some((a) => a.choice || a.note)
+                ? "Saved draft restored."
+                : "Choose an option or leave a comment."),
+        !!storageError,
+      );
+    }
+    $("#copy").onclick = async () => {
+      const text = markdown();
+      try {
+        await navigator.clipboard.writeText(text);
+        $("#fallback").hidden = true;
+        notice("Feedback copied. Paste it into the task conversation.");
+      } catch {
+        $("#fallback").hidden = false;
+        $("#fallback").open = true;
+        $("#fallback textarea").value = text;
+        $("#fallback textarea").focus();
+        $("#fallback textarea").select();
+        notice(
+          "Clipboard unavailable. Copy the text below or download Markdown.",
+          true,
+        );
+      }
+    };
+    $("#markdown").onclick = () => download(markdown(), "text/markdown", "md");
+    $("#export").onclick = () =>
+      download(JSON.stringify(payload(), null, 2), "application/json", "json");
+    $("#import").onclick = () => $("#file").click();
+    $("#file").onchange = async (e) => {
+      try {
+        const f = e.target.files[0];
+        if (!f) return;
+        const incoming = JSON.parse(await f.text());
+        if (
+          incoming.version !== 1 ||
+          incoming.task !== data.id ||
+          incoming.signature !== signature ||
+          JSON.stringify({
+            context: incoming.context,
+            round: incoming.round,
+          }) !== signature ||
+          !validAnswers(incoming.answers, round)
+        )
+          throw Error(
+            "This export does not match the current task, content, or options.",
+          );
+        if (
+          !confirm(
+            "Replace this round’s draft with the imported feedback? Export first if you need to keep the current draft.",
+          )
+        ) {
+          notice("Import cancelled; the current draft is unchanged.");
+          return;
+        }
+        answers = structuredClone(incoming.answers);
+        book[signature].answers = answers;
+        render();
+        save();
+      } catch (error) {
+        notice("Import rejected: " + error.message, true);
+      } finally {
+        e.target.value = "";
+      }
+    };
+    window.addEventListener("storage", (e) => {
+      if (e.key === storageKey) {
+        storageError =
+          "Another tab changed this task's drafts. Export this draft, then reload before editing further.";
+        notice(storageError, true);
+      }
+    });
+    try {
+      data = JSON.parse($("#review-data").textContent);
+      validate();
+      storageKey = "review-page:" + data.id;
+      document.title = data.title + " · Review";
+      $("#title").textContent = data.title;
+      $("#goal").textContent = data.goal;
+      for (const text of data.constraints || [])
+        $("#constraints").append(el("li", text));
+      $("#source").replaceWith(
+        sourceRef("Authoritative task record", data.source),
+      );
+      data.rounds.forEach((r, i) => {
+        const o = el("option", r.title);
+        o.value = i;
+        $("#round").append(o);
+      });
+      $("#round").value = data.rounds.length - 1;
+      readBook();
+      $("#round").onchange = () => {
+        try {
+          selectRound();
+        } catch (e) {
+          notice(e.message, true);
+        }
+      };
+      selectRound();
+    } catch (error) {
+      notice("Review could not load: " + error.message, true);
+      document
+        .querySelectorAll(".toolbar button")
+        .forEach((b) => (b.disabled = true));
+    }
+  </script>
+</html>
