@@ -68,9 +68,14 @@ export const States = {
       button({ label: 'Primary', variant: 'primary' }),
       button({ label: 'Secondary', variant: 'secondary' }),
     )),
+    // Ghost is here because of #273: it draws no box when it is off, so its label
+    // is read on whatever is behind it, and it takes --disabled-ink-bare, the ink
+    // measured on every ground. This row is where that is looked at; the pager's
+    // "In a card" story is where it was judged.
     specimen('Disabled', row(
       button({ label: 'Primary', variant: 'primary', disabled: true }),
       button({ label: 'Secondary', variant: 'secondary', disabled: true }),
+      button({ label: 'Ghost', variant: 'ghost', disabled: true }),
     )),
     specimen('Busy / loading', row(
       button({ label: 'Saving…', variant: 'primary', busy: true }),

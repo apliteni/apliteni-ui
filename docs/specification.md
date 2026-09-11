@@ -19,6 +19,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
+- **[Pagination](#pagination)** — a page the caller computed, and what happens when nobody counted it
 - **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
 
 ## The package
@@ -289,7 +290,11 @@ and the box under it toward the ground together, so what a reader is left with i
 composite lands. A disabled primary button measured 1.48:1 that way — white on a washed-out accent
 — and no disabled control in the light theme reached 3:1. Every disabled rule with a label under
 it now takes `--disabled-ink` on `--disabled-surface` at full opacity, which composites
-predictably, and every disabled label in the kit measures between 5.56:1 and 6.11:1.
+predictably, and every disabled label on a box of its own measures between 5.56:1 and 6.11:1.
+A ghost button paints no box, on or off, so its label is read on whatever is behind it. It takes
+`--disabled-ink-bare` instead, set to clear 5.56:1 on the dullest ground the kit paints, and
+reads between 5.60:1 and 7.00:1 depending on where it is put. That is still well under the
+enabled ghost beside it. Settled in [#273][i273].
 
 The floor is **3:1**, the bar WCAG uses for large text and for a graphic — a disabled label has to
 stay identifiable as the word it is, and no standard sets this because 1.4.3 exempts the control
@@ -527,6 +532,53 @@ declarations is taken back out. It carries one gap it cannot close: jsdom pins `
 onto a `<button>` above any author rule, whatever the specificity and whatever the source order, so
 that one declaration is held on the other two tags and by name in the rule all three share.
 
+## Pagination
+
+The pager renders a page its caller has already computed. Rows do not go into it: it is given
+the current page, the page size and, where the caller knows it, the number of rows in the whole
+result. A page a server counted and a page sliced out of an array in memory therefore produce
+the same markup, and a surface that pages on the server does not have to defeat a second pager
+inside the component to say so.
+
+A result whose size is not known is a supported shape rather than a degraded one. Given no
+total, the pager offers only the step before and the step after, because no other control can be
+computed without a last page; whether a step after exists is the caller's to state. Nothing in
+that shape claims a page count, and nothing invents one.
+
+A control that would leave the result is disabled and stays where it is. It is never removed and
+never swapped for text: a control that disappears moves the controls beside it under a pointer
+already travelling toward one of them, and takes away the only evidence a reader has that they
+are at the start or the end.
+
+One page of content gets no steps. Offered no choice of page size, such a pager renders nothing
+at all; offered one, it keeps its row count and that control and drops the steps alone.
+
+The row range is announced. It is the only part of the pager that announces, and it announces
+politely and as a whole, so a page turn is one statement rather than four. The announcement is a
+rewrite of the range the pager already shows — `setPagerStatus()` in the HTML entry point, and
+every render in the React one. A pager replaced wholesale arrives with its text already in it, and
+is not announced, for the reason given under [Pending and denied states](#pending-and-denied-states).
+
+The page size is a scale the kit names, and a table starts on the largest step a reader can
+still take in at once. Which sizes a table offers is the consumer's, and so is remembering the
+one a reader picked: the kit renders the choice and does not persist it.
+
+A page turn does not move the ground under the reader. While the next page loads the pager keeps
+its numbers legible, marks itself busy and stops taking input, and a table waiting on a page
+reports that it is busy without discarding the rows it is showing. What replaces those rows is
+the consumer's — the kit renders what it is handed — so the guarantee here is that nothing the
+kit draws collapses on its own while the wait lasts.
+
+The kit shipped none of this until [#273][i273]. Its one pager sliced the rows it was
+handed, drew itself whether or not a second page existed, and could not be turned off — so
+a consumer paging 4,812 transactions a hundred at a time passed its own row count as a page
+size to stop the second slicing, and then hid the strip with `display: none` on the two
+surfaces where `Page 1 of 1 · 100 rows` sat under a server pager reading `1–100 of 4,812`.
+
+Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
+
+[i273]: https://github.com/apliteni/apliteni-ui/issues/273
+
 ## React tables
 
 A table may omit selection controls when its consumer has no selection action. Existing
@@ -548,6 +600,26 @@ Changing the sort returns the reader to the first page, whether the change came 
 header or from anything else the consumer offers. Sort headers keep their column roles,
 keyboard buttons and sort direction announcements, and the column a table is sorted by
 announces its direction whether or not its own header offers a sort control.
+
+Paging may be controlled by the consumer or managed by the table, on the same terms as
+sorting, and one table stays in one of those two modes for as long as it is on the page. A
+table left to manage its own paging holds the rows it was given and shows one page of them
+at a time. A controlled table shows the rows it was given and shows all of them: they are
+the page, the consumer chose them, and the table neither reorders nor divides them again.
+The count such a table reports is the consumer's, because the rows in front of it are not
+the whole result — and a consumer that cannot count the whole result says so, which is the
+shape the pager already has an answer for.
+
+A table that pages under its own control returns the reader to the first page when the
+sort changes. A controlled one asks its owner to, exactly as it asks for a sort change,
+because only the owner can fetch what the first page holds.
+
+A table may render no pager at all, for a surface that supplies its own. A table whose rows
+fit on one page renders none either, on the pager's own terms rather than by a second rule
+here.
+
+The page a table starts on shows as many rows as the kit's largest page size, not as many
+as fit a demonstration.
 
 ## What the kit does not do
 

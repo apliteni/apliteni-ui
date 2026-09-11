@@ -25,11 +25,19 @@ The kit declares no dependency on `react` or `react-dom`, so install them yourse
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
-import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, pager)
+import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, sort control)
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Modal`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `Modal`, `Button`, `Badge`, `Card`, `Icon`.
+
+`Pagination` renders the kit's `pagination()` markup, class for class, so its styles come from
+`@apliteni/apliteni-ui/css` rather than from this bundle. One deliberate difference: it takes no
+`href`, because a React pager reports through `onPageChange` rather than navigating. Use the
+vanilla factory where the steps have to be real links. `PAGE_SIZES` and
+`DEFAULT_PAGE_SIZE` are exported here too — the scale is the kit's, so no call site writes
+either number. They are declared in this package's own types, and `PAGE_SIZES` is a
+`readonly number[]`: pass it to `pageSizes`, but do not add sizes to it.
 
 ## What the Modal does with focus
 
@@ -93,3 +101,56 @@ a new array, including when `key` is `undefined`.
 Choose controlled or uncontrolled once per table. Passing `sort` for a while and then
 dropping it is not supported: the table falls back to the sort state it started with, not to
 the one it was last given.
+
+### Tables paged by a server
+
+`page` and `onPageChange` make pagination controlled, the same way `sort` does — and the same
+rule applies: choose one mode per table and keep it. Given a `page`, the table renders `rows`
+exactly as handed to it and never slices or re-orders them; the range comes from `page`,
+`pageSize` and `total`:
+
+```tsx
+<DataTable columns={columns} rows={pageOfRows} selectable={false}
+  page={page} total={total} pageSize={size} onPageChange={fetchPage}
+  pageSizes={PAGE_SIZES} onPageSizeChange={setSize} loading={loading} />
+```
+
+`total` is required with `page`: it is the row count of the whole result, not of `rows`. Pass
+`total={null}` for a result whose size is not known, and then `hasMore` is required too — the
+pager offers Prev and Next alone, because no other control can be computed without a last
+page. Leave both out and the call does not type-check: a pager told nothing can only draw two
+dead buttons.
+
+Without `pageSize`, a controlled table takes the page size from `rows.length`, the page it was
+handed. Pass `pageSize` whenever the last page can be shorter than the rest.
+
+A controlled table never sorts the rows it is handed. Changing the sort asks its owner for page
+1 through `onPageChange`, which is the most a controlled table can do about it. Keep `sort`
+controlled too, so the headers can say which column the server ordered by. Without it the
+headers still report a press through `onSortChange`, but no column announces `aria-sort` or
+draws a direction, because the table does not know the server's order.
+
+Omit `page` to keep the table's own paging: it slices `rows` in memory and the total is
+`rows.length`. `pageSizes` offers a size control in either mode — without a `pageSize` prop the
+table remembers the size the reader picked, with one it reports the choice through
+`onPageSizeChange` and shows what it is given. A table that owns its page returns the reader to
+page 1 when the size changes. A controlled table only calls `onPageSizeChange`, once, and
+leaves the page to its owner: a new size means page 1, so fetch page 1 at that size. It does
+not also call `onPageChange(1)`, because that second call would carry the old size.
+
+`pageSize` is read the way the pager reads it, so the rows and the range always agree: a
+fraction is truncated, and `NaN`, zero or a negative number falls back to the default. A value
+taken from a URL, such as `Number(params.get('size'))`, is safe to pass as it is.
+
+`pager={false}` renders no pager at all, for a surface that supplies its own. One page of
+content renders none either: the pager keeps GOV.UK's rule that pagination for a single page is
+not shown, and with a size control on offer it keeps the row count and that control alone.
+
+Focus stays on the step the reader pressed, so they can press it again. At an end that step is
+disabled, and a browser drops focus from a disabled control to the page body. So once the new
+page has arrived, the pager moves focus to the nearest step that can still move, never into
+the rows. It moves focus only after a press in the pager, and never while `loading`.
+Clearing the page-jump box, or typing into it and then pressing a step, does not change the
+page.
+
+`pageSize` defaults to `DEFAULT_PAGE_SIZE` (100). **Breaking:** it used to default to 4.

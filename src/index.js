@@ -13,6 +13,7 @@ export * from './components/feedback.js';
 export * from './components/toasts.js';
 export * from './components/success.js';
 export * from './components/loading.js';
+export * from './components/pagination.js';
 export * from './assets/icons.js';
 export * from './assets/brand.js';
 export * from './motion.js';

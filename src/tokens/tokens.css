@@ -158,6 +158,11 @@
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface-2);
   --disabled-border: var(--border);
+  /* The ink of a disabled control that paints no box of its own — a ghost button. With
+     no surface beside it, it is read on whatever is behind it, so it is set to clear the
+     floor on the dullest ground there is (--surface-3). #273
+     why: docs/specification.md#colour-and-contrast */
+  --disabled-ink-bare: #a39eb7;
 
   /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own wash over
      a card; the value was already in the ramp. --ring is var(--accent) and follows by
@@ -271,6 +276,7 @@
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface-2);
   --disabled-border: var(--border);
+  --disabled-ink-bare: #585e6c;
 
   --accent: #6a2dcc;
   --accent-strong: #6a2dcc; /* already dark enough for white text */

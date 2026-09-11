@@ -100,7 +100,21 @@
 .ui-btn--ghost[aria-disabled="true"] {
   background: transparent;
   border-color: transparent;
+  color: var(--disabled-ink-bare);
 }
+/* With no box, the ink is read on whatever is behind it. --disabled-ink read
+   5.18:1 on a card and 4.66:1 on --surface-3 in dark, under #220's 5.56, so the
+   ghost takes an ink set for the dullest ground: in dark 7.00 / 6.24 / 6.69 /
+   5.62 on --bg / --surface / --surface-2 / --surface-3, in light 6.50 / 6.50 /
+   6.01 / 5.60. The enabled ghost's --dim reads 1.5 times that in dark, 1.6 in light.
+
+   #273 got here the long way. It first gave the ghost the flat disabled box
+   instead, on the claim that nothing would get less readable. That was false:
+   --bg and --surface lost up to 0.46. Then the box was rendered in a pager at
+   page 1, and the boxed First and Prev read heavier than the boxless Next and
+   Last beside them: the controls that were off looked like the live ones. No
+   contrast table shows that. The box was reverted and this ink shipped.
+   Held by src/styles/button-disabled.test.js. */
 
 /* Busy: keep the label, run an indeterminate accent shimmer along the base, and
    the button is disabled (not clickable). Pass busy + the .ui-btn__bars markup.
