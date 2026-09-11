@@ -40,7 +40,7 @@ export const RULES = [
     dontCaption: 'The Overview card rejected in #267, rebuilt from the same kit parts. The figure sits '
       + 'at the card-title step, so the page\'s key numbers are the size of its headings, and the '
       + 'change is a status chip: capitals, 10px, and nothing to say what it is measured against.',
-    kit: [{ ref: 'src/styles/stat.css:41', pattern: 'font-size: var(--text-2xl);' }],
+    kit: [{ ref: 'src/styles/stat.css:44', pattern: 'font-size: var(--text-2xl);' }],
   },
   {
     id: 'tone-not-direction',

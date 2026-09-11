@@ -197,8 +197,8 @@ shadcn uses none. Label case: uppercase in Mantine, sentence case in Tremor, MUI
 Storybook: **Components / Stat band → Gallery** shows all three over the same four figures, in
 both themes. A · Band is the default; the other two are a `variant`.
 
-![The three layouts, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-variants-light.png?raw=true)
-![The three layouts, dark](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-variants-dark.png?raw=true)
+![The three layouts, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-variants-light.png)
+![The three layouts, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-variants-dark.png)
 
 | | Surface | Value | On Overview |
 |---|---|---|---|
@@ -256,29 +256,29 @@ at `finance.apli.tech@db8e4c808`, over this branch's kit CSS, with the same figu
 one pair that was **not** re-shot: it is drawn from the portal's tree, which is not in this
 repository, and nothing in this branch changes it.
 
-![Before, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-before-light.png?raw=true)
-![Before, dark](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-before-dark.png?raw=true)
+![Before, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-before-light.png)
+![Before, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-before-dark.png)
 
 **Apps / Finance report**, the kit's own example screen, on `origin/main` and on this branch:
 
-![Finance report before, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-finance-report-before-light.png?raw=true)
-![Finance report after, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-finance-report-after-light.png?raw=true)
+![Finance report before, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-finance-report-before-light.png)
+![Finance report after, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-finance-report-after-light.png)
 
 Dark: `docs/evidence/stat-finance-report-before-dark.png`, `docs/evidence/stat-finance-report-after-dark.png`.
 
 **States** (no earlier figure, a figure with its own comparison, figures only) and **Narrow**
 (640px and 360px columns):
 
-![States, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-states-light.png?raw=true)
-![Narrow, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-narrow-light.png?raw=true)
+![States, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-states-light.png)
+![Narrow, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-narrow-light.png)
 
 Dark: `docs/evidence/stat-states-dark.png`, `docs/evidence/stat-narrow-dark.png`.
 
 **Guidelines / Stat bands** — the colour rule's do and don't are the four figures above,
 declared and then painted by the sign instead:
 
-![Guidelines page, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-guidelines-light.png?raw=true)
-![Guidelines page, dark](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-guidelines-dark.png?raw=true)
+![Guidelines page, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-guidelines-light.png)
+![Guidelines page, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-guidelines-dark.png)
 
 ## Gates
 

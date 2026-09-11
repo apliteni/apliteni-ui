@@ -23,6 +23,9 @@
 
 .ui-stat { display: flex; flex-direction: column; flex: 1 1 0; min-width: min-content; }
 
+/* Takes the label rank's size and weight, but not its inherited leading: a
+   figure's parts are held close, so the label keeps the band's tighter line.
+   It sits outside the rank table for that one reason, and claims no rank. */
 .ui-stat__label {
   color: var(--dim);
   font-size: var(--text-sm);
@@ -74,6 +77,8 @@
 .ui-stat--good .ui-stat__trend { color: var(--chip-success-ink); }
 .ui-stat--bad .ui-stat__trend { color: var(--chip-danger-ink); }
 
+/* The band's caption, under the figures rather than in one: it is what every
+   change points at, so it sits below the ranks and takes none of them. */
 .ui-stats__basis {
   margin: var(--space-5) 0 0;
   color: var(--muted);
