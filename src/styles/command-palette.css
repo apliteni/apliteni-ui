@@ -166,7 +166,7 @@
      press and a transition would leave two rows looking half-chosen. */
   background: none;
 }
-.ui-cmdk__item[hidden] { display: none; }
+.ui-cmdk__item[hidden] { display: none; } /* motion: still — a row the query no longer answers is gone on the next keystroke */
 .ui-cmdk__item.is-active { background: var(--surface-3); }
 .ui-cmdk__item.is-active .ui-cmdk__label { color: var(--strong); }
 
