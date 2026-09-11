@@ -223,6 +223,10 @@
   min-height: 38px;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
+/* iOS Safari zooms the page into a focused field under 16px, and opening the
+   panel focuses this one. A real 16px, not a scaled one: the zoom reads the
+   computed size, and a transform would shrink the ring and border with it. */
+@media (pointer: coarse) { .ui-dropdown__search-input { font-size: 16px; } }
 .ui-dropdown__search-input::placeholder { color: var(--muted); }
 .ui-dropdown__search-input:hover { border-color: var(--border-strong); }
 .ui-dropdown__search-input:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--ring); }

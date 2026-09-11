@@ -709,6 +709,12 @@ height `scroll` gives, and the field does not scroll with them. The panel keeps 
 whole list needs, so it does not narrow as rows are filtered out. A group with no match is hidden,
 and the divider sits only between groups still showing, never above the first of them.
 
+**On a touch screen the field is 16px.** iOS Safari zooms the page into a focused field whose text
+is smaller than that, and opening the panel focuses the field. So under `(pointer: coarse)` the
+field's text is 16px; with a mouse it stays at the rows' 12.5px. The size is real rather than a
+16px field scaled down with a transform, because the zoom reads the computed size, and a transform
+would shrink the border and the focus ring along with the text.
+
 **The panel is a dialog.** A listbox may own only options and groups, so a field inside one fails
 axe's `aria-required-children`. With search on, the panel is a `role="dialog"` named after the
 dropdown, the trigger announces `aria-haspopup="dialog"`, and the listbox sits inside it beside

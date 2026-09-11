@@ -150,7 +150,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/dropdown.js:83', pattern: 'const ddMatch' },
       { ref: 'src/styles/dropdown.css:197', pattern: '.ui-dropdown__panel--search' },
-      { ref: 'src/styles/dropdown.css:243', pattern: '.ui-dropdown__none {' },
+      { ref: 'src/styles/dropdown.css:247', pattern: '.ui-dropdown__none {' },
     ],
   },
 ];

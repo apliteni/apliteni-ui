@@ -311,6 +311,20 @@ test('the divider goes between the groups still showing, never above the first o
   assert.deepEqual(divided(m.doc), ['Reserve:false', 'Escrow:true'], 'a typed query');
 });
 
+// ---- Touch ---------------------------------------------------------------
+
+// iOS Safari zooms the page into a focused field whose text is under 16px, and
+// opening the panel focuses this one.
+test('on a touch screen the field is 16px, so focusing it does not zoom the page', () => {
+  const rules = sheet();
+  const base = rules.find((r) => r.selectorText === '.ui-dropdown__search-input');
+  assert.equal(base?.style.fontSize, '12.5px', 'a mouse keeps the size the rows use');
+  const touch = rules.filter((r) => r.media && /\(\s*pointer\s*:\s*coarse\s*\)/.test(r.media.mediaText))
+    .flatMap((r) => [...r.cssRules]).find((r) => r.selectorText === '.ui-dropdown__search-input');
+  assert.ok(touch, 'a (pointer: coarse) rule sizes the field');
+  assert.ok(parseFloat(touch.style.fontSize) >= 16, `font-size: ${touch.style.fontSize}`);
+});
+
 // ---- Portalled -----------------------------------------------------------
 
 test('a portalled search panel still filters and picks from the keyboard', () => {
