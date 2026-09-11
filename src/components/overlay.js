@@ -4,10 +4,12 @@
 // properties of the *page*, so they are answered here from one stack per document rather
 // than from either component's own storage. Internal — not re-exported from src/index.js.
 
-// What each overlay paints on today: a drawer at `--z-overlay` (styles/drawer.css) and a
-// confirm above it (styles/confirm.css). Absolute values, not ranks, so a sheet that moves
-// and a table that did not is a failed test — stories/overlay-css.test.js holds both.
-export const OVERLAY_LAYER = { drawer: 100, confirm: 101 };
+// What each overlay paints on today: a drawer and a command palette at `--z-overlay`
+// (styles/drawer.css, styles/command-palette.css) and a confirm above both
+// (styles/confirm.css), because a confirm asks a question about whichever of them opened
+// it. Absolute values, not ranks, so a sheet that moves and a table that did not is a
+// failed test — stories/overlay-css.test.js holds all three.
+export const OVERLAY_LAYER = { drawer: 100, palette: 100, confirm: 101 };
 
 const FOCUSABLE = [
   'a[href]', 'button:not([disabled])', 'input:not([disabled])',
@@ -32,7 +34,8 @@ function pageOf(doc) {
 function reachable(el) {
   for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
     if (n.inert || n.hasAttribute('inert') || n.hasAttribute('hidden')) return false;
-    const overlayRoot = n.hasAttribute('data-drawer') || n.hasAttribute('data-confirm');
+    const overlayRoot = n.hasAttribute('data-drawer') || n.hasAttribute('data-confirm')
+      || n.hasAttribute('data-cmdk');
     if (overlayRoot && !n.classList.contains('is-open')) return false;
   }
   // Browsers can answer the rest properly; JSDOM has no layout and no such method.

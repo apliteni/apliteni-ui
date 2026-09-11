@@ -13,6 +13,7 @@ import * as floorContent from './_accessibility-floor.js';
 import * as paginationContent from './_pagination.js';
 import * as drawerContent from './_drawer.js';
 import * as motionContent from './_motion.js';
+import * as paletteContent from './_command-palette.js';
 
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
 import * as destructiveStory from './DestructiveActions.stories.js';
@@ -27,6 +28,7 @@ import * as floorStory from './AccessibilityFloor.stories.js';
 import * as paginationStory from './Pagination.stories.js';
 import * as drawerStory from './Drawers.stories.js';
 import * as motionStory from './Motion.stories.js';
+import * as paletteStory from './CommandPalette.stories.js';
 
 const ENTRIES = [
   [destructiveContent, destructiveStory],
@@ -41,6 +43,7 @@ const ENTRIES = [
   [paginationContent, paginationStory],
   [drawerContent, drawerStory],
   [motionContent, motionStory],
+  [paletteContent, paletteStory],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page

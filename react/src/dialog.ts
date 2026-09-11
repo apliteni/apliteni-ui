@@ -42,7 +42,9 @@ function tabbable(el: HTMLElement) {
     || el.checkVisibility({ visibilityProperty: true });
 }
 
-const tabbablesIn = (root: HTMLElement) =>
+// Exported for <CommandPalette>, the third React dialog: one answer to "what can Tab
+// reach" for every dialog in the layer, never a copy per component.
+export const tabbablesIn = (root: HTMLElement) =>
   Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(tabbable);
 
 // A click on the scrim and nowhere else dismisses. preventDefault is what makes the

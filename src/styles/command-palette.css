@@ -1,0 +1,283 @@
+/* ============================================================================
+ * Command palette — a text box and a ranked list, over a scrim, near the top of
+ * the window. Fully token-driven so it re-themes across accents + light/dark.
+ * Shares its scrim, its Escape and its focus trap with the drawer and the
+ * confirm (see overlay.js), and paints on the same layer as the drawer so a
+ * confirm opened from a row lands above it.
+ *
+ * Local tokens so the panel and scrim re-theme cleanly:
+ *   --cmdk-surface  panel background     --cmdk-shadow  panel elevation
+ *   --cmdk-scrim    backdrop colour      --cmdk-w       panel width
+ *
+ * Two densities, one markup: the default packs a row onto one line, and
+ * `.ui-cmdk--roomy` gives the description a line of its own.
+ *
+ * why: docs/specification.md#the-command-palette */
+
+.ui-cmdk {
+  --cmdk-surface: var(--surface-2);
+  --cmdk-shadow: var(--shadow-lg);
+  --cmdk-scrim: var(--scrim);
+  --cmdk-w: 560px;
+  --cmdk-top: 12vh;
+  --cmdk-list-h: 332px;
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none; /* container never blocks; scrim/panel opt back in */
+
+  /* One place owns "is this palette on screen at all", and the scrim and panel
+     inherit it. Only the HIDE is transitioned, so the panel is still on screen
+     while it fades out; the show is instant (`.is-open` cancels the transition)
+     because openCommandPalette() focuses the text box in the same frame it
+     opens, and focus() on a hidden element does nothing. `linear` and not
+     var(--ease): visibility is discrete, easing a step buys nothing, and a curve
+     that leaves [0, 1] would flip it in the middle of the fade. */
+  visibility: hidden;
+  transition: visibility var(--dur-med) linear;
+}
+.ui-cmdk.is-open { visibility: visible; transition: none; }
+
+/* Hit-testable only while open. The root stays visible for --dur-med after
+   closeCommandPalette() has stopped trapping, and a row still clickable in that
+   window runs the caller's command a second time. */
+.ui-cmdk.is-open .ui-cmdk__scrim,
+.ui-cmdk.is-open .ui-cmdk__panel { pointer-events: auto; }
+
+.ui-cmdk__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--cmdk-scrim);
+  opacity: 0;
+  transition: opacity var(--dur-med) var(--ease);
+}
+.ui-cmdk.is-open .ui-cmdk__scrim { opacity: 1; }
+
+/* Panel — near the top rather than centred: the list grows downward, and a
+   centred panel moves the text box every time the number of results changes. */
+.ui-cmdk__panel {
+  position: absolute;
+  top: var(--cmdk-top);
+  left: 50%;
+  width: min(var(--cmdk-w), calc(100vw - var(--space-8)));
+  max-height: min(72vh, calc(100vh - var(--cmdk-top) - var(--space-8)));
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans);
+  background: var(--cmdk-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--cmdk-shadow);
+  overflow: hidden;
+  opacity: 0;
+  transform: translate(-50%, -8px);
+  transition:
+    opacity var(--dur-med) var(--ease),
+    transform var(--dur-med) var(--ease);
+}
+.ui-cmdk.is-open .ui-cmdk__panel { opacity: 1; transform: translate(-50%, 0); }
+.ui-cmdk__panel:focus-visible { outline: none; box-shadow: var(--cmdk-shadow), var(--ring); }
+
+/* -- The text box --------------------------------------------------------- */
+
+.ui-cmdk__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.ui-cmdk__search-ic {
+  display: inline-flex;
+  color: var(--muted);
+  flex: none;
+}
+.ui-cmdk__search-ic svg { width: 17px; height: 17px; }
+
+/* Not .ui-input: this one has no box of its own — the panel is the box — and a
+   second border inside a bordered panel reads as a form somebody has to submit. */
+.ui-cmdk__input {
+  flex: 1;
+  min-width: 0;
+  /* Literal px, and a line-height it does not inherit: the target-size gate
+     reads declarations rather than a laid-out box, and `var()` inside a padding
+     shorthand measures as nothing there.
+     why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green */
+  padding: 16px 0;
+  line-height: 1.5;
+  font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: var(--weight-normal);
+  color: var(--text);
+  background: none;
+  border: 0;
+  outline: none;
+}
+.ui-cmdk__input::placeholder { color: var(--muted); }
+
+/* -- The list ------------------------------------------------------------- */
+
+.ui-cmdk__list {
+  flex: 1;
+  min-height: 0;
+  max-height: var(--cmdk-list-h);
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+.ui-cmdk__group + .ui-cmdk__group { margin-top: var(--space-2); }
+
+/* Sentence case at 13px medium — the kit's label role, not a heading and not a
+   shout. A group name is the one word the reader scans for. */
+.ui-cmdk__group-head {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--muted);
+}
+
+/* Row — [icon] [label + description] [badge] [keys]. A <div role="option">, so
+   the reset a button or a link would need is not needed here. */
+.ui-cmdk__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px 12px;
+  line-height: 1.5;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  /* The active row is painted, never faded in: the row moves on every arrow
+     press and a transition would leave two rows looking half-chosen. */
+  background: none;
+}
+.ui-cmdk__item[hidden] { display: none; }
+.ui-cmdk__item.is-active { background: var(--surface-3); }
+.ui-cmdk__item.is-active .ui-cmdk__label { color: var(--strong); }
+
+.ui-cmdk__ic {
+  display: inline-flex;
+  color: var(--dim);
+  flex: none;
+}
+.ui-cmdk__ic svg { width: 16px; height: 16px; }
+.ui-cmdk__item.is-active .ui-cmdk__ic { color: var(--accent); }
+
+.ui-cmdk__main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+.ui-cmdk__label {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-cmdk__desc {
+  font-size: var(--text-sm);
+  /* --dim and not --muted: a row's note is how two rows called INV-4812 and
+     INV-4809 are told apart, which is not something a reader may skip.
+     why: docs/specification.md#colour-and-contrast */
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ui-cmdk__badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  font-size: var(--text-xs);
+  color: var(--dim);
+}
+
+/* Destructive rows take the kit's danger ink, never the accent — the same rule
+   the destructive-actions guideline states for a menu. Written BEFORE the
+   disabled rules below and at the same specificity, so a destructive row the
+   palette refuses to run is painted as unavailable rather than as dangerous.
+   why: docs/specification.md#colour-and-contrast */
+.ui-cmdk__item.is-danger .ui-cmdk__label { color: var(--pink); }
+.ui-cmdk__item.is-danger.is-active .ui-cmdk__ic { color: var(--pink); }
+
+/* A disabled row is painted, never faded. It takes --disabled-ink-bare, the ink
+   for a control with no box of its own: --disabled-surface IS --surface-2,
+   which is the panel behind it, so a disabled row paints no box a reader can
+   see and its label is read on whatever the panel is.
+   why: docs/specification.md#colour-and-contrast */
+.ui-cmdk__item.is-disabled { cursor: default; color: var(--disabled-ink-bare); }
+.ui-cmdk__item.is-disabled .ui-cmdk__label,
+.ui-cmdk__item.is-disabled .ui-cmdk__desc,
+.ui-cmdk__item.is-disabled .ui-cmdk__ic { color: var(--disabled-ink-bare); }
+
+/* -- Keys, empty state, legend -------------------------------------------- */
+
+.ui-cmdk__keys { display: inline-flex; gap: 4px; flex: none; }
+.ui-cmdk__key {
+  min-width: 20px;
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--dim);
+  text-align: center;
+}
+
+.ui-cmdk__empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  text-align: center;
+  font-size: var(--text-base);
+  color: var(--dim);
+}
+
+.ui-cmdk__foot {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.ui-cmdk__foot span { display: inline-flex; align-items: center; gap: 5px; }
+
+/* -- Roomy ---------------------------------------------------------------- */
+/* The same markup, two lines to a row: the description drops under the label
+   and the icon gets a tile of its own. For a palette whose rows need a sentence
+   to tell apart — an invoice from an invoice — rather than a list of verbs. */
+
+.ui-cmdk--roomy { --cmdk-w: 640px; --cmdk-list-h: 396px; }
+.ui-cmdk--roomy .ui-cmdk__item { padding: 9px 12px; gap: var(--space-3); }
+.ui-cmdk--roomy .ui-cmdk__main { display: block; }
+.ui-cmdk--roomy .ui-cmdk__label { display: block; }
+.ui-cmdk--roomy .ui-cmdk__desc { display: block; margin-top: 1px; }
+.ui-cmdk--roomy .ui-cmdk__ic {
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface-2); }
+
+/* -- Narrow --------------------------------------------------------------- */
+/* On a phone the palette is the page: full width, off the top edge, and the key
+   legend goes — there is no keyboard to legend. */
+@media (max-width: 640px) {
+  .ui-cmdk { --cmdk-top: var(--space-4); --cmdk-list-h: 60vh; }
+  .ui-cmdk__panel { width: calc(100vw - var(--space-4)); }
+  .ui-cmdk__foot { display: none; }
+}
