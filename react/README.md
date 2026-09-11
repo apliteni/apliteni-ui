@@ -25,11 +25,11 @@ The kit declares no dependency on `react` or `react-dom`, so install them yourse
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
-import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, sort control)
+import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, drawer, sort control)
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `Modal`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `Modal`, `Drawer`, `Button`, `Badge`, `Card`, `Icon`.
 
 `Pagination` renders the kit's `pagination()` markup, class for class, so its styles come from
 `@apliteni/apliteni-ui/css` rather than from this bundle. One deliberate difference: it takes no
@@ -46,6 +46,27 @@ the dialog itself if none exists. Links and disclosure summaries are eligible; h
 controls, disabled controls, controls inside a closed disclosure and elements with a
 negative tabindex are skipped. Tab and Shift+Tab wrap at the ends of the same list.
 Escape and a click on the scrim dismiss the dialog and return focus to its opener.
+
+The Modal fades in and out: the scrim fades and the panel rises a few pixels. After `open`
+turns false it stays mounted until that transition ends, then unmounts. While it leaves,
+focus is already back on the opener and the dialog takes no clicks.
+
+## Drawer
+
+A panel that slides in from an edge of the screen over a scrim. It renders the vanilla
+`drawer()` markup, class for class, so it looks and moves like the kit's drawer.
+
+```tsx
+<Drawer open={open} title="Transaction" onClose={() => setOpen(false)}
+  side="right" size="md" footer={<Button onClick={save}>Save</Button>}>
+  …
+</Drawer>
+```
+
+`side` is `right` (default), `left`, `top` or `bottom`. `size` is `sm`, `md` (default) or
+`lg`, measured along the slide. `closeLabel` names the close button (default "Close").
+Focus, Escape, the scrim, Tab and the return of focus behave as the Modal's do. Like the
+Modal, it stays mounted until its exit slide ends. It is portalled to `document.body`.
 
 ## Work on them
 

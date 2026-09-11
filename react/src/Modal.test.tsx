@@ -1,11 +1,104 @@
-import { createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
+import { afterEach, vi } from 'vitest';
 import { Modal } from './Modal';
+
+afterEach(() => {
+  vi.useRealTimers();
+  document.head.querySelectorAll('style[data-fixture]').forEach((s) => s.remove());
+});
 
 it('renders nothing when closed', () => {
   const { container } = render(<Modal open={false} title="X" onClose={() => {}} />);
   expect(container.querySelector('[role="dialog"]')).toBeNull();
+});
+
+// ---- motion ------------------------------------------------------------------
+// Modal.css fades the scrim and raises the panel on `is-open`. jsdom runs no
+// transition and computes only the longhands, never the shorthand the sheet writes,
+// so these tests state the panel's timing themselves.
+function panelTiming(css: string) {
+  const style = document.createElement('style');
+  style.dataset.fixture = '';
+  style.textContent = `.rx-modal { ${css} }`;
+  document.head.appendChild(style);
+}
+const scrim = () => document.querySelector('.rx-scrim');
+
+it('styles the panel without is-open before it adds is-open', () => {
+  const seen: (string | undefined)[] = [];
+  const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    if (this.classList.contains('rx-modal')) seen.push(scrim()?.className);
+    return new DOMRect();
+  });
+  render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  spy.mockRestore();
+  expect(seen).toEqual(['rx-scrim']);
+  expect(scrim()).toHaveClass('is-open');
+});
+
+it('on close drops is-open and stays mounted until the panel\'s transitionend', () => {
+  panelTiming('transition-duration: 10s;');
+  const { rerender } = render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  rerender(<Modal open={false} title="New campaign" onClose={() => {}}>body</Modal>);
+  expect(scrim()).not.toBeNull();
+  expect(scrim()).not.toHaveClass('is-open');
+  expect(scrim()).toHaveAttribute('inert');
+  fireEvent.transitionEnd(document.querySelector('.rx-modal')!);
+  expect(scrim()).toBeNull();
+});
+
+it('unmounts on a timer sized from the computed transition when transitionend never comes', () => {
+  vi.useFakeTimers();
+  panelTiming('transition-duration: 250ms;');
+  const { rerender } = render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  rerender(<Modal open={false} title="New campaign" onClose={() => {}}>body</Modal>);
+  act(() => { vi.advanceTimersByTime(249); });
+  expect(scrim()).not.toBeNull();
+  act(() => { vi.advanceTimersByTime(1); });
+  expect(scrim()).toBeNull();
+});
+
+it('closes under the reduced-motion net\'s 0.01ms', async () => {
+  panelTiming('transition-duration: 0.01ms !important;');
+  const { rerender } = render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  rerender(<Modal open={false} title="New campaign" onClose={() => {}}>body</Modal>);
+  await waitFor(() => expect(scrim()).toBeNull());
+});
+
+it('re-opened mid-exit, it stays open and takes the keyboard back', async () => {
+  function Harness() {
+    const [open, setOpen] = useState(true);
+    return (
+      <>
+        <button type="button" onClick={() => setOpen(true)}>Open</button>
+        <Modal open={open} title="New campaign" onClose={() => setOpen(false)}>
+          <input aria-label="Name" />
+        </Modal>
+      </>
+    );
+  }
+  panelTiming('transition-duration: 10s;');
+  render(<Harness />);
+  await userEvent.keyboard('{Escape}');
+  expect(scrim()).not.toHaveClass('is-open');
+  await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+  expect(scrim()).toHaveClass('is-open');
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Name')));
+  // The abandoned exit's transitionend arrives, and does not count. The end state alone
+  // would not show it if it did — the Modal re-enters on its own — so what is asserted is
+  // that nothing changes: no is-open dropped, no inert set, focus never sent to the opener.
+  const changes: MutationRecord[] = [];
+  const watch = new MutationObserver((records) => changes.push(...records));
+  watch.observe(scrim()!, { attributes: true, attributeFilter: ['class', 'inert'], attributeOldValue: true });
+  fireEvent.transitionEnd(document.querySelector('.rx-modal')!);
+  changes.push(...watch.takeRecords());
+  watch.disconnect();
+  expect(changes.map((r) => `${r.attributeName} was ${r.oldValue}`)).toEqual([]);
+  expect(document.activeElement).toBe(screen.getByLabelText('Name'));
+  await userEvent.keyboard('{Escape}');
+  expect(scrim()).not.toHaveClass('is-open');
 });
 
 it('closes on Escape', async () => {
