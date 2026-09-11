@@ -671,7 +671,9 @@ the list through `aria-controls`. The rows stay `role="option"`, and the row Ent
 named by `aria-activedescendant`, so the reader can keep typing. The field has the focus and carries
 `--ring`; the active row takes the hover fill and a 2px accent bar, because two rings of equal
 weight leave the reader unable to tell focus from the pick. Opening the panel puts focus in the
-field, with the selected row active or the first one.
+field, with the selected row active or the first one. For that, the open search panel is visible at
+once rather than at the first step of its `visibility` transition: a browser will not focus a field
+in a box that is still `hidden`, so the focus call was lost. Closing still fades.
 
 - ↑ and ↓ move through the rows still showing, skip a disabled row, and wrap at the ends.
 - Enter picks the active row, writes it into the trigger and closes. With nothing showing, it does

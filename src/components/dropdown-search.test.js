@@ -6,6 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { dropdown, wireDropdown } from './dropdown.js';
 
@@ -83,6 +84,18 @@ test('a preset query hides what it does not match, anywhere in the label, and ne
   const dom = new JSDOM(html);
   const shown = [...dom.window.document.querySelectorAll('[data-dd-item]:not([hidden])')].map((r) => r.textContent);
   assert.deepEqual(shown, ['Australian dollar (AUD)', 'Hong Kong dollar (HKD)', 'US dollar (USD)']);
+});
+
+// Found in Chromium, where jsdom cannot look: with `visibility` transitioned on
+// open, the panel is still `hidden` when the field is focused, and the focus is
+// lost. So the open search panel transitions everything but visibility.
+test('the open search panel does not transition visibility, so the field can take focus', () => {
+  const css = readFileSync(new URL('../styles/dropdown.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const open = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+    .filter(([, sel]) => /\.ui-dropdown\.open \.ui-dropdown__panel--search/.test(sel) && /\.ui-dropdown__panel--search\.is-open/.test(sel));
+  assert.equal(open.length, 1, 'one rule opens the search panel, in place and portalled');
+  const property = /transition-property\s*:([^;]*)/.exec(open[0][2])?.[1] ?? '';
+  assert.ok(property.includes('opacity') && !/visibility/.test(property), `transition-property: ${property.trim()}`);
 });
 
 // ---- Typing filters ------------------------------------------------------

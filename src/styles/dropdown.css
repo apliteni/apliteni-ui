@@ -192,6 +192,11 @@
    variant emits, so the plain dropdown renders as it did.
    why: docs/specification.md#a-dropdown-with-a-search-field */
 .ui-dropdown__panel--search { min-width: 280px; }
+/* Open, the panel is visible at once instead of at the first step of the
+   `visibility` transition, because a browser will not focus a field in a box
+   that is still `hidden` and opening puts focus in the field. Closing still fades. */
+.ui-dropdown.open .ui-dropdown__panel--search,
+.ui-dropdown__panel--search.is-open { transition-property: opacity, transform; }
 
 .ui-dropdown__search { position: relative; display: flex; align-items: center; margin-bottom: 6px; }
 .ui-dropdown__search-ic {
