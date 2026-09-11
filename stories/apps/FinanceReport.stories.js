@@ -94,8 +94,8 @@ export const Loading = {
       <div class="ui-stats ui-stats--band ui-card">${busyRegion({
         label: 'Loading cashflow for the last year…',
         body: `<div class="ui-stats__list">${['', '', ''].map(() => `<div class="ui-stat">
-          ${skeleton({ lines: ['64%', '86%', '48%'] })}
-        </div>`).join('')}</div>`,
+          ${skeleton({ lines: ['40%'] })}${skeleton({ lines: ['72%'], height: '36px' })}
+        </div>`).join('')}</div>${skeleton({ lines: ['18%'], className: 'ui-stats__basis' })}`,
       })}</div>
       ${card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts reconciled to bank transactions.',
         body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: 6, cols: 7 }) }) })}

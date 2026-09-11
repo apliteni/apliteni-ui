@@ -7,7 +7,6 @@
 // listed. why: docs/specification.md#stat-bands
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
@@ -47,9 +46,9 @@ test('the check finds a change with nothing to say what it is measured against',
 test('every change in every story says what it is measured against', async () => {
   let subjects = 0;
   const failures = [];
+  // No filter on the file's source: a guidelines story renders its bands through
+  // a content module and names neither the factory nor the class.
   for (const rel of storyFiles) {
-    const source = readFileSync(path.join(here, rel), 'utf8');
-    if (!/statBand|ui-stat__delta/.test(source)) continue;
     const mod = await import(path.join(here, rel));
     const def = mod.default || {};
     for (const [name, story] of Object.entries(mod)) {

@@ -875,14 +875,17 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 ## Stat bands
 
 `statBand()` renders a row of key figures. Each figure is a label and a value, and may carry a
-change and a trend. The band is a description list: a figure's label is the term and everything
+change and a trend. A figure is only ever rendered inside its band, because its label and values
+are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
 after it is a value of that term, so a screen reader reads each figure as one statement.
 
 A figure is never broken across lines and never truncated. A band too narrow for its figures moves
 a figure onto the next row rather than let it overlap the one beside it. It also folds before
 plain wrapping would leave one figure alone on a row: four figures become two rows of two, and an
 odd count becomes one column. The band decides this from its own width and not the window's, because a band beside a rail and a band
-across a page are different widths at the same viewport. The widths below are the band's own
+across a page are different widths at the same viewport. Six or more figures wrap as they fit.
+Because it sizes from its own box, the band takes the width of the box it sits in: in a flex row or
+an `auto` grid track it has no width of its own, and the caller gives it one. The widths below are the band's own
 content box, measured in a browser over each layout at two, three and four figures of
 `€ 6,459,401`:
 
@@ -894,11 +897,12 @@ content box, measured in a browser over each layout at two, three and four figur
 A change shows which way it went with an arrow read off the sign the caller printed. Whether it is
 good news is the caller's to say, and colour follows that alone: a cost that rose is not painted as
 a success because it went up. A change with no earlier figure says so in words and is never shown
-as `+0%`.
+as `+0%`, and takes no tone, because there is no news to colour.
 
 A change says what it is measured against, in text a reader can reach: once for the whole band, in
-a caption every change points at, or beside the change when one figure is measured against
-something else. A hover `title` does not count, because a phone never shows one.
+the band's caption, which every change points at, or beside the change when one figure is measured against
+something else. A hover `title` does not count, because a phone never shows one. On a band with
+no changes, the caption says what the figures cover instead, such as the period.
 
 The trend is a slot. The kit sizes and colours the caller's `<svg>` and draws no chart.
 

@@ -39,8 +39,8 @@ export const RULES = [
       + 'an arrow, a signed number, and what it is measured against underneath.',
     dontCaption: 'The Overview card rejected in #267, rebuilt from the same kit parts. The figure sits '
       + 'at the card-title step, so the page\'s key numbers are the size of its headings, and the '
-      + 'change is a status chip: capitals, 10px, and its comparison only in a hover title.',
-    kit: [{ ref: 'src/styles/stat.css:42', pattern: 'font-size: var(--text-2xl);' }],
+      + 'change is a status chip: capitals, 10px, and nothing to say what it is measured against.',
+    kit: [{ ref: 'src/styles/stat.css:41', pattern: 'font-size: var(--text-2xl);' }],
   },
   {
     id: 'tone-not-direction',
@@ -65,7 +65,7 @@ export const RULES = [
       + 'falling figure is the green one. The arrow says which way each went.',
     dontCaption: 'Green for up and red for down. A rising cost is congratulated, and the cleanup '
       + 'the team did this year reads as a warning.',
-    kit: [{ ref: 'src/components/stat.js:38', pattern: "delta.tone !== 'neutral'" }],
+    kit: [{ ref: 'src/components/stat.js:43', pattern: "delta.tone !== 'neutral'" }],
   },
   {
     id: 'say-the-basis',
@@ -75,6 +75,6 @@ export const RULES = [
       + 'in a caption every change points at, or beside the one change measured against something '
       + 'else. A band that shows a change with neither fails stories/stat-basis.test.js, which is '
       + 'why this rule has no drawn don\'t.',
-    kit: [{ ref: 'src/components/stat.js:33', pattern: 'aria-describedby' }],
+    kit: [{ ref: 'src/components/stat.js:34', pattern: 'aria-describedby' }],
   },
 ];

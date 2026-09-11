@@ -22,7 +22,6 @@
 }
 
 .ui-stat { display: flex; flex-direction: column; flex: 1 1 0; min-width: min-content; }
-.ui-stat > dd { margin: 0; }
 
 .ui-stat__label {
   color: var(--dim);

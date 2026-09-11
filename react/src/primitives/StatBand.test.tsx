@@ -34,11 +34,16 @@ function shape(root: Element) {
   };
 }
 
-function vanilla(props: StatBandProps) {
+// Read in the document, so its caption id resolves, then taken out again: left
+// in, the React band's `aria-describedby` would resolve to the vanilla caption
+// and a wrong id on the React side would pass.
+function vanillaShape(props: StatBandProps) {
   const host = document.createElement('div');
   host.innerHTML = statBand({ ...props, stats: props.stats.map((s) => ({ ...s, trend: s.trend ? SVG : '' })) });
   document.body.append(host);
-  return host.firstElementChild as Element;
+  const out = shape(host.firstElementChild as Element);
+  host.remove();
+  return out;
 }
 
 const SVG = '<svg width="200" height="32" aria-hidden="true"></svg>';
@@ -72,7 +77,7 @@ const CASES: [string, StatBandProps][] = [
 describe('StatBand renders what statBand() renders', () => {
   for (const [name, props] of CASES) {
     it(name, () => {
-      const expected = shape(vanilla(props));
+      const expected = vanillaShape(props);
       const { container } = render(<StatBand {...props} />);
       expect(shape(container.firstElementChild as Element)).toEqual(expected);
     });

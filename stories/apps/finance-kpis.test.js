@@ -33,6 +33,9 @@ test('the skeleton sits in the band it stands in for', () => {
   const doc = docOf(Loading);
   const band = doc.querySelector('.ui-stats');
   assert.ok(band, 'the loading figures are not in a band, so they fold differently from what replaces them');
+  assert.equal(band.className, docOf(Default).querySelector('.ui-stats').className,
+    'the skeleton sits in a different layout from the figures that replace it');
+  assert.ok(band.querySelector('.ui-stats__basis'), 'the skeleton holds no place for the caption, so the card grows when it lands');
   const figures = band.querySelectorAll('.ui-stats__list > .ui-stat');
   assert.equal(figures.length, docOf(Default).querySelectorAll('.ui-stat').length,
     'the skeleton reserves a different number of figures than arrive');

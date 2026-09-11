@@ -34,10 +34,14 @@ export interface StatBandProps {
 
 const GLYPH = { up: 'arrowUp', down: 'arrowDown', flat: 'minus' } as const;
 // Read off the printed sign, as the factory does; the parity test holds the two together.
-const directionOf = (text: string) => (/^[-−–]/.test(text) ? 'down' : /^\+/.test(text) ? 'up' : 'flat');
+const directionOf = (text: string) => {
+  const t = text.trim();
+  return /^[-−–(]/.test(t) ? 'down' : /^\+/.test(t) ? 'up' : 'flat';
+};
+const hasChange = (d?: StatDelta): d is StatDelta & { value: string } => !!d && d.value != null && d.value !== '';
 
 function Delta({ delta, basisId }: { delta: StatDelta; basisId?: string }) {
-  if (delta.value == null || delta.value === '') {
+  if (!hasChange(delta)) {
     return <dd className="ui-stat__delta ui-stat__delta--none">{delta.none || 'No earlier figure'}</dd>;
   }
   const dir = delta.direction && GLYPH[delta.direction] ? delta.direction : directionOf(delta.value);
@@ -53,13 +57,13 @@ function Delta({ delta, basisId }: { delta: StatDelta; basisId?: string }) {
 export function StatBand({ stats, variant = 'band', basis, label, id }: StatBandProps) {
   const auto = useId();
   const v: StatVariant = ['band', 'tiles', 'open'].includes(variant) ? variant : 'band';
-  const basisId = basis ? `${id ?? auto}-basis` : undefined;
+  const basisId = basis ? `${id || auto}-basis` : undefined;
   const root = ['ui-stats', `ui-stats--${v}`, v === 'band' && 'ui-card'].filter(Boolean).join(' ');
   return (
-    <div className={root} role={label ? 'group' : undefined} aria-label={label}>
+    <div className={root} role={label ? 'group' : undefined} aria-label={label || undefined}>
       <dl className="ui-stats__list">
         {stats.map((s, i) => {
-          const tone = s.delta?.tone === 'good' || s.delta?.tone === 'bad' ? s.delta.tone : '';
+          const tone = hasChange(s.delta) && (s.delta.tone === 'good' || s.delta.tone === 'bad') ? s.delta.tone : '';
           const cls = ['ui-stat', tone && `ui-stat--${tone}`, v === 'tiles' && 'ui-card ui-card--pad-sm']
             .filter(Boolean).join(' ');
           return (

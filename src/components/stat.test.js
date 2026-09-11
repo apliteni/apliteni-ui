@@ -3,9 +3,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { stat, statBand, STAT_VARIANTS } from './stat.js';
+import { statBand, STAT_VARIANTS } from './stat.js';
+import { icon } from '../assets/icons.js';
 
-const dom = (html) => new JSDOM(`<!doctype html><body>${html}</body>`).window.document;
+const dom = (html) => new JSDOM(`<!doctype html><body>${html}</body></html>`).window.document;
+const one = (fig) => dom(statBand({ stats: [fig] }));
 const FOUR = [
   { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
   { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
@@ -27,33 +29,35 @@ test('a band is a description list, one group per figure, label as the term', ()
   assert.deepEqual([...dl.querySelectorAll('dt')].map((d) => d.textContent), FOUR.map((f) => f.label));
 });
 
-test('label, value and change are text, never markup', () => {
-  const doc = dom(stat({ label: '<b>x</b>', value: '<img src=x>', delta: { value: '+<i>1</i>%', basis: '<u>y</u>' } }));
-  assert.equal(doc.querySelectorAll('b, img, i, u').length, 0);
+test('label, value, change and caption are text, never markup', () => {
+  const doc = dom(statBand({
+    basis: '<s>c</s>',
+    label: '"><em>g</em>',
+    id: '"><q>i</q>',
+    stats: [{ label: '<b>x</b>', value: '<img src=x>', delta: { value: '+<i>1</i>%', basis: '<u>y</u>' } }],
+  }));
+  assert.equal(doc.querySelectorAll('b, img, i, u, s, em, q').length, 0);
   assert.equal(doc.querySelector('.ui-stat__value').textContent, '<img src=x>');
 });
 
+// The glyph drawn, compared against the three the kit ships, so swapping two
+// of them in the lookup fails here rather than passing on "they differ".
 test('the arrow follows the sign the caller printed', () => {
-  const arrow = (value, direction) => stat({ label: 'a', value: '1', delta: { value, direction } });
-  const up = arrow('+4%');
-  const down = ['−4%', '-4%', '–4%'].map((v) => arrow(v));
-  const flat = arrow('0.0%');
-  // Each glyph's first path differs, so compare against the three the kit draws.
-  assert.notEqual(up, flat);
-  for (const d of down) {
-    assert.notEqual(d, up, `${d} drew the up arrow for a negative change`);
-    assert.equal(d.replace(/[−–-]4%/, ''), down[0].replace(/[−–-]4%/, ''), 'the three minus signs draw different arrows');
-  }
-  assert.equal(arrow('4%', 'down').replace('4%', ''), down[0].replace('−4%', ''), 'an explicit direction is not honoured');
+  const glyph = (value, direction) => one({ label: 'a', value: '1', delta: { value, direction } })
+    .querySelector('.ui-stat__delta svg').outerHTML;
+  const [UP, DOWN, FLAT] = ['arrowUp', 'arrowDown', 'minus'].map((n) => dom(icon(n)).querySelector('svg').outerHTML);
+  assert.equal(glyph('+4%'), UP);
+  for (const v of ['−4%', '-4%', '–4%', ' −4.0%', '(4.0%)']) assert.equal(glyph(v), DOWN, `${v} drew the wrong arrow`);
+  for (const v of ['0.0%', '±0.0%']) assert.equal(glyph(v), FLAT, `${v} drew an arrow`);
+  assert.equal(glyph('4%', 'down'), DOWN, 'an explicit direction is not honoured');
 });
 
 test('tone is the caller\'s, and a rise is not good news by default', () => {
-  const rise = dom(stat({ label: 'Cost', value: '1', delta: { value: '+12%' } })).querySelector('.ui-stat');
-  assert.ok(!rise.className.includes('good') && !rise.className.includes('bad'), `a rise was painted: ${rise.className}`);
-  const fall = dom(stat({ label: 'Unclassified', value: '1', delta: { value: '−61%', tone: 'good' } })).querySelector('.ui-stat');
-  assert.ok(fall.classList.contains('ui-stat--good'), 'a fall the caller called good was not painted good');
-  const odd = dom(stat({ label: 'a', value: '1', delta: { value: '+1%', tone: 'great' } })).querySelector('.ui-stat');
-  assert.equal(odd.className, 'ui-stat', 'an unknown tone reached the class list');
+  const cls = (delta) => one({ label: 'a', value: '1', delta }).querySelector('.ui-stat').className;
+  assert.equal(cls({ value: '+12%' }), 'ui-stat', 'a rise was painted');
+  assert.equal(cls({ value: '−61%', tone: 'good' }), 'ui-stat ui-stat--good', 'a fall the caller called good was not painted good');
+  assert.equal(cls({ value: '+1%', tone: 'great' }), 'ui-stat', 'an unknown tone reached the class list');
+  assert.equal(cls({ value: null, tone: 'bad' }), 'ui-stat', 'a figure with no change was painted as news');
 });
 
 test('the band says once what every change is measured against, and each change points at it', () => {
@@ -84,23 +88,22 @@ test('two bands on one page never share a caption id', () => {
 });
 
 test('a change against nothing says so, with no arrow and no percentage', () => {
-  const none = dom(stat({ label: 'New', value: '€ 1', delta: { value: null } })).querySelector('.ui-stat__delta');
+  const none = one({ label: 'New', value: '€ 1', delta: { value: null } }).querySelector('.ui-stat__delta');
   assert.ok(none.classList.contains('ui-stat__delta--none'));
   assert.equal(none.textContent, 'No earlier figure');
   assert.equal(none.querySelector('svg'), null);
-  const worded = dom(stat({ label: 'New', value: '€ 1', delta: { value: '', none: 'New this year' } }));
+  const worded = one({ label: 'New', value: '€ 1', delta: { value: '', none: 'New this year' } });
   assert.equal(worded.querySelector('.ui-stat__delta').textContent, 'New this year');
 });
 
 test('a figure with no change and no trend is a label and a value', () => {
-  const doc = dom(stat({ label: 'Money in', value: '759,988 €' }));
-  assert.equal(doc.querySelectorAll('dd').length, 1);
+  assert.equal(one({ label: 'Money in', value: '759,988 €' }).querySelectorAll('dd').length, 1);
 });
 
 test('the trend is a slot: rendered as given, and only when given', () => {
   const svg = '<svg width="200" height="32" role="img" aria-label="t"></svg>';
-  assert.equal(dom(stat({ label: 'a', value: '1', trend: svg })).querySelector('.ui-stat__trend svg').getAttribute('aria-label'), 't');
-  assert.equal(dom(stat({ label: 'a', value: '1' })).querySelector('.ui-stat__trend'), null);
+  assert.equal(one({ label: 'a', value: '1', trend: svg }).querySelector('.ui-stat__trend svg').getAttribute('aria-label'), 't');
+  assert.equal(one({ label: 'a', value: '1' }).querySelector('.ui-stat__trend'), null);
 });
 
 test('each layout puts its surface where it says', () => {
