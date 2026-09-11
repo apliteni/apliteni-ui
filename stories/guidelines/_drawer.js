@@ -42,9 +42,9 @@ export const RULES = [
     imperative: 'Open a drawer to look at or change one record without leaving its list.',
     why: 'The list stays behind the scrim, so closing the drawer puts the reader back on the row '
       + 'they opened it from. A question with two answers is a confirm. Work that needs its own '
-      + 'address, runs past one screen or takes several steps is a page. Polaris has retired its '
-      + 'sheet and Atlassian is retiring its drawer, both in favour of a modal, so a kit that keeps '
-      + 'one should say what it is for: one record, seen or changed in place.',
+      + 'address, runs past one screen or takes several steps is a page. Polaris has deprecated its '
+      + 'sheet, and Atlassian\'s drawer page now reads "Please use Modal instead", so a kit that '
+      + 'keeps one should say what it is for: one record, seen or changed in place.',
     except: 'A short form is fine in a drawer, as Component choice says: filters, a new key, a '
       + 'reclassification. A form that takes steps or runs past one screen is a page.',
     kit: [{ ref: 'src/components/drawer.js:10', pattern: 'content over a scrim, focus-trapped, Esc-dismissable' }],

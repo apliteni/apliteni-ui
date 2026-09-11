@@ -314,7 +314,7 @@ their own numbers because a token would be the wrong unit:
 Each of these carries its reason at the declaration, as `/* motion: ambient — why */` or
 `/* motion: choreographed — why */`. There is no third kind and no unannotated exception. The
 `motion: still` note above answers a different question — whether a state change moves at all —
-and is not a way to keep a literal.
+and is not a way to keep a hand-written duration.
 
 `0.01ms` in the reduced-motion net is not a duration and is not tokenised. It is the kill-switch
 idiom: short enough to be imperceptible, non-zero so `transitionend` and `animationend` still fire
@@ -331,8 +331,13 @@ net. Taking both is harmless — every rule in it is idempotent and `!important`
 **Under reduced motion, a change happens at once.** Nothing slides, fades or loops, and a one-shot
 settles on its final frame. WCAG 2.3.3 would allow a fade here, since it does not count opacity as
 motion; the kit does not keep one, because a single net over every sheet is the only version a new
-component cannot forget. Measured in Chrome with reduced motion forced, every transition the drawer
-starts runs 0.01ms.
+component cannot forget.
+
+The net gives every element a 0.01ms transition, and a child whose `visibility` is inherited then
+turns visible one tick after its parent. An overlay that focuses a control in the frame it opens
+would find that control still hidden. So the drawer and the confirm cancel every transition inside
+them as they open, and focus lands where it does with motion on. Held by
+`stories/overlay-css.test.js`.
 
 Held by `stories/motion-tokens.test.js`, which reads the four tokens out of the table above at run
 time, resolves each through `tokens.css` into the brand primitive it aliases and checks the
@@ -619,8 +624,7 @@ it the keyboard.
 
 **It groups by heading, never by card.** `drawerSection()` puts a heading over a `<dl>` of label
 and value pairs, so a screen reader hears each label with its value. The value sits beside its
-label rather than at the far edge of the panel. Nothing then has to lead the eye across the gap,
-which is the job a rule under every row was doing.
+label rather than at the far edge of the panel, and no row carries a rule.
 
 **It draws no line inside itself.** There is no rule under the header, over the footer or between
 groups; the panel's edge is the only line. The header holds its place by spacing and weight, and a
