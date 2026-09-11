@@ -107,12 +107,17 @@
 .ui-drawer--top.ui-drawer--lg, .ui-drawer--bottom.ui-drawer--lg { --drawer-h: 72vh; }
 
 /* -- Slots ----------------------------------------------------------------- */
+/* The header keeps its rule, and the footer keeps its. A drawer's normal state is a
+   long record scrolling, and those two lines are what say where the scrolling body
+   ends: the one place inside the panel a line still earns.
+   why: docs/specification.md#the-drawer */
 .ui-drawer__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
   flex: none;
 }
 /* An h2, and base.css would give it the display face. It opts out: at 15px in a
@@ -165,6 +170,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 20px;
+  border-top: 1px solid var(--border);
   background: var(--surface-2);
   flex: none;
 }
@@ -172,9 +178,15 @@
 /* -- Groups and rows ------------------------------------------------------- */
 /* drawerSection(): a heading over label/value rows. The value sits beside its
    label rather than at the far edge, so nothing has to lead the eye across the
-   panel, and rows are held apart by space alone.
+   panel, and rows are held apart by space alone. Group from group is the one
+   division inside the body worth a line; the body's padding insets it, so it
+   parts the groups without cutting the panel in two.
    why: docs/specification.md#the-drawer */
-.ui-drawer__section + .ui-drawer__section { margin-top: var(--space-8); }
+.ui-drawer__section + .ui-drawer__section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
 /* An h3, and it opts out of the display face for the reason .ui-drawer__title does.
    why: docs/specification.md#typefaces */
 .ui-drawer__section-title {

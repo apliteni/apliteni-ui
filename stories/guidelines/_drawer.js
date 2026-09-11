@@ -4,7 +4,7 @@ import { drawer, drawerSection } from '../../src/components/drawer.js';
 
 export const TITLE = 'Drawers';
 
-export const BLURB = 'When to open a panel over the list, and how little it needs to separate its parts.';
+export const BLURB = 'When to open a panel over the list, and how few lines it needs to separate its parts.';
 
 // A drawer is position: fixed, so each specimen is held inside a frame of its
 // own. The panel is narrowed so a strip of scrim shows beside it: a drawer with
@@ -54,8 +54,8 @@ export const RULES = [
     imperative: 'Group a drawer\'s content under headings. Never put a card inside one.',
     doHtml: () => frame(GROUPS.map((g) => drawerSection(g)).join('')),
     dontHtml: () => frame(GROUPS.map((g) => card({ body: drawerSection(g) })).join('')),
-    doCaption: 'Three groups, each a heading over its rows. The panel is the container, and a '
-      + 'heading is all the structure a group needs inside it.',
+    doCaption: 'Three groups, each a heading over its rows, parted by one line. The panel is the '
+      + 'container, and a heading is all the structure a group needs inside it.',
     dontCaption: 'The same groups, each in a card: a box inside the panel\'s box, and every card '
       + 'edge is one more line to read past.',
     why: 'The panel already has an edge, a surface and a shadow, which is everything a card would '
@@ -64,18 +64,23 @@ export const RULES = [
       + 'bordered cards stacked in a bordered panel.',
     kit: [
       { ref: 'src/components/drawer.js:88', pattern: 'export function drawerSection(' },
-      { ref: 'src/styles/drawer.css:177', pattern: '.ui-drawer__section + .ui-drawer__section' },
+      { ref: 'src/styles/drawer.css:185', pattern: '.ui-drawer__section + .ui-drawer__section' },
     ],
   },
   {
-    id: 'no-lines',
-    imperative: 'Draw no line inside the panel. Its edge is the only one.',
-    why: 'Not under the header, not over the footer, not between groups. The report in #272 was '
-      + 'about the lines, and every one of them was a line inside the panel. Fluent and shadcn draw '
-      + 'no header or footer rule; Primer draws its footer rule only when the body scrolls. The kit '
-      + 'takes the quiet side: the header holds its place by spacing and weight, and a long body '
-      + 'scrolls under it.',
-    kit: [{ ref: 'src/styles/drawer.css:110', pattern: '.ui-drawer__header {' }],
+    id: 'three-lines',
+    imperative: 'Draw three lines: under the header, over the footer, and one between each group '
+      + 'and the next. Draw no others.',
+    why: 'A drawer\'s normal state is a long record scrolling, and the two lines the header and '
+      + 'the footer hold are what say where that scrolling stops. Take them away and the first row '
+      + 'slides under the title with nothing to meet. Inside the body the line has one job left, '
+      + 'which is parting a group from the group above it; a rule under every row is the fault #272 '
+      + 'reported. Ant and Primer keep a header and footer rule, Primer\'s once the body scrolls; '
+      + 'Material draws a divider between unrelated sections and none inside one.',
+    kit: [
+      { ref: 'src/styles/drawer.css:114', pattern: '.ui-drawer__header {' },
+      { ref: 'src/styles/drawer.css:185', pattern: '.ui-drawer__section + .ui-drawer__section {' },
+    ],
   },
   {
     id: 'rows',
@@ -96,7 +101,7 @@ export const RULES = [
       + 'table() and right-align them there.',
     kit: [
       { ref: 'src/components/drawer.js:92', pattern: '<dl class="ui-drawer__rows">' },
-      { ref: 'src/styles/drawer.css:200', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
+      { ref: 'src/styles/drawer.css:212', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
     ],
   },
 ];

@@ -79,8 +79,9 @@ export const Sizes = {
 };
 
 // ---- A record: the drawer's default look (#272) ----------------------
-// Groups under headings, each value beside its label, and no line anywhere
-// inside the panel. One fabricated transaction.
+// Groups under headings, each value beside its label, and the panel's three
+// lines: under the header, over the footer, one between each group and the
+// next. One fabricated transaction.
 const RECORD = [
   { rows: [
     ['Amount', '€ 12,480.50'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments'],

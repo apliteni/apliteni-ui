@@ -1,13 +1,15 @@
-/* Rule: nothing inside a drawer panel draws a line or a box of its own (#272) — no
- * card, no ruled row, no <hr>, and no line between the header, the body and the footer.
+/* Rule: a drawer panel draws three lines and no others (#272) — one under its header,
+ * one over its footer, and one between each group and the next. No card, no ruled row,
+ * no <hr>, and no edge the body draws for itself.
  *
  * Every story is rendered in both themes into a jsdom carrying the kit's stylesheets,
  * and every panel that comes out is measured, cascade resolved. A card is `.ui-card`,
  * or any box inside the panel with all four edges drawn that is not a form control or
  * a button and does not sit inside one. A ruled row is anything else inside the panel
- * with a line on its top or bottom edge that does not also draw both sides. The lines
- * between the parts are the header's bottom edge, the footer's top edge and the body's
- * top and bottom edges.
+ * with a line on its top or bottom edge that does not also draw both sides — the group
+ * separator excepted, which is a `.ui-drawer__section` following another and drawing a
+ * line on its top edge alone. The gate reads the three lines both ways: a line the
+ * panel should not draw fails, and so does one of the three gone missing.
  *
  * jsdom drops logical border properties, so `border-block-end` computes to nothing:
  * they are rewritten to physical ones before any CSS goes in, for the horizontal,
@@ -15,6 +17,8 @@
  *
  * Ledger, what a pass does not say:
  * - Nothing about a drawer a consumer fills outside this repo.
+ * - Nothing about how far apart the groups sit, or how heavy the three lines are: this
+ *   reads whether a border is drawn, not the space or the colour around it.
  * - A line drawn by an inset box-shadow, an outline, a background or a pseudo-element
  *   is not read: jsdom computes no style for ::before or ::after.
  * - A logical border is read as horizontal, left-to-right writing puts it; in a
@@ -92,37 +96,61 @@ const CONTROL = 'input, select, textarea, button, a[href], [role="button"], [rol
   + '[role="radio"], [role="textbox"], [role="combobox"], [contenteditable]';
 const SLOT = '.ui-drawer__header, .ui-drawer__body, .ui-drawer__footer';
 
-/** What one panel draws inside itself, as plain data. */
+/** A group that follows another group: the one element inside the body allowed a line. */
+const follows = (el) => el.classList.contains('ui-drawer__section')
+  && !!el.previousElementSibling?.classList?.contains('ui-drawer__section');
+
+/** What one panel draws inside itself, and what it fails to draw, as plain data. */
 function measure(win, panel, where) {
   const style = (el) => win.getComputedStyle(el);
   const inside = [...panel.querySelectorAll('*')].filter((el) => !el.matches(SLOT));
   const hr = (el) => el.tagName === 'HR' && style(el).display !== 'none';
   const edge = (sel, side, said) => [...panel.querySelectorAll(sel)].filter((el) => drawn(style(el), side)).map(() => said);
+  const lacks = (sel, side, said) => [...panel.querySelectorAll(sel)].filter((el) => !drawn(style(el), side)).map(() => said);
+  // A group separator is a line on the top edge and nothing else. A group that draws
+  // its bottom edge too puts two lines in one gap, so it stays a ruled row.
+  const separator = (el) => follows(el) && drawn(style(el), 'top') && !drawn(style(el), 'bottom');
   return {
     where,
     cards: inside
       .filter((el) => el.classList.contains('ui-card') || (!hr(el) && !el.closest(CONTROL) && fourSided(style(el))))
       .map((el) => selectorPath(el)),
-    ruledRows: inside.filter((el) => hr(el) || isRule(style(el))).map((el) => selectorPath(el)),
-    edges: [
-      ...edge('.ui-drawer__header', 'bottom', 'a line under the header'),
-      ...edge('.ui-drawer__body', 'top', 'a line on the body\'s top edge, under the header'),
-      ...edge('.ui-drawer__body', 'bottom', 'a line on the body\'s bottom edge, over the footer'),
-      ...edge('.ui-drawer__footer', 'top', 'a line over the footer'),
+    ruledRows: inside
+      .filter((el) => hr(el) || (isRule(style(el)) && !separator(el)))
+      .map((el) => selectorPath(el)),
+    strayEdges: [
+      ...edge('.ui-drawer__body', 'top', 'a line on the body\'s top edge, under the header\'s own'),
+      ...edge('.ui-drawer__body', 'bottom', 'a line on the body\'s bottom edge, under the footer\'s own'),
     ],
+    unframed: [
+      ...lacks('.ui-drawer__header', 'bottom', 'a header with no line under it'),
+      ...lacks('.ui-drawer__footer', 'top', 'a footer with no line over it'),
+    ],
+    unparted: inside.filter((el) => follows(el) && !drawn(style(el), 'top')).map((el) => selectorPath(el)),
   };
 }
 
+// Two groups, the shape the separator is about, for the faults that need one.
+const GROUPS = '<section class="ui-drawer__section"><h3 class="ui-drawer__section-title">One</h3>'
+  + '<dl class="ui-drawer__rows"><div class="ui-drawer__row"><dt>Amount</dt><dd>12.00</dd></div></dl></section>'
+  + '<section class="ui-drawer__section"><h3 class="ui-drawer__section-title">Two</h3>'
+  + '<dl class="ui-drawer__rows"><div class="ui-drawer__row"><dt>Source</dt><dd>Bank feed</dd></div></dl></section>';
+
 // Each fault written on purpose, so a pass reads "looked, and found none" rather than
-// "could not see". Drawn the way a page would draw it by hand, one per panel.
+// "could not see". Drawn the way a page would draw it by hand, one per panel. The last
+// three take a line away instead of adding one: the header's, the footer's and the one
+// between the groups are the three this drawer is supposed to have.
 const FAULTS = [
-  { fault: 'a line under the header', kind: 'edges', css: '.zz-fault .ui-drawer__header { border-bottom: 1px solid var(--border); }' },
-  { fault: 'a line over the footer', kind: 'edges', css: '.zz-fault .ui-drawer__footer { border-top: 1px solid var(--border); }' },
-  { fault: 'a line on the body\'s top edge', kind: 'edges', css: '.zz-fault .ui-drawer__body { border-top: 1px solid var(--border); }' },
-  { fault: 'a logical line under the header', kind: 'edges', css: '.zz-fault .ui-drawer__header { border-block-end: 1px solid var(--border); }' },
+  { fault: 'a line on the body\'s top edge', kind: 'strayEdges', css: '.zz-fault .ui-drawer__body { border-top: 1px solid var(--border); }' },
+  { fault: 'a rule under every row', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__row dt, .zz-fault .ui-drawer__row dd { border-bottom: 1px solid var(--border); }' },
+  { fault: 'a logical rule under a group', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__section { border-block-end: 1px solid var(--border); }' },
+  { fault: 'a rule over the first group, where there is nothing to part it from', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__section { border-top: 1px solid var(--border); }' },
   { fault: 'a ruled title', kind: 'ruledRows', css: '.zz-fault .ui-drawer__title { border-bottom: 1px solid var(--border); }' },
   { fault: 'an <hr> in the body', kind: 'ruledRows', body: '<p>Above</p><hr><p>Below</p>' },
   { fault: 'a box drawn by hand', kind: 'cards', body: '<div style="border: 1px solid var(--border); padding: 12px">Boxed</div>' },
+  { fault: 'the header\'s line taken away', kind: 'unframed', css: '.zz-fault .ui-drawer__header { border-bottom: 0; }' },
+  { fault: 'the footer\'s line taken away', kind: 'unframed', css: '.zz-fault .ui-drawer__footer { border-top: 0; }' },
+  { fault: 'the line between the groups taken away', kind: 'unparted', body: GROUPS, css: '.zz-fault .ui-drawer__section + .ui-drawer__section { border-top: 0; }' },
 ];
 
 /** Every drawer panel in every story, split into subjects and don'ts, and the faults. */
@@ -213,16 +241,27 @@ for (const theme of THEMES) {
       offences, [],
       'an element inside a drawer draws a rule on its top or bottom edge, or is an <hr>. Rows are held '
       + 'apart by space, and each value sits beside its label so nothing has to lead the eye '
-      + 'across:\n  ' + offences.join('\n  '),
+      + 'across. The one line the body draws parts a group from the group above it:\n  '
+      + offences.join('\n  '),
     );
   });
 
-  test(`[${theme}] no drawer draws a line between its header, body and footer`, () => {
-    const offences = subjects.flatMap((s) => s.edges.map((e) => `${s.where}  ${e}`));
+  test(`[${theme}] every drawer is framed: a line under the header, one over the footer, none the body draws`, () => {
+    const offences = subjects.flatMap((s) => [...s.unframed, ...s.strayEdges].map((e) => `${s.where}  ${e}`));
     assert.deepStrictEqual(
       offences, [],
-      'a drawer draws a line between its header or footer and its body. The panel\'s edge is the '
-      + 'only line a drawer draws:\n  ' + offences.join('\n  '),
+      'a drawer has lost the line under its header or over its footer, or the body has drawn an edge of '
+      + 'its own. Those two lines are what say where a scrolling body ends, and they belong to the '
+      + 'header and the footer:\n  ' + offences.join('\n  '),
+    );
+  });
+
+  test(`[${theme}] one line parts each group from the group above it`, () => {
+    const offences = subjects.flatMap((s) => s.unparted.map((p) => `${s.where}  ${p}`));
+    assert.deepStrictEqual(
+      offences, [],
+      'a group follows another group with no line between them. A heading and space alone leave a long '
+      + 'record with nothing to divide it:\n  ' + offences.join('\n  '),
     );
   });
 

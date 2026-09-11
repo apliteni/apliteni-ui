@@ -627,9 +627,11 @@ it the keyboard.
 and value pairs, so a screen reader hears each label with its value. The value sits beside its
 label rather than at the far edge of the panel, and no row carries a rule.
 
-**It draws no line inside itself.** There is no rule under the header, over the footer or between
-groups; the panel's edge is the only line. The header holds its place by spacing and weight, and a
-long body scrolls under it.
+**It draws three lines and no others.** One under the header, one over the footer, and one between
+each group and the next. A drawer's normal state is a long record scrolling, and the header's line
+and the footer's are what say where that scrolling stops. Inside the body the one division worth
+drawing is group from group, inset by the body's padding; no row carries a rule, and nothing else
+inside the panel draws one.
 
 **It moves on open and on close.** The panel slides in from the edge it is anchored to while the
 scrim fades, both on `--dur-med` and `--ease`. It leaves the same way. Under reduced motion both
@@ -639,11 +641,14 @@ Held by `stories/drawer-rules.test.js`. It renders every story in both themes in
 the kit's stylesheets and measures every drawer panel that comes out, cascade resolved. Anywhere
 inside the panel a card fails — `.ui-card`, or any box with all four edges drawn that is not a form
 control or a button and does not sit inside one — and so does an `<hr>`, and any element with a
-border on its top or bottom edge that does not also draw both sides. So does a line between the
-header, the body and the footer, on either side of it. Logical borders are read as the physical ones
-they are in horizontal, left-to-right writing. A specimen inside `[data-specimen="dont"]` is a
-picture of the fault rather than a subject; the gate uses those, and one fault of each kind it writes
-itself, to prove it can see every fault at all.
+border on its top or bottom edge that does not also draw both sides. The group separator is the one
+exception: a `.ui-drawer__section` that follows another and draws a line on its top edge alone. The
+gate reads the three lines in both directions, so a header with no line under it, a footer with none
+over it, a group with none above it, and an edge the body draws for itself each fail too. Logical
+borders are read as the physical ones they are in horizontal, left-to-right writing. A specimen
+inside `[data-specimen="dont"]` is a picture of the fault rather than a subject; the gate uses those,
+and one fault of each kind it writes itself — lines added and lines taken away — to prove it can see
+every fault at all.
 
 Decided in [#272](https://github.com/apliteni/apliteni-ui/issues/272) and
 [#271](https://github.com/apliteni/apliteni-ui/issues/271).
