@@ -2,10 +2,6 @@
 
 Closes #272. Closes #271.
 
-**[waiting: drawer default].** The question of A, B or C went to Artur with the screenshots below.
-It timed out unanswered and is still open. A, my recommendation, is applied so everything else
-could be finished and reviewed; B or C is a two-line change to `src/styles/drawer.css`.
-
 ## Premises
 
 **What this is about.** The Finance portal's transaction drawer is noisy, with a rule under
@@ -28,8 +24,9 @@ said nothing about either.
   duration to 0.01ms, so that fade never ran.
 
 **What I did.** Wrote drawer and motion guidelines, each rule held by a gate. Gave the drawer a
-heading-and-rows slot and a quieter default, chosen from three variants. Gave the React side a
-`Drawer` and a `Modal` that move. Answered #271's first-pass question with an inventory.
+heading-and-rows slot and a quieter default, picked by Artur from three rendered variants. Gave
+the React side a `Drawer` and a `Modal` that move. Answered #271's first-pass question with an
+inventory.
 
 **The verdict: Changed.** Both problems are live, and the cause is in the React package rather
 than the drawer the issues assume.
@@ -135,23 +132,29 @@ the far edge of the panel.
 | | Lines inside the panel on this record | What you live with |
 |---|---|---|
 | Today | about 17 | the report |
-| **A, space only** *(applied, recommended)* | 0 | a long record scrolls under the header and the footer with nothing marking where either ends |
-| B, one rule per group | 4: header, footer, two between groups | still some lines, but the header and footer stay framed while the body scrolls |
+| A, space only | 0 | a long record scrolls under the header and the footer with nothing marking where either ends |
+| **B, one rule per group** *(chosen, and the default)* | 4: header, footer, two between groups | some lines still, and the header and footer stay framed while the body scrolls |
 | C, filled groups | 0, and three tinted blocks | a third surface tone, and in dark it is the heaviest of the three |
 
-A is recommended because the complaint was the lines, and A is the only one with none. To take
-B instead: restore `border-bottom` on `.ui-drawer__header` and `border-top` on
-`.ui-drawer__footer`, add a top rule to `.ui-drawer__section + .ui-drawer__section`, and drop the
-header and footer test from `stories/drawer-rules.test.js`.
+**Artur picked B**, on 2026-09-11, from those frames. A drawer's normal state is a long record
+scrolling under its header, and B is the one variant that stays framed while it does. A buys no
+lines at the price of no scroll edge; C gets there without lines but adds a third surface tone,
+and in dark it is the heaviest of the three.
+
+B is the smallest of the three in the diff: the line under the header and the line over the
+footer are the ones the drawer already had on `main`, so `src/styles/drawer.css` keeps them
+untouched and the only rule this PR adds inside the panel is the one between groups. Every row
+still holds its neighbour apart with space alone.
 
 ## What changed
 
 - **Drawer.** `drawerSection({ title, rows, body })` puts a heading over a `<dl>` of label and
-  value rows. Labels and values are escaped; a value passed as `{ html }` is trusted markup. No
-  line is drawn inside the panel. The drawer's and the confirm's dead
-  reduced-motion blocks are gone.
+  value rows. Labels and values are escaped; a value passed as `{ html }` is trusted markup. One
+  rule parts a group from the group above it, and nothing else inside the panel draws a line —
+  the header's and the footer's are the two the drawer already had. The drawer's and the
+  confirm's dead reduced-motion blocks are gone.
 - **Guidelines / Drawers** has four rules: one record per drawer; group under headings and never
-  put a card inside; set each value beside its label; draw no line inside the panel.
+  put a card inside; draw three lines and no others; set each value beside its label.
 - **Guidelines / Motion** has four rules: move what appears or leaves after load; time a change
   by what moves (150, 250 or 400ms); take the kit's curves; change at once under reduced motion.
 - **React.** A new `Drawer` renders the vanilla `drawer()` markup class for class, with a parity
@@ -191,30 +194,30 @@ results as before; the React walk's check that every `var()` resolves passes.
 
 The Finance portal's transaction drawer as it was reported — three bordered cards inside a bordered panel, a rule under every row — is the first screenshot in #272; it is not copied here because GitHub attachment URLs carry a UUID the repo's denylist refuses.
 
-**After**: the kit's drawer on the same kind of record, default A.
+**After**: the kit's drawer on the same kind of record, default B.
 
-![Drawer, final, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-final-light.png)
+![Drawer, final, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-final-light.png)
 
-![Drawer, final, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-final-dark.png)
+![Drawer, final, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-final-dark.png)
 
 **Motion**, which a still screenshot cannot show. Each sheet is six frames of one real opening
 in Chrome, taken by pausing the running transitions at fixed times after the click. With motion
 on, opening starts two 250ms transitions: the scrim's opacity and the panel's transform.
 
-![Drawer opening, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-open-frames-dark.png)
+![Drawer opening, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-open-frames-dark.png)
 
-![Drawer opening, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-open-frames-light.png)
+![Drawer opening, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-open-frames-light.png)
 
 Under forced reduced motion the drawer is open in the first frame. Before the focus fix below,
 Chrome listed every transition it started at 0.01ms; now opening starts none inside the panel.
 
-![Drawer opening under reduced motion](https://raw.githubusercontent.com/apliteni/apliteni-ui/9adc62c8bac59a337449b3245e3eba9fbdac0932/docs/evidence/drawer-open-frames-reduced-dark.png)
+![Drawer opening under reduced motion](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-open-frames-reduced-dark.png)
 
 **The guideline pages**
 
-![Guidelines / Drawers, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-guidelines-light.png)
+![Guidelines / Drawers, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-guidelines-light.png)
 
-![Guidelines / Drawers, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-guidelines-dark.png)
+![Guidelines / Drawers, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/ab18a3ff32d6d9275fbefa1784cc0bd1fc0ced45/docs/evidence/drawer-guidelines-dark.png)
 
 ![Guidelines / Motion, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/motion-guidelines-light.png)
 
@@ -224,7 +227,7 @@ Chrome listed every transition it started at 0.01ms; now opening starts none ins
 
 ```
                           main (c9a48c8)     this branch
-root   npm test           1126 (2 skipped)   1170 (2 skipped, 0 failing)
+root   npm test           1126 (2 skipped)   1171 (2 skipped)
 react  vitest run          213               271
 react  dist/index.css      1.55 KB           1.80 KB
 ```
@@ -233,9 +236,9 @@ The real tails, from the tree this body describes:
 
 ```
 $ npm test
-ℹ tests 1170
+ℹ tests 1171
 ℹ pass 1168
-ℹ fail 0
+ℹ fail 1           (a wall clock, and main fails it here too — see below)
 ℹ skipped 2        (the same two as on main: the accent matrix and the built-Storybook index)
 
 $ cd react && npx vitest run
@@ -244,9 +247,21 @@ $ cd react && npx vitest run
 
 $ npm run build
 ESM dist/index.css 1.80 KB
-ESM ⚡️ Build success in 68ms
-DTS ⚡️ Build success in 1746ms
+ESM ⚡️ Build success in 160ms
+DTS ⚡️ Build success in 3450ms
 ```
+
+**The one failure is a clock, not a measurement.** It is `stories/contrast.test.js`'s "the walk
+has not run away with the clock", which holds the contrast walk to 120s. The default was switched
+to B on a shared 8-core machine running several agents at once: the walk took 213.1s here. On the
+same machine in the same hour, `origin/main` at c9a48c8 takes 270.9s and fails the same assertion
+— 1126 tests, 1123 pass, 1 fail, 2 skipped. The 21 contrast measurements themselves pass on both,
+this branch does not touch `stories/contrast.test.js`, and nothing it changes is on that path.
+The 0-failing tail this branch carried earlier was measured on a different machine, where the
+walk came in under the ceiling.
+
+Run against `a3dfaa0` — the commit before the switch to B — on the same machine, the test list
+differs only by this change's own two tests out and four in.
 
 ## Proof
 
@@ -257,7 +272,8 @@ DTS ⚡️ Build success in 1746ms
 - [x] Focus on open measured in Chrome before and after the reduced-motion fix, for all three
       overlays.
 - [x] Every new rule is held by a gate, and each gate was broken on purpose to watch it fail:
-  - a rule under every drawer row → `drawer-rules.test.js` red;
+  - a rule under every drawer row, a box around every group, the rule between groups deleted and
+    the header's rule deleted → `drawer-rules.test.js` red, all four re-run after the switch to B;
   - the tabs entrance deleted → `motion-coverage.test.js` red;
   - `transition-duration` deleted from the net → `reduced-motion.test.js` red;
   - toasts' fallback timer deleted → the end-event check red, where the old rule passed on
@@ -267,7 +283,8 @@ DTS ⚡️ Build success in 1746ms
   - every React dialog handling keys instead of only the top one → the three nested tests red;
   - the React `Modal` put back at `z-index: 50` → "a React modal paints above a drawer" red;
   - sixteen more on the tightened drawer, reduced-motion and coverage gates, listed under Review.
-- [ ] **Artur's pick of the drawer default.** Asked, timed out unanswered, still open.
+- [x] **Artur's pick of the drawer default.** B, on 2026-09-11, from the rendered variants;
+      the record is below.
 - [ ] **Exercised in the Finance portal.** Not done and not claimed: the portal installs a
       published version. What settles it is the portal replacing its `Modal` and
       `transaction-drawer.css` with `<Drawer>` and `drawerSection`-shaped rows.
@@ -306,13 +323,18 @@ fault present, then red after the fix:
   `display` transition as motion, and its list of state hooks missed some the kit uses.
 
 Sixteen mutations prove it: each one stayed green before the fix and turns red after. They are a
-border on the body, a border under the title, a header `border-block-end`, an `<hr>`, a
-hand-bordered box, a deleted drawer story, a `no-preference` block, `! important` with a space, a
-React `onTransitionEnd` with no timer, an `!important` duration and an infinite loop inside a
-component's reduced-motion block, `tabs.js` no longer calling `playEntrance`, and a tick shown by
-a `display` transition. The coverage gate now finds 37 state rules; three new ones came from the
-wider hook list and each is decided. The switch knob and the upward dropdown already moved. The
-checkbox tick's turn is left still, with its reason at the rule.
+border on the body, a border under the title, a logical `border-block-end` under a group, an
+`<hr>`, a hand-bordered box, a deleted drawer story, a `no-preference` block, `! important` with
+a space, a React `onTransitionEnd` with no timer, an `!important` duration and an infinite loop
+inside a component's reduced-motion block, `tabs.js` no longer calling `playEntrance`, and a tick
+shown by a `display` transition. The coverage gate now finds 37 state rules; three new ones came
+from the wider hook list and each is decided. The switch knob and the upward dropdown already
+moved. The checkbox tick's turn is left still, with its reason at the rule.
+
+**The drawer gate, rewritten for B.** It reads the three lines in both directions now: a line the
+panel should not draw fails, and so does one of the three gone missing. Four mutations were run
+against this tree — the rule between groups deleted, the header's rule deleted, a rule under every
+row, and a box around every group. Each turns it red, and the tree with none of them is green.
 
 **Also fixed.** `drawerSection()` wrote its row values as markup while escaping its labels, and
 the obvious input is bank-feed data. Values are now escaped, and `{ html }` passes trusted markup.
@@ -327,8 +349,9 @@ reduced motion runs 0.01ms. After the focus fix, opening starts none. The prose 
 **Not fixed, on purpose.**
 
 - No version bump and no changelog entry, per the brief; see "Changelog entry" below.
-- Variant A leaves no edge between a scrolling body and the header or footer. That is A's cost,
-  stated in the table above, and one reason to pick B.
+- A and C do not ship as options. They were rendered for the decision and nothing more: the kit
+  has one drawer default, and a gate that holds it. A consumer who wants A takes the two rules
+  off in its own sheet and loses the gate with them.
 - A `setTimeout` anywhere in the function counts as the fallback for an end-event listener. The
   gate says so in its ledger; telling a fallback from an unrelated timer needs a parser.
 - The `motion-css` rule parser misreads nested rules and braces inside strings. Nothing in the
@@ -336,8 +359,10 @@ reduced motion runs 0.01ms. After the focus fix, opening starts none. The prose 
 
 ## What a reviewer should push on
 
-- **Default A was applied before Artur picked.** The question timed out, so it is my
-  recommendation standing in for his call.
+- **The default is B, and B is not the quietest of the three.** The complaint in #272 was the
+  lines, and A removes every one of them. B keeps four on this record because a drawer that
+  scrolls needs an edge at each end and a long record needs dividing; that is a judgement about
+  the normal case, not about this screenshot, and it is the one Artur made.
 - **Reduced motion means instant, not a fade.** WCAG and Apple would allow a fade. The kit keeps
   the one net it already had (#200), because a net over every sheet is the only version a new
   component cannot forget.
@@ -352,14 +377,22 @@ reduced motion runs 0.01ms. After the focus fix, opening starts none. The prose 
 - **`PR.md` at the repository root** carried #279's body. This branch replaces it with this one,
   because that file is how a pull request is opened from this machine.
 
+## Decision record for the issues
+
+**The drawer's default look, for #272.** Chosen: **B, one rule per group** — the line under the
+header, the line over the footer, and one between each group, with nothing between rows. Rejected:
+**A, space only**, which takes every line out and with them the edge that says where a scrolling
+body ends; and **C, filled groups**, which needs no lines but pays for it with a third surface
+tone, and in dark reads heaviest of the three. Decided by Artur on 2026-09-11, from the variants
+rendered above in both themes rather than from a description of them.
+
 ## Changelog entry
 
 Not added to `docs/changelog.md` and no version bump, per the brief; the coordinator sequences
 versions at merge. The entry this would take:
 
 - **Added** `drawerSection({ title, rows, body })`: a drawer group, a heading over label and
-  value rows (#272).
-- **Changed (visible)** The drawer draws no line under its header or over its footer (#272).
+  value rows, parted from the group above it by one rule (#272).
 - **Added** React `Drawer`, the HTML drawer's markup, slide and scrim (#271, #272).
 - **Changed (visible)** React `Modal` fades in and out, and stays mounted until its exit ends,
   about 250ms after `open` turns false. A test that expects it gone at once needs to wait for
