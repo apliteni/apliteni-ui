@@ -66,7 +66,11 @@ test('a script is not a destination, however it is spelt', () => {
   for (const href of [
     'javascript:history.back()', 'JavaScript:history.go(-1)', '  javascript:void 0',
     '\tjavascript:history.back()', '\u0001javascript:history.back()',
+    'java\tscript:history.back()', 'java\nscript:history.back()', 'javascript\r:history.back()',
+    'j\r\nava\tscript:history.back()',
   ]) {
+    // Each one is read as javascript: by the URL parser the browser uses, so none is a straw man.
+    assert.equal(new URL(href, 'https://kit.test/').protocol, 'javascript:', `href ${JSON.stringify(href)}`);
     assert.equal(backLink({ href, label: 'Invoices' }), '', `href ${JSON.stringify(href)}`);
   }
 });

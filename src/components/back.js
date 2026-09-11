@@ -13,10 +13,13 @@ import { esc, icon } from './index.js';
 const BARE = 'Back';
 
 // A `javascript:` address is the history walk this component replaces, arriving
-// through the one parameter it has. The browser strips leading whitespace and
-// control characters before it reads a scheme, so the check strips them too.
+// through the one parameter it has. Before a browser reads the scheme it strips
+// C0 controls and spaces from the front and removes every tab, LF and CR wherever
+// they sit, so "java\tscript:" is still javascript:. The check reads the address the
+// same way (WHATWG URL Standard, basic URL parser).
 const SCRIPTED = /^javascript:/i;
 const LEADING = /^[\u0000-\u0020]+/;
+const TAB_OR_NEWLINE = /[\t\n\r]/g;
 
 // A label that already says "Back to Invoices" names the place after those words, or the
 // link would be read as "Back to Back to Invoices". The whole phrase, since "Backups" and
@@ -38,7 +41,7 @@ const text = (v) => (typeof v === 'string' || typeof v === 'number' ? String(v).
  */
 export function backLink({ href, label } = {}) {
   const to = text(href);
-  if (!to || SCRIPTED.test(to.replace(LEADING, ''))) return '';
+  if (!to || SCRIPTED.test(to.replace(LEADING, '').replace(TAB_OR_NEWLINE, ''))) return '';
   const name = text(label).replace(SAID, '');
   const bare = !name || name.toLowerCase() === BARE.toLowerCase();
   const shown = bare ? BARE : name;
