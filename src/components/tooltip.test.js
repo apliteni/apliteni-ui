@@ -383,6 +383,23 @@ test('Escape dismisses it, and it returns on the next mark, not the same one', (
   assert.ok(tip.classList.contains('is-open'));
 });
 
+test('after Escape, crossing the gap between marks does not bring it back on the same one', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+  pointer(window, m1, 'pointerover');
+  doc.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  pointer(window, doc.querySelector('svg'), 'pointerover');
+  pointer(window, m1, 'pointerover');
+  assert.equal(tip.classList.contains('is-open'), false,
+    'the pointer never left the host, so this is still the mark it was dismissed from');
+  pointer(window, doc.getElementById('host'), 'pointerleave');
+  pointer(window, m1, 'pointerover');
+  assert.ok(tip.classList.contains('is-open'), 'leaving the host ends the dismissal');
+});
+
 test('Escape takes the mark\'s description with the readout', () => {
   const window = mount(MARKS + tooltip());
   const doc = window.document;

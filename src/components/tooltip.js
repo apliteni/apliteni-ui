@@ -159,17 +159,22 @@ function releaseMark(host) {
   host.__tipMark = null;
 }
 
-/** Hide the host's readout. */
-export function hideTooltip(host) {
+function close(host) {
   releaseMark(host);
-  host.__tipDismissed = null;
   tipOf(host)?.classList.remove('is-open');
+}
+
+/** Hide the host's readout: the pointer has left, so the mark Escape dismissed may show again. */
+export function hideTooltip(host) {
+  close(host);
+  host.__tipDismissed = null;
 }
 
 // Escape dismisses every readout the kit is showing without the pointer having
 // to move — the reader it covers something for. One rendered open and never
-// shown is a picture, and stays. The dismissed mark is remembered, so the
-// readout returns on the next mark rather than on the one it was dismissed from.
+// shown is a picture, and stays. The dismissed mark is remembered until another
+// mark shows or the pointer leaves, so crossing the gap between marks and coming
+// back does not return the readout to the mark it was dismissed from.
 function wireEscape(doc) {
   if (doc.__tipEscapeWired) return;
   doc.__tipEscapeWired = true;
@@ -179,7 +184,7 @@ function wireEscape(doc) {
       const host = tip.__tipHost;
       if (!host) return;
       const mark = host.__tipMark;
-      hideTooltip(host);
+      close(host);
       host.__tipDismissed = mark;
     });
   });
@@ -214,7 +219,7 @@ export function wireTooltip(root = document) {
     host.addEventListener('pointerover', (e) => {
       anchorHost(host);
       const mark = markOf(e.target);
-      if (!mark) hideTooltip(host);
+      if (!mark) close(host);
       else if (mark !== host.__tipMark && mark !== host.__tipDismissed) showTooltip(host, mark);
     });
     host.addEventListener('pointerleave', () => hideTooltip(host));
