@@ -3,9 +3,11 @@
  *
  * Three things hold it. The net in src/styles/reduced-motion.css still shortens every
  * animation and transition to nothing, with !important — parsed, so deleting one of
- * its lines fails. No sheet writes a transition or animation duration with
- * !important outside a reduced-motion block, where it would beat the net on
- * specificity. And every script that waits on animationend or transitionend has a
+ * its lines fails. Nothing outside the net writes an !important that would beat it on
+ * specificity: no duration outside a reduced-motion block, none inside a component's
+ * own block that does more than switch motion off, and no loop count above one
+ * anywhere. And every script that waits on animationend or transitionend — a
+ * listener, an on…= handler or a React onAnimationEnd / onTransitionEnd prop — has a
  * timer in the same function, found by scanning for the listener rather than listing
  * files. A reduced-motion branch alone does not count: it does nothing when the event
  * fails to come with motion on.
@@ -17,6 +19,8 @@
  * - Delays. The net does not zero animation-delay or transition-delay, and nothing
  *   here looks for one.
  * - Inline styles a script writes (toasts.js sets a transition on a swipe).
+ * - Which timer. Any setTimeout in the function counts as the fallback, even one that
+ *   has nothing to do with the listener.
  * - Whether the timer is long enough or the branch right: they are found, not run.
  *   The function is read by indentation, so a one-line function is judged by the
  *   function around it, or fails as unclassified when there is none.
@@ -27,8 +31,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, statSync } from 'node:fs';
-import { at, read, ms, sheets, leafRules, inNet } from './lib/motion-css.js';
+import { read, ms, sheets, scripts, decommentJs, leafRules, inNet } from './lib/motion-css.js';
 
 const NET = 'src/styles/reduced-motion.css';
 
@@ -70,66 +73,51 @@ test('the net still shortens every animation and transition, and outranks every 
   }
 });
 
-test('no sheet writes a duration with !important outside a reduced-motion block', () => {
+const DURATION = /^(transition|animation)(-duration)?$/;
+// Inside a component's own reduced-motion block an !important may switch motion off —
+// the drawer's and the confirm's `.is-open * { transition: none !important }` — and
+// nothing more: a duration there outranks the net's 0.01ms exactly as one outside would.
+const switchesOff = (v) => v === 'none' || v === '0' || ms(v) === 0;
+
+test('nothing outside the net can outvote it with !important', () => {
   const all = sheets();
   assert.ok(all.length > 1, 'fewer than two stylesheets were read — the sweep has stopped reading the trees');
 
   const offences = [];
   for (const { where, text } of all) {
     for (const rule of leafRules(text)) {
-      if (inNet(rule)) continue;
+      if (where === NET && inNet(rule)) continue;
       for (const d of rule.decls) {
-        if (/^(transition|animation)(-duration)?$/.test(d.prop) && d.important) {
-          offences.push(`${where}:${d.line}  ${rule.selector}  { ${d.prop}: ${d.value} !important }`);
+        if (!d.important) continue;
+        const site = `${where}:${d.line}  ${rule.selector}  { ${d.prop}: ${d.value} !important }`;
+        if (DURATION.test(d.prop) && !inNet(rule)) {
+          offences.push(`${site}\n      a duration outside a prefers-reduced-motion: reduce block`);
+        } else if (DURATION.test(d.prop) && !switchesOff(d.value)) {
+          offences.push(`${site}\n      inside a reduced-motion block, !important may only switch motion off: none or 0`);
+        }
+        if (d.prop === 'animation-iteration-count' && !/^[01]$/.test(d.value)) {
+          offences.push(`${site}\n      a loop count above one, which beats the net's 1`);
         }
       }
     }
   }
   assert.deepStrictEqual(
     offences, [],
-    `a duration carries !important outside a prefers-reduced-motion block. ${NET} holds its durations with `
+    `an !important outside the net can outvote it. ${NET} holds its durations and its loop count with `
     + '!important on `*`; an !important on a class wins on specificity, and the animation runs for a reader '
-    + 'who asked for none. Drop the !important, or move the rule inside a reduced-motion block:\n  '
-    + offences.join('\n  '),
+    + 'who asked for none. Drop the !important, or use it inside a component\'s own reduced-motion block '
+    + 'only to switch motion off:\n  ' + offences.join('\n  '),
   );
 });
 
 /* -- The scripts that wait on an end event --------------------------------------- */
 
-/** Blank comments out of a script, keeping strings and newlines. */
-const decommentJs = (js) => {
-  let out = '';
-  let quote = null;
-  for (let i = 0; i < js.length; i += 1) {
-    const ch = js[i];
-    if (quote) {
-      out += ch;
-      if (ch === '\\') { out += js[i + 1] ?? ''; i += 1; } else if (ch === quote) quote = null;
-    } else if (ch === '/' && js[i + 1] === '/') {
-      while (i < js.length && js[i] !== '\n') { out += ' '; i += 1; }
-      out += js[i] ?? '';
-    } else if (ch === '/' && js[i + 1] === '*') {
-      const end = js.indexOf('*/', i + 2);
-      const stop = end === -1 ? js.length : end + 2;
-      out += js.slice(i, stop).replace(/[^\n]/g, ' ');
-      i = stop - 1;
-    } else {
-      if (ch === '\'' || ch === '"' || ch === '`') quote = ch;
-      out += ch;
-    }
-  }
-  return out;
-};
-
-const scriptsUnder = (dir) => readdirSync(at(dir)).sort().flatMap((f) => {
-  const rel = `${dir}/${f}`;
-  if (statSync(at(rel)).isDirectory()) return f === 'test' ? [] : scriptsUnder(rel);
-  return /\.(js|ts|tsx)$/.test(f) && !/\.test\.|\.d\.ts$/.test(f) ? [rel] : [];
-});
-
-const LISTENS = /addEventListener\(\s*['"`](animationend|transitionend)['"`]|\.on(animationend|transitionend)\s*=/;
+// Event names are matched in any case, because React spells the props onAnimationEnd
+// and onTransitionEnd. Declaring a handler of that name is not a listener.
+const EVENT = /animationend|transitionend/i;
+const LISTENS = /addEventListener\(\s*['"`](animationend|transitionend)['"`]|(?<!\b(?:const|let|var)\s+)\bon(animationend|transitionend)(capture)?\s*=(?!=)/i;
 // Taking a listener off is classified too, as the end of a wait rather than one.
-const STOPS = /removeEventListener\(\s*['"`](animationend|transitionend)['"`]/;
+const STOPS = /removeEventListener\(\s*['"`](animationend|transitionend)['"`]/i;
 const HEADER = /(\bfunction\b[^(]*\([^)]*\)|=>)\s*\{\s*$/;
 const indent = (line) => /^\s*/.exec(line)[0].length;
 
@@ -153,16 +141,27 @@ const reducedMotionAsks = (code) => new Set([
 ]);
 
 const MENTIONS = [];
-for (const rel of [...scriptsUnder('src'), ...scriptsUnder('react/src')]) {
-  const raw = read(rel);
-  if (!/animationend|transitionend/.test(raw)) continue;
+for (const { where: rel, text: raw } of scripts()) {
+  if (!EVENT.test(raw)) continue;
   const code = decommentJs(raw);
   const lines = code.split('\n');
   lines.forEach((line, i) => {
-    if (/animationend|transitionend/.test(line)) MENTIONS.push({ rel, line: i + 1, text: line.trim(), lines, code });
+    if (EVENT.test(line)) MENTIONS.push({ rel, line: i + 1, text: line.trim(), lines, code });
   });
 }
 const WAITERS = MENTIONS.filter((w) => !STOPS.test(w.text));
+
+test('the listener pattern reads every spelling a script can wait with', () => {
+  for (const waits of [
+    "el.addEventListener('transitionend', done);",
+    'el.onanimationend = done;',
+    '<div onTransitionEnd={() => done()} />',
+    '<div onAnimationEndCapture={done} />',
+  ]) assert.match(waits, LISTENS, `${waits} waits on an end event and was not read as a listener`);
+  for (const not of ['const onTransitionEnd = () => done();', 'if (e.type == "transitionend") done();']) {
+    assert.doesNotMatch(not, LISTENS, `${not} is not a listener and was read as one`);
+  }
+});
 
 test(`every script that waits on an end event has a way out without it (${WAITERS.length} listeners)`, (t) => {
   assert.ok(
@@ -174,7 +173,7 @@ test(`every script that waits on an end event has a way out without it (${WAITER
   const offences = [];
   for (const w of WAITERS) {
     const site = `${w.rel}:${w.line}  ${w.text}`;
-    if (!LISTENS.test(w.text)) { offences.push(`${site}\n      is not addEventListener(…) or on…=, so it cannot be classified`); continue; }
+    if (!LISTENS.test(w.text)) { offences.push(`${site}\n      is not addEventListener(…), on…= or an on…End prop, so it cannot be classified`); continue; }
     const body = enclosing(w.lines, w.line - 1);
     if (body === null) { offences.push(`${site}\n      sits in no function this gate can find, so it cannot be classified`); continue; }
     const timer = /(?<![\w.])setTimeout\s*\(/.test(body);

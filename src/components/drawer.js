@@ -79,15 +79,18 @@ export function drawer({
  *
  * @param {object} [o]
  * @param {string} [o.title]  group heading (escaped)
- * @param {Array<[string, string]>} [o.rows]  [label, value] pairs; label escaped, value trusted markup
+ * @param {Array<[string, string | { html: string }]>} [o.rows]  [label, value] pairs. Both are
+ *   escaped, since a value is usually data (a bank feed's description); pass the value as
+ *   `{ html: '…' }` to write trusted markup as it is
  * @param {string} [o.body]   trailing markup after the rows (trusted)
  * @returns {string} html
  */
 export function drawerSection({ title, rows = [], body = '' } = {}) {
   const head = title ? `<h3 class="ui-drawer__section-title">${esc(title)}</h3>` : '';
+  const value = (v) => (v !== null && typeof v === 'object' && 'html' in v ? String(v.html) : esc(v));
   const list = rows.length
     ? `<dl class="ui-drawer__rows">${rows.map(([term, detail]) =>
-      `<div class="ui-drawer__row"><dt>${esc(term)}</dt><dd>${detail}</dd></div>`).join('')}</dl>`
+      `<div class="ui-drawer__row"><dt>${esc(term)}</dt><dd>${value(detail)}</dd></div>`).join('')}</dl>`
     : '';
   return `<section class="ui-drawer__section">${head}${list}${body}</section>`;
 }

@@ -117,7 +117,7 @@ for (const { file, block, close, cost } of SHEETS) {
   // from the confirm. Opening has to cancel the children's transitions as well.
   test(`${file}: under reduced motion, opening cancels every transition inside it`, () => {
     const inNet = new RegExp(
-      `@media[^{]*prefers-reduced-motion[^{]*\\{[^{}]*\\.${block}\\.is-open \\*\\s*\\{[^}]*`
+      `@media(?![^{]*\\bnot\\b)[^{]*prefers-reduced-motion\\s*:\\s*reduce\\b[^{]*\\{[^{}]*\\.${block}\\.is-open \\*\\s*\\{[^}]*`
       + 'transition\\s*:\\s*none\\s*!important',
     );
     assert.match(

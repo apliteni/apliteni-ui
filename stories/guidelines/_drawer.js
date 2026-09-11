@@ -63,8 +63,8 @@ export const RULES = [
       + 'portal\'s transaction drawer, reported there, shows what happens when a page does: three '
       + 'bordered cards stacked in a bordered panel.',
     kit: [
-      { ref: 'src/components/drawer.js:86', pattern: 'export function drawerSection(' },
-      { ref: 'src/styles/drawer.css:180', pattern: '.ui-drawer__section + .ui-drawer__section' },
+      { ref: 'src/components/drawer.js:88', pattern: 'export function drawerSection(' },
+      { ref: 'src/styles/drawer.css:177', pattern: '.ui-drawer__section + .ui-drawer__section' },
     ],
   },
   {
@@ -75,7 +75,7 @@ export const RULES = [
       + 'no header or footer rule; Primer draws its footer rule only when the body scrolls. The kit '
       + 'takes the quiet side: the header holds its place by spacing and weight, and a long body '
       + 'scrolls under it.',
-    kit: [{ ref: 'src/styles/drawer.css:113', pattern: '.ui-drawer__header {' }],
+    kit: [{ ref: 'src/styles/drawer.css:110', pattern: '.ui-drawer__header {' }],
   },
   {
     id: 'rows',
@@ -95,8 +95,8 @@ export const RULES = [
     except: 'Figures a reader compares down the panel, such as a list of amounts, are a table. Use '
       + 'table() and right-align them there.',
     kit: [
-      { ref: 'src/components/drawer.js:89', pattern: '<dl class="ui-drawer__rows">' },
-      { ref: 'src/styles/drawer.css:203', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
+      { ref: 'src/components/drawer.js:92', pattern: '<dl class="ui-drawer__rows">' },
+      { ref: 'src/styles/drawer.css:200', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
     ],
   },
 ];

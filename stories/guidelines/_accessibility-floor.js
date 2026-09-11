@@ -237,9 +237,13 @@ export const GATES = [
     does: 'Holds the prefers-reduced-motion net (WCAG 2.3.3). It parses '
       + 'src/styles/reduced-motion.css, so deleting one of the net’s !important durations fails; '
       + 'fails a duration written with !important outside a reduced-motion block, which would beat '
-      + 'the net; and finds every script waiting on animationend or transitionend and asks for a '
-      + 'timer in the same function — a reduced-motion branch alone does not count.',
+      + 'the net, one inside a component’s own block that does more than switch motion off, and an '
+      + '!important loop count above one; and finds every script waiting on animationend or '
+      + 'transitionend, a React onTransitionEnd prop included, and asks for a timer in the same '
+      + 'function — a reduced-motion branch alone does not count.',
     blind: [
+      'Which timer. Any setTimeout in the function counts as the fallback, even one that has nothing '
+        + 'to do with the listener.',
       'Whether a browser applies the net. jsdom evaluates no media query, so the net is read, '
         + 'never run.',
       'Delays. The net does not zero animation-delay or transition-delay, and nothing here looks '
@@ -257,8 +261,9 @@ export const GATES = [
     blind: [
       'Whether anything plays. jsdom runs no animation, so each component’s unit test holds that '
         + 'the entrance class lands on the change and not at first render.',
-      'Content a script swaps in by innerHTML, and React components, which mount and unmount with '
-        + 'no CSS state hook.',
+      'Content a script swaps in by innerHTML, and React markup mounted or unmounted without a state '
+        + 'class, such as a DataTable’s rows on a sort. The React overlays carry one, .rx-scrim.is-open '
+        + 'and the kit drawer’s .is-open, and those are read.',
       'Ancestors. The element is matched by its rightmost classes, so a transition written under '
         + 'another parent counts for it.',
     ],

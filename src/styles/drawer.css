@@ -58,10 +58,7 @@
   flex-direction: column;
   background: var(--drawer-surface);
   box-shadow: var(--drawer-shadow);
-  opacity: 1;
-  transition:
-    transform var(--dur-med) var(--ease),
-    opacity var(--dur-med) var(--ease);
+  transition: transform var(--dur-med) var(--ease);
 }
 .ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--drawer-shadow), var(--ring); }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }

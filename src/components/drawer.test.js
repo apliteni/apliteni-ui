@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { drawer, wireDrawer, openDrawer, closeDrawer } from './drawer.js';
+import { drawer, drawerSection, wireDrawer, openDrawer, closeDrawer } from './drawer.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -39,6 +39,18 @@ test('drawer() with no title falls back to aria-label', () => {
   assert.match(html, /aria-label="Quick panel"/);
   assert.match(html, /data-drawer-static/);
   assert.doesNotMatch(html, /data-drawer-close/); // no close button when not dismissible
+});
+
+// A row value is usually data a feed wrote, so it is text unless the caller says otherwise.
+test('drawerSection() escapes a row value, so data cannot write markup', () => {
+  const html = drawerSection({ rows: [['Description', '<img src=x onerror="alert(1)"> & co']] });
+  assert.match(html, /<dd>&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; &amp; co<\/dd>/);
+  assert.doesNotMatch(html, /<img/);
+});
+
+test('drawerSection() writes a { html } value as the trusted markup it is', () => {
+  const html = drawerSection({ rows: [['Status', { html: '<span class="ui-badge">Posted</span>' }]] });
+  assert.match(html, /<dt>Status<\/dt><dd><span class="ui-badge">Posted<\/span><\/dd>/);
 });
 
 test('sides + sizes render as modifier classes', () => {

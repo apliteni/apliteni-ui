@@ -98,11 +98,16 @@ export function substitute(css, vars) {
 // Each var( is matched to its own closing bracket, because a fallback can hold
 // brackets of its own: var(--easing-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1))
 // is how every --ease* token is written, and a pattern that stops at the first
-// ")" left all five unresolved.
+// ")" left all five unresolved. One that never closes is left as written and the
+// search goes on inside it, so it cannot stop substitution for the rest of the
+// sheet; and `somevar(` is another function, not a var().
 function substituteOnce(css, vars) {
   let out = '';
   let from = 0;
-  for (let at = css.indexOf('var(', from); at !== -1; at = css.indexOf('var(', from)) {
+  let scan = 0;
+  for (let at = css.indexOf('var(', scan); at !== -1; at = css.indexOf('var(', scan)) {
+    scan = at + 4;
+    if (at > 0 && /[\w\u0080-\uffff-]/.test(css[at - 1])) continue;
     let depth = 0;
     let comma = -1;
     let end = at + 3;
@@ -112,7 +117,7 @@ function substituteOnce(css, vars) {
       else if (c === ')' && --depth === 0) break;
       else if (c === ',' && depth === 1 && comma === -1) comma = end;
     }
-    if (end >= css.length) break;
+    if (end >= css.length) continue;
     const name = css.slice(at + 4, comma === -1 ? end : comma).trim();
     const fallback = comma === -1 ? null : css.slice(comma + 1, end).trim();
     let value = css.slice(at, end + 1);
@@ -120,6 +125,7 @@ function substituteOnce(css, vars) {
     else if (fallback != null) value = fallback;
     out += css.slice(from, at) + value;
     from = end + 1;
+    scan = end + 1;
   }
   return out + css.slice(from);
 }

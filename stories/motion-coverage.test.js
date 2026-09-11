@@ -3,21 +3,31 @@
  *
  * Subjects are discovered, in every sheet under src/ and react/src/: a rule whose
  * selector carries a state hook from the closed list below and which sets display,
- * opacity, visibility, transform, translate or scale. It passes on a transition of
- * that property on the element's own rules, on an animation that runs as it appears
- * (its own rule, or a class JS adds for the entrance), or on a note on the
- * declaration's line:  /* motion: still — <why, a sentence> *\/
+ * opacity, visibility, transform, translate, scale or max-height. It passes on a
+ * transition of that property on the element's own rules — `display` only with
+ * allow-discrete, without which it snaps whatever the transition says — on an
+ * animation that runs as it appears (its own rule, or a class the element's own
+ * component script plays on it), or on a note on the declaration's line:
+ *   /* motion: still — <why, a sentence> *\/
  * The hooks are closed like BARE_EASING in motion-tokens.test.js; selectors are not.
  * On the accessibility floor beside reduced-motion.test.js, which holds the net.
  *
  * What it does not reach:
  * - Content a script swaps in by innerHTML (setBusy's body): no state rule exists.
- * - React components, which mount and unmount with no CSS state hook.
+ * - React markup a component mounts or unmounts without a state class, such as a
+ *   DataTable's rows on a sort or a page turn. The React overlays carry one
+ *   (`.rx-scrim.is-open`, the kit drawer's `.is-open`), and those are subjects.
  * - Whether JS adds the entrance class on the change and not at first render:
  *   jsdom plays no animation, so each component's unit test holds that.
+ * - Which element the script plays the entrance on. The element's own script is one
+ *   that names its class, and it has to play that entrance class (or add it with
+ *   classList); what it passes playEntrance() is not traced.
  * - Ancestors. The element is matched by its rightmost compound, so a transition
  *   under another parent counts for it.
- * - A state class outside the list: `.on`, `.is-current`, `.is-running`.
+ * - State hooks outside the list: `.on` (the topbar shows its switcher and account
+ *   with it), `.is-current` (written beside `.is-active`, whose note covers the line),
+ *   `.is-scroll` and `.is-underline` (variants set at render), `:disabled`, and the
+ *   pointer states `:hover` and `:active`.
  * - Rules inside a prefers-reduced-motion block, which belong to the net.
  *
  * why: docs/specification.md#motion
@@ -25,11 +35,13 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, statSync } from 'node:fs';
-import { at, read, sheets, sheetsUnder, leafRules, keyframes, inNet } from './lib/motion-css.js';
+import { read, sheets, sheetsUnder, scripts, scriptsUnder, decommentJs, leafRules, keyframes, inNet } from './lib/motion-css.js';
 
-const HOOKS = ['[hidden]', '.is-open', '.open', '.show', '.is-leaving', '.is-revealed', '.is-collapsed', '.is-selected', '.is-active'];
-const MOVES = ['display', 'opacity', 'visibility', 'transform', 'translate', 'scale'];
+const HOOKS = [
+  '[hidden]', '[open]', ':checked', '.is-open', '.open', '.show', '.is-visible', '.is-leaving', '.is-revealed',
+  '.is-collapsed', '.is-selected', '.is-active', '.is-up',
+];
+const MOVES = ['display', 'opacity', 'visibility', 'transform', 'translate', 'scale', 'max-height'];
 const STILL = /motion:\s*still\s*[—-]\s*(\S[\s\S]{11,})/;
 
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -118,14 +130,36 @@ const KEYFRAMES = new Map(SHEETS.flatMap((s) => [...keyframes(s.text)]));
 const movesInKeyframes = (name) => KEYFRAMES.has(name)
   && MOVES.filter((p) => p !== 'display').some((p) => word(p).test(KEYFRAMES.get(name)));
 
-/** Every non-test script under src/, the text a class name has to appear in to be added. */
-const scriptsUnder = (dir) => readdirSync(at(dir)).sort().flatMap((f) => {
-  const rel = `${dir}/${f}`;
-  if (statSync(at(rel)).isDirectory()) return scriptsUnder(rel);
-  return f.endsWith('.js') && !f.endsWith('.test.js') ? [read(rel)] : [];
-});
-const SCRIPTS = scriptsUnder('src').join('\n');
-const addedByScript = (cls) => new RegExp(`['"\`][^'"\`\\n]*(?<![\\w-])${escRe(cls.slice(1))}(?![\\w-])[^'"\`\\n]*['"\`]`).test(SCRIPTS);
+/** Does a rule transition this property? `display` only when the transition is allowed to be discrete. */
+const transitions = (rule, prop) => {
+  const discrete = rule.decls.some((x) => x.prop === 'transition-behavior' && word('allow-discrete').test(x.value));
+  return rule.decls
+    .filter((x) => x.prop === 'transition' || x.prop === 'transition-property')
+    .some((x) => splitTop(x.value, (ch) => ch === ',').some((t) => (word(prop).test(t) || word('all').test(t))
+      && (prop !== 'display' || discrete || word('allow-discrete').test(t))));
+};
+
+/* -- The scripts that play an entrance ----------------------------------------- */
+
+const SCRIPTS = scripts().map((s) => ({ ...s, code: decommentJs(s.text) }));
+// The class playEntrance() puts on when its caller names none, read from its signature.
+const ENTRANCE = (/export function playEntrance\(\s*\w+\s*,\s*\w+\s*=\s*['"]([\w-]+)['"]/.exec(read('src/motion.js')) || [])[1];
+
+const namesClass = (code, cls) => new RegExp(`['"\`][^'"\`\\n]*(?<![\\w-])${escRe(cls)}(?![\\w-])`).test(code);
+/** Does this script play entrance class `cls`: a playEntrance() call naming it or defaulting to it, or classList adding it? */
+const playsClass = (code, cls) => {
+  for (const m of code.matchAll(/(?<![\w.])playEntrance\s*\(([^()]*)\)/g)) {
+    const args = splitTop(m[1], (ch) => ch === ',');
+    const named = args.length > 1 ? (/^['"`]([\w-]+)['"`]$/.exec(args[1]) || [])[1] : ENTRANCE;
+    if (named === cls) return true;
+  }
+  return new RegExp(`classList\\.(?:add|toggle)\\([^)]*['"\`]${escRe(cls)}['"\`]`).test(code);
+};
+/** The element's own component scripts: the ones that name one of its classes. */
+const ownersOf = (part) => {
+  const classes = [...expand(identity(compounds(part).at(-1)).toks)].filter((t) => t.startsWith('.')).map((t) => t.slice(1));
+  return SCRIPTS.filter((s) => classes.some((c) => namesClass(s.code, c)));
+};
 
 /** Every candidate rule part outside the net, once. */
 const CANDIDATES = SHEETS.flatMap((s) => s.rules.filter((r) => !inNet(r))
@@ -146,31 +180,36 @@ for (const s of SHEETS) {
   }
 }
 
-/** How one property of one subject moves, or null when it does not. */
+/** How one property of one subject moves, or null when it does not — with a hint for the reader. */
 const verdict = (subject, d) => {
-  if (STILL.test(subject.raw(d))) return 'still';
+  if (STILL.test(subject.raw(d))) return { how: 'still' };
   const named = compounds(subject.part).some((c) => [...identity(c).toks].some((t) => /^[.[]/.test(t)));
-  if (!named) return 'unclassifiable';
+  if (!named) return { how: 'unclassifiable' };
   for (const c of CANDIDATES) {
-    const match = sameElement(subject.part, c.part, false);
-    if (!match) continue;
-    const covers = c.rule.decls
-      .filter((x) => x.prop === 'transition' || x.prop === 'transition-property')
-      .some((x) => splitTop(x.value, (ch) => ch === ',').some((t) => word(d.prop).test(t) || word('all').test(t)));
-    if (covers) return 'transition';
+    if (sameElement(subject.part, c.part, false) && transitions(c.rule, d.prop)) return { how: 'transition' };
   }
+  const owners = ownersOf(subject.part);
+  let hint = null;
   for (const c of CANDIDATES) {
     const match = sameElement(subject.part, c.part, true);
-    if (!match || !match.extras.every(addedByScript)) continue;
+    if (!match) continue;
     const runs = c.rule.decls
       .filter((x) => x.prop === 'animation' || x.prop === 'animation-name')
       .some((x) => (x.value.match(/[\w-]+/g) || []).some(movesInKeyframes));
-    if (runs) return match.extras.length ? `animation (${match.extras.join(' ')}, added by script)` : 'animation';
+    if (!runs) continue;
+    const unplayed = match.extras.filter((x) => !owners.some((o) => playsClass(o.code, x.slice(1))));
+    if (unplayed.length === 0) {
+      if (!match.extras.length) return { how: 'animation' };
+      const by = owners.filter((o) => match.extras.every((x) => playsClass(o.code, x.slice(1)))).map((o) => o.where);
+      return { how: `animation (${match.extras.join(' ')}, played by ${by.join(', ')})` };
+    }
+    hint = `${c.where}:${c.rule.line} animates it on ${unplayed.join(' ')}, but no script naming the element `
+      + `plays that class (${owners.length ? `read: ${owners.map((o) => o.where).join(', ')}` : 'no script names it'})`;
   }
-  return null;
+  return { how: null, hint };
 };
 
-const RESULTS = SUBJECTS.flatMap((s) => s.decls.map((d) => ({ s, d, how: verdict(s, d) })));
+const RESULTS = SUBJECTS.flatMap((s) => s.decls.map((d) => ({ s, d, ...verdict(s, d) })));
 const site = ({ s, d }) => `${s.where}:${d.line}  ${s.part}  { ${d.prop}: ${d.value} }`;
 
 test(`every state rule that shows, hides or moves an element moves between its states (${SUBJECTS.length} subjects)`, (t) => {
@@ -178,6 +217,11 @@ test(`every state rule that shows, hides or moves an element moves between its s
     SUBJECTS.length > 0,
     `no state rule was found in ${SHEETS.length} sheets — the sweep, the hook list or the property `
     + 'list has stopped matching, and a gate with no subjects reports the same green as one that checked them all',
+  );
+  assert.ok(
+    ENTRANCE,
+    'the class playEntrance() defaults to could not be read from its signature in src/motion.js, so no '
+    + 'call that relies on the default can be credited with the entrance it plays',
   );
 
   const unclassified = RESULTS.filter((r) => r.how === 'unclassifiable').map(site);
@@ -188,14 +232,14 @@ test(`every state rule that shows, hides or moves an element moves between its s
     + 'or give the declaration a `motion: still —` note with its reason:\n  ' + unclassified.join('\n  '),
   );
 
-  const still = RESULTS.filter((r) => r.how === null).map(site);
+  const still = RESULTS.filter((r) => r.how === null).map((r) => site(r) + (r.hint ? `\n      ${r.hint}` : ''));
   assert.deepStrictEqual(
     still, [],
     'something appears, disappears or moves after load in one frame. Give the element a transition of '
-    + 'that property on a --dur-* token, or an entrance animation on a class the script adds when it '
-    + 'shows it (playEntrance() in src/motion.js) — or, for a layout change or a mark inside a control '
-    + 'that already transitions, put `/* motion: still — <why> */` on the declaration\'s line:\n  '
-    + still.join('\n  '),
+    + 'that property on a --dur-* token (display needs transition-behavior: allow-discrete, or it snaps), '
+    + 'or an entrance animation on a class its own script plays when it shows it (playEntrance() in '
+    + 'src/motion.js) — or, for a layout change or a mark inside a control that already transitions, put '
+    + '`/* motion: still — <why> */` on the declaration\'s line:\n  ' + still.join('\n  '),
   );
 
   for (const r of RESULTS) t.diagnostic(`${r.how.padEnd(12)} ${site(r)}`);
@@ -219,11 +263,15 @@ test('a `motion: still` note sits on a declaration this gate reads, and says why
   );
 });
 
-test('both trees that ship CSS were read', () => {
+test('both trees that ship CSS were read, and the kit\'s scripts', () => {
   assert.ok(sheetsUnder('src').length > 0, 'no stylesheet was read under src/');
   assert.ok(
     sheetsUnder('react/src').length > 0,
     'no stylesheet was read under react/src — the subject count cannot tell which tree a subject came '
     + 'from, so only this test can say the React half of the sweep ran',
+  );
+  assert.ok(
+    scriptsUnder('src').some((s) => s.where === 'src/motion.js'),
+    'src/motion.js was not among the scripts read, so no component\'s entrance can be credited',
   );
 });

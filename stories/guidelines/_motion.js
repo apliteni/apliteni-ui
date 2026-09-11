@@ -19,7 +19,7 @@ export const RULES = [
     except: 'Text that changes in place, such as a count, a range or a status line, changes at '
       + 'once. A number in motion is a number nobody can read yet.',
     kit: [
-      { ref: 'src/styles/drawer.css:63', pattern: 'transform var(--dur-med) var(--ease),' },
+      { ref: 'src/styles/drawer.css:61', pattern: 'transition: transform var(--dur-med) var(--ease);' },
       { ref: 'src/styles/callout.css:47', pattern: 'animation: ui-toast-in var(--dur-med) var(--ease-out) both;' },
     ],
   },
@@ -27,10 +27,11 @@ export const RULES = [
     id: 'durations',
     imperative: 'Time a change by what moves: 150ms for a control, 250ms for a surface, 400ms for an entrance.',
     why: 'These are --dur-fast, --dur-med and --dur-slow, with --dur-instant at 80ms for a press. '
-      + 'Every duration in the kit is one of the four, so a surface that invents 300ms fails the '
-      + 'build rather than becoming a second tempo. The range is the one published systems settle '
-      + 'on: Atlassian puts modals and panels between 150 and 400ms.',
+      + 'Every transition in the kit\'s stylesheets reads one of the four, so a surface that invents '
+      + '300ms fails the build rather than becoming a second tempo. The range is the one published '
+      + 'systems settle on: Atlassian puts modals and panels between 150 and 400ms.',
     kit: [
+      { ref: 'src/tokens/tokens.css:96', pattern: '--dur-instant: var(--duration-instant, 0.08s);' },
       { ref: 'src/tokens/tokens.css:97', pattern: '--dur-fast: var(--duration-fast, 0.15s);' },
       { ref: 'src/tokens/tokens.css:98', pattern: '--dur-med: var(--duration-normal, 0.25s);' },
       { ref: 'src/tokens/tokens.css:99', pattern: '--dur-slow: var(--duration-slow, 0.4s);' },
@@ -52,8 +53,10 @@ export const RULES = [
     id: 'reduced',
     imperative: 'When a reader asks for less motion, change at once.',
     why: 'Under prefers-reduced-motion, reduced-motion.css holds every animation and transition in '
-      + 'the kit to 0.01ms, in every bundle the kit publishes, so a component writes nothing of its '
-      + 'own for it. WCAG 2.3.3 would allow a fade here, since it does not count opacity as motion, '
+      + 'the kit to 0.01ms at most, in every bundle the kit publishes, so no component has to '
+      + 'remember to. An opening drawer or confirm goes further and cancels the transitions inside '
+      + 'it, so the control it moves the reader to is not still hidden in that frame. WCAG 2.3.3 '
+      + 'would allow a fade here, since it does not count opacity as motion, '
       + 'and Apple swaps slides for fades. The kit takes the answer Atlassian, Primer and Fluent '
       + 'give, off and instant, because one rule over everything is the only version a new '
       + 'component cannot forget.',
@@ -62,6 +65,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/reduced-motion.css:15', pattern: 'animation-duration: 0.01ms !important;' },
       { ref: 'src/styles/reduced-motion.css:17', pattern: 'transition-duration: 0.01ms !important;' },
+      { ref: 'src/styles/drawer.css:210', pattern: '.ui-drawer.is-open * { transition: none !important; }' },
     ],
   },
 ];

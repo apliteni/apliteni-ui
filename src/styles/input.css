@@ -140,7 +140,7 @@
   width: 5px; height: 10px;
   border: solid var(--accent-contrast);
   border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+  transform: rotate(45deg); /* motion: still — the turn is the tick's shape, not travel; it lands with the box's fill, which transitions */
 }
 .ui-check input[type="radio"]:checked::after {
   content: "";

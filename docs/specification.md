@@ -346,9 +346,10 @@ bare easing keyword, any `visibility` not timed `linear`, any animation literal 
 `motion:` note, and any published CSS entry that ships motion without the net.
 `stories/motion-coverage.test.js` discovers every state rule in the swept sheets that shows, hides
 or moves an element and fails one that neither moves nor carries a `motion: still` note with a
-reason. `stories/reduced-motion.test.js` holds the net's three declarations, refuses `!important`
-on a duration outside a prefers-reduced-motion block, and requires every script that waits on `animationend` or
-`transitionend` to have a timer behind it.
+reason. `stories/reduced-motion.test.js` holds the three declarations the net rests on, refuses an
+`!important` duration outside a prefers-reduced-motion block — and inside a component's own block, any
+that does more than switch motion off — and an `!important` loop count above one, and requires every
+script that waits on `animationend` or `transitionend` to have a timer behind it.
 
 Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200) and
 [#271](https://github.com/apliteni/apliteni-ui/issues/271).
@@ -635,12 +636,14 @@ scrim fades, both on `--dur-med` and `--ease`. It leaves the same way. Under red
 are instant; see [Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
 
 Held by `stories/drawer-rules.test.js`. It renders every story in both themes into a jsdom carrying
-the kit's stylesheets and measures every drawer panel that comes out, cascade resolved. A card
-inside the body fails, and so does any element inside it with a border on its top or bottom edge
-that does not also draw both sides; a box with four edges is a control. So does a rule under the
-header or over the footer. A specimen inside
-`[data-specimen="dont"]` is a picture of the fault rather than a subject, and the gate uses those
-to prove it can see both faults at all.
+the kit's stylesheets and measures every drawer panel that comes out, cascade resolved. Anywhere
+inside the panel a card fails — `.ui-card`, or any box with all four edges drawn that is not a form
+control or a button and does not sit inside one — and so does an `<hr>`, and any element with a
+border on its top or bottom edge that does not also draw both sides. So does a line between the
+header, the body and the footer, on either side of it. Logical borders are read as the physical ones
+they are in horizontal, left-to-right writing. A specimen inside `[data-specimen="dont"]` is a
+picture of the fault rather than a subject; the gate uses those, and one fault of each kind it writes
+itself, to prove it can see every fault at all.
 
 Decided in [#272](https://github.com/apliteni/apliteni-ui/issues/272) and
 [#271](https://github.com/apliteni/apliteni-ui/issues/271).

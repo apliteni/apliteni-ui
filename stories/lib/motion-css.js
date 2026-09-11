@@ -33,10 +33,55 @@ export const sheetsUnder = (dir) => {
 /** Both trees that ship CSS: the kit's own, and the React package's. */
 export const sheets = () => [...sheetsUnder('src'), ...sheetsUnder('react/src')];
 
-/** `[start, end]` of every `@media (prefers-reduced-motion …) { … }` block. */
+/** Every script under a tree, tests and type declarations left out, as `{ where, text }`. */
+export const scriptsUnder = (dir) => {
+  const out = [];
+  for (const f of readdirSync(at(dir)).sort()) {
+    const rel = `${dir}/${f}`;
+    if (statSync(at(rel)).isDirectory()) { if (f !== 'test') out.push(...scriptsUnder(rel)); } else if (/\.(js|ts|tsx)$/.test(f) && !/\.test\.|\.d\.ts$/.test(f)) {
+      out.push({ where: rel, text: read(rel) });
+    }
+  }
+  return out;
+};
+
+/** Both trees that ship scripts: the kit's own, and the React package's. */
+export const scripts = () => [...scriptsUnder('src'), ...scriptsUnder('react/src')];
+
+/** Blank comments out of a script, keeping strings and newlines. */
+export const decommentJs = (js) => {
+  let out = '';
+  let quote = null;
+  for (let i = 0; i < js.length; i += 1) {
+    const ch = js[i];
+    if (quote) {
+      out += ch;
+      if (ch === '\\') { out += js[i + 1] ?? ''; i += 1; } else if (ch === quote) quote = null;
+    } else if (ch === '/' && js[i + 1] === '/') {
+      while (i < js.length && js[i] !== '\n') { out += ' '; i += 1; }
+      out += js[i] ?? '';
+    } else if (ch === '/' && js[i + 1] === '*') {
+      const end = js.indexOf('*/', i + 2);
+      const stop = end === -1 ? js.length : end + 2;
+      out += js.slice(i, stop).replace(/[^\n]/g, ' ');
+      i = stop - 1;
+    } else {
+      if (ch === '\'' || ch === '"' || ch === '`') quote = ch;
+      out += ch;
+    }
+  }
+  return out;
+};
+
+// The query that asks for less motion, and nothing else: `no-preference` and a
+// `not (…: reduce)` are the reader who did not ask, and a block under either is not the net.
+const REDUCE = /^@media\b(?![^{]*\bnot\b)[^{]*prefers-reduced-motion\s*:\s*reduce\b/;
+
+/** `[start, end]` of every `@media (prefers-reduced-motion: reduce) { … }` block. */
 export const netBlocks = (src) => {
   const spans = [];
-  for (const m of src.matchAll(/@media\b[^{]*prefers-reduced-motion[^{]*\{/g)) {
+  for (const m of src.matchAll(/@media\b[^{]*\{/g)) {
+    if (!REDUCE.test(m[0])) continue;
     let depth = 1;
     let i = m.index + m[0].length;
     while (i < src.length && depth > 0) {
@@ -99,8 +144,8 @@ export const leafRules = (text) => {
           const value = part.slice(colon + 1).trim();
           decls.push({
             prop: part.slice(0, colon).trim().toLowerCase(),
-            value: value.replace(/\s*!important\s*$/i, ''),
-            important: /!important\s*$/i.test(value),
+            value: value.replace(/\s*!\s*important\s*$/i, ''),
+            important: /!\s*important\s*$/i.test(value),
             line: lineOf(offset + lead),
           });
         }
@@ -131,5 +176,5 @@ export const keyframes = (text) => {
   return out;
 };
 
-/** True when a rule sits inside a prefers-reduced-motion block. */
-export const inNet = (rule) => rule.at.some((p) => /^@media\b.*prefers-reduced-motion/.test(p));
+/** True when a rule sits inside a `prefers-reduced-motion: reduce` block. */
+export const inNet = (rule) => rule.at.some((p) => REDUCE.test(p));
