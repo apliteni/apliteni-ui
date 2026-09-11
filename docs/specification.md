@@ -205,16 +205,17 @@ Held by `src/styles/typeface-roles.test.js` and `scripts/font-loading.test.js`. 
 
 ## Labels and titles
 
-**Text is never set in capitals by style.** Nothing in the kit, its stories or its site changes
-the case of the text it is given: no `text-transform` other than `none`, and no `font-variant`
-that draws capitals. A label is written in sentence case and renders as it was written. A word
+**Text is never set in capitals by style.** No stylesheet, story or page in the kit changes the
+case of the text it is given: no `text-transform` other than `none`, and no font setting that
+draws small capitals. A label is written in sentence case and renders as it was written. A word
 that is capitals in itself — an acronym, a currency code, a key name — is typed that way and
-stays that way.
+stays that way. The one case change left is in code and is not a label: `initials()` capitalises
+the letters of an avatar mark.
 
 That covers every label, not the eyebrow alone. Eleven rules set capitals until [#268][i268]:
 the eyebrow, the table head, the badge, the pill, the nav caption, the menu group caption, the
 menu row badge, the footer column title, the code sample's label, the confirmation's eyebrow and
-the version badge. Each carried letter-spacing that only capitals need, and both went together.
+the version badge. Each carried letter-spacing that only capitals need, and it went with them.
 Where the displayed text was a key, the kit now writes the word: `versionSwitcher()` shows
 `Live` and `Archive` for `live` and `archive`. Text a caller hands a badge is shown as handed,
 so a status passed as `paid` reads `paid`.
@@ -231,7 +232,7 @@ running text, labels and chips, and each takes one rank:
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
 That is 30, 18, 14.5, 13 and 11px on the kit's own scale. A label sits one step under the body,
-and its `--muted` ink does the rest of the work capitals used to do. A chip is the smallest
+and its `--muted` ink and medium weight now set it apart, which capitals used to do. A chip is the smallest
 because its fill already sets it apart.
 
 **A card title is a heading, one level under the page's.** `card()` and `<Card>` emit it as an
@@ -244,7 +245,8 @@ Held by `stories/guidelines/letter-case.test.js`, which sweeps `src/`, `stories/
 `react/src` and `.storybook` for a case change in a stylesheet, a `<style>` block, an inline style
 or a JSX style object; and by `src/styles/type-ranks.test.js`, which reads the table above at run
 time, finds every rule that claims a rank with a `/* rank: … */` note, and fails one that
-disagrees with its row, or a table whose sizes stop descending.
+disagrees with its row, writes the `font` shorthand or spaces its letters out, or a table whose
+sizes stop descending.
 
 Decided in [#268][i268] and [#269][i269]. LABEL_DECISION
 

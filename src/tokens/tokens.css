@@ -78,7 +78,7 @@
   --tracking-tight: -0.01em;
   --tracking-normal: 0;
   --tracking-wide: 0.04em;
-  --tracking-caps: 0.14em;
+  --tracking-caps: 0.14em; /* nothing in the kit reads it since #268; consumer rules still may */
 
   /* -- Motion -------------------------------------------------------------
    * The kit's legacy --dur-* and --ease names alias onto the brand's
@@ -294,8 +294,8 @@
   --glow-cyan: rgba(12, 143, 168, 0.1);
   --glow-pink: rgba(182, 51, 97, 0.1);
 
-  /* Solid chip pairs for the white app. Each ink is deepened past its signal hue so 10px
-     uppercase text clears WCAG AA on its own pale fill. */
+  /* Solid chip pairs for the white app. Each ink is deepened past its signal hue so 11px
+     chip text clears WCAG AA on its own pale fill. */
   --chip-success-ink: #1f7a38;
   --chip-success-fill: #dff3e4;
   --chip-warn-ink: #8a5e00;

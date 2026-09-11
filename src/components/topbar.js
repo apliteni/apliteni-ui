@@ -50,7 +50,7 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
     const key = String(v.badge || 'archive').toLowerCase();
     return `<div class="vopt" role="option" data-dd-item tabindex="-1" aria-selected="${i === activeIdx}" data-active="${i === activeIdx ? '1' : '0'}">` +
       `<span><div class="vname">${v.label}</div><div class="vmeta">${v.meta || ''}</div></span>` +
-      `<span class="vbadge ${key === 'live' ? 'live' : 'arch'}">${esc(VBADGE[key] || v.badge)}</span></div>`;
+      `<span class="vbadge ${key === 'live' ? 'live' : 'arch'}">${Object.hasOwn(VBADGE, key) ? VBADGE[key] : v.badge}</span></div>`;
   }).join('');
   return `<div class="vsw" data-dropdown><button type="button" class="vsw__btn" data-dropdown-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Version — ${esc(cur)}">` +
     `<span class="lbl">version:</span><span class="cur">${cur}</span><span class="car"></span></button>` +

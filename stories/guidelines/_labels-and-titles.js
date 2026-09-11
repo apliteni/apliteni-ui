@@ -35,7 +35,7 @@ export const RULES = [
   {
     id: 'sentence-case',
     imperative: 'Write every label in sentence case, and never set it in capitals by style.',
-    why: 'Capitals read slower, take more room per letter, and make a label louder than the figure it names.',
+    why: 'Capitals are slower to read (Carbon, USWDS), take more room per letter, and make a label louder than the figure it names.',
     except: 'A word that is capitals in itself — an acronym, a currency code, a key name — is typed that way: USD, API, Esc.',
     doCaption: 'Written in sentence case and shown as written.',
     dontCaption: 'The same labels in capitals: the figures lose to their own captions.',
@@ -43,8 +43,8 @@ export const RULES = [
     dontHtml: caseDont,
     kit: [
       { ref: 'src/styles/base.css:117', pattern: 'in sentence case like every' },
-      { ref: 'src/styles/table.css:13', pattern: 'rank: label' },
-      { ref: 'src/styles/badge.css:12', pattern: 'rank: chip' },
+      { ref: 'src/components/topbar.js:44', pattern: 'the kit writes the word for it' },
+      { ref: 'stories/guidelines/letter-case.test.js:1', pattern: 'text is never set in capitals by style' },
     ],
   },
   {
@@ -67,7 +67,7 @@ export const RULES = [
     except: 'A card inside a section that has an h2 of its own takes level 3.',
     kit: [
       { ref: 'src/components/index.js:63', pattern: 'const h = [2, 3, 4, 5, 6]' },
-      { ref: 'react/src/primitives/Card.tsx:8', pattern: 'const Heading' },
+      { ref: 'react/src/primitives/Card.tsx:9', pattern: 'const Heading' },
     ],
   },
   {

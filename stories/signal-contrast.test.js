@@ -1,6 +1,6 @@
 /* Rule: a signal colour's ink clears WCAG AA on the surface it actually sits on.
  *
- * 10px uppercase badge text is not large text, so 4.5:1 is the bar, and the
+ * 11px badge text is not large text, so 4.5:1 is the bar, and the
  * 13-14px form text and menu rows below are not large either. Most of these
  * rules do not sit on --bg: they paint the signal onto its own translucent glow,
  * which is why the kit carries deepened --chip-*-ink / --chip-*-fill pairs for

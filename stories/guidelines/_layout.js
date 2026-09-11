@@ -39,7 +39,7 @@ const SPEC_CSS = `
 const PAGE_CSS = `
   <style>
     .gc { max-width: var(--gl-page); }
-    .gc h1 { font: 700 27px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
+    .gc > h1 { font: 700 27px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
     /* By name, not ".gc h2": that also matched .ui-confirm__title and outranked it. */
     .gc-imperative { font: 600 16px/1.45 var(--font-display); color: var(--strong); margin: 0 0 var(--space-3); }
 

@@ -4,6 +4,7 @@
  * - capitals typed into the text. "INCOME" in a template is wording, and nothing
  *   mechanical tells it from "USD" or "API", which are right as written.
  * - `style.setProperty('text-transform', …)`. Nothing in the kit calls it.
+ * - a `font` shorthand in a JS style object, or one computed at render time.
  * - a declaration after a `/*` that sits inside a JS string: the comment strip
  *   takes everything up to the next `*​/` with it.
  *
@@ -50,28 +51,45 @@ const decomment = (text) => text
 
 const KEEPS_CASE = /^(?:none|inherit|initial|unset|revert|revert-layer)$/i;
 const DRAWS_CAPS = /small-caps|petite-caps|unicase|titling-caps/i;
+const CAPS_FEATURES = /\b(?:smcp|c2sc|pcap|c2pc|unic|titl)\b/i;
+const UNREADABLE = /\$\{|\bvar\(/i;
 
-// CSS folds case on property names and keywords, so the CSS patterns do too. The
-// style-object key is a JS identifier and keeps its case; its value is a CSS
-// keyword and does not. A value the scan cannot read — an interpolation, a
-// variable — cannot be judged, and is refused rather than passed.
+// CSS folds case on property names and keywords, so the CSS patterns do too. A
+// style-object key is a JS identifier and keeps its case, bare or quoted, dotted
+// or bracketed; its value is a CSS keyword and does not.
 const PATTERNS = [
-  { re: /(?<![\w-])(text-transform)\s*:\s*([^;}"'`<>]*)/gi, bad: (v) => !KEEPS_CASE.test(v) },
-  { re: /(?<![\w-])(font-variant(?:-caps)?)\s*:\s*([^;}"'`<>]*)/gi, bad: (v) => DRAWS_CAPS.test(v) || v.includes('$') },
-  { re: /\b(textTransform)\s*[:=]\s*(?:['"`]([^'"`]*)['"`]|([^,;}\s]+))/g, bad: (v, lit) => !lit || !KEEPS_CASE.test(v) },
-  { re: /\b(fontVariant(?:Caps)?)\s*[:=]\s*(?:['"`]([^'"`]*)['"`]|([^,;}\s]+))/g, bad: (v, lit) => !lit || DRAWS_CAPS.test(v) },
+  /(?<![\w-])(text-transform|font-variant(?:-caps)?|font)\s*:\s*([^;}"'`<>]*)/gi,
+  /(?<![\w-])(font-feature-settings)\s*:\s*([^;}<>]*)/gi,
+  /(?<![\w$])['"`]?(textTransform|fontVariant(?:Caps)?|fontFeatureSettings)['"`]?\s*\]?\s*[:=](?!=)\s*(?:(['"`])(.*?)\2|([^,;})\s]+))/g,
+  /['"`](text-transform|font-variant(?:-caps)?|font-feature-settings)['"`]\s*\]?\s*[:=](?!=)\s*(?:(['"`])(.*?)\2|([^,;})\s]+))/gi,
 ];
+
+// 'bad', 'ok', or null for a declaration that is not about case at all. The font
+// shorthand and font-feature-settings are about case only when they draw
+// capitals. A value the scan cannot read — an interpolation, a variable — cannot
+// be judged, and is refused rather than passed.
+const judge = (property, value, literal) => {
+  const p = property.toLowerCase().replace(/-/g, '');
+  if (p === 'font') return DRAWS_CAPS.test(value) ? 'bad' : null;
+  if (p === 'fontfeaturesettings') return CAPS_FEATURES.test(value) || UNREADABLE.test(value) ? 'bad' : null;
+  if (!literal || UNREADABLE.test(value)) return 'bad';
+  if (p === 'texttransform') return KEEPS_CASE.test(value) ? 'ok' : 'bad';
+  return DRAWS_CAPS.test(value) ? 'bad' : 'ok';
+};
 
 /** Every case declaration in one file's text, bad or not. */
 export const scan = (text, file = '<text>') => {
   const clean = decomment(text);
   const found = [];
-  for (const { re, bad } of PATTERNS) {
+  for (const re of PATTERNS) {
     for (const m of clean.matchAll(re)) {
-      const literal = m[3] === undefined;
-      const value = (m[2] ?? m[3] ?? '').replace(/!\s*important/i, '').trim();
+      const js = m.length > 3;
+      const literal = !js || m[4] === undefined;
+      const value = ((js ? m[3] ?? m[4] : m[2]) ?? '').replace(/!\s*important/i, '').trim();
+      const verdict = judge(m[1], value, literal);
+      if (!verdict) continue;
       const line = clean.slice(0, m.index).split('\n').length;
-      found.push({ where: `${file}:${line}`, property: m[1], value, bad: bad(value, literal) });
+      found.push({ where: `${file}:${line}`, property: m[1], value, bad: verdict === 'bad' });
     }
   }
   return found;
@@ -102,9 +120,9 @@ test('nothing in the kit sets text in capitals by style', () => {
 });
 
 /* The subjects are every case declaration the sweep reads, `none` included, so a
- * declaration that appears or vanishes moves this number. It is 0 because the
- * kit resets nothing: no rule of its own ever set a case, so none needs undoing.
- * The two tests below are what prove the sweep can see one. */
+ * declaration that appears or vanishes moves this number. It is 0 because nothing
+ * in the kit sets a case any more, so nothing needs a `none` to undo one. The
+ * spelling and mutation tests below are what prove the sweep can see one. */
 const EXPECTED_SUBJECTS = 0;
 
 test('the count of case declarations is the one written down', () => {
@@ -127,6 +145,14 @@ const SPELLINGS = [
   ['small capitals', '.x { font-variant: small-caps }'],
   ['all small capitals', '.x { font-variant-caps: all-small-caps }'],
   ['a small-caps style object', "<i style={{ fontVariantCaps: 'all-small-caps' }} />"],
+  ['small capitals in the font shorthand', '.x { font: small-caps 600 11px/1 var(--font-sans) }'],
+  ['a small-caps feature', '.x { font-feature-settings: "smcp", "c2sc" }'],
+  ['a quoted CSS key', "<div style={{ 'text-transform': 'uppercase' }} />"],
+  ['a quoted JS key', "<div style={{ 'textTransform': 'uppercase' }} />"],
+  ['a bracketed CSSOM write', "el.style['text-transform'] = 'uppercase';"],
+  ['a variable', '.x { text-transform: var(--case) }'],
+  ['a variable for small capitals', '.x { font-variant-caps: var(--caps) }'],
+  ['a template for small capitals', '<i style={{ fontVariantCaps: `${caps}` }} />'],
 ];
 
 test('every spelling of a case change is refused', () => {
@@ -138,6 +164,9 @@ test('every spelling of a case change is refused', () => {
 const ALLOWED = [
   ['a reset', '.x { text-transform: none }'],
   ['figures, not letters', '.x { font-variant-numeric: tabular-nums }'],
+  ['a font shorthand', '<p style="font:600 var(--text-xs)/1 var(--font-sans);color:red">'],
+  ['a figure feature', '.x { font-feature-settings: "tnum" }'],
+  ['a comparison, not a write', "if (el.style.textTransform === 'none') {}"],
   ['a block comment', '/* text-transform: uppercase used to live here */ .x { color: red }'],
   ['a line comment', '  // text-transform: uppercase used to live here'],
   ['an HTML comment', '<!-- text-transform: uppercase --><p>x</p>'],

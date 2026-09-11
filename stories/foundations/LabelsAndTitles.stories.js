@@ -94,7 +94,7 @@ const VERSIONS = versionSwitcher([
 const everyLabel = () => `
   <div style="padding:40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-8) var(--space-6);max-width:1120px">
     ${cell('A label above a card title', `<div class="ui-card"><div class="ui-eyebrow">Last 30 days</div>
-      <div class="ui-card__title">Top contractors</div><div class="ui-card__sub">Paid out, by counterparty.</div></div>`)}
+      <h2 class="ui-card__title">Top contractors</h2><div class="ui-card__sub">Paid out, by counterparty.</div></div>`)}
     ${cell('Status badges and pills', `<div style="display:flex;flex-wrap:wrap;gap:8px">
       ${badge('Live', 'live')}${badge('Soon', 'soon')}${badge('Paid', 'success')}${badge('Pending', 'pending')}
       ${badge('Failed', 'danger')}${badge('Archived', 'archive')}${pill('Connected', 'live')}${pill('Two agents')}</div>`)}

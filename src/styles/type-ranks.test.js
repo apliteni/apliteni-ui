@@ -35,23 +35,32 @@ const readRanks = (spec) => {
 };
 
 const asDecl = (v) => (v.startsWith('--') ? `var(${v})` : v);
-const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
+const blankComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
-/** Every rule carrying a rank note, with the declarations its block holds. */
-const notedRules = (sheets) => sheets.flatMap(({ rel, css }) => [...css.matchAll(/\/\*\s*rank:\s*([\w-]+)\s*\*\//g)]
-  .map((m) => {
+/** Every rule carrying a rank note, with the declarations its block holds. A note
+ *  is read in any case and with anything after the name, so a misspelt one is a
+ *  finding rather than a rule that left the ranks. Braces are found with comments
+ *  blanked, so a `{}` in a comment cannot end a block. */
+const notedRules = (sheets) => sheets.flatMap(({ rel, css }) => {
+  const text = blankComments(css);
+  return [...css.matchAll(/\/\*\s*rank\s*:\s*([^*]*?)\s*\*\//gi)].map((m) => {
     const where = `src/${rel}:${css.slice(0, m.index).split('\n').length}`;
-    const open = css.lastIndexOf('{', m.index);
-    const end = css.indexOf('}', m.index);
-    if (open < 0 || end < 0 || css.lastIndexOf('}', m.index) > open) return { where, rank: m[1], outside: true };
+    const open = text.lastIndexOf('{', m.index);
+    const end = text.indexOf('}', m.index);
+    if (open < 0 || end < 0 || text.lastIndexOf('}', m.index) > open) return { where, rank: m[1], outside: true };
     const decls = {};
-    for (const d of stripComments(css.slice(open + 1, end)).split(';')) {
+    for (const d of text.slice(open + 1, end).split(';')) {
       const at = d.indexOf(':');
       if (at > 0) decls[d.slice(0, at).trim().toLowerCase()] = d.slice(at + 1).trim().replace(/\s+/g, ' ');
     }
-    const selector = stripComments(css.slice(css.lastIndexOf('}', open) + 1, open)).trim();
+    const selector = text.slice(text.lastIndexOf('}', open) + 1, open).trim();
     return { where, rank: m[1], selector, decls };
-  }));
+  });
+});
+
+// A ranked rule tightens its letters or leaves them alone; spacing them out is
+// what capitals needed, and the capitals are gone.
+const NOT_SPACED = /^(?:0|normal|-[\d.]+[a-z]*|var\(--tracking-(?:tight|normal)\))$/;
 
 const rankProblems = (ranks, rules) => {
   const byName = new Map(ranks.map((r) => [r.name, r]));
@@ -66,6 +75,14 @@ const rankProblems = (ranks, rules) => {
       out.push(`${r.where} \`${r.selector}\` claims rank "${r.rank}", which is not a row of the table in `
         + `docs/specification.md#labels-and-titles (${[...byName.keys()].join(', ')}).`);
       continue;
+    }
+    if ('font' in r.decls) {
+      out.push(`${r.where} \`${r.selector}\` writes the font shorthand, which can carry a size, weight and `
+        + 'line-height this gate does not read. Write the longhands.');
+    }
+    if ('letter-spacing' in r.decls && !NOT_SPACED.test(r.decls['letter-spacing'])) {
+      out.push(`${r.where} \`${r.selector}\` spaces its letters out (${r.decls['letter-spacing']}); that was `
+        + 'for capitals, and a ranked rule sets none.');
     }
     const want = { 'font-size': asDecl(rank.size), 'font-weight': asDecl(rank.weight) };
     if (rank.leading) want['line-height'] = asDecl(rank.leading);
@@ -128,6 +145,9 @@ test('each rank is smaller than the one above it', () => {
 test('a card title is a heading one level under the page title', () => {
   assert.match(card({ title: 'Payouts' }), /^<div class="ui-card"><h2 class="ui-card__title">Payouts<\/h2>/);
   assert.match(card({ title: 'Payouts', level: 3 }), /<h3 class="ui-card__title">Payouts<\/h3>/);
+  assert.match(card({ title: 'Payouts', level: 6 }), /<h6 class="ui-card__title">Payouts<\/h6>/);
+  assert.match(card({ title: 'Payouts', level: '3' }), /<h3 class="ui-card__title">/);
+  assert.match(card({ title: 'Payouts', level: 7 }), /<h2 class="ui-card__title">/);
   assert.match(card({ title: 'Payouts', level: 1 }), /<h2 class="ui-card__title">/,
     'level 1 is the page title’s, so a card falls back to h2 rather than competing with it');
   assert.doesNotMatch(card({ body: '<p>x</p>' }), /<h\d/);
@@ -160,6 +180,32 @@ test('a note naming a rank the table lacks is caught', () => {
   const got = rankProblems(RANKS, notedRules(mutate('styles/base.css', '/* rank: label */', '/* rank: caption */')));
   assert.equal(got.length, 1, got.join('\n'));
   assert.match(got[0], /claims rank "caption"/);
+});
+
+test('a font shorthand in a ranked rule is refused', () => {
+  const got = rankProblems(RANKS, notedRules(mutate('styles/badge.css',
+    'font-weight: var(--weight-semibold);\n', 'font-weight: var(--weight-semibold);\n  font: 700 10px/1 var(--font-sans);\n')));
+  assert.ok(got.some((p) => /badge\.css:\d+ `\.ui-badge` writes the font shorthand/.test(p)), got.join('\n'));
+});
+
+test('the capitals’ letter-spacing put back on the badge is caught', () => {
+  const got = rankProblems(RANKS, notedRules(mutate('styles/badge.css',
+    'font-weight: var(--weight-semibold);\n', 'font-weight: var(--weight-semibold);\n  letter-spacing: 0.12em;\n')));
+  assert.equal(got.length, 1, got.join('\n'));
+  assert.match(got[0], /`\.ui-badge` spaces its letters out \(0\.12em\)/);
+});
+
+test('a misspelt note is a finding, not a rule that left the ranks', () => {
+  const got = rankProblems(RANKS, notedRules(mutate('styles/base.css', '/* rank: label */', '/* Rank: label, see spec */')));
+  assert.equal(got.length, 1, got.join('\n'));
+  assert.match(got[0], /claims rank "label, see spec"/);
+});
+
+test('braces in a comment do not end the block early', () => {
+  const got = rankProblems(RANKS, notedRules(mutate('styles/table.css',
+    /(\/\* rank: label \*\/\n)(\s*font-size:\s*)var\(--text-sm\)/, '$1  /* like .y {} */\n$2var(--text-xs)')));
+  assert.equal(got.length, 1, got.join('\n'));
+  assert.match(got[0], /`\.ui-table th` is rank label, whose font-size is var\(--text-sm\); the rule has var\(--text-xs\)/);
 });
 
 test('a card title token moved under the body size breaks the order', () => {

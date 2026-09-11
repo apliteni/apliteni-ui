@@ -51,7 +51,7 @@ const washed = (inkRgb, alpha, baseHex) =>
   hexOf(inkRgb.map((c, i) => alpha * c + (1 - alpha) * rgb(baseHex)[i]));
 
 const AA = 4.5;            // WCAG 2.2 §1.4.3, normal text. Nothing here is large text:
-                           // the biggest specimen is 14.5px, the smallest 10px.
+                           // the biggest specimen is 14.5px, the smallest 11px.
 const GRAPHIC = 3;         // WCAG 2.2 §1.4.11, non-text contrast — the bar for a glyph.
 const SCALE = [3, 6.5];    // ratio axis of every bar on this page
 const pctOf = (r) => Math.max(0, Math.min(100, ((r - SCALE[0]) / (SCALE[1] - SCALE[0])) * 100));
@@ -108,7 +108,7 @@ const FAMILIES = [
     // stripped, so the specimen follows src/styles/badge.css if that moves.
     cls: 'ui-badge',
     type: 'background:transparent;padding:0',
-    setAt: '10px uppercase — the badge',
+    setAt: '11px — the badge',
   },
   {
     key: 'green',
@@ -123,7 +123,7 @@ const FAMILIES = [
     short: 'Live',
     cls: 'ui-pill',
     type: 'background:transparent;padding:0',
-    setAt: '11px uppercase — the pill',
+    setAt: '11px — the pill',
   },
 ];
 

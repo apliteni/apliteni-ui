@@ -288,7 +288,7 @@ function serialize(out) {
  * — with `cursor: pointer` and no role, so it fell out of the measurement on a
  * technicality, and as a <button> it takes a 2px outset grey frame around a
  * gradient pill. Worse, the test was a property of the MARKUP: deleting
- * src/components/dropdown.js:45 `'tabindex="-1"',` dropped `.ui-dropdown__item` out of
+ * src/components/dropdown.js:46 `'tabindex="-1"',` dropped `.ui-dropdown__item` out of
  * the measured set with every count still adding up, and the whole of #251 passed at
  * exit 0. Reproduced before this was rewritten.
  *
@@ -403,7 +403,7 @@ const UNRENDERED = [...CANDIDATES].filter(([cls]) => !SEEN.get(cls).tags.size);
 //
 // Discovery is what finds a NEW subject. These are what stop an OLD one leaving
 // without a person moving a name, and they exist because it happened: delete
-// `tabindex="-1"` from src/components/dropdown.js:45 `'tabindex="-1"',` — the
+// `tabindex="-1"` from src/components/dropdown.js:46 `'tabindex="-1"',` — the
 // roving-tabindex pattern src/components/topbar.js already runs on the segmented
 // strip, applied to the menu — and `.ui-dropdown__item` left the measured set,
 // every count still added up, and the whole of #251 passed at exit 0.

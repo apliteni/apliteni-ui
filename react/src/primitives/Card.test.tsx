@@ -18,6 +18,15 @@ it('titles a card with a heading one level under the page title', () => {
 });
 
 it('renders no heading for a card without a title', () => {
-  const { queryByRole } = render(<Card><p>body</p></Card>);
+  const { queryByRole, rerender } = render(<Card><p>body</p></Card>);
   expect(queryByRole('heading')).toBeNull();
+  rerender(<Card title=""><p>body</p></Card>);
+  expect(queryByRole('heading')).toBeNull();
+  rerender(<Card title={false}><p>body</p></Card>);
+  expect(queryByRole('heading')).toBeNull();
+});
+
+it('falls back to h2 for a level that is not 2 to 6', () => {
+  const { getByRole } = render(<Card title="Payouts" level={7 as 2} />);
+  expect(getByRole('heading', { level: 2, name: 'Payouts' })).toBeTruthy();
 });
