@@ -299,3 +299,15 @@
   .ui-cmdk__panel { width: calc(100vw - var(--space-4)); }
   .ui-cmdk__foot { display: none; }
 }
+
+/* Under reduced motion the net gives every element a 0.01ms transition, so a
+   child inherits `visible` one tick after the root: the text box
+   openCommandPalette() focuses is still hidden in that frame, and focus falls to
+   <body> — the arrows and every letter then reach nothing. So an open palette
+   carries no transition inside it at all — for as long as it is open, not only
+   in the frame it opens — which is what reduced motion asked for anyway: under
+   the net nothing inside had longer than 0.01ms to run.
+   why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
+@media (prefers-reduced-motion: reduce) {
+  .ui-cmdk.is-open * { transition: none !important; }
+}
