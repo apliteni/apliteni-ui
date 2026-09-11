@@ -11,15 +11,17 @@
    the same viewport. */
 .ui-stats { container-type: inline-size; }
 
+/* Equal columns while the figures fit. A figure is never narrower than its
+   widest unbreakable piece — the value — so a band too narrow for its figures
+   wraps a figure onto the next row rather than letting it overlap the next. */
 .ui-stats__list {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-6) var(--space-10);
   margin: 0;
 }
 
-.ui-stat { display: flex; flex-direction: column; min-width: 0; }
+.ui-stat { display: flex; flex-direction: column; flex: 1 1 0; min-width: min-content; }
 .ui-stat > dd { margin: 0; }
 
 .ui-stat__label {
@@ -56,7 +58,7 @@
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);
 }
-.ui-stat__delta svg { width: 14px; height: 14px; flex: none; }
+.ui-stat__delta svg { width: 14px; height: 14px; flex: none; stroke-width: 2.7; } /* 2.7 of a 24 box drawn at 14px = 1.58 CSS px. docs/specification.md#icons-and-glyphs */
 .ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ui-stat__basis { color: var(--muted); font-weight: var(--weight-normal); }
 .ui-stat__delta--none { color: var(--muted); font-weight: var(--weight-normal); }
@@ -88,12 +90,27 @@
 }
 .ui-stats--open .ui-stat__value { font-size: var(--text-3xl); }
 
-/* Four figures fold to two rows of two, an odd count straight to one column:
-   a figure alone on a half-empty row reads as the odd one out. */
-@container (max-width: 44rem) {
-  .ui-stats__list { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ui-stats__list:has(> .ui-stat:last-child:nth-child(odd)) { grid-template-columns: minmax(0, 1fr); }
+/* Wrapping alone would leave three figures on one row and one on the next. So
+   before a row of figures runs out of room, four fold two by two and an odd
+   count stacks. The widths are where four and three tiles of `€ 6,459,401`
+   stop fitting, and the open band's larger value moves them out; a longer
+   figure still wraps rather than overlaps.
+   why: docs/specification.md#stat-bands */
+@container (28rem < width <= 56rem) {
+  .ui-stats:not(.ui-stats--open) .ui-stats__list:has(> .ui-stat:nth-child(4):last-child) > .ui-stat { flex-basis: 34%; }
 }
-@container (max-width: 26rem) {
-  .ui-stats__list { grid-template-columns: minmax(0, 1fr); }
+@container (width <= 42rem) {
+  .ui-stats__list:has(> .ui-stat:last-child:nth-child(odd)) > .ui-stat { flex-basis: 100%; }
+}
+@container (width <= 28rem) {
+  .ui-stats__list > .ui-stat { flex-basis: 100%; }
+}
+@container (32rem < width <= 66rem) {
+  .ui-stats--open .ui-stats__list:has(> .ui-stat:nth-child(4):last-child) > .ui-stat { flex-basis: 34%; }
+}
+@container (width <= 50rem) {
+  .ui-stats--open .ui-stats__list:has(> .ui-stat:last-child:nth-child(odd)) > .ui-stat { flex-basis: 100%; }
+}
+@container (width <= 32rem) {
+  .ui-stats--open .ui-stats__list > .ui-stat { flex-basis: 100%; }
 }

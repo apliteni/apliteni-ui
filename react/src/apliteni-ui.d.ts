@@ -5,6 +5,7 @@ declare module '@apliteni/apliteni-ui' {
   export function card(opts?: Record<string, unknown>): string;
   export function pagination(opts?: Record<string, unknown>): string;
   export function drawer(opts?: Record<string, unknown>): string;
+  export function statBand(opts?: Record<string, unknown>): string;
   export function commandPalette(opts?: Record<string, unknown>): string;
   export function rankGroups<G>(groups: readonly G[], query: string): G[];
   export function rankCommands<I>(items: readonly I[], query: string): I[];

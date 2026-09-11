@@ -11,6 +11,8 @@ export { Button } from './primitives/Button';
 export type { ButtonProps } from './primitives/Button';
 export { Badge } from './primitives/Badge';
 export { Card } from './primitives/Card';
+export { StatBand } from './primitives/StatBand';
+export type { StatBandProps, StatFigure, StatDelta, StatTone, StatVariant } from './primitives/StatBand';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { Drawer } from './Drawer';

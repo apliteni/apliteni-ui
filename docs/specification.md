@@ -24,6 +24,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[The drawer](#the-drawer)** — grouped by heading, and moving on open and on close
 - **[The hover readout](#the-hover-readout)** — an overlay, never a row
 - **[Pagination](#pagination)** — a page the caller computed, and what happens when nobody counted it
+- **[Stat bands](#stat-bands)** — a row of key figures, and what a change beside one owes
 - **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
 
 ## The package
@@ -871,6 +872,48 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 [i273]: https://github.com/apliteni/apliteni-ui/issues/273
 [i274]: https://github.com/apliteni/apliteni-ui/issues/274
 
+## Stat bands
+
+`statBand()` renders a row of key figures. Each figure is a label and a value, and may carry a
+change and a trend. The band is a description list: a figure's label is the term and everything
+after it is a value of that term, so a screen reader reads each figure as one statement.
+
+A figure is never broken across lines and never truncated. A band too narrow for its figures moves
+a figure onto the next row rather than let it overlap the one beside it. Before plain wrapping
+would leave one figure alone on a row, four figures fold two by two and an odd count stacks. The
+band decides this from its own width and not the window's, because a band beside a rail and a band
+across a page are different widths at the same viewport. The widths below are the band's own
+content box, measured in a browser over each layout at two, three and four figures of
+`€ 6,459,401`:
+
+| Layout | Four fold two by two at | An odd count stacks at | One column at |
+|---|---|---|---|
+| Band and tiles | 56rem | 42rem | 28rem |
+| Open | 66rem | 50rem | 32rem |
+
+A change shows which way it went with an arrow read off the sign the caller printed. Whether it is
+good news is the caller's to say, and colour follows that alone: a cost that rose is not painted as
+a success because it went up. A change with no earlier figure says so in words and is never shown
+as `+0%`.
+
+A change says what it is measured against, in text a reader can reach: once for the whole band, in
+a caption every change points at, or beside the change when one figure is measured against
+something else. A hover `title` does not count, because a phone never shows one.
+
+The trend is a slot. The kit sizes and colours the caller's `<svg>` and draws no chart.
+
+Three layouts ship: `band`, one card with the figures divided by space, is the default; `tiles`
+puts each figure on a card of its own; `open` draws no surface, a rule over each figure and a
+larger value.
+
+The kit had no stat band until [#267][i267]. The finance portal built three of its own, which
+disagreed on the size of a value, the case of a label and what held the figures, and the one on
+its Company Overview showed each change as a status chip with its comparison in a hover title.
+
+Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/stat-basis.test.js`.
+
+[i267]: https://github.com/apliteni/apliteni-ui/issues/267
+
 ## React tables
 
 A table may omit selection controls when its consumer has no selection action. Existing
@@ -995,6 +1038,8 @@ Stated so nobody has to discover it by trying:
   rather than on the one that is right.
 - **No second bar for a control's glyph.** 1.5 CSS px is the line for every stroked mark. A glyph
   inside a button is not exempt for being small.
+- **No charts.** A stat band's trend is a slot for the caller's `<svg>`. The kit sizes and
+  colours it, and a line, a dot or a readout inside it is the consumer's.
 - **No hand-written markup contract, except a row the kit renders as a control.** `.ui-side` and
   `.ui-shell` were layout scaffolding nothing emitted. A control row — a `<div>` with a role and
   a tabindex, or an `<a>` — is a consumer's to rewrite as a `<button>` when it must be operable
