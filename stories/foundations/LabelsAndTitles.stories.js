@@ -111,24 +111,3 @@ const everyLabel = () => `
 
 export const InAPage = { render: inAPage };
 export const EveryLabel = { render: everyLabel };
-
-// TEMPORARY — the three treatments put to the owner. Removed once one is chosen.
-const CAPTIONS = ['.ui-eyebrow', '.ui-table th', '.ui-nav__cap', '.ui-dropdown__group',
-  '.ui-footer__col-title', '.ui-snippet__bar span', '.ui-sx__eyebrow'];
-const CHIPS = ['.ui-badge', '.ui-pill', '.ui-dropdown__badge', '.vopt .vbadge'];
-const scope = (v, sels) => sels.map((s) => `.tv-${v} ${s}`).join(',');
-const variantCss = (v, caption, chip) => `<style>
-  ${scope(v, CAPTIONS)} { text-transform: none; letter-spacing: 0; ${caption} }
-  ${scope(v, CHIPS)} { text-transform: none; letter-spacing: 0; ${chip} }
-  .tv-${v} .ui-card__title { line-height: var(--leading-snug); }
-</style>`;
-const variant = (v, caption, chip) => ({
-  render: () => `${variantCss(v, caption, chip)}<div class="tv-${v}">${inAPage()}${everyLabel()}</div>`,
-});
-export const VariantA = variant('a',
-  'font-size: var(--text-sm); font-weight: var(--weight-medium);',
-  'font-size: var(--text-xs); font-weight: var(--weight-semibold);');
-export const VariantB = variant('b', '', '');
-export const VariantC = variant('c',
-  'font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--dim);',
-  'font-size: var(--text-xs); font-weight: var(--weight-semibold);');
