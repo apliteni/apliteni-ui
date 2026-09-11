@@ -293,6 +293,18 @@ export const GATES = [
     ],
   },
   {
+    file: 'stories/tooltip-specimens.test.js',
+    does: 'Renders every story, wires it the way the preview does, and walks each readout rendered '
+      + 'open with a pointer, focus and Escape. A picture of a readout has to be open and unchanged '
+      + 'at the end, and a live one on the same pages has to open under the pointer.',
+    blind: [
+      'Where the readout sits. JSDOM lays nothing out, so it proves a picture stays shown, not '
+        + 'that it sits on its mark.',
+      'Whether a live readout can be reached by keyboard at all. The wiring adds no tab stop to a '
+        + 'mark, which is the open question on #282.',
+    ],
+  },
+  {
     file: 'stories/nav-cascade.test.js',
     does: 'Holds three repaired rail declarations to the element they were written for — every '
       + 'one of them was present in the stylesheet and dead, including a cancelled focus ring.',
