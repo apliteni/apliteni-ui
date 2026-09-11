@@ -21,12 +21,17 @@ hit-testing.
   state. Opening it changes `opacity` and `visibility` and nothing else. The wiring fills and
   places that element and never inserts one on hover.
 - It opens above its mark, flips below only when the room above is too small and the room below
-  is larger, and slides inward at an edge. Room is measured inside the viewport and inside every
-  ancestor whose overflow clips.
+  is larger, and slides inward at an edge. Room is measured inside the viewport less its
+  scrollbars and inside every ancestor whose overflow clips.
 - It takes no pointer events, so it cannot steal the hover and flicker.
 - Its content is text only: a label, a value and one detail, written with `textContent`.
 - Focus on a mark shows it and describes the mark with `aria-describedby` while it shows. Escape
-  dismisses it.
+  dismisses any readout the kit showed, through `wireTooltip` or `showTooltip`, and the
+  description goes with it.
+- A readout rendered `open` is a picture of one. Its host carries `.ui-tip-host` and no
+  `[data-tip-host]`, so neither the wiring nor Escape touches it.
+- The wiring gives a host with no position of its own `position: relative`, so a
+  `[data-tip-host]` without `.ui-tip-host` still places its readout on the mark.
 - It is themed entirely by tokens: a lighter raised surface in dark, white over a hairline in
   light, and no accent of its own, so every accent re-themes the chart around it.
 
@@ -48,7 +53,8 @@ a catalogue row in `docs/library.md`.
 
 **Storybook.** Components / Tooltip: Chart, a live page of three KPI sparklines over a bar chart
 with a card underneath that must not move, plus Playground and Placement rendered with the
-readout open so the a11y and contrast gates can read it.
+readout open so the a11y and contrast gates can read it. Those hosts are not wired, so a passing
+pointer leaves their readouts where they are.
 
 ## The layout proof
 
@@ -67,13 +73,20 @@ first bar into view at 390 before hovering it does not read as a move.
 
 ## Held by
 
-`src/components/tooltip.test.js`, 24 tests:
+`src/components/tooltip.test.js`, 29 tests:
 
 - The stylesheet is read as text: the readout is out of flow in every state, the open state
   changes only `opacity` and `visibility`, it takes no pointer, and both placements read one gap.
 - The page is watched with a `MutationObserver` while marks are hovered and left.
 - Placement is fed measured rects: above, flipped at the viewport, flipped by a clipping
-  ancestor, not flipped when below is no roomier, an author's below, the edge slide, and the anchor.
+  ancestor, not flipped when below is no roomier, an author's below, the edge slide, the
+  scrollbar gutter, and the anchor.
+- Escape releases the mark's description, closes a readout `showTooltip` opened with no wiring,
+  and leaves a readout rendered open alone. A host without `.ui-tip-host` is positioned when wired.
+
+`stories/tooltip-specimens.test.js` renders every story and wires it the way the preview does,
+then walks each readout rendered open with a pointer, focus and Escape. All eight stay open and
+unchanged, and a live readout on the same pages still opens under the pointer.
 
 Each of these four mutations was put on disk, confirmed in the diff, and turned the suite red
 before being reverted:
