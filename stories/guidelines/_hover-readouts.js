@@ -114,8 +114,8 @@ export const RULES = [
       + 'when the preferred side is too tight and the other is roomier, and slides the readout along '
       + 'the mark\'s edge rather than off the screen.',
     kit: [
-      { ref: 'src/components/tooltip.js:101', pattern: 'const flip = prefersBelow' },
-      { ref: 'src/components/tooltip.js:107', pattern: 'const left = Math.max(clip.left' },
+      { ref: 'src/components/tooltip.js:108', pattern: 'const flip = prefersBelow' },
+      { ref: 'src/components/tooltip.js:114', pattern: 'const left = Math.max(clip.left' },
     ],
   },
   {
@@ -139,7 +139,7 @@ export const RULES = [
       + 'be pressed; a control the reader needs belongs on the page. Format the value the way the '
       + 'page formats it elsewhere — the same currency, the same precision — so the readout and the '
       + 'figure beside the chart never disagree.',
-    kit: [{ ref: 'src/components/tooltip.js:121', pattern: 'el.textContent = t;' }],
+    kit: [{ ref: 'src/components/tooltip.js:128', pattern: 'el.textContent = t;' }],
   },
   {
     id: 'not-only-hover',
@@ -151,6 +151,6 @@ export const RULES = [
       + 'with, and a table or a labelled summary of the series, carry what matters without hovering. '
       + 'Whether a chart\'s marks should take focus at all, and whether a tap should pin the readout '
       + 'or a finger scrub along the line, is not decided yet: it is the open question on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:206', pattern: "host.addEventListener('focusin'" }],
+    kit: [{ ref: 'src/components/tooltip.js:230', pattern: "host.addEventListener('focusin'" }],
   },
 ];
