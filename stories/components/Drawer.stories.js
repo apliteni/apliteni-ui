@@ -133,7 +133,7 @@ export const Variants = {
   render: () => `${VARIANT_CSS}<div class="dv">${VARIANTS.map(({ key, label, note }) => `
     <div class="dv-cell">
       <h2>${label}</h2><p>${note}</p>
-      <div class="dv-frame">${drawer({
+      <div class="dv-frame"${key === 'today' ? ' data-specimen="dont"' : ''}>${drawer({
         side: 'right', title: 'Northwind Payments', specimen: true,
         body: key === 'today' ? RECORD.map(ruledCard).join('') : sections(),
         footer: button({ label: 'Open statement', variant: 'secondary' }) + button({ label: 'Done', variant: 'primary' }),
@@ -147,10 +147,7 @@ export const FormInDrawer = {
   render: () => behind() + drawer({
     side: 'right', size: 'md', title: 'New API key', specimen: true,
     body:
-      card({ body:
-        `<p style="margin:0;font:400 12.5px/1.55 var(--font-sans);color:var(--muted)">Scoped, named, and
-        audited — keys, not root. Give it a name and pick what it may reach.</p>` })
-      + `<div style="height:18px"></div>`
+      `<p style="margin:0 0 var(--space-5);color:var(--muted)">Give the key a name and pick what it may reach.</p>`
       + field({ label: 'Key name', control: input({ placeholder: 'e.g. CI deploy bot' }) })
       + field({ label: 'Scope', control: select({ options: ['Read only', 'Read + write', 'Admin'] }) })
       + field({ label: 'Expires', control: select({ options: ['30 days', '90 days', 'No expiry'] }) })

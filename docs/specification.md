@@ -20,6 +20,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
+- **[The drawer](#the-drawer)** — grouped by heading, and moving on open and on close
 - **[Pagination](#pagination)** — a page the caller computed, and what happens when nobody counted it
 - **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
 
@@ -163,8 +164,9 @@ The kit names **two** families, and the split is a role split rather than a pref
 other element takes the text face from `body`. A size threshold was the obvious alternative and
 is worse: it changes a heading's typeface halfway through a resize, which is the one thing a
 reader notices. A component that wants a heading tag set in the text face says so on its own
-rule, which outranks a bare element selector — `.ui-card__title`, `.ui-drawer__title` and
-`.ui-confirm__title` are the three that do, and each says why at the declaration.
+rule, which outranks a bare element selector — `.ui-card__title`, `.ui-drawer__title`,
+`.ui-drawer__section-title` and `.ui-confirm__title` are the four that do, and each says why
+at the declaration.
 
 **A brand mark is not text.** A wordmark keeps the display face at whatever size it is set at,
 down to the 13px `.topbar .brand` runs at. That is the one exception to "the element decides",
@@ -583,6 +585,24 @@ against the browser defaults transcribed out of that measurement, and goes red w
 declarations is taken back out. It carries one gap it cannot close: jsdom pins `text-align: center`
 onto a `<button>` above any author rule, whatever the specificity and whatever the source order, so
 that one declaration is held on the other two tags and by name in the rule all three share.
+
+## The drawer
+
+A drawer is a panel against one edge of the screen, over a scrim, for looking at or changing one
+thing without leaving the list it was opened from. `drawer()` renders it and `wireDrawer()` gives
+it the keyboard.
+
+**It groups by heading, never by card.** `drawerSection()` puts a heading over a `<dl>` of label
+and value pairs, so a screen reader hears each label with its value. The value sits beside its
+label rather than at the far edge of the panel. Nothing then has to lead the eye across the gap,
+which is the job a rule under every row was doing.
+
+**It moves on open and on close.** The panel slides in from the edge it is anchored to while the
+scrim fades, both on `--dur-med` and `--ease`. It leaves the same way. Under reduced motion both
+are instant; see [Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
+
+Decided in [#272](https://github.com/apliteni/apliteni-ui/issues/272) and
+[#271](https://github.com/apliteni/apliteni-ui/issues/271).
 
 ## Pagination
 

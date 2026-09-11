@@ -2,8 +2,8 @@
  * Drawer — edge-anchored overlay panel (Sheet / Slide-over): a panel that
  * slides in from any screen edge over a scrim. Fully token-driven so it
  * re-themes across accents + light/dark. Shares its scrim + focus trap with
- * confirm() (see overlay.js). `prefers-reduced-motion` drops the slide for a
- * plain fade.
+ * confirm() (see overlay.js). Under `prefers-reduced-motion` the kit's net
+ * (reduced-motion.css) makes the slide and the fade instant.
  *
  * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
  *   --drawer-surface  panel background      --drawer-shadow  panel elevation
@@ -228,15 +228,3 @@
   background: var(--surface-3);
 }
 .ui-drawer--sep-fill .ui-drawer__section + .ui-drawer__section { margin-top: var(--space-3); }
-
-/* -- Reduced motion: no slide, just a fade -------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  .ui-drawer { transition: visibility var(--dur-fast) linear; }
-  .ui-drawer__panel {
-    transform: none !important;
-    opacity: 0;
-    transition: opacity var(--dur-fast) linear;
-  }
-  .ui-drawer.is-open .ui-drawer__panel { opacity: 1; }
-  .ui-drawer__scrim { transition: opacity var(--dur-fast) linear; }
-}

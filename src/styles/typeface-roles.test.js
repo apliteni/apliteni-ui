@@ -91,8 +91,10 @@ const familyDecls = () => {
  * either — `font: inherit` is the reset, and the face comes from the ancestor
  * the row already sits in. 42 with `.ui-card__title { font-family: var(--font-sans) }`:
  * card() emits the title as an h2 since #269, and the rule keeps the text face
- * it always rendered in rather than taking the heading's. */
-const EXPECTED_SUBJECTS = 42;
+ * it always rendered in rather than taking the heading's. 43 with
+ * `.ui-drawer__section-title` (#272), an h3 that names the text face for the
+ * reason `.ui-drawer__title` does. */
+const EXPECTED_SUBJECTS = 43;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();
