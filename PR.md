@@ -1,4 +1,4 @@
-# Pagination for data-intensive tables: guidelines, a component, and three variants to choose from [waiting: Artur re-confirms the ghost-button trade]
+# Pagination for data-intensive tables: guidelines, a component, and three variants to choose from
 
 Closes #273.
 
