@@ -335,9 +335,9 @@ component cannot forget.
 
 The net gives every element a 0.01ms transition, and a child whose `visibility` is inherited then
 turns visible one tick after its parent. An overlay that focuses a control in the frame it opens
-would find that control still hidden. So the drawer and the confirm cancel every transition inside
-them as they open, and focus lands where it does with motion on. Held by
-`stories/overlay-css.test.js`.
+would find that control still hidden. So an open drawer and an open confirm carry no transition
+inside them at all — for as long as they are open, not only in the frame they open — and focus
+lands where it does with motion on. Held by `stories/overlay-css.test.js`.
 
 Held by `stories/motion-tokens.test.js`, which reads the four tokens out of the table above at run
 time, resolves each through `tokens.css` into the brand primitive it aliases and checks the

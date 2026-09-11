@@ -87,7 +87,7 @@ reduced-motion treatment or says what the scrim does under it.
 
 The rule is "anything that appears or leaves after the page has loaded moves". The inventory is
 every show and hide in the kit, taken from the stylesheets and the factories. The coverage gate
-now finds the same set itself: 37 state rules today.
+now finds the same set itself: 36 state rules today.
 
 | Change after load | Before this PR | After |
 |---|---|---|
@@ -288,6 +288,14 @@ differs only by this change's own two tests out and four in.
 - [ ] **Exercised in the Finance portal.** Not done and not claimed: the portal installs a
       published version. What settles it is the portal replacing its `Modal` and
       `transaction-drawer.css` with `<Drawer>` and `drawerSection`-shaped rows.
+- [ ] **CI, at the final SHA.** All five required checks — `build`, `Dependency audit`,
+      `Published artifact check`, `Secret scan (gitleaks)` and `Internal-terms denylist` — are
+      expected green, and the merge button needs all five (CONTRIBUTING → Issues & pull requests).
+      Read them on the pull request rather than here: this line is the expectation, not a
+      measurement. `Shipped surface vs version` will be red, and it is not a required check —
+      this branch carries no version bump by design. The two that were red on an earlier SHA
+      were the denylist and gitleaks, both on a bare UUID in this file's image URL; the image
+      lives in the GitHub body instead and the tree is clean under the workflow's own pattern.
 
 ## Review
 
@@ -327,9 +335,17 @@ border on the body, a border under the title, a logical `border-block-end` under
 `<hr>`, a hand-bordered box, a deleted drawer story, a `no-preference` block, `! important` with
 a space, a React `onTransitionEnd` with no timer, an `!important` duration and an infinite loop
 inside a component's reduced-motion block, `tabs.js` no longer calling `playEntrance`, and a tick
-shown by a `display` transition. The coverage gate now finds 37 state rules; three new ones came
+shown by a `display` transition. The coverage gate now finds 36 state rules; three new ones came
 from the wider hook list and each is decided. The switch knob and the upward dropdown already
 moved. The checkbox tick's turn is left still, with its reason at the rule.
+
+One subject went rather than gained a note. The collapsed rail hid a group's sub-list outright
+(`.ui-nav--side.is-collapsed .ui-nav__sub { display: none }`), which is the defect #277 is about:
+`wireNav()` toggles the list's `hidden` attribute and nothing else, so the toggle announced a list
+it could not open, and the current page's own row was gone on a folded rail. #286 deletes that
+selector; it is deleted here too, so a "take both" merge cannot quietly put it back while
+`stories/apps/shell.test.js` stays green — that gate reads the markup, and this is CSS. That is
+why the count above is 36 and not the 37 this branch found before.
 
 **The drawer gate, rewritten for B.** It reads the three lines in both directions now: a line the
 panel should not draw fails, and so does one of the three gone missing. Four mutations were run

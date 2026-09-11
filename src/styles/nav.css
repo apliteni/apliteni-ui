@@ -169,8 +169,7 @@
 .ui-nav--side.is-collapsed .ui-nav__cap,
 .ui-nav--side.is-collapsed .ui-nav__label,
 .ui-nav--side.is-collapsed .ui-nav__badge,
-.ui-nav--side.is-collapsed .ui-nav__caret,
-.ui-nav--side.is-collapsed .ui-nav__sub { display: none; } /* motion: still — folding the rail is a layout change of the whole rail; animating these would reflow the page */
+.ui-nav--side.is-collapsed .ui-nav__caret { display: none; } /* motion: still — folding the rail is a layout change of the whole rail; animating these would reflow the page */
 .ui-nav--side.is-collapsed .ui-nav__item { justify-content: center; padding: 11px 0; gap: 0; }
 .ui-nav--side.is-collapsed .ui-nav__ic svg { width: 19px; height: 19px; stroke-width: 2; }
 .ui-nav--side.is-collapsed .ui-nav__item.is-active::before { left: 3px; }

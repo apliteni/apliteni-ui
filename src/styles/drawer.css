@@ -193,6 +193,9 @@
   margin: 0 0 var(--space-2);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
+  /* Semibold, and so outside the rank table, which has nothing at this size and
+     weight. A group heading set in the label rank would match the row labels
+     under it in size and weight both, and differ from them by colour alone. */
   font-weight: var(--weight-semibold);
   color: var(--strong);
 }
@@ -215,8 +218,10 @@
 
 /* Under reduced motion the net gives every element a 0.01ms transition, so a
    child inherits `visible` one tick after the root: the control openDrawer()
-   focuses is still hidden in that frame, and focus lands on the panel. Opening
-   cancels every transition inside, which is what reduced motion asked for.
+   focuses is still hidden in that frame, and focus lands on the panel. So an
+   open drawer carries no transition inside it at all — for as long as it is
+   open, not only in the frame it opens — which is what reduced motion asked
+   for anyway: under the net nothing inside had longer than 0.01ms to run.
    why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
 @media (prefers-reduced-motion: reduce) {
   .ui-drawer.is-open * { transition: none !important; }

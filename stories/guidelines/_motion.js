@@ -65,7 +65,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/reduced-motion.css:15', pattern: 'animation-duration: 0.01ms !important;' },
       { ref: 'src/styles/reduced-motion.css:17', pattern: 'transition-duration: 0.01ms !important;' },
-      { ref: 'src/styles/drawer.css:222', pattern: '.ui-drawer.is-open * { transition: none !important; }' },
+      { ref: 'src/styles/drawer.css:227', pattern: '.ui-drawer.is-open * { transition: none !important; }' },
     ],
   },
 ];
