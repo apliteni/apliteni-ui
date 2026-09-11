@@ -27,11 +27,17 @@ hit-testing.
 - Its content is text only: a label, a value and one detail, written with `textContent`.
 - Focus on a mark shows it and describes the mark with `aria-describedby` while it shows. Escape
   dismisses any readout the kit showed, through `wireTooltip` or `showTooltip`, and the
-  description goes with it.
+  description goes with it. It stays off the mark it was dismissed from until another mark shows
+  or the pointer leaves the host; crossing the gap between marks does not end that, and
+  `showTooltip` keeps to it too, so a chart calling it on every pointer sample does not reopen it.
 - A readout rendered `open` is a picture of one. Its host carries `.ui-tip-host` and no
   `[data-tip-host]`, so neither the wiring nor Escape touches it.
 - The wiring gives a host with no position of its own `position: relative`, so a
-  `[data-tip-host]` without `.ui-tip-host` still places its readout on the mark.
+  `[data-tip-host]` without `.ui-tip-host` still places its readout on the mark. An element
+  outside the document has no style to read, so a host wired before it is mounted gets this the
+  first time a pointer or focus reaches it.
+- Hosts nest. A mark and a readout belong to the nearest `[data-tip-host]` above them, so one
+  mark opens one readout, and an outer host gets a readout of its own.
 - It is themed entirely by tokens: a lighter raised surface in dark, white over a hairline in
   light, and no accent of its own, so every accent re-themes the chart around it.
 
@@ -73,7 +79,7 @@ first bar into view at 390 before hovering it does not read as a move.
 
 ## Held by
 
-`src/components/tooltip.test.js`, 29 tests:
+`src/components/tooltip.test.js`, 33 tests:
 
 - The stylesheet is read as text: the readout is out of flow in every state, the open state
   changes only `opacity` and `visibility`, it takes no pointer, and both placements read one gap.
@@ -82,7 +88,11 @@ first bar into view at 390 before hovering it does not read as a move.
   ancestor, not flipped when below is no roomier, an author's below, the edge slide, the
   scrollbar gutter, and the anchor.
 - Escape releases the mark's description, closes a readout `showTooltip` opened with no wiring,
-  and leaves a readout rendered open alone. A host without `.ui-tip-host` is positioned when wired.
+  and leaves a readout rendered open alone. The dismissal survives the gap between marks and
+  repeated `showTooltip` calls, and ends when the pointer leaves or `hideTooltip` runs.
+- A host without `.ui-tip-host` is positioned when wired, or once mounted if it was wired before,
+  and a host its own stylesheet positions keeps that. Nested hosts each answer only their own
+  marks, with their own readout.
 
 `stories/tooltip-specimens.test.js` renders every story and wires it the way the preview does,
 then walks each readout rendered open with a pointer, focus and Escape. All eight stay open and
@@ -95,6 +105,10 @@ before being reverted:
 - a margin in the open state
 - a node inserted on hover
 - a flip test that ignores the clip box
+
+Each fix from the second review round was then reverted on its own, and each revert turned that
+fix's own test red. Nesting was reverted twice, once for the marks and once for the readout.
+Reading a detached host's `''` as `static` was tried as well, and fails the test's second case.
 
 ## Open question for Artur
 
