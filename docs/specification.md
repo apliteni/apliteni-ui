@@ -786,8 +786,17 @@ a live region holding the list would read all of it out again on every keystroke
 focus goes back to whatever opened it, and to the page when the command that ran took the opener
 with it.
 
-The palette paints on the overlay layer the drawer is on, and joins the same stack: a confirm a
-row opens is above it, answers the first Escape, and leaves the palette standing underneath.
+The palette joins the same stack every kit overlay is on, and paints one step above the drawer
+and one below the confirm. Three steps and not two, because at equal levels paint order falls
+back to document order while the keyboard follows the stack, and the overlay a reader can see
+then stops being the one that answers the keys. A palette is summoned deliberately and has to be
+seen, so it goes over a drawer that was already open; a confirm a row opens is a question about
+what is under it, so it goes over both, answers the first Escape, and leaves the palette
+standing underneath.
+
+That last sentence is the vanilla half. The React palette and the React `Modal` each register
+their own document listener rather than sharing a stack, so one Escape closes the modal and the
+palette under it; the React half joins the shared dialog stack when the drawer branch lands.
 
 It opens empty. A palette that comes back holding the last query shows a list answering a
 question the reader has already finished asking, and the next keystroke appends to it.
