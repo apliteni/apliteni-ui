@@ -32,8 +32,8 @@ const LOREM = `
   <p style="margin:0 0 14px">Drawers slide in from any edge over a scrim. Left and right
   panels are full-height; top and bottom are full-width. The body scrolls when its
   content overflows while the header and footer stay pinned.</p>
-  <p style="margin:0 0 14px">Motion respects <code>prefers-reduced-motion</code>: the slide
-  is dropped for a plain fade. The panel surface, shadow, and scrim are token-driven, so
+  <p style="margin:0 0 14px">Under <code>prefers-reduced-motion</code> the panel appears at
+  once, with no slide. The panel surface, shadow, and scrim are token-driven, so
   the drawer re-themes across accents and light/dark.</p>
   <p style="margin:0">Close on scrim click, on the header button, or with Esc.</p>`;
 

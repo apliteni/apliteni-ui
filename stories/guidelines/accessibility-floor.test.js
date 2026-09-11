@@ -795,13 +795,14 @@ test('the floor page names every accessibility gate in the tree, and no gate it 
   // An accessibility gate is one that says so in its own text — the same
   // discovery the page's claim rests on, and not a list anybody maintains.
   // An import path is not the file saying so: stories/guidelines/letter-case.test.js
-  // is a gate on letter case that borrows this file's DOM helpers, and reading
-  // `from './lib/contrast.js'` as a claim put it on a list it has no business on.
-  // Stripping the imports drops that one file and leaves all 24 real gates.
-  const claims = (f) => readFileSync(path.join(root, f), 'utf8')
-    .replace(/^\s*import[\s\S]*?from\s+.*$/gm, '');
+  // is a gate on letter case and stories/drawer-rules.test.js measures borders;
+  // both borrow this file's DOM helpers, and reading `from './lib/contrast.js'`
+  // as a claim put them on a list they have no business on. One strip takes the
+  // whole import — braces across lines included — and leaves the real gates.
+  const ownText = (f) => readFileSync(path.join(root, f), 'utf8')
+    .replace(/^\s*import\s[\s\S]*?(?:from\s+['"][^'"]*['"]|['"][^'"]*['"])\s*;?/gm, '');
   const gates = files.filter((f) => /\.test\.(js|tsx)$/.test(f) && !f.includes('/lib/'))
-    .filter((f) => /axe|contrast|WCAG|focus|keyboard|accessib/i.test(claims(f)))
+    .filter((f) => /axe|contrast|WCAG|focus|keyboard|accessib/i.test(ownText(f)))
     .sort();
   const named = GATES.map((g) => g.file).sort();
   assert.deepEqual(named, gates, 'the page and the tree disagree about which gates exist');
