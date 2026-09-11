@@ -1,12 +1,14 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { callout, card, segmented, successPanel, toast } from '../../src/components/index.js';
 import { confirm } from '../../src/components/confirm.js';
+import { dropdown } from '../../src/components/dropdown.js';
 import { success } from '../../src/components/success.js';
 import { tabs } from '../../src/components/tabs.js';
+import { currencyItems } from '../_currencies.js';
 
 export const TITLE = 'Component choice';
 
-export const BLURB = 'Four pairs of components that look interchangeable, and the line between them.';
+export const BLURB = 'Five choices between components that look interchangeable, and the line between them.';
 
 const stage = (html, mod = '') => `<div class="gl-stage${mod ? ` ${mod}` : ''}">${html}</div>`;
 
@@ -54,6 +56,15 @@ export const scaleDo = () => stage(card({
 export const scaleDont = () => stage(card({
   body: success({ layout: 'hero', backdrop: 'aurora', title: 'Feedback sent' }),
 }));
+
+// Both halves render open, so the stage keeps room below the trigger for the
+// panel it drops.
+const CURRENCY = { label: 'currency:', ariaLabel: 'Currency', items: currencyItems('EUR'), open: true };
+const room = (html) => stage(`<div style="min-height:400px">${html}</div>`);
+export const searchDo = () => room(dropdown({
+  ...CURRENCY, search: { placeholder: 'Search currencies', query: 'dollar' },
+}));
+export const searchDont = () => room(dropdown({ ...CURRENCY, scroll: true }));
 
 export const RULES = [
   {
@@ -114,6 +125,32 @@ export const RULES = [
       { ref: 'src/components/index.js:263', pattern: 'Pick by how much of the screen the confirmation owns' },
       { ref: 'src/components/index.js:265', pattern: 'export function successPanel(' },
       { ref: 'src/components/success.js:55', pattern: 'The page-sized confirmation' },
+    ],
+  },
+  {
+    id: 'dropdown-search',
+    imperative: 'Give a dropdown a search field once it has ten options, or whenever its options come from data.',
+    why: 'Proposed in #283 and not yet agreed: the number is the owner’s to set. The panel stops '
+      + 'growing at 300px, which shows five rows that carry a description and seven that do not, so '
+      + 'at ten even the shortest rows no longer fit and the reader scrolls for a word they could '
+      + 'have typed. The US Veterans Affairs design system moves from a select to a combo box at 16 '
+      + 'options, but a native select shows about twenty rows before it scrolls, and this panel '
+      + 'shows under half that. A list fed by a query, such as merchants, accounts or people, gets '
+      + 'the field whatever its count today, because the count is not the author’s to know. The '
+      + 'field matches anywhere in the label, not only at its start: that finds every row a start '
+      + 'match would, and the rows a reader remembers by a later word as well.',
+    except: 'Under six options a field only puts one more stop between the trigger and the rows. '
+      + 'From six to nine it is the author’s call: add one when the rows carry descriptions, '
+      + 'because those scroll from the sixth.',
+    doCaption: 'Twenty-nine currencies, and the reader types “dollar” instead of scrolling for it.',
+    dontCaption: 'The same twenty-nine with no field. The panel shows seven at a time, and the '
+      + 'dollars are spread across the whole list.',
+    doHtml: searchDo,
+    dontHtml: searchDont,
+    kit: [
+      { ref: 'src/components/dropdown.js:83', pattern: 'const ddMatch' },
+      { ref: 'src/styles/dropdown.css:196', pattern: '.ui-dropdown__panel--search' },
+      { ref: 'src/styles/dropdown.css:237', pattern: '.ui-dropdown__none {' },
     ],
   },
 ];
