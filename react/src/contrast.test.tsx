@@ -282,9 +282,9 @@ describe('contrast: React coverage', () => {
       // Every colour under react/ is a var() onto a vanilla token; not one custom
       // property is declared here. So a leftover var() in THIS half means a token
       // the substitution could not find, and the rule it sits in resolves to
-      // nothing. (The kit half is not asserted: `substitute`'s fallback pattern
-      // stops at nested parens, so 49 easing fallbacks survive in both themes —
-      // cubic-beziers, no colour among them.)
+      // nothing. (The kit half is not asserted: `--skel-cols` is set inline by
+      // src/components/loading.js and declared in no sheet, so its var() survives
+      // substitution — a grid count, not a colour.)
       expect(SHEETS[theme].local, `${theme}: react/src var() all resolved`).not.toContain('var(--');
     }
   });

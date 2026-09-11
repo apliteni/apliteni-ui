@@ -6,7 +6,7 @@ import { Button } from './primitives/Button';
 const meta: Meta<typeof Drawer> = { title: 'React/Drawer', component: Drawer };
 export default meta;
 
-// The shape #271 was reported on: a transaction opened from a table, against the right edge.
+// The shape #272 was reported on: a transaction opened from a table, against the right edge.
 export const Playground: StoryObj<typeof Drawer> = {
   render: () => {
     const [open, setOpen] = useState(true);

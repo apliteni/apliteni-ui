@@ -284,7 +284,7 @@ fade. **Any transition of `visibility` is timed `linear`.**
 **Anything that appears or leaves after the page has loaded moves.** A state rule that shows, hides
 or moves an element — one keyed on `[hidden]`, `.is-open`, `.open`, `.show` and the like — has a
 transition or an entrance animation between its states. Where a change is right to leave still, the
-hiding declaration says so and why, as `/* motion: still — why */`: a mark inside a row whose own
+declaration says so and why, as `/* motion: still — why */`: a mark inside a row whose own
 highlight already transitions, or a layout change that would reflow the page if it moved. Nothing
 animates on first render; `playEntrance()` in `src/motion.js` plays an entrance only on the change
 the reader caused. Text that changes in place — a count, a range — changes at once.
@@ -347,7 +347,7 @@ bare easing keyword, any `visibility` not timed `linear`, any animation literal 
 `stories/motion-coverage.test.js` discovers every state rule in the swept sheets that shows, hides
 or moves an element and fails one that neither moves nor carries a `motion: still` note with a
 reason. `stories/reduced-motion.test.js` holds the net's three declarations, refuses `!important`
-on a duration anywhere outside it, and requires every script that waits on `animationend` or
+on a duration outside a prefers-reduced-motion block, and requires every script that waits on `animationend` or
 `transitionend` to have a timer behind it.
 
 Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200) and

@@ -18,7 +18,8 @@
  *   here looks for one.
  * - Inline styles a script writes (toasts.js sets a transition on a swipe).
  * - Whether the timer is long enough or the branch right: they are found, not run.
- *   The function is read by indentation, so a one-line function is not classified.
+ *   The function is read by indentation, so a one-line function is judged by the
+ *   function around it, or fails as unclassified when there is none.
  * - Motion a script drives itself (requestAnimationFrame, element.animate()).
  * - Whether a browser applies the net: jsdom evaluates no media query.
  *

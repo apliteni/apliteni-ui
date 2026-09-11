@@ -238,7 +238,7 @@ export const GATES = [
       + 'src/styles/reduced-motion.css, so deleting one of the net’s !important durations fails; '
       + 'fails a duration written with !important outside a reduced-motion block, which would beat '
       + 'the net; and finds every script waiting on animationend or transitionend and asks for a '
-      + 'timer or a reduced-motion branch in the same function.',
+      + 'timer in the same function — a reduced-motion branch alone does not count.',
     blind: [
       'Whether a browser applies the net. jsdom evaluates no media query, so the net is read, '
         + 'never run.',

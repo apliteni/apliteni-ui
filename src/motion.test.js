@@ -6,9 +6,10 @@ import {
   prefersReducedMotion, staggerDelay, initReveal, replay, playEntrance, ENTRANCE_FALLBACK_MS,
 } from './motion.js';
 
-// Pure-logic tests only — no jsdom. The rendered Motion story is exercised by
-// the axe pass in stories/a11y.test.js; here we verify the framework-free
-// helpers behave off-DOM (SSR / node) without throwing.
+// The rendered Motion story is exercised by the axe pass in stories/a11y.test.js;
+// here we verify the framework-free helpers behave off-DOM (SSR / node) without
+// throwing. The playEntrance tests below use a jsdom element without installing
+// a document on globalThis.
 
 test('prefersReducedMotion is false when matchMedia is absent (node)', () => {
   assert.equal(typeof globalThis.matchMedia, 'undefined');

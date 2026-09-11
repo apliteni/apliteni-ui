@@ -223,7 +223,7 @@ test('both trees that ship CSS were read', () => {
   assert.ok(sheetsUnder('src').length > 0, 'no stylesheet was read under src/');
   assert.ok(
     sheetsUnder('react/src').length > 0,
-    'no stylesheet was read under react/src — it contributes no subject today, so only this test can say '
-    + 'the React half of the sweep ran',
+    'no stylesheet was read under react/src — the subject count cannot tell which tree a subject came '
+    + 'from, so only this test can say the React half of the sweep ran',
   );
 });

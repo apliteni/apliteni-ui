@@ -6,7 +6,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const at = (rel) => path.join(root, rel);
 export const read = (rel) => readFileSync(at(rel), 'utf8');
 
