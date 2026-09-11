@@ -101,7 +101,7 @@ const everyLabel = () => `
     ${cell('Navigation section captions', NAV)}
     ${cell('Menu group captions and row badges', MENU, 'min-height:280px')}
     ${cell('Version badges', `<div class="topbar" style="position:static;background:none">${VERSIONS}</div>`, 'min-height:220px')}
-    ${cell('A code sample’s label', snippet({ label: 'shell', code: 'npm install @apliteni/apliteni-ui' }))}
+    ${cell('A code sample’s label', snippet({ label: 'Shell', code: 'npm install @apliteni/apliteni-ui' }))}
     ${cell('A confirmation’s eyebrow', success({ layout: 'compact', backdrop: 'flat', eyebrow: 'Payment received', title: 'Invoice 1042 is paid' }))}
     ${cell('Footer column titles', footer({ variant: 'full', columns: [
       { title: 'Product', links: [{ label: 'Deck' }, { label: 'Text' }] },

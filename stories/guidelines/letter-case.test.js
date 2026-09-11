@@ -17,6 +17,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { kitSheetNames } from '../../scripts/lib/icon-cascade.js';
+import { installDomGlobals, storyFiles } from '../lib/contrast.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -188,4 +189,160 @@ test('putting the badge’s capitals back is caught at its line', () => {
   const line = mutated.split('\n').indexOf('  text-transform: uppercase;') + 1;
   const bad = scan(mutated, rel).filter((s) => s.bad);
   assert.deepEqual(bad.map((s) => s.where), [`${rel}:${line}`]);
+});
+
+/* Rule: a label or a chip renders the case its author wrote, and an author writes
+ * a capital. The sweep above holds the stylesheets; this one holds the text, which
+ * is where the same defect reappeared once the capitals came off — `live` and
+ * `shell` had been relying on `text-transform` to look like labels.
+ *
+ * The subjects are discovered twice over and never listed: the SELECTORS are every
+ * rule that claims `rank: label` or `rank: chip` (docs/specification.md#labels-and-titles),
+ * read off the sheets the kit ships; the TEXT is whatever every story and every site
+ * page actually renders into one.
+ *
+ * What it does not reach:
+ * - a label a rule does not rank. A caption written inline in a story's own markup
+ *   is outside the ranks, and so is a consumer's.
+ * - a word inside a label that is not the first. "Paid in full" and "Paid in Full"
+ *   read the same to this gate; sentence case past the first word is an editorial
+ *   call and nothing mechanical settles it.
+ * - the case of a name. A first word that is not letters alone — `mcp.json`,
+ *   `phoenix.2026.002` — is spelled, not written, and is left as it is.
+ *
+ * why: docs/specification.md#labels-and-titles
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ */
+// Storybook's HTML renderer hands back a string or a node; stories/a11y.test.js
+// reads the same two shapes and is the gate that fails on anything else.
+const serialize = (out) => (typeof out === 'string' ? out
+  : (out && typeof out.outerHTML === 'string') ? out.outerHTML
+  : (out && out.nodeType === 11) ? [...out.childNodes].map((n) => n.outerHTML ?? n.textContent).join('')
+  : null);
+
+const blankComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+
+/** Every selector whose rule claims the label or the chip rank, with where it says so. */
+export const rankedSelectors = (dir) => kitSheetNames(dir).flatMap((rel) => {
+  const css = readFileSync(path.join(dir, rel), 'utf8');
+  const text = blankComments(css);
+  return [...css.matchAll(/\/\*\s*rank\s*:\s*(label|chip)\s*\*\//gi)].flatMap((m) => {
+    const open = text.lastIndexOf('{', m.index);
+    if (open < 0 || text.lastIndexOf('}', m.index) > open) return [];
+    return [{
+      selector: text.slice(text.lastIndexOf('}', open) + 1, open).trim(),
+      rank: m[1].toLowerCase(),
+      where: `src/${rel}:${css.slice(0, m.index).split('\n').length}`,
+    }];
+  });
+});
+
+/**
+ * 'ok', 'name' or 'bad' for one rendered label.
+ *
+ * A label that opens on a figure or a sign — "3 overdue", "+12% on last year" —
+ * has no first letter to capitalise and is 'ok'. A first word carrying anything
+ * but letters is a name spelled in its own case and is 'name'.
+ */
+export const labelCase = (text) => {
+  const t = text.trim();
+  const first = t[0];
+  if (!first || first.toLocaleLowerCase() !== first || first.toLocaleUpperCase() === first) return 'ok';
+  return /^\p{L}+$/u.test(t.split(/\s/)[0]) ? 'bad' : 'name';
+};
+
+test('a label knows a word from a figure, a sign and a name', () => {
+  const cases = [
+    ['Live', 'ok'], ['Archive', 'ok'], ['Shell', 'ok'], ['Issues', 'ok'],
+    ['USD', 'ok'], ['3 overdue', 'ok'], ['+12% on last year', 'ok'], ['€4.81M', 'ok'],
+    ['  Paid', 'ok'], ['', 'ok'],
+    ['live', 'bad'], ['archive', 'bad'], ['shell', 'bad'], ['dark', 'bad'],
+    ['paid in full', 'bad'],
+    ['mcp.json', 'name'], ['phoenix.2026.002', 'name'], ['npm-run-all', 'name'],
+  ];
+  for (const [text, want] of cases) {
+    assert.equal(labelCase(text), want, `${JSON.stringify(text)} was read as ${labelCase(text)}, not ${want}`);
+  }
+});
+
+// The rendered sweep. One window for every story and every site page: only text
+// is read, so no stylesheet is loaded and no theme changes an answer — but a
+// story may branch on the theme to pick its words, so both are rendered.
+test('every label and chip a story or a site page renders starts with a capital', async (t) => {
+  const { JSDOM, VirtualConsole } = await import('jsdom');
+  const selectors = rankedSelectors(path.join(root, 'src'));
+  assert.ok(selectors.length > 0,
+    'no rule claims rank: label or rank: chip — the ranks left the sheets, or the note changed spelling');
+
+  const quiet = new VirtualConsole();
+  quiet.on('jsdomError', () => {});
+  const dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>',
+    { pretendToBeVisual: true, virtualConsole: quiet });
+  t.after(() => dom.window.close());
+  installDomGlobals(dom.window);
+
+  const { document: doc } = dom.window;
+  const bad = [];
+  let read = 0;
+
+  // A label's own words, not the words of anything nested in it: `.ui-table th`
+  // can hold a sort button, and the button's name is that control's, not this
+  // label's. With no text of its own, the whole subtree is the label.
+  const ownText = (el) => {
+    const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
+    return own || el.textContent.trim();
+  };
+  const check = (where, html) => {
+    doc.body.innerHTML = html;
+    for (const { selector, rank, where: ruled } of selectors) {
+      for (const el of doc.querySelectorAll(selector)) {
+        const text = ownText(el);
+        if (!text) continue;
+        read += 1;
+        if (labelCase(text) === 'bad') {
+          bad.push(`${where} — ${selector} (${rank}, ${ruled}) renders ${JSON.stringify(text)}`);
+        }
+      }
+    }
+  };
+
+  for (const rel of storyFiles) {
+    const mod = await import(path.join(root, 'stories', rel));
+    const def = mod.default || {};
+    for (const [name, story] of Object.entries(mod)) {
+      if (name === 'default' || !story || typeof story !== 'object') continue;
+      const render = story.render || def.render;
+      if (typeof render !== 'function') continue;
+      const args = { ...def.args, ...story.args };
+      // Most stories word themselves the same in both themes, and reading the same
+      // markup twice is the expensive half of this gate. Render both, check the
+      // second only when it differs.
+      const seen = new Set();
+      for (const theme of ['dark', 'light']) {
+        // A story that will not render is a failure of stories/a11y.test.js, which
+        // renders the same set and says so. Here it is simply not a subject.
+        let html;
+        try { html = serialize(render(args, { globals: { theme, accent: 'default' }, args })); } catch { continue; }
+        if (!html || seen.has(html)) continue;
+        seen.add(html);
+        check(`stories/${rel}:${name} [${theme}]`, html);
+      }
+    }
+  }
+
+  const { changelogMain } = await import(path.join(root, 'site/changelog.mjs'));
+  check('site/changelog.mjs:changelogMain()', changelogMain());
+  for (const page of readdirSync(path.join(root, 'site')).filter((f) => f.endsWith('.html')).sort()) {
+    check(`site/${page}`, readFileSync(path.join(root, 'site', page), 'utf8'));
+  }
+
+  // Logged rather than asserted: the absolute count is a fact about the catalogue
+  // and moves whenever a story is added. The floor is the anti-vacuity guard.
+  t.diagnostic(`read ${read} labels and chips under ${selectors.length} ranked rules`);
+  assert.ok(read > 200,
+    `read ${read} labels and chips across the stories and the site; the walk stopped finding them`);
+  assert.deepEqual(bad, [],
+    '\nWrite the label in sentence case. A key is not a label — write the word for it, the way '
+    + 'versionSwitcher() writes "Live" for `live`.\n'
+    + 'docs/specification.md#labels-and-titles\n');
 });

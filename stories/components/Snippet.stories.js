@@ -24,6 +24,6 @@ export const Reveal = {
 export const Variants = {
   render: () => pad(stack(
     specimen('Config (no copy)', snippet({ label: 'mcp.json', copy: false, code: hlShell('{\n  "url": "https://strategy.apli.tech/mcp",\n  "transport": "http"\n}') })),
-    specimen('Multi-line command', snippet({ label: 'shell', code: hlShell('# read the current strategy version\ncurl -s https://strategy.apli.tech/api/version \\\n  -H "Authorization: Bearer $TOKEN" | jq .') })),
+    specimen('Multi-line command', snippet({ label: 'Shell', code: hlShell('# read the current strategy version\ncurl -s https://strategy.apli.tech/api/version \\\n  -H "Authorization: Bearer $TOKEN" | jq .') })),
   )),
 };

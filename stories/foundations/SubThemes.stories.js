@@ -43,19 +43,24 @@ export const ACCENT = {
 export const accentVars = (ac) =>
   `--accent:${ac.a};--accent-strong:${ac.as};--accent-contrast:${ac.ac};--purple:${ac.p};--purple-light:${ac.pl};--purple-mid:${ac.pm};--glow-purple:${ac.g};--grad-from:${ac.gf};--grad-to:${ac.gt}`;
 
+// The badge shows the theme, and a theme key is not a label. The kit writes the
+// word for a key rather than styling the key into one — the same move
+// versionSwitcher() makes for `live`. why: docs/specification.md#labels-and-titles
+const THEME_WORD = { dark: 'Dark', light: 'Light' };
+
 const panel = (name, theme) => {
   const ac = ACCENT[name][theme];
   return `<div style="${accentVars(ac)};background:var(--bg);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:inset 0 0 0 1px var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <span style="font:700 20px/1 var(--font-display);letter-spacing:-.01em"><span style="background:linear-gradient(120deg,var(--grad-from),var(--grad-to));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${name}</span></span>
-      <span style="display:flex;gap:6px">${badge(theme, theme === 'dark' ? 'archive' : 'archive')}${badge('Live', 'live')}</span>
+      <span style="display:flex;gap:6px">${badge(THEME_WORD[theme], 'archive')}${badge('Live', 'live')}</span>
     </div>
     <div class="ui-card" style="padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:13px">
       <div style="display:flex;gap:8px;flex-wrap:wrap">${button({ label: 'Primary', variant: 'primary', size: 'sm' })}${button({ label: 'Secondary', variant: 'secondary', size: 'sm' })}${button({ label: 'Ghost', variant: 'ghost', size: 'sm' })}</div>
       ${segmented({ options: ['Deck', 'Text'], active: 0, size: 'sm', ariaLabel: 'View' })}
       <div style="display:flex;align-items:center;gap:10px">
-        <label class="ui-switch"><input type="checkbox" checked aria-label="accent drives every control"><span class="ui-switch__track"></span></label>
-        <span style="color:var(--dim);font:400 13px var(--font-sans)">accent drives every control</span>
+        <label class="ui-switch"><input type="checkbox" checked aria-label="Accent drives every control"><span class="ui-switch__track"></span></label>
+        <span style="color:var(--dim);font:400 13px var(--font-sans)">Accent drives every control</span>
       </div>
     </div>
   </div>`;
