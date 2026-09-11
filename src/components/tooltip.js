@@ -178,6 +178,15 @@ function wireEscape(doc) {
   });
 }
 
+// The readout is placed in px from its host, so the host has to be the box it is
+// positioned against. .ui-tip-host makes it one; a host without it is given the same.
+// A host outside the document has no computed style to read, so it waits until it is in one.
+function anchorHost(host) {
+  if (host.__tipAnchored || !host.isConnected) return;
+  host.__tipAnchored = true;
+  if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+}
+
 /**
  * Wire every `[data-tip-host]` under root: a pointer resting on a mark, or focus
  * landing on one, shows the readout; leaving the marks hides it. A host with no
@@ -189,21 +198,21 @@ export function wireTooltip(root = document) {
   hosts.forEach((host) => {
     if (host.__tipWired) return;
     host.__tipWired = true;
-    // The readout is placed in px from its host, so the host has to be the box it
-    // is positioned against. .ui-tip-host makes it one; a host without it is given the same.
-    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    anchorHost(host);
     if (!tipOf(host)) host.insertAdjacentHTML('beforeend', tooltip());
     const markOf = (t) => {
       const mark = t?.closest?.('[data-tip-value]');
       return mark && host.contains(mark) ? mark : null;
     };
     host.addEventListener('pointerover', (e) => {
+      anchorHost(host);
       const mark = markOf(e.target);
       if (!mark) hideTooltip(host);
       else if (mark !== host.__tipMark && mark !== host.__tipDismissed) showTooltip(host, mark);
     });
     host.addEventListener('pointerleave', () => hideTooltip(host));
     host.addEventListener('focusin', (e) => {
+      anchorHost(host);
       const mark = markOf(e.target);
       if (mark) showTooltip(host, mark);
     });

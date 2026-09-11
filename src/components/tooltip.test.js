@@ -434,3 +434,32 @@ test('wiring makes a host that places nothing the box its readout is placed in',
   assert.equal(placed.document.getElementById('host').style.position, 'absolute',
     'a host already positioned keeps its own position');
 });
+
+test('a host wired before it is in the document is made the box once it is in one', () => {
+  const window = mount('');
+  const doc = window.document;
+  doc.head.insertAdjacentHTML('beforeend', '<style>.overlay { position: absolute; }</style>');
+  // A browser resolves no style outside the document and reads position as ''; JSDOM
+  // resolves one anyway, so it is made to answer the way a browser does.
+  const real = globalThis.getComputedStyle;
+  globalThis.getComputedStyle = (el, ...rest) =>
+    (el.isConnected ? real(el, ...rest) : { position: '', getPropertyValue: () => '' });
+  try {
+    const plain = doc.createElement('div');
+    const placed = doc.createElement('div');
+    placed.className = 'overlay';
+    for (const host of [plain, placed]) {
+      host.setAttribute('data-tip-host', '');
+      host.innerHTML = MARKS;
+      wireTooltip(host);
+      doc.getElementById('page').append(host);
+      pointer(window, host.querySelector('[data-tip-value]'), 'pointerover');
+    }
+    assert.equal(getComputedStyle(plain).position, 'relative',
+      'wired while detached and never positioned, its readout is placed against some ancestor');
+    assert.equal(getComputedStyle(placed).position, 'absolute',
+      'a host its own stylesheet positions keeps that position, which reading \'\' as static would override');
+  } finally {
+    globalThis.getComputedStyle = real;
+  }
+});
