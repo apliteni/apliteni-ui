@@ -25,7 +25,7 @@ The kit declares no dependency on `react` or `react-dom`, so install them yourse
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
-import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, drawer, sort control)
+import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, sort control)
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
@@ -54,7 +54,10 @@ focus is already back on the opener and the dialog takes no clicks.
 ## Drawer
 
 A panel that slides in from an edge of the screen over a scrim. It renders the vanilla
-`drawer()` markup, class for class, so it looks and moves like the kit's drawer.
+`drawer()` markup, class for class, so it looks and moves like the kit's drawer, and like
+`Pagination` its styles come from `@apliteni/apliteni-ui/css` rather than from this bundle.
+Group what goes inside it the way `drawerSection()` does — a heading over a `<dl>` of label
+and value rows — rather than in cards; the rules are on Guidelines / Drawers.
 
 ```tsx
 <Drawer open={open} title="Transaction" onClose={() => setOpen(false)}

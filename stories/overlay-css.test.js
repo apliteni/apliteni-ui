@@ -111,6 +111,23 @@ for (const { file, block, close, cost } of SHEETS) {
     );
   });
 
+  // The reduced-motion net gives every element a 0.01ms transition, and a child
+  // then inherits `visible` one tick after the root. Measured in Chrome with
+  // reduced motion forced: focus landed on the drawer's panel and fell to <body>
+  // from the confirm. Opening has to cancel the children's transitions as well.
+  test(`${file}: under reduced motion, opening cancels every transition inside it`, () => {
+    const inNet = new RegExp(
+      `@media[^{]*prefers-reduced-motion[^{]*\\{[^{}]*\\.${block}\\.is-open \\*\\s*\\{[^}]*`
+      + 'transition\\s*:\\s*none\\s*!important',
+    );
+    assert.match(
+      css, inNet,
+      `${file} has no \`@media (prefers-reduced-motion: reduce) { .${block}.is-open * { transition: `
+      + 'none !important; } }`. Without it the control focused on open is still hidden in that '
+      + 'frame for a reader who asked for less motion',
+    );
+  });
+
   test(`${file}: a visibility transition is timed \`linear\``, () => {
     for (const rule of all) {
       for (const value of transitions(rule)) {

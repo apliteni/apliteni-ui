@@ -88,12 +88,40 @@ export function tokensFor(theme, accent = 'default') {
 export function substitute(css, vars) {
   let out = css;
   for (let pass = 0; pass < 16 && out.includes('var('); pass++) {
-    const next = out.replace(/var\(\s*(--[\w-]+)\s*(?:,([^()]*))?\)/g, (m, name, fallback) =>
-      (vars.has(name) ? vars.get(name) : (fallback != null ? fallback.trim() : m)));
+    const next = substituteOnce(out, vars);
     if (next === out) break;
     out = next;
   }
   return out;
+}
+
+// Each var( is matched to its own closing bracket, because a fallback can hold
+// brackets of its own: var(--easing-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1))
+// is how every --ease* token is written, and a pattern that stops at the first
+// ")" left all five unresolved.
+function substituteOnce(css, vars) {
+  let out = '';
+  let from = 0;
+  for (let at = css.indexOf('var(', from); at !== -1; at = css.indexOf('var(', from)) {
+    let depth = 0;
+    let comma = -1;
+    let end = at + 3;
+    for (; end < css.length; end += 1) {
+      const c = css[end];
+      if (c === '(') depth += 1;
+      else if (c === ')' && --depth === 0) break;
+      else if (c === ',' && depth === 1 && comma === -1) comma = end;
+    }
+    if (end >= css.length) break;
+    const name = css.slice(at + 4, comma === -1 ? end : comma).trim();
+    const fallback = comma === -1 ? null : css.slice(comma + 1, end).trim();
+    let value = css.slice(at, end + 1);
+    if (vars.has(name)) value = vars.get(name);
+    else if (fallback != null) value = fallback;
+    out += css.slice(from, at) + value;
+    from = end + 1;
+  }
+  return out + css.slice(from);
 }
 
 /**

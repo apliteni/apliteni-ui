@@ -116,7 +116,6 @@
   justify-content: space-between;
   gap: 12px;
   padding: 18px 20px;
-  border-bottom: 1px solid var(--border);
   flex: none;
 }
 /* An h2, and base.css would give it the display face. It opts out: at 15px in a
@@ -169,7 +168,6 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 20px;
-  border-top: 1px solid var(--border);
   background: var(--surface-2);
   flex: none;
 }
@@ -206,25 +204,12 @@
 .ui-drawer__row dd { color: var(--text); font-variant-numeric: tabular-nums; }
 .ui-drawer__rows + * { margin-top: var(--space-3); }
 
-/* -- Variants under review (#272) — one of these becomes the default ------- */
-/* A — space only: no rule anywhere inside the panel. */
-.ui-drawer--sep-space .ui-drawer__header,
-.ui-drawer--sep-space .ui-drawer__footer { border-color: transparent; }
-
-/* B — one rule per group: header and footer keep theirs; a rule between groups,
-   never between rows. */
-.ui-drawer--sep-rule .ui-drawer__section + .ui-drawer__section {
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--border);
+/* Under reduced motion the net gives every element a 0.01ms transition, so a
+   child inherits `visible` one tick after the root: the control openDrawer()
+   focuses is still hidden in that frame, and focus lands on the panel. Opening
+   cancels every transition inside, which is what reduced motion asked for.
+   why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
+@media (prefers-reduced-motion: reduce) {
+  .ui-drawer.is-open * { transition: none !important; }
 }
 
-/* C — filled groups: each group is a flat tint, and nothing is ruled. */
-.ui-drawer--sep-fill .ui-drawer__header,
-.ui-drawer--sep-fill .ui-drawer__footer { border-color: transparent; }
-.ui-drawer--sep-fill .ui-drawer__section {
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--surface-3);
-}
-.ui-drawer--sep-fill .ui-drawer__section + .ui-drawer__section { margin-top: var(--space-3); }

@@ -64,8 +64,18 @@ export const RULES = [
       + 'bordered cards stacked in a bordered panel.',
     kit: [
       { ref: 'src/components/drawer.js:86', pattern: 'export function drawerSection(' },
-      { ref: 'src/styles/drawer.css:182', pattern: '.ui-drawer__section + .ui-drawer__section' },
+      { ref: 'src/styles/drawer.css:180', pattern: '.ui-drawer__section + .ui-drawer__section' },
     ],
+  },
+  {
+    id: 'no-lines',
+    imperative: 'Draw no line inside the panel. Its edge is the only one.',
+    why: 'Not under the header, not over the footer, not between groups. The report in #272 was '
+      + 'about the lines, and every one of them was a line inside the panel. Fluent and shadcn draw '
+      + 'no header or footer rule; Primer draws its footer rule only when the body scrolls. The kit '
+      + 'takes the quiet side: the header holds its place by spacing and weight, and a long body '
+      + 'scrolls under it.',
+    kit: [{ ref: 'src/styles/drawer.css:113', pattern: '.ui-drawer__header {' }],
   },
   {
     id: 'rows',
@@ -86,7 +96,7 @@ export const RULES = [
       + 'table() and right-align them there.',
     kit: [
       { ref: 'src/components/drawer.js:89', pattern: '<dl class="ui-drawer__rows">' },
-      { ref: 'src/styles/drawer.css:205', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
+      { ref: 'src/styles/drawer.css:203', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
     ],
   },
 ];

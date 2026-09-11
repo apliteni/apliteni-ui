@@ -1,5 +1,5 @@
 import { drawer, drawerSection } from '../../src/components/drawer.js';
-import { button, field, input, select, switchToggle, card } from '../../src/components/index.js';
+import { button, field, input, select, switchToggle } from '../../src/components/index.js';
 
 // Drawers are position:fixed overlays: each story renders a little faux page
 // behind so the scrim reads true, then the drawer on top. Interactive stories
@@ -78,10 +78,9 @@ export const Sizes = {
   },
 };
 
-// ---- Variants under review (#272) — one record, four treatments ---------
-// The same fabricated transaction in each frame, so the only difference between
-// them is how the panel separates its parts. "Today" is the look #272 reported:
-// a bordered card per group and a rule under every row.
+// ---- A record: the drawer's default look (#272) ----------------------
+// Groups under headings, each value beside its label, and no line anywhere
+// inside the panel. One fabricated transaction.
 const RECORD = [
   { rows: [
     ['Amount', '€ 12,480.50'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments'],
@@ -93,52 +92,16 @@ const RECORD = [
   { title: 'Where it came from', rows: [['Statement', '#4102'], ['Reference', 'po_example_1047']] },
 ];
 
-const ruledCard = ({ title, rows, action }) => card({
-  body: (title ? `<h3 class="dv-ruled__title">${title}</h3>` : '')
-    + rows.map(([k, v]) => `<div class="dv-ruled__row"><span>${k}</span><span>${v}</span></div>`).join('')
-    + (action ? `<div class="dv-ruled__row">${button({ label: action, variant: 'ghost', size: 'sm', icon: 'edit' })}</div>` : ''),
-});
-
-const sections = () => RECORD.map(({ title, rows, action }) => drawerSection({
-  title, rows,
-  body: action ? button({ label: action, variant: 'ghost', size: 'sm', icon: 'edit' }) : '',
-})).join('');
-
-const VARIANTS = [
-  { key: 'today', label: 'Today', note: 'A bordered card per group, a rule under every row.' },
-  { key: 'sep-space', label: 'A · Space only', note: 'No rule inside the panel. Groups are held apart by space and a heading.' },
-  { key: 'sep-rule', label: 'B · One rule per group', note: 'Header and footer keep their rule. One rule between groups, none between rows.' },
-  { key: 'sep-fill', label: 'C · Filled groups', note: 'Each group is a flat tint. Nothing is ruled.' },
-];
-
-const VARIANT_CSS = `<style>
-  .dv { display: grid; grid-template-columns: repeat(2, 520px); gap: var(--space-8) var(--space-6);
-    padding: var(--space-8); justify-content: center; }
-  .dv-cell { display: flex; flex-direction: column; gap: var(--space-2); }
-  .dv-cell h2 { margin: 0; font: 600 var(--text-md)/1.3 var(--font-sans); color: var(--strong); }
-  .dv-cell p { margin: 0 0 var(--space-2); font: 400 var(--text-sm)/1.5 var(--font-sans); color: var(--muted); }
-  .dv-frame { position: relative; height: 860px; overflow: hidden; border-radius: var(--radius-md);
-    background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
-  .dv-frame .ui-drawer { position: absolute; }
-  .dv-ruled__title { margin: 0 0 var(--space-3); font: 600 var(--text-md)/1.3 var(--font-sans); color: var(--strong); }
-  .dv-ruled__row { display: flex; justify-content: space-between; gap: var(--space-4);
-    padding-block: var(--space-3); border-bottom: 1px solid var(--border); font-size: var(--text-sm); }
-  .dv-ruled__row:last-child { border-bottom: 0; }
-  .dv-ruled__row span:first-child { color: var(--strong); }
-  .dv .ui-card + .ui-card { margin-top: var(--space-4); }
-</style>`;
-
-export const Variants = {
-  name: 'Variants (#272)',
-  render: () => `${VARIANT_CSS}<div class="dv">${VARIANTS.map(({ key, label, note }) => `
-    <div class="dv-cell">
-      <h2>${label}</h2><p>${note}</p>
-      <div class="dv-frame"${key === 'today' ? ' data-specimen="dont"' : ''}>${drawer({
-        side: 'right', title: 'Northwind Payments', specimen: true,
-        body: key === 'today' ? RECORD.map(ruledCard).join('') : sections(),
-        footer: button({ label: 'Open statement', variant: 'secondary' }) + button({ label: 'Done', variant: 'primary' }),
-      }).replace('class="ui-drawer ', `class="ui-drawer ${key === 'today' ? '' : `ui-drawer--${key} `}`)}</div>
-    </div>`).join('')}</div>`,
+export const Record = {
+  name: 'Record (open)',
+  render: () => behind() + drawer({
+    side: 'right', title: 'Northwind Payments', specimen: true,
+    body: RECORD.map(({ title, rows, action }) => drawerSection({
+      title, rows,
+      body: action ? button({ label: action, variant: 'ghost', size: 'sm', icon: 'edit' }) : '',
+    })).join(''),
+    footer: button({ label: 'Open statement', variant: 'secondary' }) + button({ label: 'Done', variant: 'primary' }),
+  }),
 };
 
 // ---- Form in a drawer — header / scrollable body / footer actions -------

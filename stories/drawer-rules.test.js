@@ -1,4 +1,5 @@
-/* Rule: no card and no ruled row inside a drawer body (#272).
+/* Rule: no card and no ruled row inside a drawer body, and no line under its
+ * header or over its footer (#272).
  *
  * Ledger, what a pass does not say:
  * - Nothing about a drawer a consumer fills outside this repo.
@@ -33,9 +34,14 @@ function measure(win, panel, where) {
     where,
     cards: inside.filter((el) => el.classList.contains('ui-card')).length,
     ruledRows: inside
-      .filter((el) => !el.classList.contains('ui-drawer__section'))
       .filter((el) => isRule(win.getComputedStyle(el)))
       .map((el) => selectorPath(el)),
+    edges: [
+      ...[...panel.querySelectorAll('.ui-drawer__header')]
+        .filter((el) => drawn(win.getComputedStyle(el), 'bottom')).map(() => 'a rule under the header'),
+      ...[...panel.querySelectorAll('.ui-drawer__footer')]
+        .filter((el) => drawn(win.getComputedStyle(el), 'top')).map(() => 'a rule over the footer'),
+    ],
   };
 }
 
@@ -110,6 +116,15 @@ for (const theme of THEMES) {
       'an element inside a drawer body draws a rule on its top or bottom edge. Rows are held '
       + 'apart by space, and each value sits beside its label so nothing has to lead the eye '
       + 'across:\n  ' + offences.join('\n  '),
+    );
+  });
+
+  test(`[${theme}] no drawer draws a line under its header or over its footer`, () => {
+    const offences = subjects.flatMap((s) => s.edges.map((e) => `${s.where}  ${e}`));
+    assert.deepStrictEqual(
+      offences, [],
+      'a drawer draws a line between its header or footer and its body. The panel\'s edge is the '
+      + 'only line a drawer draws:\n  ' + offences.join('\n  '),
     );
   });
 

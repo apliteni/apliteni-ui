@@ -153,7 +153,10 @@ from the catalog above.
 
 Beyond the factories, the entry re-exports the theming helpers described above, the brand
 mark (`seedling`, `prism`, `brand`) and the motion helpers in `src/motion.js`
-(`prefersReducedMotion`, `staggerDelay`, `initReveal`, `replay`).
+(`prefersReducedMotion`, `staggerDelay`, `initReveal`, `replay`, and `playEntrance`, which plays
+an element's `.is-entering` animation once on a change the reader caused and takes the class off
+at `animationend`, or after `ENTRANCE_FALLBACK_MS` if that never comes — see
+[Motion](specification.md#motion)).
 
 ### A dropdown row you write yourself
 

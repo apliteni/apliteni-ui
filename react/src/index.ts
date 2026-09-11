@@ -5,10 +5,6 @@
 // gates read each sheet under src/styles/ alone and refuse an @import inside one.
 // why: docs/specification.md#motion
 import '../../src/styles/reduced-motion.css';
-// Drawer renders the vanilla drawer() markup, so its styles and its slide are the kit's
-// own sheet rather than a React copy of it. Imported here so a consumer who takes only
-// the React stylesheet still gets a drawer that looks and moves like one.
-import '../../src/styles/drawer.css';
 
 export { Icon } from './primitives/Icon';
 export { Button } from './primitives/Button';

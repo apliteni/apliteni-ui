@@ -6,8 +6,9 @@
  * its lines fails. No sheet writes a transition or animation duration with
  * !important outside a reduced-motion block, where it would beat the net on
  * specificity. And every script that waits on animationend or transitionend has a
- * timer or a reduced-motion branch in the same function, found by scanning for the
- * listener rather than listing files.
+ * timer in the same function, found by scanning for the listener rather than listing
+ * files. A reduced-motion branch alone does not count: it does nothing when the event
+ * fails to come with motion on.
  *
  * A file of its own rather than a section of motion-tokens.test.js: that gate is
  * about the vocabulary every reader gets, this one about the reader who opted out.
@@ -177,14 +178,14 @@ test(`every script that waits on an end event has a way out without it (${WAITER
     if (body === null) { offences.push(`${site}\n      sits in no function this gate can find, so it cannot be classified`); continue; }
     const timer = /(?<![\w.])setTimeout\s*\(/.test(body);
     const asks = [...reducedMotionAsks(w.code)].some((n) => new RegExp(`(?<![\\w.])${n}\\s*\\(`).test(body));
-    if (!timer && !asks) offences.push(`${site}\n      has no setTimeout and no reduced-motion branch in the same function`);
+    if (!timer) offences.push(`${site}\n      has no setTimeout in the same function${asks ? ' (a reduced-motion branch is not enough)' : ''}`);
     else t.diagnostic(`${w.rel}:${w.line}  ${[timer && 'timer', asks && 'reduced-motion branch'].filter(Boolean).join(' + ')}`);
   }
   assert.deepStrictEqual(
     offences, [],
     'a script waits on an end event with nothing to fall back on. The event does not come when the element '
     + 'is display: none, when no animation matched, or when a transition was cut short — and whatever the '
-    + 'script meant to remove or hide stays on screen. Add a setTimeout beside the listener, or branch on '
-    + 'prefersReducedMotion():\n  ' + offences.join('\n  '),
+    + 'script meant to remove or hide stays on screen. Add a setTimeout beside the listener; a '
+    + 'prefersReducedMotion() branch covers only the reader who opted out:\n  ' + offences.join('\n  '),
   );
 });

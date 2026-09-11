@@ -281,6 +281,17 @@ fallback is written once rather than at each use.
 it, and one whose output leaves `[0, 1]` — `--ease-spring` does — flips it in the middle of the
 fade. **Any transition of `visibility` is timed `linear`.**
 
+**Anything that appears or leaves after the page has loaded moves.** A state rule that shows, hides
+or moves an element — one keyed on `[hidden]`, `.is-open`, `.open`, `.show` and the like — has a
+transition or an entrance animation between its states. Where a change is right to leave still, the
+hiding declaration says so and why, as `/* motion: still — why */`: a mark inside a row whose own
+highlight already transitions, or a layout change that would reflow the page if it moved. Nothing
+animates on first render; `playEntrance()` in `src/motion.js` plays an entrance only on the change
+the reader caused. Text that changes in place — a count, a range — changes at once.
+
+Content a script replaces wholesale is outside this guarantee: a toast stack closing the gap a
+toast left, and the rows of a React table on a sort or a page turn.
+
 Twenty-six declarations across six stylesheets wrote their own number instead, at five speeds —
 `0.15s`, `0.16s`, `0.18s`, `0.2s`, `0.35s` — and thirty-six named a bare `ease`, which is
 `cubic-bezier(0.25, 0.1, 0.25, 1)` and not the kit's curve. Two of the twenty-six
@@ -301,7 +312,9 @@ their own numbers because a token would be the wrong unit:
   the nearest token breaks its relationship to the other two, which is the whole effect.
 
 Each of these carries its reason at the declaration, as `/* motion: ambient — why */` or
-`/* motion: choreographed — why */`. There is no third kind and no unannotated exception.
+`/* motion: choreographed — why */`. There is no third kind and no unannotated exception. The
+`motion: still` note above answers a different question — whether a state change moves at all —
+and is not a way to keep a literal.
 
 `0.01ms` in the reduced-motion net is not a duration and is not tokenised. It is the kill-switch
 idiom: short enough to be imperceptible, non-zero so `transitionend` and `animationend` still fire
@@ -315,13 +328,25 @@ lives in `src/styles/reduced-motion.css`, one copy. `src/index.css` imports it, 
 carries it as well: a consumer who takes only the React stylesheet is not left with motion and no
 net. Taking both is harmless — every rule in it is idempotent and `!important`.
 
+**Under reduced motion, a change happens at once.** Nothing slides, fades or loops, and a one-shot
+settles on its final frame. WCAG 2.3.3 would allow a fade here, since it does not count opacity as
+motion; the kit does not keep one, because a single net over every sheet is the only version a new
+component cannot forget. Measured in Chrome with reduced motion forced, every transition the drawer
+starts runs 0.01ms.
+
 Held by `stories/motion-tokens.test.js`, which reads the four tokens out of the table above at run
 time, resolves each through `tokens.css` into the brand primitive it aliases and checks the
 milliseconds match, then fails any transition in the swept sheets that carries a literal time or a
 bare easing keyword, any `visibility` not timed `linear`, any animation literal without its
 `motion:` note, and any published CSS entry that ships motion without the net.
+`stories/motion-coverage.test.js` discovers every state rule in the swept sheets that shows, hides
+or moves an element and fails one that neither moves nor carries a `motion: still` note with a
+reason. `stories/reduced-motion.test.js` holds the net's three declarations, refuses `!important`
+on a duration anywhere outside it, and requires every script that waits on `animationend` or
+`transitionend` to have a timer behind it.
 
-Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200).
+Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200) and
+[#271](https://github.com/apliteni/apliteni-ui/issues/271).
 
 ## Colour and contrast
 
@@ -597,6 +622,10 @@ and value pairs, so a screen reader hears each label with its value. The value s
 label rather than at the far edge of the panel. Nothing then has to lead the eye across the gap,
 which is the job a rule under every row was doing.
 
+**It draws no line inside itself.** There is no rule under the header, over the footer or between
+groups; the panel's edge is the only line. The header holds its place by spacing and weight, and a
+long body scrolls under it.
+
 **It moves on open and on close.** The panel slides in from the edge it is anchored to while the
 scrim fades, both on `--dur-med` and `--ease`. It leaves the same way. Under reduced motion both
 are instant; see [Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
@@ -604,7 +633,8 @@ are instant; see [Reduced motion travels with the stylesheet](#reduced-motion-tr
 Held by `stories/drawer-rules.test.js`. It renders every story in both themes into a jsdom carrying
 the kit's stylesheets and measures every drawer panel that comes out, cascade resolved. A card
 inside the body fails, and so does any element inside it with a border on its top or bottom edge
-that does not also draw both sides; a box with four edges is a control. A specimen inside
+that does not also draw both sides; a box with four edges is a control. So does a rule under the
+header or over the footer. A specimen inside
 `[data-specimen="dont"]` is a picture of the fault rather than a subject, and the gate uses those
 to prove it can see both faults at all.
 

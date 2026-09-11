@@ -368,6 +368,11 @@ export const GATES = [
     blind: ['The scrim\u2019s backdrop-filter, and anything else only a browser composites.'],
   },
   {
+    file: 'react/src/Drawer.test.tsx',
+    does: 'The React drawer\u2019s focus, Tab trap, Escape, scrim and close-button dismissal, mounted.',
+    blind: ['Real browser focus and transitions; jsdom runs neither.'],
+  },
+  {
     file: 'react/src/a11y.test.tsx',
     does: 'The same axe contract for the React workspace, through vitest and Testing Library.',
     blind: ['The same two axe cannot do next door: contrast, and anything static markup hides.'],
@@ -503,7 +508,7 @@ export const RULES = [
   {
     id: 'name-the-gap',
     imperative: 'Say what a gate cannot see, in the gate.',
-    why: 'Thirteen gates in this repo state their own blind spots in a header comment, and the '
+    why: 'The gates in this repo state their own blind spots in a header comment, and the '
       + 'table below is that collection rather than a fresh audit. A gate that overstates itself '
       + 'is how contrast came to be "verified visually" in the first place.',
     kit: [{ ref: 'stories/contrast.test.js:236', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
