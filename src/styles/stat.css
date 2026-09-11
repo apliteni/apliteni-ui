@@ -1,0 +1,99 @@
+/* ============================================================================
+ * Stat band — .ui-stats  (a row of key figures: label, value, change, trend)
+ *   .ui-stats--band   one card, figures divided by space
+ *   .ui-stats--tiles  one card per figure
+ *   .ui-stats--open   no surface; a rule over each figure
+ * why: docs/specification.md#stat-bands
+ * ========================================================================== */
+
+/* The band lays out from the width of its own box, not the window's: a band in
+   a column beside a rail and a band across a full page are different widths at
+   the same viewport. */
+.ui-stats { container-type: inline-size; }
+
+.ui-stats__list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--space-6) var(--space-10);
+  margin: 0;
+}
+
+.ui-stat { display: flex; flex-direction: column; min-width: 0; }
+.ui-stat > dd { margin: 0; }
+
+.ui-stat__label {
+  color: var(--dim);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+}
+
+/* A figure is never broken across lines and never truncated: `€` stays with its
+   digits and every digit stays on screen. The band stacks before a figure
+   would have to do either. */
+.ui-stat__value {
+  margin-top: var(--space-2);
+  color: var(--strong);
+  /* display: readout — a key figure is read as a number at a glance, not as a line of prose */
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-stat__delta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--space-1);
+  margin-top: var(--space-2);
+  color: var(--dim);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+}
+.ui-stat__delta svg { width: 14px; height: 14px; flex: none; }
+.ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ui-stat__basis { color: var(--muted); font-weight: var(--weight-normal); }
+.ui-stat__delta--none { color: var(--muted); font-weight: var(--weight-normal); }
+
+/* Tone is set by the caller and says good or bad news. Direction is the arrow's
+   job, so an unset tone keeps the change neutral whichever way it points. */
+.ui-stat--good .ui-stat__delta { color: var(--chip-success-ink); }
+.ui-stat--bad .ui-stat__delta { color: var(--chip-danger-ink); }
+
+/* The trend is the caller's <svg>. margin-top: auto seats it on the bottom of
+   the figure, so trends line up across figures whose text wraps differently. */
+.ui-stat__trend { margin-top: auto; padding-top: var(--space-4); color: var(--muted); }
+.ui-stat__trend svg { display: block; width: 100%; height: 32px; overflow: visible; }
+.ui-stat--good .ui-stat__trend { color: var(--chip-success-ink); }
+.ui-stat--bad .ui-stat__trend { color: var(--chip-danger-ink); }
+
+.ui-stats__basis {
+  margin: var(--space-5) 0 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
+.ui-stats--tiles .ui-stats__list { gap: var(--space-4); }
+
+.ui-stats--open .ui-stat {
+  border-top: 1px solid var(--border-strong);
+  padding-top: var(--space-4);
+}
+.ui-stats--open .ui-stat__value { font-size: var(--text-3xl); }
+
+/* Four figures fold to two rows of two, an odd count straight to one column:
+   a figure alone on a half-empty row reads as the odd one out. */
+@container (max-width: 44rem) {
+  .ui-stats__list { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ui-stats__list:has(> .ui-stat:last-child:nth-child(odd)) { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 26rem) {
+  .ui-stats__list { grid-template-columns: minmax(0, 1fr); }
+}
