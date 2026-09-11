@@ -21,6 +21,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
 - **[The drawer](#the-drawer)** — grouped by heading, and moving on open and on close
+- **[The hover readout](#the-hover-readout)** — an overlay, never a row
 - **[Pagination](#pagination)** — a page the caller computed, and what happens when nobody counted it
 - **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
 
@@ -652,6 +653,49 @@ every fault at all.
 
 Decided in [#272](https://github.com/apliteni/apliteni-ui/issues/272) and
 [#271](https://github.com/apliteni/apliteni-ui/issues/271).
+
+## The hover readout
+
+`tooltip()` is the readout a surface shows while a pointer rests on one of its marks: a bar, a
+point on a sparkline, a cell. It is an overlay, and that is the guarantee. **Showing, filling or
+moving a readout never changes the size or the place of anything else on the page.**
+
+- The readout is one element, rendered once inside its host and absolutely placed there in every
+  state the stylesheet gives it. Its open state changes `opacity` and `visibility` and nothing
+  else, so it paints and takes no room. `wireTooltip()` fills and places that element and never
+  inserts one on hover; a host rendered without a readout is given one when it is wired.
+- It takes no pointer events. A readout covering the marks beside its own would otherwise become
+  the hover target, hide, uncover the mark and come back, at pointer speed.
+- It opens above its mark, centred on it, `--ui-tip-gap` away. It flips below only when the room
+  above is too small for it and the room below is larger, and room is measured inside the
+  viewport and inside every ancestor whose overflow clips, the host included. A readout whose
+  author asked for below flips up by the same test. It then slides along the mark's edge to stay
+  inside that box, no further than it has to. A `[data-tip-anchor]` inside a mark is placed
+  against instead of the mark, which is how a sparkline's full-height slice opens on its dot.
+- What it says is text: a label, a value and one detail, written with `textContent` and never
+  parsed. An empty part is hidden. An empty readout carries no `role` until its first value,
+  because a tooltip with no text in it has no accessible name.
+- Focus landing on a mark shows the readout too, and describes the mark with it through
+  `aria-describedby` while it shows, unless the mark already has a description of its own.
+  Escape dismisses a showing readout without the pointer having to move, and it comes back on
+  the next mark.
+
+**Not decided yet.** The wiring adds no tab stop to a mark, and it treats touch like any other
+pointer, so on a touch screen a tap shows the readout only while the finger is down. Whether a
+chart's marks should take focus, and whether a tap should pin the readout or a finger scrub along
+the line, is open on [#282][i282] and waits on the owner. Until it is settled, the rule for pages
+is that no value is reachable only by hovering.
+
+The kit had no readout until [#282][i282]. The finance portal's overview drew two, on one screen:
+its bar chart overlaid its readout and nothing moved, while each KPI sparkline inserted its
+readout as a row, so the card grew by a line and everything under it moved whenever the pointer
+landed on a point. The rules for pages are in Storybook, under Guidelines / Hover readouts.
+
+Held by `src/components/tooltip.test.js`, which reads the stylesheet for the out-of-flow and
+open-state rules, watches the page with a `MutationObserver` while marks are hovered, and feeds
+the placement measured rects, jsdom having no layout of its own.
+
+[i282]: https://github.com/apliteni/apliteni-ui/issues/282
 
 ## Pagination
 
