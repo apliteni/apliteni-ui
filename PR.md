@@ -158,9 +158,13 @@ For #274, to be written into the thread when it closes:
   kit rather than reimplemented, so a server render and a keystroke cannot disagree about what
   comes first. It reuses `Modal.tsx`'s `tabbablesIn` / `dismissOnScrim` instead of carrying a
   third copy (see **Merge order** below).
-- Two differences from the vanilla one, both because a React host owns the state the wiring
-  would: no ⌘K binding (`open` is the host's prop), and a destructive row names an `onConfirm`
-  callback rather than a confirm's id.
+- Two deliberate differences from the vanilla one, both because a React host owns the state the
+  wiring would: no ⌘K binding (`open` is the host's prop), and a destructive row names an
+  `onConfirm` callback rather than a confirm's id.
+- A third that is not deliberate and is going: one Escape closes a `Modal` and the palette under
+  it, because each registers its own document listener and `inert` does not stop one. The
+  vanilla pair does not, being on one stack. It goes when the palette joins the shared dialog
+  stack, which is the rebase onto #289 (see **Merge order** below).
 
 ![React, dark](docs/evidence/palette-react-dark.png)
 ![React, light](docs/evidence/palette-react-light.png)
@@ -303,21 +307,47 @@ coordinator sequences versions at merge. The lines I would write:
   own. (#274)
 ```
 
-## Merge order — three things the coordinator should know
+## Merge order — this one goes last, after the drawer
 
-1. **`feat/272-271-drawer-and-motion` moves the React dialog plumbing into `react/src/dialog.ts`.**
-   This branch exports `tabbablesIn` and `dismissOnScrim` from `Modal.tsx` so the palette is the
-   third React dialog without a third copy of them. **After that branch lands**, change one import
-   in `react/src/CommandPalette.tsx` from `./Modal` to `./dialog` and put the palette on the shared
-   dialog stack (`useDialog`), which is the one thing it cannot do today: a React confirm opened
-   over a React palette is not yet ordered by a stack. The vanilla side already is.
-2. **`src/components/overlay.js` shifted by two lines** (`reachable()` learned about `data-cmdk`).
-   The stale line reference in `react/src/Modal.tsx` is repointed here; the copy of it
-   in the drawer branch's `react/src/dialog.ts` needs the same move.
-3. **Three shared files are touched by more than one in-flight branch**:
-   `stories/guidelines/_overview.js` (one `ENTRIES` row), `stories/guidelines/_accessibility-floor.js`
-   (three `GATES` entries) and `.storybook/preview.js` (two `storySort` rows and one `wire…` call).
-   All three are append-style conflicts.
+Wave order: **#286 → #288 → #292 → #289 → #293**. Last, because the React half has to sit on
+`react/src/dialog.ts`, which #289 introduces, and because two of the gates that hold this
+branch's sheet are gates #289 brings with it. Against #286/#288/#292 alone it conflicts only on
+`.storybook/preview.js`.
+
+The two gates are already answered here rather than at the merge:
+`src/styles/command-palette.css` carries its own `@media (prefers-reduced-motion: reduce) {
+.ui-cmdk.is-open * { transition: none !important; } }` — without it the text box the palette
+focuses on open is still hidden in that frame and focus falls to `<body>` — and
+`.ui-cmdk__item[hidden]` carries the `motion: still` note `stories/motion-coverage.test.js`
+reads. Nothing to do at the conflict for either.
+
+**Nine conflicts, and what each one takes:**
+
+| File | Conflict | Resolution |
+|---|---|---|
+| `PR.md` | whole file | take this branch's (scratch file) |
+| `.storybook/preview.js` | both `storySort` lists, and the wiring line — #286 replaced `wireNav(wrap)` with `wireShell(wrap)`, this branch adds `wireCommandPalette(wrap)` to the old one | union both lists (*The command palette* into Guidelines, *Command palette* into Components); wiring line = `wireTopbar; wireShell; wireDrawer; wireConfirm; wireCommandPalette; initTabs` |
+| `react/src/Modal.tsx` | #289 moved `tabbable` / `tabbablesIn` / `dismissOnScrim` into `dialog.ts`; this branch exported them from `Modal.tsx` | take **#289's** file, then the two lines below |
+| `react/src/index.ts` | `Drawer` exports vs `CommandPalette` exports | union |
+| `react/src/apliteni-ui.d.ts` | `statBand` / `drawer` vs the palette's five declarations | union |
+| `react/README.md` | the component list | union → `DataTable, Pagination, StatBand, Modal, Drawer, CommandPalette, Button, Badge, Card, Icon`, keep this branch's paragraph |
+| `stories/guidelines/_overview.js` | three hunks (content import, story import, `ENTRIES`) | union all three |
+| `src/styles/icon-size.test.js` | comment only — **both sides say `62`**, so the constant merges silently and is then wrong by four | **66**, keeping both ledger sentences |
+| `src/styles/typeface-roles.test.js` | 44 vs 45 | **48**, keeping all four justifications |
+
+**The two React lines**, without which 27 React tests fail with
+`TypeError: dismissOnScrim is not a function`: an `export` in front of `tabbablesIn` in #289's
+`react/src/dialog.ts`, where it is a bare `const`, and
+`react/src/CommandPalette.tsx:4` `import { tabbablesIn, dismissOnScrim } from './Modal'`
+repointed to `./dialog`. Putting the palette on `useDialog` — the shared dialog stack — belongs
+in the same commit: it is what stops one Escape closing a React `Modal` and the palette under
+it, which `react/README.md` names as the third difference from the vanilla one.
+
+**One digit nothing warns you about:** `reachable()` has moved twice on this branch and now sits
+at `src/components/overlay.js:37` `function reachable(el)`. The comment at the top of #289's
+`react/src/dialog.ts` still cites the line it had on `main`; repoint it, or
+`scripts/code-refs.test.js` fails on the stale one. This branch's own citation of the same
+function, in `react/src/Modal.tsx`, is already right.
 
 ## What I deliberately left out
 
