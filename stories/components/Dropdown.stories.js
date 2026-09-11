@@ -2,15 +2,15 @@ import { dropdown } from '../../src/components/dropdown.js';
 import { pad, row, specimen } from '../_gallery.js';
 
 const VERSIONS = [
-  { label: 'phoenix.2026.002', description: 'Product units, animated deck', badge: 'live', selected: true },
-  { label: 'phoenix.2026.001', description: 'Phoenix, 2026-05-17', badge: 'archive' },
-  { label: 'phoenix.2025.014', description: 'Phoenix, 2025-12-02', badge: 'archive' },
+  { label: 'phoenix.2026.002', description: 'Product units, animated deck', badge: 'Live', selected: true },
+  { label: 'phoenix.2026.001', description: 'Phoenix, 2026-05-17', badge: 'Archive' },
+  { label: 'phoenix.2025.014', description: 'Phoenix, 2025-12-02', badge: 'Archive' },
 ];
 
 const CHANNELS = [
-  { label: 'In-app', description: 'Toasts inside the console', badge: { text: 'on', tone: 'live' }, selected: true },
-  { label: 'Email', description: 'Daily digest to your inbox', badge: 'off' },
-  { label: 'Webhook', description: 'POST to your endpoint', badge: { text: 'beta', tone: 'accent' } },
+  { label: 'In-app', description: 'Toasts inside the console', badge: { text: 'On', tone: 'live' }, selected: true },
+  { label: 'Email', description: 'Daily digest to your inbox', badge: 'Off' },
+  { label: 'Webhook', description: 'POST to your endpoint', badge: { text: 'Beta', tone: 'accent' } },
 ];
 
 const ACTIONS = [
@@ -169,7 +169,7 @@ export const InAppRail = {
     dropdown({
       label: 'workspace:', ariaLabel: 'Workspace', portal: true, open: true,
       items: [
-        { label: 'Phoenix production', description: 'phoenix.apliteni.example', badge: 'live', selected: true },
+        { label: 'Phoenix production', description: 'phoenix.apliteni.example', badge: 'Live', selected: true },
         { label: 'Aurora staging', description: 'aurora.apliteni.example' },
       ],
     }),
@@ -184,7 +184,7 @@ export const InAppRail = {
 const GUTS = '<span class="ui-dropdown__main">'
   + '<span class="ui-dropdown__label">phoenix.2026.002</span>'
   + '<span class="ui-dropdown__desc">Product units, animated deck</span></span>'
-  + '<span class="ui-dropdown__badge is-live">live</span>'
+  + '<span class="ui-dropdown__badge is-live">Live</span>'
   + '<span class="ui-dropdown__tick" aria-hidden="true">'
   + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">'
   + '<path d="M20 6 9 17l-5-5"/></svg></span>';

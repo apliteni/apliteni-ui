@@ -1,6 +1,6 @@
 /* ============================================================================
  * Badge / Pill / Tag
- *   .ui-badge        — uppercase status chip (live / soon / archive / neutral)
+ *   .ui-badge        — status chip (live / soon / archive / neutral)
  *   .ui-tag          — soft solid label
  *   .ui-dot          — leading status dot (pulses when .is-live)
  * ========================================================================== */
@@ -9,10 +9,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: var(--weight-bold);
+  /* rank: chip */
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   padding: 3px 9px;
   border-radius: var(--radius-pill);
   color: var(--muted);
@@ -45,9 +44,8 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  /* rank: chip */
   font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--muted);
   background: var(--surface-2);
   border-radius: var(--radius-pill);

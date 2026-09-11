@@ -15,11 +15,10 @@
   padding: 10px 15px;
 }
 .ui-snippet__bar span {
-  font-size: 11.5px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  /* rank: label */
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   color: var(--muted);
-  font-weight: var(--weight-semibold);
 }
 .ui-snippet pre {
   margin: 0;

@@ -57,10 +57,15 @@
   box-shadow: var(--shadow-md);
 }
 
+/* card() emits the title as an h2, so the text face is named here rather than
+   left to the element. why: docs/specification.md#labels-and-titles */
 .ui-card__title {
   color: var(--strong);
+  font-family: var(--font-sans);
+  /* rank: card-title */
   font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
   display: flex;
   align-items: center;
   gap: 10px;

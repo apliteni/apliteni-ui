@@ -75,7 +75,7 @@ export const RULES = [
     dontHtml: meaningDont,
     kit: [
       { ref: 'src/assets/icons.js:174', pattern: 'export const iconMeanings' },
-      { ref: 'src/components/index.js:229', pattern: 'const TOAST_ICON = {' },
+      { ref: 'src/components/index.js:232', pattern: 'const TOAST_ICON = {' },
     ],
   },
   {

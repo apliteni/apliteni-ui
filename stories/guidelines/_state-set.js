@@ -78,8 +78,8 @@ export const RULES = [
     doHtml: focusDo,
     dontHtml: focusDont,
     kit: [
-      { ref: 'src/styles/base.css:139', pattern: '.ui-focusable:focus-visible,' },
-      { ref: 'src/styles/base.css:145', pattern: 'box-shadow: var(--ring);' },
+      { ref: 'src/styles/base.css:140', pattern: '.ui-focusable:focus-visible,' },
+      { ref: 'src/styles/base.css:146', pattern: 'box-shadow: var(--ring);' },
       { ref: 'src/tokens/tokens.css:224', pattern: '--ring: 0 0 0 3px var(--accent);' },
     ],
   },
@@ -108,9 +108,9 @@ export const RULES = [
     doHtml: errorDo,
     dontHtml: errorDont,
     kit: [
-      { ref: 'src/components/index.js:184', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
-      { ref: 'src/components/index.js:170', pattern: "'aria-describedby': msgId," },
-      { ref: 'src/components/index.js:156', pattern: "markup rather than in the label's wording" },
+      { ref: 'src/components/index.js:187', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
+      { ref: 'src/components/index.js:173', pattern: "'aria-describedby': msgId," },
+      { ref: 'src/components/index.js:159', pattern: "markup rather than in the label's wording" },
     ],
   },
   {
@@ -125,7 +125,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/loading.js:54', pattern: 'export function busyRegion({' },
       { ref: 'src/components/loading.js:74', pattern: 'export function setBusy(root,' },
-      { ref: 'src/components/index.js:249', pattern: 'role="status" aria-live="polite"' },
+      { ref: 'src/components/index.js:252', pattern: 'role="status" aria-live="polite"' },
     ],
   },
 ];

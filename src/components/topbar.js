@@ -41,12 +41,17 @@ export function deckTextSwitch(active = 'deck') {
 // Thin consumer of the shared dropdown wiring (wireDropdown): keeps its own
 // bespoke .vsw/.vopt classes for a pixel-identical look, but emits the generic
 // [data-dropdown] hooks so there's ONE open/close/keyboard implementation.
+// `badge` is a tone key and the kit writes the word for it; the stylesheet used
+// to uppercase the key itself. why: docs/specification.md#labels-and-titles
+const VBADGE = { live: 'Live', archive: 'Archive' };
 export function versionSwitcher(versions = [], activeIdx = 0) {
   const cur = versions[activeIdx]?.label || '';
-  const opts = versions.map((v, i) =>
-    `<div class="vopt" role="option" data-dd-item tabindex="-1" aria-selected="${i === activeIdx}" data-active="${i === activeIdx ? '1' : '0'}">` +
-    `<span><div class="vname">${v.label}</div><div class="vmeta">${v.meta || ''}</div></span>` +
-    `<span class="vbadge ${v.badge === 'live' ? 'live' : 'arch'}">${v.badge || 'archive'}</span></div>`).join('');
+  const opts = versions.map((v, i) => {
+    const key = String(v.badge || 'archive').toLowerCase();
+    return `<div class="vopt" role="option" data-dd-item tabindex="-1" aria-selected="${i === activeIdx}" data-active="${i === activeIdx ? '1' : '0'}">` +
+      `<span><div class="vname">${v.label}</div><div class="vmeta">${v.meta || ''}</div></span>` +
+      `<span class="vbadge ${key === 'live' ? 'live' : 'arch'}">${esc(VBADGE[key] || v.badge)}</span></div>`;
+  }).join('');
   return `<div class="vsw" data-dropdown><button type="button" class="vsw__btn" data-dropdown-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Version — ${esc(cur)}">` +
     `<span class="lbl">version:</span><span class="cur">${cur}</span><span class="car"></span></button>` +
     `<div class="vsw__menu" data-dropdown-panel role="listbox" aria-label="Version">${opts}</div></div>`;

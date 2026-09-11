@@ -184,7 +184,7 @@ So write the line, then write what is **on** it:
 
 ```
 src/styles/callout.css:137 `.ui-toast--solid .ui-toast__action`
-src/styles/nav.css:39-41 `font-size: 14.5px;`
+src/styles/nav.css:38-40 `font-size: 14.5px;`
 ```
 
 `scripts/code-refs.test.js` resolves every one of them — the file exists, the line exists,
@@ -205,7 +205,7 @@ Four things the form asks of you, and the reason for each:
   count against what the pages declare, so a `ref:` written where that walk cannot see it
   makes the two disagree rather than falling between them.
 - **Story copy a reader sees anchors with a second code span**, not a backtick that would
-  land on the page: `${code('src/styles/nav.css:81')} ${code('.ui-nav__item.is-danger:hover')}`.
+  land on the page: `${code('src/styles/nav.css:80')} ${code('.ui-nav__item.is-danger:hover')}`.
 
 Two forms are exempt by construction, never by a list. A `<sha>:` prefix makes the citation
 historical — a claim about a tree that is not this one. And a path whose first segment is not

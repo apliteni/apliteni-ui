@@ -7,7 +7,7 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
-const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 18px">${t}</h3>`;
+const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin:0 0 18px">${t}</h3>`;
 
 // A size ramp for a mark: the mark rendered at each px size with a caption.
 const ramp = (mark, prefix, sizes) => `<div style="display:flex;gap:40px;align-items:flex-end;flex-wrap:wrap;margin-bottom:26px">${

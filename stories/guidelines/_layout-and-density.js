@@ -91,7 +91,7 @@ export const RULES = [
     doHtml: measureDo,
     dontHtml: measureDont,
     kit: [
-      { ref: 'src/styles/base.css:113', pattern: 'max-width: var(--container)' },
+      { ref: 'src/styles/base.css:114', pattern: 'max-width: var(--container)' },
       { ref: 'src/styles/topbar.css:17', pattern: 'max-width: var(--container)' },
       { ref: 'src/tokens/tokens.css:42', pattern: '--container: 1120px' },
     ],
@@ -142,7 +142,7 @@ export const RULES = [
     dontHtml: densityDont,
     kit: [
       { ref: 'src/tokens/tokens.css:29', pattern: '--space-3: 12px' },
-      { ref: 'src/styles/table.css:59', pattern: 'padding: var(--space-2) var(--space-3)' },
+      { ref: 'src/styles/table.css:58', pattern: 'padding: var(--space-2) var(--space-3)' },
       { ref: 'stories/table-rhythm.test.js:85', pattern: 'writes no row rhythm as a literal' },
     ],
   },
@@ -185,7 +185,7 @@ export const RULES = [
       + 'box; the numbers match today and neither follows the other, so a comment claiming a link '
       + 'that does not exist would cost a reader more than the silence does.',
     kit: [
-      { ref: 'src/styles/layout.css:172', pattern: '@media (max-width: 720px)' },
+      { ref: 'src/styles/layout.css:173', pattern: '@media (max-width: 720px)' },
       { ref: 'stories/breakpoints.test.js:117', pattern: 'every breakpoint is one of the documented steps' },
       { ref: 'stories/breakpoints.test.js:139', pattern: 'every documented step is a step something queries' },
     ],

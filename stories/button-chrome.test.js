@@ -5,7 +5,7 @@
  * A browser paints a <button> before any author rule runs: a grey fill, a 2px
  * outset border, a box that shrinks to its content, centred text, and `font: 400
  * 13.3333px Arial` — one shorthand, so the face, the size and the leading are
- * three separate things to answer. src/styles/nav.css:30 `.ui-nav__item {` cancels
+ * three separate things to answer. src/styles/nav.css:29 `.ui-nav__item {` cancels
  * every one. src/styles/dropdown.css:110 `.ui-dropdown__item {` cancelled none, so
  * the same markup that gives the rail a row gave the menu a nineties push-button
  * — measured in Chromium and filed as #251, and repaired there in 0.25.1.
@@ -554,7 +554,7 @@ for (const theme of THEMES) {
 //
 // The two subjects this lane repairs on that facet chose `text-align: left` over
 // `start`, the same keyword 0.25.1 gave `.ui-dropdown__item` and the one the rule
-// #251 names as correct — src/styles/nav.css:30 `.ui-nav__item {`.
+// #251 names as correct — src/styles/nav.css:29 `.ui-nav__item {`.
 // `start` is the better keyword in a kit that renders both directions; this one has
 // written down
 // that it does not. The evidence, so the next reader does not have to re-take it:
