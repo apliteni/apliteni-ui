@@ -688,7 +688,8 @@ moving a readout never changes the size or the place of anything else on the pag
   showed it, without the pointer having to move, and the mark's description goes with it. The
   readout comes back on the next mark, not on the one it was dismissed from. Crossing the gap
   between marks and returning does not end that; the pointer leaving the host does, and so does
-  `hideTooltip()`.
+  `hideTooltip()`. `showTooltip()` keeps to it as well, so a chart that calls it on every pointer
+  sample does not reopen what Escape closed.
 - A readout rendered with `open` is a picture of one, the way a documentation page shows it. Its
   host carries `.ui-tip-host` and no `[data-tip-host]`, so no wiring reaches it, and Escape leaves
   it alone because the kit never showed it.

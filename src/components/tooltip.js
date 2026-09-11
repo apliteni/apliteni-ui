@@ -132,10 +132,14 @@ function fill(tip, mark) {
 
 // ---- Behaviour -----------------------------------------------------------
 
-/** Show the host's readout for one mark, until hideTooltip() or Escape. For a chart that does its own hit-testing; its host needs `.ui-tip-host`. */
+/**
+ * Show the host's readout for one mark, until hideTooltip() or Escape. For a chart that does its own
+ * hit-testing; its host needs `.ui-tip-host`. After Escape it shows nothing for the dismissed mark
+ * until another mark shows or hideTooltip() is called, so a chart may call it on every pointer sample.
+ */
 export function showTooltip(host, mark) {
   const tip = tipOf(host);
-  if (!tip || !mark) return;
+  if (!tip || !mark || mark === host.__tipDismissed) return;
   if (tip.__tipPrefersBelow == null) tip.__tipPrefersBelow = tip.classList.contains('is-below');
   if (!tip.id) tip.id = `ui-tip-${++seq}`;
   releaseMark(host);
@@ -220,7 +224,7 @@ export function wireTooltip(root = document) {
       anchorHost(host);
       const mark = markOf(e.target);
       if (!mark) close(host);
-      else if (mark !== host.__tipMark && mark !== host.__tipDismissed) showTooltip(host, mark);
+      else if (mark !== host.__tipMark) showTooltip(host, mark);
     });
     host.addEventListener('pointerleave', () => hideTooltip(host));
     host.addEventListener('focusin', (e) => {

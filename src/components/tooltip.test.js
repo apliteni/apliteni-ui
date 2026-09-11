@@ -424,6 +424,25 @@ test('Escape dismisses a readout showTooltip opened on a host nobody wired', () 
   assert.equal(doc.getElementById('m2').hasAttribute('aria-describedby'), false);
 });
 
+test('a chart showing on every pointer sample does not reopen what Escape closed', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  const host = doc.getElementById('host');
+  const [m1, m2] = [doc.getElementById('m1'), doc.getElementById('m2')];
+  showTooltip(host, m1);
+  doc.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  showTooltip(host, m1);
+  assert.equal(tip.classList.contains('is-open'), false, 'the next sample lands on the mark it was dismissed from');
+  showTooltip(host, m2);
+  assert.ok(tip.classList.contains('is-open'), 'the next mark shows it');
+
+  doc.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  hideTooltip(host);
+  showTooltip(host, m2);
+  assert.ok(tip.classList.contains('is-open'), 'hideTooltip() is the pointer leaving, and ends the dismissal');
+});
+
 test('Escape leaves alone a readout rendered open that the kit never showed', () => {
   const window = mount(MARKS + tooltip());
   const doc = window.document;
