@@ -21,7 +21,7 @@ const STORY_CSS = `
       color: var(--strong); font-variant-numeric: tabular-nums; }
     .tt-note { margin: 0; font-size: var(--text-sm); color: var(--muted); max-width: var(--prose-body); }
     .tt-room { padding-top: calc(var(--space-16) + var(--space-4)); }
-    .tt-clip { overflow: hidden; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--border); padding: 0 var(--space-3); }
+    .tt-clip { overflow: hidden; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--border); padding: 0 var(--space-8); }
   </style>`;
 
 export default {
