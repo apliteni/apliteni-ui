@@ -15,23 +15,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { statSync, existsSync } from 'node:fs';
 import path from 'node:path';
-
-const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, '..');
-const at = (rel) => path.join(root, rel);
-const read = (rel) => readFileSync(at(rel), 'utf8');
-
-/** Blank out comments, keeping newlines so line numbers stay true. */
-const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
-
-/** A CSS time, in milliseconds. `0.25s` and `250ms` are the same number. */
-const ms = (literal) => {
-  const m = /^(-?\d*\.?\d+)(m?s)$/.exec(literal.trim());
-  return m === null ? null : Number(m[1]) * (m[2] === 's' ? 1000 : 1);
-};
+import { at, read, ms, decomment, sheetsUnder, sheets, netBlocks } from './lib/motion-css.js';
 
 /* -- The vocabulary, read from the specification rather than repeated -------- */
 
@@ -72,19 +58,9 @@ const DURATIONS = new Set(SCALE.map((s) => s.token));
 
 /* -- The surfaces, swept rather than listed ---------------------------------- */
 
-/** Every .css under a tree, at whatever depth it was put, as `{ where, text }`. */
-const sheetsUnder = (dir) => {
-  const out = [];
-  for (const f of readdirSync(at(dir)).sort()) {
-    const rel = `${dir}/${f}`;
-    if (statSync(at(rel)).isDirectory()) out.push(...sheetsUnder(rel));
-    else if (f.endsWith('.css')) out.push({ where: rel, text: read(rel) });
-  }
-  return out;
-};
-
-/** Both trees that ship CSS: the kit's own, and the React package's. */
-const sheets = () => [...sheetsUnder('src'), ...sheetsUnder('react/src')];
+// sheetsUnder() and sheets() walk both trees that ship CSS; they live in
+// stories/lib/motion-css.js because the coverage and reduced-motion gates walk
+// the same two.
 
 /**
  * Every `transition` / `animation` declaration in the swept sheets.
@@ -112,22 +88,6 @@ const declarations = () => {
     }
   }
   return found;
-};
-
-/** `[start, end]` of every `@media (prefers-reduced-motion …) { … }` block. */
-const netBlocks = (src) => {
-  const spans = [];
-  for (const m of src.matchAll(/@media\b[^{]*prefers-reduced-motion[^{]*\{/g)) {
-    let depth = 1;
-    let i = m.index + m[0].length;
-    while (i < src.length && depth > 0) {
-      if (src[i] === '{') depth += 1;
-      else if (src[i] === '}') depth -= 1;
-      i += 1;
-    }
-    spans.push([m.index, i]);
-  }
-  return spans;
 };
 
 /** Drop every balanced `var( … )` group, leaving whatever was written by hand. */

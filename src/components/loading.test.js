@@ -110,3 +110,20 @@ test('the kit announces one way — role="status" aria-live="polite", everywhere
   assert.ok(seen.length >= 3, `expected the toast, success and busy regions, saw ${seen.length}`);
   for (const [f, v] of seen) assert.equal(v, 'polite', `${f} announces politely`);
 });
+
+// The body setBusy() swaps in fades in. The region the page loads with does not,
+// and a call that only changes the message moves nothing.
+test('setBusy fades a new body in; the first render and a message-only call do not', () => {
+  const dom = new JSDOM(`<div id="host">${busyRegion({ label: 'Loading…' })}</div>`);
+  const host = dom.window.document.getElementById('host');
+  const slot = host.querySelector('[data-busy-body]');
+  assert.equal(host.querySelectorAll('.is-entering').length, 0, 'the region animated at first render');
+
+  setBusy(host, { busy: true, message: 'Still loading' });
+  assert.equal(slot.classList.contains('is-entering'), false, 'nothing new arrived, and something moved');
+
+  setBusy(host, { busy: false, body: '<p>14 invoices</p>' });
+  assert.ok(slot.classList.contains('is-entering'), 'the rows arrived in one frame');
+  slot.dispatchEvent(new dom.window.Event('animationend'));
+  assert.equal(slot.classList.contains('is-entering'), false);
+});

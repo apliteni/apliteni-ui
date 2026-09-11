@@ -9,6 +9,7 @@
 // (onSend does the POST / issue / whatever) and any deep-link shaping. Styles
 // ship in styles/feedback.css (part of the kit stylesheet). Accent-aware.
 import { esc } from './index.js';
+import { playEntrance } from '../motion.js';
 
 // Decorative, like every glyph in the kit — the pill and the buttons carry their
 // own text or aria-label, so the SVGs stay out of the accessibility tree.
@@ -16,7 +17,6 @@ const IC_MSG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 const IC_LINES = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M4 5h16M4 12h10M4 19h7"/></svg>';
 const IC_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const CHECK = '<svg class="ui-fbck" viewBox="0 0 150 150" aria-hidden="true"><path class="ui-fbck-t" d="M40 78l24 24 46-50"/><path class="ui-fbck-m" d="M40 78l24 24 46-50"/><path class="ui-fbck-s" d="M40 78l24 24 46-50"/></svg>';
-
 // The widget markup — append once to the page (e.g. document.body). Copy is
 // static here; behaviour + the dynamic chip/quote come from wireFeedback().
 export function feedbackWidget({
@@ -164,7 +164,7 @@ export function wireFeedback(opts = {}) {
 
   function fail(msg) {
     errEl.textContent = msg || 'Could not send just now — try again in a moment.';
-    errEl.classList.add('show'); sendLb.textContent = 'Send feedback'; sendBtn.disabled = false;
+    errEl.classList.add('show'); playEntrance(errEl); sendLb.textContent = 'Send feedback'; sendBtn.disabled = false;
   }
   sendBtn.addEventListener('click', async () => {
     if (sendBtn.disabled || !pending) return;

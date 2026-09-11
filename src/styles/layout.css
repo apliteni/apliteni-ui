@@ -78,7 +78,7 @@
    smallest of three weak signals doing the most work, so it grows with the row. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.62; }
 .ui-app__rail .ui-nav__item.is-active .ui-nav__ic svg,
-.ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; }
+.ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
 .ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
 
 /* Sign out is a navigation row and rests like one. The danger intent is the

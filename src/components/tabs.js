@@ -14,6 +14,7 @@
 // Follows the WAI-ARIA tabs pattern: roving tabindex, ArrowLeft/Right + Home/End,
 // aria-selected, and aria-controls / aria-labelledby wiring. `name` must be unique
 // per tabs instance on a page (it seeds the tab/panel ids).
+import { playEntrance } from '../motion.js';
 
 export function tabs({ items = [], active = 0, name = 'tabs', ariaLabel = 'Tabs', className = '' } = {}) {
   const cls = ['ui-tabs', className].filter(Boolean).join(' ');
@@ -57,7 +58,12 @@ export function initTabs(root) {
         t.setAttribute('aria-selected', on ? 'true' : 'false');
         t.tabIndex = on ? 0 : -1;
         const p = panelFor(t);
-        if (p) p.hidden = !on;
+        if (p) {
+          // Only the panel a switch reveals fades in; the one the page loaded with does not.
+          const appearing = on && p.hidden;
+          p.hidden = !on;
+          if (appearing) playEntrance(p);
+        }
       });
       if (focus && tabEls[i]) tabEls[i].focus();
     };

@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
 import { tabs, initTabs } from './tabs.js';
 
 const ITEMS = [
@@ -49,4 +50,30 @@ test('empty items render an empty, valid tablist', () => {
 test('initTabs no-ops off-DOM (SSR / node)', () => {
   assert.equal(typeof globalThis.document, 'undefined');
   assert.doesNotThrow(() => assert.equal(initTabs(), undefined));
+});
+
+// initTabs() needs a document to exist; it is lent one for this test and given
+// back, so the off-DOM test above keeps seeing none.
+test('a switch fades the new panel in; the page loads with no panel entering', () => {
+  const { window } = new JSDOM(`<div id="host">${tabs({ name: 'm', items: ITEMS, active: 0 })}</div>`);
+  const host = window.document.getElementById('host');
+  const panel = (i) => host.querySelector(`#m-panel-${i}`);
+  globalThis.document = window.document;
+  try {
+    initTabs(host);
+    assert.equal(host.querySelectorAll('.is-entering').length, 0, 'a panel animated at first render');
+
+    host.querySelector('#m-tab-2').click();
+    assert.equal(panel(2).hidden, false);
+    assert.ok(panel(2).classList.contains('is-entering'), 'the panel the reader switched to did not fade in');
+    assert.equal(panel(0).classList.contains('is-entering'), false, 'the panel being left played an entrance');
+
+    panel(2).dispatchEvent(new window.Event('animationend'));
+    assert.equal(panel(2).classList.contains('is-entering'), false);
+
+    host.querySelector('#m-tab-2').click(); // already showing: nothing appears
+    assert.equal(panel(2).classList.contains('is-entering'), false, 'a panel already on screen replayed');
+  } finally {
+    delete globalThis.document;
+  }
 });

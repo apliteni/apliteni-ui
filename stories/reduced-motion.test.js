@@ -1,0 +1,190 @@
+/* Rule: a reader who asks the system for less motion gets less of it (WCAG 2.3.3),
+ * and nothing in the kit can outvote the request.
+ *
+ * Three things hold it. The net in src/styles/reduced-motion.css still shortens every
+ * animation and transition to nothing, with !important — parsed, so deleting one of
+ * its lines fails. No sheet writes a transition or animation duration with
+ * !important outside a reduced-motion block, where it would beat the net on
+ * specificity. And every script that waits on animationend or transitionend has a
+ * timer or a reduced-motion branch in the same function, found by scanning for the
+ * listener rather than listing files.
+ *
+ * A file of its own rather than a section of motion-tokens.test.js: that gate is
+ * about the vocabulary every reader gets, this one about the reader who opted out.
+ *
+ * What it does not reach:
+ * - Delays. The net does not zero animation-delay or transition-delay, and nothing
+ *   here looks for one.
+ * - Inline styles a script writes (toasts.js sets a transition on a swipe).
+ * - Whether the timer is long enough or the branch right: they are found, not run.
+ *   The function is read by indentation, so a one-line function is not classified.
+ * - Motion a script drives itself (requestAnimationFrame, element.animate()).
+ * - Whether a browser applies the net: jsdom evaluates no media query.
+ *
+ * why: docs/specification.md#reduced-motion-travels-with-the-stylesheet
+ */
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readdirSync, statSync } from 'node:fs';
+import { at, read, ms, sheets, leafRules, inNet } from './lib/motion-css.js';
+
+const NET = 'src/styles/reduced-motion.css';
+
+/* -- The net ------------------------------------------------------------------- */
+
+// Imperceptible, and not zero: the spec keeps it above 0 so the end events still
+// fire for a script waiting on them.
+const imperceptible = (v) => ms(v) !== null && ms(v) > 0 && ms(v) <= 1;
+const NET_DECLS = {
+  'animation-duration': { ok: imperceptible, want: 'a time above 0 and at most 1ms' },
+  'animation-iteration-count': { ok: (v) => v === '1', want: '1, so a loop plays once and settles' },
+  'transition-duration': { ok: imperceptible, want: 'a time above 0 and at most 1ms' },
+};
+
+test('the net still shortens every animation and transition, and outranks every sheet', () => {
+  const block = leafRules(read(NET)).filter((r) => r.at.some((p) => /prefers-reduced-motion\s*:\s*reduce/.test(p)));
+  assert.ok(block.length > 0, `${NET} has no @media (prefers-reduced-motion: reduce) block left`);
+
+  const everything = block.find((r) => {
+    const parts = r.selector.split(',').map((s) => s.trim()).sort();
+    return parts.join(' ') === ['*', '::after', '::before'].sort().join(' ');
+  });
+  assert.ok(
+    everything,
+    `${NET} no longer has a rule on \`*, ::before, ::after\` inside its reduced-motion block. `
+    + 'That selector is the net: it reaches every element and both generated boxes, and anything narrower '
+    + 'leaves an animation running for a reader who asked for none.',
+  );
+
+  for (const [prop, { ok, want }] of Object.entries(NET_DECLS)) {
+    const d = everything.decls.find((x) => x.prop === prop);
+    assert.ok(d, `${NET}: the net no longer sets ${prop}`);
+    assert.ok(
+      d.important,
+      `${NET}:${d.line} ${prop} lost its !important. Every component rule outranks \`*\` on specificity, `
+      + 'so without it the net loses to the first rule that names a duration.',
+    );
+    assert.ok(ok(d.value), `${NET}:${d.line} ${prop} is \`${d.value}\`, and the net needs ${want}`);
+  }
+});
+
+test('no sheet writes a duration with !important outside a reduced-motion block', () => {
+  const all = sheets();
+  assert.ok(all.length > 1, 'fewer than two stylesheets were read — the sweep has stopped reading the trees');
+
+  const offences = [];
+  for (const { where, text } of all) {
+    for (const rule of leafRules(text)) {
+      if (inNet(rule)) continue;
+      for (const d of rule.decls) {
+        if (/^(transition|animation)(-duration)?$/.test(d.prop) && d.important) {
+          offences.push(`${where}:${d.line}  ${rule.selector}  { ${d.prop}: ${d.value} !important }`);
+        }
+      }
+    }
+  }
+  assert.deepStrictEqual(
+    offences, [],
+    `a duration carries !important outside a prefers-reduced-motion block. ${NET} holds its durations with `
+    + '!important on `*`; an !important on a class wins on specificity, and the animation runs for a reader '
+    + 'who asked for none. Drop the !important, or move the rule inside a reduced-motion block:\n  '
+    + offences.join('\n  '),
+  );
+});
+
+/* -- The scripts that wait on an end event --------------------------------------- */
+
+/** Blank comments out of a script, keeping strings and newlines. */
+const decommentJs = (js) => {
+  let out = '';
+  let quote = null;
+  for (let i = 0; i < js.length; i += 1) {
+    const ch = js[i];
+    if (quote) {
+      out += ch;
+      if (ch === '\\') { out += js[i + 1] ?? ''; i += 1; } else if (ch === quote) quote = null;
+    } else if (ch === '/' && js[i + 1] === '/') {
+      while (i < js.length && js[i] !== '\n') { out += ' '; i += 1; }
+      out += js[i] ?? '';
+    } else if (ch === '/' && js[i + 1] === '*') {
+      const end = js.indexOf('*/', i + 2);
+      const stop = end === -1 ? js.length : end + 2;
+      out += js.slice(i, stop).replace(/[^\n]/g, ' ');
+      i = stop - 1;
+    } else {
+      if (ch === '\'' || ch === '"' || ch === '`') quote = ch;
+      out += ch;
+    }
+  }
+  return out;
+};
+
+const scriptsUnder = (dir) => readdirSync(at(dir)).sort().flatMap((f) => {
+  const rel = `${dir}/${f}`;
+  if (statSync(at(rel)).isDirectory()) return f === 'test' ? [] : scriptsUnder(rel);
+  return /\.(js|ts|tsx)$/.test(f) && !/\.test\.|\.d\.ts$/.test(f) ? [rel] : [];
+});
+
+const LISTENS = /addEventListener\(\s*['"`](animationend|transitionend)['"`]|\.on(animationend|transitionend)\s*=/;
+// Taking a listener off is classified too, as the end of a wait rather than one.
+const STOPS = /removeEventListener\(\s*['"`](animationend|transitionend)['"`]/;
+const HEADER = /(\bfunction\b[^(]*\([^)]*\)|=>)\s*\{\s*$/;
+const indent = (line) => /^\s*/.exec(line)[0].length;
+
+/** The innermost function above line `n` whose body contains it, by indentation. */
+const enclosing = (lines, n) => {
+  for (let i = n - 1; i >= 0; i -= 1) {
+    if (!HEADER.test(lines[i])) continue;
+    const k = indent(lines[i]);
+    let j = i + 1;
+    while (j < lines.length && !(indent(lines[j]) === k && lines[j].trim().startsWith('}'))) j += 1;
+    if (j > n) return lines.slice(i, j + 1).join('\n');
+  }
+  return null;
+};
+
+/** Names in a module that ask the system about reduced motion. */
+const reducedMotionAsks = (code) => new Set([
+  'prefersReducedMotion',
+  ...[...code.matchAll(/(?:const|let|var)\s+(\w+)\s*=[^;]*prefers-reduced-motion/g)].map((m) => m[1]),
+  ...[...code.matchAll(/function\s+(\w+)\s*\([^)]*\)\s*\{[^}]*prefers-reduced-motion/g)].map((m) => m[1]),
+]);
+
+const MENTIONS = [];
+for (const rel of [...scriptsUnder('src'), ...scriptsUnder('react/src')]) {
+  const raw = read(rel);
+  if (!/animationend|transitionend/.test(raw)) continue;
+  const code = decommentJs(raw);
+  const lines = code.split('\n');
+  lines.forEach((line, i) => {
+    if (/animationend|transitionend/.test(line)) MENTIONS.push({ rel, line: i + 1, text: line.trim(), lines, code });
+  });
+}
+const WAITERS = MENTIONS.filter((w) => !STOPS.test(w.text));
+
+test(`every script that waits on an end event has a way out without it (${WAITERS.length} listeners)`, (t) => {
+  assert.ok(
+    WAITERS.length > 0,
+    'no animationend or transitionend listener was found under src/ or react/src — toasts.js waits on '
+    + 'one, so the sweep has stopped reading the scripts',
+  );
+
+  const offences = [];
+  for (const w of WAITERS) {
+    const site = `${w.rel}:${w.line}  ${w.text}`;
+    if (!LISTENS.test(w.text)) { offences.push(`${site}\n      is not addEventListener(…) or on…=, so it cannot be classified`); continue; }
+    const body = enclosing(w.lines, w.line - 1);
+    if (body === null) { offences.push(`${site}\n      sits in no function this gate can find, so it cannot be classified`); continue; }
+    const timer = /(?<![\w.])setTimeout\s*\(/.test(body);
+    const asks = [...reducedMotionAsks(w.code)].some((n) => new RegExp(`(?<![\\w.])${n}\\s*\\(`).test(body));
+    if (!timer && !asks) offences.push(`${site}\n      has no setTimeout and no reduced-motion branch in the same function`);
+    else t.diagnostic(`${w.rel}:${w.line}  ${[timer && 'timer', asks && 'reduced-motion branch'].filter(Boolean).join(' + ')}`);
+  }
+  assert.deepStrictEqual(
+    offences, [],
+    'a script waits on an end event with nothing to fall back on. The event does not come when the element '
+    + 'is display: none, when no animation matched, or when a transition was cut short — and whatever the '
+    + 'script meant to remove or hide stays on screen. Add a setTimeout beside the listener, or branch on '
+    + 'prefersReducedMotion():\n  ' + offences.join('\n  '),
+  );
+});

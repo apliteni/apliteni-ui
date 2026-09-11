@@ -7,6 +7,7 @@
 // <nav> + <a aria-current="page">, not role="tablist" (that is what segmented()
 // is for). Only the collapsible sidebar groups need JS; wire with wireNav().
 import { esc, icon } from './index.js';
+import { playEntrance } from '../motion.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -182,7 +183,10 @@ function toggleGroup(btn) {
   const open = btn.getAttribute('aria-expanded') === 'true';
   btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   if (li) li.classList.toggle('is-open', !open);
-  if (list) { if (open) list.setAttribute('hidden', ''); else list.removeAttribute('hidden'); }
+  if (list) {
+    if (open) list.setAttribute('hidden', '');
+    else { list.removeAttribute('hidden'); playEntrance(list); }
+  }
 }
 
 export function wireNav(root = document) {
