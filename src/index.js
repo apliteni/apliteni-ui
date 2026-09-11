@@ -5,6 +5,7 @@ export * from './components/dropdown.js';
 export * from './components/tooltip.js';
 export * from './components/tabs.js';
 export * from './components/nav.js';
+export * from './components/back.js';
 export * from './components/drawer.js';
 export * from './components/confirm.js';
 export * from './components/command-palette.js';

@@ -1,0 +1,42 @@
+/* ============================================================================
+ * Back link — .ui-back
+ * The way up from a page to the page it sits under. It stands above the page
+ * title, in the slot a breadcrumb trail would take, and it is quiet at rest: it
+ * is on every page below a list, and it is never what the page is for.
+ * why: docs/specification.md#the-back-link
+ * ========================================================================== */
+
+/* Its own line, and only as wide as its words, so the hover ground does not run
+   the width of the column. */
+.ui-back {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--space-1);
+  /* WCAG 2.5.8's 24px: the line of text alone is 17px tall. */
+  min-height: var(--space-6);
+  padding: 0 var(--space-2) 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.3;
+  text-decoration: none;
+}
+
+/* [href] as well as the class, because a host stylesheet's `a:link` is (0,1,1)
+   and outranks a bare class: it would paint this in the host's link colour.
+   (0,2,0) wins without !important — the argument `.ui-nav .ui-nav__item` makes
+   in nav.css. */
+.ui-back[href] { color: var(--dim); }
+.ui-back[href]:hover { color: var(--strong); background: var(--surface-2); }
+.ui-back:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* 16px, with the stroke raised to match: the glyph set draws at 1.7 on a 24-unit
+   box, which is 1.13 CSS px at this size and under the kit's 1.5 for a stroked
+   mark. 2.4 paints 1.6. why: docs/specification.md#icons-and-glyphs */
+.ui-back svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+
+/* In the page shell it takes the trail's place, and the trail's distance from
+   the title with it. */
+.ui-app__main > .ui-back { margin-bottom: var(--space-5); }

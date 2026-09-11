@@ -45,7 +45,7 @@ const leafName = (label, collapsed, badge) => {
 
 // One sidebar leaf: a link (or a plain, aria-disabled span). `collapsed` also
 // hides the label visually, leaving the icon hoverable.
-function sideLeaf(it, active, { collapsed, sub } = {}) {
+function sideLeaf(it, active, { collapsed, sub, current = 'page' } = {}) {
   const on = it.id != null && it.id === active;
   const disabled = !!it.disabled;
   const label = it.label || '';
@@ -61,7 +61,7 @@ function sideLeaf(it, active, { collapsed, sub } = {}) {
     `class="${cls}"`,
     `href="${esc(it.href || '#' + (it.id ?? ''))}"`,
     it.target ? `target="${esc(it.target)}"` : '',
-    on ? 'aria-current="page"' : '',
+    on ? `aria-current="${current}"` : '',
     name.trim(),
   ].filter(Boolean).join(' ');
   return `<li><a ${attrs}>${lead}${text}${badge}</a></li>`;
@@ -70,14 +70,14 @@ function sideLeaf(it, active, { collapsed, sub } = {}) {
 // A collapsible group: a toggle button (aria-expanded/-controls) over a nested
 // list. In collapsed (icon-only) mode groups don't expand, so we render the
 // group head as a plain, non-collapsing icon row.
-function sideGroup(it, active, { collapsed } = {}) {
+function sideGroup(it, active, { collapsed, current } = {}) {
   const listId = nextId('nav-grp');
   const childActive = (it.items || []).some((c) => c.id != null && c.id === active);
   const open = collapsed ? false : (it.open != null ? !!it.open : childActive);
   const lead = it.icon ? `<span class="ui-nav__ic">${icon(it.icon)}</span>` : '';
   const label = it.label || '';
   const text = `<span class="ui-nav__label">${esc(label)}</span>`;
-  const kids = (it.items || []).map((c) => sideLeaf(c, active, { collapsed, sub: true })).join('');
+  const kids = (it.items || []).map((c) => sideLeaf(c, active, { collapsed, sub: true, current })).join('');
   const name = leafName(label, collapsed);
   const btn =
     `<button type="button" class="${cx('ui-nav__item', 'ui-nav__toggle', childActive && 'is-current')}"` +
@@ -95,13 +95,17 @@ function sideItem(it, active, opts) {
 //   items/section items: { id, label, icon?, href?, target?, badge?, danger?,
 //                           disabled?, items?, open? }  (items ⇒ collapsible group)
 //   active     id of the current item (gets aria-current="page")
+//   activeIs   'page', or 'section' when the page on screen sits below the active
+//              row: the row then carries aria-current="true", because "page" would
+//              announce the list as the page the reader is on
 //   collapsed  icon-only rail; every item is aria-labelled at every width, and
 //              collapsed adds the hover tooltip on top
 //   footer     trusted HTML pinned below a divider (e.g. a sign-out link)
 //   ariaLabel  accessible name for the <nav> landmark
 export function sidebarNav({
-  sections, items, active, collapsed = false, footer = '', ariaLabel = 'Sidebar', id,
+  sections, items, active, activeIs = 'page', collapsed = false, footer = '', ariaLabel = 'Sidebar', id,
 } = {}) {
+  const current = activeIs === 'section' ? 'true' : 'page';
   const blocks = (sections && sections.length)
     ? sections
     : [{ items: items || [] }];
@@ -111,7 +115,7 @@ export function sidebarNav({
       ? `<div class="ui-nav__cap" id="${capId}"${collapsed ? ' aria-hidden="true"' : ''}>${esc(sec.label)}</div>`
       : '';
     const list = `<ul class="ui-nav__list"${capId ? ` aria-labelledby="${capId}"` : ''}>` +
-      (sec.items || []).map((it) => sideItem(it, active, { collapsed })).join('') + `</ul>`;
+      (sec.items || []).map((it) => sideItem(it, active, { collapsed, current })).join('') + `</ul>`;
     return `<div class="ui-nav__section">${cap}${list}</div>`;
   }).join('');
   const foot = footer ? `<div class="ui-nav__foot">${footer}</div>` : '';

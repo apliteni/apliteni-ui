@@ -20,6 +20,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
+- **[The back link](#the-back-link)** — the way up from a page, and what it names
 - **[The drawer](#the-drawer)** — grouped by heading, and moving on open and on close
 - **[The hover readout](#the-hover-readout)** — an overlay, never a row
 - **[Pagination](#pagination)** — a page the caller computed, and what happens when nobody counted it
@@ -519,6 +520,43 @@ navigation.
 
 Decided in [#127](https://github.com/apliteni/apliteni-ui/issues/127). `appShell()` was the
 owner's choice between three shells built and rendered side by side, not a derivation.
+
+## The back link
+
+A page that sits under another page — a record opened from a list — may carry a way back up to
+it. `backLink()` draws that control, and `appShell()` places it when it is handed `back`.
+
+What the kit guarantees:
+
+- **It is a link to an address, never a step through the history.** `backLink()` renders an
+  `<a href>` to the address its caller names. Given no address it renders nothing, and a
+  `javascript:` address counts as none. The browser's own Back button keeps the history; this
+  control goes to the parent page, in whatever state the caller writes into the address.
+- **It names where it goes.** The visible text is the destination as the sidebar or the trail
+  spells it. The arrow is `aria-hidden`, so the accessible name says "Back to" that name, and
+  still contains the visible text. Given no name, or the word Back, it shows "Back" and nothing
+  more.
+- **It takes the trail's place, above the title.** `appShell({ back })` draws the link where the
+  breadcrumb trail would go and draws no trail: a page has one or the other. A `back` that
+  `backLink()` refuses leaves the trail standing.
+- **The section stays lit.** With a back link on the page, the shell keeps the sidebar row the
+  caller marks `active` highlighted, and marks it `aria-current="true"` — the current section —
+  rather than `"page"`, which would announce the list as the page on screen.
+  `sidebarNav({ activeIs: 'section' })` does the same outside the shell.
+- **It stays quiet whatever the host does to links.** The link rests in `--dim` and takes no
+  accent. Its colour rule is (0,2,0), so a host stylesheet's `a:link` at (0,1,1) does not repaint
+  it.
+
+When a page should take one, and what it says, are rules for the screen rather than guarantees of
+the kit: they are on the Guidelines / Going back page in Storybook.
+
+Proposed in [#270][i270]. Four treatments were rendered side by side on the same page in
+[docs/reviews/270-back-control.html](reviews/270-back-control.html); this section describes the
+one recommended there, which waits on the owner's choice.
+
+Held by `src/components/back.test.js` and `src/styles/back.test.js`.
+
+[i270]: https://github.com/apliteni/apliteni-ui/issues/270
 
 ## The dropdown panel
 
