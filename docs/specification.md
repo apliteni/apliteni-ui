@@ -896,7 +896,9 @@ content box, measured in a browser over each layout at two, three and four figur
 
 A change shows which way it went with an arrow read off the sign the caller printed. Whether it is
 good news is the caller's to say, and colour follows that alone: a cost that rose is not painted as
-a success because it went up. A change with no earlier figure says so in words and is never shown
+a success because it went up. Colour is a verdict, and not every figure is judged: a change nobody
+gives a tone, and one given the tone `neutral`, are the same neutral change — the arrow is drawn and
+the colour withheld. A change with no earlier figure says so in words and is never shown
 as `+0%`, and takes no tone, because there is no news to colour.
 
 A change says what it is measured against, in text a reader can reach: once for the whole band, in

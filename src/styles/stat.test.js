@@ -73,6 +73,23 @@ test('colour on a change comes from its tone, never from its direction', () => {
   assert.doesNotMatch(CSS, /--(up|down|increase|decrease|rise|fall)\b/, 'a class keyed to direction');
 });
 
+// The rule above holds that only a tone paints. This holds which ink each tone
+// takes, so good and bad cannot be swapped and still pass, and a tone nobody
+// declared has no rule to paint it at all.
+test('good news takes the success ink, bad news the danger ink, and nothing else is painted', () => {
+  for (const part of ['delta', 'trend']) {
+    for (const [tone, ink] of [['good', 'success'], ['bad', 'danger']]) {
+      const rule = ruleFor(`.ui-stat--${tone} .ui-stat__${part}`);
+      assert.ok(rule, `.ui-stat--${tone} .ui-stat__${part} has no rule, so ${tone} news is not painted`);
+      assert.equal(valueOf(rule.body, 'color'), `var(--chip-${ink}-ink)`,
+        `${tone} news is not painted with the ${ink} ink`);
+    }
+  }
+  const tones = new Set(rules.flatMap((r) => [...r.selector.matchAll(/\.ui-stat--([a-z]+)\b/g)].map((m) => m[1])));
+  assert.deepEqual([...tones].sort(), ['bad', 'good'],
+    'the sheet paints a tone the component never sets, or stopped setting one it paints');
+});
+
 // The fold widths were measured in a browser over every layout at 2, 3 and 4
 // figures, and the specification carries the table. Each fold is read whole —
 // its range, which figures it matches and the basis it sets — so a width, a

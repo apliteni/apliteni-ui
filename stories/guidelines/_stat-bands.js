@@ -7,8 +7,8 @@ export const TITLE = 'Stat bands';
 
 export const BLURB = 'How a screen shows its key figures, and what a change beside one owes the reader.';
 
-// Every specimen is two figures from the finance portal's Company Overview, so
-// the halves of a pair differ in one decision and not in their data.
+// Every specimen is figures from the finance portal's Company Overview, so the
+// halves of a pair differ in one decision and not in their data.
 export const SPEC_CSS = `
   <style>
     .gs-stage { background: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); }
@@ -49,7 +49,9 @@ export const RULES = [
       id: 'gs-tone-do',
       basis: BASIS,
       stats: [
-        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+        { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%' } },
         { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'good' } },
       ],
     })),
@@ -57,14 +59,25 @@ export const RULES = [
       id: 'gs-tone-dont',
       basis: BASIS,
       stats: [
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'good' } },
+        { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%', tone: 'good' } },
         { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'bad' } },
       ],
     })),
-    doCaption: 'Cost rose and is left neutral; fewer unclassified rows is the good news, so the '
-      + 'falling figure is the green one. The arrow says which way each went.',
-    dontCaption: 'Green for up and red for down. A rising cost is congratulated, and the cleanup '
-      + 'the team did this year reads as a warning.',
+    doCaption: 'Four figures, four verdicts. Income and Cost both rose and are coloured oppositely, '
+      + 'because a rise in income and a rise in cost are not the same news. Unclassified fell, and '
+      + 'fewer unclassified rows is the good news, so that fall is the other green. Net cashflow was '
+      + 'left undeclared, so it stays grey.',
+    dontCaption: 'The same four, coloured by the sign. Three rises, three greens, so a year of cost '
+      + 'growth is congratulated — and the cleanup the team did this year is the only thing in red.',
+    why: 'Neutral is the band saying nothing about the news, and it is what a change gets when nobody '
+      + 'declares a tone. Leave it undeclared when the screen has no verdict to give: a volume nobody '
+      + 'scores, a figure whose good direction depends on who is reading it, or one the figures beside it '
+      + 'have already accounted for — net cashflow is income less cost, and those two have said whose '
+      + 'news it is. An undeclared change still draws its arrow and still says what it is measured '
+      + 'against. It is the colour, and only the colour, that is withheld. A caller who would rather say '
+      + 'it out loud passes the tone "neutral", which reads the same.',
     kit: [{ ref: 'src/components/stat.js:43', pattern: "delta.tone !== 'neutral'" }],
   },
   {

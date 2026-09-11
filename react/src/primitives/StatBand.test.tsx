@@ -48,10 +48,12 @@ function vanillaShape(props: StatBandProps) {
 
 const SVG = '<svg width="200" height="32" aria-hidden="true"></svg>';
 const TREND = <svg width="200" height="32" aria-hidden="true" />;
+// The four verdicts a caller can give — good, bad, undeclared, good on a fall —
+// so parity covers each of them rather than only the ones that paint green.
 const FOUR: StatBandProps['stats'] = [
-  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' }, trend: TREND },
-  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
-  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%', tone: 'good' }, trend: TREND },
+  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' }, trend: TREND },
+  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%' }, trend: TREND },
   { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'good' } },
 ];
 

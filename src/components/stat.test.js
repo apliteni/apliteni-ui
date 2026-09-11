@@ -9,9 +9,9 @@ import { icon } from '../assets/icons.js';
 const dom = (html) => new JSDOM(`<!doctype html><body>${html}</body></html>`).window.document;
 const one = (fig) => dom(statBand({ stats: [fig] }));
 const FOUR = [
-  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
-  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
-  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%', tone: 'good' } },
+  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
+  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%' } },
   { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'good' } },
 ];
 
@@ -52,10 +52,16 @@ test('the arrow follows the sign the caller printed', () => {
   assert.equal(glyph('4%', 'down'), DOWN, 'an explicit direction is not honoured');
 });
 
-test('tone is the caller\'s, and a rise is not good news by default', () => {
+// Every verdict against both signs, so nothing here can pass by reading the
+// sign: the same rise is good, bad and neither, and so is the same fall.
+test('the tone the caller declares is the colour, and the sign never is', () => {
   const cls = (delta) => one({ label: 'a', value: '1', delta }).querySelector('.ui-stat').className;
-  assert.equal(cls({ value: '+12%' }), 'ui-stat', 'a rise was painted');
-  assert.equal(cls({ value: '−61%', tone: 'good' }), 'ui-stat ui-stat--good', 'a fall the caller called good was not painted good');
+  for (const [sign, value] of [['a rise', '+12%'], ['a fall', '−61%']]) {
+    assert.equal(cls({ value, tone: 'good' }), 'ui-stat ui-stat--good', `${sign} the caller called good news was not painted good`);
+    assert.equal(cls({ value, tone: 'bad' }), 'ui-stat ui-stat--bad', `${sign} the caller called bad news was not painted bad`);
+    assert.equal(cls({ value }), 'ui-stat', `${sign} nobody declared a tone for was painted`);
+    assert.equal(cls({ value, tone: 'neutral' }), 'ui-stat', `${sign} the caller called neutral was painted`);
+  }
   assert.equal(cls({ value: '+1%', tone: 'great' }), 'ui-stat', 'an unknown tone reached the class list');
   assert.equal(cls({ value: null, tone: 'bad' }), 'ui-stat', 'a figure with no change was painted as news');
 });

@@ -11,10 +11,15 @@ const SERIES = {
   unclassified: [42, 38, 35, 31, 28, 30, 24, 19, 17, 14, 12, 9],
 };
 
+// The four figures carry the four verdicts a caller can give, so this page is
+// the colour rule as well as the layouts. Income and Cost both rose and are
+// coloured oppositely; Unclassified fell and is the other green; Net cashflow
+// is income less cost, so the two figures beside it have already given its
+// news and it is left undeclared.
 const FIGURES = [
-  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' }, trend: sparkline(SERIES.income, 'Income, last 12 months') },
-  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' }, trend: sparkline(SERIES.cost, 'Cost, last 12 months') },
-  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%', tone: 'good' }, trend: sparkline(SERIES.net, 'Net cashflow, last 12 months') },
+  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' }, trend: sparkline(SERIES.income, 'Income, last 12 months') },
+  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' }, trend: sparkline(SERIES.cost, 'Cost, last 12 months') },
+  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%' }, trend: sparkline(SERIES.net, 'Net cashflow, last 12 months') },
   { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'good' }, trend: sparkline(SERIES.unclassified, 'Unclassified, last 12 months') },
 ];
 const BASIS = 'Change against the previous 12 months';
@@ -42,7 +47,12 @@ const heading = (title, note) =>
 // between two pictures is a difference between two layouts.
 export const Gallery = {
   render: () => pad(
-    heading('A · Band', 'One card. The figures are divided by space, not by rules, and the comparison is said once under them.')
+    heading('The colours, before the layouts',
+      'Income and Cost both rose, and they are not the same news: the rise in income is green and the '
+      + 'rise in cost is red. Unclassified fell, and fewer unclassified rows is good news, so that fall '
+      + 'is green too. Net cashflow carries no colour, because nobody declared one. Colour answers '
+      + '&ldquo;is this good?&rdquo;, never &ldquo;which way did it go?&rdquo; &mdash; the arrow answers that.')
+    + heading('A · Band', 'One card. The figures are divided by space, not by rules, and the comparison is said once under them.')
     + statBand({ variant: 'band', stats: FIGURES, basis: BASIS, id: 'gallery-band' })
     + heading('B · Tiles', 'One card per figure. Each figure can be read, moved or linked on its own.')
     + statBand({ variant: 'tiles', stats: FIGURES, basis: BASIS, id: 'gallery-tiles' })
@@ -60,7 +70,7 @@ export const States = {
       id: 'states-none',
       basis: BASIS,
       stats: [
-        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
         { label: 'New entity', value: '€ 12,040', delta: { value: null, none: 'No earlier figure' } },
         { label: 'Refunds', value: '€ 0', delta: { value: '0.0%' } },
       ],
@@ -70,9 +80,9 @@ export const States = {
       id: 'states-own',
       basis: BASIS,
       stats: [
-        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
         { label: 'Margin', value: '36.1%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
-        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ],
     })
     + heading('Figures only', 'No change and no trend: a label and a value is a complete band.')
