@@ -248,7 +248,8 @@ time, finds every rule that claims a rank with a `/* rank: … */` note, and fai
 disagrees with its row, writes the `font` shorthand or spaces its letters out, or a table whose
 sizes stop descending.
 
-Decided in [#268][i268] and [#269][i269]. LABEL_DECISION
+Decided in [#268][i268] and [#269][i269]. The label and chip sizes were the owner's choice between
+three treatments rendered side by side, not a derivation.
 
 [i268]: https://github.com/apliteni/apliteni-ui/issues/268
 [i269]: https://github.com/apliteni/apliteni-ui/issues/269
