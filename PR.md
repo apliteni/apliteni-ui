@@ -241,8 +241,8 @@ $ npm test
 ```
 
 The two skips are the kit's own opt-ins, on `main` as well as here: the eight-cell
-theme x accent contrast matrix behind `CONTRAST_ACCENTS=1`, and the built-story-id check that
-needs a `storybook-static/` this run did not build.
+theme x accent contrast matrix behind `CONTRAST_ACCENTS=1`, and `the built Storybook publishes the ids the index
+links`, which needs a `storybook-static/index.json` this run did not build.
 
 The one failure is `stories/contrast.test.js` → *the walk has not run away with the clock*, a
 120s wall-clock ceiling calibrated on a 10-core laptop against a 47.6s contended worst case. It
