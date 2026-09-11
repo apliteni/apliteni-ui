@@ -13,6 +13,13 @@
 
 export const RELEASES = [
   {
+    v: '0.30.0', date: '2026-09-12',
+    changes: [
+      ['added', "`dropdown({ search: true })` puts a field above the rows and filters them as the reader types. It was asked for by the finance portal, whose filter dropdowns hold between 12 and several hundred options each with no way to narrow them. The match is anywhere in the label, ignoring case and accents, and rows keep their order. The arrows move through the rows still showing, Enter picks, Escape closes, and a query that matches nothing says so instead of leaving a blank panel. The field is a combobox inside a small dialog, because a listbox may not contain a text field. A dropdown without `search` renders byte-for-byte what it rendered before.", ['Dropdown']],
+      ['added', "Guidelines / Component choice: when a dropdown needs a search field. The rule is ten options or more, or any list fed by data. The threshold is a proposal in #283 and has not been agreed yet.", ['Dropdown']],
+    ],
+  },
+  {
     v: '0.29.0', date: '2026-09-12',
     changes: [
       ['added', "`backLink()` — the way up from a page to the page it sits under, drawn above the title in the place a breadcrumb trail would take. It is an `<a href>` to an address the caller names, never a step through the history: a page opened in a new tab, from a bookmark or from a shared address has no history to step through, and the browser's own Back button already does that job. It shows the destination's name beside an arrow and is named \"Back to\" that destination for a screen reader; given no name it shows \"Back\", and a label that already begins \"Back to\" is read as the place after those words. It rests in `--dim` with no box, and its colour rule outranks a host stylesheet's `a:link`, so a page that colours its links does not turn it into one. The kit ships this one treatment and no variant: four were rendered side by side on the review page for #270 — a quiet link, a bordered button above the title, an icon-only arrow beside it, and the breadcrumb trail alone — and the quiet link was chosen.", ['Back link']],
