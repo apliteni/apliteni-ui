@@ -1,4 +1,4 @@
-# [waiting: Artur's pick of the default layout] A stat band for key figures, in three layouts
+# A stat band for key figures, in three layouts
 
 Closes #267.
 
@@ -19,13 +19,14 @@ goes inside it.
   (18px, 30px, 18px), on label tracking (0.14em, 0.04em, 0.12em) and on what holds the figures
   (one card with hairlines, nothing, a bordered tile each).
 - The portal's own plan already lists "`ui-kpi-row` does not exist" as a kit gap, under
-  finance #632 (`docs/portal-replatform-m2-plan.md:325`).
+  finance #632 — line 325 of the M2 replatform plan, in the `finance.apli.tech` tree.
 - The rejected card's faults are kit parts used for the wrong job. The value is 18px, the same
   step as a card title. The change is a `ui-badge`, a 10px uppercase status chip, and what it is
   measured against lives only in a hover `title` (`web/src/components/KpiBand.tsx:151`).
 
 **What I did.** Added a stat band to the kit (`statBand()`, `.ui-stats`, and `<StatBand>` in
-React), built it in three layouts, and put them in front of Artur to choose the default.
+React), built it in three layouts, and put them in front of Artur to choose the default. He
+chose A · Band, which is the default here, and confirmed the colour rule.
 
 **The verdict: Changed.** The problem is real, but it is in what the card holds, not in the card.
 
@@ -33,17 +34,78 @@ React), built it in three layouts, and put them in front of Artur to choose the 
 in sentence case. `ui-eyebrow` is untouched, and so is its only appearance here: the "before"
 don't on the guidelines page, which shows the rejected card as it is.
 
+## Decision record for the issues
+
+**The default layout: A · Band.** Chosen by Artur on 2026-09-11, from the three rendered over
+the same four figures in both themes, not from a description of them.
+
+| | | Why it was or was not chosen |
+|---|---|---|
+| **A · Band** | **chosen** | One card, figures divided by space. It keeps the Overview's footprint — one card at the top of the stack — and adds no borders the page does not already have. |
+| B · Tiles | rejected | Four borders where the page had one, and the band's caption is orphaned: it belongs to all four figures but sits under a row of separate boxes and reads as a note on the last one. |
+| C · Open | rejected | Four rules across the page, and a 40px value. The figures come out louder than the 30px page title above them, so the screen has no first thing to read. |
+
+**The colour rule: colour by news, not by direction.** Confirmed by Artur on 2026-09-11 and
+already what the branch shipped. The caller says whether a change is good news, bad news, or
+neither, and the band paints that and nothing else; the sign of the number never picks a colour.
+An arrow, read off the sign the caller printed, is what says which way the figure went. What this
+buys is in `#610`: a rising cost is not congratulated, and a falling count of unclassified rows
+is not a warning.
+
+**The issue's open question — does a stat band belong in the kit? Yes.** Four reasons, set out
+under [Is a stat band in scope for the kit?](#is-a-stat-band-in-scope-for-the-kit-yes) below: it
+is already built three times over, the portal's own replatform plan asks for it, its rules are
+not the portal's to decide alone, and it is small — a factory, one stylesheet and no chart.
+
+**Still open, and not this PR's to close.** The portal plan's `ui-kpi-row` needs renaming to the
+name that shipped, and the Overview needs to render `<StatBand>` — neither can happen until this
+is released, because the portal installs a published version.
+
 ## Proof
 
-- [ ] A person meets it in something running: the Storybook gallery, in both themes, is what
-      Artur is choosing the default from. Ticked when he has chosen.
+- [x] A person met it in something running: Artur chose the default from the Storybook gallery,
+      in both themes, on 2026-09-11.
 - [x] The three layouts are compared over the same four figures, with the same sparklines.
+- [x] The kit's own example shows every verdict a caller can give: a rise that is good news, a
+      rise that is bad news, a fall that is good news, and a change nobody declared.
 - [x] Nothing overlaps at any width: every layout at two, three and four figures, measured in
       Chrome from 1500px down to 300px in 10px steps.
 - [x] Every guideline cites kit code, and `refs.test.js` resolves each citation.
 - [ ] Exercised in the finance portal. Not done and not claimed: the portal installs a
       published version, so this can only be proven after a release. What would settle it is
       `KpiBand.tsx` rendering `<StatBand>` and `overview.css` losing its `fin-kpi` rules.
+
+## The colour rule, and what the example shows
+
+Colour answers "is this good?". The arrow answers "which way?". They are separate, and only the
+caller can answer the first, so the band never guesses it.
+
+The four Overview figures carry the four answers, on the Gallery, on the guidelines page, in
+the React story and in both parity fixtures — so the rule is drawn wherever it is stated:
+
+| Figure | Change | Declared | Drawn |
+|---|---|---|---|
+| Income | ↑ +47.1% | `tone: 'good'` | green — a rise that is good news |
+| Cost | ↑ +12.4% | `tone: 'bad'` | red — the same arrow, the opposite news |
+| Net cashflow | ↑ +168.0% | nothing | neutral |
+| Unclassified | ↓ −61.8% | `tone: 'good'` | green — a fall that is good news |
+
+Income and Cost are the pair that makes the rule visible: both rose, and they are not the same
+news, so the same arrow is green on one and red on the other. A band that painted by the sign
+would make them both green.
+
+**What neutral means.** Neutral is the band saying nothing about the news. It is what a change
+gets when nobody declares a tone, and `tone: 'neutral'` says the same thing out loud. An
+undeclared change still draws its arrow and still says what it is measured against — it is the
+colour, and only the colour, that is withheld.
+
+**When to leave it undeclared.** When the screen has no verdict to give: a volume nobody scores,
+a figure whose good direction depends on who is reading it, or one the figures beside it have
+already accounted for. Net cashflow is the third of those — it is income less cost, and those two
+have already said whose news it is.
+
+A change with no earlier figure is a separate thing and takes no tone at all: there is no news to
+colour, so it says so in words rather than showing `+0%`.
 
 ## Inventory: what the kit offered for a stat band
 
@@ -130,22 +192,17 @@ shadcn uses none. Label case: uppercase in Mantine, sentence case in Tremor, MUI
 3. No core stat component takes a sparkline. **Here the trend is a slot**, sized and coloured
    by the kit and drawn by the caller.
 
-## The layouts, and which is the default
-
-**[waiting: Artur's pick.]** All three layouts are built, tested and rendered, and the question
-is with him. My recommendation is A, and it is the default in this branch today. If he picks B
-or C, the default is one value in `src/components/stat.js` and one in
-`react/src/primitives/StatBand.tsx`, and the screenshots are retaken.
+## The layouts, and the default
 
 Storybook: **Components / Stat band → Gallery** shows all three over the same four figures, in
-both themes.
+both themes. A · Band is the default; the other two are a `variant`.
 
 ![The three layouts, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-variants-light.png?raw=true)
 ![The three layouts, dark](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-variants-dark.png?raw=true)
 
 | | Surface | Value | On Overview |
 |---|---|---|---|
-| **A: Band** | one card, figures divided by space | 30px | the same footprint as today: one card at the top of the stack |
+| **A: Band** (default) | one card, figures divided by space | 30px | the same footprint as today: one card at the top of the stack |
 | B: Tiles | a card per figure | 30px | four boxes where there was one; each could become a link |
 | C: Open | none; a rule over each figure | 40px | leaves the card stack; its numbers outsize the 30px page title |
 
@@ -189,13 +246,18 @@ would have overlapped between about 704 and 804px, which is #610's bug again. Th
 
 ## Before / After
 
+Every picture below was re-shot for this revision at 1440x900, dpr 2, in Chrome, except the two
+named in the next paragraph. The Gallery, States, Narrow and guidelines shots changed because the
+example figures now carry all four verdicts; the finance report pair was re-shot on one machine so
+that its before and its after differ in the branch and not in the renderer.
+
 **Before**, reconstructed from the portal's own code: `KpiBand.tsx` markup and `overview.css`
-at `finance.apli.tech@db8e4c808`, over this branch's kit CSS, with the same figures.
+at `finance.apli.tech@db8e4c808`, over this branch's kit CSS, with the same figures. This is the
+one pair that was **not** re-shot: it is drawn from the portal's tree, which is not in this
+repository, and nothing in this branch changes it.
 
 ![Before, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-before-light.png?raw=true)
 ![Before, dark](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-before-dark.png?raw=true)
-
-**After**: the chosen layout above, and in the app story:
 
 **Apps / Finance report**, the kit's own example screen, on `origin/main` and on this branch:
 
@@ -212,36 +274,86 @@ Dark: `docs/evidence/stat-finance-report-before-dark.png`, `docs/evidence/stat-f
 
 Dark: `docs/evidence/stat-states-dark.png`, `docs/evidence/stat-narrow-dark.png`.
 
-**Guidelines / Stat bands:**
+**Guidelines / Stat bands** — the colour rule's do and don't are the four figures above,
+declared and then painted by the sign instead:
 
 ![Guidelines page, light](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-guidelines-light.png?raw=true)
 ![Guidelines page, dark](https://github.com/apliteni/apliteni-ui/blob/feat/267-stat-band/docs/evidence/stat-guidelines-dark.png?raw=true)
-
-**The gates**
-
-```
-                       main (c9a48c8)   this branch
-root  npm test          1126             1155   (0 failing)
-react npm test           213              234   (0 failing)
-npm run build            ok               ok
-
-main skips 2 tests, this branch 1. The second one on main is the built-Storybook id check,
-which skips when storybook-static/ is absent and ran here because it was built.
-```
 
 ## Gates
 
 | Guarantee | Held by |
 |---|---|
 | a band is a `<dl>`, text is escaped, tone never follows the sign, the caption id is unique | `src/components/stat.test.js` |
-| a figure never breaks; wraps rather than overlaps; folds from its own width; colour only from tone; fold widths equal the spec's table | `src/styles/stat.test.js` |
+| a figure never breaks; wraps rather than overlaps; folds from its own width; colour only from tone; good takes the success ink and bad the danger ink; fold widths equal the spec's table | `src/styles/stat.test.js` |
 | every change in every story names its comparison in reachable text | `stories/stat-basis.test.js` |
-| React renders what the factory renders | `react/src/primitives/StatBand.test.tsx` |
+| React renders what the factory renders, over all four verdicts | `react/src/primitives/StatBand.test.tsx` |
 | the arrow clears the 1.5 CSS px stroke line | `stories/glyph-stroke.test.js` (existing) |
 | contrast and axe in both themes | `stories/contrast.test.js`, `stories/a11y.test.js` (existing) |
 
-**Every gate was broken on purpose and went red.** Twenty-four mutations over two rounds, each
-restored from git afterwards. Two survived the first time, and both were gate holes, now closed:
+**Every gate was broken on purpose and went red.** Thirty-three mutations over three rounds, each
+put on disk, diffed to confirm it landed, and restored from git afterwards.
+
+**The colour rule, nine mutations, all red.** The gate it started with asserted that a rise was
+not painted by default and that a fall the caller called good came out green. It never asserted
+that bad news comes out red, and never asserted that an explicit `tone: 'neutral'` stays neutral —
+so half the rule was unpinned. `src/components/stat.test.js` now runs every verdict against both
+signs, and `src/styles/stat.test.js` pins which ink each tone takes.
+
+| Mutation | Went red saying |
+|---|---|
+| `stat.js`: only `'good'` ever reaches the class list | a rise the caller called bad news was not painted bad |
+| `stat.js`: good and bad swapped | a rise the caller called good news was not painted good |
+| `stat.js`: an explicit `'neutral'` is allowed to paint | a rise the caller called neutral was painted |
+| `stat.js`: the tone is read off the sign instead of the caller | a rise the caller called bad news was not painted bad |
+| `stat.css`: the two inks swapped | good news is not painted with the success ink |
+| `stat.css`: bad news loses its rule | `.ui-stat--bad .ui-stat__delta` has no rule, so bad news is not painted |
+| `stat.css`: a rule for a tone the component never sets | the sheet paints a tone the component never sets |
+| `StatBand.tsx`: React drops `'bad'` | the parity shape differs on the figure's classes |
+| `StatBand.tsx`: React lets `'neutral'` paint | the parity shape differs on the figure's classes |
+
+**The runs.**
+
+```
+                       main (c9a48c8)   this branch
+root  npm test          1126             1156   (1 failing, below)
+react npm test           213              234   (0 failing)
+npm run build            ok               ok
+```
+
+```
+ Test Files  14 passed (14)
+      Tests  234 passed (234)
+```
+
+```
+ℹ tests 1156
+ℹ pass 1154
+ℹ fail 1
+ℹ skipped 1
+```
+
+**The one failure is a wall clock, and it is this machine.** `stories/contrast.test.js` asserts the
+contrast walk finishes inside 120s — a ceiling set at ~2.5x a measured 47.6s worst case. This
+revision was built on a shared box running another project's suite at load 22-29 on eight cores,
+and there the walk takes 216s. Three measurements on that box, same afternoon:
+
+| Tree | Pairs judged | Walk | Clock gate |
+|---|---|---|---|
+| `origin/main` (c9a48c8) | 10334 | 118.2s | passes, with 1.5% to spare |
+| this branch at `e02ad03` | 10670 | 163.5s | fails |
+| this branch, now | 10700 | 128.8s — 216.4s across runs | fails |
+
+The branch adds 366 pairs to the walk, 3.5% more than main, which is the stat band's stories and
+its guidelines page being walked like everything else. The spread between 128.8s and 216.4s for
+the identical tree is the other suite, not this one. `main` itself only clears the ceiling here by
+1.5%, so the box has eaten the headroom the number was given. Nothing in the walk stopped
+terminating and no theme×accent cell was added: both are what the gate's own message says it is
+looking for. The ceiling is not this PR's to move, so it is reported rather than adjusted —
+**this needs one run on an uncontended machine before merge.**
+
+**The earlier two rounds, twenty-four mutations.** Two survived the first time, and both were
+gate holes, closed then:
 
 - `.ui-stat__delta, .ui-stat--good .ui-stat__delta` painted every change and passed, because the
   tone check read a selector list as one string. It now judges each selector.
@@ -288,18 +400,14 @@ drawn badge does not have, `trend` now called trusted markup in `docs/library.md
 histories, and the spec now says a band in a flex row needs a width and six or more figures wrap as
 they fit.
 
-**Not fixed, on purpose.**
-- `aria-describedby` on a `<dd>` is not announced by every screen reader. The visible caption is
-  what reaches everyone; the reference is the addition for those that do announce it.
-- The Storybook inspector labels a tile "card", because a tile is one.
-- A trend `<svg>` that strokes its root rather than its line would slip past the glyph-stroke gate.
-  The kit draws no trend, so this is the caller's.
-
 **The prose review** found nothing machine-made and the hard-word rate at or under the repo's
 floor. Two sentences in the spec were split and one caption was reworded on its notes.
 
 ## What a reviewer should push on
 
+- **The example declines to colour net cashflow.** That is a judgement, not a rule the kit
+  enforces — a screen that wants the year's result in green passes `tone: 'good'` and gets it.
+  What the kit enforces is that the band does not decide either way on its own.
 - **The fold widths hold for `€ 6,459,401`.** A longer figure wraps early rather than
   overlapping, which can leave a figure alone on a row. That was the trade: never broken
   over always balanced.
@@ -319,4 +427,4 @@ floor. Two sentences in the spec were split and one caption was reworded on its 
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-https://claude.ai/code/session_01WGtSGFCuDEfHZXeDK8UJdq
+https://claude.ai/code/session_01PYcD8gotCRnRc53jCxg2t5
