@@ -63,7 +63,7 @@ export const RULES = [
       + 'lists and records is the branching case.',
     except: 'A step in a form that runs over several screens goes back a step, not up a level, and says '
       + '“Back”. That is a button in the form, not this link.',
-    kit: [{ ref: 'src/components/back.js:40', pattern: 'BARE} to ${name}' }],
+    kit: [{ ref: 'src/components/back.js:45', pattern: 'BARE} to ${name}' }],
   },
   {
     id: 'address-not-history',

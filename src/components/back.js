@@ -18,6 +18,11 @@ const BARE = 'Back';
 const SCRIPTED = /^javascript:/i;
 const LEADING = /^[\u0000-\u0020]+/;
 
+// A label that already says "Back to Invoices" names the place after those words, or the
+// link would be read as "Back to Back to Invoices". The whole phrase, since "Backups" and
+// "Back office" are places too. why: docs/specification.md#the-back-link
+const SAID = /^back\s+to(?:\s+|$)/i;
+
 const text = (v) => (typeof v === 'string' || typeof v === 'number' ? String(v).trim() : '');
 
 /**
@@ -34,7 +39,7 @@ const text = (v) => (typeof v === 'string' || typeof v === 'number' ? String(v).
 export function backLink({ href, label } = {}) {
   const to = text(href);
   if (!to || SCRIPTED.test(to.replace(LEADING, ''))) return '';
-  const name = text(label);
+  const name = text(label).replace(SAID, '');
   const bare = !name || name.toLowerCase() === BARE.toLowerCase();
   const shown = bare ? BARE : name;
   const named = bare ? '' : ` aria-label="${esc(`${BARE} to ${name}`)}"`;

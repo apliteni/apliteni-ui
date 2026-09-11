@@ -32,10 +32,26 @@ test('the accessible name contains the visible text, as WCAG 2.5.3 asks', () => 
 });
 
 test('no label, or the word Back, shows Back and names it nothing more', () => {
-  for (const label of [undefined, '', '   ', 'Back', 'back', null, {}]) {
+  for (const label of [undefined, '', '   ', 'Back', 'back', null, {}, 'Back to', 'Back to Back']) {
     const a = anchor(backLink({ href: '/x', label }));
     assert.equal(a.text, 'Back', `label ${JSON.stringify(label)}`);
     assert.equal(a.name, null, `label ${JSON.stringify(label)} should not become "Back to Back"`);
+  }
+});
+
+test('a label that already says "Back to" is read as the destination after it', () => {
+  for (const label of ['Back to Invoices', 'back to Invoices', 'BACK TO  Invoices ', 'Back to\tInvoices']) {
+    const a = anchor(backLink({ href: '/invoices', label }));
+    assert.equal(a.text, 'Invoices', `label ${JSON.stringify(label)}`);
+    assert.equal(a.name, 'Back to Invoices', `label ${JSON.stringify(label)}`);
+  }
+});
+
+test('a destination whose own name starts with Back keeps it', () => {
+  for (const label of ['Backups', 'Back office', 'Back toys']) {
+    const a = anchor(backLink({ href: '/x', label }));
+    assert.equal(a.text, label);
+    assert.equal(a.name, `Back to ${label}`);
   }
 });
 

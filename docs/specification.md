@@ -535,7 +535,8 @@ What the kit guarantees:
 - **It names where it goes.** The visible text is the destination as the sidebar or the trail
   spells it. The arrow is `aria-hidden`, so the accessible name says "Back to" that name, and
   still contains the visible text. Given no name, or the word Back, it shows "Back" and nothing
-  more.
+  more. A name that already begins "Back to" is read as the place after those words, so the link
+  is never named "Back to Back to" anything.
 - **It takes the trail's place, above the title.** `appShell({ back })` draws the link where the
   breadcrumb trail would go and draws no trail: a page has one or the other. A `back` that
   `backLink()` refuses leaves the trail standing.
