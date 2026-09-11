@@ -67,7 +67,14 @@ function tipGap(tip) {
   return Number.isFinite(declared) ? declared : TIP_GAP;
 }
 
-const tipOf = (host) => host.querySelector('[data-tip]');
+// Hosts nest. A mark or a readout belongs to the nearest [data-tip-host] above it,
+// so one mark opens one readout, and an outer host is never handed an inner one's.
+function holds(host, el) {
+  const nearest = el.parentElement?.closest('[data-tip-host]') ?? null;
+  return host.contains(el) && (nearest === host || !host.contains(nearest));
+}
+
+const tipOf = (host) => [...host.querySelectorAll('[data-tip]')].find((tip) => holds(host, tip)) ?? null;
 const clips = (cs) => [cs.overflow, cs.overflowX, cs.overflowY].some((v) => v && v !== 'visible');
 
 // What the readout has to stay inside: the viewport less its scrollbars, cut
@@ -202,7 +209,7 @@ export function wireTooltip(root = document) {
     if (!tipOf(host)) host.insertAdjacentHTML('beforeend', tooltip());
     const markOf = (t) => {
       const mark = t?.closest?.('[data-tip-value]');
-      return mark && host.contains(mark) ? mark : null;
+      return mark && holds(host, mark) ? mark : null;
     };
     host.addEventListener('pointerover', (e) => {
       anchorHost(host);

@@ -435,6 +435,26 @@ test('wiring makes a host that places nothing the box its readout is placed in',
     'a host already positioned keeps its own position');
 });
 
+test('hosts nest: a mark answers to its nearest host, with that host\'s own readout', () => {
+  const window = mount(`<div class="ui-tip-host" data-tip-host id="inner">${MARKS}${tooltip()}</div>`
+    + '<span id="own" data-tip-label="Year" data-tip-value="€560,000"></span>');
+  const doc = window.document;
+  wireTooltip(doc);
+  const tips = [...doc.querySelectorAll('[data-tip]')];
+  assert.equal(tips.length, 2, 'the outer host is given a readout of its own, not handed the inner one');
+  const [innerTip, outerTip] = tips;
+  assert.ok(doc.getElementById('inner').contains(innerTip));
+
+  pointer(window, doc.getElementById('m1'), 'pointerover');
+  assert.ok(innerTip.classList.contains('is-open'));
+  assert.equal(outerTip.classList.contains('is-open'), false, 'one mark opens one readout, its nearest host\'s');
+
+  pointer(window, doc.getElementById('own'), 'pointerover');
+  assert.ok(outerTip.classList.contains('is-open'));
+  assert.equal(outerTip.querySelector('.ui-tip__value').textContent, '€560,000');
+  assert.equal(innerTip.querySelector('.ui-tip__value').textContent, '€41,000', 'the inner readout was not re-filled');
+});
+
 test('a host wired before it is in the document is made the box once it is in one', () => {
   const window = mount('');
   const doc = window.document;

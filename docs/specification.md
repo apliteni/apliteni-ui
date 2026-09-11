@@ -669,7 +669,8 @@ moving a readout never changes the size or the place of anything else on the pag
   `[data-tip-host]` without the class still places its readout on the mark. A host wired before it
   is in the document has no style to read yet, so it is given that position the first time a
   pointer or focus reaches it. A host driven only through `showTooltip()` is not wired, and needs
-  the class.
+  the class. Hosts nest: a mark and a readout belong to the nearest `[data-tip-host]` above them,
+  so a chart that is a host inside a card that is one too opens one readout per mark, its own.
 - It takes no pointer events. A readout covering the marks beside its own would otherwise become
   the hover target, hide, uncover the mark and come back, at pointer speed.
 - It opens above its mark, centred on it, `--ui-tip-gap` away. It flips below only when the room
