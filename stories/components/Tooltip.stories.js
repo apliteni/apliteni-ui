@@ -6,11 +6,12 @@ import { CHART_CSS, EXPENSES, NET, REVENUE, bars, eur, pointOf, sparkline } from
 // The readout over two kinds of chart. Chart is wired by the preview's
 // decorator, so every point and bar there answers a real pointer; the other two
 // are rendered with the readout already open, which is what the a11y and
-// contrast gates can see.
+// contrast gates can see. Their hosts leave off [data-tip-host], so no wiring
+// reaches them and a passing pointer cannot take the readout down.
 
 const HOT = 10;
-const host = (inner, style = '') =>
-  `<div class="ui-tip-host" data-tip-host${style ? ` style="${style}"` : ''}>${inner}</div>`;
+const host = (inner) => `<div class="ui-tip-host" data-tip-host>${inner}</div>`;
+const picture = (inner) => `<div class="ui-tip-host" style="width: max-content">${inner}</div>`;
 
 const STORY_CSS = `
   <style>
@@ -37,9 +38,8 @@ export default {
   render: (a) => {
     const chart = bars({ hot: HOT });
     const p = chart.at(HOT);
-    return pad(`${CHART_CSS}${STORY_CSS}<div class="tt-room">${host(
+    return pad(`${CHART_CSS}${STORY_CSS}<div class="tt-room">${picture(
       chart.svg + tooltip({ ...a, open: true, x: p.x, y: p.top }),
-      'width: max-content',
     )}</div>`);
   },
 };
@@ -84,13 +84,11 @@ export const Placement = {
     // A wrapping row, not a two-column grid: each chart is drawn in fixed
     // pixels, so at a phone width the two have to stack rather than overlap.
     return pad(`${CHART_CSS}${STORY_CSS}${row(
-      specimen('Above the mark — the default', `<div class="tt-room">${host(
+      specimen('Above the mark — the default', `<div class="tt-room">${picture(
         up.svg + tooltip({ ...pointOf(REVENUE, HOT), open: true, x: pu.x, y: pu.top }),
-        'width: max-content',
       )}</div>`),
-      specimen('Below — where above is clipped', `<div class="tt-room"><div class="tt-clip">${host(
+      specimen('Below — where above is clipped', `<div class="tt-room"><div class="tt-clip">${picture(
         down.svg + tooltip({ ...pointOf(REVENUE, HOT), open: true, placement: 'bottom', x: pd.x, y: pd.bottom }),
-        'width: max-content',
       )}</div></div>`),
     )}`);
   },

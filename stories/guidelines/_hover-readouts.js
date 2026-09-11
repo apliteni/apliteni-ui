@@ -9,7 +9,8 @@ export const BLURB = 'Where a value shown on hover goes, what it says, and why i
 
 // Every readout below is rendered open, at the anchor the wiring would have
 // measured, so the gates can read it. The charts are fixed-size for the same
-// reason: a readout placed in pixels has to sit on a chart drawn in pixels.
+// reason: a readout placed in pixels has to sit on a chart drawn in pixels. The
+// hosts carry no [data-tip-host], so the preview's wiring leaves the pictures be.
 export const SPEC_CSS = `${CHART_CSS}
   <style>
     .gh-stack { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -28,7 +29,7 @@ export const SPEC_CSS = `${CHART_CSS}
   </style>`;
 
 const HOT = 10;
-const host = (inner) => `<div class="ui-tip-host" data-tip-host style="width: max-content">${inner}</div>`;
+const host = (inner) => `<div class="ui-tip-host" style="width: max-content">${inner}</div>`;
 
 // The KPI card from the finance portal's overview, and the card under it — the
 // one that moves when a readout is written into the first.

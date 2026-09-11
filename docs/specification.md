@@ -680,6 +680,9 @@ moving a readout never changes the size or the place of anything else on the pag
 - Escape dismisses every readout the kit is showing, whether `wireTooltip()` or `showTooltip()`
   showed it, without the pointer having to move, and the mark's description goes with it. The
   readout comes back on the next mark, not on the one it was dismissed from.
+- A readout rendered with `open` is a picture of one, the way a documentation page shows it. Its
+  host carries `.ui-tip-host` and no `[data-tip-host]`, so no wiring reaches it, and Escape leaves
+  it alone because the kit never showed it.
 
 **Not decided yet.** The wiring adds no tab stop to a mark, and it treats touch like any other
 pointer, so on a touch screen a tap shows the readout only while the finger is down. Whether a

@@ -26,7 +26,7 @@ let seq = 0;
  * @param {string} [o.value]     the number, already formatted
  * @param {string} [o.detail]    at most one comparison, such as "+4.2% on February"
  * @param {string} [o.placement] 'top' (default) | 'bottom' — the side it prefers; the wiring flips it when clipped
- * @param {boolean} [o.open]     render it shown, for a specimen or a screenshot
+ * @param {boolean} [o.open]     render it shown, as a picture; its host leaves off `data-tip-host` so no wiring takes it down
  * @param {number} [o.x]         with `open`: the mark's centre, px from the host's left
  * @param {number} [o.y]         with `open`: the mark's top edge (its bottom for 'bottom'), px from the host's top
  * @param {string} [o.id]
