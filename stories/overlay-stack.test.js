@@ -1,11 +1,12 @@
 // What the page looks like while overlays are open — the half neither axe nor a
 // single-overlay test can see.
 //
-// A drawer and a confirm are the same problem twice, and the moment two of them
-// are on one page the questions stop being per-component: which one owns Escape,
-// what is inert *now*, where does Tab go, and what is left behind when one closes
-// out of order. Those are properties of the page, not of a component, so they are
-// tested here against the real markup and the kit's own wiring.
+// A drawer, a confirm and a command palette are the same problem three times, and
+// the moment two of them are on one page the questions stop being per-component:
+// which one owns Escape, what is inert *now*, where does Tab go, and what is left
+// behind when one closes out of order. Those are properties of the page, not of a
+// component, so they are tested here against the real markup and the kit's own
+// wiring.
 //
 // Every test names one such property and fails if the mechanism that provides it
 // is removed.
@@ -21,6 +22,8 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
 
 const { confirm, wireConfirm, openConfirm, closeConfirm } = await import('../src/components/confirm.js');
 const { drawer, wireDrawer, openDrawer } = await import('../src/components/drawer.js');
+const { commandPalette, wireCommandPalette, openCommandPalette } = await import('../src/components/command-palette.js');
+const { OVERLAY_LAYER } = await import('../src/components/overlay.js');
 const { button } = await import('../src/components/index.js');
 
 const doc = dom.window.document;
@@ -41,8 +44,18 @@ function mount(overlaysHtml) {
   doc.body.replaceChildren(page, overlays);
   wireDrawer(doc.body);   // registered first, exactly as .storybook/preview.js does
   wireConfirm(doc.body);
+  wireCommandPalette(doc.body);
   return { page, overlays };
 }
+
+// One product's palette, small enough to read in an assertion.
+const PALETTE_GROUPS = [{
+  label: 'Actions',
+  items: [
+    { id: 'new-invoice', label: 'New invoice', description: 'Draft one for a client' },
+    { id: 'invite', label: 'Invite a teammate', description: 'They get a read-only seat' },
+  ],
+}];
 
 const hidden = (el) => [el.getAttribute('aria-hidden'), el.hasAttribute('inert')];
 
@@ -245,7 +258,7 @@ test('a drawer rendered open is on the stack once it is wired', () => {
 
 // Adoption happens at wire time, and wiring has no history to order by. What
 // the page does have is paint order: a confirm declares
-// src/styles/confirm.css:26 `z-index: calc(var(--z-overlay) + 1)` and a drawer
+// src/styles/confirm.css:26 `z-index: calc(var(--z-overlay) + 2)` and a drawer
 // src/styles/drawer.css:22 `z-index: var(--z-overlay)`, so the confirm is drawn
 // over the drawer whichever root the markup puts first — and the overlay the
 // reader can see is the one Escape has to answer. Document position is left to
@@ -305,6 +318,103 @@ test('the root later in the document owns Escape even when it reached the stack 
     'equal z-index paints in tree order, so the later root is on top however it got onto the stack');
   assert.equal(earlier.classList.contains('is-open'), true,
     'and the one it covers is not the one Escape closes, though it was adopted last');
+});
+
+// ---- A palette and a drawer on one page ---------------------------------
+// The third overlay, and the first pair the kit gives two different layers that
+// are not a dialog over the thing it is asking about. The palette paints one step
+// above the drawer (src/styles/command-palette.css `calc(var(--z-overlay) + 1)`
+// against src/styles/drawer.css `var(--z-overlay)`): a palette is summoned
+// deliberately and has to be seen, so it goes over a drawer that was already open.
+//
+// What these hold is that the two answers agree — the overlay Escape talks to is
+// the overlay the reader can see. Both mount orders and both open orders, because
+// each is decided by a different rule: adoption orders by paint, opening orders by
+// history within a layer, and either one on its own can put the keyboard under the
+// panel that covers it. stories/overlay-css.test.js pins OVERLAY_LAYER to what the
+// two sheets resolve to, so the layers compared here are the painted ones.
+
+test('the palette is painted over the drawer, so the numbers the stack orders by say so', () => {
+  assert.ok(
+    OVERLAY_LAYER.palette > OVERLAY_LAYER.drawer,
+    `a palette sits at layer ${OVERLAY_LAYER.palette} and a drawer at ${OVERLAY_LAYER.drawer}. At `
+    + 'equal levels paint order falls back to document order while the keyboard follows the stack, '
+    + 'so which of the two the reader can see stops matching which one answers the keys',
+  );
+  assert.ok(
+    OVERLAY_LAYER.confirm > OVERLAY_LAYER.palette,
+    'and a confirm opened from a palette row is above both — it is a question about what is under it',
+  );
+});
+
+test('a palette adopted beside a drawer owns Escape with the drawer mounted first', () => {
+  mount(
+    drawer({ id: 'st-pd-dr', title: 'Filters', body: '<input id="st-pd-input">', open: true })
+    + commandPalette({ id: 'st-pd-cp', groups: PALETTE_GROUPS, open: true }),
+  );
+  const dr = doc.getElementById('st-pd-dr');
+  const cp = doc.getElementById('st-pd-cp');
+
+  assert.deepEqual(hidden(dr), ['true', true], 'the drawer under the palette is neither tabbable nor readable');
+
+  press(doc.body, 'Escape');
+  assert.equal(cp.classList.contains('is-open'), false,
+    'the palette is the one painted on top, so it is the one Escape closes');
+  assert.equal(dr.classList.contains('is-open'), true, 'and the drawer under it stays open');
+});
+
+test('a palette adopted beside a drawer owns Escape with the palette mounted first', () => {
+  mount(
+    commandPalette({ id: 'st-dp-cp', groups: PALETTE_GROUPS, open: true })
+    + drawer({ id: 'st-dp-dr', title: 'Filters', body: '<input id="st-dp-input">', open: true }),
+  );
+  const dr = doc.getElementById('st-dp-dr');
+  const cp = doc.getElementById('st-dp-cp');
+
+  assert.deepEqual(hidden(dr), ['true', true], 'the layer decides what is inert, not the markup');
+
+  press(doc.body, 'Escape');
+  assert.equal(cp.classList.contains('is-open'), false,
+    'the same answer with the document order reversed — the palette still paints above');
+  assert.equal(dr.classList.contains('is-open'), true, 'and the drawer is still open');
+});
+
+test('a palette opened over a drawer owns Escape', () => {
+  mount(
+    drawer({ id: 'st-od-dr', title: 'Filters', body: '<input id="st-od-input">' })
+    + commandPalette({ id: 'st-od-cp', groups: PALETTE_GROUPS }),
+  );
+  const dr = doc.getElementById('st-od-dr');
+  const cp = doc.getElementById('st-od-cp');
+
+  openDrawer(dr);
+  openCommandPalette(cp);
+  assert.deepEqual(hidden(dr), ['true', true], 'the drawer goes inert under the palette it is covered by');
+
+  press(active(), 'Escape');
+  assert.equal(cp.classList.contains('is-open'), false, 'the palette answers — it is on top by paint and by history');
+  assert.equal(dr.classList.contains('is-open'), true, 'and the drawer the reader came from is still there');
+});
+
+test('a drawer opened over a palette does not take the keyboard under it', () => {
+  mount(
+    commandPalette({ id: 'st-do-cp', groups: PALETTE_GROUPS })
+    + drawer({ id: 'st-do-dr', title: 'Filters', body: '<input id="st-do-input">' }),
+  );
+  const dr = doc.getElementById('st-do-dr');
+  const cp = doc.getElementById('st-do-cp');
+
+  openCommandPalette(cp);
+  openDrawer(dr);
+
+  assert.deepEqual(hidden(dr), ['true', true],
+    'the drawer opened last, but the palette paints over it, so the drawer is the covered one');
+  assert.deepEqual(hidden(cp), [null, false], 'and the palette is the live layer');
+
+  press(active(), 'Escape');
+  assert.equal(cp.classList.contains('is-open'), false,
+    'Escape answers the panel the reader can see, not the one that opened most recently');
+  assert.equal(dr.classList.contains('is-open'), true, 'the drawer underneath is untouched');
 });
 
 test('wiring twice does not put the same open root on the stack twice', () => {

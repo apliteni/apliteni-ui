@@ -4,12 +4,15 @@
 // properties of the *page*, so they are answered here from one stack per document rather
 // than from either component's own storage. Internal — not re-exported from src/index.js.
 
-// What each overlay paints on today: a drawer and a command palette at `--z-overlay`
-// (styles/drawer.css, styles/command-palette.css) and a confirm above both
-// (styles/confirm.css), because a confirm asks a question about whichever of them opened
-// it. Absolute values, not ranks, so a sheet that moves and a table that did not is a
-// failed test — stories/overlay-css.test.js holds all three.
-export const OVERLAY_LAYER = { drawer: 100, palette: 100, confirm: 101 };
+// What each overlay paints on today: a drawer at `--z-overlay` (styles/drawer.css), a
+// command palette one above it (styles/command-palette.css) and a confirm above both
+// (styles/confirm.css). Three steps and not two, because at equal levels paint order falls
+// back to document order and the overlay that owns the keyboard is then not reliably the
+// one the reader can see. A palette is summoned deliberately and must be seen, so it goes
+// over a drawer that was already open; a confirm is a question about whatever is under it,
+// so it goes over both. Absolute values, not ranks, so a sheet that moves and a table that
+// did not is a failed test — stories/overlay-css.test.js holds all three.
+export const OVERLAY_LAYER = { drawer: 100, palette: 101, confirm: 102 };
 
 const FOCUSABLE = [
   'a[href]', 'button:not([disabled])', 'input:not([disabled])',
@@ -111,7 +114,7 @@ const PRECEDING = 2;
 
 // One way onto the stack. `where` picks the slot; everything after it — the
 // duplicate guard, the key owner, the recompute — is the same either way. Every
-// entry carries its layer, so the comparisons in adoptOverlay never meet undefined.
+// entry carries its layer, so the comparisons in the slot pickers never meet undefined.
 function place(root, panel, dismiss, layer, where) {
   const doc = root.ownerDocument;
   const page = pageOf(doc);
@@ -133,14 +136,23 @@ function paintedLayer(root, layer) {
 }
 
 /**
- * Put an overlay on top of the page. `dismiss` is what Escape calls — pass null
- * for one that refuses to be dismissed, and Escape then does nothing rather than
- * falling through to the overlay underneath. This one goes on top whatever layer
- * it paints on, because opening is history the stack can order by: the thing just
- * opened is the thing the reader is looking at.
+ * Put an overlay on the page. `dismiss` is what Escape calls — pass null for one
+ * that refuses to be dismissed, and Escape then does nothing rather than falling
+ * through to the overlay underneath.
+ *
+ * It goes on top of everything it paints over, and under anything painted above
+ * it. Opening is history the stack can order by, but only within a layer: an
+ * overlay opened under one already on screen — a drawer opened from a palette
+ * row, a palette opened while a confirm is up — is not the one the reader is
+ * looking at, and giving it Escape and the Tab trap would put the keyboard on a
+ * surface that is covered.
  */
 export function pushOverlay(root, panel, dismiss, layer) {
-  place(root, panel, dismiss, layer, (page) => page.stack.length);
+  const level = paintedLayer(root, layer);
+  place(root, panel, dismiss, level, (page) => {
+    const at = page.stack.findIndex((e) => e.layer > level);
+    return at === -1 ? page.stack.length : at;
+  });
 }
 
 /**

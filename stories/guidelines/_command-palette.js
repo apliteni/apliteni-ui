@@ -163,7 +163,7 @@ export const RULES = [
       + 'a different set of groups when it sees one.',
     kit: [
       { ref: 'src/components/command-palette.js:255', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:134', pattern: '.ui-cmdk__group-head' },
+      { ref: 'src/styles/command-palette.css:137', pattern: '.ui-cmdk__group-head' },
     ],
   },
   {
@@ -201,7 +201,7 @@ export const RULES = [
       + 'palette that eats it breaks a keystroke the reader had first.',
     kit: [
       { ref: 'src/components/command-palette.js:512', pattern: 'function onKeydown' },
-      { ref: 'src/components/overlay.js:94', pattern: 'function ownKeys' },
+      { ref: 'src/components/overlay.js:97', pattern: 'function ownKeys' },
     ],
   },
   {
@@ -216,7 +216,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/command-palette.js:368', pattern: 'function setActive' },
       { ref: 'src/components/command-palette.js:392', pattern: 'function announce' },
-      { ref: 'src/components/overlay.js:187', pattern: 'export function returnFocus' },
+      { ref: 'src/components/overlay.js:199', pattern: 'export function returnFocus' },
     ],
   },
   {
@@ -236,7 +236,7 @@ export const RULES = [
       + 'silent one.',
     kit: [
       { ref: 'src/components/command-palette.js:229', pattern: 'const isRefused = (it) =>' },
-      { ref: 'src/styles/command-palette.css:222', pattern: '.ui-cmdk__item.is-danger' },
+      { ref: 'src/styles/command-palette.css:225', pattern: '.ui-cmdk__item.is-danger' },
     ],
   },
 ];

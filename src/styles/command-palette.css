@@ -2,8 +2,8 @@
  * Command palette — a text box and a ranked list, over a scrim, near the top of
  * the window. Fully token-driven so it re-themes across accents + light/dark.
  * Shares its scrim, its Escape and its focus trap with the drawer and the
- * confirm (see overlay.js), and paints on the same layer as the drawer so a
- * confirm opened from a row lands above it.
+ * confirm (see overlay.js), and paints one layer above the drawer and one below
+ * the confirm a row opens.
  *
  * Local tokens so the panel and scrim re-theme cleanly:
  *   --cmdk-surface  panel background     --cmdk-shadow  panel elevation
@@ -24,7 +24,10 @@
 
   position: fixed;
   inset: 0;
-  z-index: var(--z-overlay);
+  /* One above the drawer, one below the confirm: a palette is summoned
+     deliberately and must be seen, so it paints over a drawer that was already
+     open; a confirm is a question about what is under it and paints over both. */
+  z-index: calc(var(--z-overlay) + 1);
   pointer-events: none; /* container never blocks; scrim/panel opt back in */
 
   /* One place owns "is this palette on screen at all", and the scrim and panel
