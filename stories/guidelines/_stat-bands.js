@@ -37,7 +37,7 @@ export const RULES = [
     })),
     doCaption: 'The figure is the largest thing in the card, and the change reads as a change: '
       + 'an arrow, a signed number, and what it is measured against underneath.',
-    dontCaption: 'The Overview card #267 rejected, built from the same kit parts. The figure sits '
+    dontCaption: 'The Overview card rejected in #267, rebuilt from the same kit parts. The figure sits '
       + 'at the card-title step, so the page\'s key numbers are the size of its headings, and the '
       + 'change is a status chip: capitals, 10px, and its comparison only in a hover title.',
     kit: [{ ref: 'src/styles/stat.css:42', pattern: 'font-size: var(--text-2xl);' }],
@@ -71,9 +71,9 @@ export const RULES = [
     id: 'say-the-basis',
     imperative: 'Say what a change is measured against, in text the reader can reach.',
     why: 'A percentage with no basis is a number nobody can check. The rejected card put its basis '
-      + 'in a `title`, which a phone never shows and most screen readers skip. The band says it once '
+      + 'in a title attribute, which a phone never shows and most screen readers skip. The band says it once '
       + 'in a caption every change points at, or beside the one change measured against something '
-      + 'else. A band that shows a change with neither fails `stories/stat-basis.test.js`, which is '
+      + 'else. A band that shows a change with neither fails stories/stat-basis.test.js, which is '
       + 'why this rule has no drawn don\'t.',
     kit: [{ ref: 'src/components/stat.js:33', pattern: 'aria-describedby' }],
   },

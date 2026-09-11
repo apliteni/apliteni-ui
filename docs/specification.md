@@ -879,9 +879,9 @@ change and a trend. The band is a description list: a figure's label is the term
 after it is a value of that term, so a screen reader reads each figure as one statement.
 
 A figure is never broken across lines and never truncated. A band too narrow for its figures moves
-a figure onto the next row rather than let it overlap the one beside it. Before plain wrapping
-would leave one figure alone on a row, four figures fold two by two and an odd count stacks. The
-band decides this from its own width and not the window's, because a band beside a rail and a band
+a figure onto the next row rather than let it overlap the one beside it. It also folds before
+plain wrapping would leave one figure alone on a row: four figures become two rows of two, and an
+odd count becomes one column. The band decides this from its own width and not the window's, because a band beside a rail and a band
 across a page are different widths at the same viewport. The widths below are the band's own
 content box, measured in a browser over each layout at two, three and four figures of
 `€ 6,459,401`:
@@ -902,9 +902,9 @@ something else. A hover `title` does not count, because a phone never shows one.
 
 The trend is a slot. The kit sizes and colours the caller's `<svg>` and draws no chart.
 
-Three layouts ship: `band`, one card with the figures divided by space, is the default; `tiles`
-puts each figure on a card of its own; `open` draws no surface, a rule over each figure and a
-larger value.
+Three layouts ship. `band`, the default, is one card with the figures divided by space. `tiles`
+puts each figure on a card of its own. `open` draws no surface; it rules a line over each figure
+and sets the value larger.
 
 The kit had no stat band until [#267][i267]. The finance portal built three of its own, which
 disagreed on the size of a value, the case of a label and what held the figures, and the one on
