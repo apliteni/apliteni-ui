@@ -1,269 +1,374 @@
-# Labels and titles: sentence case everywhere, five type ranks, and a card title that is a heading
+# A quieter drawer, drawer and motion guidelines, and a React drawer that moves
 
-Closes #268 and #269.
+Closes #272. Closes #271.
+
+**[waiting: drawer default].** The question of A, B or C went to Artur with the screenshots below.
+It timed out unanswered and is still open. A, my recommendation, is applied so everything else
+could be finished and reviewed; B or C is a two-line change to `src/styles/drawer.css`.
 
 ## Premises
 
-**What this is about.** The kit set labels in capitals by stylesheet. Eleven rules did it, each
-with the letter-spacing capitals need to stay legible, and no two agreed on the size they did it
-at. Separately, a card's title was a `<div>`, so a page full of cards had nothing in its heading
-outline but the page title.
+**What this is about.** The Finance portal's transaction drawer is noisy, with a rule under
+every field and bordered cards inside a bordered panel, and it appears with no motion. The kit
+said nothing about either.
 
-**What I found.** Both complaints are live, and the second is larger than a look.
+**What I found.**
 
-- **Eleven rules set capitals**, at five different sizes: the eyebrow, the table head, the badge,
-  the pill, the nav caption, the menu group caption, the menu row badge, the footer column title,
-  the code sample's label, the confirmation's eyebrow and the version badge. `.ui-badge` was 10px
-  bold at `0.12em`; `.ui-table th` was 11px semibold at `0.09em`; `.ui-nav__cap` was 11px at
-  `0.16em`. Nothing decided those numbers — they accumulated.
-- **Capitals hid the case the author wrote.** `versionSwitcher()` was handed `live` and
-  `archive` — tone keys — and the stylesheet uppercased the key itself into a label. The story
-  and the component had been disagreeing about whether `badge` was text or a key for as long as
-  the `text-transform` covered it up.
-- **A card title was a `<div class="ui-card__title">`.** Not in the outline, so a reader moving
-  by heading went from the page's `h1` to whatever heading a card's *body* happened to contain.
-  `<Card>` did the same in React.
-- **A label had no rank.** It was smaller than the body and bolder than the body and set in
-  capitals, and which of those three was doing the work was never written down.
+- The kit's HTML `drawer()` already slid in and out on `--dur-med` and `--ease`, and
+  `stories/motion-tokens.test.js` already refused a hand-written duration. The drawer #271
+  describes is not that drawer.
+- The portal's drawer is the kit's **React `Modal`**, pinned to the right edge by portal CSS
+  (`web/src/styles/transaction-drawer.css` in apliteni/finance.apli.tech), because the kit
+  shipped no React drawer. That `Modal` mounted on `open` and returned `null` on close, so it
+  had no motion at all.
+- Drawer guidelines: none. The one line about drawers was an `except` on Component choice, and
+  there was no slot for label and value rows, so every consumer hand-built them.
+- `prefers-reduced-motion` was listed as ungated on The accessibility floor.
+- The drawer's own reduced-motion block promised "a plain fade". The global net sets every
+  duration to 0.01ms, so that fade never ran.
 
-**What I did.** Took `text-transform` out of the kit entirely, wrote five type ranks into the
-specification with a gate that reads them at run time, made a card title a real heading, and put
-three label treatments in front of Artur to pick the sizes from.
+**What I did.** Wrote drawer and motion guidelines, each rule held by a gate. Gave the drawer a
+heading-and-rows slot and a quieter default, chosen from three variants. Gave the React side a
+`Drawer` and a `Modal` that move. Answered #271's first-pass question with an inventory.
 
-**The verdict: Changed.** Both issues are real; the fix is a rank table, not eleven edits.
+**The verdict: Changed.** Both problems are live, and the cause is in the React package rather
+than the drawer the issues assume.
+
+## The survey
+
+Fourteen systems, read from their own guidance or source on 2026-09-11 rather than from memory.
+It sits here and not in `docs/` because
+[`docs/README.md`](docs/README.md#where-a-decision-gets-recorded) says why-this-shape belongs to
+the issue.
+
+Could not be read: SAP Fiori (every page returned 403), Adobe Spectrum (the site needs
+JavaScript, and its token package has no animation values), the m3.material.io site (Material's
+Android docs on GitHub were read instead), and Carbon for IBM Products' SidePanel. They are
+recorded as unread rather than filled in.
+
+**Drawers**
+
+| System | Ships one | When, in its words | Rules between rows | Header / footer rule |
+|---|---|---|---|---|
+| Polaris | Sheet, **deprecated** | "encourages designers to create a new layer on top of the page instead of improving the existing user interface" | not stated | not stated |
+| Atlassian | Drawer, **being deprecated** | "Please use Modal instead." | not rendered | not rendered |
+| Primer | Side sheet (Dialog) | "global actions… quick previews"; "Don't use side sheets to present create/edit forms" | not stated | footer rule "If the content area has overflow scrolling… Otherwise… optional" |
+| Ant Design | Drawer | "Use a Form to create or edit a set of information" | Descriptions: `bordered` is off by default | both, always |
+| Fluent 2 | Drawer (inline, overlay) | confirmations go to a dialog; drawers "need to be scannable" | not stated | none |
+| shadcn/ui | Sheet | "complements the main content of the screen" | n/a | none, spacing only |
+| Material 3 | Side sheet | keeps "secondary content visible" | dividers optional: full width between unrelated sections, inset within one | not stated |
+| GOV.UK | no drawer, no modal | n/a | summary list rows ruled by default: "Think carefully before you remove row borders… users who zoom in" | n/a |
+| Apple HIG | Sheet | "a scoped task that's closely related to their current context" | not stated | not stated |
+| USWDS | no drawer | a modal is "a last resort" | n/a | n/a |
+
+**Motion**
+
+| System | Durations | Enter vs exit | Reduced motion |
+|---|---|---|---|
+| Carbon | 70, 110, 150, 240, 400, 700 ms | separate entrance and exit curves | "provide alternatives" |
+| Atlassian | 50–150 interactions, 150–400 "Modals, Panels" | ease-out in, accelerate out | "motion is off and instant" |
+| Primer | micro 100, short 200, medium 300, long 500 | easeOut entering, easeIn exiting | "MUST Provide instant alternatives" |
+| Fluent 2 | 50–500 ms; drawer 250–500 by size | decelerate in, accelerate out | 1 ms by default |
+| Ant Design | 100, 200, 300 ms | spec says exits faster; the Drawer code does not | `transition: none` |
+| Material 3 | 50–1000 ms in 16 steps | decelerate in, accelerate out | not in the docs read |
+| Apple HIG | none published | not stated | "Replacing transitions in x-, y-, and z-axes with fades" |
+
+WCAG 2.3.3 does not count opacity as motion: motion animation "does not include changes of
+color, blurring, or opacity" (an erratum has since taken blurring back out of that list).
+
+**Where they disagree.** Whether a drawer should exist at all: Polaris and Atlassian are
+retiring theirs for a modal, while Fluent, Ant, Material and shadcn ship one. Forms in a drawer:
+Ant says yes, Primer says no. Reduced motion: instant (Atlassian, Primer, Fluent, Ant) against a
+fade in place of movement (Apple, which WCAG allows). Row rules in a key/value list: GOV.UK on
+by default and warns against removing them, Ant off by default.
+
+**What nobody says.** No system says anything for or against cards inside a drawer, and none
+gives a general rule for when a divider beats space. Nobody gives a drawer its own
+reduced-motion treatment or says what the scrim does under it.
+
+## #271's question: which components are in the first pass
+
+The rule is "anything that appears or leaves after the page has loaded moves". The inventory is
+every show and hide in the kit, taken from the stylesheets and the factories. The coverage gate
+now finds the same set itself: 37 state rules today.
+
+| Change after load | Before this PR | After |
+|---|---|---|
+| Drawer opens and closes (HTML) | slides, scrim fades, 250ms | unchanged |
+| Confirm opens and closes | fades and rises, 250ms | unchanged |
+| Dropdown, version switcher, account menu | fade and drop, 250ms | unchanged |
+| Toast arrives and leaves | slides in 250ms, out 150ms | unchanged |
+| Feedback pill, scrim, composer | fade and rise, 250ms | unchanged |
+| **React `Modal`** (the portal's drawer) | **none: mounts and unmounts** | fades and rises, in and out |
+| **React `Drawer`** | did not exist | new; the HTML drawer's markup, slide and scrim |
+| **Tabs: the panel a switch reveals** | **instant** | fades in, 150ms |
+| **Side nav: a group's sub-list** | **instant** (only the caret turned) | fades in and drops 4px, 150ms |
+| **Feedback: the error line** | **instant** | fades in, 150ms |
+| **`setBusy()`: content replacing the skeleton** | **instant** | fades in, 250ms |
+| Switch knob; a dropdown opening upward | moved | unchanged, and now counted by the gate |
+| Dropdown row's tick; nav current-row marker and icon; checkbox tick's turn | instant | still, each with its reason at the rule |
+| Collapsed side rail | instant | still, with its reason at the rule |
+
+Nothing animates on first render: `playEntrance()` runs only on the change the reader caused.
+
+Deferred, and why:
+
+- **The toast stack closing up** after one toast leaves. The others jump into the gap. Moving
+  them needs each toast measured before and after, which is JavaScript the stack does not have.
+- **React `DataTable` rows** on a sort or a page turn. The rows are the consumer's, and the
+  pagination guideline already says a page turn must not move the ground under the reader.
+- **React `BusyRegion`** content arriving. The React tree cannot tell a first render from a
+  re-render without a key the consumer does not give it today.
+- **`.acct.on`**, the signed-in account button. It is not in the coverage gate's list of state
+  hooks: it describes a state the page loads in, not a change the reader makes.
+
+## The variants, and which one is the default
+
+The same fabricated record in each frame, beside the look #272 reported ("Today"). All three
+drop the cards and the rule under every row, and put each value beside its label instead of at
+the far edge of the panel.
+
+![Drawer variants, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/684124b645893295c8ea279078977da2ece892f7/docs/evidence/drawer-variants-light.png)
+
+![Drawer variants, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/684124b645893295c8ea279078977da2ece892f7/docs/evidence/drawer-variants-dark.png)
+
+| | Lines inside the panel on this record | What you live with |
+|---|---|---|
+| Today | about 17 | the report |
+| **A, space only** *(applied, recommended)* | 0 | a long record scrolls under the header and the footer with nothing marking where either ends |
+| B, one rule per group | 4: header, footer, two between groups | still some lines, but the header and footer stay framed while the body scrolls |
+| C, filled groups | 0, and three tinted blocks | a third surface tone, and in dark it is the heaviest of the three |
+
+A is recommended because the complaint was the lines, and A is the only one with none. To take
+B instead: restore `border-bottom` on `.ui-drawer__header` and `border-top` on
+`.ui-drawer__footer`, add a top rule to `.ui-drawer__section + .ui-drawer__section`, and drop the
+header and footer test from `stories/drawer-rules.test.js`.
 
 ## What changed
 
-**Nothing in the kit sets a case any more.** Not `text-transform`, not `font-variant: small-caps`,
-not a small-caps feature in `font-feature-settings`. A label is written in sentence case and
-renders as written. `--tracking-caps` still exists as a token — no kit rule reads it, and a
-consumer's rule still may — and says so at the declaration.
+- **Drawer.** `drawerSection({ title, rows, body })` puts a heading over a `<dl>` of label and
+  value rows. Labels and values are escaped; a value passed as `{ html }` is trusted markup. No
+  line is drawn inside the panel. The drawer's and the confirm's dead
+  reduced-motion blocks are gone.
+- **Guidelines / Drawers** has four rules: one record per drawer; group under headings and never
+  put a card inside; set each value beside its label; draw no line inside the panel.
+- **Guidelines / Motion** has four rules: move what appears or leaves after load; time a change
+  by what moves (150, 250 or 400ms); take the kit's curves; change at once under reduced motion.
+- **React.** A new `Drawer` renders the vanilla `drawer()` markup class for class, with a parity
+  test over 24 side, size and footer combinations. `Modal` fades and rises in and out and stays
+  mounted until its exit ends. Both share one dialog module (`react/src/dialog.ts`) for the Tab
+  trap, Escape, inert background and return of focus. While a dialog leaves, it takes no clicks.
+- **Motion.** `playEntrance()` in `src/motion.js` drives the entrances in the table above.
+  `motion: still` notes record the changes that are right to leave still.
+- **Specification.** A new "The drawer" section, and additions under "Motion".
 
-**Where the displayed text was a key, the kit now writes the word.** `versionSwitcher()` maps
-`live` → `Live` and `archive` → `Archive` through a `VBADGE` table, so a caller keeps passing the
-tone key and the reader sees a word. Text a caller hands a `badge()` is still shown exactly as
-handed: `badge('paid')` reads `paid`. The kit does not correct its consumer's copy.
+## Found along the way
 
-**Five ranks, each smaller than the one above it**, written into
-`docs/specification.md#labels-and-titles`:
+**Reduced motion lost keyboard focus in both overlays.** The net gives every element a 0.01ms
+transition, so a child inherits `visible` one tick after the overlay's root. The control the kit
+focuses on open is still hidden in that frame. Measured in Chrome, clicking each story's trigger:
 
-| rank | size | weight | what takes it |
-| --- | --- | --- | --- |
-| `page-title` | `--text-2xl` · 30px | bold | the page's `h1` inside `appShell()` |
-| `card-title` | `--text-lg` · 18px | semibold | a card's title |
-| `body` | `--text-base` · 14.5px | normal | running text |
-| `label` | `--text-sm` · 13px | medium | eyebrow, table head, nav and menu caption, footer column title, code sample's label, confirmation's eyebrow |
-| `chip` | `--text-xs` · 11px | semibold | badge, pill, menu row badge, version badge |
+| Opening | Motion on | Reduced motion, before | Reduced motion, after |
+|---|---|---|---|
+| HTML drawer | close button | **the panel itself** | close button |
+| Confirm | Cancel | **`<body>`: focus lost** | Cancel |
+| React drawer | first field | **the panel** (reported by the builder) | first field |
 
-A label is one step under the body; its `--muted` ink and medium weight do what capitals used to.
-A chip is the smallest because its fill already sets it apart.
+This dates from #200. Opening now cancels every transition inside the overlay under reduced
+motion, and `stories/overlay-css.test.js` holds it for both sheets.
 
-**A card title is an `h2`.** `card({ level })` and `<Card level>` move it to `h3`–`h6` for a card
-inside a section with an `h2` of its own. `.ui-card__title` names `--font-sans` on its own rule,
-because an `h2` would otherwise take the display face from the bare element selector — the third
-rule in the kit to do that, after `.ui-drawer__title` and `.ui-confirm__title`. `<Card>` renders
-no heading at all for an empty title, where it used to emit an empty `<div>`.
+**The kit's own "Form in a drawer" story wrapped its intro in a card.** The new drawer gate
+caught it on its first run, and the card is gone.
 
-**A new guidelines page, Guidelines / Labels and titles**, with four rules, each citing the line
-of kit code that keeps it and each resolved by `refs.test.js` to a file, a line and a literal on
-that line.
-
-## The three treatments, and which one shipped
-
-All three were built as scoped overrides, rendered on one board in both themes, and put in front
-of Artur as screenshots. They differ only in the two sizes a label and a chip take:
-
-| | label | chip | reads as |
-| --- | --- | --- | --- |
-| A · one size up *(shipped)* | `--text-sm` · 13px medium | `--text-xs` · 11px semibold | a label sits one step under the body and is plainly a label |
-| B · same size, weight only | `--text-xs` · 11px semibold | `--text-xs` · 11px semibold | label and chip collapse into one rank; a table head stops reading as a head |
-| C · two sizes up | `--text-base` · 14.5px medium | `--text-sm` · 13px semibold | a label reaches the body's size and competes with the figure it names |
-
-`docs/evidence/labels-and-titles/variant-a-{light,dark}.png`, `…-b-…`, `…-c-…` are the
-screenshots the choice was made on. They stay in the tree as the record; the overrides that
-produced them are gone.
-
-## Decision record for the issues
-
-**What was chosen.** Treatment **A — one size up**. A label takes `--text-sm` (13px) at
-`--weight-medium`; a chip takes `--text-xs` (11px) at `--weight-semibold`; neither sets capitals,
-and neither spaces its letters. That is the `label` and `chip` rows of the rank table in
-`docs/specification.md#labels-and-titles`, and `src/styles/type-ranks.test.js` reads that table at
-run time and fails any rule that claims a rank and disagrees with its row.
-
-**What was rejected, and why.**
-
-- **B — same size, weight only.** A label and a chip both at 11px. Rejected because it leaves four
-  ranks rather than five: a table head and a badge become the same typographic object, and with
-  the capitals gone there is nothing else separating a column head from the data under it.
-- **C — two sizes up.** A label at 14.5px, the body's own size. Rejected because a caption that
-  is as large as the running text stops being a caption, and in the figure band the label starts
-  competing with the figure it names — the same failure capitals caused, in the other direction.
-
-**Who chose, and on what.** Artur, 2026-09-11, from the three rendered variants in light and
-dark, not from a derivation. The sizes are an owner's choice and the specification says so at the
-rank table rather than implying they fall out of the scale.
-
-**What was not decided here.** Sentence case itself was not a choice between treatments — all
-three dropped the capitals, and the argument for that is on the guidelines page with its
-citations. Only the two sizes were open.
-
-## Case, after the capitals came off
-
-Removing `text-transform` made every label show the case its author actually wrote, and some of
-that source had been leaning on the stylesheet. Caught in review of the rendered board:
-
-- **Version and menu badges.** Fixed on this branch before the final shots: `versionSwitcher()`
-  writes `Live` and `Archive` for the keys rather than rendering the key.
-- **A code sample's label read `shell`.** Now `Shell`, in
-  `stories/components/Snippet.stories.js` and on the board. `mcp.json` beside it is a filename and
-  is left as it is spelled.
-- **Foundations / Sub-themes badged each panel `dark` / `light`** — the theme key, straight into
-  a badge next to a `Live`. Now `Dark` / `Light` through a `THEME_WORD` table, the same move
-  `versionSwitcher()` makes. The dead ternary that picked `archive` either way went with it, and
-  the switch beside it now reads `Accent drives every control`.
-
-**The sweep is a gate, not a pass I did once.** `stories/guidelines/letter-case.test.js` now ends
-with a second sweep that renders **every story in both themes and every site page**, finds each
-element matching a rule that claims `rank: label` or `rank: chip`, and reads the text it renders.
-402 labels and chips are read under 11 ranked rules; each must start with a capital.
-
-Both halves of the gate discover their subjects. The selectors are whatever the shipped sheets
-mark with a `/* rank: … */` note — nothing is listed — and the text is whatever the stories and
-the site actually render, so a tone key and a label are told apart by what reaches the screen
-rather than by the name of the prop that carried it. That distinction is the whole point: a
-source scan cannot tell `badge: 'live'` handed to `versionSwitcher()` (a key, correct) from
-`badge: 'live'` handed to `dropdown()` (text, wrong), and this one never has to.
-
-What it does not reach is written at the top of the test: a label no rule ranks, a word inside a
-label that is not the first, and the case of a name — a first word carrying anything but letters
-(`mcp.json`, `phoenix.2026.002`) is spelled rather than written and is left alone. The capitals
-on the guidelines page's **don't** specimens (`INCOME`, `INVOICES WAITING`) are typed into the
-source on purpose: they are the counter-example, they start with a capital, and the gate passes
-them.
-
-The version switcher's trigger still reads `version:` in lower case. That is a key–value prefix
-in front of a value, it was never set in capitals by style, and this branch did not invent it.
-Left as it is.
+**The contrast walks could not resolve any `--ease*` token.** `substitute()` in
+`stories/lib/contrast.js` stopped at the first `)`, so a fallback holding `cubic-bezier()` stayed
+unresolved. It now matches each `var(` to its own bracket. The vanilla walk measures the same
+results as before; the React walk's check that every `var()` resolves passes.
 
 ## Before / After
 
-Shot on this branch, both themes, at 1280px:
+**Before**, as reported in #272:
 
-| | before | after |
-| --- | --- | --- |
-| Every label the kit sets, on one board | `before-board-{dark,light}.png` | `after-board-{dark,light}.png` |
-| The portal page the issues were reported from | `before-page-…` | `after-page-…` |
-| Foundations / Typography | `before-typography-…` | `after-typography-…` |
-| A guidelines page's own chrome | `before-guideline-shell-…` | `after-guideline-shell-…` |
-| Guidelines / Labels and titles | *(new page)* | `after-guideline-{dark,light}.png` |
-| The changelog site page, served | `before-changelog-…` | `after-changelog-…` |
+The Finance portal's transaction drawer as it was reported — three bordered cards inside a bordered panel, a rule under every row — is the first screenshot in #272; it is not copied here because GitHub attachment URLs carry a UUID the repo's denylist refuses.
 
-All under `docs/evidence/labels-and-titles/`. The `after` set was re-shot at the head of this
-branch, against the served site and this branch's own Storybook, after the case fixes above.
+**After**: the kit's drawer on the same kind of record, default A.
+
+![Drawer, final, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-final-light.png)
+
+![Drawer, final, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-final-dark.png)
+
+**Motion**, which a still screenshot cannot show. Each sheet is six frames of one real opening
+in Chrome, taken by pausing the running transitions at fixed times after the click. With motion
+on, opening starts two 250ms transitions: the scrim's opacity and the panel's transform.
+
+![Drawer opening, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-open-frames-dark.png)
+
+![Drawer opening, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-open-frames-light.png)
+
+Under forced reduced motion the drawer is open in the first frame. Before the focus fix below,
+Chrome listed every transition it started at 0.01ms; now opening starts none inside the panel.
+
+![Drawer opening under reduced motion](https://raw.githubusercontent.com/apliteni/apliteni-ui/9adc62c8bac59a337449b3245e3eba9fbdac0932/docs/evidence/drawer-open-frames-reduced-dark.png)
+
+**The guideline pages**
+
+![Guidelines / Drawers, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-guidelines-light.png)
+
+![Guidelines / Drawers, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/drawer-guidelines-dark.png)
+
+![Guidelines / Motion, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/motion-guidelines-light.png)
+
+![Guidelines / Motion, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/a7bbc2400748b8b1084b4c7a31fd361cd4c98fdd/docs/evidence/motion-guidelines-dark.png)
 
 **The gates**
 
 ```
-                       before      after
-root  npm test          1126       1151   (2 skipped, as on main)
-react npm test           213        216
+                          main (c9a48c8)     this branch
+root   npm test           1126 (2 skipped)   1170 (2 skipped, 0 failing)
+react  vitest run          213               271
+react  dist/index.css      1.55 KB           1.80 KB
 ```
 
-## Changelog entry
+The real tails, from the tree this body describes:
 
-For the release that ships this, under a new version in `site/changelog.mjs`:
-
-```js
-['breaking', "Nothing in the kit sets text in capitals by style. `text-transform` is gone from eleven rules — the eyebrow, the table head, the badge, the pill, the nav caption, the menu group caption, the menu row badge, the footer column title, the code sample's label, the confirmation's eyebrow and the version badge — and the letter-spacing that only capitals need went with it. A label written `Paid` rendered `PAID` and now renders `Paid`. Copy that relied on the uppercasing has to be rewritten in sentence case; a word that is capitals in itself is typed that way. `--tracking-caps` is still exported and no kit rule reads it.", ['Badge', 'Table', 'Nav', 'Dropdown', 'Footer', 'Snippet']],
-['breaking', "`card()` and `<Card>` emit the title as an `h2` instead of a `div`. A card title is now in the page's heading outline, and `level` takes it to `h3`–`h6` for a card under a section heading of its own. A title holding block content has to become inline content — a heading cannot hold a block. `<Card>` renders no heading for an empty title, where it used to emit an empty `div`.", ['Card']],
-['changed', "Labels and chips take named type ranks. A label is `--text-sm` at `--weight-medium`; a chip is `--text-xs` at `--weight-semibold`; a card title is `--text-lg` at `--weight-semibold` and keeps the text face on any element. Five ranks in all, each smaller than the one above it, written in the specification and read at run time by `src/styles/type-ranks.test.js`. The sizes were the owner's choice between three rendered treatments.", ['Badge', 'Card', 'Table']],
-['added', "Guidelines / Labels and titles — four rules on sentence case, the rank a title takes, a card title as a heading, and what an eyebrow is for. Each cites the line of kit code that keeps it.", ['Card']],
-['added', "`stories/guidelines/letter-case.test.js` — refuses a case change anywhere in `src/`, `stories/`, `site/`, `react/src` and `.storybook`, in a stylesheet, a `<style>` block, an inline style or a JSX style object, across 21 spellings; and renders every story in both themes and every site page to check that the text under a label or chip rank starts with a capital."],
 ```
+$ npm test
+ℹ tests 1170
+ℹ pass 1168
+ℹ fail 0
+ℹ skipped 2        (the same two as on main: the accent matrix and the built-Storybook index)
 
-Marked **breaking** twice, deliberately. Both are visible changes to what a consumer's existing
-markup renders — the first rewrites every label on every screen, the second changes an element
-and can break a caller who put a block inside a card title. Neither is a rename anyone can
-grep for.
+$ cd react && npx vitest run
+ Test Files  14 passed (14)
+      Tests  271 passed (271)
+
+$ npm run build
+ESM dist/index.css 1.80 KB
+ESM ⚡️ Build success in 68ms
+DTS ⚡️ Build success in 1746ms
+```
 
 ## Proof
 
-- [x] Artur chose the sizes from the three rendered treatments, in both themes, before they
-      were written into the specification.
-- [x] `src/styles/type-ranks.test.js` reads the rank table out of `docs/specification.md` at run
-      time and fails a ranked rule that disagrees with its row, writes the `font` shorthand, or
-      spaces its letters out; and fails a table whose sizes stop descending.
-- [x] `stories/guidelines/letter-case.test.js` sweeps five trees for a case change and refuses 21
-      spellings of one, and renders every story in both themes plus every site page to read 402
-      labels and chips for their case.
-- [x] Every rule on the new guidelines page cites kit code, and `refs.test.js` resolves each
-      citation to a file, a line and a literal on that line.
-- [x] Both gates were broken on purpose and watched go red: the badge's capitals put back are
-      named at their line, and `shell` / `dark` restored are named with their story, selector,
-      rank and CSS line.
-- [ ] **Exercised against a consumer.** Not done and not claimed. The consumer installs a
-      published version, so this is provable only after a release. What would settle it is a
-      portal upgrading and reporting which of its own labels now read in the case they were
-      typed in — that is where the breaking half of this lands.
+- [x] A person meets it in something running: Storybook stories and both guideline pages,
+      screenshotted in both themes.
+- [x] Motion measured in a real browser, not asserted: 250ms with motion on, 0.01ms with reduced
+      motion forced.
+- [x] Focus on open measured in Chrome before and after the reduced-motion fix, for all three
+      overlays.
+- [x] Every new rule is held by a gate, and each gate was broken on purpose to watch it fail:
+  - a rule under every drawer row → `drawer-rules.test.js` red;
+  - the tabs entrance deleted → `motion-coverage.test.js` red;
+  - `transition-duration` deleted from the net → `reduced-motion.test.js` red;
+  - toasts' fallback timer deleted → the end-event check red, where the old rule passed on
+    toasts' reduced-motion branch alone;
+  - the confirm's reduced-motion open rule deleted → `overlay-css.test.js` red;
+  - React `Drawer` and `Modal` unmounting at once → six React tests red;
+  - every React dialog handling keys instead of only the top one → the three nested tests red;
+  - the React `Modal` put back at `z-index: 50` → "a React modal paints above a drawer" red;
+  - sixteen more on the tightened drawer, reduced-motion and coverage gates, listed under Review.
+- [ ] **Artur's pick of the drawer default.** Asked, timed out unanswered, still open.
+- [ ] **Exercised in the Finance portal.** Not done and not claimed: the portal installs a
+      published version. What settles it is the portal replacing its `Modal` and
+      `transaction-drawer.css` with `<Drawer>` and `drawerSection`-shaped rows.
 
 ## Review
 
-**Findings closed on this branch.** `letter-case.test.js` could not read small caps in the `font`
-shorthand or in `font-feature-settings`, a quoted or bracketed JS key, and passed a value it
-could not read rather than refusing it. `type-ranks.test.js` could not read a rank note in mixed
-case, found braces inside comments, and let a ranked rule hide a size in the `font` shorthand.
-`<Card>` rendered an empty heading for an empty title. `versionSwitcher()` read keys it was not
-given and rewrote the caller's markup. Stale prose describing 10px uppercase labels, two dead
-citations, the guideline shell's `h1` rule and the `card()` row in `docs/library.md` were fixed.
+Two independent reviews ran on this branch: a diff review (with security, testing,
+maintainability and adversarial passes, and a red team) and a prose review. Every finding below
+was reproduced before it was fixed.
 
-**A defect the gates did not catch, found in the render.** The version and menu badges read
-`live` and `archive` beside status badges reading `Live` and `Archived`. Both gates were green:
-no rule set a case, and every ranked rule matched its row. The text was simply wrong, and only a
-person looking at the board saw it. That is what the second sweep in `letter-case.test.js` exists
-for, and it now catches the class — it was written after the defect, not before.
+**Blocking, fixed.**
 
-**One gate fails on the machine this was finished on, and it is not this branch.**
-`stories/contrast.test.js` asserts the contrast walk finishes inside 120s. On this host the
-branch reports 147.2s inside `npm test`. **`origin/main`, checked out beside it and run the same
-way, reports 157.1s and fails the same assertion.** The host is a shared 8-core box running other
-agents; load average during the runs was above 20. It is the only failing test in either run.
+- Two React dialogs open at once broke each other. Every open dialog listened on `document`,
+  and none checked whether it was on top. With a `Modal` over a `Drawer`, one Escape closed both,
+  Tab was swallowed, and closing one brought the page behind back to life while the other was
+  still open. `react/src/dialog.ts` now keeps one stack: only the top dialog takes keys, and
+  inertness comes from the stack. When the top dialog closes, the one below is live again with
+  focus where it left it. A dialog rendered inside another's content always sorts above it,
+  even when both mount in the same commit. Nine new tests failed against the old code, each for
+  the reason it names. Letting every dialog handle keys again turns the three nested tests red.
+- A React `Modal` opened from a React `Drawer` would have painted underneath it: the scrim sat at
+  `z-index: 50`, the drawer at 100. It now takes the confirm's layer, one above the drawer.
+- React dialogs and the vanilla `drawer()` and `confirm()` keep separate stacks. They are not
+  merged, because `overlay.js` is internal to the kit. `react/README.md` says not to open one
+  over the other.
 
-Measured rather than assumed, with `/usr/bin/time` over the same file in two worktrees:
+**Gates that stayed green while their rule was broken, fixed.** Each was shown green with the
+fault present, then red after the fix:
 
-```
-                user CPU   sys      wall
-origin/main      163.61s   2.02s   311.90s
-this branch      151.97s   1.86s   280.14s
-```
+- The drawer gate did not measure the body's own edges or anything inside the header and
+  footer. It read no logical `border-block` property and caught no `<hr>`. It let a four-sided
+  box without `.ui-card` pass, and asserted "at least 5" panels where it finds 12.
+- The reduced-motion checks accepted a `prefers-reduced-motion: no-preference` block. They
+  missed React's `onTransitionEnd`, and let a component's own reduced-motion block outvote the net.
+- The coverage gate was satisfied by `playEntrance`'s default argument alone. It counted a
+  `display` transition as motion, and its list of state hooks missed some the kit uses.
 
-The branch does **less** work than main, and the wall clock is roughly twice the CPU time in both
-— the box was giving each run about half a core's worth of the machine. The ceiling is set at
-~2.5× a 47.6s worst case measured on a deliberately saturated 10-core laptop
-(`CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart`), and that
-document says plainly what it is for: *"it catches a runaway… it does not catch a 2× performance
-regression, and no wall-clock number can."* The deterministic half of the cost gate — the cache
-miss rate, which is the half that would see a real regression — passes on this branch.
+Sixteen mutations prove it: each one stayed green before the fix and turns red after. They are a
+border on the body, a border under the title, a header `border-block-end`, an `<hr>`, a
+hand-bordered box, a deleted drawer story, a `no-preference` block, `! important` with a space, a
+React `onTransitionEnd` with no timer, an `!important` duration and an infinite loop inside a
+component's reduced-motion block, `tabs.js` no longer calling `playEntrance`, and a tick shown by
+a `display` transition. The coverage gate now finds 37 state rules; three new ones came from the
+wider hook list and each is decided. The switch knob and the upward dropdown already moved. The
+checkbox tick's turn is left still, with its reason at the rule.
 
-The ceiling was **not** loosened. It is a measured pin and this is not the machine to re-measure
-it on.
+**Also fixed.** `drawerSection()` wrote its row values as markup while escaping its labels, and
+the obvious input is bank-feed data. Values are now escaped, and `{ html }` passes trusted markup.
+`substitute()` no longer stops at an unbalanced `var(`. A leaving dialog is `aria-hidden`, and
+focus has somewhere to go when its opener is gone. The panel's dead `opacity` rules are removed.
+Nine comments and doc lines the branch had made false are corrected. From the prose review, the
+spec no longer quotes a measurement the focus fix made stale.
 
-**Not fixed, on purpose.** `--tracking-caps` stays exported with nothing in the kit reading it,
-because a consumer's rule may. The version switcher's `version:` trigger prefix stays in lower
-case. The kit does not correct the case of text a caller hands a badge.
+**A claim of mine that was false.** The spec said every transition the drawer starts under
+reduced motion runs 0.01ms. After the focus fix, opening starts none. The prose review caught it.
+
+**Not fixed, on purpose.**
+
+- No version bump and no changelog entry, per the brief; see "Changelog entry" below.
+- Variant A leaves no edge between a scrolling body and the header or footer. That is A's cost,
+  stated in the table above, and one reason to pick B.
+- A `setTimeout` anywhere in the function counts as the fallback for an end-event listener. The
+  gate says so in its ledger; telling a fallback from an unrelated timer needs a parser.
+- The `motion-css` rule parser misreads nested rules and braces inside strings. Nothing in the
+  kit writes either, and the gate's ledger says so.
 
 ## What a reviewer should push on
 
-- **The new sweep costs 7.1s of user CPU on every `npm test`**, to render every story twice and
-  read 402 strings. It dedupes the second theme when a story renders identically in both, which
-  is most of them. Against the contrast walk's 152s it is small, but it is the second gate in the
-  suite to render the whole catalogue, and a third would be worth arguing about.
-- **`label` and `chip` are the only two ranks the case sweep reads.** A `card-title` or a
-  `page-title` written in lower case passes. That is deliberate — a title is a sentence and a
-  label is not — but it is a judgement, not a derivation.
-- **The rank table lives in `docs/specification.md` and is parsed by a test.** It is prose that a
-  gate reads, so reformatting the table breaks the build. That is the point, and it is also a trap
-  for whoever next edits that file.
-- **`--text-sm` is now doing two jobs**: the label rank, and whatever else in the kit asks for
-  13px. Nothing today disagrees, but the rank is a role and the token is a size, and they are not
-  the same thing.
+- **Default A was applied before Artur picked.** The question timed out, so it is my
+  recommendation standing in for his call.
+- **Reduced motion means instant, not a fade.** WCAG and Apple would allow a fade. The kit keeps
+  the one net it already had (#200), because a net over every sheet is the only version a new
+  component cannot forget.
+- **The React drawer focuses the first field in its body; the HTML drawer focuses its close
+  button.** The React side follows `Modal`'s rule from #262. I left the HTML drawer as it was.
+- **The React `Modal` moved from `z-index: 50` to the confirm's layer (101).** A page that placed
+  its own layer between those two numbers now finds it under an open Modal rather than over it.
+  I think that is right for a dialog, but it is a visible change and is in the changelog below.
+- **`drawer.css` is not in the React stylesheet.** React consumers take kit styles from
+  `@apliteni/apliteni-ui/css`, as `Pagination` already does. A second copy loaded later could
+  beat a consumer's own overrides.
+- **`PR.md` at the repository root** carried #279's body. This branch replaces it with this one,
+  because that file is how a pull request is opened from this machine.
+
+## Changelog entry
+
+Not added to `docs/changelog.md` and no version bump, per the brief; the coordinator sequences
+versions at merge. The entry this would take:
+
+- **Added** `drawerSection({ title, rows, body })`: a drawer group, a heading over label and
+  value rows (#272).
+- **Changed (visible)** The drawer draws no line under its header or over its footer (#272).
+- **Added** React `Drawer`, the HTML drawer's markup, slide and scrim (#271, #272).
+- **Changed (visible)** React `Modal` fades in and out, and stays mounted until its exit ends,
+  about 250ms after `open` turns false. A test that expects it gone at once needs to wait for
+  it (#271).
+- **Changed (visible)** React `Modal` paints on the confirm's layer, above a drawer, instead of
+  at `z-index: 50`. React Modals and Drawers share one dialog stack: only the top one takes
+  Escape and Tab (#271, #272).
+- **Added** `playEntrance()` and `ENTRANCE_FALLBACK_MS`. Tab panels, side-nav groups, the
+  feedback error and `setBusy()` content now fade in when they change (#271).
+- **Fixed** Under `prefers-reduced-motion`, opening a drawer or a confirm puts focus on its
+  first control again. It had landed on the panel, or fallen to `<body>`.
+- **Docs** New Guidelines pages: Drawers and Motion.
