@@ -39,6 +39,9 @@ function mount(html) {
 const click = (m, el) => el.dispatchEvent(new m.window.MouseEvent('click', { bubbles: true, cancelable: true }));
 const press = (m, el, key) => el.dispatchEvent(new m.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
 const type = (m, text) => { m.field.value = text; m.field.dispatchEvent(new m.window.Event('input', { bubbles: true })); };
+// A key pressed while an IME is composing. Chromium and Firefox set isComposing;
+// Safari sends the Enter that commits the text with keyCode 229 and isComposing false.
+const compose = (m, el, key, init) => el.dispatchEvent(new m.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
 
 const ITEMS = [
   { label: 'Australian dollar (AUD)', value: 'AUD' },
@@ -197,6 +200,21 @@ test('Escape closes and gives focus back to the trigger', () => {
   assert.equal(m.trigger.getAttribute('aria-expanded'), 'false');
   assert.equal(m.doc.activeElement, m.trigger);
   assert.equal(m.trigger.querySelector('.ui-dropdown__value').textContent, 'Euro (EUR)', 'nothing was picked');
+});
+
+test('while an IME is composing, Enter, the arrows and Escape are left to it', () => {
+  for (const init of [{ isComposing: true }, { keyCode: 229 }]) {
+    const m = mount(searchable());
+    click(m, m.trigger);
+    type(m, 'dollar');
+    for (const key of ['ArrowDown', 'ArrowUp', 'Enter', 'Escape']) {
+      assert.equal(compose(m, m.field, key, init), true, `${key} ${JSON.stringify(init)} is not cancelled`);
+    }
+    assert.equal(m.active(), 'Australian dollar (AUD)', 'the arrows did not move the pick');
+    assert.ok(m.dd.classList.contains('open'), 'the panel is still open');
+    assert.equal(m.trigger.querySelector('.ui-dropdown__value').textContent, 'Euro (EUR)', 'nothing was picked');
+    assert.equal(m.doc.activeElement, m.field);
+  }
 });
 
 test('every open starts from the whole list', () => {

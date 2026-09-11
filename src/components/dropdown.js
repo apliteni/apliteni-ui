@@ -249,6 +249,7 @@ function ddItemsOf(dd) {
 // why: docs/specification.md#a-dropdown-with-a-search-field
 const ddSearchOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-search]') || null;
 const ddActiveOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-item].is-active') || null;
+const ddComposing = (e) => e.isComposing || e.keyCode === 229;
 
 // Mark the row Enter would pick and keep it inside the list's scroll box,
 // without scrolling the page the way scrollIntoView() would.
@@ -453,6 +454,9 @@ export function wireDropdown(root = document) {
       const open = dd.classList.contains('open');
       const onTrigger = e.target === trigger;
       const search = ddSearchOf(dd);
+      // While an IME is composing, its keys commit or steer the text, not the
+      // list. Safari's committing Enter carries keyCode 229, not isComposing.
+      if (e.target === search && ddComposing(e)) return;
       if (search && open) {
         // Arrows walk the rows still showing; focus stays in the field.
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -508,7 +512,7 @@ export function wireDropdown(root = document) {
     _ddGlobalWired = true;
     document.addEventListener('click', () => closeAllDropdowns());
     document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
+      if (e.key !== 'Escape' || ddComposing(e)) return;
       const open = document.querySelector('[data-dropdown].open');
       if (open) { closeDropdown(open); open.querySelector('[data-dropdown-trigger]')?.focus(); }
     });

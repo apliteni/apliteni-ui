@@ -683,6 +683,10 @@ in a box that is still `hidden`, so the focus call was lost. Closing still fades
 - Moving the pointer over a row makes it the active row, so Enter never picks a row other than the
   one under the pointer. A move event with no change of position is ignored: a browser sends one
   after the list scrolls, and it would take the active row away from the arrows.
+- While an input method is composing (Japanese, Chinese, Korean), every key in the field belongs to
+  it. The Enter that commits the text picks no row, and the arrows and Escape do not reach the list.
+  The field checks `isComposing` and `keyCode 229` both, because Safari sends the committing Enter
+  with `isComposing` false.
 
 **The match is anywhere in the label**, ignoring case and accents, and rows keep their order. A
 match anywhere finds every row a start-of-label match would find, and it also finds the rows a
