@@ -93,12 +93,16 @@ a value.
 
 ## Not in this pull request
 
-- No version bump and no changelog entry, matching the other open branches; the release that
-  carries this writes them.
 - No change to the finance portal. This gives it a component to move its sparklines onto.
 - No chart component. The charts in the stories are specimens in `stories/_chart.js`; the kit
   ships the readout, and a consumer brings the chart.
 
+## Release
+
+0.27.0 → 0.28.0, a minor bump for a new component, with its entry in `site/changelog.mjs`.
+`Shipped surface vs version` is red without it. #270 and #283 are open with 0.28.0 as well, so
+whichever of the three merges second takes the next number.
+
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-https://claude.ai/code/session_01RTbM6UF7B7dLUPbtyvrHfc
+https://claude.ai/code/session_01YFkfwxhWt81kGRUbrLnsQF

@@ -13,6 +13,13 @@
 
 export const RELEASES = [
   {
+    v: '0.28.0', date: '2026-09-11',
+    changes: [
+      ['added', "`tooltip()` — the readout a chart, a sparkline or any mark shows while a pointer rests on it, with `wireTooltip(root)` to drive it and `showTooltip` / `hideTooltip` for a chart that does its own hit-testing. It overlays the page in every state: one element, absolutely placed inside its host, whose open state changes only `opacity` and `visibility`, so showing it never moves or resizes anything else. That is the defect #282 was reported against: the finance portal's KPI sparklines wrote their readout into the card as a new line, so the card grew and everything under it moved each time the pointer landed on a point. It opens above the mark and flips below only when above is clipped, by the viewport or by an ancestor that hides its overflow, then slides inward at an edge. It takes no pointer events, writes its label, value and detail as text, shows on focus as well as on hover, and closes on Escape.", ['Tooltip']],
+      ['added', "Guidelines / Hover readouts: four rules for any value shown on hover. It overlays the page and never sits in it, it opens above the mark, it names the point, gives the value and stops at one comparison, and hover is never the only way to reach it. Whether a chart's marks should take keyboard focus, and what a tap should do on a touch screen, is still open on #282.", ['Tooltip']],
+    ],
+  },
+  {
     v: '0.27.1', date: '2026-09-11',
     changes: [
       ['changed', "A card is flat: `.ui-card` casts no drop shadow in either theme. In light its hairline `--border` alone marks it off the white page; dark was already shadowless and still groups by surface. An interactive card keeps its 2px hover lift and loses the `--shadow-md` it cast on hover in dark, which light never showed. `--shadow-card` is still defined for anyone reading it, and raised surfaces — dropdown panels, modals, drawers, popovers — keep their shadows.", ['Card']],
@@ -449,6 +456,7 @@ const COMPONENTS = {
   Segmented: 'components-segmented-control--playground',
   Snippet:   'components-code-snippet--shell',
   Switch:    'components-switch-checkbox--switches',
+  Tooltip:   'components-tooltip--playground',
   Topbar:    'components-topbar--full',
   Feedback:  'components-feedback--default',
 };
