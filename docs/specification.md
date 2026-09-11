@@ -706,7 +706,8 @@ Guidelines / Microcopy: a filter gets a nudge.
 
 **The field stays put.** The rows scroll inside `.ui-dropdown__list`, capped at 300px or at the
 height `scroll` gives, and the field does not scroll with them. The panel keeps the width the
-whole list needs, so it does not narrow as rows are filtered out.
+whole list needs, so it does not narrow as rows are filtered out. A group with no match is hidden,
+and the divider sits only between groups still showing, never above the first of them.
 
 **The panel is a dialog.** A listbox may own only options and groups, so a field inside one fails
 axe's `aria-required-children`. With search on, the panel is a `role="dialog"` named after the

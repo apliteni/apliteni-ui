@@ -43,6 +43,13 @@ const type = (m, text) => { m.field.value = text; m.field.dispatchEvent(new m.wi
 // Safari sends the Enter that commits the text with keyCode 229 and isComposing false.
 const compose = (m, el, key, init) => el.dispatchEvent(new m.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
 
+// The kit's dropdown sheet, parsed by jsdom so a selector can be asked what it matches.
+function sheet() {
+  const doc = new JSDOM('<style></style>').window.document;
+  doc.querySelector('style').textContent = readFileSync(new URL('../styles/dropdown.css', import.meta.url), 'utf8');
+  return [...doc.styleSheets[0].cssRules];
+}
+
 const ITEMS = [
   { label: 'Australian dollar (AUD)', value: 'AUD' },
   { label: 'Euro (EUR)', value: 'EUR', selected: true },
@@ -278,6 +285,30 @@ test('a group with no match goes, and separators go while a query is in the fiel
   type(m, '');
   assert.deepEqual(sections.map((s) => s.hidden), [false, false]);
   assert.equal(m.doc.querySelector('.ui-dropdown__sep').hidden, false);
+});
+
+// A sibling combinator does not skip a box that is display: none, so a divider
+// keyed on "a group after a group" draws above the first group left showing.
+test('the divider goes between the groups still showing, never above the first of them', () => {
+  const dividers = sheet().filter((r) => r.selectorText?.includes('.ui-dropdown__section') && r.style.getPropertyValue('border-top'));
+  assert.ok(dividers.length, 'a rule draws the divider between groups');
+  const divided = (doc) => [...doc.querySelectorAll('.ui-dropdown__section:not([hidden])')]
+    .map((s) => `${s.getAttribute('aria-label')}:${dividers.some((r) => s.matches(r.selectorText))}`);
+  const sections = [
+    { label: 'Operating', items: [{ label: 'Payroll', value: 'p' }] },
+    { label: 'Reserve', items: [{ label: 'Tax reserve', value: 't' }] },
+    { label: 'Escrow', items: [{ label: 'Escrow tax', value: 'e' }] },
+  ];
+  const opts = { ariaLabel: 'Account', variant: 'select', sections };
+
+  assert.deepEqual(divided(new JSDOM(dropdown(opts)).window.document),
+    ['Operating:false', 'Reserve:true', 'Escrow:true'], 'without search, as before');
+  assert.deepEqual(divided(new JSDOM(dropdown({ ...opts, search: { query: 'tax' } })).window.document),
+    ['Reserve:false', 'Escrow:true'], 'a preset query');
+  const m = mount(dropdown({ ...opts, search: true }));
+  click(m, m.trigger);
+  type(m, 'tax');
+  assert.deepEqual(divided(m.doc), ['Reserve:false', 'Escrow:true'], 'a typed query');
 });
 
 // ---- Portalled -----------------------------------------------------------

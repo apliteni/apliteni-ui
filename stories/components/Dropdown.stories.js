@@ -170,6 +170,22 @@ export const SearchNoMatch = {
   ), 440)),
 };
 
+export const SearchGrouped = {
+  name: 'Search — a group with no match (open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+    '“tax” leaves no row in Operating, so the group goes and no divider sits above Reserve',
+    dropdown({
+      ariaLabel: 'Account', variant: 'select', open: true, search: { placeholder: 'Search accounts', query: 'tax' },
+      sections: [
+        { label: 'Operating', items: [{ label: 'Payroll', value: 'payroll' }, { label: 'Payables', value: 'payables', selected: true }] },
+        { label: 'Reserve', items: [{ label: 'Tax reserve', value: 'tax-reserve' }, { label: 'Rainy day', value: 'rainy-day' }] },
+        { label: 'Escrow', items: [{ label: 'Escrow tax', value: 'escrow-tax' }] },
+      ],
+    }),
+  ), 380)),
+};
+
 // The trigger sits at the foot of its bay, so the panel opens into the space
 // above it — the shape a user menu at the bottom of a rail takes — and the
 // specimen's own label stays clear of where the panel lands.

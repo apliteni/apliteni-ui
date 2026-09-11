@@ -165,8 +165,9 @@
 .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--muted); }
 .ui-dropdown__item.is-danger:hover .ui-dropdown__label { color: var(--pink); }
 
-/* Grouped sections */
-.ui-dropdown__section + .ui-dropdown__section { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px; }
+/* Grouped sections. `~` and :not([hidden]), because `+` counts a group a search
+   query has hidden and drew the divider above the first group left showing. */
+.ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden]) { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px; }
 .ui-dropdown__group {
   /* rank: label */
   font-size: var(--text-sm);
