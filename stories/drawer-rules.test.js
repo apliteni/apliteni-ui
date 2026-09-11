@@ -1,19 +1,7 @@
-/* Rule: a drawer groups its content by heading and holds its rows apart with
- * space (#272).
- *
- * The subjects are elements. Every story is rendered into a jsdom carrying the
- * kit's stylesheets in each theme, and every drawer panel that comes out is
- * measured with the cascade resolved. A specimen inside [data-specimen="dont"]
- * is a picture of the fault, so it is not a subject; it is used instead to
- * prove this gate can see the fault at all.
- *
- * A rule is a border on the top or bottom edge of a box that does not also
- * draw both sides. A box with four edges is a control or a card, and cards are
- * refused on their own.
+/* Rule: no card and no ruled row inside a drawer body (#272).
  *
  * Ledger, what a pass does not say:
- * - Nothing about a drawer a consumer fills outside this repo. The gate holds
- *   the kit's own stories and guideline pages, which is what a consumer copies.
+ * - Nothing about a drawer a consumer fills outside this repo.
  * - A line drawn by an inset box-shadow, an outline or a background is not read.
  * - React renders the same classes; react/src holds that with its parity test.
  *

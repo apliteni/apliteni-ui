@@ -601,6 +601,13 @@ which is the job a rule under every row was doing.
 scrim fades, both on `--dur-med` and `--ease`. It leaves the same way. Under reduced motion both
 are instant; see [Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
 
+Held by `stories/drawer-rules.test.js`. It renders every story in both themes into a jsdom carrying
+the kit's stylesheets and measures every drawer panel that comes out, cascade resolved. A card
+inside the body fails, and so does any element inside it with a border on its top or bottom edge
+that does not also draw both sides; a box with four edges is a control. A specimen inside
+`[data-specimen="dont"]` is a picture of the fault rather than a subject, and the gate uses those
+to prove it can see both faults at all.
+
 Decided in [#272](https://github.com/apliteni/apliteni-ui/issues/272) and
 [#271](https://github.com/apliteni/apliteni-ui/issues/271).
 
