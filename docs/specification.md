@@ -668,7 +668,7 @@ moving a readout never changes the size or the place of anything else on the pag
   the hover target, hide, uncover the mark and come back, at pointer speed.
 - It opens above its mark, centred on it, `--ui-tip-gap` away. It flips below only when the room
   above is too small for it and the room below is larger, and room is measured inside the
-  viewport and inside every ancestor whose overflow clips, the host included. A readout whose
+  viewport less its scrollbars and inside every ancestor whose overflow clips, the host included. A readout whose
   author asked for below flips up by the same test. It then slides along the mark's edge to stay
   inside that box, no further than it has to. A `[data-tip-anchor]` inside a mark is placed
   against instead of the mark, which is how a sparkline's full-height slice opens on its dot.

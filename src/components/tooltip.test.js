@@ -144,7 +144,7 @@ const MARKS = `<svg width="300" height="100">
   <rect id="m2" data-tip-label="Feb" data-tip-value="€46,210" data-tip-detail="+12.7% on January" width="20" height="80"></rect>
 </svg>`;
 
-function mount(inner, { hostStyle = '', outer = '' } = {}) {
+function mount(inner, { hostStyle = '', outer = '', gutter = 0 } = {}) {
   const html = `<main id="page"><div id="clip" style="${outer}">`
     + `<div class="ui-tip-host" data-tip-host id="host" style="${hostStyle}">${inner}</div>`
     + '</div><p id="below">Next section</p></main>';
@@ -155,8 +155,11 @@ function mount(inner, { hostStyle = '', outer = '' } = {}) {
   for (const key of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'getComputedStyle']) {
     Object.defineProperty(globalThis, key, { value: window[key] ?? window, configurable: true, writable: true });
   }
-  Object.defineProperty(window, 'innerHeight', { value: VIEW.h, configurable: true });
-  Object.defineProperty(window, 'innerWidth', { value: VIEW.w, configurable: true });
+  // The window reaches under its scrollbars; the viewport a readout can be seen in stops at them.
+  Object.defineProperty(window, 'innerHeight', { value: VIEW.h + gutter, configurable: true });
+  Object.defineProperty(window, 'innerWidth', { value: VIEW.w + gutter, configurable: true });
+  Object.defineProperty(window.document.documentElement, 'clientHeight', { value: VIEW.h, configurable: true });
+  Object.defineProperty(window.document.documentElement, 'clientWidth', { value: VIEW.w, configurable: true });
   return window;
 }
 
@@ -301,6 +304,21 @@ test('at an edge it slides inward, no further than it has to', () => {
   wireTooltip(right.document);
   pointer(right, right.document.getElementById('m2'), 'pointerover');
   assert.equal(var_(rightTip, '--ui-tip-shift'), '-50px', 'ideal right 1330 slid back to 1280');
+});
+
+test('the viewport it stays inside ends where the scrollbars begin', () => {
+  const window = mount(MARKS + tooltip(), { gutter: 15 });
+  const tip = measure(window, { host: [1000, 300, 280, 100], m2: [1250, 320, 20, 80] });
+  wireTooltip(window.document);
+  pointer(window, window.document.getElementById('m2'), 'pointerover');
+  assert.equal(var_(tip, '--ui-tip-shift'), '-50px', 'slid back to 1280, not under the scrollbar to 1295');
+
+  const low = mount(MARKS + tooltip({ placement: 'bottom' }), { gutter: 15 });
+  const lowTip = measure(low, { host: [100, 600, 300, 145], m2: [150, 665, 20, 80] });
+  wireTooltip(low.document);
+  pointer(low, low.document.getElementById('m2'), 'pointerover');
+  assert.equal(lowTip.classList.contains('is-below'), false,
+    '55px below the mark before the scrollbar, 60 needed: it flips up rather than open under the bar');
 });
 
 test('a mark\'s anchor places the readout; the mark is still what is hovered', () => {

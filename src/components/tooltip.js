@@ -70,11 +70,12 @@ function tipGap(tip) {
 const tipOf = (host) => host.querySelector('[data-tip]');
 const clips = (cs) => [cs.overflow, cs.overflowX, cs.overflowY].some((v) => v && v !== 'visible');
 
-// What the readout has to stay inside: the viewport, cut down by the host and
-// every ancestor whose overflow clips. <body> is left out — its overflow is the
-// viewport's, and its box can be shorter than the page.
+// What the readout has to stay inside: the viewport less its scrollbars, cut
+// down by the host and every ancestor whose overflow clips. <body> is left out —
+// its overflow is the viewport's, and its box can be shorter than the page.
 function clipBox(host) {
-  const box = { top: 0, left: 0, right: window.innerWidth, bottom: window.innerHeight };
+  const view = host.ownerDocument.documentElement;
+  const box = { top: 0, left: 0, right: view.clientWidth, bottom: view.clientHeight };
   for (let el = host; el && el !== document.body && el !== document.documentElement; el = el.parentElement) {
     if (!clips(getComputedStyle(el))) continue;
     const r = el.getBoundingClientRect();
@@ -87,7 +88,7 @@ function clipBox(host) {
 }
 
 // Flip only when the preferred side is too tight AND the other side is roomier,
-// so a readout that fits nowhere still opens where its author said. Then slide
+// so a readout that fits on neither side opens on the roomier one. Then slide
 // it along the mark's edge, no further than it takes to stay inside the box.
 function place(host, tip, mark) {
   const m = (mark.querySelector('[data-tip-anchor]') || mark).getBoundingClientRect();
