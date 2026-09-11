@@ -60,10 +60,10 @@ arrives and with it resting on a sparkline point and then on the first bar:
 | page height, all three states | 900 | 900 | 1174 | 1182 |
 | KPI card height, all three states | 236.70 | 238.23 | 225.03 | 226.56 |
 | bar-chart card height, all three states | 419.11 | 420.56 | 214.41 | 215.86 |
-| "Below the charts" top, off → on a point | 735.81 → 735.81 | 738.80 → 738.80 | 1009.50 → 1009.50 | 1015.55 → 1015.55 |
+| "Below the charts" top in the page, all three states | 735.81 | 738.80 | 1009.50 | 1015.55 |
 
-At 390 the first bar is scrolled into view before it is hovered, so that card's viewport top
-changes with the scroll; the page height beside it does not.
+The card's top is measured from the top of the page rather than the viewport, so scrolling the
+first bar into view at 390 before hovering it does not read as a move.
 
 ## Held by
 
