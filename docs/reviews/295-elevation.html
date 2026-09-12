@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Review</title>
+  <style>
+    :root {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #202b36;
+      background: #f5f6f7;
+      font-size: 16px;
+      line-height: 1.55;
+      --accent: #245ca6;
+      --muted: #536170;
+      --line: #c6cdd4;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+    }
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+    }
+    a:visited {
+      color: #68428a;
+    }
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+    button,
+    select {
+      min-height: 44px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 5px;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+    }
+    button.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 32px;
+      line-height: 1.2;
+    }
+    h2 {
+      font-size: 23px;
+    }
+    h3 {
+      font-size: 18px;
+    }
+    .muted,
+    small {
+      color: var(--muted);
+    }
+    small {
+      font-size: 14px;
+    }
+    .shell {
+      max-width: 1400px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+    }
+    aside {
+      padding: 32px 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--line);
+      overflow: auto;
+    }
+    aside strong {
+      display: block;
+      margin-bottom: 20px;
+    }
+    nav a {
+      display: block;
+      padding: 10px 0;
+      text-decoration: none;
+    }
+    main {
+      padding: 36px 40px 80px;
+      min-width: 0;
+    }
+    header {
+      max-width: 850px;
+      margin-bottom: 32px;
+    }
+    .bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 16px 0;
+    }
+    .round {
+      margin: 28px 0;
+    }
+    .decision {
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      scroll-margin-top: 16px;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .option {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 18px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .option:has(input:checked) {
+      border: 2px solid var(--accent);
+      padding: 17px;
+    }
+    .pick {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .pick input {
+      width: 20px;
+      height: 20px;
+      flex: none;
+      accent-color: var(--accent);
+    }
+    .option img {
+      display: block;
+      width: 100%;
+      max-height: 340px;
+      object-fit: contain;
+      background: #fff;
+    }
+    .option p {
+      margin: 0;
+    }
+    .recommendation {
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .comment {
+      display: block;
+      margin-top: 16px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      margin-top: 6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: white;
+      color: inherit;
+      resize: vertical;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    details {
+      margin: 20px 0;
+    }
+    summary {
+      cursor: pointer;
+      min-height: 44px;
+      padding: 8px 0;
+      font-weight: bold;
+    }
+    .prior {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+    #status {
+      min-height: 25px;
+      color: var(--muted);
+    }
+    #status.error {
+      color: #9c2626;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: white;
+      padding: 16px;
+      border: 1px solid var(--line);
+    }
+    [hidden] {
+      display: none !important;
+    }
+    .skip {
+      position: absolute;
+      left: -9999px;
+    }
+    .skip:focus {
+      left: 12px;
+      top: 12px;
+      background: white;
+      padding: 12px;
+      z-index: 10;
+    }
+    fieldset {
+      border: 0;
+      padding: 0;
+      margin: 0;
+      min-width: 0;
+    }
+    legend {
+      font-size: 18px;
+      font-weight: bold;
+      padding: 0;
+    }
+    #round {
+      max-width: 100%;
+    }
+    .context {
+      max-width: 78ch;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    @media (max-width: 760px) {
+      .shell {
+        display: block;
+      }
+      aside {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 16px 20px;
+      }
+      aside strong {
+        margin-bottom: 4px;
+      }
+      nav {
+        display: flex;
+        gap: 16px;
+        overflow: auto;
+      }
+      nav a {
+        white-space: nowrap;
+      }
+      main {
+        padding: 24px 20px 60px;
+      }
+      h1 {
+        font-size: 27px;
+      }
+      .options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <a class="skip" href="#main">Skip to review</a>
+  <div class="shell">
+    <aside>
+      <strong>Review workspace</strong>
+      <p id="progress" class="muted"></p>
+      <nav aria-label="Decisions" id="nav"></nav>
+    </aside>
+    <main id="main">
+      <header>
+        <p class="muted">Review and decide</p>
+        <h1 id="title"></h1>
+        <p id="goal"></p>
+        <ul id="constraints"></ul>
+        <a id="source">Authoritative task record</a>
+      </header>
+      <div class="bar">
+        <label for="round">Review round</label
+        ><select id="round"></select>
+      </div>
+      <div class="toolbar">
+        <button class="primary" id="copy">Copy feedback</button
+        ><button id="markdown">Download Markdown</button
+        ><button id="export">Export JSON</button
+        ><button id="import">Import JSON</button
+        ><input type="file" id="file" accept="application/json,.json" hidden />
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+      <p class="muted">
+        Choices stay as local drafts. Copy or export them to share; nothing is
+        submitted automatically.
+      </p>
+      <details id="fallback" hidden>
+        <summary>Feedback to copy manually</summary>
+        <textarea aria-label="Feedback to copy" readonly></textarea>
+      </details>
+      <section aria-label="Previous decisions" id="prior"></section>
+      <div id="decisions"></div>
+      <details>
+        <summary>Previous drafts for changed content</summary>
+        <p class="muted">
+          These choices refer to earlier content and have not been applied to
+          this round.
+        </p>
+        <div id="archive"></div>
+      </details>
+    </main>
+  </div>
+  <script type="application/json" id="review-data">
+{
+  "id": "apliteni-ui-295-elevation",
+  "title": "Should raised surfaces go flat too, and what separates them instead?",
+  "goal": "Pick the elevation model the kit ships: what every --shadow-* becomes, and which token carries the separation once the shadow is gone. Research and variants for a decision — this branch changes nothing under src/.",
+  "constraints": [
+    "Placeholder workspace, placeholder account. This repository is public, so nothing in the evidence is real data.",
+    "Every frame is the kit's own components — the real stylesheet, the real factories, the real React Modal — drawn by docs/reviews/295-elevation/, which nothing in src/ imports.",
+    "Dark's ladder is capped by ink, not by taste: --muted has to clear WCAG AA 4.5 on every surface the ladder raises.",
+    "Nothing merges without Artur's approval. This branch is pushed; the coordinator opens the pull request."
+  ],
+  "source": "https://github.com/apliteni/apliteni-ui/issues/295",
+  "rounds": [
+    {
+      "id": "r1",
+      "title": "Elevation · round 1",
+      "prior": [
+        {
+          "title": "What was asked",
+          "choice": "Research modern approaches, then show variants — including a rule of a darker page and a brighter card",
+          "reason": "The reporter, on the issue: “i want to see variants. research also for modern approaches. Maybe we should establish them a rule to have back more dark and card brighter.”",
+          "source": "https://github.com/apliteni/apliteni-ui/issues/295"
+        },
+        {
+          "title": "The card already went flat",
+          "choice": "#284 took the shadow off the card",
+          "reason": "--shadow-card is still published and has been unread by the kit since. Ten other places still cast, which is what this issue asks about.",
+          "source": "https://github.com/apliteni/apliteni-ui/issues/284"
+        },
+        {
+          "title": "What the published systems do",
+          "choice": "Nobody separates surfaces with a shadow alone",
+          "reason": "Radix, Geist, Primer, Linear, Atlassian, Material, Stripe and Raycast all carry a background step, and most carry a line as well. Where a shadow survives it is tiny (Primer's resting shadows, 5% ink) or explicitly paired with a lighter surface (Atlassian: “in dark mode, raised surfaces are lighter to help differentiate elevations”). Full notes, with each system's own tokens quoted and cited, in the research.",
+          "source": "https://github.com/apliteni/apliteni-ui/blob/asabirov/295-elevation-variants/docs/reviews/295-elevation-research.md"
+        },
+        {
+          "title": "Today the shadow is the whole separation",
+          "choice": "In dark, the dropdown panel is #1b1927 on a #16151f page — a contrast ratio of 1.05",
+          "reason": "Measured off the kit as shipped. Delete --shadow-lg and the panel does not become subtle, it disappears. That is why every variant here moves a token as well as removing a shadow.",
+          "source": "https://github.com/apliteni/apliteni-ui/blob/asabirov/295-elevation-variants/docs/reviews/295-elevation-research.md"
+        }
+      ],
+      "decisions": [
+        {
+          "id": "model",
+          "title": "Which elevation model should the kit ship?",
+          "context": "One frame carries every surface the issue asks about: two cards on a page, the plan dropdown held open OVER a card (the hard case), the account menu in the topbar, the hover readout above a chart, an outline toast and a soft toast, and — behind the second link on each option — the React modal over all of it. Same page, same placeholder data, one variant per row, light and dark at 1440 and a phone at 390. Measured surfaces, read off the rendered page rather than the stylesheet — dark page / card / panel: today #16151f / #221f2e / #1b1927 (the panel is DARKER than the card it floats over); hairline the same three; lift, lift-line and white-card #0e0d14 / #211e2d / #2a2639. Light page / card / panel: today #ffffff / #ffffff / #f5f6f9; lift and lift-line #eef0f5 / #f8f9fc / #ffffff; white-card #e9ebf2 / #ffffff / #ffffff. What every --shadow-* becomes is the same answer in four of the five options: nothing casts. The list of what stops casting, read off src/ rather than guessed — --shadow-sm: the switch knob, the topbar theme pill, the soft toast. --shadow-md: the success panel, the outline toast, the hover readout. --shadow-lg: the dropdown panel, the account menu, the workspace menu, confirm, the drawer, the command palette, the auth card, the solid toast and the React modal. --shadow-seg: the active segmented pill. --shadow-card: published, and unread by the kit since #284. --shadow-ink, --sheen, --ring and --scrim survive untouched — none of them is a cast shadow; they are the feedback pill's glow, the specular edge, the focus ring and the overlay backdrop.",
+          "recommendation": "lift-line",
+          "options": [
+            {
+              "id": "today",
+              "title": "Keep the shadows",
+              "summary": "Nothing changes. No token moves, no rule moves, and all five --shadow-* keep their values.",
+              "tradeoff": "The baseline the others are judged against, and it is not neutral: the dark panel sits at 1.05 against its page and the light page holds white cards at 1.00, so in both themes the shadow is doing the entire job. It is also the only option here that no published system matches.",
+              "evidence": [
+                {
+                  "label": "Board, dark, 1440",
+                  "url": "../evidence/elevation/today-board-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Board, light, 1440",
+                  "url": "../evidence/elevation/today-board-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Modal, dark, 1440",
+                  "url": "../evidence/elevation/today-modal-dark-1440.png"
+                },
+                {
+                  "label": "Modal, light, 1440",
+                  "url": "../evidence/elevation/today-modal-light-1440.png"
+                },
+                {
+                  "label": "Board, dark, 390",
+                  "url": "../evidence/elevation/today-board-dark-390.png"
+                },
+                {
+                  "label": "Board, light, 390",
+                  "url": "../evidence/elevation/today-board-light-390.png"
+                },
+                {
+                  "label": "Modal, dark, 390",
+                  "url": "../evidence/elevation/today-modal-dark-390.png"
+                },
+                {
+                  "label": "Modal, light, 390",
+                  "url": "../evidence/elevation/today-modal-light-390.png"
+                }
+              ]
+            },
+            {
+              "id": "hairline",
+              "title": "The line does the work",
+              "summary": "Shadows: none, as above. Tokens: none change. Components: every floating surface takes --border-strong instead of --border; the card takes a hairline in both themes; and the soft and solid toasts, which carry no border at all today, get one.",
+              "tradeoff": "Geist's answer, and the only one Stripe's public styling API can express. But it leaves today's surface colours alone, and in dark those are wrong for it: the dropdown panel paints --surface-2 (#1b1927), which is DARKER than the card (#221f2e) it floats over. Look at the dark frame — the menu reads as sunken into the card, not raised above it, and a stronger line cannot fix a step that points the wrong way.",
+              "evidence": [
+                {
+                  "label": "Board, dark, 1440",
+                  "url": "../evidence/elevation/hairline-board-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Board, light, 1440",
+                  "url": "../evidence/elevation/hairline-board-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Modal, dark, 1440",
+                  "url": "../evidence/elevation/hairline-modal-dark-1440.png"
+                },
+                {
+                  "label": "Modal, light, 1440",
+                  "url": "../evidence/elevation/hairline-modal-light-1440.png"
+                },
+                {
+                  "label": "Board, dark, 390",
+                  "url": "../evidence/elevation/hairline-board-dark-390.png"
+                },
+                {
+                  "label": "Board, light, 390",
+                  "url": "../evidence/elevation/hairline-board-light-390.png"
+                },
+                {
+                  "label": "Modal, dark, 390",
+                  "url": "../evidence/elevation/hairline-modal-dark-390.png"
+                },
+                {
+                  "label": "Modal, light, 390",
+                  "url": "../evidence/elevation/hairline-modal-light-390.png"
+                }
+              ]
+            },
+            {
+              "id": "lift",
+              "title": "Lightness does the work, and nothing else",
+              "summary": "Artur's rule, taken literally. Shadows: none, as above. Tokens, dark — --bg #16151f→#0e0d14, --surface-2 #1b1927→#161520, --surface #221f2e→#211e2d, --bg-elevated #1c1a28→#2a2639, --surface-3 #2a2739→#2d293c, --seg-active-bg #34314a→#383350. Tokens, light, running downwards — --bg #ffffff→#eef0f5, --surface-2 #f5f6f9→#e3e6ee, --surface #ffffff→#f8f9fc, --bg-elevated stays #ffffff, --surface-3 #eceef3→#e7eaf1. Components: six floating surfaces stop painting --surface-2 and paint --bg-elevated; the modal and the auth card stop painting --surface; the light readout is re-pointed at --surface-3; and every hairline is removed, from the card and from every panel.",
+              "tradeoff": "Linear's and Material 3's position — elevation as tone, no line to hedge it. It is the cleanest-looking option in dark. In light it is the weakest: panel-on-card is 1.05 there against 1.11 in dark, with nothing drawn around it. Removing the line is also the one part of this that the published systems do not do — Atlassian, Primer, Geist and Radix all keep one.",
+              "evidence": [
+                {
+                  "label": "Board, dark, 1440",
+                  "url": "../evidence/elevation/lift-board-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Board, light, 1440",
+                  "url": "../evidence/elevation/lift-board-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Modal, dark, 1440",
+                  "url": "../evidence/elevation/lift-modal-dark-1440.png"
+                },
+                {
+                  "label": "Modal, light, 1440",
+                  "url": "../evidence/elevation/lift-modal-light-1440.png"
+                },
+                {
+                  "label": "Board, dark, 390",
+                  "url": "../evidence/elevation/lift-board-dark-390.png"
+                },
+                {
+                  "label": "Board, light, 390",
+                  "url": "../evidence/elevation/lift-board-light-390.png"
+                },
+                {
+                  "label": "Modal, dark, 390",
+                  "url": "../evidence/elevation/lift-modal-dark-390.png"
+                },
+                {
+                  "label": "Modal, light, 390",
+                  "url": "../evidence/elevation/lift-modal-light-390.png"
+                }
+              ]
+            },
+            {
+              "id": "lift-line",
+              "title": "Lightness and a hairline",
+              "summary": "Shadows: none, as above. Tokens: the same ladder as lift, identical values in both themes. The one difference is the line — the kit's hairline stays on every floating surface, and the card takes one in BOTH themes, where today only light has one.",
+              "tradeoff": "What Atlassian, Primer, Geist and Radix all actually ship, and it is what makes light survivable: the ladder carries dark, the line carries light, and neither theme depends on the half that is weak for it. The cost is that the card is no longer edgeless in dark, which is a visible change to #284's flat card — compare its dark frame against today's.",
+              "evidence": [
+                {
+                  "label": "Board, dark, 1440",
+                  "url": "../evidence/elevation/lift-line-board-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Board, light, 1440",
+                  "url": "../evidence/elevation/lift-line-board-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Modal, dark, 1440",
+                  "url": "../evidence/elevation/lift-line-modal-dark-1440.png"
+                },
+                {
+                  "label": "Modal, light, 1440",
+                  "url": "../evidence/elevation/lift-line-modal-light-1440.png"
+                },
+                {
+                  "label": "Board, dark, 390",
+                  "url": "../evidence/elevation/lift-line-board-dark-390.png"
+                },
+                {
+                  "label": "Board, light, 390",
+                  "url": "../evidence/elevation/lift-line-board-light-390.png"
+                },
+                {
+                  "label": "Modal, dark, 390",
+                  "url": "../evidence/elevation/lift-line-modal-dark-390.png"
+                },
+                {
+                  "label": "Modal, light, 390",
+                  "url": "../evidence/elevation/lift-line-modal-light-390.png"
+                }
+              ]
+            },
+            {
+              "id": "frost",
+              "title": "Translucent over a blurred backdrop",
+              "summary": "Shadows: none, as above. Tokens: the lift ladder for the page and the card, plus --elev-veil, --elev-edge and --elev-blur. Components: panels, menus, confirm, the palette, the drawer, the React modal and the outline toast paint a 76% (dark) / 72% (light) veil of --bg-elevated over backdrop-filter: blur(20px) saturate(150%), edged with a mix of --sheen or --shadow-ink. The card and the readout stay opaque — a card is not floating, and a readout that blurs the chart it describes is worse than one that does not.",
+              "tradeoff": "Radix Themes ships translucency as its DEFAULT panel background, and Raycast and Arc are built on the platform material it imitates — but Radix also ships a solid opt-out. Two costs here. On a flat app there is very little behind a panel to blur, so in the dark frame it is nearly indistinguishable from lift. And a frosted panel's contrast has to be checked against the worst backdrop rather than against a token, which is a permanent tax on every future screen.",
+              "evidence": [
+                {
+                  "label": "Board, dark, 1440",
+                  "url": "../evidence/elevation/frost-board-dark-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Board, light, 1440",
+                  "url": "../evidence/elevation/frost-board-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "Modal, dark, 1440",
+                  "url": "../evidence/elevation/frost-modal-dark-1440.png"
+                },
+                {
+                  "label": "Modal, light, 1440",
+                  "url": "../evidence/elevation/frost-modal-light-1440.png"
+                },
+                {
+                  "label": "Board, dark, 390",
+                  "url": "../evidence/elevation/frost-board-dark-390.png"
+                },
+                {
+                  "label": "Board, light, 390",
+                  "url": "../evidence/elevation/frost-board-light-390.png"
+                },
+                {
+                  "label": "Modal, dark, 390",
+                  "url": "../evidence/elevation/frost-modal-dark-390.png"
+                },
+                {
+                  "label": "Modal, light, 390",
+                  "url": "../evidence/elevation/frost-modal-light-390.png"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "light-white",
+          "title": "In light, does the card come off white?",
+          "context": "This is the half of Artur's rule that light cannot run in the same direction: nothing is brighter than the white the card already is, so light has to move DOWN instead of up, and the only question is which surface moves. Both options here are lift-line in dark — identical frames — so compare the light ones. Look at the plan dropdown held open over the left card: that is where the two differ.",
+          "recommendation": "card-steps-down",
+          "options": [
+            {
+              "id": "card-steps-down",
+              "title": "The card comes off white, and the panel keeps it",
+              "summary": "Light: --bg #eef0f5, --surface #f8f9fc, --bg-elevated #ffffff. The page drops one step, the card drops one step, and white is kept for the top of the ladder — so a floating panel is the only pure white on screen.",
+              "tradeoff": "Light gets a real ladder, which means a panel is still separated if a line is ever dropped, and it matches Radix (step 1 is not white) and Geist (#fafafa, not #ffffff). The cost is that the kit's cards stop being white, which is a change every screen shows at once — and the step it buys is small: panel-on-card is 1.05.",
+              "evidence": [
+                {
+                  "label": "lift-line, light, 1440 — the card at #f8f9fc, panel at #ffffff",
+                  "url": "../evidence/elevation/lift-line-board-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "lift-line, light, 390",
+                  "url": "../evidence/elevation/lift-line-board-light-390.png"
+                },
+                {
+                  "label": "lift-line, light, modal, 1440",
+                  "url": "../evidence/elevation/lift-line-modal-light-1440.png"
+                },
+                {
+                  "label": "What it looks like with the line dropped as well (lift, light) — same ladder, no hairline",
+                  "url": "../evidence/elevation/lift-board-light-1440.png"
+                }
+              ]
+            },
+            {
+              "id": "card-stays-white",
+              "title": "The card stays white, and the page drops two steps",
+              "summary": "Light: --bg #e9ebf2, --surface #ffffff, --bg-elevated #ffffff. The card is untouched; the page moves twice as far to open the gap under it. The readout keeps --surface and today's #eceef3 for --surface-3.",
+              "tradeoff": "The kit's cards stay the white they are, and the page-to-card step is the larger of the two options. But the card and every floating panel are then the SAME white, so light's hairline is the only thing between them and light can never drop it — the ladder has run out of room before it reaches the surface that actually floats.",
+              "evidence": [
+                {
+                  "label": "white-card, light, 1440 — card and panel both #ffffff, the line between them",
+                  "url": "../evidence/elevation/white-card-board-light-1440.png",
+                  "image": true
+                },
+                {
+                  "label": "white-card, light, 390",
+                  "url": "../evidence/elevation/white-card-board-light-390.png"
+                },
+                {
+                  "label": "white-card, light, modal, 1440",
+                  "url": "../evidence/elevation/white-card-modal-light-1440.png"
+                },
+                {
+                  "label": "white-card, dark, 1440 — identical to lift-line, for completeness",
+                  "url": "../evidence/elevation/white-card-board-dark-1440.png"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "muted-ceiling",
+          "title": "Dark has about one step of headroom left. Who spends it?",
+          "context": "--muted (#948fa8) carries the dropdown item's description and the readout's label, so it has to clear AA 4.5 on every surface the ladder raises. Measured on the ramp: #2a2639 (the panel, top of the ladder) 4.71, clears; #2d293c (the readout, one step above it) 4.52, clears barely; #2f2b40 4.38, FAILS. The first draft of the prototype put --surface-3 at #2f2b40 and broke the readout's label; it is at #2d293c now. The lesson is the one that matters for the decision: a rule that says raised surfaces are lighter is a rule that will keep asking for another step, and --muted is what pays for each one. This question is independent of the model above — it only arises if the ladder ships at all.",
+          "recommendation": "repick-muted",
+          "options": [
+            {
+              "id": "cap-the-ladder",
+              "title": "Keep --muted, and cap the ladder where it is",
+              "summary": "--muted stays #948fa8. --surface-3 is pinned at #2d293c and the dark ladder gets no further steps without a contrast measurement first.",
+              "tradeoff": "Nothing outside the elevation tokens moves, so the diff stays the size of this issue. But the next surface that wants to float — a menu inside a modal, a popover over a drawer — has nowhere to go, and the cap is enforced by nothing: the failure mode is a quiet 4.38 that no gate catches, because axe cannot resolve var() in a headless DOM and contrast is checked by the walk, by hand.",
+              "evidence": [
+                {
+                  "label": "The measured ramp, and where the first draft failed",
+                  "url": "https://github.com/apliteni/apliteni-ui/blob/asabirov/295-elevation-variants/docs/reviews/295-elevation-research.md"
+                },
+                {
+                  "label": "The ladder as drawn, with every value commented",
+                  "url": "https://github.com/apliteni/apliteni-ui/blob/asabirov/295-elevation-variants/docs/reviews/295-elevation/elevation.css"
+                }
+              ]
+            },
+            {
+              "id": "repick-muted",
+              "title": "Re-pick --muted with the ladder",
+              "summary": "--muted is chosen against the TOP of the dark ladder rather than against the page, and lifted until the top step clears AA with room to spare. It ships in the same change as the surfaces, not after it.",
+              "tradeoff": "The honest version of the rule: if raised surfaces get lighter, the ink on them gets lighter too, once, deliberately. The cost is real — --muted is on every secondary line in the kit, so this is a bigger visible diff than the elevation change itself, and it needs its own contrast walk in both themes. Linear's answer to exactly this is to stop hand-picking: compute the steps from a base colour and a contrast variable in LCH, which is what makes their high-contrast themes possible at all. That is a larger piece of work than this issue, and worth its own.",
+              "evidence": [
+                {
+                  "label": "Linear on computing surface steps from lightness in LCH",
+                  "url": "https://linear.app/now/how-we-redesigned-the-linear-ui"
+                },
+                {
+                  "label": "The measured ramp, and where the first draft failed",
+                  "url": "https://github.com/apliteni/apliteni-ui/blob/asabirov/295-elevation-variants/docs/reviews/295-elevation-research.md"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <script>
+    "use strict";
+    const $ = (s) => document.querySelector(s);
+    const el = (tag, text, cls) => {
+      const n = document.createElement(tag);
+      if (text !== undefined) n.textContent = text;
+      if (cls) n.className = cls;
+      return n;
+    };
+    const notice = (text, error = false) => {
+      $("#status").textContent = text;
+      $("#status").className = error ? "error" : "";
+    };
+    const safeURL = (value) => {
+      if (typeof value !== "string" || !value.trim()) return null;
+      try {
+        const u = new URL(value, location.href);
+        return ["http:", "https:"].includes(u.protocol) ||
+          (u.protocol === "file:" && location.protocol === "file:")
+          ? u.href
+          : null;
+      } catch {
+        return null;
+      }
+    };
+    function link(label, url) {
+      const a = el("a", label),
+        u = safeURL(url);
+      if (u) {
+        a.href = u;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      } else {
+        a.removeAttribute("href");
+        a.append(" (link unavailable)");
+      }
+      return a;
+    }
+    function sourceRef(label, value) {
+      return typeof value === "string" &&
+        /^https?:\/\//i.test(value) &&
+        safeURL(value)
+        ? link(label, value)
+        : el("span", "Source: " + (value || "not recorded"), "muted");
+    }
+    let data, storageKey;
+    function unique(items) {
+      return (
+        new Set(items.map((x) => x.id)).size === items.length &&
+        items.every(
+          (x) =>
+            typeof x.id === "string" &&
+            x.id.length > 0 &&
+            !["__proto__", "constructor", "prototype"].includes(x.id),
+        )
+      );
+    }
+    function validate() {
+      if (
+        !data.id ||
+        !Array.isArray(data.rounds) ||
+        !data.rounds.length ||
+        !unique(data.rounds)
+      )
+        throw Error("Task and unique round IDs are required.");
+      for (const r of data.rounds) {
+        if (!Array.isArray(r.decisions) || !unique(r.decisions))
+          throw Error("Decision IDs must be unique.");
+        for (const d of r.decisions)
+          if (
+            !Array.isArray(d.options) ||
+            !d.options.length ||
+            !unique(d.options) ||
+            d.options.some((o) => ["defer", "custom"].includes(o.id))
+          )
+            throw Error("Use unique option IDs other than defer/custom.");
+      }
+    }
+    let book = {},
+      round,
+      signature,
+      answers,
+      storageError = "";
+    function readBook() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (!parsed || Array.isArray(parsed) || typeof parsed !== "object")
+            throw Error("Invalid draft data");
+          book = parsed;
+        }
+      } catch {
+        storageError =
+          "Saved drafts could not be read. Export before closing; existing storage will not be overwritten.";
+      }
+    }
+    function save() {
+      if (storageError) {
+        notice(storageError, true);
+        return;
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(book));
+        notice("Draft saved locally. Export a copy to keep it.");
+      } catch {
+        notice(
+          "Local saving failed. Your draft is still here; export it before closing.",
+          true,
+        );
+      }
+    }
+    function validAnswers(value, r) {
+      if (
+        !r ||
+        !Array.isArray(r.decisions) ||
+        r.decisions.some((d) => !d || !Array.isArray(d.options)) ||
+        !value ||
+        typeof value !== "object" ||
+        Array.isArray(value)
+      )
+        return false;
+      return Object.entries(value).every(([id, a]) => {
+        const d = r.decisions.find((x) => x.id === id);
+        return (
+          d &&
+          a &&
+          typeof a === "object" &&
+          typeof a.note === "string" &&
+          typeof a.choice === "string" &&
+          ["", "defer", "custom", ...d.options.map((x) => x.id)].includes(
+            a.choice,
+          )
+        );
+      });
+    }
+    function payload(entry = book[signature]) {
+      return {
+        version: 1,
+        task: data.id,
+        signature: entry.signature,
+        round: entry.round,
+        context: entry.context,
+        answers: entry.answers,
+      };
+    }
+    function markdown(entry = book[signature]) {
+      const c = entry.context,
+        r = entry.round;
+      let lines = [
+        "# " + c.title,
+        "",
+        c.goal,
+        "",
+        "Task: " + data.id,
+        "Round: " + r.id + " — " + r.title,
+        "Record: " + (c.source || "not recorded"),
+        "",
+        "## Constraints",
+        ...(c.constraints || []).map((x) => "- " + x),
+        "",
+        "## Previous decisions",
+      ];
+      for (const p of r.prior || [])
+        lines.push(
+          "",
+          p.title + ": " + p.choice,
+          "Reason: " + p.reason,
+          "Source: " + (p.source || "not recorded"),
+        );
+      lines.push("", "## Feedback");
+      for (const d of r.decisions) {
+        const a = entry.answers[d.id] || { choice: "", note: "" },
+          o = d.options.find((x) => x.id === a.choice);
+        lines.push(
+          "",
+          "### " + d.id + " — " + d.title,
+          d.context || "Context not recorded",
+          "Selection: " +
+            (o
+              ? o.title + " [" + o.id + "]"
+              : { defer: "Decide later", custom: "Suggest another approach" }[
+                  a.choice
+                ] || "Unanswered"),
+        );
+        if (a.note) lines.push("Comment: " + a.note);
+      }
+      return lines.join("\n");
+    }
+    function download(text, type, extension) {
+      const url = URL.createObjectURL(new Blob([text], { type }));
+      const a = el("a");
+      a.href = url;
+      a.download =
+        "review-" +
+        data.id.replace(/[^a-z0-9_-]/gi, "-") +
+        "-" +
+        round.id.replace(/[^a-z0-9_-]/gi, "-") +
+        "-" +
+        Date.now() +
+        "." +
+        extension;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function progress() {
+      const count = round.decisions.filter((d) => answers[d.id]?.choice).length;
+      $("#progress").textContent =
+        count + " of " + round.decisions.length + " choices made";
+      for (const a of $("#nav").children) {
+        const answer = answers[a.dataset.id];
+        a.textContent =
+          (answer?.choice ? "✓ " : "") +
+          round.decisions.find((d) => d.id === a.dataset.id).title;
+      }
+    }
+    function update(id, key, value) {
+      answers[id] ??= { choice: "", note: "" };
+      answers[id][key] = value;
+      save();
+      progress();
+    }
+    function showArchive() {
+      const root = $("#archive");
+      root.replaceChildren();
+      for (const [key, entry] of Object.entries(book)) {
+        if (
+          key === signature ||
+          entry?.round?.id !== round.id ||
+          !entry ||
+          !entry.round ||
+          !entry.context ||
+          !validAnswers(entry.answers, entry.round)
+        )
+          continue;
+        const d = el("details");
+        d.append(el("summary", entry.round.title), el("pre", markdown(entry)));
+        root.append(d);
+      }
+      if (!root.children.length)
+        root.append(el("p", "No previous drafts in this browser."));
+    }
+    function render() {
+      const root = $("#decisions"),
+        nav = $("#nav"),
+        prior = $("#prior");
+      root.replaceChildren();
+      nav.replaceChildren();
+      prior.replaceChildren();
+      if (round.prior?.length) {
+        const details = el("details");
+        details.append(el("summary", "Decisions already made"));
+        for (const p of round.prior) {
+          const row = el("div", undefined, "prior");
+          row.append(
+            el("h3", p.title),
+            el("p", p.choice),
+            el("p", "Why: " + p.reason, "muted"),
+            sourceRef("Decision source", p.source),
+          );
+          details.append(row);
+        }
+        prior.append(details);
+      }
+      round.decisions.forEach((d, index) => {
+        const section = el("section", undefined, "decision");
+        section.id = "decision-" + index;
+        const a = el("a", d.title);
+        a.href = "#" + section.id;
+        a.dataset.id = d.id;
+        nav.append(a);
+        section.append(el("h2", d.title), el("p", d.context, "context"));
+        const group = el("fieldset");
+        group.append(el("legend", "Choose an approach"));
+        const options = el("div", undefined, "options");
+        for (const o of d.options) {
+          const box = el("div", undefined, "option");
+          const label = el("label", undefined, "pick"),
+            radio = el("input");
+          radio.type = "radio";
+          radio.name = "choice-" + index;
+          radio.value = o.id;
+          radio.checked = answers[d.id]?.choice === o.id;
+          radio.addEventListener("change", () => update(d.id, "choice", o.id));
+          label.append(radio, el("span", o.title));
+          box.append(label);
+          if (d.recommendation === o.id)
+            box.append(el("span", "Agent recommendation", "recommendation"));
+          box.append(el("p", o.summary), el("p", o.tradeoff, "muted"));
+          for (const ev of o.evidence || []) {
+            const u = safeURL(ev.url);
+            if (ev.image && u) {
+              const img = el("img");
+              img.src = u;
+              img.alt = ev.label;
+              img.addEventListener("error", () => {
+                img.replaceWith(el("p", "Image unavailable: " + ev.label));
+                notice("An evidence image could not load.", true);
+              });
+              box.append(img);
+            }
+            box.append(link(ev.label, ev.url));
+          }
+          options.append(box);
+        }
+        group.append(options);
+        const other = el("div", undefined, "bar");
+        for (const [value, title] of [
+          ["defer", "Decide later"],
+          ["custom", "Suggest another approach"],
+        ]) {
+          const label = el("label", undefined, "pick"),
+            radio = el("input");
+          radio.type = "radio";
+          radio.name = "choice-" + index;
+          radio.value = value;
+          radio.checked = answers[d.id]?.choice === value;
+          radio.addEventListener("change", () => update(d.id, "choice", value));
+          label.append(radio, el("span", title));
+          other.append(label);
+        }
+        const clear = el("button", "Clear choice");
+        clear.addEventListener("click", () => {
+          update(d.id, "choice", "");
+          group.querySelectorAll("input").forEach((x) => (x.checked = false));
+        });
+        other.append(clear);
+        group.append(other);
+        section.append(group);
+        const label = el("label", "Your comment", "comment"),
+          note = el("textarea");
+        note.value = answers[d.id]?.note || "";
+        note.addEventListener("input", () => update(d.id, "note", note.value));
+        label.append(note);
+        section.append(label);
+        root.append(section);
+      });
+      progress();
+      showArchive();
+    }
+    function selectRound() {
+      round = data.rounds[Number($("#round").value)];
+      const context = {
+        title: data.title,
+        goal: data.goal,
+        constraints: data.constraints || [],
+        source: data.source,
+      };
+      signature = JSON.stringify({ context, round });
+      const entry = Object.hasOwn(book, signature) ? book[signature] : null;
+      if (entry && !validAnswers(entry.answers, round)) {
+        storageError =
+          "Saved feedback is invalid. The original is preserved; export your new draft before closing.";
+        delete book[signature];
+      }
+      const changed =
+        !entry && Object.values(book).some((e) => e?.round?.id === round.id);
+      $("#fallback").hidden = true;
+      let carried = 0;
+      const inherited = {};
+      if (!book[signature]) {
+        const previous = Object.values(book)
+          .reverse()
+          .find(
+            (e) =>
+              e?.round?.id === round.id &&
+              JSON.stringify(e.context) === JSON.stringify(context) &&
+              JSON.stringify(e.round.prior || []) ===
+                JSON.stringify(round.prior || []) &&
+              validAnswers(e.answers, e.round),
+          );
+        if (previous)
+          for (const d of round.decisions) {
+            const old = previous.round.decisions.find((o) => o.id === d.id);
+            if (
+              JSON.stringify(old) === JSON.stringify(d) &&
+              Object.hasOwn(previous.answers, d.id)
+            ) {
+              inherited[d.id] = structuredClone(previous.answers[d.id]);
+              carried++;
+            }
+          }
+      }
+      book[signature] ??= {
+        signature,
+        round: structuredClone(round),
+        context: structuredClone(context),
+        answers: inherited,
+      };
+      answers = book[signature].answers;
+      render();
+      notice(
+        storageError ||
+          (carried
+            ? "Restored feedback for unchanged decisions. Changed decisions need a fresh choice."
+            : changed
+              ? "Review content changed. Earlier drafts are preserved below; changed decisions need a fresh choice."
+              : Object.values(answers).some((a) => a.choice || a.note)
+                ? "Saved draft restored."
+                : "Choose an option or leave a comment."),
+        !!storageError,
+      );
+    }
+    $("#copy").onclick = async () => {
+      const text = markdown();
+      try {
+        await navigator.clipboard.writeText(text);
+        $("#fallback").hidden = true;
+        notice("Feedback copied. Paste it into the task conversation.");
+      } catch {
+        $("#fallback").hidden = false;
+        $("#fallback").open = true;
+        $("#fallback textarea").value = text;
+        $("#fallback textarea").focus();
+        $("#fallback textarea").select();
+        notice(
+          "Clipboard unavailable. Copy the text below or download Markdown.",
+          true,
+        );
+      }
+    };
+    $("#markdown").onclick = () => download(markdown(), "text/markdown", "md");
+    $("#export").onclick = () =>
+      download(JSON.stringify(payload(), null, 2), "application/json", "json");
+    $("#import").onclick = () => $("#file").click();
+    $("#file").onchange = async (e) => {
+      try {
+        const f = e.target.files[0];
+        if (!f) return;
+        const incoming = JSON.parse(await f.text());
+        if (
+          incoming.version !== 1 ||
+          incoming.task !== data.id ||
+          incoming.signature !== signature ||
+          JSON.stringify({
+            context: incoming.context,
+            round: incoming.round,
+          }) !== signature ||
+          !validAnswers(incoming.answers, round)
+        )
+          throw Error(
+            "This export does not match the current task, content, or options.",
+          );
+        if (
+          !confirm(
+            "Replace this round’s draft with the imported feedback? Export first if you need to keep the current draft.",
+          )
+        ) {
+          notice("Import cancelled; the current draft is unchanged.");
+          return;
+        }
+        answers = structuredClone(incoming.answers);
+        book[signature].answers = answers;
+        render();
+        save();
+      } catch (error) {
+        notice("Import rejected: " + error.message, true);
+      } finally {
+        e.target.value = "";
+      }
+    };
+    window.addEventListener("storage", (e) => {
+      if (e.key === storageKey) {
+        storageError =
+          "Another tab changed this task's drafts. Export this draft, then reload before editing further.";
+        notice(storageError, true);
+      }
+    });
+    try {
+      data = JSON.parse($("#review-data").textContent);
+      validate();
+      storageKey = "review-page:" + data.id;
+      document.title = data.title + " · Review";
+      $("#title").textContent = data.title;
+      $("#goal").textContent = data.goal;
+      for (const text of data.constraints || [])
+        $("#constraints").append(el("li", text));
+      $("#source").replaceWith(
+        sourceRef("Authoritative task record", data.source),
+      );
+      data.rounds.forEach((r, i) => {
+        const o = el("option", r.title);
+        o.value = i;
+        $("#round").append(o);
+      });
+      $("#round").value = data.rounds.length - 1;
+      readBook();
+      $("#round").onchange = () => {
+        try {
+          selectRound();
+        } catch (e) {
+          notice(e.message, true);
+        }
+      };
+      selectRound();
+    } catch (error) {
+      notice("Review could not load: " + error.message, true);
+      document
+        .querySelectorAll(".toolbar button")
+        .forEach((b) => (b.disabled = true));
+    }
+  </script>
+</html>
