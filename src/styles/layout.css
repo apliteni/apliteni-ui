@@ -252,6 +252,18 @@
   .ui-app__brand span { opacity: 0; pointer-events: none; }
   .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
   .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
+  /* The one line of this block that is deliberately NOT the reader's fold, and
+     the only one. Below 720px the strip is the whole of the rail and a finger is
+     the only pointer it has, so a row is held to 44px — WCAG 2.5.5 (AAA), and
+     what this block carried before #277 rewrote it. The reader's fold cannot
+     share it: the row is 35.4px open, so a floor that applied on the press would
+     grow every row and step every glyph below it down the rail, which is the one
+     thing the travel promises not to do. A pointer on a desktop is held to the
+     kit's 24px floor there instead, and clears it.
+     stories/apps/shell-states.test.js names this exception and measures both
+     halves of it, so the line cannot go missing and cannot spread.
+     why: docs/specification.md#the-page-shell */
+  .ui-app__rail .ui-nav__item { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }

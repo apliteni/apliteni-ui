@@ -23,6 +23,26 @@ One thing is deliberately not taken, and it is the only one: the reference keeps
 and this kit keeps the reader's fold in a cookie. #277 asks for it and an HTML kit has no host app
 to lean on. It is the first row of the *Not taken* table below.
 
+### One decision made after review, by the coordinator, and reversible
+
+An independent review found that rewriting the 720px block took its
+`min-height: 44px` out with everything else: a rail row on a phone went from **44px to 31px**. It
+still clears WCAG 2.5.8 (24px) and the kit's own floor, so nothing was red — and the two equality
+gates, which hold the reader's fold and the 720px fold identical, are exactly why nothing could be:
+equality is silent about a value that falls on both sides at once.
+
+The floor is restored **in the 720px block only**. It cannot be shared with the reader's fold: a
+rail row is 35.4px open, so a floor that applied on the press would grow every row and step every
+glyph below it down the rail — the one thing *the fold travels, and no glyph moves while it does*
+promises not to do, and the thing the evidence below shows. So below 720px, where the strip is the
+whole of the rail and a finger is the only pointer it has, a row is 44px (WCAG 2.5.5); on a desktop
+fold a row keeps its open height and clears the 24px floor a pointer is held to. That is one
+deliberate difference between the two copies, named at the declaration and gated in both
+directions — the line cannot go missing, and it cannot spread to the reader's fold.
+
+This is a coordinator's call, not Artur's. Reverting it is one line in `layout.css`, one named
+exception in `shell-states.test.js` and one gate in `accessibility-floor.test.js`.
+
 ## What this is about
 
 On a desktop the shell's rail is always full width. A reader who wants that room for the page

@@ -290,9 +290,34 @@ function ruleMap(css, keep) {
   return out;
 }
 
+/**
+ * The one declaration the two folds are meant NOT to share, named here rather
+ * than left to look like drift. Below 720px a finger is the only pointer the
+ * strip has and a row is held to 44px; the reader's fold cannot take the same
+ * floor, because a row is 35.4px open and growing it on the press would step
+ * every glyph below it down the rail. Two gates under this one hold both halves:
+ * the line is really in the narrow block, and it is really not in the other.
+ *
+ * An exclusion on its own would be a hole. This is the same shape as the fold
+ * toggle, which is left out of both gates because it is drawn in one fold and
+ * gone in the other — except that a value, unlike a control, can fall silently,
+ * so the floor it names is measured rather than trusted.
+ */
+const PHONE_ONLY = { selector: '.ui-app__rail .ui-nav__item', prop: 'min-height', floor: 44 };
+
+/** `map` without the phone strip's own declaration, and without a rule left empty by it. */
+function withoutPhoneFloor(map) {
+  const decls = map.get(PHONE_ONLY.selector);
+  if (decls == null) return map;
+  const kept = decls.split('; ').filter((d) => !d.startsWith(`${PHONE_ONLY.prop}:`));
+  if (kept.length) map.set(PHONE_ONLY.selector, kept.join('; '));
+  else map.delete(PHONE_ONLY.selector);
+  return map;
+}
+
 test('the collapsed rail is the narrow rail, rule for rule', () => {
   const css = decomment(read('src/styles/layout.css'));
-  const narrow = ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main') && !sel.includes('.ui-app__fold'));
+  const narrow = withoutPhoneFloor(ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main') && !sel.includes('.ui-app__fold')));
   const collapsed = new Map([...ruleMap(css, (sel) => sel.includes('.is-collapsed') && !sel.includes('.ui-app__fold'))]
     .map(([sel, decls]) => [sel.replace(/:where\(\.ui-app\.is-collapsed\)\s*/g, '').replace('.ui-app.is-collapsed', '.ui-app'), decls]));
   // A floor, not a count: it catches a sweep that has stopped finding the block,
@@ -304,6 +329,27 @@ test('the collapsed rail is the narrow rail, rule for rule', () => {
     Object.fromEntries(collapsed), Object.fromEntries(narrow),
     'the reader\'s fold and the narrow fold have drifted apart. Each rule under '
     + ':where(.ui-app.is-collapsed) in layout.css has a twin in the 720px block — change both.',
+  );
+});
+
+test('the phone strip holds a row to the touch floor, and the reader\'s fold does not', () => {
+  const { selector, prop, floor } = PHONE_ONLY;
+  const row = (at) => Number.parseFloat(at.css(selector, prop)) || 0;
+
+  const narrow = row(mount(PAIR(false), { narrow: true }));
+  assert.ok(
+    narrow >= floor,
+    `a rail row resolves to ${prop}: ${narrow}px below 720px, under the ${floor}px touch floor. The `
+    + 'strip is the whole of the rail at that width and a finger is the only pointer it has, so a row '
+    + `is ${floor}px there (WCAG 2.5.5). Restore it in the 720px block of layout.css.`,
+  );
+
+  const folded = row(mount(PAIR(true)));
+  assert.equal(
+    folded, 0,
+    `the reader's fold now sets ${prop}: ${folded}px on a rail row. A row is 35.4px open, so a floor `
+    + 'that applies on the press grows every row and steps every glyph below it down the rail — the '
+    + 'one thing the travel promises not to do. The floor belongs to the 720px block alone.',
   );
 });
 
@@ -326,6 +372,8 @@ test('the collapsed rail is the narrow rail, element for element', () => {
         const cx = narrow.doc.defaultView.getComputedStyle(x);
         const cy = folded.doc.defaultView.getComputedStyle(y);
         for (const p of new Set([...Array.from(cx), ...Array.from(cy)])) {
+          // The phone strip's touch floor — see PHONE_ONLY. Held apart there.
+          if (p === PHONE_ONLY.prop && x.matches('.ui-nav__item')) continue;
           const vx = cx.getPropertyValue(p);
           const vy = cy.getPropertyValue(p);
           if (vx !== vy) diffs.push(`${theme}${state} ${nameOf(x)} ${p}: narrow "${vx}", collapsed "${vy}"`);

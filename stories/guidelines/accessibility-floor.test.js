@@ -408,7 +408,10 @@ async function walk(win, styles, vars, visit) {
         : html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (m, inner) => `<style>${probeGeometry(decomment(inner))}</style>`);
       if (styles) styles.mutate(() => { win.document.body.innerHTML = markup; });
       else win.document.body.innerHTML = markup;
-      visit(`${rel}:${name}`);
+      // The markup goes with it, so a caller can put the same story in front of
+      // a second sheet — which is how the phone strip is measured below without
+      // walking every story twice.
+      visit(`${rel}:${name}`, markup);
     }
   }
   return { stories, problems };
@@ -427,11 +430,80 @@ function windowFor(theme, css) {
 
 // ---- 1. the minimum target size -------------------------------------------
 
+/**
+ * WCAG 2.5.5, AAA. Not the bar the kit holds everywhere — TARGET_MIN is — and
+ * not a number this file chose: it is the floor the rail's 720px block has
+ * carried since before #277, where the strip is the whole of the rail and a
+ * finger is the only pointer it has.
+ *
+ * It is measured here and not merely compared, because the two copies of the
+ * fold are held equal to each other by stories/apps/shell-states.test.js and
+ * equality cannot see a shared value fall: when the 720px block was rewritten
+ * the floor went out with it, both gates stayed green, and a row on a phone
+ * went from 44px to 31px.
+ */
+const TOUCH_MIN = 44;
+
+/** One at-rule's body, brace-matched. JSDOM resolves no @media, so a rule that
+ *  only applies on a phone is lifted out and appended where a browser would
+ *  apply it — the same device stories/apps/shell-states.test.js uses. */
+function unwrap(css, query) {
+  const at = css.indexOf(query);
+  if (at < 0) return null;
+  const open = css.indexOf('{', at);
+  let depth = 0;
+  for (let i = open; i < css.length; i += 1) {
+    if (css[i] === '{') depth += 1;
+    else if (css[i] === '}') { depth -= 1; if (depth === 0) return css.slice(open + 1, i); }
+  }
+  return null;
+}
+
+const FOLD = '@media (max-width: 720px)';
+const RAIL_SHEET = 'src/styles/layout.css';
+// Read out of layout.css by name, not out of the joined sheet: footer.css and
+// topbar.css fold at 720px too, and the first block in the concatenation is one
+// of theirs. Lifting the wrong one measured the rail at its desktop height and
+// reported it as the phone's.
+const narrowSheet = () => {
+  const body = unwrap(decomment(readFileSync(path.join(root, RAIL_SHEET), 'utf8')), FOLD);
+  assert.ok(body, `${RAIL_SHEET} no longer folds at ${FOLD}, so nothing here is measuring a phone`);
+  return `${sheet()}\n${body}`;
+};
+
+/** Is every ancestor of `el`, and `el` itself, on screen? */
+const onScreenIn = (el, win) => {
+  for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+    if (n.hasAttribute('hidden') || win.getComputedStyle(n).display === 'none') return false;
+  }
+  return true;
+};
+
 const targetRun = await (async () => {
   const win = windowFor('dark', probeGeometry(sheet()));
+  // The same stories in front of the same sheet with the 720px fold applied.
+  // Only a story that draws a rail is put in front of it, so the walk stays one
+  // walk and the phone costs what the shell stories cost.
+  const narrowWin = windowFor('dark', probeGeometry(narrowSheet()));
   const controls = new Map();
   const folded = [];
-  const { stories, problems } = await walk(win, null, null, (where) => {
+  const strip = [];
+  const { stories, problems } = await walk(win, null, null, (where, markup) => {
+    if (win.document.body.querySelector('.ui-app__rail')) {
+      narrowWin.document.body.innerHTML = markup;
+      for (const el of narrowWin.document.body.querySelectorAll('.ui-app__rail .ui-nav__item')) {
+        const cs = narrowWin.getComputedStyle(el);
+        if (cs.opacity === '0' || probe(cs, 'position') === 'absolute') continue;
+        // The fold toggle is display:none at this width — the strip is the only
+        // layout there and there is nothing for it to choose.
+        if (!onScreenIn(el, narrowWin)) continue;
+        strip.push({
+          where,
+          name: el.getAttribute('aria-label') || '',
+          ...boxOf(el, cs, glyphOf(el, narrowWin)),
+        });
+      }
+    }
     for (const el of win.document.body.querySelectorAll(INTERACTIVE)) {
       const cs = win.getComputedStyle(el);
       // A control the page hides from the pointer is not a target. The kit's
@@ -448,15 +520,11 @@ const targetRun = await (async () => {
         // truthy `{height, width}` where the boolean was meant to be, so the
         // test that reads it could not fail. Named apart rather than reordered,
         // because a spread whose order is load-bearing is the same trap again.
-        let onScreen = true;
-        for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
-          if (n.hasAttribute('hidden') || win.getComputedStyle(n).display === 'none') onScreen = false;
-        }
         folded.push({
           where,
           name: el.getAttribute('aria-label') || '',
           label: (el.querySelector('.ui-nav__label')?.textContent || '').trim(),
-          onScreen,
+          onScreen: onScreenIn(el, win),
           inClosedGroup: Boolean(el.closest('.ui-nav__sub[hidden]')),
           ...boxOf(el, cs, glyphOf(el, win)),
         });
@@ -467,7 +535,7 @@ const targetRun = await (async () => {
       controls.set(key, { key, ...box, where, path: selectorPath(el) });
     }
   });
-  return { stories, problems, controls: [...controls.values()], folded };
+  return { stories, problems, controls: [...controls.values()], folded, strip };
 })();
 
 test('target size: every control the stories render is measured, none skipped', () => {
@@ -581,6 +649,28 @@ test('folded rail: every control keeps a name with its label gone, and the name 
     .filter((c) => !c.name || (c.label && !c.name.startsWith(c.label)))
     .map((c) => `"${c.name}" for a row labelled "${c.label}" (${c.where})`);
   assert.deepEqual(bad, [], 'a folded row has no name of its own, or one a speech user cannot say from the tag');
+});
+
+// The phone strip, measured rather than compared. shell-states.test.js holds the
+// reader's fold and the 720px fold equal to each other, rule for rule and
+// property for property — and that is exactly why neither could notice when the
+// floor they share went down: equality is silent about a value that falls on
+// both sides at once. This reads the box a finger lands on at 375px.
+test(`phone strip: no rail row is shorter than ${TOUCH_MIN}px below 720px`, () => {
+  assert.ok(
+    targetRun.strip.length >= 5,
+    `only ${targetRun.strip.length} rail rows measured below 720px — no story draws a shell rail any `
+    + 'more, or the fold stopped being lifted, and this gate is measuring nothing',
+  );
+  const short = targetRun.strip
+    .filter((c) => c.height < TOUCH_MIN)
+    .map((c) => `${c.name || '(unnamed)'} — ${c.height}px high (${c.where})`);
+  assert.deepEqual(
+    short, [],
+    `a rail row on a phone is under the ${TOUCH_MIN}px touch floor. At this width the strip is the `
+    + 'whole of the rail and a finger is the only pointer it has, so the row is the target. The floor '
+    + 'is the 720px block\'s own `min-height` in src/styles/layout.css.',
+  );
 });
 
 test('folded rail: every control a reader can reach is drawn', () => {
