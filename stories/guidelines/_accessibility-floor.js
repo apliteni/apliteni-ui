@@ -164,6 +164,22 @@ export const GATES = [
     ],
   },
   {
+    file: 'stories/guidelines/the-page.test.js',
+    does: 'Renders every screen under stories/apps/ and holds it to the page rules: one h1, an '
+      + 'outline that goes down one rank at a time and stops at h3, a navigation landmark named '
+      + 'and named once, the head in the shell\u2019s order, and no overlay on screen before the '
+      + 'reader has asked for one.',
+    blind: [
+      'Anything CSS decides. It reads the markup a story returns and resolves no stylesheet, so '
+        + 'a heading hidden by display:none is still a heading to it, and a landmark pushed off '
+        + 'screen is still on the page.',
+      'What the headings SAY. A rank that is right and a title that is wrong read the same here \u2014 '
+        + 'stories/guidelines/letter-case.test.js is the gate on the words.',
+      'A screen no story draws. The sweep is stories/apps/, so a consumer\u2019s own page is covered '
+        + 'only in as much as the kit draws the same shape.',
+    ],
+  },
+  {
     file: 'stories/contrast.test.js',
     does: 'Measures every text-owning element in every story, both themes, against the '
       + 'background composited above it.',

@@ -32,9 +32,14 @@ function linkList(links = []) {
     `<li><a href="${href}"${target ? ` target="${target}" rel="noreferrer"` : ''}>${esc(label)}</a></li>`).join('')}</ul>`;
 }
 
+// The column title is an h2: it names a top-level section of the page's end
+// matter, and h2 is the one rank that cannot skip whatever heading came before
+// it. It was an h4 — the only h4 the kit drew — which read h2 → h4 on the
+// landing page and left a rank a reader hears missing. The look is the class's,
+// not the tag's. why: docs/specification.md#the-page
 function column({ title, links = [] } = {}) {
   return `<div class="ui-footer__col">` +
-    (title ? `<h4 class="ui-footer__col-title">${esc(title)}</h4>` : '') +
+    (title ? `<h2 class="ui-footer__col-title">${esc(title)}</h2>` : '') +
     linkList(links) + `</div>`;
 }
 

@@ -28,11 +28,14 @@ They use the vanilla kit's `.ui-*` classes and tokens.
 **Which one:** does the surface hold meaningful client state? No → the HTML-string
 factories below. Yes → the [React components](#react-components-stateful-surfaces).
 
-Either layer follows the same UI rules — which component to reach for, the states it
-owes, how colour and wording work. They live in the **Guidelines** section of Storybook,
-which opens on
-[an overview of the five pages](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview)
-and what the kit does and does not yet meet. Worth reading before you design a screen.
+Either layer follows the same UI rules — what one page may hold, which component to reach
+for, the states it owes, how colour and wording work. They live in the **Guidelines** section
+of Storybook, which opens on
+[an overview of every page](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview)
+and what the kit does and does not yet meet.
+[The page](https://ui.apli.tech/storybook/?path=/story/guidelines-the-page--the-page) is the
+one to read first — the limits a screen keeps whatever it is about. Worth reading before you
+design a screen.
 
 ## Install
 

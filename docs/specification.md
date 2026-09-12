@@ -18,6 +18,7 @@ below names its issue. Read [README.md](README.md) for where to record decisions
 - **[Colour and contrast](#colour-and-contrast)** — what every accent clears
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
+- **[The page](#the-page)** — what one screen may hold, and what it may not
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
 - **[The back link](#the-back-link)** — the way up from a page, and what it names
 - **[The drawer](#the-drawer)** — grouped by heading, and moving on open and on close
@@ -627,6 +628,41 @@ el.innerHTML = busyRegion({ label: 'Loading your report…', lines: 4 });
 const rows = await fetch(…);
 setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 ```
+
+## The page
+
+A screen is more than the components on it. These are the limits one page keeps, whatever it is
+about:
+
+- **One `<h1>`, and it is the page title.** Every other heading on the page sits under it.
+- **The outline goes down one rank at a time and stops at `h3`** — the page, a card or section of
+  it, a group inside one. The kit draws no `h4`; the footer's column titles are `h2`, because a
+  rank that only ever follows the page's own sections cannot skip one.
+- **The head reads in one order** — the way back, the title, the lede, the body — and nothing but
+  the way back goes above the title. A filter row, a period switch or a search box is the first
+  thing *inside* the body.
+- **The lede is two sentences at most** and does not spend one of them repeating the title.
+- **One primary action.** A page carries one `.ui-btn--primary`; everything else is secondary,
+  tertiary or a link. An overlay carries its own and does not count against the page, and a
+  marketing page is outside the rule.
+- **Six stacked cards at most, and no card inside a card.** Past six, the page wants sections,
+  tabs, or a second page.
+- **Every navigation landmark is named, and no two on one page share a name.** The shell draws the
+  rail and the trail and names both; a page adds no second copy of either.
+- **A page arrives at rest.** No drawer, confirm, toast, hover readout or command palette is on
+  screen until the reader asks for one.
+- **One density per page.** `.ui-table--dense` is all of a page's tables or none of them, and a
+  screen writes no cell padding of its own.
+
+Held by `stories/guidelines/the-page.test.js`, which discovers its subjects by rendering every
+story under `stories/apps/` — the kit's own screens — and holds each of them to every rule above.
+The gate keys its checks by the rule ids on the Guidelines / The page story, so a rule with no
+check, or a check for a rule nobody wrote, fails the build.
+
+What this section does not settle is *why* six and not eight, or `h3` and not `h2`. Four of these
+numbers were chosen from screens rendered side by side in
+[docs/reviews/275-page-limits.html](reviews/275-page-limits.html), and
+[#275](https://github.com/apliteni/apliteni-ui/issues/275) is where that choice is recorded.
 
 ## The page shell
 
