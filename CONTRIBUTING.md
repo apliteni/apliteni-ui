@@ -38,14 +38,13 @@ proof they passed. CI stops the run rather than skipping them.
   stricter takes three settings on the branch rule for `main` — require one approving review,
   add `Shipped surface vs version` to the required checks, turn on "require branches to be up
   to date" — and none of them live in this repository.
-- Keep PRs focused. One concern per PR reviews faster than a grab-bag.
+- Keep PRs focused on one concern.
 
 ## Rules
 
 The rules for designing a screen are in the **Guidelines** section of Storybook —
-[ui.apli.tech/storybook](https://ui.apli.tech/storybook/). Tokens and colour, the states
-a component owes, which component to reach for, how it words itself. Read them before
-you start, not at review.
+[ui.apli.tech/storybook](https://ui.apli.tech/storybook/). They cover tokens and colour,
+component states, component choice, and wording. Read them before you start.
 
 **No visual slop.** Run the AI-slop detector on any new example page. It reads
 comments too: past about twenty-five lines, a comment block has stopped being a
@@ -79,7 +78,7 @@ reads the whole history. Run them locally before pushing with
 Issues and PR bodies aren't covered by gitleaks — a separate workflow warns on
 internal identifiers posted there, but the responsibility is yours.
 
-Two of those gates check themselves, and it is worth knowing which two.
+Two of those gates test their own enforcement.
 `scripts/gitleaks-rules.check.mjs` mutation-tests every rule in `.gitleaks.toml`, and
 `scripts/secret-scan-range.check.mjs` lifts the scan step's own logic out of
 `security.yml` and runs it against synthetic repositories. Because both sit inside the
@@ -93,8 +92,7 @@ when you touch one, so the reviewer reads the change itself rather than the run.
 
 ## How the gates work
 
-The rules below govern every gate in this repo. They are about the gates rather than about the
-kit, which is why they live here and not in
+The rules below govern every gate in this repo. The kit's guarantees are in
 [docs/specification.md](docs/specification.md).
 
 ### A gate discovers its subjects and never enumerates them
@@ -252,9 +250,8 @@ list in a test file never is.
 
 ### A subject a gate cannot check is a failure, never a skip
 
-A gate that walks a set has to say what happened to every member of it. The temptation, every
-time, is to `continue` past the one that will not cooperate — and in the output a `continue`
-is indistinguishable from a pass.
+A gate must report what happened to every subject. Using `continue` to skip a subject
+hides the failure from the output.
 
 `stories/a11y.test.js` did exactly that. A story that threw (anything calling
 `document.createElement` blew up in bare Node) or returned a DOM node instead of a string was
@@ -1410,9 +1407,7 @@ the registry.
 
 ### What the release gates are shaped by
 
-Each of the three has a shape that looks over-built until you know which failure it was
-built after. None of them was designed; all three were extracted from something that had
-already shipped wrong and reported green.
+Each of the three gates addresses a release failure that earlier checks reported as a pass.
 
 **`shipped-surface.mjs` measures the artefact, never the paths.** Twice a change to what we
 publish merged without a bump and stayed off npm while sitting on `main` looking merged: the

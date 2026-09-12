@@ -9,10 +9,9 @@ button({ label: 'Save', variant: 'primary' });
 // → '<button type="button" class="ui-btn ui-btn--primary"><span>Save</span></button>'
 ```
 
-**Why strings, not components:** the strategy portal (`viz/`) server-renders HTML from
-`.mjs` modules, not a framework. The kit ships the same shape, so the portal adopts it
-with no rewrite, and Storybook (`@storybook/html-vite`) renders the exact string that
-ships — workbench and production never diverge.
+The strategy portal (`viz/`) server-renders HTML from `.mjs` modules. HTML-string
+factories let it adopt the kit without a rewrite. Storybook (`@storybook/html-vite`)
+renders those same strings for review.
 
 ## Source layout (`src/`)
 
@@ -71,9 +70,8 @@ names `applyAccent` takes. Or ship `accentPicker()` and let `wireTopbar()` handl
 
 ### An absent attribute means dark
 
-Both attributes are optional, and leaving either off is a supported state rather than a
-broken one. `data-theme` and `data-accent` are **overrides**: dark and Nebula are what the
-kit paints when neither is present.
+`data-theme` and `data-accent` are optional **overrides**. With neither attribute,
+the kit renders dark Nebula.
 
 ```html
 <html>                              <!-- dark, Nebula -->

@@ -1,148 +1,159 @@
-# Escaping: reuse character lookup tables (#276, code slice)
+# Documentation: simplify reader guidance (#276, text slice)
 
-Prepared for the coordinator to open `slice/276-code` and dispatch independent review.
-Artur reviews after that review; no human action is requested yet. Based on main `7ffbde4`,
-2026-09-12. The text and comment slices are separate branches and are not included here.
+Prepared for the coordinator to open a PR from `slice/276-text` and dispatch independent review.
+Artur's review follows that review and final verification; no human action is requested yet.
+Prepared 2026-09-12 against main at `7ffbde4`.
 
 ## What & why
 
-Reuse private HTML entity tables in the core factory module and the changelog renderer.
-Three replacement callbacks previously constructed their lookup object for every matched
-character; they now read a module-level table, with no new export or dependency.
+Issue #276 requests a rewrite and optimization pass over the kit with Astra.
+This first slice simplifies ten reader documents while retaining their rules and examples.
 
 ## Problem
 
-Issue #276 requests a rewrite and optimization pass without changing consumer behavior,
-rendered pixels or DOM, classes, exports, tokens, guideline rules, test counts or gate logic.
-The code audit found repeated helpers with different contracts, public CSS whose external
-use cannot be inferred here, and a small escaping optimization with directly comparable output.
+The documentation repeats explanations and uses rhetorical introductions where direct instructions
+would be easier to read. The task requires behavior preservation, including rendered pixels,
+DOM, classes, exports, tokens, guideline rules and test counts.
 
 ## Premises
 
-- Keep text and attribute escaping distinct. The core helper coerces values and treats null
-  as empty; the changelog text formatter does neither and leaves quotes unchanged; its
-  attribute helper coerces values and escapes quotes. Those contracts stay intact.
-- Keep both tables private. A shared cross-module helper would add coupling without removing
-  the different coercion and replacement rules.
-- Preserve the 19 guideline-cited source lines in the factory file. The new table occupies
-  an existing blank line; no rendered reference or guideline module changes.
-- The coordinator confirmed expected contrast timing failure on this machine and expected
-  shipped-surface red without a bump. The coordinator bumps at merge. Neither gate changes.
+- Artur chose separate text, comment and code PRs, each independently reviewed before his review.
+- README and source files ship in the npm tarball. The shipped-surface gate hashes their bytes,
+  so even comment edits require a bump under the existing gate. The coordinator explicitly
+  confirmed that this check is expected to be red: no bump in these PRs, coordinator bumps at merge.
+- Site and Storybook copy is rendered output. Rewording it would change DOM text and pixels,
+  so findings on those surfaces are recorded below.
+- The detector is a heuristic check. Its source mode measures comments; a second artifact-mode
+  scan checked guideline, foundation and site files for text patterns.
 
 ## Before / after
 
 | Before | After |
 | --- | --- |
-| A lookup literal inside each matched-character callback | Private table reused by each callback |
-| Separate text and attribute rules | Same expressions, coercion and replacement rules |
-| Changelog records and rendered HTML | Byte-identical in differential comparison |
+| Rhetorical introductions in the specification and library guide | Direct statements of the contract and architecture |
+| Repeated explanation of where decisions belong | Instructions with the original issue citation and decision-record rule |
+| Bold formatting on each documentation index link | Plain linked list entries |
+| Indirect contributor and React development instructions | Shorter instructions with the same requirements |
 
-This changes implementation in two files. No release entry, token, selector, component
-markup template, public export, dependency, test or gate implementation changes.
+No runtime, CSS, story, site, export, token, dependency or test file changes.
+The ten documents lose 380 words (37,900 to 37,520).
+All headings, numeric literals, fenced examples, link targets and gate references in the ten
+edited documents match the base, checked by comparing their extracted multisets.
 
 ## Decisions
 
 | Decision | Who | Why |
 | --- | --- | --- |
-| Optimize only demonstrated equivalent code | Artur/task | Preserve consumer behavior |
-| Hoist the entity tables; keep helpers local | Implementer | Avoid repeated lookup objects without new coupling |
-| File broader helper and CSS candidates | Implementer | Contracts differ or consumer usage is unavailable |
-| No bump; document the two expected red checks | Coordinator | Version bump belongs to merge handling |
+| Separate slices; preserve behavior; no version bump or changelog edit | Artur, through the dispatch | Reviewable changes under a fixed consumer contract |
+| Leave rendered copy as findings | Implementer | Rewording changes the output forbidden by the dispatch |
+| Preserve conflicting documentation claims and flag them | Implementer | Correcting a rule or promise needs separate scope |
 
 ## Detector
 
-Level 3 on both changed source files: before 0 errors, 0 medium findings, 0 warnings;
-after 0 errors, 0 medium findings, 0 warnings. PR.md is also checked before commit.
-The detector's source mode checks comments, not code quality; the allocation finding comes
-from source inspection and a local experiment.
+Level 3, installed `ai-slop-detector` skill, before and after on every edited document:
+
+| Scope | Before: errors / medium / warnings | After: errors / medium / warnings |
+| --- | --- | --- |
+| Nine edited documents | 0 / 0 / 2 | 0 / 0 / 1 |
+
+The removed warning is `bold-header-list` in the documentation index. The remaining
+`scope-template` warning in the specification describes a drawer moving from its anchored edge;
+it names physical movement, not a rhetorical range, so it is retained.
+
+The separate artifact-mode scan of guideline, foundation and site files found 0 errors,
+0 medium findings and 5 warnings across 39 files. Its warnings on JavaScript include source
+syntax rather than only rendered prose; they are classified under Findings.
 
 ## Findings
 
-Locations refer to the pre-change `7ffbde4` tree.
+Locations below refer to the pre-change `7ffbde4` tree; they remain useful after prose reflows.
 
 | Location | Finding | Disposition |
 | --- | --- | --- |
-| `7ffbde4:src/components/index.js:7` | Entity lookup literal is rebuilt in each escaping callback | Applied: private table, same regex, callback result and null coercion |
-| `7ffbde4:site/changelog.mjs:565` | Text and attribute formatters repeat lookup literals | Applied: private table shared by the two local callbacks; quote behavior remains distinct |
-| `7ffbde4:src/components/index.js:6` | One-line `cx` helper is repeated across components and React | Retained: moving it adds an internal module/export and imports without demonstrated benefit; typed React inputs differ from vanilla callers |
-| `7ffbde4:stories/lib/contrast.js:460` | Serializer logic repeats across accessibility, glyph and other story gates | Filed: some variants accept text nodes/fragments while others do not; consolidation needs a separate contract decision and proof of unchanged gate discovery |
-| `7ffbde4:stories/guidelines/letter-case.test.js:218` | Its serializer does not share every accepted output shape of the contrast serializer | Filed with serializer consolidation; broadening acceptance would change a gate |
-| `7ffbde4:src/components/overlay.js:37` | Vanilla and React focus eligibility look similar but differ | Filed: React checks negative tabindex, disabled fieldsets and closed disclosures; vanilla checks overlay state and visibility. Unifying them changes behavior |
-| `7ffbde4:react/src/dialog.ts:23` | Dialog focus logic cannot directly reuse the internal vanilla helper | Filed with overlay eligibility; no new export or behavior change |
-| `7ffbde4:stories/lib/motion-css.js:23` | CSS and script discovery both recurse over files | Retained: script discovery excludes tests and declarations; a generic walker adds abstraction and must preserve order and symlink behavior |
-| `7ffbde4:src/styles/pagination.css:1` | Repository-only usage cannot prove public selectors are dead | Filed: consumers may select kit classes that stories do not render; no CSS deletion is justified |
-| `7ffbde4:stories/contrast.test.js:531` | Wall-clock ceiling fails on unchanged main on this machine | Filed and coordinator-accepted: keep ceiling, workload and cache/mutation assertions intact |
-| `7ffbde4:site/changelog.mjs:565` | Combining all escaping helpers would change null/type/quote treatment | Retained distinct contracts; only their private lookup data is reused |
-
-A targeted scan found no literal `if (false)` branch, unconditional `assert.ok(true)`, or
-literal `test.skip` or `it.skip` call to remove. That scan is not a proof that every branch or assertion
-is necessary; no test or branch was deleted on that basis.
+| `7ffbde4:docs/README.md:11` | Bold formatting repeated on six index entries | Applied: retain links as plain list entries |
+| `7ffbde4:docs/README.md:30` | Decision-record guidance repeats its rationale | Applied: shorten; preserve the rule, quotation and issue link |
+| `7ffbde4:docs/specification.md:3` | Contract introduction uses rhetorical contrasts | Applied: state the contract and record locations directly |
+| `7ffbde4:docs/specification.md:85` | Scale-selection explanation restates the preceding rule | Applied: shorten, retaining both units and scales |
+| `7ffbde4:docs/library.md:12` | Architecture explanation claims review and production cannot diverge | Applied: describe the shared factory output directly |
+| `7ffbde4:docs/library.md:74` | Optional-attribute explanation repeats the default | Applied: keep optional overrides and the dark Nebula default |
+| `7ffbde4:docs/changelog.md:49` | “that's it” adds no instruction | Applied: remove; retain tags and helper names |
+| `7ffbde4:docs/guidelines.md:26` | Exception guidance and reference-failure description are indirect | Applied: simplify without changing rule shape or checks |
+| `7ffbde4:docs/landing-page.md:6` | Homepage distinction and chrome description are indirect | Applied: identify the page and build substitution directly |
+| `7ffbde4:docs/storybook.md:3` | Workbench introduction repeats the rendering claim | Applied: describe factory-to-canvas flow |
+| `7ffbde4:CONTRIBUTING.md:41` | Rhetorical framing in contributor and gate guidance | Applied: simplify introductions; retain requirements and historical evidence |
+| `7ffbde4:react/README.md:3` | Indirect React purpose and port-probe instructions | Applied: shorten while retaining ports, lifecycle and restart rule |
+| `7ffbde4:README.md:7` | Decorative icons, promotional architecture claims, indirect font and React setup instructions | Applied: describe the package and requirements directly |
+| `7ffbde4:README.md:200` | Manual release commands conflict with automated release instructions in CONTRIBUTING | Filed: changes operational instructions, beyond prose-only preservation |
+| `7ffbde4:react/README.md:40` | Escape warning says two React dialogs close together; later Drawer section says the stack prevents this | Filed: reconcile against implementation in a factual-correction change |
+| `7ffbde4:docs/guidelines.md:3` | Five-page description predates additional guideline pages | Filed: task requires keeping numbers and rules; do not silently change them |
+| `7ffbde4:docs/storybook.md:11` | Addon and three-section descriptions may be stale | Filed: configuration correction requires a separate factual review |
+| `7ffbde4:stories/foundations/Typography.stories.js:55` | Typeface comparison uses a rhetorical defense of Poppins | Filed: rendered copy cannot change under this task |
+| `7ffbde4:stories/foundations/Colors.stories.js:26` | Copy tells the reader to watch all components follow the theme | Filed: rendered copy cannot change under this task |
+| `7ffbde4:site/changelog.mjs:1` | Detector flags a middot chain in release prose | Filed: historical rendered release text stays intact |
+| `7ffbde4:stories/guidelines/_command-palette.js:1` | Detector flags a middot pattern across JavaScript syntax | Retained: artifact-mode source match does not establish a rendered text defect |
+| `7ffbde4:stories/guidelines/_layout.js:1` | Detector flags descendant-to-ancestor description | Retained: describes an actual DOM relationship |
+| `7ffbde4:site/segmented.test.js:1` | Artifact-mode vocabulary warning in test code | Filed to comment/code inspection; no rendered copy change |
+| `7ffbde4:site/changelog.mjs:1` | Detector flags a “from … to …” range describing card geometry | Retained: concrete spatial relationship |
 
 ## Proof
 
-The differential check imports the old and new modules with the same dependencies:
-
-- 66,069 escaping cases match, including every UTF-16 code unit, mixed strings, null,
-  undefined, booleans, numbers and bigint.
-- Both versions coerce an object exactly once and return the same escaped result.
-- Export names match in both modules.
-- All 54 release records are identical; every release and the full changelog render identical HTML.
-- Contributor and component chips match for quotes, markup, ampersands, backticks, Unicode,
-  newlines, missing avatar/URL and supplied avatar/URL.
-- All 19 guideline-cited lines in the factory module remain identical at their original positions.
-
-An illustrative local microbenchmark made 200,000 calls per run over four fixed strings,
-including plain text and escape-heavy markup. After warmup, four alternating runs measured
-578–602 ms before and 538–573 ms after. This measures this helper on this machine; it does
-not establish a whole-kit speedup or a performance guarantee.
-
-The working tree ran all 1,397 Node tests: 1,395 passed, one skipped and only the accepted
-contrast timing check failed. Build and all 322 React tests passed, as did the site and
-Storybook builds. The same suite runs after the commit.
+- Baseline: `npm test` ran 1,397 tests, with 1,394 passes, two existing skips, and only
+  the known contrast timing check failing (142.8 seconds versus 120 seconds).
+- Baseline: `npm run build` passed; React Vitest passed 322 tests in 16 files.
+- The permitted standalone contrast retry also failed only the timing ceiling (141.9 seconds).
+  The coordinator confirmed this known machine failure is expected and must be documented;
+  the threshold and measured workload remain unchanged.
+- `scripts/doc-refs.test.js`, `scripts/code-refs.test.js` and
+  `stories/guidelines/refs.test.js` pass with the edits.
+- A separate preservation check confirms identical headings, numeric literals, fenced examples,
+  link targets and gate references in all ten edited documents.
+- The text working tree ran all 1,397 Node tests; only the same contrast timing check failed
+  (148.1 seconds). Build passed and React passed all 322 tests in 16 files.
+- No tests were added, removed, renamed or weakened.
+- Runtime files are unchanged, so no visual comparison is claimed or needed for this slice.
 
 ## Verification
 
-- [x] Full `npm test` completes with only the accepted baseline timing failure.
+- [x] Full `npm test` completes with only the coordinator-accepted baseline timing failure.
 - [x] `npm run build` and React Vitest pass.
 - [x] `node site/build.mjs` / `npm run build-storybook` build cleanly.
 - [x] No protected data added.
-- [x] Differential output and export checks pass.
-- [x] No tests, mutation checks, thresholds or subjects removed.
 
 ## Reviews
 
 | Reviewer/model | Commit | Result | Resolution |
 | --- | --- | --- | --- |
-| Implementer / Astra | Working tree | Differential comparison and local benchmark complete | Self-check only |
+| Implementer / Astra | Working tree | Preservation and reference checks pass | Self-check only |
 | Independent reviewer | Not started | Coordinator dispatches after push | Required before Artur's review |
 
 ## Earned merge
 
-- Reuses lookup data with measured equivalent output and a small local timing improvement.
+- Benefit: shorter reader instructions with the original rules and examples.
 - Required before merge: independent review, findings resolved and Artur's review.
-- No version bump or changelog entry is committed.
+- The same suite will run again after the commit; the coordinator receives the commit and results.
+- No npm version bump or site changelog edit, as instructed.
 
 ## Linked issue
 
-Part of #276. All three slices need review and delivery before the issue can close.
+Part of #276. This slice does not close the issue.
 
 ## Changelog entry
 
-- Reused private HTML escaping lookup tables without changing output.
+- Simplified documentation wording without changing component behavior or guideline rules.
 
 <details>
 <summary>Execution</summary>
 
 | Phase | Agent/model | Time | Tokens |
 | --- | --- | --- | --- |
-| Code audit and differential checks | Dispatched worker / Astra | Command logs retained | Unavailable from Orca CLI check |
+| Investigation and text edits | Dispatched worker / Astra | Command logs retained | Unavailable in CLI check output |
 | Independent review | Coordinator to assign | Not started | Not available |
 
 | Metric | Value |
 | --- | --- |
-| Measurement source | Orca dispatch check, Node performance timer and command logs, 2026-09-12 |
-| Elapsed time | Phase duration not supplied by CLI check |
-| Retries | No new contrast retry; baseline isolated failure already documented |
-| Coordinator decisions | Existing timing and shipped-surface exceptions apply |
+| Measurement source | Orca dispatch check and command logs, 2026-09-12 |
+| Elapsed time | Per-phase duration not available from Orca CLI check; test durations are in the command logs |
+| Retries | One isolated baseline contrast retry requested by the task |
+| Coordinator decision | Timing and shipped-surface exceptions confirmed through the dispatch ask response |
 
 </details>

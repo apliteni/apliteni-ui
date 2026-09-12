@@ -46,8 +46,8 @@ Story ids are Storybook's kebab of the story `title` + first export:
 
 ## Breaking changes
 
-Tag a change `breaking` — that's it. It gets the red tag, and `isBreakingRelease(r)`
-adds the `Breaking` header badge.
+Tag a change `breaking` to give it the red tag. `isBreakingRelease(r)` adds the
+`Breaking` header badge.
 
 ## Contributors (git-derived)
 

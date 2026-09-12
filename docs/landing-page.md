@@ -3,9 +3,8 @@
 `site/` is the public site: a static homepage, the [changelog](changelog.md), and the
 hosted Storybook — served by one zero-dependency Node server.
 
-> Two things named “landing” are separate: the live homepage here (`site/index.html`)
-> and the Storybook `Apps/Landing Page` story (a component demo). This page is about the
-> homepage.
+> This page covers the live homepage (`site/index.html`). The Storybook
+> `Apps/Landing Page` story is a separate component demo.
 
 ```
 site/
@@ -20,8 +19,8 @@ site/
 ## Shared chrome
 
 `chrome.mjs` exports `topbar(active)`, `footer()`, `CHROME_CSS`, `CHROME_JS`. Pages
-don't call these — they leave `{{TOPBAR}}` / `{{FOOTER}}` / `{{CHROME_CSS}}` /
-`{{CHROME_JS}}` placeholders and `build.mjs` injects them, so navigation never drifts.
+use `{{TOPBAR}}` / `{{FOOTER}}` / `{{CHROME_CSS}}` /
+`{{CHROME_JS}}` placeholders; `build.mjs` fills them with the shared chrome.
 
 ## The build (`build.mjs`)
 

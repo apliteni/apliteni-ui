@@ -4,29 +4,26 @@
 [![license: MIT](https://img.shields.io/npm/l/@apliteni/apliteni-ui?color=3b9dff)](./LICENSE)
 [![live: ui.apli.tech](https://img.shields.io/badge/live-ui.apli.tech-9b5dff)](https://ui.apli.tech)
 
-The Apliteni design system & UI kit — one source of UI for every product surface
-(the strategy deck, the text portal, `/account`, the operating model, and whatever
-ships next).
+The Apliteni design system and UI kit supplies shared UI for the strategy deck,
+the text portal, `/account`, the operating model, and future product surfaces.
 
-Two layers over one set of design tokens: framework-agnostic **HTML + CSS**, and
-**React components** for stateful surfaces. Themeable dark and light with **accent
-sub-themes**. Showcased and reviewed in **Storybook**, and published on **ui.apli.tech**.
+It provides framework-agnostic **HTML + CSS** and **React components** for stateful
+surfaces, with shared tokens, dark and light themes, and **accent sub-themes**.
+Review components in **Storybook** at **ui.apli.tech**.
 
-- 🎨 **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
-- 📦 **Package** → [`@apliteni/apliteni-ui`](https://www.npmjs.com/package/@apliteni/apliteni-ui) (public npm)
-- ⚛️ **React components** → `@apliteni/apliteni-ui/react` — a subpath of the same package, source in [`react/`](./react)
+- **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
+- **Package** → [`@apliteni/apliteni-ui`](https://www.npmjs.com/package/@apliteni/apliteni-ui) (public npm)
+- **React components** → `@apliteni/apliteni-ui/react` — a subpath of the same package, source in [`react/`](./react)
 
 ## HTML + CSS *and* React
 
-The core is HTML + CSS because the strategy portal (`apliteni/strategy`, `viz/`)
-server-renders HTML strings (`.mjs` modules), not a component framework. So the kit
-ships the same shape: token CSS + component CSS + tiny HTML-string factories. That
-makes it a *true* single source of truth — the portal imports it with no rewrite and
-no framework drift. Storybook (`@storybook/html-vite`) renders exactly what ships.
+The strategy portal (`apliteni/strategy`, `viz/`) server-renders HTML strings from
+`.mjs` modules without a component framework. The kit supplies token CSS, component
+CSS, and HTML-string factories that the portal can import without a rewrite.
+Storybook (`@storybook/html-vite`) renders those same strings.
 
-React sits on top for surfaces that hold real client state — dashboards, tables,
-filters, forms. Those components render the same `.ui-*` classes and the same tokens
-as the vanilla kit, so the two layers can't drift.
+React components handle client state in dashboards, tables, filters, and forms.
+They use the vanilla kit's `.ui-*` classes and tokens.
 
 **Which one:** does the surface hold meaningful client state? No → the HTML-string
 factories below. Yes → the [React components](#react-components-stateful-surfaces).
@@ -67,10 +64,9 @@ tables, fields, paragraphs, chat, which is most of an application. Weights 300-7
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
 ```
 
-Load only one of them and the other falls through to the system stack behind it, without
-saying so. Want the old
-single-family look back? Set both roles to the same family in your own stylesheet, after the
-kit's:
+If either font is missing, that role falls back to its system stack. For the old
+single-family appearance, set both roles to the same family in your stylesheet,
+after the kit's:
 
 ```css
 :root { --font-sans: var(--font-display); }
@@ -111,18 +107,17 @@ import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 same tokens, TypeScript types included. They ship as a **subpath of this package**,
 not as a package of their own: one install, one version, one pin.
 
-**You install React yourself.** The kit declares no dependency on it — not a
-dependency, not a peer — so npm will not warn you and will not pull it in. Bring your
-own `react` and `react-dom`, version 18 or newer:
+Install `react` and `react-dom`, version 18 or newer, yourself. The kit declares
+neither a regular nor a peer dependency on React, so npm neither installs it nor
+warns when it is missing:
 
 ```bash
 npm install @apliteni/apliteni-ui react react-dom
 ```
 
-Miss them and the import of `@apliteni/apliteni-ui/react` fails at build or at
-runtime with a module-not-found error for `react`. Everything else in the kit is
-unaffected, so a plain HTML consumer installs the kit alone and never gets React in
-its tree.
+Without them, importing `@apliteni/apliteni-ui/react` fails at build or runtime with
+a module-not-found error for `react`. Plain HTML consumers can install the kit alone;
+the other entry points are unaffected and do not bring React into the dependency tree.
 
 ```tsx
 import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes

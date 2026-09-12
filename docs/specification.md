@@ -1,13 +1,11 @@
 # What the kit ships and guarantees
 
-This is the contract. Everything below is a statement a consumer may build on, and every one of
-them is held by a gate that runs on `npm test` — so a guarantee that stops being true turns a
-build red rather than quietly becoming a lie in a document.
+This is the consumer contract. Every guarantee below is checked by a gate in `npm test`;
+a broken guarantee fails the build.
 
-What this is not: an argument. Where a number came from, what else was considered and who chose
-between them lives in the issue that settled it, and each section below names its issue. Read
-[README.md](README.md) for where a decision gets recorded from now on, and
-[CONTRIBUTING.md](../CONTRIBUTING.md) for how the gates that hold these guarantees are built.
+Each section links to the issue that records the measurements, alternatives and decision.
+Read [README.md](README.md) for where to record decisions, and
+[CONTRIBUTING.md](../CONTRIBUTING.md) for how the gates work.
 
 - **[The package](#the-package)** — what installing it gets you
 - **[Widths](#widths)** — the page and the reading column
@@ -83,8 +81,7 @@ Below the page there are two scales, and the unit says which one applies.
 ```
 
 A box that holds a **component** takes a `--panel-*` step in px. A box that holds a **line** takes
-a `--prose-*` step in ch. Nothing has to be looked up to choose — the thing being bounded picks
-the unit, and the unit picks the scale.
+a `--prose-*` step in ch. Choose the unit and scale by what the box holds.
 
 The `--prose-*` steps are declared on the paragraph, never on a wrapper. `ch` resolves against the
 font-size of the element carrying it, so the same token on a wrapper holding an `h2` and a `p`
