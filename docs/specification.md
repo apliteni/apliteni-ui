@@ -1552,24 +1552,38 @@ moving a readout never changes the size or the place of anything else on the pag
   between marks and returning does not end that; the pointer leaving the host does, and so does
   `hideTooltip()`. `showTooltip()` keeps to it as well, so a chart that calls it on every pointer
   sample does not reopen what Escape closed.
+- Under a coarse pointer the tap is the switch. A finger rests nowhere — it arrives already
+  pressing and is gone when it lifts — so `pointerover` opens nothing there: a tap on a mark opens
+  its readout, a tap on another mark moves it, and a tap on the same mark or anywhere else on the
+  page closes it. The tap that opens the readout is captured and never reaches the mark's own
+  `click`, so a chart that drills down on a bar does not drill down on the tap that asked what the
+  bar says; the tap that closes the readout is let through, which puts the drill-down one tap
+  further away. A tap that closes a readout dismisses that mark the way Escape does, so a chart
+  sampling its own marks does not bring it straight back; another tap on the same mark does,
+  because a tap is deliberate and a sample is not. Which pointer is in play is read from the event
+  rather than from the device — `pointerType`, falling back to `(pointer: coarse)` before any
+  pointer event has arrived — so a laptop with a touch screen hovers under its mouse and taps
+  under a finger, and a keystroke hands the readout back to focus.
 - A readout rendered with `open` is a picture of one, the way a documentation page shows it. Its
   host carries `.ui-tip-host` and no `[data-tip-host]`, so no wiring reaches it, and Escape leaves
   it alone because the kit never showed it.
 
-**Not decided yet.** The wiring adds no tab stop to a mark, and it treats touch like any other
-pointer, so on a touch screen a tap shows the readout only while the finger is down. Whether a
-chart's marks should take focus, and whether a tap should pin the readout or a finger scrub along
-the line, is open on [#282][i282] and waits on the owner. Until it is settled, the rule for pages
-is that no value is reachable only by hovering.
+**Not decided yet.** The wiring adds no tab stop to a mark, so whether a chart's marks should take
+focus at all is open on [#282][i282] and waits on the owner. Until it is settled, the rule for
+pages is that no value is reachable only by hovering.
 
 The kit had no readout until [#282][i282]. The finance portal's overview drew two, on one screen:
 its bar chart overlaid its readout and nothing moved, while each KPI sparkline inserted its
 readout as a row, so the card grew by a line and everything under it moved whenever the pointer
-landed on a point. The rules for pages are in Storybook, under Guidelines / Hover readouts.
+landed on a point. The rules for pages are in Storybook, under Guidelines / Hover readouts. What
+a tap does was settled on the same issue, after the readout had shipped.
 
 Held by `src/components/tooltip.test.js`, which reads the stylesheet for the out-of-flow and
 open-state rules, watches the page with a `MutationObserver` while marks are hovered, and feeds
-the placement measured rects, jsdom having no layout of its own.
+the placement measured rects, jsdom having no layout of its own. The tap is driven against a
+coarse pointer simulated from both sides the wiring reads — events carrying the `pointerType` a
+browser puts on them, and a `(pointer: coarse)` answer for the gesture that arrives before any of
+them — because jsdom dispatches no `PointerEvent` and answers no media query.
 
 [i282]: https://github.com/apliteni/apliteni-ui/issues/282
 
