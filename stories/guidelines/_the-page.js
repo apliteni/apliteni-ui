@@ -28,15 +28,19 @@ export const SPEC_CSS = `
     .gp-out__row--bad .gp-out__rank { color: var(--pink);
       background: color-mix(in srgb, var(--pink) 16%, transparent); }
 
-    /* The stack specimens: real cards, drawn at 40% so a twelve-card page fits
-       a cell. The box holds the height the scale leaves behind. */
-    .gp-stack { height: 300px; overflow: hidden; }
-    .gp-stack__in { width: 250%; transform: scale(.4); transform-origin: top left;
-      display: flex; flex-direction: column; gap: var(--space-4); }
+    /* The stack specimens. Twelve cards do not fit a 420px cell at life size and
+       a clipped column cannot be counted, so the count is what is drawn: one
+       block per card, both columns at one scale. The caption says so. */
+    .gp-stack { height: 224px; display: flex; flex-direction: column; gap: 6px; }
+    .gp-card { height: 12px; border-radius: 4px; flex: none;
+      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border);
+      display: flex; align-items: center; padding: 0 5px; }
+    .gp-card::before { content: ""; height: 3px; width: 34%; border-radius: 2px;
+      background: color-mix(in srgb, var(--muted) 55%, transparent); }
+    .gp-stack--over .gp-card { background: var(--surface-2); }
 
     .gp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .gp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
-    .gp-note { font: 400 13px/1.6 var(--font-sans); color: var(--dim); margin: 0 0 var(--space-3); }
   </style>`;
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
@@ -83,15 +87,12 @@ export const primaryDont = () => stage(card({
 
 // ---- how much may stack --------------------------------------------------
 
-const MINI = ['Cashflow', 'Payouts', 'Invoices', 'People', 'Rules', 'Audit',
-  'Vendors', 'Budgets', 'Taxes', 'Banks', 'Cards', 'Exports'];
-
-const stack = (n) => `<div class="gp-stack"><div class="gp-stack__in">${
-  MINI.slice(0, n).map((t) => card({ title: t, body: '<p class="gp-note">Four rows and a total.</p>' })).join('')
-}</div></div>`;
+const stack = (n, over) => `<div class="gp-stack${over ? ' gp-stack--over' : ''}">${
+  Array.from({ length: n }, () => '<div class="gp-card"></div>').join('')
+}</div>`;
 
 export const stackDo = () => stage(stack(LIMITS.cards));
-export const stackDont = () => stage(stack(12));
+export const stackDont = () => stage(stack(12, true));
 
 // ---- one density per page ------------------------------------------------
 
@@ -139,20 +140,22 @@ export const RULES = [
       + 'and a reader who arrives from a link then has to look for what page they are on. The shell '
       + 'writes this order and the caller fills the slots; a body that opens with its own heading bar '
       + 'is drawing a second head under the first.',
-    except: 'A period switch, a filter or a search box belongs at the top of the body, under the lede '
-      + '— first thing inside, not above the title.',
+    except: 'A stat band, a period switch, a filter or a search box belongs at the top of the body, '
+      + 'under the lede — first thing inside, not above the title. What may go in the band is on '
+      + 'Stat bands.',
     kit: [
       { ref: 'src/components/shell.js:182', pattern: 'crumbs.length ? breadcrumbs' },
       { ref: 'stories/guidelines/_going-back.js:86', pattern: 'Draw a trail or a back link, never both' },
+      { ref: 'stories/guidelines/_stat-bands.js:24', pattern: 'Put key figures in a stat band' },
     ],
   },
   {
     id: 'one-h1',
     imperative: 'One page, one h1, and it is the page title.',
     why: 'A second h1 splits one screen into two documents for anyone moving by heading, and none at '
-      + 'all leaves the screen with no name to move to. The kit had one of each fault: the consent '
-      + 'screen said "Access granted" in a div, so the page a reader landed on after granting had no '
-      + 'heading in it at all.',
+      + 'all leaves the screen with no name to move to. The kit had the second fault: the consent '
+      + 'screen said "Access granted" in a div, so the page a reader landed on after granting an '
+      + 'agent access had no heading in it anywhere.',
     kit: [
       { ref: 'src/components/index.js:63', pattern: 'const h = [2, 3, 4, 5, 6]' },
       { ref: 'stories/guidelines/_labels-and-titles.js:65', pattern: 'one level under the page title' },
@@ -199,9 +202,11 @@ export const RULES = [
       + 'of lists, and the reader scrolls past eleven to reach the one they came for. Past six the '
       + 'page wants sections, tabs, or a second page. A card inside a card draws two borders around '
       + 'one thing and says the inner one is a smaller kind of group, which the kit has no rank for.',
-    except: 'A card is the frame the empty and denied states are drawn in, and those screens hold one.',
-    doCaption: `${LIMITS.cards} cards — at the limit, still one page. Drawn to scale, not to size.`,
-    dontCaption: 'Twelve. The page is a menu of what it could have been.',
+    except: 'A card is the frame the empty and denied states are drawn in, and those screens hold '
+      + 'one. A stat band is one thing on the page whatever its layout draws — the tiles layout paints a '
+      + 'card per figure, and four figures are still one band.',
+    doCaption: `One block a card: ${LIMITS.cards} of them, at the limit and still one page.`,
+    dontCaption: 'Twelve. The page has grouped nothing — it is a menu of what it could have been.',
     doHtml: stackDo,
     dontHtml: stackDont,
     kit: [

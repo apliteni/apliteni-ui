@@ -1,16 +1,10 @@
 /* Rule: every screen the kit draws keeps the page rules — the head in one
  * order, one h1, one primary action, one density, nothing overlaying it at
  * load. The subjects are the screens under stories/apps/, discovered rather
- * than listed, so a new screen is gated the day it is written.
+ * than listed. Each rule on the page owns one check here, keyed by its `id`,
+ * and the first test holds the two lists in step.
  *
- * Each rule on the page owns one check here, keyed by the rule's `id`. The
- * first test holds the two lists in step: a rule with no check is a wish, and a
- * check for a rule nobody wrote is a rule a reader never sees.
- *
- * What this gate cannot see: it renders the markup a story returns and asks
- * structural questions of it. It resolves no CSS, so "is this card too tall"
- * and "do these two rows look like one rhythm" are not questions it can ask —
- * stories/contrast.test.js and a screenshot are where those are answered.
+ * What it cannot see is stated on the floor page, which lists this gate.
  *
  * why: docs/specification.md#the-page
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
@@ -202,7 +196,7 @@ const CHECKS = {
 
   density(s) {
     const problems = [];
-    const tables = [...s.doc.querySelectorAll('table.ui-table')];
+    const tables = [...s.doc.querySelectorAll('table.ui-table')].filter((t) => !inOverlay(t));
     const densities = new Set(tables.map((t) => (t.classList.contains('ui-table--dense') ? 'dense' : 'roomy')));
     if (densities.size > 1) {
       problems.push(`${s.where} draws ${tables.length} tables at ${[...densities].join(' and ')} `
