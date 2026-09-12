@@ -326,22 +326,57 @@ test('the overlay selectors are classes the kit really writes', () => {
 // The limits are stated three times — in the rule prose, in this gate, and in
 // the specification's contract — and only the first two are one object. This is
 // the third: the section has to say the same numbers, spelled either way.
+//
+// Each is held against the SENTENCE that states it and not against the section
+// at large. Searching the section for a bare number was close to vacuous:
+// LIMITS.cards could go from 6 to 1 and the check stayed green, because the word
+// "one" appears a dozen times in that section while the specification went on
+// saying "Six stacked cards at most". Only `primary` ever failed, and only
+// because neither "0" nor "zero" happens to be written there. So each pattern
+// carries the limit's own noun, and the number is the one part of it that moves.
 const WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+/** `6` or `six`, either spelling, for a number the specification may write out. */
+const either = (n) => `(?:${n}${WORD[n] ? `|${WORD[n]}` : ''})`;
+
+const SPEC_SENTENCE = {
+  cards: (n) => ({
+    re: new RegExp(`\\b${either(n)}\\s+stacked cards at most\\b`, 'i'),
+    says: `"${WORD[n] || n} stacked cards at most"`,
+  }),
+  lede: (n) => ({
+    re: new RegExp(`\\bit is\\s+${either(n)}\\s+sentences? at most\\b`, 'i'),
+    says: `"a lede … is ${WORD[n] || n} sentences at most"`,
+  }),
+  outline: (n) => ({
+    re: new RegExp(`\\bstops at \`h${n}\``),
+    says: `"the outline … stops at \`h${n}\`"`,
+  }),
+  primary: (n) => ({
+    re: new RegExp(`\\b${either(n)}\\s+primary action at most\\b`, 'i'),
+    says: `"${WORD[n] || n} primary action at most"`,
+  }),
+};
 
 test('the specification states the same limits this gate measures', () => {
   const spec = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
   const section = spec.slice(spec.indexOf('\n## The page\n'), spec.indexOf('\n## The page shell\n'));
   assert.ok(section.length > 400, 'docs/specification.md has no "## The page" section to read');
 
-  const says = (n) => new RegExp(`\\b(?:${n}|${WORD[n]})\\b`, 'i').test(section);
-  const missing = [
-    !says(LIMITS.cards) && `the card limit (${LIMITS.cards})`,
-    !says(LIMITS.lede) && `the lede's sentence count (${LIMITS.lede})`,
-    !new RegExp(`h${LIMITS.outline}`).test(section) && `the outline floor (h${LIMITS.outline})`,
-    !says(LIMITS.primary) && `the primary-action count (${LIMITS.primary})`,
-  ].filter(Boolean);
+  // Every limit is checked, so a fifth one added to LIMITS with no sentence to
+  // hold it to fails here rather than going unwritten in the contract.
+  assert.deepEqual(
+    Object.keys(LIMITS).sort(), Object.keys(SPEC_SENTENCE).sort(),
+    'a limit has no sentence in docs/specification.md that this gate knows how to read, or a '
+    + 'pattern here names a limit that is gone. Either way one of the three copies is unheld.',
+  );
+
+  const missing = Object.entries(LIMITS)
+    .map(([key, n]) => ({ key, n, ...SPEC_SENTENCE[key](n) }))
+    .filter(({ re }) => !re.test(section))
+    .map(({ key, says }) => `${key}: the section does not say ${says}`);
   assert.deepEqual(missing, [], 'the specification and the page disagree about a limit, or the '
-    + 'specification stopped stating one: ' + missing.join(', '));
+    + 'specification stopped stating one. The number moved in stories/guidelines/_the-page.js and '
+    + 'the sentence in docs/specification.md#the-page did not:\n  ' + missing.join('\n  '));
 });
 
 test('every rule on the page owns a check here, and every check owns a rule', () => {
