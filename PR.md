@@ -308,10 +308,10 @@ else, and every one of the collection's seventeen pages cites that way.
 
 **Two of the five are gone, and the right-hand column is a prediction, not a measurement.** It was
 measured once, on a real merge off `origin/main` @ `7ffbde4` with #286 as it stood then. The two
-that dropped out — `shell` at `src/components/shell.js:140` and `navs` at
-`src/components/nav.js:167` — belonged to the two rules that moved to the contract, and the
-contract cites by file and symbol, which no line move touches. #286 is being reworked in parallel,
-so the three numbers above will need re-reading against it as it lands rather than trusted.
+that dropped out belonged to `shell` and `navs`, the rules that moved to the contract — one cited
+`appShell()` in the shell, the other the breadcrumb variant in the nav — and the contract cites by
+file and symbol, which no line move touches. #286 is being reworked in parallel, so the three
+numbers above will need re-reading against it as it lands rather than trusted.
 
 That merge also gives exactly two conflicts, both expected: `PR.md`, whole file — a scratch file,
 take whichever branch merges second — and the `appShell(...)` row of `docs/library.md`, where both
