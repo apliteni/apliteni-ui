@@ -1,0 +1,65 @@
+/* ============================================================================
+ * Tooltip — .ui-tip, the readout that shows a value while a pointer rests on
+ * the mark holding it: a bar, a point on a sparkline, a cell in a heatmap.
+ *   .ui-tip-host   the box the readout is placed against
+ *   .ui-tip        the readout — __label, __value, __detail
+ * The readout is an overlay in every state. It is absolutely placed inside its
+ * host, so showing it, filling it and moving it change the size of nothing.
+ * why: docs/specification.md#the-hover-readout
+ * ========================================================================== */
+
+.ui-tip-host { position: relative; }
+
+.ui-tip {
+  /* One number for the mark-to-readout distance, read by both placements here
+     and by the wiring's flip test, so above and below cannot drift apart. */
+  --ui-tip-gap: 8px;
+  --ui-tip-bg: var(--surface-3);
+  position: absolute;
+  top: var(--ui-tip-y, 0px);
+  left: var(--ui-tip-x, 50%);
+  z-index: var(--z-dropdown);
+  translate: calc(-50% + var(--ui-tip-shift, 0px)) calc(-100% - var(--ui-tip-gap));
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  max-width: var(--prose-caption);
+  padding: var(--space-2) var(--space-3);
+  background: var(--ui-tip-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text);
+  /* The readout covers the marks beside the one it describes. Were it a hover
+     target it would take the pointer, uncover the mark, lose the pointer and
+     return — a flicker at pointer speed. */
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    /* `linear`: visibility is discrete, the rule the dropdown panel states. */
+    visibility var(--dur-fast) linear;
+}
+
+/* Light is an all-white app, so the raised surface is white over a hairline,
+   the way a light card is. */
+:root[data-theme="light"] .ui-tip { --ui-tip-bg: var(--surface); }
+
+/* Below the mark: the wiring's flip when above would be clipped, or the
+   author's own choice. */
+.ui-tip.is-below { translate: calc(-50% + var(--ui-tip-shift, 0px)) var(--ui-tip-gap); }
+
+.ui-tip.is-open { opacity: 1; visibility: visible; }
+
+.ui-tip__label { color: var(--muted); }
+.ui-tip__value {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--strong);
+  font-variant-numeric: tabular-nums;
+}
+.ui-tip__detail { color: var(--dim); font-variant-numeric: tabular-nums; }
