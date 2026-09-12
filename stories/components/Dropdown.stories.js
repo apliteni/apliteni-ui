@@ -1,5 +1,6 @@
 import { dropdown } from '../../src/components/dropdown.js';
 import { pad, row, specimen } from '../_gallery.js';
+import { currencyItems } from '../_currencies.js';
 
 const VERSIONS = [
   { label: 'phoenix.2026.002', description: 'Product units, animated deck', badge: 'Live', selected: true },
@@ -124,6 +125,65 @@ export const Scrollable = {
     'Capped height with an internal scroll for long option lists',
     dropdown({ label: 'region:', ariaLabel: 'Region', items: LONG, scroll: true, open: true }),
   ), 360)),
+};
+
+// Search — a field above the rows that filters them as the reader types.
+// why: docs/specification.md#a-dropdown-with-a-search-field
+const CURRENCY = { label: 'currency:', ariaLabel: 'Currency', search: { placeholder: 'Search currencies' } };
+
+export const Search = {
+  name: 'Search — type to filter',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+    'search: true — open it, type to filter, ↑ ↓ to move through what is left, Enter to pick, Esc to close',
+    dropdown({ ...CURRENCY, items: currencyItems('EUR') }),
+  ), 440)),
+};
+
+export const SearchOpen = {
+  name: 'Search (open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+    'The field is pinned; the 29 rows scroll under it',
+    dropdown({ ...CURRENCY, items: currencyItems('EUR'), open: true }),
+  ), 440)),
+};
+
+export const SearchFiltered = {
+  name: 'Search — matched anywhere in the label (open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+    '“dollar” finds six rows, none of which starts with it',
+    dropdown({ ...CURRENCY, items: currencyItems('EUR'), open: true, search: { ...CURRENCY.search, query: 'dollar' } }),
+  ), 440)),
+};
+
+export const SearchNoMatch = {
+  name: 'Search — no match (open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+    'A query that matches nothing says so, with a nudge and no action',
+    dropdown({
+      ...CURRENCY, items: currencyItems('EUR'), open: true,
+      search: { ...CURRENCY.search, query: 'bitcoin', empty: 'No currency matches “{q}”' },
+    }),
+  ), 440)),
+};
+
+export const SearchGrouped = {
+  name: 'Search — a group with no match (open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+    '“tax” leaves no row in Operating, so the group goes and no divider sits above Reserve',
+    dropdown({
+      ariaLabel: 'Account', variant: 'select', open: true, search: { placeholder: 'Search accounts', query: 'tax' },
+      sections: [
+        { label: 'Operating', items: [{ label: 'Payroll', value: 'payroll' }, { label: 'Payables', value: 'payables', selected: true }] },
+        { label: 'Reserve', items: [{ label: 'Tax reserve', value: 'tax-reserve' }, { label: 'Rainy day', value: 'rainy-day' }] },
+        { label: 'Escrow', items: [{ label: 'Escrow tax', value: 'escrow-tax' }] },
+      ],
+    }),
+  ), 380)),
 };
 
 // The trigger sits at the foot of its bay, so the panel opens into the space

@@ -101,8 +101,11 @@ const familyDecls = () => {
  * kit asked for. 48 with `.ui-tip`, the hover readout (#282): it is text set
  * inside a chart, so it names the text role rather than inheriting whatever
  * face the chart's container happens to carry. 49 with `.ui-back` (#270): the
- * back link sets the text role, like every other control that names a place. */
-const EXPECTED_SUBJECTS = 49;
+ * back link sets the text role, like every other control that names a place.
+ * 50 with `.ui-dropdown__search-input { font: inherit }` (#283): the same reset
+ * on the dropdown's search field, which takes the face of the panel it sits in
+ * rather than the browser's own for an <input>. */
+const EXPECTED_SUBJECTS = 50;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

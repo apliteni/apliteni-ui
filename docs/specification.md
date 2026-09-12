@@ -659,6 +659,77 @@ declarations is taken back out. It carries one gap it cannot close: jsdom pins `
 onto a `<button>` above any author rule, whatever the specificity and whatever the source order, so
 that one declaration is held on the other two tags and by name in the rule all three share.
 
+## A dropdown with a search field
+
+`search: true` puts a text field above a dropdown's rows and filters them as the reader types. It
+is opt-in, and a dropdown without it renders byte-for-byte what it rendered before. Asked for in
+[#283](https://github.com/apliteni/apliteni-ui/issues/283): the finance portal's filter dropdowns
+hold between 12 and several hundred options each, with no way to narrow them.
+
+**Typing filters, and focus stays in the field.** The field is a `role="combobox"` that controls
+the list through `aria-controls`. The rows stay `role="option"`, and the row Enter would pick is
+named by `aria-activedescendant`, so the reader can keep typing. The field has the focus and carries
+`--ring`; the active row takes the hover fill and a 2px accent bar, because two rings of equal
+weight leave the reader unable to tell focus from the pick. Opening the panel puts focus in the
+field, with the selected row active or the first one. For that, the open search panel is visible at
+once rather than at the first step of its `visibility` transition: a browser will not focus a field
+in a box that is still `hidden`, so the focus call was lost. Closing still fades.
+
+- ↑ and ↓ move through the rows still showing, skip a disabled row, and wrap at the ends.
+- Enter picks the active row, writes it into the trigger and closes. With nothing showing, it does
+  nothing.
+- Escape closes and returns focus to the trigger. Tab closes.
+- Home and End move the caret, because they belong to the text field.
+- Moving the pointer over a row makes it the active row, so Enter never picks a row other than the
+  one under the pointer. A move event with no change of position is ignored: a browser sends one
+  after the list scrolls, and it would take the active row away from the arrows.
+- While an input method is composing (Japanese, Chinese, Korean), every key in the field belongs to
+  it. The Enter that commits the text picks no row, and the arrows and Escape do not reach the list.
+  The field checks `isComposing` and `keyCode 229` both, because Safari sends the committing Enter
+  with `isComposing` false.
+
+**The match is anywhere in the label**, ignoring case and accents, and rows keep their order. A
+match anywhere finds every row a start-of-label match would find, and it also finds the rows a
+reader remembers by a later word: "dollar" finds the US, Canadian and Australian dollars, and a
+label like "Acme Payments Ltd" is found by "payments". What it costs is a wider result for a
+one-letter query, which the second letter narrows. Descriptions are not searched, because the match
+is not highlighted and a row shown for text in its second line leaves the reader hunting for why.
+Text a reader will search by, such as a currency code, goes in the label: `US dollar (USD)`.
+
+**Every open starts from the whole list.** The query is cleared when the panel opens, not when it
+closes, so a panel fading out after a pick does not flash back to every row.
+
+**No match says so.** A query that matches nothing shows "No match for “…”" and a nudge, never a
+blank panel. `search.empty` can reword the first line, and `{q}` in it stands for the query. The
+state is a `role="status"` region, so a screen reader hears it. It carries no action, per
+Guidelines / Microcopy: a filter gets a nudge.
+
+**The field stays put.** The rows scroll inside `.ui-dropdown__list`, capped at 300px or at the
+height `scroll` gives, and the field does not scroll with them. The panel keeps the width the
+whole list needs, so it does not narrow as rows are filtered out. A group with no match is hidden,
+and the divider sits only between groups still showing, never above the first of them.
+
+**On a touch screen the field is 16px.** iOS Safari zooms the page into a focused field whose text
+is smaller than that, and opening the panel focuses the field. So under `(pointer: coarse)` the
+field's text is 16px; with a mouse it stays at the rows' 12.5px. The size is real rather than a
+16px field scaled down with a transform, because the zoom reads the computed size, and a transform
+would shrink the border and the focus ring along with the text.
+
+**The panel is a dialog.** A listbox may own only options and groups, so a field inside one fails
+axe's `aria-required-children`. With search on, the panel is a `role="dialog"` named after the
+dropdown, the trigger announces `aria-haspopup="dialog"`, and the listbox sits inside it beside
+the field. For the same reason, a `menu` dropdown given `search` renders its rows as options, and
+a row carrying `href` becomes a plain option rather than a link.
+
+When a dropdown must have a search field is on Guidelines / Component choice, and it is a rule
+rather than a recommendation: ten options or more, or any list fed by data, gets a field. The
+number was settled on #283.
+
+Held by `src/components/dropdown-search.test.js`, which drives the kit's own wiring with real
+events. The rendering is held by the browser only: jsdom does not rank the UA sheet below author
+rules, so it cannot show that `.ui-dropdown__item`'s `display: flex` would outrank `[hidden]`
+without `.ui-dropdown__list [hidden]`.
+
 ## The drawer
 
 A drawer is a panel against one edge of the screen, over a scrim, for looking at or changing one
