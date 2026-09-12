@@ -1,0 +1,139 @@
+/* Elevation variants for #295 — a review prototype, NOT kit source. Nothing in
+ * src/ imports this file; it is loaded only by variants.html, to draw the
+ * screenshots on docs/reviews/295-elevation.html.
+ *
+ * One block per variant, keyed by `data-elev` on <html>. Each block IS the
+ * proposal: the tokens it re-points, and the component surfaces it moves. The
+ * review page states the same thing in prose — if the two disagree, this file
+ * is what the screenshots show.
+ *
+ *   today      the kit as shipped (declares nothing)
+ *   hairline   every --shadow-* -> none, and the border does the work
+ *   lift       every --shadow-* -> none, and LIGHTNESS does the work
+ *   lift-line  lift, plus the kit's hairline kept on every floating surface
+ *   frost      lift, and overlays go translucent over a blurred backdrop
+ */
+
+/* ---------------------------------------------------------------------------
+ * 1. What every --shadow-* becomes. Four variants out of five answer the same:
+ * nothing casts. --shadow-ink, --sheen and --scrim survive — they are not cast
+ * shadows (the feedback pill's glow, the specular edge, the overlay backdrop).
+ * ------------------------------------------------------------------------- */
+:root[data-elev="hairline"],
+:root[data-elev="lift"],
+:root[data-elev="lift-line"],
+:root[data-elev="frost"] {
+  --shadow-sm: none;   /* switch knob, topbar theme pill, soft toast */
+  --shadow-md: none;   /* success panel, outline toast, .ui-lift hover */
+  --shadow-lg: none;   /* dropdown, account menu, confirm, drawer, palette,
+                          auth card, solid toast, React modal */
+  --shadow-seg: none;  /* the active segmented pill */
+  --shadow-card: none; /* published, unread by the kit since #284 */
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. hairline — nothing else changes except the weight of the line. A panel
+ * that no longer casts cannot also be delineated by the quietest border in the
+ * kit, so every floating surface takes --border-strong.
+ * ------------------------------------------------------------------------- */
+:root[data-elev="hairline"] .ui-dropdown__panel,
+:root[data-elev="hairline"] .amenu,
+:root[data-elev="hairline"] .vsw__menu,
+:root[data-elev="hairline"] .ui-confirm__panel,
+:root[data-elev="hairline"] .rx-modal,
+:root[data-elev="hairline"] .ui-toast--outline { border-color: var(--border-strong); }
+/* Light paints card and page the same white, so a flat card needs its line too. */
+:root[data-elev="hairline"] .ui-card { border: 1px solid var(--border); }
+
+/* ---------------------------------------------------------------------------
+ * 3. The ladder — Artur's rule. The page goes a step DARKER, the card a step
+ * BRIGHTER, and a floating panel brighter still. Elevation is lightness.
+ *
+ * Dark's ceiling is set by ink, not by taste: --muted (#948fa8) has to clear
+ * WCAG AA 4.5 on the brightest surface a panel can be. #2a2639 measures 4.71 —
+ * one step brighter and the dropdown's description text falls under the floor.
+ * Light's floor is the page: white cards need a page that is not white.
+ * ------------------------------------------------------------------------- */
+:root[data-elev="lift"],
+:root[data-elev="lift-line"],
+:root[data-elev="frost"],
+:root[data-theme="dark"][data-elev="lift"],
+:root[data-theme="dark"][data-elev="lift-line"],
+:root[data-theme="dark"][data-elev="frost"] {
+  --bg: #0e0d14;            /* was #16151f — the page drops a step */
+  --surface-2: #161520;     /* was #1b1927 — the SUNKEN step: fields, tracks, disabled */
+  --surface: #211e2d;       /* was #221f2e — the card, now clearly above the page */
+  --bg-elevated: #2a2639;   /* was #1c1a28 — floating panels, now above the card */
+  --surface-3: #2f2b40;     /* was #2a2739 */
+  --seg-active-bg: #383350; /* was #34314a */
+}
+:root[data-theme="light"][data-elev="lift"],
+:root[data-theme="light"][data-elev="lift-line"],
+:root[data-theme="light"][data-elev="frost"] {
+  --bg: #f1f2f6;            /* was #ffffff — the app stops being white */
+  --surface-2: #e8eaf1;     /* was #f5f6f9 */
+  --surface: #ffffff;       /* unchanged — the card is now the brightest thing */
+  --bg-elevated: #ffffff;   /* was #ffffff — unchanged, and now it means something */
+  --surface-3: #dfe2ea;     /* was #eceef3 */
+}
+
+/* The one component change the ladder needs. Four floating panels paint
+ * --surface-2 today, which the ladder re-points to the SUNKEN step — the same
+ * token cannot be both a field's inset and a menu's lift. They move to
+ * --bg-elevated, the token named for the job and read today by one toast. */
+:root[data-elev="lift"] .ui-dropdown__panel,
+:root[data-elev="lift-line"] .ui-dropdown__panel,
+:root[data-elev="frost"] .ui-dropdown__panel,
+:root[data-elev="lift"] .amenu,
+:root[data-elev="lift-line"] .amenu,
+:root[data-elev="frost"] .amenu,
+:root[data-elev="lift"] .vsw__menu,
+:root[data-elev="lift-line"] .vsw__menu,
+:root[data-elev="frost"] .vsw__menu,
+:root[data-elev="lift"] .ui-confirm__panel,
+:root[data-elev="lift-line"] .ui-confirm__panel,
+:root[data-elev="frost"] .ui-confirm__panel,
+:root[data-elev="lift"] .rx-modal,
+:root[data-elev="lift-line"] .rx-modal,
+:root[data-elev="frost"] .rx-modal { background: var(--bg-elevated); }
+
+/* lift alone: no line anywhere. Lightness is the whole argument, so the
+ * hairline is removed rather than left to hedge it. */
+:root[data-elev="lift"] .ui-dropdown__panel,
+:root[data-elev="lift"] .amenu,
+:root[data-elev="lift"] .vsw__menu,
+:root[data-elev="lift"] .ui-confirm__panel,
+:root[data-elev="lift"] .rx-modal { border-color: transparent; }
+:root[data-elev="lift"] .ui-card { border: 0; }
+
+/* lift-line: the ladder AND the line, which is what Primer, Atlassian, Geist
+ * and Radix all ship. The card takes a hairline in BOTH themes — today only
+ * light has one. */
+:root[data-elev="lift-line"] .ui-card { border: 1px solid var(--border); }
+
+/* ---------------------------------------------------------------------------
+ * 4. frost — the ladder for the page and the card, and a translucent overlay
+ * over a blurred backdrop for anything that floats. Radix Themes ships this as
+ * its default panel background; Raycast and Arc are built on it.
+ * ------------------------------------------------------------------------- */
+:root[data-elev="frost"] {
+  --elev-blur: blur(20px) saturate(150%);
+  --elev-veil: color-mix(in srgb, var(--bg-elevated) 76%, transparent);
+  --elev-edge: color-mix(in srgb, var(--sheen) 10%, transparent);
+}
+:root[data-theme="light"][data-elev="frost"] {
+  --elev-veil: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  --elev-edge: color-mix(in srgb, var(--shadow-ink) 10%, transparent);
+}
+:root[data-elev="frost"] .ui-dropdown__panel,
+:root[data-elev="frost"] .amenu,
+:root[data-elev="frost"] .vsw__menu,
+:root[data-elev="frost"] .ui-confirm__panel,
+:root[data-elev="frost"] .rx-modal,
+:root[data-elev="frost"] .ui-toast--outline {
+  background: var(--elev-veil);
+  border-color: var(--elev-edge);
+  -webkit-backdrop-filter: var(--elev-blur);
+  backdrop-filter: var(--elev-blur);
+}
+:root[data-elev="frost"] .ui-card { border: 1px solid var(--border); }

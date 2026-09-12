@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-elev="today">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elevation variants (#295)</title>
+<!-- A review prototype, not kit source: it draws one elevation variant per URL
+     with the kit's real stylesheet, factories and React modal, for the
+     screenshots on docs/reviews/295-elevation.html.
+     ?v=today|hairline|lift|lift-line|frost &theme=dark|light &s=board|modal -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../../src/index.css">
+<link rel="stylesheet" href="../../../react/src/Modal.css">
+<link rel="stylesheet" href="./elevation.css">
+<style>
+  body { margin: 0; background: var(--bg); min-height: 100vh; }
+  .p-page { max-width: var(--container); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-16); }
+  .p-head { margin-bottom: var(--space-6); }
+  .p-head h1 { margin: 0 0 6px; font-size: var(--text-2xl); color: var(--strong); }
+  .p-head p { margin: 0; color: var(--muted); font-size: var(--text-base); }
+  .p-cols { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+  .p-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) 0; }
+  .p-row + .p-row { border-top: 1px solid var(--border); }
+  .p-row__label { color: var(--text); font-size: var(--text-sm); }
+  .p-row__hint { display: block; color: var(--muted); font-size: var(--text-xs); margin-top: 2px; }
+  .p-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-6); margin: 0; font-size: var(--text-sm); }
+  .p-facts dt { color: var(--muted); }
+  .p-facts dd { margin: 0; color: var(--text); }
+  .p-toasts { position: fixed; right: var(--space-6); bottom: var(--space-6); width: 360px; max-width: calc(100vw - var(--space-8)); display: flex; flex-direction: column; gap: var(--space-3); z-index: var(--z-toast); }
+  @media (max-width: 860px) {
+    .p-cols { grid-template-columns: minmax(0, 1fr); }
+    .p-page { padding: var(--space-6) var(--space-4) var(--space-12); }
+    .p-toasts { right: var(--space-4); left: var(--space-4); bottom: var(--space-4); width: auto; }
+  }
+</style>
+</head>
+<body>
+<div id="top"></div>
+<main class="p-page">
+  <div class="p-head">
+    <h1>Billing</h1>
+    <p>A placeholder workspace. Nothing on this page is real data.</p>
+  </div>
+  <div class="p-cols">
+    <div id="left"></div>
+    <div id="right"></div>
+  </div>
+</main>
+<div class="p-toasts" id="toasts"></div>
+<div id="react-modal"></div>
+
+<script type="module">
+  import { topbar } from '../../../src/components/topbar.js';
+  import { dropdown } from '../../../src/components/dropdown.js';
+  import { card, badge, button, segmented, switchToggle, toast, input, field } from '../../../src/components/index.js';
+
+  const q = new URLSearchParams(location.search);
+  const root = document.documentElement;
+  root.setAttribute('data-theme', q.get('theme') === 'light' ? 'light' : 'dark');
+  root.setAttribute('data-elev', q.get('v') || 'today');
+
+  // Placeholder account and plan: the repository is public, so nothing here is real.
+  document.getElementById('top').innerHTML = topbar({
+    word: 'Billing', showSwitch: false,
+    account: { name: 'Ada Lovelace', email: 'ada@example.com', active: 'billing' },
+  });
+
+  const planMenu = dropdown({
+    label: 'plan:', variant: 'select', open: true, ariaLabel: 'Plan',
+    items: [
+      { label: 'Starter', value: 'starter', description: 'Up to 3 seats' },
+      { label: 'Team', value: 'team', description: 'Up to 25 seats', selected: true },
+      { label: 'Scale', value: 'scale', description: 'Unlimited seats', badge: 'Live' },
+      '---',
+      { label: 'Compare plans', value: 'compare' },
+    ],
+  });
+
+  document.getElementById('left').innerHTML = card({
+    title: 'Plan',
+    sub: 'The panel below floats over this card — the hard case for elevation.',
+    body: `<div style="margin:var(--space-4) 0 250px">${planMenu}</div>`
+      + `<div class="p-row"><span class="p-row__label">Billing period`
+      + `<span class="p-row__hint">Charged at the start of each period.</span></span>`
+      + segmented({ options: ['Monthly', 'Yearly'], active: 1, size: 'sm', ariaLabel: 'Billing period' })
+      + `</div>`
+      + `<div class="p-row"><span class="p-row__label">Email receipts`
+      + `<span class="p-row__hint">One message per invoice.</span></span>`
+      + switchToggle({ checked: true, label: 'Email receipts' }) + `</div>`,
+  });
+
+  document.getElementById('right').innerHTML = card({
+    title: 'This period',
+    body: `<dl class="p-facts">`
+      + `<dt>Seats</dt><dd>12 of 25</dd>`
+      + `<dt>Renews</dt><dd>2026-10-01</dd>`
+      + `<dt>Status</dt><dd>${badge('Active', 'success')}</dd></dl>`
+      + `<div style="margin-top:var(--space-5)">`
+      + field({ label: 'Purchase order', control: input({ placeholder: 'Optional reference' }) })
+      + `</div>`
+      + `<div style="margin-top:var(--space-5);display:flex;gap:var(--space-3)">`
+      + button({ label: 'Change plan', variant: 'primary', size: 'sm' })
+      + button({ label: 'Download invoice', variant: 'secondary', size: 'sm' })
+      + `</div>`,
+  });
+
+  document.getElementById('toasts').innerHTML =
+    toast({ variant: 'info', style: 'outline', title: 'Seat added', body: 'A seat was added to this workspace.' })
+    + toast({ variant: 'success', style: 'soft', title: 'Invoice sent', body: 'Sent to the billing address on file.' });
+
+  // The dropdown and the account menu are opened by class rather than by a click:
+  // the screenshots need both panels held open in the same frame, and the shared
+  // wiring closes one when the other opens.
+  document.querySelector('.ui-dropdown')?.classList.add('open');
+  document.querySelector('.acct')?.classList.add('open');
+
+  const ready = () => document.fonts.ready.then(() => document.body.setAttribute('data-ready', ''));
+  if (q.get('s') === 'modal') import('./modal-frame.js').then((m) => m.mount()).then(ready);
+  else ready();
+</script>
+</body>
+</html>
