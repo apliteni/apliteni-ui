@@ -13,6 +13,26 @@
 
 export const RELEASES = [
   {
+    v: '0.31.0', date: '2026-09-12',
+    changes: [
+      ['breaking', "Already shipped: everything in this entry has been on npm since 0.30.0. The three changes below merged before #287 bumped the version, so 0.28.0, 0.29.0 and 0.30.0 carried them without describing them. A consumer on 0.30.0 already has the capitals gone and the card title as a heading; this is the entry that says so."],
+      ['breaking', "Nothing in the kit sets text in capitals by style. `text-transform` is gone from eleven rules — the eyebrow, the table head, the badge, the pill, the nav caption, the menu group caption, the menu row badge, the footer column title, the code sample's label, the confirmation's eyebrow and the version badge — and the letter-spacing that only capitals need went with it. A label written `Paid` rendered `PAID` and now renders `Paid`. Copy that relied on the uppercasing has to be rewritten in sentence case; a word that is capitals in itself is typed that way. `--tracking-caps` is still exported and no kit rule reads it.", ['Badge', 'Table', 'Nav', 'Dropdown', 'Footer', 'Snippet']],
+      ['breaking', "`card()` and `<Card>` emit the title as an `h2` instead of a `div`. A card title is now in the page's heading outline, and `level` takes it to `h3`–`h6` for a card under a section heading of its own. A title holding block content has to become inline content — a heading cannot hold a block. `<Card>` renders no heading for an empty title, where it used to emit an empty `div`.", ['Card']],
+      ['added', "`commandPalette()` and `wireCommandPalette()`, with `<CommandPalette>` beside them in React. ⌘K or Ctrl+K over a scrim: a text box, grouped results, ranking that keeps the caller's order as the tie-break, and the ARIA combobox keyboard. The kit ships the shell and names no result kinds — a row goes somewhere, runs something, or asks a confirm first, and a destructive row with nothing to ask cannot be run at all. `rank: false` hands the query back for a palette a server feeds. Two densities, compact by default.", ['CommandPalette']],
+      ['added', "`drawerSection({ title, rows, body })` — a drawer group, a heading over label and value rows, parted from the group above it by one rule and by space rather than by a box.", ['Drawer']],
+      ['added', "React `Drawer`: the HTML drawer's markup, slide and scrim, on the kit's own sheet rather than a second set of styles that can disagree with it.", ['Drawer']],
+      ['added', "`playEntrance()` and `ENTRANCE_FALLBACK_MS`. Tab panels, side-nav groups, the feedback error and `setBusy()` content now fade in when they change, and everything that appears after load moves — under `prefers-reduced-motion` none of it does.", ['Tabs', 'Nav', 'Feedback']],
+      ['added', "Guidelines / The command palette — six rules: what belongs in a palette, how results are grouped and ranked, the six keys it owes a reader, focus and announcement, and the refusal to run a delete on its own.", ['CommandPalette']],
+      ['added', "Guidelines / Drawers and Guidelines / Motion, each rule citing the line of kit code that keeps it.", ['Drawer']],
+      ['added', "Guidelines / Labels and titles — four rules on sentence case, the rank a title takes, a card title as a heading, and what an eyebrow is for. Each cites the line of kit code that keeps it.", ['Card']],
+      ['added', "`stories/guidelines/letter-case.test.js` — refuses a case change anywhere in `src/`, `stories/`, `site/`, `react/src` and `.storybook`, in a stylesheet, a `<style>` block, an inline style or a JSX style object, across 21 spellings; and renders every story in both themes and every site page to check that the text under a label or chip rank starts with a capital."],
+      ['changed', "Labels and chips take named type ranks. A label is `--text-sm` at `--weight-medium`; a chip is `--text-xs` at `--weight-semibold`; a card title is `--text-lg` at `--weight-semibold` and keeps the text face on any element. Five ranks in all, each smaller than the one above it, written in the specification and read at run time by `src/styles/type-ranks.test.js`. The sizes were the owner's choice between three rendered treatments.", ['Badge', 'Card', 'Table']],
+      ['changed', "React `Modal` fades in and out, and stays mounted until its exit ends — about 250ms after `open` turns false. A test that expects the dialog gone the instant `open` is false has to wait for it.", ['Modal']],
+      ['changed', "React `Modal` paints on the confirm's layer, above a drawer, instead of at `z-index: 50`, and React Modals, Drawers and CommandPalettes share one dialog stack: only the top one takes Escape and Tab, so a confirm opened from a palette row takes one Escape to answer rather than one that closes both. The overlay layers are three steps now — drawer 100, palette 101, confirm 102.", ['Modal', 'Drawer', 'CommandPalette', 'Confirm']],
+      ['fixed', "Under `prefers-reduced-motion`, opening a drawer, a confirm or a command palette puts focus on its first control again. It had landed on the panel, or fallen to `<body>` — where the arrows and the letters reached nothing and only a mouse recovered it.", ['Drawer', 'Confirm', 'CommandPalette']],
+    ],
+  },
+  {
     v: '0.30.0', date: '2026-09-12',
     changes: [
       ['added', "`dropdown({ search: true })` puts a field above the rows and filters them as the reader types. It was asked for by the finance portal, whose filter dropdowns hold between 12 and several hundred options each with no way to narrow them. The match is anywhere in the label, ignoring case and accents, and rows keep their order. The arrows move through the rows still showing, Enter picks, Escape closes, and a query that matches nothing says so instead of leaving a blank panel. The field is a combobox inside a small dialog, because a listbox may not contain a text field. A dropdown without `search` renders byte-for-byte what it rendered before.", ['Dropdown']],
@@ -466,6 +486,7 @@ const COMPONENTS = {
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',
   Confirm:   'components-confirm--playground',
+  CommandPalette: 'components-command-palette--playground',
   Drawer:    'components-drawer--playground',
   Inputs:    'components-inputs--text-fields',
   Segmented: 'components-segmented-control--playground',
