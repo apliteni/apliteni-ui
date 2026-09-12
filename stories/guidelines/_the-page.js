@@ -165,8 +165,10 @@ export const RULES = [
     id: 'outline',
     imperative: `Take the outline down one level at a time, and stop at h${LIMITS.outline}.`,
     why: 'h1 is the page, h2 a card or a section of it, h3 a group inside one. A fourth rank is a '
-      + 'page that has become two, and a skipped rank is a level a reader hears missing. The ranks '
-      + 'are the same three the type scale draws, so the outline and the sizes cannot disagree.',
+      + 'page that has become two, and a skipped rank is a level a reader hears missing. The scale '
+      + 'has two title ranks, not three: an h3 inside a card takes the card title\'s look through '
+      + 'card({ level: 3 }), so every rank past that buys a level in the outline and no size to say '
+      + 'it with.',
     doCaption: 'Page, section, group — down one at a time. Written out: these are labels, not headings.',
     dontCaption: 'Two pages in one, then a jump from h1 to h3, then a rank nothing on the page reads at.',
     doHtml: outlineDo,

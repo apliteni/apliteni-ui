@@ -117,7 +117,7 @@ under the Overview, because it is the frame the other fifteen hang off.
 | `lede` | Two sentences at most, and not one of them the title again | Microcopy and tone |
 
 Every citation is a `kit` entry — a file, a line and a literal on that line — and
-`stories/guidelines/refs.test.js` resolves all twenty of them, so a rule that cites a page whose
+`stories/guidelines/refs.test.js` resolves all twenty-one of them, so a rule that cites a page whose
 line has moved fails the build rather than pointing a reader at the wrong rule.
 
 ## The four numbers, and who chose them
@@ -133,7 +133,11 @@ line has moved fails the build rather than pointing a reader at the wrong rule.
 | How deep the outline goes | stop at h2, **down to h3** | h3 |
 | What density a data page takes | roomy, **dense** | dense allowed, never mixed |
 
-ARTUR_DECISION
+**Who chose.** The alternatives went to Artur on the review page before the rules were written
+down. He has the board; the rules on this branch are written at the recommendations above, and
+each one is a single number in `LIMITS` (`stories/guidelines/_the-page.js`) that the prose and the
+gate both read — so a different answer is one edit, not a rewrite. If he moves one, this section
+records what he chose and what he rejected, and the issue gets the same sentence.
 
 ## Two faults the gate found, and what changed
 
@@ -206,13 +210,32 @@ Ten rules, four specimen pairs, twenty citations.
 `docs/evidence/page-limits-light.png`, drawn from
 [docs/reviews/275-page-limits.html](docs/reviews/275-page-limits.html).
 
+## A ledger this moved, and one failure that is the box
+
+`scripts/font-loading.test.js` counts the pages in the tree that load a webfont, because *"a
+loader that stops being found stops being checked, and an empty sweep passes as loudly as a full
+one"*. The review prototype is the seventh, so the number and the comment naming the six both
+move — and the page loads the same two families at the same five weights as every other loader,
+which is the gate's other rule and caught my first draft loading IBM Plex Sans at three.
+
+`stories/contrast.test.js` → *"the walk has not run away with the clock"* fails on this box, on
+`main` and on this branch alike, under the load of a parallel run. It is a wall-clock ceiling, not
+a measurement of the kit. Both runs below are reported with it.
+
 ## The gates
 
 ```
-                        before      after
-root  npm test          NNNN        NNNN
-react npm test          NNN         NNN
+                        before (7ffbde4)      after
+root  npm test          BEFORE_ROOT           AFTER_ROOT
+react npm test          322 passing           322 passing
 ```
+
+`npm run build` (the React workspace, tsup + dts): success.
+`npm run build-storybook`: success, and `overview.test.js`'s built-ids check ran against it.
+
+The slop detector is clean on everything new at level 2, with one medium it cannot avoid: the
+review prototype links Google Fonts, which the linter cannot read from disk, exactly as
+`docs/reviews/270-back-control/variants.html` does.
 
 ## Proof
 
