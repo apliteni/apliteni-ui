@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.27.1', date: '2026-09-11',
+    changes: [
+      ['changed', "A card is flat: `.ui-card` casts no drop shadow in either theme. In light its hairline `--border` alone marks it off the white page; dark was already shadowless and still groups by surface. An interactive card keeps its 2px hover lift and loses the `--shadow-md` it cast on hover in dark, which light never showed. `--shadow-card` is still defined for anyone reading it, and raised surfaces — dropdown panels, modals, drawers, popovers — keep their shadows.", ['Card']],
+    ],
+  },
+  {
     v: '0.27.0', date: '2026-09-10',
     changes: [
       ['added', "`pagination()` — the strip under a table or a list, and the first pager in the kit that can express a page it did not compute. Rows do not go into it: it takes the current page, the page size and, where the caller has one, the size of the whole result, so a page counted by a server and a page sliced out of an array produce the same markup. Three variants — `steps` (First/Prev/Next/Last, the default), `numbered` (a truncated strip of at most seven slots) and `jump` (a page box) — and a fourth shape nobody selects: given no total it draws Prev and Next alone, because with no last page nothing else can be computed, which is what a cursor API and a `limit + 1` fetch both need. A control at an end is disabled and stays where it is, never removed. One page of content draws no steps, and with no page size on offer it renders nothing at all. The range announces itself in a polite live region, and nothing else in the strip does.", ['Pagination']],

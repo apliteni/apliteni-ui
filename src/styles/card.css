@@ -12,11 +12,12 @@
 }
 
 /* Light theme is an all-white app, so a filled card can't rely on a darker-
-   than-page surface the way the dark deck does — give it a hairline border +
-   soft shadow to read as a panel. Dark keeps the borderless deck look. */
+   than-page surface the way the dark deck does — a hairline border delineates
+   it instead. Flat, no drop shadow (#284). `none` rather than no declaration:
+   at (0,3,0) it outranks .ui-card--accent's inset ring, which light never showed. */
 :root[data-theme="light"] .ui-card {
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
 }
 
 /* A table wider than its card scrolls INSIDE the card instead of bleeding past
@@ -50,12 +51,10 @@
   border: 0;
   text-align: left;
   font: inherit;
-  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-med) var(--ease);
+  transition: transform var(--dur-fast) var(--ease);
 }
-.ui-card--interactive:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
+/* The lift alone, no shadow: cards are flat (#284), and light never showed one. */
+.ui-card--interactive:hover { transform: translateY(-2px); }
 
 /* card() emits the title as an h2, so the text face is named here rather than
    left to the element. why: docs/specification.md#labels-and-titles */
