@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { commandPalette } from '@apliteni/apliteni-ui';
 import { CommandPalette, type CommandGroup } from './CommandPalette';
+import { Modal } from './Modal';
 import { classesOfEl } from './test/classlist';
 
 afterEach(cleanup);
@@ -234,6 +235,41 @@ describe('the keyboard and the focus', () => {
     await user.type(screen.getByRole('combobox'), 'zzzz');
     expect(status.textContent).toBe('No results');
     expect(screen.getByText('No matches')).toBeTruthy();
+  });
+
+  it('one Escape closes the confirm a destructive row opened, and leaves the palette', async () => {
+    // The palette and the Modal are two dialogs on one stack, and only the top of
+    // it answers the keyboard. Before #274 sat on #272's dialog.ts they each kept
+    // their own document listener, and one press ran both.
+    const user = userEvent.setup();
+    function Host() {
+      const [open, setOpen] = useState(true);
+      const [asking, setAsking] = useState(false);
+      const groups: CommandGroup[] = [{
+        label: 'Danger',
+        items: [{ id: 'delete', label: 'Delete workspace', danger: true, onConfirm: () => setAsking(true) }],
+      }];
+      return (
+        <>
+          <CommandPalette open={open} groups={groups} onClose={() => setOpen(false)} />
+          <Modal open={asking} title="Delete workspace?" onClose={() => setAsking(false)}>
+            <button type="button">Delete</button>
+          </Modal>
+        </>
+      );
+    }
+    render(<Host />);
+
+    await user.click(screen.getByText('Delete workspace'));
+    expect(screen.getByRole('dialog', { name: 'Delete workspace?' })).toBeTruthy();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Delete workspace?' })).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Command palette' })).toBeTruthy();
+
+    // And the second press reaches the palette, now that it is the top again.
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Command palette' })).toBeNull();
   });
 
   it('hides the page behind it, and hands it back on the way out', () => {

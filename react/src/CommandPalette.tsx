@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { rankGroups, icon } from '@apliteni/apliteni-ui';
-import { tabbablesIn, dismissOnScrim } from './dialog';
+import { DialogScope, dismissOnScrim, useDialog } from './dialog';
 
 // The React face of the kit's commandPalette() factory. The vanilla output is
 // the source of truth for every class name here, and CommandPalette.test.tsx
@@ -70,8 +70,9 @@ export function CommandPalette({
   rank = true, onQueryChange,
 }: CommandPaletteProps) {
   const uid = useId().replace(/:/g, '');
+  const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
-  const input = useRef<HTMLInputElement>(null);
+  const search = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [at, setAt] = useState(0);
 
@@ -90,39 +91,14 @@ export function CommandPalette({
 
   useEffect(() => { setAt(0); }, [query]);
 
-  // Focus opens in the text box and goes back to the opener on the way out, and
-  // the page behind is hidden from assistive tech while it is up. Same three
-  // effects as <Modal>, which is where the React dialogs keep this behaviour
-  // until #272 gives them one stack to share.
-  useEffect(() => {
-    if (!open) return undefined;
-    const opener = document.activeElement as HTMLElement | null;
-    const portalRoot = panel.current?.closest('.ui-cmdk');
-    const muted = (Array.from(document.body.children) as HTMLElement[])
-      .filter((el) => el !== portalRoot && !el.hasAttribute('inert'));
-    muted.forEach((el) => el.setAttribute('inert', ''));
-    input.current?.focus();
-    return () => {
-      muted.forEach((el) => el.removeAttribute('inert'));
-      if (opener && document.contains(opener)) opener.focus();
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
-      if (e.key !== 'Tab' || !panel.current) return;
-      const items = tabbablesIn(panel.current);
-      if (items.length === 0) { e.preventDefault(); panel.current.focus(); return; }
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  // The palette is the third React dialog and shares the one stack with <Modal>
+  // and <Drawer>: focus, Escape, the Tab trap, the inert page and the way back to
+  // the opener are ./dialog's, never a fourth copy here. It matters most where
+  // two are up at once — a destructive row opens a confirm over the palette, and
+  // only the top of the stack answers Escape, so one press closes the question
+  // and leaves the palette standing. The `body` it is given is the search box, so
+  // "the first control Tab can reach" is the text box the reader types into.
+  const scope = useDialog(open, { root, panel, body: search }, onClose);
 
   const run = useCallback((item: CommandItem, newTab: boolean) => {
     if (isDisabled(item)) return;
@@ -155,103 +131,104 @@ export function CommandPalette({
   const listId = `${uid}-list`;
   let n = 0;
   return createPortal(
-    <div className={cx('ui-cmdk', density === 'roomy' && 'ui-cmdk--roomy', 'is-open')}>
-      <div className="ui-cmdk__scrim" onMouseDown={dismissOnScrim(onClose)} />
-      <div
-        className="ui-cmdk__panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label={label}
-        tabIndex={-1}
-        ref={panel}
-        onKeyDown={onKeyDown}
-      >
-        <div className="ui-cmdk__search">
-          <Glyph name="search" className="ui-cmdk__search-ic" />
-          <input
-            ref={input}
-            className="ui-cmdk__input"
-            type="text"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded
-            aria-controls={listId}
-            aria-label={label}
-            aria-activedescendant={active ? rowId(uid, shown, active) : undefined}
-            placeholder={placeholder}
-            value={query}
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(e) => { setQuery(e.target.value); onQueryChange?.(e.target.value); }}
-          />
-        </div>
-        <div className="ui-cmdk__list" id={listId} role="listbox" aria-label={`${label} results`}>
-          {shown.map((group, gi) => (
-            <div
-              key={group.label ?? `g${gi}`}
-              className="ui-cmdk__group"
-              role="group"
-              aria-labelledby={group.label ? `${uid}-g${gi}` : undefined}
-            >
-              {group.label && (
-                <div className="ui-cmdk__group-head" id={`${uid}-g${gi}`}>{group.label}</div>
-              )}
-              {group.items.map((item) => {
-                const disabled = isDisabled(item);
-                const id = `${uid}-o${n++}`;
-                const on = item === active;
-                return (
-                  <div
-                    key={item.id}
-                    id={id}
-                    className={cx('ui-cmdk__item', item.danger && !disabled && 'is-danger',
-                      disabled && 'is-disabled', on && 'is-active')}
-                    role="option"
-                    tabIndex={-1}
-                    aria-selected={on}
-                    aria-disabled={disabled || undefined}
-                    aria-haspopup={item.danger && item.onConfirm ? 'dialog' : undefined}
-                    onMouseMove={() => { if (!disabled) setAt(rows.indexOf(item)); }}
-                    onClick={(e) => run(item, e.metaKey || e.ctrlKey)}
-                  >
-                    {item.icon && <Glyph name={item.icon} className="ui-cmdk__ic" />}
-                    <span className="ui-cmdk__main">
-                      <span className="ui-cmdk__label">{item.label}</span>
-                      {item.description && <span className="ui-cmdk__desc">{item.description}</span>}
-                    </span>
-                    {item.badge && <span className="ui-cmdk__badge">{item.badge}</span>}
-                    {keysOf(item.shortcut).length > 0 && (
-                      <span className="ui-cmdk__keys" aria-hidden="true">
-                        {keysOf(item.shortcut).map((k) => (
-                          <kbd key={k} className="ui-cmdk__key">{k}</kbd>
-                        ))}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-        {/* Always in the DOM and hidden while there are rows, the way the vanilla
-            factory renders it: an element that appears is an element a screen
-            reader may or may not notice, and the count beside it is what says so. */}
-        <p className="ui-cmdk__empty" hidden={countOf(shown) > 0}>{empty}</p>
-        {/* The count and never the rows: a region holding the list would read all
-            of it out again on every keystroke. */}
-        <p className="ui-sr" role="status" aria-live="polite">
-          {countOf(shown) === 0 ? 'No results'
-            : `${countOf(shown)} result${countOf(shown) === 1 ? '' : 's'}`}
-        </p>
-        {hint && (
-          <div className="ui-cmdk__foot" aria-hidden="true">
-            <span><kbd className="ui-cmdk__key">↑</kbd><kbd className="ui-cmdk__key">↓</kbd> move</span>
-            <span><kbd className="ui-cmdk__key">↵</kbd> run</span>
-            <span><kbd className="ui-cmdk__key">esc</kbd> close</span>
+    <DialogScope.Provider value={scope}>
+      <div className={cx('ui-cmdk', density === 'roomy' && 'ui-cmdk--roomy', 'is-open')} ref={root}>
+        <div className="ui-cmdk__scrim" onMouseDown={dismissOnScrim(onClose)} />
+        <div
+          className="ui-cmdk__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label={label}
+          tabIndex={-1}
+          ref={panel}
+          onKeyDown={onKeyDown}
+        >
+          <div className="ui-cmdk__search" ref={search}>
+            <Glyph name="search" className="ui-cmdk__search-ic" />
+            <input
+              className="ui-cmdk__input"
+              type="text"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded
+              aria-controls={listId}
+              aria-label={label}
+              aria-activedescendant={active ? rowId(uid, shown, active) : undefined}
+              placeholder={placeholder}
+              value={query}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(e) => { setQuery(e.target.value); onQueryChange?.(e.target.value); }}
+            />
           </div>
-        )}
+          <div className="ui-cmdk__list" id={listId} role="listbox" aria-label={`${label} results`}>
+            {shown.map((group, gi) => (
+              <div
+                key={group.label ?? `g${gi}`}
+                className="ui-cmdk__group"
+                role="group"
+                aria-labelledby={group.label ? `${uid}-g${gi}` : undefined}
+              >
+                {group.label && (
+                  <div className="ui-cmdk__group-head" id={`${uid}-g${gi}`}>{group.label}</div>
+                )}
+                {group.items.map((item) => {
+                  const disabled = isDisabled(item);
+                  const id = `${uid}-o${n++}`;
+                  const on = item === active;
+                  return (
+                    <div
+                      key={item.id}
+                      id={id}
+                      className={cx('ui-cmdk__item', item.danger && !disabled && 'is-danger',
+                        disabled && 'is-disabled', on && 'is-active')}
+                      role="option"
+                      tabIndex={-1}
+                      aria-selected={on}
+                      aria-disabled={disabled || undefined}
+                      aria-haspopup={item.danger && item.onConfirm ? 'dialog' : undefined}
+                      onMouseMove={() => { if (!disabled) setAt(rows.indexOf(item)); }}
+                      onClick={(e) => run(item, e.metaKey || e.ctrlKey)}
+                    >
+                      {item.icon && <Glyph name={item.icon} className="ui-cmdk__ic" />}
+                      <span className="ui-cmdk__main">
+                        <span className="ui-cmdk__label">{item.label}</span>
+                        {item.description && <span className="ui-cmdk__desc">{item.description}</span>}
+                      </span>
+                      {item.badge && <span className="ui-cmdk__badge">{item.badge}</span>}
+                      {keysOf(item.shortcut).length > 0 && (
+                        <span className="ui-cmdk__keys" aria-hidden="true">
+                          {keysOf(item.shortcut).map((k) => (
+                            <kbd key={k} className="ui-cmdk__key">{k}</kbd>
+                          ))}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          {/* Always in the DOM and hidden while there are rows, the way the vanilla
+              factory renders it: an element that appears is an element a screen
+              reader may or may not notice, and the count beside it is what says so. */}
+          <p className="ui-cmdk__empty" hidden={countOf(shown) > 0}>{empty}</p>
+          {/* The count and never the rows: a region holding the list would read all
+              of it out again on every keystroke. */}
+          <p className="ui-sr" role="status" aria-live="polite">
+            {countOf(shown) === 0 ? 'No results'
+              : `${countOf(shown)} result${countOf(shown) === 1 ? '' : 's'}`}
+          </p>
+          {hint && (
+            <div className="ui-cmdk__foot" aria-hidden="true">
+              <span><kbd className="ui-cmdk__key">↑</kbd><kbd className="ui-cmdk__key">↓</kbd> move</span>
+              <span><kbd className="ui-cmdk__key">↵</kbd> run</span>
+              <span><kbd className="ui-cmdk__key">esc</kbd> close</span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>,
+    </DialogScope.Provider>,
     document.body,
   );
 }
