@@ -72,7 +72,7 @@ Locations below refer to the pre-change `7ffbde4` tree; they remain useful after
 | --- | --- | --- |
 | `7ffbde4:docs/README.md:11` | Bold formatting repeated on six index entries | Applied: retain links as plain list entries |
 | `7ffbde4:docs/README.md:30` | Decision-record guidance repeats its rationale | Applied: shorten; preserve the rule, quotation and issue link |
-| `7ffbde4:docs/specification.md:3` | Contract introduction uses rhetorical contrasts | Applied: state the contract and record locations directly |
+| `7ffbde4:docs/specification.md:3` | Contract introduction uses rhetorical contrasts | Applied: state the contract directly; the criterion for what belongs in an issue restored after review (F300-1) |
 | `7ffbde4:docs/specification.md:85` | Scale-selection explanation restates the preceding rule | Applied: shorten, retaining both units and scales |
 | `7ffbde4:docs/library.md:12` | Architecture explanation claims review and production cannot diverge | Applied: describe the shared factory output directly |
 | `7ffbde4:docs/library.md:74` | Optional-attribute explanation repeats the default | Applied: keep optional overrides and the dark Nebula default |
@@ -80,9 +80,9 @@ Locations below refer to the pre-change `7ffbde4` tree; they remain useful after
 | `7ffbde4:docs/guidelines.md:26` | Exception guidance and reference-failure description are indirect | Applied: simplify without changing rule shape or checks |
 | `7ffbde4:docs/landing-page.md:6` | Homepage distinction and chrome description are indirect | Applied: identify the page and build substitution directly |
 | `7ffbde4:docs/storybook.md:3` | Workbench introduction repeats the rendering claim | Applied: describe factory-to-canvas flow |
-| `7ffbde4:CONTRIBUTING.md:41` | Rhetorical framing in contributor and gate guidance | Applied: simplify introductions; retain requirements and historical evidence |
+| `7ffbde4:CONTRIBUTING.md:41` | Rhetorical framing in contributor and gate guidance | Applied: simplify introductions; retain requirements and historical evidence. Two clauses restored after review (F300-1, F300-2) |
 | `7ffbde4:react/README.md:3` | Indirect React purpose and port-probe instructions | Applied: shorten while retaining ports, lifecycle and restart rule |
-| `7ffbde4:README.md:7` | Decorative icons, promotional architecture claims, indirect font and React setup instructions | Applied: describe the package and requirements directly |
+| `7ffbde4:README.md:7` | Decorative icons, promotional architecture claims, indirect font and React setup instructions | Applied: describe the package and requirements directly; the silent font fallback restored after review (F300-2) |
 | `7ffbde4:README.md:200` | Manual release commands conflict with automated release instructions in CONTRIBUTING | Filed: changes operational instructions, beyond prose-only preservation |
 | `7ffbde4:react/README.md:40` | Escape warning says two React dialogs close together; later Drawer section says the stack prevents this | Filed: reconcile against implementation in a factual-correction change |
 | `7ffbde4:docs/guidelines.md:3` | Five-page description predates additional guideline pages | Filed: task requires keeping numbers and rules; do not silently change them |
@@ -94,6 +94,24 @@ Locations below refer to the pre-change `7ffbde4` tree; they remain useful after
 | `7ffbde4:stories/guidelines/_layout.js:1` | Detector flags descendant-to-ancestor description | Retained: describes an actual DOM relationship |
 | `7ffbde4:site/segmented.test.js:1` | Artifact-mode vocabulary warning in test code | Filed to comment/code inspection; no rendered copy change |
 | `7ffbde4:site/changelog.mjs:1` | Detector flags a “from … to …” range describing card geometry | Retained: concrete spatial relationship |
+
+## Review resolutions
+
+The independent review confirmed the preservation claim mechanically: every heading, numeric
+literal, issue reference, link target, fenced example, `file:line` citation and anchor in the ten
+documents is identical to the base, and the gates and full suite return `main`'s numbers. Two
+findings were that the rewrite kept a fact and dropped the half that made it actionable.
+
+| Finding | Severity | Resolution |
+| --- | --- | --- |
+| F300-1: the three-way rule for where a decision gets recorded lost its criterion in two of its three homes | Medium | Fixed. `CONTRIBUTING.md` says a statement belongs there when it is about the gates and in the specification when it is about the kit; `docs/specification.md` says it states outcomes, not arguments, and that the measurement, the alternatives and the choice belong in the issue that settled it. Plainer than `main`'s wording, and actionable again. |
+| F300-2: two passages drop the clause that made the fact matter | Low | Fixed. `README.md` says a missing font falls back to its system stack *and nothing says so*; `CONTRIBUTING.md` says the three release gates were extracted from releases that shipped wrong and reported green, which is why each looks over-built. |
+| F300-3: one bold entry left in the documentation index | Nit | Left as filed. The bold marks the one entry that is not a page in this folder; changing it is a separate editorial call. |
+| F300-4: two colons in one sentence in the documentation index | Nit | Left as filed. |
+| F300-5: a ~115-character line in the guidelines guide | Nit | Left as filed; the file has pre-existing longer lines. |
+
+Detector after the two fixes: level 3 on the same ten documents, 0 errors / 0 medium /
+1 warning — unchanged from the reviewed head.
 
 ## Proof
 
@@ -124,7 +142,7 @@ Locations below refer to the pre-change `7ffbde4` tree; they remain useful after
 | Reviewer/model | Commit | Result | Resolution |
 | --- | --- | --- | --- |
 | Implementer / Astra | Working tree | Preservation and reference checks pass | Self-check only |
-| Independent reviewer | Not started | Coordinator dispatches after push | Required before Artur's review |
+| Independent reviewer | `16b79f9` | Approve with one finding: 1 medium, 1 low, 3 nits | F300-1 and F300-2 fixed below; nits left as filed |
 
 ## Earned merge
 
