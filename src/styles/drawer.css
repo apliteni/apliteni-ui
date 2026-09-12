@@ -6,13 +6,14 @@
  * (reduced-motion.css) makes the slide and the fade instant.
  *
  * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
- *   --drawer-surface  panel background      --drawer-shadow  panel elevation
+ *   --drawer-surface  panel background
  *   --drawer-scrim    backdrop colour (--scrim already re-themes per theme)
  * ========================================================================== */
 
 .ui-drawer {
-  --drawer-surface: var(--surface-2);
-  --drawer-shadow: var(--shadow-lg);
+  /* The floating step; the edge the panel meets the page on is the hairline each
+     --drawer--<edge> rule below draws. No cast shadow. #295 */
+  --drawer-surface: var(--bg-elevated);
   --drawer-scrim: var(--scrim);
   --drawer-w: var(--panel-md);   /* left|right panels: width  */
   --drawer-h: 45vh;    /* top|bottom panels: height */
@@ -57,10 +58,9 @@
   display: flex;
   flex-direction: column;
   background: var(--drawer-surface);
-  box-shadow: var(--drawer-shadow);
   transition: transform var(--dur-med) var(--ease);
 }
-.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--drawer-shadow), var(--ring); }
+.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }
 
 /* -- Edge anchoring + slide-in direction ---------------------------------- */

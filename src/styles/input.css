@@ -179,7 +179,6 @@
   height: calc(var(--sw-h) - 6px);
   background: var(--control-knob);
   border-radius: 50%;
-  box-shadow: var(--shadow-sm);
   transition: transform var(--dur-med) var(--ease);
 }
 .ui-switch input:checked + .ui-switch__track { background: var(--accent); }

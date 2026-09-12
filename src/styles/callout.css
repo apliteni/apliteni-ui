@@ -110,8 +110,13 @@
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
 .ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; /* motion: ambient — the bar spends the toast's dismiss timer, which the caller sets */ }
 
-/* style: soft — tinted surface */
-.ui-toast--soft { background: var(--toast-glow); box-shadow: var(--shadow-sm); }
+/* style: soft — tinted surface. The tint is thin and the shadow used to be the edge,
+   so a toast that no longer casts takes the status-tinted hairline the outline style
+   already carries, at half its weight. #295 */
+.ui-toast--soft {
+  background: var(--toast-glow);
+  border: 1px solid color-mix(in srgb, var(--toast-accent) 22%, transparent);
+}
 
 /* style: solid — the status at fill strength, inked with the pole opposite it.
    The fill and the ink are one pair, taken together from --signal-solid-*: dark
@@ -124,7 +129,6 @@
   --toast-ink: var(--signal-solid-ink);
   background: var(--toast-solid);
   color: var(--toast-ink);
-  box-shadow: var(--shadow-lg);
 }
 .ui-toast--solid .ui-toast__title { color: var(--toast-ink); }
 /* The body copy is the quieter of the two, but it stays quiet by dilution the
@@ -144,7 +148,7 @@
 .ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-ink) 55%, transparent); }
 
 /* style: outline — elevated card with a status-tinted border */
-.ui-toast--outline { background: var(--bg-elevated); box-shadow: var(--shadow-md); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); }
+.ui-toast--outline { background: var(--bg-elevated); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); }
 
 /* compact — single line, no body text */
 .ui-toast--compact { align-items: center; padding-top: 10px; padding-bottom: 10px; }

@@ -70,7 +70,9 @@
 .ui-fbcomposer {
   position: fixed; z-index: 71; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(14px);
   width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); border-radius: 18px;
-  box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none;
+  /* Floats over the page, so it takes the hairline every other floating surface has
+     instead of the shadow that used to be its only edge. #295 */
+  border: 1px solid var(--border); opacity: 0; pointer-events: none;
   transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease); overflow: hidden;
 }
 .ui-fbcomposer.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }

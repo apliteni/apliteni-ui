@@ -1,23 +1,18 @@
 /* ============================================================================
- * Card — .ui-card  (filled surface, no borders — the deck groups with
- *                   surface + radius, never outlines)
+ * Card — .ui-card  (a filled surface one step off the page, edged by a hairline)
  * Rows: .ui-card__row  /  headers: .ui-card__title / .ui-card__sub
  * ========================================================================== */
 
+/* Flat since #284 and edged in both themes since #295: the card is a step on the
+   elevation ladder — --surface, above --bg — and the line is what makes the step
+   legible, since a step of lightness on its own is about 1.1.
+   why: docs/specification.md#elevation */
 .ui-card {
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: var(--space-6) 26px;
   position: relative;
-}
-
-/* Light theme is an all-white app, so a filled card can't rely on a darker-
-   than-page surface the way the dark deck does — a hairline border delineates
-   it instead. Flat, no drop shadow (#284). `none` rather than no declaration:
-   at (0,3,0) it outranks .ui-card--accent's inset ring, which light never showed. */
-:root[data-theme="light"] .ui-card {
-  border: 1px solid var(--border);
-  box-shadow: none;
 }
 
 /* A table wider than its card scrolls INSIDE the card instead of bleeding past
@@ -32,10 +27,12 @@
 .ui-card--pad-sm { padding: var(--space-5); }
 .ui-card--pad-lg { padding: var(--space-8) var(--space-10); }
 
-/* An accent-tinted card, e.g. a highlighted plan / success surface */
+/* An accent-tinted card, e.g. a highlighted plan / success surface. The accent edge
+   is the card's OWN hairline re-coloured, not a second ring inside it: since #295 the
+   card is edged in both themes, and an inset ring over that line drew two. */
 .ui-card--accent {
   background: color-mix(in srgb, var(--accent) 9%, var(--surface));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .ui-card--live {
   background: color-mix(in srgb, var(--green) 10%, var(--surface));
@@ -46,14 +43,14 @@
   cursor: pointer;
   /* Written as a <button>, the card would take the browser's frame, centred text
      and `font: 400 13.3333px Arial` — a shorthand, so `font: inherit` and not the
-     family longhand. .ui-card already states its own background, and the light
-     theme's border rule is (0,3,0) so `border: 0` here cannot reach it. #251 */
-  border: 0;
+     family longhand. .ui-card states the background and, since #295, the border, so
+     the frame is already cancelled and a `border: 0` here would only delete the
+     hairline — and take .ui-card--accent's edge with it. #251 */
   text-align: left;
   font: inherit;
   transition: transform var(--dur-fast) var(--ease);
 }
-/* The lift alone, no shadow: cards are flat (#284), and light never showed one. */
+/* The lift alone: the kit casts no shadow anywhere (#295), and cards are flat (#284). */
 .ui-card--interactive:hover { transform: translateY(-2px); }
 
 /* card() emits the title as an h2, so the text face is named here rather than

@@ -15,8 +15,8 @@
  * why: docs/specification.md#the-command-palette */
 
 .ui-cmdk {
-  --cmdk-surface: var(--surface-2);
-  --cmdk-shadow: var(--shadow-lg);
+  /* The floating step and the kit hairline, no cast shadow — see dropdown.css. #295 */
+  --cmdk-surface: var(--bg-elevated);
   --cmdk-scrim: var(--scrim);
   --cmdk-w: 560px;
   --cmdk-top: 12vh;
@@ -71,7 +71,6 @@
   background: var(--cmdk-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--cmdk-shadow);
   overflow: hidden;
   opacity: 0;
   transform: translate(-50%, -8px);
@@ -80,7 +79,7 @@
     transform var(--dur-med) var(--ease);
 }
 .ui-cmdk.is-open .ui-cmdk__panel { opacity: 1; transform: translate(-50%, 0); }
-.ui-cmdk__panel:focus-visible { outline: none; box-shadow: var(--cmdk-shadow), var(--ring); }
+.ui-cmdk__panel:focus-visible { outline: none; box-shadow: var(--ring); }
 
 /* -- The text box --------------------------------------------------------- */
 

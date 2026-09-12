@@ -7,14 +7,13 @@
  * nothing to focus. The root owns the switch; panel and scrim inherit it.
  *
  * Local tokens so the panel and scrim re-theme cleanly:
- *   --confirm-surface  panel background     --confirm-shadow  panel elevation
- *   --confirm-scrim    backdrop colour
+ *   --confirm-surface  panel background     --confirm-scrim  backdrop colour
  *
  * why: docs/specification.md#motion */
 
 .ui-confirm {
-  --confirm-surface: var(--surface-2);
-  --confirm-shadow: var(--shadow-lg);
+  /* The floating step and the kit hairline, no cast shadow — see dropdown.css. #295 */
+  --confirm-surface: var(--bg-elevated);
   --confirm-scrim: var(--scrim);
   --confirm-w: var(--panel-md);
 
@@ -72,7 +71,6 @@
   background: var(--confirm-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--confirm-shadow);
   opacity: 0;
   transform: translateY(8px);
   transition:
@@ -80,7 +78,7 @@
     transform var(--dur-med) var(--ease);
 }
 .ui-confirm.is-open .ui-confirm__panel { opacity: 1; transform: none; }
-.ui-confirm__panel:focus-visible { outline: none; box-shadow: var(--confirm-shadow), var(--ring); }
+.ui-confirm__panel:focus-visible { outline: none; box-shadow: var(--ring); }
 
 /* -- Slots ----------------------------------------------------------------- */
 /* The question and the answers keep their size; the consequence between them is

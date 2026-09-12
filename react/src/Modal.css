@@ -12,8 +12,10 @@
   display: grid; place-items: center; z-index: calc(var(--z-overlay) + 1);
   opacity: 0; transition: opacity var(--dur-med) var(--ease); }
 .rx-scrim.is-open { opacity: 1; }
-.rx-modal { width: min(480px, 92vw); background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); overflow: hidden;
+/* The floating step of the elevation ladder plus the kit hairline — not the card
+   surface and a shadow. why: docs/specification.md#elevation */
+.rx-modal { width: min(480px, 92vw); background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); overflow: hidden;
   transform: translateY(8px); transition: transform var(--dur-med) var(--ease); }
 .rx-scrim.is-open .rx-modal { transform: none; }
 .rx-modal__head { display: flex; align-items: center; justify-content: space-between;

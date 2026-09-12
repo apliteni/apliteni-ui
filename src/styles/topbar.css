@@ -66,7 +66,7 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .dtsw a:hover { color: var(--text); }
-.dtsw a.cur { color: var(--strong); background: var(--surface); box-shadow: var(--shadow-sm); }
+.dtsw a.cur { color: var(--strong); background: var(--surface); }
 
 /* Theme toggle — a single icon-only switch (no label). */
 .toggle {
@@ -122,11 +122,10 @@
   top: calc(100% + 9px);
   left: 0;
   min-width: 266px;
-  background: var(--surface-2);
+  background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 6px;
-  box-shadow: var(--shadow-lg);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);
@@ -203,10 +202,9 @@
   position: absolute;
   right: 0; top: 44px;
   width: 252px;
-  background: var(--surface-2);
+  background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: var(--shadow-lg);
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
