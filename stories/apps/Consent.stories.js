@@ -55,6 +55,11 @@ export const Grant = {
   `, 'co1'),
 };
 
+// The title is an h1: this is the page a reader lands on after granting, and it
+// had no heading at all until #275 — nothing for a reader moving by heading to
+// land on. .ui-success__title sets the size, weight and colour; the tag brings
+// the display face every other title on an auth card already takes.
+// why: docs/specification.md#the-page
 export const Granted = {
   render: () => shell(`
     <div class="ui-success" style="background:transparent;padding:16px 0 6px">

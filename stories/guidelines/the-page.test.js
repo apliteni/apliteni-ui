@@ -30,16 +30,23 @@ const storyFiles = readdirSync(appsDir).filter((f) => f.endsWith('.stories.js'))
 
 /** Every exported story in stories/apps/, rendered once and parsed. */
 const screens = [];
+/** Exports beside the stories that publish nothing renderable — named, never skipped. */
+const unrenderable = [];
 for (const file of storyFiles) {
   const mod = await import(path.join(appsDir, file));
   const def = mod.default || {};
+  const source = readFileSync(path.join(appsDir, file), 'utf8');
   for (const [name, story] of Object.entries(mod)) {
-    if (name === 'default' || !story || typeof story !== 'object') continue;
-    const render = story.render || def.render;
-    if (typeof render !== 'function') continue;
-    const html = render({ ...def.args, ...story.args }, { globals: {}, args: {} });
+    if (name === 'default' || story == null) continue;
+    // CSF3 is an object carrying `render`; CSF2 is the render function itself.
+    // Storybook publishes both, so both are subjects here.
+    const render = typeof story === 'function' ? story : story.render || def.render;
+    if (typeof render !== 'function') { unrenderable.push(`stories/apps/${file}:${name}`); continue; }
+    const args = { ...def.args, ...(typeof story === 'object' ? story.args : null) };
+    const html = render(args, { globals: {}, args });
     const doc = new JSDOM(`<!doctype html><html lang="en"><body>${html}</body></html>`).window.document;
-    screens.push({ where: `stories/apps/${file}:${name}`, doc, source: readFileSync(path.join(appsDir, file), 'utf8') });
+    const firstOfFile = !screens.some((x) => x.file === `stories/apps/${file}`);
+    screens.push({ where: `stories/apps/${file}:${name}`, doc, source, file: `stories/apps/${file}`, firstOfFile });
   }
 }
 
@@ -56,10 +63,21 @@ for (const s of screens) s.kind = kindOf(s.doc);
 const apps = () => screens.filter((s) => s.kind === 'app');
 const text = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
 
-// An overlay is anything drawn over the page rather than in it. The palette and
-// the drawer each own a root class; a confirm and a dialog own a role.
-const OVERLAYS = ['.ui-confirm', '.ui-drawer', '.ui-toast', '.ui-tooltip', '.ui-palette', '[role="dialog"]'];
-const inOverlay = (el) => OVERLAYS.some((sel) => el.closest(sel));
+// An overlay is drawn over the page rather than in it, so what is inside one is
+// not on the page: its primary action, its tables and its headings are the
+// overlay's own. Mounted and closed is the normal state for all five — a page
+// ships the markup and opens it later — so the roots and the open states are
+// two lists, not one.
+//
+// The first draft of this gate spelled two of them `.ui-tooltip` and
+// `.ui-palette`, which the kit has never emitted: `at-rest` could not see a
+// hover readout at all, and `inOverlay` could not exclude one. A selector that
+// matches nothing reads exactly like a rule nothing breaks, which is why
+// `the overlay selectors are classes the kit really writes` is below.
+const OVERLAY_ROOTS = ['.ui-drawer', '.ui-confirm', '.ui-cmdk', '.ui-tip', '.ui-fbcomposer'];
+// A toast has no closed state: it is appended when it is shown and removed after.
+const OPEN = ['.ui-drawer.is-open', '.ui-confirm.is-open', '.ui-cmdk.is-open', '.ui-tip.is-open', '.ui-toast'];
+const inOverlay = (el) => OVERLAY_ROOTS.some((sel) => el.closest(sel));
 
 // ---- one check per rule --------------------------------------------------
 //
@@ -126,12 +144,18 @@ const CHECKS = {
   },
 
   outline(s) {
-    const levels = [...s.doc.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => ({
-      level: Number(h.tagName[1]), what: text(h).slice(0, 40),
-    }));
+    // An overlay keeps its own outline — a drawer's h2 and the feedback
+    // widget's h4 are inside a dialog, not in the page's ranks.
+    const levels = [...s.doc.querySelectorAll('h1,h2,h3,h4,h5,h6')]
+      .filter((h) => !inOverlay(h))
+      .map((h) => ({ level: Number(h.tagName[1]), what: text(h).slice(0, 40) }));
     const problems = [];
     let last = 0;
     for (const { level, what } of levels) {
+      if (!last && level > 1) {
+        problems.push(`${s.where} opens its outline at h${level}, on "${what}". The first heading `
+          + 'on a page is its title.');
+      }
       if (level > LIMITS.outline) {
         problems.push(`${s.where} sets "${what}" at h${level}, below the h${LIMITS.outline} floor. `
           + 'A fourth rank is a page that has become two.');
@@ -163,7 +187,11 @@ const CHECKS = {
     }
     const body = s.doc.querySelector('.ui-app__body');
     if (body) {
-      const stacked = [...body.children].filter((el) => el.classList.contains('ui-card'));
+      // Every card the body holds that no other card holds — counted by
+      // ancestry rather than by direct childhood, because a wrapper around
+      // twelve cards is still twelve cards on the page.
+      const stacked = [...body.querySelectorAll('.ui-card')]
+        .filter((el) => !inOverlay(el) && !el.parentElement.closest('.ui-card'));
       if (stacked.length > LIMITS.cards) {
         problems.push(`${s.where} stacks ${stacked.length} cards. Past ${LIMITS.cards} the page `
           + 'is a list of lists and wants sections, tabs, or a second page.');
@@ -175,9 +203,11 @@ const CHECKS = {
   navs(s) {
     const problems = [];
     const seen = new Map();
-    for (const nav of s.doc.querySelectorAll('nav')) {
+    for (const nav of [...s.doc.querySelectorAll('nav')].filter((n) => !inOverlay(n))) {
       const by = nav.getAttribute('aria-labelledby');
-      const name = nav.getAttribute('aria-label') || (by ? text(s.doc.getElementById(by)) : '');
+      // aria-labelledby takes a list of ids, and the name is what they say in order.
+      const name = nav.getAttribute('aria-label')
+        || (by ? by.trim().split(/\s+/).map((id) => text(s.doc.getElementById(id))).filter(Boolean).join(' ') : '');
       if (!name) {
         problems.push(`${s.where} draws a navigation landmark with no name (${nav.className || '<nav>'}). `
           + 'A reader moving by landmark hears "navigation" and nothing else.');
@@ -193,10 +223,10 @@ const CHECKS = {
   },
 
   'at-rest'(s) {
-    const open = OVERLAYS.filter((sel) => s.doc.querySelector(sel));
+    const open = OPEN.filter((sel) => s.doc.querySelector(sel));
     return open.length === 0 ? []
-      : [`${s.where} draws ${open.join(', ')} before the reader has asked for anything. A page `
-        + 'arrives at rest; an overlay is what a reader opens.'];
+      : [`${s.where} opens ${open.join(', ')} before the reader has asked for anything. A page `
+        + 'arrives at rest; an overlay is what a reader opens. Mounted and closed is fine.'];
   },
 
   density(s) {
@@ -208,10 +238,21 @@ const CHECKS = {
         + 'density. One page, one rhythm.');
     }
     // A screen that writes its own cell padding has left the scale, and no
-    // amount of agreeing with itself makes that one density.
-    const local = /\.ui-table[^{}]*\b(?:td|th)\b[^{}]*\{[^}]*padding\s*:/.exec(s.source);
+    // amount of agreeing with itself makes that one density. Two spellings
+    // reach it: a rule in the story's own <style> block, and a style attribute
+    // on the cell, which is the one the DOM can see.
+    const inline = [...s.doc.querySelectorAll('td[style], th[style]')]
+      .filter((c) => /padding|height/.test(c.getAttribute('style')));
+    if (inline.length) {
+      problems.push(`${s.where} sets cell padding or height on ${inline.length} cell(s) inline. `
+        + 'Density comes from .ui-table--dense and the spacing scale.');
+    }
+    // The other spelling is a rule in the story's own <style> block. It is a
+    // fact about the file, so it is read once per file rather than once per
+    // screen the file publishes.
+    const local = s.firstOfFile && /\.ui-table[^{}]*\b(?:td|th)\b[^{}]*\{[^}]*padding\s*:/.exec(s.source);
     if (local) {
-      problems.push(`${s.where.split(':')[0]} sets table cell padding of its own: `
+      problems.push(`${s.file} sets table cell padding in its own stylesheet: `
         + `${local[0].slice(0, 60)}… Density comes from .ui-table--dense and the spacing scale, `
         + 'not from a rule per screen.');
     }
@@ -228,14 +269,25 @@ const CHECKS = {
         + 'numbers come from is what the title cannot say.'];
     }
     const problems = [];
-    const sentences = (lede.match(/[.!?](?:\s|$)/g) || []).length;
+    // Abbreviations end in a full stop and do not end a sentence. Counting
+    // segments rather than stops also counts a last sentence with no stop
+    // at all, which counting stops does not.
+    const sentences = lede
+      .replace(/\b(?:e\.g|i\.e|etc|vs|approx|no|fig|cf)\./gi, '$&\u0000')
+      .replace(/\u0000/g, '')
+      .split(/(?<!\b(?:e\.g|i\.e|etc|vs|approx|no|fig|cf))[.!?]+(?:\s|$)/i)
+      .map((part) => part.trim()).filter(Boolean).length;
     if (sentences > LIMITS.lede) {
       problems.push(`${s.where} sets a ${sentences}-sentence lede. ${LIMITS.lede} is the most a `
         + 'reader takes before the content; past that it is a paragraph nobody reads twice.');
     }
-    if (title && lede.toLowerCase().startsWith(title.toLowerCase())) {
-      problems.push(`${s.where} opens its lede with the title again — "${lede.slice(0, 50)}…". `
-        + 'The reader has just read it.');
+    // The fault is the title said twice, wherever in the opening sentence it
+    // lands: "Payouts — this is the payouts page" is the rule's own example and
+    // opens with a dash, not with the title.
+    const opening = lede.split(/[.!?]/)[0].toLowerCase();
+    if (title && opening.includes(title.toLowerCase())) {
+      problems.push(`${s.where} spends its opening sentence on the title again — `
+        + `"${lede.slice(0, 60)}…" under "${title}". The reader has just read it.`);
     }
     return problems;
   },
@@ -243,11 +295,53 @@ const CHECKS = {
 
 // ---- the gates -----------------------------------------------------------
 
+// The floors are what the tree holds today, not a round number underneath it:
+// a floor with slack in it is a floor that a deleted story walks under.
+// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+const FOUND = { files: 8, screens: 18, apps: 12 };
+
 test('the gate found the kit’s own screens', () => {
-  assert.ok(storyFiles.length >= 5, `only ${storyFiles.length} story files under stories/apps/ — `
-    + 'the sweep is broken, not the kit');
-  assert.ok(screens.length >= 12, `only ${screens.length} screens rendered — the sweep is broken`);
-  assert.ok(apps().length >= 8, `only ${apps().length} of them are shell pages — the sweep is broken`);
+  assert.ok(storyFiles.length >= FOUND.files, `only ${storyFiles.length} story files under `
+    + `stories/apps/, against ${FOUND.files} when this was written. A screen left the tree, or `
+    + 'the sweep stopped reaching it — say which in the same commit.');
+  assert.ok(screens.length >= FOUND.screens, `only ${screens.length} screens rendered, against `
+    + `${FOUND.screens} when this was written.`);
+  assert.ok(apps().length >= FOUND.apps, `only ${apps().length} of them are shell pages, against `
+    + `${FOUND.apps} when this was written.`);
+  assert.deepEqual(unrenderable, [], 'an export beside the stories that publishes no render — '
+    + 'this gate cannot check it, and a subject it cannot check is a failure, never a skip');
+});
+
+test('the overlay selectors are classes the kit really writes', () => {
+  const kit = ['src/components', 'src/styles'].flatMap((dir) => readdirSync(path.join(root, dir))
+    .map((f) => readFileSync(path.join(root, dir, f), 'utf8'))).join('\n');
+  const unknown = [...OVERLAY_ROOTS, ...OPEN]
+    .map((sel) => sel.split('.').filter(Boolean)[0])
+    .filter((cls, i, all) => all.indexOf(cls) === i)
+    .filter((cls) => !kit.includes(cls));
+  assert.deepEqual(unknown, [], 'this gate names an overlay the kit has never drawn. A selector '
+    + 'that matches nothing passes every screen and hides the rule it was written for.');
+});
+
+// The limits are stated three times — in the rule prose, in this gate, and in
+// the specification's contract — and only the first two are one object. This is
+// the third: the section has to say the same numbers, spelled either way.
+const WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+
+test('the specification states the same limits this gate measures', () => {
+  const spec = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
+  const section = spec.slice(spec.indexOf('\n## The page\n'), spec.indexOf('\n## The page shell\n'));
+  assert.ok(section.length > 400, 'docs/specification.md has no "## The page" section to read');
+
+  const says = (n) => new RegExp(`\\b(?:${n}|${WORD[n]})\\b`, 'i').test(section);
+  const missing = [
+    !says(LIMITS.cards) && `the card limit (${LIMITS.cards})`,
+    !says(LIMITS.lede) && `the lede's sentence count (${LIMITS.lede})`,
+    !new RegExp(`h${LIMITS.outline}`).test(section) && `the outline floor (h${LIMITS.outline})`,
+    !says(LIMITS.primary) && `the primary-action count (${LIMITS.primary})`,
+  ].filter(Boolean);
+  assert.deepEqual(missing, [], 'the specification and the page disagree about a limit, or the '
+    + 'specification stopped stating one: ' + missing.join(', '));
 });
 
 test('every rule on the page owns a check here, and every check owns a rule', () => {

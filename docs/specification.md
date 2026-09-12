@@ -638,23 +638,27 @@ that inside keeps, whatever the page is about:
   rule below: an auth card, which has no rail to sit beside, and a marketing page.
 - **One `<h1>`, and it is the page title.** Every other heading on the page sits under it.
 - **The outline goes down one rank at a time and stops at `h3`** — the page, a card or section of
-  it, a group inside one. The kit draws no `h4`: the footer's column titles are `h2`, the rank
-  chosen in #275 because it cannot skip whatever heading precedes it.
+  it, a group inside one. An overlay keeps its own outline and is not counted: a drawer's `h2`
+  and the feedback widget's `h4` are inside a dialog. On the page itself the kit draws no `h4` —
+  the footer's column titles are `h2`, the rank chosen in #275 because it cannot skip whatever
+  heading precedes it.
 - **The head reads in one order** — the way back, the title, the lede, the body — and nothing but
   the way back goes above the title. A filter row, a period switch or a search box is the first
   thing *inside* the body.
-- **The lede is two sentences at most** and does not spend one of them repeating the title.
-- **One primary action.** A page carries one `.ui-btn--primary`; everything else is secondary,
-  tertiary or a link. An overlay carries its own and does not count against the page, and a
-  marketing page is outside the rule.
+- **A page has a lede, and it is two sentences at most.** It does not spend its opening sentence
+  repeating the title.
+- **One primary action at most.** A page carries no more than one `.ui-btn--primary`; everything
+  else is secondary, tertiary or a link. An overlay carries its own and does not count against the
+  page, and a marketing page is outside the rule.
 - **Six stacked cards at most, and no card inside a card.** Past six, the page wants sections,
   tabs, or a second page.
 - **Every navigation landmark is named, and no two on one page share a name.** The shell draws the
   rail and the trail and names both; a page adds no second copy of either.
-- **A page arrives at rest.** No drawer, confirm, toast, hover readout or command palette is on
-  screen until the reader asks for one.
-- **One density per page.** `.ui-table--dense` is all of a page's tables or none of them, and a
-  screen writes no cell padding of its own.
+- **A page arrives at rest.** No drawer, confirm, toast, hover readout or command palette is
+  *open* until the reader asks for one. Mounting one closed is how they ship.
+- **One density per page.** `.ui-table--dense` is all of a page's tables or none of them, and no
+  screen writes cell padding of its own — in a style attribute, or in a rule of its own naming
+  `.ui-table`'s cells.
 
 Held by `stories/guidelines/the-page.test.js`, which discovers its subjects by rendering every
 story under `stories/apps/` — the kit's own screens — and holds each of them to every rule above.
@@ -662,7 +666,8 @@ The gate keys its checks by the rule ids on the Guidelines / The page story, so 
 check, or a check for a rule nobody wrote, fails the build.
 
 What this section does not settle is *why* six and not eight, or `h3` and not `h2`. Four of these
-limits are choices rather than derivations; the alternatives are drawn as whole screens in
+limits are choices rather than derivations — the card count, the primary-action count, the outline
+floor, and whether a data page may go dense; the alternatives are drawn as whole screens in
 [docs/reviews/275-page-limits.html](reviews/275-page-limits.html), and
 [#275](https://github.com/apliteni/apliteni-ui/issues/275) records who chose which and what was
 rejected.

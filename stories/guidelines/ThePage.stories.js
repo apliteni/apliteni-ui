@@ -8,5 +8,6 @@ export default {
 };
 
 export const ThePage = {
+  name: 'The page',
   render: () => guidelinePage({ title: TITLE, rules: RULES, css: SPEC_CSS }),
 };

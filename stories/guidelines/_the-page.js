@@ -7,7 +7,7 @@ export const BLURB = 'What one screen may hold: the head it keeps, the single ac
   + 'and how much may stack before it is two pages.';
 
 // The limits three rules are stated in. They are here rather than in the prose
-// because stories/guidelines/page.test.js measures the kit's own screens
+// because stories/guidelines/the-page.test.js measures the kit's own screens
 // against these names — a number edited in the sentence and not in the gate is
 // the drift this whole collection exists to stop.
 export const LIMITS = { cards: 6, outline: 3, primary: 1, lede: 2 };
@@ -17,30 +17,30 @@ export const LIMITS = { cards: 6, outline: 3, primary: 1, lede: 2 };
 // and twelve cards do not fit a 420px cell at life size.
 export const SPEC_CSS = `
   <style>
-    .gp-out { display: flex; flex-direction: column; gap: var(--space-2); }
-    .gp-out__row { display: flex; align-items: baseline; gap: var(--space-3);
+    .tp-out { display: flex; flex-direction: column; gap: var(--space-2); }
+    .tp-out__row { display: flex; align-items: baseline; gap: var(--space-3);
       font: 400 13px/1.5 var(--font-sans); color: var(--text); }
-    .gp-out__rank { font: 500 11px/1.6 var(--font-mono); color: var(--muted);
+    .tp-out__rank { font: 500 11px/1.6 var(--font-mono); color: var(--muted);
       background: var(--surface-3); border-radius: var(--radius-xs); padding: 1px 6px; flex: none; }
-    .gp-out__row--2 { padding-left: var(--space-4); }
-    .gp-out__row--3 { padding-left: var(--space-8); }
-    .gp-out__row--4 { padding-left: var(--space-10); }
-    .gp-out__row--bad .gp-out__rank { color: var(--pink);
+    .tp-out__row--2 { padding-left: var(--space-4); }
+    .tp-out__row--3 { padding-left: var(--space-8); }
+    .tp-out__row--4 { padding-left: var(--space-10); }
+    .tp-out__row--bad .tp-out__rank { color: var(--pink);
       background: color-mix(in srgb, var(--pink) 16%, transparent); }
 
     /* The stack specimens. Twelve cards do not fit a 420px cell at life size and
        a clipped column cannot be counted, so the count is what is drawn: one
        block per card, both columns at one scale. The caption says so. */
-    .gp-stack { height: 224px; display: flex; flex-direction: column; gap: 6px; }
-    .gp-card { height: 12px; border-radius: 4px; flex: none;
+    .tp-stack { height: 224px; display: flex; flex-direction: column; gap: 6px; }
+    .tp-card { height: 12px; border-radius: 4px; flex: none;
       background: var(--surface); box-shadow: inset 0 0 0 1px var(--border);
       display: flex; align-items: center; padding: 0 5px; }
-    .gp-card::before { content: ""; height: 3px; width: 34%; border-radius: 2px;
+    .tp-card::before { content: ""; height: 3px; width: 34%; border-radius: 2px;
       background: color-mix(in srgb, var(--muted) 55%, transparent); }
-    .gp-stack--over .gp-card { background: var(--surface-2); }
+    .tp-stack--over .tp-card { background: var(--surface-2); }
 
-    .gp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-    .gp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
+    .tp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .tp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
   </style>`;
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
@@ -48,17 +48,17 @@ const stage = (html) => `<div class="gl-stage">${html}</div>`;
 // ---- the outline, written out -------------------------------------------
 
 const outRow = (rank, text, bad) =>
-  `<div class="gp-out__row gp-out__row--${rank}${bad ? ' gp-out__row--bad' : ''}">`
-  + `<span class="gp-out__rank">h${rank}</span><span>${text}</span></div>`;
+  `<div class="tp-out__row tp-out__row--${rank}${bad ? ' tp-out__row--bad' : ''}">`
+  + `<span class="tp-out__rank">h${rank}</span><span>${text}</span></div>`;
 
-export const outlineDo = () => stage(`<div class="gp-out">
+export const outlineDo = () => stage(`<div class="tp-out">
   ${outRow(1, 'Payouts')}
   ${outRow(2, 'Last 7 days')}
   ${outRow(2, 'Payouts')}
   ${outRow(3, 'Failed this week')}
 </div>`);
 
-export const outlineDont = () => stage(`<div class="gp-out">
+export const outlineDont = () => stage(`<div class="tp-out">
   ${outRow(1, 'Payouts')}
   ${outRow(1, 'Last 7 days', true)}
   ${outRow(3, 'Payouts', true)}
@@ -67,7 +67,7 @@ export const outlineDont = () => stage(`<div class="gp-out">
 
 // ---- the one primary action ---------------------------------------------
 
-const actions = (right) => `<div class="gp-acts">${right}</div>`;
+const actions = (right) => `<div class="tp-acts">${right}</div>`;
 
 export const primaryDo = () => stage(card({
   title: 'Your agents',
@@ -87,8 +87,8 @@ export const primaryDont = () => stage(card({
 
 // ---- how much may stack --------------------------------------------------
 
-const stack = (n, over) => `<div class="gp-stack${over ? ' gp-stack--over' : ''}">${
-  Array.from({ length: n }, () => '<div class="gp-card"></div>').join('')
+const stack = (n, over) => `<div class="tp-stack${over ? ' tp-stack--over' : ''}">${
+  Array.from({ length: n }, () => '<div class="tp-card"></div>').join('')
 }</div>`;
 
 export const stackDo = () => stage(stack(LIMITS.cards));
@@ -108,12 +108,12 @@ const miniTable = (dense) => `
       + `<td class="ui-table__num">${net}</td><td>${badge(st, 'success')}</td></tr>`).join('')}</tbody>
   </table>`;
 
-export const densityDo = () => stage(`<div class="gp-rows">
+export const densityDo = () => stage(`<div class="tp-rows">
   ${card({ title: 'Payouts', body: miniTable(true) })}
   ${card({ title: 'Invoices', body: miniTable(true) })}
 </div>`);
 
-export const densityDont = () => stage(`<div class="gp-rows">
+export const densityDont = () => stage(`<div class="tp-rows">
   ${card({ title: 'Payouts', body: miniTable(true) })}
   ${card({ title: 'Invoices', body: miniTable(false) })}
 </div>`);
@@ -125,9 +125,12 @@ export const RULES = [
     why: 'The shell owns the rail, the trail, the column and the head, so every screen that takes it '
       + 'agrees about them without anybody checking. The portal that rebuilt the chrome per screen '
       + 'is the one that ended up with a trail saying Home on a page whose sidebar said Company, and '
-      + 'four local rules correcting a column the kit already sets. Two page kinds are outside this '
-      + 'rule and inside every other one below: an auth card, which has no rail to sit beside, and a '
-      + 'marketing page, which is not a screen of an application.',
+      + 'four local rules correcting a column the kit already sets.',
+    except: 'Two page kinds are not the shell\'s: an auth card, which has no rail to sit beside, and '
+      + 'a marketing page, which is not a screen of an application. The head, the lede and the card '
+      + 'count are about what the shell draws and stop there; the h1, the outline, the landmarks, '
+      + 'the density and the rest hold on all three — and the primary count holds on every page but '
+      + 'a marketing one.',
     kit: [
       { ref: 'src/components/shell.js:140', pattern: 'export function appShell' },
       { ref: 'stories/apps/_finance-nav.js:24', pattern: 'export const financeShell' },
@@ -180,7 +183,7 @@ export const RULES = [
   },
   {
     id: 'one-primary',
-    imperative: 'Lead with one primary action. Everything else on the page is secondary, tertiary, or a link.',
+    imperative: 'Lead with one primary action at most. Everything else on the page is secondary, tertiary, or a link.',
     why: 'Three filled buttons rank nothing: the eye has to read all three to find the one the page '
       + 'is for. Of the twelve design systems read for this page, Carbon is the only one that writes '
       + 'the number down — "each page should have only one primary button" — and it exempts the same '
@@ -234,9 +237,11 @@ export const RULES = [
     why: 'A drawer, a confirm, a toast or a hover readout drawn at load is the page talking over the '
       + 'reader before they have read the title — and each of them takes the keyboard with it. What '
       + 'each may do once it is asked for is on Drawers, Hover readouts and The command palette; this '
-      + 'rule is only about what is on screen when the page arrives.',
-    except: 'A page that exists to ask — an OAuth consent, a confirmation a link lands on — is the '
-      + 'question, not an overlay over one.',
+      + 'rule is only about what is open when the page arrives. Mounting one closed is how they are '
+      + 'meant to ship — the markup is on the page and nothing is over it.',
+    except: 'A page that exists to ask — an OAuth consent, a confirmation a link lands on — asks in '
+      + 'the page itself. It is the question rather than an overlay over one, so it keeps this rule '
+      + 'rather than being excused from it.',
     kit: [
       { ref: 'stories/guidelines/_drawer.js:42', pattern: 'without leaving its list' },
       { ref: 'stories/guidelines/_hover-readouts.js:81', pattern: 'over the page, never in it' },

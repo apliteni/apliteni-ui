@@ -16,20 +16,23 @@ KPI strip whose four captions followed four patterns (#610).
 four, not layout alone.
 
 **What I found.** The rules were mostly right already; nothing was holding the kit's own screens
-to them. Rendering all eighteen screens under `stories/apps/` and measuring them found two
-faults that every other gate was green about:
+to them. Rendering all eighteen screens under `stories/apps/` and measuring them found faults
+that every other gate was green about:
 
 - **A page with no `h1`.** `Apps / Consent → Granted` — the screen a reader lands on after
   granting an agent access — said "Access granted" in a `<div class="ui-success__title">`. Nothing
   on that page was a heading, so a reader moving by heading had nowhere to land and nothing said
   which page they were on.
-- **The kit's only `h4`.** `footer()` drew its column titles as `<h4>`, and on the landing page
-  the heading before them is an `h2` — so the outline read h2 → h4, a rank a reader hears
-  missing. It was the only `h4` the kit emitted anywhere.
+- **The only `h4` on a page.** `footer()` drew its column titles as `<h4>`, and on the landing
+  page the heading before them is an `h2` — so the outline read h2 → h4, a rank a reader hears
+  missing. (The kit draws one more, inside the feedback widget's dialog, which is an outline of
+  its own.)
+- **A page-sized component with no page title.** `success()` — the screen a flow lands on — drew
+  its title as an `h3`, found in review rather than by the first draft of the gate.
 
 **What I did.** Wrote *Guidelines / The page* — ten rules covering the four scopes — and
 `stories/guidelines/the-page.test.js`, which discovers every screen under `stories/apps/` and
-holds each of them to every rule. Fixed the two faults. Put the four numbers that are judgement
+holds each of them to every rule. Fixed the three faults. Put the four numbers that are judgement
 calls in front of Artur as rendered screens.
 
 **The verdict: Changed.** The issue asks for a document, and a document nothing enforces is a
@@ -140,7 +143,7 @@ each one is a single number in `LIMITS` (`stories/guidelines/_the-page.js`) that
 gate both read — so a different answer is one edit, not a rewrite. If he moves one, this section
 records what he chose and what he rejected, and the issue gets the same sentence.
 
-## Two faults the gate found, and what changed
+## Three faults the gate found, and what changed
 
 **The consent screen had no `h1`.** `Apps / Consent → Granted` wrote its title in a `<div>`.
 It is now an `<h1 class="ui-success__title">`. The class sets the size, the weight and the colour,
@@ -155,8 +158,13 @@ heading came before it. `.ui-footer__col-title` sets the size, weight, colour an
 marked `/* rank: label */` and stays that — so nothing moves.
 Same two screenshots, lower half.
 
-Both are the split the kit already publishes on *Labels and titles*: the level is the outline and
-the class is the look.
+**`success()` had the same fault as the consent screen.** Documented as "the page", it drew its
+title as an `h3` — so a page whose whole content is a success screen had no `h1`. The rank now
+follows the layout: `h1` for `hero` and `split`, which are the page, `h2` for `compact`, which
+sits beside other content. `level` overrides it. `.ui-sx__title` sets the look and does not move.
+
+All three are the split the kit already publishes on *Labels and titles*: the level is the outline
+and the class is the look.
 
 ## The gate
 
@@ -175,10 +183,20 @@ the class is the look.
   it: it resolves no CSS, it does not read what the headings say, and a consumer's own page is
   covered only where the kit draws the same shape.
 
+- **It discovers subjects the way Storybook does** — `stories/apps/**/*.stories.@(js|mjs)`,
+  CSF2 function stories included — and an export beside them that publishes no render is named as
+  a failure rather than skipped.
+- **The overlay selectors are checked against the kit.** A test asserts every class the gate
+  calls an overlay is one `src/` actually writes. The first draft spelled two of them
+  `.ui-tooltip` and `.ui-palette`, which the kit has never emitted; the review caught it, and this
+  test is what stops the next one.
+- **The specification is held to the same numbers.** A test reads the `## The page` section and
+  fails if it stops stating a limit, or states a different one from `LIMITS`.
+
 **Each rule was broken on purpose and watched go red.** A temporary `stories/apps/` story per
 fault — a page with no chrome, a toolbar above the title, two `h1`s, an `h1 → h3` jump, two
 primary buttons, seven cards, a card in a card, an unnamed `<nav>`, a second `<nav>` named
-"Finance", a drawer drawn at load, a dense table beside a roomy one, a three-sentence lede.
+"Finance", a drawer opened at load, a dense table beside a roomy one, a three-sentence lede.
 All ten rule checks went red, each naming the story that broke it and the fault, and nothing
 else did. The file was deleted.
 
@@ -210,6 +228,16 @@ Ten rules, four specimen pairs, twenty-one citations.
 `docs/evidence/page-limits-light.png`, drawn from
 [docs/reviews/275-page-limits.html](docs/reviews/275-page-limits.html).
 
+## The version bump this PR does not carry
+
+`src/components/footer.js` and `src/components/success.js` are inside the published tarball and
+their bytes changed, while `package.json` still says `0.31.0`. CI's `shipped-surface` job compares
+the tarball against the base and exits non-zero when the surface moves and the version does not —
+**so this branch fails that check as it stands, by instruction.** Several PRs are in flight and
+this repo has already shipped two bumping to the same version, so the coordinator sequences the
+version at merge. The changelog lines are under *Changelog entry* below, and the bump is the one
+thing left to add on top of this branch.
+
 ## A ledger this moved, and one failure that is the box
 
 `scripts/font-loading.test.js` counts the pages in the tree that load a webfont, because *"a
@@ -218,25 +246,29 @@ one"*. The review prototype is the seventh, so the number and the comment naming
 move — and the page loads the same two families at the same five weights as every other loader,
 which is the gate's other rule and caught my first draft loading IBM Plex Sans at three.
 
-`stories/contrast.test.js` → *"the walk has not run away with the clock"* fails on this box, on
-`main` and on this branch alike. It is a wall-clock ceiling of 120s over the contrast walk, and
-this machine is slower than the laptop the ceiling was measured on: **206.7s on `7ffbde4`** and
-**141.6s here**, in runs made minutes apart. Nothing else about the walk changed — it measures the
-same elements plus the new page's specimens, and every one of them passes.
+`stories/contrast.test.js` → *"the walk has not run away with the clock"* is a 120s wall-clock
+ceiling over the contrast walk, and this box goes over it whenever anything else is running:
+**206.7s on `7ffbde4`** and **141.6s here**, in runs made minutes apart while a Storybook build
+shared the cores. On a quiet box it passes, which is the run reported below. Nothing else about
+the walk changed — it measures the same elements plus the new page's specimens, and every one of
+them passes.
 
 ## The gates
 
 ```
                        before (7ffbde4)                 after
-root npm test          1397 tests, 1394 pass            1412 tests, 1410 pass
-                       1 fail (the clock, 206.7s)       1 fail (the clock, 141.6s)
+root npm test          1397 tests, 1394 pass            1415 tests, 1414 pass
+                       1 fail (the clock, 206.7s)       0 failing
                        2 skipped                        1 skipped
 ```
 
+The `before` run's single failure is the clock ceiling under a contended box, described above; the
+`after` run was made on a quiet one and is green.
+
 The skip count moves because one of the two is `overview.test.js`'s built-ids check, which skips
-when `storybook-static/` is absent and ran here against a fresh build. The fifteen new tests are
-the twelve in `the-page.test.js`, the two `refs.test.js` subtests for the new page, and axe's run
-over the new story.
+when `storybook-static/` is absent and ran here against a fresh build. The eighteen new tests are
+the fourteen in `the-page.test.js`, the two `refs.test.js` subtests for the new page, axe's run
+over the new story, and its contrast walk.
 
 Nothing under `react/` is touched by this change; its suite was run anyway and passes — 16 files,
 322 tests, 0 failing.
@@ -247,6 +279,57 @@ Nothing under `react/` is touched by this change; its suite was run anyway and p
 The slop detector is clean on everything new at level 2, with one medium it cannot avoid: the
 review prototype links Google Fonts, which the linter cannot read from disk, exactly as
 `docs/reviews/270-back-control/variants.html` does.
+
+## Review
+
+Two independent reviews ran on this branch: a diff review with a red-team pass (28 findings, 8
+critical) and a prose review. Every finding below was reproduced before it was fixed.
+
+**Blocking, fixed.**
+- `.ui-tooltip` and `.ui-palette` are not classes this kit writes — the real roots are `.ui-tip`
+  and `.ui-cmdk`. The `at-rest` check could not see an open hover readout at all, and the same
+  dead list meant `inOverlay()` never excluded anything.
+- The same check tested *presence*, not openness, so a correctly closed `drawer()` — the way a
+  drawer is meant to ship — would have failed it. It now reads `is-open`, and mounted-and-closed
+  is stated as fine in the rule, the specification and the gate.
+- The gate discovered only `*.stories.js` at the top level of `stories/apps/` and silently
+  dropped CSF2 function stories. Both are fixed, and an unrenderable export is now a failure.
+- `docs/specification.md` said "the kit draws no `h4`". It does — src/components/feedback.js:53
+  `<h4>${esc(doneTitle)}</h4>` — inside a `role="dialog"`. The claim is corrected, and the `outline` check now skips headings
+  inside an overlay — a drawer's `h2` and that `h4` are the overlay's outline, not the page's.
+- `stacking` counted only the body's direct children, so twelve cards inside one wrapper counted
+  as zero. It counts by ancestry now.
+- The `one-h1` fix had landed in the consent story alone. `success()` — documented as "the page"
+  — emitted an `h3` as its only heading, so a page whose whole content is a success screen had no
+  `h1` either. Its title's rank now follows its layout: `h1` for `hero` and `split`, `h2` for
+  `compact`, `level` overrides both. `successPanel()` is left alone: it is a block inside a page
+  that has its own `h1`.
+- The lede's sentence count read `e.g.` as a sentence end and missed a last sentence with no full
+  stop. The repeat-the-title check missed the rule's own example, `Payouts` under
+  "This is the payouts page" — it reads the opening sentence now, not just its first characters.
+- The sweep's floors (5/12/8) sat under the real counts (8/18/12), so two deleted story files
+  would have passed. They are the real counts.
+- An outline that opens below `h1` was not a skip. It is now.
+- `docs/library.md` and the floor page each carried their own copy of the numbers. Both now name
+  the rules instead, so `LIMITS`, the page and the specification are the only three, and a test
+  holds the third to the first.
+- The story had no `name:`, so the sidebar said "The Page" while everything else said "The page".
+- The specimen prefix `gp-` is `_pagination.js`'s; this page's is `tp-`.
+
+**Claims of mine that were false.** "The kit draws no `h4`" (above). "Two page kinds are outside
+this rule and inside every other one below" — the head, the lede and the card count do not reach
+an auth card either; the `shell` rule now says which rules reach which kind, as an `except` rather
+than buried in its reasoning. "Carbon is the only system that writes the number down" is now
+scoped to the twelve systems actually read.
+
+**Not fixed, and why.**
+- The `head` check cannot fail on the kit's own screens: `appShell()` emits that container in one
+  order and nothing else emits it. It fires on a hand-built `<main>` — which is exactly what a
+  consumer writes, and what the finance portal wrote — and the negative control proves it. Kept.
+- `density`'s two-density branch has no subject today: no screen in `stories/apps/` draws two
+  tables. It is a limit rule; it fires the day one does.
+- `stacking`'s count has the same property: the busiest screen here stacks two cards against a
+  limit of six.
 
 ## Proof
 
@@ -268,5 +351,8 @@ outline that stops at h3, one primary action, six cards, every nav landmark name
 overlaying the page at load, one density, a two-sentence lede. Held by
 stories/guidelines/the-page.test.js over every screen in stories/apps/.
 The consent screen's "Access granted" is an h1 — that page had no heading at all. footer()'s
-column titles are h2, not h4: they were the kit's only h4 and read h2 → h4 on the landing page.
+column titles are h2, not h4: on a page they were the kit's only h4, and read h2 → h4 on the
+landing page. success() gives its title the rank its layout earns — h1 for hero and split, which
+are the page, h2 for compact — where it was always an h3, so a success screen had no page title;
+`level` overrides it.
 ```
