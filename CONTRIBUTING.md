@@ -1409,6 +1409,9 @@ the registry.
 ### What the release gates are shaped by
 
 Each of the three gates addresses a release failure that earlier checks reported as a pass.
+None of them was designed; all three were extracted from something that had already shipped
+wrong and reported green, which is why each looks over-built until you know which failure it
+was built after.
 
 **`shipped-surface.mjs` measures the artefact, never the paths.** Twice a change to what we
 publish merged without a bump and stayed off npm while sitting on `main` looking merged: the

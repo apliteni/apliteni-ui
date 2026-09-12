@@ -64,8 +64,8 @@ tables, fields, paragraphs, chat, which is most of an application. Weights 300-7
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
 ```
 
-If either font is missing, that role falls back to its system stack. For the old
-single-family appearance, set both roles to the same family in your stylesheet,
+If either font is missing, that role falls back to its system stack, and nothing says so.
+For the old single-family appearance, set both roles to the same family in your stylesheet,
 after the kit's:
 
 ```css
