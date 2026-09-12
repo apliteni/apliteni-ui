@@ -235,7 +235,14 @@ export function pagination({
     + `</nav>`;
 }
 
-// why: CONTRIBUTING.md#pagination-event-wiring
+/**
+ * Make a rendered pager work: delegate the steps, the size control and the jump
+ * input from `root`, so a pager re-rendered underneath stays wired.
+ *
+ * @returns {() => void} a function that removes the listeners.
+ *
+ * why: CONTRIBUTING.md#pagination-event-wiring
+ */
 export function wirePagination(root = document, { onPage, onPageSize } = {}) {
   const scope = typeof root === 'string' ? document.querySelector(root) : root;
   if (!scope || typeof scope.addEventListener !== 'function') return () => {};
@@ -296,7 +303,15 @@ export function wirePagination(root = document, { onPage, onPageSize } = {}) {
   };
 }
 
-// why: CONTRIBUTING.md#pagination-status-updates
+/**
+ * Rewrite a pager's row range in place, so the live region it already holds is
+ * the thing that announces — as `setBusy()` does.
+ *
+ * @returns {Element|null} the status element, or null when there is nothing to
+ * update — safe against a torn-down view.
+ *
+ * why: CONTRIBUTING.md#pagination-status-updates
+ */
 export function setPagerStatus(root, text) {
   const el = typeof root === 'string' ? document.querySelector(root) : root;
   if (!el || typeof el.querySelector !== 'function') return null;
