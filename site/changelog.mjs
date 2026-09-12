@@ -16,7 +16,7 @@ export const RELEASES = [
     v: '0.30.0', date: '2026-09-12',
     changes: [
       ['added', "`dropdown({ search: true })` puts a field above the rows and filters them as the reader types. It was asked for by the finance portal, whose filter dropdowns hold between 12 and several hundred options each with no way to narrow them. The match is anywhere in the label, ignoring case and accents, and rows keep their order. The arrows move through the rows still showing, Enter picks, Escape closes, and a query that matches nothing says so instead of leaving a blank panel. The field is a combobox inside a small dialog, because a listbox may not contain a text field. A dropdown without `search` renders byte-for-byte what it rendered before.", ['Dropdown']],
-      ['added', "Guidelines / Component choice: when a dropdown needs a search field. The rule is ten options or more, or any list fed by data. The threshold is a proposal in #283 and has not been agreed yet.", ['Dropdown']],
+      ['added', "Guidelines / Component choice: when a dropdown needs a search field. Ten options or more, or any list fed by data, gets one. It is a rule rather than a recommendation, and the number was settled on #283.", ['Dropdown']],
     ],
   },
   {

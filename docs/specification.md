@@ -721,8 +721,9 @@ dropdown, the trigger announces `aria-haspopup="dialog"`, and the listbox sits i
 the field. For the same reason, a `menu` dropdown given `search` renders its rows as options, and
 a row carrying `href` becomes a plain option rather than a link.
 
-When a dropdown must have a search field is on Guidelines / Component choice. The threshold there
-is proposed in #283 and has not been agreed yet.
+When a dropdown must have a search field is on Guidelines / Component choice, and it is a rule
+rather than a recommendation: ten options or more, or any list fed by data, gets a field. The
+number was settled on #283.
 
 Held by `src/components/dropdown-search.test.js`, which drives the kit's own wiring with real
 events. The rendering is held by the browser only: jsdom does not rank the UA sheet below author

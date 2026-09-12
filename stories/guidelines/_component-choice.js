@@ -130,7 +130,7 @@ export const RULES = [
   {
     id: 'dropdown-search',
     imperative: 'Give a dropdown a search field once it has ten options, or whenever its options come from data.',
-    why: 'Proposed in #283 and not yet agreed: the number is the owner’s to set. The panel stops '
+    why: 'Settled on #283: ten is the number, and it is the rule rather than a recommendation. The panel stops '
       + 'growing at 300px, which shows five rows that carry a description and seven that do not, so '
       + 'at ten even the shortest rows no longer fit and the reader scrolls for a word they could '
       + 'have typed. The US Veterans Affairs design system moves from a select to a combo box at 16 '
