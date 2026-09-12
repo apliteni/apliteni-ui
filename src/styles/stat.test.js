@@ -47,6 +47,18 @@ test('each part of a figure keeps the spacing its own rule gives it', () => {
   }
 });
 
+// The markup order — caption, then figures — is held in src/components/stat.test.js.
+// This is the other half of it: a leading caption's air belongs under it, or the
+// gap it used to open between itself and the figures moves outside the band.
+test('the caption carries its space below it, because it leads the row', () => {
+  const margin = valueOf(ruleFor('.ui-stats__basis').body, 'margin');
+  assert.ok(margin, '.ui-stats__basis sets no margin');
+  const sides = margin.split(/\s+(?![^(]*\))/);
+  assert.equal(sides.length, 3, `margin: ${margin} — expected three sides, top x bottom`);
+  assert.match(sides[0], /^0(px)?$/, `the caption keeps ${sides[0]} above it, and it leads the row`);
+  assert.match(sides[2], /^var\(--space-\d+\)$/, `the caption's space below it is ${sides[2]}, not a spacing step`);
+});
+
 test('a figure is never narrower than its value, so a band wraps rather than overlaps', () => {
   assert.equal(valueOf(ruleFor('.ui-stats__list').body, 'flex-wrap'), 'wrap', 'a band that cannot wrap has to overflow');
   assert.equal(valueOf(ruleFor('.ui-stat').body, 'min-width'), 'min-content',

@@ -1,7 +1,7 @@
 /* ============================================================================
  * Stat band — .ui-stats  (a row of key figures: label, value, change, trend)
+ *   .ui-stats--tiles  one card per figure — the default
  *   .ui-stats--band   one card, figures divided by space
- *   .ui-stats--tiles  one card per figure
  *   .ui-stats--open   no surface; a rule over each figure
  * why: docs/specification.md#stat-bands
  * ========================================================================== */
@@ -77,10 +77,11 @@
 .ui-stat--good .ui-stat__trend { color: var(--chip-success-ink); }
 .ui-stat--bad .ui-stat__trend { color: var(--chip-danger-ink); }
 
-/* The band's caption, under the figures rather than in one: it is what every
-   change points at, so it sits below the ranks and takes none of them. */
+/* The band's caption, above the figures rather than in one: it is what every
+   change points at, so it sits outside the ranks and takes none of them. The
+   margin is under it because it leads the row. */
 .ui-stats__basis {
-  margin: var(--space-5) 0 0;
+  margin: 0 0 var(--space-5);
   color: var(--muted);
   font-size: var(--text-xs);
   line-height: var(--leading-snug);

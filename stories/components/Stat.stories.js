@@ -32,7 +32,7 @@ export default {
     variant: { control: 'inline-radio', options: STAT_VARIANTS },
     basis: { control: 'text' },
   },
-  args: { variant: 'band', basis: BASIS },
+  args: { variant: 'tiles', basis: BASIS },
 };
 
 export const Playground = {};
@@ -44,7 +44,8 @@ const heading = (title, note) =>
    </div>`;
 
 // The three layouts side by side, over the same four figures, so a difference
-// between two pictures is a difference between two layouts.
+// between two pictures is a difference between two layouts. The order is the
+// order they were put in front of Artur in #267; B is the one he chose.
 export const Gallery = {
   render: () => pad(
     heading('The colours, before the layouts',
@@ -52,9 +53,9 @@ export const Gallery = {
       + 'rise in cost is red. Unclassified fell, and fewer unclassified rows is good news, so that fall '
       + 'is green too. Net cashflow carries no colour, because nobody declared one. Colour answers '
       + '&ldquo;is this good?&rdquo;, never &ldquo;which way did it go?&rdquo; &mdash; the arrow answers that.')
-    + heading('A · Band', 'One card. The figures are divided by space, not by rules, and the comparison is said once under them.')
+    + heading('A · Band', 'One card. The figures are divided by space, not by rules.')
     + statBand({ variant: 'band', stats: FIGURES, basis: BASIS, id: 'gallery-band' })
-    + heading('B · Tiles', 'One card per figure. Each figure can be read, moved or linked on its own.')
+    + heading('B · Tiles — the default', 'One card per figure. Each figure can be read, moved or linked on its own.')
     + statBand({ variant: 'tiles', stats: FIGURES, basis: BASIS, id: 'gallery-tiles' })
     + heading('C · Open', 'No surface. A rule over each figure, and a larger value, because the numbers are the structure.')
     + statBand({ variant: 'open', stats: FIGURES, basis: BASIS, id: 'gallery-open' }),
@@ -101,9 +102,9 @@ export const States = {
 // three go straight to one column.
 export const Narrow = {
   render: () => pad(
-    heading('In a 640px column', 'Four figures, two rows of two.')
+    heading('In a 640px column', 'Four tiles, two rows of two.')
     + `<div style="max-width:640px">${statBand({ stats: FIGURES, basis: BASIS, id: 'narrow-640' })}</div>`
-    + heading('In a 360px column', 'One figure per row.')
+    + heading('In a 360px column', 'One tile per row.')
     + `<div style="max-width:360px">${statBand({ stats: FIGURES, basis: BASIS, id: 'narrow-360' })}</div>`,
   ),
 };

@@ -75,10 +75,12 @@ export const Default = {
 // the numbers and the rows arrive from different queries and finish at
 // different times, so a single region would have to lie about one of them.
 //
-// The KPI skeleton sits in the band's own classes, so it folds exactly as the
-// figures will and the three columns do not collapse into one shape while
-// loading and snap into another when the numbers land. That is the whole job
-// of a skeleton over a spinner: it reserves the shape that is coming.
+// The KPI skeleton sits in the band's own classes — the tiles layout, which is
+// the band's default — so it folds exactly as the figures will and the three
+// columns do not collapse into one shape while loading and snap into another
+// when the numbers land. It holds the caption's place above the row for the
+// same reason. That is the whole job of a skeleton over a spinner: it reserves
+// the shape that is coming.
 //
 // The period control stays live. It is the one thing a reader can usefully do
 // while waiting, and disabling every control on a loading screen is how a slow
@@ -91,11 +93,11 @@ export const Loading = {
     sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
     body: `
       ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
-      <div class="ui-stats ui-stats--band ui-card">${busyRegion({
+      <div class="ui-stats ui-stats--tiles">${busyRegion({
         label: 'Loading cashflow for the last year…',
-        body: `<div class="ui-stats__list">${['', '', ''].map(() => `<div class="ui-stat">
+        body: `${skeleton({ lines: ['18%'], className: 'ui-stats__basis' })}<div class="ui-stats__list">${['', '', ''].map(() => `<div class="ui-stat ui-card ui-card--pad-sm">
           ${skeleton({ lines: ['40%'] })}${skeleton({ lines: ['72%'], height: '36px' })}
-        </div>`).join('')}</div>${skeleton({ lines: ['18%'], className: 'ui-stats__basis' })}`,
+        </div>`).join('')}</div>`,
       })}</div>
       ${card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts reconciled to bank transactions.',
         body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: 6, cols: 7 }) }) })}

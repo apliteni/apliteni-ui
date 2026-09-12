@@ -906,11 +906,17 @@ the band's caption, which every change points at, or beside the change when one 
 something else. A hover `title` does not count, because a phone never shows one. On a band with
 no changes, the caption says what the figures cover instead, such as the period.
 
+The caption comes **before** the figures, in every layout, the way a table's `<caption>` does. It is
+one statement about all of them, so it is read before the numbers it explains and it sits outside
+every figure. Under a row of tiles it would read as a note on the last card, and inside the first
+tile it would read as that figure's own comparison — which is a different thing the band already
+says beside the change.
+
 The trend is a slot. The kit sizes and colours the caller's `<svg>` and draws no chart.
 
-Three layouts ship. `band`, the default, is one card with the figures divided by space. `tiles`
-puts each figure on a card of its own. `open` draws no surface; it rules a line over each figure
-and sets the value larger.
+Three layouts ship. `tiles`, the default, puts each figure on a card of its own, so a figure can
+be read, moved or linked on its own. `band` is one card with the figures divided by space. `open`
+draws no surface; it rules a line over each figure and sets the value larger.
 
 The kit had no stat band until [#267][i267]. The finance portal built three of its own, which
 disagreed on the size of a value, the case of a label and what held the figures, and the one on

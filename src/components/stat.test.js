@@ -7,7 +7,9 @@ import { statBand, STAT_VARIANTS } from './stat.js';
 import { icon } from '../assets/icons.js';
 
 const dom = (html) => new JSDOM(`<!doctype html><body>${html}</body></html>`).window.document;
-const one = (fig) => dom(statBand({ stats: [fig] }));
+// One figure, in the band layout: these tests read a figure's own markup, and
+// the default's tile card would put its classes on the same element.
+const one = (fig) => dom(statBand({ stats: [fig], variant: 'band' }));
 const FOUR = [
   { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
   { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
@@ -76,6 +78,21 @@ test('the band says once what every change is measured against, and each change 
   for (const d of deltas) assert.equal(d.getAttribute('aria-describedby'), 'kpi-basis');
 });
 
+// One statement about every figure is read before them and belongs to none of
+// them. Held in every layout, because the caption does not move with the
+// surface: under a row of tiles it would read as a note on the last card.
+test('the caption leads the band in every layout, and sits in no figure', () => {
+  for (const variant of STAT_VARIANTS) {
+    const band = dom(statBand({ stats: FOUR, variant, basis: 'Against last year', id: variant }))
+      .querySelector('.ui-stats');
+    const caption = band.querySelector('.ui-stats__basis');
+    assert.equal(band.firstElementChild, caption, `${variant}: the caption is not the first thing in the band`);
+    assert.equal(caption.nextElementSibling, band.querySelector('.ui-stats__list'),
+      `${variant}: the figures do not follow the caption`);
+    assert.equal(caption.closest('.ui-stat'), null, `${variant}: the caption is inside a figure`);
+  }
+});
+
 test('a figure measured against something else says so beside its change, and does not point at the band', () => {
   const doc = dom(statBand({
     basis: 'Change against the previous 12 months',
@@ -123,7 +140,16 @@ test('each layout puts its surface where it says', () => {
   const open = dom(statBand({ stats: FOUR, variant: 'open' }));
   assert.equal(open.querySelectorAll('.ui-card').length, 0, 'the open band drew a surface');
   const unknown = dom(statBand({ stats: FOUR, variant: 'grid' }));
-  assert.ok(unknown.querySelector('.ui-stats--band'), 'an unknown layout did not fall back to the band');
+  assert.ok(unknown.querySelector('.ui-stats--tiles'), 'an unknown layout did not fall back to the default');
+});
+
+// Tiles, chosen by Artur on 2026-09-12 from the three rendered layouts.
+// why: docs/specification.md#stat-bands
+test('a caller who names no layout gets tiles', () => {
+  const doc = dom(statBand({ stats: FOUR }));
+  assert.ok(doc.querySelector('.ui-stats--tiles'), 'the default layout is not tiles');
+  assert.equal(doc.querySelectorAll('.ui-stat.ui-card.ui-card--pad-sm').length, 4);
+  assert.ok(!doc.querySelector('.ui-stats').classList.contains('ui-card'), 'the default drew a card around the row too');
 });
 
 test('a named band is a group with that name', () => {

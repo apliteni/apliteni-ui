@@ -1,4 +1,4 @@
-# A stat band for key figures, in three layouts
+# A stat band for key figures: three layouts, tiles by default
 
 Closes #267.
 
@@ -25,8 +25,10 @@ goes inside it.
   measured against lives only in a hover `title` (`web/src/components/KpiBand.tsx:151`).
 
 **What I did.** Added a stat band to the kit (`statBand()`, `.ui-stats`, and `<StatBand>` in
-React), built it in three layouts, and put them in front of Artur to choose the default. He
-chose A · Band, which is the default here, and confirmed the colour rule.
+React), built it in three layouts, and put them in front of Artur to choose the default. He picked
+A · Band on 2026-09-11 and, having seen it shipped, picked **B · Tiles** on 2026-09-12. Tiles is
+the default here; A and C are still `variant`s, and the colour rule is unchanged. Moving the
+default also moved the band's caption, which is the second decision below.
 
 **The verdict: Changed.** The problem is real, but it is in what the card holds, not in the card.
 
@@ -36,14 +38,21 @@ don't on the guidelines page, which shows the rejected card as it is.
 
 ## Decision record for the issues
 
-**The default layout: A · Band.** Chosen by Artur on 2026-09-11, from the three rendered over
-the same four figures in both themes, not from a description of them.
+**The default layout: B · Tiles.** Chosen by Artur on 2026-09-12, on this PR at `e7c7f92`,
+after seeing A · Band shipped. A · Band was the first pick, on 2026-09-11, from the three rendered
+over the same four figures in both themes; this is the second look at the same three pictures, not
+a fresh derivation. Nothing is dropped either way — all three layouts ship, and the decision is
+only which one a caller gets for naming none.
 
-| | | Why it was or was not chosen |
+| | | Why |
 |---|---|---|
-| **A · Band** | **chosen** | One card, figures divided by space. It keeps the Overview's footprint — one card at the top of the stack — and adds no borders the page does not already have. |
-| B · Tiles | rejected | Four borders where the page had one, and the band's caption is orphaned: it belongs to all four figures but sits under a row of separate boxes and reads as a note on the last one. |
-| C · Open | rejected | Four rules across the page, and a 40px value. The figures come out louder than the 30px page title above them, so the screen has no first thing to read. |
+| **B · Tiles** | **chosen** | A card per figure. Each number is its own box, which is what the page actually has — four figures, not one object — and a figure can become a link to its drill-down without the row around it changing. |
+| A · Band | an option | One card, figures divided by space. It keeps the Overview's footprint and adds no borders the page does not already have, which is why it was picked first. Against the tiles it reads as one object, and the divisions between the figures are space alone. |
+| C · Open | an option | Four rules across the page, and a 40px value. The figures come out louder than the 30px page title above them, so the screen has no first thing to read. |
+
+**The band's caption goes above the figures**, in every layout — the second decision the change of
+default forced, set out under [Where the caption goes](#where-the-caption-goes) below. Under a row
+of separate cards it read as a note on the last one.
 
 **The colour rule: colour by news, not by direction.** Confirmed by Artur on 2026-09-11 and
 already what the branch shipped. The caller says whether a change is good news, bad news, or
@@ -64,8 +73,12 @@ is released, because the portal installs a published version.
 ## Proof
 
 - [x] A person met it in something running: Artur chose the default from the Storybook gallery,
-      in both themes, on 2026-09-11.
+      in both themes, on 2026-09-11, and chose again on 2026-09-12 having seen the first choice
+      shipped.
 - [x] The three layouts are compared over the same four figures, with the same sparklines.
+- [x] Every `stat-*` picture in this body was re-shot at the head of this branch, at one viewport
+      (1440x900, dpr 2), light and dark, in one browser — except the portal reconstruction, which
+      is named below and cannot be re-shot from this repository.
 - [x] The kit's own example shows every verdict a caller can give: a rise that is good news, a
       rise that is bad news, a fall that is good news, and a change nobody declared.
 - [x] Nothing overlaps at any width: every layout at two, three and four figures, measured in
@@ -195,22 +208,61 @@ shadcn uses none. Label case: uppercase in Mantine, sentence case in Tremor, MUI
 ## The layouts, and the default
 
 Storybook: **Components / Stat band → Gallery** shows all three over the same four figures, in
-both themes. A · Band is the default; the other two are a `variant`.
+both themes, in the order they were put in front of Artur. B · Tiles is the default; the other two
+are a `variant`.
 
 ![The three layouts, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-variants-light.png)
 ![The three layouts, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-variants-dark.png)
 
 | | Surface | Value | On Overview |
 |---|---|---|---|
-| **A: Band** (default) | one card, figures divided by space | 30px | the same footprint as today: one card at the top of the stack |
-| B: Tiles | a card per figure | 30px | four boxes where there was one; each could become a link |
+| A: Band | one card, figures divided by space | 30px | the same footprint as today: one card at the top of the stack |
+| **B: Tiles** (default) | a card per figure | 30px | four boxes where there was one; each could become a link |
 | C: Open | none; a rule over each figure | 40px | leaves the card stack; its numbers outsize the 30px page title |
 
 ```js
-statBand({ stats, basis })                     // A, the default
-statBand({ stats, basis, variant: 'tiles' })   // B
+statBand({ stats, basis })                     // B, the default
+statBand({ stats, basis, variant: 'band' })    // A
 statBand({ stats, basis, variant: 'open' })    // C
 ```
+
+The letters are the identities the three were reviewed under and they have not moved; only the
+default has. A caller on A keeps A by naming it.
+
+## Where the caption goes
+
+Making tiles the default forced a question the review had already pointed at. In A · Band the
+caption — *Change against the previous 12 months* — was inside the one card that held the figures,
+and it read as that card's own footer. In B · Tiles the same line sat under four separate boxes
+with nothing around it. Three places were on the table:
+
+| Where | Reads as | |
+|---|---|---|
+| Under the row, which is what A shipped | a note on the last card. Nothing marks it as belonging to all four rather than to the box directly above it | rejected |
+| Inside the first tile | that one figure's comparison. The band already has that slot — `delta.basis`, printed beside the change — so a shared statement in the same place says the wrong thing twice | rejected |
+| **Above the row, as the row's caption** | **one statement about every figure, read before the numbers it explains** | **chosen** |
+
+Three reasons for the third, in the order they decided it.
+
+1. **A caption that governs a group comes first.** That is what `<caption>` is on a table and what
+   a column head is over a column: the reader is told what the numbers mean before meeting them.
+   *Change against the previous 12 months* read ahead of the row does work; read after it, it is a
+   correction.
+2. **Above the row it is outside every figure, and visibly so.** Under a row of tiles there is
+   always a nearest card, and a reader attaches a loose line to it. Above the row there is nothing
+   to attach it to but the row.
+3. **It is one rule, not a rule per layout.** The caption does not move when a caller changes
+   `variant`, so switching from tiles to the band does not reorder what a screen reader says. That
+   was the alternative — leave it under the band and lift it only for tiles — and a component whose
+   reading order depends on its surface is a component with two contracts.
+
+Nothing about reachability changes: every change still points at the caption with
+`aria-describedby`, which resolves by id and not by position, and a figure measured against
+something else still carries its own basis beside its change. What is new is that
+`stories/stat-basis.test.js` now also fails a caption that has slipped under its figures or into
+one of them, and carries the two mutations that prove the check can fail.
+
+`.ui-stats__basis` keeps its `--space-5` of air; the margin moved from its top to its bottom.
 
 ## How it folds
 
@@ -231,30 +283,41 @@ would have overlapped between about 704 and 804px, which is #610's bug again. Th
 
 ## What changed
 
-- `src/components/stat.js`: `statBand()`. A `<dl>`, one `<div>` group per figure. A single figure is not
+- `src/components/stat.js`: `statBand()`. A `<dl>`, one `<div>` group per figure, `variant`
+  defaulting to `tiles`, and the caption emitted before the list. A single figure is not
   exported, because its `<dt>` and `<dd>`s are valid only inside the band's list.
-- `src/styles/stat.css`: the three layouts and the folds.
-- `react/src/primitives/StatBand.tsx`: `<StatBand>`, with a parity test against the factory.
+- `src/styles/stat.css`: the three layouts and the folds. `.ui-stats__basis` carries its space
+  below it now rather than above.
+- `react/src/primitives/StatBand.tsx`: `<StatBand>`, the same default and the same caption
+  order, with a parity test against the factory that now reads which of the two comes first.
   `value` and `trend` take React nodes, so the portal's drill-down link and its interactive
   sparkline fit in unchanged.
-- `stories/components/Stat.stories.js`: Playground, Gallery, States, Narrow.
+- `stories/components/Stat.stories.js`: Playground, Gallery, States, Narrow. The Playground opens
+  on the default; the Gallery keeps A, B, C in their review order and marks B as the default.
 - **Guidelines / Stat bands**, three rules.
 - `docs/specification.md#stat-bands`: the guarantees, the fold table, and "No charts" under what
   the kit does not do. `docs/library.md` has a catalogue row.
-- `Apps / Finance report` now uses the band. Its local style block and the gate that pinned its
-  620px are gone; the fold lives in the component and is pinned there.
+- `Apps / Finance report` now uses the band, in the default layout. Its local style block and the
+  gate that pinned its 620px are gone; the fold lives in the component and is pinned there. Its
+  loading skeleton wears the tiles' own classes and holds the caption's place above the row, so
+  the card does not change shape when the figures land.
 
 ## Before / After
 
-Every picture below was re-shot for this revision at 1440x900, dpr 2, in Chrome, except the two
-named in the next paragraph. The Gallery, States, Narrow and guidelines shots changed because the
-example figures now carry all four verdicts; the finance report pair was re-shot on one machine so
-that its before and its after differ in the branch and not in the renderer.
+Every picture below was re-shot for this revision at 1440x900, dpr 2, in one headless Chrome,
+light and dark, except the two named in the next paragraph — including the finance report's
+**before**, re-rendered from `origin/main` at `fba0e82` so the pair differs in this branch and not
+in a renderer, in #292, in #289 or in #293. Ten of the twelve `stat-*` files changed. The before pair came
+out byte-identical rendered at `6275355` and at `7139166`: #289 moves nothing on this screen. The
+six light shots changed once more on the rebase onto #293, which carries #284 — a light card is
+flat now, a hairline border and no drop shadow — so every tile in the light pictures is the card
+`main` draws today. The six dark shots have not moved since the first re-shoot.
 
 **Before**, reconstructed from the portal's own code: `KpiBand.tsx` markup and `overview.css`
 at `finance.apli.tech@db8e4c808`, over this branch's kit CSS, with the same figures. This is the
-one pair that was **not** re-shot: it is drawn from the portal's tree, which is not in this
-repository, and nothing in this branch changes it.
+one pair that was **not** re-shot, and cannot be from here: it is drawn from the portal's tree,
+which is not in this repository, and nothing in this branch changes it. It is also the one pair
+at a different height, because the reconstruction is one card and not a screen.
 
 ![Before, light](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-before-light.png)
 ![Before, dark](https://raw.githubusercontent.com/apliteni/apliteni-ui/1808872/docs/evidence/stat-before-dark.png)
@@ -284,15 +347,29 @@ declared and then painted by the sign instead:
 
 | Guarantee | Held by |
 |---|---|
-| a band is a `<dl>`, text is escaped, tone never follows the sign, the caption id is unique | `src/components/stat.test.js` |
-| a figure never breaks; wraps rather than overlaps; folds from its own width; colour only from tone; good takes the success ink and bad the danger ink; fold widths equal the spec's table | `src/styles/stat.test.js` |
-| every change in every story names its comparison in reachable text | `stories/stat-basis.test.js` |
-| React renders what the factory renders, over all four verdicts | `react/src/primitives/StatBand.test.tsx` |
+| a band is a `<dl>`, text is escaped, tone never follows the sign, the caption id is unique, a caller who names no layout gets tiles, and the caption leads the band in all three layouts | `src/components/stat.test.js` |
+| a figure never breaks; wraps rather than overlaps; folds from its own width; colour only from tone; good takes the success ink and bad the danger ink; the caption's space sits under it; fold widths equal the spec's table | `src/styles/stat.test.js` |
+| every change in every story names its comparison in reachable text, and every caption in every story leads the figures it captions | `stories/stat-basis.test.js` |
+| React renders what the factory renders, over all four verdicts, all three layouts and the default — caption order included | `react/src/primitives/StatBand.test.tsx` |
 | the arrow clears the 1.5 CSS px stroke line | `stories/glyph-stroke.test.js` (existing) |
 | contrast and axe in both themes | `stories/contrast.test.js`, `stories/a11y.test.js` (existing) |
 
-**Every gate was broken on purpose and went red.** Thirty-three mutations over three rounds, each
+**Every gate was broken on purpose and went red.** Thirty-eight mutations over four rounds, each
 put on disk, diffed to confirm it landed, and restored from git afterwards.
+
+**This revision's five, all red.** The default and the caption's place are the two decisions it
+makes, and each is now held on both sides of the kit.
+
+| Mutation | Went red saying |
+|---|---|
+| `stat.js`: `variant` defaults to `'band'` again | a caller who names no layout gets tiles — the default layout is not tiles |
+| `stat.js`: the caption emitted after the list again | 3 red: the caption leads the band in every layout; the check's own mutation pair; and the walk over every story — *the caption "Change against the previous 12 months" does not lead its figures*, in each of the stories that renders one |
+| `StatBand.tsx`: React defaults to `'band'` | 2 red parity cases — the default's figures differ on their classes |
+| `StatBand.tsx`: React's caption after the list | 4 red parity cases — the shape's `captionLeads` differs |
+| `stat.css`: the caption's margin back above it | the caption keeps `var(--space-5)` above it, and it leads the row |
+
+The caption mutation is the one worth reading: the walk finds it in every story that draws a band,
+because the check is over what a story renders and not over a list of subjects.
 
 **The colour rule, nine mutations, all red.** The gate it started with asserted that a rise was
 not painted by default and that a fall the caller called good came out green. It never asserted
@@ -312,45 +389,48 @@ signs, and `src/styles/stat.test.js` pins which ink each tone takes.
 | `StatBand.tsx`: React drops `'bad'` | the parity shape differs on the figure's classes |
 | `StatBand.tsx`: React lets `'neutral'` paint | the parity shape differs on the figure's classes |
 
-**The runs.**
+**The runs**, on the rebase onto `origin/main` at `a7cfcea`. #292, #289, #293 and #287 all landed
+while this revision was being written, and it was rebased onto each. Both trees were run back to
+back on the same box:
 
 ```
-                       main (c9a48c8)   this branch
-root  npm test          1126             1156   (1 failing, below)
-react npm test           213              234   (0 failing)
-npm run build            ok               ok
+                       main (a7cfcea)   this branch
+root  npm test          1310             1345
+      pass / fail        1307 / 1         1342 / 1
+react npm test            300              322   (0 failing)
+npm run build              ok               ok
 ```
 
-```
- Test Files  14 passed (14)
-      Tests  234 passed (234)
-```
+Thirty-five root tests and twenty-two React tests over main, and **the same single failure as
+main, which is not this branch's.** Four of the root additions are this revision's: the default
+layout, the caption's place in all three layouts, the mutation pair that proves the caption check
+can fail, and the caption's space moving under it in the sheet. One React test is this revision's —
+A · Band as a parity case of its own, now that it is no longer what a caller gets for naming
+nothing — and the parity shape every case is judged on grew a field: which of the caption and the
+list comes first.
 
-```
-ℹ tests 1156
-ℹ pass 1154
-ℹ fail 1
-ℹ skipped 1
-```
-
-**The one failure is a wall clock, and it is this machine.** `stories/contrast.test.js` asserts the
-contrast walk finishes inside 120s — a ceiling set at ~2.5x a measured 47.6s worst case. This
-revision was built on a shared box running another project's suite at load 22-29 on eight cores,
-and there the walk takes 216s. Three measurements on that box, same afternoon:
+**The one failure is `contrast.test.js`'s wall clock, and `origin/main` fails it on this box
+without any branch involved.** The gate gives the walk 120s. Four measurements, each tree on its
+own:
 
 | Tree | Pairs judged | Walk | Clock gate |
 |---|---|---|---|
-| `origin/main` (c9a48c8) | 10334 | 118.2s | passes, with 1.5% to spare |
-| this branch at `e02ad03` | 10670 | 163.5s | fails |
-| this branch, now | 10700 | 128.8s — 216.4s across runs | fails |
+| `origin/main` (a7cfcea) | 12478 | 159.1s | **fails** |
+| this branch | 12844 | 137.6s | fails |
+| `origin/main` (7139166), before #293 and #287 | 11246 | 108.7s | passes |
+| this branch on `7139166` | 11612 | 113.5s | passes |
 
-The branch adds 366 pairs to the walk, 3.5% more than main, which is the stat band's stories and
-its guidelines page being walked like everything else. The spread between 128.8s and 216.4s for
-the identical tree is the other suite, not this one. `main` itself only clears the ceiling here by
-1.5%, so the box has eaten the headroom the number was given. Nothing in the walk stopped
-terminating and no theme×accent cell was added: both are what the gate's own message says it is
-looking for. The ceiling is not this PR's to move, so it is reported rather than adjusted —
-**this needs one run on an uncontended machine before merge.**
+The branch adds 366 pairs, 2.9% more than main — the stat band's stories and its guidelines page
+walked like everything else. What crossed the ceiling is the wave landing: main went from 11246
+pairs to 12478 in three merges, and from 108.7s to over the limit. The branch's own 366 are
+inside a gate that main has already blown, and the spread between main's 159.1s and the branch's
+137.6s for a larger walk is the box, which is what a wall clock measures. Nothing here stopped
+terminating and no theme×accent cell was added — both are what the gate's own message asks about.
+The ceiling is not this PR's to move, so it is reported rather than adjusted, and it wants a
+decision from whoever owns the walk.
+
+One failure did go away on this rebase: `refs.test.js` → `_labels-and-titles.js` cited
+`card.css:65` after #293 shortened that file, and #287 recomputed the line.
 
 **The earlier two rounds, twenty-four mutations.** Two survived the first time, and both were
 gate holes, closed then:
@@ -372,7 +452,28 @@ caption that is not there.
 
 ## Review
 
-Two independent reviews ran on this branch: a diff review with a red-team pass, and a prose review.
+Two independent reviews ran on the first revision — a diff review with a red-team pass and a prose
+review — and one independent review ran over the whole wave, at head `790c449`.
+
+**The wave review's three findings, fixed at `e7c7f92`.**
+
+- **`.ui-stat__label` and `.ui-stats__basis` sit outside #292's rank table.** The review asked for
+  a `/* rank: label */` note on the label. It cannot be taken: #292 gives rank `label` an inherited
+  line-height, `type-ranks.test.js` enforces it, and `.ui-stat__label` sets `--leading-snug` so a
+  figure's parts stay close. Taking the note means 1.4 → 1.62 at 13px and a taller label box in
+  every band. Reproduced by running #292's gate against this tree. The leading stays, the rule
+  claims no rank, and a comment at the declaration says which part of the rank it takes and why it
+  takes no more. Same answer #289 gives `.ui-drawer__section-title`.
+- **`stories/stat-basis.test.js` said it was an accessibility gate only in an import.** The floor
+  page names it, and `accessibility-floor.test.js` finds gates by reading each file's own text —
+  which #292 now does with imports stripped, so `from './lib/contrast.js'` stopped counting. The
+  header says it in prose now. Verified: with #292's gate in the tree, green.
+- **The body's images were branch refs**, which 404 the day the branch is deleted. Pinned to a
+  commit, the way #286 pins its own.
+
+**And the finding the review made about tiles is why this revision exists.** It noted that in
+B · Tiles the caption sits outside the cards. Tiles is now the default, so that stopped being an
+observation about a `variant` and became the shape of the component: the caption leads the row.
 
 **Blocking, fixed.** `.ui-stat > dd { margin: 0 }` (0,1,1) outranked the value's, the change's
 and the trend's own margins (0,1,0). Every value sat flush under its label, and trends did not line
@@ -403,6 +504,16 @@ they fit.
 **The prose review** found nothing machine-made and the hard-word rate at or under the repo's
 floor. Two sentences in the spec were split and one caption was reworded on its notes.
 
+**The slop detector on this revision.** Level 2 on this body: 0 errors, 3 warnings — two
+`middot-chain` on the layout names *A · Band* and *B · Tiles*, and one `scope-template` on "from
+the bottom of the card to the top", which is a card and a top and not a range. All three are the
+false positives the wave review already named. Level 4 on the four stat files: one `comment-essay`,
+on `stat-basis.test.js`'s header, now 12 prose lines because this revision added the caption's
+half of the rule to it. Left as it is: the header is what
+`accessibility-floor.test.js` reads to discover the gate, and four gates on `main` —
+`typeface-roles.test.js` three times over, `letter-case.test.js` once — fire the same rule on the
+same convention.
+
 ## What a reviewer should push on
 
 - **The example declines to colour net cashflow.** That is a judgement, not a rule the kit
@@ -413,18 +524,24 @@ floor. Two sentences in the spec were split and one caption was reworded on its 
   over always balanced.
 - **`basis` does two jobs.** It names what every change is measured against, and on a band
   with no changes it is the caption that says what period the figures cover. One prop, one
-  sentence under the band.
+  sentence above the row.
+- **The caption moved for every layout, not only for tiles.** A caller on A · Band sees its
+  caption go from the bottom of the card to the top, without asking. The argument is under
+  [Where the caption goes](#where-the-caption-goes); the alternative was a component that reads in
+  a different order depending on its surface.
 - **The value is set in the display face**, under the existing `readout` exception in
   `typeface-roles.test.js`. The portal's value was the text face.
 
 ## Changelog entry
 
-- **Added** `statBand()`, a row of key figures in three layouts (`band`, `tiles`,
-  `open`), and `<StatBand>` in the React subpath. A change is coloured by the tone you give it
-  and never by its sign, and says what it is measured against in text a reader can reach.
+- **Added** `statBand()`, a row of key figures in three layouts — `tiles`, a card per figure, is
+  the default; `band` is one card and `open` draws no surface — and `<StatBand>` in the React
+  subpath. A change is coloured by the tone you give it and never by its sign, and says what it is
+  measured against in text a reader can reach: one caption above the row that every change points
+  at, or a basis beside the one change measured against something else.
 - **Added** Guidelines / Stat bands.
 - **Changed** `Apps / Finance report` draws its cashflow figures with the stat band.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-https://claude.ai/code/session_01PYcD8gotCRnRc53jCxg2t5
+https://claude.ai/code/session_01Y5a9hgu8cGAgN5hRDr2Uhd

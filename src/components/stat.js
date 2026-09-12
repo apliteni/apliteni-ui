@@ -52,19 +52,24 @@ const figure = ({ label = '', value = '', delta, trend = '' }, tile, basisId) =>
     + '</div>';
 };
 
-// `basis` is the band's caption, said once under the figures: what every change
+// `basis` is the band's caption, said once above the figures: what every change
 // is measured against, or on a band with no changes, what the figures cover. A
 // figure measured against something else carries its own `delta.basis`, printed
 // beside the change.
-export function statBand({ stats = [], variant = 'band', basis = '', label, id } = {}) {
-  const v = STAT_VARIANTS.includes(variant) ? variant : 'band';
+//
+// The caption comes before the list, the way a table's <caption> does, in every
+// layout. It is one statement about all the figures, so it is read before them
+// and it sits outside every one of them — under a row of tiles it would read as
+// a note on the last card. why: docs/specification.md#stat-bands
+export function statBand({ stats = [], variant = 'tiles', basis = '', label, id } = {}) {
+  const v = STAT_VARIANTS.includes(variant) ? variant : 'tiles';
   const base = id ? esc(id) : `ui-stats-${++seq}`;
   const basisId = basis ? `${base}-basis` : '';
   const cls = cx('ui-stats', `ui-stats--${v}`, v === 'band' && 'ui-card');
   const named = label ? ` role="group" aria-label="${esc(label)}"` : '';
   const items = stats.map((s) => figure(s, v === 'tiles', basisId)).join('');
   return `<div class="${cls}"${named}>`
-    + `<dl class="ui-stats__list">${items}</dl>`
     + (basis ? `<p class="ui-stats__basis" id="${basisId}">${esc(basis)}</p>` : '')
+    + `<dl class="ui-stats__list">${items}</dl>`
     + '</div>';
 }

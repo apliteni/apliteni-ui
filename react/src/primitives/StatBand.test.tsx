@@ -17,6 +17,8 @@ function shape(root: Element) {
     label: root.getAttribute('aria-label'),
     list: root.querySelector(':scope > dl')?.className,
     basis: root.querySelector('.ui-stats__basis')?.textContent ?? null,
+    // The caption leads the band in both implementations, or neither.
+    captionLeads: root.firstElementChild?.className === 'ui-stats__basis',
     figures: [...root.querySelectorAll('.ui-stat')].map((f) => {
       const d = f.querySelector('.ui-stat__delta');
       const ref = d?.getAttribute('aria-describedby');
@@ -58,7 +60,8 @@ const FOUR: StatBandProps['stats'] = [
 ];
 
 const CASES: [string, StatBandProps][] = [
-  ['a band with a shared basis', { stats: FOUR, basis: 'Change against the previous 12 months', id: 'kpi' }],
+  ['the default layout, with a shared basis', { stats: FOUR, basis: 'Change against the previous 12 months', id: 'kpi' }],
+  ['band', { stats: FOUR, variant: 'band', basis: 'x', id: 'b' }],
   ['tiles', { stats: FOUR, variant: 'tiles', basis: 'x', id: 't' }],
   ['open, named', { stats: FOUR, variant: 'open', label: 'Cashflow', id: 'o' }],
   ['every kind of change', {

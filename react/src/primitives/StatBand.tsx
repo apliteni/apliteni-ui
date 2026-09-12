@@ -54,13 +54,14 @@ function Delta({ delta, basisId }: { delta: StatDelta; basisId?: string }) {
   );
 }
 
-export function StatBand({ stats, variant = 'band', basis, label, id }: StatBandProps) {
+export function StatBand({ stats, variant = 'tiles', basis, label, id }: StatBandProps) {
   const auto = useId();
-  const v: StatVariant = ['band', 'tiles', 'open'].includes(variant) ? variant : 'band';
+  const v: StatVariant = ['band', 'tiles', 'open'].includes(variant) ? variant : 'tiles';
   const basisId = basis ? `${id || auto}-basis` : undefined;
   const root = ['ui-stats', `ui-stats--${v}`, v === 'band' && 'ui-card'].filter(Boolean).join(' ');
   return (
     <div className={root} role={label ? 'group' : undefined} aria-label={label || undefined}>
+      {basis ? <p className="ui-stats__basis" id={basisId}>{basis}</p> : null}
       <dl className="ui-stats__list">
         {stats.map((s, i) => {
           const tone = hasChange(s.delta) && (s.delta.tone === 'good' || s.delta.tone === 'bad') ? s.delta.tone : '';
@@ -76,7 +77,6 @@ export function StatBand({ stats, variant = 'band', basis, label, id }: StatBand
           );
         })}
       </dl>
-      {basis ? <p className="ui-stats__basis" id={basisId}>{basis}</p> : null}
     </div>
   );
 }

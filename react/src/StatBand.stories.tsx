@@ -13,8 +13,9 @@ const STATS: StatBandProps['stats'] = [
 const BASIS = 'Change against the previous 12 months';
 
 // A figure's value can be a link to its drill-down, which the HTML factory cannot take.
-export const Band: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} /> };
-export const Tiles: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="tiles" /> };
+// Tiles is the default, so it is the story that names no variant.
+export const Tiles: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} /> };
+export const Band: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="band" /> };
 export const Open: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="open" /> };
 export const NoEarlierFigure: StoryObj = {
   render: () => (

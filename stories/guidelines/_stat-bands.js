@@ -35,8 +35,9 @@ export const RULES = [
         + '<div class="ui-card__title">€ 6,459,401</div>'
         + badge('+47.1%'),
     })),
-    doCaption: 'The figure is the largest thing in the card, and the change reads as a change: '
-      + 'an arrow, a signed number, and what it is measured against underneath.',
+    doCaption: 'A card per figure, which is the default. The figure is the largest thing on its '
+      + 'card, and the change reads as a change: an arrow, a signed number, and one caption above '
+      + 'the row saying what every one of them is measured against.',
     dontCaption: 'The Overview card rejected in #267, rebuilt from the same kit parts. The figure sits '
       + 'at the card-title step, so the page\'s key numbers are the size of its headings, and the '
       + 'change is a status chip: capitals, 10px, and nothing to say what it is measured against.',
@@ -86,8 +87,11 @@ export const RULES = [
     why: 'A percentage with no basis is a number nobody can check. The rejected card put its basis '
       + 'in a title attribute, which a phone never shows and most screen readers skip. The band says it once '
       + 'in a caption every change points at, or beside the one change measured against something '
-      + 'else. A band that shows a change with neither fails stories/stat-basis.test.js, which is '
-      + 'why this rule has no drawn don\'t.',
+      + 'else. The caption leads the row, the way a table\'s caption does: it is read before the '
+      + 'numbers it explains, and it is outside every figure — under a row of tiles it would read as '
+      + 'a note on the last card, and inside the first tile it would read as that figure\'s own '
+      + 'comparison. A band that shows a change with neither, or a caption that has slipped into a '
+      + 'figure, fails stories/stat-basis.test.js, which is why this rule has no drawn don\'t.',
     kit: [{ ref: 'src/components/stat.js:34', pattern: 'aria-describedby' }],
   },
 ];
