@@ -47,12 +47,10 @@
     padding: 26px 24px; display: flex; flex-direction: column; gap: 13px; overflow: hidden; }
   .bento__cell::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
     background: linear-gradient(90deg, var(--_hue, var(--accent)), transparent 70%); z-index: 1; }
-  /* Light is an all-white app, so a filled cell can't rely on a darker-than-page
-     surface the way the dark deck does — give it a hairline border + soft shadow
-     so each block reads as its own panel. Dark keeps the borderless deck look. */
-  :root[data-theme="light"] .bento__cell {
-    border: 1px solid var(--border);
-    box-shadow: 0 1px 2px rgba(20, 25, 45, .04), 0 4px 14px rgba(20, 25, 45, .05); }
+  /* A cell is a card, so it takes what a card takes since #295: the step off the
+     page that --surface already is, and a hairline to draw its edge. In both
+     themes — the light page stopped being white, and the rule stopped being one. */
+  .bento__cell { border: 1px solid var(--border); }
   .bento__cell:nth-child(1) { --_hue: var(--purple-light); }
   .bento__cell:nth-child(2) { --_hue: var(--cyan); }
   .bento__cell:nth-child(3) { --_hue: var(--green); }
@@ -227,9 +225,12 @@
    (or: npm i @apliteni/apliteni-ui &amp;&amp; import '@apliteni/apliteni-ui/css').
    Set &lt;html data-theme="dark"&gt; (or "light"); optional data-accent="phoenix|ocean|emerald".
 
-2. Replace every hardcoded colour, spacing, radius and shadow with the kit's CSS variables —
-   --bg, --surface, --surface-2, --text, --dim, --border, --accent, --accent-strong,
-   --radius-*, --shadow-*, --dur-*, --ease. No raw hex or px for these.
+2. Replace every hardcoded colour, spacing and radius with the kit's CSS variables —
+   --bg, --surface-2, --surface, --bg-elevated, --surface-3 (the elevation ladder,
+   bottom to top), --text, --dim, --border, --accent, --accent-strong,
+   --radius-*, --dur-*, --ease. No raw hex or px for these.
+   Do not cast a shadow: a surface says how high it is with its step on that ladder
+   and with a 1px --border hairline. --shadow-* is deprecated and resolves to none.
 
 3. Re-skin with the kit's classes (not custom CSS):
    buttons  → .ui-btn + .ui-btn--primary|--secondary|--ghost|--danger (+ --sm|--lg)

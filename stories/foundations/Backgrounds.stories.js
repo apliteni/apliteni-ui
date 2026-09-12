@@ -6,12 +6,14 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
+// The elevation ladder, bottom to top — the order is the rule, not a list.
+// why: docs/specification.md#elevation
 const SURFACES = [
   ['--bg', 'Page', 'The base canvas behind everything.'],
-  ['--bg-elevated', 'Elevated', 'Menus, toasts, popovers.'],
-  ['--surface', 'Surface', 'Cards and panels.'],
-  ['--surface-2', 'Inset', 'Inputs, code, sunken areas.'],
-  ['--surface-3', 'Raised', 'Chips, tracks, the active pill.'],
+  ['--surface-2', 'Sunken', 'Inputs, code, tracks, disabled boxes.'],
+  ['--surface', 'Card', 'Cards, and panels that do not float.'],
+  ['--bg-elevated', 'Floating', 'Menus, dropdown panels, the drawer, modals, toasts.'],
+  ['--surface-3', 'Top', 'The hover readout, chips, the rail’s hover row.'],
 ];
 
 const swatch = ([token, name, use]) => `
@@ -45,9 +47,10 @@ const g = (min, ...items) => `<div style="display:grid;grid-template-columns:rep
 export const Default = {
   render: () => pad(`
     <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Backgrounds</h1>
-    <p style="color:var(--dim);max-width:60ch">Every backdrop in the kit — the flat surface layers, the signature ambient glow, and drop-in backdrop treatments. All read the accent tokens, so they re-theme with the sub-theme and hold up in dark and light.</p>
+    <p style="color:var(--dim);max-width:60ch">Every backdrop in the kit — the surface ladder, the signature ambient glow, and drop-in backdrop treatments. All read the accent tokens, so they re-theme with the sub-theme and hold up in dark and light.</p>
 
-    ${h3('Surface layers')}
+    ${h3('The elevation ladder')}
+    <p style="color:var(--dim);max-width:60ch;margin-bottom:20px">Bottom to top. Nothing casts a shadow: a surface says how high it is with its step and with the hairline around it. See Foundations → Elevation.</p>
     ${g('180px', ...SURFACES.map(swatch))}
 
     ${h3('Ambient glow')}
