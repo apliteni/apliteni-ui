@@ -57,7 +57,7 @@ export const RULES = [
     dontHtml: rankDont,
     kit: [
       { ref: 'src/styles/layout.css:136', pattern: 'rank: page-title' },
-      { ref: 'src/styles/card.css:65', pattern: 'rank: card-title' },
+      { ref: 'src/styles/card.css:64', pattern: 'rank: card-title' },
     ],
   },
   {
