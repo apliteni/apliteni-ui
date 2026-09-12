@@ -29,7 +29,24 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `Modal`, `Drawer`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `Modal`, `Drawer`, `CommandPalette`, `Button`, `Badge`, `Card`, `Icon`.
+
+`CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
+kit's ranking rather than repeating it — so a palette a server rendered and the same palette
+after a keystroke put the same row first. Three differences from the vanilla one. Two are
+because a React host already owns the state the wiring would: it has no Cmd+K binding, since
+`open` is the host's prop to set from whatever key it wants; and a destructive row names an
+`onConfirm` callback rather than the id of a confirm dialog, which is refused the same way — a
+`danger` row with neither renders disabled. `rank={false}` hands the query back through
+`onQueryChange` for a palette a server feeds.
+
+The third is not a design decision and is going: **one Escape closes a `Modal` and the palette
+under it.** The React palette and the React `Modal` each register their own listener on the
+document, and `inert` does not stop a document listener, so the question and the surface it was
+asked about close together. The vanilla pair does not do this — every kit overlay is on one
+stack there, and Escape closes the top one only. The React half joins that shared dialog stack
+when this branch is rebased onto the drawer branch, which is where `dialog.ts` lands; until then,
+open a `Modal` from a palette row knowing both will close.
 
 `Pagination` renders the kit's `pagination()` markup, class for class, so its styles come from
 `@apliteni/apliteni-ui/css` rather than from this bundle. One deliberate difference: it takes no
@@ -71,10 +88,12 @@ and value rows — rather than in cards; the rules are on Guidelines / Drawers.
 Focus, Escape, the scrim, Tab and the return of focus behave as the Modal's do. Like the
 Modal, it stays mounted until its exit slide ends. It is portalled to `document.body`.
 
-React Modals and Drawers share one stack. When one is open over another, only the top one
-takes Escape and Tab, and closing it hands focus back to the one below. The vanilla
-`drawer()` and `confirm()` keep a separate stack that this one cannot see, so do not open a
-React Modal or Drawer and a vanilla overlay over each other on the same page.
+React Modals, Drawers and CommandPalettes share one stack. When one is open over another,
+only the top one takes Escape and Tab, and closing it hands focus back to the one below —
+so a destructive palette row that opens a Modal takes one Escape to answer, not one that
+closes both. The vanilla `drawer()`, `confirm()` and `commandPalette()` keep a separate
+stack that this one cannot see, so do not open a React dialog and a vanilla overlay over
+each other on the same page.
 
 ## Work on them
 

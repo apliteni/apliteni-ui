@@ -422,7 +422,14 @@ const UNRENDERED = [...CANDIDATES].filter(([cls]) => !SEEN.get(cls).tags.size);
 // button rendering nobody has seen. It is measured in the LEDGER now and finds
 // nothing on any facet. That is the only way a name comes off this list: the
 // reason it was here stopped being true, and a person read the change.
-const PINNED_SUBJECTS = ['ui-card--interactive', 'ui-fbpill', 'vopt'];
+//
+// `.ui-cmdk__item` arrived with the command palette (#274). The kit renders a
+// palette row as a <div role="option"> — an option in a listbox is reached with
+// an arrow key and never with Tab — so nobody has seen it as a <button>, and a
+// consumer who needs one gets whatever the browser paints. It was written with
+// the four declarations that cancel that on the same day, and it is read here
+// in every ancestry a story gives it.
+const PINNED_SUBJECTS = ['ui-card--interactive', 'ui-cmdk__item', 'ui-fbpill', 'vopt'];
 
 // The other side of the same pin. This is the ONLY bucket that leaves the
 // measurement, so what is in it is a claim about markup and not something a

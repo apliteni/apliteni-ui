@@ -27,6 +27,7 @@
 @import "./styles/nav.css";
 @import "./styles/drawer.css";
 @import "./styles/confirm.css";
+@import "./styles/command-palette.css";
 @import "./styles/table.css";
 @import "./styles/pagination.css";
 @import "./styles/empty.css";

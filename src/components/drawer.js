@@ -119,11 +119,13 @@ export function openDrawer(root, returnFocusTo) {
 export function closeDrawer(root) {
   if (!root || !root.classList.contains('is-open')) return;
   root.classList.remove('is-open');
-  popOverlay(root);
   const back = root.__drawerReturn;
   root.__drawerReturn = null;
   // The trigger can be gone by now — focus() on a detached node does nothing at
-  // all, which leaves the reader with no place on the page.
+  // all, which leaves the reader with no place on the page. popOverlay is told
+  // where focus is headed so it can catch the other way that happens: a trigger
+  // still on the page, inside what an overlay left open underneath has re-hidden.
+  popOverlay(root, back);
   returnFocus(back, root.ownerDocument);
 }
 

@@ -3,6 +3,7 @@ import { wireTopbar, applyTheme } from '../src/components/topbar.js';
 import { wireNav } from '../src/components/nav.js';
 import { wireDrawer } from '../src/components/drawer.js';
 import { wireConfirm } from '../src/components/confirm.js';
+import { wireCommandPalette } from '../src/components/command-palette.js';
 import { initTabs } from '../src/components/tabs.js';
 
 // Load both faces once (Storybook manager/preview iframe). The kit names two
@@ -94,8 +95,8 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Signal contrast', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
-          'Guidelines', ['Overview', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Labels and titles', 'Iconography', 'Layout and density', 'The accessibility floor', 'Pagination', 'Drawers', 'Motion'],
-          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Confirm', 'Table', 'Pagination', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
+          'Guidelines', ['Overview', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Labels and titles', 'Iconography', 'Layout and density', 'The accessibility floor', 'Pagination', 'Drawers', 'Motion', 'The command palette'],
+          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Navigation', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents', 'Account preset'],
         ],
       },
@@ -172,7 +173,7 @@ const preview = {
       if (typeof out === 'string') wrap.innerHTML = out; else wrap.append(out);
       // Wire interactive behaviours after render.
       requestAnimationFrame(() => {
-        wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); wireConfirm(wrap); initTabs(wrap);
+        wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); wireConfirm(wrap); wireCommandPalette(wrap); initTabs(wrap);
         // Repaint the inspector overlay after layout settles (or clear it when off).
         requestAnimationFrame(() => paintInspector(ctx.globals.inspect));
       });

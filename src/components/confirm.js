@@ -88,12 +88,13 @@ export function openConfirm(root, returnFocusTo) {
 export function closeConfirm(root) {
   if (!root || !root.classList.contains('is-open')) return;
   root.classList.remove('is-open');
-  popOverlay(root);
   const back = root.__confirmReturn;
   root.__confirmReturn = null;
   // The destructive work a caller hangs off [data-confirm-accept] usually deletes
   // the row the trigger stood in, so the trigger can be detached by now — and
-  // focus() on a detached node is a silent no-op that strands the reader.
+  // focus() on a detached node is a silent no-op that strands the reader. So is
+  // one that is still there but inert, which popOverlay is passed `back` to see.
+  popOverlay(root, back);
   returnFocus(back, root.ownerDocument);
 }
 

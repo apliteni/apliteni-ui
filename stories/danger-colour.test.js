@@ -33,6 +33,25 @@ const SIGNAL_VALUE = /var\(\s*--(?:pink|glow-pink|chip-danger-(?:ink|fill))\s*\)
 // keyboard-focusing the control — i.e. not the resting state.
 const STATEFUL = /:(?:hover|active|focus|focus-visible|focus-within)\b/;
 
+/* Components whose "the reader is pointing at this" state is a CLASS rather than
+ * a pseudo-class, because a pointer is not what moves it. The command palette's
+ * active row is moved by the arrow keys and is the row Enter runs: it is the
+ * same moment :hover is, spelled differently, so the danger signal belongs on
+ * it. Each entry names the component and why the pseudo-class cannot do the job
+ * — this is not a licence for `.is-active` anywhere, which in the nav means the
+ * page you are on and is a resting state. */
+const STATE_CLASS = [
+  {
+    selector: '.ui-cmdk__item',
+    state: '.is-active',
+    why: 'the palette moves its active row with the arrow keys, so the state the pointer '
+      + 'would put on it arrives from the keyboard and is a class',
+  },
+];
+const stateClassed = (selector) => STATE_CLASS.some(
+  (s) => selector.includes(s.selector) && selector.includes(s.state),
+);
+
 const RULE = /([^{}]+)\{([^{}]*)\}/g;
 
 const decomment = (css) =>
@@ -92,9 +111,20 @@ function dangerRules() {
 
 const at = (r) => `${r.file}:${r.line}  ${r.selector} { ${r.body} }`;
 
+test('every state class named here is one a component really writes', () => {
+  const rules = dangerRules();
+  for (const { selector, state, why } of STATE_CLASS) {
+    assert.ok(
+      rules.some((r) => r.selector.includes(selector) && r.selector.includes(state)),
+      `${selector}${state} is named as a state and no danger rule writes it — retire the entry`,
+    );
+    assert.ok(why.length > 30, `${selector}${state} is exempted from rest with no reason given`);
+  }
+});
+
 test('a destructive control is quiet at rest', () => {
   const offences = dangerRules()
-    .filter((r) => !STATEFUL.test(r.selector))
+    .filter((r) => !STATEFUL.test(r.selector) && !stateClassed(r.selector))
     .filter((r) => SIGNAL_VALUE.test(r.body))
     .filter((r) => !EXEMPT.has(r.selector))
     .map(at);

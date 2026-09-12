@@ -15,6 +15,8 @@ export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { Drawer } from './Drawer';
 export type { DrawerProps } from './Drawer';
+export { CommandPalette } from './CommandPalette';
+export type { CommandPaletteProps, CommandGroup, CommandItem } from './CommandPalette';
 export { DataTable, sortTableRows } from './DataTable';
 export type { Column, DataTableProps, TableSort } from './DataTable';
 export { Pagination } from './Pagination';

@@ -124,6 +124,30 @@ export const GATES = [
     blind: ['Real browser focus: jsdom does not blur a control that turns disabled, so the drop to <body> is simulated in the tests.'],
   },
   {
+    file: 'stories/palette-keyboard.test.js',
+    does: 'Presses real keys at the command palette: the hotkey that opens it, the arrows that '
+      + 'move the active row while the caret stays in the text box, Enter, Escape closing the top '
+      + 'overlay only, the trap that keeps Tab in, and what the live region says.',
+    blind: [
+      'Whether the focus it asks for lands. Same JSDOM limit as the drawer gate: there is no '
+        + 'layout and no transition, so a focus() a browser would refuse is counted as arriving.',
+      'The pointer. Hovering moves the active row and clicking runs it; neither is pressed here.',
+    ],
+  },
+  {
+    file: 'stories/guidelines/command-palette.test.js',
+    does: 'Holds the palette guidelines page to the component: the keyboard contract against the '
+      + 'keys the sources actually compare against, the label role the grouping rule claims, and '
+      + 'every palette row any story renders against the rule that a row must go somewhere, run '
+      + 'something, ask something or say it is unavailable.',
+    blind: [
+      'What a key DOES. It reads which keys are answered, never what happens next — '
+        + 'stories/palette-keyboard.test.js presses them.',
+      'A row a story does not render. The sweep is the catalogue, so a product\u2019s own palette is '
+        + 'covered only by the parts of it the kit renders.',
+    ],
+  },
+  {
     file: 'stories/contrast.test.js',
     does: 'Measures every text-owning element in every story, both themes, against the '
       + 'background composited above it.',
@@ -366,6 +390,17 @@ export const GATES = [
     file: 'react/src/DataTable.test.tsx',
     does: 'Keyboard sorting keeps semantic column headers and the announced sort direction.',
     blind: ['Real browser focus and responsive layout; these mounted tests use jsdom.'],
+  },
+  {
+    file: 'react/src/CommandPalette.test.tsx',
+    does: 'Compares the React palette against the vanilla factory shape by shape — panel, roles, '
+      + 'groups, every row — and then presses keys at the mounted one: where focus opens and where '
+      + 'it goes back to, the arrows, Enter, and the destructive row it refuses to run.',
+    blind: [
+      'The hotkey. Cmd+K is the vanilla wiring\u2019s, and a React host binds its own key to the '
+        + '`open` prop it already owns.',
+      'Real browser focus and layout, as everywhere else in this workspace: these are jsdom mounts.',
+    ],
   },
   {
     file: 'react/src/Modal.test.tsx',

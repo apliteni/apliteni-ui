@@ -64,6 +64,12 @@ const SHEETS = [
     close: 'closeConfirm()',
     cost: 'reaches the accept button and fires the caller\'s destructive handler twice',
   },
+  {
+    file: 'src/styles/command-palette.css',
+    block: 'ui-cmdk',
+    close: 'closeCommandPalette()',
+    cost: 'lands on a result row and runs the caller\'s command a second time',
+  },
 ];
 
 for (const { file, block, close, cost } of SHEETS) {
@@ -206,6 +212,7 @@ test("the stack's layers are the ones the sheets resolve to", () => {
   const pairs = [
     ['confirm', 'src/styles/confirm.css', 'ui-confirm'],
     ['drawer', 'src/styles/drawer.css', 'ui-drawer'],
+    ['palette', 'src/styles/command-palette.css', 'ui-cmdk'],
   ];
 
   for (const [name, file, block] of pairs) {
@@ -245,6 +252,20 @@ test('a confirm paints above a drawer, whatever order they are mounted in', () =
     + 'order falls back to document order, so a confirm whose markup comes first — a normal way to '
     + 'mount dialogs — is painted BEHIND the drawer it is asking about: its buttons are clipped by '
     + 'the drawer panel, and at narrow widths the dialog is hidden outright',
+  );
+});
+
+test('a confirm paints above a command palette, which is where a palette row sends it', () => {
+  const tokens = zTokens();
+
+  const confirmZ = stackingLevel(rootOf('src/styles/confirm.css', 'ui-confirm'), tokens);
+  const paletteZ = stackingLevel(rootOf('src/styles/command-palette.css', 'ui-cmdk'), tokens);
+
+  assert.ok(
+    confirmZ > paletteZ,
+    `a confirm resolves to z-index ${confirmZ} and a palette to ${paletteZ}. A destructive row in `
+    + 'the palette opens the confirm and leaves the palette standing under it, so a confirm that '
+    + 'paints below is a question the reader cannot read or answer',
   );
 });
 

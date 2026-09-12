@@ -18,7 +18,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
 // asked here, because the same list decides where the dialog opens and where the trap
 // wraps: opening on a control Tab cannot reach strands the reader at the first keystroke.
 // The vanilla overlay asks a narrower version of the same question —
-// src/components/overlay.js:32 `function reachable(el)` — and the React layer could not
+// src/components/overlay.js:37 `function reachable(el)` — and the React layer could not
 // reuse it in any case: it is internal to the kit and no export reaches it.
 function tabbable(el: HTMLElement) {
   // A negative tabindex is focusable to a script and skipped by Tab, whatever the element,
@@ -42,7 +42,9 @@ function tabbable(el: HTMLElement) {
     || el.checkVisibility({ visibilityProperty: true });
 }
 
-const tabbablesIn = (root: HTMLElement) =>
+// Exported for <CommandPalette>, the third React dialog: one answer to "what can Tab
+// reach" for every dialog in the layer, never a copy per component.
+export const tabbablesIn = (root: HTMLElement) =>
   Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(tabbable);
 
 // A click on the scrim and nowhere else dismisses. preventDefault is what makes the

@@ -4,10 +4,15 @@
 // properties of the *page*, so they are answered here from one stack per document rather
 // than from either component's own storage. Internal — not re-exported from src/index.js.
 
-// What each overlay paints on today: a drawer at `--z-overlay` (styles/drawer.css) and a
-// confirm above it (styles/confirm.css). Absolute values, not ranks, so a sheet that moves
-// and a table that did not is a failed test — stories/overlay-css.test.js holds both.
-export const OVERLAY_LAYER = { drawer: 100, confirm: 101 };
+// What each overlay paints on today: a drawer at `--z-overlay` (styles/drawer.css), a
+// command palette one above it (styles/command-palette.css) and a confirm above both
+// (styles/confirm.css). Three steps and not two, because at equal levels paint order falls
+// back to document order and the overlay that owns the keyboard is then not reliably the
+// one the reader can see. A palette is summoned deliberately and must be seen, so it goes
+// over a drawer that was already open; a confirm is a question about whatever is under it,
+// so it goes over both. Absolute values, not ranks, so a sheet that moves and a table that
+// did not is a failed test — stories/overlay-css.test.js holds all three.
+export const OVERLAY_LAYER = { drawer: 100, palette: 101, confirm: 102 };
 
 const FOCUSABLE = [
   'a[href]', 'button:not([disabled])', 'input:not([disabled])',
@@ -32,7 +37,8 @@ function pageOf(doc) {
 function reachable(el) {
   for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
     if (n.inert || n.hasAttribute('inert') || n.hasAttribute('hidden')) return false;
-    const overlayRoot = n.hasAttribute('data-drawer') || n.hasAttribute('data-confirm');
+    const overlayRoot = n.hasAttribute('data-drawer') || n.hasAttribute('data-confirm')
+      || n.hasAttribute('data-cmdk');
     if (overlayRoot && !n.classList.contains('is-open')) return false;
   }
   // Browsers can answer the rest properly; JSDOM has no layout and no such method.
@@ -108,7 +114,7 @@ const PRECEDING = 2;
 
 // One way onto the stack. `where` picks the slot; everything after it — the
 // duplicate guard, the key owner, the recompute — is the same either way. Every
-// entry carries its layer, so the comparisons in adoptOverlay never meet undefined.
+// entry carries its layer, so the comparisons in the slot pickers never meet undefined.
 function place(root, panel, dismiss, layer, where) {
   const doc = root.ownerDocument;
   const page = pageOf(doc);
@@ -130,14 +136,23 @@ function paintedLayer(root, layer) {
 }
 
 /**
- * Put an overlay on top of the page. `dismiss` is what Escape calls — pass null
- * for one that refuses to be dismissed, and Escape then does nothing rather than
- * falling through to the overlay underneath. This one goes on top whatever layer
- * it paints on, because opening is history the stack can order by: the thing just
- * opened is the thing the reader is looking at.
+ * Put an overlay on the page. `dismiss` is what Escape calls — pass null for one
+ * that refuses to be dismissed, and Escape then does nothing rather than falling
+ * through to the overlay underneath.
+ *
+ * It goes on top of everything it paints over, and under anything painted above
+ * it. Opening is history the stack can order by, but only within a layer: an
+ * overlay opened under one already on screen — a drawer opened from a palette
+ * row, a palette opened while a confirm is up — is not the one the reader is
+ * looking at, and giving it Escape and the Tab trap would put the keyboard on a
+ * surface that is covered.
  */
 export function pushOverlay(root, panel, dismiss, layer) {
-  place(root, panel, dismiss, layer, (page) => page.stack.length);
+  const level = paintedLayer(root, layer);
+  place(root, panel, dismiss, level, (page) => {
+    const at = page.stack.findIndex((e) => e.layer > level);
+    return at === -1 ? page.stack.length : at;
+  });
 }
 
 /**
@@ -157,13 +172,45 @@ export function adoptOverlay(root, panel, dismiss, layer) {
   });
 }
 
-/** Take an overlay off the page, wherever in the stack it sits. */
-export function popOverlay(root) {
+// Where an overlay puts focus when it opens: the first stop inside its panel,
+// else the panel itself. One rule serves all three, because the kit's own markup
+// puts each one's opening target first — a drawer's first control, the palette's
+// text box, and the confirm's safe answer, which its panel renders before the
+// destructive one.
+function initialFocus(panel) {
+  return (panel && focusablesIn(panel)[0]) || panel;
+}
+
+// What `el` can actually be handed focus, or null when nothing can take it. An
+// overlay stays open while the page carries on, so by the time it closes the
+// element it came from may be detached — look for whatever inherited its identity
+// in the re-render — or sitting in a subtree that a lower overlay has just made
+// inert again, where focus() is a silent no-op. <body> is null too: with no
+// tabindex it cannot be focused either, and `activeElement === body` is what
+// having no focus looks like, which is what an overlay summoned by its hotkey out
+// of a page nobody had touched yet records as the place it came from.
+function focusTarget(el, doc) {
+  const live = el && !el.isConnected && el.id ? doc?.getElementById(el.id) : el;
+  if (!live || !live.isConnected || live === live.ownerDocument.body) return null;
+  return reachable(live) && typeof live.focus === 'function' ? live : null;
+}
+
+/**
+ * Take an overlay off the page, wherever in the stack it sits. `opener` is what
+ * the caller is about to hand focus back to, which this has to see: one overlay
+ * can close over another that is still open, and the opener is then out on a page
+ * that lower overlay is holding inert. Nobody would place focus at all, and the
+ * reader would be left on <body> looking at a panel that holds neither the
+ * keyboard nor the Tab trap — so open the panel now on top where it opens.
+ */
+export function popOverlay(root, opener) {
   const doc = root.ownerDocument;
   const page = pageOf(doc);
   const at = page.stack.findIndex((e) => e.root === root);
   if (at !== -1) page.stack.splice(at, 1);
   sync(doc);
+  const top = page.stack[page.stack.length - 1];
+  if (top && opener && !focusTarget(opener, doc)) initialFocus(top.panel)?.focus();
 }
 
 /**
@@ -180,8 +227,14 @@ export function syncOverlays(doc = document) {
  * the element it came from may be detached by now — and focus() on a detached
  * node is a silent no-op that leaves the reader with no place on the page. Look
  * for whatever inherited its identity in the re-render, then give up to the page.
+ *
+ * With another overlay still open, the only place worth having focus is inside
+ * it: an opener that overlay is holding inert cannot take focus at all, popOverlay
+ * has already opened the panel now on top for exactly that case, and <body> behind
+ * a live modal is not somewhere to give up to.
  */
 export function returnFocus(el, doc) {
+  if (doc && pageOf(doc).stack.length) { focusTarget(el, doc)?.focus(); return; }
   const live = el && !el.isConnected && el.id ? doc?.getElementById(el.id) : el;
   if (live && live.isConnected && typeof live.focus === 'function') { live.focus(); return; }
   doc?.body?.focus?.();

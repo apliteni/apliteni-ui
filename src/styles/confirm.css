@@ -20,10 +20,10 @@
 
   position: fixed;
   inset: 0;
-  /* One above the drawer's own overlay level: a confirm asks a question about the
-     drawer it was opened over, so it has to be readable above it whatever order
-     the two are mounted in. */
-  z-index: calc(var(--z-overlay) + 1);
+  /* Top of the overlay stack — one above the palette, two above the drawer: a
+     confirm asks a question about whichever of them opened it, so it has to be
+     readable above both whatever order the three are mounted in. */
+  z-index: calc(var(--z-overlay) + 2);
   pointer-events: none; /* container never blocks; scrim/panel opt back in */
 
   /* Only the hide is transitioned, so the panel is still on screen while it

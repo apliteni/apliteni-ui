@@ -699,6 +699,7 @@ surfaces where `Page 1 of 1 · 100 rows` sat under a server pager reading `1–1
 Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 
 [i273]: https://github.com/apliteni/apliteni-ui/issues/273
+[i274]: https://github.com/apliteni/apliteni-ui/issues/274
 
 ## React tables
 
@@ -742,6 +743,71 @@ here.
 The page a table starts on shows as many rows as the kit's largest page size, not as many
 as fit a demonstration.
 
+## The command palette
+
+The kit ships the palette's shell, its ranking and its keyboard, and names no result kinds.
+What a result *is* — an invoice, a campaign, a domain — is the product's vocabulary, and a kit
+that enumerated those would need a release before a product could add one. Groups are the
+caller's, named in the caller's words.
+
+What the kit does name is the three ways a row can behave, because each one answers Enter
+differently: a row that goes somewhere carries an `href`, a row that runs something reports a
+`ui-command` event, and a row that destroys something names a confirm and opens it. A
+destructive row that names no confirm is rendered disabled rather than run — the palette is the
+fastest surface in a product and the one where a reader is looking at the text box rather than
+at the list.
+
+Results are ranked on how the query meets the item, and the caller breaks every tie. A whole
+label beats a prefix, a prefix beats a word start, a word start beats a substring, a keyword
+beats a note, and initials come last; groups are ordered by their best row, so the row under
+Enter is the best answer in the palette rather than the best answer in the first group. Where
+scores are equal the order the caller passed stands — with nothing typed that is the whole
+list, unchanged, which is where a product puts the four things somebody actually does here. The
+kit remembers nothing between openings: a palette that should show recents is a palette that
+was passed a recents group.
+
+A palette a server feeds does not rank at all. It reports what was typed, renders the results it
+is handed in the order it is handed them, and the ranking rule above becomes the server's to
+apply — the same function, exported, rather than a second one written next to it.
+
+The same markup is rendered by the HTML factory and by the React component, and the React one
+imports the kit's ranking rather than repeating it, so a palette rendered on a server and the
+same palette after a keystroke cannot disagree about what comes first.
+
+The keyboard is six keys and no more: Cmd or Ctrl+K opens it, the arrows move the active row and
+wrap at both ends, Enter runs it, Escape closes the top overlay, and Tab does not leave. Home and
+End stay with the text caret, which is what the ARIA combobox pattern gives them for. Ctrl+K
+inside another text box is left alone, because it is kill-to-end-of-line there.
+
+DOM focus opens in the text box and never leaves it while the palette is up: the active row is
+named by `aria-activedescendant`, each row is an `option` out of the tab order, and the page
+behind is inert. The number of results is announced politely, as a count and never as the rows —
+a live region holding the list would read all of it out again on every keystroke. On the way out
+focus goes back to whatever opened it, and to the page when the command that ran took the opener
+with it.
+
+The palette joins the same stack every kit overlay is on, and paints one step above the drawer
+and one below the confirm. Three steps and not two, because at equal levels paint order falls
+back to document order while the keyboard follows the stack, and the overlay a reader can see
+then stops being the one that answers the keys. A palette is summoned deliberately and has to be
+seen, so it goes over a drawer that was already open; a confirm a row opens is a question about
+what is under it, so it goes over both, answers the first Escape, and leaves the palette
+standing underneath.
+
+That last sentence is the vanilla half. The React palette and the React `Modal` each register
+their own document listener rather than sharing a stack, so one Escape closes the modal and the
+palette under it; the React half joins the shared dialog stack when the drawer branch lands.
+
+It opens empty. A palette that comes back holding the last query shows a list answering a
+question the reader has already finished asking, and the next keystroke appends to it.
+
+Held by `src/components/command-palette.test.js` (the markup, the three behaviours and the
+ranking), `stories/palette-keyboard.test.js` (the keys, the focus and the announcement),
+`stories/guidelines/command-palette.test.js` (the guidelines page against the component, and
+every palette row any story renders), `react/src/CommandPalette.test.tsx` (the React face against
+the factory, shape by shape) and `stories/overlay-css.test.js` (the layer, and the rules JSDOM
+cannot run). Settled in [#274][i274].
+
 ## What the kit does not do
 
 Stated so nobody has to discover it by trying:
@@ -750,9 +816,10 @@ Stated so nobody has to discover it by trying:
   consumer's, and the React subpath is a wrapper over the same CSS rather than a second kit.
 - **No build step.** No Sass, no PostCSS, no token compiler. The consequence is
   [breakpoints as literals](#breakpoints), and that is the trade taken deliberately.
-- **No density system.** `.ui-table--dense` is the only density modifier and it is
-  component-local, because a tighter rhythm in a ledger is a property of the data rather than of
-  the page around it.
+- **No density system.** `.ui-table--dense` and `.ui-cmdk--roomy` are the only density
+  modifiers and both are component-local, because a tighter rhythm in a ledger — or a looser one
+  in a list of invoices that need a sentence to tell apart — is a property of the data rather
+  than of the page around it.
 - **No container scale.** There is one `--container`, not a narrow/wide set. Naming a
   disagreement is not settling it, and the next width would land on whichever step is closest
   rather than on the one that is right.
