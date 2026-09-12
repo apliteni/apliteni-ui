@@ -195,6 +195,14 @@ choice.
 |---|---|
 | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-persisted-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-persisted-light.png) |
 
+These two files are **byte-identical** to the folded pair above, and that is what a persisted fold
+looks like — but it means the pictures are not themselves evidence of persistence, and a reviewer
+should not read them as such. What is evidence is in *Measured in a browser* below: the cookie read
+back off the browser's own jar (`apliteni-ui-rail=collapsed`, `path=/`, `SameSite=Lax`, 365 days),
+and a second load drawn with no `collapsed` coming up `class="ui-app is-collapsed"
+data-rail="auto"` with the toggle already named *Expand sidebar*. `stories/apps/shell-rail.test.js`
+gates all of it.
+
 **`sidebarNav({ collapsed })` with the current page inside a group.** Before: the group is shut,
 its list is `display: none`, the current page is gone and four rows are drawn. After: the group is
 open over it, six rows are drawn, and *Pending* carries its active bar. Counted in the browser on
@@ -340,6 +348,15 @@ band's change arrow and trend slot, this branch down by two because the folded r
 its glyph a second time. Resolved to **68**, with both justifications kept in the comment above it,
 as that tripwire asks. Nothing else conflicted, and every figure and every mutation in this body
 was re-run against the rebased tree.
+
+## The version bump this PR does not carry
+
+`src/components/shell.js` and `src/components/nav.js` are inside the published tarball and their
+bytes changed, while `package.json` still says `0.31.0`. CI's `Shipped surface vs version` job
+compares the tarball against the base and exits non-zero when the surface moves and the version
+does not — **so this branch fails that check as it stands, and it is the only red one.** Several
+PRs are in flight and this repo has already shipped two bumping to the same version, so the
+coordinator sequences the version at merge. The changelog lines are under *Changelog entry* below.
 
 ## Proof
 
