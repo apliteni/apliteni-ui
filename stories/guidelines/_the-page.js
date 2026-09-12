@@ -167,8 +167,8 @@ export const RULES = [
     why: 'h1 is the page, h2 a card or a section of it, h3 a group inside one. A fourth rank is a '
       + 'page that has become two, and a skipped rank is a level a reader hears missing. The scale '
       + 'has two title ranks, not three: an h3 inside a card takes the card title\'s look through '
-      + 'card({ level: 3 }), so every rank past that buys a level in the outline and no size to say '
-      + 'it with.',
+      + 'card({ level: 3 }), so a rank past h3 adds a level to the outline with no size of its own '
+      + 'to show it.',
     doCaption: 'Page, section, group — down one at a time. Written out: these are labels, not headings.',
     dontCaption: 'Two pages in one, then a jump from h1 to h3, then a rank nothing on the page reads at.',
     doHtml: outlineDo,
@@ -182,9 +182,10 @@ export const RULES = [
     id: 'one-primary',
     imperative: 'Lead with one primary action. Everything else on the page is secondary, tertiary, or a link.',
     why: 'Three filled buttons rank nothing: the eye has to read all three to find the one the page '
-      + 'is for. Carbon is the only system that writes the number down — "each page should have only '
-      + 'one primary button" — and it exempts the same places this rule does, because a control that '
-      + 'is not on the page cannot compete with one that is.',
+      + 'is for. Of the twelve design systems read for this page, Carbon is the only one that writes '
+      + 'the number down — "each page should have only one primary button" — and it exempts the same '
+      + 'places this rule does, because a control that is not on the page cannot compete with one '
+      + 'that is.',
     except: 'An overlay carries its own primary — a confirm, a drawer footer, a dialog — and it does '
       + 'not count against the page. Neither does a marketing page, which repeats its call to action '
       + 'down the page on purpose; Apps / Landing Page is the one screen here in that position.',
@@ -208,7 +209,7 @@ export const RULES = [
       + 'one. A stat band is one thing on the page whatever its layout draws — the tiles layout paints a '
       + 'card per figure, and four figures are still one band.',
     doCaption: `One block a card: ${LIMITS.cards} of them, at the limit and still one page.`,
-    dontCaption: 'Twelve. The page has grouped nothing — it is a menu of what it could have been.',
+    dontCaption: 'Twelve, drawn at the same scale as the six beside it.',
     doHtml: stackDo,
     dontHtml: stackDont,
     kit: [
@@ -220,8 +221,8 @@ export const RULES = [
     id: 'navs',
     imperative: 'Name every navigation landmark on the page, and never draw a second copy of one the shell already gives you.',
     why: 'A reader moving by landmark hears "navigation" once per region, so two unnamed ones are two '
-      + 'identical doors. The shell draws the rail and the trail and names both; a page that adds its '
-      + 'own section menu beside the rail is asking a reader to keep two answers to one question.',
+      + 'identical doors. The shell draws the rail and the trail and names both, so a page that adds '
+      + 'its own section menu beside the rail has put a third door next to them.',
     kit: [
       { ref: 'src/components/nav.js:167', pattern: 'ui-nav--crumbs' },
       { ref: 'stories/guidelines/_command-palette.js:213', pattern: 'hand focus back' },
@@ -245,12 +246,12 @@ export const RULES = [
     id: 'density',
     imperative: 'One density per page: the spacing scale sets the rhythm, and a dense table is all of a page\'s tables or none of them.',
     why: 'Two tables at two densities on one screen read as two products. Density is a property of '
-      + 'the data — a many-column ledger earns .ui-table--dense — and a page holds one kind of data, '
-      + 'so it holds one answer. Where the rhythm itself comes from is on Layout and density; this '
-      + 'rule is that the page does not change its mind halfway down.',
+      + 'the data — a many-column ledger earns .ui-table--dense — so the page takes what its widest '
+      + 'table needs and gives it to the rest. Layout and density is where the rhythm itself comes '
+      + 'from; this rule is only that the page does not change its mind halfway down.',
     except: 'A table inside a drawer is beside the page, not on it, and takes the drawer\'s rhythm.',
     doCaption: 'Both ledgers dense. One rhythm down the page.',
-    dontCaption: 'Dense above, roomy below — the same rows, told twice in two voices.',
+    dontCaption: 'Dense above, roomy below. The same four columns, at two row heights.',
     doHtml: densityDo,
     dontHtml: densityDont,
     kit: [
@@ -263,7 +264,7 @@ export const RULES = [
     imperative: `Say what the page is for in ${LIMITS.lede} sentences at most, and never spend one of them on the title.`,
     why: '"Payouts — this is the payouts page" tells a reader what they already read. The lede is for '
       + 'what the title cannot say: what is counted, how far back, where the numbers come from. Three '
-      + 'sentences is a paragraph, and a paragraph above the content is read by nobody twice.',
+      + 'sentences is a paragraph, and a paragraph sits between the reader and what they came for.',
     kit: [
       { ref: 'src/components/shell.js:184', pattern: 'ui-app__sub' },
       { ref: 'stories/guidelines/_microcopy.js:67', pattern: 'a filter gets a nudge' },

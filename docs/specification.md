@@ -631,15 +631,15 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 
 ## The page
 
-A screen is more than the components on it. These are the limits one page keeps, whatever it is
-about:
+`appShell()` draws a page's chrome and what goes inside it is the caller's. These are the limits
+that inside keeps, whatever the page is about:
 
 - **An application page is `appShell()`'s.** Two page kinds sit outside that and inside every
   rule below: an auth card, which has no rail to sit beside, and a marketing page.
 - **One `<h1>`, and it is the page title.** Every other heading on the page sits under it.
 - **The outline goes down one rank at a time and stops at `h3`** — the page, a card or section of
-  it, a group inside one. The kit draws no `h4`; the footer's column titles are `h2`, because a
-  rank that only ever follows the page's own sections cannot skip one.
+  it, a group inside one. The kit draws no `h4`: the footer's column titles are `h2`, the rank
+  chosen in #275 because it cannot skip whatever heading precedes it.
 - **The head reads in one order** — the way back, the title, the lede, the body — and nothing but
   the way back goes above the title. A filter row, a period switch or a search box is the first
   thing *inside* the body.

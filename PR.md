@@ -32,8 +32,8 @@ faults that every other gate was green about:
 holds each of them to every rule. Fixed the two faults. Put the four numbers that are judgement
 calls in front of Artur as rendered screens.
 
-**The verdict: Changed.** The issue asks for a document. A document is half of it; the half that
-lasts is the gate.
+**The verdict: Changed.** The issue asks for a document, and a document nothing enforces is a
+wish — so this is a document and the gate that holds it.
 
 ## The survey
 
@@ -58,7 +58,7 @@ the other goes in the issue, and stays there."*
 | **Salesforce Lightning** | a `page-header` blueprint | readable only as class names (`__col-title`, `__col-actions`, `__col-meta`, `__col-details`); the prose did not render on either the current or the v1 docs site | not read | not read | — |
 
 Atlassian and Lightning are recorded as **partially read**: both sites render their guidance in
-JavaScript and returned only the lines above. Nothing is filled in from memory.
+JavaScript and returned only the lines above. Nothing else is filled in for them.
 
 ### Where they genuinely disagree
 
@@ -94,9 +94,10 @@ Checked for specifically across all twelve:
    → **one density per page: all of its tables or none of them.**
 5. **Nobody writes the lede's length down.** Polaris comes closest and it is about an annotated
    section's description, not the page's: *"Be short, no more than 1–3 sentences."*
-6. **Not one of these rules is held by a test anywhere.** Every system above publishes prose and
-   relies on review. That is the difference this PR is actually about: ten rules, ten checks, over
-   the kit's own eighteen screens, keyed to each other so neither can move alone.
+6. **Every one of them publishes this as prose.** Whether any enforces it in CI is not something
+   their documentation says, and I did not read their pipelines. What this PR adds is the check:
+   ten rules, ten checks, over the kit's own eighteen screens, keyed to each other so neither can
+   move alone.
 
 ## The page
 
@@ -152,8 +153,7 @@ Before and after, both themes, in `docs/evidence/the-page-fixes-dark.png` and
 top-level sections of the page's end matter, and `h2` is the one rank that cannot skip whatever
 heading came before it. `.ui-footer__col-title` sets the size, weight, colour and margin — it is
 marked `/* rank: label */` and stays that — so nothing moves.
-Same two screenshots, lower half: the before and the after are the same picture, which is the
-claim.
+Same two screenshots, lower half.
 
 Both are the split the kit already publishes on *Labels and titles*: the level is the outline and
 the class is the look.
