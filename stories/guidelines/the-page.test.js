@@ -96,17 +96,20 @@ const CHECKS = {
       : el.tagName === 'H1' ? 'title'
         : el.matches('p.ui-app__sub') ? 'lede'
           : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));
+    // Each part may appear once, in this order: the index walks forward past the
+    // one it just matched, so a second body — or a second title — is as much a
+    // failure as one in the wrong place.
     const ORDER = ['up', 'title', 'lede', 'body'];
     let at = 0;
     for (const part of shape) {
       const next = ORDER.indexOf(part, at);
+      at = next + 1;
       if (next < 0) {
         problems.push(`${s.where} puts ${part} in the page head, reading ${shape.join(' → ')}. `
           + `The head is ${ORDER.join(' → ')}, and a filter or a toolbar belongs first thing `
           + 'inside the body rather than above the title.');
         break;
       }
-      at = next;
     }
     return problems;
   },
