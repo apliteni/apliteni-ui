@@ -6,9 +6,10 @@ Artur reviews after that review; no human action is requested yet. Based on main
 
 ## What & why
 
-Move 31 comment blocks across 16 source files into short pointers and local coverage ledgers.
-Keep unique gate rationale, measurements, count histories and API guidance in CONTRIBUTING;
-link existing specification guarantees instead of duplicating them in source.
+Move the eight comment blocks that outgrew `CONTRIBUTING.md:51`'s twenty-five-line ceiling
+into eleven CONTRIBUTING sections and short pointers, keeping a local coverage ledger at each
+gate. Every shorter block stays at its declaration. Existing specification guarantees are
+linked rather than duplicated.
 
 ## Problem
 
@@ -31,10 +32,13 @@ documentation and leaves a short pointer beside the code.
 
 | Before | After |
 | --- | --- |
-| 31 long or repeated comment blocks in 16 files | Short pointers; coverage limits remain beside tests |
-| Count histories mixed into test setup | History tables in CONTRIBUTING |
-| Browser-default measurements, discovery exclusions and ledger decisions in button-chrome comments | Linked implementation notes with the measurements and limitations retained |
-| Repeated pagination layout and wiring explanations | One documentation home for each concern |
+| Eight comment blocks past the twenty-five-line ceiling, in six files | Short pointers; coverage limits remain beside the gates |
+| Long count histories mixed into test setup | History tables in CONTRIBUTING |
+| Browser-default measurements, discovery exclusions and ledger decisions in button-chrome's four essays | Linked implementation notes with the measurements and limitations retained |
+| The pager's cascade story told nine times across one stylesheet and a component | One `#pagination-layout` section, with the declaration notes still at their declarations |
+
+Every comment block at or under twenty-five lines stays where it was. Ten source files are
+now byte-identical to `main`.
 
 A TypeScript parser/printer comparison with comments removed confirms identical executable
 code in every edited JS/TS file. Removing CSS comments and normalizing whitespace gives
@@ -56,13 +60,17 @@ Level 3, same installed detector before and after:
 
 | Scope | Before: errors / medium / warnings | After: errors / medium / warnings |
 | --- | --- | --- |
-| All 284 source files under src, react/src, stories, scripts and site | 0 / 24 / 9 | 0 / 4 / 4 |
-| The 16 edited source files | 0 / 21 / 5 | 0 / 1 / 0 |
+| All 251 tracked source files under src, react/src, stories, scripts and site | 0 / 24 / 9 | 0 / 15 / 8 |
+| The 8 edited source files | 0 / 13 / 3 | 0 / 4 / 2 |
 | CONTRIBUTING | 0 / 0 / 0 | 0 / 0 / 0 |
 
-The remaining medium finding in an edited file is the early pagination normalization comment.
-Its source location precedes rendered guideline references; later uncited pagination comments
-were moved without shifting those references. No detector error remains.
+These are the numbers after the review fixes, not the ones the first push reported (0 / 4 / 4
+tree-wide). Restoring the seventeen comment blocks that never reached the repository's own
+twenty-five-line ceiling gives eleven of those mediums back. The detector's `comment-essay`
+rule fires at twelve prose lines; `CONTRIBUTING.md:51` fires at twenty-five, and the
+twenty-five-line rule is this slice's stated authority, so where the two disagree the
+repository's rule wins. No detector error remains, and every block still moved is one the
+repository's own rule would move.
 
 ## Findings
 
@@ -98,18 +106,44 @@ from the affected source; the main docs retain existing guarantees.
 
 Cited material stays in place pending authorization to update its visible references.
 
+## Review resolutions
+
+The independent review of `7c5ca16` proved the safety claim by two independent parsers, found
+118 of 119 distinctive facts surviving, and reproduced the detector table exactly. Its five
+findings are resolved as follows.
+
+| Finding | Severity | Resolution |
+| --- | --- | --- |
+| F301-1: `wirePagination()` and `setPagerStatus()` are exported from a file that ships on npm, and their JSDoc became a pointer to a file the consumer does not have | Medium | Fixed. Both carry a one-line summary and an `@returns` contract beside the `why:` pointer. The usage example and the reason stay in CONTRIBUTING; a consumer hovering the symbol now gets the shape and the return value without leaving their editor. |
+| F301-2: seventeen of the twenty-five removed blocks never reached the twenty-five-line ceiling the slice cites as its authority, including every note in `pagination.css` | Medium | Fixed. Every block at or under twenty-five lines is back at its declaration, verbatim from `main` — the `[disabled]`-against-`:disabled` note stands on the selector it protects again. Ten source files are byte-identical to `main`. The ten CONTRIBUTING sections that only restated a restored comment were dropped, so each fact has one home; the eight blocks over the ceiling stay moved with their pointers. |
+| F301-3: the typeface-roles reason — "a literal here is invisible… which is exactly how the kit ended up with one face doing two jobs" — had no home anywhere | Low | Fixed by F301-2's restoration: the sixteen-line block is back at the top of `src/styles/typeface-roles.test.js`, with its `#253` framing and its pointer to [Typefaces](docs/specification.md#typefaces). It is not also copied into the specification, which states outcomes rather than arguments, nor into CONTRIBUTING — that would be the duplication F301-2 asks to remove. |
+| F301-4: `#257` was the one distinctive token of 119 to leave the tree | Nit | Fixed twice over. Row 32 of the count table reads `#257: the portalled .ui-dropdown__panel states its own face`, and the block that first recorded it is back at src/styles/typeface-roles.test.js:259 `#257 gave dropdown()`. |
+| F301-5: `#pagination-layout`'s `a:link` paragraph describes a specificity table in prose | Nit | Fixed. It is a four-row table now — `a:link` (0,1,1), `.ui-btn--ghost` (0,1,0), the pager's own anchor rules (0,1,1) and `.ui-nav .ui-nav__item` (0,2,0) — with who writes each. That section is kept rather than dropped: it is the one place the pager's cascade is told end to end, and the eight declaration notes are back beside their declarations as well. |
+
+Two consequences worth naming. The detector numbers in the table above are worse than the
+first push reported, by exactly the eleven mediums and four warnings the restored blocks cost;
+`CONTRIBUTING.md:51` is the rule this slice cites, and it fires at twenty-five lines. And the
+merge conflict the review predicted against #286 is now louder rather than silent: #286's
+`68 (#277: …)` history line lands in a comment this slice no longer deletes, so the conflict
+appears in `src/styles/icon-size.test.js` where a resolver will see it.
+
 ## Proof
 
 - Baseline: 1,397 Node tests; only contrast timing fails on this machine. The allowed isolated
   retry also fails only that ceiling. Two original skips become one after building Storybook,
   because the static-story-ID check then runs.
-- Comment working tree: all 1,397 tests ran; 1,395 passed, one skipped and only the accepted
+- After the review fixes: all 1,397 tests ran; 1,395 passed, one skipped and only the accepted
   contrast timing check failed. No test count dropped.
-- `npm run build` passes. React Vitest passes 322 tests in 16 files.
-- All three citation gates pass, with every guideline module untouched.
-- All 16 edited source files retain identical executable code/CSS and gate classification.
-- Existing mutation checks remain in the suite and their assertions are unchanged.
-- The same full suite runs again after the commit; the coordinator receives its result.
+- `npm run build` and `npm run build -w react` pass. React Vitest passes 322 tests in 16 files.
+- All three citation gates pass (89 tests), with every guideline module untouched.
+- esbuild whitespace-only minification (comments dropped, syntax and identifiers preserved)
+  makes all 15 touched JS/TS files byte-identical to `7ffbde4`. Stripping comments and
+  normalising whitespace makes `src/styles/pagination.css` byte-identical to it too.
+- Every distinctive token in the ten CONTRIBUTING sections dropped below still exists in the
+  tree; `#257` is back, both at src/styles/typeface-roles.test.js:259 `#257 gave dropdown()` and on row 32 of the
+  count table.
+- All eleven surviving CONTRIBUTING sections are pointed at from source; none is an orphan,
+  and no pointer names a heading that no longer exists.
 
 ## Verification
 
@@ -123,12 +157,13 @@ Cited material stays in place pending authorization to update its visible refere
 | Reviewer/model | Commit | Result | Resolution |
 | --- | --- | --- | --- |
 | Implementer / Astra | Working tree | Executable equivalence, gate classification and suite checked | Self-check only |
-| Independent reviewer | Not started | Coordinator dispatches after push | Required before Artur's review |
+| Independent reviewer | `7c5ca16` | Approve with two findings: 2 medium, 1 low, 2 nits | All five resolved below |
 
 ## Earned merge
 
-- Removes 20 comment essays and five density warnings while retaining their useful information.
-- Required before merge: independent review, findings resolved and Artur's review.
+- Removes the eight comment essays the repository's own rule calls design documents, and nine
+  of its density warnings, while retaining every fact they carried.
+- Independent review done and all five findings resolved. Required before merge: Artur's review.
 - No version bump or changelog entry is committed, as instructed.
 
 ## Linked issue
