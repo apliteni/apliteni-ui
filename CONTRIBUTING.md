@@ -1486,3 +1486,245 @@ network; everything below runs npm, reads files and has no judgement in it.
 
 The `ui.apli.tech` site rebuilds from the repo (landing + Storybook) — see the
 README for the image build/deploy.
+
+## Gate implementation notes
+
+These are the gate notes that outgrew the twenty-five lines a comment block is allowed
+above — long count histories and recorded measurements, which describe the changes that
+introduced them. A note that still fits stays at the declaration it explains. The
+guarantees remain in [docs/specification.md](docs/specification.md).
+
+### Font family count history
+
+`src/styles/typeface-roles.test.js` pins the exact number of declarations that name a family
+or reset the font. Update it with the declaration and its reason.
+
+| Count | Recorded change |
+| --- | --- |
+| 31 | #253: 22 text, 3 display, 4 mono, and 2 naming no family |
+| 32 | #257: the portalled `.ui-dropdown__panel` states its own face |
+| 33 | #251: `.ui-dropdown__item { font: inherit }` removes the browser's `font: 400 13.3333px Arial` and takes the panel's face |
+| 41 | Eight more #251 resets: `.vopt`, `.avatar`, `.toggle` in topbar.css; `.ui-card--interactive`, `.ui-drawer__close`, `.ui-toast__close`, `.ui-fbpill`, `.ui-fbc__x`. Each inherits its ancestor's face |
+| 42 | #269: `.ui-card__title { font-family: var(--font-sans) }` retains its text face after becoming an h2 |
+| 43 | #272: `.ui-drawer__section-title`, an h3, uses the text face for the same reason as `.ui-drawer__title` |
+| 46 | #274: the palette panel states its face; its input and `.ui-cmdk__item` inherit it |
+| 47 | The key legend's `<kbd>` states the text face instead of the browser's monospace default |
+| 48 | #282: `.ui-tip` states the text role instead of inheriting the chart's face |
+| 49 | #270: `.ui-back` states the text role, like other controls naming a place |
+| 50 | #283: `.ui-dropdown__search-input { font: inherit }` takes the panel's face |
+| 51 | #267: `.ui-stat__value` uses the display face under the `readout` exception |
+
+The role and portal guarantees are in [Typefaces](docs/specification.md#typefaces).
+
+### Button chrome measurements
+
+`stories/button-chrome.test.js` checks clickable classes rendered as something other than
+a button. A browser gives a button a grey fill, 2px outset border, shrink-to-fit width,
+centred text, and `font: 400 13.3333px Arial`. The reset at
+src/styles/nav.css:29 `.ui-nav__item {` removes all of these. Before #251,
+src/styles/dropdown.css:110 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
+
+Classes such as `.vopt` (`<div role tabindex>`), `.ui-card--interactive` (`<a href>`) and
+`.ui-fbpill` (bare `<div>`) had no button specimen. Classes already shown on a button are
+measured in `LEDGER`: their rendered buttons also pass the a11y and contrast walks in both
+themes. In 0.25.1, the five reset declarations and `Dropdown.stories.js`'s `RowTags` story
+moved `.ui-dropdown__item` to that ledger, where it has no failing facet.
+`stories/dropdown-tag-parity.test.js` holds parity across its three tags.
+
+Only browser-owned form controls and their decoration leave measurement: a select, a label
+around a checkbox, or the span drawing a switch track. `PINNED_OWNED` names three classes
+and their elements, and discovery must agree with those names.
+
+The source keeps a short coverage ledger. Its limits are:
+
+- JSDOM has no layout. Width models shrink-to-fit; a row filling its line for another reason
+  can read as repaired. See [Where jsdom stops being a browser](#where-jsdom-stops-being-a-browser).
+- Browser defaults are recorded measurements, not automatically refreshed snapshots.
+- Font weight and font style are not facets. `font: inherit` resets both, but retaining one
+  afterward is not measured; Chrome's recorded button weight is 400.
+- Measurements cover rest, both themes, and the default accent; hover, active and other accents
+  are unmeasured. No measured facet was accent-scoped when the gate was introduced.
+- `LEDGER` rows are counted, not required to be clean. Each uses one ancestry. The recorded
+  cost was 14 classes, 415 renders and 232 distinct ancestries: 14 measured and 218 unmeasured.
+  Measuring all would open about 15x as many windows for the counted-only half. Recount with
+  `anc(cls)` for each deferred class.
+- Losing `cursor: pointer`, or moving it to a wrapper or hover rule, removes a class from
+  discovery. `PINNED_SUBJECTS` catches that for its named classes; other classes are unpinned.
+
+### Button browser defaults
+
+JSDOM's suggested HTML rendering lacks Chrome's buttonface, outset border and Arial.
+A bare button and div both have a transparent background, as does `background: none`.
+The gate therefore measures each facet against two declared baselines: browser chrome and
+its absence. A class that resets the chrome must resolve identically against both.
+
+The baseline was measured in dark Chrome 152 with the story's
+`<button class="ui-dropdown__item">` beside its div equivalent:
+
+| Property | Recorded value before repair |
+| --- | --- |
+| Fill | rgb(107, 107, 107) |
+| Border | 2px outset |
+| Font | Arial 13.3333px/normal |
+| Alignment | Centred |
+| Width | 81.39px button; 226.00px div |
+
+#251 reports the first four values; the gate recorded the width. `width: auto` makes a
+form control shrink to fit regardless of `display`. The gate models that width because
+JSDOM cannot lay it out; `width: 100%` is an explicit declaration that overrides the model.
+
+Chrome's `font: 400 13.3333px Arial` also sets size and leading. Resetting only `font-family`
+left 13.3333px/normal against the row's 14.5px/23.49px: a row 2.25px shorter with type 1.17px
+smaller. Measuring only the family would miss both differences.
+
+### Button subject pins
+
+Discovery finds new subjects; explicit pins prevent old subjects leaving without review.
+The three-way partition cannot detect a class moving between buckets: the sum remains
+correct, `UNRENDERED` is empty, and other classes satisfy `SUBJECTS.length > 0`. Deleting
+`tabindex="-1"` from a dropdown row demonstrated this: the row left the measured set with
+every count still balancing. That roving tabindex is the pattern topbar uses for the
+segmented strip. See [the count rule](#a-gate-discovers-its-subjects-and-never-enumerates-them).
+
+A name leaves the pin only when its reason no longer applies and a person reviews the change.
+For `.ui-dropdown__item`, 0.25.1 supplied five declarations and the `RowTags` button specimen.
+For `.ui-cmdk__item`, #274 supplied four resets when it was introduced. The kit renders it as
+`<div role="option">`, reached by arrow keys rather than Tab, so the gate checks its possible
+button rendering in every ancestry a story supplies.
+
+### Button chrome ledgers
+
+`LEDGER` contains measured, unrepaired rows already rendered as buttons. `CLOSED` contains
+repairs held at zero failures. Counts are exact, as in `stories/contrast.test.js`, so a repair
+cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-of-what-it-does-not-reach).
+
+Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
+src/styles/nav.css:29 `.ui-nav__item {`. The recorded direction audit found one logical
+property, symmetric `margin-inline: auto` at layout.css:125, against 25 physical left/right
+margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
+text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
+held by the icon gate. RTL support would require revisiting these five declarations together.
+
+The width facet deliberately does not hold `.ui-card--interactive`: the card is a grid item
+in every story, outside the facet's normal-flow block model. Its button shrink-to-fit remains
+unmeasured. Adding `width: 100%` could change a flex-row consumer's pixels and needs a separate
+behavior decision.
+
+### Drawer border measurements
+
+`stories/drawer-rules.test.js` renders every story in both themes and reads the resolved
+cascade for [the drawer rules](docs/specification.md#the-drawer), settled in #272.
+A card is `.ui-card` or an inner box with all four edges, except a form control, button or
+content inside one. A ruled row has a top or bottom line without both sides. The permitted
+group separator is a `.ui-drawer__section` after another, with only its top edge drawn.
+The check rejects extra lines and missing required lines: below the header, above the footer,
+and between groups; no `<hr>` or independent body edge.
+
+Logical borders such as `border-block-end` become physical borders before JSDOM reads them,
+assuming horizontal, left-to-right writing. The local ledger states the limits: no consumer
+content, spacing, weight or colour measurement; no lines from shadows, outlines, backgrounds
+or pseudo-elements; and no vertical or RTL interpretation. React class parity has its own test.
+
+### Motion coverage measurements
+
+`stories/motion-coverage.test.js` scans every sheet under `src/` and `react/src/` for a closed
+state hook plus display, opacity, visibility, transform, translate, scale or max-height.
+A subject needs a transition of that property on its own rules (`display` needs
+`allow-discrete`), an entrance animation on its rule or played by its component script,
+or an on-declaration `/* motion: still — <why, a sentence> */` note. Hooks are closed like
+`BARE_EASING` in `motion-tokens.test.js`; selectors are discovered. Both this accessibility
+gate and `reduced-motion.test.js` appear on the floor page.
+
+The source retains these limits: script-swapped content such as `setBusy` and React mounts
+without state classes have no subject; overlays with `.rx-scrim.is-open` or `.is-open` do.
+The gate identifies a component script by its class reference and checks that it plays the
+entrance class, including through `classList`; it does not trace the argument to
+`playEntrance()` or prove that the class is added after the first render. Component tests
+hold timing because JSDOM plays no animation. Only the rightmost compound is matched, so
+another parent's transition can count. Unlisted hooks include `.on`, `.is-current` beside
+`.is-active`, `.is-scroll`, `.is-underline`, `:disabled`, `:hover` and `:active`.
+Reduced-motion blocks belong to the separate gate.
+
+See [Motion](docs/specification.md#motion) and
+[on-site exceptions](#an-exception-is-a-note-at-the-site-read-by-the-gate).
+
+### Reduced motion measurements
+
+`stories/reduced-motion.test.js` holds [WCAG 2.3.3's reduced-motion behavior](docs/specification.md#reduced-motion-travels-with-the-stylesheet):
+
+- Parse the declarations in `src/styles/reduced-motion.css`, so removing one fails.
+- Reject competing important durations outside reduced-motion blocks, component blocks doing
+  more than disabling motion, and loop counts above one.
+- Find each script's animation/transition end listener, handler assignment or React prop, and
+  require a timer in the same function. A reduced-motion branch cannot handle a missing event
+  when motion is enabled.
+
+This gate is separate from motion vocabulary because it covers the reader who opted out.
+Its source ledger excludes delays (`animation-delay`, `transition-delay`), inline styles
+such as the toast swipe transition, script-driven motion (`requestAnimationFrame`,
+`element.animate()`), and browser application of media queries. Any `setTimeout` in the
+containing function qualifies, without proving its purpose, duration or branch. Indentation
+identifies functions: a one-line function is judged with its enclosing function, or fails as
+unclassified if none exists.
+
+### Pagination event wiring
+
+`wirePagination()` handles the factory's existing `.ui-pager__step`, `.ui-pager__page`,
+`.ui-pager__size-select` and `.ui-pager__jump-input` classes. Without it, `data-page`, the size
+select and jump input have no handlers; the original unwired jump variant could not change
+pages. Delegation from `root` survives rerenders, and the returned function removes listeners.
+Anchors remain native navigation to avoid also invoking a callback and navigating twice.
+
+```js
+const pager = wirePagination(root, {
+  onPage: (page) => load({ page }),
+  onPageSize: (size) => load({ page: 1, size }),
+});
+```
+
+### Pagination status updates
+
+`setPagerStatus()` updates the existing live region, like `setBusy()`. Replacing the whole
+`<nav>` inserts a region with its text already present, which some screen readers do not
+announce. Pass the new range to this helper when rerendering a pager. It returns the status
+element, or null if the view is gone or has no status. See
+[Pending and denied states](docs/specification.md#pending-and-denied-states).
+
+### Pagination layout
+
+`pagination.css` owns layout and the open/single states; buttons remain ghost/sm and the size
+control remains a `.ui-select`. `--steps`, `--numbered` and `--jump` select the presentation;
+`--open` has only Prev and Next for an unknown total, and `--single` has only the size control.
+
+The status stays at the start while controls stay together at the far end, so a changing row
+count does not move their target group. The select overrides form-field width and 12px/15px
+padding to match small buttons; its right padding clears the chevron and its explicit height
+matches the jump field. Number cells use a minimum width so `1`, `49` and three-digit pages
+move the controls less; the 24px floor comes from WCAG 2.5.8.
+
+The current-page selector excludes `[disabled]` because it loads after an equally specific
+`.ui-btn:disabled`; otherwise a loading pager could look enabled. That attribute spelling
+also keeps an enabled-state rule out of the selector-text disabled sweep in
+`stories/guidelines/accessibility-floor.test.js`.
+
+The jump field uses ch units to fit four digits and its native spinner. It needs an explicit
+height because its value is a property, not a text node that the target-size gate can measure;
+the target requirement remains 24px under WCAG 2.5.8. Spacing belongs only on table/pager
+adjacency, as pagers also follow cards and lists. It replaces `.rx-pager`'s `margin-top: 16px`
+with `--space-4`, under [Spacing and rhythm](docs/specification.md#spacing-and-rhythm).
+
+A step given an `href` is an anchor, so a host stylesheet's `a:link` enters the same contest
+as the kit's own class:
+
+| Selector | Specificity | Written by |
+| --- | --- | --- |
+| `a:link` | (0,1,1) | the host page |
+| `.ui-btn--ghost` | (0,1,0) | the kit |
+| `a.ui-pager__step`, `a.ui-pager__page` | (0,1,1) | the kit, to answer it |
+| `.ui-nav .ui-nav__item` | (0,2,0) | the kit, the same answer in nav.css |
+
+The host wins the first pair, so enabled steps take its link colour while the disabled ends
+keep `--disabled-ink-bare` — one strip reading as two controls. The pager's anchor rules
+take the row back. Storybook ships no `a:link`, so its Pages as links story cannot expose
+that host interaction, which is why the rule is stated rather than discovered.
+See [Pagination](docs/specification.md#pagination).

@@ -236,29 +236,12 @@ export function pagination({
 }
 
 /**
- * Make a rendered pager work.
+ * Make a rendered pager work: delegate the steps, the size control and the jump
+ * input from `root`, so a pager re-rendered underneath stays wired.
  *
- * Every control the factory draws is inert markup until this runs: the steps
- * carry `data-page` and nothing reads it, the size control is a `<select>` with
- * no handler, and the jump input is an `<input>` with no handler. Shipping the
- * `jump` variant without this meant shipping the one control that reaches an
- * arbitrary page and having it do nothing.
+ * @returns {() => void} a function that removes the listeners.
  *
- * It reads the class contract rather than hooks of its own — `.ui-pager__step`,
- * `.ui-pager__page`, `.ui-pager__size-select`, `.ui-pager__jump-input` — so the
- * markup is exactly what `pagination()` already returns and the React component
- * is still class-for-class identical to it.
- *
- *   const pager = wirePagination(root, {
- *     onPage: (page) => load({ page }),
- *     onPageSize: (size) => load({ page: 1, size }),
- *   });
- *
- * Listeners are delegated from `root`, so a pager re-rendered underneath stays
- * wired. Returns a function that removes them.
- *
- * A step rendered as an `<a href>` is left alone: it is a link, the browser owns
- * it, and calling it back as well would navigate twice.
+ * why: CONTRIBUTING.md#pagination-event-wiring
  */
 export function wirePagination(root = document, { onPage, onPageSize } = {}) {
   const scope = typeof root === 'string' ? document.querySelector(root) : root;
@@ -321,18 +304,13 @@ export function wirePagination(root = document, { onPage, onPageSize } = {}) {
 }
 
 /**
- * Rewrite a pager's row range, in place. THIS is the announcement.
+ * Rewrite a pager's row range in place, so the live region it already holds is
+ * the thing that announces — as `setBusy()` does.
  *
- * The factory returns a whole `<nav>`, so the obvious way to show a new page is
- * to replace it — which inserts a brand-new live region that already contains its
- * text, and several screen readers say nothing at all about a region that arrived
- * with its content. The kit has met this before and answered it the same way:
- * `setBusy()` rewrites the line its region already holds rather than inserting a
- * new one. why: docs/specification.md#pending-and-denied-states
+ * @returns {Element|null} the status element, or null when there is nothing to
+ * update — safe against a torn-down view.
  *
- * So a consumer re-rendering a pager should hand the new range here instead of
- * relying on the replacement to speak. Returns the status element, or null when
- * there is nothing to update — safe against a torn-down view.
+ * why: CONTRIBUTING.md#pagination-status-updates
  */
 export function setPagerStatus(root, text) {
   const el = typeof root === 'string' ? document.querySelector(root) : root;

@@ -1,33 +1,11 @@
-/* Rule: a reader who asks the system for less motion gets less of it (WCAG 2.3.3),
- * and nothing in the kit can outvote the request.
- *
- * Three things hold it. The net in src/styles/reduced-motion.css still shortens every
- * animation and transition to nothing, with !important — parsed, so deleting one of
- * its lines fails. Nothing outside the net writes an !important that would beat it on
- * specificity: no duration outside a reduced-motion block, none inside a component's
- * own block that does more than switch motion off, and no loop count above one
- * anywhere. And every script that waits on animationend or transitionend — a
- * listener, an on…= handler or a React onAnimationEnd / onTransitionEnd prop — has a
- * timer in the same function, found by scanning for the listener rather than listing
- * files. A reduced-motion branch alone does not count: it does nothing when the event
- * fails to come with motion on.
- *
- * A file of its own rather than a section of motion-tokens.test.js: that gate is
- * about the vocabulary every reader gets, this one about the reader who opted out.
- *
- * What it does not reach:
- * - Delays. The net does not zero animation-delay or transition-delay, and nothing
- *   here looks for one.
- * - Inline styles a script writes (toasts.js sets a transition on a swipe).
- * - Which timer. Any setTimeout in the function counts as the fallback, even one that
- *   has nothing to do with the listener.
- * - Whether the timer is long enough or the branch right: they are found, not run.
- *   The function is read by indentation, so a one-line function is judged by the
- *   function around it, or fails as unclassified when there is none.
- * - Motion a script drives itself (requestAnimationFrame, element.animate()).
- * - Whether a browser applies the net: jsdom evaluates no media query.
- *
- * why: docs/specification.md#reduced-motion-travels-with-the-stylesheet
+// why: CONTRIBUTING.md#reduced-motion-measurements
+
+/* WCAG 2.3.3 coverage limits:
+ * - Delays and script-written inline styles are not checked.
+ * - Any timer in the containing function counts; its purpose and duration are not run.
+ * - Indentation identifies functions; a one-line function uses its enclosing function.
+ * - Script-driven motion is not measured.
+ * - jsdom evaluates no media query, so browser application is not checked.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

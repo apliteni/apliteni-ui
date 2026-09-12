@@ -1,31 +1,11 @@
-/* Rule: a drawer panel draws three lines and no others (#272) — one under its header,
- * one over its footer, and one between each group and the next. No card, no ruled row,
- * no <hr>, and no edge the body draws for itself.
- *
- * Every story is rendered in both themes into a jsdom carrying the kit's stylesheets,
- * and every panel that comes out is measured, cascade resolved. A card is `.ui-card`,
- * or any box inside the panel with all four edges drawn that is not a form control or
- * a button and does not sit inside one. A ruled row is anything else inside the panel
- * with a line on its top or bottom edge that does not also draw both sides — the group
- * separator excepted, which is a `.ui-drawer__section` following another and drawing a
- * line on its top edge alone. The gate reads the three lines both ways: a line the
- * panel should not draw fails, and so does one of the three gone missing.
- *
- * jsdom drops logical border properties, so `border-block-end` computes to nothing:
- * they are rewritten to physical ones before any CSS goes in, for the horizontal,
- * left-to-right writing the kit assumes.
- *
- * Ledger, what a pass does not say:
- * - Nothing about a drawer a consumer fills outside this repo.
- * - Nothing about how far apart the groups sit, or how heavy the three lines are: this
- *   reads whether a border is drawn, not the space or the colour around it.
- * - A line drawn by an inset box-shadow, an outline, a background or a pseudo-element
- *   is not read: jsdom computes no style for ::before or ::after.
- * - A logical border is read as horizontal, left-to-right writing puts it; in a
- *   vertical or right-to-left page it lands on another side than the one measured.
- * - React renders the same classes; react/src holds that with its parity test.
- *
- * why: docs/specification.md#the-drawer
+// why: CONTRIBUTING.md#drawer-border-measurements
+
+/* Coverage limits:
+ * - Consumer content outside this repository is not rendered here.
+ * - Border presence is checked; group spacing, line weight and colour are not.
+ * - Shadows, outlines, backgrounds and pseudo-elements are not read as lines.
+ * - Logical borders assume horizontal, left-to-right writing.
+ * - React classes are checked by the React parity test.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
