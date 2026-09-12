@@ -1,0 +1,57 @@
+// Back link — the control that takes a reader from a page up to the page it sits
+// under, as an HTML string.
+//
+// It is a link to an address the caller names, never a script that walks the
+// browser's history. A page opened in a new tab, from a bookmark or from a shared
+// address has no history to walk, and the browser's own Back button already does
+// that job; an <a href> is also the one shape a reader can open in a new tab.
+//
+// It has one treatment and takes no variant: a chevron and the destination's
+// name in dim ink, with no box. Four were rendered side by side on
+// docs/reviews/270-back-control.html and the owner chose this one, so the other
+// three — a bordered button above the title, an icon-only arrow beside it, and
+// the breadcrumb trail alone — are not built here.
+// why: docs/specification.md#the-back-link
+import { esc, icon } from './index.js';
+
+// "Back" names a direction rather than a place. It is what a caller who names no
+// destination gets, and the one label that is not spelled out as "Back to …".
+const BARE = 'Back';
+
+// A `javascript:` address is the history walk this component replaces, arriving
+// through the one parameter it has. Before a browser reads the scheme it strips
+// C0 controls and spaces from the front and removes every tab, LF and CR wherever
+// they sit, so "java\tscript:" is still javascript:. The check reads the address the
+// same way (WHATWG URL Standard, basic URL parser).
+const SCRIPTED = /^javascript:/i;
+const LEADING = /^[\u0000-\u0020]+/;
+const TAB_OR_NEWLINE = /[\t\n\r]/g;
+
+// A label that already says "Back to Invoices" names the place after those words, or the
+// link would be read as "Back to Back to Invoices". The whole phrase, since "Backups" and
+// "Back office" are places too. why: docs/specification.md#the-back-link
+const SAID = /^back\s+to(?:\s+|$)/i;
+
+const text = (v) => (typeof v === 'string' || typeof v === 'number' ? String(v).trim() : '');
+
+/**
+ * backLink({ href, label }) → the link a page under another page puts above its
+ * title.
+ *
+ * `label` is the destination's name, spelled the way the sidebar or the trail
+ * spells it. The arrow says "back" on screen and is aria-hidden, so the link's
+ * accessible name says it in words: "Back to Invoices". That name still contains
+ * the visible text, which is what WCAG 2.5.3 asks of a named control.
+ *
+ * No address, no link: a back control with nowhere to go renders nothing.
+ */
+export function backLink({ href, label } = {}) {
+  const to = text(href);
+  if (!to || SCRIPTED.test(to.replace(LEADING, '').replace(TAB_OR_NEWLINE, ''))) return '';
+  const name = text(label).replace(SAID, '');
+  const bare = !name || name.toLowerCase() === BARE.toLowerCase();
+  const shown = bare ? BARE : name;
+  const named = bare ? '' : ` aria-label="${esc(`${BARE} to ${name}`)}"`;
+  return `<a class="ui-back" href="${esc(to)}"${named}>${icon('chevronLeft')}`
+    + `<span class="ui-back__label">${esc(shown)}</span></a>`;
+}

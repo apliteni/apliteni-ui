@@ -7,6 +7,7 @@
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs } from './nav.js';
+import { backLink } from './back.js';
 import { prism } from '../assets/brand.js';
 import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
 
@@ -40,6 +41,11 @@ const toItems = (nav) => (Array.isArray(nav) ? nav : ACCOUNT_NAV)
 // crumb with no label would draw an empty cell, so it goes too.
 const toCrumbs = (crumbs) => (Array.isArray(crumbs) ? crumbs : [])
   .filter((c) => isRecord(c) && !Array.isArray(c) && str(c.label) !== '');
+
+// A back link replaces the trail rather than joining it: the two would name the same parent
+// twice. Anything but a record is no back link; its fields go through as given, so a back
+// backLink() refuses leaves the trail standing. why: docs/specification.md#the-back-link
+const toBack = (b) => (isRecord(b) && !Array.isArray(b) ? { href: b.href, label: b.label } : null);
 
 // The reader, as two strings. railUser() and initials() both read them, and an
 // /auth/me answering `account: null` or a numeric display name reached both.
@@ -88,7 +94,7 @@ const mainMax = (v) => {
 // The one pass. Each key names the function that settles it; nothing else in
 // this file re-checks a value that has been through here.
 const SHAPES = {
-  nav: toItems, crumbs: toCrumbs, account: toReader, maxWidth: mainMax, topbar: toTopbar,
+  nav: toItems, crumbs: toCrumbs, back: toBack, account: toReader, maxWidth: mainMax, topbar: toTopbar,
 };
 
 // The text options settle by the same argument. `body: null` from a record with no
@@ -141,6 +147,7 @@ export function appShell(options = {}) {
     active,
     navLabel = 'Account',
     crumbs,
+    back,
     title = '',
     sub = '',
     body = '',
@@ -149,9 +156,11 @@ export function appShell(options = {}) {
     topbar,
     maxWidth,
   } = settle(options);
+  const up = back ? backLink(back) : '';
   const rail = sidebarNav({
     sections: [{ label: navLabel, items: nav }],
     active,
+    activeIs: up ? 'section' : 'page',
     ariaLabel: navLabel,
     footer: signOutHref ? signOut(signOutHref) : '',
   });
@@ -170,7 +179,7 @@ export function appShell(options = {}) {
       ${railUser(account)}
     </div>
     <main class="ui-app__main"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
-      ${crumbs.length ? breadcrumbs({ items: crumbs }) : ''}
+      ${up || (crumbs.length ? breadcrumbs({ items: crumbs }) : '')}
       ${title ? `<h1>${title}</h1>` : ''}
       ${sub ? `<p class="ui-app__sub">${sub}</p>` : ''}
       <div class="ui-app__body">${body}</div>

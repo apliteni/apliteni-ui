@@ -15,6 +15,7 @@ import * as drawerContent from './_drawer.js';
 import * as motionContent from './_motion.js';
 import * as paletteContent from './_command-palette.js';
 import * as hoverContent from './_hover-readouts.js';
+import * as backContent from './_going-back.js';
 
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
 import * as destructiveStory from './DestructiveActions.stories.js';
@@ -31,6 +32,7 @@ import * as drawerStory from './Drawers.stories.js';
 import * as motionStory from './Motion.stories.js';
 import * as paletteStory from './CommandPalette.stories.js';
 import * as hoverStory from './HoverReadouts.stories.js';
+import * as backStory from './GoingBack.stories.js';
 
 const ENTRIES = [
   [destructiveContent, destructiveStory],
@@ -47,6 +49,7 @@ const ENTRIES = [
   [motionContent, motionStory],
   [paletteContent, paletteStory],
   [hoverContent, hoverStory],
+  [backContent, backStory],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page

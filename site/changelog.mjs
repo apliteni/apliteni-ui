@@ -13,6 +13,14 @@
 
 export const RELEASES = [
   {
+    v: '0.29.0', date: '2026-09-12',
+    changes: [
+      ['added', "`backLink()` — the way up from a page to the page it sits under, drawn above the title in the place a breadcrumb trail would take. It is an `<a href>` to an address the caller names, never a step through the history: a page opened in a new tab, from a bookmark or from a shared address has no history to step through, and the browser's own Back button already does that job. It shows the destination's name beside an arrow and is named \"Back to\" that destination for a screen reader; given no name it shows \"Back\", and a label that already begins \"Back to\" is read as the place after those words. It rests in `--dim` with no box, and its colour rule outranks a host stylesheet's `a:link`, so a page that colours its links does not turn it into one. The kit ships this one treatment and no variant: four were rendered side by side on the review page for #270 — a quiet link, a bordered button above the title, an icon-only arrow beside it, and the breadcrumb trail alone — and the quiet link was chosen.", ['Back link']],
+      ['added', "`appShell({ back })` draws the back link where the trail would go and draws no trail, because the two name the same parent twice. The sidebar row marked `active` stays lit and is marked `aria-current=\"true\"` — the current section — rather than `\"page\"`, which announced the list as the page on screen. `sidebarNav({ activeIs: 'section' })` does the same outside the shell.", ['Page shell', 'Navigation']],
+      ['added', "Guidelines / Going back: six rules for a page that goes back up — when a page gets a back link, what it names, why it links to an address rather than the history, where it sits, how it relates to the sidebar, and why it stays quiet.", ['Back link']],
+    ],
+  },
+  {
     v: '0.28.0', date: '2026-09-11',
     changes: [
       ['added', "`tooltip()` — the readout a chart, a sparkline or any mark shows while a pointer rests on it, with `wireTooltip(root)` to drive it and `showTooltip` / `hideTooltip` for a chart that does its own hit-testing. It overlays the page in every state: one element, absolutely placed inside its host, whose open state changes only `opacity` and `visibility`, so showing it never moves or resizes anything else. That is the defect #282 was reported against: the finance portal's KPI sparklines wrote their readout into the card as a new line, so the card grew and everything under it moved each time the pointer landed on a point. It opens above the mark and flips below only when above is clipped, by the viewport or by an ancestor that hides its overflow, then slides inward at an edge. It takes no pointer events, writes its label, value and detail as text, shows on focus as well as on hover, and closes on Escape.", ['Tooltip']],

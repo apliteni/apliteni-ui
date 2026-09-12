@@ -40,8 +40,10 @@ const src = path.resolve(here, '..');
 // Was 56 (#127: the hand-written .ui-side rail went, taking `.ui-side a svg`);
 // 54 (#128: `.ui-denied__seal svg` arrived); 56 (#217: `.ui-field__error` got a
 // glyph rule, so its stroke could be stated beside its box); 62 (#274: the
-// command palette's row and search glyphs, a width and a height each).
-const EXPECTED_SUBJECTS = 62;
+// command palette's row and search glyphs, a width and a height each); 64 (#270:
+// `.ui-back svg`, the back link's arrow — a width and a height, sized and stroked
+// in one rule).
+const EXPECTED_SUBJECTS = 64;
 
 const SHEETS = kitSheetNames(src);
 

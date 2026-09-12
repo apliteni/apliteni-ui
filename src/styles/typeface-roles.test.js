@@ -100,8 +100,9 @@ const familyDecls = () => {
  * browser sets kbd in its monospace default, which is a family nothing in the
  * kit asked for. 48 with `.ui-tip`, the hover readout (#282): it is text set
  * inside a chart, so it names the text role rather than inheriting whatever
- * face the chart's container happens to carry. */
-const EXPECTED_SUBJECTS = 48;
+ * face the chart's container happens to carry. 49 with `.ui-back` (#270): the
+ * back link sets the text role, like every other control that names a place. */
+const EXPECTED_SUBJECTS = 49;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

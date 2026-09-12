@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Back control variants (#270)</title>
+<!-- A review prototype, not kit source: it draws one variant per URL with the
+     kit's real stylesheet and factories, for the screenshots on
+     docs/reviews/270-back-control.html. ?v=today|quiet|boxed|beside|trail &theme=light|dark -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../../src/index.css">
+<style>
+  body { margin: 0; background: var(--bg); }
+  .p-slot { margin-bottom: var(--space-5); }
+  .p-slot--boxed { margin-bottom: var(--space-4); }
+  .p-titlerow { display: flex; align-items: center; gap: var(--space-3); margin-bottom: 8px; }
+  .p-titlerow h1 { margin: 0 !important; }
+  .p-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-6);
+    margin: 0; font-size: var(--text-sm); }
+  .p-facts dt { color: var(--muted); }
+  .p-facts dd { margin: 0; color: var(--text); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+  import { appShell } from '../../../src/components/shell.js';
+  import { backLink } from '../../../src/components/back.js';
+  import { button, badge, card } from '../../../src/components/index.js';
+
+  const q = new URLSearchParams(location.search);
+  const v = q.get('v') || 'quiet';
+  document.documentElement.setAttribute('data-theme', q.get('theme') === 'light' ? 'light' : 'dark');
+
+  // Placeholder navigation and record: the repo is public, so nothing here is real.
+  const NAV = [
+    { id: 'dashboard', icon: 'chart', label: 'Dashboard', href: '#' },
+    { id: 'payouts', icon: 'card', label: 'Payouts', href: '#' },
+    { id: 'invoices', icon: 'doc', label: 'Invoices', href: '#' },
+    { id: 'prefs', icon: 'gear', label: 'Preferences', href: '#' },
+  ];
+  const TITLE = 'Invoice INV-1001';
+  const body = card({
+    title: 'Details',
+    body: `<dl class="p-facts"><dt>Customer</dt><dd>Example Co.</dd><dt>Issued</dt><dd>2026-01-15</dd>`
+      + `<dt>Status</dt><dd>${badge('Draft')}</dd></dl>`,
+  }) + card({ title: 'Lines', sub: 'Placeholder lines would list here.' });
+
+  const shell = (extra) => appShell({
+    word: 'Finance', nav: NAV, active: 'invoices', navLabel: 'Finance', title: TITLE,
+    sub: 'A placeholder record opened from the invoice list.', body,
+    account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' }, maxWidth: '960px', ...extra,
+  });
+  const above = (html, markup) => html.replace('<h1>', `${markup}<h1>`);
+
+  const VARIANTS = {
+    // What the portal shows today, approximated: a bare link in the page's link colour.
+    today: () => above(shell({}), `<div class="p-slot"><a href="#">Back to invoices</a></div>`),
+    quiet: () => shell({ back: { href: '#', label: 'Invoices' } }),
+    boxed: () => above(shell({}), `<div class="p-slot p-slot--boxed">${button({
+      variant: 'secondary', size: 'sm', icon: 'arrowLeft', label: 'Invoices', href: '#' })}</div>`),
+    beside: () => shell({}).replace(`<h1>${TITLE}</h1>`, `<div class="p-titlerow">${button({
+      variant: 'secondary', size: 'sm', icon: 'arrowLeft', iconOnly: true, label: 'Back to Invoices', href: '#' })}`
+      + `<h1>${TITLE}</h1></div>`),
+    trail: () => shell({ crumbs: [{ label: 'Finance', href: '#' }, { label: 'Invoices', href: '#' }, { label: 'INV-1001' }] }),
+  };
+  document.getElementById('root').innerHTML = (VARIANTS[v] || VARIANTS.quiet)();
+  document.fonts.ready.then(() => document.body.setAttribute('data-ready', ''));
+</script>
+</body>
+</html>
