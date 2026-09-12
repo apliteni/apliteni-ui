@@ -329,22 +329,29 @@ which is the gate's other rule and caught my first draft loading IBM Plex Sans a
 
 `stories/contrast.test.js` → *"the walk has not run away with the clock"* is a 120s wall-clock
 ceiling over the contrast walk, and this box goes over it whenever anything else is running:
-**206.7s on `7ffbde4`** and **141.6s here**, in runs made minutes apart while a Storybook build
-shared the cores. On a quiet box it passes, which is the run reported below. Nothing else about
+**206.7s on `7ffbde4`**, **141.6s** in round 5, and **150.3s** in round 6, each in a run that
+shared sixteen cores with something else. Run alone it passes — **122.0s** minutes later on the
+same box, in a run whose whole file took 122.0s end to end. Nothing else about
 the walk changed — it measures the same elements plus the new page's specimens, and every one of
 them passes.
 
 ## The gates
 
 ```
-                       before (7ffbde4)                 after
-root npm test          1397 tests, 1394 pass            1422 tests, 1421 pass
-                       1 fail (the clock, 206.7s)       0 failing
+                       before (7ffbde4)                 after (round 6, on bb5fd04)
+root npm test          1397 tests, 1394 pass            1422 tests, 1420 pass
+                       1 fail (the clock, 206.7s)       1 fail (the clock, 150.3s)
                        2 skipped                        1 skipped
 ```
 
-The `before` run's single failure is the clock ceiling under a contended box, described above; the
-`after` run was made on a quiet one and is green.
+Both runs' single failure is the same wall-clock ceiling over the contrast walk, described above,
+and both boxes were contended — the round-6 run shared sixteen cores with a Storybook dev server
+of mine and with another worktree's suite. Re-run alone on the same box minutes later,
+`stories/contrast.test.js` is green: 23 tests, 22 pass, 0 fail, the file taking 122.0s end to end
+and the walk inside it clearing its own ceiling. Nothing else in the suite fails in either run.
+
+The round-6 rewrite adds and removes no tests — the gate still walks ten rules, eight read off the
+story and two off its `GATED_ELSEWHERE` — so the count is the same 1422 it was before it.
 
 The skip count moves because one of the two is `overview.test.js`'s built-ids check, which skips
 when `storybook-static/` is absent and ran here against a fresh build. Eighteen of the new tests
