@@ -62,7 +62,16 @@ export const RING_FLOOR = 4.22;
 // its own, and the whole kit collapsed into a band 5.56–6.11 wide. That band is
 // narrow because a dedicated ink and surface composite predictably: the ink is
 // read on the surface beside it, and neither is dragged toward the ground.
-export const DISABLED_FLOOR = 5.56;
+//
+// It moved DOWN once, at #295, and a ratchet moving down is a decision somebody
+// writes rather than a number somebody edits. The band was a property of a white
+// light app: --disabled-surface is --surface-2, and light's sunken step sat one
+// notch under #ffffff. #295 took the page off white and every step went down with
+// it, so the light disabled pair — --muted on the sunken step — lands here. It
+// still clears WCAG AA for the label with room, and DISABLED_MIN, the bar this
+// rule is actually held to, is 3. What the new number costs is margin, and the
+// margin is what the ratchet exists to report.
+export const DISABLED_FLOOR = 4.89;
 
 /**
  * Controls under 24px that the gate lets through, each with the reason.
@@ -597,7 +606,7 @@ export const RULES = [
       + 'pair is 1.4.11’s, and no gate here measures it.',
     kit: [
       { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
-      { ref: 'src/tokens/tokens.css:158', pattern: '--disabled-ink' },
+      { ref: 'src/tokens/tokens.css:171', pattern: '--disabled-ink' },
     ],
   },
   {
@@ -634,7 +643,7 @@ export const RULES = [
     why: 'Every number above is the least the kit accepts, not what it is trying to be. The '
       + 'four aims below the rules say what it reaches for, and a component that lands one '
       + 'thousandth over AA has passed the gate and is still the worst thing on the page.',
-    kit: [{ ref: 'stories/contrast.test.js:292', pattern: 'the AA floor is a floor, not a verdict.' }],
+    kit: [{ ref: 'stories/contrast.test.js:289', pattern: 'the AA floor is a floor, not a verdict.' }],
   },
   {
     id: 'name-the-gap',
@@ -642,6 +651,6 @@ export const RULES = [
     why: 'The gates in this repo state their own blind spots in a header comment, and the '
       + 'table below is that collection rather than a fresh audit. A gate that overstates itself '
       + 'is how contrast came to be "verified visually" in the first place.',
-    kit: [{ ref: 'stories/contrast.test.js:236', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
+    kit: [{ ref: 'stories/contrast.test.js:233', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
   },
 ];

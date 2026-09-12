@@ -127,8 +127,8 @@ test('an unreadable value returns null rather than a silent zero', () => {
 test('tokensFor picks the requested theme, not the first declaration it meets', () => {
   const dark = tokensFor('dark', 'default');
   const light = tokensFor('light', 'default');
-  assert.equal(dark.get('--bg'), '#16151f', 'the dark page background');
-  assert.equal(light.get('--bg'), '#ffffff', 'the light page background');
+  assert.equal(dark.get('--bg'), '#0e0d14', 'the dark page background');
+  assert.equal(light.get('--bg'), '#eef0f5', 'the light page background');
   assert.notEqual(dark.get('--pink'), light.get('--pink'), 'the two themes disagree about --pink');
 });
 
@@ -140,7 +140,7 @@ test('tokensFor also harvests custom properties declared outside the token files
 
 test('tokensFor lets the token files win over a component declaration', () => {
   const vars = tokensFor('light', 'default');
-  assert.equal(vars.get('--bg'), '#ffffff', 'a component file cannot shadow a semantic token');
+  assert.equal(vars.get('--bg'), '#eef0f5', 'a component file cannot shadow a semantic token');
 });
 
 test('substitute resolves a chain of var() references', () => {
@@ -211,7 +211,7 @@ test('specialiseContextual never emits a bare :root into a selector list', () =>
 test('a specialised copy never out-ranks a later override of the same property', () => {
   // The copy gains a class of specificity. Emitted at the end of the sheet it
   // beats a later, equally specific override written for the same element —
-  // which is how src/styles/callout.css:137 `.ui-toast--solid .ui-toast__action`
+  // which is how src/styles/callout.css:141 `.ui-toast--solid .ui-toast__action`
   // lost to `.ui-toast--danger .ui-toast__action` and the solid danger toast's
   // action was reported as pink on pink, a fabricated 1.00:1. The copy must
   // therefore sit immediately after the rule it specialises, not at the end.

@@ -167,7 +167,7 @@ export const RULES = [
       + 'a different set of groups when it sees one.',
     kit: [
       { ref: 'src/components/command-palette.js:255', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:142', pattern: '.ui-cmdk__group-head' },
+      { ref: 'src/styles/command-palette.css:141', pattern: '.ui-cmdk__group-head' },
     ],
   },
   {

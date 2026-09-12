@@ -119,7 +119,7 @@ export const RULES = [
       + 'there is no five-status pair to keep, and its own contrast is the control’s to answer for.',
     kit: [
       { ref: 'src/styles/callout.css:16', pattern: 'stroke-width: 2.1;' },
-      { ref: 'stories/signal-contrast.test.js:594', pattern: 'const barFor = (px) =>' },
+      { ref: 'stories/signal-contrast.test.js:601', pattern: 'const barFor = (px) =>' },
     ],
   },
 ];
