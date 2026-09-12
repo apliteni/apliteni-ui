@@ -1489,47 +1489,10 @@ README for the image build/deploy.
 
 ## Gate implementation notes
 
-These notes explain how the existing gates measure the kit. Count histories and recorded
-measurements describe the changes that introduced them. The guarantees remain in
-[docs/specification.md](docs/specification.md).
-
-### Font loading and family gates
-
-`scripts/font-loading.test.js` reads families from `src/tokens/tokens.css`. A quoted first
-family identifies a webfont that must load; a system keyword such as `--font-mono` does not.
-This discovers new font roles without changing the gate. #253 added the second family;
-the original gate covered four separate font-loading files. A missing font silently uses
-the system fallback, which is why the gate checks loading as well as token declarations.
-See [Typefaces](docs/specification.md#typefaces).
-
-### Disabled button measurements
-
-#220 gave disabled controls their own ink and surface, measuring 5.56–6.11:1. Ghost buttons
-kept a transparent background. #273 first rendered disabled First and Prev buttons inside
-the finance table's card: they measured 5.18:1 there and 4.66:1 on `--surface-3`.
-
-Adding the disabled surface made these buttons heavier than their enabled neighbours, so
-that change was reverted. The boxless button instead uses `--disabled-ink-bare`, chosen
-against the dullest ground. `src/styles/button-disabled.test.js` measures it against every
-surface token in both themes, including disabled rules whose background exposes the ground.
-See [Pagination](docs/specification.md#pagination) and
-[Colour and contrast](docs/specification.md#colour-and-contrast).
-
-### Icon sizing count history
-
-`src/styles/icon-size.test.js` pins the exact number of sizing declarations. Update it in
-the commit that adds or removes a declaration, with the reason, under
-[A gate discovers its subjects](#a-gate-discovers-its-subjects-and-never-enumerates-them).
-
-| Count | Recorded change |
-| --- | --- |
-| 56 | #127: the handwritten `.ui-side` rail and `.ui-side a svg` were removed |
-| 54 | #128: `.ui-denied__seal svg` arrived |
-| 56 | #217: `.ui-field__error` gained a glyph rule with its stroke beside its box |
-| 62 | #274: command palette row and search glyphs, width and height each |
-| 64 | #270: `.ui-back svg`, width and height beside its stroke |
-| 66 | #283: `.ui-dropdown__search-ic svg`, width and height |
-| 70 | #267: stat-band change arrow and trend slot, two declarations each |
+These are the gate notes that outgrew the twenty-five lines a comment block is allowed
+above — long count histories and recorded measurements, which describe the changes that
+introduced them. A note that still fits stays at the declaration it explains. The
+guarantees remain in [docs/specification.md](docs/specification.md).
 
 ### Font family count history
 
@@ -1552,24 +1515,6 @@ or reset the font. Update it with the declaration and its reason.
 | 51 | #267: `.ui-stat__value` uses the display face under the `readout` exception |
 
 The role and portal guarantees are in [Typefaces](docs/specification.md#typefaces).
-The portal test renders the same dropdown in a display-font subtree and on `body`;
-a panel that inherits changes face between those placements.
-
-### Accent default measurements
-
-#250 found that the default dark theme worked without attributes, while accent cells
-required both `[data-theme][data-accent]`. `--accent` therefore stayed purple when only
-`data-accent` was set. `stories/accent-without-theme.test.js` compares rendered styles,
-so reversed attribute order or `:not()` selectors are judged by their cascade. The expected
-dark colour comes from a second render; the gate keeps no copy of the palette.
-See [An absent attribute means dark](docs/library.md#an-absent-attribute-means-dark).
-
-### Finance report loading example
-
-The numbers and ledger rows load from different queries and can finish separately, so
-`FinanceReport.stories.js` uses two busy regions. Its KPI skeleton uses the band's default
-tiles classes, preserving the three columns and the caption's space above them while
-loading. The period control stays usable while the queries run.
 
 ### Button chrome measurements
 
@@ -1632,24 +1577,13 @@ Chrome's `font: 400 13.3333px Arial` also sets size and leading. Resetting only 
 left 13.3333px/normal against the row's 14.5px/23.49px: a row 2.25px shorter with type 1.17px
 smaller. Measuring only the family would miss both differences.
 
-### Browser-owned controls
-
-The browser-owned bucket excludes form controls and their decoration. Its earlier inverse
-rule admitted only buttons, links, or elements with both role and tabindex. That omitted
-src/components/feedback.js:35 `<div class="ui-fbpill" data-fb-pill>` despite its pointer cursor;
-written as a button, it acquired a 2px grey outset frame around its gradient.
-
-Removing src/components/dropdown.js:46 `'tabindex="-1"',` also removed the dropdown row from
-measurement while all counts still balanced and #251 passed at exit 0. The exclusion now
-asks whether a class is on a browser-owned control, so removing role or tabindex cannot
-remove it from measurement.
-
 ### Button subject pins
 
 Discovery finds new subjects; explicit pins prevent old subjects leaving without review.
 The three-way partition cannot detect a class moving between buckets: the sum remains
-correct, `UNRENDERED` is empty, and other classes satisfy `SUBJECTS.length > 0`. The dropdown
-mutation above demonstrated this with its roving tabindex, the pattern topbar uses for the
+correct, `UNRENDERED` is empty, and other classes satisfy `SUBJECTS.length > 0`. Deleting
+`tabindex="-1"` from a dropdown row demonstrated this: the row left the measured set with
+every count still balancing. That roving tabindex is the pattern topbar uses for the
 segmented strip. See [the count rule](#a-gate-discovers-its-subjects-and-never-enumerates-them).
 
 A name leaves the pin only when its reason no longer applies and a person reviews the change.
@@ -1690,28 +1624,6 @@ Logical borders such as `border-block-end` become physical borders before JSDOM 
 assuming horizontal, left-to-right writing. The local ledger states the limits: no consumer
 content, spacing, weight or colour measurement; no lines from shadows, outlines, backgrounds
 or pseudo-elements; and no vertical or RTL interpretation. React class parity has its own test.
-
-### Dropdown tag measurements
-
-A selected tick on `.ui-dropdown__item` invites a button for choosing. Before #251 that button
-kept the browser's chrome. `stories/dropdown-tag-parity.test.js` declares the measured browser
-defaults at lower author specificity than the component class, because JSDOM omits most of them.
-Removing the reset lets that baseline win, reproducing the browser's UA-versus-author result.
-The guarantee is [dropdown tag parity](docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button).
-
-### Label case measurements
-
-`stories/guidelines/letter-case.test.js` discovers selectors marked `rank: label` or
-`rank: chip`, then checks text rendered into them by every story and site page. It caught
-`live` and `shell` relying on `text-transform` after that style was removed. The stylesheet
-sweep alone could not catch the text regression. Storybook output may be a string or node;
-`stories/a11y.test.js` rejects other output shapes.
-
-The local ledger excludes unranked labels, including consumer labels; words after the first
-(`Paid in full` and `Paid in Full` compare equally); and first words containing non-letters,
-such as `mcp.json` or `phoenix.2026.002`. Later sentence case needs editorial review.
-See [Labels and titles](docs/specification.md#labels-and-titles) and
-[subject discovery](#a-gate-discovers-its-subjects-and-never-enumerates-them).
 
 ### Motion coverage measurements
 
@@ -1754,21 +1666,6 @@ such as the toast swipe transition, script-driven motion (`requestAnimationFrame
 containing function qualifies, without proving its purpose, duration or branch. Indentation
 identifies functions: a one-line function is judged with its enclosing function, or fails as
 unclassified if none exists.
-
-### React entry point declarations
-
-The React entry imports the same reduced-motion sheet as `src/index.css`, so consumers of
-only `apliteni-ui/react/css` still get it. Importing from the entry avoids an `@import` inside
-`motion.css`: both icon gates read each sheet alone and reject nested imports.
-See [Motion](docs/specification.md#motion).
-
-### React page-size declarations
-
-The React entry imports the vanilla page-size constants and redeclares their types locally.
-A direct `export … from` survives into `index.d.ts`, but the root `.` export targets
-`./src/index.js` without a `types` condition. That caused TS7016 with `skipLibCheck` off and
-`any` with it on. Local declarations avoid that unresolved target. The scale is readonly
-because consumers must not add a fourth step. See [Pagination](docs/specification.md#pagination).
 
 ### Pagination event wiring
 

@@ -1,4 +1,21 @@
-// why: CONTRIBUTING.md#accent-default-measurements
+/* Rule: `data-accent` paints without `data-theme`, because the kit's default
+ * theme needs no attribute either.
+ *
+ * `:root` and `:root[data-theme="dark"]` share one selector list in tokens.css,
+ * so a document with no attribute at all is already fully painted — dark. Every
+ * cell in accents.css, though, is written `[data-theme][data-accent]` and needs
+ * BOTH, so in that same attribute-less state no accent cell matches and
+ * --accent stays the default purple. The theme was reachable without the
+ * attribute and the accent was not, which is the defect in issue #250.
+ *
+ * Judged by rendering, not by reading selectors: jsdom runs the real cascade,
+ * so a cell written with the attributes reversed, or behind a :not(), passes
+ * here on its merits rather than on its spelling. The dark cell's own value is
+ * READ from a second render rather than written down, so this gate carries no
+ * copy of the palette to drift against src/tokens/accents.css.
+ *
+ * why: docs/library.md#an-absent-attribute-means-dark
+ */
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { JSDOM } from 'jsdom';

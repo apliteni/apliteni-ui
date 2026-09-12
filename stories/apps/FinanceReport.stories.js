@@ -71,7 +71,20 @@ export const Default = {
   }),
 };
 
-// why: CONTRIBUTING.md#finance-report-loading-example
+// The same screen while the ledger is still in flight. Two regions, not one:
+// the numbers and the rows arrive from different queries and finish at
+// different times, so a single region would have to lie about one of them.
+//
+// The KPI skeleton sits in the band's own classes — the tiles layout, which is
+// the band's default — so it folds exactly as the figures will and the three
+// columns do not collapse into one shape while loading and snap into another
+// when the numbers land. It holds the caption's place above the row for the
+// same reason. That is the whole job of a skeleton over a spinner: it reserves
+// the shape that is coming.
+//
+// The period control stays live. It is the one thing a reader can usefully do
+// while waiting, and disabling every control on a loading screen is how a slow
+// query becomes a locked page.
 export const Loading = {
   render: () => financeShell({
     active: 'payouts',

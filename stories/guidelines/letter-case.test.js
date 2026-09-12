@@ -191,13 +191,30 @@ test('putting the badge’s capitals back is caught at its line', () => {
   assert.deepEqual(bad.map((s) => s.where), [`${rel}:${line}`]);
 });
 
-// why: CONTRIBUTING.md#label-case-measurements
-
-/* Coverage limits:
- * - Labels without a rank declaration, including consumer labels, are not checked.
- * - Words after the first are not checked: sentence case there needs editorial review.
- * - First words containing non-letters, such as filenames, retain their spelling.
+/* Rule: a label or a chip renders the case its author wrote, and an author writes
+ * a capital. The sweep above holds the stylesheets; this one holds the text, which
+ * is where the same defect reappeared once the capitals came off — `live` and
+ * `shell` had been relying on `text-transform` to look like labels.
+ *
+ * The subjects are discovered twice over and never listed: the SELECTORS are every
+ * rule that claims `rank: label` or `rank: chip` (docs/specification.md#labels-and-titles),
+ * read off the sheets the kit ships; the TEXT is whatever every story and every site
+ * page actually renders into one.
+ *
+ * What it does not reach:
+ * - a label a rule does not rank. A caption written inline in a story's own markup
+ *   is outside the ranks, and so is a consumer's.
+ * - a word inside a label that is not the first. "Paid in full" and "Paid in Full"
+ *   read the same to this gate; sentence case past the first word is an editorial
+ *   call and nothing mechanical settles it.
+ * - the case of a name. A first word that is not letters alone — `mcp.json`,
+ *   `phoenix.2026.002` — is spelled, not written, and is left as it is.
+ *
+ * why: docs/specification.md#labels-and-titles
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
  */
+// Storybook's HTML renderer hands back a string or a node; stories/a11y.test.js
+// reads the same two shapes and is the gate that fails on anything else.
 const serialize = (out) => (typeof out === 'string' ? out
   : (out && typeof out.outerHTML === 'string') ? out.outerHTML
   : (out && out.nodeType === 11) ? [...out.childNodes].map((n) => n.outerHTML ?? n.textContent).join('')

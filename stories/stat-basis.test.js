@@ -1,5 +1,17 @@
-// Accessibility: comparisons must be reachable without hover.
-// why: docs/specification.md#stat-bands
+// Rule: every change a stat band shows says what it is measured against, in
+// text a reader can reach — beside the change, or in the band's caption that
+// the change points at. A hover `title` is not that: it is the rejected shape
+// in #267, and nobody on a phone or a screen reader ever meets it. That makes
+// this an accessibility gate, and the floor page names it as one: a comparison
+// only a hovering pointer reaches is one a keyboard never reaches at all.
+//
+// And the caption is read BEFORE the figures it explains, the way a table's
+// caption is, and belongs to none of them. Reachable is not the whole of it:
+// the default layout is tiles, and a caption under a row of separate cards is
+// a caption a reader takes for a note on the last one.
+//
+// Every story is walked, so a band added anywhere is a subject without being
+// listed. why: docs/specification.md#stat-bands
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';

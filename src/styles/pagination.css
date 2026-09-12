@@ -1,4 +1,11 @@
-/* why: CONTRIBUTING.md#pagination-layout */
+/* ============================================================================
+ * Pagination — .ui-pager  (variants: --steps / --numbered / --jump)
+ *   --open    total unknown: Prev and Next only, no last page to reach
+ *   --single  one page of content: the size control alone, no steps
+ * The controls are .ui-btn ghost/sm and the size control is a .ui-select, so
+ * everything here is layout and the two states those sheets do not own.
+ * why: CONTRIBUTING.md#pagination-layout
+ * ========================================================================== */
 
 .ui-pager {
   display: flex;
@@ -8,6 +15,9 @@
   font-size: var(--text-sm);
 }
 
+/* The status is the only thing anchored to the start of the strip: it is read,
+   not aimed at, and pushing the controls to the far end keeps the pointer's
+   target group in one place as the row count changes width. */
 .ui-pager__status {
   margin: 0 auto 0 0;
   color: var(--muted);
@@ -21,6 +31,11 @@
 }
 .ui-pager__size-label { color: var(--muted); }
 
+/* .ui-select is a form field sized for a form — full width, 12px/15px padding.
+   In a pager it sits in a row of sm buttons, so it takes their scale. Two things
+   travel with that: the chevron .ui-select paints is positioned from the right
+   edge, so the padding on that side has to stay clear of it, and the height is
+   declared so this control and the jump input beside it agree on one box. */
 .ui-pager__size-select {
   width: auto;
   min-height: var(--space-8);
@@ -37,11 +52,22 @@
   gap: var(--space-1);
 }
 
+/* Page numbers are read as a row of equal cells, and .ui-btn--sm's padding makes
+   "1" narrower than "49" — so a strip re-flows under the pointer as the reader
+   walks into three-digit pages. The number is WCAG 2.5.8's 24px: an equalised
+   cell should not be narrower than a target is allowed to be. */
 .ui-pager__page {
   min-width: var(--space-6);
   font-variant-numeric: tabular-nums;
 }
 
+/* The page you are on. Guarded, because this weighs the same as `.ui-btn:disabled`
+   and is imported after it: written plainly it would repaint the current page of
+   a `loading` pager as though it were live, which is the one thing the busy state
+   must not leave behind. Spelled `[disabled]` rather than `:disabled` — the same
+   selector for the markup this component emits, and the spelling that keeps a
+   rule about an ENABLED control out of the disabled-rule sweep in
+   stories/guidelines/accessibility-floor.test.js, which reads selector text. */
 .ui-pager__page.is-current:not([disabled]) {
   background: var(--surface-3);
   border-color: var(--border);
@@ -61,6 +87,11 @@
   color: var(--muted);
   padding: 0 var(--space-1);
 }
+/* Wide enough for four digits and the spinner a number input draws beside them;
+   in ch so it follows the type rather than a measured pixel. The height is
+   declared rather than left to the line box, because an <input> holds its value
+   in a property: it is the one control in the strip with no text of its own, and
+   nothing else gives it the 24px WCAG 2.5.8 asks of a pointer target. */
 .ui-pager__jump-input {
   width: 8ch;
   min-height: var(--space-8);
@@ -70,8 +101,24 @@
   text-align: center;
 }
 
+/* A pager directly after a table stands off it. The strip owns no margin of its
+   own — it is dropped under lists and cards too, and a component that carries
+   spacing everywhere is one every caller has to cancel somewhere — so the gap is
+   declared on the one adjacency the kit can see. `.rx-pager` carried a bare
+   `margin-top: 16px` for this, which is --space-4; the number moves to the scale
+   with it rather than travelling as a literal.
+   why: docs/specification.md#spacing-and-rhythm */
 .ui-table + .ui-pager { margin-top: var(--space-4); }
 
+/* A step given an `href` is an anchor, and a host stylesheet's `a:link` is
+   (0,1,1) — which outranks `.ui-btn--ghost` at (0,1,0) and paints the enabled
+   steps in the host's link colour while the disabled ends keep --disabled-ink-bare.
+   One strip, reading as two different controls. The kit has paid for this twice
+   already and both fixes are the same shape: see the (0,2,0) note on
+   `.ui-nav .ui-nav__item` in nav.css. Storybook ships no `a:link`, so the "Pages
+   as links" story cannot show it — which is why the rule is stated rather than
+   discovered.
+   why: docs/specification.md#pagination */
 a.ui-pager__step,
 a.ui-pager__page { color: var(--dim); }
 a.ui-pager__step:hover,

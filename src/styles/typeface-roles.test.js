@@ -1,4 +1,19 @@
-// why: docs/specification.md#typefaces
+/* Rule: the kit's CSS never names a font family. It names a ROLE — display, text
+ * or mono — and one sheet says which family each role is.
+ *
+ * The rule exists because the roles are new (#253) and the kit spent its whole
+ * life with one family, so `Poppins` is written in a lot of muscle memory. A
+ * literal here is invisible: it renders correctly today and stops following the
+ * token the day the token moves, which is exactly how the kit ended up with one
+ * face doing two jobs.
+ *
+ * Which role an element takes is decided by the ELEMENT, and that half is asked
+ * of a rendered document rather than of the stylesheet: a component rule that
+ * out-ranks base.css's heading rule reads fine in the file and is wrong on the
+ * page. Both halves carry the mutation that kills their case — the rule under
+ * test is taken back out and the assertion has to fail.
+ *
+ * why: docs/specification.md#typefaces */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -239,7 +254,25 @@ test('b and strong are the semibold step, not the browser\'s bold', () => {
   );
 });
 
-// why: docs/specification.md#typefaces
+/* -- A panel that leaves its container takes its role with it ---------------
+ *
+ * #257 gave dropdown() a `portal: true` that mounts the panel on <body>, clear
+ * of an ancestor that clips it or opens a stacking context. Inheritance goes
+ * with it: what the panel is set in stops being decided by the trigger it came
+ * out of and starts being decided by <body>.
+ *
+ * Measured on this branch before the fix — the same dropdown inside a subtree
+ * set in the display face resolved to var(--font-display) in place and
+ * var(--font-sans) once wireDropdown() moved it. Both placements rendered, both
+ * looked deliberate, and `portal` is a positioning flag that has no business
+ * changing a typeface. So the panel states its role and the two agree.
+ *
+ * The mutation is the placement itself rather than a rule cut out of a sheet:
+ * the same document is read twice, once with the panel where the factory put it
+ * and once after the move, and the assertion is that they are the same answer.
+ * A panel that inherited would give two.
+ *
+ * why: docs/specification.md#typefaces */
 test('a dropdown panel keeps its role when the portal moves it onto <body>', async () => {
   const quiet = new VirtualConsole();
   quiet.on('jsdomError', () => {});
