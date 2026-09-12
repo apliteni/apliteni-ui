@@ -4,7 +4,9 @@
  * than listed. Each rule on the page owns one check here, keyed by its `id`,
  * and the first test holds the two lists in step.
  *
- * What it cannot see is stated on the floor page, which lists this gate.
+ * The outline and the landmark names are accessibility questions, so this is
+ * one of the accessibility gates the floor page lists — and what it cannot
+ * see is stated there with the rest.
  *
  * why: docs/specification.md#the-page
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them

@@ -169,7 +169,7 @@ the class is the look.
 - **Three page kinds**, classified from the markup: an application page (the shell's `<main>`),
   an auth card, a marketing page. A screen that is none of them fails the `shell` rule, which is
   what "do not build your own chrome" means mechanically.
-- **The three numbers live in one place.** `LIMITS` in `_the-page.js` is read by the prose *and*
+- **The four numbers live in one place.** `LIMITS` in `_the-page.js` is read by the prose *and*
   by the gate, so a limit edited in the sentence and not in the check cannot happen.
 - **What it cannot see** is stated in the gate and on *The accessibility floor*, which now lists
   it: it resolves no CSS, it does not read what the headings say, and a consumer's own page is
@@ -179,8 +179,8 @@ the class is the look.
 fault — a page with no chrome, a toolbar above the title, two `h1`s, an `h1 → h3` jump, two
 primary buttons, seven cards, a card in a card, an unnamed `<nav>`, a second `<nav>` named
 "Finance", a drawer drawn at load, a dense table beside a roomy one, a three-sentence lede.
-All twelve checks failed, each naming its own story and its own fault, and nothing else. The
-file was deleted; the transcript is in the PR thread.
+All ten rule checks went red, each naming the story that broke it and the fault, and nothing
+else did. The file was deleted.
 
 ## Discoverable where consumers look
 
@@ -199,7 +199,7 @@ file was deleted; the transcript is in the PR thread.
 
 **The page itself** — `Guidelines / The page`, rendered in both themes:
 `docs/evidence/the-page-guidelines-dark.png`, `docs/evidence/the-page-guidelines-light.png`.
-Ten rules, four specimen pairs, twenty citations.
+Ten rules, four specimen pairs, twenty-one citations.
 
 **The two faults** — `docs/evidence/the-page-fixes-dark.png`,
 `docs/evidence/the-page-fixes-light.png`. Top: the consent screen's title as a `div` and as an
@@ -219,16 +219,27 @@ move — and the page loads the same two families at the same five weights as ev
 which is the gate's other rule and caught my first draft loading IBM Plex Sans at three.
 
 `stories/contrast.test.js` → *"the walk has not run away with the clock"* fails on this box, on
-`main` and on this branch alike, under the load of a parallel run. It is a wall-clock ceiling, not
-a measurement of the kit. Both runs below are reported with it.
+`main` and on this branch alike. It is a wall-clock ceiling of 120s over the contrast walk, and
+this machine is slower than the laptop the ceiling was measured on: **206.7s on `7ffbde4`** and
+**141.6s here**, in runs made minutes apart. Nothing else about the walk changed — it measures the
+same elements plus the new page's specimens, and every one of them passes.
 
 ## The gates
 
 ```
-                        before (7ffbde4)      after
-root  npm test          BEFORE_ROOT           AFTER_ROOT
-react npm test          322 passing           322 passing
+                       before (7ffbde4)                 after
+root npm test          1397 tests, 1394 pass            1412 tests, 1410 pass
+                       1 fail (the clock, 206.7s)       1 fail (the clock, 141.6s)
+                       2 skipped                        1 skipped
 ```
+
+The skip count moves because one of the two is `overview.test.js`'s built-ids check, which skips
+when `storybook-static/` is absent and ran here against a fresh build. The fifteen new tests are
+the twelve in `the-page.test.js`, the two `refs.test.js` subtests for the new page, and axe's run
+over the new story.
+
+Nothing under `react/` is touched by this change; its suite was run anyway and passes — 16 files,
+322 tests, 0 failing.
 
 `npm run build` (the React workspace, tsup + dts): success.
 `npm run build-storybook`: success, and `overview.test.js`'s built-ids check ran against it.
