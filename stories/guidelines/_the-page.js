@@ -6,11 +6,15 @@ export const TITLE = 'The page';
 export const BLURB = 'What one screen may hold: the head it keeps, the single action it leads with, '
   + 'and how much may stack before it is two pages.';
 
-// The limits three rules are stated in. They are here rather than in the prose
-// because stories/guidelines/the-page.test.js measures the kit's own screens
-// against these names — a number edited in the sentence and not in the gate is
-// the drift this whole collection exists to stop.
+// The four limits the rules are stated in. They are here rather than in the
+// prose because stories/guidelines/the-page.test.js measures the kit's own
+// screens against these names — a number edited in the sentence and not in the
+// gate is the drift this whole collection exists to stop.
 export const LIMITS = { cards: 6, outline: 3, primary: 1, lede: 2 };
+
+// A limit is a number to the gate and a word to the reader. Spelling it here
+// rather than typing the word into the sentence is what keeps the two the same.
+const said = (n) => ['zero', 'one', 'two', 'three', 'four', 'five', 'six'][n] ?? String(n);
 
 // The specimens. Two of them are drawn rather than photographed, and both say
 // so in their caption: an outline is a shape a reader hears rather than sees,
@@ -98,7 +102,6 @@ export const stackDont = () => stage(stack(12, true));
 
 const ROWS = [
   ['1162', '2026-06-30', '14,942.27', 'Paid'],
-  ['1163', '2026-06-29', '14,490.70', 'Paid'],
 ];
 
 const miniTable = (dense) => `
@@ -131,26 +134,22 @@ export const RULES = [
   {
     id: 'head',
     imperative: 'Start the page with the way back, then the title, then the line under it. Nothing else goes above the title.',
-    why: 'A filter row or a toolbar above the title makes the title the second thing on the screen, '
-      + 'and a reader arriving from a link has to hunt for what page they are on. Filters, a period '
-      + 'switch, a search box and a band of figures all belong under the title, at the top of the page.',
+    why: 'A toolbar above the title makes the title the second thing on the screen; filters, a '
+      + 'period switch and a band of figures go under it instead.',
     kit: [{ ref: 'src/components/shell.js:182', pattern: 'crumbs.length ? breadcrumbs' }],
   },
   {
     id: 'one-h1',
-    imperative: 'Give the page one title, and let it be the only one.',
-    why: 'A second title splits one screen into two documents for anyone moving by heading, and no '
-      + 'title at all leaves them with nowhere to land. The kit had the second fault: the screen a '
-      + 'reader lands on after granting an agent access said "Access granted" in text that was not a '
-      + 'heading, so nothing on the page said which page it was.',
+    imperative: 'Give the page one title, and only one.',
+    why: 'Two titles read as two pages to anyone moving by heading, and none at all leaves them '
+      + 'nowhere to land — which is what the screen after granting an agent access did.',
     kit: [{ ref: 'stories/guidelines/_labels-and-titles.js:65', pattern: 'one level under the page title' }],
   },
   {
     id: 'outline',
-    imperative: `Step the headings down one level at a time, and stop at level ${LIMITS.outline}: the page, a section, a group inside it.`,
-    why: 'A skipped level reads to anyone moving by heading as content they have missed, and a '
-      + 'fourth level is a page that has become two. There are two title sizes on the page, not '
-      + 'three, so a fourth level would add a step the reader cannot see.',
+    imperative: `Step the headings down one level at a time, and stop ${said(LIMITS.outline)} levels deep: the page, a section, a group inside it.`,
+    why: 'A skipped level reads as content the reader has missed, and a fourth is a page that has '
+      + 'become two.',
     doCaption: 'Page, section, group — down one at a time. Written out: these are labels, not headings.',
     dontCaption: 'Two pages in one, then a jump from the first level to the third, then a level nothing on the page reads at.',
     doHtml: outlineDo,
@@ -159,10 +158,9 @@ export const RULES = [
   },
   {
     id: 'one-primary',
-    imperative: 'Lead with one filled button. Everything else on the page is quieter than it.',
+    imperative: `Lead with ${said(LIMITS.primary)} filled button. Everything else on the page is quieter than it.`,
     why: 'Three filled buttons rank nothing: the eye reads all three to find the one the page is '
-      + 'for. A drawer or a dialog carries its own and does not compete, because it is over the '
-      + 'page rather than on it.',
+      + 'for.',
     doCaption: 'One filled button, and the other two ranked under it.',
     dontCaption: 'Three filled buttons. Nothing here says which one the page is for.',
     doHtml: primaryDo,
@@ -171,11 +169,10 @@ export const RULES = [
   },
   {
     id: 'stacking',
-    imperative: `Stack ${LIMITS.cards} cards at most, and never put a card inside a card.`,
-    why: 'A card groups what belongs together, so a page of twelve has grouped nothing — the reader '
-      + `scrolls past eleven to reach the one they came for. Past ${LIMITS.cards} the page wants `
-      + 'sections, tabs, or a second page.',
-    doCaption: `One block a card: ${LIMITS.cards} of them, at the limit and still one page.`,
+    imperative: `Stack ${said(LIMITS.cards)} cards at most, and never put a card inside a card.`,
+    why: 'A page of twelve cards has grouped nothing — the reader scrolls past eleven to reach the '
+      + `one they came for. Past ${said(LIMITS.cards)} the page wants sections, tabs, or a second page.`,
+    doCaption: `One block a card: ${said(LIMITS.cards)} of them, at the limit and still one page.`,
     dontCaption: 'Twelve, drawn at the same scale as the six beside it.',
     doHtml: stackDo,
     dontHtml: stackDont,
@@ -184,17 +181,15 @@ export const RULES = [
   {
     id: 'at-rest',
     imperative: 'Let the page arrive at rest. Nothing covers it until the reader asks.',
-    why: 'A drawer, a dialog, a toast or a hover readout drawn at load talks over the reader before '
-      + 'they have read the title, and each of them takes the keyboard with it. A page whose whole '
-      + 'job is to ask — a consent screen, a confirmation a link lands on — asks in the page itself.',
+    why: 'Anything drawn over the page at load talks over the reader before they have read the '
+      + 'title, and takes the keyboard with it.',
     kit: [{ ref: 'src/components/drawer.js:62', pattern: "(open || specimen) && 'is-open'" }],
   },
   {
     id: 'density',
     imperative: 'Pick one row height for the page: every table on it runs tight, or none of them does.',
-    why: 'Two tables at two row heights on one screen read as two products. Tightness is a property '
-      + 'of the data — a ledger of many columns earns it — so the page takes what its widest table '
-      + 'needs and gives it to the rest.',
+    why: 'Two tables at two row heights on one screen read as two products, and the wider one is '
+      + 'the one that decides.',
     doCaption: 'Both ledgers tight. One rhythm down the page.',
     dontCaption: 'Tight above, roomy below. The same four columns, at two row heights.',
     doHtml: densityDo,
@@ -203,9 +198,9 @@ export const RULES = [
   },
   {
     id: 'lede',
-    imperative: `Say what the page is for in ${LIMITS.lede} sentences at most, and never spend one of them on the title.`,
-    why: '"Payouts — this is the payouts page" tells a reader what they have just read. The line is '
-      + 'for what the title cannot say: what is counted, how far back, where the numbers come from.',
+    imperative: `Say what the page is for in ${said(LIMITS.lede)} sentences at most, and never spend one of them on the title.`,
+    why: '"Payouts — this is the payouts page" tells a reader what they have just read; the line '
+      + 'is for what the title cannot say.',
     kit: [{ ref: 'src/components/shell.js:184', pattern: 'ui-app__sub' }],
   },
 ];

@@ -166,7 +166,7 @@ export const GATES = [
   {
     file: 'stories/guidelines/the-page.test.js',
     does: 'Renders every screen under stories/apps/ and holds it to the page rules: one h1, an '
-      + 'outline that goes down one rank at a time and stops where the page says, a navigation '
+      + 'outline that goes down one rank at a time and stops where the contract says, a navigation '
       + 'landmark named and named once, the head in the shell\u2019s order, and no overlay open '
       + 'before the reader has asked for one.',
     blind: [

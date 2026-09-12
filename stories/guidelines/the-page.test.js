@@ -1,14 +1,9 @@
 /* Rule: every screen the kit draws keeps the page rules — the head in one
  * order, one h1, one primary action, one density, nothing overlaying it at
  * load. The subjects are the screens under stories/apps/, discovered rather
- * than listed. Every rule owns one check here, keyed by its `id`, and the
- * first test holds the two lists in step.
- *
- * Eight of the ten are drawn on Guidelines / The page, which is written for
- * whoever is designing the screen. The other two — `shell` and `navs` — are
- * decisions the kit has already taken, so they are stated in the contract and
- * listed in `GATED_ELSEWHERE` rather than shown to a designer who cannot break
- * them. Both lists key a check here, which is why the test below reads both.
+ * than listed. Every rule owns one check here, keyed by its `id` — from the
+ * story or from its `GATED_ELSEWHERE`, a split the contract settles — and the
+ * first test holds the lists in step.
  *
  * The outline and the landmark names are accessibility questions, so this is
  * one of the accessibility gates the floor page lists — and what it cannot
