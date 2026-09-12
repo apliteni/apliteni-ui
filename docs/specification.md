@@ -654,9 +654,22 @@ What the shell guarantees:
   sidebar" — with `aria-expanded` saying what the rail is now. A media query cannot share a block
   with a class, so the fold is written twice in `layout.css`; `stories/apps/shell-states.test.js`
   compares the two rule for rule and resolves both on every element of the rail. Below 720px the
-  toggle is not drawn, because the strip is the only layout there. Its mark is the kit's own
-  `chevronLeft`, turned through 180° on `--dur-fast` — the turning caret [Motion](#motion) names,
-  rather than a glyph drawn for this one control.
+  toggle is not drawn, because the strip is the only layout there.
+- **The toggle is one mark, and the mark is the state.** The control is a frame that holds still
+  and a seam that crosses it — `lessly-ui`'s `RailToggle`, which this rail is reworked on — so what
+  a reader takes from it is which arrangement the panel is in rather than a direction to press. No
+  words beside it and no tooltip of its own: on a folded rail it takes the same name chip every
+  other row takes. The mark is drawn by hand in `src/components/shell.js` rather than added to
+  `icons.js`, because a seam that travels has to be a child a stylesheet can reach and `icon()`
+  emits one opaque string. It stands in the glyph column — `--ui-nav-strip`, a row's padding either
+  side of a glyph, which is the width the closed rail is derived from — so it holds its place at
+  both widths while everything beside it travels. The seam moves on `--dur-med`, the rail's own
+  clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and its
+  distance is the frame's own mirror rather than a number: the seam is drawn at 9 in an 18-unit
+  frame and lands at 15, so the narrow compartment changes sides.
+  `stories/apps/shell-states.test.js` reads the frame and the seam out of the factory and refuses a
+  travel the mark does not explain, a control wider or narrower than the column, and a seam that
+  holds still between the two states.
 - **The fold travels, and no glyph moves while it does.** The rail's column keeps its open width
   and the box closes over it, so nothing inside is laid out a second way: the width goes from
   249px to 74px on `--dur-med` and `--ease`, and the words fade on `--dur-fast` so the closing edge

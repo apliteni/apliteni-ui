@@ -23,6 +23,15 @@ One thing is deliberately not taken, and it is the only one: the reference keeps
 and this kit keeps the reader's fold in a cookie. #277 asks for it and an HTML kit has no host app
 to lean on. It is the first row of the *Not taken* table below.
 
+### The sixth round, and the last rejection it reversed
+
+Artur read the reworked pull request on 2026-09-12 and sent back one line: *"make just one icon like
+lessly-ui has."* That is the last row of *Not taken* that argued against the reference on cost
+grounds, and it is reversed here. The toggle was the kit's `chevronLeft` turned 180° with the words
+"Collapse sidebar" beside it; it is now the reference's own control — one mark, no words, standing
+in the glyph column at the rail's foot. What that took is in the *taken* table below, and the row it
+came out of is gone from *Not taken*, which now holds the cookie and nothing else about the toggle.
+
 ### One decision made after review, by the coordinator, and reversible
 
 An independent review found that rewriting the 720px block took its
@@ -74,6 +83,9 @@ focus**, in CSS. `wireShell()` wires the toggle and keeps the choice in a cookie
 |---|---|
 | The column stays open-width and is clipped, so every glyph holds its place while the width animates | The same. 249px → 74px on `--dur-med`, labels and counters on `--dur-fast`. Sampled frame by frame below: the top row's glyph centre is 36.5px on all 22 frames of the travel |
 | The toggle is always drawn, at the rail's foot, under its own rule | The same, and `collapsible` is now `true` unless a caller passes `false` |
+| `RailToggle` is one icon and no words: a frame that holds still, a seam that crosses it, and no tooltip of its own — on a folded rail it takes the same name chip every other row takes | The same, and this is Artur's sixth-round call. The mark is drawn by hand in `shell.js` for the reason the reference gives for not taking lucide's: the divide is baked into the same path as the frame, and only a child of its own can travel — `icon()` emits one opaque string with no hook on an inner node |
+| `RAIL_COLUMN_BOX`: one 40px box on the glyph column, the same at both widths | The kit's own column, `--ui-nav-strip`. The reference's box is 40 because its glyph is 16; the kit's is 41 because a rail row is a 17px glyph inside 12px of padding, and that is the number `nav.css` already derives the closed rail from. One box, written once, so the mark does not step sideways on the press |
+| The seam travels on the same clock as the rail, and stops under reduced motion | The same: `--dur-med` and `--ease`, the rail's own travel and not the words' `--dur-fast`, so the mark and the closing edge arrive together. No `!important`, so the kit's net takes it to one frame with everything else |
 | The toggle is a `<button>` whose name says what the press will do (*"Expand sidebar"* / *"Collapse sidebar"*), with `aria-expanded` saying what the rail is, and no `aria-controls` | The same: `railToggle()` in `src/components/shell.js` |
 | A folded row shows its name beside it on hover **and on keyboard focus** | The same, in CSS. The reference portals a Radix tooltip; this kit has no positioning library, so the chip is the label itself, taken out of flow and anchored to the row |
 | A badge fades out with the words, and the count stays in the row's accessible name | The same. `leafName()` spells the count into `aria-label` at every width, so a counter that fades is not a count that is lost |
@@ -87,7 +99,6 @@ focus**, in CSS. `wireShell()` wires the toggle and keeps the choice in a cookie
 |---|---|
 | No persistence: the host app owns it | **Persisted by default, in a cookie. The one deliberate difference.** #277 requires it and an HTML kit has no host state to lean on. A cookie and not `localStorage` because a server can read one: `appShell({ collapsed: railCollapsed(request.headers.cookie) })` paints the stored width before any script runs, where `localStorage` paints the rail open and snaps it shut a frame later |
 | A Radix tooltip, portalled to `<body>` and positioned by a floating-UI library | **CSS anchor positioning, with a stated fallback.** Where `anchor-name` and `anchor-scope` are supported the chip is pinned to the row and to the rail's edge, and lands within a hundredth of a pixel of the row's centre through a scroll of the rail, a scroll of the page and a resize — the two cases the earlier attempt failed on, measured below. Where they are not, the chip keeps the place its row gave it at the last layout: exact until the rail scrolls, and then as far above its row as the rail has scrolled, measured at 149.99px after a 150px scroll. That is the whole of what anchor positioning buys and nothing else in CSS does — see "The fallback, and why it is the shape it is" |
-| `RailToggle` draws a mark whose seam travels rather than spins | **The kit's `chevronLeft`, turned 180° on `--dur-fast`.** A turning caret is the idiom the kit's Motion guideline already names at that duration, and `icon()` is a fixed set: a travelling seam is a glyph drawn for this one control |
 | Below 768px a separate JS tree renders a drawer | The kit keeps its CSS fold at 720px, and no toggle below it |
 | `railTop`, `header`, `logoCollapsed`, `children`-as-function | Out of scope. `appShell()` composes one rail, and #277 is about folding it |
 
@@ -152,6 +163,13 @@ anchored rule must pin `top`, `bottom` and `left` to `anchor()`, in both copies 
 - **Reduced motion.** The kit's net takes both durations to 0.01ms, so the fold arrives in one
   frame. Verified in Chrome with the preference emulated: the rail's resolved
   `transition-duration` is `1e-05s` and the width is 74px on the frame after the press.
+- **One icon, and no words.** The toggle is a frame and a seam and nothing else, standing in the
+  glyph column — `--ui-nav-strip`, which is a row's padding either side of a glyph and the width the
+  closed rail is derived from — so it holds that column at both widths while the rail travels past
+  it. The seam crosses the frame on the press, on the rail's own `--dur-med`, and its distance is
+  the frame's mirror rather than a number: drawn at 9 in an 18-unit frame, it lands at 15. The name
+  is still in the markup, because the name IS the chip — a folded rail hands the toggle the same one
+  every other row gets, instead of a tooltip written for this one control.
 - **`sidebarNav({ collapsed })`.** A group is no longer forced shut, its list is no longer hidden
   by CSS, and a row with no glyph gets the fold's dot.
 
@@ -195,8 +213,9 @@ choice.
 |---|---|
 | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-persisted-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-persisted-light.png) |
 
-These two files are **byte-identical** to the folded pair above, and that is what a persisted fold
-looks like — but it means the pictures are not themselves evidence of persistence, and a reviewer
+These two files differ from the folded pair above in **0 pixels of 972,800** — two independent
+shots, taken on separate loads and compared channel by channel, not one file copied. That is what a
+persisted fold looks like — but it means the pictures are not themselves evidence of persistence, and a reviewer
 should not read them as such. What is evidence is in *Measured in a browser* below: the cookie read
 back off the browser's own jar (`apliteni-ui-rail=collapsed`, `path=/`, `SameSite=Lax`, 365 days),
 and a second load drawn with no `collapsed` coming up `class="ui-app is-collapsed"
@@ -314,6 +333,27 @@ The floor gate de-duplicates controls by class, so a folded row, which has the s
 open one, was never measured. Folded-rail controls are now collected separately and every one is
 measured.
 
+Four more arrived with Artur's one icon, and they hold the two halves of it: the mark is the state,
+and the control is the column. Each rule was broken on disk against the code as it stands, the gate
+was run for real, and the file was restored and its SHA-256 compared with the one taken before.
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **the folded rail stops moving the seam — one mark, drawn twice** | `shell-states.test.js` | **2 red** |
+| the seam travels 4 units instead of the frame's own mirror | `shell-states.test.js` | **1 red** |
+| the seam loses its transition, so the mark arrives before the edge | `shell-states.test.js` | **1 red** |
+| the seam's travel written `!important`, outranking the reduced-motion net | `shell-states.test.js` | **1 red** |
+| the seam timed with the literal `0.25s` | `shell-states.test.js` | **1 red** |
+| the seam drawn on the frame's centre, so its mirror is no travel at all | `shell-states.test.js` | **1 red** |
+| the control given the whole row back, so its mark steps sideways on the press | `shell-states.test.js` | **1 red** |
+| the column written as the literal `41px` rather than `--ui-nav-strip` | `shell-states.test.js` | **1 red** |
+
+One mutation is reported as **0 red** and is not a hole: filling the mark
+(`fill="none"` → `fill="currentColor"`) changes nothing a reader sees, because
+`.ui-nav__ic svg { fill: none }` in `nav.css` decides the paint for every glyph on the rail and
+outranks the attribute. Checked in JSDOM rather than assumed — the resolved fill is
+`rgba(0, 0, 0, 0)` with the markup filled.
+
 ## The review history
 
 Three read-only reviews ran against the first version, each followed by a fix round, and an
@@ -353,14 +393,25 @@ mislead. The two cases that review named, a scrolled rail and a resize, are meas
 - *A folded shell also folds a shell nested in its body.* Nobody nests shells, and the 720px fold
   already folds every shell on the page.
 
-## Rebased, and what the rebase touched
+## Rebased twice, and what each rebase touched
 
-Rebased onto `origin/main` at `7ffbde4`, which carries #292, #289, #293 and #267. One conflict, in
-`src/styles/icon-size.test.js`: both sides move `EXPECTED_SUBJECTS`, #267 up by four for the stat
-band's change arrow and trend slot, this branch down by two because the folded rail stopped sizing
-its glyph a second time. Resolved to **68**, with both justifications kept in the comment above it,
-as that tripwire asks. Nothing else conflicted, and every figure and every mutation in this body
-was re-run against the rebased tree.
+**Onto `7ffbde4`** (#292, #289, #293, #267). One conflict, in `src/styles/icon-size.test.js`: both
+sides move `EXPECTED_SUBJECTS`, #267 up by four for the stat band's change arrow and trend slot,
+this branch down by two because the folded rail stopped sizing its glyph a second time. Resolved to
+**68**, with both justifications kept in the comment above it, as that tripwire asks.
+
+**Onto `bb5fd04`** (#302, #300, #301). One conflict, in `stories/button-chrome.test.js`: #301 moved
+the gate's whole reasoning block into `CONTRIBUTING.md`, and this branch had corrected two line
+numbers inside it. Resolved to #301's shape, with both corrections applied where the prose now
+lives — `.ui-nav__item {` moved down 23 lines in `nav.css` when the fold gave it a `transition`,
+and the direction audit's one logical property, `margin-inline: auto`, moved down 91 in
+`layout.css`. The second needed a backticked anchor after its citation as well as a line, since
+`scripts/code-refs.test.js` refuses a bare path-and-line. `PR.md` conflicted as a whole file, which is what a PR body always does; this
+branch's is kept. `EXPECTED_SUBJECTS` did not move again — nothing in this round adds or removes a
+rule that sizes a glyph.
+
+Every figure and every mutation in this body was re-run against the rebased tree, and every screen
+that shows the foot of the rail was re-shot.
 
 ## The version bump this PR does not carry
 
@@ -377,6 +428,9 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [x] The fold animates and no glyph moves while it does. Sampled frame by frame in Chrome, and the
       arithmetic behind the strip is gated rather than written down twice.
 - [x] The toggle is drawn by default, at the foot, under its own rule.
+- [x] The toggle is one icon and no words, as the reference's is, and the seam moves with the state.
+      Photographed in both themes and frame by frame through the travel; the distance is held to the
+      mark's own geometry rather than to a number repeated in a test.
 - [x] A folded row shows its name on keyboard focus as well as hover, and stays beside the row after
       the rail scrolls and after a resize. Measured in Chrome; the fallback's limit is measured too
       and stated rather than glossed.
@@ -386,15 +440,20 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [x] The folded state persists across navigation, and a server can paint it first.
 - [x] `prefers-reduced-motion` takes the fold to one frame. Verified in Chrome, and the net is
       gated by `stories/reduced-motion.test.js`.
-- [x] `npm test`, `npm run build` and the React tests pass. Counts below.
+- [x] `npm run build` and the React tests pass; `npm test` is green but for
+      `stories/contrast.test.js`'s wall-clock ceiling on this box, which fails the same way with
+      this round reverted. Counts below.
 - [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
       only be proven after a release.
 
-**Counts on this box.** `npm test`: 1441 tests, 1440 pass, 0 fail, 1 skipped — the skip is the
+**Counts on this box.** `npm test`: 1445 tests, 1443 pass, 1 fail, 1 skipped. The skip is the
 opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an environment variable on
-`main` too. `npm run build`: clean. React: 322 tests in 16 files, all passing. The contrast walk
-cleared its own wall-clock ceiling on this run. (1437 before the review fixes; the four new tests
-are the fold's travel, the net that stops it, and the phone strip's floor read in two places.)
+`main` too. The failure is `stories/contrast.test.js`'s own wall-clock ceiling — the walk took 131s
+against a 120s bar on a contended box, and it passes in 0 fail when run on its own. It fails the
+same way on this branch with the toggle change reverted, so it is this machine and not the diff.
+`npm run build`: clean. React: 322 tests in 16 files, all passing. (1437 before the review fixes,
+1441 after them; the four new tests are the seam's travel, the arithmetic behind it, the seam's
+clock, and the control's own box.)
 
 ## What a reviewer should push on
 
@@ -406,9 +465,15 @@ are the fold's travel, the net that stops it, and the phone strip's floor read i
   lines.
 - **`--dur-med` where the reference takes 200ms.** The kit's scale has no 200. Adding one is a
   token change; using 250 keeps the fold on the same clock as every other surface the kit moves.
-- **A turning chevron where the reference's seam travels.** The reference's mark says which side
-  the rail is on; a chevron says which way the press goes. Ours is the kit's existing glyph and the
-  kit's existing caret idiom. A travelling seam means a glyph in `icons.js` used by one control.
+- **A glyph drawn outside `icons.js`.** The toggle's mark is written in `shell.js`, which makes it
+  the one stroked glyph in the kit that the icon set does not hold. The reason is mechanical — a
+  seam that travels has to be a child a stylesheet can reach, and `icon()` returns one opaque
+  string — but it is still a second place a glyph can live, and the alternative is an `icon()` that
+  takes a class for an inner node. Say so and it is a small change to the factory.
+- **A 41px box where the reference's is 40.** The kit's rail row is a 17px glyph inside 12px of
+  padding, so its glyph column is 41; the reference's is 16 inside 12, so its is 40. Taking the
+  reference's number would put the mark a half-pixel off the column every glyph above it stands on,
+  which is the one thing the fold's travel promises not to do.
 - **A cookie by default, for a year.** shadcn keeps its cookie for 7 days and GitLab for 10 years.
   `localStorage` was rejected because a server cannot read it.
 - **No keyboard shortcut.** shadcn uses Cmd/Ctrl+B, GitLab `mod+\`, Atlassian Ctrl+[. All three
@@ -432,6 +497,9 @@ are the fold's travel, the net that stops it, and the phone strip's floor read i
   can pass `railCollapsed(request.headers.cookie)` to paint the right width first.
   `wireShell(root, { persist: false })` keeps every shell under `root` out of the cookie, and each
   press sends a `ui-rail` event.
+- The toggle is one icon and no words: a frame that holds still and a seam that crosses it when the
+  rail folds, standing in the glyph column so it keeps its place at both widths. On a folded rail it
+  takes the same name chip every other row takes, rather than a tooltip of its own.
 - `sidebarNav({ collapsed })` no longer forces a group shut or hides its list, so the current page
   stays reachable on the folded rail. A row with no glyph gets a dot.
 - New exports: `wireShell`, `railCollapsed`, `RAIL_COOKIE`.
