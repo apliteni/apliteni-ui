@@ -152,7 +152,7 @@ const railMark = () =>
 // lands it beside the glyph on a folded rail, on hover and on keyboard focus, and
 // the toggle takes the same chip every other row takes rather than carrying a
 // tooltip of its own. On the open rail the glyph column is the whole of the
-// control, so the label is squeezed to nothing and shows nobody anything.
+// control, so the label is squeezed to nothing by its own `overflow: hidden`.
 const railToggle = (collapsed) =>
   `<div class="ui-app__fold-row">`
   + `<button type="button" class="ui-nav__item ui-app__fold" data-rail-toggle`
