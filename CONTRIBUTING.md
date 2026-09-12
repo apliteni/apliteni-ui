@@ -1502,7 +1502,7 @@ or reset the font. Update it with the declaration and its reason.
 | Count | Recorded change |
 | --- | --- |
 | 31 | #253: 22 text, 3 display, 4 mono, and 2 naming no family |
-| 32 | The portalled `.ui-dropdown__panel` states its own face |
+| 32 | #257: the portalled `.ui-dropdown__panel` states its own face |
 | 33 | #251: `.ui-dropdown__item { font: inherit }` removes the browser's `font: 400 13.3333px Arial` and takes the panel's face |
 | 41 | Eight more #251 resets: `.vopt`, `.avatar`, `.toggle` in topbar.css; `.ui-card--interactive`, `.ui-drawer__close`, `.ui-toast__close`, `.ui-fbpill`, `.ui-fbc__x`. Each inherits its ancestor's face |
 | 42 | #269: `.ui-card__title { font-family: var(--font-sans) }` retains its text face after becoming an h2 |
