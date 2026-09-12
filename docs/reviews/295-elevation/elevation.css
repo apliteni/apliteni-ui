@@ -118,7 +118,17 @@
  * above the white a panel already is, and a readout laid over a chart has to
  * stay legible rather than lifted, so light keeps it a grey — a step deeper
  * than today's, tracking the page down. Measured: --muted clears AA on it at
- * 5.07, and --text at 13.85. */
+ * 5.07, and --text at 13.85.
+ *
+ * Which takes a rule, not just a token. The kit's light theme re-points the
+ * readout at --surface (tooltip.css:50), because in a white-on-white light
+ * theme the card step WAS the only step there is. The ladder gives light real
+ * steps, so the readout goes back to the top one — and without this line `lift`
+ * paints it #f8f9fc on a #f8f9fc card with the border off, which renders the
+ * readout as floating text and no panel at all. Drawn before it was fixed. */
+:root[data-theme="light"][data-elev="lift"] .ui-tip,
+:root[data-theme="light"][data-elev="lift-line"] .ui-tip,
+:root[data-theme="light"][data-elev="frost"] .ui-tip { --ui-tip-bg: var(--surface-3); }
 
 /* The one component change the ladder needs, and the reason it is not optional.
  * Six floating surfaces paint --surface-2 today, which the ladder re-points to
@@ -126,7 +136,8 @@
  * lift. They move to --bg-elevated, the token named for the job and read today
  * by three things only. Two more (.rx-modal, .ui-auth__card) paint --surface,
  * the CARD step, and a panel that floats over a card cannot be the same colour
- * as it. .ui-tip alone stays where it is: --surface-3 is already the top step. */
+ * as it. .ui-tip stays where it is in dark — --surface-3 is already the top
+ * step — and needs one line in light, below. */
 :root[data-elev="lift"] .ui-dropdown__panel,
 :root[data-elev="lift-line"] .ui-dropdown__panel,
 :root[data-elev="frost"] .ui-dropdown__panel,
