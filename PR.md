@@ -163,6 +163,13 @@ title as an `h3` — so a page whose whole content is a success screen had no `h
 follows the layout: `h1` for `hero` and `split`, which are the page, `h2` for `compact`, which
 sits beside other content. `level` overrides it. `.ui-sx__title` sets the look and does not move.
 
+This was the one fix here with no gate over it, and an independent review said so: no test in the
+tree imported `src/components/success.js`, and no screen under `stories/apps/` renders `success()`,
+so `the-page.test.js` cannot reach it either — it discovers its subjects from those screens.
+`src/components/success.test.js` holds it now: the layout→rank mapping, `level` overriding it at
+all six ranks and from a string, a non-rank falling back to the layout rather than drawing an
+`<hundefined>`, and the class staying put while the tag moves.
+
 All three are the split the kit already publishes on *Labels and titles*: the level is the outline
 and the class is the look.
 
@@ -249,13 +256,13 @@ post-merge numbers now would fail this branch's own `refs.test.js`.
 Merged for real off `origin/main` @ `7ffbde4` — #286 first, then this branch — and the gate
 printed the numbers itself:
 
-| rule | reference on this branch | line on the merged tree |
+| rule | the citation on this branch, and the text it anchors on | line on the merged tree |
 |---|---|---|
-| `shell` | `src/components/shell.js:140` — `export function appShell` | **189** |
-| `head` | `src/components/shell.js:182` — `crumbs.length ? breadcrumbs` | **238** |
-| `lede` | `src/components/shell.js:184` — `ui-app__sub` | **240** |
-| `outline` | `src/styles/layout.css:136` — `rank: page-title` | **205** |
-| `navs` | `src/components/nav.js:167` — `ui-nav--crumbs` | **168** |
+| `shell` | `src/components/shell.js:140` `export function appShell` | **189** |
+| `head` | `src/components/shell.js:182` `crumbs.length ? breadcrumbs` | **238** |
+| `lede` | `src/components/shell.js:184` `ui-app__sub` | **240** |
+| `outline` | `src/styles/layout.css:136` `rank: page-title` | **205** |
+| `navs` | `src/components/nav.js:167` `ui-nav--crumbs` | **168** |
 
 Whoever merges second edits those five numbers in `_the-page.js` and re-runs
 `node --test stories/guidelines/refs.test.js`, which prints any that have moved again. Citing by
@@ -289,7 +296,7 @@ them passes.
 
 ```
                        before (7ffbde4)                 after
-root npm test          1397 tests, 1394 pass            1415 tests, 1414 pass
+root npm test          1397 tests, 1394 pass            1422 tests, 1421 pass
                        1 fail (the clock, 206.7s)       0 failing
                        2 skipped                        1 skipped
 ```
@@ -298,9 +305,10 @@ The `before` run's single failure is the clock ceiling under a contended box, de
 `after` run was made on a quiet one and is green.
 
 The skip count moves because one of the two is `overview.test.js`'s built-ids check, which skips
-when `storybook-static/` is absent and ran here against a fresh build. The eighteen new tests are
-the fourteen in `the-page.test.js`, the two `refs.test.js` subtests for the new page, axe's run
-over the new story, and its contrast walk.
+when `storybook-static/` is absent and ran here against a fresh build. Eighteen of the new tests
+are the fourteen in `the-page.test.js`, the two `refs.test.js` subtests for the new page, axe's run
+over the new story, and its contrast walk; the other seven are
+`src/components/success.test.js`, added after the review to gate the third fix.
 
 Nothing under `react/` is touched by this change; its suite was run anyway and passes — 16 files,
 322 tests, 0 failing.
