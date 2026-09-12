@@ -96,13 +96,20 @@ shared gates every component answers to (contrast, the focus ring, icon sizing, 
 sentence case, the 24px target, axe on every story).
 
 ```
-root  npm test           1337 tests, 1335 passing, 1 skipped (as on main), 0 failing
+root  npm test           1337 tests, 1336 passing, 1 skipped, 0 failing
 react npm test            300 tests, 300 passing
       build-storybook     completed
 ```
 
 The one skip is the release-workflow test that skips itself without `jq`, the same one `main`
 skips locally; CI stops rather than skipping it.
+
+One gate is sensitive to the machine rather than to the diff: `stories/contrast.test.js` fails its
+120s wall-clock ceiling when the host is busy. Measured back to back on the same contended host,
+`origin/main` walks in 96.1s and this branch in 111.7–129.3s across four runs, one of which is the
+green run above. The branch adds 324 of 12,802 judged pairs (+2.6%), which is ~2.5s; the rest is
+contention. The deterministic companion gate — the style-cache miss rate, which the file's own
+comment calls the one that catches a real regression — is 0.1959 here against 0.1947 on `main`.
 
 ## Proof
 
