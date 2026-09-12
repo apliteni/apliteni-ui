@@ -77,9 +77,12 @@
   --purple-light: #1568d6;
   --purple-mid: #1560c8;
   /* Deepened for WCAG AA on the raised grey panel and its wash — hue and chroma held
-     in OKLCH (H 258, C 0.185), four points of lightness down. The washed figures are
-     read at the 0.10 alpha below, which is what this cell ships. See issues #96, #157. */
-  --accent: #005bc8;
+     in OKLCH (H 258, C 0.185). The washed figures are read at the 0.10 alpha below,
+     which is what this cell ships. #295 took it down a second time, by the same move
+     and for the same reason one step further on: the light page stopped being white,
+     so every ground under this ink is darker and the wash over the sunken step went
+     under the bar. See issues #96, #157, #295. */
+  --accent: #005ab4;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   /* Back to the 0.10 this cell carried before #157: deepening the ink closed the pair,
@@ -107,9 +110,12 @@
   --purple: #0a865a;
   --purple-light: #0b9c68;
   --purple-mid: #0a9060;
-  /* Deepened for WCAG AA on the light ground (#fff): #0b9c68 was 3.52:1 as text
-     and as the ink-on-fill; #087a52 clears AA at 5.36:1. See issue #96. */
-  --accent: #087a52;
+  /* Deepened for WCAG AA on the light ground: #0b9c68 was 3.52:1 as text and as the
+     ink-on-fill, and #087a52 cleared it while that ground was white. #295 moved the
+     light page and the surfaces under it a step down, and green is the hue with the
+     least room — this cell was the only one that failed FLAT as well as washed, on
+     the sunken step and on the readout. Down one more step. See issues #96, #295. */
+  --accent: #076c48;
   --accent-strong: var(--accent);
   --accent-contrast: #ffffff;
   /* Thinned from 0.10 for WCAG AA, the same grey-panel pair as light Ocean and

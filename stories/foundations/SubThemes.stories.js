@@ -32,11 +32,11 @@ export const ACCENT = {
   },
   Ocean: {
     dark: { a: '#3b9dff', as: '#3b9dff', ac: '#04121f', p: '#1f7fe0', pl: '#5ab0ff', pm: '#7cc0ff', g: 'rgba(59,157,255,.15)', gf: '#3b9dff', gt: '#20dcf5' },
-    light: { a: '#005bc8', as: '#005bc8', ac: '#fff', p: '#1156b8', pl: '#1568d6', pm: '#1560c8', g: 'rgba(21,104,214,.1)', gf: '#1568d6', gt: '#17a2c0' },
+    light: { a: '#005ab4', as: '#005ab4', ac: '#fff', p: '#1156b8', pl: '#1568d6', pm: '#1560c8', g: 'rgba(21,104,214,.1)', gf: '#1568d6', gt: '#17a2c0' },
   },
   Emerald: {
     dark: { a: '#16c98a', as: '#16c98a', ac: '#04180f', p: '#0fa876', pl: '#3ad9a0', pm: '#5fe3b4', g: 'rgba(22,201,138,.18)', gf: '#16c98a', gt: '#20dcf5' },
-    light: { a: '#087a52', as: '#087a52', ac: '#fff', p: '#0a865a', pl: '#0b9c68', pm: '#0a9060', g: 'rgba(11,156,104,.08)', gf: '#0b9c68', gt: '#12b0a0' },
+    light: { a: '#076c48', as: '#076c48', ac: '#fff', p: '#0a865a', pl: '#0b9c68', pm: '#0a9060', g: 'rgba(11,156,104,.08)', gf: '#0b9c68', gt: '#12b0a0' },
   },
 };
 
