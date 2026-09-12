@@ -423,6 +423,47 @@ still legal, which is the only warning anyone gets before it is not.
 
 Decided in [#218](https://github.com/apliteni/apliteni-ui/issues/218).
 
+## A field is 16px on a touch screen
+
+iOS Safari zooms the page into a focused field whose text is smaller than 16px, and it does not
+zoom back out — the reader is left panning a page they were typing into. The kit's fields are
+14.5px, the dropdown's search field 12.5px, the pager's two controls 13px, so every one of them
+did it.
+
+**One net, over elements rather than classes.** `src/styles/field-zoom.css` holds a single
+`@media (pointer: coarse)` rule taking `input`, `select` and `textarea` to 16px, and `src/index.css`
+and `react/src/index.ts` both import it, so either stylesheet carries it. The controls with nothing
+to type into — checkbox, radio, range, colour, file, hidden, image, and the three button types —
+are left out; none of them zooms. A list of kit classes would have needed an edit per component and
+would have left a host page's own fields zooming on the kit's sheet, which is why the selectors are
+elements. `!important`, for the reason `reduced-motion.css` takes it: a net has to outrank a
+component rule it has never seen. Both nets are idempotent, so importing both stylesheets costs
+nothing.
+
+**The size is real, never a scaled 16px.** The zoom reads the computed font size, so a 16px field
+shrunk back with a `transform` still zooms, and the transform takes the border and the focus ring
+down with the text.
+
+**`font-size` and not the viewport.** `<meta name="viewport" content="user-scalable=no">`, or a
+`maximum-scale=1`, also stops the zoom. It does it by taking pinch-zoom away from every reader of
+the page, which fails WCAG 1.4.4 and which Apple's own [Human Interface
+Guidelines](https://developer.apple.com/design/human-interface-guidelines/accessibility#Text-display)
+argue against — text has to stay resizable. It is also not the kit's to set: a viewport tag belongs
+to the host page, and a kit that needs one has moved a requirement onto every consumer. A font size
+is the fix that lives in the stylesheet the fields already come from.
+
+**What it costs.** A field on a touch screen is set larger than the design calls for, and the boxes
+that hold one grow with it — the pager's size control and jump box most visibly. That is the trade,
+and it is taken on every field rather than on the two a reader was reported to have hit.
+
+Held by `stories/field-zoom.test.js`, which renders every story, resolves the sheet as a coarse
+pointer sees it, and fails a field under 16px — or one the net has made smaller than it is with a
+mouse. It also reads the net's own file: deleting the rule, or its `!important`, fails there too.
+
+Decided in [#294](https://github.com/apliteni/apliteni-ui/issues/294), after
+[#291](https://github.com/apliteni/apliteni-ui/issues/291) answered it for the dropdown's search
+field alone.
+
 ## Icons and glyphs
 
 **An icon's size is settled by measuring the cascade, not by reading the stylesheet.** The kit
@@ -708,11 +749,11 @@ height `scroll` gives, and the field does not scroll with them. The panel keeps 
 whole list needs, so it does not narrow as rows are filtered out. A group with no match is hidden,
 and the divider sits only between groups still showing, never above the first of them.
 
-**On a touch screen the field is 16px.** iOS Safari zooms the page into a focused field whose text
-is smaller than that, and opening the panel focuses the field. So under `(pointer: coarse)` the
-field's text is 16px; with a mouse it stays at the rows' 12.5px. The size is real rather than a
-16px field scaled down with a transform, because the zoom reads the computed size, and a transform
-would shrink the border and the focus ring along with the text.
+**On a touch screen the field is 16px**, because opening the panel focuses it and a focused field
+under 16px zooms the page. It is the kit's one net that does this, over every field the kit ships —
+see [A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen). With a mouse the field
+stays at the rows' 12.5px, and this sheet holds no touch rule of its own that could disagree with
+the net.
 
 **The panel is a dialog.** A listbox may own only options and groups, so a field inside one fails
 axe's `aria-required-children`. With search on, the panel is a `role="dialog"` named after the
