@@ -634,8 +634,11 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 `appShell()` draws a page's chrome and what goes inside it is the caller's. These are the limits
 that inside keeps, whatever the page is about:
 
-- **An application page is `appShell()`'s.** Two page kinds sit outside that and inside every
-  rule below: an auth card, which has no rail to sit beside, and a marketing page.
+- **An application page is `appShell()`'s.** Two page kinds are not the shell's: an auth card,
+  which has no rail to sit beside, and a marketing page, which is not a screen of an application.
+  The head, the lede and the card count are about what the shell draws and stop there; the `h1`,
+  the outline, the landmarks, the at-rest rule and the density hold on all three, and the primary
+  count holds on every page but a marketing one.
 - **One `<h1>`, and it is the page title.** Every other heading on the page sits under it.
 - **The outline goes down one rank at a time and stops at `h3`** — the page, a card or section of
   it, a group inside one. An overlay keeps its own outline and is not counted: a drawer's `h2`
