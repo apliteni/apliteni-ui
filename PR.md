@@ -4,7 +4,7 @@ Closes #275.
 
 ## Premises
 
-**What this is about.** The kit has fifteen guideline pages and every one of them is about a
+**What this is about.** The kit has sixteen guideline pages and every one of them is about a
 part — a button, a drawer, a pager, a trail. Nothing was about the **page**: how many of those
 parts may be on one, in what order, which one leads, and what may be on screen before the reader
 has done anything. So it was decided per product, and the finance portal is what that looks like
@@ -16,7 +16,7 @@ KPI strip whose four captions followed four patterns (#610).
 four, not layout alone.
 
 **What I found.** The rules were mostly right already; nothing was holding the kit's own screens
-to them. Rendering all seventeen screens under `stories/apps/` and measuring them found two
+to them. Rendering all eighteen screens under `stories/apps/` and measuring them found two
 faults that every other gate was green about:
 
 - **A page with no `h1`.** `Apps / Consent → Granted` — the screen a reader lands on after
@@ -96,12 +96,12 @@ Checked for specifically across all twelve:
    section's description, not the page's: *"Be short, no more than 1–3 sentences."*
 6. **Not one of these rules is held by a test anywhere.** Every system above publishes prose and
    relies on review. That is the difference this PR is actually about: ten rules, ten checks, over
-   the kit's own seventeen screens, keyed to each other so neither can move alone.
+   the kit's own eighteen screens, keyed to each other so neither can move alone.
 
 ## The page
 
 **Guidelines / The page** — `stories/guidelines/_the-page.js`, first in the Guidelines sidebar
-under the Overview, because it is the frame the other fifteen hang off.
+under the Overview, because it is the frame the other sixteen hang off.
 
 | Rule | What it holds | Cites |
 |---|---|---|
@@ -193,7 +193,7 @@ else did. The file was deleted.
 - **README.md** — the pointer now says *The page* is the one to read first, and no longer claims
   the collection has five pages.
 - **docs/guidelines.md** — the collection's own doc had said "five pages" since there were five;
-  it says sixteen, and the two other stale counts beside it are fixed.
+  it says seventeen, and the two other stale counts beside it are fixed.
 
 ## Before / After
 

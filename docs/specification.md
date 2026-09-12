@@ -634,6 +634,8 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 A screen is more than the components on it. These are the limits one page keeps, whatever it is
 about:
 
+- **An application page is `appShell()`'s.** Two page kinds sit outside that and inside every
+  rule below: an auth card, which has no rail to sit beside, and a marketing page.
 - **One `<h1>`, and it is the page title.** Every other heading on the page sits under it.
 - **The outline goes down one rank at a time and stops at `h3`** — the page, a card or section of
   it, a group inside one. The kit draws no `h4`; the footer's column titles are `h2`, because a
@@ -660,9 +662,10 @@ The gate keys its checks by the rule ids on the Guidelines / The page story, so 
 check, or a check for a rule nobody wrote, fails the build.
 
 What this section does not settle is *why* six and not eight, or `h3` and not `h2`. Four of these
-numbers were chosen from screens rendered side by side in
+limits are choices rather than derivations; the alternatives are drawn as whole screens in
 [docs/reviews/275-page-limits.html](reviews/275-page-limits.html), and
-[#275](https://github.com/apliteni/apliteni-ui/issues/275) is where that choice is recorded.
+[#275](https://github.com/apliteni/apliteni-ui/issues/275) records who chose which and what was
+rejected.
 
 ## The page shell
 

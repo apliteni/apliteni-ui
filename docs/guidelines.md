@@ -1,6 +1,6 @@
 # The guidelines collection
 
-Sixteen pages of UI rules, rendered as Storybook stories under `Guidelines/`, plus an
+Seventeen pages of UI rules, rendered as Storybook stories under `Guidelines/`, plus an
 Overview that indexes them. A page is a **content module** holding the rules and a
 **story module** that hands them to the shared shell.
 
