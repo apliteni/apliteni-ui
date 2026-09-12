@@ -561,13 +561,15 @@ export const contributorChips = (people) => {
   return `<div class="contrib"><span class="people">${people.map(who).join('')}</span></div>`;
 };
 
+const HTML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+
 // tiny inline-code + backtick formatter (no external md)
 const fmt = (s) => s
-  .replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+  .replace(/[&<>]/g, (c) => HTML_ENTITIES[c])
   .replace(/`([^`]+)`/g, '<code class="ui-code">$1</code>');
 
 // Escape a value for use inside a double-quoted HTML attribute.
-const attr = (s) => String(s).replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[c]));
+const attr = (s) => String(s).replace(/[&"<>]/g, (c) => HTML_ENTITIES[c]);
 
 // Per-change component chips: known → Storybook deeplink, unknown → plain pill.
 export const componentChips = (names) => {
