@@ -104,8 +104,9 @@ const familyDecls = () => {
  * back link sets the text role, like every other control that names a place.
  * 50 with `.ui-dropdown__search-input { font: inherit }` (#283): the same reset
  * on the dropdown's search field, which takes the face of the panel it sits in
- * rather than the browser's own for an <input>. */
-const EXPECTED_SUBJECTS = 50;
+ * rather than the browser's own for an <input>. 51 with `.ui-stat__value`, a key
+ * figure set in the display face under the `readout` exception (#267). */
+const EXPECTED_SUBJECTS = 51;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

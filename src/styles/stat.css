@@ -1,0 +1,121 @@
+/* ============================================================================
+ * Stat band — .ui-stats  (a row of key figures: label, value, change, trend)
+ *   .ui-stats--tiles  one card per figure — the default
+ *   .ui-stats--band   one card, figures divided by space
+ *   .ui-stats--open   no surface; a rule over each figure
+ * why: docs/specification.md#stat-bands
+ * ========================================================================== */
+
+/* The band lays out from the width of its own box, not the window's: a band in
+   a column beside a rail and a band across a full page are different widths at
+   the same viewport. */
+.ui-stats { container-type: inline-size; }
+
+/* Equal columns while the figures fit. A figure is never narrower than its
+   widest unbreakable piece — the value — so a band too narrow for its figures
+   wraps a figure onto the next row rather than letting it overlap the next. */
+.ui-stats__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-10);
+  margin: 0;
+}
+
+.ui-stat { display: flex; flex-direction: column; flex: 1 1 0; min-width: min-content; }
+
+/* Takes the label rank's size and weight, but not its inherited leading: a
+   figure's parts are held close, so the label keeps the band's tighter line.
+   It sits outside the rank table for that one reason, and claims no rank. */
+.ui-stat__label {
+  color: var(--dim);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+}
+
+/* A figure is never broken across lines and never truncated: `€` stays with its
+   digits and every digit stays on screen. The band stacks before a figure
+   would have to do either. */
+.ui-stat__value {
+  margin-top: var(--space-2);
+  color: var(--strong);
+  /* display: readout — a key figure is read as a number at a glance, not as a line of prose */
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-stat__delta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--space-1);
+  margin-top: var(--space-2);
+  color: var(--dim);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+}
+.ui-stat__delta svg { width: 14px; height: 14px; flex: none; stroke-width: 2.7; } /* 2.7 of a 24 box drawn at 14px = 1.58 CSS px. docs/specification.md#icons-and-glyphs */
+.ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ui-stat__basis { color: var(--muted); font-weight: var(--weight-normal); }
+.ui-stat__delta--none { color: var(--muted); font-weight: var(--weight-normal); }
+
+/* Tone is set by the caller and says good or bad news. Direction is the arrow's
+   job, so an unset tone keeps the change neutral whichever way it points. */
+.ui-stat--good .ui-stat__delta { color: var(--chip-success-ink); }
+.ui-stat--bad .ui-stat__delta { color: var(--chip-danger-ink); }
+
+/* The trend is the caller's <svg>. margin-top: auto seats it on the bottom of
+   the figure, so trends line up across figures whose text wraps differently. */
+.ui-stat__trend { margin-top: auto; padding-top: var(--space-4); color: var(--muted); }
+.ui-stat__trend svg { display: block; width: 100%; height: 32px; overflow: visible; }
+.ui-stat--good .ui-stat__trend { color: var(--chip-success-ink); }
+.ui-stat--bad .ui-stat__trend { color: var(--chip-danger-ink); }
+
+/* The band's caption, above the figures rather than in one: it is what every
+   change points at, so it sits outside the ranks and takes none of them. The
+   margin is under it because it leads the row. */
+.ui-stats__basis {
+  margin: 0 0 var(--space-5);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
+.ui-stats--tiles .ui-stats__list { gap: var(--space-4); }
+
+.ui-stats--open .ui-stat {
+  border-top: 1px solid var(--border-strong);
+  padding-top: var(--space-4);
+}
+.ui-stats--open .ui-stat__value { font-size: var(--text-3xl); }
+
+/* Wrapping alone would leave three figures on one row and one on the next. So
+   before a row of figures runs out of room, four fold two by two and an odd
+   count stacks. The widths are where four and three tiles of `€ 6,459,401`
+   stop fitting, and the open band's larger value moves them out; a longer
+   figure still wraps rather than overlaps.
+   why: docs/specification.md#stat-bands */
+@container (28rem < width <= 56rem) {
+  .ui-stats:not(.ui-stats--open) .ui-stats__list:has(> .ui-stat:nth-child(4):last-child) > .ui-stat { flex-basis: 34%; }
+}
+@container (width <= 42rem) {
+  .ui-stats__list:has(> .ui-stat:last-child:nth-child(odd)) > .ui-stat { flex-basis: 100%; }
+}
+@container (width <= 28rem) {
+  .ui-stats__list > .ui-stat { flex-basis: 100%; }
+}
+@container (32rem < width <= 66rem) {
+  .ui-stats--open .ui-stats__list:has(> .ui-stat:nth-child(4):last-child) > .ui-stat { flex-basis: 34%; }
+}
+@container (width <= 50rem) {
+  .ui-stats--open .ui-stats__list:has(> .ui-stat:last-child:nth-child(odd)) > .ui-stat { flex-basis: 100%; }
+}
+@container (width <= 32rem) {
+  .ui-stats--open .ui-stats__list > .ui-stat { flex-basis: 100%; }
+}

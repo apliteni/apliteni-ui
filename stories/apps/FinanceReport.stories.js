@@ -1,5 +1,6 @@
 import { badge, card, segmented, icon } from '../../src/components/index.js';
 import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
+import { statBand } from '../../src/components/stat.js';
 import { financeShell } from './_finance-nav.js';
 
 export default {
@@ -7,42 +8,18 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
-// KPI stat — label / value / sub, income green & net pink when negative.
-const kpi = (label, value, sub, tone) =>
-  `<div style="flex:1;min-width:0">
-     <div style="font:600 var(--text-xs)/1 var(--font-sans);color:var(--muted)">${label}</div>
-     <div style="font:600 26px/1.1 var(--font-display);margin-top:8px;font-variant-numeric:tabular-nums;color:${
-       tone === 'pos' ? 'var(--green)' : tone === 'neg' ? 'var(--pink)' : 'var(--strong)'}">${value}</div>
-     <div style="font:400 12px/1.4 var(--font-sans);color:var(--muted);margin-top:5px">${sub}</div>
-   </div>`;
-
-// Three numbers side by side need about 620px between them, measured at the
-// 26px display face the values are set in — which #253 left as Poppins, so the
-// 620px still holds. That is a fact about this strip and not
-// about the window, and the two stopped agreeing once the shell grew a rail:
-// the rail folds at 720px but is still 249px wide above it, so from 721 to 1023
-// the column is narrower than the strip needs and every number orphaned its €
-// onto a second line. The strip asks its own container instead. The shell's
-// fold is left alone — it came from a measured touch target and belongs to
-// every screen, not to this one.
-const KPI_CSS = `<style>
-  .fr-kpis__box { container-type: inline-size; }
-  .fr-kpis { display: flex; gap: 34px; align-items: stretch; }
-  .fr-kpis__sep { border-left: 1px solid var(--border); }
-  @container (max-width: 620px) {
-    .fr-kpis { flex-direction: column; gap: 18px; }
-    .fr-kpis__sep { border-left: 0; border-top: 1px solid var(--border); }
-  }
-</style>`;
-
-const kpiStrip = () => card({ body: `
-  <div class="fr-kpis__box"><div class="fr-kpis">
-    ${kpi('Money in', '759,988 €', 'Jul 1 – Jun 30', 'pos')}
-    <div class="fr-kpis__sep"></div>
-    ${kpi('Money out', '3,048,559 €', 'Jul 1 – Jun 30')}
-    <div class="fr-kpis__sep"></div>
-    ${kpi('Net result', '−2,288,571 €', 'Jul 1 – Jun 30', 'neg')}
-  </div></div>` });
+// The cashflow figures are the kit's stat band. It folds from its own width, so
+// the rail beside the column needs no rule of this screen's.
+// why: docs/specification.md#stat-bands
+const kpiStrip = () => statBand({
+  id: 'fr-cashflow',
+  basis: 'Jul 1 – Jun 30',
+  stats: [
+    { label: 'Money in', value: '759,988 €' },
+    { label: 'Money out', value: '3,048,559 €' },
+    { label: 'Net result', value: '−2,288,571 €' },
+  ],
+});
 
 const PAYOUTS = [
   ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
@@ -81,7 +58,7 @@ const payoutsCard = () => card({ title: `<span class="ui-card__icon">${icon('car
 // financeShell() in _finance-nav.js, the same call the empty-state screens make.
 // The column, the rail and the trail are its answer; this story owns the screen.
 export const Default = {
-  render: () => KPI_CSS + financeShell({
+  render: () => financeShell({
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
@@ -98,30 +75,30 @@ export const Default = {
 // the numbers and the rows arrive from different queries and finish at
 // different times, so a single region would have to lie about one of them.
 //
-// The KPI skeleton keeps the strip's own layout — the container query in
-// KPI_CSS still governs it — so the three columns do not collapse into one
-// shape while loading and snap into another when the numbers land. That is the
-// whole job of a skeleton over a spinner: it reserves the shape that is coming.
+// The KPI skeleton sits in the band's own classes — the tiles layout, which is
+// the band's default — so it folds exactly as the figures will and the three
+// columns do not collapse into one shape while loading and snap into another
+// when the numbers land. It holds the caption's place above the row for the
+// same reason. That is the whole job of a skeleton over a spinner: it reserves
+// the shape that is coming.
 //
 // The period control stays live. It is the one thing a reader can usefully do
 // while waiting, and disabling every control on a loading screen is how a slow
 // query becomes a locked page.
 export const Loading = {
-  render: () => KPI_CSS + financeShell({
+  render: () => financeShell({
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
     sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
     body: `
       ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
-      ${card({ body: busyRegion({
+      <div class="ui-stats ui-stats--tiles">${busyRegion({
         label: 'Loading cashflow for the last year…',
-        body: `<div class="fr-kpis__box"><div class="fr-kpis">
-          ${['', '', ''].map(() => `<div style="flex:1;min-width:0">
-            ${skeleton({ lines: ['64%', '86%', '48%'] })}
-          </div>`).join('<div class="fr-kpis__sep"></div>')}
-        </div></div>`,
-      }) })}
+        body: `${skeleton({ lines: ['18%'], className: 'ui-stats__basis' })}<div class="ui-stats__list">${['', '', ''].map(() => `<div class="ui-stat ui-card ui-card--pad-sm">
+          ${skeleton({ lines: ['40%'] })}${skeleton({ lines: ['72%'], height: '36px' })}
+        </div>`).join('')}</div>`,
+      })}</div>
       ${card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts reconciled to bank transactions.',
         body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: 6, cols: 7 }) }) })}
     `,

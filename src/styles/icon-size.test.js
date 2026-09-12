@@ -43,8 +43,9 @@ const src = path.resolve(here, '..');
 // command palette's row and search glyphs, a width and a height each); 64 (#270:
 // `.ui-back svg`, the back link's arrow — a width and a height, sized and stroked
 // in one rule); 66 (#283: `.ui-dropdown__search-ic svg` sizes the search field's
-// glyph, width and height).
-const EXPECTED_SUBJECTS = 66;
+// glyph, width and height); 70 (#267: the stat band's change arrow and its trend
+// slot, two rules of two declarations each).
+const EXPECTED_SUBJECTS = 70;
 
 const SHEETS = kitSheetNames(src);
 

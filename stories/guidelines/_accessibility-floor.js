@@ -208,6 +208,12 @@ export const GATES = [
     blind: ['Colour for every glyph that carries no status — width is held next door, ratio is not.'],
   },
   {
+    file: 'stories/stat-basis.test.js',
+    does: 'Every change a stat band shows says what it is measured against, in text a reader can '
+      + 'reach: beside the change, or in the caption the change points at. Never a hover title.',
+    blind: ['Whether the comparison named is the right one. It checks that one is there and reachable.'],
+  },
+  {
     file: 'stories/glyph-stroke.test.js',
     does: 'Renders every story and measures the width each stroked glyph actually paints at, '
       + 'inheritance and the icons.js default resolved, against the stroke-width rule’s 1.5 CSS px line.',

@@ -29,7 +29,7 @@ if (!document.getElementById('ui-fonts')) {
 // "what components is this prototype page composed from?" visually.
 const UI_MAP = [
   ['.topbar', 'topbar'], ['.ui-footer', 'footer'], ['.ui-hero', 'hero'],
-  ['.ui-feature', 'feature'], ['.ui-card', 'card'], ['.ui-callout', 'callout'],
+  ['.ui-feature', 'feature'], ['.ui-stats', 'statBand'], ['.ui-card', 'card'], ['.ui-callout', 'callout'],
   ['.ui-btn', 'button'], ['.ui-badge', 'badge'], ['.ui-pill', 'pill'], ['.ui-dot', 'statusDot'],
   ['.ui-seg', 'segmented'], ['.ui-tabs', 'tabs'], ['.ui-nav', 'nav'], ['.ui-drawer', 'drawer'],
   ['.ui-confirm', 'confirm'],
@@ -96,8 +96,8 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Signal contrast', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
-          'Guidelines', ['Overview', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Labels and titles', 'Iconography', 'Layout and density', 'The accessibility floor', 'Pagination', 'Drawers', 'Motion', 'The command palette', 'Hover readouts', 'Going back'],
-          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Tooltip', 'Navigation', 'Back link', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
+          'Guidelines', ['Overview', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Labels and titles', 'Iconography', 'Layout and density', 'The accessibility floor', 'Pagination', 'Stat bands', 'Drawers', 'Motion', 'The command palette', 'Hover readouts', 'Going back'],
+          'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Tooltip', 'Navigation', 'Back link', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Stat band', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents', 'Account preset'],
         ],
       },
