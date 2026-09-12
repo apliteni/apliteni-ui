@@ -641,6 +641,151 @@ test('the fold arrives at once for a reader who asked for less motion', () => {
   );
 });
 
+// ---- A1e. the mark is the state ------------------------------------------
+//
+// The toggle draws one mark at both widths — a frame that holds still and a seam
+// that crosses it — so nothing about the control says which way to press and the
+// reader reads the state instead. That only works while the seam actually moves,
+// and a seam that does not is the same control drawn twice: no gate above would
+// notice, because the mark is one glyph in the one place the equality gates leave
+// out (it is meant to differ between the folds).
+//
+// The distance is held to the mark's own geometry rather than compared with a
+// number written here. src/components/shell.js draws the frame and the seam; the
+// seam is mirrored about the frame's centre when the rail is folded, so the
+// compartment it cuts off changes sides. A travel written by hand that is not
+// that mirror lands the seam somewhere the frame does not explain.
+
+const MARK = 'src/components/shell.js';
+
+/** The mark's frame and seam, read out of the component that draws them. */
+function markGeometry() {
+  const js = read(MARK);
+  const rect = /<rect x="(-?[\d.]+)" y="-?[\d.]+" width="([\d.]+)"/.exec(js);
+  assert.ok(rect, `${MARK} no longer draws the toggle's frame as a <rect> this gate can read`);
+  const seam = /<path class="ui-app__fold-seam" d="M([\d.]+) [\d.]+v[\d.]+"/.exec(js);
+  assert.ok(seam, `${MARK} no longer draws the toggle's seam as a vertical path this gate can read`);
+  const x = Number(rect[1]);
+  const width = Number(rect[2]);
+  return { x, width, centre: x + width / 2, seam: Number(seam[1]) };
+}
+
+/** The `translateX()` the folded rail puts on the seam, in the mark's own units. */
+function seamTravel() {
+  const css = decomment(read('src/styles/layout.css'));
+  for (const rule of leafRules(css)) {
+    if (!selectors(rule.head).some((one) => one.endsWith('.ui-app__fold-seam') && one.includes('.is-collapsed'))) continue;
+    const m = /transform\s*:\s*translateX\(\s*(-?[\d.]+)px\s*\)/.exec(rule.decls);
+    return m ? Number(m[1]) : null;
+  }
+  return null;
+}
+
+test('the toggle is the glyph column, at both widths, so the mark holds its place', () => {
+  const pad = pxOf('src/styles/nav.css', '.ui-nav__item', 'padding');
+  const glyph = pxOf('src/styles/nav.css', '.ui-nav__ic svg', 'width');
+  assert.ok(pad && glyph, `read pad=${pad} glyph=${glyph} — the rules the column is derived from have moved`);
+  const declared = /\.ui-app__fold\s*\{[^{}]*width\s*:\s*([^;}]+)/.exec(decomment(read('src/styles/layout.css')));
+  assert.match(
+    declared?.[1] ?? '', /var\(--ui-nav-strip\)/,
+    `.ui-app__fold is ${declared ? `\`${declared[1].trim()}\` wide` : 'given no width of its own'}. The `
+    + 'column is --ui-nav-strip, declared once in nav.css and read by the closed rail as well; a literal '
+    + 'here is a second copy of it that the arithmetic below cannot keep in step.',
+  );
+  const widths = [mount(PAIR(false)), mount(PAIR(true))].map((at) => at.css('.ui-app__fold', 'width'));
+  const [open, folded] = widths;
+  assert.equal(
+    open, folded,
+    `the control is ${open} on an open rail and ${folded} on a folded one, so the mark steps sideways `
+    + 'on the press — the one thing the travel promises not to do. One box, written once, at both widths.',
+  );
+  assert.equal(
+    Number.parseFloat(open), 2 * pad + glyph,
+    `the control is ${open} wide against a glyph column of ${2 * pad + glyph}px — a row's padding either `
+    + 'side of a glyph. A control wider than the column puts its mark off the line every glyph above it '
+    + 'stands on; a narrower one is a target the rail does not have room for. It is --ui-nav-strip, '
+    + 'which is that column and the width the closed rail is derived from.',
+  );
+});
+
+test('the seam moves when the rail folds, so the mark is the state and not a direction', () => {
+  const open = mount(PAIR(false));
+  const folded = mount(PAIR(true));
+  const at = (w) => w.of(w.q('.ui-app__fold .ui-app__fold-seam'), 'transform');
+  const [a, b] = [at(open), at(folded)];
+  assert.notEqual(
+    a, b,
+    `the seam resolves to \`${a}\` on an open rail and \`${b}\` on a folded one. The toggle draws one `
+    + 'mark at both widths, so a seam that holds still is the same control twice and the state is '
+    + 'readable only from the accessible name.',
+  );
+  assert.match(
+    b, /translateX/,
+    `the folded rail moves the seam with \`${b}\` rather than along the frame, which is the one axis a `
+    + 'seam dividing a panel can travel on',
+  );
+  assert.equal(
+    open.of(open.q('.ui-app__fold .ui-app__fold-seam'), 'transform'), 'none',
+    'the open rail puts a transform on the seam of its own, so the travel is measured from somewhere '
+    + 'other than where the mark is drawn',
+  );
+});
+
+test('the seam\'s travel is the frame\'s own mirror, not a number in the stylesheet', () => {
+  const { x, width, centre, seam } = markGeometry();
+  const travel = seamTravel();
+  assert.ok(
+    travel != null,
+    'the folded rail writes no translateX() on the seam, so nothing here is holding a distance — see '
+    + 'the test above, which is the one that notices a seam that stopped moving',
+  );
+  assert.ok(
+    seam > x && seam < x + width,
+    `the seam is drawn at ${seam}, outside the frame's ${x}..${x + width}, so it divides nothing`,
+  );
+  assert.equal(
+    travel, 2 * (centre - seam),
+    `the seam stands at ${seam} and travels ${travel}, which lands it at ${seam + travel} in a frame `
+    + `centred on ${centre}. Mirrored, it lands at ${2 * centre - seam}: the narrow compartment the seam `
+    + 'cuts off changes sides and the frame stays the same frame. Any other distance is a position the '
+    + `mark drawn in ${MARK} does not explain.`,
+  );
+});
+
+test('the seam arrives with the rail\'s own edge, and stops when the rail does', () => {
+  const travel = travelOf({ file: 'src/styles/layout.css', selector: '.ui-app__fold .ui-app__fold-seam' });
+  assert.ok(
+    travel,
+    'the seam declares no transition, so the mark reports the fold finished while the rail is still '
+    + 'closing. It is one `transition: transform` on .ui-app__fold .ui-app__fold-seam in layout.css.',
+  );
+  assert.match(
+    travel.value, /^transform\s/,
+    `the seam transitions \`${travel.value}\`, which is not the property that moves it`,
+  );
+  for (const [token, why] of [
+    ['--dur-med', 'the rail\'s width travels on --dur-med, and a seam on any other clock arrives '
+      + 'before or after the edge it is reporting'],
+    ['--ease', 'the CSS keyword `ease` is a different curve from --ease, and the two read alike in a '
+      + 'stylesheet'],
+  ]) {
+    assert.ok(
+      travel.value.includes(`var(${token})`),
+      `the seam is timed \`${travel.value}\` rather than with ${token} — ${why}`,
+    );
+  }
+  assert.ok(
+    !travel.important,
+    'the seam writes its travel !important, which outranks the reduced-motion net — the mark would '
+    + 'slide for a reader who asked for none while the rail it reports on arrives in one frame',
+  );
+  assert.ok(
+    !inNet(travel.rule),
+    'the seam\'s travel is inside a reduced-motion block, so it moves only for the reader who asked '
+    + 'it not to',
+  );
+});
+
 // ---- A1b. an icon-less row is not a blank target -------------------------
 //
 // sidebarNav() documents `icon` as optional at every level, and the folded rail

@@ -136,19 +136,38 @@
 /* The control that folds the rail: at the foot, under a rule of its own, so the
    head of the rail stays the product's and the foot is the rail talking about
    itself. That rule is the hairline and the 8px step the nav's own footer draws
-   above sign out, so the two are one family. The control wears a rail row's
-   skin, quieter, and its chevron turns to point the way the next press goes. */
+   above sign out, so the two are one family. The control wears a rail row's skin,
+   quieter, and nothing else: it is its mark, the way the reference's is. */
 .ui-app__fold-row {
   flex: none;
   width: var(--ui-nav-col);
   padding-top: var(--space-2);
   border-top: 1px solid var(--border);
 }
+/* One box on the glyph column, at both widths. --ui-nav-strip is the column — a
+   row's padding either side of a glyph, which is the width nav.css derives the
+   closed rail from — so the mark stands where every glyph above it stands and does
+   not step sideways when the rail folds. A box written per width would have to
+   arrive at the other one in a single frame, while the closing edge beside it is
+   still most of --dur-med away.
+   The label keeps its place in the markup, because the name IS the chip a folded
+   row gets below; `gap: 0` leaves the glyph column the whole of the content box,
+   so on the open rail the label is squeezed to nothing by its own `overflow:
+   hidden` and the control is its mark alone. */
+.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }
 .ui-app .ui-app__fold { color: var(--dim); }
 .ui-app .ui-app__fold:hover,
 .ui-app .ui-app__fold:focus-visible { color: var(--strong); }
-.ui-app__fold .ui-nav__ic svg { transition: transform var(--dur-fast) var(--ease); }
-.ui-app.is-collapsed .ui-app__fold .ui-nav__ic svg { transform: rotate(180deg); }
+/* The seam travels on the width's own clock, not the words' — the reference times
+   both from one class for the reason the arrival makes obvious: the bar and the
+   rail's edge have to land together, or the mark reports a fold that is still
+   happening. Reduced motion takes it with every other transition the kit writes,
+   which is why there is no `!important` here. The distance is the seam's own
+   geometry rather than a number: src/components/shell.js draws the frame 3..21 and
+   the seam at 9, and 6 is what mirrors it about the frame's centre, so the
+   compartment the seam cuts off changes sides with the state. */
+.ui-app__fold .ui-app__fold-seam { transition: transform var(--dur-med) var(--ease); }
+.ui-app.is-collapsed .ui-app__fold .ui-app__fold-seam { transform: translateX(6px); }
 
 /* -- The collapsed rail --------------------------------------------------- */
 /* The reader's fold is the narrow rail's fold, rule for rule: each rule here is
