@@ -1,135 +1,129 @@
-# A hover readout overlays the page and never reflows it: a tooltip, and the guideline
+# The way up from a record: a back link, the guideline, and the treatment that was chosen
 
-Closes #282.
+Closes #270.
 
 ## What this is about
 
-In the finance portal, hovering a KPI sparkline writes its readout into the card as a line of
-its own. The card grows by that line, and everything below it moves, every time the pointer lands
-on a point. The bar chart on the same screen overlays its readout and nothing moves. The report
-asks for the second behaviour to become the rule: "use onhover value in tooltip, do not move the
-all screen". The kit had no tooltip to point either surface at.
+The report is one sentence about the Finance portal: *"back button is ugly - offer variants"*.
+Today that control is a plain text link above the page title — `Back to invoices`, in the portal's
+own blue link colour, hand-written on each record page. The kit had nothing to point it at, so
+every page that needed one drew its own.
+
+Two things were wrong and only one of them is the look. A link painted in the accent sits above
+the title on every record page and competes with it and with the page's own action. And a control
+that walks the browser's history does nothing at all on a page opened from a bookmark, in a new
+tab or from a shared address, which is how a record in a portal of lists is usually reached.
 
 ## What changed
 
-**A component.** `tooltip()` in `src/components/tooltip.js`, with its own stylesheet
-`src/styles/tooltip.css`, in the kit's usual shape: an HTML-string factory, a `wireTooltip(root)`
-that binds the behaviour, and `showTooltip` / `hideTooltip` for a chart that does its own
-hit-testing.
+**A component.** `backLink({ href, label })` in `src/components/back.js`, with
+`src/styles/back.css`, in the kit's usual shape: an HTML-string factory and nothing to wire.
 
-- The readout is one element, rendered once inside its host and absolutely placed there in every
-  state. Opening it changes `opacity` and `visibility` and nothing else. The wiring fills and
-  places that element and never inserts one on hover.
-- It opens above its mark, flips below only when the room above is too small and the room below
-  is larger, and slides inward at an edge. Room is measured inside the viewport less its
-  scrollbars and inside every ancestor whose overflow clips.
-- It takes no pointer events, so it cannot steal the hover and flicker.
-- Its content is text only: a label, a value and one detail, written with `textContent`.
-- Focus on a mark shows it and describes the mark with `aria-describedby` while it shows. Escape
-  dismisses any readout the kit showed, through `wireTooltip` or `showTooltip`, and the
-  description goes with it. It stays off the mark it was dismissed from until another mark shows
-  or the pointer leaves the host; crossing the gap between marks does not end that, and
-  `showTooltip` keeps to it too, so a chart calling it on every pointer sample does not reopen it.
-- A readout rendered `open` is a picture of one. Its host carries `.ui-tip-host` and no
-  `[data-tip-host]`, so neither the wiring nor Escape touches it.
-- The wiring gives a host with no position of its own `position: relative`, so a
-  `[data-tip-host]` without `.ui-tip-host` still places its readout on the mark. An element
-  outside the document has no style to read, so a host wired before it is mounted gets this the
-  first time a pointer or focus reaches it.
-- Hosts nest. A mark and a readout belong to the nearest `[data-tip-host]` above them, so one
-  mark opens one readout, and an outer host gets a readout of its own.
-- It is themed entirely by tokens: a lighter raised surface in dark, white over a hairline in
-  light, and no accent of its own, so every accent re-themes the chart around it.
+- **It is a link to an address, never a step through the history.** Given no address it renders
+  nothing, and a `javascript:` address counts as none — including `java\tscript:`, because a
+  browser strips tabs and newlines out of a scheme before it reads it and so does the check.
+- **It names where it goes.** The arrow is `aria-hidden`, so the accessible name is "Back to
+  Invoices" while the visible text is `Invoices` — the destination as the sidebar spells it. A
+  label that already says "Back to Invoices" is read as the place after those words rather than
+  doubled. Given no name, or the word Back, it shows `Back` and nothing more.
+- **It stays quiet.** `--dim` ink, no box until the pointer is on it, and its colour rule is
+  (0,2,0) so a host stylesheet's `a:link` at (0,1,1) cannot repaint it. That is the complaint in
+  the issue, answered in the stylesheet rather than in a guideline nobody reads.
+- **It clears 24px.** The line of text is 17px tall, so `min-height: var(--space-6)` carries it to
+  WCAG 2.5.8's floor without a box.
 
-A mark is any element carrying `data-tip-value`, with `data-tip-label` and `data-tip-detail`
-beside it. A `[data-tip-anchor]` inside a mark moves the anchor from the mark's box to that
-element, which is how a sparkline's full-height slice opens on its dot.
+**A slot in the shell.** `appShell({ back })` draws the link where the breadcrumb trail would go
+and draws no trail: a page has one or the other, and the two name the same parent twice. A `back`
+that `backLink()` refuses leaves the trail standing. The sidebar row marked `active` stays lit and
+is marked `aria-current="true"` — the current section — rather than `"page"`, which announced the
+list as the page on screen; `sidebarNav({ activeIs: 'section' })` does the same outside the shell.
 
-**A guideline.** Guidelines / Hover readouts, four rules in the collection's usual shape — a
-live do/don't pair, a why, and the line of kit code that keeps the rule:
+**A guideline.** Guidelines / Going back: six rules for a page that goes back up — when a page
+gets one, what it names, why it is an address and not the history, where it sits, how it relates
+to the lit sidebar row, and why it stays quiet. Every rule cites kit code, and `refs.test.js`
+resolves each citation to a file, a line and a literal on that line.
 
-1. Show a hover value over the page, never in it. The pair is the finance portal's own KPI card,
-   readout overlaid against readout inserted, with the next card under each.
-2. Open the readout above the mark, and below it only where above is clipped.
-3. Name the point, give its value, and stop at one comparison.
-4. Never make hover the only way to a value. This one carries the open question below.
+**A specification section.** `docs/specification.md#the-back-link`.
 
-**The contract.** A new section, [The hover readout](docs/specification.md#the-hover-readout), and
-a catalogue row in `docs/library.md`.
+## The treatment, and how it was chosen
 
-**Storybook.** Components / Tooltip: Chart, a live page of three KPI sparklines over a bar chart
-with a card underneath that must not move, plus Playground and Placement rendered with the
-readout open so the a11y and contrast gates can read it. Those hosts are not wired, so a passing
-pointer leaves their readouts where they are.
+Four treatments were built and rendered side by side on the same placeholder record, in the kit's
+own shell, light and dark at 1440px and a phone at 390px:
+[docs/reviews/270-back-control.html](docs/reviews/270-back-control.html).
 
-## The layout proof
+| | What it is | Why not |
+|---|---|---|
+| **Quiet link** *(chosen)* | `‹ Invoices` in dim ink, no box, in the trail's slot | — |
+| Bordered button | a small secondary button in the same slot | reads as an action, and adds a second box beside the page's own |
+| Arrow beside the title | an icon-only arrow on the title's line | the destination is invisible, the kit's closed icon-only list would have to grow, and the title stops lining up with the cards |
+| Trail only | the shell's existing breadcrumbs | spends a line naming the app and the current page to offer one useful link |
 
-Measured in Chromium on the built Storybook, Components / Tooltip / Chart, before the pointer
-arrives and with it resting on a sparkline point and then on the first bar:
+**Artur chose the quiet link.** It is now stated as what the kit ships rather than what was
+recommended — in `src/components/back.js`, in the specification, in the changelog and on the
+Back link story. The other three are not built; the review page keeps them, each marked **Not
+chosen**, as the comparison the choice was made against.
 
-| | 1440 dark | 1440 light | 390 dark | 390 light |
-|---|---|---|---|---|
-| page height, all three states | 900 | 900 | 1174 | 1182 |
-| KPI card height, all three states | 236.70 | 238.23 | 225.03 | 226.56 |
-| bar-chart card height, all three states | 419.11 | 420.56 | 214.41 | 215.86 |
-| "Below the charts" top in the page, all three states | 735.81 | 738.80 | 1009.50 | 1015.55 |
+## Rebase
 
-The card's top is measured from the top of the page rather than the viewport, so scrolling the
-first bar into view at 390 before hovering it does not read as a move.
+Rebased onto `origin/main`, which had moved five releases under this branch: **#292** (labels and
+titles in sentence case, five type ranks, the card title as a heading — #268/#269), **#289**
+(a quieter drawer, drawer and motion guidelines), **#293** (the command palette), **#287** (the
+tooltip, released as 0.28.0) and **#285** (the flat card, 0.27.1).
+
+- **Version is now 0.29.0**, not 0.28.0: #287 took that number, and a new component is a minor.
+  The changelog entry for this branch sits above #287's.
+- **`src/styles/icon-size.test.js`: 60 → 64.** The branch was written against 58 subjects and
+  claimed 60 for `.ui-back svg`'s width and height; main had raised it to 62 for the command
+  palette's two glyphs. Re-measured on the merged tree rather than added up: 64.
+- **`src/styles/typeface-roles.test.js`: 42 → 49.** Main reached 48 through the card title, the
+  drawer section title, the palette's three, the key legend's `<kbd>` and the tooltip. `.ui-back`
+  is the 49th. Re-measured, not assumed — the earlier report predicted 43 before #287 landed.
+- **Storybook sidebar order:** both branches added pages. Guidelines now ends
+  `… Drawers, Motion, The command palette, Hover readouts, Going back`, and Components places
+  `Back link` after `Navigation`. The Guidelines index (`_overview.js`) carries the same order,
+  which a gate checks.
+- **`docs/specification.md` and `docs/library.md`:** both sides' sections kept. The spec index
+  lists The back link between The page shell and The drawer, matching the body.
+- **Two citations moved:** `sidebarNav()`'s signature shifted a line on main, and the note naming
+  the chosen treatment shifted `backLink()` by six. `refs.test.js` caught both.
+
+Nothing here was a design collision: main and this branch never changed the same rule differently.
 
 ## Held by
 
-`src/components/tooltip.test.js`, 33 tests:
+`src/components/back.test.js` and `src/styles/back.test.js` — 20 tests of their own, over the
+shared gates every component answers to (contrast, the focus ring, icon sizing, typeface roles,
+sentence case, the 24px target, axe on every story).
 
-- The stylesheet is read as text: the readout is out of flow in every state, the open state
-  changes only `opacity` and `visibility`, it takes no pointer, and both placements read one gap.
-- The page is watched with a `MutationObserver` while marks are hovered and left.
-- Placement is fed measured rects: above, flipped at the viewport, flipped by a clipping
-  ancestor, not flipped when below is no roomier, an author's below, the edge slide, the
-  scrollbar gutter, and the anchor.
-- Escape releases the mark's description, closes a readout `showTooltip` opened with no wiring,
-  and leaves a readout rendered open alone. The dismissal survives the gap between marks and
-  repeated `showTooltip` calls, and ends when the pointer leaves or `hideTooltip` runs.
-- A host without `.ui-tip-host` is positioned when wired, or once mounted if it was wired before,
-  and a host its own stylesheet positions keeps that. Nested hosts each answer only their own
-  marks, with their own readout.
+```
+root  npm test           1337 tests, 1335 passing, 1 skipped (as on main), 0 failing
+react npm test            300 tests, 300 passing
+      build-storybook     completed
+```
 
-`stories/tooltip-specimens.test.js` renders every story and wires it the way the preview does,
-then walks each readout rendered open with a pointer, focus and Escape. All eight stay open and
-unchanged, and a live readout on the same pages still opens under the pointer.
+The one skip is the release-workflow test that skips itself without `jq`, the same one `main`
+skips locally; CI stops rather than skipping it.
 
-Each of these four mutations was put on disk, confirmed in the diff, and turned the suite red
-before being reverted:
+## Proof
 
-- `position: relative` on the base readout
-- a margin in the open state
-- a node inserted on hover
-- a flip test that ignores the clip box
+Screenshots at 1440px and 390px, light and dark, of every screen this touches — the record page
+in the shell, the Back link gallery, Guidelines / Going back, the Guidelines index, and the review
+page with the decision settled. Paths are in the worker's report.
 
-Each fix from the second review round was then reverted on its own, and each revert turned that
-fix's own test red. Nesting was reverted twice, once for the marks and once for the readout.
-Reading a detached host's `''` as `static` was tried as well, and fails the test's second case.
-
-## Open question for Artur
-
-The wiring adds no tab stop to a mark, and treats touch like any other pointer, so on a touch
-screen a tap shows the readout only while the finger is down. Should a chart's marks take focus —
-a year of daily points would be 365 tab stops — and should a tap pin the readout, or a finger
-scrub along the line? Until that is settled, rule 4 asks pages not to make hover the only way to
-a value.
+- [x] A person meets it in something running: the four treatments were rendered side by side and
+      the choice was made on those screenshots.
+- [ ] Exercised against the finance portal. Not done and not claimed: the consumer installs a
+      published version, so this is provable only after a release. What would settle it is
+      `finance.apli.tech` dropping its hand-written `Back to invoices` links for `appShell({ back })`.
 
 ## Not in this pull request
 
-- No change to the finance portal. This gives it a component to move its sparklines onto.
-- No chart component. The charts in the stories are specimens in `stories/_chart.js`; the kit
-  ships the readout, and a consumer brings the chart.
+- **The Guidelines index reads `The kit does not meet 0 of them yet — —`** when no rule is unmet.
+  That is `_overview.js` on `main`, unchanged by this branch, and it became visible when the last
+  unmet rule was closed. It wants its own issue.
+- Capital-cased labels were #268, settled on another branch and merged as part of #292.
 
 ## Release
 
-0.27.0 → 0.28.0, a minor bump for a new component, with its entry in `site/changelog.mjs`.
-`Shipped surface vs version` is red without it. #270 and #283 are open with 0.28.0 as well, so
-whichever of the three merges second takes the next number.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-https://claude.ai/code/session_01YFkfwxhWt81kGRUbrLnsQF
+Version `0.29.0`, changelog entry written. `main` is protected and publishing is gated: merging
+tags and releases but does not publish, and the `npm-publish` environment needs a human.
