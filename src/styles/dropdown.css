@@ -57,8 +57,8 @@
   top: calc(100% + var(--ui-dropdown-gap));
   left: 0;
   min-width: 240px;
-  /* The floating step, not the sunken one: --surface-2 is fields and tracks, and a
-     panel held open OVER a card cannot be painted the colour of an inset. #295 */
+  /* The floating step, not the sunken one — a panel held open over a card cannot be
+     painted the colour of an inset. why: docs/specification.md#elevation */
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -157,12 +157,10 @@
   background: var(--surface);
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-/* The accent counter keeps the badge's own flat surface and changes only the ink —
-   the shape src/styles/nav.css:128 `.ui-nav__item.is-active .ui-nav__badge.is-accent`
-   already holds. It stacked a 14% accent mix on the row until #295 made the panel the
-   floating step of the ladder: a wash over a raised surface sits closer to the ink than
-   one over the page, and the accent read on it fell under AA. So the accent wash is
-   painted on a base surface, never a raised one. */
+/* The accent counter keeps the badge's flat surface and changes only the ink — the shape
+   src/styles/nav.css:128 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
+   The accent wash goes on a base surface, never a raised one, and #295 made this panel a
+   raised one. why: docs/specification.md#elevation */
 .ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface); }
 
 /* Disabled + danger rows */

@@ -3,10 +3,8 @@
  * Rows: .ui-card__row  /  headers: .ui-card__title / .ui-card__sub
  * ========================================================================== */
 
-/* Flat since #284 and edged in both themes since #295: the card is a step on the
-   elevation ladder — --surface, above --bg — and the line is what makes the step
-   legible, since a step of lightness on its own is about 1.1.
-   why: docs/specification.md#elevation */
+/* Flat since #284 and edged in both themes since #295: the surface is the step, the
+   line is what makes it legible. why: docs/specification.md#elevation */
 .ui-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -27,9 +25,8 @@
 .ui-card--pad-sm { padding: var(--space-5); }
 .ui-card--pad-lg { padding: var(--space-8) var(--space-10); }
 
-/* An accent-tinted card, e.g. a highlighted plan / success surface. The accent edge
-   is the card's OWN hairline re-coloured, not a second ring inside it: since #295 the
-   card is edged in both themes, and an inset ring over that line drew two. */
+/* An accent-tinted card, e.g. a highlighted plan / success surface. The accent edge is
+   the card's own hairline re-coloured: an inset ring over it would draw two. #295 */
 .ui-card--accent {
   background: color-mix(in srgb, var(--accent) 9%, var(--surface));
   border-color: color-mix(in srgb, var(--accent) 22%, transparent);
@@ -41,11 +38,10 @@
 /* Interactive card (link / button semantics) */
 .ui-card--interactive {
   cursor: pointer;
-  /* Written as a <button>, the card would take the browser's frame, centred text
-     and `font: 400 13.3333px Arial` — a shorthand, so `font: inherit` and not the
-     family longhand. .ui-card states the background and, since #295, the border, so
-     the frame is already cancelled and a `border: 0` here would only delete the
-     hairline — and take .ui-card--accent's edge with it. #251 */
+  /* Written as a <button>, the card would take the browser's frame, centred text and
+     `font: 400 13.3333px Arial` — a shorthand, so `font: inherit` and not the family
+     longhand. .ui-card states the background and, since #295, the border, so a
+     `border: 0` here would only delete the hairline. #251 */
   text-align: left;
   font: inherit;
   transition: transform var(--dur-fast) var(--ease);

@@ -110,9 +110,8 @@
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
 .ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; /* motion: ambient — the bar spends the toast's dismiss timer, which the caller sets */ }
 
-/* style: soft — tinted surface. The tint is thin and the shadow used to be the edge,
-   so a toast that no longer casts takes the status-tinted hairline the outline style
-   already carries, at half its weight. #295 */
+/* style: soft — tinted surface. The shadow used to be its edge, so it takes the
+   status-tinted hairline the outline style carries, at half the weight. #295 */
 .ui-toast--soft {
   background: var(--toast-glow);
   border: 1px solid color-mix(in srgb, var(--toast-accent) 22%, transparent);

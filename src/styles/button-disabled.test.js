@@ -136,13 +136,9 @@ test('the ink a box-less disabled button is read in is pinned on every ground', 
     'light --surface-2': 4.89,
     'light --surface-3': 5.07,
   }, 'a surface or --disabled-ink moved — rewrite the numbers in button.css with these');
-  /* Empty since #295, and that is the finding rather than a gate gone quiet. The three
-     grounds that could not carry --disabled-ink without a box were all in reach of the
-     ink, not of the box: the two dark ones closed when the elevation ladder re-picked
-     --muted against the top of it, and the light one closed when the whole light ramp
-     moved and took the floor with it. The bare ink is no longer rescuing a failure — it
-     is the margin above one, and the rule below still holds every box-less disabled
-     rule to it. */
+  /* Empty since #295, and that is the finding rather than a gate gone quiet: the three
+     grounds that could not carry --disabled-ink without a box were in reach of the ink,
+     not of the box, and re-picking --muted against the elevation ladder closed them. */
   assert.deepEqual(
     Object.keys(plain).filter((where) => plain[where] < DISABLED_FLOOR),
     [],

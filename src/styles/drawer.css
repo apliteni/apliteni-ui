@@ -11,8 +11,8 @@
  * ========================================================================== */
 
 .ui-drawer {
-  /* The floating step; the edge the panel meets the page on is the hairline each
-     --drawer--<edge> rule below draws. No cast shadow. #295 */
+  /* The floating step; the edge is the hairline each --drawer--<edge> rule below draws.
+     why: docs/specification.md#elevation */
   --drawer-surface: var(--bg-elevated);
   --drawer-scrim: var(--scrim);
   --drawer-w: var(--panel-md);   /* left|right panels: width  */

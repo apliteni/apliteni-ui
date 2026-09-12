@@ -70,8 +70,7 @@
 .ui-fbcomposer {
   position: fixed; z-index: 71; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(14px);
   width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); border-radius: 18px;
-  /* Floats over the page, so it takes the hairline every other floating surface has
-     instead of the shadow that used to be its only edge. #295 */
+  /* The shadow was its only edge until #295; now it takes the hairline. */
   border: 1px solid var(--border); opacity: 0; pointer-events: none;
   transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease); overflow: hidden;
 }

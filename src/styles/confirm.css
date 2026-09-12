@@ -1,18 +1,10 @@
 /* Confirm — the kit's confirmation dialog: a centred panel over a scrim, for the
- * question a destructive action has to ask. Fully token-driven, and it shares
- * its scrim and focus-trap behaviour with the drawer (see overlay.js).
- *
- * `visibility` is SWITCHED rather than transitioned: transitioned, it is still
- * `hidden` in the frame the class lands, so openConfirm()'s focus() would have
- * nothing to focus. The root owns the switch; panel and scrim inherit it.
- *
- * Local tokens so the panel and scrim re-theme cleanly:
- *   --confirm-surface  panel background     --confirm-scrim  backdrop colour
- *
+ * question a destructive action has to ask. Shares its scrim and focus trap with
+ * the drawer (see overlay.js). Local tokens: --confirm-surface, --confirm-scrim.
  * why: docs/specification.md#motion */
 
 .ui-confirm {
-  /* The floating step and the kit hairline, no cast shadow — see dropdown.css. #295 */
+  /* The floating step; nothing casts. why: docs/specification.md#elevation */
   --confirm-surface: var(--bg-elevated);
   --confirm-scrim: var(--scrim);
   --confirm-w: var(--panel-md);
@@ -25,10 +17,11 @@
   z-index: calc(var(--z-overlay) + 2);
   pointer-events: none; /* container never blocks; scrim/panel opt back in */
 
-  /* Only the hide is transitioned, so the panel is still on screen while it
-     fades out; the show is instant, because focus moves in the same frame.
-     `linear` and not var(--ease): visibility is discrete, easing a step buys
-     nothing, and a curve that leaves [0, 1] would flip it mid-fade. */
+  /* SWITCHED, not transitioned: transitioned, the panel is still `hidden` in the
+     frame the class lands and openConfirm()'s focus() has nothing to focus. Only
+     the hide is timed, so the panel is on screen while it fades out. `linear` and
+     not var(--ease): visibility is discrete, and a curve leaving [0, 1] flips it
+     mid-fade. The root owns the switch; panel and scrim inherit it. */
   visibility: hidden;
   transition: visibility var(--dur-med) linear;
 }

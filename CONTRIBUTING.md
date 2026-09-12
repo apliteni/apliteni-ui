@@ -182,7 +182,7 @@ off the end of a 124-line file. Nothing turned red for five commits.
 So write the line, then write what is **on** it:
 
 ```
-src/styles/callout.css:141 `.ui-toast--solid .ui-toast__action`
+src/styles/callout.css:140 `.ui-toast--solid .ui-toast__action`
 src/styles/nav.css:38-40 `font-size: 14.5px;`
 ```
 

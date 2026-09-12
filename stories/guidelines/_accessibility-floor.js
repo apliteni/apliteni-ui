@@ -62,15 +62,9 @@ export const RING_FLOOR = 4.22;
 // its own, and the whole kit collapsed into a band 5.56–6.11 wide. That band is
 // narrow because a dedicated ink and surface composite predictably: the ink is
 // read on the surface beside it, and neither is dragged toward the ground.
-//
-// It moved DOWN once, at #295, and a ratchet moving down is a decision somebody
-// writes rather than a number somebody edits. The band was a property of a white
-// light app: --disabled-surface is --surface-2, and light's sunken step sat one
-// notch under #ffffff. #295 took the page off white and every step went down with
-// it, so the light disabled pair — --muted on the sunken step — lands here. It
-// still clears WCAG AA for the label with room, and DISABLED_MIN, the bar this
-// rule is actually held to, is 3. What the new number costs is margin, and the
-// margin is what the ratchet exists to report.
+// It moved DOWN at #295, which is a decision written rather than a number edited:
+// the band was a property of a white light app, and the light page came off white.
+// why: docs/specification.md#elevation
 export const DISABLED_FLOOR = 4.89;
 
 /**

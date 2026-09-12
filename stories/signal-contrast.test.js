@@ -583,13 +583,10 @@ for (const theme of ['dark', 'light']) {
  * The circle's fill is not free to move — --toast-accent also paints the 3px left marker and the
  * outline border — so the INK is what moves, to the pole that clears this accent. */
 const GRAPHIC_AA = 3;      // WCAG 1.4.11, for a graphical object
-/* A ratchet on where the twenty pairs landed, not a bar — every one of them is a
- * graphic held to GRAPHIC_AA above, and the closest is still 1.4 times that. It
- * moved down once, at #295: a callout's glyph is painted straight on the callout's
- * own translucent wash, the wash composites over the page, and the light page
- * stopped being white — so all four callout glyphs came down together by about the
- * step the page did. Deepening four chip inks to hold a ratchet none of them is
- * failing would have been the tail wagging the dog. */
+/* A ratchet on where the twenty pairs landed, not a bar; the closest is still well
+ * over GRAPHIC_AA. It came down at #295 with the four callout glyphs, which are
+ * painted on the callout's own wash over a light page that is no longer white.
+ * why: docs/specification.md#elevation */
 const GLYPH_FLOOR = 3.85;
 /* SOLID_STROKE — the 1.5 CSS px line — and VIEWBOX are imported rather than
  * declared: #217 extended the same line to every stroked glyph in the kit, and

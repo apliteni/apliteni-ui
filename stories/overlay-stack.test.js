@@ -258,7 +258,7 @@ test('a drawer rendered open is on the stack once it is wired', () => {
 
 // Adoption happens at wire time, and wiring has no history to order by. What
 // the page does have is paint order: a confirm declares
-// src/styles/confirm.css:25 `z-index: calc(var(--z-overlay) + 2)` and a drawer
+// src/styles/confirm.css:17 `z-index: calc(var(--z-overlay) + 2)` and a drawer
 // src/styles/drawer.css:23 `z-index: var(--z-overlay)`, so the confirm is drawn
 // over the drawer whichever root the markup puts first — and the overlay the
 // reader can see is the one Escape has to answer. Document position is left to

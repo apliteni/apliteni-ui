@@ -65,8 +65,7 @@
 }
 
 /* -- Micro-interactions ----------------------------------------------------
- * .m-lift is the travel only. It cast --shadow-md until #295 took every cast
- * shadow out of the kit; a hover that wants a surface change makes one. */
+ * .m-lift is the travel only; it cast --shadow-md until #295. */
 .m-lift {
   transition: transform var(--dur-fast) var(--ease);
 }

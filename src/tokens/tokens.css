@@ -133,13 +133,9 @@
   --pink: #e97ca5;
   --amber: #ffcf6a;
 
-  /* The elevation ladder, bottom to top: the page is the darkest thing on screen and
-     every step above it is lighter, so a surface says how high it is with its own
-     colour. Nothing casts (see --shadow-* below); a floating surface keeps the kit's
-     hairline as well, because lightness alone is a step of 1.05 and a line is not.
-     --surface-3 is the top step and the readout rides it. The ladder is capped by ink,
-     not by taste: --muted has to clear AA on every step, which is what fixes --surface-3
-     here. why: docs/specification.md#elevation */
+  /* The elevation ladder, bottom to top. Nothing casts; a surface says how high it is
+     with its step and with the hairline around it, and --muted caps how far the ladder
+     can go. why: docs/specification.md#elevation */
   --bg: #0e0d14;
   --surface-2: #161520;     /* SUNKEN — fields, tracks, disabled, code */
   --surface: #211e2d;       /* the card */
@@ -155,12 +151,9 @@
   --text: #e9e7f0;
   --strong: #ffffff;
   --dim: #c6c2d6;
-  /* Picked against the TOP of the ladder rather than against the page: #948fa8 was chosen
-     when the highest surface a secondary line could land on was #2a2739, and the ladder
-     above raises that to #2d293c. The same violet-grey, lifted fourteen steps on every
-     channel so the hue is unchanged, and it clears AA with room to spare on both floating
-     steps rather than by a hundredth. Measured on every step in the PR for #295.
-     why: docs/specification.md#colour-and-contrast */
+  /* Picked against the TOP of the ladder above, not against the page: #948fa8 cleared the
+     two floating steps by hundredths. Same violet-grey, fourteen steps up every channel.
+     why: docs/specification.md#elevation */
   --muted: #a29db6;
 
   /* The paint of a control that is off. NOT an opacity: `opacity` is a group property,
@@ -221,11 +214,10 @@
   --signal-solid-info: var(--cyan);
   --signal-solid-neutral: var(--muted);
 
-  /* DEPRECATED, and `none` in both themes since #295. The kit casts no shadow anywhere:
-     a surface says how high it is with its step on the ladder above and with its
-     hairline. The five names stay published so a consumer reading one does not break —
-     they resolve to nothing rather than disappearing — and a consumer who still wants a
-     cast shadow sets them. Nothing in src/ reads them. */
+  /* DEPRECATED and `none` in both themes since #295: the kit casts no shadow anywhere.
+     Published still, so a consumer reading one gets nothing rather than an unresolved
+     var(), and a consumer who wants a cast shadow sets them. Nothing in src/ reads them.
+     why: docs/specification.md#elevation */
   --shadow-sm: none;
   --shadow-md: none;
   --shadow-lg: none;
@@ -265,19 +257,14 @@
   --cyan: #0c8fa8;
   --green: #1c8a2c;
   /* Deeper than the dark pink for the same reason dark's is lighter: the wash under it
-     is the page, so the ink has to come down to meet it. #131 picked #b63361 against a
-     white page; #295 took the page to --bg below, and every pair that reads --pink on
-     its own tint over the page fell with it — the danger nav row, the danger badge, the
-     hovered danger button. Down one more step, measured against the page the kit now
-     paints. See issues #131 and #295. */
+     is the page, so the ink comes down to meet it. Down a second step at #295, which
+     took the page off white. See issues #131 and #295. */
   --pink: #a92d59;
   --amber: #b5730a;
 
-  /* The same ladder, run the only way light can run it. Nothing is brighter than the
-     white a card already was, so light moves DOWN instead of up: the page drops a step,
-     the card drops a step, and white is kept for the top — a floating panel is the only
-     pure white on screen. --surface-3 stays a distinct grey rather than a rung, because
-     above white there is no rung left. why: docs/specification.md#elevation */
+  /* The same ladder, run the only way light can run it: nothing is brighter than the
+     white a card already was, so light moves DOWN and keeps white for the top step.
+     why: docs/specification.md#elevation */
   --bg: #eef0f5;
   --surface-2: #e3e6ee;     /* SUNKEN — fields, tracks, disabled, code */
   --surface: #f8f9fc;       /* the card */
@@ -317,11 +304,9 @@
   --glow-pink: rgba(169, 45, 89, 0.1);   /* an exact tint of --pink above */
 
   /* Solid chip pairs for the light app. Each ink is deepened past its signal hue so 11px
-     chip text clears WCAG AA on its own pale fill — and, since #131 gave a toast's action
-     the chip ink, on the soft toast's translucent wash as well. That wash is what moved at
-     #295: it used to composite over white and now composites over the page a step below it,
-     which took success, warn and info under the bar. Each is down one further step; danger
-     was already deep enough and did not move. */
+     chip text clears WCAG AA on its own pale fill, and on the soft toast's wash, which
+     #131 gave the same ink. Three came down again at #295 with the page; danger did not
+     need to. */
   --chip-success-ink: #1c7034;
   --chip-success-fill: #dff3e4;
   --chip-warn-ink: #825900;
