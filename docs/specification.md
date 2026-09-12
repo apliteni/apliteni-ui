@@ -632,41 +632,74 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 ## The page
 
 `appShell()` draws a page's chrome and what goes inside it is the caller's. These are the limits
-that inside keeps, whatever the page is about:
+that inside keeps, whatever the page is about. Eight of them are what a designer decides per
+screen and are drawn on the Guidelines / The page story, four of the eight with a Do and a Don't
+beside them; `shell` and `navs` are decisions the kit has already taken for the caller, and are
+stated only here.
 
-- **An application page is `appShell()`'s.** Two page kinds are not the shell's: an auth card,
-  which has no rail to sit beside, and a marketing page, which is not a screen of an application.
-  The head, the lede and the card count are about what the shell draws and stop there; the `h1`,
-  the outline, the landmarks, the at-rest rule and the density hold on all three, and the primary
-  count holds on every page but a marketing one.
-- **One `<h1>`, and it is the page title.** Every other heading on the page sits under it.
-- **The outline goes down one rank at a time and stops at `h3`** — the page, a card or section of
-  it, a group inside one. An overlay keeps its own outline and is not counted: a drawer's `h2`
-  and the feedback widget's `h4` are inside a dialog. On the page itself the kit draws no `h4` —
-  the footer's column titles are `h2`, the rank chosen in #275 because it cannot skip whatever
-  heading precedes it.
-- **The head reads in one order** — the way back, the title, the lede, the body — and nothing but
-  the way back goes above the title. A filter row, a period switch or a search box is the first
-  thing *inside* the body.
-- **A page has a lede, and it is two sentences at most.** It does not spend its opening sentence
-  repeating the title.
-- **One primary action at most.** A page carries no more than one `.ui-btn--primary`; everything
-  else is secondary, tertiary or a link. An overlay carries its own and does not count against the
-  page, and a marketing page is outside the rule.
-- **Six stacked cards at most, and no card inside a card.** Past six, the page wants sections,
-  tabs, or a second page.
-- **Every navigation landmark is named, and no two on one page share a name.** The shell draws the
-  rail and the trail and names both; a page adds no second copy of either.
-- **A page arrives at rest.** No drawer, confirm, toast, hover readout or command palette is
-  *open* until the reader asks for one. Mounting one closed is how they ship.
-- **One density per page.** `.ui-table--dense` is all of a page's tables or none of them, and no
-  screen writes cell padding of its own — in a style attribute, or in a rule of its own naming
-  `.ui-table`'s cells.
+- **`shell` — an application page is `appShell()`'s.** Two page kinds are not the shell's: an auth
+  card, which has no rail to sit beside, and a marketing page, which is not a screen of an
+  application. The head, the lede and the card count are about what the shell draws and stop
+  there; the `h1`, the outline, the landmarks, the at-rest rule and the density hold on all three,
+  and the primary count holds on every page but a marketing one.
+- **`head` — the head reads in one order** — the way back, the title, the lede, the body — and
+  nothing but the way back goes above the title. A filter row, a period switch, a search box or a
+  stat band is the first thing *inside* the body.
+- **`one-h1` — one `<h1>`, and it is the page title.** Every other heading on the page sits under
+  it.
+- **`outline` — the outline goes down one rank at a time and stops at `h3`** — the page, a card or
+  section of it, a group inside one. An overlay keeps its own outline and is not counted: a
+  drawer's `h2` and the feedback widget's `h4` are inside a dialog. On the page itself the kit
+  draws no `h4` — the footer's column titles are `h2`, the rank chosen in #275 because it cannot
+  skip whatever heading precedes it.
+- **`one-primary` — one primary action at most.** A page carries no more than one
+  `.ui-btn--primary`; everything else is secondary, tertiary or a link. An overlay carries its own
+  and does not count against the page, and a marketing page is outside the rule.
+- **`stacking` — six stacked cards at most, and no card inside a card.** Past six, the page wants
+  sections, tabs, or a second page. Counted by ancestry, so a wrapper around twelve cards is
+  twelve cards. A stat band is one thing on the page whatever its layout draws — the tiles layout
+  paints a card per figure, and four figures are still one band — and the empty and denied states
+  are each drawn in a card of their own.
+- **`navs` — every navigation landmark is named, and no two on one page share a name.** The shell
+  draws the rail and the trail and names both; a page adds no second copy of either.
+- **`at-rest` — a page arrives at rest.** No drawer, confirm, toast, hover readout or command
+  palette is *open* until the reader asks for one. Mounting one closed is how they ship. A page
+  whose whole purpose is to ask — an OAuth consent, a confirmation a link lands on — asks in the
+  page itself and keeps this rule rather than being excused from it.
+- **`density` — one density per page.** `.ui-table--dense` is all of a page's tables or none of
+  them, and no screen writes cell padding of its own — in a style attribute, or in a rule of its
+  own naming `.ui-table`'s cells. A table inside a drawer is beside the page rather than on it and
+  takes the drawer's rhythm.
+- **`lede` — a page has a lede, and it is two sentences at most.** It does not spend its opening
+  sentence repeating the title.
 
-Held by `stories/guidelines/the-page.test.js`, which discovers its subjects by rendering every
-story under `stories/apps/` — the kit's own screens — and holds each of them to every rule above.
-The gate keys its checks by the rule ids on the Guidelines / The page story, so a rule with no
-check, or a check for a rule nobody wrote, fails the build.
+### Which line of the kit holds each of them
+
+The guideline story is prose and pictures; this is where each rule meets the code. The lines are
+named by file and symbol rather than by line number, because a line number in a document nothing
+resolves is a citation that rots in silence — the story's own citations carry the numbers, and
+`stories/guidelines/refs.test.js` resolves every one of them.
+
+| Rule | Where the kit holds it |
+|---|---|
+| `shell` | `appShell()` in `src/components/shell.js`, and `financeShell()` in `stories/apps/_finance-nav.js` as the caller's side of it |
+| `head` | the slot order `appShell()` writes in `src/components/shell.js` — the way back, `<h1>`, `.ui-app__sub`, `.ui-app__body` |
+| `one-h1` | `card()` and its kin refuse an `h1` (`src/components/index.js`); `success()` takes its rank from its layout (`src/components/success.js`) |
+| `outline` | the two title sizes the scale has: `rank: page-title` in `src/styles/layout.css` and `rank: card-title` in `src/styles/card.css` |
+| `one-primary` | `.ui-btn--primary` in `src/styles/button.css` |
+| `stacking` | `.ui-card` in `src/styles/card.css` |
+| `navs` | `sidebarNav()` and `breadcrumbs()` in `src/components/nav.js`, both named by `appShell()` |
+| `at-rest` | `drawer()`, `confirm()`, `commandPalette()` and `tooltip()` each render closed unless asked — `src/components/drawer.js`, `confirm.js`, `command-palette.js`, `tooltip.js` |
+| `density` | `.ui-table--dense` and the cell padding it overrides, in `src/styles/table.css` |
+| `lede` | `.ui-app__sub`, written by `appShell()` in `src/components/shell.js` |
+
+Every one of the ten is walked by `stories/guidelines/the-page.test.js`, which discovers its
+subjects by rendering every story under `stories/apps/` — the kit's own screens — and holds each of
+them to every rule above. The gate keys its checks by the rule ids, taking the eight from the
+Guidelines / The page story and the two above it from that story's `GATED_ELSEWHERE`, so a rule
+with no check, or a check for a rule nobody wrote, fails the build. One rule has a second gate:
+`success()` renders on no screen under `stories/apps/`, so the rank its layout earns is held by
+`src/components/success.test.js` instead.
 
 What this section does not settle is *why* six and not eight, or `h3` and not `h2`. Four of these
 limits are choices rather than derivations — the card count, the primary-action count, the outline

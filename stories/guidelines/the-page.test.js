@@ -1,8 +1,14 @@
 /* Rule: every screen the kit draws keeps the page rules — the head in one
  * order, one h1, one primary action, one density, nothing overlaying it at
  * load. The subjects are the screens under stories/apps/, discovered rather
- * than listed. Each rule on the page owns one check here, keyed by its `id`,
- * and the first test holds the two lists in step.
+ * than listed. Every rule owns one check here, keyed by its `id`, and the
+ * first test holds the two lists in step.
+ *
+ * Eight of the ten are drawn on Guidelines / The page, which is written for
+ * whoever is designing the screen. The other two — `shell` and `navs` — are
+ * decisions the kit has already taken, so they are stated in the contract and
+ * listed in `GATED_ELSEWHERE` rather than shown to a designer who cannot break
+ * them. Both lists key a check here, which is why the test below reads both.
  *
  * The outline and the landmark names are accessibility questions, so this is
  * one of the accessibility gates the floor page lists — and what it cannot
@@ -18,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 
-import { RULES, LIMITS } from './_the-page.js';
+import { RULES, GATED_ELSEWHERE, LIMITS } from './_the-page.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -379,16 +385,26 @@ test('the specification states the same limits this gate measures', () => {
     + 'the sentence in docs/specification.md#the-page did not:\n  ' + missing.join('\n  '));
 });
 
-test('every rule on the page owns a check here, and every check owns a rule', () => {
+// A rule reaches this gate two ways — drawn on the page, or stated only in the
+// contract — and the union is what the gate has to walk. Either list drifting
+// from CHECKS is the same failure: a rule with no check is a wish, and a check
+// with no rule is a rule the reader is held to and never told.
+const GATED = [
+  ...RULES.map((r) => ({ id: r.id, says: r.imperative })),
+  ...GATED_ELSEWHERE.map((r) => ({ id: r.id, says: r.states })),
+];
+
+test('every page rule owns a check here, and every check owns a rule', () => {
   assert.deepEqual(
-    Object.keys(CHECKS).sort(), RULES.map((r) => r.id).sort(),
-    'the page and this gate have drifted. A rule with no check is a wish, and a check with no '
-    + 'rule is a rule the reader is held to and never shown.',
+    Object.keys(CHECKS).sort(), GATED.map((r) => r.id).sort(),
+    'the page, the contract and this gate have drifted. A rule drawn on '
+    + 'stories/guidelines/_the-page.js or listed in its GATED_ELSEWHERE needs a check here, and a '
+    + 'check needs one of the two to have stated it.',
   );
 });
 
-for (const rule of RULES) {
-  test(`${rule.id}: ${rule.imperative}`, () => {
+for (const rule of GATED) {
+  test(`${rule.id}: ${rule.says}`, () => {
     const problems = screens.flatMap((s) => CHECKS[rule.id](s));
     assert.deepEqual(problems, [], `${problems.length} screen(s) break this rule:\n  `
       + `${problems.join('\n  ')}`);

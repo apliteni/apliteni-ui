@@ -118,161 +118,104 @@ export const densityDont = () => stage(`<div class="tp-rows">
   ${card({ title: 'Invoices', body: miniTable(false) })}
 </div>`);
 
+
+// The rules a designer decides, in the order a page is read: the head, its
+// title, the outline under it, the action it leads with, how much stacks, what
+// is over it at load, how tight the rows run, and the line under the title.
+//
+// Each is one sentence, one picture where a picture says it better, and one
+// line of why. What the kit does about each of them — the line that holds it
+// and the gate that walks it — is docs/specification.md#the-page, so the page
+// stays readable by whoever is drawing the screen rather than building it.
 export const RULES = [
   {
-    id: 'shell',
-    imperative: 'Compose an application page with appShell(). A screen that builds its own chrome is where a portal starts disagreeing with itself.',
-    why: 'The shell owns the rail, the trail, the column and the head, so every screen that takes it '
-      + 'agrees about them without anybody checking. The portal that rebuilt the chrome per screen '
-      + 'is the one that ended up with a trail saying Home on a page whose sidebar said Company, and '
-      + 'four local rules correcting a column the kit already sets.',
-    except: 'Two page kinds are not the shell\'s: an auth card, which has no rail to sit beside, and '
-      + 'a marketing page, which is not a screen of an application. The head, the lede and the card '
-      + 'count are about what the shell draws and stop there; the h1, the outline, the landmarks, '
-      + 'the density and the rest hold on all three — and the primary count holds on every page but '
-      + 'a marketing one.',
-    kit: [
-      { ref: 'src/components/shell.js:140', pattern: 'export function appShell' },
-      { ref: 'stories/apps/_finance-nav.js:24', pattern: 'export const financeShell' },
-    ],
-  },
-  {
     id: 'head',
-    imperative: 'Keep the page head in one order — the way back, the title, the lede, the body — and put nothing above the title but the way back.',
+    imperative: 'Start the page with the way back, then the title, then the line under it. Nothing else goes above the title.',
     why: 'A filter row or a toolbar above the title makes the title the second thing on the screen, '
-      + 'and a reader who arrives from a link then has to look for what page they are on. The shell '
-      + 'writes this order and the caller fills the slots; a body that opens with its own heading bar '
-      + 'is drawing a second head under the first.',
-    except: 'A stat band, a period switch, a filter or a search box belongs at the top of the body, '
-      + 'under the lede — first thing inside, not above the title. What may go in the band is on '
-      + 'Stat bands.',
-    kit: [
-      { ref: 'src/components/shell.js:182', pattern: 'crumbs.length ? breadcrumbs' },
-      { ref: 'stories/guidelines/_going-back.js:86', pattern: 'Draw a trail or a back link, never both' },
-      { ref: 'stories/guidelines/_stat-bands.js:24', pattern: 'Put key figures in a stat band' },
-    ],
+      + 'and a reader arriving from a link has to hunt for what page they are on. Filters, a period '
+      + 'switch, a search box and a band of figures all belong under the title, at the top of the page.',
+    kit: [{ ref: 'src/components/shell.js:182', pattern: 'crumbs.length ? breadcrumbs' }],
   },
   {
     id: 'one-h1',
-    imperative: 'One page, one h1, and it is the page title.',
-    why: 'A second h1 splits one screen into two documents for anyone moving by heading, and none at '
-      + 'all leaves the screen with no name to move to. The kit had the second fault: the consent '
-      + 'screen said "Access granted" in a div, so the page a reader landed on after granting an '
-      + 'agent access had no heading in it anywhere.',
-    kit: [
-      { ref: 'src/components/index.js:63', pattern: 'const h = [2, 3, 4, 5, 6]' },
-      { ref: 'stories/guidelines/_labels-and-titles.js:65', pattern: 'one level under the page title' },
-    ],
+    imperative: 'Give the page one title, and let it be the only one.',
+    why: 'A second title splits one screen into two documents for anyone moving by heading, and no '
+      + 'title at all leaves them with nowhere to land. The kit had the second fault: the screen a '
+      + 'reader lands on after granting an agent access said "Access granted" in text that was not a '
+      + 'heading, so nothing on the page said which page it was.',
+    kit: [{ ref: 'stories/guidelines/_labels-and-titles.js:65', pattern: 'one level under the page title' }],
   },
   {
     id: 'outline',
-    imperative: `Take the outline down one level at a time, and stop at h${LIMITS.outline}.`,
-    why: 'h1 is the page, h2 a card or a section of it, h3 a group inside one. A fourth rank is a '
-      + 'page that has become two, and a skipped rank is a level a reader hears missing. The scale '
-      + 'has two title ranks, not three: an h3 inside a card takes the card title\'s look through '
-      + 'card({ level: 3 }), so a rank past h3 adds a level to the outline with no size of its own '
-      + 'to show it.',
+    imperative: `Step the headings down one level at a time, and stop at level ${LIMITS.outline}: the page, a section, a group inside it.`,
+    why: 'A skipped level reads to anyone moving by heading as content they have missed, and a '
+      + 'fourth level is a page that has become two. There are two title sizes on the page, not '
+      + 'three, so a fourth level would add a step the reader cannot see.',
     doCaption: 'Page, section, group — down one at a time. Written out: these are labels, not headings.',
-    dontCaption: 'Two pages in one, then a jump from h1 to h3, then a rank nothing on the page reads at.',
+    dontCaption: 'Two pages in one, then a jump from the first level to the third, then a level nothing on the page reads at.',
     doHtml: outlineDo,
     dontHtml: outlineDont,
-    kit: [
-      { ref: 'src/styles/layout.css:136', pattern: 'rank: page-title' },
-      { ref: 'src/styles/card.css:64', pattern: 'rank: card-title' },
-    ],
+    kit: [{ ref: 'src/styles/layout.css:136', pattern: 'rank: page-title' }],
   },
   {
     id: 'one-primary',
-    imperative: 'Lead with one primary action at most. Everything else on the page is secondary, tertiary, or a link.',
-    why: 'Three filled buttons rank nothing: the eye has to read all three to find the one the page '
-      + 'is for. Of the twelve design systems read for this page, Carbon is the only one that writes '
-      + 'the number down — "each page should have only one primary button" — and it exempts the same '
-      + 'places this rule does, because a control that is not on the page cannot compete with one '
-      + 'that is.',
-    except: 'An overlay carries its own primary — a confirm, a drawer footer, a dialog — and it does '
-      + 'not count against the page. Neither does a marketing page, which repeats its call to action '
-      + 'down the page on purpose; Apps / Landing Page is the one screen here in that position.',
+    imperative: 'Lead with one filled button. Everything else on the page is quieter than it.',
+    why: 'Three filled buttons rank nothing: the eye reads all three to find the one the page is '
+      + 'for. A drawer or a dialog carries its own and does not compete, because it is over the '
+      + 'page rather than on it.',
     doCaption: 'One filled button, and the other two ranked under it.',
     dontCaption: 'Three filled buttons. Nothing here says which one the page is for.',
     doHtml: primaryDo,
     dontHtml: primaryDont,
-    kit: [
-      { ref: 'src/styles/button.css:43', pattern: '.ui-btn--primary' },
-      { ref: 'stories/guidelines/_destructive-actions.js:89', pattern: 'Name what each button does' },
-    ],
+    kit: [{ ref: 'src/styles/button.css:43', pattern: '.ui-btn--primary' }],
   },
   {
     id: 'stacking',
-    imperative: `Stack at most ${LIMITS.cards} cards, and never put a card inside a card.`,
-    why: 'A card groups what belongs together, so a page of twelve has grouped nothing — it is a list '
-      + 'of lists, and the reader scrolls past eleven to reach the one they came for. Past six the '
-      + 'page wants sections, tabs, or a second page. A card inside a card draws two borders around '
-      + 'one thing and says the inner one is a smaller kind of group, which the kit has no rank for.',
-    except: 'A card is the frame the empty and denied states are drawn in, and those screens hold '
-      + 'one. A stat band is one thing on the page whatever its layout draws — the tiles layout paints a '
-      + 'card per figure, and four figures are still one band.',
+    imperative: `Stack ${LIMITS.cards} cards at most, and never put a card inside a card.`,
+    why: 'A card groups what belongs together, so a page of twelve has grouped nothing — the reader '
+      + `scrolls past eleven to reach the one they came for. Past ${LIMITS.cards} the page wants `
+      + 'sections, tabs, or a second page.',
     doCaption: `One block a card: ${LIMITS.cards} of them, at the limit and still one page.`,
     dontCaption: 'Twelve, drawn at the same scale as the six beside it.',
     doHtml: stackDo,
     dontHtml: stackDont,
-    kit: [
-      { ref: 'src/styles/card.css:7', pattern: '.ui-card {' },
-      { ref: 'stories/guidelines/_drawer.js:54', pattern: 'Never put a card inside one' },
-    ],
-  },
-  {
-    id: 'navs',
-    imperative: 'Name every navigation landmark on the page, and never draw a second copy of one the shell already gives you.',
-    why: 'A reader moving by landmark hears "navigation" once per region, so two unnamed ones are two '
-      + 'identical doors. The shell draws the rail and the trail and names both, so a page that adds '
-      + 'its own section menu beside the rail has put a third door next to them.',
-    kit: [
-      { ref: 'src/components/nav.js:167', pattern: 'ui-nav--crumbs' },
-      { ref: 'stories/guidelines/_command-palette.js:213', pattern: 'hand focus back' },
-    ],
+    kit: [{ ref: 'src/styles/card.css:7', pattern: '.ui-card {' }],
   },
   {
     id: 'at-rest',
-    imperative: 'Open a page at rest. Nothing overlays it until the reader asks.',
-    why: 'A drawer, a confirm, a toast or a hover readout drawn at load is the page talking over the '
-      + 'reader before they have read the title — and each of them takes the keyboard with it. What '
-      + 'each may do once it is asked for is on Drawers, Hover readouts and The command palette; this '
-      + 'rule is only about what is open when the page arrives. Mounting one closed is how they are '
-      + 'meant to ship — the markup is on the page and nothing is over it.',
-    except: 'A page that exists to ask — an OAuth consent, a confirmation a link lands on — asks in '
-      + 'the page itself. It is the question rather than an overlay over one, so it keeps this rule '
-      + 'rather than being excused from it.',
-    kit: [
-      { ref: 'stories/guidelines/_drawer.js:42', pattern: 'without leaving its list' },
-      { ref: 'stories/guidelines/_hover-readouts.js:81', pattern: 'over the page, never in it' },
-    ],
+    imperative: 'Let the page arrive at rest. Nothing covers it until the reader asks.',
+    why: 'A drawer, a dialog, a toast or a hover readout drawn at load talks over the reader before '
+      + 'they have read the title, and each of them takes the keyboard with it. A page whose whole '
+      + 'job is to ask — a consent screen, a confirmation a link lands on — asks in the page itself.',
+    kit: [{ ref: 'src/components/drawer.js:62', pattern: "(open || specimen) && 'is-open'" }],
   },
   {
     id: 'density',
-    imperative: 'One density per page: the spacing scale sets the rhythm, and a dense table is all of a page\'s tables or none of them.',
-    why: 'Two tables at two densities on one screen read as two products. Density is a property of '
-      + 'the data — a many-column ledger earns .ui-table--dense — so the page takes what its widest '
-      + 'table needs and gives it to the rest. Layout and density is where the rhythm itself comes '
-      + 'from; this rule is only that the page does not change its mind halfway down.',
-    except: 'A table inside a drawer is beside the page, not on it, and takes the drawer\'s rhythm.',
-    doCaption: 'Both ledgers dense. One rhythm down the page.',
-    dontCaption: 'Dense above, roomy below. The same four columns, at two row heights.',
+    imperative: 'Pick one row height for the page: every table on it runs tight, or none of them does.',
+    why: 'Two tables at two row heights on one screen read as two products. Tightness is a property '
+      + 'of the data — a ledger of many columns earns it — so the page takes what its widest table '
+      + 'needs and gives it to the rest.',
+    doCaption: 'Both ledgers tight. One rhythm down the page.',
+    dontCaption: 'Tight above, roomy below. The same four columns, at two row heights.',
     doHtml: densityDo,
     dontHtml: densityDont,
-    kit: [
-      { ref: 'src/styles/table.css:58', pattern: 'padding: var(--space-2) var(--space-3)' },
-      { ref: 'stories/guidelines/_layout-and-density.js:126', pattern: 'There is no kit-wide density mode' },
-    ],
+    kit: [{ ref: 'src/styles/table.css:58', pattern: 'padding: var(--space-2) var(--space-3)' }],
   },
   {
     id: 'lede',
     imperative: `Say what the page is for in ${LIMITS.lede} sentences at most, and never spend one of them on the title.`,
-    why: '"Payouts — this is the payouts page" tells a reader what they already read. The lede is for '
-      + 'what the title cannot say: what is counted, how far back, where the numbers come from. Three '
-      + 'sentences is a paragraph, and a paragraph sits between the reader and what they came for.',
-    kit: [
-      { ref: 'src/components/shell.js:184', pattern: 'ui-app__sub' },
-      { ref: 'stories/guidelines/_microcopy.js:67', pattern: 'a filter gets a nudge' },
-    ],
+    why: '"Payouts — this is the payouts page" tells a reader what they have just read. The line is '
+      + 'for what the title cannot say: what is counted, how far back, where the numbers come from.',
+    kit: [{ ref: 'src/components/shell.js:184', pattern: 'ui-app__sub' }],
   },
+];
+
+// Two limits the same gate walks that this page does not draw. They are not
+// decisions anybody takes per screen — the kit has already taken them, and a
+// designer looking at a mock cannot break either one — so they are stated in
+// the contract, docs/specification.md#the-page, and the ids stay here because
+// stories/guidelines/the-page.test.js keys one check to each.
+export const GATED_ELSEWHERE = [
+  { id: 'shell', states: 'An application page is the shell’s, and it draws one main region.' },
+  { id: 'navs', states: 'Every navigation landmark is named, and no two on a page share a name.' },
 ];
