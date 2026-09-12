@@ -695,9 +695,9 @@ resolves is a citation that rots in silence — the story's own citations carry 
 
 Every one of the ten is walked by `stories/guidelines/the-page.test.js`, which discovers its
 subjects by rendering every story under `stories/apps/` — the kit's own screens — and holds each of
-them to every rule above. The gate keys its checks by the rule ids, taking the eight from the
-Guidelines / The page story and the two above it from that story's `GATED_ELSEWHERE`, so a rule
-with no check, or a check for a rule nobody wrote, fails the build. One rule has a second gate:
+them to every rule above. The gate keys its checks by the rule ids, reading the eight drawn rules
+off the Guidelines / The page story and `shell` and `navs` off that story's `GATED_ELSEWHERE`, so
+a rule with no check, or a check for a rule nobody wrote, fails the build. One rule has a second gate:
 `success()` renders on no screen under `stories/apps/`, so the rank its layout earns is held by
 `src/components/success.test.js` instead.
 
