@@ -1713,7 +1713,18 @@ the target requirement remains 24px under WCAG 2.5.8. Spacing belongs only on ta
 adjacency, as pagers also follow cards and lists. It replaces `.rx-pager`'s `margin-top: 16px`
 with `--space-4`, under [Spacing and rhythm](docs/specification.md#spacing-and-rhythm).
 
-A host's `a:link` at (0,1,1) outranks `.ui-btn--ghost` at (0,1,0), repainting enabled links
-while disabled ends keep `--disabled-ink-bare`. The pager's anchor rules address the same
-conflict as `.ui-nav .ui-nav__item` at (0,2,0). Storybook has no `a:link`, so its Pages as links
-story does not expose that host interaction. See [Pagination](docs/specification.md#pagination).
+A step given an `href` is an anchor, so a host stylesheet's `a:link` enters the same contest
+as the kit's own class:
+
+| Selector | Specificity | Written by |
+| --- | --- | --- |
+| `a:link` | (0,1,1) | the host page |
+| `.ui-btn--ghost` | (0,1,0) | the kit |
+| `a.ui-pager__step`, `a.ui-pager__page` | (0,1,1) | the kit, to answer it |
+| `.ui-nav .ui-nav__item` | (0,2,0) | the kit, the same answer in nav.css |
+
+The host wins the first pair, so enabled steps take its link colour while the disabled ends
+keep `--disabled-ink-bare` — one strip reading as two controls. The pager's anchor rules
+take the row back. Storybook ships no `a:link`, so its Pages as links story cannot expose
+that host interaction, which is why the rule is stated rather than discovered.
+See [Pagination](docs/specification.md#pagination).
