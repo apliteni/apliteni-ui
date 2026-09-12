@@ -292,6 +292,19 @@ nothing below is a mutation that missed its mechanism.
 | the caller's boolean is overridden by the cookie | `shell-rail.test.js` | **2 red** |
 | `collapsible` falls back to opt-in | `shell.test.js` | **2 red** |
 
+Four gates were added after an independent review, each with the mutation that kills it. The first
+three close a hole the review found; the fourth is the floor it found missing.
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **both `transition: width` lines deleted — the fold snaps** | `shell-states.test.js` | **2 red** (before: 0 red across eight gates, 259 tests) |
+| the fold's duration written as the literal `0.25s` | `shell-states.test.js` | **1 red** |
+| the nav's travel written `!important`, outranking the reduced-motion net | `shell-states.test.js` | **1 red** |
+| `reduced-motion.css`'s clamp stripped of its `!important` | `shell-states.test.js` | **1 red** |
+| a folded sub-row made `display: none` | `accessibility-floor.test.js` | **1 red** (before: 0 red — the check could not fail) |
+| the phone strip's `min-height` deleted | `accessibility-floor.test.js`, `shell-states.test.js` | **2 red** |
+| the phone strip's floor spread to the reader's fold | `shell-states.test.js` | **2 red** |
+
 Two rules are asserted both ways rather than mutated, because the mutation is the assertion's own
 negation: a fold writes no `title` and the chip's text is the row's own label
 (`shell-rail.test.js`), and `collapsible: false` draws no toggle and folds nothing, checked against
@@ -377,10 +390,11 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
       only be proven after a release.
 
-**Counts on this box.** `npm test`: 1437 tests, 1436 pass, 0 fail, 1 skipped — the skip is the
+**Counts on this box.** `npm test`: 1441 tests, 1440 pass, 0 fail, 1 skipped — the skip is the
 opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an environment variable on
 `main` too. `npm run build`: clean. React: 322 tests in 16 files, all passing. The contrast walk
-cleared its own wall-clock ceiling on this run.
+cleared its own wall-clock ceiling on this run. (1437 before the review fixes; the four new tests
+are the fold's travel, the net that stops it, and the phone strip's floor read in two places.)
 
 ## What a reviewer should push on
 
