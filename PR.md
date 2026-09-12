@@ -331,9 +331,9 @@ which is the gate's other rule and caught my first draft loading IBM Plex Sans a
 
 `stories/contrast.test.js` → *"the walk has not run away with the clock"* is a 120s wall-clock
 ceiling over the contrast walk, and this box goes over it whenever anything else is running:
-**206.7s on `7ffbde4`**, **141.6s** in round 5, and **150.3s** in round 6, each in a run that
-shared sixteen cores with something else. Run alone it passes — **122.0s** minutes later on the
-same box, in a run whose whole file took 122.0s end to end. Nothing else about
+**206.7s on `7ffbde4`**, **141.6s** in round 5, and **123.4s** in round 6, each in a run that
+shared sixteen cores with something else. Run alone it passes, its whole file taking 122.0s end to
+end on the same box minutes earlier. Nothing else about
 the walk changed — it measures the same elements plus the new page's specimens, and every one of
 them passes.
 
@@ -342,13 +342,13 @@ them passes.
 ```
                        before (7ffbde4)                 after (round 6, on bb5fd04)
 root npm test          1397 tests, 1394 pass            1422 tests, 1420 pass
-                       1 fail (the clock, 206.7s)       1 fail (the clock, 150.3s)
+                       1 fail (the clock, 206.7s)       1 fail (the clock, 123.4s)
                        2 skipped                        1 skipped
 ```
 
 Both runs' single failure is the same wall-clock ceiling over the contrast walk, described above,
-and both boxes were contended — the round-6 run shared sixteen cores with a Storybook dev server
-of mine and with another worktree's suite. Re-run alone on the same box minutes later,
+and both boxes were contended — the round-6 run shared sixteen cores with another worktree's
+suite, at a load average of 14. It missed by 3%. Run alone on the same box minutes earlier,
 `stories/contrast.test.js` is green: 23 tests, 22 pass, 0 fail, the file taking 122.0s end to end
 and the walk inside it clearing its own ceiling. Nothing else in the suite fails in either run.
 
