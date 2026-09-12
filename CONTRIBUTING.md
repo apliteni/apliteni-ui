@@ -1599,8 +1599,8 @@ repairs held at zero failures. Counts are exact, as in `stories/contrast.test.js
 cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-of-what-it-does-not-reach).
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
-src/styles/nav.css:29 `.ui-nav__item {`. The recorded direction audit found one logical
-property, symmetric `margin-inline: auto` at layout.css:125, against 25 physical left/right
+src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
+property, the symmetric src/styles/layout.css:197 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.
