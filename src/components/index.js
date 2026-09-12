@@ -2,9 +2,9 @@
 // viz/ server-render idiom so the portal can adopt them with no framework.
 import { icon } from '../assets/icons.js';
 import { illo } from '../assets/illustrations.js';
-
+const HTML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 const cx = (...a) => a.filter(Boolean).join(' ');
-export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => HTML_ENTITIES[c]);
 
 // ---- Button --------------------------------------------------------------
 // `iconSvg` is a raw leading-icon SVG string (trusted markup, not escaped) for
