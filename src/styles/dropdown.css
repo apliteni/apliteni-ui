@@ -234,7 +234,7 @@
 .ui-dropdown__list { max-height: 300px; overflow-y: auto; }
 /* A row is `display: flex`, which outranks the UA's [hidden], so a row the
    query hides is put away here. */
-.ui-dropdown__list [hidden] { display: none; }
+.ui-dropdown__list [hidden] { display: none; } /* motion: still — a row the query no longer matches is gone on the next keystroke */
 
 /* The row Enter would pick. Focus stays in the field, which carries the ring,
    so this row takes the hover fill and a bar rather than a second ring. */
