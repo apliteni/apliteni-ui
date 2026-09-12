@@ -1,38 +1,16 @@
 /* Elevation variants for #295 — a review prototype, NOT kit source. Nothing in
- * src/ imports this file; it is loaded only by variants.html, to draw the
- * screenshots on docs/reviews/295-elevation.html.
+ * src/ imports this file; variants.html loads it to draw the screenshots.
  *
- * One block per variant, keyed by `data-elev` on <html>. Each block IS the
- * proposal: the tokens it re-points, and the component surfaces it moves. The
- * review page states the same thing in prose — if the two disagree, this file
- * is what the screenshots show.
- *
- *   today      the kit as shipped (declares nothing)
- *   hairline   every --shadow-* -> none, and the border does the work
- *   lift       every --shadow-* -> none, and LIGHTNESS does the work
- *   lift-line  lift, plus the kit's hairline kept on every floating surface
- *   frost      lift, and overlays go translucent over a blurred backdrop
- *   white-card lift-line in dark; in light the card stays white and the PAGE
- *              drops instead — the other way light can run Artur's rule
+ * why: docs/reviews/295-elevation.html — what each variant is, which tokens it
+ * moves, and the tradeoff. why the industry does it this way:
+ * docs/reviews/295-elevation-research.md. Keyed by `data-elev` on <html>:
+ * today, hairline, lift, lift-line, frost, white-card.
  */
 
-/* ---------------------------------------------------------------------------
- * 1. What every --shadow-* becomes. All five variants answer the same: nothing
- * casts. The full list of what stops casting, read off src/ rather than
- * guessed — `grep -rn "var(--shadow" src/ react/src/`:
- *
- *   --shadow-sm    switch knob, topbar theme pill, soft toast
- *   --shadow-md    success panel, outline toast, TOOLTIP (#282), .m-lift:hover
- *   --shadow-lg    dropdown panel, account menu, workspace menu, confirm,
- *                  drawer, command palette, auth card, feedback composer,
- *                  solid toast, and the React modal
- *   --shadow-seg   the active segmented pill
- *   --shadow-card  published, unread by the kit since #284
- *
- * --shadow-ink, --sheen, --ring and --scrim survive untouched. None of them is
- * a cast shadow: they are the feedback pill's glow, the specular edge, the
- * focus ring and the overlay backdrop.
- * ------------------------------------------------------------------------- */
+/* 1. Every variant answers the shadow question the same way: nothing casts.
+ * What stops casting, and what survives (--shadow-ink, --sheen, --ring,
+ * --scrim, none of them a cast shadow), is listed on the review page. The list
+ * was read off `grep -rn "var(--shadow" src/ react/src/`. */
 :root[data-elev="hairline"],
 :root[data-elev="lift"],
 :root[data-elev="lift-line"],
@@ -45,13 +23,8 @@
   --shadow-card: none;
 }
 
-/* ---------------------------------------------------------------------------
- * 2. hairline — nothing else changes except the weight of the line. A panel
- * that no longer casts cannot also be delineated by the quietest border in the
- * kit, so every floating surface takes --border-strong. This is Geist's answer
- * and the only one Stripe's public styling API can even express: a background
- * token and a keyline, with no shadow property at all.
- * ------------------------------------------------------------------------- */
+/* 2. hairline — only the weight of the line changes. A panel that no longer
+ * casts cannot also be edged by the quietest border in the kit. */
 :root[data-elev="hairline"] .ui-dropdown__panel,
 :root[data-elev="hairline"] .amenu,
 :root[data-elev="hairline"] .vsw__menu,
@@ -61,39 +34,20 @@
 :root[data-elev="hairline"] .ui-tip,
 :root[data-elev="hairline"] .rx-modal,
 :root[data-elev="hairline"] .ui-toast--outline { border-color: var(--border-strong); }
-/* Light paints card and page the same white, so a flat card needs its line too. */
+/* Light paints card and page the same white, so a flat card needs a line. */
 :root[data-elev="hairline"] .ui-card { border: 1px solid var(--border); }
-/* The soft and solid toasts carry no border at all today — the shadow was the
-   whole edge. Without one they need a line to stop dissolving into the page. */
+/* The soft and solid toasts carry no border today: the shadow was the edge. */
 :root[data-elev="hairline"] .ui-toast--soft,
 :root[data-elev="hairline"] .ui-toast--solid { border: 1px solid var(--border-strong); }
 
-/* ---------------------------------------------------------------------------
- * 3. The ladder — Artur's rule. The page goes a step DARKER, the card a step
- * BRIGHTER, and a floating panel brighter still. Elevation is lightness.
+/* 3. The ladder — Artur's rule. The page goes a step darker, the card a step
+ * brighter, a floating panel brighter still.
  *
- * Dark's ceiling is set by ink, not by taste: --muted (#948fa8) has to clear
- * WCAG AA 4.5 on every surface that carries it. Measured on this ramp:
- *
- *   #2a2639  4.71   the dropdown panel's description — the top of the ladder
- *   #2d293c  4.52   the tooltip's label — the last step that still clears
- *   #2f2b40  4.38   FAILS. The first draft of this file put --surface-3 here.
- *
- * So the ladder has about one step of headroom left in dark, and it is --muted
- * that spends it, not the surfaces. If this rule ships, --muted is re-picked
- * with it — see the review page.
- *
- * Light cannot run the rule in the same direction, because nothing is brighter
- * than the white the card already is. It runs DOWNWARDS instead: white is kept
- * for the top of the ladder — the floating panel — and the page and the card
- * both come down to make room under it.
- *
- * The obvious alternative was tried first and drawn: keep the card pure white
- * and let --bg-elevated stay white too. It renders a menu opened over a card as
- * white on white with no shadow and no border — the panel disappears. So in
- * light the card comes off white by one step. That is the real price of this
- * rule, and it is the thing to look at on the light screenshots.
- * ------------------------------------------------------------------------- */
+ * Dark's ceiling is ink, not taste: --muted has to clear AA 4.5 on every
+ * surface the ladder raises, and #2d293c below is the last step that does. The
+ * measured ramp, and the draft that failed it, are on the review page. Light
+ * runs the rule downwards instead; which surface moves is its own question
+ * there, drawn both ways (lift-line against white-card). */
 :root[data-elev="lift"],
 :root[data-elev="lift-line"],
 :root[data-elev="white-card"],
@@ -118,31 +72,19 @@
   --bg-elevated: #ffffff;   /* unchanged, and now it is the only white on screen */
   --surface-3: #e7eaf1;     /* was #eceef3 — the tooltip; see below */
 }
-/* The tooltip is the one place the ladder inverts in light, and on purpose. In
- * dark it rides --surface-3 at the TOP of the ladder. In light there is nothing
- * above the white a panel already is, and a readout laid over a chart has to
- * stay legible rather than lifted, so light keeps it a grey — a step deeper
- * than today's, tracking the page down. Measured: --muted clears AA on it at
- * 5.07, and --text at 13.85.
- *
- * Which takes a rule, not just a token. The kit's light theme re-points the
- * readout at --surface (tooltip.css:50), because in a white-on-white light
- * theme the card step WAS the only step there is. The ladder gives light real
- * steps, so the readout goes back to the top one — and without this line `lift`
- * paints it #f8f9fc on a #f8f9fc card with the border off, which renders the
- * readout as floating text and no panel at all. Drawn before it was fixed. */
+/* In light the kit re-points the readout at --surface (src/styles/tooltip.css),
+ * which the ladder makes the card step — so `lift` painted it on its own colour
+ * with the border off and the readout lost its panel. Kept as
+ * docs/evidence/elevation/found-light-tip-unwired-1440.png. It goes back to the
+ * top step here. */
 :root[data-theme="light"][data-elev="lift"] .ui-tip,
 :root[data-theme="light"][data-elev="lift-line"] .ui-tip,
 :root[data-theme="light"][data-elev="frost"] .ui-tip { --ui-tip-bg: var(--surface-3); }
 
-/* The one component change the ladder needs, and the reason it is not optional.
- * Six floating surfaces paint --surface-2 today, which the ladder re-points to
- * the SUNKEN step: the same token cannot be both a field's inset and a menu's
- * lift. They move to --bg-elevated, the token named for the job and read today
- * by three things only. Two more (.rx-modal, .ui-auth__card) paint --surface,
- * the CARD step, and a panel that floats over a card cannot be the same colour
- * as it. .ui-tip stays where it is in dark — --surface-3 is already the top
- * step — and needs one line in light, below. */
+/* The ladder re-points --surface-2 at the SUNKEN step, so the six floating
+ * surfaces that paint it today have to move: the same token cannot be both a
+ * field's inset and a menu's lift. Confirm, the palette and the drawer take it
+ * on the hook each publishes, never on the full-viewport container. */
 :root[data-elev="lift"] .ui-dropdown__panel,
 :root[data-elev="lift-line"] .ui-dropdown__panel,
 :root[data-elev="white-card"] .ui-dropdown__panel,
@@ -179,8 +121,7 @@
 :root[data-elev="white-card"] .ui-auth__card,
 :root[data-elev="frost"] .ui-auth__card { background: var(--bg-elevated); }
 
-/* lift alone: no line anywhere. Lightness is the whole argument, so the
- * hairline is removed rather than left to hedge it. */
+/* lift alone: lightness is the whole argument, so no line hedges it. */
 :root[data-elev="lift"] .ui-dropdown__panel,
 :root[data-elev="lift"] .amenu,
 :root[data-elev="lift"] .vsw__menu,
@@ -190,22 +131,15 @@
 :root[data-elev="lift"] .rx-modal { border-color: transparent; }
 :root[data-elev="lift"] .ui-card { border: 0; }
 
-/* lift-line: the ladder AND the line, which is what Atlassian, Primer, Geist
- * and Radix all ship. The card takes a hairline in BOTH themes — today only
- * light has one, because only light needed one. */
+/* lift-line: the ladder AND the line. The card takes a hairline in BOTH
+ * themes, where today only light has one. */
 :root[data-elev="lift-line"] .ui-card { border: 1px solid var(--border); }
 :root[data-elev="white-card"] .ui-card { border: 1px solid var(--border); }
 
-/* ---------------------------------------------------------------------------
- * 4. frost — the ladder for the page and the card, and a translucent overlay
- * over a blurred backdrop for anything that floats. Radix Themes ships this as
- * its DEFAULT panel background; Raycast and Arc are built on the platform
- * material it imitates.
- *
- * Only genuinely floating surfaces take it. A card is not floating, and a
- * tooltip that blurs the chart it is describing is worse than one that does
- * not, so both stay opaque.
- * ------------------------------------------------------------------------- */
+/* 4. frost — the ladder for the page and the card, a translucent veil over a
+ * blurred backdrop for anything that genuinely floats. A card does not float,
+ * and a readout that blurs the chart it describes is worse than one that does
+ * not, so both stay opaque. */
 :root[data-elev="frost"] {
   --elev-blur: blur(20px) saturate(150%);
   --elev-veil: color-mix(in srgb, var(--bg-elevated) 76%, transparent);
@@ -230,21 +164,10 @@
 }
 :root[data-elev="frost"] .ui-card { border: 1px solid var(--border); }
 
-/* ---------------------------------------------------------------------------
- * 5. white-card — the second light treatment, drawn so the light question has
- * two frames rather than one. Dark is lift-line exactly, and shares its
- * selectors above; only light differs.
- *
- * lift-line's light takes the card off white (#f8f9fc) so a white panel has
- * somewhere to be. white-card refuses that: the card stays #ffffff, and the
- * PAGE drops further to open the gap instead. The consequence is not optional —
- * the card and every floating panel are then the same white, so the hairline is
- * the only thing between them, and light can never drop it. That is the trade,
- * and the dropdown panel held open over the card is where to look at it.
- *
- * --surface-3 keeps today's #eceef3: in light the readout rides --surface
- * (tooltip.css:50), which here is still white, and its hairline still holds.
- * ------------------------------------------------------------------------- */
+/* 5. white-card — light's other answer. Dark is lift-line exactly and shares
+ * its selectors above; light keeps the card white and drops the PAGE two steps
+ * instead. The card and every floating panel are then the same white, so light
+ * can never drop its hairline — that is the trade the review page asks about. */
 :root[data-theme="light"][data-elev="white-card"] {
   --bg: #e9ebf2;            /* was #ffffff — the page drops two steps, not one */
   --surface-2: #e3e6ee;     /* was #f5f6f9 — the SUNKEN step */
