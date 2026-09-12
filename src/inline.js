@@ -29,6 +29,7 @@ export const topbarCss = read('styles/topbar.css');
 export const styles = {
   base: baseCss,
   reducedMotion: read('styles/reduced-motion.css'),
+  fieldZoom: read('styles/field-zoom.css'),
   motion: read('styles/motion.css'),
   button: read('styles/button.css'),
   card: read('styles/card.css'),
@@ -62,6 +63,7 @@ export const cssText = [
   tokensCss,
   styles.base,
   styles.reducedMotion,
+  styles.fieldZoom,
   styles.motion,
   styles.button,
   styles.card,
