@@ -146,7 +146,9 @@ every navigation landmark — are not decisions anybody takes per screen. The ki
 both: `appShell()` names the rail and the trail itself, and a designer looking at a mock cannot
 break either one. They are stated in the contract, and their ids sit in `GATED_ELSEWHERE` in
 `stories/guidelines/_the-page.js`, so the same gate still walks all ten. The keying test reads
-both lists, and a rule on neither is still a build failure.
+both lists, and a rule on neither is still a build failure. `refs.test.js` holds the shape of a
+rule drawn on the page and never sees `GATED_ELSEWHERE`, so the gate checks that shape itself: an
+entry with no `id` or no sentence fails there rather than naming a test `undefined`.
 
 **Where the length landed, and where the brief said it would.** The brief asked for roughly a
 third of the page's height. Measured at 1200 wide in the same browser, before and after:

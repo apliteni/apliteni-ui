@@ -390,6 +390,14 @@ const GATED = [
 ];
 
 test('every page rule owns a check here, and every check owns a rule', () => {
+  // stories/guidelines/refs.test.js holds the shape of a rule on the page and
+  // never sees GATED_ELSEWHERE, so an entry with nothing to say would reach the
+  // test names below as "undefined". It is a failure here instead.
+  assert.deepEqual(
+    GATED.filter((r) => !r.id || typeof r.says !== 'string' || r.says.trim() === ''), [],
+    'a rule reaching this gate says nothing — GATED_ELSEWHERE needs an `id` and a `states` '
+    + 'sentence, the same way a rule on the page needs an `id` and an `imperative`.',
+  );
   assert.deepEqual(
     Object.keys(CHECKS).sort(), GATED.map((r) => r.id).sort(),
     'the page, the contract and this gate have drifted. A rule drawn on '
