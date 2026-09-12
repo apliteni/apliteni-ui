@@ -442,15 +442,21 @@ const targetRun = await (async () => {
       // de-duplication below would measure whichever a story drew first. Its
       // controls are kept apart and every one is measured (#277).
       if (el.closest('.ui-app.is-collapsed .ui-app__rail')) {
-        let drawn = true;
+        // `onScreen`, not `drawn`: boxOf() returns a `drawn` key of its own —
+        // the drawn box — and the spread below lands on top of this key. It used
+        // to be called `drawn`, and every folded control came out of here with a
+        // truthy `{height, width}` where the boolean was meant to be, so the
+        // test that reads it could not fail. Named apart rather than reordered,
+        // because a spread whose order is load-bearing is the same trap again.
+        let onScreen = true;
         for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
-          if (n.hasAttribute('hidden') || win.getComputedStyle(n).display === 'none') drawn = false;
+          if (n.hasAttribute('hidden') || win.getComputedStyle(n).display === 'none') onScreen = false;
         }
         folded.push({
           where,
           name: el.getAttribute('aria-label') || '',
           label: (el.querySelector('.ui-nav__label')?.textContent || '').trim(),
-          drawn,
+          onScreen,
           inClosedGroup: Boolean(el.closest('.ui-nav__sub[hidden]')),
           ...boxOf(el, cs, glyphOf(el, win)),
         });
@@ -578,8 +584,19 @@ test('folded rail: every control keeps a name with its label gone, and the name 
 });
 
 test('folded rail: every control a reader can reach is drawn', () => {
+  // The tripwire for the bug this test had: a truthy object in place of the
+  // boolean made the filter below unfalsifiable, and the test went on passing
+  // over a rail with a `display: none` row in it.
+  const notBoolean = targetRun.folded
+    .filter((c) => typeof c.onScreen !== 'boolean')
+    .map((c) => `${c.name || '(unnamed)'} → ${Object.prototype.toString.call(c.onScreen)}`);
+  assert.deepEqual(
+    notBoolean, [],
+    'a folded control reports something other than true or false for whether it is on screen, so the '
+    + 'check below is reading a value that cannot be falsy and this gate holds nothing',
+  );
   const gone = targetRun.folded
-    .filter((c) => !c.drawn && !c.inClosedGroup)
+    .filter((c) => !c.onScreen && !c.inClosedGroup)
     .map((c) => `${c.name} (${c.where})`);
   assert.deepEqual(gone, [], 'a folded rail control is display:none, so Tab passes it by');
 });
