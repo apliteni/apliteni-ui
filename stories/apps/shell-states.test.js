@@ -20,6 +20,10 @@ import { JSDOM } from 'jsdom';
 import {
   tokensFor, substitute, desugar, parseColour, ratio, effectiveBackground, composite,
 } from '../lib/contrast.js';
+// The motion sweep's own reader: it keeps `!important` and the chain of at-rules
+// around a rule, which is what the fold's travel is judged on below. Aliased
+// because this file has a leafRules() of its own, on a different shape.
+import { leafRules as motionRules, inNet, ms } from '../lib/motion-css.js';
 import { appShell } from '../../src/components/shell.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -499,6 +503,94 @@ test('the fold toggle is drawn wherever there is a fold to choose, and only ther
     'the collapsed rail lost the control that opens it, so a reader who folded it cannot unfold it',
   );
   assert.equal(on(PAIR(false), { narrow: true }), false, 'below 720px the toggle is drawn over a fold it cannot change');
+});
+
+// ---- A1d. the fold is on a clock ------------------------------------------
+//
+// The width is the whole of the animation, and motion-coverage.test.js cannot
+// see it. Its MOVES list is closed and carries no `width`; what the fold
+// re-points is --ui-rail-w, a custom property, so no rule under a state hook
+// declares the property that travels. Both `transition: width` lines could be
+// deleted and eight gates stayed green while the fold snapped from 249px to
+// 74px in one frame — the travel is what version 1 of #277 was sent back for,
+// and it was the one claim on this branch with nothing under it.
+//
+// Read off the declarations rather than through the cascade, because JSDOM
+// expands no `transition` shorthand: getComputedStyle(rail).transitionDuration
+// answers `0s` whatever the sheet says. Text is the right reading anyway — what
+// has to be there is the tokens, and a literal that happens to resolve to 250ms
+// is a second tempo, which is the whole of what motion-tokens.test.js says
+// about every other transition the kit writes.
+
+const TRAVELS = [
+  { file: 'src/styles/layout.css', selector: '.ui-app__rail', which: 'the rail the shell draws' },
+  { file: 'src/styles/nav.css', selector: '.ui-nav--side', which: 'the nav column inside it' },
+];
+const NET = 'src/styles/reduced-motion.css';
+
+/** The `transition` a selector writes, with the at-rules around it, or null. */
+function travelOf({ file, selector }) {
+  for (const rule of motionRules(read(file))) {
+    if (!selectors(rule.selector).includes(selector)) continue;
+    const decl = rule.decls.find((d) => d.prop === 'transition');
+    if (decl) return { ...decl, rule };
+  }
+  return null;
+}
+
+test('the fold travels, and both halves of it read the motion tokens', () => {
+  for (const { file, selector, which } of TRAVELS) {
+    const at = `${selector} in ${file}`;
+    const decl = travelOf({ file, selector });
+    assert.ok(
+      decl,
+      `${which} (${at}) declares no transition, so the fold arrives in one frame. The rail closes `
+      + 'from the open column to the strip; with nothing on a clock the words are cut through by an '
+      + 'edge that is already past them, which is what #277 was reworked to stop.',
+    );
+    assert.match(
+      decl.value, /(^|,)\s*width(\s|,|$)/,
+      `${at} transitions \`${decl.value}\`, which does not carry width — the one property the fold moves`,
+    );
+    const travel = decl.value.split(',').map((p) => p.trim()).find((p) => /^width(\s|$)/.test(p));
+    assert.match(
+      travel, /\bvar\(--dur-med\)/,
+      `${at} times the fold with \`${travel}\` instead of --dur-med. 250ms is the surface tempo the `
+      + 'kit ships, and a literal here is a second one nothing else in the sheet reads.',
+    );
+    assert.match(
+      travel, /\bvar\(--ease\)/,
+      `${at} curves the fold with \`${travel}\` instead of --ease. The CSS keyword \`ease\` is a `
+      + 'different curve and the two read alike in a stylesheet.',
+    );
+    assert.ok(
+      !inNet(decl.rule),
+      `${at} writes its travel inside a reduced-motion block, so the fold animates only for the `
+      + 'reader who asked it not to',
+    );
+  }
+});
+
+test('the fold arrives at once for a reader who asked for less motion', () => {
+  for (const { file, selector, which } of TRAVELS) {
+    // A travel that is not there outranks nothing; the test above owns its
+    // absence and says so in one line rather than two.
+    assert.ok(
+      !travelOf({ file, selector })?.important,
+      `${which} (${selector} in ${file}) writes its transition !important, which outranks the `
+      + `reduced-motion net in ${NET} — the fold would travel for 250ms in front of a reader who `
+      + 'asked for none',
+    );
+  }
+  const clamp = motionRules(read(NET)).filter(inNet)
+    .flatMap((rule) => rule.decls)
+    .find((d) => d.prop === 'transition-duration' && d.important);
+  assert.ok(
+    clamp && ms(clamp.value) <= 1,
+    `${NET} no longer clamps transition-duration with !important, so nothing stops the fold — or any `
+    + 'other transition — for a reader who asked for less motion. stories/reduced-motion.test.js holds '
+    + 'the net itself; this is the half of it the fold depends on.',
+  );
 });
 
 // ---- A1b. an icon-less row is not a blank target -------------------------

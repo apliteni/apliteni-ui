@@ -664,8 +664,10 @@ What the shell guarantees:
   liked — it is twice a row's own glyph centre, its padding plus half a glyph, which is the one
   width that leaves the glyph standing in the middle of the closed rail. `--ui-nav-col` and
   `--ui-nav-strip` in `nav.css` are the only two places either is written, and
-  `stories/apps/shell-states.test.js` derives the strip from the rules it is read off. Under
-  `prefers-reduced-motion` the kit's net takes both to 0.01ms, so the fold arrives in one frame.
+  `stories/apps/shell-states.test.js` derives the strip from the rules it is read off and holds the
+  width's own travel to `--dur-med` and `--ease` in both sheets that write it. Under
+  `prefers-reduced-motion` the kit's net takes both to 0.01ms, so the fold arrives in one frame —
+  the same file refuses a travel written `!important`, which is the only way the net loses.
 - **The reader's choice outlives the page.** A press is written to the `apliteni-ui-rail` cookie
   (a year, `path=/`, `SameSite=Lax`). `appShell()` itself reads nothing. A boolean `collapsed`
   is the caller's and is left alone, and it does nothing under `collapsible: false`, since a fold
