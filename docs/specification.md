@@ -20,6 +20,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
+- **[The drawer](#the-drawer)** — grouped by heading, and moving on open and on close
 - **[Pagination](#pagination)** — a page the caller computed, and what happens when nobody counted it
 - **[What the kit does not do](#what-the-kit-does-not-do)** — the boundaries, stated
 
@@ -163,8 +164,9 @@ The kit names **two** families, and the split is a role split rather than a pref
 other element takes the text face from `body`. A size threshold was the obvious alternative and
 is worse: it changes a heading's typeface halfway through a resize, which is the one thing a
 reader notices. A component that wants a heading tag set in the text face says so on its own
-rule, which outranks a bare element selector — `.ui-card__title`, `.ui-drawer__title` and
-`.ui-confirm__title` are the three that do, and each says why at the declaration.
+rule, which outranks a bare element selector — `.ui-card__title`, `.ui-drawer__title`,
+`.ui-drawer__section-title` and `.ui-confirm__title` are the four that do, and each says why
+at the declaration.
 
 **A brand mark is not text.** A wordmark keeps the display face at whatever size it is set at,
 down to the 13px `.topbar .brand` runs at. That is the one exception to "the element decides",
@@ -279,6 +281,17 @@ fallback is written once rather than at each use.
 it, and one whose output leaves `[0, 1]` — `--ease-spring` does — flips it in the middle of the
 fade. **Any transition of `visibility` is timed `linear`.**
 
+**Anything that appears or leaves after the page has loaded moves.** A state rule that shows, hides
+or moves an element — one keyed on `[hidden]`, `.is-open`, `.open`, `.show` and the like — has a
+transition or an entrance animation between its states. Where a change is right to leave still, the
+declaration says so and why, as `/* motion: still — why */`: a mark inside a row whose own
+highlight already transitions, or a layout change that would reflow the page if it moved. Nothing
+animates on first render; `playEntrance()` in `src/motion.js` plays an entrance only on the change
+the reader caused. Text that changes in place — a count, a range — changes at once.
+
+Content a script replaces wholesale is outside this guarantee: a toast stack closing the gap a
+toast left, and the rows of a React table on a sort or a page turn.
+
 Twenty-six declarations across six stylesheets wrote their own number instead, at five speeds —
 `0.15s`, `0.16s`, `0.18s`, `0.2s`, `0.35s` — and thirty-six named a bare `ease`, which is
 `cubic-bezier(0.25, 0.1, 0.25, 1)` and not the kit's curve. Two of the twenty-six
@@ -299,7 +312,9 @@ their own numbers because a token would be the wrong unit:
   the nearest token breaks its relationship to the other two, which is the whole effect.
 
 Each of these carries its reason at the declaration, as `/* motion: ambient — why */` or
-`/* motion: choreographed — why */`. There is no third kind and no unannotated exception.
+`/* motion: choreographed — why */`. There is no third kind and no unannotated exception. The
+`motion: still` note above answers a different question — whether a state change moves at all —
+and is not a way to keep a hand-written duration.
 
 `0.01ms` in the reduced-motion net is not a duration and is not tokenised. It is the kill-switch
 idiom: short enough to be imperceptible, non-zero so `transitionend` and `animationend` still fire
@@ -313,13 +328,31 @@ lives in `src/styles/reduced-motion.css`, one copy. `src/index.css` imports it, 
 carries it as well: a consumer who takes only the React stylesheet is not left with motion and no
 net. Taking both is harmless — every rule in it is idempotent and `!important`.
 
+**Under reduced motion, a change happens at once.** Nothing slides, fades or loops, and a one-shot
+settles on its final frame. WCAG 2.3.3 would allow a fade here, since it does not count opacity as
+motion; the kit does not keep one, because a single net over every sheet is the only version a new
+component cannot forget.
+
+The net gives every element a 0.01ms transition, and a child whose `visibility` is inherited then
+turns visible one tick after its parent. An overlay that focuses a control in the frame it opens
+would find that control still hidden. So an open drawer and an open confirm carry no transition
+inside them at all — for as long as they are open, not only in the frame they open — and focus
+lands where it does with motion on. Held by `stories/overlay-css.test.js`.
+
 Held by `stories/motion-tokens.test.js`, which reads the four tokens out of the table above at run
 time, resolves each through `tokens.css` into the brand primitive it aliases and checks the
 milliseconds match, then fails any transition in the swept sheets that carries a literal time or a
 bare easing keyword, any `visibility` not timed `linear`, any animation literal without its
 `motion:` note, and any published CSS entry that ships motion without the net.
+`stories/motion-coverage.test.js` discovers every state rule in the swept sheets that shows, hides
+or moves an element and fails one that neither moves nor carries a `motion: still` note with a
+reason. `stories/reduced-motion.test.js` holds the three declarations the net rests on, refuses an
+`!important` duration outside a prefers-reduced-motion block — and inside a component's own block, any
+that does more than switch motion off — and an `!important` loop count above one, and requires every
+script that waits on `animationend` or `transitionend` to have a timer behind it.
 
-Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200).
+Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200) and
+[#271](https://github.com/apliteni/apliteni-ui/issues/271).
 
 ## Colour and contrast
 
@@ -583,6 +616,42 @@ against the browser defaults transcribed out of that measurement, and goes red w
 declarations is taken back out. It carries one gap it cannot close: jsdom pins `text-align: center`
 onto a `<button>` above any author rule, whatever the specificity and whatever the source order, so
 that one declaration is held on the other two tags and by name in the rule all three share.
+
+## The drawer
+
+A drawer is a panel against one edge of the screen, over a scrim, for looking at or changing one
+thing without leaving the list it was opened from. `drawer()` renders it and `wireDrawer()` gives
+it the keyboard.
+
+**It groups by heading, never by card.** `drawerSection()` puts a heading over a `<dl>` of label
+and value pairs, so a screen reader hears each label with its value. The value sits beside its
+label rather than at the far edge of the panel, and no row carries a rule.
+
+**It draws three lines and no others.** One under the header, one over the footer, and one between
+each group and the next. A drawer's normal state is a long record scrolling, and the header's line
+and the footer's are what say where that scrolling stops. Inside the body the one division worth
+drawing is group from group, inset by the body's padding; no row carries a rule, and nothing else
+inside the panel draws one.
+
+**It moves on open and on close.** The panel slides in from the edge it is anchored to while the
+scrim fades, both on `--dur-med` and `--ease`. It leaves the same way. Under reduced motion both
+are instant; see [Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
+
+Held by `stories/drawer-rules.test.js`. It renders every story in both themes into a jsdom carrying
+the kit's stylesheets and measures every drawer panel that comes out, cascade resolved. Anywhere
+inside the panel a card fails — `.ui-card`, or any box with all four edges drawn that is not a form
+control or a button and does not sit inside one — and so does an `<hr>`, and any element with a
+border on its top or bottom edge that does not also draw both sides. The group separator is the one
+exception: a `.ui-drawer__section` that follows another and draws a line on its top edge alone. The
+gate reads the three lines in both directions, so a header with no line under it, a footer with none
+over it, a group with none above it, and an edge the body draws for itself each fail too. Logical
+borders are read as the physical ones they are in horizontal, left-to-right writing. A specimen
+inside `[data-specimen="dont"]` is a picture of the fault rather than a subject; the gate uses those,
+and one fault of each kind it writes itself — lines added and lines taken away — to prove it can see
+every fault at all.
+
+Decided in [#272](https://github.com/apliteni/apliteni-ui/issues/272) and
+[#271](https://github.com/apliteni/apliteni-ui/issues/271).
 
 ## Pagination
 

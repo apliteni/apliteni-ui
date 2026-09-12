@@ -152,6 +152,24 @@ test('substitute honours a fallback for a property nobody declared', () => {
   assert.equal(substitute('x{color:var(--missing, #123456)}', new Map()), 'x{color:#123456}');
 });
 
+test('substitute keeps a fallback that holds brackets of its own whole', () => {
+  // Every --ease* token is written this way; stopping at the first ")" breaks all five.
+  assert.equal(
+    substitute('x{transition:opacity 1s var(--missing, cubic-bezier(0.4, 0, 0.2, 1))}', new Map()),
+    'x{transition:opacity 1s cubic-bezier(0.4, 0, 0.2, 1)}',
+  );
+});
+
+test('an unbalanced var( is left as written, and the rest of the sheet is still substituted', () => {
+  const vars = new Map([['--c', '#abcdef']]);
+  assert.equal(substitute('.a{width:var(--w}.b{color:var(--c)}', vars), '.a{width:var(--w}.b{color:#abcdef}');
+});
+
+test('somevar( is another function, not a var(, and is left untouched', () => {
+  const vars = new Map([['--c', '#abcdef']]);
+  assert.equal(substitute('x{a:somevar(--c);b:var(--c)}', vars), 'x{a:somevar(--c);b:#abcdef}');
+});
+
 test('substitute terminates on a self-referencing property instead of spinning', () => {
   const vars = new Map([['--loop', 'var(--loop)']]);
   assert.equal(substitute('x{color:var(--loop)}', vars), 'x{color:var(--loop)}');

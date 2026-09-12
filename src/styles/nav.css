@@ -63,7 +63,7 @@
   width: 3px; height: 17px;
   border-radius: 3px;
   background: var(--accent);
-  transform: translateY(-50%);
+  transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */
 }
 .ui-nav__item:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-nav__item.is-active:focus-visible { box-shadow: var(--ring); }
@@ -71,7 +71,7 @@
 .ui-nav__ic { display: inline-flex; flex: none; }
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
 .ui-nav__item.is-active .ui-nav__ic svg,
-.ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); }
+.ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
 .ui-nav__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Destructive row (sign out, revoke). Quiet at rest, --pink once a pointer or
@@ -147,6 +147,12 @@
   border-left: 1px solid var(--border);
 }
 .ui-nav__sub[hidden] { display: none; }
+/* An opened group's list fades in and drops --space-1 into place. wireNav() adds
+   the class when the reader opens it, never at first render. */
+.ui-nav__sub.is-entering {
+  --m-dist: var(--space-1);
+  animation: m-slide-down var(--dur-fast) var(--ease-out) both;
+}
 .ui-nav__item--sub { font-size: 14px; padding: 7px 12px; }
 /* No hairline on a nested current row — but only at rest. box-shadow carries
    both the hairline and the focus ring, so a rule about the resting look must
@@ -163,8 +169,7 @@
 .ui-nav--side.is-collapsed .ui-nav__cap,
 .ui-nav--side.is-collapsed .ui-nav__label,
 .ui-nav--side.is-collapsed .ui-nav__badge,
-.ui-nav--side.is-collapsed .ui-nav__caret,
-.ui-nav--side.is-collapsed .ui-nav__sub { display: none; }
+.ui-nav--side.is-collapsed .ui-nav__caret { display: none; } /* motion: still — folding the rail is a layout change of the whole rail; animating these would reflow the page */
 .ui-nav--side.is-collapsed .ui-nav__item { justify-content: center; padding: 11px 0; gap: 0; }
 .ui-nav--side.is-collapsed .ui-nav__ic svg { width: 19px; height: 19px; stroke-width: 2; }
 .ui-nav--side.is-collapsed .ui-nav__item.is-active::before { left: 3px; }

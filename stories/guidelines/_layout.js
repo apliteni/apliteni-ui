@@ -76,8 +76,10 @@ const PAGE_CSS = `
 const doBadge = () => badge('Do', 'live');
 const dontBadge = () => badge('Don’t', 'danger');
 
-const cell = (badgeHtml, caption, html) => `
-  <div class="gc-cell">
+// data-specimen names which half a cell is, so a gate that measures specimens
+// can leave the don'ts out: stories/drawer-rules.test.js reads it.
+const cell = (kind, badgeHtml, caption, html) => `
+  <div class="gc-cell" data-specimen="${kind}">
     <div>${badgeHtml}</div>
     ${html}
     <div class="gc-cell__cap">${mono(caption)}</div>
@@ -93,8 +95,8 @@ const whyLine = (rule) => (rule.why ? `
 
 const figure = (rule) => (rule.doHtml ? `
   <div class="gc-pair">
-    ${cell(doBadge(), rule.doCaption, rule.doHtml())}
-    ${cell(dontBadge(), rule.dontCaption, rule.dontHtml())}
+    ${cell('do', doBadge(), rule.doCaption, rule.doHtml())}
+    ${cell('dont', dontBadge(), rule.dontCaption, rule.dontHtml())}
   </div>
   ${whyLine(rule)}` : whyLine(rule));
 

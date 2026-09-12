@@ -137,7 +137,7 @@
 /* Trailing selected tick (listbox variant) */
 .ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--accent); }
 .ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
-.ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; }
+.ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; } /* motion: still — a mark inside a row whose highlight already transitions; picking it closes the panel, which fades out over --dur-med */
 .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--accent); }
 
 /* When a row has both a badge and a tick, keep the badge from eating the margin */

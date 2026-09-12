@@ -8,9 +8,9 @@
 // why: docs/specification.md#pending-and-denied-states
 import { icon } from '../assets/icons.js';
 import { button, esc } from './index.js';
+import { playEntrance } from '../motion.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
-
 // ---- Skeleton ------------------------------------------------------------
 // The placeholder shape. `lines` is a count, or an array of widths when the
 // varied ragged edge of real prose matters (['100%','92%','60%']). `height`
@@ -80,7 +80,8 @@ export function setBusy(root, { busy = false, message, body } = {}) {
   region.setAttribute('aria-busy', busy ? 'true' : 'false');
   if (body != null) {
     const slot = region.querySelector('[data-busy-body]');
-    if (slot) slot.innerHTML = body;
+    // The new body fades in. Only here — the region the page loads with is still.
+    if (slot) { slot.innerHTML = body; playEntrance(slot); }
   }
   const msg = region.querySelector('[data-busy-msg]');
   if (msg) {

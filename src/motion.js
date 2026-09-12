@@ -1,7 +1,8 @@
 // apliteni-ui — motion hook.
 //
-// The one small, optional piece of JS behind the CSS motion library: a
-// scroll-reveal activator plus a replay helper. Everything else is pure CSS
+// The one small piece of JS behind the CSS motion library: a scroll-reveal
+// activator, the entrance player the components call when something they show
+// appears (playEntrance), and a replay helper. Everything else is pure CSS
 // (src/styles/motion.css). Framework-agnostic, no dependencies, guarded so it
 // no-ops cleanly under `node --test` / SSR (no window, no IntersectionObserver).
 //
@@ -57,6 +58,46 @@ export function initReveal(root) {
   );
   els.forEach((el) => io.observe(el));
   return io;
+}
+
+/**
+ * How long playEntrance() waits for `animationend` before taking the class off
+ * itself. Longer than the slowest --dur-* token, so it only ever fires for an
+ * animation that never ran; src/motion.test.js holds it above that token.
+ */
+export const ENTRANCE_FALLBACK_MS = 1000;
+
+const entering = new WeakMap();
+
+/**
+ * Play the one-shot entrance of something the reader just caused to appear.
+ *
+ * Adds `className` and takes it off at the element's own `animationend`, or
+ * after ENTRANCE_FALLBACK_MS if that never fires (the element was hidden again,
+ * or no stylesheet gives the class an animation) — so the class is never left
+ * half-applied. The sheet decides what the entrance looks like: the component
+ * pairs the class with an animation in its own stylesheet. A component calls
+ * this on a change, never at first render, which is how the page loads still.
+ * Reduced motion needs no branch here: the net in reduced-motion.css shortens
+ * the animation to nothing and `animationend` still fires.
+ */
+export function playEntrance(el, className = 'is-entering') {
+  if (!el || !el.classList) return;
+  entering.get(el)?.();
+  el.classList.remove(className);
+  void el.offsetWidth; // restart the animation when the class was already on
+  el.classList.add(className);
+  let timer;
+  const done = (e) => {
+    if (e && e.target !== el) return; // a descendant's animation bubbling up
+    clearTimeout(timer);
+    el.removeEventListener('animationend', done);
+    el.classList.remove(className);
+    entering.delete(el);
+  };
+  el.addEventListener('animationend', done);
+  timer = setTimeout(done, ENTRANCE_FALLBACK_MS);
+  entering.set(el, () => done());
 }
 
 /** Restart the CSS animation on an element (for a "replay" control). */

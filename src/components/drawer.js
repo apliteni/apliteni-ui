@@ -68,6 +68,33 @@ export function drawer({
     + `</aside></div>`;
 }
 
+/**
+ * One group inside a drawer's body: an optional heading over label/value rows,
+ * then any trailing markup (an action that belongs to the group). Rows render as
+ * a <dl>, so a screen reader hears each label with its value.
+ *
+ *   drawer({ title, body: drawerSection({ title: 'Source', rows: [['Statement', '#4102']] }) })
+ *
+ * why: docs/specification.md#the-drawer
+ *
+ * @param {object} [o]
+ * @param {string} [o.title]  group heading (escaped)
+ * @param {Array<[string, string | { html: string }]>} [o.rows]  [label, value] pairs. Both are
+ *   escaped, since a value is usually data (a bank feed's description); pass the value as
+ *   `{ html: '…' }` to write trusted markup as it is
+ * @param {string} [o.body]   trailing markup after the rows (trusted)
+ * @returns {string} html
+ */
+export function drawerSection({ title, rows = [], body = '' } = {}) {
+  const head = title ? `<h3 class="ui-drawer__section-title">${esc(title)}</h3>` : '';
+  const value = (v) => (v !== null && typeof v === 'object' && 'html' in v ? String(v.html) : esc(v));
+  const list = rows.length
+    ? `<dl class="ui-drawer__rows">${rows.map(([term, detail]) =>
+      `<div class="ui-drawer__row"><dt>${esc(term)}</dt><dd>${value(detail)}</dd></div>`).join('')}</dl>`
+    : '';
+  return `<section class="ui-drawer__section">${head}${list}${body}</section>`;
+}
+
 // ---- Shared behaviour ----------------------------------------------------
 // One open/close/scrim/close-button implementation for every drawer in the kit;
 // inertness, Escape and Tab belong to the overlay stack. Per-instance handlers

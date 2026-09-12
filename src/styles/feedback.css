@@ -127,6 +127,8 @@
 /* Error banner */
 .ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); color: var(--pink); font-size: 13px; padding: 11px 15px; border-radius: 11px; display: none; }
 .ui-fbc__err.show { display: block; }
+/* A failed send's line fades in; wireFeedback() adds the class as it shows it. */
+.ui-fbc__err.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }
 
 @media (prefers-reduced-motion: reduce) {
   .ui-fbpill, .ui-fbpill::before, .ui-fbcomposer, .ui-fbscrim, .ui-fbck, .ui-fbck-m, .ui-fbck-s { animation: none !important; transition: none !important; }

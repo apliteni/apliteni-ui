@@ -31,6 +31,11 @@
 .ui-busy {
   display: block;
 }
+/* What setBusy() puts in the body fades in, without travel. The region the page
+   loads with is not animated: only setBusy() adds the class. */
+.ui-busy__body.is-entering {
+  animation: m-fade var(--dur-med) var(--ease-out) both;
+}
 
 /* -- Skeleton -------------------------------------------------------------- */
 .ui-skel {

@@ -1,5 +1,5 @@
-import { drawer } from '../../src/components/drawer.js';
-import { button, field, input, select, switchToggle, card } from '../../src/components/index.js';
+import { drawer, drawerSection } from '../../src/components/drawer.js';
+import { button, field, input, select, switchToggle } from '../../src/components/index.js';
 
 // Drawers are position:fixed overlays: each story renders a little faux page
 // behind so the scrim reads true, then the drawer on top. Interactive stories
@@ -32,8 +32,8 @@ const LOREM = `
   <p style="margin:0 0 14px">Drawers slide in from any edge over a scrim. Left and right
   panels are full-height; top and bottom are full-width. The body scrolls when its
   content overflows while the header and footer stay pinned.</p>
-  <p style="margin:0 0 14px">Motion respects <code>prefers-reduced-motion</code>: the slide
-  is dropped for a plain fade. The panel surface, shadow, and scrim are token-driven, so
+  <p style="margin:0 0 14px">Under <code>prefers-reduced-motion</code> the panel appears at
+  once, with no slide. The panel surface, shadow, and scrim are token-driven, so
   the drawer re-themes across accents and light/dark.</p>
   <p style="margin:0">Close on scrim click, on the header button, or with Esc.</p>`;
 
@@ -78,16 +78,40 @@ export const Sizes = {
   },
 };
 
+// ---- A record: the drawer's default look (#272) ----------------------
+// Groups under headings, each value beside its label, and the panel's three
+// lines: under the header, over the footer, one between each group and the
+// next. One fabricated transaction.
+const RECORD = [
+  { rows: [
+    ['Amount', '€ 12,480.50'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments'],
+    ['Description', 'Card payout · batch 2291'], ['Source', 'Bank feed'],
+  ] },
+  { title: 'How it is classified', rows: [
+    ['Category', '—'], ['Unit', 'Ledger'], ['Team', '—'], ['Answered by', 'import-bot · 1 Sep 2026'],
+  ], action: 'Reclassify' },
+  { title: 'Where it came from', rows: [['Statement', '#4102'], ['Reference', 'po_example_1047']] },
+];
+
+export const Record = {
+  name: 'Record (open)',
+  render: () => behind() + drawer({
+    side: 'right', title: 'Northwind Payments', specimen: true,
+    body: RECORD.map(({ title, rows, action }) => drawerSection({
+      title, rows,
+      body: action ? button({ label: action, variant: 'ghost', size: 'sm', icon: 'edit' }) : '',
+    })).join(''),
+    footer: button({ label: 'Open statement', variant: 'secondary' }) + button({ label: 'Done', variant: 'primary' }),
+  }),
+};
+
 // ---- Form in a drawer — header / scrollable body / footer actions -------
 export const FormInDrawer = {
   name: 'Form in a drawer (open)',
   render: () => behind() + drawer({
     side: 'right', size: 'md', title: 'New API key', specimen: true,
     body:
-      card({ body:
-        `<p style="margin:0;font:400 12.5px/1.55 var(--font-sans);color:var(--muted)">Scoped, named, and
-        audited — keys, not root. Give it a name and pick what it may reach.</p>` })
-      + `<div style="height:18px"></div>`
+      `<p style="margin:0 0 var(--space-5);color:var(--muted)">Give the key a name and pick what it may reach.</p>`
       + field({ label: 'Key name', control: input({ placeholder: 'e.g. CI deploy bot' }) })
       + field({ label: 'Scope', control: select({ options: ['Read only', 'Read + write', 'Admin'] }) })
       + field({ label: 'Expires', control: select({ options: ['30 days', '90 days', 'No expiry'] }) })

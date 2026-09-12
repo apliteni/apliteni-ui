@@ -1,8 +1,21 @@
-/* Modal shell only — the kit ships a drawer, not a centered modal. Tokens-only. */
+/* Modal shell only — the kit ships a drawer, not a centered modal. Tokens-only.
+ *
+ * Motion is the vanilla confirm's (src/styles/confirm.css): the scrim fades and the
+ * panel rises 8px, on --dur-med. The panel sits inside the scrim, so it fades with it
+ * and carries no opacity of its own — two would multiply into a different curve.
+ * ./dialog adds `is-open` once the start state is styled and waits for the panel's
+ * transition before it unmounts. The reduced-motion net shortens both to 0.01ms.
+ * It paints on the confirm's layer, one above the drawer's, because a modal opened
+ * from a drawer is a question about the drawer.
+ * why: docs/specification.md#motion */
 .rx-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px);
-  display: grid; place-items: center; z-index: 50; }
+  display: grid; place-items: center; z-index: calc(var(--z-overlay) + 1);
+  opacity: 0; transition: opacity var(--dur-med) var(--ease); }
+.rx-scrim.is-open { opacity: 1; }
 .rx-modal { width: min(480px, 92vw); background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); overflow: hidden; }
+  border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); overflow: hidden;
+  transform: translateY(8px); transition: transform var(--dur-med) var(--ease); }
+.rx-scrim.is-open .rx-modal { transform: none; }
 .rx-modal__head { display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px; border-bottom: 1px solid var(--border); }
 .rx-modal__title { font-weight: 600; font-size: var(--text-lg); }

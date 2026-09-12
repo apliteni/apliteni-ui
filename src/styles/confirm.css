@@ -119,12 +119,12 @@
   margin-top: var(--space-2);
 }
 
-/* -- Reduced motion: no rise, just a fade --------------------------------- */
+/* Under reduced motion the net makes every change instant, and gives every
+   element a 0.01ms transition: a child inherits `visible` one tick after the
+   root, so the answer openConfirm() focuses is still hidden and focus falls to
+   <body>. So an open confirm carries no transition inside it at all — for as
+   long as it is open, not only in the frame it opens.
+   why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
 @media (prefers-reduced-motion: reduce) {
-  .ui-confirm { transition: visibility var(--dur-fast) linear; }
-  .ui-confirm__panel {
-    transform: none;
-    transition: opacity var(--dur-fast) linear;
-  }
-  .ui-confirm__scrim { transition: opacity var(--dur-fast) linear; }
+  .ui-confirm.is-open * { transition: none !important; }
 }

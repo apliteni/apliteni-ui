@@ -111,6 +111,23 @@ for (const { file, block, close, cost } of SHEETS) {
     );
   });
 
+  // The reduced-motion net gives every element a 0.01ms transition, and a child
+  // then inherits `visible` one tick after the root. Measured in Chrome with
+  // reduced motion forced: focus landed on the drawer's panel and fell to <body>
+  // from the confirm. Opening has to cancel the children's transitions as well.
+  test(`${file}: under reduced motion, opening cancels every transition inside it`, () => {
+    const inNet = new RegExp(
+      `@media(?![^{]*\\bnot\\b)[^{]*prefers-reduced-motion\\s*:\\s*reduce\\b[^{]*\\{[^{}]*\\.${block}\\.is-open \\*\\s*\\{[^}]*`
+      + 'transition\\s*:\\s*none\\s*!important',
+    );
+    assert.match(
+      css, inNet,
+      `${file} has no \`@media (prefers-reduced-motion: reduce) { .${block}.is-open * { transition: `
+      + 'none !important; } }`. Without it the control focused on open is still hidden in that '
+      + 'frame for a reader who asked for less motion',
+    );
+  });
+
   test(`${file}: a visibility transition is timed \`linear\``, () => {
     for (const rule of all) {
       for (const value of transitions(rule)) {
@@ -201,6 +218,19 @@ test("the stack's layers are the ones the sheets resolve to", () => {
       + 'the layer underneath the one the reader can see',
     );
   }
+});
+
+// The React Modal is the other thing a drawer opens: a question about the record in
+// it. At z-index 50 it was painted underneath the drawer while taking its keys.
+test('a React modal paints above a drawer', () => {
+  const tokens = zTokens();
+  const modalZ = stackingLevel(rootOf('react/src/Modal.css', 'rx-scrim'), tokens);
+  const drawerZ = stackingLevel(rootOf('src/styles/drawer.css', 'ui-drawer'), tokens);
+  assert.ok(
+    modalZ > drawerZ,
+    `a React modal resolves to z-index ${modalZ} and a drawer to ${drawerZ}, so a modal opened from `
+    + 'a drawer sits under it on screen while the dialog stack gives it the keyboard',
+  );
 });
 
 test('a confirm paints above a drawer, whatever order they are mounted in', () => {

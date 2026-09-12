@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `Modal`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `Modal`, `Drawer`, `Button`, `Badge`, `Card`, `Icon`.
 
 `Pagination` renders the kit's `pagination()` markup, class for class, so its styles come from
 `@apliteni/apliteni-ui/css` rather than from this bundle. One deliberate difference: it takes no
@@ -46,6 +46,35 @@ the dialog itself if none exists. Links and disclosure summaries are eligible; h
 controls, disabled controls, controls inside a closed disclosure and elements with a
 negative tabindex are skipped. Tab and Shift+Tab wrap at the ends of the same list.
 Escape and a click on the scrim dismiss the dialog and return focus to its opener.
+
+The Modal fades in and out: the scrim fades and the panel rises a few pixels. After `open`
+turns false it stays mounted until that transition ends, then unmounts. While it leaves,
+focus is already back on the opener and the dialog takes no clicks.
+
+## Drawer
+
+A panel that slides in from an edge of the screen over a scrim. It renders the vanilla
+`drawer()` markup, class for class, so it looks and moves like the kit's drawer, and like
+`Pagination` its styles come from `@apliteni/apliteni-ui/css` rather than from this bundle.
+Group what goes inside it the way `drawerSection()` does — a heading over a `<dl>` of label
+and value rows — rather than in cards; the rules are on Guidelines / Drawers.
+
+```tsx
+<Drawer open={open} title="Transaction" onClose={() => setOpen(false)}
+  side="right" size="md" footer={<Button onClick={save}>Save</Button>}>
+  …
+</Drawer>
+```
+
+`side` is `right` (default), `left`, `top` or `bottom`. `size` is `sm`, `md` (default) or
+`lg`, measured along the slide. `closeLabel` names the close button (default "Close").
+Focus, Escape, the scrim, Tab and the return of focus behave as the Modal's do. Like the
+Modal, it stays mounted until its exit slide ends. It is portalled to `document.body`.
+
+React Modals and Drawers share one stack. When one is open over another, only the top one
+takes Escape and Tab, and closing it hands focus back to the one below. The vanilla
+`drawer()` and `confirm()` keep a separate stack that this one cannot see, so do not open a
+React Modal or Drawer and a vanilla overlay over each other on the same page.
 
 ## Work on them
 

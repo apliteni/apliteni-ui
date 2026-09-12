@@ -233,6 +233,42 @@ export const GATES = [
     blind: ['Whether the rule reaches the element. It reads declarations, not the cascade.'],
   },
   {
+    file: 'stories/reduced-motion.test.js',
+    does: 'Holds the prefers-reduced-motion net (WCAG 2.3.3). It parses '
+      + 'src/styles/reduced-motion.css, so deleting one of the net’s !important durations fails; '
+      + 'fails a duration written with !important outside a reduced-motion block, which would beat '
+      + 'the net, one inside a component’s own block that does more than switch motion off, and an '
+      + '!important loop count above one; and finds every script waiting on animationend or '
+      + 'transitionend, a React onTransitionEnd prop included, and asks for a timer in the same '
+      + 'function — a reduced-motion branch alone does not count.',
+    blind: [
+      'Which timer. Any setTimeout in the function counts as the fallback, even one that has nothing '
+        + 'to do with the listener.',
+      'Whether a browser applies the net. jsdom evaluates no media query, so the net is read, '
+        + 'never run.',
+      'Delays. The net does not zero animation-delay or transition-delay, and nothing here looks '
+        + 'for one.',
+      'Inline styles a script writes, and motion a script drives itself — requestAnimationFrame, '
+        + 'element.animate().',
+    ],
+  },
+  {
+    file: 'stories/motion-coverage.test.js',
+    does: 'Finds every state rule that shows, hides or moves an element and holds it to moving '
+      + 'between its states, by a transition or an entrance animation, or to a `motion: still` '
+      + 'note that says why. The other half of reduced motion: it keeps on record the motion the '
+      + 'net has to stop.',
+    blind: [
+      'Whether anything plays. jsdom runs no animation, so each component’s unit test holds that '
+        + 'the entrance class lands on the change and not at first render.',
+      'Content a script swaps in by innerHTML, and React markup mounted or unmounted without a state '
+        + 'class, such as a DataTable’s rows on a sort. The React overlays carry one, .rx-scrim.is-open '
+        + 'and the kit drawer’s .is-open, and those are read.',
+      'Ancestors. The element is matched by its rightmost classes, so a transition written under '
+        + 'another parent counts for it.',
+    ],
+  },
+  {
     file: 'stories/nav-cascade.test.js',
     does: 'Holds three repaired rail declarations to the element they were written for — every '
       + 'one of them was present in the stylesheet and dead, including a cancelled focus ring.',
@@ -337,6 +373,11 @@ export const GATES = [
     blind: ['The scrim\u2019s backdrop-filter, and anything else only a browser composites.'],
   },
   {
+    file: 'react/src/Drawer.test.tsx',
+    does: 'The React drawer\u2019s focus, Tab trap, Escape, scrim and close-button dismissal, mounted.',
+    blind: ['Real browser focus and transitions; jsdom runs neither.'],
+  },
+  {
     file: 'react/src/a11y.test.tsx',
     does: 'The same axe contract for the React workspace, through vitest and Testing Library.',
     blind: ['The same two axe cannot do next door: contrast, and anything static markup hides.'],
@@ -353,11 +394,6 @@ export const GATES = [
 
 /** Gaps with nothing measuring them at all. Named so they do not look covered. */
 export const UNGATED = [
-  {
-    what: 'Reduced motion',
-    note: 'prefers-reduced-motion has no accessibility gate anywhere in the kit. Nothing '
-      + 'asserts that an animation stops when a reader asks it to.',
-  },
   {
     what: 'Keyboard, past the topbar and the tabs',
     note: 'The dropdown, the table, the segmented control, the feedback composer and the whole '
@@ -477,7 +513,7 @@ export const RULES = [
   {
     id: 'name-the-gap',
     imperative: 'Say what a gate cannot see, in the gate.',
-    why: 'Thirteen gates in this repo state their own blind spots in a header comment, and the '
+    why: 'The gates in this repo state their own blind spots in a header comment, and the '
       + 'table below is that collection rather than a fresh audit. A gate that overstates itself '
       + 'is how contrast came to be "verified visually" in the first place.',
     kit: [{ ref: 'stories/contrast.test.js:236', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],

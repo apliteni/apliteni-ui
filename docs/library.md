@@ -122,6 +122,7 @@ documented as “markup” (e.g. a card `title` carrying a badge) are inserted v
 | `dropdown({ label, value, variant, items, sections, header, footer, align, direction, portal, scroll })` + `wireDropdown(root)` | Popover list. `variant: 'select'` renders a listbox and shows the value in the trigger; `'menu'` renders an action list. `direction` is `'down'` (default), `'up'` for a trigger with no room below it, or `'auto'` to let the wiring measure and flip. `portal: true` mounts the panel on `<body>` as `position: fixed` — **the answer for a dropdown inside `.ui-app__rail`**, which is `position: sticky` with `overflow-y: auto` and so both clips the panel and seals its `z-index` in. See [The dropdown panel](specification.md#the-dropdown-panel). A row is emitted as a `<div>`, or an `<a>` when the item carries `href`; a page writing its own rows may use a `<button>` instead, and `.ui-dropdown__item` resets whichever tag it gets so the three render the same — see [A dropdown row is a div, a link or a button](specification.md#a-dropdown-row-is-a-div-a-link-or-a-button). |
 | `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. The umbrella dispatches on `variant`; each shape is also exported on its own. `wireNav` only drives the sidebar's collapsible groups. |
 | `drawer({ side, size, title, body, footer, open, specimen, dismissible })` + `wireDrawer(root)` | Overlay panel anchored to a screen edge, over a scrim. `openDrawer(el, returnFocusTo)` / `closeDrawer(el)` drive one directly. `open` renders it open and `wireDrawer` adopts it, page inert and all; `specimen` renders a picture of one for a documentation page — no `aria-modal`, no wiring, no Escape. |
+| `drawerSection({ title, rows, body })` | One group of a drawer's body: a heading over `[label, value]` rows rendered as a `<dl>`, then any trailing markup. Labels and values are escaped; pass a value as `{ html: '…' }` to write trusted markup. See [The drawer](specification.md#the-drawer). |
 | `confirm({ title, body, confirmLabel, cancelLabel, variant, open, specimen, id })` + `wireConfirm(root)` | Modal question over a scrim, for the destructive action a page has to stop for. `openConfirm(el, returnFocusTo)` / `closeConfirm(el)` drive one directly. `open` renders it open and `wireConfirm` adopts it, page inert and all; `specimen` renders a picture of one for a documentation page — no `aria-modal`, no wiring, no Escape. |
 | `callout`, `toast`, `successPanel` | Inline feedback, inside the page the user is already on. |
 | `pushToast(container, opts)` and `dismissToast(el)`, + `wireToastStack(container)` | The runtime toast stack: push one onto a container, dismiss it, or let the stack expire its own. |
@@ -152,7 +153,10 @@ from the catalog above.
 
 Beyond the factories, the entry re-exports the theming helpers described above, the brand
 mark (`seedling`, `prism`, `brand`) and the motion helpers in `src/motion.js`
-(`prefersReducedMotion`, `staggerDelay`, `initReveal`, `replay`).
+(`prefersReducedMotion`, `staggerDelay`, `initReveal`, `replay`, and `playEntrance`, which plays
+an element's `.is-entering` animation once on a change the reader caused and takes the class off
+at `animationend`, or after `ENTRANCE_FALLBACK_MS` if that never comes — see
+[Motion](specification.md#motion)).
 
 ### A dropdown row you write yourself
 

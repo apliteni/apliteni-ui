@@ -2,8 +2,8 @@
  * Drawer — edge-anchored overlay panel (Sheet / Slide-over): a panel that
  * slides in from any screen edge over a scrim. Fully token-driven so it
  * re-themes across accents + light/dark. Shares its scrim + focus trap with
- * confirm() (see overlay.js). `prefers-reduced-motion` drops the slide for a
- * plain fade.
+ * confirm() (see overlay.js). Under `prefers-reduced-motion` the kit's net
+ * (reduced-motion.css) makes the slide and the fade instant.
  *
  * Local tokens (surface/shadow/scrim) so the panel + scrim re-theme cleanly:
  *   --drawer-surface  panel background      --drawer-shadow  panel elevation
@@ -58,10 +58,7 @@
   flex-direction: column;
   background: var(--drawer-surface);
   box-shadow: var(--drawer-shadow);
-  opacity: 1;
-  transition:
-    transform var(--dur-med) var(--ease),
-    opacity var(--dur-med) var(--ease);
+  transition: transform var(--dur-med) var(--ease);
 }
 .ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--drawer-shadow), var(--ring); }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }
@@ -110,6 +107,10 @@
 .ui-drawer--top.ui-drawer--lg, .ui-drawer--bottom.ui-drawer--lg { --drawer-h: 72vh; }
 
 /* -- Slots ----------------------------------------------------------------- */
+/* The header keeps its rule, and the footer keeps its. A drawer's normal state is a
+   long record scrolling, and those two lines are what say where the scrolling body
+   ends: the one place inside the panel a line still earns.
+   why: docs/specification.md#the-drawer */
 .ui-drawer__header {
   display: flex;
   align-items: center;
@@ -174,14 +175,55 @@
   flex: none;
 }
 
-/* -- Reduced motion: no slide, just a fade -------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  .ui-drawer { transition: visibility var(--dur-fast) linear; }
-  .ui-drawer__panel {
-    transform: none !important;
-    opacity: 0;
-    transition: opacity var(--dur-fast) linear;
-  }
-  .ui-drawer.is-open .ui-drawer__panel { opacity: 1; }
-  .ui-drawer__scrim { transition: opacity var(--dur-fast) linear; }
+/* -- Groups and rows ------------------------------------------------------- */
+/* drawerSection(): a heading over label/value rows. The value sits beside its
+   label rather than at the far edge, so nothing has to lead the eye across the
+   panel, and rows are held apart by space alone. Group from group is the one
+   division inside the body worth a line; the body's padding insets it, so it
+   parts the groups without cutting the panel in two.
+   why: docs/specification.md#the-drawer */
+.ui-drawer__section + .ui-drawer__section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
 }
+/* An h3, and it opts out of the display face for the reason .ui-drawer__title does.
+   why: docs/specification.md#typefaces */
+.ui-drawer__section-title {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  /* Semibold, and so outside the rank table, which has nothing at this size and
+     weight. A group heading set in the label rank would match the row labels
+     under it in size and weight both, and differ from them by colour alone. */
+  font-weight: var(--weight-semibold);
+  color: var(--strong);
+}
+.ui-drawer__rows {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  column-gap: var(--space-4);
+  margin: 0;
+}
+.ui-drawer__row { display: contents; }
+.ui-drawer__row dt,
+.ui-drawer__row dd {
+  margin: 0;
+  padding-block: var(--space-1);
+  overflow-wrap: anywhere;
+}
+.ui-drawer__row dt { color: var(--muted); }
+.ui-drawer__row dd { color: var(--text); font-variant-numeric: tabular-nums; }
+.ui-drawer__rows + * { margin-top: var(--space-3); }
+
+/* Under reduced motion the net gives every element a 0.01ms transition, so a
+   child inherits `visible` one tick after the root: the control openDrawer()
+   focuses is still hidden in that frame, and focus lands on the panel. So an
+   open drawer carries no transition inside it at all — for as long as it is
+   open, not only in the frame it opens — which is what reduced motion asked
+   for anyway: under the net nothing inside had longer than 0.01ms to run.
+   why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
+@media (prefers-reduced-motion: reduce) {
+  .ui-drawer.is-open * { transition: none !important; }
+}
+
