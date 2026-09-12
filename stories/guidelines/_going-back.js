@@ -115,7 +115,7 @@ export const RULES = [
       + 'rail true. Marking it aria-current="true" rather than "page" keeps it true for a screen reader '
       + 'too, which would otherwise announce the list as the page on screen. appShell() does both when '
       + 'it is handed a back link.',
-    kit: [{ ref: 'src/components/nav.js:107', pattern: "const current = activeIs === 'section'" }],
+    kit: [{ ref: 'src/components/nav.js:108', pattern: "const current = activeIs === 'section'" }],
   },
   {
     id: 'quiet',

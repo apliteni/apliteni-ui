@@ -5,6 +5,12 @@
 // browser's history. A page opened in a new tab, from a bookmark or from a shared
 // address has no history to walk, and the browser's own Back button already does
 // that job; an <a href> is also the one shape a reader can open in a new tab.
+//
+// It has one treatment and takes no variant: a chevron and the destination's
+// name in dim ink, with no box. Four were rendered side by side on
+// docs/reviews/270-back-control.html and the owner chose this one, so the other
+// three — a bordered button above the title, an icon-only arrow beside it, and
+// the breadcrumb trail alone — are not built here.
 // why: docs/specification.md#the-back-link
 import { esc, icon } from './index.js';
 

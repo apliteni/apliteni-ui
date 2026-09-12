@@ -551,9 +551,11 @@ What the kit guarantees:
 When a page should take one, and what it says, are rules for the screen rather than guarantees of
 the kit: they are on the Guidelines / Going back page in Storybook.
 
-Proposed in [#270][i270]. Four treatments were rendered side by side on the same page in
-[docs/reviews/270-back-control.html](reviews/270-back-control.html); this section describes the
-one recommended there, which waits on the owner's choice.
+Decided in [#270][i270]. Four treatments were rendered side by side on the same page in
+[docs/reviews/270-back-control.html](reviews/270-back-control.html), and the owner chose the quiet
+link: a chevron and the destination's name in dim ink, in the slot the trail would take. That is
+the only one the kit builds; the other three stay on that page as the comparison it was chosen
+against.
 
 Held by `src/components/back.test.js` and `src/styles/back.test.js`.
 

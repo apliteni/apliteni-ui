@@ -3,6 +3,10 @@ import { badge, card } from '../../src/components/index.js';
 import { financeShell } from '../apps/_finance-nav.js';
 import { grid, pad, specimen } from '../_gallery.js';
 
+// The quiet link is the back control the kit ships — the treatment chosen on
+// #270 from four rendered side by side. There is no variant to switch, so every
+// story below is that one treatment in the places it appears.
+
 export default {
   title: 'Components/Back link',
   parameters: { layout: 'fullscreen' },

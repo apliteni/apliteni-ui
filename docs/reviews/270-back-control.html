@@ -170,6 +170,30 @@
       color: var(--accent);
       font-size: 14px;
     }
+    /* The decision is settled. The page stays as the evidence it was, and says
+       on every option which way it went. */
+    .chosen,
+    .rejected {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .chosen {
+      color: #1d6f42;
+    }
+    .rejected {
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .option.is-rejected {
+      opacity: 0.72;
+    }
+    .settled {
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      border-left: 3px solid #1d6f42;
+      background: #f2f8f4;
+      font-size: 15px;
+    }
     .comment {
       display: block;
       margin-top: 16px;
@@ -368,6 +392,12 @@
           "title": "Which treatment should the kit ship?",
           "context": "Every screen is the same placeholder record, opened from Invoices, in the kit's own page shell. Each option shows light and dark at 1440px, then a phone at 390px. Today's link is under the first option for comparison; the kit paints it in its own link colour, where the portal's stylesheet makes it blue. Recommended: the quiet link. It is the only treatment that names where it goes, stays out of the title's way, and needs no exception to the kit's own rules — and it replaces the trail rather than adding a second line above the title. It is what this branch builds as backLink() and appShell({ back }).",
           "recommendation": "quiet-link",
+          "decided": {
+            "option": "quiet-link",
+            "by": "Artur",
+            "date": "2026-09-12",
+            "note": "The quiet link is the back link. It is what backLink() and appShell({ back }) ship, and the other three treatments are not built. They stay on this page as the comparison the choice was made against."
+          },
           "options": [
             {
               "id": "quiet-link",
@@ -729,17 +759,28 @@
       lines.push("", "## Feedback");
       for (const d of r.decisions) {
         const a = entry.answers[d.id] || { choice: "", note: "" },
-          o = d.options.find((x) => x.id === a.choice);
+          o = d.options.find((x) => x.id === a.choice),
+          settled = d.decided
+            ? d.options.find((x) => x.id === d.decided.option)
+            : null;
         lines.push(
           "",
           "### " + d.id + " — " + d.title,
           d.context || "Context not recorded",
           "Selection: " +
-            (o
-              ? o.title + " [" + o.id + "]"
-              : { defer: "Decide later", custom: "Suggest another approach" }[
-                  a.choice
-                ] || "Unanswered"),
+            (settled
+              ? settled.title +
+                " [" +
+                settled.id +
+                "] — decided by " +
+                d.decided.by +
+                " on " +
+                d.decided.date
+              : o
+                ? o.title + " [" + o.id + "]"
+                : { defer: "Decide later", custom: "Suggest another approach" }[
+                    a.choice
+                  ] || "Unanswered"),
         );
         if (a.note) lines.push("Comment: " + a.note);
       }
@@ -762,14 +803,13 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
     function progress() {
-      const count = round.decisions.filter((d) => answers[d.id]?.choice).length;
+      const done = (d) => Boolean(d.decided || answers[d.id]?.choice);
+      const count = round.decisions.filter(done).length;
       $("#progress").textContent =
         count + " of " + round.decisions.length + " choices made";
       for (const a of $("#nav").children) {
-        const answer = answers[a.dataset.id];
-        a.textContent =
-          (answer?.choice ? "✓ " : "") +
-          round.decisions.find((d) => d.id === a.dataset.id).title;
+        const d = round.decisions.find((x) => x.id === a.dataset.id);
+        a.textContent = (done(d) ? "✓ " : "") + d.title;
       }
     }
     function update(id, key, value) {
@@ -828,8 +868,23 @@
         a.dataset.id = d.id;
         nav.append(a);
         section.append(el("h2", d.title), el("p", d.context, "context"));
+        if (d.decided)
+          section.append(
+            el(
+              "p",
+              "Decided by " +
+                d.decided.by +
+                " on " +
+                d.decided.date +
+                ". " +
+                d.decided.note,
+              "settled",
+            ),
+          );
         const group = el("fieldset");
-        group.append(el("legend", "Choose an approach"));
+        group.append(
+          el("legend", d.decided ? "Settled" : "Choose an approach"),
+        );
         const options = el("div", undefined, "options");
         for (const o of d.options) {
           const box = el("div", undefined, "option");
@@ -842,7 +897,19 @@
           radio.addEventListener("change", () => update(d.id, "choice", o.id));
           label.append(radio, el("span", o.title));
           box.append(label);
-          if (d.recommendation === o.id)
+          if (d.decided) {
+            const picked = d.decided.option === o.id;
+            radio.checked = picked;
+            radio.disabled = true;
+            if (!picked) box.classList.add("is-rejected");
+            box.append(
+              el(
+                "span",
+                picked ? "Chosen — this is what the kit ships" : "Not chosen",
+                picked ? "chosen" : "rejected",
+              ),
+            );
+          } else if (d.recommendation === o.id)
             box.append(el("span", "Agent recommendation", "recommendation"));
           box.append(el("p", o.summary), el("p", o.tradeoff, "muted"));
           for (const ev of o.evidence || []) {
@@ -863,6 +930,7 @@
         }
         group.append(options);
         const other = el("div", undefined, "bar");
+        if (d.decided) other.hidden = true;
         for (const [value, title] of [
           ["defer", "Decide later"],
           ["custom", "Suggest another approach"],
