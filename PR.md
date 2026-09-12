@@ -184,8 +184,8 @@ rule.
 
 | | Before | After |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-after-expanded-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-after-expanded-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-after-expanded-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-after-expanded-light.png) |
 
 **The fold, frame by frame.** Six frames taken off the compositor with `Page.startScreencast` and
 captioned with the time each was painted, so the clock is the browser's and not a screenshot call's
@@ -195,15 +195,15 @@ frame, and the reading column widens frame by frame.
 
 | dark | light |
 |---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-fold-frames-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-fold-frames-light.png) |
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-fold-frames-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-fold-frames-light.png) |
 
 **Folded, and a folded row under the keyboard.** Seven real Tab presses reached *Access & agents*;
 the chip is its own label, 8px clear of the rail's edge and centred on the row.
 
 | | Folded | Focused |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-collapsed-focus-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-collapsed-focus-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-collapsed-focus-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-collapsed-focus-light.png) |
 
 **Persists across navigation.** The page is drawn with no `collapsed` at all and loaded with the
 cookie already set, which is what a second page load looks like. `wireShell()` applied the stored
@@ -211,7 +211,7 @@ choice.
 
 | dark | light |
 |---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-persisted-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/rail-persisted-light.png) |
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-persisted-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-persisted-light.png) |
 
 These two files differ from the folded pair above in **0 pixels of 972,800** — two independent
 shots, taken on separate loads and compared channel by channel, not one file copied. That is what a
@@ -229,8 +229,8 @@ what is drawn, not on what is in the DOM — a folded-away row is still a node.
 
 | | Before | After |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/nav-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/nav-collapsed-after-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/nav-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/32c1adc/docs/evidence/nav-collapsed-after-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/nav-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/nav-collapsed-after-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/nav-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/nav-collapsed-after-light.png) |
 
 ## Measured in a browser, not asserted
 
