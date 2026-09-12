@@ -1,19 +1,4 @@
-/* Rule: the kit's CSS never names a font family. It names a ROLE — display, text
- * or mono — and one sheet says which family each role is.
- *
- * The rule exists because the roles are new (#253) and the kit spent its whole
- * life with one family, so `Poppins` is written in a lot of muscle memory. A
- * literal here is invisible: it renders correctly today and stops following the
- * token the day the token moves, which is exactly how the kit ended up with one
- * face doing two jobs.
- *
- * Which role an element takes is decided by the ELEMENT, and that half is asked
- * of a rendered document rather than of the stylesheet: a component rule that
- * out-ranks base.css's heading rule reads fine in the file and is wrong on the
- * page. Both halves carry the mutation that kills their case — the rule under
- * test is taken back out and the assertion has to fail.
- *
- * why: docs/specification.md#typefaces */
+// why: docs/specification.md#typefaces
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -74,38 +59,7 @@ const familyDecls = () => {
   return found;
 };
 
-/* If a declaration stops being collected it stops being checked, and a shrinking
- * sweep looks exactly like a passing one. The real count, not a floor: raise it
- * when you set a family, lower it in the commit that stops setting one, and say
- * why. It is meant to be inconvenient.
- * Was 31 at #253, the change that split one role into two: 22 text, 3 display,
- * 4 mono, and 2 that name no family at all. 32 once .ui-dropdown__panel stopped
- * inheriting a face it could be portalled away from (below). 33 with
- * `.ui-dropdown__item { font: inherit }`, which names no family either: it is
- * the reset that takes the browser's `font: 400 13.3333px Arial` back off a row
- * written as a <button>, and it reads the face the panel above it just pinned
- * rather than naming the same role twice (#251). 41 with the eight more rules
- * that answer the same shorthand on the same issue: `.vopt`, `.avatar` and
- * `.toggle` in topbar.css, `.ui-card--interactive`, `.ui-drawer__close`,
- * `.ui-toast__close`, `.ui-fbpill` and `.ui-fbc__x`. Each names no family
- * either — `font: inherit` is the reset, and the face comes from the ancestor
- * the row already sits in. 42 with `.ui-card__title { font-family: var(--font-sans) }`:
- * card() emits the title as an h2 since #269, and the rule keeps the text face
- * it always rendered in rather than taking the heading's. 43 with
- * `.ui-drawer__section-title` (#272), an h3 that names the text face for the
- * reason `.ui-drawer__title` does. 46 with the command palette's three (#274):
- * the panel pins the text face the way the dropdown panel does, the input
- * inherits it, and `.ui-cmdk__item { font: inherit }` is the same <button>
- * reset again. 47 once the key legend's <kbd> named the text face too: a
- * browser sets kbd in its monospace default, which is a family nothing in the
- * kit asked for. 48 with `.ui-tip`, the hover readout (#282): it is text set
- * inside a chart, so it names the text role rather than inheriting whatever
- * face the chart's container happens to carry. 49 with `.ui-back` (#270): the
- * back link sets the text role, like every other control that names a place.
- * 50 with `.ui-dropdown__search-input { font: inherit }` (#283): the same reset
- * on the dropdown's search field, which takes the face of the panel it sits in
- * rather than the browser's own for an <input>. 51 with `.ui-stat__value`, a key
- * figure set in the display face under the `readout` exception (#267). */
+// why: CONTRIBUTING.md#font-family-count-history
 const EXPECTED_SUBJECTS = 51;
 
 test('every family in the kit is a role, never a family name', () => {
@@ -285,25 +239,7 @@ test('b and strong are the semibold step, not the browser\'s bold', () => {
   );
 });
 
-/* -- A panel that leaves its container takes its role with it ---------------
- *
- * #257 gave dropdown() a `portal: true` that mounts the panel on <body>, clear
- * of an ancestor that clips it or opens a stacking context. Inheritance goes
- * with it: what the panel is set in stops being decided by the trigger it came
- * out of and starts being decided by <body>.
- *
- * Measured on this branch before the fix — the same dropdown inside a subtree
- * set in the display face resolved to var(--font-display) in place and
- * var(--font-sans) once wireDropdown() moved it. Both placements rendered, both
- * looked deliberate, and `portal` is a positioning flag that has no business
- * changing a typeface. So the panel states its role and the two agree.
- *
- * The mutation is the placement itself rather than a rule cut out of a sheet:
- * the same document is read twice, once with the panel where the factory put it
- * and once after the move, and the assertion is that they are the same answer.
- * A panel that inherited would give two.
- *
- * why: docs/specification.md#typefaces */
+// why: docs/specification.md#typefaces
 test('a dropdown panel keeps its role when the portal moves it onto <body>', async () => {
   const quiet = new VirtualConsole();
   quiet.on('jsdomError', () => {});

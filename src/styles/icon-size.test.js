@@ -33,18 +33,7 @@ import {
 const here = path.dirname(fileURLToPath(import.meta.url));
 const src = path.resolve(here, '..');
 
-// If a rule stops being collected, it stops being checked, and a shrinking
-// suite looks exactly like a passing one. This is the tripwire: the real count,
-// not a floor with slack in it. Raise it when you add a sizing rule; lower it in
-// the same commit that removes one, and say why. It is meant to be inconvenient.
-// Was 56 (#127: the hand-written .ui-side rail went, taking `.ui-side a svg`);
-// 54 (#128: `.ui-denied__seal svg` arrived); 56 (#217: `.ui-field__error` got a
-// glyph rule, so its stroke could be stated beside its box); 62 (#274: the
-// command palette's row and search glyphs, a width and a height each); 64 (#270:
-// `.ui-back svg`, the back link's arrow — a width and a height, sized and stroked
-// in one rule); 66 (#283: `.ui-dropdown__search-ic svg` sizes the search field's
-// glyph, width and height); 70 (#267: the stat band's change arrow and its trend
-// slot, two rules of two declarations each).
+// why: CONTRIBUTING.md#icon-sizing-count-history
 const EXPECTED_SUBJECTS = 70;
 
 const SHEETS = kitSheetNames(src);

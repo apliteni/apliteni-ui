@@ -1,18 +1,4 @@
-/* Rule: every place that loads a font loads every family the tokens name.
- *
- * The kit ships CSS and no fonts, so a family only exists on a page because
- * something on that page asked for it. A token whose family never loads does not
- * fail — it resolves to the next entry in the stack and renders in system-ui,
- * which reads as a rendering bug and sends the next person into the cascade. #253
- * doubled the number of ways to make that mistake by adding a second family, and
- * four separate files load fonts today, none of which knows about the others.
- *
- * The families are READ OUT of src/tokens/tokens.css rather than written here: a
- * role whose first family is quoted is a webfont and has to be loaded, and one
- * that starts with a system keyword (--font-mono) is not. Add a third role
- * tomorrow and this gate has an opinion about it without being edited.
- *
- * why: docs/specification.md#typefaces */
+// why: CONTRIBUTING.md#font-loading-and-family-gates
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';

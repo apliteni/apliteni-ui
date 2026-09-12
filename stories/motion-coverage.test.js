@@ -1,37 +1,11 @@
-/* Rule: what appears, disappears or moves after the page has loaded moves between
- * its states, or says at the declaration why it stays still.
- *
- * Subjects are discovered, in every sheet under src/ and react/src/: a rule whose
- * selector carries a state hook from the closed list below and which sets display,
- * opacity, visibility, transform, translate, scale or max-height. It passes on a
- * transition of that property on the element's own rules — `display` only with
- * allow-discrete, without which it snaps whatever the transition says — on an
- * animation that runs as it appears (its own rule, or a class the element's own
- * component script plays on it), or on a note on the declaration's line:
- *   /* motion: still — <why, a sentence> *\/
- * The hooks are closed like BARE_EASING in motion-tokens.test.js; selectors are not.
- * On the accessibility floor beside reduced-motion.test.js, which holds the net.
- *
- * What it does not reach:
- * - Content a script swaps in by innerHTML (setBusy's body): no state rule exists.
- * - React markup a component mounts or unmounts without a state class, such as a
- *   DataTable's rows on a sort or a page turn. The React overlays carry one
- *   (`.rx-scrim.is-open`, the kit drawer's `.is-open`), and those are subjects.
- * - Whether JS adds the entrance class on the change and not at first render:
- *   jsdom plays no animation, so each component's unit test holds that.
- * - Which element the script plays the entrance on. The element's own script is one
- *   that names its class, and it has to play that entrance class (or add it with
- *   classList); what it passes playEntrance() is not traced.
- * - Ancestors. The element is matched by its rightmost compound, so a transition
- *   under another parent counts for it.
- * - State hooks outside the list: `.on` (the topbar shows its switcher and account
- *   with it), `.is-current` (written beside `.is-active`, whose note covers the line),
- *   `.is-scroll` and `.is-underline` (variants set at render), `:disabled`, and the
- *   pointer states `:hover` and `:active`.
- * - Rules inside a prefers-reduced-motion block, which belong to the net.
- *
- * why: docs/specification.md#motion
- * why: CONTRIBUTING.md#an-exception-is-a-note-at-the-site-read-by-the-gate
+// why: CONTRIBUTING.md#motion-coverage-measurements
+
+/* Accessibility coverage limits:
+ * - Script-swapped content and React mounts without state classes have no state rule.
+ * - Entrance timing and which element a script passes to playEntrance are not traced.
+ * - Ancestor selectors are not matched; the rightmost compound decides the element.
+ * - State hooks outside HOOKS are not subjects.
+ * - Reduced-motion blocks belong to reduced-motion.test.js.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

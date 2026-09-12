@@ -1,20 +1,4 @@
-/* Rule: a dropdown row renders the same whether the page writes it as a <div>,
- * an <a href> or a <button>.
- *
- * `.ui-dropdown__item.is-selected .ui-dropdown__tick` means a row gets chosen,
- * and choosing is a button's job — so <button class="ui-dropdown__item"> is
- * markup the kit invites. Before #251 it arrived wearing the browser's own
- * button skin, because the rule reset none of it.
- *
- * The browser's defaults are transcribed into the fixture below rather than
- * assumed, since jsdom models almost none of them. They are written as an
- * author rule of lower specificity than `.ui-dropdown__item`, which is the same
- * contest the real cascade holds between the UA origin and an author class:
- * with the reset gone, the transcribed rule wins here exactly as the UA sheet
- * wins there.
- *
- * why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button
- */
+// why: CONTRIBUTING.md#dropdown-tag-measurements
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

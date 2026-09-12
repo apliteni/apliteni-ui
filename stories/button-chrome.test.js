@@ -1,68 +1,12 @@
-/* Rule: a class the kit hands a clickable row must survive being written as a
- * <button>, because that is the element a consumer reaches for when the row has
- * to be operable from the keyboard.
- *
- * A browser paints a <button> before any author rule runs: a grey fill, a 2px
- * outset border, a box that shrinks to its content, centred text, and `font: 400
- * 13.3333px Arial` — one shorthand, so the face, the size and the leading are
- * three separate things to answer. src/styles/nav.css:29 `.ui-nav__item {` cancels
- * every one. src/styles/dropdown.css:110 `.ui-dropdown__item {` cancelled none, so
- * the same markup that gives the rail a row gave the menu a nineties push-button
- * — measured in Chromium and filed as #251, and repaired there in 0.25.1.
- *
- * WHAT FAILS HERE is a class the kit renders as a clickable thing and NEVER on a
- * <button>: `.vopt` as a `<div role tabindex>`, `.ui-card--interactive` as an
- * `<a href>`, `.ui-fbpill` as a bare `<div>`. Their
- * button rendering has been seen by nobody, which is how #251 reached a release.
- * `.ui-dropdown__item` was a fourth until 0.25.1 gave it the five declarations and
- * a story that renders it as a <button> (stories/components/Dropdown.stories.js
- * `RowTags`), which is what moves a class out of this half by the rule above; it is
- * measured in the LEDGER now and finds nothing, and the parity of its three tags is
- * held by stories/dropdown-tag-parity.test.js.
- * A class the kit does render on a button is measured under the same rule and
- * answered for in the LEDGER below instead — every story that renders it renders
- * a button, in both themes, under the a11y and contrast walks, so a wrong one
- * would have been seen years ago.
- *
- * NOT A SUBJECT, and this is the only exit: a class `cursor: pointer` reaches on
- * a form control the browser owns, or on decoration painted inside one — a
- * `<select>`, the `<label>` wrapping a checkbox, the `<span>` a switch paints its
- * track on. Rewriting one of those as a <button> changes what the element IS, so
- * the question never arises. Three classes, named in PINNED_OWNED with the
- * element each lands on, and the walk has to agree with the name.
- *
- * The ledger of what a green run here does NOT say:
- *  - Nothing about layout. JSDOM computes no boxes, so shrink-to-fit is modelled
- *    as a `width` declaration rather than measured, and a row that fills its line
- *    for some other reason reads as repaired.
- *    why: CONTRIBUTING.md#where-jsdom-stops-being-a-browser
- *  - Nothing about the chrome being current. The stand-in's values are Chromium's,
- *    measured on this branch and not re-measured after; a browser that restyles
- *    its buttons leaves the stand-in stale with nothing here to say so.
- *  - Nothing about weight or style. `font: inherit` resets those too, so a rule
- *    that keeps one has to write it after the shorthand, and no facet here reads
- *    whether it did. Chrome's own button weight is 400, the initial value.
- *  - Nothing about state. Every reading is taken at rest, so chrome that only
- *    shows under :hover or :active is unseen.
- *  - Nothing about accents. One theme pair, the default accent, because none of
- *    the facets is accent-scoped anywhere in the kit today.
- *  - Nothing about the rows in the LEDGER. They keep chrome the kit renders and
- *    is not repairing; the counts are pinned, the rows are not clean.
- *  - Nothing about the deferred half in every place it is rendered. A subject is
- *    measured in EVERY ancestry a story gives it; a deferred class is measured in
- *    one. At the time of writing that is 14 classes rendered 415 times across 232
- *    distinct ancestries, of which 14 are read — so 218 cascades under a ledgered
- *    row are unmeasured. Measuring them all is ~15x the windows this file already
- *    opens, and the half it would cover is the half that is counted rather than
- *    failed. Re-take the numbers by counting `anc(cls)` per deferred class.
- *  - Nothing about a class that stops being clickable. The sweep starts from
- *    `cursor: pointer`; a rule that moves it onto a wrapper or a `:hover` takes
- *    the class out of CANDIDATES entirely. PINNED_SUBJECTS is what catches that
- *    for the three that fail here, and nothing catches it for the rest.
- *
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// why: CONTRIBUTING.md#button-chrome-measurements
+
+/* Coverage limits: keyboard-operable rows are checked at rest, in the default accent.
+ * - No layout; width models shrink-to-fit. Font weight and font style are not read.
+ * - Recorded browser defaults are not checked against current browsers.
+ * - No hover or active states, or accent-specific rendering.
+ * - LEDGER rows are counted, not required to be clean; only one ancestry is measured.
+ * - Losing cursor: pointer can remove an unpinned class from discovery.
  * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
- * why: CONTRIBUTING.md#where-jsdom-stops-being-a-browser
  */
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -82,36 +26,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 
 const THEMES = ['dark', 'light'];
 
-// ---- what a browser puts on a <button>, and what it puts on nothing --------
-//
-// jsdom ships the HTML spec's suggested rendering, which is not Chrome's UA
-// sheet: there is no buttonface fill, no outset border and no Arial in it, so a
-// bare <button> in jsdom computes the SAME transparent background as a <div>.
-// `background: none` also computes to rgba(0, 0, 0, 0) — the initial value — so
-// in jsdom "declared none" and "never declared" are one value and a gate that
-// reads a mounted button decides nothing. Both baselines are therefore declared
-// here, and every facet is read twice: once against the chrome, once against its
-// absence. A class that cancels the chrome lands on the same value in both.
-//
-// The values are Chromium's, dark theme, taken by mounting the story's own
-// <button class="ui-dropdown__item"> beside its <div class="ui-dropdown__item"> in
-// Chrome 152 and reading getComputedStyle off both. Against the unrepaired rule
-// the button gave rgb(107, 107, 107), 2px outset, Arial 13.3333px/normal, centred
-// text and a box 81.39px wide where the div was 226.00px — the first four are the
-// values #251 reports, the rest were taken for this gate. `width` is the one that
-// is not a declaration in any browser: a form control with `width: auto` shrinks
-// to its content whatever its `display` says, which is where that 81.39px comes
-// from. jsdom models no layout, so shrink-to-fit is written here as the `width` it
-// is equivalent to, and the only thing that beats it is an explicit width — which
-// is what `width: 100%` is for.
-//
-// The family is three quarters of one declaration, not a declaration of its own:
-// Chrome's UA sheet writes `font: 400 13.3333px Arial` on a button, a SHORTHAND,
-// so the size and the leading are chrome exactly as the face is. They are read
-// here beside it because a rule that answers with the `font-family` longhand
-// restores the face and leaves the other two standing — measured on this branch
-// at 13.3333px/normal against the row's own 14.5px/23.49px, a row 2.25px shorter
-// in type 1.17px smaller, and invisible to a gate that reads the family alone.
+// why: CONTRIBUTING.md#button-browser-defaults
 const CHROME = {
   appearance: 'auto',
   'background-color': 'rgb(107, 107, 107)',
@@ -273,28 +188,7 @@ function serialize(out) {
   return null;
 }
 
-/**
- * What the browser owns, and is the ONLY thing this gate leaves out.
- *
- * A form control, or decoration painted inside one: a `<select>`, the `<label>`
- * wrapping a checkbox, the `<span>` a switch draws its track on. Rewriting one of
- * those as a <button> changes what the element IS — a `<select>` that becomes a
- * button is not a select any more — so the chrome question never arises for it.
- *
- * This used to be written the other way round, as three shapes that COUNT as a
- * control: a <button>, an <a href>, or an element carrying both a role and a
- * tabindex. That test excluded far more than the browser owns. `.ui-fbpill`
- * is a bare div — src/components/feedback.js:35 `<div class="ui-fbpill" data-fb-pill>`
- * — with `cursor: pointer` and no role, so it fell out of the measurement on a
- * technicality, and as a <button> it takes a 2px outset grey frame around a
- * gradient pill. Worse, the test was a property of the MARKUP: deleting
- * src/components/dropdown.js:46 `'tabindex="-1"',` dropped `.ui-dropdown__item` out of
- * the measured set with every count still adding up, and the whole of #251 passed at
- * exit 0. Reproduced before this was rewritten.
- *
- * Written as an exclusion, the bucket says what its name says, and a class leaves
- * the measurement only by becoming a form control.
- */
+// why: CONTRIBUTING.md#browser-owned-controls
 const OWNED_BY_BROWSER = new Set(['select', 'input', 'textarea', 'option', 'optgroup', 'label']);
 const isControl = (el) => {
   for (let n = el; n; n = n.parentElement) if (OWNED_BY_BROWSER.has(n.localName)) return false;
@@ -399,36 +293,7 @@ const DEFERRED = deferredClasses.map(([cls, at]) => ({ cls, at, ...anc(cls)[0] }
 const NOT_CONTROLS = [...CANDIDATES].filter(([cls]) => SEEN.get(cls).tags.size && !SEEN.get(cls).control.size);
 const UNRENDERED = [...CANDIDATES].filter(([cls]) => !SEEN.get(cls).tags.size);
 
-// ---- the sets, pinned by name ---------------------------------------------
-//
-// Discovery is what finds a NEW subject. These are what stop an OLD one leaving
-// without a person moving a name, and they exist because it happened: delete
-// `tabindex="-1"` from src/components/dropdown.js:46 `'tabindex="-1"',` — the
-// roving-tabindex pattern src/components/topbar.js already runs on the segmented
-// strip, applied to the menu — and `.ui-dropdown__item` left the measured set,
-// every count still added up, and the whole of #251 passed at exit 0.
-//
-// A derived count cannot catch that on its own. The partition is three ways, so
-// a class that stops being a subject is still a candidate and the sum still
-// holds; UNRENDERED stays empty because the class is still in the markup; and
-// `SUBJECTS.length > 0` is satisfied by whoever is left. The house rule is the
-// count rider under CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
-// — a file that stops carrying a subject leaves the count — and a count of names
-// is what it takes to keep it here.
-//
-// One name has left since, and legitimately: 0.25.1 gave `.ui-dropdown__item` the
-// five declarations and gave stories/components/Dropdown.stories.js a `RowTags`
-// story that renders the row as a <button>, so the class is no longer one whose
-// button rendering nobody has seen. It is measured in the LEDGER now and finds
-// nothing on any facet. That is the only way a name comes off this list: the
-// reason it was here stopped being true, and a person read the change.
-//
-// `.ui-cmdk__item` arrived with the command palette (#274). The kit renders a
-// palette row as a <div role="option"> — an option in a listbox is reached with
-// an arrow key and never with Tab — so nobody has seen it as a <button>, and a
-// consumer who needs one gets whatever the browser paints. It was written with
-// the four declarations that cancel that on the same day, and it is read here
-// in every ancestry a story gives it.
+// why: CONTRIBUTING.md#button-subject-pins
 const PINNED_SUBJECTS = ['ui-card--interactive', 'ui-cmdk__item', 'ui-fbpill', 'vopt'];
 
 // The other side of the same pin. This is the ONLY bucket that leaves the
@@ -549,37 +414,7 @@ for (const theme of THEMES) {
   });
 }
 
-// ---- the ledger -----------------------------------------------------------
-//
-// Two lists, because this gate now has two kinds of thing to say. LEDGER is what
-// is measured, never failed, and answered for: rows the kit renders as buttons
-// and is not repairing. CLOSED is what USED to be in LEDGER and is not any more,
-// held at zero so the repair cannot quietly come undone. Counts in both are exact
-// rather than ceilings, the same rule stories/contrast.test.js holds its buckets
-// to: a ceiling would let one row being repaired hide another regressing.
-// why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
-//
-// The two subjects this lane repairs on that facet chose `text-align: left` over
-// `start`, the same keyword 0.25.1 gave `.ui-dropdown__item` and the one the rule
-// #251 names as correct — src/styles/nav.css:29 `.ui-nav__item {`.
-// `start` is the better keyword in a kit that renders both directions; this one has
-// written down
-// that it does not. The evidence, so the next reader does not have to re-take it:
-// one logical property in all of src/ — `margin-inline: auto` at layout.css:125,
-// which is symmetric and says nothing about direction — against 25 physical
-// margin-/padding-left|right declarations; no `dir=`, no `[dir="rtl"]`, no
-// `:dir(`; every one of the kit's own text-align declarations physical; and
-// docs/specification.md#what-the-kit-does-not-do naming a vertical writing mode a
-// non-goal, which the icon gate asserts rather than assumes. If RTL ever arrives it
-// is a sweep of
-// these five declarations, not a design decision taken again.
-//
-// Not held here, and deliberately: `width` on .ui-card--interactive. The width
-// facet exempts a box that is not block-level in normal flow, and the card is a
-// grid item everywhere the kit renders it, so its shrink-to-fit as a <button> is
-// unmeasured rather than absent. `width: 100%` on a card sitting in a flex row is
-// a live pixel change, and guessing at one is not what this gate is for. The
-// absence of that declaration is a decision, not an oversight.
+// why: CONTRIBUTING.md#button-chrome-ledgers
 
 const LEDGER = [
   {

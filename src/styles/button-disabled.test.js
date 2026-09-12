@@ -1,28 +1,4 @@
-/* Rule: a disabled button is legible on every ground the kit paints, not just on
- * the one it was first photographed against.
- *
- * #220 gave every disabled control an ink and a surface of its own, and the whole
- * kit landed in a band 5.56–6.11:1. The band is narrow for one reason: the pair
- * composites predictably, because the ink is read on the surface beside it rather
- * than on whatever is behind the button.
- *
- * `.ui-btn--ghost` kept a `background: transparent` through that change — "a ghost
- * button draws no box when it is on, so it draws none when it is off" — which
- * made it the one button whose legibility was a property of its placement. Nobody
- * measured it, because no story had put one on a card. One did in #273 (a pager's
- * First and Prev, disabled on the first page, inside the .ui-card every table in
- * the finance portal sits in) and it measured 5.18:1 — under the band, and 4.66:1
- * on --surface-3, which nothing had rendered at all.
- *
- * #273 first painted the flat box onto the ghost, and reverted that once it was
- * rendered: the boxed disabled controls read heavier than the boxless live ones
- * beside them. The ghost keeps no box and takes --disabled-ink-bare instead, an
- * ink set for the dullest ground. So this gate measures that ink against EVERY
- * surface token in both themes, and holds any disabled rule that gives its box
- * back to the ground to that ink.
- *
- * why: docs/specification.md#pagination
- */
+// why: CONTRIBUTING.md#disabled-button-measurements
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
