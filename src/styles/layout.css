@@ -16,6 +16,12 @@
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  /* The rail's width, and the one property the fold moves. It is the nav's own
+     column (nav.css) plus the rail's inset on each side plus the rule down its
+     right edge, since every box in the kit is border-box — so the shell has no
+     geometry of its own to drift from the rows inside it. */
+  --ui-rail-rule: 1px;
+  --ui-rail-w: calc(var(--ui-nav-col) + 2 * var(--space-4) + var(--ui-rail-rule));
 }
 /* With a topbar above it, the shell starts below one. 52px is .topbar's height
    in topbar.css; the topbar sticks so the rail below it can too. */
@@ -33,13 +39,25 @@
   flex-direction: column;
   gap: var(--space-5);
   padding: var(--space-5) var(--space-4);
-  border-right: 1px solid var(--border);
+  border-right: var(--ui-rail-rule) solid var(--border);
   background: var(--surface-2);
   position: sticky;
   top: var(--ui-app-top, 0px);
   height: calc(100vh - var(--ui-app-top, 0px));
+  width: var(--ui-rail-w);
+  /* hidden across, auto down: the fold closes the box over a column that keeps
+     its width, so what leaves the screen is clipped rather than re-laid-out.
+     overflow-y alone would have made the across axis `auto` and put a second
+     scrollbar under the rows. Two longhands rather than the pair shorthand,
+     which the gates' CSS engine does not read. */
+  overflow-x: hidden;
   overflow-y: auto;
+  transition: width var(--dur-med) var(--ease);
 }
+/* Each block of the rail keeps the open column while the box closes over it. The
+   nav declares its own; these are the three that are not the nav. */
+.ui-app__brand,
+.ui-app__user { width: var(--ui-nav-col); flex: none; }
 /* The rail's hover WAS --surface-2, so moving the rail onto it would have made
    hovering a row do nothing. Scoped, so a sidebarNav() anywhere else is
    untouched — and the destructive row is left out, because this rule ties with
@@ -115,6 +133,57 @@
    the rail column is max-content, so a long one widens the rail instead. */
 .ui-app__who span { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* The control that folds the rail: at the foot, under a rule of its own, so the
+   head of the rail stays the product's and the foot is the rail talking about
+   itself. That rule is the hairline and the 8px step the nav's own footer draws
+   above sign out, so the two are one family. The control wears a rail row's
+   skin, quieter, and its chevron turns to point the way the next press goes. */
+.ui-app__fold-row {
+  flex: none;
+  width: var(--ui-nav-col);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+.ui-app .ui-app__fold { color: var(--dim); }
+.ui-app .ui-app__fold:hover,
+.ui-app .ui-app__fold:focus-visible { color: var(--strong); }
+.ui-app__fold .ui-nav__ic svg { transition: transform var(--dur-fast) var(--ease); }
+.ui-app.is-collapsed .ui-app__fold .ui-nav__ic svg { transform: rotate(180deg); }
+
+/* -- The collapsed rail --------------------------------------------------- */
+/* The reader's fold is the narrow rail's fold, rule for rule: each rule here is
+   its twin in the 720px block below, behind :where(), which weighs nothing, so
+   the pair rank alike. stories/apps/shell-states.test.js holds them equal — as
+   text, as resolved style, and inside @supports. Nothing here lays a row out
+   again: the column keeps --ui-nav-col and the box closes over it, so only the
+   width and the words are on a clock. why: docs/specification.md#the-page-shell */
+.ui-app.is-collapsed { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__cap,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__label,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__badge,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__caret,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__who,
+:where(.ui-app.is-collapsed) .ui-app__brand span { opacity: 0; pointer-events: none; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
+/* A folded row is its glyph, so the name it keeps has to arrive beside it — on
+   the keyboard as well as under the pointer, which is the half `title` never
+   had. The label IS the chip: one string on screen and in the accessibility
+   tree, instead of a copy in an attribute that can go stale.
+   Two placements, because the rail is a scroll box and clips across as well as
+   down. This one is the fallback: `fixed` to get out of that clip, at the rail's
+   own width, holding the place its row gave it — right until the rail scrolls.
+   The @supports block below takes the near edge from the rail and pins both ends
+   to the row, and is the only placement that survives a scroll as well as the
+   clip. Why there is no third: docs/specification.md#the-page-shell. */
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
+@supports (anchor-name: --a) and (anchor-scope: --a) {
+  .ui-app.is-collapsed { anchor-scope: --ui-rail; }
+  :where(.ui-app.is-collapsed) .ui-app__rail { anchor-name: --ui-rail; }
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
+}
+
 /* The reading column centres in the track it is given — without width: 100% it
    was hugging the rail, 519px of dead background on the right at 1728px wide.
    The width is what keeps the auto margins honest: an auto inline margin takes
@@ -166,45 +235,29 @@
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
 
 /* -- The narrow rail ------------------------------------------------------ */
-/* Below this width the rail folds to an icon strip instead of disappearing.
-   sidebarNav() names every row at every width, so folding the label out of view
-   costs a screen reader nothing. Scoped to the shell's own rail — a sidebarNav()
-   somewhere else keeps its labels. The 44px floor is the touch target, and the
-   column is that floor plus the rail's own padding and border — measured, not
-   guessed. Nothing here resizes the glyph: an icon-sizing rule inside a media
-   query is one src/styles/icon-size.test.js cannot measure, and it says so. */
+/* Below this width the rail folds to the icon strip instead of disappearing, and
+   it is the fold the reader's own press makes — every rule here has its twin
+   above. Scoped to the shell's own rail; a sidebarNav() elsewhere keeps its
+   labels. Nothing here resizes a glyph: an icon-sizing rule inside a media query
+   is one src/styles/icon-size.test.js cannot measure, and it says so. */
 @media (max-width: 720px) {
-  .ui-app { grid-template-columns: 58px 1fr; }
-  .ui-app__rail { padding: var(--space-3) 6px; gap: var(--space-3); }
-  .ui-app__rail .ui-nav--side { width: auto; }
+  .ui-app { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
+  /* The strip is the only layout this width has, so there is nothing to fold. */
+  .ui-app__rail .ui-app__fold-row { display: none; }
   .ui-app__rail .ui-nav__cap,
   .ui-app__rail .ui-nav__label,
   .ui-app__rail .ui-nav__badge,
   .ui-app__rail .ui-nav__caret,
   .ui-app__rail .ui-app__who,
-  .ui-app__brand span { display: none; }
-  .ui-app__rail .ui-nav__item { justify-content: center; gap: 0; padding: 0; min-height: 44px; }
-  .ui-app__rail .ui-nav__item.is-active::before { left: 3px; }
-  .ui-app__rail .ui-nav__foot { padding-top: var(--space-2); }
-  .ui-app__brand { justify-content: center; padding: 2px 0; }
-  .ui-app__user { justify-content: center; padding-left: 0; padding-right: 0; }
-  /* A group's children are rail rows at this width too. The nested list is NOT
-     folded away: wireNav() toggles the `hidden` attribute and nothing else, so
-     a display:none here left the toggle announcing aria-expanded over a list it
-     could not reach — and took the row carrying aria-current with it. What goes
-     instead is the indent and its guide hairline; a 46px column has no room. */
-  .ui-app__rail .ui-nav__sub { margin: 0; padding-left: 0; border-left: 0; }
-  .ui-app__rail .ui-nav__item--sub.is-active::before { left: 3px; }
-  /* sidebarNav() takes `icon` as optional at every level, and the glyph is the
-     whole of a row on screen here — so a row without one, at any level, would be
-     a blank 44px target. It gets a dot in the row's own ink instead; the
-     aria-label names it either way. */
-  .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after {
-    content: "";
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-    opacity: 0.62;
+  .ui-app__brand span { opacity: 0; pointer-events: none; }
+  .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
+  .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
+  .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
+  @supports (anchor-name: --a) and (anchor-scope: --a) {
+    .ui-app { anchor-scope: --ui-rail; }
+    .ui-app__rail { anchor-name: --ui-rail; }
+    .ui-app__rail .ui-nav__item { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
+    .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
   }
   .ui-app__main { padding: 28px var(--space-4) 56px; }
   .ui-app__main h1 { font-size: 25px; }

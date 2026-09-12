@@ -430,6 +430,7 @@ function windowFor(theme, css) {
 const targetRun = await (async () => {
   const win = windowFor('dark', probeGeometry(sheet()));
   const controls = new Map();
+  const folded = [];
   const { stories, problems } = await walk(win, null, null, (where) => {
     for (const el of win.document.body.querySelectorAll(INTERACTIVE)) {
       const cs = win.getComputedStyle(el);
@@ -437,13 +438,30 @@ const targetRun = await (async () => {
       // switch and checkbox inputs are 0x0 under their own painted track, and
       // the track is the target; the input is not.
       if (cs.opacity === '0' || probe(cs, 'position') === 'absolute') continue;
+      // A rail the reader folded draws the same classes as an open one, so the
+      // de-duplication below would measure whichever a story drew first. Its
+      // controls are kept apart and every one is measured (#277).
+      if (el.closest('.ui-app.is-collapsed .ui-app__rail')) {
+        let drawn = true;
+        for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+          if (n.hasAttribute('hidden') || win.getComputedStyle(n).display === 'none') drawn = false;
+        }
+        folded.push({
+          where,
+          name: el.getAttribute('aria-label') || '',
+          label: (el.querySelector('.ui-nav__label')?.textContent || '').trim(),
+          drawn,
+          inClosedGroup: Boolean(el.closest('.ui-nav__sub[hidden]')),
+          ...boxOf(el, cs, glyphOf(el, win)),
+        });
+      }
       const key = `${el.tagName.toLowerCase()}.${[...el.classList].join('.')}`;
       if (controls.has(key)) continue;
       const box = boxOf(el, cs, glyphOf(el, win));
       controls.set(key, { key, ...box, where, path: selectorPath(el) });
     }
   });
-  return { stories, problems, controls: [...controls.values()] };
+  return { stories, problems, controls: [...controls.values()], folded };
 })();
 
 test('target size: every control the stories render is measured, none skipped', () => {
@@ -531,6 +549,39 @@ test('target size: the sm size the kit ships is measured, and is on the record',
   for (const c of sm) {
     assert.ok(c.height >= TARGET_MIN, `${c.key} is ${c.height}px high, under ${TARGET_MIN}px`);
   }
+});
+
+// ---- 1b. the rail the reader folded (#277) --------------------------------
+//
+// Folding the rail takes every label off the screen, which is exactly when the
+// floor is easiest to lose: a row is its glyph, its name is only an attribute,
+// and a rule that hides a row takes it out of the keyboard's reach.
+
+test('folded rail: a story renders one, and every control in it is measured', () => {
+  const specimens = new Set(targetRun.folded.map((c) => c.where));
+  assert.ok(
+    specimens.size >= 1,
+    'no story renders a rail the reader folded, so nothing measures the state the shell is folded into',
+  );
+  assert.ok(targetRun.folded.length >= 5, `only ${targetRun.folded.length} controls found in a folded rail`);
+  const short = targetRun.folded
+    .filter((c) => c.height < TARGET_MIN)
+    .map((c) => `${c.name || '(unnamed)'} — ${c.height}px high (${c.where})`);
+  assert.deepEqual(short, [], `a folded rail control under ${TARGET_MIN}px`);
+});
+
+test('folded rail: every control keeps a name with its label gone, and the name starts with the label', () => {
+  const bad = targetRun.folded
+    .filter((c) => !c.name || (c.label && !c.name.startsWith(c.label)))
+    .map((c) => `"${c.name}" for a row labelled "${c.label}" (${c.where})`);
+  assert.deepEqual(bad, [], 'a folded row has no name of its own, or one a speech user cannot say from the tag');
+});
+
+test('folded rail: every control a reader can reach is drawn', () => {
+  const gone = targetRun.folded
+    .filter((c) => !c.drawn && !c.inClosedGroup)
+    .map((c) => `${c.name} (${c.where})`);
+  assert.deepEqual(gone, [], 'a folded rail control is display:none, so Tab passes it by');
 });
 
 // ---- 2. the ring's contrast ------------------------------------------------

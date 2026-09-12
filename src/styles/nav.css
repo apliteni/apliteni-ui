@@ -9,12 +9,32 @@
 .ui-nav :where(ul, ol) { list-style: none; margin: 0; padding: 0; } /* floor, not ceiling */
 
 /* -- Sidebar rail -------------------------------------------------------- */
+/* The rail's two widths, and the one place they are written. --ui-nav-col is the
+   open column. --ui-nav-strip is twice a row's own glyph centre — the row's
+   padding plus half a glyph — so a strip that wide has the glyph standing in the
+   middle of it, exactly where it stood in the open rail. That is what lets the
+   fold animate: the column keeps --ui-nav-col and is clipped to the strip, so
+   the width travels and nothing inside it is laid out again. layout.css adds the
+   shell rail's own inset to both. stories/apps/shell-states.test.js derives the
+   strip from the resolved cascade and refuses a number that has drifted from it.
+   Declared for the shell as well as the nav, because the shell's rail is this
+   nav with an inset around it, and two copies of 41 is the drift itself. */
+.ui-nav--side,
+.ui-app { --ui-nav-col: 216px; --ui-nav-strip: 41px; }
 .ui-nav--side {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  width: 216px;
+  width: var(--ui-nav-col);
+  /* The width is the only property the fold travels. Nothing is clipped here:
+     inside the shell it is the rail that clips, and a clip of its own would have
+     been a second scroll box cutting the rows off at the rail's height. */
+  transition: width var(--dur-med) var(--ease);
 }
+/* Every block keeps the open column while the nav clips to the strip. Without
+   this each one stretches to whatever the nav is wide and every row inside it is
+   laid out again on each frame of the fold. */
+.ui-nav--side > * { width: var(--ui-nav-col); flex: none; }
 .ui-nav__section + .ui-nav__section { margin-top: 14px; }
 .ui-nav__list { display: flex; flex-direction: column; gap: 2px; }
 .ui-nav__cap {
@@ -23,6 +43,9 @@
   font-weight: var(--weight-medium);
   color: var(--muted);
   padding: 4px 12px 8px;
+  /* Goes on the labels' clock — a section heading is words, and the fold takes
+     every word on the rail together. */
+  transition: opacity var(--dur-fast) var(--ease);
 }
 
 /* Item row — link, group toggle, and leaf share the same skin */
@@ -72,7 +95,15 @@
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
 .ui-nav__item.is-active .ui-nav__ic svg,
 .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
-.ui-nav__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-nav__label {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  /* The words go before the closing edge reaches them, which is most of why the
+     fold is worth animating — a label cut through by that edge reads as the rail
+     eating it. --dur-fast against the width's --dur-med, as the reference times
+     its own. */
+  transition: opacity var(--dur-fast) var(--ease);
+}
 
 /* Destructive row (sign out, revoke). Quiet at rest, --pink once a pointer or
    the keyboard reaches it — as .ui-btn--danger and .ui-dropdown__item do. */
@@ -111,6 +142,10 @@
   line-height: 1;
   background: var(--surface-3);
   color: var(--dim);
+  /* The count fades with the words. It is never lost: sidebarNav() spells it
+     into the row's aria-label, so "Pending 3" is what a reader hears at either
+     width. */
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .ui-nav__badge.is-accent { background: var(--glow-purple); color: var(--accent); }
 .ui-nav__badge.is-live { background: var(--chip-success-fill); color: var(--chip-success-ink); }
@@ -135,7 +170,7 @@
   border-right: 1.6px solid var(--muted);
   border-bottom: 1.6px solid var(--muted);
   transform: rotate(-45deg);
-  transition: transform var(--dur-fast) var(--ease);
+  transition: transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
 .ui-nav__group.is-open > .ui-nav__toggle .ui-nav__caret { transform: rotate(45deg); }
 .ui-nav__sub {
@@ -164,16 +199,59 @@
 /* Footer slot (divider + trailing links, e.g. sign-out) */
 .ui-nav__foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
 
-/* Collapsed (icon-only) rail */
-.ui-nav--side.is-collapsed { width: 60px; align-items: stretch; }
+/* A row with no glyph, on a rail folded to its glyphs, would be a blank target.
+   It gets a dot on the glyph column instead — out of flow, so the open rail's
+   labels stay where they are, and resting at nothing, so what the fold does is
+   raise it rather than conjure it. 18px is the row's own 12px padding plus half
+   a 17px glyph less half the dot: the column the glyph beside it stands on.
+   sidebarNav() takes `icon` as optional at every level, sub rows included. */
+.ui-nav--side .ui-nav__item:not(:has(.ui-nav__ic))::after {
+  content: "";
+  position: absolute;
+  left: 18px; top: 50%;
+  width: 5px; height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+/* The nested list's indent, which the strip has no room for. It travels with the
+   width rather than vanishing under it: the guide hairline thins to nothing and
+   the children walk back onto the glyph column their parent stands on. */
+.ui-nav__sub {
+  transition: margin-inline-start var(--dur-med) var(--ease),
+    padding-inline-start var(--dur-med) var(--ease),
+    border-inline-start-width var(--dur-med) var(--ease);
+}
+
+/* Collapsed (icon-only) rail — the same fold the shell's rail makes, drawn once
+   rather than pressed: the column keeps its width and the nav clips to the
+   strip, so no row is laid out again and no glyph moves. A group's children stay
+   rows here, because wireNav() toggles the list's `hidden` attribute and nothing
+   else, so folding .ui-nav__sub away left the toggle announcing a list it could
+   not open. What goes is the indent and the words, and sidebarNav({ collapsed })
+   hands each row its name as a `title` so a pointer can still read it. The
+   shell's rail draws a chip of its own instead, on keyboard focus as well — see
+   layout.css. */
+.ui-nav--side.is-collapsed {
+  width: var(--ui-nav-strip);
+  /* clip, not hidden: a standalone rail has nothing around it to clip for it,
+     and `hidden` would make this a scroll box in both axes and cut the rows off
+     at whatever height it was given. `clip` across leaves `visible` down alone,
+     which is the one pair that does. */
+  overflow-x: clip;
+  overflow-y: visible;
+}
 .ui-nav--side.is-collapsed .ui-nav__cap,
 .ui-nav--side.is-collapsed .ui-nav__label,
 .ui-nav--side.is-collapsed .ui-nav__badge,
-.ui-nav--side.is-collapsed .ui-nav__caret { display: none; } /* motion: still — folding the rail is a layout change of the whole rail; animating these would reflow the page */
-.ui-nav--side.is-collapsed .ui-nav__item { justify-content: center; padding: 11px 0; gap: 0; }
-.ui-nav--side.is-collapsed .ui-nav__ic svg { width: 19px; height: 19px; stroke-width: 2; }
-.ui-nav--side.is-collapsed .ui-nav__item.is-active::before { left: 3px; }
-.ui-nav--side.is-collapsed .ui-nav__foot { text-align: center; }
+.ui-nav--side.is-collapsed .ui-nav__caret { opacity: 0; pointer-events: none; }
+.ui-nav--side.is-collapsed .ui-nav__sub {
+  margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0;
+}
+.ui-nav--side.is-collapsed .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
 
 /* -- Horizontal tabs ----------------------------------------------------- */
 .ui-nav--tabs {

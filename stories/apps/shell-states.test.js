@@ -72,6 +72,21 @@ const GROUPED = appShell({
   signOutHref: '#logout',
 });
 
+// One rail drawn open and folded by the reader, with every block the rail has:
+// the brand, a group holding the current page, sign out and the reader.
+const PAIR = (collapsed) => appShell({
+  word: 'Finance',
+  nav: [
+    { id: 'dashboard', icon: 'chart', label: 'Dashboard' },
+    { icon: 'card', label: 'Payouts', items: [{ id: 'pending', icon: 'clock', label: 'Pending', badge: 3 }] },
+  ],
+  active: 'pending',
+  account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+  signOutHref: '#logout',
+  collapsible: true,
+  collapsed,
+});
+
 function mount(html, { theme = 'dark', accent = 'default', narrow = false } = {}) {
   const vars = tokensFor(theme, accent);
   let raw = decomment(SHEETS.map(read).join('\n'));
@@ -146,7 +161,10 @@ const r2 = (n) => Math.round(n * 100) / 100;
 
 test('every entry in the rail is on screen in the folded rail', () => {
   const at = mount(GROUPED, { narrow: true });
-  const rows = [...at.doc.querySelectorAll('.ui-app__rail .ui-nav__item')];
+  // The nav's own rows. The fold toggle is a rail row's skin on a control that
+  // is not a place to go, and the strip is the only layout at this width, so it
+  // is drawn nowhere here — see the 720px block.
+  const rows = [...at.doc.querySelectorAll('.ui-app__rail .ui-nav__item:not(.ui-app__fold)')];
   assert.ok(rows.length >= 4, 'the fixture stopped carrying a group, a leaf and a footer row');
   const missing = rows.filter((row) => !at.shown(row)).map((row) => row.getAttribute('aria-label'));
   assert.deepEqual(
@@ -197,6 +215,290 @@ test('the labels-visible rail is unchanged', () => {
   const at = mount(GROUPED);
   assert.equal(at.shown(at.q('[aria-current="page"]')), true);
   assert.equal(at.css('.ui-nav__label', 'display'), 'inline', 'a wide rail lost its labels');
+});
+
+// ---- A1c. the reader's fold is the narrow fold (#277) ---------------------
+//
+// The reader folds the rail to the strip the viewport folds it to below 720px.
+// A media query cannot share a block with a class, so the fold is written twice
+// in layout.css, and two copies drift. Two gates stop them: the blocks compared
+// rule for rule as text, which sees pseudo-elements, and every element of the
+// rail resolved both ways, at rest and focused, which sees the cascade. The
+// toggle is left out — it is meant to differ, drawn in one and gone in the other.
+
+/** Split a selector list on its top-level commas. `:is(:hover, :focus-visible)`
+ *  carries one of its own, and splitting on it made two selectors out of one and
+ *  compared neither. */
+const selectors = (list) => {
+  const out = [];
+  let buf = '';
+  let depth = 0;
+  for (const ch of list) {
+    if (ch === '(' || ch === '[') depth += 1;
+    else if (ch === ')' || ch === ']') depth -= 1;
+    if (ch === ',' && depth === 0) { out.push(buf); buf = ''; continue; }
+    buf += ch;
+  }
+  out.push(buf);
+  return out.map((x) => x.trim().replace(/\s+/g, ' ')).filter(Boolean);
+};
+
+/** Every leaf rule of a sheet, each carrying the at-rules it is nested inside —
+ *  brace-matched, so a rule inside @supports is read and is not mistaken for a
+ *  second copy of the same selector outside it. */
+function leafRules(css) {
+  const out = [];
+  const at = [];
+  let i = 0;
+  while (i < css.length) {
+    const open = css.indexOf('{', i);
+    if (open < 0) break;
+    const close = css.indexOf('}', i);
+    if (close >= 0 && close < open) { at.pop(); i = close + 1; continue; }
+    const head = css.slice(i, open).trim().replace(/\s+/g, ' ');
+    const body = css.slice(open + 1);
+    if (head.startsWith('@')) { at.push(head); i = open + 1; continue; }
+    const end = css.indexOf('}', open);
+    out.push({ at: at.join(' '), head, decls: css.slice(open + 1, end) });
+    i = end + 1;
+  }
+  return out;
+}
+
+/** selector → its declarations, one entry per selector of a list, whitespace
+ *  folded. A selector is keyed by the at-rules around it as well, so the same
+ *  one may be written once outside @supports and once inside. A selector written
+ *  twice in one context is reported rather than overwritten, since the second
+ *  copy is exactly where a drift would hide. */
+function ruleMap(css, keep) {
+  const out = new Map();
+  const twice = [];
+  for (const rule of leafRules(css)) {
+    const decls = rule.decls.split(';').map((d) => d.trim().replace(/\s+/g, ' ')).filter(Boolean).sort().join('; ');
+    for (const one of selectors(rule.head)) {
+      if (!keep(one)) continue;
+      const key = rule.at ? `${rule.at} { ${one}` : one;
+      if (out.has(key)) twice.push(key);
+      out.set(key, decls);
+    }
+  }
+  assert.deepEqual(twice, [], 'a fold writes one selector twice, so comparing the last copy says nothing about the first');
+  return out;
+}
+
+test('the collapsed rail is the narrow rail, rule for rule', () => {
+  const css = decomment(read('src/styles/layout.css'));
+  const narrow = ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main') && !sel.includes('.ui-app__fold'));
+  const collapsed = new Map([...ruleMap(css, (sel) => sel.includes('.is-collapsed') && !sel.includes('.ui-app__fold'))]
+    .map(([sel, decls]) => [sel.replace(/:where\(\.ui-app\.is-collapsed\)\s*/g, '').replace('.ui-app.is-collapsed', '.ui-app'), decls]));
+  // A floor, not a count: it catches a sweep that has stopped finding the block,
+  // and it sits under the real number so adding or removing one rule does not
+  // have to be re-typed here. The fold is short on purpose now — it closes a box
+  // over a column instead of laying every row out a second way.
+  assert.ok(narrow.size >= 12, `only ${narrow.size} rules read out of the 720px fold — this gate compares nothing`);
+  assert.deepEqual(
+    Object.fromEntries(collapsed), Object.fromEntries(narrow),
+    'the reader\'s fold and the narrow fold have drifted apart. Each rule under '
+    + ':where(.ui-app.is-collapsed) in layout.css has a twin in the 720px block — change both.',
+  );
+});
+
+const nameOf = (el) => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`
+  + (el.getAttribute('aria-label') ? ` "${el.getAttribute('aria-label')}"` : '');
+const railOf = (at) => [at.q('.ui-app'), ...at.doc.querySelectorAll('.ui-app__rail, .ui-app__rail *')]
+  .filter((el) => !el.closest('.ui-app__fold-row'));
+
+test('the collapsed rail is the narrow rail, element for element', () => {
+  const diffs = [];
+  for (const theme of ['dark', 'light']) {
+    const narrow = mount(PAIR(false), { theme, narrow: true });
+    const folded = mount(PAIR(true), { theme });
+    const a = railOf(narrow);
+    const b = railOf(folded);
+    assert.equal(a.length, b.length, 'the two fixtures stopped drawing the same rail');
+    assert.ok(a.length > 20, `only ${a.length} rail elements compared — the fixture lost its blocks`);
+    const compare = (pairs, state) => {
+      for (const [x, y] of pairs) {
+        const cx = narrow.doc.defaultView.getComputedStyle(x);
+        const cy = folded.doc.defaultView.getComputedStyle(y);
+        for (const p of new Set([...Array.from(cx), ...Array.from(cy)])) {
+          const vx = cx.getPropertyValue(p);
+          const vy = cy.getPropertyValue(p);
+          if (vx !== vy) diffs.push(`${theme}${state} ${nameOf(x)} ${p}: narrow "${vx}", collapsed "${vy}"`);
+        }
+      }
+    };
+    compare(a.map((x, i) => [x, b[i]]), '');
+    a.forEach((row, i) => {
+      if (!row.matches('.ui-nav__item')) return;
+      row.setAttribute('data-ui-state', 'focus-visible');
+      b[i].setAttribute('data-ui-state', 'focus-visible');
+      const inside = [row, ...row.querySelectorAll('*')];
+      const twin = [b[i], ...b[i].querySelectorAll('*')];
+      compare(inside.map((x, j) => [x, twin[j]]), ` focused ${nameOf(row)} →`);
+      row.removeAttribute('data-ui-state');
+      b[i].removeAttribute('data-ui-state');
+    });
+  }
+  assert.deepEqual(diffs, [], 'the two folds resolve differently, although their rules read alike');
+});
+
+test('every entry in the collapsed rail is drawn, the current page among them', () => {
+  const at = mount(PAIR(true));
+  const rows = [...at.doc.querySelectorAll('.ui-app__rail .ui-nav__item')];
+  assert.ok(rows.length >= 5, 'the fixture stopped carrying a leaf, a group, its child, sign out and the toggle');
+  const missing = rows.filter((row) => !at.shown(row)).map((row) => row.getAttribute('aria-label'));
+  assert.deepEqual(missing, [], `${missing.length} rows are display:none in the collapsed rail, so the keyboard cannot reach them`);
+  assert.equal(at.shown(at.q('[aria-current="page"]')), true, 'the fold hid the row of the page the reader is on');
+});
+
+// ---- A1a. the fold travels, and nothing inside it is laid out again -------
+//
+// The reference folds a 248px column to 64px by clipping it, so every glyph is
+// where it was and only the width is on a clock. The kit does the same, and the
+// strip it closes to is not a number somebody liked: it is twice a row's own
+// glyph centre, which is the only width that leaves the glyph in the middle of
+// the closed rail. These two gates hold that arithmetic to the rules it is read
+// off, because a strip that drifts from it moves every glyph sideways on the
+// press and nothing else would say so.
+
+/** The first `prop` a selector sets in a sheet, as a number of px. */
+function pxOf(file, selector, prop) {
+  const css = decomment(read(file));
+  for (const [, sel, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!sel.split(',').map((x) => x.trim().replace(/\s+/g, ' ')).includes(selector)) continue;
+    const m = new RegExp(`(?:^|;)\\s*${prop}\\s*:([^;]+)`).exec(body);
+    if (!m) continue;
+    const n = /(-?[\d.]+)px/.exec(m[1].trim().split(/\s+/).at(prop === 'padding' ? -1 : 0));
+    if (n) return Number(n[1]);
+  }
+  return null;
+}
+
+test('the strip is twice the glyph column, so the fold moves no glyph sideways', () => {
+  const strip = pxOf('src/styles/nav.css', '.ui-nav--side', '--ui-nav-strip');
+  const pad = pxOf('src/styles/nav.css', '.ui-nav__item', 'padding');
+  const glyph = pxOf('src/styles/nav.css', '.ui-nav__ic svg', 'width');
+  assert.ok(strip && pad && glyph, `read strip=${strip} pad=${pad} glyph=${glyph} — one of the three rules has moved and this gate is measuring nothing`);
+  assert.equal(
+    strip, 2 * (pad + glyph / 2),
+    `the strip is ${strip}px and the glyph's centre is ${pad + glyph / 2}px from the row's edge, so the fold `
+    + 'lands the glyph off the middle of the rail and every glyph steps sideways on the press. The strip is '
+    + 'twice the centre, or it is a second geometry.',
+  );
+});
+
+test('a row with no glyph puts its dot on that same column', () => {
+  const css = decomment(read('src/styles/nav.css'));
+  const dot = /:not\(:has\(\.ui-nav__ic\)\)::after\s*\{([^{}]*)\}/.exec(css);
+  assert.ok(dot, 'nav.css draws no dot for an icon-less rail row — this gate is measuring nothing');
+  const num = (prop) => Number(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*(-?[\\d.]+)px`).exec(dot[1])?.[1]);
+  const pad = pxOf('src/styles/nav.css', '.ui-nav__item', 'padding');
+  const glyph = pxOf('src/styles/nav.css', '.ui-nav__ic svg', 'width');
+  assert.equal(
+    num('left') + num('width') / 2, pad + glyph / 2,
+    'the dot sits off the column the glyphs beside it stand on, so an icon-less row is a mark in the wrong place '
+    + 'rather than a row of the same rail',
+  );
+});
+
+// ---- A1c. a folded row's name arrives beside it ---------------------------
+//
+// The reference draws a tooltip on hover AND on keyboard focus; `title` only
+// ever had the first half. The label itself becomes the chip, so the words on
+// screen and the words in the accessibility tree are one string. The rail is a
+// scroll box and clips across as well as down, so the chip has to leave it:
+// that is what `position: fixed` is doing, and the anchor block above puts it
+// against the rail's edge and pins it to the row. Resolved here through the
+// cascade in both states; that it lands beside the row after a scroll and a
+// resize is a browser question, answered in the PR.
+
+const CHIP_STATES = [['hover', 'a pointer resting on the glyph'], ['focus-visible', 'the keyboard reaching it']];
+
+for (const [state, who] of CHIP_STATES) {
+  test(`a folded row gives its name back to ${who}`, () => {
+    for (const at of [mount(PAIR(true)), mount(PAIR(false), { narrow: true })]) {
+      const row = at.doc.querySelector('.ui-app__rail .ui-nav__item[aria-label]');
+      row.setAttribute('data-ui-state', state);
+      const label = row.querySelector('.ui-nav__label');
+      const cs = at.of(label, 'position');
+      assert.equal(cs, 'fixed', `the name stays inside the rail's own clip under ${state}, where nothing can see it`);
+      assert.equal(at.of(label, 'opacity'), '1', `the name is still faded out under ${state}`);
+      row.removeAttribute('data-ui-state');
+      assert.equal(at.of(label, 'opacity'), '0', 'a folded row shows its label with nothing pointing at it');
+    }
+  });
+}
+
+// The cascade above says the chip leaves the flow; it cannot say where it lands,
+// because JSDOM resolves no anchor positioning. This reads the two branches as
+// text instead, and holds each to the job the browser measurement in the PR
+// checked it doing: without anchor positioning the chip is placed from the
+// rail's own width, which is right until the rail scrolls; with it, both ends
+// are pinned to the row and the near edge to the rail, which is what survives a
+// scroll and a resize. Both copies of the fold are read, so neither can lose
+// its anchored branch quietly.
+
+const ANCHORED = '@supports (anchor-name: --a) and (anchor-scope: --a)';
+const CHIP = '.ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label';
+
+/** The chip rule of one fold, plain and anchored, keyed by the at-rules around it. */
+function chipRules(css) {
+  const out = { plain: null, anchored: null };
+  for (const rule of leafRules(css)) {
+    if (!selectors(rule.head).some((one) => one.endsWith(CHIP))) continue;
+    const decls = Object.fromEntries(rule.decls.split(';').map((d) => d.trim()).filter(Boolean)
+      .map((d) => [d.slice(0, d.indexOf(':')).trim(), d.slice(d.indexOf(':') + 1).trim()]));
+    out[rule.at.includes('anchor-name') ? 'anchored' : 'plain'] = decls;
+  }
+  return out;
+}
+
+test('a folded row\'s chip is placed twice: from the rail\'s width, and from the row itself', () => {
+  const css = decomment(read('src/styles/layout.css'));
+  const folds = {
+    'the reader\'s fold': chipRules(css.replace(unwrap(css, FOLD), '')),
+    'the 720px fold': chipRules(unwrap(css, FOLD)),
+  };
+  for (const [which, { plain, anchored }] of Object.entries(folds)) {
+    assert.ok(plain, `${which} draws no chip at all — a folded row has nothing but its glyph`);
+    assert.equal(plain.position, 'fixed',
+      `${which} places its chip inside the rail, which is a scroll box and clips it away`);
+    assert.match(plain.left, /--ui-rail-w/,
+      `${which} writes the chip's near edge as something other than the rail's own width, so the two can drift`);
+
+    assert.ok(anchored, `${which} lost its \`${ANCHORED}\` branch — the chip no longer follows a scrolled row`);
+    assert.equal(anchored['position-anchor'], '--ui-rail-row',
+      `${which} anchors its chip to something other than the row it names`);
+    assert.match(anchored.left, /anchor\(--ui-rail right\)/,
+      `${which} takes the chip's near edge from somewhere other than the rail's own edge`);
+    for (const side of ['top', 'bottom']) {
+      assert.match(anchored[side] ?? '', /^anchor\(/,
+        `${which} pins the chip's ${side} to something other than the row, so it drifts as the rail scrolls`);
+    }
+  }
+});
+
+test('an open rail leaves its labels where they are, in both states', () => {
+  const at = mount(PAIR(false));
+  const row = at.doc.querySelector('.ui-app__rail .ui-nav__item[aria-label]');
+  const label = row.querySelector('.ui-nav__label');
+  for (const [state] of CHIP_STATES) {
+    row.setAttribute('data-ui-state', state);
+    assert.equal(at.of(label, 'position'), 'static', `an open rail turns its label into a chip under ${state}`);
+    row.removeAttribute('data-ui-state');
+  }
+  assert.equal(at.of(label, 'opacity'), '1', 'an open rail fades its own labels');
+});
+
+test('the fold toggle is drawn wherever there is a fold to choose, and only there', () => {
+  const on = (html, opts) => { const at = mount(html, opts); return at.shown(at.q('.ui-app__fold')); };
+  assert.equal(on(PAIR(false)), true, 'the wide rail has no control to fold it');
+  assert.equal(
+    on(PAIR(true)), true,
+    'the collapsed rail lost the control that opens it, so a reader who folded it cannot unfold it',
+  );
+  assert.equal(on(PAIR(false), { narrow: true }), false, 'below 720px the toggle is drawn over a fold it cannot change');
 });
 
 // ---- A1b. an icon-less row is not a blank target -------------------------
@@ -308,13 +610,13 @@ test('the rail\'s scroll box has room for a focus ring at every edge', () => {
   const spread = /0\s+0\s+0\s+(\d+(?:\.\d+)?)px/.exec(tokensFor('dark').get('--ring'));
   assert.ok(spread, '--ring is no longer a spread-only shadow — re-derive what clips it');
   const need = Number(spread[1]);
-  for (const narrow of [false, true]) {
-    const at = mount(SHELL, { narrow });
+  for (const [mode, html, narrow] of [['wide', SHELL, false], ['folded', SHELL, true], ['collapsed', PAIR(true), false]]) {
+    const at = mount(html, { narrow });
     for (const side of ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft']) {
       const got = Number.parseFloat(at.css('.ui-app__rail', side));
       assert.ok(
         got >= need,
-        `the ${narrow ? 'folded' : 'wide'} rail has ${got}px of ${side} against a ${need}px `
+        `the ${mode} rail has ${got}px of ${side} against a ${need}px `
         + 'focus ring. overflow clips at the padding box, so the ring on the row nearest that '
         + 'edge is cut off and a keyboard reader loses the only thing telling them where they are.',
       );

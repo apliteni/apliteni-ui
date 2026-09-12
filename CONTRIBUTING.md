@@ -204,7 +204,7 @@ Four things the form asks of you, and the reason for each:
   count against what the pages declare, so a `ref:` written where that walk cannot see it
   makes the two disagree rather than falling between them.
 - **Story copy a reader sees anchors with a second code span**, not a backtick that would
-  land on the page: `${code('src/styles/nav.css:80')} ${code('.ui-nav__item.is-danger:hover')}`.
+  land on the page: `${code('src/styles/nav.css:111')} ${code('.ui-nav__item.is-danger:hover')}`.
 
 Two forms are exempt by construction, never by a list. A `<sha>:` prefix makes the citation
 historical — a claim about a tree that is not this one. And a path whose first segment is not

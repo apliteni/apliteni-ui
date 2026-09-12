@@ -1,12 +1,13 @@
 // The kit's one page shell. `appShell()` is a full-height rail — brand, the
-// kit's own sidebarNav(), the signed-in reader — beside one <main> that opens
-// with a breadcrumb trail the caller owns. `accountShell()` is a thin preset
-// over it that keeps the topbar, so the published /account API still works.
-// Call wireTopbar() once after mounting to wire the account menu + theme toggle.
+// kit's own sidebarNav(), the signed-in reader, the control that folds it —
+// beside one <main> that opens with a breadcrumb trail the caller owns.
+// `accountShell()` is a thin preset over it that keeps the topbar, so the
+// published /account API still works. Call wireShell() once after mounting for
+// the fold and the nav's groups, and wireTopbar() for the account menu.
 // why: docs/specification.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
-import { sidebarNav, breadcrumbs } from './nav.js';
+import { sidebarNav, breadcrumbs, wireNav } from './nav.js';
 import { backLink } from './back.js';
 import { prism } from '../assets/brand.js';
 import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
@@ -91,10 +92,58 @@ const mainMax = (v) => {
   return s === 'none' || LENGTH.test(s) ? s : '';
 };
 
+// ---- the fold, and where the reader's choice is kept ---------------------
+//
+// A cookie rather than localStorage, because a server can read a cookie: a page
+// rendered with `collapsed: railCollapsed(request.headers.cookie)` paints at the
+// width the reader left it, where one that waits for wireShell() paints wide and
+// then folds itself in front of the reader — the fold travels now, so a late
+// choice is a quarter of a second of the rail closing on a page they did not
+// press anything on.
+export const RAIL_COOKIE = 'apliteni-ui-rail';
+const RAIL_MAX_AGE = 60 * 60 * 24 * 365;
+const RAIL_VALUE = new RegExp(`(?:^|;\\s*)${RAIL_COOKIE}=(collapsed|expanded)(?:;|$)`);
+
+// A sandboxed frame throws on document.cookie; it has no stored choice.
+const cookieOf = (doc) => {
+  try { return doc ? doc.cookie : ''; } catch (e) { return ''; }
+};
+
+/** The reader's stored choice — true, false, or null when there is none. With no
+ *  argument it reads `document.cookie`; handed a Cookie header, only that. */
+export function railCollapsed(cookies) {
+  const src = arguments.length ? cookies : cookieOf(typeof document === 'undefined' ? null : document);
+  const m = RAIL_VALUE.exec(String(src ?? ''));
+  return m ? m[1] === 'collapsed' : null;
+}
+
+// The name says what the press will do, and aria-expanded says what the rail is.
+const railName = (collapsed) => (collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+
+// A row of the rail's own skin, outside the <nav>: folding the rail is not a
+// place to go. It stands at the foot under a rule of its own — the reference's
+// arrangement, where the head of the rail is the product's and the foot is the
+// rail talking about itself. The label is written out as well as named: the open
+// rail reads it, and the folded rail brings it back beside the glyph as a chip
+// on hover and on keyboard focus (layout.css).
+const railToggle = (collapsed) =>
+  `<div class="ui-app__fold-row">`
+  + `<button type="button" class="ui-nav__item ui-app__fold" data-rail-toggle`
+  + ` aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${railName(collapsed)}">`
+  + `<span class="ui-nav__ic">${icon('chevronLeft')}</span>`
+  + `<span class="ui-nav__label">${railName(collapsed)}</span></button></div>`;
+
 // The one pass. Each key names the function that settles it; nothing else in
 // this file re-checks a value that has been through here.
 const SHAPES = {
   nav: toItems, crumbs: toCrumbs, back: toBack, account: toReader, maxWidth: mainMax, topbar: toTopbar,
+  // Drawn by default, as the reference draws it: a rail a reader cannot fold is
+  // the thing this issue is about, and an opt-in nobody sets is the same rail.
+  // `collapsible: false` is the way out, for a page that will never call
+  // wireShell() and would otherwise ship a control that does nothing.
+  collapsible: (v) => v !== false,
+  // A boolean is the caller's answer. Anything else leaves it to the reader.
+  collapsed: (v) => (typeof v === 'boolean' ? v : null),
 };
 
 // The text options settle by the same argument. `body: null` from a record with no
@@ -155,6 +204,8 @@ export function appShell(options = {}) {
     signOutHref = '',
     topbar,
     maxWidth,
+    collapsible,
+    collapsed,
   } = settle(options);
   const up = back ? backLink(back) : '';
   const rail = sidebarNav({
@@ -172,11 +223,16 @@ export function appShell(options = {}) {
   // A <div>, not an <aside>: <aside> is the `complementary` landmark, and this holds the
   // page's primary navigation and the signed-in reader. The <nav> inside it is already
   // the landmark that names the menu.
-  const grid = `<div class="ui-app">
+  // A fold needs the toggle that undoes it. `data-rail="auto"` marks a shell whose
+  // caller left the choice to the reader; wireShell() applies the stored one there.
+  const folded = collapsible && collapsed === true;
+  const auto = collapsible && collapsed === null ? ' data-rail="auto"' : '';
+  const grid = `<div class="ui-app${folded ? ' is-collapsed' : ''}"${auto}>
     <div class="ui-app__rail">
       ${brand}
       ${rail}
       ${railUser(account)}
+      ${collapsible ? railToggle(folded) : ''}
     </div>
     <main class="ui-app__main"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
       ${up || (crumbs.length ? breadcrumbs({ items: crumbs }) : '')}
@@ -186,6 +242,77 @@ export function appShell(options = {}) {
     </main>
   </div>`;
   return topbar ? `<div class="ui-app-page">${productTopbar(topbar)}${grid}</div>` : grid;
+}
+
+// ---- Behaviour -----------------------------------------------------------
+// One click listener per document, so a shell rendered after wiring folds too
+// and a frame is wired in its own document. wireShell(root, { persist: false })
+// keeps every shell under root out of the cookie, shells drawn there later
+// included; only `persist: true` on that root turns it back on.
+const _wiredDocs = new WeakSet();
+const _unpersisted = new WeakSet();
+
+// Under an opted-out root? Steps out of a shadow root through its host.
+const optedOut = (node) => {
+  for (let n = node; n; n = n.parentNode || n.host) if (_unpersisted.has(n)) return true;
+  return false;
+};
+
+function setRail(app, collapsed) {
+  app.classList.toggle('is-collapsed', collapsed);
+  const rail = app.querySelector(':scope > .ui-app__rail');
+  if (!rail) return;
+  for (const btn of rail.querySelectorAll(':scope > .ui-app__fold-row > [data-rail-toggle]')) {
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    btn.setAttribute('aria-label', railName(collapsed));
+    const label = btn.querySelector('.ui-nav__label');
+    if (label) label.textContent = railName(collapsed);
+  }
+}
+
+function listen(doc) {
+  if (_wiredDocs.has(doc)) return;
+  _wiredDocs.add(doc);
+  doc.addEventListener('click', (e) => {
+    // A shell's own toggle only, in the foot of its own rail: a stray
+    // [data-rail-toggle] in the page body folds nothing. composedPath() rather
+    // than target, so a shell inside an open shadow root is found.
+    const btn = e.composedPath().find((n) => n.nodeType === 1 && n.matches('.ui-app__rail > .ui-app__fold-row > [data-rail-toggle]'));
+    const app = btn && btn.parentElement.parentElement.parentElement;
+    if (!app || !app.classList.contains('ui-app')) return;
+    const next = !app.classList.contains('is-collapsed');
+    setRail(app, next);
+    if (!optedOut(app)) {
+      try {
+        doc.cookie = `${RAIL_COOKIE}=${next ? 'collapsed' : 'expanded'}; path=/; `
+          + `max-age=${RAIL_MAX_AGE}; SameSite=Lax`;
+      } catch (err) { /* a sandboxed frame: the fold works, nothing is kept */ }
+    }
+    // A document with no window (DOMParser, createHTMLDocument) has no CustomEvent to send.
+    const view = doc.defaultView;
+    if (view) {
+      app.dispatchEvent(new view.CustomEvent('ui-rail', { bubbles: true, composed: true, detail: { collapsed: next } }));
+    }
+  });
+}
+
+export function wireShell(root = document, { persist } = {}) {
+  wireNav(root);
+  const doc = root.nodeType === 9 ? root : root.ownerDocument;
+  listen(doc);
+  if (persist === false) _unpersisted.add(root);
+  else if (persist === true) _unpersisted.delete(root);
+  const saved = railCollapsed(cookieOf(doc));
+  const apps = [...root.querySelectorAll('.ui-app')];
+  if (root.matches && root.matches('.ui-app')) apps.push(root);
+  for (const app of apps) {
+    if (!app.querySelector(':scope > .ui-app__rail > .ui-app__fold-row > [data-rail-toggle]')) continue;
+    // The stored choice goes to a shell whose caller left it to the reader — a
+    // paint late, where a server drew it without reading the cookie. Any other
+    // shell keeps what it was drawn with, and gets its rows' titles if folded.
+    const auto = saved != null && !optedOut(app) && app.getAttribute('data-rail') === 'auto';
+    setRail(app, auto ? saved : app.classList.contains('is-collapsed'));
+  }
 }
 
 // The /account preset: appShell() with the topbar switched on, and the old
@@ -203,6 +330,8 @@ export function accountShell({
   sub = '',
   body = '',
   signOutHref = '#logout',
+  collapsible = true,
+  collapsed,
 } = {}) {
   // The same normaliser appShell() runs, called once here so the rail and the
   // topbar menu are handed one list rather than two readings of `nav`.
@@ -222,6 +351,8 @@ export function accountShell({
     body,
     account,
     signOutHref,
+    collapsible,
+    collapsed,
     topbar: {
       word,
       view: 'text',

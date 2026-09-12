@@ -250,9 +250,72 @@ test('a nested row keeps the tighter metrics written for it after the item block
   assert.equal(sub.paddingTop, '7px', 'a nested row lost its tighter padding for the same reason');
 });
 
+// The icon-only rail used to force every group shut and fold its list away with
+// display:none, so the current page's own row could be neither seen nor focused
+// and the toggle announced a list it could not open (#277).
+test('a group on the icon-only rail opens over the current page, as it does anywhere', () => {
+  const rail = sidebarNav({
+    collapsed: true,
+    active: 'p',
+    items: [{ icon: 'card', label: 'Payouts', items: [{ id: 'p', icon: 'clock', label: 'Pending' }, { id: 'h', label: 'History' }] }],
+  });
+  const kit = substitute(decomment(read('src/styles/base.css') + '\n' + read('src/styles/nav.css')), tokensFor('dark'));
+  const w = new JSDOM(
+    `<!doctype html><html lang="en" data-theme="dark"><head><style>${kit}</style></head><body>${rail}</body></html>`,
+    { pretendToBeVisual: true },
+  ).window;
+  const shown = (el) => {
+    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      if (n.hasAttribute('hidden') || w.getComputedStyle(n).display === 'none') return false;
+    }
+    return true;
+  };
+  const toggle = w.document.querySelector('.ui-nav__toggle');
+  const list = w.document.getElementById(toggle.getAttribute('aria-controls'));
+  assert.equal(toggle.getAttribute('aria-expanded'), 'true', 'the group holding the current page is shut on the icon-only rail');
+  assert.equal(shown(list), true, 'the toggle says expanded over a list the icon-only rail does not draw');
+  assert.equal(shown(w.document.querySelector('[aria-current="page"]')), true, 'the current page\'s row is hidden on the icon-only rail');
+  list.setAttribute('hidden', '');
+  assert.equal(shown(list), false, 'the nested list ignores its own hidden attribute, so wireNav() cannot close it');
+});
+
+test('an icon-less row on the icon-only rail is given a mark of its own', () => {
+  const rail = sidebarNav({
+    collapsed: true,
+    active: 'h',
+    items: [{ icon: 'card', label: 'Payouts', items: [{ id: 'h', label: 'History' }] }, { id: 'x', label: 'Plain' }],
+  });
+  const doc = new JSDOM(`<!doctype html><html lang="en"><body>${rail}</body></html>`).window.document;
+  // A rule that matches the row and draws nothing is not a mark, so the rule has to
+  // generate a box as well as select the row.
+  // The mark is drawn on every rail row that has no glyph and raised by the fold,
+  // rather than conjured by it — a box that arrived with the fold would arrive in
+  // one frame. So the drawing rule and the rule that shows it are two, and both
+  // have to be there: a selector that matches nothing is not a mark, and neither
+  // is a mark the fold leaves at zero.
+  const rules = [...decomment(read('src/styles/nav.css')).matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+  const marks = rules
+    .filter(([, sel, body]) => sel.includes('::after')
+      && /content:\s*""/.test(body) && /\bwidth:\s*\d/.test(body) && /\bheight:\s*\d/.test(body))
+    .flatMap(([, sel]) => sel.split(',').map((x) => x.trim().replace(/::after$/, '')));
+  assert.ok(marks.length, 'nav.css draws no ::after for a rail row — this gate measures nothing');
+  const raised = rules
+    .filter(([, sel, body]) => sel.includes('.is-collapsed') && sel.includes('::after')
+      && /opacity:\s*0?\.\d/.test(body))
+    .flatMap(([, sel]) => sel.split(',').map((x) => x.trim().replace(/::after$/, '')));
+  assert.ok(raised.length, 'the fold raises no ::after, so the mark it draws stays invisible');
+  const blank = [...doc.querySelectorAll('.ui-nav__item')].filter((row) => !row.querySelector('.ui-nav__ic'));
+  assert.ok(blank.length >= 2, 'the fixture stopped carrying an icon-less child and an icon-less leaf');
+  const unmarked = blank.filter((row) => !marks.some((sel) => row.matches(sel)) || !raised.some((sel) => row.matches(sel)));
+  assert.deepEqual(
+    unmarked.map((row) => row.getAttribute('aria-label')), [],
+    'an icon-less row on the icon-only rail draws nothing, so it is a blank target nobody can identify',
+  );
+});
+
 // ---- 3. appShell() — the kit's one page shell ----------------------------
 
-const { appShell, accountShell, ACCOUNT_NAV } = await import('../../src/components/shell.js');
+const { appShell, accountShell, ACCOUNT_NAV, RAIL_COOKIE } = await import('../../src/components/shell.js');
 const { accountMenu } = await import('../../src/components/topbar.js');
 
 test('the shell emits exactly one main landmark', () => {
@@ -262,6 +325,79 @@ test('the shell emits exactly one main landmark', () => {
     'the shell must have exactly one answer to "where does the page content start"',
   );
 });
+
+// ---- 3b. the control that folds the rail (#277) ---------------------------
+
+test('the rail carries the fold toggle by default, and drops it only when told to', () => {
+  assert.match(
+    appShell({ title: 'T' }), /data-rail-toggle/,
+    'a rail nobody can fold is the thing this issue is about — the control is the default, as it is in the reference',
+  );
+  assert.match(accountShell({}), /data-rail-toggle/, 'the /account preset drew no toggle');
+  assert.doesNotMatch(
+    appShell({ collapsible: false }), /data-rail-toggle/,
+    'collapsible: false is the way out for a page that will never call wireShell(); it drew the control anyway',
+  );
+  assert.doesNotMatch(appShell({ collapsible: false, collapsed: true }), /is-collapsed/, 'the rail folded with no toggle to open it again');
+  assert.doesNotMatch(accountShell({ collapsible: false }), /data-rail-toggle/, 'the preset ignored its own opt-out');
+  // Only `false` opts out. Anything else is not an answer, so the default stands.
+  for (const v of ['no', 0, 'false', null]) {
+    assert.match(appShell({ collapsible: v }), /data-rail-toggle/, `collapsible: ${JSON.stringify(v)} was read as opting out`);
+  }
+});
+
+test('the toggle is a native button outside the navigation landmark', () => {
+  const btn = dom(appShell({ title: 'T' })).querySelector('.ui-app__rail [data-rail-toggle]');
+  assert.ok(btn, 'the shell was asked for a fold and drew no control for it');
+  assert.equal(btn.tagName, 'BUTTON', 'the toggle is not a native button, so Enter and Space are not the browser\'s');
+  assert.equal(btn.getAttribute('type'), 'button', 'a toggle inside a form would submit it');
+  assert.equal(
+    btn.closest('nav'), null,
+    'the toggle sits inside the navigation landmark, where a screen reader lists it among the places to go',
+  );
+});
+
+test('the toggle is named for the press and announces the rail as it is', () => {
+  for (const [collapsed, name, expanded] of [[false, 'Collapse sidebar', 'true'], [true, 'Expand sidebar', 'false']]) {
+    const btn = dom(appShell({ collapsible: true, collapsed })).querySelector('[data-rail-toggle]');
+    assert.equal(btn.getAttribute('aria-label'), name);
+    assert.equal(btn.getAttribute('aria-expanded'), expanded);
+    assert.equal(
+      btn.querySelector('.ui-nav__label').textContent, name,
+      'the toggle\'s written label says something other than its name',
+    );
+  }
+});
+
+test('a boolean `collapsed` is the caller\'s answer; anything else is left to the reader', () => {
+  assert.match(appShell({ collapsible: true, collapsed: true }), /class="ui-app is-collapsed">/);
+  assert.match(appShell({ collapsible: true, collapsed: false }), /class="ui-app">/);
+  for (const v of [undefined, null, 'true', 1]) {
+    assert.match(
+      appShell({ collapsible: true, collapsed: v }), /class="ui-app" data-rail="auto">/,
+      `collapsed: ${JSON.stringify(v)} was read as an answer — only a boolean is the caller's`,
+    );
+  }
+});
+
+test('appShell() reads no stored state, so one call draws the same markup everywhere', () => {
+  const had = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { value: { cookie: `${RAIL_COOKIE}=collapsed` }, configurable: true });
+  try {
+    assert.match(
+      appShell({ collapsible: true }), /class="ui-app" data-rail="auto">/,
+      'the factory read the cookie, so a server and a browser draw the same call two ways',
+    );
+  } finally {
+    if (had) Object.defineProperty(globalThis, 'document', had); else delete globalThis.document;
+  }
+});
+
+test('accountShell() passes the fold through to the shell it draws', () => {
+  assert.match(accountShell({ collapsible: true, collapsed: true }), /class="ui-app is-collapsed"/);
+  assert.match(accountShell({ collapsible: true }), /data-rail="auto"/);
+});
+
 
 test('the shell renders the trail the caller passed, and adds no product word of its own', () => {
   const html = appShell({

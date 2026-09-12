@@ -78,7 +78,7 @@ The whole `/account` layout (topbar + sticky sidebar + page body) ships as one
 factory, so every product renders the same account shell instead of re-building it:
 
 ```js
-import { accountShell, card, switchToggle, wireTopbar } from '@apliteni/apliteni-ui';
+import { accountShell, card, switchToggle, wireTopbar, wireShell } from '@apliteni/apliteni-ui';
 
 el.innerHTML = accountShell({
   word: 'Strategy',                              // the product word in the topbar
@@ -89,8 +89,10 @@ el.innerHTML = accountShell({
   body: card({ title: 'Appearance', body: switchToggle({ label: 'Reduce motion' }) }),
 });
 wireTopbar(el);                                  // menus, theme toggle, segmented controls
+wireShell(el);                                   // the toggle that folds the rail, and the nav's groups
 
 // Custom sidebar nav? pass `nav: [['prefs','gear','Preferences'], ['billing','wallet','Billing']]`
+// A page that will never call wireShell()? pass `collapsible: false` and no toggle is drawn
 ```
 
 Server-rendered apps that inline CSS (like the strategy portal) import the stylesheet

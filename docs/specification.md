@@ -646,6 +646,60 @@ What the shell guarantees:
 - **The narrow rail is CSS, not JavaScript.** `sideLeaf()` emits `aria-label` at every width, so
   `layout.css` folds `.ui-nav__label` out of view below 720px with the accessible name intact.
   Nothing re-renders on resize and the consumer wires no listener.
+- **The reader can fold the rail, and the control is drawn by default.** `appShell()` draws a
+  toggle at the rail's foot, under a rule of its own, that folds the rail to the same icon strip
+  and opens it again. `collapsible: false` is the way out, for a page that will never call
+  `wireShell()` and would otherwise ship a control that does nothing. It is a native `<button>`
+  outside the navigation landmark, named for what the press will do — "Collapse sidebar", "Expand
+  sidebar" — with `aria-expanded` saying what the rail is now. A media query cannot share a block
+  with a class, so the fold is written twice in `layout.css`; `stories/apps/shell-states.test.js`
+  compares the two rule for rule and resolves both on every element of the rail. Below 720px the
+  toggle is not drawn, because the strip is the only layout there. Its mark is the kit's own
+  `chevronLeft`, turned through 180° on `--dur-fast` — the turning caret [Motion](#motion) names,
+  rather than a glyph drawn for this one control.
+- **The fold travels, and no glyph moves while it does.** The rail's column keeps its open width
+  and the box closes over it, so nothing inside is laid out a second way: the width goes from
+  249px to 74px on `--dur-med` and `--ease`, and the words fade on `--dur-fast` so the closing edge
+  slides over an empty row rather than cutting through a label. The strip is not a number somebody
+  liked — it is twice a row's own glyph centre, its padding plus half a glyph, which is the one
+  width that leaves the glyph standing in the middle of the closed rail. `--ui-nav-col` and
+  `--ui-nav-strip` in `nav.css` are the only two places either is written, and
+  `stories/apps/shell-states.test.js` derives the strip from the rules it is read off. Under
+  `prefers-reduced-motion` the kit's net takes both to 0.01ms, so the fold arrives in one frame.
+- **The reader's choice outlives the page.** A press is written to the `apliteni-ui-rail` cookie
+  (a year, `path=/`, `SameSite=Lax`). `appShell()` itself reads nothing. A boolean `collapsed`
+  is the caller's and is left alone, and it does nothing under `collapsible: false`, since a fold
+  needs the control that undoes it. A collapsible shell drawn without one takes the stored choice
+  when `wireShell()` runs, which a client-rendered route change does after mounting, as every
+  `wire*` function asks. A cookie and not `localStorage`, because a server can read it:
+  `appShell({ collapsed: railCollapsed(request.headers.cookie) })` paints the
+  right width on a full page load, where waiting for `wireShell()` paints it open for a frame.
+  `wireShell(root, { persist: false })` keeps every shell under that root out of the cookie, shells
+  drawn there later included, and applies no stored choice to them; a later call without the
+  option does not undo it. Each press sends a bubbling `ui-rail` event whose `detail.collapsed`
+  says what the rail is now. Held by `stories/apps/shell-rail.test.js`.
+- **A folded row gives its name back, to the keyboard as well as the pointer.** Fading a label
+  costs a screen reader nothing, because the name is the row's `aria-label`, and the counter is
+  spelled into it, so a badge that fades out is not a count that is lost. On hover or keyboard
+  focus the label itself leaves the flow and lands beside the rail as a chip — one string on
+  screen and in the accessibility tree, where a `title` was a second copy and showed to a pointer
+  only. The rail is a scroll box and clips across as well as down, so the chip is `position:
+  fixed` — and `fixed` rather than `absolute` because the rail is `position: sticky`, which makes
+  it the containing block for every absolutely positioned descendant, so an `absolute` chip is
+  clipped by it wherever the rest of the tree is positioned. Where the browser has CSS anchor
+  positioning the chip is pinned to the rail's edge and to the row, which is what keeps it in place
+  through a scroll of the rail, a scroll of the page and a resize — measured at the row's own
+  centre, within a hundredth of a pixel, in all four.
+  Without anchor positioning the chip keeps the place its row gave it when the rail was last laid
+  out, so it is exact until the rail scrolls and then stands as far above its row as the rail has
+  scrolled. That is the one thing anchor positioning buys and nothing else in CSS does: a box that
+  escapes the rail's clip has left the rail's scroll, and a box that has not escaped it is not
+  drawn. Every control in a folded rail clears the 24px target floor, wears the focus ring
+  every row wears, and stays drawn, so Tab reaches it. Held by `stories/apps/shell-rail.test.js`,
+  `stories/apps/shell-states.test.js` and `stories/guidelines/accessibility-floor.test.js`.
+- **The icon-only `sidebarNav({ collapsed })` keeps the current page reachable.** A group opens
+  over the page the reader is on, as it does at any width, and a row with no glyph is given a dot
+  rather than left blank. Held by `stories/apps/shell.test.js`.
 - **A nav entry carries the same icon and label everywhere it appears.**
 - **The rail holds nothing that has to escape it.** `.ui-app__rail` is `position: sticky` with
   `overflow-y: auto`, and each of those traps a popover on its own — see

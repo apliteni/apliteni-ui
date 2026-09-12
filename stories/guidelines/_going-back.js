@@ -100,7 +100,7 @@ export const RULES = [
       + 'when the only useful way up is one step. The UK government design system puts the rest in a '
       + 'line: “Never use the back link component together with the Breadcrumbs component.” Handed '
       + 'both, appShell() draws the link and leaves the trail out.',
-    kit: [{ ref: 'src/components/shell.js:182', pattern: '${up || (crumbs.length' }],
+    kit: [{ ref: 'src/components/shell.js:238', pattern: '${up || (crumbs.length' }],
   },
   {
     id: 'section-lit',
@@ -115,7 +115,7 @@ export const RULES = [
       + 'rail true. Marking it aria-current="true" rather than "page" keeps it true for a screen reader '
       + 'too, which would otherwise announce the list as the page on screen. appShell() does both when '
       + 'it is handed a back link.',
-    kit: [{ ref: 'src/components/nav.js:108', pattern: "const current = activeIs === 'section'" }],
+    kit: [{ ref: 'src/components/nav.js:109', pattern: "const current = activeIs === 'section'" }],
   },
   {
     id: 'quiet',
