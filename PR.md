@@ -238,6 +238,38 @@ this repo has already shipped two bumping to the same version, so the coordinato
 version at merge. The changelog lines are under *Changelog entry* below, and the bump is the one
 thing left to add on top of this branch.
 
+## Five citations this branch cannot fix, and what they become at merge
+
+`stories/guidelines/_the-page.js` cites five lines that #286 (the rail the reader folds) moves.
+Neither branch's files touch, so git merges both without a marker and then
+`stories/guidelines/refs.test.js` goes red on the merged tree — in either merge order. The five
+citations are correct on this branch as it stands, so they cannot be repaired here: writing the
+post-merge numbers now would fail this branch's own `refs.test.js`.
+
+Merged for real off `origin/main` @ `7ffbde4` — #286 first, then this branch — and the gate
+printed the numbers itself:
+
+| rule | reference on this branch | line on the merged tree |
+|---|---|---|
+| `shell` | `src/components/shell.js:140` — `export function appShell` | **189** |
+| `head` | `src/components/shell.js:182` — `crumbs.length ? breadcrumbs` | **238** |
+| `lede` | `src/components/shell.js:184` — `ui-app__sub` | **240** |
+| `outline` | `src/styles/layout.css:136` — `rank: page-title` | **205** |
+| `navs` | `src/components/nav.js:167` — `ui-nav--crumbs` | **168** |
+
+Whoever merges second edits those five numbers in `_the-page.js` and re-runs
+`node --test stories/guidelines/refs.test.js`, which prints any that have moved again. Citing by
+heading anchor instead would not help: `refs.test.js`'s `parseRef` accepts `file:line` and nothing
+else, and every one of the collection's seventeen pages cites that way.
+
+That merge also gives exactly two conflicts, both expected: `PR.md`, whole file — a scratch file,
+take whichever branch merges second — and the `appShell(...)` row of `docs/library.md`, where both
+branches rewrite the cell. The resolution is a union: keep #286's three rows (the
+`collapsible, collapsed` signature, its new `wireShell(...)` row, the `accountShell` passthrough)
+and splice this branch's one sentence — *"What may then go on the page it opens … is The page,
+and Guidelines / The page draws it"*, with its link to `docs/specification.md#the-page` — into the
+`appShell` cell after "beside exactly one `<main>`." Nothing else conflicts.
+
 ## A ledger this moved, and one failure that is the box
 
 `scripts/font-loading.test.js` counts the pages in the tree that load a webfont, because *"a
