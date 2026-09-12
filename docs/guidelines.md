@@ -23,7 +23,7 @@ A rule is a plain object in a content module's `RULES` array.
 | `why` | required without a pair | One sentence on what breaking it costs. Rendered only when the rule has no specimens — a pair says the same thing faster. |
 | `doHtml` / `dontHtml` | both or neither | Functions returning the specimen pair's markup. |
 | `doCaption` / `dontCaption` | required with a pair | What the picture cannot say. |
-| `except` | optional | Where the rule stops applying. Leave it out rather than empty — not every rule has a boundary, and inventing one to fill the field is worse than an absent one. |
+| `except` | optional | Where the rule stops applying. Omit it when the rule has no exception; do not leave it empty or invent a boundary. |
 | `kit` | optional | `[{ ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' }]` — code in this repo that already applies the rule, so a reader can copy a working one. |
 | `unmet` | optional | `{ issue, note }` — the kit does not meet this rule yet, and the issue tracking it. |
 | `id` | | A handle for talking about the rule. Nothing renders it. |
@@ -61,9 +61,8 @@ A rule with no pair stands on its `why` instead.
 
 `stories/guidelines/refs.test.js` resolves every `kit` entry on every page: the file
 exists, the line exists, and the line contains the entry's `pattern`. A failure names
-the page, the rule, the reference, and where the pattern moved to — so a refactor that
-shifts a cited line fails CI instead of pointing a reader at the wrong code. The same
-file checks each rule's shape: an `imperative` that says something, a pair that is both
+the page, rule, reference, and where the pattern moved to. Shifting a cited line therefore
+fails CI until the reference is updated. The same file checks each rule's shape: an `imperative` that says something, a pair that is both
 halves or neither, captions on a pair, a `why` on a rule without one, and an `unmet`
 that is `{ issue, note }`.
 

@@ -1,8 +1,7 @@
 # The Storybook workbench
 
-Storybook is where components are built, themed, and reviewed. Because the kit is HTML
-strings, `@storybook/html-vite` renders exactly what ships — a story is a factory call
-whose returned string becomes the canvas.
+Build, theme, and review components in Storybook. `@storybook/html-vite` renders the
+kit's HTML strings: a story calls a factory and puts its returned string on the canvas.
 
 ## Config (`.storybook/`)
 
