@@ -80,10 +80,16 @@
  * that spends it, not the surfaces. If this rule ships, --muted is re-picked
  * with it — see the review page.
  *
- * Light cannot run the same rule, because nothing is brighter than the white
- * the card already is. So light inverts it: the CARD holds still at white and
- * the PAGE comes down to meet it. Same rule — the gap between page and card
- * opens — reached from the only end light has spare.
+ * Light cannot run the rule in the same direction, because nothing is brighter
+ * than the white the card already is. It runs DOWNWARDS instead: white is kept
+ * for the top of the ladder — the floating panel — and the page and the card
+ * both come down to make room under it.
+ *
+ * The obvious alternative was tried first and drawn: keep the card pure white
+ * and let --bg-elevated stay white too. It renders a menu opened over a card as
+ * white on white with no shadow and no border — the panel disappears. So in
+ * light the card comes off white by one step. That is the real price of this
+ * rule, and it is the thing to look at on the light screenshots.
  * ------------------------------------------------------------------------- */
 :root[data-elev="lift"],
 :root[data-elev="lift-line"],
@@ -101,12 +107,18 @@
 :root[data-theme="light"][data-elev="lift"],
 :root[data-theme="light"][data-elev="lift-line"],
 :root[data-theme="light"][data-elev="frost"] {
-  --bg: #f1f2f6;            /* was #ffffff — the app stops being white */
-  --surface-2: #e8eaf1;     /* was #f5f6f9 — the sunken step, a shade deeper */
-  --surface: #ffffff;       /* unchanged — the card is now the brightest thing */
-  --bg-elevated: #ffffff;   /* unchanged, and now it means something */
-  --surface-3: #dfe2ea;     /* was #eceef3 */
+  --bg: #eef0f5;            /* was #ffffff — the app stops being white */
+  --surface-2: #e3e6ee;     /* was #f5f6f9 — the SUNKEN step: fields, tracks, disabled */
+  --surface: #f8f9fc;       /* was #ffffff — the card comes off white by one step */
+  --bg-elevated: #ffffff;   /* unchanged, and now it is the only white on screen */
+  --surface-3: #e7eaf1;     /* was #eceef3 — the tooltip; see below */
 }
+/* The tooltip is the one place the ladder inverts in light, and on purpose. In
+ * dark it rides --surface-3 at the TOP of the ladder. In light there is nothing
+ * above the white a panel already is, and a readout laid over a chart has to
+ * stay legible rather than lifted, so light keeps it a grey — a step deeper
+ * than today's, tracking the page down. Measured: --muted clears AA on it at
+ * 5.07, and --text at 13.85. */
 
 /* The one component change the ladder needs, and the reason it is not optional.
  * Six floating surfaces paint --surface-2 today, which the ladder re-points to

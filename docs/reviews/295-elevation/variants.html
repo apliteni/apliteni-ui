@@ -36,10 +36,17 @@
   .p-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-6); margin: 0; font-size: var(--text-sm); }
   .p-facts dt { color: var(--muted); }
   .p-facts dd { margin: 0; color: var(--text); }
-  /* A stand-in for a chart, so the hover readout has a mark to sit above. */
-  .p-spark { display: flex; align-items: flex-end; gap: 8px; height: 72px; width: 216px; }
+  /* A stand-in for a chart, so the hover readout has a mark to sit above. The
+     readout opens ABOVE the bars, so the strip carries enough top margin for it
+     to land in clear space rather than over the list above it. */
+  .p-spark { display: flex; align-items: flex-end; gap: 8px; height: 72px; width: 216px; margin-top: 78px; }
   .p-spark__bar { flex: 1; border-radius: 3px 3px 0 0; background: var(--surface-3); }
   .p-spark__bar.is-on { background: var(--accent); }
+  /* The modal takes focus when it opens, and headless Chrome paints its default
+     outline on the panel. That ring is real product behaviour and it is the same
+     in every variant, but it draws an edge around a panel that `lift` is
+     specifically claiming not to have — so it is off for the screenshots only. */
+  .rx-modal:focus, .rx-modal:focus-visible { outline: none; }
   .p-toasts { position: fixed; right: var(--space-6); bottom: var(--space-6); width: 360px; max-width: calc(100vw - var(--space-8)); display: flex; flex-direction: column; gap: var(--space-3); z-index: var(--z-toast); }
   @media (max-width: 860px) {
     .p-cols { grid-template-columns: minmax(0, 1fr); }
@@ -113,7 +120,7 @@
       // The hover readout, drawn open as a picture: `open` renders it shown and
       // the host omits data-tip-host, so no wiring takes it back down. It is the
       // fifth floating surface on the page, and the newest (#282).
-      + `<div class="ui-tip-host p-spark" style="margin-top:var(--space-5)">`
+      + `<div class="ui-tip-host p-spark">`
       + [34, 46, 40, 62, 55, 68].map((h, i) =>
           `<span class="p-spark__bar${i === 3 ? ' is-on' : ''}" style="height:${h}%"></span>`).join('')
       + tooltip({ label: 'June', value: '12 seats', detail: '+2 on May', open: true, x: 122, y: 20 })
