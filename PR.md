@@ -30,9 +30,11 @@ that every other gate was green about:
 - **A page-sized component with no page title.** `success()` — the screen a flow lands on — drew
   its title as an `h3`, found in review rather than by the first draft of the gate.
 
-**What I did.** Wrote *Guidelines / The page* — ten rules covering the four scopes — and
+**What I did.** Wrote ten rules covering the four scopes and
 `stories/guidelines/the-page.test.js`, which discovers every screen under `stories/apps/` and
-holds each of them to every rule. Fixed the three faults. Put the four numbers that are judgement
+holds each of them to every rule. Eight of the ten are drawn on *Guidelines / The page*, written
+for whoever is designing the screen; the other two are the kit's own decisions and are stated in
+[the contract](docs/specification.md#the-page). Fixed the three faults. Put the four numbers that are judgement
 calls in front of Artur as rendered screens.
 
 **The verdict: Changed.** The issue asks for a document, and a document nothing enforces is a
@@ -107,22 +109,59 @@ Checked for specifically across all twelve:
 **Guidelines / The page** — `stories/guidelines/_the-page.js`, first in the Guidelines sidebar
 under the Overview, because it is the frame the other sixteen hang off.
 
-| Rule | What it holds | Cites |
+| Rule | Where it is stated | What it holds |
 |---|---|---|
-| `shell` | An application page is `appShell()`'s. The two page kinds outside it — an auth card, a marketing page — are named, and inside every other rule | the page shell |
-| `head` | The way back, the title, the lede, the body. Nothing above the title but the way back | Going back (#290), Stat bands (#288) |
-| `one-h1` | One page, one `h1`, and it is the page title | Labels and titles (#292) |
-| `outline` | Down one rank at a time, stopping at `h3` | Labels and titles (#292) |
-| `one-primary` | One primary button. An overlay carries its own; a marketing page is out | Destructive actions |
-| `stacking` | Six cards at most, and no card inside a card. A stat band is one thing whatever it draws | Drawers (#289), Stat bands (#288) |
-| `navs` | Every navigation landmark named, and no two on a page sharing a name | The command palette (#293) |
-| `at-rest` | No drawer, confirm, toast, readout or palette on screen at load | Drawers (#289), Hover readouts (#287) |
-| `density` | One density per page, and no screen writes its own cell padding | Layout and density, Pagination (#279) |
-| `lede` | Two sentences at most, and not one of them the title again | Microcopy and tone |
+| `head` | the page | The way back, the title, the line under it. Nothing else above the title |
+| `one-h1` | the page | One title, and only one |
+| `outline` | the page | Down one level at a time, stopping three deep |
+| `one-primary` | the page | One filled button; everything else is quieter |
+| `stacking` | the page | Six cards at most, and no card inside a card |
+| `at-rest` | the page | Nothing over the page until the reader asks |
+| `density` | the page | One row height, every table or none |
+| `lede` | the page | Two sentences at most, and not one of them the title again |
+| `shell` | the contract | An application page is `appShell()`'s, and it draws one `<main>` |
+| `navs` | the contract | Every navigation landmark named, and no two on a page sharing a name |
 
-Every citation is a `kit` entry — a file, a line and a literal on that line — and
-`stories/guidelines/refs.test.js` resolves all twenty-one of them, so a rule that cites a page whose
-line has moved fails the build rather than pointing a reader at the wrong rule.
+Each of the eight on the page ends in one citation — a file, a line and a literal on that line —
+and `stories/guidelines/refs.test.js` resolves all eight, so a rule whose line has moved fails the
+build rather than pointing a reader at the wrong code. The two in the contract cite by file and
+symbol instead, in the mapping table under
+[docs/specification.md#the-page](docs/specification.md#the-page); nothing there carries a line
+number, because a line number in a document no gate resolves is a citation that rots in silence.
+
+## Round 6: only UX, and the two rules that left the page
+
+Artur's verdict on the round-5 page: *"Too verbose. I don't want too low details — like
+guidelines for code. Only UX."* The four numbers were settled in the same round and did not move.
+
+**What the page says now.** Each rule is one plain sentence, its Do/Don't where it has one, one
+sentence of why, and one citation. Gone from it: the function and component names, the CSS
+selectors, the gate names, the `Except` paragraphs about markup, and the rows of two and three
+citations under each rule. Nothing that was true was dropped — it moved to
+[docs/specification.md#the-page](docs/specification.md#the-page), which is where a contributor
+reads, and which now also carries a table naming the line of the kit each rule hangs on.
+
+**Two rules left the page.** `shell` — compose the page with `appShell()` — and `navs` — name
+every navigation landmark — are not decisions anybody takes per screen. The kit has already taken
+both: `appShell()` names the rail and the trail itself, and a designer looking at a mock cannot
+break either one. They are stated in the contract, and their ids sit in `GATED_ELSEWHERE` in
+`stories/guidelines/_the-page.js`, so the same gate still walks all ten. The keying test reads
+both lists, and a rule on neither is still a build failure.
+
+**Where the length landed, and where the brief said it would.** The brief asked for roughly a
+third of the page's height. Measured at 1200 wide in the same browser, before and after:
+
+| | before | after |
+|---|---|---|
+| the whole page | 4,067px | **2,699px** |
+| prose — the imperatives, the whys, the excepts, the citations | 1,719px | **675px** |
+| the four Do/Don't specimen pairs | 1,339px | 1,241px |
+
+The prose is 39% of what it was. The page is 66%, and it cannot go much below that while it keeps
+the specimens: the four pairs, the rules between them and the page's own padding come to about
+2,000px before a word is written. A third of 4,067px is 1,356px — less than the pictures alone.
+The brief's number was reachable only by dropping the Do/Don't pairs, which the same brief asked
+to keep, so the pictures stayed and the prose took the whole cut.
 
 ## The four numbers, and who chose them
 
@@ -210,8 +249,9 @@ else did. The file was deleted.
 ## Discoverable where consumers look
 
 - **[docs/specification.md#the-page](docs/specification.md#the-page)** — a new section stating
-  every limit as a guarantee and naming the gate that holds it, linked from the contract's own
-  table of contents.
+  every limit as a guarantee, naming the gate that holds it, and mapping each rule to the line of
+  the kit it hangs on. Linked from the contract's own table of contents. Two of the ten rules are
+  stated only here.
 - **docs/library.md** — `appShell()`'s row now says what may go on the page it opens, and links
   the section.
 - **docs/README.md** — the Guidelines line names the page rules first.
@@ -224,7 +264,7 @@ else did. The file was deleted.
 
 **The page itself** — `Guidelines / The page`, rendered in both themes:
 `docs/evidence/the-page-guidelines-dark.png`, `docs/evidence/the-page-guidelines-light.png`.
-Ten rules, four specimen pairs, twenty-one citations.
+Eight rules, four specimen pairs, eight citations, 2,699px tall at 1200 wide.
 
 **The two faults** — `docs/evidence/the-page-fixes-dark.png`,
 `docs/evidence/the-page-fixes-light.png`. Top: the consent screen's title as a `div` and as an
@@ -245,29 +285,31 @@ this repo has already shipped two bumping to the same version, so the coordinato
 version at merge. The changelog lines are under *Changelog entry* below, and the bump is the one
 thing left to add on top of this branch.
 
-## Five citations this branch cannot fix, and what they become at merge
+## Three citations this branch cannot fix, and what they become at merge
 
-`stories/guidelines/_the-page.js` cites five lines that #286 (the rail the reader folds) moves.
+`stories/guidelines/_the-page.js` cites three lines that #286 (the rail the reader folds) moves.
 Neither branch's files touch, so git merges both without a marker and then
-`stories/guidelines/refs.test.js` goes red on the merged tree — in either merge order. The five
+`stories/guidelines/refs.test.js` goes red on the merged tree — in either merge order. The three
 citations are correct on this branch as it stands, so they cannot be repaired here: writing the
 post-merge numbers now would fail this branch's own `refs.test.js`.
 
-Merged for real off `origin/main` @ `7ffbde4` — #286 first, then this branch — and the gate
-printed the numbers itself:
-
-| rule | the citation on this branch, and the text it anchors on | line on the merged tree |
+| rule | the citation on this branch, and the text it anchors on | line on a tree merged with #286 |
 |---|---|---|
-| `shell` | `src/components/shell.js:140` `export function appShell` | **189** |
 | `head` | `src/components/shell.js:182` `crumbs.length ? breadcrumbs` | **238** |
 | `lede` | `src/components/shell.js:184` `ui-app__sub` | **240** |
 | `outline` | `src/styles/layout.css:136` `rank: page-title` | **205** |
-| `navs` | `src/components/nav.js:167` `ui-nav--crumbs` | **168** |
 
-Whoever merges second edits those five numbers in `_the-page.js` and re-runs
+Whoever merges second edits those three numbers in `_the-page.js` and re-runs
 `node --test stories/guidelines/refs.test.js`, which prints any that have moved again. Citing by
 heading anchor instead would not help: `refs.test.js`'s `parseRef` accepts `file:line` and nothing
 else, and every one of the collection's seventeen pages cites that way.
+
+**Two of the five are gone, and the right-hand column is a prediction, not a measurement.** It was
+measured once, on a real merge off `origin/main` @ `7ffbde4` with #286 as it stood then. The two
+that dropped out — `shell` at `src/components/shell.js:140` and `navs` at
+`src/components/nav.js:167` — belonged to the two rules that moved to the contract, and the
+contract cites by file and symbol, which no line move touches. #286 is being reworked in parallel,
+so the three numbers above will need re-reading against it as it lands rather than trusted.
 
 That merge also gives exactly two conflicts, both expected: `PR.md`, whole file — a scratch file,
 take whichever branch merges second — and the `appShell(...)` row of `docs/library.md`, where both
@@ -386,10 +428,12 @@ scoped to the twelve systems actually read.
 ## Changelog entry
 
 ```
-Guidelines / The page — ten rules for what one screen may hold: the head's order, one h1, an
-outline that stops at h3, one primary action, six cards, every nav landmark named, nothing
-overlaying the page at load, one density, a two-sentence lede. Held by
-stories/guidelines/the-page.test.js over every screen in stories/apps/.
+Guidelines / The page — what one screen may hold: the head's order, one title, an outline that
+stops three levels deep, one primary action, six cards, nothing overlaying the page at load, one
+density, a two-sentence lede. Two more limits — a page is appShell()'s, and every nav landmark is
+named — are in docs/specification.md#the-page, which also maps every rule to the line of the kit
+that holds it. All ten are held by stories/guidelines/the-page.test.js over every screen in
+stories/apps/.
 The consent screen's "Access granted" is an h1 — that page had no heading at all. footer()'s
 column titles are h2, not h4: on a page they were the kit's only h4, and read h2 → h4 on the
 landing page. success() gives its title the rank its layout earns — h1 for hero and split, which

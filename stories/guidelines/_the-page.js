@@ -121,15 +121,9 @@ export const densityDont = () => stage(`<div class="tp-rows">
   ${card({ title: 'Invoices', body: miniTable(false) })}
 </div>`);
 
-
-// The rules a designer decides, in the order a page is read: the head, its
-// title, the outline under it, the action it leads with, how much stacks, what
-// is over it at load, how tight the rows run, and the line under the title.
-//
-// Each is one sentence, one picture where a picture says it better, and one
-// line of why. What the kit does about each of them — the line that holds it
-// and the gate that walks it — is docs/specification.md#the-page, so the page
-// stays readable by whoever is drawing the screen rather than building it.
+// The rules a designer decides, in the order a page is read. Each is one
+// sentence, a picture where a picture says it better, and one line of why.
+// Which line of the kit holds each of them is docs/specification.md#the-page.
 export const RULES = [
   {
     id: 'head',
@@ -173,7 +167,7 @@ export const RULES = [
     why: 'A page of twelve cards has grouped nothing — the reader scrolls past eleven to reach the '
       + `one they came for. Past ${said(LIMITS.cards)} the page wants sections, tabs, or a second page.`,
     doCaption: `One block a card: ${said(LIMITS.cards)} of them, at the limit and still one page.`,
-    dontCaption: 'Twelve, drawn at the same scale as the six beside it.',
+    dontCaption: `Twelve, drawn at the same scale as the ${said(LIMITS.cards)} beside it.`,
     doHtml: stackDo,
     dontHtml: stackDont,
     kit: [{ ref: 'src/styles/card.css:7', pattern: '.ui-card {' }],
@@ -188,8 +182,8 @@ export const RULES = [
   {
     id: 'density',
     imperative: 'Pick one row height for the page: every table on it runs tight, or none of them does.',
-    why: 'Two tables at two row heights on one screen read as two products, and the wider one is '
-      + 'the one that decides.',
+    why: 'Two tables at two row heights on one screen read as two products; the busier one '
+      + 'decides for both.',
     doCaption: 'Both ledgers tight. One rhythm down the page.',
     dontCaption: 'Tight above, roomy below. The same four columns, at two row heights.',
     doHtml: densityDo,
