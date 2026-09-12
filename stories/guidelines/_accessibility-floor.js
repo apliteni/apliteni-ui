@@ -4,14 +4,16 @@
 // #201, and each is pinned by a measurement in
 // stories/guidelines/accessibility-floor.test.js rather than by this comment
 // (the measured-pin rule). Two of the three are settled by a standard. The third
-// is settled by this repo, in #220, because no standard settles it.
+// is settled by this repo, in #220, because no standard settles it. The fourth,
+// added in #294, is a browser's behaviour rather than a standard, and it is
+// pinned next door in stories/field-zoom.test.js, where the fields are.
 //
 // why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
 import { button, checkbox } from '../../src/components/index.js';
 
 export const TITLE = 'The accessibility floor';
 
-export const BLURB = 'The three numbers under every control, what the kit aims at above them, '
+export const BLURB = 'The four numbers under every control, what the kit aims at above them, '
   + 'and what its gates admit they cannot see.';
 
 // ---- the three numbers -----------------------------------------------------
@@ -35,6 +37,15 @@ export const RING_MIN = 3;
  * making a disabled control look enabled is the second half of the rule below.
  */
 export const DISABLED_MIN = 3;
+
+/**
+ * The size a field's text has to reach before iOS Safari stops zooming the page
+ * into it on focus. Not a standard either — it is a behaviour of one browser,
+ * observed and long documented — and it is on this page because the alternative
+ * fix is to take pinch-zoom away from the reader, which is 1.4.4's business.
+ * Settled in #294; #291 had answered it for one field.
+ */
+export const FIELD_MIN = 16;
 
 // Ratchets, not bars. Each is the worst the kit measures, so a token that makes
 // one of them worse is a decision somebody writes, not a drift nobody notices.
@@ -263,6 +274,24 @@ export const GATES = [
     blind: ['Whether the rule reaches the element. It reads declarations, not the cascade.'],
   },
   {
+    file: 'stories/field-zoom.test.js',
+    does: 'Holds the touch-zoom net (#294). Resolves the kit\u2019s sheet twice \u2014 once as a coarse '
+      + 'pointer sees it, once as a mouse does \u2014 mounts every story against each, and fails a '
+      + 'field under 16px, a field the net has made smaller than it is with a mouse, and a second '
+      + '(pointer: coarse) rule anywhere outside the net\u2019s own file.',
+    blind: [
+      'Whether a browser matches (pointer: coarse) at all. jsdom evaluates no media query, so the '
+        + 'coarse world is built by unwrapping that block in place; the device end is the '
+        + 'screenshots under docs/evidence/294/.',
+      'Safari\u2019s threshold. 16px is an observed behaviour of one browser and not a standard, so '
+        + 'nothing here can measure the number itself.',
+      'Layout. The larger text grows the box around it and no box is laid out here \u2014 the pager '
+        + 'strip on a phone is a review question, not a failure in this gate.',
+      'A field no story renders, a host page\u2019s included. The net reaches those by element '
+        + 'selector; this walk cannot see them.',
+    ],
+  },
+  {
     file: 'stories/reduced-motion.test.js',
     does: 'Holds the prefers-reduced-motion net (WCAG 2.3.3). It parses '
       + 'src/styles/reduced-motion.css, so deleting one of the net’s !important durations fails; '
@@ -436,6 +465,16 @@ export const GATES = [
     blind: ['The same two axe cannot do next door: contrast, and anything static markup hides.'],
   },
   {
+    file: 'react/src/field-zoom.test.tsx',
+    does: 'The touch-zoom net over this workspace: mounts every React story, asks the net\u2019s own '
+      + 'selector whether it reaches each field, and reads react/src\u2019s stylesheets for a field '
+      + 'size of their own \u2014 an important one there would outrank the net.',
+    blind: [
+      'Everything the vanilla gate is blind to, unchanged: no media query is evaluated, Safari\u2019s '
+        + 'threshold is not measured, and nothing is laid out.',
+    ],
+  },
+  {
     file: 'react/src/contrast.test.tsx',
     does: 'Mounts every React story in both themes against the kit’s sheet plus every CSS file '
       + 'under react/src, tokens substituted per theme.',
@@ -553,6 +592,28 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
       { ref: 'src/tokens/tokens.css:158', pattern: '--disabled-ink' },
+    ],
+  },
+  {
+    id: 'touch-field-size',
+    imperative: `Set a field's text to ${FIELD_MIN}px where the pointer is coarse.`,
+    why: 'iOS Safari zooms the page into a focused field whose text is smaller than that, and it '
+      + 'does not zoom back out — a reader who tapped a search box is left panning a page they '
+      + 'were typing into, one-handed. Every field the kit ships did it: 14.5px for the form '
+      + 'controls, 13px for the pager\u2019s two, 12.5px for the dropdown\u2019s search field. One net '
+      + 'answers it for all of them and for a host page\u2019s own fields, because it is written over '
+      + '`input`, `select` and `textarea` rather than over kit classes. The size has to be real: '
+      + 'the zoom reads the computed size, so a 16px field scaled back down with a transform still '
+      + 'zooms, and takes the border and the focus ring down with it.',
+    except: 'A control with nothing to type into — checkbox, radio, range, colour, file, and the '
+      + 'button types — which does not zoom and keeps its size. The other way out of this is a '
+      + 'viewport tag: `user-scalable=no`, or a `maximum-scale=1`, stops the zoom by taking '
+      + 'pinch-zoom away from every reader of the page. That fails WCAG 1.4.4, Apple\u2019s own '
+      + 'guidance argues against it, and it is not the kit\u2019s to set — a viewport tag belongs to '
+      + 'the host page. A font size lives in the stylesheet the fields already come from.',
+    kit: [
+      { ref: 'src/styles/field-zoom.css:22', pattern: 'font-size: 16px !important;' },
+      { ref: 'react/src/index.ts:9', pattern: "import '../../src/styles/field-zoom.css';" },
     ],
   },
   {
