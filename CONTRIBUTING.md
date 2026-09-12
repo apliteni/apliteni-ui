@@ -92,7 +92,8 @@ when you touch one, so the reviewer reads the change itself rather than the run.
 
 ## How the gates work
 
-The rules below govern every gate in this repo. The kit's guarantees are in
+The rules below govern every gate in this repo. A statement belongs here when it is about
+the gates; when it is about the kit it belongs in
 [docs/specification.md](docs/specification.md).
 
 ### A gate discovers its subjects and never enumerates them

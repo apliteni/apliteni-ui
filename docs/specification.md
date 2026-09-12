@@ -3,8 +3,9 @@
 This is the consumer contract. Every guarantee below is checked by a gate in `npm test`;
 a broken guarantee fails the build.
 
-Each section links to the issue that records the measurements, alternatives and decision.
-Read [README.md](README.md) for where to record decisions, and
+This document states outcomes, not arguments. Where a number came from, what else was
+considered and who chose between them belongs in the issue that settled it, and each section
+below names its issue. Read [README.md](README.md) for where to record decisions, and
 [CONTRIBUTING.md](../CONTRIBUTING.md) for how the gates work.
 
 - **[The package](#the-package)** — what installing it gets you
