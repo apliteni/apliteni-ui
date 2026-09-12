@@ -1,5 +1,5 @@
 /* ============================================================================
- * Table — .ui-table  (borderless-body, hairline rows, uppercase head)
+ * Table — .ui-table  (borderless-body, hairline rows, muted head)
  * Row modifiers: .is-dead (revoked/struck), right-aligned .ui-table__act
  * ========================================================================== */
 
@@ -10,11 +10,10 @@
 }
 .ui-table th {
   text-align: left;
-  font-size: var(--text-xs);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  /* rank: label */
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   color: var(--muted);
-  font-weight: var(--weight-semibold);
   padding: 0 var(--space-4) var(--space-3) 0;
   border-bottom: 1px solid var(--border);
 }

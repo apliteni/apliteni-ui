@@ -22,7 +22,7 @@ export const Shadows = {
       </div>`).join('')}
     </div>
     <div style="margin-top:50px">
-      <h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px">Ambient glow</h3>
+      <h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin-bottom:20px">Ambient glow</h3>
       <div style="position:relative;height:200px;background:var(--bg);border-radius:18px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--border)">
         <span class="ui-glow ui-glow--purple" style="top:-60px;left:20%"></span>
         <span class="ui-glow ui-glow--cyan" style="bottom:-80px;right:10%;width:300px;height:300px"></span>

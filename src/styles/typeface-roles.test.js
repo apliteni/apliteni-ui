@@ -89,8 +89,10 @@ const familyDecls = () => {
  * `.toggle` in topbar.css, `.ui-card--interactive`, `.ui-drawer__close`,
  * `.ui-toast__close`, `.ui-fbpill` and `.ui-fbc__x`. Each names no family
  * either — `font: inherit` is the reset, and the face comes from the ancestor
- * the row already sits in. */
-const EXPECTED_SUBJECTS = 41;
+ * the row already sits in. 42 with `.ui-card__title { font-family: var(--font-sans) }`:
+ * card() emits the title as an h2 since #269, and the rule keeps the text face
+ * it always rendered in rather than taking the heading's. */
+const EXPECTED_SUBJECTS = 42;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

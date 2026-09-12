@@ -56,11 +56,14 @@ export function statusDot(live = false) {
 }
 
 // ---- Card ----------------------------------------------------------------
-export function card({ title, sub, body = '', variant, pad, icon: ic } = {}) {
+// The title is a heading one level under the page's h1 unless `level` says
+// otherwise. why: docs/specification.md#labels-and-titles
+export function card({ title, sub, body = '', variant, pad, icon: ic, level = 2 } = {}) {
   const cls = cx('ui-card', variant && `ui-card--${variant}`, pad && `ui-card--pad-${pad}`);
+  const h = [2, 3, 4, 5, 6].includes(Number(level)) ? `h${Number(level)}` : 'h2';
   // title/sub are trusted markup (may carry a badge/icon) — not escaped.
   const head = title
-    ? `<div class="ui-card__title">${ic ? `<span class="ui-card__icon">${icon(ic)}</span>` : ''}${title}</div>${sub ? `<div class="ui-card__sub">${sub}</div>` : ''}`
+    ? `<${h} class="ui-card__title">${ic ? `<span class="ui-card__icon">${icon(ic)}</span>` : ''}${title}</${h}>${sub ? `<div class="ui-card__sub">${sub}</div>` : ''}`
     : '';
   return `<div class="${cls}">${head}${body}</div>`;
 }

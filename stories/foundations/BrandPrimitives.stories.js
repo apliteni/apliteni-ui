@@ -11,7 +11,7 @@ export default {
 };
 
 const h3 = (t) =>
-  `<h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 16px">${t}</h3>`;
+  `<h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin:0 0 16px">${t}</h3>`;
 
 // A single named primitive as a tall swatch + its token name.
 const chip = (token, label) => `
@@ -26,10 +26,13 @@ const chip = (token, label) => `
 const grid = (...items) =>
   `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px;margin-bottom:40px">${items.join('')}</div>`;
 
+// The hue key names a token; the label a reader sees is written in sentence case.
+const hueLabel = (hue) => hue[0].toUpperCase() + hue.slice(1);
+
 // An 8-step hue ramp: one strip, light step numbers underneath.
 const ramp = (hue, n = 8) => `
   <div style="margin-bottom:26px">
-    <div style="font:600 12.5px/1 var(--font-sans);color:var(--strong);text-transform:capitalize;margin-bottom:10px">${hue}</div>
+    <div style="font:600 12.5px/1 var(--font-sans);color:var(--strong);margin-bottom:10px">${hueLabel(hue)}</div>
     <div style="display:flex;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(128,128,128,.18)">${
       Array.from({ length: n }, (_, i) => i + 1).map((s) => `
         <div style="flex:1;height:56px;background:var(--color-apliteni-${hue}-${s});display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px">
@@ -49,7 +52,7 @@ export const Palette = {
 
     <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:stretch;margin-bottom:44px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:16px">
       <div style="flex:1;min-width:200px">
-        <div style="font:600 11px/1 var(--font-sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Brand accent</div>
+        <div style="font:600 11px/1 var(--font-sans);color:var(--muted);margin-bottom:12px">Brand accent</div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:44px;height:44px;border-radius:11px;background:var(--color-apliteni-primary-violet);box-shadow:inset 0 0 0 1px rgba(128,128,128,.18)"></div>
           <div><div style="font:600 13px/1.3 var(--font-sans);color:var(--strong)">#914dff</div><code style="font-family:var(--font-mono);font-size:10.5px;color:var(--muted)">--color-apliteni-primary-violet</code></div>
@@ -57,7 +60,7 @@ export const Palette = {
       </div>
       <div style="width:1px;background:var(--border)"></div>
       <div style="flex:1;min-width:200px">
-        <div style="font:600 11px/1 var(--font-sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Kit accent (deck)</div>
+        <div style="font:600 11px/1 var(--font-sans);color:var(--muted);margin-bottom:12px">Kit accent (deck)</div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:44px;height:44px;border-radius:11px;background:var(--accent);box-shadow:inset 0 0 0 1px rgba(128,128,128,.18)"></div>
           <div><div style="font:600 13px/1.3 var(--font-sans);color:var(--strong)">var(--accent)</div><code style="font-family:var(--font-mono);font-size:10.5px;color:var(--muted)">drifts — run npm run tokens:drift</code></div>

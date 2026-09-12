@@ -596,7 +596,7 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
     // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:139 `.ui-focusable:focus-visible,`).
+    // (src/styles/base.css:140 `.ui-focusable:focus-visible,`).
     // No component wears it and no story renders one, so it has no ground to be
     // measured against — which is a fact about the class, not a hole here. It
     // is named rather than filtered so it cannot quietly become two.
@@ -794,8 +794,14 @@ test('the floor page names every accessibility gate in the tree, and no gate it 
   ].map((f) => String(f).split(path.sep).join('/'));
   // An accessibility gate is one that says so in its own text — the same
   // discovery the page's claim rests on, and not a list anybody maintains.
+  // An import path is not the file saying so: stories/guidelines/letter-case.test.js
+  // is a gate on letter case that borrows this file's DOM helpers, and reading
+  // `from './lib/contrast.js'` as a claim put it on a list it has no business on.
+  // Stripping the imports drops that one file and leaves all 24 real gates.
+  const claims = (f) => readFileSync(path.join(root, f), 'utf8')
+    .replace(/^\s*import[\s\S]*?from\s+.*$/gm, '');
   const gates = files.filter((f) => /\.test\.(js|tsx)$/.test(f) && !f.includes('/lib/'))
-    .filter((f) => /axe|contrast|WCAG|focus|keyboard|accessib/i.test(readFileSync(path.join(root, f), 'utf8')))
+    .filter((f) => /axe|contrast|WCAG|focus|keyboard|accessib/i.test(claims(f)))
     .sort();
   const named = GATES.map((g) => g.file).sort();
   assert.deepEqual(named, gates, 'the page and the tree disagree about which gates exist');

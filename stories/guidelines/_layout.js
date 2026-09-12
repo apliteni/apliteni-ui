@@ -5,7 +5,7 @@ import { pad } from '../_gallery.js';
 // Rule text is stored as plain prose; this is what wraps its file references,
 // token names and selectors in <code> at render time.
 export const mono = (s) => String(s).replace(
-  /(?:[\w/-]+(?:\.[\w-]+)*\.(?:css|js)(?::\d+)?|var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?)/g,
+  /(?:[\w/-]+(?:\.[\w-]+)*\.(?:css|js|tsx?)(?::\d+)?|var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?)/g,
   (m) => `<code>${m}</code>`,
 );
 
@@ -27,7 +27,7 @@ const SPEC_CSS = `
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
     .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
-      font: 500 11px/1 var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+      font: 500 11px/1 var(--font-sans); color: var(--muted); }
     .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
       background: var(--muted); box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 22%, transparent); }
     /* A specimen confirm joins the flow; its scrim would else cover the page. */
@@ -39,7 +39,7 @@ const SPEC_CSS = `
 const PAGE_CSS = `
   <style>
     .gc { max-width: var(--gl-page); }
-    .gc h1 { font: 700 27px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
+    .gc > h1 { font: 700 27px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
     /* By name, not ".gc h2": that also matched .ui-confirm__title and outranked it. */
     .gc-imperative { font: 600 16px/1.45 var(--font-display); color: var(--strong); margin: 0 0 var(--space-3); }
 
@@ -59,8 +59,8 @@ const PAGE_CSS = `
     .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
       box-shadow: inset 2px 0 0 var(--amber);
       font: 400 12.5px/1.65 var(--font-sans); color: var(--text); max-width: var(--prose-dense); }
-    .gc-except__label { font: 600 10.5px/1.7 var(--font-sans); letter-spacing: .12em;
-      text-transform: uppercase; color: var(--muted); margin-right: var(--space-2); }
+    .gc-except__label { font: 600 10.5px/1.7 var(--font-sans); color: var(--muted);
+      margin-right: var(--space-2); }
 
     /* The citations, stripped to addresses and set on one line. Three lines of
        "hovers to --pink" said the same thing three times. */

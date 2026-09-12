@@ -67,7 +67,7 @@ export const RULES = [
     dontHtml: interruptDont,
     kit: [
       { ref: 'src/components/confirm.js:1', pattern: 'a question the page stops for' },
-      { ref: 'src/components/index.js:217', pattern: 'export function callout(' },
+      { ref: 'src/components/index.js:220', pattern: 'export function callout(' },
       { ref: 'src/components/drawer.js:10', pattern: 'content over a scrim, focus-trapped, Esc-dismissable' },
     ],
   },
@@ -83,7 +83,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/callout.css:2', pattern: 'inline messages & transient notifications' },
       { ref: 'src/styles/callout.css:30', pattern: 'a floating, dismissible notification' },
-      { ref: 'src/components/index.js:243', pattern: 'class="ui-toast__action"' },
+      { ref: 'src/components/index.js:246', pattern: 'class="ui-toast__action"' },
     ],
   },
   {
@@ -96,8 +96,8 @@ export const RULES = [
     doHtml: panelsDo,
     dontHtml: panelsDont,
     kit: [
-      { ref: 'src/components/index.js:70', pattern: 'It is NOT a tablist: it controls no panel' },
-      { ref: 'src/components/index.js:75', pattern: 'that one owns panels and earns the tab announcement' },
+      { ref: 'src/components/index.js:73', pattern: 'It is NOT a tablist: it controls no panel' },
+      { ref: 'src/components/index.js:78', pattern: 'that one owns panels and earns the tab announcement' },
       { ref: 'src/components/nav.js:7', pattern: 'not role="tablist"' },
     ],
   },
@@ -111,8 +111,8 @@ export const RULES = [
     doHtml: scaleDo,
     dontHtml: scaleDont,
     kit: [
-      { ref: 'src/components/index.js:260', pattern: 'Pick by how much of the screen the confirmation owns' },
-      { ref: 'src/components/index.js:262', pattern: 'export function successPanel(' },
+      { ref: 'src/components/index.js:263', pattern: 'Pick by how much of the screen the confirmation owns' },
+      { ref: 'src/components/index.js:265', pattern: 'export function successPanel(' },
       { ref: 'src/components/success.js:55', pattern: 'The page-sized confirmation' },
     ],
   },

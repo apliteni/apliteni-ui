@@ -1,320 +1,269 @@
-# Pagination for data-intensive tables: guidelines, a component, and three variants to choose from
+# Labels and titles: sentence case everywhere, five type ranks, and a card title that is a heading
 
-Closes #273.
+Closes #268 and #269.
 
 ## Premises
 
-**What this is about.** The kit has one pager, it can only page rows that are already in the
-browser, and it draws itself whether or not there is a second page. A portal built on it ends
-up with a different pager on every surface.
+**What this is about.** The kit set labels in capitals by stylesheet. Eleven rules did it, each
+with the letter-spacing capitals need to stay legible, and no two agreed on the size they did it
+at. Separately, a card's title was a `<div>`, so a page full of cards had nothing in its heading
+outline but the page title.
 
-**What I found.** The complaint is about the look. The look is bad, but the cause is
-structural and guidelines alone would not have fixed it.
+**What I found.** Both complaints are live, and the second is larger than a look.
 
-- `DataTable` rendered its `.rx-pager` **unconditionally** — no branch on the page count and
-  no prop to suppress it. A table whose rows fit on one page still got the sentence
-  `Page 1 of 1 · N rows` and two permanently dead buttons. That is Artur's second screenshot,
-  and it was on thirteen-plus tables in the finance portal.
-- The pager slices the `rows` array it was handed, so it cannot express a page a server
-  computed. `finance.apli.tech` defeats it (`pageSize={pageSize ?? rows.length}`,
-  `web/src/components/Table.tsx:282`) and then hides it outright on the two surfaces where
-  the false sentence would sit next to a true one — `.fin-txn .rx-pager { display: none }`
-  and `.fin-inv .rx-pager { display: none }`.
-- Its own comment there already names the fix: *"the real fix is a `pager` prop, the same
-  shape as the selection gap already filed for #632"* (`web/src/styles/invoices.css:205-216`).
-- With no kit component to reach for, the portal grew **six** pagination treatments that
-  disagree on wording (`Prev`/`Next` vs `Newer`/`Older` vs `Next` alone), on element
-  (`<button>`, router `<Link>`, plain `<a>`), on what happens to an unavailable control
-  (disabled, removed from the DOM, or swapped for a muted `<span>`), on wrapper (a labelled
-  `<nav>` twice, a bare `<div>` four times) and on whether a total, a page count, both or
-  neither is shown. `Page 1 of 6` with a lone Next — Artur's first screenshot — is the
-  transactions pager *removing* Prev at page 1. Not one of the six carries `aria-current` or
-  a live region.
+- **Eleven rules set capitals**, at five different sizes: the eyebrow, the table head, the badge,
+  the pill, the nav caption, the menu group caption, the menu row badge, the footer column title,
+  the code sample's label, the confirmation's eyebrow and the version badge. `.ui-badge` was 10px
+  bold at `0.12em`; `.ui-table th` was 11px semibold at `0.09em`; `.ui-nav__cap` was 11px at
+  `0.16em`. Nothing decided those numbers — they accumulated.
+- **Capitals hid the case the author wrote.** `versionSwitcher()` was handed `live` and
+  `archive` — tone keys — and the stylesheet uppercased the key itself into a label. The story
+  and the component had been disagreeing about whether `badge` was text or a key for as long as
+  the `text-transform` covered it up.
+- **A card title was a `<div class="ui-card__title">`.** Not in the outline, so a reader moving
+  by heading went from the page's `h1` to whatever heading a card's *body* happened to contain.
+  `<Card>` did the same in React.
+- **A label had no rank.** It was smaller than the body and bolder than the body and set in
+  capitals, and which of those three was doing the work was never written down.
 
-**What I will do.** Give the kit a pagination component that can express a page it did not
-compute, stop it drawing a pager for a table that has one page, write the guidelines that
-govern both, and put three variants in front of Artur to choose the default from.
+**What I did.** Took `text-transform` out of the kit entirely, wrote five type ranks into the
+specification with a gate that reads them at run time, made a card title a real heading, and put
+three label treatments in front of Artur to pick the sizes from.
 
-**The verdict: Changed.** The problem is live; the issue is wrong about its size.
+**The verdict: Changed.** Both issues are real; the fix is a rank table, not eleven edits.
 
-## The survey
+## What changed
 
-Thirteen systems read from their own source or published guidance on 2026-09-10, not from
-memory. This sits in the pull request rather than in `docs/` because
-[`docs/README.md`](docs/README.md#where-a-decision-gets-recorded) says so: *"Why this shape and
-not the other goes in the issue, and stays there."*
+**Nothing in the kit sets a case any more.** Not `text-transform`, not `font-variant: small-caps`,
+not a small-caps feature in `font-feature-settings`. A label is written in sentence case and
+renders as written. `--tracking-caps` still exists as a token — no kit rule reads it, and a
+consumer's rule still may — and says so at the declaration.
 
-| System | Default page size | Size options | Jump affordance | Total shown | ARIA on the region |
-|---|---|---|---|---|---|
-| Carbon `Pagination` | 10 | consumer supplies | page `<select>`, no first/last | `1–10 of 500 items` | **none** — no `<nav>`, no live region |
-| Carbon `PaginationNav` | — | — | numbered + overflow `<select>` | — | `<nav>`, `aria-current`, `aria-live="polite"` |
-| Atlassian | n/a | none | numbered, max **7** | none | `<nav aria-label>`, `aria-current` |
-| Polaris | n/a | none | **prev/next only** — no props exist to render a number | only a caller-supplied label | `<nav>`, `aria-live` on the label |
-| MUI `TablePagination` | required | `[10, 25, 50, 100]` | first/last both default **off** | `from–to of count`; `-1` → `more than 10` | `role="navigation"` |
-| MUI DataGrid | **100** | `[25, 50, 100]` | numbered | + `estimatedRowCount` third state | — |
-| GOV.UK | n/a | none | numbered + ellipsis | **no** | `<nav aria-label="Pagination">`, page number in `<title>` |
-| Adobe Spectrum | — | — | **ships no pagination component at all** | — | — |
-| Primer | n/a | none | numbered; `showPages={false}` for prev/next only | no | `<nav>`, `aria-current`, **focus rule** |
-| Ant Design | 10 | `[10, 20, 50, 100]` | numbered; `•••` jumps ±5; quick-jumper off by default | **opt-in, off by default** | `aria-current`, **no `<nav>`** |
-| USWDS | n/a | none | **7 slots**, ellipsis in fixed positions | no | `<nav>`, `aria-current`, `aria-label="page N"` |
-| TanStack | 10 | headless | `firstPage`/`lastPage`/`setPageIndex` | `pageCount: -1` = unknown | headless |
-| AG Grid | **100** | `[20, 50, 100]` | first/prev/next/last + `Page X of Y` | `1 to 100 of 1,000`; unknown → literal **`?`** | not verified |
+**Where the displayed text was a key, the kit now writes the word.** `versionSwitcher()` maps
+`live` → `Live` and `archive` → `Archive` through a `VBADGE` table, so a caller keeps passing the
+tone key and the reader sees a word. Text a caller hands a `badge()` is still shown exactly as
+handed: `badge('paid')` reads `paid`. The kit does not correct its consumer's copy.
 
-Salesforce Lightning could not be read — the docs endpoint returns 403 and the design-system
-site ships no component URLs in its sitemap. Recorded as unverified rather than filled in.
+**Five ranks, each smaller than the one above it**, written into
+`docs/specification.md#labels-and-titles`:
 
-### Where they genuinely disagree
+| rank | size | weight | what takes it |
+| --- | --- | --- | --- |
+| `page-title` | `--text-2xl` · 30px | bold | the page's `h1` inside `appShell()` |
+| `card-title` | `--text-lg` · 18px | semibold | a card's title |
+| `body` | `--text-base` · 14.5px | normal | running text |
+| `label` | `--text-sm` · 13px | medium | eyebrow, table head, nav and menu caption, footer column title, code sample's label, confirmation's eyebrow |
+| `chip` | `--text-xs` · 11px | semibold | badge, pill, menu row badge, version badge |
 
-**Numbered pages or not.** Eight systems ship numbers. Polaris ships no way to render one —
-its props are `hasNext`/`hasPrevious`/`onNext`/`onPrevious` and nothing else. Primer supports
-both and is the only system that publishes a reason for turning numbers *off*: *"prevent users
-from skipping pages and force them to navigate sequentially."* The structural argument sits in
-GitHub's own REST docs, which concede *"the link to the last page won't be included if it can't
-be calculated"* — numbered pagination presumes a computable last page, and at scale there often
-isn't one.
+A label is one step under the body; its `--muted` ink and medium weight do what capitals used to.
+A chip is the smallest because its fill already sets it apart.
 
-**Whether to show a total.** Carbon treats the range and the page count as named anatomy. Ant
-treats the total as decoration: `showTotal` has no default, so you write a function or you get
-no total. Polaris cannot produce one. GOV.UK and USWDS show neither counts nor totals at all.
+**A card title is an `h2`.** `card({ level })` and `<Card level>` move it to `h3`–`h6` for a card
+inside a section with an `h2` of its own. `.ui-card__title` names `--font-sans` on its own rule,
+because an `h2` would otherwise take the display face from the bare element selector — the third
+rule in the kit to do that, after `.ui-drawer__title` and `.ui-confirm__title`. `<Card>` renders
+no heading at all for an empty title, where it used to emit an empty `<div>`.
 
-**How to say "we don't know the total" — four incompatible answers.** Carbon flips a boolean
-`pagesUnknown` and swaps the strings. MUI renders the literal text `more than 10`. AG Grid
-renders a literal `?`. USWDS changes the *layout* — the current page pins to slot 4 and slot 7
-holds a permanent overflow. These are four different answers to one user question, and MUI's
-`estimatedRowCount` is the only one that risks showing a number that later changes.
+**A new guidelines page, Guidelines / Labels and titles**, with four rules, each citing the line
+of kit code that keeps it and each resolved by `refs.test.js` to a file, a line and a literal on
+that line.
 
-**Default page size, 10 against 100.** The split tracks ancestry, not data: design-system
-pagination bars default to 10 (Carbon, Ant, TanStack), enterprise grids default to 100 (AG Grid,
-MUI DataGrid). Not one of the thirteen publishes a sentence explaining its number.
+## The three treatments, and which one shipped
 
-**Infinite scroll.** GOV.UK prohibits it — *"Avoid using the 'infinite scroll' technique… This
-causes problems for keyboard users."* Adobe Spectrum declined to build pagination at all and
-does `onLoadMore` instead. Polaris takes both positions in one system: prev/next on web,
-infinite scrolling on iOS and Android.
+All three were built as scoped overrides, rendered on one board in both themes, and put in front
+of Artur as screenshots. They differ only in the two sizes a label and a chip take:
 
-### What nobody does — and what this PR does about it
+| | label | chip | reads as |
+| --- | --- | --- | --- |
+| A · one size up *(shipped)* | `--text-sm` · 13px medium | `--text-xs` · 11px semibold | a label sits one step under the body and is plainly a label |
+| B · same size, weight only | `--text-xs` · 11px semibold | `--text-xs` · 11px semibold | label and chip collapse into one rank; a table head stops reading as a head |
+| C · two sizes up | `--text-base` · 14.5px medium | `--text-sm` · 13px semibold | a label reaches the body's size and competes with the figure it names |
 
-Checked for specifically across all thirteen. These are the gaps, and three of them are where
-"more advanced than the current one" actually lives:
+`docs/evidence/labels-and-titles/variant-a-{light,dark}.png`, `…-b-…`, `…-c-…` are the
+screenshots the choice was made on. They stay in the tree as the record; the overrides that
+produced them are gone.
 
-1. **Nobody addresses layout shift or scroll position on a page turn.** No rule anywhere about
-   holding the table's height while the next page loads. AG Grid's `paginationAutoPageSize`
-   sidesteps it mechanically without ever stating it as a principle. → **we state it as a rule.**
-2. **Nobody announces the new range by default.** Two of thirteen carry any live region, and
-   Polaris's only fires if the caller passes a label — despite WCAG 2.2 SC 4.1.3 covering exactly
-   this class of message (the rows are not a status message; *"Showing 21–40 of 1,204"* is).
-   → **ours is a live region by default.**
-3. **Nobody persists the page size**, though NN/g called it the most important pagination detail
-   back in 2013. → **we make it the consumer's to persist, and say so.**
-4. Nobody replaces the outgoing page with skeleton rows of the same count. MUI's skeleton is for
-   the *no rows* case; Atlassian spins on top of the current page.
-5. Nobody documents a keyboard shortcut for next/previous page. Polaris ships the mechanism
-   (`nextKeys`) and no keys.
-6. Nobody says at what row count numbered pages should be abandoned — even though a million-row
-   ledger yields ten thousand of them and every truncation algorithm surveyed degenerates there.
+## Decision record for the issues
 
-**The APG has no Pagination pattern at all** — verified against the patterns index. There is no
-normative keyboard model for pagination; every system above is inventing one. Its nearest
-relative, the Feed pattern, is where `aria-setsize="-1"` means "total unknown" — the same `-1`
-convention MUI, TanStack and AG Grid each arrived at independently.
+**What was chosen.** Treatment **A — one size up**. A label takes `--text-sm` (13px) at
+`--weight-medium`; a chip takes `--text-xs` (11px) at `--weight-semibold`; neither sets capitals,
+and neither spaces its letters. That is the `label` and `chip` rows of the rank table in
+`docs/specification.md#labels-and-titles`, and `src/styles/type-ranks.test.js` reads that table at
+run time and fails any rule that claims a rank and disagrees with its row.
 
-## The variants, and which one is the default
+**What was rejected, and why.**
 
-All three are built, tested and rendered. **Artur chose A — Steps — on the screenshots**,
-and it is the documented default. B and C ship and are one prop away.
+- **B — same size, weight only.** A label and a chip both at 11px. Rejected because it leaves four
+  ranks rather than five: a table head and a badge become the same typographic object, and with
+  the capitals gone there is nothing else separating a column head from the data under it.
+- **C — two sizes up.** A label at 14.5px, the body's own size. Rejected because a caption that
+  is as large as the running text stops being a caption, and in the figure band the label starts
+  competing with the figure it names — the same failure capitals caused, in the other direction.
 
-Storybook: **Components / Pagination → Gallery** shows all three at the first page, page 25
-of 49 and the last page, in both themes. `docs/evidence/variants-dark.png`,
-`docs/evidence/variants-light.png`.
+**Who chose, and on what.** Artur, 2026-09-11, from the three rendered variants in light and
+dark, not from a derivation. The sizes are an owner's choice and the specification says so at the
+rank table rather than implying they fall out of the scale.
 
-| | At page 25 of 49 | Reaches page 30 in | Tab stops |
-|---|---|---|---|
-| **A · Steps** *(default)* | `2,401–2,500 of 4,812` · First Prev Next Last | 5 presses, or Last and back | 4 |
-| B · Numbered | `…` · Prev 1 … 24 **25** 26 … 49 Next | still several — 1, 24, 26 and 49 are the only reachable pages | up to 9 |
-| C · Jump | `…` · First Prev Page `[25]` of 49 Next Last | 1 — type it | 6 |
+**What was not decided here.** Sentence case itself was not a choice between treatments — all
+three dropped the capitals, and the argument for that is on the guidelines page with its
+citations. Only the two sizes were open.
 
-```js
-pagination({ page, pageSize, total, variant: 'numbered' })   // B
-pagination({ page, pageSize, total, variant: 'jump' })       // C
-```
+## Case, after the capitals came off
 
-Steps is the default because these ledgers are read by filtering and sorting rather than by
-hopping, and the consumer had already written that down before this issue existed —
-`web/src/components/pages/Transactions.tsx:220`: *"Forty-nine numbered links is a control
-nobody uses on a table that is read by filtering, and it is forty-nine more tab stops
-between the rows and the footer."* The decision was made against that comment, not against
-a preference. Numbered was recommended for nothing: it is the shape the web has trained
-people to expect and the one that does not deliver what it appears to promise — at page 25
-of 49 it can reach four pages.
+Removing `text-transform` made every label show the case its author actually wrote, and some of
+that source had been leaning on the stylesheet. Caught in review of the rendered board:
 
-A fourth shape is **not** a variant and cannot be chosen: given `total: null`, every variant
-renders Prev and Next alone, because with no last page nothing else can be computed. That is
-the cursor/`limit + 1` case, and the invoices list and the audit trail are both already in it.
+- **Version and menu badges.** Fixed on this branch before the final shots: `versionSwitcher()`
+  writes `Live` and `Archive` for the keys rather than rendering the key.
+- **A code sample's label read `shell`.** Now `Shell`, in
+  `stories/components/Snippet.stories.js` and on the board. `mcp.json` beside it is a filename and
+  is left as it is spelled.
+- **Foundations / Sub-themes badged each panel `dark` / `light`** — the theme key, straight into
+  a badge next to a `Live`. Now `Dark` / `Light` through a `THEME_WORD` table, the same move
+  `versionSwitcher()` makes. The dead ternary that picked `archive` either way went with it, and
+  the switch beside it now reads `Accent drives every control`.
 
-## A kit defect this uncovered, and how it was settled
+**The sweep is a gate, not a pass I did once.** `stories/guidelines/letter-case.test.js` now ends
+with a second sweep that renders **every story in both themes and every site page**, finds each
+element matching a rule that claims `rank: label` or `rank: chip`, and reads the text it renders.
+402 labels and chips are read under 11 ranked rules; each must start with a capital.
 
-The pager is the first component to put disabled ghost buttons on a card, and that measured
-5.18:1 in dark, under the 5.56 floor `#220` settled for every disabled control. A ghost button
-paints no box, on or off (`.ui-btn--ghost:disabled` sets `background: transparent`), so its
-label is read on whatever is behind it.
+Both halves of the gate discover their subjects. The selectors are whatever the shipped sheets
+mark with a `/* rank: … */` note — nothing is listed — and the text is whatever the stories and
+the site actually render, so a tone key and a label are told apart by what reaches the screen
+rather than by the name of the prop that carried it. That distinction is the whole point: a
+source scan cannot tell `badge: 'live'` handed to `versionSwitcher()` (a key, correct) from
+`badge: 'live'` handed to `dropdown()` (text, wrong), and this one never has to.
 
-| `--disabled-ink` on | dark | light |
-|---|---|---|
-| `--bg`, the page | 5.82 | 6.11 |
-| `--surface`, a card, where every portal table sits | **5.18** | 6.11 |
-| `--surface-2`, what a solid disabled button paints for itself | 5.56 | 5.66 |
-| `--surface-3`, a raised surface | **4.66** | **5.26** |
+What it does not reach is written at the top of the test: a label no rule ranks, a word inside a
+label that is not the first, and the case of a name — a first word carrying anything but letters
+(`mcp.json`, `phoenix.2026.002`) is spelled rather than written and is left alone. The capitals
+on the guidelines page's **don't** specimens (`INCOME`, `INVOICES WAITING`) are typed into the
+source on purpose: they are the counter-example, they start with a capital, and the gate passes
+them.
 
-Nothing here failed WCAG, where the floor is 3:1. It failed the kit's own ratchet, which exists
-to make this a decision somebody writes down. It took three steps to settle, and the first two
-were wrong.
-
-**1. The box, on a false claim.** Artur's first call was to fix the kit by removing the
-exemption, so a disabled ghost took the flat disabled box like every other disabled button and
-every ground read one number: 5.56 in dark, 5.66 in light. The question put to him said
-"nothing gets less readable anywhere". That was false, and the review caught it: `--bg` lost
-0.26 in dark and 0.46 in light, and `--surface` lost 0.46 in light. The correction went to him
-with those numbers. The box was built, tested and photographed on a specimen board:
-`docs/evidence/ghost-disabled-before-dark.png`, `…-before-light.png` (no box),
-`docs/evidence/ghost-disabled-after-dark.png`, `…-after-light.png` (the box).
-
-**2. The box, rendered where it lives.** Artur then looked at it in the real pager, at page 1,
-in a card, in both themes. The boxed, disabled First and Prev read heavier than the boxless,
-enabled Next and Last beside them: the controls that are off looked like the ones that are on.
-The variant without a border did the same, more mildly. A contrast table cannot show this, and
-the screenshot showed it at once. He reversed the call.
-`docs/evidence/pager-card-painted-dark.png`, `…-light.png`.
-
-**3. What shipped.** The box is reverted, and the exemption is back with its original comment:
-*"A ghost button draws no box when it is on, so it draws none when it is off."* The disabled
-ghost takes its own ink instead, `--disabled-ink-bare`, set to clear the floor on the dullest
-ground: `#a39eb7` in dark and `#585e6c` in light, which is `--muted` moved 15 steps lighter per
-channel in dark and 4 darker in light. Artur proposed the values. I measured them separately and
-got his figures to the hundredth, and nothing is lower than it was.
-
-| `--disabled-ink-bare` on | dark | light | the live ghost's `--dim`, same ground (dark / light) |
-|---|---|---|---|
-| `--bg` | 7.00 | 6.50 | 10.41 / 10.42 |
-| `--surface`, a card | 6.24 | 6.50 | 9.27 / 10.42 |
-| `--surface-2` | 6.69 | 6.01 | 9.95 / 9.64 |
-| `--surface-3` | 5.62 | 5.60 | 8.35 / 8.98 |
-
-Final render: `docs/evidence/pager-card-final-dark.png`, `…-light.png`. First and Prev are off
-and lighter than Next and Last beside them, and there is no box.
-
-**Two points I pushed back on.**
-- *7.00 on `--bg` is above #220's 6.11.* No ink can clear 5.56 on every ground and stay under
-  6.11. A boxless label takes on the spread between the grounds, which is 1.25× in dark, and that
-  is wider than the whole 5.56–6.11 band (1.10×). These values are the smallest uniform shift of
-  `--muted` that clears 5.56 everywhere; I searched. The worry about a disabled control reading
-  too strong is right, and it is answered against the live control beside it, which still reads
-  1.5 times the contrast on every ground in dark and 1.6 in light. The gate now holds that as well.
-- *A ghost-only ink forks the token.* `--disabled-ink` is one alias per theme, and a ghost-only
-  value needs a second one. I put that to Artur as a choice instead of doing it quietly: a named
-  token (this), moving `--disabled-ink` for every disabled control, or restoring the exemption
-  alone and lowering the ratchet. FORK_DECISION
-
-**What changes in the portal:** no box appears anywhere. A disabled ghost button's label is a
-little lighter in dark and a little darker in light. Solid disabled buttons, inputs, selects,
-nav rows and dropdown items do not change.
-
-`src/styles/button-disabled.test.js` holds it:
-- both inks are pinned on all four grounds in both themes;
-- the bare ink stays above the floor everywhere, and below the live ghost ink everywhere;
-- the solid pair is unchanged;
-- any disabled rule that gives its box back to the ground has to paint `--disabled-ink-bare`,
-  and the scan refuses 25 spellings of that, four of them found by review.
-
-The floor gate in `stories/guidelines/accessibility-floor.test.js` now also measures a disabled
-ghost on a card, because the new **Components / Pagination → In a card** story puts one there.
-That is the specimen this was judged on, and no story had it before.
+The version switcher's trigger still reads `version:` in lower case. That is a key–value prefix
+in front of a value, it was never set in capitals by style, and this branch did not invent it.
+Left as it is.
 
 ## Before / After
 
-**The pager, unchanged base, same story, same viewport** — `docs/evidence/before-kit-pager.png`
+Shot on this branch, both themes, at 1280px:
 
-*Before.* `Page 1 of 2 · 5 rows`, a disabled Prev and a Next thrown to the far end of the
-table. No page-size control, no way to reach page 47, no `<nav>`, no live region, and `5 rows`
-is the whole result while three are on screen — a reader on page 1 of 2 cannot tell which
-number they are being shown. On a table that fits on one page it read `Page 1 of 1 · N rows`
-with two buttons that could never do anything, on thirteen-plus tables in one portal.
+| | before | after |
+| --- | --- | --- |
+| Every label the kit sets, on one board | `before-board-{dark,light}.png` | `after-board-{dark,light}.png` |
+| The portal page the issues were reported from | `before-page-…` | `after-page-…` |
+| Foundations / Typography | `before-typography-…` | `after-typography-…` |
+| A guidelines page's own chrome | `before-guideline-shell-…` | `after-guideline-shell-…` |
+| Guidelines / Labels and titles | *(new page)* | `after-guideline-{dark,light}.png` |
+| The changelog site page, served | `before-changelog-…` | `after-changelog-…` |
 
-*After.* `1–100 of 4,812` · First Prev Next Last, in a `<nav aria-label="Pagination">`, with
-the range in a polite atomic live region, an optional rows-per-page control, and nothing at
-all rendered when there is one page and no size to choose.
+All under `docs/evidence/labels-and-titles/`. The `after` set was re-shot at the head of this
+branch, against the served site and this branch's own Storybook, after the case fixes above.
 
 **The gates**
 
 ```
                        before      after
-root  npm test          1058       1126   (0 failing, 2 skipped as on main)
-react npm test           103        213   (0 failing)
+root  npm test          1126       1151   (2 skipped, as on main)
+react npm test           213        216
 ```
+
+## Changelog entry
+
+For the release that ships this, under a new version in `site/changelog.mjs`:
+
+```js
+['breaking', "Nothing in the kit sets text in capitals by style. `text-transform` is gone from eleven rules — the eyebrow, the table head, the badge, the pill, the nav caption, the menu group caption, the menu row badge, the footer column title, the code sample's label, the confirmation's eyebrow and the version badge — and the letter-spacing that only capitals need went with it. A label written `Paid` rendered `PAID` and now renders `Paid`. Copy that relied on the uppercasing has to be rewritten in sentence case; a word that is capitals in itself is typed that way. `--tracking-caps` is still exported and no kit rule reads it.", ['Badge', 'Table', 'Nav', 'Dropdown', 'Footer', 'Snippet']],
+['breaking', "`card()` and `<Card>` emit the title as an `h2` instead of a `div`. A card title is now in the page's heading outline, and `level` takes it to `h3`–`h6` for a card under a section heading of its own. A title holding block content has to become inline content — a heading cannot hold a block. `<Card>` renders no heading for an empty title, where it used to emit an empty `div`.", ['Card']],
+['changed', "Labels and chips take named type ranks. A label is `--text-sm` at `--weight-medium`; a chip is `--text-xs` at `--weight-semibold`; a card title is `--text-lg` at `--weight-semibold` and keeps the text face on any element. Five ranks in all, each smaller than the one above it, written in the specification and read at run time by `src/styles/type-ranks.test.js`. The sizes were the owner's choice between three rendered treatments.", ['Badge', 'Card', 'Table']],
+['added', "Guidelines / Labels and titles — four rules on sentence case, the rank a title takes, a card title as a heading, and what an eyebrow is for. Each cites the line of kit code that keeps it.", ['Card']],
+['added', "`stories/guidelines/letter-case.test.js` — refuses a case change anywhere in `src/`, `stories/`, `site/`, `react/src` and `.storybook`, in a stylesheet, a `<style>` block, an inline style or a JSX style object, across 21 spellings; and renders every story in both themes and every site page to check that the text under a label or chip rank starts with a capital."],
+```
+
+Marked **breaking** twice, deliberately. Both are visible changes to what a consumer's existing
+markup renders — the first rewrites every label on every screen, the second changes an element
+and can break a caller who put a block inside a card title. Neither is a rename anyone can
+grep for.
 
 ## Proof
 
-- [x] A person meets it in something running — the Storybook gallery, screenshotted in both
-      themes, is how Artur chose the variant.
-- [x] The three variants are comparable side by side, from one result set at one page size.
-- [x] The ghost-disabled change is photographed at each step, in both themes: the reverted
-      box on all four grounds, the reverted box in the real pager in a card, and the ink that
-      shipped in the same pager and card.
-- [x] Every rule on the guidelines page cites kit code, and `refs.test.js` resolves each
+- [x] Artur chose the sizes from the three rendered treatments, in both themes, before they
+      were written into the specification.
+- [x] `src/styles/type-ranks.test.js` reads the rank table out of `docs/specification.md` at run
+      time and fails a ranked rule that disagrees with its row, writes the `font` shorthand, or
+      spaces its letters out; and fails a table whose sizes stop descending.
+- [x] `stories/guidelines/letter-case.test.js` sweeps five trees for a case change and refuses 21
+      spellings of one, and renders every story in both themes plus every site page to read 402
+      labels and chips for their case.
+- [x] Every rule on the new guidelines page cites kit code, and `refs.test.js` resolves each
       citation to a file, a line and a literal on that line.
-- [ ] Exercised against the finance portal. Not done here and not claimed: the consumer
-      installs a published version, so this is provable only after a release. What would
-      settle it is `finance.apli.tech` dropping its two `display: none` rules and its
-      `pageSize={rows.length}` workarounds and its four hand-built pagers.
+- [x] Both gates were broken on purpose and watched go red: the badge's capitals put back are
+      named at their line, and `shell` / `dark` restored are named with their story, selector,
+      rank and CSS line.
+- [ ] **Exercised against a consumer.** Not done and not claimed. The consumer installs a
+      published version, so this is provable only after a release. What would settle it is a
+      portal upgrading and reporting which of its own labels now read in the case they were
+      typed in — that is where the breaking half of this lands.
 
 ## Review
 
-Two independent reviews ran on this branch: a diff review with a red-team pass, and a prose
-review. Every finding below was reproduced before it was fixed, and every fix was broken on
-purpose to watch its test go red.
+**Findings closed on this branch.** `letter-case.test.js` could not read small caps in the `font`
+shorthand or in `font-feature-settings`, a quoted or bracketed JS key, and passed a value it
+could not read rather than refusing it. `type-ranks.test.js` could not read a rank note in mixed
+case, found braces inside comments, and let a ranked rule hide a size in the `font` shorthand.
+`<Card>` rendered an empty heading for an empty title. `versionSwitcher()` read keys it was not
+given and rewrote the caller's markup. Stale prose describing 10px uppercase labels, two dead
+citations, the guideline shell's `h1` rule and the `card()` row in `docs/library.md` were fixed.
 
-**Blocking, fixed.**
-- A controlled table re-sorted the page the server sent. This was the exact trap
-  `finance.apli.tech` had written down in `InvoiceRow.tsx`. The rows are now rendered as handed.
-- A controlled table with no `pageSize` announced `1–100 of 5,000` over 20 rows. The page size
-  is now the size of the page handed in.
-- `<DataTable page={1} onPageChange={f} />` compiled and drew a dead pager. A controlled table
-  must now state `total`, and `hasMore` when the total is `null`.
-- The published React types re-exported from a package with no types. They are now declared
-  locally.
-- Picking a page size fired two callbacks that undid each other.
-- The jump box sent the reader to page 1 when cleared, and to the wrong page when a step was
-  pressed mid-typing.
-- `?total=` erased the vanilla pager and `?pageSize=` meant one row per page.
-- The vanilla jump box and size control did nothing, and a re-rendered pager could not be
-  heard. `wirePagination()` and `setPagerStatus()` fix both.
-- The ghost-button gate was defeatable thirteen ways.
+**A defect the gates did not catch, found in the render.** The version and menu badges read
+`live` and `archive` beside status badges reading `Live` and `Archived`. Both gates were green:
+no rule set a case, and every ranked rule matched its row. The text was simply wrong, and only a
+person looking at the board saw it. That is what the second sweep in `letter-case.test.js` exists
+for, and it now catches the class — it was written after the defect, not before.
 
-**A claim of mine that was false.** "Nothing gets less readable": see step 1 above.
+**One gate fails on the machine this was finished on, and it is not this branch.**
+`stories/contrast.test.js` asserts the contrast walk finishes inside 120s. On this host the
+branch reports 147.2s inside `npm test`. **`origin/main`, checked out beside it and run the same
+way, reports 157.1s and fails the same assertion.** The host is a shared 8-core box running other
+agents; load average during the runs was above 20. It is the only failing test in either run.
 
-**A fix that passed every gate and was still wrong.** The box that step 1 put on the disabled
-ghost cleared every contrast check and read backwards in the pager: off looked heavier than on.
-Artur caught it on a screenshot, and it was reverted (step 2). The gate now also checks that
-direction, so a disabled ghost cannot read at least as strong as a live one on any ground.
+Measured rather than assumed, with `/usr/bin/time` over the same file in two worktrees:
 
-**Also fixed.** Two pagers on one page shared a label id and a landmark name. `.ui-select`
-had no disabled paint. Focus dropped to the body when a pressed step became disabled. The
-changelog had no breaking entry for `.rx-pager`. Three React stories did not demonstrate what
-they were named for. One guideline don't differed from its do in control count. The guidelines
-index order and the sidebar order disagreed. The same four rules were restated in five
-documents. The numbered variant was said to reach "five places" while naming four.
+```
+                user CPU   sys      wall
+origin/main      163.61s   2.02s   311.90s
+this branch      151.97s   1.86s   280.14s
+```
 
-**Not fixed, on purpose.** The kit does not remember a reader's page size (the consumer's job,
-stated in the guidelines). The HTML pager does not restore focus itself, because its caller
-re-renders it; the guideline says so. `button({ href })` puts its `href` into the markup
-unescaped. That was already in the kit before this branch and is outside this issue; it should
-be filed as its own issue.
+The branch does **less** work than main, and the wall clock is roughly twice the CPU time in both
+— the box was giving each run about half a core's worth of the machine. The ceiling is set at
+~2.5× a 47.6s worst case measured on a deliberately saturated 10-core laptop
+(`CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart`), and that
+document says plainly what it is for: *"it catches a runaway… it does not catch a 2× performance
+regression, and no wall-clock number can."* The deterministic half of the cost gate — the cache
+miss rate, which is the half that would see a real regression — passes on this branch.
+
+The ceiling was **not** loosened. It is a measured pin and this is not the machine to re-measure
+it on.
+
+**Not fixed, on purpose.** `--tracking-caps` stays exported with nothing in the kit reading it,
+because a consumer's rule may. The version switcher's `version:` trigger prefix stays in lower
+case. The kit does not correct the case of text a caller hands a badge.
 
 ## What a reviewer should push on
 
-- The status line for an unknown total reads `Page 3`. Carbon does the same; MUI writes
-  `more than 300` and AG Grid writes `1 to 100 of ?`. I picked the one that claims least.
-- `slotsFor()` caps the numbered variant at seven slots. USWDS and Atlassian both land on
-  seven independently; nobody publishes a reason for that number and neither do I.
-- The kit renders the page-size choice and deliberately does not remember it. If you think
-  persistence belongs in the kit rather than in the consumer's URL, say so — NN/g has called
-  it the most important detail of a pager since 2013 and no design system has shipped it.
+- **The new sweep costs 7.1s of user CPU on every `npm test`**, to render every story twice and
+  read 402 strings. It dedupes the second theme when a story renders identically in both, which
+  is most of them. Against the contrast walk's 152s it is small, but it is the second gate in the
+  suite to render the whole catalogue, and a third would be worth arguing about.
+- **`label` and `chip` are the only two ranks the case sweep reads.** A `card-title` or a
+  `page-title` written in lower case passes. That is deliberate — a title is a sentence and a
+  label is not — but it is a judgement, not a derivation.
+- **The rank table lives in `docs/specification.md` and is parsed by a test.** It is prose that a
+  gate reads, so reformatting the table breaks the build. That is the point, and it is also a trap
+  for whoever next edits that file.
+- **`--text-sm` is now doing two jobs**: the label rank, and whatever else in the kit asks for
+  13px. Nothing today disagrees, but the rank is a role and the token is a size, and they are not
+  the same thing.

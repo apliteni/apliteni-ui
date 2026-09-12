@@ -133,7 +133,8 @@
 .ui-app__main .ui-nav--crumbs { margin-bottom: var(--space-5); }
 .ui-app__main h1 {
   color: var(--strong);
-  font-size: 30px;
+  /* rank: page-title */
+  font-size: var(--text-2xl);
   font-weight: var(--weight-bold);
   line-height: 1.1;
   letter-spacing: var(--tracking-tight);

@@ -16,7 +16,7 @@ const swatch = (name, note = '') => `
 
 const group = (title, ...items) => `
   <section style="margin-bottom:40px">
-    <h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px">${title}</h3>
+    <h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin-bottom:18px">${title}</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px">${items.join('')}</div>
   </section>`;
 

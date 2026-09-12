@@ -55,8 +55,9 @@
 .ui-sx__inner { position: relative; z-index: 1; }
 .ui-sx__content { min-width: 0; }
 .ui-sx__eyebrow {
-  color: var(--green); font-size: 12px; font-weight: var(--weight-semibold);
-  letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px;
+  /* rank: label */
+  color: var(--green); font-size: var(--text-sm); font-weight: var(--weight-medium);
+  margin-bottom: 10px;
 }
 .ui-sx__title {
   color: var(--strong); font-size: 22px; font-weight: var(--weight-semibold);

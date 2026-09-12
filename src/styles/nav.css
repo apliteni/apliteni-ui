@@ -18,10 +18,9 @@
 .ui-nav__section + .ui-nav__section { margin-top: 14px; }
 .ui-nav__list { display: flex; flex-direction: column; gap: 2px; }
 .ui-nav__cap {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  /* rank: label */
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   color: var(--muted);
   padding: 4px 12px 8px;
 }

@@ -114,7 +114,7 @@ documented as “markup” (e.g. a card `title` carrying a badge) are inserted v
 | `badge(label, variant)` | Status chip. |
 | `pill(label, variant)` | Status chip, fully rounded. |
 | `statusDot(live)` | Live dot. |
-| `card({ title, sub, body, variant, pad, icon })` | Surface container; `title`/`sub` are trusted markup. |
+| `card({ title, sub, body, variant, pad, icon, level })` | Surface container. The title renders as an `h2`, or `h3`–`h6` with `level`. `title`/`sub` are trusted markup; keep the title to inline content — text, an icon, a badge — because a heading cannot hold a block. |
 | `segmented({ options, active, size, block, name, ariaLabel })` | Pill switch. A toolbar of toggle buttons; wired by `wireTopbar()`. |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist + panels, one panel per item. |
 | `accentPicker({ active, options })` | Accent swatches; wired by `wireTopbar()`. |

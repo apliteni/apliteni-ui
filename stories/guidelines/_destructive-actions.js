@@ -80,8 +80,8 @@ export const RULES = [
     dontHtml: menuDont,
     kit: [
       { ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' },
-      { ref: 'src/styles/dropdown.css:167', pattern: '.ui-dropdown__item.is-danger:hover' },
-      { ref: 'src/styles/nav.css:81', pattern: '.ui-nav__item.is-danger:hover' },
+      { ref: 'src/styles/dropdown.css:166', pattern: '.ui-dropdown__item.is-danger:hover' },
+      { ref: 'src/styles/nav.css:80', pattern: '.ui-nav__item.is-danger:hover' },
     ],
   },
   {
@@ -114,7 +114,7 @@ export const RULES = [
     dontHtml: undoDont,
     kit: [
       { ref: 'src/components/confirm.js:61', pattern: 'role="alertdialog"' },
-      { ref: 'src/components/index.js:243', pattern: 'class="ui-toast__action"' },
+      { ref: 'src/components/index.js:246', pattern: 'class="ui-toast__action"' },
       { ref: 'src/styles/callout.css:83', pattern: '.ui-toast__action { flex: none;' },
     ],
   },

@@ -15,6 +15,7 @@ between them lives in the issue that settled it, and each section below names it
 - **[Breakpoints](#breakpoints)** — six literals, on purpose
 - **[Spacing and rhythm](#spacing-and-rhythm)** — one scale, and how a tie breaks
 - **[Typefaces](#typefaces)** — two roles, and which one an element takes
+- **[Labels and titles](#labels-and-titles)** — sentence case, and five ranks in order
 - **[Colour and contrast](#colour-and-contrast)** — what every accent clears
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
@@ -162,8 +163,8 @@ The kit names **two** families, and the split is a role split rather than a pref
 other element takes the text face from `body`. A size threshold was the obvious alternative and
 is worse: it changes a heading's typeface halfway through a resize, which is the one thing a
 reader notices. A component that wants a heading tag set in the text face says so on its own
-rule, which outranks a bare element selector — `.ui-drawer__title` and `.ui-confirm__title` are
-the two that do, and both say why at the declaration.
+rule, which outranks a bare element selector — `.ui-card__title`, `.ui-drawer__title` and
+`.ui-confirm__title` are the three that do, and each says why at the declaration.
 
 **A brand mark is not text.** A wordmark keeps the display face at whatever size it is set at,
 down to the 13px `.topbar .brand` runs at. That is the one exception to "the element decides",
@@ -201,6 +202,57 @@ not change what it is set in.
 
 Held by `src/styles/typeface-roles.test.js` and `scripts/font-loading.test.js`. Decided in
 [#253](https://github.com/apliteni/apliteni-ui/issues/253).
+
+## Labels and titles
+
+**Text is never set in capitals by style.** No stylesheet, story or page in the kit changes the
+case of the text it is given: no `text-transform` other than `none`, and no font setting that
+draws small capitals. A label is written in sentence case and renders as it was written. A word
+that is capitals in itself — an acronym, a currency code, a key name — is typed that way and
+stays that way. The one case change left is in code and is not a label: `initials()` capitalises
+the letters of an avatar mark.
+
+That covers every label, not the eyebrow alone. Eleven rules set capitals until [#268][i268]:
+the eyebrow, the table head, the badge, the pill, the nav caption, the menu group caption, the
+menu row badge, the footer column title, the code sample's label, the confirmation's eyebrow and
+the version badge. Each carried letter-spacing that only capitals need, and it went with them.
+Where the displayed text was a key, the kit now writes the word: `versionSwitcher()` shows
+`Live` and `Archive` for `live` and `archive`. Text a caller hands a badge is shown as handed,
+so a status passed as `paid` reads `paid`.
+
+**Five ranks, each smaller than the one above it.** A screen stacks a page title, card titles,
+running text, labels and chips, and each takes one rank:
+
+| rank         | size          | weight              | line-height        | what takes it |
+| ------------ | ------------- | ------------------- | ------------------ | ------------- |
+| `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `appShell()` |
+| `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
+| `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
+| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label, a confirmation's eyebrow |
+| `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
+
+That is 30, 18, 14.5, 13 and 11px on the kit's own scale. A label sits one step under the body,
+and its `--muted` ink and medium weight now set it apart, which capitals used to do. A chip is the smallest
+because its fill already sets it apart.
+
+**A card title is a heading, one level under the page's.** `card()` and `<Card>` emit it as an
+`h2`, and `level` moves it to `h3`–`h6` for a card inside a section with an `h2` of its own. The
+page title is set in the display face because it is an `h1`; the card title keeps the text face
+on any element because its own rule names it ([Typefaces](#typefaces)). An eyebrow above a card
+title is a label and not a heading: it names the kind of thing, and the title names the thing.
+
+Held by `stories/guidelines/letter-case.test.js`, which sweeps `src/`, `stories/`, `site/`,
+`react/src` and `.storybook` for a case change in a stylesheet, a `<style>` block, an inline style
+or a JSX style object; and by `src/styles/type-ranks.test.js`, which reads the table above at run
+time, finds every rule that claims a rank with a `/* rank: … */` note, and fails one that
+disagrees with its row, writes the `font` shorthand or spaces its letters out, or a table whose
+sizes stop descending.
+
+Decided in [#268][i268] and [#269][i269]. The label and chip sizes were the owner's choice between
+three treatments rendered side by side, not a derivation.
+
+[i268]: https://github.com/apliteni/apliteni-ui/issues/268
+[i269]: https://github.com/apliteni/apliteni-ui/issues/269
 
 ## Motion
 

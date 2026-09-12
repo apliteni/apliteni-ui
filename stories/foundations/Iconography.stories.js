@@ -16,7 +16,7 @@ const STYLE = `
     border: 1px solid var(--surface-2); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
   .ic-search:focus { outline: none; border-color: var(--accent); }
   .ic-cat { margin-top: 34px; }
-  .ic-cat__h { font: 600 12px/1 var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  .ic-cat__h { font: 600 12px/1 var(--font-display); color: var(--muted);
     margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
   .ic-cat__n { color: var(--dim); font-weight: 500; }
   .ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }

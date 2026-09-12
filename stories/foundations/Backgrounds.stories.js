@@ -39,7 +39,7 @@ const bgPanel = (cls, name, desc) => `
     </div>
   </div>`;
 
-const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:52px 0 20px">${t}</h3>`;
+const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin:52px 0 20px">${t}</h3>`;
 const g = (min, ...items) => `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${min},1fr));gap:22px">${items.join('')}</div>`;
 
 export const Default = {

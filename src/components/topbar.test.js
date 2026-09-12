@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
-import { themeToggle, applyTheme } from './topbar.js';
+import { themeToggle, applyTheme, versionSwitcher } from './topbar.js';
 
 const require = createRequire(import.meta.url);
 const axeSrc = readFileSync(path.join(path.dirname(require.resolve('axe-core')), 'axe.min.js'), 'utf8');
@@ -118,4 +118,19 @@ test('applyTheme queries no hook that themeToggle() does not render', () => {
   for (const hook of hooks) {
     assert.ok(html.includes(hook), `applyTheme queries [${hook}], which themeToggle() never renders`);
   }
+});
+
+// The stylesheet used to uppercase the tone key itself; now the kit writes the
+// word, and anything else the caller passes is shown as passed.
+// why: docs/specification.md#labels-and-titles
+test('a version badge shows the word for its tone, not the key', () => {
+  const html = versionSwitcher([
+    { label: 'v3', badge: 'live' }, { label: 'v2', badge: 'archive' }, { label: 'v1' },
+    { label: 'v0', badge: 'LIVE' }, { label: 'rc', badge: 'Preview' }, { label: 'x', badge: 'constructor' },
+  ]);
+  const badges = [...html.matchAll(/<span class="vbadge (\w+)">([^<]*)<\/span>/g)].map((m) => [m[1], m[2]]);
+  assert.deepEqual(badges, [
+    ['live', 'Live'], ['arch', 'Archive'], ['arch', 'Archive'],
+    ['live', 'Live'], ['arch', 'Preview'], ['arch', 'constructor'],
+  ]);
 });

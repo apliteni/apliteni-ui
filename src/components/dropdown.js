@@ -16,7 +16,8 @@ import { esc, icon } from './index.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');
 
-// A trailing status badge. `badge` is a string ("live") or { text, tone }.
+// A trailing status badge. `badge` is the text shown, in the case it is written
+// ("Live"), or { text, tone }; a string reading "live" in any case takes the live tone.
 function ddBadge(badge) {
   if (!badge) return '';
   const text = typeof badge === 'string' ? badge : badge.text;

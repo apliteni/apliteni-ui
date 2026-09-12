@@ -54,8 +54,7 @@ const CSS = `
     .mz { --mz-gap: 22px; padding: 40px; min-height: 100vh; }
     .mz h1 { font: 700 30px/1.1 var(--font-display); color: var(--strong); letter-spacing: -.02em; margin-bottom: 6px; }
     .mz .lead { color: var(--dim); max-width: 62ch; }
-    .mz h3 { font: 600 13px/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase;
-      color: var(--muted); margin: 52px 0 20px; }
+    .mz h3 { font: 600 13px/1 var(--font-display); color: var(--muted); margin: 52px 0 20px; }
     .mz code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent);
       background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 3px 7px; }
 
@@ -91,7 +90,7 @@ const CSS = `
       box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent); }
     .mz-skel { width: 100%; height: 54px; }
     .mz-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .mz-hint { font: 500 11px/1 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .mz-hint { font: 500 11px/1 var(--font-sans); color: var(--muted); }
     .mz-replay { font: 600 12px/1 var(--font-sans); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
       border: 0; border-radius: 8px; padding: 7px 12px; cursor: pointer;
       transition: background var(--dur-fast) var(--ease); }

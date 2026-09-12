@@ -12,7 +12,7 @@ const specimenRow = (size, weight, label, sample, role) => `
   </div>`;
 
 const h3 = (t, note) => `
-  <h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:44px 0 6px">${t}</h3>
+  <h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin:44px 0 6px">${t}</h3>
   <p style="font:400 13px/1.6 var(--font-sans);color:var(--dim);max-width:64ch;margin-bottom:18px">${note}</p>`;
 
 /* The same paragraph twice, one face each, at the size the complaint is about.
@@ -24,7 +24,7 @@ const SAMPLE = 'Отчёт за неделю: расход вырос на 12%, 
 
 const compareCell = (role, name, verdict) => `
   <div style="flex:1 1 0;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">
-    <div style="font:600 11px/1 var(--font-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${name}</div>
+    <div style="font:600 11px/1 var(--font-sans);color:var(--muted);margin-bottom:4px">${name}</div>
     <code style="font-family:var(--font-mono);font-size:11px;color:var(--accent)">--font-${role}</code>
     <p style="font-family:var(--font-${role});font-size:13px;line-height:1.6;color:var(--text);margin:14px 0 12px">${SAMPLE}</p>
     <div style="font:400 12px/1.5 var(--font-sans);color:var(--muted)">${verdict}</div>
@@ -37,18 +37,18 @@ export const Scale = {
     <p style="color:var(--muted);margin-bottom:30px;max-width:70ch;font-size:13px">The element decides, never the size: <code style="font-family:var(--font-mono);font-size:12px">h1</code>–<code style="font-family:var(--font-mono);font-size:12px">h6</code> take the display face, everything else takes the text face. A size threshold would change a heading's typeface halfway through a resize.</p>
 
     <div style="max-width:820px">
-      ${h3('Display — <code style="font-family:var(--font-mono);font-size:.85em;text-transform:none;letter-spacing:0">--font-display</code>', 'Poppins. Geometric, wide, low stroke contrast — it holds its character where a line is short and the size is large.')}
+      ${h3('Display — <code style="font-family:var(--font-mono);font-size:.85em">--font-display</code>', 'Poppins. Geometric, wide, low stroke contrast — it holds its character where a line is short and the size is large.')}
       ${specimenRow('56px', 700, 'Hero', 'Product units', 'display')}
-      ${specimenRow('40px', 700, 'Display / h1', 'One strategy, many agents', 'display')}
-      ${specimenRow('30px', 600, 'Page title', 'Access &amp; agents', 'display')}
+      ${specimenRow('40px', 700, 'Display', 'One strategy, many agents', 'display')}
+      ${specimenRow('30px', 700, 'Page title, h1', 'Access &amp; agents', 'display')}
       ${specimenRow('22px', 600, 'Section', 'Connect over MCP', 'display')}
 
-      ${h3('Text — <code style="font-family:var(--font-mono);font-size:.85em;text-transform:none;letter-spacing:0">--font-sans</code>', 'IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in.')}
-      ${specimenRow('18px', 600, 'Card title', 'Appearance', 'sans')}
+      ${h3('Text — <code style="font-family:var(--font-mono);font-size:.85em">--font-sans</code>', 'IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in. Page title, card title, body, label and chip are the five ranks in docs/specification.md#labels-and-titles.')}
+      ${specimenRow('18px', 600, 'Card title, h2', 'Appearance', 'sans')}
       ${specimenRow('15.5px', 400, 'Body large', 'The readable long-form version of the strategy.', 'sans')}
       ${specimenRow('14.5px', 400, 'Body', 'Personal tokens agents use to read the strategy.', 'sans')}
-      ${specimenRow('13px', 500, 'Small / label', 'Last used', 'sans')}
-      ${specimenRow('11px', 600, 'Caption / eyebrow', 'PRODUCT UNITS', 'sans')}
+      ${specimenRow('13px', 500, 'Label', 'Last 30 days', 'sans')}
+      ${specimenRow('11px', 600, 'Chip', 'Live', 'sans')}
     </div>
 
     <div style="max-width:820px">
@@ -61,7 +61,7 @@ export const Scale = {
     </div>
 
     <div style="margin-top:36px;max-width:820px">
-      <h3 style="font:600 13px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Monospace — <code style="font-family:var(--font-mono)">--font-mono</code></h3>
+      <h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin-bottom:16px">Monospace — <code style="font-family:var(--font-mono)">--font-mono</code></h3>
       <pre style="font-family:var(--font-mono);font-size:14px;color:var(--text);background:var(--surface-2);padding:16px;border-radius:12px;margin:0">claude mcp add strategy --url https://strategy.apli.tech/mcp</pre>
     </div>
   `),
