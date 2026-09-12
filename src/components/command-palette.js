@@ -479,9 +479,12 @@ export function openCommandPalette(root, returnFocusTo) {
 export function closeCommandPalette(root) {
   if (!root || !root.classList.contains('is-open')) return;
   root.classList.remove('is-open');
-  popOverlay(root);
   const back = root.__cmdkReturn;
   root.__cmdkReturn = null;
+  // A palette row can open a drawer, and the palette then closes over a drawer
+  // that is holding the page inert — including whatever summoned the palette.
+  // popOverlay is passed `back` so it can see that and open the drawer's panel.
+  popOverlay(root, back);
   returnFocus(back, root.ownerDocument);
 }
 

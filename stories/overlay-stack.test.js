@@ -361,6 +361,9 @@ test('a palette adopted beside a drawer owns Escape with the drawer mounted firs
   assert.equal(cp.classList.contains('is-open'), false,
     'the palette is the one painted on top, so it is the one Escape closes');
   assert.equal(dr.classList.contains('is-open'), true, 'and the drawer under it stays open');
+  assert.equal(active(), doc.body,
+    'nobody called openCommandPalette, so no opener was ever recorded and nothing places focus — '
+    + 'the Tab trap is what puts the reader back inside the drawer');
 });
 
 test('a palette adopted beside a drawer owns Escape with the palette mounted first', () => {
@@ -377,6 +380,7 @@ test('a palette adopted beside a drawer owns Escape with the palette mounted fir
   assert.equal(cp.classList.contains('is-open'), false,
     'the same answer with the document order reversed — the palette still paints above');
   assert.equal(dr.classList.contains('is-open'), true, 'and the drawer is still open');
+  assert.equal(active(), doc.body, 'and an adopted palette has no opener to hand focus back to either');
 });
 
 test('a palette opened over a drawer owns Escape', () => {
@@ -388,12 +392,16 @@ test('a palette opened over a drawer owns Escape', () => {
   const cp = doc.getElementById('st-od-cp');
 
   openDrawer(dr);
+  const drClose = dr.querySelector('[data-drawer-close]');
+  assert.equal(active(), drClose, 'the drawer opened focus on its first control');
   openCommandPalette(cp);
   assert.deepEqual(hidden(dr), ['true', true], 'the drawer goes inert under the palette it is covered by');
 
   press(active(), 'Escape');
   assert.equal(cp.classList.contains('is-open'), false, 'the palette answers — it is on top by paint and by history');
   assert.equal(dr.classList.contains('is-open'), true, 'and the drawer the reader came from is still there');
+  assert.equal(active(), drClose,
+    'and focus goes back to the control the palette was summoned from, which the drawer holds open again');
 });
 
 test('a drawer opened over a palette does not take the keyboard under it', () => {
@@ -404,6 +412,8 @@ test('a drawer opened over a palette does not take the keyboard under it', () =>
   const dr = doc.getElementById('st-do-dr');
   const cp = doc.getElementById('st-do-cp');
 
+  // Summoned from a control on the page, which is where a hotkey finds the reader.
+  doc.getElementById('page-btn').focus();
   openCommandPalette(cp);
   openDrawer(dr);
 
@@ -415,6 +425,86 @@ test('a drawer opened over a palette does not take the keyboard under it', () =>
   assert.equal(cp.classList.contains('is-open'), false,
     'Escape answers the panel the reader can see, not the one that opened most recently');
   assert.equal(dr.classList.contains('is-open'), true, 'the drawer underneath is untouched');
+  assert.equal(active(), dr.querySelector('[data-drawer-close]'),
+    'and focus is in the drawer that is left: the page control the palette was summoned from is inert '
+    + 'under it, so handing focus back there would leave the reader on <body>');
+});
+
+// ---- Where focus is left when the covering overlay closes ----------------
+// Closing hands focus back to whatever the overlay was opened from. That works
+// while the page underneath is the page — but an overlay opened UNDER one already
+// on screen leaves a second surface open when the covering one goes, and the
+// opener is then out on a page that surface is holding inert. focus() on an inert
+// node does nothing at all, so nobody would place focus and the reader would be
+// left on <body>, looking at a panel that holds neither the keyboard nor the Tab
+// trap. popOverlay catches that and opens the panel left underneath where it opens.
+//
+// Measured by hand in headless Chrome: all three land on <body> without that
+// recovery and inside the drawer with it. Remove the two lines after sync() in
+// popOverlay and every focus assertion below goes red.
+
+test('a palette closing over a drawer opened under it leaves focus in the drawer', () => {
+  const { page } = mount(
+    commandPalette({ id: 'st-fp-cp', groups: PALETTE_GROUPS })
+    + drawer({ id: 'st-fp-dr', title: 'Filters', body: '<input id="st-fp-input">' }),
+  );
+  const cp = doc.getElementById('st-fp-cp');
+  const dr = doc.getElementById('st-fp-dr');
+
+  doc.getElementById('page-btn').focus();   // where a hotkey finds the reader
+  openCommandPalette(cp);
+  openDrawer(dr);
+
+  press(active(), 'Escape');
+  assert.equal(cp.classList.contains('is-open'), false, 'Escape closed the palette');
+  assert.equal(dr.classList.contains('is-open'), true, 'and the drawer it covered is still open');
+  assert.deepEqual(hidden(page), ['true', true],
+    'so the page — and the button the palette was summoned from — is still inert');
+  assert.equal(active(), dr.querySelector('[data-drawer-close]'),
+    'focus is in the drawer the reader can see, not on a trigger no focus can reach');
+});
+
+test('a confirm closing over a drawer opened under it leaves focus in the drawer', () => {
+  const { page } = mount(
+    confirm({ id: 'st-fc-cf', title: 'Discard the filters?' })
+    + drawer({ id: 'st-fc-dr', title: 'Filters', body: '<input id="st-fc-input">' }),
+  );
+  const cf = doc.getElementById('st-fc-cf');
+  const dr = doc.getElementById('st-fc-dr');
+
+  doc.getElementById('page-btn').focus();
+  openConfirm(cf);
+  openDrawer(dr);   // under the alertdialog, which is the layer above it
+
+  closeConfirm(cf);
+  assert.equal(dr.classList.contains('is-open'), true, 'the drawer is what the dialog was asking about');
+  assert.deepEqual(hidden(page), ['true', true], 'and the page the dialog was opened from stays inert');
+  assert.equal(active(), dr.querySelector('[data-drawer-close]'),
+    'so focus goes to the drawer rather than to a trigger sitting in the inert page');
+});
+
+// The palette's mainline: a row runs the caller's command and the palette closes
+// itself on the way out. When that command opens a drawer, the drawer opens UNDER
+// the palette — it is not what the reader is looking at until the palette goes —
+// and the palette then closes over it in the same click.
+test('a palette row that opens a drawer leaves focus in the drawer it opened', () => {
+  const { page } = mount(
+    commandPalette({ id: 'st-uc-cp', groups: PALETTE_GROUPS })
+    + drawer({ id: 'st-uc-dr', title: 'Filters', body: '<input id="st-uc-input">' }),
+  );
+  const cp = doc.getElementById('st-uc-cp');
+  const dr = doc.getElementById('st-uc-dr');
+  cp.addEventListener('ui-command', (e) => { if (e.detail.id === 'new-invoice') openDrawer(dr); });
+
+  doc.getElementById('page-btn').focus();
+  openCommandPalette(cp);
+  click(cp.querySelector('[data-cmdk-item]'));
+
+  assert.equal(cp.classList.contains('is-open'), false, 'running a row closes the palette');
+  assert.equal(dr.classList.contains('is-open'), true, 'and the command it ran left a drawer open');
+  assert.deepEqual(hidden(page), ['true', true], 'the drawer holds the page inert');
+  assert.equal(active(), dr.querySelector('[data-drawer-close]'),
+    'and the reader is in the drawer the command opened, not on <body>');
 });
 
 test('wiring twice does not put the same open root on the stack twice', () => {

@@ -204,7 +204,7 @@ export const RULES = [
     except: 'Ctrl+K inside another text box is left alone: it is kill-to-end-of-line there, and a '
       + 'palette that eats it breaks a keystroke the reader had first.',
     kit: [
-      { ref: 'src/components/command-palette.js:512', pattern: 'function onKeydown' },
+      { ref: 'src/components/command-palette.js:515', pattern: 'function onKeydown' },
       { ref: 'src/components/overlay.js:97', pattern: 'function ownKeys' },
     ],
   },
@@ -220,7 +220,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/command-palette.js:368', pattern: 'function setActive' },
       { ref: 'src/components/command-palette.js:392', pattern: 'function announce' },
-      { ref: 'src/components/overlay.js:199', pattern: 'export function returnFocus' },
+      { ref: 'src/components/overlay.js:236', pattern: 'export function returnFocus' },
     ],
   },
   {

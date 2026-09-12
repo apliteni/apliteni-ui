@@ -172,13 +172,45 @@ export function adoptOverlay(root, panel, dismiss, layer) {
   });
 }
 
-/** Take an overlay off the page, wherever in the stack it sits. */
-export function popOverlay(root) {
+// Where an overlay puts focus when it opens: the first stop inside its panel,
+// else the panel itself. One rule serves all three, because the kit's own markup
+// puts each one's opening target first — a drawer's first control, the palette's
+// text box, and the confirm's safe answer, which its panel renders before the
+// destructive one.
+function initialFocus(panel) {
+  return (panel && focusablesIn(panel)[0]) || panel;
+}
+
+// What `el` can actually be handed focus, or null when nothing can take it. An
+// overlay stays open while the page carries on, so by the time it closes the
+// element it came from may be detached — look for whatever inherited its identity
+// in the re-render — or sitting in a subtree that a lower overlay has just made
+// inert again, where focus() is a silent no-op. <body> is null too: with no
+// tabindex it cannot be focused either, and `activeElement === body` is what
+// having no focus looks like, which is what an overlay summoned by its hotkey out
+// of a page nobody had touched yet records as the place it came from.
+function focusTarget(el, doc) {
+  const live = el && !el.isConnected && el.id ? doc?.getElementById(el.id) : el;
+  if (!live || !live.isConnected || live === live.ownerDocument.body) return null;
+  return reachable(live) && typeof live.focus === 'function' ? live : null;
+}
+
+/**
+ * Take an overlay off the page, wherever in the stack it sits. `opener` is what
+ * the caller is about to hand focus back to, which this has to see: one overlay
+ * can close over another that is still open, and the opener is then out on a page
+ * that lower overlay is holding inert. Nobody would place focus at all, and the
+ * reader would be left on <body> looking at a panel that holds neither the
+ * keyboard nor the Tab trap — so open the panel now on top where it opens.
+ */
+export function popOverlay(root, opener) {
   const doc = root.ownerDocument;
   const page = pageOf(doc);
   const at = page.stack.findIndex((e) => e.root === root);
   if (at !== -1) page.stack.splice(at, 1);
   sync(doc);
+  const top = page.stack[page.stack.length - 1];
+  if (top && opener && !focusTarget(opener, doc)) initialFocus(top.panel)?.focus();
 }
 
 /**
@@ -195,8 +227,14 @@ export function syncOverlays(doc = document) {
  * the element it came from may be detached by now — and focus() on a detached
  * node is a silent no-op that leaves the reader with no place on the page. Look
  * for whatever inherited its identity in the re-render, then give up to the page.
+ *
+ * With another overlay still open, the only place worth having focus is inside
+ * it: an opener that overlay is holding inert cannot take focus at all, popOverlay
+ * has already opened the panel now on top for exactly that case, and <body> behind
+ * a live modal is not somewhere to give up to.
  */
 export function returnFocus(el, doc) {
+  if (doc && pageOf(doc).stack.length) { focusTarget(el, doc)?.focus(); return; }
   const live = el && !el.isConnected && el.id ? doc?.getElementById(el.id) : el;
   if (live && live.isConnected && typeof live.focus === 'function') { live.focus(); return; }
   doc?.body?.focus?.();
