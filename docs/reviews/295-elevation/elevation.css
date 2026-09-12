@@ -12,10 +12,12 @@
  *   lift       every --shadow-* -> none, and LIGHTNESS does the work
  *   lift-line  lift, plus the kit's hairline kept on every floating surface
  *   frost      lift, and overlays go translucent over a blurred backdrop
+ *   white-card lift-line in dark; in light the card stays white and the PAGE
+ *              drops instead — the other way light can run Artur's rule
  */
 
 /* ---------------------------------------------------------------------------
- * 1. What every --shadow-* becomes. All four variants answer the same: nothing
+ * 1. What every --shadow-* becomes. All five variants answer the same: nothing
  * casts. The full list of what stops casting, read off src/ rather than
  * guessed — `grep -rn "var(--shadow" src/ react/src/`:
  *
@@ -34,6 +36,7 @@
 :root[data-elev="hairline"],
 :root[data-elev="lift"],
 :root[data-elev="lift-line"],
+:root[data-elev="white-card"],
 :root[data-elev="frost"] {
   --shadow-sm: none;
   --shadow-md: none;
@@ -93,9 +96,11 @@
  * ------------------------------------------------------------------------- */
 :root[data-elev="lift"],
 :root[data-elev="lift-line"],
+:root[data-elev="white-card"],
 :root[data-elev="frost"],
 :root[data-theme="dark"][data-elev="lift"],
 :root[data-theme="dark"][data-elev="lift-line"],
+:root[data-theme="dark"][data-elev="white-card"],
 :root[data-theme="dark"][data-elev="frost"] {
   --bg: #0e0d14;            /* was #16151f — the page drops a step */
   --surface-2: #161520;     /* was #1b1927 — the SUNKEN step: fields, tracks, disabled */
@@ -140,30 +145,38 @@
  * step — and needs one line in light, below. */
 :root[data-elev="lift"] .ui-dropdown__panel,
 :root[data-elev="lift-line"] .ui-dropdown__panel,
+:root[data-elev="white-card"] .ui-dropdown__panel,
 :root[data-elev="frost"] .ui-dropdown__panel,
 :root[data-elev="lift"] .amenu,
 :root[data-elev="lift-line"] .amenu,
+:root[data-elev="white-card"] .amenu,
 :root[data-elev="frost"] .amenu,
 :root[data-elev="lift"] .vsw__menu,
 :root[data-elev="lift-line"] .vsw__menu,
+:root[data-elev="white-card"] .vsw__menu,
 :root[data-elev="frost"] .vsw__menu { background: var(--bg-elevated); }
 /* Confirm, the palette and the drawer are full-viewport containers holding a
    scrim and a panel, so the colour goes on the hook each one publishes for it
    — never on the container, which would paint the whole screen. */
 :root[data-elev="lift"] .ui-confirm,
 :root[data-elev="lift-line"] .ui-confirm,
+:root[data-elev="white-card"] .ui-confirm,
 :root[data-elev="frost"] .ui-confirm { --confirm-surface: var(--bg-elevated); }
 :root[data-elev="lift"] .ui-cmdk,
 :root[data-elev="lift-line"] .ui-cmdk,
+:root[data-elev="white-card"] .ui-cmdk,
 :root[data-elev="frost"] .ui-cmdk { --cmdk-surface: var(--bg-elevated); }
 :root[data-elev="lift"] .ui-drawer,
 :root[data-elev="lift-line"] .ui-drawer,
+:root[data-elev="white-card"] .ui-drawer,
 :root[data-elev="frost"] .ui-drawer { --drawer-surface: var(--bg-elevated); }
 :root[data-elev="lift"] .rx-modal,
 :root[data-elev="lift-line"] .rx-modal,
+:root[data-elev="white-card"] .rx-modal,
 :root[data-elev="frost"] .rx-modal,
 :root[data-elev="lift"] .ui-auth__card,
 :root[data-elev="lift-line"] .ui-auth__card,
+:root[data-elev="white-card"] .ui-auth__card,
 :root[data-elev="frost"] .ui-auth__card { background: var(--bg-elevated); }
 
 /* lift alone: no line anywhere. Lightness is the whole argument, so the
@@ -181,6 +194,7 @@
  * and Radix all ship. The card takes a hairline in BOTH themes — today only
  * light has one, because only light needed one. */
 :root[data-elev="lift-line"] .ui-card { border: 1px solid var(--border); }
+:root[data-elev="white-card"] .ui-card { border: 1px solid var(--border); }
 
 /* ---------------------------------------------------------------------------
  * 4. frost — the ladder for the page and the card, and a translucent overlay
@@ -215,3 +229,26 @@
   backdrop-filter: var(--elev-blur);
 }
 :root[data-elev="frost"] .ui-card { border: 1px solid var(--border); }
+
+/* ---------------------------------------------------------------------------
+ * 5. white-card — the second light treatment, drawn so the light question has
+ * two frames rather than one. Dark is lift-line exactly, and shares its
+ * selectors above; only light differs.
+ *
+ * lift-line's light takes the card off white (#f8f9fc) so a white panel has
+ * somewhere to be. white-card refuses that: the card stays #ffffff, and the
+ * PAGE drops further to open the gap instead. The consequence is not optional —
+ * the card and every floating panel are then the same white, so the hairline is
+ * the only thing between them, and light can never drop it. That is the trade,
+ * and the dropdown panel held open over the card is where to look at it.
+ *
+ * --surface-3 keeps today's #eceef3: in light the readout rides --surface
+ * (tooltip.css:50), which here is still white, and its hairline still holds.
+ * ------------------------------------------------------------------------- */
+:root[data-theme="light"][data-elev="white-card"] {
+  --bg: #e9ebf2;            /* was #ffffff — the page drops two steps, not one */
+  --surface-2: #e3e6ee;     /* was #f5f6f9 — the SUNKEN step */
+  --surface: #ffffff;       /* unchanged — the card is still the white one */
+  --bg-elevated: #ffffff;   /* unchanged, and the same white as the card */
+  --surface-3: #eceef3;     /* unchanged */
+}
