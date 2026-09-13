@@ -3,8 +3,9 @@ import { card, button, badge } from '../../src/components/index.js';
 
 export const TITLE = 'The page';
 
-export const BLURB = 'What one screen may hold: the head it keeps, the single action it leads with, '
-  + 'and how much may stack before it is two pages.';
+export const BLURB = 'Arrange the page, make its main action clear, and keep its content manageable.';
+
+export const REFERENCE_POLICY = 'specification-only';
 
 // The four limits the rules are stated in. They are here rather than in the
 // prose because stories/guidelines/the-page.test.js measures the kit's own
@@ -127,75 +128,59 @@ export const densityDont = () => stage(`<div class="tp-rows">
 export const RULES = [
   {
     id: 'head',
-    imperative: 'Start the page with the way back, then the title, then the line under it. Nothing else goes above the title.',
-    why: 'A toolbar above the title makes the title the second thing on the screen; filters, a '
-      + 'period switch and a band of figures go under it instead.',
-    kit: [{ ref: 'src/components/shell.js:182', pattern: 'crumbs.length ? breadcrumbs' }],
+    imperative: 'Put the way back first, then the page title and a short introduction, with all other content below.',
+    why: 'The title should come before filters, date controls and key figures so readers know where they are.',
   },
   {
     id: 'one-h1',
-    imperative: 'Give the page one title, and only one.',
-    why: 'Two titles read as two pages to anyone moving by heading, and none at all leaves them '
-      + 'nowhere to land — which is what the screen after granting an agent access did.',
-    kit: [{ ref: 'stories/guidelines/_labels-and-titles.js:65', pattern: 'one level under the page title' }],
+    imperative: 'Give each page exactly one page title.',
+    why: 'People who navigate by headings need one clear starting point.',
   },
   {
     id: 'outline',
-    imperative: `Step the headings down one level at a time, and stop ${said(LIMITS.outline)} levels deep: the page, a section, a group inside it.`,
-    why: 'A skipped level reads as content the reader has missed, and a fourth is a page that has '
-      + 'become two.',
-    doCaption: 'Page, section, group — down one at a time. Written out: these are labels, not headings.',
-    dontCaption: 'Two pages in one, then a jump from the first level to the third, then a level nothing on the page reads at.',
+    imperative: `Use headings in order, without skipping a level, and stop at h${LIMITS.outline}: page, section, then group.`,
+    why: 'Skipping a level makes content seem missing; needing a fourth level is a reason to split the page.',
+    doCaption: 'The diagram shows the heading order: one page title, sections, then a group within a section.',
+    dontCaption: 'The diagram shows two page titles, a skipped level and a fourth level that is too deep.',
     doHtml: outlineDo,
     dontHtml: outlineDont,
-    kit: [{ ref: 'src/styles/layout.css:136', pattern: 'rank: page-title' }],
   },
   {
     id: 'one-primary',
-    imperative: `Lead with ${said(LIMITS.primary)} filled button. Everything else on the page is quieter than it.`,
-    why: 'Three filled buttons rank nothing: the eye reads all three to find the one the page is '
-      + 'for.',
-    doCaption: 'One filled button, and the other two ranked under it.',
-    dontCaption: 'Three filled buttons. Nothing here says which one the page is for.',
+    imperative: `Use ${said(LIMITS.primary)} filled button for the main action and give other actions less emphasis.`,
+    why: 'When several buttons stand out equally, readers have to work out which action matters most.',
+    doCaption: 'Create token stands out as the main action; Import agents and Export have less emphasis.',
+    dontCaption: 'All three actions have equal emphasis, so the main action is unclear.',
     doHtml: primaryDo,
     dontHtml: primaryDont,
-    kit: [{ ref: 'src/styles/button.css:43', pattern: '.ui-btn--primary' }],
   },
   {
     id: 'stacking',
-    imperative: `Stack ${said(LIMITS.cards)} cards at most, and never put a card inside a card.`,
-    why: 'A page of twelve cards has grouped nothing — the reader scrolls past eleven to reach the '
-      + `one they came for. Past ${said(LIMITS.cards)} the page wants sections, tabs, or a second page.`,
-    doCaption: `One block a card: ${said(LIMITS.cards)} of them, at the limit and still one page.`,
-    dontCaption: `Twelve, drawn at the same scale as the ${said(LIMITS.cards)} beside it.`,
+    imperative: `Stack no more than ${said(LIMITS.cards)} cards and keep cards out of other cards.`,
+    why: `Beyond ${said(LIMITS.cards)} cards, use sections, tabs or another page to make content easier to find.`,
+    doCaption: `Each block represents a card: ${said(LIMITS.cards)} cards reach the limit.`,
+    dontCaption: 'Twelve cards exceed the limit; the blocks use the same scale in both examples.',
     doHtml: stackDo,
     dontHtml: stackDont,
-    kit: [{ ref: 'src/styles/card.css:7', pattern: '.ui-card {' }],
   },
   {
     id: 'at-rest',
-    imperative: 'Let the page arrive at rest. Nothing covers it until the reader asks.',
-    why: 'Anything drawn over the page at load talks over the reader before they have read the '
-      + 'title, and takes the keyboard with it.',
-    kit: [{ ref: 'src/components/drawer.js:62', pattern: "(open || specimen) && 'is-open'" }],
+    imperative: 'Show the page with nothing covering it until the reader chooses to open something.',
+    why: 'Opening something over the page on arrival interrupts reading and can move keyboard focus.',
   },
   {
     id: 'density',
-    imperative: 'Pick one row height for the page: every table on it runs tight, or none of them does.',
-    why: 'Two tables at two row heights on one screen read as two products; the busier one '
-      + 'decides for both.',
-    doCaption: 'Both ledgers tight. One rhythm down the page.',
-    dontCaption: 'Tight above, roomy below. The same four columns, at two row heights.',
+    imperative: 'Use compact rows in every table on the page, or in none of them.',
+    why: 'Consistent row heights make the tables feel part of the same page; choose the spacing the busiest table needs.',
+    doCaption: 'Both tables use compact rows, keeping the spacing consistent.',
+    dontCaption: 'The tables have the same four columns, but compact rows above and roomy rows below.',
     doHtml: densityDo,
     dontHtml: densityDont,
-    kit: [{ ref: 'src/styles/table.css:58', pattern: 'padding: var(--space-2) var(--space-3)' }],
   },
   {
     id: 'lede',
-    imperative: `Say what the page is for in ${said(LIMITS.lede)} sentences at most, and never spend one of them on the title.`,
-    why: '"Payouts — this is the payouts page" tells a reader what they have just read; the line '
-      + 'is for what the title cannot say.',
-    kit: [{ ref: 'src/components/shell.js:184', pattern: 'ui-app__sub' }],
+    imperative: `Keep the introduction to ${said(LIMITS.lede)} sentences at most and add something the title does not say.`,
+    why: 'An introduction should help readers understand the page, without making them read its title twice.',
   },
 ];
 

@@ -631,61 +631,55 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 
 ## The page
 
-`appShell()` draws a page's chrome and what goes inside it is the caller's. These are the limits
-that inside keeps, whatever the page is about. Eight of them are what a designer decides per
-screen and are drawn on the Guidelines / The page story, four of the eight with a Do and a Don't
-beside them; `shell` and `navs` are decisions the kit has already taken for the caller, and are
-stated only here.
+These rules keep a page clear and manageable, whatever it is about. Guidelines / The page
+shows the eight choices a designer makes for each screen, with four Do and Don't pairs.
+The shared page layout and navigation names are already decided and are described here.
+The guideline page contains no code references; the table below is the only rule-to-code mapping.
 
-- **`shell` — an application page is `appShell()`'s.** Two page kinds are not the shell's: an auth
-  card, which has no rail to sit beside, and a marketing page, which is not a screen of an
-  application. The head, the lede and the card count are about what the shell draws and stop
-  there; the `h1`, the outline, the landmarks, the at-rest rule and the density hold on all three,
-  and the primary count holds on every page but a marketing one.
-- **`head` — the head reads in one order** — the way back, the title, the lede, the body — and
-  nothing but the way back goes above the title. A filter row, a period switch, a search box or a
-  stat band is the first thing *inside* the body.
-- **`one-h1` — one `<h1>`, and it is the page title.** Every other heading on the page sits under
-  it.
-- **`outline` — the outline goes down one rank at a time and stops at `h3`** — the page, a card or
-  section of it, a group inside one. An overlay keeps its own outline and is not counted: a
-  drawer's `h2` and the feedback widget's `h4` are inside a dialog. On the page itself the kit
-  draws no `h4` — the footer's column titles are `h2`, the rank chosen in #275 because it cannot
-  skip whatever heading precedes it.
-- **`one-primary` — one primary action at most.** A page carries no more than one
-  `.ui-btn--primary`; everything else is secondary, tertiary or a link. An overlay carries its own
-  and does not count against the page, and a marketing page is outside the rule.
-- **`stacking` — six stacked cards at most, and no card inside a card.** Past six, the page wants
-  sections, tabs, or a second page. Counted by ancestry, so a wrapper around twelve cards is
-  twelve cards. A stat band is one thing on the page whatever its layout draws — the tiles layout
-  paints a card per figure, and four figures are still one band — and the empty and denied states
-  are each drawn in a card of their own.
-- **`navs` — every navigation landmark is named, and no two on one page share a name.** The shell
-  draws the rail and the trail and names both; a page adds no second copy of either.
-- **`at-rest` — a page arrives at rest.** No drawer, confirm, toast, hover readout or command
-  palette is *open* until the reader asks for one. Mounting one closed is how they ship. A page
-  whose whole purpose is to ask — an OAuth consent, a confirmation a link lands on — asks in the
-  page itself and keeps this rule rather than being excused from it.
-- **`density` — one density per page.** `.ui-table--dense` is all of a page's tables or none of
-  them, and no screen writes cell padding of its own — in a style attribute, or in a rule of its
-  own naming `.ui-table`'s cells. A table inside a drawer is beside the page rather than on it and
-  takes the drawer's rhythm.
-- **`lede` — a page has a lede, and it is two sentences at most.** It does not spend its opening
-  sentence repeating the title.
+- **`shell` — use the shared layout for application pages.** Sign-in and other authentication
+  cards do not need a sidebar, and marketing pages are not application screens. The header order,
+  introduction and card limit apply to application pages. The title, heading order, navigation
+  names, closed overlays and table spacing rules apply to all three kinds of page. The primary
+  action limit applies to all except marketing pages.
+- **`head` — put the way back first, then the title, introduction and page content.** Only the
+  way back goes above the title. Put filters, date controls, search and key figures at the start
+  of the content below the introduction.
+- **`one-h1` — give each page exactly one page title, at heading level one.** All other headings
+  belong beneath it.
+- **`outline` — the heading order moves down one level at a time and stops at `h3`.** Use the
+  levels for the page, a card or section, and a group within one. Drawers and other overlays have
+  their own heading order. A fourth-level heading inside a feedback dialog does not belong to
+  the page's outline. Footer column titles use level two so they cannot skip a level.
+- **`one-primary` — one primary action at most.** Give the main action a filled button and
+  give other actions less emphasis. An overlay can have its own main action, separate from the
+  page's. This limit does not apply to marketing pages.
+- **`stacking` — six stacked cards at most, with no card inside another.** Beyond six, use
+  sections, tabs or another page. Grouping cards together does not reduce their count. A band
+  of key figures counts as one item, even when each figure has its own card. An empty state or
+  an access-denied message also sits in its own card.
+- **`navs` — name each navigation area and use each name only once per page.** The shared
+  layout provides the sidebar and breadcrumb trail, with a name for each. Do not add another
+  copy of either.
+- **`at-rest` — show the page with nothing covering it until the reader asks.** Keep drawers,
+  confirmation dialogs, notifications, hover details and the command palette closed on arrival.
+  They can be ready to open without being visible. When the page itself asks for consent or
+  confirmation, show that request in the page content.
+- **`density` — use compact rows in every table on the page, or in none of them.** Use the
+  standard row spacing without adding custom cell padding. A table inside a drawer follows
+  the drawer's spacing rather than the page's.
+- **`lede` — include a short introduction; it is two sentences at most.** Add information
+  the title does not give, without repeating it in the opening sentence.
 
 ### Which line of the kit holds each of them
 
-The guideline story is prose and pictures; this is where each rule meets the code. The lines are
-named by file and symbol rather than by line number, because a line number in a document nothing
-resolves is a citation that rots in silence — the story's own citations carry the numbers, and
-`stories/guidelines/refs.test.js` resolves every one of them.
+The table is the only place that maps these rules to code. It names files and symbols instead
+of line numbers, so moving a line does not break a reference.
 
-The table resolves too. `stories/guidelines/the-page.test.js` reads its rows out of this section:
-every rule has one row and every row has a rule, every file a row names exists, and every symbol
-and selector a row fences is found in one of the files that row names. It says nothing about
-whether the line it found is the line that holds the rule — only that the file is there and the
-name is in it — which is the half a missing line number was costing. For `shell` and `navs` this
-table is the only citation either has.
+`stories/guidelines/the-page.test.js` checks that every rule has exactly one row, every named
+file exists, and every listed symbol or selector appears in one of that row's files. This
+checks that the references exist; it does not prove that the referenced code enforces the rule.
+`stories/guidelines/refs.test.js` checks the page's explicit declaration that its references
+belong only here, and rejects citations, file paths and selectors in the rendered page.
 
 | Rule | Where the kit holds it |
 |---|---|
@@ -700,20 +694,16 @@ table is the only citation either has.
 | `density` | `.ui-table--dense` and the cell padding it overrides, in `src/styles/table.css` |
 | `lede` | `.ui-app__sub`, written by `appShell()` in `src/components/shell.js` |
 
-Every one of the ten is walked by `stories/guidelines/the-page.test.js`, which discovers its
-subjects by rendering every story under `stories/apps/` — the kit's own screens — and holds each of
-them to every rule above. The gate keys its checks by the rule ids, reading the eight drawn rules
-off the Guidelines / The page story and `shell` and `navs` off that story's `GATED_ELSEWHERE`, so
-a rule with no check, or a check for a rule nobody wrote, fails the build. One rule has a second gate:
-`success()` renders on no screen under `stories/apps/`, so the rank its layout earns is held by
-`src/components/success.test.js` instead.
+`stories/guidelines/the-page.test.js` renders every example screen under `stories/apps/` and
+checks all ten rules. It matches checks to rule ids: eight from the guideline page and two
+from `GATED_ELSEWHERE`. A missing rule or check fails the build. The success screen component
+has no example in that collection, so `src/components/success.test.js` checks its title level
+separately.
 
-What this section does not settle is *why* six and not eight, or `h3` and not `h2`. Four of these
-limits are choices rather than derivations — the card count, the primary-action count, the outline
-floor, and whether a data page may go dense; the alternatives are drawn as whole screens in
-[docs/reviews/275-page-limits.html](reviews/275-page-limits.html), and
-[#275](https://github.com/apliteni/apliteni-ui/issues/275) records who chose which and what was
-rejected.
+The card limit, primary action limit, heading depth and choice of compact rows are design
+decisions. [The comparison page](reviews/275-page-limits.html) shows the alternatives as
+complete screens, and [#275](https://github.com/apliteni/apliteni-ui/issues/275) records the
+decisions and their reasons.
 
 ## The page shell
 

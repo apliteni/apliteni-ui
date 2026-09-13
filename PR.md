@@ -2,6 +2,23 @@
 
 Closes #275.
 
+## Round 7: designer-facing guidance
+
+**Decision — Artur, 2026-09-13:** The page carries no code references. Its texts are
+rewritten by the writer on Astra, using `writing-brief` and `my-tov`.
+
+All eight rule sentences, eight explanations and eight Do/Don't captions now use plain
+language for designers and product owners. The overview description and reader-facing prose
+in `docs/specification.md#the-page` follow the same approach. The examples, rule ids and limits
+are unchanged: six cards, one primary action, headings through h3, compact tables all or none,
+and an introduction of at most two sentences.
+
+The eight citation chips are removed. The page declares `REFERENCE_POLICY = 'specification-only'`;
+`refs.test.js` pins that declaration and rejects citations, paths and selectors in its rendered
+text, including references moved into captions. Other guideline pages continue to cite code.
+The specification table is unchanged and remains the sole rule-to-code mapping, with both
+existing table checks in place. No tests were removed.
+
 ## Premises
 
 **What this is about.** The kit has sixteen guideline pages and every one of them is about a
@@ -286,7 +303,7 @@ pass, and the only failure was this box's contrast clock.
 
 **The page itself** — `Guidelines / The page`, rendered in both themes:
 `docs/evidence/the-page-guidelines-dark.png`, `docs/evidence/the-page-guidelines-light.png`.
-Eight rules, four specimen pairs, eight citations, 2,699px tall at 1200 wide.
+Eight rules, four specimen pairs and no code references, captured at 1200px wide.
 
 **The two faults** — `docs/evidence/the-page-fixes-dark.png`,
 `docs/evidence/the-page-fixes-light.png`. Top: the consent screen's title as a `div` and as an
@@ -307,37 +324,11 @@ this repo has already shipped two bumping to the same version, so the coordinato
 version at merge. The changelog lines are under *Changelog entry* below, and the bump is the one
 thing left to add on top of this branch.
 
-## Three citations this branch cannot fix, and what they become at merge
+## Merge notes for #286
 
-`stories/guidelines/_the-page.js` cites three lines that #286 (the rail the reader folds) moves.
-Neither branch's files touch, so git merges both without a marker and then
-`stories/guidelines/refs.test.js` goes red on the merged tree — in either merge order. The three
-citations are correct on this branch as it stands, so they cannot be repaired here: writing the
-post-merge numbers now would fail this branch's own `refs.test.js`.
-
-| rule | the citation on this branch, and the text it anchors on | line on a tree merged with #286 |
-|---|---|---|
-| `head` | `src/components/shell.js:182` `crumbs.length ? breadcrumbs` | **249** |
-| `lede` | `src/components/shell.js:184` `ui-app__sub` | **251** |
-| `outline` | `src/styles/layout.css:136` `rank: page-title` | **208** |
-
-Whoever merges second edits those three numbers in `_the-page.js` and re-runs
-`node --test stories/guidelines/refs.test.js`, which prints any that have moved again. Citing by
-heading anchor instead would not help: `refs.test.js`'s `parseRef` accepts `file:line` and nothing
-else, and every one of the collection's seventeen pages cites that way.
-
-**The right-hand column is measured, not predicted.** The merge was run: `origin/main` at
-`bb5fd04`, `#286` at `9704f6e` (a fast-forward), then this branch on top. `docs/library.md` and
-`PR.md` conflict as described below and nothing else does; `src/components/shell.js` and
-`src/styles/layout.css` auto-merge. On that tree `refs.test.js` prints exactly these three, and
-they are the three numbers above. I wrote them into `_the-page.js` on the merged tree and the gate
-went **37 tests, 37 pass, 0 fail**.
-
-Two of the five the earlier plan predicted are gone: they belonged to `shell` and `navs`, the rules
-that moved to the contract — one cited `appShell()` in the shell, the other the breadcrumb variant
-in the nav — and the contract cites by file and symbol, which no line move touches. Read these
-against #286's head all the same: they are line numbers in a file the other branch is still
-editing, and they moved once already while it was being reworked.
+Removing this page's citations also removes its three line-number conflicts with #286.
+The rule-to-code mapping remains in the specification table, whose references use file and
+symbol names rather than line numbers.
 
 That merge also gives exactly two conflicts, both expected: `PR.md`, whole file — a scratch file,
 take whichever branch merges second — and the `appShell(...)` row of `docs/library.md`, where both
@@ -457,7 +448,7 @@ scoped to the twelve systems actually read.
 - [x] The four judgement calls were rendered as real screens, in both themes, before they were
       settled.
 - [x] Two faults the gate found on `main` are fixed, and photographed before and after.
-- [x] Every `kit` citation resolves to a file, a line and a literal on that line.
+- [x] Other guideline pages’ `kit` citations resolve; The page has no code references, and its specification table resolves.
 - [ ] Exercised against the finance portal. Not done here and not claimed: the portal installs a
       published version. What would settle it is `finance.apli.tech` running this gate's checks
       over its own routes.

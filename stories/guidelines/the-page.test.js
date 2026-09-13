@@ -381,9 +381,8 @@ test('the specification states the same limits this gate measures', () => {
 });
 
 // ---- the rule-to-code table ----------------------------------------------
-// The contract's own table is where each rule meets the kit, and for `shell` and
-// `navs` it is the ONLY citation either has — they left the story when the page
-// was rewritten for a designer. It carries no line numbers on purpose, which is
+// The contract's table is the only rule-to-code mapping. The guideline page
+// carries no code references. It carries no line numbers on purpose, which is
 // the right call and has a cost: a path that stops existing and a symbol that is
 // renamed both go quiet. So the fenced spans are read out of the table and
 // resolved. Subjects are discovered from the table itself, so a row added
@@ -401,7 +400,7 @@ const isPath = (span) => /^[\w.\-/]+\.(?:js|css|mjs)$/.test(span);
 function ruleToCode(spec) {
   const at = spec.indexOf(TABLE_HEADING);
   assert.ok(at >= 0, `docs/specification.md no longer carries "${TABLE_HEADING}" — this gate is `
-    + 'reading nothing, and the two rules whose only citation lives there are unheld');
+    + 'reading nothing, and the rules whose only mapping lives there are unheld');
   const section = spec.slice(at, spec.indexOf('\n## ', at + 1));
   const rows = section.split('\n')
     .filter((line) => line.startsWith('|') && !/^\|\s*-+/.test(line) && !/^\|\s*Rule\s*\|/.test(line))
@@ -449,7 +448,7 @@ test('every file the rule-to-code table names exists, and every name it fences i
     }
   }
   assert.deepEqual(problems, [], 'the rule-to-code table in docs/specification.md#the-page cites '
-    + 'code that is not there. The table is the only citation `shell` and `navs` have, and it '
+    + 'code that is not there. The table is the only rule-to-code mapping, and it '
     + 'carries no line numbers, so nothing else would have said so:\n  ' + problems.join('\n  '));
 });
 
