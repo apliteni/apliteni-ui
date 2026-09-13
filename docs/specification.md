@@ -647,21 +647,36 @@ What the shell guarantees:
   `layout.css` folds `.ui-nav__label` out of view below 720px with the accessible name intact.
   Nothing re-renders on resize and the consumer wires no listener.
 - **The reader can fold the rail, and the control is drawn by default.** `appShell()` draws a
-  toggle in the rail's head band — under the wordmark, above the rule that closes the band — that
-  folds the rail to the same icon strip and opens it again. The head is where a reader looks for
-  the control that changes the panel they are looking at, which is the call Artur made on
-  2026-09-13; before that it stood at the foot, as the reference's does. `collapsible: false` is the way out, for a page that will never call
+  toggle in the rail's head band — at the far end of the brand row, on the wordmark's own line and
+  above the rule that closes the band — that folds the rail to the same icon strip and opens it
+  again. The head is where a reader looks for the control that changes the panel they are looking
+  at, and the end of that line is where a reader looks for it in the head: both are Artur's calls
+  on 2026-09-13. Before them it stood at the rail's foot, as the reference's does, and then for one
+  round under the wordmark. `collapsible: false` is the way out, for a page that will never call
   `wireShell()` and would otherwise ship a control that does nothing. It is a native `<button>`
   outside the navigation landmark, named for what the press will do — "Collapse sidebar", "Expand
   sidebar" — with `aria-expanded` saying what the rail is now. Below 720px the toggle is not drawn,
   because the strip is the only layout there, and the band goes with it when the wordmark has
   already gone to a topbar.
-- **The toggle stands under the wordmark, not beside it.** The band holds the product's mark and
-  the rail's own control, and it stacks them rather than putting them on one line: beside the
-  wordmark is off the glyph column, so the fold would carry the toggle out over the rail's edge and
-  clip away the one control that opens a folded rail. Stacked, both marks stand where they stood and
-  the fold takes only the words. Below 720px the toggle is not drawn and the band is the wordmark
-  alone.
+- **The toggle stands at the end of the brand row, and the fold rides it back onto the glyph
+  column.** The band is one line: the product's mark at its start, the rail's own control at its
+  end. That is the one place on the rail where a mark does not stand on the glyph column, and the
+  toggle is the only mark that gives the column up — so the fold cannot simply clip the band, or it
+  would clip away the one control that opens a folded rail. The control rides the closing edge
+  instead. The band keeps the open column and the control sits at its end, so an offset of exactly
+  `--ui-nav-strip - --ui-nav-col` lands it on the strip, and the strip *is* the glyph column: when
+  the travel stops, the toggle's mark stands on the line every glyph above it stands on. The offset
+  is on the width's own clock, so the control and the edge arrive together — measured frame by
+  frame, the mark is 37.5px from the rail's closing edge on every frame, which is the rail's
+  hairline plus its inset plus a glyph's own centre in its row. What the toggle keeps is the closing
+  edge rather than a column; what the edge lands it on is the column. Nothing else on the rail
+  moves: a nav glyph and the reader's avatar each hold one centre from the first frame to the last.
+  The lockup goes whole on that fold rather than only its words, because the column the control
+  lands on is the column the mark stands on and a folded rail is one column wide — `visibility` as
+  well as `opacity`, so the link leaves the tab order instead of standing invisible under the
+  control that replaced it, and the box keeps its space so the band keeps its height. Below 720px
+  the toggle is not drawn, nothing arrives on the mark's column, and the band is the lockup alone
+  with its words folded away.
 - **The toggle is one mark, and the mark is the state.** The control is a frame that holds still
   and a seam that crosses it — `lessly-ui`'s `RailToggle`, which this rail is reworked on — so what
   a reader takes from it is which arrangement the panel is in rather than a direction to press. No
@@ -679,18 +694,20 @@ What the shell guarantees:
   with no hook on an inner node; the `<svg>` around them is taken from `icon()` itself, so a rail
   glyph's box, stroke and `aria-hidden`/`focusable` pair are the factory's by construction, and
   `stories/apps/shell.test.js` compares the two attribute for attribute — which is what makes "by
-  construction" a thing a reader can check. It stands in the glyph column — `--ui-nav-strip`, a
-  row's padding either side of a glyph, which is the width the closed rail is derived from — so it
-  holds its place at both widths while everything beside it travels. The seam moves on `--dur-med`, the rail's own
+  construction" a thing a reader can check. The box it is drawn in is the glyph column —
+  `--ui-nav-strip`, a row's padding either side of a glyph, which is the width the closed rail is
+  derived from — one box, written once, at both widths; where that box stands is the bullet above. The seam moves on `--dur-med`, the rail's own
   clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and its
   distance is the frame's own mirror rather than a number: the seam is drawn at 9 in an 18-unit
   frame and lands at 15, so the narrow compartment changes sides.
   `stories/apps/shell-states.test.js` reads the frame and the seam out of the factory and refuses a
-  travel the mark does not explain, a control wider or narrower than the column, and a seam that
-  holds still between the two states. The same file resolves the toggle's chip at both widths, under
+  travel the mark does not explain, a control wider or narrower than the column, a seam that holds
+  still between the two states, an offset written as a number rather than as the two widths' own
+  difference, and a band that stacks its marks again. The same file resolves the toggle's chip at both widths, under
   the pointer and under the keyboard, so the rule cannot be scoped back to the fold.
-- **The fold travels, and no glyph moves while it does.** The rail's column keeps its open width
-  and the box closes over it, so nothing inside is laid out a second way: the width goes from
+- **The fold travels, and no glyph moves while it does — except the one that rides the edge.** The
+  rail's column keeps its open width and the box closes over it, so nothing inside is laid out a
+  second way: the width goes from
   249px to 74px on `--dur-med` and `--ease`, and the words fade on `--dur-fast` so the closing edge
   slides over an empty row rather than cutting through a label. The strip is not a number somebody
   liked — it is twice a row's own glyph centre, its padding plus half a glyph, which is the one
@@ -703,7 +720,7 @@ What the shell guarantees:
   row under it down the rail. Under
   `prefers-reduced-motion` the kit's net takes both to 0.01ms, so the fold arrives in one frame —
   the same file refuses a travel written `!important`, which is the only way the net loses.
-- **The two folds are one fold, with one named difference.** A media query cannot share a block
+- **The two folds are one fold, with two named differences.** A media query cannot share a block
   with a class, so the reader's fold and the 720px fold are written twice in `layout.css` and each
   rule has its twin. The reader's copy sits behind `:where()`, which weighs nothing, so the pair
   rank alike and the media query's own precedence is what separates them. One declaration is
@@ -711,14 +728,18 @@ What the shell guarantees:
   pointer it has, so a row is held to 44px — WCAG 2.5.5 (AAA). The reader's fold cannot take that
   floor, because a row is 35.4px open and growing it on the press would step every glyph below it
   down the rail, which is the one thing the travel promises not to do; a pointer on a desktop is
-  held to the kit's 24px floor there and clears it. `stories/apps/shell-states.test.js` compares the
-  two blocks rule for rule and element for element, and holds both halves of the exception — the
-  line is really in the 720px block, and it is really not in the other.
+  held to the kit's 24px floor there and clears it. The second runs the other way: the reader's fold
+  hides the product's lockup and the 720px fold does not, because below 720px the toggle is not
+  drawn and nothing lands on the mark's column. `stories/apps/shell-states.test.js` compares the two
+  blocks rule for rule and element for element, and holds both halves of each — the touch floor is
+  really in the 720px block and really not in the other, and the lockup really goes on the press and
+  really stays on a phone.
 - **The rail's own skin is not a place to go.** The toggle is a `<button>` in a row of the rail
   outside the `<nav>`: folding a panel is not a place to go, and a row of the navigation list is
-  what it would be read as inside one. The head band it stands in draws one rule under the pair, not
-  one between them — the product's mark and the rail's own control are one head, and a second
-  hairline eight pixels up would box the toggle into a compartment of its own.
+  what it would be read as inside one. The head band it stands in draws one rule under the line, not
+  one above it — the product's mark and the rail's own control are one head, and a second hairline
+  would box the toggle into a compartment of its own. The control is the band's last child as well
+  as its last box, so the reading order, the tab order and what is on screen agree.
 - **The reader's choice outlives the page.** A press is written to the `apliteni-ui-rail` cookie
   (a year, `path=/`, `SameSite=Lax`). `appShell()` itself reads nothing. A boolean `collapsed`
   is the caller's and is left alone, and it does nothing under `collapsible: false`, since a fold
@@ -800,7 +821,7 @@ navigation.
 Decided in [#127](https://github.com/apliteni/apliteni-ui/issues/127). `appShell()` was the
 owner's choice between three shells built and rendered side by side, not a derivation. The fold is
 [#277](https://github.com/apliteni/apliteni-ui/issues/277), reworked on `lessly-hub/lessly-ui`; the
-toggle's move to the head and the reader's menu are
+toggle's move to the head, its place at the end of the brand row, and the reader's menu are
 [#286](https://github.com/apliteni/apliteni-ui/issues/286), and both are ported from the same
 reference — `app-sidebar.tsx`'s head band and `user-menu.tsx`.
 
