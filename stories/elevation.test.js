@@ -29,7 +29,8 @@ const THEMES = ['dark', 'light'];
  *  - A shadow arriving from markup — an inline `style=`, or a consumer's sheet.
  *  - Whether a surface that SHOULD float took the treatment. The rule is
  *    one-directional; a panel that quietly loses it is caught by the count.
- *  - The rendered result. The ratios are arithmetic over flat colours and a
+ *  - The rendered result. The contrast ratios here — the two lines, the drop, and
+ *    --muted at AA on a raised surface — are arithmetic over flat colours, and a
  *    blurred penumbra is not one, so the drop is scored at its CORE.
  *  - The React workspace, gated over this same reader in
  *    react/src/elevation.test.ts.
