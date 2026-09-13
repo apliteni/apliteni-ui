@@ -222,7 +222,28 @@ export function dropdown({
 // Per-instance trigger + keyboard handlers are attached once (guarded by a flag
 // on the element). Document-level click-outside + Esc are attached once per
 // document. Safe to call repeatedly (e.g. Storybook re-renders).
-let _ddGlobalWired = false;
+// Every wired container, so the close handlers can reach a dropdown wherever it
+// was drawn. `document.querySelectorAll` cannot: it does not enter a shadow root
+// and it does not see another document at all, so a dropdown in a frame or a
+// shadow root stayed open on the click that should have closed it. A Set and not
+// a WeakSet, because this has to be walked; disconnected entries are dropped on
+// the way past. why: docs/specification.md#the-dropdown-panel
+const _ddAll = new Set();
+// One pair of close handlers per document that holds a dropdown, the same way
+// wireShell() listens once per document it is handed.
+const _ddWiredDocs = new WeakSet();
+
+/** Where a portalled panel goes: the top of the tree its trigger lives in. A
+ *  shadow root is its own top — moving the panel out to the page's <body> would
+ *  leave every style scoped to that root behind. */
+const ddHostOf = (node) => {
+  const root = node.getRootNode ? node.getRootNode() : node.ownerDocument;
+  return root.nodeType === 9 ? root.body : root;
+};
+
+/** The window a box is measured in. A panel in a frame is laid out against the
+ *  frame's viewport, not the top page's. */
+const ddViewOf = (node) => node.ownerDocument?.defaultView || window;
 
 // The trigger-to-panel offset is --ui-dropdown-gap in src/styles/dropdown.css.
 // This is the fallback for a document that has not loaded the sheet;
@@ -234,7 +255,7 @@ const DD_GAP = 9;
 const ddPanelOf = (dd) => dd.__ddPanel || dd.querySelector('[data-dropdown-panel]');
 
 function ddGap(panel) {
-  const declared = parseFloat(getComputedStyle(panel).getPropertyValue('--ui-dropdown-gap'));
+  const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-gap'));
   return Number.isFinite(declared) ? declared : DD_GAP;
 }
 
@@ -305,7 +326,7 @@ function ddResolveDirection(dd, panel) {
   const trigger = dd.querySelector('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function') return;
   const t = trigger.getBoundingClientRect();
-  const below = window.innerHeight - t.bottom;
+  const below = ddViewOf(panel).innerHeight - t.bottom;
   panel.classList.toggle('is-up', below < panel.offsetHeight + ddGap(panel) && t.top > below);
 }
 
@@ -314,29 +335,31 @@ function ddResolveDirection(dd, panel) {
 function positionPortalPanel(dd, panel) {
   const trigger = dd.querySelector('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function') return;
+  const view = ddViewOf(panel);
   const t = trigger.getBoundingClientRect();
   const gap = ddGap(panel);
   const s = panel.style;
   if (panel.classList.contains('is-up')) {
     s.top = 'auto';
-    s.bottom = `${window.innerHeight - t.top + gap}px`;
+    s.bottom = `${view.innerHeight - t.top + gap}px`;
   } else {
     s.bottom = 'auto';
     s.top = `${t.bottom + gap}px`;
   }
   if (panel.classList.contains('is-end')) {
     s.left = 'auto';
-    s.right = `${window.innerWidth - t.right}px`;
+    s.right = `${view.innerWidth - t.right}px`;
   } else {
     s.right = 'auto';
     s.left = `${t.left}px`;
   }
 }
 
-// A panel left on <body> outlives the container that owned it — a re-render
-// replaces the container and the old panel has nothing pointing at it.
-function sweepOrphanPanels() {
-  document.querySelectorAll('body > [data-dropdown-panel][data-dropdown-portal]')
+// A portalled panel outlives the container that owned it — a re-render replaces
+// the container and the old panel has nothing pointing at it. Swept in the host
+// it was put in, which is the tree the new container is in too.
+function sweepOrphanPanels(host) {
+  host.querySelectorAll(':scope > [data-dropdown-panel][data-dropdown-portal]')
     .forEach((p) => { if (!p.__ddOwner || !p.__ddOwner.isConnected) p.remove(); });
 }
 
@@ -347,8 +370,19 @@ function closeDropdown(dd) {
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false');
 }
 
+/** Every wired dropdown still in a tree, the ones in frames and shadow roots
+ *  included. Disconnected containers are dropped as they are passed. */
+function ddLive() {
+  const out = [];
+  for (const dd of _ddAll) {
+    if (dd.isConnected) out.push(dd);
+    else _ddAll.delete(dd);
+  }
+  return out;
+}
+
 function closeAllDropdowns(except) {
-  document.querySelectorAll('[data-dropdown].open').forEach((dd) => { if (dd !== except) closeDropdown(dd); });
+  for (const dd of ddLive()) if (dd !== except && dd.classList.contains('open')) closeDropdown(dd);
 }
 
 function openDropdown(dd, focusIdx) {
@@ -390,11 +424,39 @@ function selectOption(dd, item) {
   if (valueEl && label) valueEl.textContent = label.textContent;
 }
 
+// Click-outside, Escape and the repositioning sweep, registered once per document
+// that holds a dropdown — the same shape wireShell()'s listen() has, and for the
+// same reason: a frame is its own document and a listener on the page's never
+// fires there. why: docs/specification.md#the-dropdown-panel
+function ddListen(doc) {
+  if (!doc || _ddWiredDocs.has(doc)) return;
+  _ddWiredDocs.add(doc);
+  doc.addEventListener('click', () => closeAllDropdowns());
+  doc.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || ddComposing(e)) return;
+    const open = ddLive().find((dd) => dd.classList.contains('open') && dd.ownerDocument === doc);
+    if (open) { closeDropdown(open); open.querySelector('[data-dropdown-trigger]')?.focus(); }
+  });
+  // Viewport coordinates go stale the moment anything scrolls. Capture, so a
+  // scroll inside the rail the panel was lifted out of counts too.
+  const reposition = () => {
+    for (const dd of ddLive()) {
+      if (dd.classList.contains('open') && dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
+    }
+  };
+  const view = doc.defaultView;
+  if (!view) return;
+  view.addEventListener('scroll', reposition, true);
+  view.addEventListener('resize', reposition);
+}
+
 export function wireDropdown(root = document) {
   const scope = root === document ? document : root;
   scope.querySelectorAll('[data-dropdown]').forEach((dd) => {
     if (dd.__ddWired) return;
     dd.__ddWired = true;
+    _ddAll.add(dd);
+    ddListen(dd.ownerDocument);
     const trigger = dd.querySelector('[data-dropdown-trigger]');
     const panel = dd.querySelector('[data-dropdown-panel]');
     if (!trigger) return;
@@ -404,11 +466,15 @@ export function wireDropdown(root = document) {
     // a stacking context whatever z-index the panel carries — the app rail is
     // both at once. why: docs/specification.md#the-dropdown-panel
     if (panel && dd.hasAttribute('data-dropdown-portal')) {
-      sweepOrphanPanels();
+      // The tree the trigger is in, not the page's: a panel lifted out of a
+      // frame or a shadow root into the top document leaves its stylesheet and
+      // its close handler behind. why: docs/specification.md#the-dropdown-panel
+      const host = ddHostOf(dd);
+      sweepOrphanPanels(host);
       panel.setAttribute('data-dropdown-portal', '');
       panel.__ddOwner = dd;
       dd.__ddPanel = panel;
-      document.body.appendChild(panel);
+      host.appendChild(panel);
       if (dd.classList.contains('open')) {
         ddResolveDirection(dd, panel);
         positionPortalPanel(dd, panel);
@@ -508,22 +574,4 @@ export function wireDropdown(root = document) {
     }
   });
 
-  if (!_ddGlobalWired) {
-    _ddGlobalWired = true;
-    document.addEventListener('click', () => closeAllDropdowns());
-    document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape' || ddComposing(e)) return;
-      const open = document.querySelector('[data-dropdown].open');
-      if (open) { closeDropdown(open); open.querySelector('[data-dropdown-trigger]')?.focus(); }
-    });
-    // Viewport coordinates go stale the moment anything scrolls. Capture, so a
-    // scroll inside the rail the panel was lifted out of counts too.
-    const reposition = () => {
-      document.querySelectorAll('[data-dropdown].open').forEach((dd) => {
-        if (dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
-      });
-    };
-    window.addEventListener('scroll', reposition, true);
-    window.addEventListener('resize', reposition);
-  }
 }

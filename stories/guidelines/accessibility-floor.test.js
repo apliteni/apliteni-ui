@@ -481,20 +481,33 @@ const onScreenIn = (el, win) => {
 
 /**
  * A control's accessible name, near enough for a rail: the `aria-label` it carries,
- * or else the text it draws with the aria-hidden parts taken out — which is what a
+ * or else the text it DRAWS, with the aria-hidden parts taken out — which is what a
  * screen reader reads off a control that names itself by its own contents. Reading
  * `aria-label` alone reported the rail's account block as nameless, and it is named
  * by the two lines inside it (#286).
+ *
+ * Walked in the live tree rather than in a clone, because what the name turns on is
+ * `display` and `visibility`, and a clone has no cascade: a fold that took a label
+ * out with `display: none` still had its text in `textContent`, so the fallback
+ * named a row a browser names nothing. That is the one mutation this helper has to
+ * stay red for. A space after each element, because textContent runs children
+ * together and a browser does not.
  */
-const accessibleName = (el) => {
+const accessibleName = (el, win) => {
   const label = el.getAttribute('aria-label');
   if (label) return label.trim();
-  const copy = el.cloneNode(true);
-  for (const hidden of copy.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
-  // A space after each element, because textContent runs the children together and
-  // a browser does not: the account block's two lines came out as one word.
-  for (const child of copy.querySelectorAll('*')) child.append(' ');
-  return copy.textContent.replace(/\s+/g, ' ').trim();
+  const parts = [];
+  const walk = (node) => {
+    if (node.nodeType === 3) { parts.push(node.data); return; }
+    if (node.nodeType !== 1) return;
+    if (node.getAttribute('aria-hidden') === 'true' || node.hasAttribute('hidden')) return;
+    const cs = win.getComputedStyle(node);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return;
+    for (const kid of node.childNodes) walk(kid);
+    parts.push(' ');
+  };
+  for (const kid of el.childNodes) walk(kid);
+  return parts.join('').replace(/\s+/g, ' ').trim();
 };
 
 const targetRun = await (async () => {
@@ -544,7 +557,7 @@ const targetRun = await (async () => {
         // because a spread whose order is load-bearing is the same trap again.
         folded.push({
           where,
-          name: accessibleName(el),
+          name: accessibleName(el, win),
           label: (el.querySelector('.ui-nav__label')?.textContent || '').trim(),
           onScreen: onScreenIn(el, win),
           inClosedGroup: Boolean(el.closest('.ui-nav__sub[hidden]')),

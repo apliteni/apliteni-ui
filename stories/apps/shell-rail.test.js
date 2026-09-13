@@ -49,6 +49,13 @@ const page = (opts = {}) => appShell({
   nav: NAV, active: 'pending', title: 'Pending', signOutHref: '#logout', collapsible: true, ...opts,
 });
 
+// The same page with somebody signed in, which is what draws the reader's menu:
+// the block is the trigger and sign out is a row of it (#286). The fixtures are
+// apart because most of this file is about the fold, and a menu in every one of
+// them would put a portalled panel in the document for tests that never open it.
+const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
+const withMenu = (opts = {}) => page({ account: READER, ...opts });
+
 function mount(html, opts) {
   const host = doc.createElement('div');
   host.innerHTML = html;
@@ -256,24 +263,56 @@ test('a shell in a frame is wired in its own document, and reads its own cookie'
   const frame = doc.createElement('iframe');
   doc.body.replaceChildren(frame);
   const inner = frame.contentDocument;
-  inner.body.innerHTML = page();
+  inner.body.innerHTML = withMenu();
   wireShell(inner.body);
   const app = inner.querySelector('.ui-app');
   assert.equal(folded(app), false, 'a frame was given the page\'s cookie rather than its own');
   inner.querySelector('[data-rail-toggle]').click();
   assert.equal(folded(app), true, 'the toggle inside a frame is dead');
+  // The menu is portalled, and the tree it is portalled into has to be the frame's.
+  // Lifted to the top document it leaves behind the stylesheet that draws it and the
+  // handler that closes it, and it lands over a page the reader is not looking at.
+  assert.ok(
+    inner.querySelector('.ui-app__user-panel'),
+    'the reader\'s menu left the frame it was drawn in — a panel on the top document, styled by '
+    + 'whatever sheet that page happens to have',
+  );
+  assert.equal(doc.querySelector('.ui-app__user-panel'), null, 'a frame\'s menu was mounted on the page holding it');
+  const trigger = inner.querySelector('.ui-app__user-trigger');
+  trigger.click();
+  assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'the trigger inside a frame is dead');
+  inner.body.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  assert.equal(
+    trigger.getAttribute('aria-expanded'), 'false',
+    'a click elsewhere in the frame leaves the menu open — the close handler was registered on the '
+    + 'page\'s document, which nothing in the frame reaches',
+  );
   assert.deepEqual(errors, []);
 });
 
-test('a shell inside an open shadow root folds', () => {
+test('a shell inside an open shadow root folds, and keeps its menu inside the root', () => {
   forget();
   const host = doc.createElement('div');
   doc.body.replaceChildren(host);
   const shadow = host.attachShadow({ mode: 'open' });
-  shadow.innerHTML = page({ collapsed: false });
+  shadow.innerHTML = withMenu({ collapsed: false });
   wireShell(shadow);
   shadow.querySelector('[data-rail-toggle]').click();
   assert.equal(folded(shadow.querySelector('.ui-app')), true, 'a press inside a shadow root was not found');
+  assert.ok(
+    shadow.querySelector('.ui-app__user-panel'),
+    'the menu was lifted out of the shadow root onto the page, where every sheet scoped to that '
+    + 'root stops reaching it',
+  );
+  assert.equal(doc.body.querySelector('.ui-app__user-panel'), null, 'a shadow root\'s menu was mounted on the light DOM');
+  const trigger = shadow.querySelector('.ui-app__user-trigger');
+  trigger.click();
+  assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+  doc.body.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  assert.equal(
+    trigger.getAttribute('aria-expanded'), 'false',
+    'a click on the page left a menu open inside a shadow root — querySelectorAll does not enter one',
+  );
 });
 
 test('wireShell() wires the rail\'s groups too, so a shell in the page needs one call', () => {
@@ -309,8 +348,6 @@ test('a document that refuses cookies still folds, and says nothing is stored', 
 // that wireShell() reaches the menu at all, that the keyboard gets to the row,
 // and that the row is in the menu and not in the list of places to go.
 
-const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
-const withMenu = (opts = {}) => page({ account: READER, ...opts });
 const press = (el, key) =>
   el.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
 // wireDropdown() lifts the panel onto <body>, out of the rail's clip and its

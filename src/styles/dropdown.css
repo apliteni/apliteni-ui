@@ -65,6 +65,14 @@
   padding: 6px;
   opacity: 0;
   visibility: hidden;
+  /* Closed, and for the whole of the fade OUT, the panel is still drawn: `visibility`
+     is held at `visible` for the length of the transition so the rows do not vanish
+     mid-fade. A box that is drawn is a box that is hit — and a menu row is an <a> or a
+     <button>, so a click landing in that window activates it invisibly. Since #286 one
+     of those rows signs the reader out. `pointer-events` is the same answer .ui-drawer
+     and .ui-cmdk give, and the open rules below are where it is taken back.
+     why: docs/specification.md#the-dropdown-panel */
+  pointer-events: none;
   transform: translateY(-6px);
   transition:
     opacity var(--dur-med) var(--ease),
@@ -89,7 +97,7 @@
   transform: translateY(6px);
 }
 
-.ui-dropdown.open .ui-dropdown__panel { opacity: 1; visibility: visible; transform: translateY(0); }
+.ui-dropdown.open .ui-dropdown__panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
 /* Open, the panel is visible AT ONCE rather than at the first step of the
    `visibility` transition. `visibility` is discrete: going hidden → visible it is
    still `hidden` in the frame the class lands, and a browser will not move focus
@@ -115,7 +123,7 @@
   position: fixed;
   top: auto; right: auto; bottom: auto; left: auto;
 }
-.ui-dropdown__panel--portal.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+.ui-dropdown__panel--portal.is-open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
 
 /* Item row — [icon] [main: label + desc] [badge] [tick]. A row is a <div>, an
    <a href> or a <button>: `is-selected` and __tick below mean a row gets

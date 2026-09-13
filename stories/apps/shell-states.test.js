@@ -312,6 +312,16 @@ const PHONE_ONLY = [
   { selector: '.ui-app__rail .ui-app__user-trigger', prop: 'min-height', floor: 44, what: 'the account block' },
 ];
 
+/**
+ * The rules the 720px fold writes and the reader's fold must not, for the same
+ * reason the toggle itself is left out of both gates: they are about a control
+ * that is drawn in one fold and gone in the other. Below 720px the toggle is not
+ * drawn, so a head band holding nothing else is padding and a hairline over
+ * nothing; on the reader's fold that band holds the only control that opens the
+ * rail. Each is measured both ways under this constant rather than merely excluded.
+ */
+const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))'];
+
 /** `map` without the phone strip's own declarations, and without a rule left empty by one. */
 function withoutPhoneFloor(map) {
   for (const { selector, prop } of PHONE_ONLY) {
@@ -326,7 +336,8 @@ function withoutPhoneFloor(map) {
 
 test('the collapsed rail is the narrow rail, rule for rule', () => {
   const css = decomment(read('src/styles/layout.css'));
-  const narrow = withoutPhoneFloor(ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main') && !sel.includes('.ui-app__fold')));
+  const narrow = withoutPhoneFloor(ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main')
+    && !sel.includes('.ui-app__fold') && !PHONE_ONLY_RULES.includes(sel)));
   const collapsed = new Map([...ruleMap(css, (sel) => sel.includes('.is-collapsed') && !sel.includes('.ui-app__fold'))]
     .map(([sel, decls]) => [sel.replace(/:where\(\.ui-app\.is-collapsed\)\s*/g, '').replace('.ui-app.is-collapsed', '.ui-app'), decls]));
   // A floor, not a count: it catches a sweep that has stopped finding the block,
@@ -353,8 +364,10 @@ test('the phone strip holds its controls to the touch floor, and the reader\'s f
       + `control is ${floor}px there (WCAG 2.5.5). Restore it in the 720px block of layout.css.`,
     );
 
-    // Not "is it zero" but "did the press change it": the floor is phone-only either
-    // way, and one of these boxes has a height of its own on every other viewport.
+    // Two halves, and both are needed. "Did the press change it" catches a floor
+    // added to the `.is-collapsed` copy; "is it under the floor at all" catches one
+    // added OUTSIDE the media query, which raises both sides at once and leaves the
+    // first half green — the same blindness the equality gates have, one level down.
     const open = box(mount(PAIR(false)));
     const folded = box(mount(PAIR(true)));
     assert.equal(
@@ -364,7 +377,53 @@ test('the phone strip holds its controls to the touch floor, and the reader\'s f
       + 'what is under it — the one thing the travel promises not to do. The floor belongs to the '
       + '720px block alone.',
     );
+    assert.ok(
+      open < floor,
+      `${what} resolves to ${prop}: ${open}px on a desktop, already at the ${floor}px the phone `
+      + 'strip sets. A floor written outside the media query raises both folds together, so the '
+      + 'test above cannot see it — and every row of every rail grows by it.',
+    );
   }
+});
+
+// A shell whose product word is in the topbar, so the rail's head band holds the
+// toggle and nothing else — the shape the rule below is about, and the one every
+// /account page has.
+const TOPPED = (collapsed) => appShell({
+  word: 'Finance',
+  topbar: { word: 'Finance' },
+  nav: [{ id: 'dashboard', icon: 'chart', label: 'Dashboard' }],
+  active: 'dashboard',
+  account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+  signOutHref: '#logout',
+  collapsible: true,
+  collapsed,
+});
+
+test('the phone strip drops a head band with nothing left to draw, and the reader\'s fold keeps it', () => {
+  const narrow = mount(TOPPED(false), { narrow: true });
+  assert.equal(
+    narrow.shown(narrow.q('.ui-app__head')), false,
+    'below 720px the toggle is not drawn, so a head band holding only the toggle is 12px of padding '
+    + 'and a hairline over nothing at the top of the rail. Every shell with a topbar has one.',
+  );
+
+  const folded = mount(TOPPED(true));
+  assert.equal(
+    folded.shown(folded.q('.ui-app__head')), true,
+    'the reader\'s fold took the head band with it, and the toggle inside it is the only way back to '
+    + 'an open rail. This rule belongs to the 720px block alone.',
+  );
+  assert.equal(folded.shown(folded.q('.ui-app__fold')), true, 'the folded rail cannot be opened again');
+
+  // And the band a wordmark is in stays at both, which is what keeps the rule
+  // about an empty band rather than about the band.
+  const branded = mount(PAIR(false), { narrow: true });
+  assert.equal(
+    branded.shown(branded.q('.ui-app__head')), true,
+    'the rule reaches a head band that still has the product\'s mark in it, so a phone rail lost '
+    + 'the brand as well as the control',
+  );
 });
 
 const nameOf = (el) => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`

@@ -766,7 +766,9 @@ What the shell guarantees:
   menu: a trigger that opens an empty panel is a control that does nothing, and the block is the
   plain reader block it has always been. With no `account` there is no block, so a `signOutHref`
   passed without one draws nothing at all — the menu hangs off the reader, and there is no session
-  to end without one. Held by `stories/apps/shell-rail.test.js`.
+  to end without one. Signing out needs `wireShell()`: it was a plain link in the nav list and it is
+  a menu row now, so a page that will never wire the shell should not pass `signOutHref` — the same
+  call `collapsible: false` is the way out of for the toggle. Held by `stories/apps/shell-rail.test.js`.
 - **One rule closes the rail, and one closes its head.** The nav's footer slot is empty now that
   Sign out is in the menu, so the hairline that fenced Sign out off is on the block that opens it.
   Two of them twenty pixels apart read as a third region of the rail rather than as its foot.

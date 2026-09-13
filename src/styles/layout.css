@@ -193,7 +193,12 @@
    why: docs/specification.md#the-dropdown-panel */
 .ui-app__user-panel .ui-dropdown__head { display: flex; flex-direction: column; gap: 2px; }
 .ui-app__user-panel .ui-dropdown__head b { display: block; color: var(--strong); font-size: 12.5px; font-weight: var(--weight-semibold); }
-.ui-app__user-panel .ui-dropdown__head span { display: block; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+/* The address wraps rather than truncating: the panel is shrink-to-fit with a
+   min-width and no max, so nothing bounds this line and `text-overflow` would have
+   nothing to fire against — it is the inert pair .ui-app__who's own comment warns
+   about. `anywhere` is what keeps an address with no break in it from widening the
+   panel instead. */
+.ui-app__user-panel .ui-dropdown__head span { display: block; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 
 /* The toggle's row inside the head band. No rule of its own: the band draws one
    below the pair, so the mark that folds the rail and the mark that names the
@@ -312,6 +317,14 @@
   .ui-app { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
   /* The strip is the only layout this width has, so there is nothing to fold. */
   .ui-app__rail .ui-app__fold-row { display: none; }
+  /* …and with it the band, when the band has nothing else in it. A head with no
+     wordmark is the toggle alone — every shell that has a topbar, because the
+     topbar says the product word — so at this width it is 12px of padding and a
+     hairline drawn over nothing. The reader's fold cannot take this rule: there
+     the toggle IS drawn, and hiding the band would take away the only control
+     that opens a folded rail. Named in shell-states.test.js beside the touch
+     floors, and held in both directions there. */
+  .ui-app__head:not(:has(> .ui-app__brand)) { display: none; }
   .ui-app__rail .ui-nav__cap,
   .ui-app__rail .ui-nav__label,
   .ui-app__rail .ui-nav__badge,

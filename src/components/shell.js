@@ -213,8 +213,9 @@ function railUser({ name, email }, signOutHref) {
     return `<div class="ui-app__user">${readerFace(name, email, who)}</div>`;
   }
   // The head says who the menu belongs to. Expanded, the trigger under it says the same
-  // thing; folded, the trigger is an avatar alone and this is the only place the address
-  // appears — so it is written at both widths rather than drawn twice.
+  // thing; folded, the trigger is an avatar alone on screen and this is the only place a
+  // sighted reader can read the address — the fold is an opacity, so it never left the
+  // accessibility tree. Written at both widths rather than drawn twice.
   const head = `<div class="ui-dropdown__head">`
     + (name ? `<b>${esc(name)}</b>` : '')
     + (email ? `<span>${esc(email)}</span>` : '')

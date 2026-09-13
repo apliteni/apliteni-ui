@@ -343,3 +343,34 @@ test('src/styles/dropdown.css: an open panel is visible in the frame it opens, n
     + 'close and the fade plays on a box nobody can see',
   );
 });
+
+// And the other end of that window, which the three overlays above already gate:
+// a panel drawn while it fades is a panel that is hit. Its rows are <a> and
+// <button> elements — a menu is actions — and since #286 one of them signs the
+// reader out, so a stray click in the 250ms after a close is a session ended by
+// a box nobody can see.
+test('src/styles/dropdown.css: a closing panel stops being clickable at once', () => {
+  const all = rules(read('src/styles/dropdown.css'));
+  const live = /pointer-events\s*:\s*auto/;
+
+  const closed = all.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  assert.ok(closed, 'the panel rule was found');
+  assert.match(
+    closed.body, /pointer-events\s*:\s*none/,
+    'a closed dropdown panel is hit-testable. `visibility` is held at `visible` for the whole fade '
+    + 'out, so for --dur-med after the menu closes its rows are still there to be clicked — and one '
+    + 'of them is sign out. `pointer-events: none` here, taken back on the open rules, is the same '
+    + 'answer .ui-drawer and .ui-cmdk give.',
+  );
+
+  const ungated = all.filter((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel')
+    && live.test(r.body));
+  assert.deepEqual(
+    ungated.map((r) => r.selector), [],
+    'the panel is turned back on by a rule that does not ask whether it is open',
+  );
+  assert.ok(
+    all.some((r) => /\.(open|is-open)\b/.test(r.selector) && /__panel/.test(r.selector) && live.test(r.body)),
+    'nothing turns the panel on while it IS open — the menu would not be clickable at all',
+  );
+});

@@ -83,6 +83,54 @@ every panel's now: one `transition-property: opacity, transform` while the panel
 untouched. `stories/overlay-css.test.js` is where it is gated, because that file exists for exactly
 the rules JSDOM cannot check.
 
+### An independent review of this round, and the eight things it found
+
+A read-only review ran against the two commits above and broke rules on disk to prove each finding.
+Seven are fixed here and one is documented rather than changed. Three of them were not about the
+rail at all — they were about `dropdown()`, which this round is the first to put on a shipped
+surface with a **destructive** row in it.
+
+1. **`wireShell()` stopped keeping its own per-document promise.** It is written to be handed a
+   foreign root — a frame's document, an open shadow root — and `wireDropdown()` was not: it
+   portalled every panel to the *module realm's* `document.body`, queried that document to close
+   dropdowns, and registered its click-outside and Escape handlers once, on it. So a shell in a
+   frame put its menu on the page holding the frame, styled by whatever sheet that page has, and
+   nothing closed it; a shell in a shadow root had its panel lifted into the light DOM, out of reach
+   of every style scoped to that root. Fixed in `dropdown.js`: a portalled panel goes to the top of
+   the tree its trigger is in, the close handlers are registered once per document that holds a
+   dropdown — the shape `wireShell()`'s own `listen()` already had — and `closeAllDropdowns()` walks
+   a registry of wired containers instead of `document.querySelectorAll`, which enters no shadow
+   root and sees no other document. The two environment gates in `shell-rail.test.js` now draw a
+   shell **with an account**, so the menu is a subject in both; before, their fixture had none and
+   the new surface reached neither.
+2. **An empty ruled band at the top of every phone /account rail.** The band's hairline and padding
+   moved from the toggle's row onto the band, and below 720px the toggle is not drawn — so for a
+   shell whose word is in the topbar the band was 12px of padding and a rule over nothing. The
+   720px block drops a band with no wordmark in it; the reader's fold cannot take the same rule,
+   because there the toggle *is* drawn and hiding the band would take away the only way back to an
+   open rail. Named beside the touch floors in `shell-states.test.js` and measured both ways.
+3. **A closed dropdown panel took clicks for a quarter of a second.** `visibility` is held at
+   `visible` for the whole fade out so the rows do not vanish mid-fade — and a drawn box is a box
+   that is hit, with no `pointer-events` rule anywhere in `dropdown.css`. A stray click in that
+   window activated a row invisibly, and since this round one of those rows is **Sign out**. This
+   is the same defect `overlay-css.test.js` already gates for the drawer, the confirm and the
+   palette, and the fix is the one those three already ship.
+4. **A gate this round added had quietly weakened an older one.** `accessibleName()` fell back to
+   an element's text when it carries no `aria-label` — which the account block needs — but read
+   text out of a clone, and a clone has no cascade. A fold that took a label out with
+   `display: none` still had the words in `textContent`, so the folded-rail naming gate would have
+   passed on rows a browser names nothing. It walks the live tree now and skips what is not
+   rendered.
+5. **The touch floor's measured half had been relaxed.** Extending the exception list from one
+   entry to two turned `min-height` must be `0` on the reader's fold into `must be what it is on an
+   open rail`, which is blind to a floor written *outside* the media query — that raises both folds
+   together. Both halves are asserted now.
+6. **Sign out needs JavaScript.** Not changed: see *What a reviewer should push on*.
+7. An `overflow: hidden` + `text-overflow: ellipsis` pair in the menu's head with nothing bounding
+   it — the inert pair `.ui-app__who`'s own comment warns about. The address wraps instead.
+8. A comment claiming the folded trigger is the only place the address appears; the fold is an
+   opacity, so it never left the accessibility tree, and `shell-states.test.js` says so. Reworded.
+
 ### One decision made after review, by the coordinator, and reversible
 
 An independent review found that rewriting the 720px block took its
@@ -521,6 +569,22 @@ noticed on their own: moving a control from one end of the rail to the other cha
 property of anything. What notices is the wiring — `wireShell()` addresses the toggle through the
 head band and nowhere else — and the markup gates that say where sign out is.
 
+And eight more for the review fixes above, run the same way:
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **a portalled panel is lifted onto the page holding the frame** | `shell-rail.test.js` | **2 red** |
+| the close handlers go back to one document | `shell-rail.test.js` | **1 red** |
+| `closeAllDropdowns()` goes back to querying the page | `shell-rail.test.js` | **2 red** |
+| **a closed dropdown panel is hit-testable again** | `overlay-css.test.js` | **1 red** |
+| the empty head band is drawn on a phone again | `shell-states.test.js` | **1 red** |
+| the phone rule spreads to the reader's fold, taking the toggle with it | `shell-states.test.js` | **2 red** |
+| the touch floor is written outside the media query, raising both folds at once | `shell-states.test.js` | **1 red** |
+| a folded row's label is `display: none` and its `aria-label` is gone | `accessibility-floor.test.js` | **1 red** |
+
+The last one is the mutation the review used to show the naming gate had gone blind: against the
+helper as this round first wrote it, it reported **0 red**.
+
 One mutation is reported as **0 red** and is not a hole: filling the mark
 (`fill="none"` → `fill="currentColor"`) changes nothing a reader sees, because
 `.ui-nav__ic svg { fill: none }` in `nav.css` decides the paint for every glyph on the rail and
@@ -633,17 +697,17 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
       only be proven after a release.
 
-**Counts on this box.** `npm test`: 1457 tests, 1455 pass, 1 fail, 1 skipped. The skip is the
+**Counts on this box.** `npm test`: 1459 tests, 1457 pass, 1 fail, 1 skipped. The skip is the
 opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an environment variable on
 `main` too. The failure is `stories/contrast.test.js`'s own wall-clock ceiling: the
 walk took **122.0s** against a 120s bar. That is this box, not the diff, and it is measured rather
 than assumed — `origin/main` at `bb5fd04`, checked out beside this branch and run through the same
 gate on the same machine, takes **128.7s** and fails it harder. `npm run build`: clean. React: 322 tests in 16 files, all
-passing. (1437 before the first review fixes, 1441 after them, 1446 at the sixth round; the eleven
-this round adds are the toggle's mark against a control's contrast floor, the avatar's inset, the
-account block's declared height, the block's phone floor in both directions, the head band's and the
-foot's rules, the menu's markup, its keyboard path, its press, the shell that draws neither, and the
-open panel's `visibility`.)
+passing. (1437 before the first review fixes, 1441 after them, 1446 at the sixth round; the
+thirteen this round adds are the toggle's mark against a control's contrast floor, the avatar's
+inset, the account block's declared height, the block's phone floor in both directions, the head
+band's and the foot's rules, the empty band a phone drops, the menu's markup, its keyboard path, its
+press, the shell that draws neither, the open panel's `visibility`, and the closed panel's clicks.)
 
 ## What a reviewer should push on
 
@@ -677,6 +741,13 @@ open panel's `visibility`.)
   shell draws itself, not a switcher a consumer fills, so there is no second owner to crowd. If the
   argument does transfer after all, moving it back is one expression in `appShell()` and one
   selector in `wireShell()`.
+- **Sign out needs JavaScript now.** It was an `<a href>` in the nav list that worked with none; it
+  is a row of a menu a `dropdown()` opens. `wireTopbar()` wires dropdowns too, so the published
+  `/account` path is covered either way — but a consumer who wires neither loses sign out, where
+  before they lost only the fold. The toggle has `collapsible: false` for exactly this case and the
+  menu has no equivalent; the answer here is "do not pass `signOutHref` on a page that will never
+  call `wireShell()`", stated in the spec and in `docs/library.md`. Say the word and it is a
+  `menu: false` beside `collapsible: false`.
 - **`signOutHref` with no `account` now draws nothing.** This is the one behaviour change a
   consumer can be surprised by, so it is stated rather than buried: the menu hangs off the block
   that says who is signed in, and with nobody signed in there is no session to end and no block to
