@@ -13,8 +13,9 @@
 // the before side of every pair is shot off `main` with this same page.
 import * as shell from '/src/components/shell.js';
 const { appShell, wireShell, ACCOUNT_NAV } = shell;
-import { card } from '/src/components/index.js';
+import { button, card } from '/src/components/index.js';
 import { sidebarNav } from '/src/components/nav.js';
+import { dropdown } from '/src/components/dropdown.js';
 
 // The same definition Apps/Collapsible rail renders — a group holding the page
 // the reader is on, a counter on it, and the account rows the preset adds.
@@ -57,9 +58,44 @@ const collapsed = params.get('collapsed') === '1'
   ? true
   : (params.get('collapsed') === '0' ? false : undefined);
 
+// The third subject: a panel with a head and a foot, the pair #306 added the
+// property for. `main` has no `foot`, so the before side of the pair draws the
+// head alone and the shot shows what a page could not have without writing the
+// kit's padding out by hand.
+const FILTERS = [
+  { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
+  { label: 'Awaiting approval', description: '3 payouts', icon: 'shield' },
+  { label: 'Paid this month', description: '48 payouts', icon: 'check' },
+];
+const PANELS = {
+  'head-foot': {
+    value: 'Filter', variant: 'menu', ariaLabel: 'Filter payouts', open: true, items: FILTERS,
+    head: '<b>Filter payouts</b>',
+    foot: '<span class="ui-dropdown__desc">Counts refresh every 5 minutes.</span>',
+  },
+  'foot-controls': {
+    value: 'Filter', ariaLabel: 'Filter payouts', open: true, items: FILTERS,
+    search: { placeholder: 'Search filters' },
+    head: '<b>Filter payouts</b>',
+    foot: '<div style="display:flex;justify-content:flex-end;gap:8px">'
+      + button({ label: 'Cancel', variant: 'ghost', size: 'sm' })
+      + button({ label: 'Save', variant: 'primary', size: 'sm' })
+      + '</div>',
+  },
+};
+
+if (params.get('subject') === 'dropdown') {
+  document.body.innerHTML = `<div class="ddbox">${dropdown(PANELS[params.get('panel')])}</div>`;
+  // The page surface a dropdown is opened over, so the panel's own step reads
+  // against the ground it is raised from.
+  const st = document.createElement('style');
+  st.textContent = 'html,body{margin:0;background:var(--bg);color:var(--text);'
+    + 'font-family:var(--font-sans)}'
+    + '.ddbox{padding:var(--space-5) var(--space-5) 0}';
+  document.head.append(st);
 // The second subject: sidebarNav({ collapsed }) on its own, with the page the
 // reader is standing on inside a group — the row a shut group used to swallow.
-if (params.get('subject') === 'nav') {
+} else if (params.get('subject') === 'nav') {
   document.body.innerHTML = `<div class="navbox">${sidebarNav({
     items: NAV, active: 'pending', collapsed: true,
   })}</div>`;

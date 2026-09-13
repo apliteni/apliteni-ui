@@ -462,7 +462,7 @@ one `.ui-input` takes.
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
 takes an accent counter under the floor inside a panel. Two rules state it:
 `src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-src/styles/dropdown.css:182 `.ui-dropdown__badge.is-accent`.
+src/styles/dropdown.css:180 `.ui-dropdown__badge.is-accent`.
 
 **The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
 the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked
@@ -967,7 +967,7 @@ inside it, at the same 9px from the trigger.
 
 **One padding, and two blocks that bleed back through it.** `--ui-dropdown-pad` is declared on
 `.ui-dropdown__panel` beside the offset, and the panel's own `padding` reads it —
-src/styles/dropdown.css:71 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
+src/styles/dropdown.css:69 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
 panel has to come back out through that padding to reach the edge, and before
 [#306](https://github.com/apliteni/apliteni-ui/issues/306) the only way to write that was to copy
 the number: the head's bleed was `margin: -6px -6px 5px` and a page building its own footer wrote
@@ -975,7 +975,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:215-218 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:210-213 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ head, foot })` draws them; `header` and `footer` remain the unwrapped

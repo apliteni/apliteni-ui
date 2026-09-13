@@ -45,10 +45,8 @@
      the portal's JS, so an upward panel cannot drift from a downward one.
      why: docs/specification.md#the-dropdown-panel */
   --ui-dropdown-gap: 9px;
-  /* The panel's own padding, named for the same reason the offset is: a block
-     that bleeds back through it — the head, the foot, and whatever a consuming
-     page pins there — has to know the number, and #306 was a page copying `-6px`
-     out of this file because nothing exposed it.
+  /* Named for the same reason the offset is: a block pinned to an edge has to
+     bleed back through it, and #306 is a page copying the number by hand.
      why: docs/specification.md#the-dropdown-panel */
   --ui-dropdown-pad: 6px;
   /* The panel states its own role rather than inheriting one, because `portal:
@@ -206,11 +204,8 @@
 /* Separator */
 .ui-dropdown__sep { height: 1px; background: var(--border); margin: 5px 4px; }
 
-/* Optional pinned head/foot blocks. Each bleeds through the panel's padding to
-   the edge it sits on, so its rule and its line run the full width — and each
-   reads --ui-dropdown-pad to do it, so the two cannot drift from the panel or
-   from one another. The pair is symmetrical: the head takes the top corners and
-   a line under it, the foot the bottom corners and a line over it.
+/* Optional pinned head/foot blocks — symmetrical: one inner padding, and each
+   bleeding to the edge it sits on, lining the edge it faces.
    why: docs/specification.md#the-dropdown-panel */
 .ui-dropdown__panel > .ui-dropdown__head,
 .ui-dropdown__panel > .ui-dropdown__foot {

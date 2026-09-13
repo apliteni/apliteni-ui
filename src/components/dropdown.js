@@ -205,10 +205,9 @@ export function dropdown({
     scroll && scroll !== true && !sx ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
   ].filter(Boolean).join(' ');
 
-  // The pair the sheet bleeds to the panel's edges, drawn only when asked for.
-  // Each sits OUTSIDE its unwrapped neighbour, because the block that bleeds is
-  // the one that has to touch the edge it bleeds to.
-  // why: docs/specification.md#the-dropdown-panel
+  // The pair the sheet bleeds to the panel's edges. Each sits OUTSIDE its
+  // unwrapped neighbour, because the block that bleeds is the one that has to
+  // touch the edge. why: docs/specification.md#the-dropdown-panel
   const headBlock = head ? `<div class="ui-dropdown__head">${head}</div>` : '';
   const footBlock = foot ? `<div class="ui-dropdown__foot">${foot}</div>` : '';
 

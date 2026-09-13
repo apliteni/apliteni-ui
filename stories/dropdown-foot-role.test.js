@@ -1,15 +1,11 @@
-// Rule: a head or a foot holds what its panel's role may hold.
+// Rule: a head or a foot holds what its panel's role may hold — a menu takes
+// menuitems and a listbox takes options, so a Save / Cancel pair goes in the
+// search variant's dialog and nowhere else.
 //
-// `.ui-dropdown__foot` is a slot, and the thing a page most wants to put in one
-// is a Save / Cancel pair — which is exactly what a `role="menu"` or a
-// `role="listbox"` panel may not contain: both take rows and nothing else.
-// `search: true` already answers this for the field above the rows by making
-// the panel a `role="dialog"`, and that is the answer here too.
-//
-// The rule is a sentence in the specification, so it is measured rather than
-// asserted: the same foot goes into each panel the factory can emit and axe
-// says which ones it refuses. If a future axe stops refusing it, this goes red
-// and the sentence gets rewritten rather than quietly becoming false.
+// It is a sentence in the specification, so it is measured rather than asserted:
+// the same foot goes into each panel the factory emits and axe says which it
+// refuses. An axe that stops refusing turns this red rather than turning the
+// sentence quietly false.
 //
 // why: docs/specification.md#the-dropdown-panel
 // why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
