@@ -26,10 +26,13 @@ const TOKENS = readFileSync(path.join(src, 'tokens/tokens.css'), 'utf8');
 /* The subjects: the sheets the kit ships, in import order, and then every other
  * file this repo draws with. A guideline page writes its CSS in a template
  * literal, and a rank note there is the same claim a stylesheet makes — #310 put
- * the first one on a story. A gate's own file is skipped: the notes in the
- * mutations below are strings, not rules anybody renders.
+ * the first one on a story. `docs` is in the list for the review prototypes
+ * under docs/reviews/, which draw their screenshots in the kit's own faces and
+ * are subjects of scripts/font-loading.test.js for that reason. A gate's own
+ * file is skipped: the notes in the mutations below are strings, not rules
+ * anybody renders.
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
-const DRAWN_IN = ['stories', 'site', 'react/src', '.storybook'];
+const DRAWN_IN = ['stories', 'site', 'docs', 'react/src', '.storybook'];
 const READ = /\.(?:css|m?js|jsx|tsx?|html)$/;
 const SHEETS = [
   ...kitSheetNames(src).map((rel) => ({ rel: `src/${rel}`, css: readFileSync(path.join(src, rel), 'utf8') })),

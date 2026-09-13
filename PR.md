@@ -68,10 +68,12 @@ pages this repo draws; and the *Decided in* paragraph names #310 and whose call 
 **The gate.** `src/styles/type-ranks.test.js`:
 
 - Its subjects are the kit's sheets in import order, then every `.css`, `.js`, `.mjs`, `.jsx`,
-  `.ts`, `.tsx` and `.html` file under `stories/`, `site/`, `react/src` and `.storybook` — walked,
-  not listed, with build output pruned by the shared `walk()` and a missing directory skipped rather
-  than thrown on, the way the sibling gate does it. A gate's own file is skipped too: the rank notes
-  in its mutations are strings, not rules anybody renders.
+  `.ts`, `.tsx` and `.html` file under `stories/`, `site/`, `docs/`, `react/src` and `.storybook`
+  — walked, not listed, with build output pruned by the shared `walk()` and a missing directory
+  skipped rather than thrown on, the way the sibling gate does it. `docs/` is in that list for the
+  three review prototypes under `docs/reviews/`, which draw their screenshots in the kit's own
+  faces and are subjects of `scripts/font-loading.test.js` for the same reason. A gate's own file
+  is skipped too: the rank notes in its mutations are strings, not rules anybody renders.
 - The order rule reads a weight token where two ranks tie on size, and says so in the failure:
   *"caption shares label's 13px and is not lighter than it (--weight-medium, 500 against
   --weight-medium, 500)"*.
@@ -143,7 +145,7 @@ node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank befor
 | `caption` sits between `label` and `chip`, not above `label` | this branch | the table reads down in decreasing prominence, and at equal size the lighter row is the lower one |
 | a tie on size is broken by weight rather than by dropping the order rule | this branch | `src/styles/type-ranks.test.js`, and the sentence it reads in the specification |
 | a rank that inherits its leading may write `line-height: inherit`, and only that | this branch | the gate's own comment; it is the one value that takes back a number an earlier rule for the same element pinned |
-| the rank-note sweep reaches `stories/`, `site/`, `react/src` and `.storybook` | this branch | the gate's own comment; #298 had asked for it in the sheet it could not gate |
+| the rank-note sweep reaches `stories/`, `site/`, `docs/`, `react/src` and `.storybook` | this branch | the gate's own comment; #298 had asked for it in the sheet it could not gate, and `docs/reviews/` is where the review prototypes draw in the kit's own faces |
 | the three other restated rules on that page stay unnoted | this branch | they are #298's rules and outside this issue; noting them is additive and needs no decision from Artur — say the word and it is three lines |
 | no version bump, no changelog entry | the coordinator's standing rule | this file, below |
 
@@ -166,38 +168,34 @@ node --test src/styles/type-ranks.test.js stories/guidelines/letter-case.test.js
 ℹ tests 134   ℹ pass 134   ℹ fail 0
 ```
 
-`npm test`, whole suite:
-
-```
-ℹ tests 1426   ℹ pass 1422   ℹ fail 0   ℹ cancelled 3   ℹ skipped 1   ℹ duration_ms 169596
-```
-
-**Read that count with the box it ran on.** This branch shares an eight-core machine with four
-other workers running the same suite, and the run above sat at a load average near 28. Three files
-— `scripts/tag-on-bump.test.js`, `stories/contrast.test.js` and
-`stories/guidelines/accessibility-floor.test.js`, the three slowest — were **cancelled**, not
-failed: *"Promise resolution is still pending but the event loop has already resolved"*, which is
-the runner losing a starved child. Re-run on their own afterwards:
-
-```
-node --test scripts/tag-on-bump.test.js stories/guidelines/accessibility-floor.test.js
-ℹ tests 76   ℹ pass 76   ℹ fail 0   ℹ cancelled 0
-```
-
-**`stories/contrast.test.js` is the one real failure, and it is the box.** Twenty of its
-twenty-two pass, one is the opt-in `CONTRAST_ACCENTS=1` matrix that is skipped on `main` too, and
-the failure is its wall-clock ceiling:
+`npm test`, whole suite, on the branch as it stands:
 
 ```
 ✖ the walk has not run away with the clock
-  the contrast walk took 246.3s, against a 120s ceiling …
+  the contrast walk took 184.7s, against a 120s ceiling …
+
+ℹ tests 1521   ℹ suites 0   ℹ pass 1518   ℹ fail 1   ℹ cancelled 0   ℹ skipped 2
+ℹ duration_ms 204117
 ```
 
-`origin/main` at `233a1e7`, checked out beside this branch and run the same way minutes later,
-fails the same assertion at **226.2s**. The ceiling's own message says "at this margin the cause
-is not a slow machine" — on a quiet machine that is right, and PR #298 cleared it at the same
-settings. It is not this diff: nothing here is in the contrast walk's path, and the branch and
-`main` measure within 9% of each other on the same contended box.
+**The one red is `stories/contrast.test.js`'s wall-clock ceiling, and it is the box.** This branch
+shares an eight-core machine with four other workers running the same suite. `origin/main` at
+`233a1e7`, checked out beside this branch and run the same way, fails the same assertion at
+**226.2s**; the branch has measured 184.7s and 246.3s on two runs, which is the load moving and not
+the diff. The ceiling's own message says "at this margin the cause is not a slow machine" — on a
+quiet machine that is right, and PR #298 cleared it at the same settings. Nothing in this diff is
+in the contrast walk's path.
+
+The two skips are the opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an
+environment variable on `main` too, and the built-Storybook index check, which wants
+`npm run build-storybook` first.
+
+An earlier run of the same suite reported `fail 0` with **three files cancelled** —
+`scripts/tag-on-bump.test.js`, `stories/contrast.test.js` and
+`stories/guidelines/accessibility-floor.test.js`, the three slowest — with *"Promise resolution is
+still pending but the event loop has already resolved"*, which is the runner losing a starved child
+at a load average near 28. Those two re-run clean on their own (`ℹ tests 76 ℹ pass 76 ℹ fail 0`),
+and the run pasted above is the one to read.
 
 ## Review
 
