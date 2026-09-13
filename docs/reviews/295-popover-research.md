@@ -124,7 +124,7 @@ without a border where popovers have one. This is essentially what the kit alrea
 notch finer: a half-pixel line and a smaller, more numerous set of steps. It is the closest
 system to the kit's current state and it is worth noting that it does **not** solve the light
 case — Linear's dark theme is the one everybody cites. Source:
-<https://styles.refero.design/style/90ce5883-bb24-4466-93f7-801cd617b0d1>.
+refero.design's reading of Linear (styles.refero.design; its page id is a bare UUID the repository's secret gate refuses, so it is not linked).
 
 ### Raycast — a double ring, outer light and inner dark (reverse-engineered)
 
@@ -327,7 +327,7 @@ produced. The light drop is `#101626` at 17% over the card `#f8f9fc`, giving `#d
 - <https://developer.android.com/develop/ui/compose/designsystems/material3> — M3 tonal elevation.
 - <https://developer.apple.com/videos/play/wwdc2025/219/> — Apple, Meet Liquid Glass.
 - <https://designmd.cc/benchmarks/vercel> — a reading of Geist's shipped CSS.
-- <https://styles.refero.design/style/90ce5883-bb24-4466-93f7-801cd617b0d1> — a reading of Linear's.
+- styles.refero.design — a reading of Linear's; its page id is a bare UUID the repository's secret gate refuses, so the page is named rather than linked.
 - <https://www.shadcn.io/design/raycast> — a reading of Raycast's.
 - <https://base.uber.com/6d2425e9f/p/595594-elevation> — Uber Base elevation.
 - <https://ux.redhat.com/elements/popover/style/> — Red Hat popover style.
