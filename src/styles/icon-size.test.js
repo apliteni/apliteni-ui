@@ -46,7 +46,7 @@ const src = path.resolve(here, '..');
 // glyph, width and height); 70 (#267: the stat band's change arrow and its trend
 // slot, two rules of two declarations each); 68 (#277: the fold closes a box over
 // the rows, so a rail row's glyph is one rule at both widths).
-const EXPECTED_SUBJECTS = 68;
+const EXPECTED_SUBJECTS = 70;
 
 const SHEETS = kitSheetNames(src);
 

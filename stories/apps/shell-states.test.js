@@ -318,9 +318,11 @@ const PHONE_ONLY = [
  * that is drawn in one fold and gone in the other. Below 720px the toggle is not
  * drawn, so a head band holding nothing else is padding and a hairline over
  * nothing; on the reader's fold that band holds the only control that opens the
- * rail. Each is measured both ways under this constant rather than merely excluded.
+ * rail. The rail's foot in the topbar layout is the same rule read at the other end —
+ * it holds the toggle and nothing else. Each is measured both ways under this constant
+ * rather than merely excluded.
  */
-const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand'];
+const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand', '.ui-app__foot'];
 
 /**
  * And the one rule the reader's fold writes that the 720px block must not, which is
@@ -421,6 +423,38 @@ const TOPPED = (collapsed) => appShell({
   signOutHref: '#logout',
   collapsible: true,
   collapsed,
+});
+
+// The second layout, where the reader's block is on the band and the fold's control
+// has taken its place at the rail's foot.
+const BANDED = (collapsed) => appShell({
+  word: 'Finance',
+  layout: 'topbar',
+  search: 'states-cmdk',
+  nav: [{ id: 'dashboard', icon: 'chart', label: 'Dashboard' }],
+  active: 'dashboard',
+  account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+  signOutHref: '#logout',
+  collapsible: true,
+  collapsed,
+});
+
+test('the phone strip drops the rail\'s foot with nothing left in it, and the reader\'s fold keeps it', () => {
+  const narrow = mount(BANDED(false), { narrow: true });
+  assert.equal(
+    narrow.shown(narrow.q('.ui-app__foot')), false,
+    'below 720px the toggle is not drawn, so the foot that holds it in the topbar layout is 20px of '
+    + 'padding and a hairline over nothing at the bottom of the rail — the head band\'s rule, read '
+    + 'at the other end of the rail',
+  );
+
+  const folded = mount(BANDED(true));
+  assert.equal(
+    folded.shown(folded.q('.ui-app__foot')), true,
+    'the reader\'s fold took the rail\'s foot with it, and the toggle inside it is the only way back '
+    + 'to an open rail. This rule belongs to the 720px block alone.',
+  );
+  assert.equal(folded.shown(folded.q('.ui-app__fold')), true, 'the folded rail cannot be opened again');
 });
 
 test('the phone strip drops a head band with nothing left to draw, and the reader\'s fold keeps it', () => {
@@ -1475,12 +1509,15 @@ test('the toggle rides the closing edge, and the edge lands it on the glyph colu
     + 'control on the strip — the glyph column every row of a folded rail stands on. Anything shorter '
     + 'leaves it outside the rail\'s clip, where a folded rail has no control to open it.',
   );
-  const declared = /:where\(\.ui-app\.is-collapsed\)\s*\.ui-app__fold-row\s*\{([^{}]*)\}/
+  // Scoped to the head band since #308: the topbar layout stands the same row at the
+  // rail's foot, where the control is on the glyph column from the first frame and has
+  // no edge to ride. The travel belongs to the band, so the rule that writes it says so.
+  const declared = /:where\(\.ui-app\.is-collapsed\)\s*\.ui-app__head\s*>\s*\.ui-app__fold-row\s*\{([^{}]*)\}/
     .exec(decomment(read('src/styles/layout.css')));
   assert.ok(
     declared,
-    'the reader\'s fold no longer moves the toggle, so a folded rail draws the one control that opens '
-    + 'it 175px outside itself',
+    'the reader\'s fold no longer moves the toggle in the head band, so a folded rail draws the one '
+    + 'control that opens it 175px outside itself',
   );
   assert.match(
     declared[1], /calc\(\s*var\(--ui-nav-strip\)\s*-\s*var\(--ui-nav-col\)\s*\)/,

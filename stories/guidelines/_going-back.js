@@ -100,7 +100,7 @@ export const RULES = [
       + 'when the only useful way up is one step. The UK government design system puts the rest in a '
       + 'line: “Never use the back link component together with the Breadcrumbs component.” Handed '
       + 'both, appShell() draws the link and leaves the trail out.',
-    kit: [{ ref: 'src/components/shell.js:261', pattern: '${up || (crumbs.length' }],
+    kit: [{ ref: 'src/components/shell.js:358', pattern: '${up || (crumbs.length' }],
   },
   {
     id: 'section-lit',

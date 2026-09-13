@@ -1,6 +1,6 @@
-// The kit's one page shell: a full-height rail beside one <main>. accountShell()
-// is a thin preset over it that keeps the topbar. wireShell() once after mounting
-// wires the fold, the nav's groups and the reader's menu.
+// The kit's one page shell: a full-height rail beside one <main>, in two layouts.
+// accountShell() is a thin preset over it that keeps the topbar. wireShell() once
+// after mounting wires the fold, the nav's groups and the reader's menu.
 // why: docs/specification.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
@@ -9,6 +9,7 @@ import { dropdown, wireDropdown } from './dropdown.js';
 import { backLink } from './back.js';
 import { prism } from '../assets/brand.js';
 import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
+import { paletteHotkey } from './command-palette.js';
 
 // The one account navigation definition lives in account-nav.js because topbar.js needs
 // it too; re-exported here so the name docs/library.md publishes keeps working.
@@ -78,6 +79,33 @@ const toTopbar = (t) => {
   return out;
 };
 
+// ---- the two layouts, and the two widths ---------------------------------
+//
+// One shell, two arrangements of the same parts. `rail` is what the kit has always
+// drawn and stays the default; `topbar` moves the reader's block to a band over the
+// page and gives its place at the rail's foot to the fold toggle. Anything that is
+// not the second name is the first: a layout is a name the kit knows, and a typo
+// must not draw half a page. why: docs/specification.md#the-page-shell
+const toLayout = (v) => (str(v) === 'topbar' ? 'topbar' : 'rail');
+
+// The content column, as a name rather than a number. `centered` is the column the
+// shell has always drawn — capped and centred in its track — and `wide` fills the
+// well. Same reading as the layout: the second name, or the first.
+// why: docs/specification.md#widths
+const toWidth = (v) => (str(v) === 'wide' ? 'wide' : 'centered');
+
+// The topbar's search is a trigger for a palette the caller has already rendered,
+// never a second search: `search: 'palette-id'`, or the same id in `{ palette }`
+// with a placeholder beside it. With no palette to open there is no field — the
+// argument `signOutHref` takes, and for the same reason: a control that does
+// nothing is worse than no control. why: docs/specification.md#the-page-shell
+const toSearch = (v) => {
+  const given = typeof v === 'string' ? { palette: v } : (isRecord(v) && !Array.isArray(v) ? v : null);
+  const palette = given ? str(given.palette).trim() : '';
+  if (!palette) return null;
+  return { palette, placeholder: str(given.placeholder) || 'Search or run a command…' };
+};
+
 // `maxWidth` lands inside a style attribute, so a length is all this accepts — a number
 // and a unit, or `none`. Anything else yields '' and the caller writes no style
 // attribute, falling through to --measure. It must REMOVE the property rather than pass
@@ -137,6 +165,7 @@ const railToggle = (collapsed) =>
 // this file re-checks a value that has been through here.
 const SHAPES = {
   nav: toItems, crumbs: toCrumbs, back: toBack, account: toReader, maxWidth: mainMax, topbar: toTopbar,
+  layout: toLayout, width: toWidth, search: toSearch,
   // Drawn by default; `collapsible: false` is the way out, for a page that will
   // never call wireShell(). why: docs/specification.md#the-page-shell
   collapsible: (v) => v !== false,
@@ -160,43 +189,93 @@ function settle(options) {
 // the fold takes away. `named` is the accessible name when nothing else carries
 // one; under the menu trigger it is null, because the button is named by the words
 // inside it. why: docs/specification.md#the-page-shell
-const readerFace = (name, email, named) =>
+const readerFace = (name, email, named, markOnly = false) =>
   `<span class="ui-app__av"${named ? ` role="img" aria-label="Signed in as ${esc(named)}"` : ' aria-hidden="true"'}>`
   + `${esc(initials(name, email))}</span>`
-  + `<span class="ui-app__who"${named ? ' aria-hidden="true"' : ''}>`
-  + (name ? `<b>${esc(name)}</b>` : '')
-  + (email ? `<span>${esc(email)}</span>` : '')
-  + `</span>`;
+  + (markOnly ? '' : `<span class="ui-app__who"${named ? ' aria-hidden="true"' : ''}>`
+    + (name ? `<b>${esc(name)}</b>` : '')
+    + (email ? `<span>${esc(email)}</span>` : '')
+    + `</span>`);
 
 // Who is signed in, and the one action on the session. A sibling of the <nav>, not
 // its footer: a name and address are not navigation. Given a sign-out href the block
 // is the trigger of the kit's own dropdown(), with Sign out inside it; without one
 // there is no menu, and with nobody signed in there is no block.
-// `portal: true` and `direction: 'up'` are what the rail asks of a panel at its foot.
+//
+// One block, two places. The rail's foot and the topbar's end draw the same markup
+// and the same menu; only which way the panel opens is the layout's answer, because
+// a panel drops from a band at the top of the page and rises from a block at the
+// foot of a full-height rail. `portal: true` either way — the rail is sticky with a
+// scroll of its own and the band is sticky too, and each of those traps a panel.
 // why: docs/specification.md#the-page-shell
-function railUser({ name, email }, signOutHref) {
+function readerBlock({ name, email }, signOutHref, { band = false } = {}) {
   if (!name && !email) return '';
+  const cls = `ui-app__user${band ? ' ui-app__user--bar' : ''}`;
   const who = [name, email].filter(Boolean).join(', ');
+  // On the band the mark is the whole trigger, so the name has to be written on it —
+  // the same sentence readerFace() writes when there is no menu and the avatar is the
+  // block. In the rail the two lines are inside the button and naming it again would
+  // be a second copy of them. Two placements, one rule: the name is said once, by
+  // whichever part is actually on screen. why: docs/specification.md#the-page-shell
+  const face = band ? readerFace(name, email, null, true) : readerFace(name, email, null);
   if (!signOutHref) {
-    return `<div class="ui-app__user">${readerFace(name, email, who)}</div>`;
+    return `<div class="${cls}">${readerFace(name, email, who, band)}</div>`;
   }
-  // The head says who the menu belongs to — and on a folded rail it is the only place
-  // a sighted reader can read the address. why: docs/specification.md#the-page-shell
+  // The head says who the menu belongs to — and on a folded rail, or on a band where
+  // the avatar stands alone, it is the only place a sighted reader can read the
+  // address. why: docs/specification.md#the-page-shell
   const head = `<div class="ui-dropdown__head">`
     + (name ? `<b>${esc(name)}</b>` : '')
     + (email ? `<span>${esc(email)}</span>` : '')
     + `</div>`;
-  return `<div class="ui-app__user">${dropdown({
+  return `<div class="${cls}">${dropdown({
     variant: 'menu',
     portal: true,
-    direction: 'up',
+    direction: band ? 'down' : 'up',
+    align: band ? 'end' : 'start',
+    chevron: !band,
+    ariaLabel: band ? `Signed in as ${who}` : undefined,
     triggerClass: 'ui-app__user-trigger',
-    triggerContent: readerFace(name, email, null),
+    triggerContent: face,
     panelClass: 'ui-app__user-panel',
     header: head,
     items: [{ label: 'Sign out', icon: 'logout', href: signOutHref, danger: true }],
   })}</div>`;
 }
+
+// The search, drawn as a field and behaving as a button: it opens the palette the
+// caller rendered, which is the kit's one search surface. `data-cmdk-open` is the
+// palette's own trigger hook, so nothing here re-implements opening it, and the
+// button is named by the words inside it rather than by an `aria-label` that would
+// be a second copy of them.
+//
+// The key cap is inside that name, which is the one place this kit reads a shortcut
+// out loud. A palette ROW's key is aria-hidden — forty of them read after forty
+// labels is noise a sighted reader skips — but there is one of these, and the key is
+// the fact it exists to state: a reader who learns it stops reaching for the field.
+// That is the reference's reading too. The cap is the palette's own class, not a
+// second cap written here, and `data-palette-hotkey` is where wireShell() writes the
+// key the reader's own platform uses. why: docs/specification.md#the-page-shell
+const searchField = ({ palette, placeholder }) =>
+  `<button type="button" class="ui-app__search" data-cmdk-open="${esc(palette)}" aria-haspopup="dialog">`
+  + `<span class="ui-app__search-ic" aria-hidden="true">${icon('search')}</span>`
+  + `<span class="ui-app__search-txt">${esc(placeholder)}</span>`
+  + `<kbd class="ui-cmdk__key" data-palette-hotkey>${esc(paletteHotkey())}</kbd>`
+  + `</button>`;
+
+// The band the topbar layout draws: the search at its start, the reader at its end,
+// and nothing in between. A <header> and not a second <nav> — neither of the two
+// things in it is a place to go. It stands over the page and beside the rail rather
+// than across the top of both, which is the reference's shape and the only one where
+// the rail's own head band and this band are one line: the product's mark on the
+// left of it, the reader on the right of it, and one rule under the pair.
+// why: docs/specification.md#the-page-shell
+const shellBar = (search, account, signOutHref) =>
+  `<header class="ui-app__bar">`
+  + (search ? searchField(search) : '')
+  + `<span class="ui-app__bar-gap"></span>`
+  + readerBlock(account, signOutHref, { band: true })
+  + `</header>`;
 
 // Unique-per-render suffix for the brand mark's clip id — the same reason
 // nav.js keeps a module counter. Two shells on one page must not collide.
@@ -222,7 +301,12 @@ export function appShell(options = {}) {
     maxWidth,
     collapsible,
     collapsed,
+    layout,
+    width,
+    search,
   } = settle(options);
+  // The layout's one branch, read once. Everything below asks this and not the string.
+  const banded = layout === 'topbar';
   const up = back ? backLink(back) : '';
   // No footer slot: the nav is places to go, and the one thing that was in it —
   // sign out — is in the reader's menu at the rail's foot.
@@ -232,10 +316,18 @@ export function appShell(options = {}) {
     activeIs: up ? 'section' : 'page',
     ariaLabel: navLabel,
   });
+  // One band over a page, never two. The `topbar` bag is the compatibility preset's —
+  // the Deck/Text switch, the version list, the theme toggle — and the banded layout
+  // draws its own bar instead, so a caller who passes both gets the layout they asked
+  // for rather than a page with two headers stacked on it.
+  // why: docs/specification.md#the-page-shell
+  const compat = banded ? null : topbar;
   // The topbar already says the product word, so the rail head steps aside when there is
   // one. The word is the link's only text and the narrow rail folds it out of view, so
-  // the name is written out — the mark itself is aria-hidden.
-  const brand = topbar ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}" aria-label="${esc(word)}">`
+  // the name is written out — the mark itself is aria-hidden. The banded layout's own
+  // bar says no word, so there the rail keeps the lockup: that layout's head band IS
+  // the product's mark. why: docs/specification.md#the-page-shell
+  const brand = compat ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}" aria-label="${esc(word)}">`
     + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
   // A <div>, not an <aside>: <aside> is the `complementary` landmark, and this holds the
   // page's primary navigation and the signed-in reader. The <nav> inside it is already
@@ -244,27 +336,45 @@ export function appShell(options = {}) {
   // caller left the choice to the reader; wireShell() applies the stored one there.
   const folded = collapsible && collapsed === true;
   const auto = collapsible && collapsed === null ? ' data-rail="auto"' : '';
+  // Where the fold's control stands is the layout's answer, and it is the one thing
+  // the two layouts disagree about on the rail: at the end of the head band, or at the
+  // rail's foot where the reader's block stood before it moved into the bar.
+  const fold = collapsible ? railToggle(folded) : '';
   // The head band: the product's mark, and the rail's own control at the far end of
   // the same line, under one rule. Either may be absent — a shell with a topbar says
   // the word up there, and `collapsible: false` draws no toggle — so the band itself
   // goes when both are.
-  const head = brand || collapsible
-    ? `<div class="ui-app__head">${brand}${collapsible ? railToggle(folded) : ''}</div>`
+  const inHead = banded ? '' : fold;
+  const head = brand || inHead
+    ? `<div class="ui-app__head">${brand}${inHead}</div>`
     : '';
-  const grid = `<div class="ui-app${folded ? ' is-collapsed' : ''}"${auto}>
-    <div class="ui-app__rail">
-      ${head}
-      ${rail}
-      ${railUser(account, signOutHref)}
-    </div>
-    <main class="ui-app__main"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
+  // The rail's foot: the reader in the layout that keeps them there, the fold's own
+  // control in the layout that does not. Either way one block, ruled off from the rows
+  // above it. why: docs/specification.md#the-page-shell
+  const foot = banded
+    ? (fold ? `<div class="ui-app__foot">${fold}</div>` : '')
+    : readerBlock(account, signOutHref);
+  const main = `<main class="ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
       ${up || (crumbs.length ? breadcrumbs({ items: crumbs }) : '')}
       ${title ? `<h1>${title}</h1>` : ''}
       ${sub ? `<p class="ui-app__sub">${sub}</p>` : ''}
       <div class="ui-app__body">${body}</div>
-    </main>
+    </main>`;
+  // The banded layout gives the shell's second column a box of its own, because the
+  // band and the page are two rows of it. The rail keeps the whole height beside
+  // them, so the band starts at the rail's head rather than above it.
+  const well = banded
+    ? `<div class="ui-app__well">${shellBar(search, account, signOutHref)}${main}</div>`
+    : main;
+  const grid = `<div class="ui-app${banded ? ' ui-app--topbar' : ''}${folded ? ' is-collapsed' : ''}"${auto}>
+    <div class="ui-app__rail">
+      ${head}
+      ${rail}
+      ${foot}
+    </div>
+    ${well}
   </div>`;
-  return topbar ? `<div class="ui-app-page">${productTopbar(topbar)}${grid}</div>` : grid;
+  return compat ? `<div class="ui-app-page">${productTopbar(compat)}${grid}</div>` : grid;
 }
 
 // ---- Behaviour -----------------------------------------------------------
@@ -275,13 +385,14 @@ export function appShell(options = {}) {
 const _wiredDocs = new WeakSet();
 const _unpersisted = new WeakSet();
 
-// The toggle, addressed from the rail that owns it: the head band of a shell's own
-// rail and nowhere else, so a stray [data-rail-toggle] in the page body folds nothing.
-// The path is written once — the listener, the reflector and wireShell() all have to
-// mean the same control, and the head band put one more step between them.
+// The toggle, addressed from the rail that owns it: a fold row of a shell's own rail
+// and nowhere else, so a stray [data-rail-toggle] in the page body folds nothing. The
+// path is written once — the listener, the reflector and wireShell() all have to mean
+// the same control. A descendant and not a child, because the two layouts stand the
+// row in two places: the head band, or the rail's foot.
 // why: docs/specification.md#the-page-shell
-const FOLD_PATH = '.ui-app__head > .ui-app__fold-row > [data-rail-toggle]';
-const RAIL_FOLD = `.ui-app__rail > ${FOLD_PATH}`;
+const FOLD_PATH = '.ui-app__fold-row > [data-rail-toggle]';
+const RAIL_FOLD = `.ui-app__rail ${FOLD_PATH}`;
 
 // Under an opted-out root? Steps out of a shadow root through its host.
 const optedOut = (node) => {
@@ -293,7 +404,7 @@ function setRail(app, collapsed) {
   app.classList.toggle('is-collapsed', collapsed);
   const rail = app.querySelector(':scope > .ui-app__rail');
   if (!rail) return;
-  for (const btn of rail.querySelectorAll(`:scope > ${FOLD_PATH}`)) {
+  for (const btn of rail.querySelectorAll(`:scope ${FOLD_PATH}`)) {
     btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
     btn.setAttribute('aria-label', railName(collapsed));
     const label = btn.querySelector('.ui-nav__label');
@@ -334,6 +445,14 @@ export function wireShell(root = document, { persist } = {}) {
   // The reader's menu is a dropdown() like any other, so it is wired like any
   // other. Idempotent, and a shell with no account draws none to find.
   wireDropdown(root);
+  // The search field's key hint is drawn before anybody knows what the reader is
+  // holding: paletteHotkey() reads navigator.platform, and on a server there is
+  // none, so the markup ships the key that is right for everyone except a Mac. The
+  // browser is the first place the answer exists, so this is where it is written —
+  // the same string the palette's own hotkey listens for.
+  // why: docs/specification.md#the-page-shell
+  const key = paletteHotkey();
+  for (const kbd of root.querySelectorAll('[data-palette-hotkey]')) kbd.textContent = key;
   const doc = root.nodeType === 9 ? root : root.ownerDocument;
   listen(doc);
   if (persist === false) _unpersisted.add(root);
@@ -368,6 +487,9 @@ export function accountShell({
   signOutHref = '#logout',
   collapsible = true,
   collapsed,
+  layout,
+  width,
+  search,
 } = {}) {
   // The same normaliser appShell() runs, called once here so the rail and the
   // topbar menu are handed one list rather than two readings of `nav`.
@@ -389,6 +511,14 @@ export function accountShell({
     signOutHref,
     collapsible,
     collapsed,
+    // The preset takes the layout and the width it is handed and settles neither:
+    // appShell() is where a name becomes a layout, and a second reading here would
+    // be a second answer to give. Under `layout: 'topbar'` the bag below is not
+    // drawn — the shell's own band is — which is the one thing the preset gives up
+    // for that layout. why: docs/specification.md#the-page-shell
+    layout,
+    width,
+    search,
     topbar: {
       word,
       view: 'text',
