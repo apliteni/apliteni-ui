@@ -317,21 +317,27 @@ post-merge numbers now would fail this branch's own `refs.test.js`.
 
 | rule | the citation on this branch, and the text it anchors on | line on a tree merged with #286 |
 |---|---|---|
-| `head` | `src/components/shell.js:182` `crumbs.length ? breadcrumbs` | **238** |
-| `lede` | `src/components/shell.js:184` `ui-app__sub` | **240** |
-| `outline` | `src/styles/layout.css:136` `rank: page-title` | **205** |
+| `head` | `src/components/shell.js:182` `crumbs.length ? breadcrumbs` | **249** |
+| `lede` | `src/components/shell.js:184` `ui-app__sub` | **251** |
+| `outline` | `src/styles/layout.css:136` `rank: page-title` | **208** |
 
 Whoever merges second edits those three numbers in `_the-page.js` and re-runs
 `node --test stories/guidelines/refs.test.js`, which prints any that have moved again. Citing by
 heading anchor instead would not help: `refs.test.js`'s `parseRef` accepts `file:line` and nothing
 else, and every one of the collection's seventeen pages cites that way.
 
-**Two of the five are gone, and the right-hand column is a prediction, not a measurement.** It was
-measured once, on a real merge off `origin/main` @ `7ffbde4` with #286 as it stood then. The two
-that dropped out belonged to `shell` and `navs`, the rules that moved to the contract — one cited
-`appShell()` in the shell, the other the breadcrumb variant in the nav — and the contract cites by
-file and symbol, which no line move touches. #286 is being reworked in parallel, so the three
-numbers above will need re-reading against it as it lands rather than trusted.
+**The right-hand column is measured, not predicted.** The merge was run: `origin/main` at
+`bb5fd04`, `#286` at `9704f6e` (a fast-forward), then this branch on top. `docs/library.md` and
+`PR.md` conflict as described below and nothing else does; `src/components/shell.js` and
+`src/styles/layout.css` auto-merge. On that tree `refs.test.js` prints exactly these three, and
+they are the three numbers above. I wrote them into `_the-page.js` on the merged tree and the gate
+went **37 tests, 37 pass, 0 fail**.
+
+Two of the five the earlier plan predicted are gone: they belonged to `shell` and `navs`, the rules
+that moved to the contract — one cited `appShell()` in the shell, the other the breadcrumb variant
+in the nav — and the contract cites by file and symbol, which no line move touches. Read these
+against #286's head all the same: they are line numbers in a file the other branch is still
+editing, and they moved once already while it was being reworked.
 
 That merge also gives exactly two conflicts, both expected: `PR.md`, whole file — a scratch file,
 take whichever branch merges second — and the `appShell(...)` row of `docs/library.md`, where both
@@ -339,7 +345,8 @@ branches rewrite the cell. The resolution is a union: keep #286's three rows (th
 `collapsible, collapsed` signature, its new `wireShell(...)` row, the `accountShell` passthrough)
 and splice this branch's one sentence — *"What may then go on the page it opens … is The page,
 and Guidelines / The page draws it"*, with its link to `docs/specification.md#the-page` — into the
-`appShell` cell after "beside exactly one `<main>`." Nothing else conflicts.
+`appShell` cell after "beside exactly one `<main>`." Nothing else conflicts — I applied that union
+on the merge above and it is what the merged `docs/library.md` says.
 
 ## A ledger this moved, and one failure that is the box
 
