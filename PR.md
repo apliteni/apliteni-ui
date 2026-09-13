@@ -216,8 +216,6 @@ $ npm test
 ℹ todo 0
 
 ✖ failing tests:
-
-test at stories/contrast.test.js:528:1
 ✖ the walk has not run away with the clock
   AssertionError [ERR_ASSERTION]: the contrast walk took 199.5s, against a 120s ceiling
   set from a measured worst case of 47.6s on a fully contended 10-core laptop.
