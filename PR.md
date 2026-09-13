@@ -204,9 +204,9 @@ drawn one over the other. `visibility: hidden` rides with the fade, which is wha
 of the tab order rather than leaving it invisible under the control that replaced it — the first Tab
 into a folded rail lands on the toggle, measured — while the box keeps its space, so the band keeps
 the height it had open and nothing under it steps. This is the reader's fold alone: below 720px the
-toggle is not drawn, nothing arrives on the mark's column, and the mark stays. It is the second
-named difference between the two folds, and both halves of it are measured rather than excluded, as
-the touch floor's are.
+toggle is not drawn, nothing arrives on the mark's column, and the mark stays — which this round
+claimed and the round below is what actually makes true. It is the second named difference between
+the two folds, and both halves of it are measured rather than excluded, as the touch floor's are.
 
 **The phone strip is 16px wider than it was, and that is the same rewrite.** At 375 the rail
 measures **74px** on this branch against **58px** on `main` — 4% of the viewport. `main` wrote the
@@ -219,6 +219,60 @@ from the open rail, which is what keeps a focus ring out of the rail's clip. Mea
 375×760: `74px`, eight rows, every one of them 44px, and the toggle not drawn. Making it 58 again
 means either a second narrow layout — the thing the rewrite removed, and what the two equality
 gates exist to refuse — or a smaller inset on the fold as well.
+
+### The eleventh round: the mark stays on the phone strip, folded or not
+
+Round 9's review found one should-fix, and it arrived with the round above. The rule that takes the
+product's lockup on the reader's fold carried no width qualifier, and the toggle that is supposed to
+arrive on the column the lockup gives up is `display: none` below 720px. A rail that was both folded
+and narrow therefore drew an **empty 41px head band with its hairline still under it**: no mark, no
+control, and the Tab walk into the rail starting at the first nav row, the link home gone with the
+mark.
+
+Nobody had to write a cookie by hand to get there. Every default shell is `data-rail="auto"` and
+takes the stored choice, so a reader who folds on a desktop and opens the same site on a phone lands
+in it — and so does any caller passing the documented `collapsed: true`.
+
+**The 720px block writes the lockup back**, which is the direction the rest of the file already
+reads in: the reader's copy sits behind `:where()` and weighs nothing, so the media query's own
+precedence is what separates the two. The alternative the review offered — scoping the press's rule
+to `@media (min-width: 721px)` — would have put the pair in a block JSDOM resolves nothing in, and
+the gates that hold the two folds against each other read that file rather than a browser.
+
+**The gate that went green over it now mounts the state.** `shell-states.test.js` asserted the mark
+at narrow width, but it mounted `PAIR(false)` there — the rail that is *not* folded. It mounts
+`PAIR(true)` narrow as well now and reads the lockup's three properties in that state, so the
+exception is measured in both directions rather than excluded in one. `.ui-app__brand` is the one
+selector that is an exception in *both* lists, because the two blocks write it in opposite
+directions, and the comment over each says so.
+
+Five mutations, five red, both files restored with their SHA-256 compared: the restore rule deleted;
+the restore giving back `opacity` but not `visibility`; the restore scoped to a rail that is not
+folded; the restore lifted out of the 720px block so it spreads to the press; and the toggle given
+back to the phone strip so nothing is missing from that column.
+
+| at 390×800, folded | before | after |
+|---|---|---|
+| the mark | `opacity 0`, `visibility: hidden` | **`opacity 1`, `visible`** |
+| the head band | 41px, empty, its hairline still under it | **41px, the mark in it** |
+| the link home in the tab order | gone | **there** |
+| the toggle | not drawn at this width | not drawn at this width |
+
+| | Before (the rule unqualified) | After |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-light.png) |
+
+Both sides are the same tree with one line taken out of it, so nothing but that line differs. The
+open phone rail, for the third state:
+
+| dark | light |
+|---|---|
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-open-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-open-light.png) |
+
+Round 9's second finding — that on a shell whose word is in the topbar the toggle now stands at the
+far right of an otherwise empty band — is a stated decision and Artur's call, and is left as it is.
+It is in *What a reviewer should push on* below.
 
 ## What this is about
 
@@ -368,11 +422,19 @@ anchored rule must pin `top`, `bottom` and `left` to `anchor()`, in both copies 
 
 ## Before / After
 
-Same viewport (1280×760), same nav, same data, both themes. Before is `origin/main` at `bb5fd04`
+Same viewport (1280×760), same nav, same data, both themes. Before is `origin/main` at `759520d`
 and after is this branch; **both sides are shot by the same rig** — one static server over the
 checkout under test, the kit's own factories imported as modules in the page, one Chrome, one
-viewport — so only the code differs. The before pair came back byte-for-byte identical to the pair
-already committed, which is the cross-check that the rig is the one that made them.
+viewport — so only the code differs. The rig is `scripts/evidence/`, committed this round; pointed
+at `bb5fd04` it reproduces the pair that was committed before the rebase byte for byte, which is the
+cross-check that it is the one that made them.
+
+**Every image below was re-taken after the rebase onto `759520d`.** #295 re-picked every surface
+token and took the kit's shadows off, so the palette in the old pictures no longer exists anywhere.
+What that changes in them is #295's doing and not this branch's: the rail is a darker step, the
+reader's menu and the toggle's name chip are the floating step with a hairline instead of a shadowed
+panel, and a hovered menu row takes the step above it rather than the card's. Both sides of every
+pair moved together, so every comparison below is still about this branch alone.
 
 **The rail on a desktop.** Before: no way to fold it, and Sign out as the last row of the
 navigation. After: the toggle at the far end of the brand row, on the wordmark's own line, reached
@@ -383,8 +445,8 @@ something. The chip is 130.1 × 31.4, 8px clear of the rail's edge, and centred 
 
 | | Before | After |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-after-expanded-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-after-expanded-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-after-expanded-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-after-expanded-light.png) |
 
 **The reader's menu, opened from the keyboard.** Nine Tab presses reach the account block; one
 ArrowDown opens the menu and lands focus on Sign out, which is why the row carries the ring and
@@ -393,7 +455,7 @@ menu's head names the reader, and the row is a `menuitem` with the caller's `sig
 
 | dark | light |
 |---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-user-menu-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-user-menu-light.png) |
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-user-menu-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-user-menu-light.png) |
 
 **The fold, frame by frame.** Six frames taken off the compositor with `Page.startScreencast` and
 captioned with the time each was painted, so the clock is the browser's and not a screenshot call's
@@ -406,7 +468,7 @@ it already reads *Expand sidebar* at 0 ms, while the rail is still 249px wide.
 
 | dark | light |
 |---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-fold-frames-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-fold-frames-light.png) |
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-fold-frames-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-fold-frames-light.png) |
 
 **Folded, and a folded row under the keyboard.** Seven real Tab presses reached *Access & agents* —
 one fewer than the round before, because the product's lockup leaves the tab order with the fold;
@@ -416,8 +478,8 @@ that same column.
 
 | | Folded | Focused |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-collapsed-focus-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/rail-collapsed-focus-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-focus-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-focus-light.png) |
 
 **Persists across navigation — and there is no picture of it, on purpose.** A second page load is
 drawn with no `collapsed` at all against a jar that already holds the cookie, and it comes up
@@ -435,13 +497,17 @@ the state is identical by construction.
 
 **`sidebarNav({ collapsed })` with the current page inside a group.** Before: the group is shut,
 its list is `display: none`, the current page is gone and four rows are drawn. After: the group is
-open over it, six rows are drawn, and *Pending* carries its active bar. Counted in the browser on
+open over it, six rows are drawn, and *Pending* carries its active bar. This is the one pair whose
+frame is the new rig's rather than the old one's — the original placed that nav on a canvas nothing
+in the repo describes, and it is drawn on the rail's own surface here, which is the only place a
+collapsed `sidebarNav()` is ever painted. Same subject, same claim, a slightly different box around
+it. Counted in the browser on
 what is drawn, not on what is in the DOM — a folded-away row is still a node.
 
 | | Before | After |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/nav-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/nav-collapsed-after-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/nav-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e9dd7bb/docs/evidence/nav-collapsed-after-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-after-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-after-light.png) |
 
 ## Measured in a browser, not asserted
 
@@ -778,6 +844,17 @@ property holds its old value for the whole duration and a curve that leaves [0, 
 mid-fade; and `ai-slop-detector` reported `comment-ratio` on `layout.css`, which had been one line
 under the bar. The argument is in the specification, and the sheet keeps pointers to it.
 
+`ai-slop-detector` on this round, at strict, over `layout.css`, `shell-states.test.js`, this body
+and all six files of the new rig: **0 errors**, and every warning it does report was already there
+before the round. `layout.css`'s `comment-ratio` is 0.54:1 against 0.51:1 last round — eight lines
+of *why* over one new rule, with the argument itself in the specification where it can be reviewed.
+This body's two `scope-template` warnings are the two literal spatial ranges round 9 called false
+positives, and its `vocab-density` warning is the paragraph about the overlay realm, unchanged since
+round 9. The one new finding is a `css-unreadable` medium on `scripts/evidence/shot.html`: the page
+links Google Fonts, which no linter can read off disk, and that link is exactly what
+`scripts/font-loading.test.js` counts it for — a shot taken in the fallback faces is a shot of a
+different kit.
+
 **What the rework reverses.** The second diff review found five critical problems in the *script*
 that placed the focus tag — stuck after a click or a tap, stale after a resize, wrong under a
 `transform` wrapper, blind inside shadow roots — and the first version's answer was to delete the
@@ -816,12 +893,42 @@ and the direction audit's one logical property, `margin-inline: auto`, moved dow
 branch's is kept. `EXPECTED_SUBJECTS` did not move again — nothing in this round adds or removes a
 rule that sizes a glyph.
 
-**No third rebase.** This round starts on `bb5fd04`, which is still `origin/main`, so nothing was
-replayed and nothing conflicted.
+**Onto `759520d`** (#294 fields at 16px, #295 the elevation ladder). Five conflicts across the
+forty commits replayed, and only one of them was a decision.
 
-Every figure and every mutation in this body was re-run against the tree as it stands, and every
-screen of the rail — both ends of it — was re-shot in both themes, off the same rig as the before
-pair.
+`stories/accent-contrast.test.js` is the decision: #295 rewrote `WASHED_GROUNDS` to subtract a
+`RAISED` set carrying `--bg-elevated` as well as `--surface-3`, and this branch carried the older
+single-exclusion form with the older paragraph beside it. #295's supersedes it and this branch adds
+nothing of its own there, so that side was taken whole and only its two citations repaired.
+
+The other four were line numbers: `CONTRIBUTING.md` four times, `PR.md` twice, and the guideline
+pages `_component-choice.js`, `_destructive-actions.js`, `_iconography.js`, `_labels-and-titles.js`
+and `_layout-and-density.js`. `.storybook/preview.js`, `README.md`, `docs/library.md` and
+`stories/guidelines/_accessibility-floor.js` merged with nobody's hand on them.
+
+**And the conflicts were not the whole cost.** The merged tree then failed on stale citations the
+rebase itself created — **seventeen line numbers across nine files**, every one named by the gate
+that failed on it, in `nav.css`, `card.css`, `dropdown.css`, `layout.css` and
+`signal-contrast.test.js`. Nothing there is a judgement; it is the elevation and field rounds having
+moved a lot of lines under this branch. `refs.test.js`, `code-refs.test.js` and `doc-refs.test.js`
+are green on all of it.
+
+**#295 repainted the pictures, so the pictures were re-taken.** The elevation round re-picked every
+surface token and took the kit's shadows off, and this body's sixteen images were all of the old
+palette. Every one is re-shot on the rebased tree: the rail is a darker step than it was, the
+reader's menu and the toggle's name chip are the floating step with a hairline where they used to be
+a shadowed panel, and a hovered row in the menu takes the step above it rather than the card's. The
+before side of each pair is now `main` at `759520d` rather than `bb5fd04`, which is what keeps the
+comparison about this branch.
+
+**The rig that takes them is committed**, which round 9 asked for — it reported that the producer
+was missing and that ten of the images could not be reproduced. `scripts/evidence/` holds the static
+server, the page the shots are taken off and the three drivers, with a README saying which parts are
+deterministic and which are not. Pointed at `bb5fd04` it reproduces the committed
+`rail-before-dark.png` and `rail-before-light.png` byte for byte, which is the cross-check that it
+is the rig that made them.
+
+Every figure and every mutation in this body was re-run against the tree as it stands.
 
 ## The version bump this PR does not carry
 
@@ -830,7 +937,10 @@ bytes changed, while `package.json` still says `0.31.0`. CI's `Shipped surface v
 compares the tarball against the base and exits non-zero when the surface moves and the version
 does not — **so this branch fails that check as it stands, and it is the only red one.** Several
 PRs are in flight and this repo has already shipped two bumping to the same version, so the
-coordinator sequences the version at merge. The changelog lines are under *Changelog entry* below.
+coordinator sequences the version at merge. `main` is **0.32.0** and tagged since #295 landed, so
+the bump after this branch is to 0.33.0 rather than the 0.32.0 an earlier round expected. Round 9
+also reported that the `Shipped surface vs version` check no longer appears on this PR at all, and
+that all five checks are green. The changelog lines are under *Changelog entry* below.
 
 ## Proof
 
@@ -859,29 +969,36 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [x] A badge fades out and its count stays in the row's accessible name.
 - [x] A disclosure row keeps the current page reachable on the folded rail. Photographed before and
       after, and gated.
+- [x] A rail folded on a phone keeps the product's mark and the link home. Photographed at 390×800
+      on both sides of the one line that decides it, and gated in the state a cookie produces —
+      which is the state the gate used to skip.
 - [x] The folded state persists across navigation, and a server can paint it first.
 - [x] `prefers-reduced-motion` takes the fold to one frame. Verified in Chrome, and the net is
       gated by `stories/reduced-motion.test.js`.
 - [x] `npm run build` and the React tests pass; `npm test` is green but for
       `stories/contrast.test.js`'s wall-clock ceiling on this box, which fails the same way with
-      this round reverted. Counts below.
+      this round reverted, and on `main` itself. Counts below.
+- [x] The rig that produced every image in this body is committed, which round 9 asked for.
+      `scripts/evidence/`, with a README saying what is deterministic and what cannot be.
 - [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
       only be proven after a release.
 
-**Counts on this box.** `npm test`: **1472 tests, 1 skipped**, and either 1470 pass with 1 fail or
-1471 pass with none, depending on the run — every run of this round came in with the fail. The skip is the opt-in `CONTRAST_ACCENTS=1` theme ×
+**Counts on this box.** `npm test`: **1491 tests, 1 skipped**, and either 1489 pass with 1 fail or
+1490 pass with none, depending on the run — every run of this round came in with the fail. It was
+1472 before the rebase onto `759520d`; `main`'s own 1416 plus this branch's 75 is 1491, so no test
+was lost in the move. The skip is the opt-in `CONTRAST_ACCENTS=1` theme ×
 accent matrix, which is behind an environment variable on `main` too. The failure, when there is
 one, is `stories/contrast.test.js`'s own wall-clock ceiling: the walk took **125.4s** and **159.5s**
 on two runs of the same tree, at the ninth round **121.7s** and **121.6s** on two runs and under the
 120s bar on two more, and at the tenth **127.1s** on the branch before this round's first commit and
 **126.8s**, **122.4s**, **160.9s** and **124.1s** after it. Nine runs, seven red and two green,
 straddling the ceiling — which is a plainer statement of what this box does to that gate than any
-single number. The last of the nine is this round's final run: **1472 tests, 1470 pass, 1 fail,
-1 skipped**, and the one failure is that clock.
+single number. This round's final run, on the rebased tree: **1491 tests, 1489 pass, 1 fail,
+1 skipped**, at **127.0s**, and the one failure is that clock.
 That is this box and not the diff — the spread between two runs is larger than anything in this
 branch — and
-`origin/main` at `bb5fd04`, checked out beside it and run through the same gate on the same machine,
-takes **128.7s** and fails it too. `npm run build`: clean. React: 322 tests in 16 files, all
+`origin/main` at `759520d`, checked out beside it and run through the same gate on the same machine,
+fails it too — round 9's independent review measured 162-188s against the 120s bar on `main` itself. `npm run build`: clean. React: 322 tests in 16 files, all
 passing. (1437 before the first review fixes, 1441 after them, 1446 at the sixth round, 1459 at the
 seventh, 1463 at the eighth; the seventh round's thirteen are the toggle's mark against a control's
 contrast floor, the avatar's inset, the account block's declared height, the block's phone floor in
@@ -891,10 +1008,19 @@ and the closed panel's clicks. The eighth round's four are the rail's open colum
 direction, the toggle's `<svg>` wrapper and the hover that used to move the rail. The ninth round's
 four are the topbar's two menus, each asked the same two questions `dropdown()`'s own panel is
 asked. The tenth round's five are the band's line, the toggle's offset, the clock that offset
-rides, the lockup's fade and the lockup's own clock.)
+rides, the lockup's fade and the lockup's own clock. The eleventh round adds no test of its own: its
+four assertions go inside the gate that was already asking the wrong shell about the phone strip.)
 
 ## What a reviewer should push on
 
+- **The toggle at the far right of an empty band, on a shell whose word is in the topbar.** Round 9
+  put the picture in front of Artur rather than calling it a defect, and this round leaves it alone.
+  The `/account` preset draws its word in the topbar, so the rail's head band holds the toggle and
+  nothing else: 216px of band, one 41px control at its end, 175px of nothing beside it, a hairline
+  underneath. It stood on the glyph column, in line with the nav glyphs, before the tenth round.
+  This follows from applying *"show icon to the right"* globally, and the gate's own message says
+  the auto margin puts it at the end in both shapes — but Artur's note was about the brand row, and
+  this shape has no brand row. It is his call and nobody else's.
 - **The fallback.** Without anchor positioning a folded row's chip drifts by the rail's scroll
   offset. The table above says why nothing in CSS does better, and the honest alternatives are a
   `title` on every rail row at every width — a native tooltip repeating a label a reader can already
