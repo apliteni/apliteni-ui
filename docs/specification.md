@@ -653,10 +653,9 @@ What the shell guarantees:
   2026-09-13; before that it stood at the foot, as the reference's does. `collapsible: false` is the way out, for a page that will never call
   `wireShell()` and would otherwise ship a control that does nothing. It is a native `<button>`
   outside the navigation landmark, named for what the press will do — "Collapse sidebar", "Expand
-  sidebar" — with `aria-expanded` saying what the rail is now. A media query cannot share a block
-  with a class, so the fold is written twice in `layout.css`; `stories/apps/shell-states.test.js`
-  compares the two rule for rule and resolves both on every element of the rail. Below 720px the
-  toggle is not drawn, because the strip is the only layout there.
+  sidebar" — with `aria-expanded` saying what the rail is now. Below 720px the toggle is not drawn,
+  because the strip is the only layout there, and the band goes with it when the wordmark has
+  already gone to a topbar.
 - **The toggle stands under the wordmark, not beside it.** The band holds the product's mark and
   the rail's own control, and it stacks them rather than putting them on one line: beside the
   wordmark is off the glyph column, so the fold would carry the toggle out over the rail's edge and
@@ -673,11 +672,16 @@ What the shell guarantees:
   the flow and lands beside the rail. The glyph box carries the line the name vacates, so the button
   keeps its height in both states: a hover readout overlays the page and never reflows it, and
   without that the toggle fell 35.39px to 35px under the pointer and took every row of the nav up
-  the rail with it. The mark is drawn by hand in `src/components/shell.js` rather than added to
-  `icons.js`, because a seam that travels has to be a child a stylesheet can reach and `icon()`
-  emits one opaque string. It stands in the glyph column — `--ui-nav-strip`, a row's padding either
-  side of a glyph, which is the width the closed rail is derived from — so it holds its place at
-  both widths while everything beside it travels. The seam moves on `--dur-med`, the rail's own
+  the rail with it. The name is squeezed to nothing by its own `overflow: hidden` until a pointer or
+  the keyboard lifts it out, which is what makes the name the chip rather than a second copy of it
+  in a tooltip. Only the frame and the seam are drawn by hand in `src/components/shell.js`, because
+  a seam that travels has to be a child a stylesheet can reach and `icon()` emits one opaque string
+  with no hook on an inner node; the `<svg>` around them is taken from `icon()` itself, so a rail
+  glyph's box, stroke and `aria-hidden`/`focusable` pair are the factory's by construction, and
+  `stories/apps/shell.test.js` compares the two attribute for attribute — which is what makes "by
+  construction" a thing a reader can check. It stands in the glyph column — `--ui-nav-strip`, a
+  row's padding either side of a glyph, which is the width the closed rail is derived from — so it
+  holds its place at both widths while everything beside it travels. The seam moves on `--dur-med`, the rail's own
   clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and its
   distance is the frame's own mirror rather than a number: the seam is drawn at 9 in an 18-unit
   frame and lands at 15, so the narrow compartment changes sides.
@@ -714,17 +718,7 @@ What the shell guarantees:
   outside the `<nav>`: folding a panel is not a place to go, and a row of the navigation list is
   what it would be read as inside one. The head band it stands in draws one rule under the pair, not
   one between them — the product's mark and the rail's own control are one head, and a second
-  hairline eight pixels up would box the toggle into a compartment of its own. The mark it draws is written by hand in
-  `src/components/shell.js` and not added to `icons.js`, because a seam that travels has to be a
-  child a stylesheet can reach; `icon()` emits one opaque string with no hook on an inner node. Only
-  the frame and the seam are written there: the `<svg>` around them is taken from `icon()` itself, so
-  a rail glyph's box, stroke and `aria-hidden`/`focusable` pair are the factory's by construction —
-  `stories/apps/shell.test.js` compares the two attribute for attribute, which is what makes "by
-  construction" a thing a reader can check. Its
-  name is written out in the markup rather than put in a tooltip, because the name IS the chip — on
-  a folded rail the glyph column is the whole of every row, and on an open rail it is the whole of
-  this one, so in both the label is squeezed to nothing by its own `overflow: hidden` until a
-  pointer or the keyboard lifts it out of the flow.
+  hairline eight pixels up would box the toggle into a compartment of its own.
 - **The reader's choice outlives the page.** A press is written to the `apliteni-ui-rail` cookie
   (a year, `path=/`, `SameSite=Lax`). `appShell()` itself reads nothing. A boolean `collapsed`
   is the caller's and is left alone, and it does nothing under `collapsible: false`, since a fold
