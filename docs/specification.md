@@ -196,9 +196,9 @@ second line. On a 380px chat column, feed length 1567.45px → 1507.03px. Where 
 the two faces measure identically — the kit's line-heights are unitless, so a face only moves a
 box by changing where a line breaks.
 
-**A panel that leaves its subtree states its own role.** `portal: true` mounts a dropdown's panel
-on `<body>` ([The dropdown panel](#the-dropdown-panel)), so what it inherits is decided by where it
-landed rather than by the trigger it came out of. Measured on one dropdown inside a display-face
+**A panel that leaves its subtree states its own role.** `portal: true` moves a dropdown's panel to
+the top of its trigger's own tree ([The dropdown panel](#the-dropdown-panel)), so what it inherits
+is decided by where it landed rather than by the trigger it came out of. Measured on one dropdown inside a display-face
 subtree: `var(--font-display)` in place, `var(--font-sans)` once portalled. `.ui-dropdown__panel`
 names the text face itself, so both placements answer the same — a flag that positions a panel does
 not change what it is set in.
@@ -861,9 +861,9 @@ standing got a panel fourteen pixels tall. Measured in a browser at 1280×800, t
 foot of a 249px rail went from 128.8px tall and hanging 66px below the fold to 128.8px tall and
 inside it, at the same 9px from the trigger.
 
-**A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` mount the panel on
-`<body>` as `position: fixed`, with the trigger's viewport coordinates written inline, repositioned
-on scroll and resize. Two ancestor properties make that the only remedy, and `.ui-app__rail` has
+**A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` move the panel to
+the top of the tree its trigger is in, as `position: fixed`, with the trigger's viewport coordinates
+written inline, repositioned on scroll and resize. Two ancestor properties make that the only remedy, and `.ui-app__rail` has
 both:
 
 - An `overflow` other than `visible` on one axis makes the other non-visible too, so the rail's
@@ -880,7 +880,38 @@ that selector stops matching the moment the panel is moved. It carries `is-open`
 and the wiring keeps `.open` on the container so the chevron, `aria-expanded`, click-outside and
 Escape are unchanged. Keyboard handling is bound to the panel as well as the container, since a
 keystroke on a row no longer bubbles to it, and a panel whose container has been re-rendered away
-is swept off `<body>` rather than accumulating.
+is swept out of the tree it was put in rather than accumulating.
+
+**The top of the trigger's tree, which is not always the page's `<body>`.** A document's top is its
+`<body>`, a frame's is the frame's own `<body>`, and an open shadow root's is the root itself. The
+panel never crosses one of those boundaries, because everything that keeps it working is scoped to
+the realm it was drawn in:
+
+- **Its stylesheet.** A sheet adopted by a shadow root, or loaded by a frame, does not reach the
+  page's `<body>`. A panel lifted out there has none of its own rules — `position: fixed` and
+  `--z-dropdown` among them, so it lands in the flow of whatever it was appended to, at no layer.
+- **The viewport it is measured against.** A panel in a frame is laid out against the frame's
+  viewport and not the page's, so the coordinates written inline, and the `scroll` and `resize` they
+  are re-written on, come from the panel's own `defaultView`.
+- **Its close handlers.** A listener on the page's document never fires for a click inside a frame,
+  which is the same reason `wireShell()` listens once per document it is handed. Click-outside,
+  Escape and the repositioning sweep are registered once per document that holds a dropdown.
+
+Reaching them is the other half. The close handlers walk a module-level `Set` of every wired
+container rather than querying the page, because `document.querySelectorAll` enters no shadow root
+and sees no other document: before it, opening a menu inside a shadow root left one open on the page
+behind it, and a click on the page left the shadow root's open.
+
+**Escape is scoped and click-outside is not**, which is a decision and not an oversight. Escape
+dismisses what the reader is in, so it closes an open dropdown in the document the key landed in and
+nothing in another — pressed in a frame it leaves the page's menu alone. A click closes every open
+dropdown in every realm, because "I clicked elsewhere" is elsewhere wherever it happened. Either way
+focus returns to the trigger, which a reader outside a shadow root meets retargeted to its host.
+
+Held by `stories/apps/shell-rail.test.js`: *a shell in a frame is wired in its own document, and
+reads its own cookie*, and *a shell inside an open shadow root folds, and keeps its menu inside the
+root*. Moving the portal target back to the page's `body`, or the close handlers back onto the
+module's own realm, goes red there.
 
 `portal: true` is opt-in and not the default because it has a cost: the panel leaves its trigger's
 place in the reading order and lands at the end of `<body>`. Opening it still moves focus onto a
