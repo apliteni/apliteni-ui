@@ -214,6 +214,7 @@ Two pairs for the fixes a board frame cannot show, each drawn the way the readou
 | --- | --- | --- |
 | A hovered row in a raised panel, dark. Before it measures `#211e2d` — the card step — inside a `#2a2639` panel, so the hover is *darker* than the surface it is on. After, `#2d293c` | [png](docs/evidence/elevation/review-dropdown-hover-before-dark-1440.png) | [png](docs/evidence/elevation/review-dropdown-hover-after-dark-1440.png) |
 | The switch knob, light, off: a white disc on `#e7eaf1` with and without the hairline | [png](docs/evidence/elevation/review-switch-before-light-1440.png) | [png](docs/evidence/elevation/review-switch-after-light-1440.png) |
+| The feedback pill, dark, with and without the accent glow and the ink under it. It is an accent gradient on the page: it is found without either | [png](docs/evidence/elevation/review-pill-before-dark-1440.png) | [png](docs/evidence/elevation/review-pill-after-dark-1440.png) |
 
 Surfaces read off the rendered pixels rather than the stylesheet, page / card / dropdown panel /
 readout / account menu:
