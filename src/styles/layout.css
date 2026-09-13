@@ -133,49 +133,33 @@
    the rail column is max-content, so a long one widens the rail instead. */
 .ui-app__who span { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* The control that folds the rail: at the foot, under a rule of its own, so the
-   head of the rail stays the product's and the foot is the rail talking about
-   itself. That rule is the hairline and the 8px step the nav's own footer draws
-   above sign out, so the two are one family. The control wears a rail row's skin,
-   quieter, and nothing else: it is its mark, the way the reference's is. */
+/* The rule above the toggle is the hairline and the 8px step the nav's own footer
+   draws above sign out, so the two are one family.
+   why: docs/specification.md#the-page-shell */
 .ui-app__fold-row {
   flex: none;
   width: var(--ui-nav-col);
   padding-top: var(--space-2);
   border-top: 1px solid var(--border);
 }
-/* One box on the glyph column, at both widths. --ui-nav-strip is the column — a
-   row's padding either side of a glyph, which is the width nav.css derives the
-   closed rail from — so the mark stands where every glyph above it stands and does
-   not step sideways when the rail folds. A box written per width would have to
-   arrive at the other one in a single frame, while the closing edge beside it is
-   still most of --dur-med away.
-   The label keeps its place in the markup, because the name IS the chip a folded
-   row gets below; `gap: 0` leaves the glyph column the whole of the content box,
-   so on the open rail the label is squeezed to nothing by its own `overflow:
-   hidden` and the control is its mark alone. */
+/* One box on the glyph column at both widths — --ui-nav-strip, the width nav.css
+   derives the closed rail from. `gap: 0` leaves that column the whole of the
+   content box, so the label below is squeezed to nothing until the chip rule lifts
+   it out. why: docs/specification.md#the-page-shell */
 .ui-app__fold { width: var(--ui-nav-strip); gap: 0; }
 .ui-app .ui-app__fold { color: var(--dim); }
 .ui-app .ui-app__fold:hover,
 .ui-app .ui-app__fold:focus-visible { color: var(--strong); }
-/* The seam travels on the width's own clock, not the words' — the reference times
-   both from one class for the reason the arrival makes obvious: the bar and the
-   rail's edge have to land together, or the mark reports a fold that is still
-   happening. Reduced motion takes it with every other transition the kit writes,
-   which is why there is no `!important` here. The distance is the seam's own
-   geometry rather than a number: src/components/shell.js draws the frame 3..21 and
-   the seam at 9, and 6 is what mirrors it about the frame's centre, so the
-   compartment the seam cuts off changes sides with the state. */
+/* The width's own clock, not the words', so the mark and the closing edge arrive
+   together; no `!important`, so the reduced-motion net still takes it. 6 is not a
+   number: shell.js draws the frame 3..21 and the seam at 9, and 6 mirrors it about
+   the centre. why: docs/specification.md#the-page-shell */
 .ui-app__fold .ui-app__fold-seam { transition: transform var(--dur-med) var(--ease); }
 .ui-app.is-collapsed .ui-app__fold .ui-app__fold-seam { transform: translateX(6px); }
 
 /* -- The collapsed rail --------------------------------------------------- */
-/* The reader's fold is the narrow rail's fold, rule for rule: each rule here is
-   its twin in the 720px block below, behind :where(), which weighs nothing, so
-   the pair rank alike. stories/apps/shell-states.test.js holds them equal — as
-   text, as resolved style, and inside @supports. Nothing here lays a row out
-   again: the column keeps --ui-nav-col and the box closes over it, so only the
-   width and the words are on a clock. why: docs/specification.md#the-page-shell */
+/* Each rule here has its twin in the 720px block below; nothing lays a row out
+   again. why: docs/specification.md#the-page-shell */
 .ui-app.is-collapsed { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__cap,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__label,
@@ -185,18 +169,11 @@
 :where(.ui-app.is-collapsed) .ui-app__brand span { opacity: 0; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
-/* A folded row is its glyph, so the name it keeps has to arrive beside it — on
-   the keyboard as well as under the pointer, which is the half `title` never
-   had. The label IS the chip: one string on screen and in the accessibility
-   tree, instead of a copy in an attribute that can go stale.
-   Two placements, because the rail is a scroll box and clips across as well as
-   down. This one is the fallback: `fixed` to get out of that clip, at the rail's
-   own width, holding the place its row gave it — right until the rail scrolls.
-   The @supports block below takes the near edge from the rail and pins both ends
-   to the row, and is the only placement that survives a scroll as well as the
-   clip. Why there is no third: docs/specification.md#the-page-shell.
-   The toggle takes the chip at BOTH widths, unscoped — it is icon-only at both,
-   so it owes a name at both. That is the second selector of each pair below. */
+/* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
+   clip and at the rail's width; the @supports branch below pins it to the row and
+   is the only one that survives a scroll. The second selector of each pair is the
+   toggle, unscoped, because it is wordless at both widths.
+   why: docs/specification.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 .ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
@@ -278,16 +255,9 @@
   .ui-app__brand span { opacity: 0; pointer-events: none; }
   .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
   .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
-  /* The one line of this block that is deliberately NOT the reader's fold, and
-     the only one. Below 720px the strip is the whole of the rail and a finger is
-     the only pointer it has, so a row is held to 44px — WCAG 2.5.5 (AAA), and
-     what this block carried before #277 rewrote it. The reader's fold cannot
-     share it: the row is 35.4px open, so a floor that applied on the press would
-     grow every row and step every glyph below it down the rail, which is the one
-     thing the travel promises not to do. A pointer on a desktop is held to the
-     kit's 24px floor there instead, and clears it.
-     stories/apps/shell-states.test.js names this exception and measures both
-     halves of it, so the line cannot go missing and cannot spread.
+  /* The one line of this block that is deliberately NOT the reader's fold: a
+     finger is the only pointer this width has, so a row is held to 44px. It
+     cannot spread to the press — shell-states.test.js measures both halves.
      why: docs/specification.md#the-page-shell */
   .ui-app__rail .ui-nav__item { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }

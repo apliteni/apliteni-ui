@@ -465,14 +465,14 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
       only be proven after a release.
 
-**Counts on this box.** `npm test`: 1445 tests, 1443 pass, 1 fail, 1 skipped. The skip is the
+**Counts on this box.** `npm test`: 1446 tests, 1444 pass, 1 fail, 1 skipped. The skip is the
 opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an environment variable on
 `main` too. The failure is `stories/contrast.test.js`'s own wall-clock ceiling — the walk took 131s
 against a 120s bar on a contended box, and it passes in 0 fail when run on its own. It fails the
 same way on this branch with the toggle change reverted, so it is this machine and not the diff.
 `npm run build`: clean. React: 322 tests in 16 files, all passing. (1437 before the review fixes,
 1441 after them; the four new tests are the seam's travel, the arithmetic behind it, the seam's
-clock, and the control's own box.)
+clock, and the control's own box. The forty-eighth is the toggle's chip at both widths.)
 
 ## What a reviewer should push on
 

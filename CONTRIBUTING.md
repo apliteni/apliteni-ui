@@ -1600,7 +1600,7 @@ cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
 src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
-property, the symmetric src/styles/layout.css:223 `margin-inline: auto`, against 25 physical left/right
+property, the symmetric src/styles/layout.css:200 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.
@@ -1647,6 +1647,29 @@ Reduced-motion blocks belong to the separate gate.
 
 See [Motion](docs/specification.md#motion) and
 [on-site exceptions](#an-exception-is-a-note-at-the-site-read-by-the-gate).
+
+### The rail's fold is read off the declaration, not through the cascade
+
+`stories/apps/shell-states.test.js` holds the fold's travel — the width in both sheets that write
+it, and the toggle's seam — by reading the `transition` declarations as text. Two reasons, and
+neither is a shortcut.
+
+The width is invisible to `stories/motion-coverage.test.js`. That gate's `MOVES` list is closed and
+carries no `width`, and what the fold re-points is `--ui-rail-w`, a custom property, so no rule
+under a state hook declares the property that travels. Both `transition: width` lines could be
+deleted and eight gates stayed green while the fold snapped from 249px to 74px in one frame. The
+travel is what version 1 of #277 was sent back for, and it was the one claim on the branch with
+nothing under it.
+
+Text is also the right reading. JSDOM expands no `transition` shorthand, so
+`getComputedStyle(rail).transitionDuration` answers `0s` whatever the sheet says — but what has to
+be there is the tokens, and a literal that happens to resolve to 250ms is a second tempo, which is
+the whole of what `stories/motion-tokens.test.js` says about every other transition the kit writes.
+The same reading is what lets the gate refuse a travel written `!important`, since that is the one
+way the reduced-motion net loses.
+
+See [The page shell](docs/specification.md#the-page-shell) and
+[Motion](docs/specification.md#motion).
 
 ### Reduced motion measurements
 

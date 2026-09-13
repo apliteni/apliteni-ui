@@ -104,7 +104,7 @@ export const RULES = [
       + 'beside it. A shell whose main column is --container has no sidebar. Reconciling the two '
       + 'as if they competed is what made nine widths look like one disagreement.',
     kit: [
-      { ref: 'src/styles/layout.css:222', pattern: 'var(--ui-app-main, var(--measure))' },
+      { ref: 'src/styles/layout.css:199', pattern: 'var(--ui-app-main, var(--measure))' },
       { ref: 'src/tokens/tokens.css:43', pattern: '--measure: 860px' },
     ],
   },
@@ -185,7 +185,7 @@ export const RULES = [
       + 'box; the numbers match today and neither follows the other, so a comment claiming a link '
       + 'that does not exist would cost a reader more than the silence does.',
     kit: [
-      { ref: 'src/styles/layout.css:266', pattern: '@media (max-width: 720px)' },
+      { ref: 'src/styles/layout.css:243', pattern: '@media (max-width: 720px)' },
       { ref: 'stories/breakpoints.test.js:117', pattern: 'every breakpoint is one of the documented steps' },
       { ref: 'stories/breakpoints.test.js:139', pattern: 'every documented step is a step something queries' },
     ],

@@ -685,6 +685,26 @@ What the shell guarantees:
   width's own travel to `--dur-med` and `--ease` in both sheets that write it. Under
   `prefers-reduced-motion` the kit's net takes both to 0.01ms, so the fold arrives in one frame —
   the same file refuses a travel written `!important`, which is the only way the net loses.
+- **The two folds are one fold, with one named difference.** A media query cannot share a block
+  with a class, so the reader's fold and the 720px fold are written twice in `layout.css` and each
+  rule has its twin. The reader's copy sits behind `:where()`, which weighs nothing, so the pair
+  rank alike and the media query's own precedence is what separates them. One declaration is
+  deliberately not shared: below 720px the strip is the whole of the rail and a finger is the only
+  pointer it has, so a row is held to 44px — WCAG 2.5.5 (AAA). The reader's fold cannot take that
+  floor, because a row is 35.4px open and growing it on the press would step every glyph below it
+  down the rail, which is the one thing the travel promises not to do; a pointer on a desktop is
+  held to the kit's 24px floor there and clears it. `stories/apps/shell-states.test.js` compares the
+  two blocks rule for rule and element for element, and holds both halves of the exception — the
+  line is really in the 720px block, and it is really not in the other.
+- **The rail's own skin is not a place to go.** The toggle is a `<button>` in a row of the rail
+  outside the `<nav>`, at the foot under a rule of its own: the head of the rail is the product's
+  and the foot is the rail talking about itself. The mark it draws is written by hand in
+  `src/components/shell.js` and not added to `icons.js`, because a seam that travels has to be a
+  child a stylesheet can reach; `icon()` emits one opaque string with no hook on an inner node. Its
+  name is written out in the markup rather than put in a tooltip, because the name IS the chip — on
+  a folded rail the glyph column is the whole of every row, and on an open rail it is the whole of
+  this one, so in both the label is squeezed to nothing by its own `overflow: hidden` until a
+  pointer or the keyboard lifts it out of the flow.
 - **The reader's choice outlives the page.** A press is written to the `apliteni-ui-rail` cookie
   (a year, `path=/`, `SameSite=Lax`). `appShell()` itself reads nothing. A boolean `collapsed`
   is the caller's and is left alone, and it does nothing under `collapsible: false`, since a fold

@@ -120,39 +120,23 @@ export function railCollapsed(cookies) {
 // The name says what the press will do, and aria-expanded says what the rail is.
 const railName = (collapsed) => (collapsed ? 'Expand sidebar' : 'Collapse sidebar');
 
-// The toggle's mark: a frame that holds still and a seam that crosses it, so the
-// two states read as two arrangements of one panel rather than as a direction to
-// spin in. It is the reference's mark (lessly-ui/src/components/rail-toggle.tsx),
-// and it is drawn here rather than added to icons.js for the reason the reference
-// gives for not taking it from lucide: the divide is baked into the same path as
-// the frame, and only a child of its own can travel. icon() emits one opaque
-// string with no hook on an inner node, so a seam a stylesheet has to reach is
-// written where the control that moves it lives.
-//
-// Every attribute here is the factory's — the 24-unit box, `currentColor`,
-// nothing filled, the round joins — because `.ui-nav__ic svg` in nav.css is what
-// decides a rail glyph's size and stroke, and this one stands on that column with
-// the rest. The seam's own travel is in layout.css; the arithmetic that ties the
-// two together is stories/apps/shell-states.test.js.
+// A frame that holds still and a seam that crosses it (lessly-ui's RailToggle),
+// drawn here and not in icons.js because only a child of its own can travel. Every
+// attribute is the factory's, so nav.css decides this glyph's size and stroke with
+// the rest. The seam's travel is in layout.css and the arithmetic that ties it to
+// the drawing is stories/apps/shell-states.test.js.
+// why: docs/specification.md#the-page-shell
 const railMark = () =>
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"'
   + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
   + '<rect x="3" y="3" width="18" height="18" rx="2"/>'
   + '<path class="ui-app__fold-seam" d="M9 3v18"/></svg>';
 
-// A row of the rail's own skin, outside the <nav>: folding the rail is not a
-// place to go. It stands at the foot under a rule of its own — the reference's
-// arrangement, where the head of the rail is the product's and the foot is the
-// rail talking about itself.
-//
-// The control itself is its mark and nothing else, as the reference's is: one box
-// on the glyph column, so the mark stands where every glyph above it stands and
-// holds that place while the rail folds. The name is still written out, because
-// the name IS the chip — layout.css takes `.ui-nav__label` out of the flow and
-// lands it beside the glyph on a folded rail, on hover and on keyboard focus, and
-// the toggle takes the same chip every other row takes rather than carrying a
-// tooltip of its own. On the open rail the glyph column is the whole of the
-// control, so the label is squeezed to nothing by its own `overflow: hidden`.
+// The rail's own skin, outside the <nav>: folding the rail is not a place to go.
+// The name is written out rather than put in a tooltip, because the name IS the
+// chip layout.css lands beside the glyph — at both widths, since the glyph column
+// is the whole of this control on an open rail too.
+// why: docs/specification.md#the-page-shell
 const railToggle = (collapsed) =>
   `<div class="ui-app__fold-row">`
   + `<button type="button" class="ui-nav__item ui-app__fold" data-rail-toggle`

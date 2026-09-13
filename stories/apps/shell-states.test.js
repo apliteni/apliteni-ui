@@ -581,21 +581,9 @@ test('the fold toggle is drawn wherever there is a fold to choose, and only ther
 });
 
 // ---- A1d. the fold is on a clock ------------------------------------------
-//
-// The width is the whole of the animation, and motion-coverage.test.js cannot
-// see it. Its MOVES list is closed and carries no `width`; what the fold
-// re-points is --ui-rail-w, a custom property, so no rule under a state hook
-// declares the property that travels. Both `transition: width` lines could be
-// deleted and eight gates stayed green while the fold snapped from 249px to
-// 74px in one frame — the travel is what version 1 of #277 was sent back for,
-// and it was the one claim on this branch with nothing under it.
-//
-// Read off the declarations rather than through the cascade, because JSDOM
-// expands no `transition` shorthand: getComputedStyle(rail).transitionDuration
-// answers `0s` whatever the sheet says. Text is the right reading anyway — what
-// has to be there is the tokens, and a literal that happens to resolve to 250ms
-// is a second tempo, which is the whole of what motion-tokens.test.js says
-// about every other transition the kit writes.
+// Why the travel is read as text and not through the cascade, and why
+// motion-coverage.test.js cannot see it:
+// why: CONTRIBUTING.md#the-rails-fold-is-read-off-the-declaration-not-through-the-cascade
 
 const TRAVELS = [
   { file: 'src/styles/layout.css', selector: '.ui-app__rail', which: 'the rail the shell draws' },
