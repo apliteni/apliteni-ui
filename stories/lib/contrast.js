@@ -35,27 +35,38 @@ export const STYLE_FILES = decomment(read('src/index.css'))
   .filter(Boolean)
   .map((m) => `src/${m[1]}`);
 
-const TOKEN_FILES = ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css'];
+export const TOKEN_FILES = ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css'];
 
 /**
- * Custom properties in effect for a theme + accent.
+ * Every declaration of every custom property, per theme + accent, in the order a
+ * browser would apply them: `Map<name, {file, selector, value}[]>`, last entry
+ * last declared. Token files first and theme-selectively, so the requested
+ * theme's value wins; then every custom property declared anywhere under
+ * src/styles/. Component-scoped properties have to be harvested or
+ * --ui-fb-pill-grad (src/styles/feedback.css) resolves to nothing and the pill
+ * reports a fabricated 1.00:1.
  *
- * Token files first and theme-selectively, so the requested theme's value wins;
- * then every custom property declared anywhere under src/styles/, but only if
- * the token files did not already define it. Component-scoped properties have to
- * be harvested or --ui-fb-pill-grad (src/styles/feedback.css) resolves to
- * nothing and the pill reports a fabricated 1.00:1.
+ * A name is kept with ALL of its declarations rather than one, because a single
+ * value is a guess about the cascade and a reader that guesses can be walked
+ * past: the #314 review planted a real cast shadow in a SECOND declaration of
+ * --drawer-line and the sweep, which kept the first, never saw it.
+ * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
  */
-const tokenCache = new Map();
-export function tokensFor(theme, accent = 'default') {
-  const cached = tokenCache.get(`${theme}|${accent}`);
+const declCache = new Map();
+export function declarationsFor(theme, accent = 'default') {
+  const key = `${theme}|${accent}`;
+  const cached = declCache.get(key);
   if (cached) return cached;
   const wanted = [
     ':root',
     `:root[data-theme="${theme}"]`,
     ...(accent === 'default' ? [] : [`:root[data-theme="${theme}"][data-accent="${accent}"]`]),
   ];
-  const vars = new Map();
+  const decls = new Map();
+  const push = (name, entry) => {
+    if (!decls.has(name)) decls.set(name, []);
+    decls.get(name).push(entry);
+  };
   for (const file of TOKEN_FILES) {
     for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
       if (!selector.split(',').map((s) => s.trim()).some((s) => wanted.includes(s))) continue;
@@ -63,7 +74,7 @@ export function tokensFor(theme, accent = 'default') {
         const i = decl.indexOf(':');
         if (i < 0) continue;
         const name = decl.slice(0, i).trim();
-        if (name.startsWith('--')) vars.set(name, decl.slice(i + 1).trim());
+        if (name.startsWith('--')) push(name, { file, selector: selector.trim(), root: true, value: decl.slice(i + 1).trim() });
       }
     }
   }
@@ -74,9 +85,32 @@ export function tokensFor(theme, accent = 'default') {
         const i = decl.indexOf(':');
         if (i < 0) continue;
         const name = decl.slice(0, i).trim();
-        if (name.startsWith('--') && !vars.has(name)) vars.set(name, decl.slice(i + 1).trim());
+        if (name.startsWith('--')) push(name, { file, selector: selector.trim().replace(/\s+/g, ' '), root: false, value: decl.slice(i + 1).trim() });
       }
     }
+  }
+  declCache.set(key, decls);
+  return decls;
+}
+
+/**
+ * The value each custom property resolves to for a theme + accent — one map, the
+ * shape every caller here wants.
+ *
+ * A token file's value wins over a component sheet's, because :root is where the
+ * palette lives and a component property is a local hook. Among component sheets
+ * the LAST declaration wins, which is what the browser does at equal specificity
+ * and what the first-wins reader this replaced got backwards.
+ */
+const tokenCache = new Map();
+export function tokensFor(theme, accent = 'default') {
+  const cached = tokenCache.get(`${theme}|${accent}`);
+  if (cached) return cached;
+  const vars = new Map();
+  for (const [name, entries] of declarationsFor(theme, accent)) {
+    const rooted = entries.filter((e) => e.root);
+    const winner = (rooted.length ? rooted : entries).at(-1);
+    vars.set(name, winner.value);
   }
   // Memoised: the gate resolves a token per finding per ledger entry, and
   // re-reading every stylesheet each time cost more than the walk itself.

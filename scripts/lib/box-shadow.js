@@ -32,23 +32,39 @@ export function layersOf(value) {
  * is what lets the same reader work on a substituted value and on a raw one. */
 const LENGTH = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:px|rem|em)?$/;
 
-/** The lengths of one layer, in order: x, y, blur, spread. Missing ones are 0. */
-export function geometryOf(layer) {
-  const nums = [];
+/** The top-level words of a layer, with a function and its brackets kept whole. */
+function wordsOf(layer) {
+  const out = [];
   let depth = 0;
   let word = '';
-  const take = () => {
-    if (word && LENGTH.test(word)) nums.push(Number.parseFloat(word));
-    word = '';
-  };
   for (const c of layer) {
-    if (c === '(') { depth += 1; word = ''; continue; }
-    if (c === ')') { depth -= 1; word = ''; continue; }
-    if (depth > 0) continue;
-    if (/\s/.test(c)) { take(); continue; }
+    if (c === '(') depth += 1;
+    else if (c === ')') depth -= 1;
+    if (depth === 0 && /\s/.test(c)) { if (word) out.push(word); word = ''; continue; }
     word += c;
   }
-  take();
+  if (word) out.push(word);
+  return out;
+}
+
+/** The lengths of one layer, in order: x, y, blur, spread. Missing ones are 0,
+ *  and one written as a var() this reader cannot resolve is NaN — see below. */
+export function geometryOf(layer) {
+  const words = wordsOf(layer).filter((w) => w !== 'inset');
+  const nums = [];
+  for (const [i, word] of words.entries()) {
+    if (LENGTH.test(word)) { nums.push(Number.parseFloat(word)); continue; }
+    /* A var() standing where a length belongs — `0 var(--y) 10px black` — is a
+     * length this reader cannot resolve, and reporting 0 for it would call an
+     * offset layer flat and let a cast shadow through isCast(). NaN says "not
+     * read": every comparison against it is false, so the layer is taken FOR a
+     * cast rather than cleared as one, and the caller that holds the vars can
+     * substitute and read it again. A var() in the LAST slot is the colour —
+     * `inset 1px 0 0 var(--border)` is how the drawer writes its line — and a
+     * colour function is never a length. #314 nit 8. */
+    if (word.startsWith('var(') && i < words.length - 1 && nums.length < 4) { nums.push(Number.NaN); continue; }
+    break;
+  }
   const [x = 0, y = 0, blur = 0, spread = 0] = nums;
   return { x, y, blur, spread };
 }
