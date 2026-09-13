@@ -67,10 +67,11 @@ pages this repo draws; and the *Decided in* paragraph names #310 and whose call 
 
 **The gate.** `src/styles/type-ranks.test.js`:
 
-- Its subjects are the kit's sheets in import order, then every `.css`, `.js`, `.jsx`, `.ts`, `.tsx`
-  and `.mjs` file under `stories/`, `site/`, `react/src` and `.storybook` — walked, not listed, with
-  build output pruned by the shared `walk()`. A gate's own file is skipped: the rank notes in its
-  mutations are strings, not rules anybody renders.
+- Its subjects are the kit's sheets in import order, then every `.css`, `.js`, `.mjs`, `.jsx`,
+  `.ts`, `.tsx` and `.html` file under `stories/`, `site/`, `react/src` and `.storybook` — walked,
+  not listed, with build output pruned by the shared `walk()` and a missing directory skipped rather
+  than thrown on, the way the sibling gate does it. A gate's own file is skipped too: the rank notes
+  in its mutations are strings, not rules anybody renders.
 - The order rule reads a weight token where two ranks tie on size, and says so in the failure:
   *"caption shares label's 13px and is not lighter than it (--weight-medium, 500 against
   --weight-medium, 500)"*.
@@ -80,12 +81,17 @@ pages this repo draws; and the *Decided in* paragraph names #310 and whose call 
   `caption` is a real row and that mutation would have been caught for the wrong reason.
 - A new mutation: the caption row set to the label's weight, which leaves nothing holding it under
   the label. It fails, and the failure names both ranks.
+- Where a rank inherits its leading, a rule may write `line-height: inherit` and nothing else — the
+  one value that takes back a number an earlier rule for the same element pinned. A second mutation
+  puts 1.55 on the caption and the gate names it.
 
-**The page.** `stories/guidelines/_the-page.js`: `.gc-cell__cap` carries `/* rank: caption */` and
-`--weight-normal`. The comment above the four restated selectors no longer says the gate cannot
-reach them.
+**The page.** `stories/guidelines/_the-page.js`: `.gc-cell__cap` carries `/* rank: caption */`,
+`--weight-normal` and `line-height: inherit`. The comment above the four restated selectors no
+longer says the gate cannot reach them.
 
-**The Typography story** now names six ranks, caption among them.
+**The Typography story** now names six ranks, caption among them. **`scripts/font-loading.test.js`**
+counts nine pages that load the kit's faces rather than eight: the shot page below is the ninth, for
+the reason `shot.html` is the eighth.
 
 **A producer for the evidence.** `scripts/evidence/guideline.mjs` and `guideline.html`, on the rail
 rig's own `serve.mjs`: one static server over the checkout under test, the story's own
