@@ -25,19 +25,36 @@ const port = await new Promise((resolve, reject) => {
 const browser = await chromium.launch({ executablePath: CHROME });
 
 /* The cell rather than the viewport: a drop falls outside the card, so the frame
- * has to carry the ground beside it. .fl-cell is the card plus that margin. */
-for (const frame of ['list', 'form']) {
+ * has to carry the ground beside it. .fl-cell is the card plus that margin.
+ *
+ * The drawer is the exception, and shot over the viewport instead: it is fixed to
+ * a screen edge, and what its frame has to show is the TOP AND BOTTOM of a
+ * full-height panel, where there is no edge and no line belongs. The clip keeps
+ * the panel's full height and 96px of the ground it is over, which is where its
+ * drop falls; at 390 the panel is the whole width and there is no ground to keep.
+ */
+const HEIGHT = 900;
+const GROUND = 96;
+
+for (const frame of ['list', 'form', 'drawer', 'toast']) {
   for (const theme of ['dark', 'light']) {
     for (const width of [1440, 390]) {
       const name = `${prefix}-${frame}-${theme}-${width}`;
       if (only && !name.includes(only)) continue;
-      const ctx = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({ viewport: { width, height: HEIGHT }, deviceScaleFactor: 1 });
       const page = await ctx.newPage();
       await page.goto(`http://127.0.0.1:${port}/__shot?frame=${frame}&theme=${theme}`, { waitUntil: 'load' });
       await page.waitForFunction(() => window.__ready === true);
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(300);
-      await page.locator('.fl-cell').screenshot({ path: path.join(outDir, `${name}.png`) });
+      const file = path.join(outDir, `${name}.png`);
+      if (frame === 'drawer') {
+        const box = await page.locator('.ui-drawer__panel').boundingBox();
+        const x = Math.max(0, Math.round(box.x) - GROUND);
+        await page.screenshot({ path: file, clip: { x, y: 0, width: width - x, height: HEIGHT } });
+      } else {
+        await page.locator('.fl-cell').screenshot({ path: file });
+      }
       console.log(`  ${name}.png`);
       await ctx.close();
     }

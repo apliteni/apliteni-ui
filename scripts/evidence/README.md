@@ -1,8 +1,8 @@
 # The evidence rig
 
 Every image under `docs/evidence/rail-*.png`, `docs/evidence/nav-collapsed-*.png` and
-`docs/evidence/295-floating/` is produced here. Round 9's review said the rig "still has no producer committed,
-so I cannot reproduce ten of them"; this is that producer.
+`docs/evidence/295-floating/` is produced here. Round 9's review said the rig "still
+has no producer committed, so I cannot reproduce ten of them"; this is that producer.
 
 One static server over one checkout, the kit's own factories imported as modules
 in the page, one Chrome, one viewport — so between two checkouts only the code
@@ -28,12 +28,15 @@ node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
 A third argument to `shoot.mjs` is a substring filter over the names, so one
 subject can be re-taken on its own.
 
-`float.mjs` is the floating step's pair, added for #309. Two subjects — the kit's
-dropdown panel held open over a card, and a popover holding a small form — in both
-themes at 1440 and 390, which is the frame set
-`docs/reviews/295-popover-variants.html` measured the decision against. Its third
-argument is the name prefix rather than a filter, because both sides of the pair
-are the same eight names:
+`float.mjs` is the floating step's pair, added for #309. Four subjects in both
+themes at 1440 and 390. Two are the frame set
+`docs/reviews/295-popover-variants.html` measured the decision against — the
+kit's dropdown panel held open over a card, and a popover holding a small form.
+Two more were added by the #314 review, because they are the surfaces that carry
+their own inner line rather than the neutral one: the drawer, whose line runs in
+one direction, and the three toast styles, each of which re-points that line at
+its own status. Its third argument is the name prefix rather than a filter,
+because both sides of the pair are the same sixteen names:
 
 ```sh
 node scripts/evidence/float.mjs .          out/ after
@@ -43,7 +46,10 @@ node scripts/evidence/float.mjs /tmp/before out/ before
 
 It captures `.fl-cell` rather than the viewport, so the frame carries the ground
 beside the card — a drop falls outside the card it is over, and a viewport shot
-cropped to the card would cut off the thing the pair is about. Nothing in
+cropped to the card would cut off the thing the pair is about. The drawer is the
+exception and is clipped out of the viewport instead: it is fixed to a screen
+edge, and what its frame has to show is the top and bottom of a full-height
+panel, where there is no edge and no line belongs. Nothing in
 `float.html` writes a shadow: both sides are that page over a different checkout,
 so the only thing that can differ between them is what the kit's own stylesheet
 paints.

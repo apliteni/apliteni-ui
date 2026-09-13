@@ -24,6 +24,10 @@
   .fl-line b { color: var(--text); font-weight: var(--weight-medium); }
   .fl-trigger-row { display: flex; justify-content: flex-start; }
 
+  /* The toast frame: the three styles down one column, over the same card, so a
+     status tint and the neutral hairline are read against the same ground. */
+  .fl-toasts { display: grid; gap: var(--space-4); margin-top: var(--space-5); }
+
   .fl-form { min-width: 264px; padding: var(--space-4); }
   .fl-form__title { font-size: var(--text-sm); font-weight: var(--weight-semibold);
     color: var(--strong); margin: 0 0 var(--space-3); }
@@ -40,10 +44,12 @@
 <div id="root"></div>
 <script type="module">
 import { dropdown } from '/src/components/dropdown.js';
-import { card, field, select, button } from '/src/components/index.js';
+import { drawer, drawerSection } from '/src/components/drawer.js';
+import { card, field, select, button, toast } from '/src/components/index.js';
 
 const q = new URLSearchParams(location.search);
-const frame = q.get('frame') === 'form' ? 'form' : 'list';
+const FRAMES = ['list', 'form', 'drawer', 'toast'];
+const frame = FRAMES.includes(q.get('frame')) ? q.get('frame') : 'list';
 document.documentElement.dataset.theme = q.get('theme') === 'light' ? 'light' : 'dark';
 
 const ITEMS = [
@@ -81,10 +87,45 @@ const formPanel = () => `
     </div>
   </div>`;
 
-document.getElementById('root').innerHTML = `<div class="fl-page"><div class="fl-cell">${card({
+// Frame three: the drawer, open against the right edge. It is the one floating
+// surface flush to a screen edge, so it draws its inner line in one direction —
+// and this frame is shot over the viewport rather than over the cell, because
+// what it has to show is the top and bottom of a full-height panel, where there
+// is no edge and no line belongs.
+const drawerPanel = () => drawer({
+  side: 'right', size: 'md', open: true, title: 'Partner detail',
+  body: drawerSection({
+    title: 'Payout',
+    rows: [['Partner', 'Example Co.'], ['Period', 'Last 30 days'], ['Clicks', '1,240'], ['Status', 'Approved']],
+  }),
+  footer: `${button({ label: 'Close', variant: 'ghost', size: 'sm' })}${button({ label: 'Approve', variant: 'primary', size: 'sm' })}`,
+});
+
+// Frame four: the three toast styles. Each carries its own status colour, and
+// each re-points the inner line at it — the soft at 11%, the outline at 20%, the
+// solid to `transparent`, the status at full fill strength being its own edge.
+const toasts = () => `<div class="fl-toasts">
+  ${toast({ variant: 'success', style: 'soft', title: 'Payout approved', body: 'Example Co. will be paid on the 1st.', dismissible: false })}
+  ${toast({ variant: 'danger', style: 'solid', title: 'Payout failed', body: 'The partner has no payment method on file.', dismissible: false })}
+  ${toast({ variant: 'info', style: 'outline', title: 'Report queued', body: 'It will appear under Reports when it is ready.', dismissible: false })}
+</div>`;
+
+const PANEL = { list: listPanel, form: formPanel };
+
+document.getElementById('root').innerHTML = frame === 'drawer'
+  ? `<div class="fl-page"><div class="fl-cell">${card({
+    title: 'Partner payouts',
+    sub: 'A placeholder report, so the drawer has something to be over.',
+    body: '<div class="fl-card-body">'
+      + ['Example Co.', 'Placeholder Ltd.', 'Sample Partners', 'Demo Media', 'Placeholder Two', 'Example North']
+        .map((n, i) => `<div class="fl-line"><span>${n}</span><b>${[1240, 980, 615, 402, 388, 274][i]}</b></div>`).join('')
+      + '</div>',
+  })}</div></div>${drawerPanel()}`
+  : `<div class="fl-page"><div class="fl-cell">${card({
   title: 'Partner payouts',
   sub: 'A placeholder report, so the panel has something to be above.',
-  body: `<div class="fl-trigger-row">${frame === 'form' ? formPanel() : listPanel()}</div>
+  body: `${frame === 'toast' ? '' : `<div class="fl-trigger-row">${PANEL[frame]()}</div>`}
+    ${frame === 'toast' ? toasts() : ''}
     <div class="fl-card-body">
       <div class="fl-line"><span>Example Co.</span><b>1,240</b></div>
       <div class="fl-line"><span>Placeholder Ltd.</span><b>980</b></div>
@@ -96,6 +137,10 @@ document.getElementById('root').innerHTML = `<div class="fl-page"><div class="fl
       <div class="fl-line"><span>Demo West</span><b>140</b></div>
     </div>`,
 })}</div></div>`;
+
+/* The toast frame carries no open panel, so the card does not need the depth the
+   other two reserve for one. */
+if (frame === 'toast') document.querySelector('.fl-cell .ui-card').style.minHeight = 'auto';
 
 await document.fonts.ready;
 window.__ready = true;
