@@ -23,9 +23,10 @@ deploy). These pages explain how each part works.
 - [guidelines.md](guidelines.md) — the Guidelines collection: the shape of a rule,
   the gates that walk the pages, how to add one.
 - **[Guidelines](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview)**
-  — a Storybook section, not a page in this folder: the UI rules for colour and theming,
-  the full state set, component choice, destructive actions, and microcopy and tone. The
-  link lands on the overview, which lists the pages and the rules the kit has yet to meet.
+  — a Storybook section, not a page in this folder: what one page may hold, the UI rules for
+  colour and theming, the full state set, component choice, destructive actions, and microcopy
+  and tone. The link lands on the overview, which lists the pages and the rules the kit has yet
+  to meet.
 
 ## Where a decision gets recorded
 

@@ -1,6 +1,6 @@
 # The guidelines collection
 
-Five pages of UI rules, rendered as Storybook stories under `Guidelines/`, plus an
+Seventeen pages of UI rules, rendered as Storybook stories under `Guidelines/`, plus an
 Overview that indexes them. A page is a **content module** holding the rules and a
 **story module** that hands them to the shared shell.
 
@@ -9,7 +9,7 @@ stories/guidelines/
   _layout.js            The shell: specimen stage, page CSS, guidelinePage().
   _<page>.js            One page's TITLE, BLURB, RULES, and its specimen CSS.
   <Page>.stories.js     The story: a Guidelines/ title and one export.
-  _overview.js          ENTRIES — the five pages in order — and the index data.
+  _overview.js          ENTRIES — the pages in reading order — and the index data.
   Overview.stories.js   The index table.
 ```
 
@@ -20,7 +20,7 @@ A rule is a plain object in a content module's `RULES` array.
 | Field | | Holds |
 |---|---|---|
 | `imperative` | required | The rule as an instruction. It is the page's `<h2>`. |
-| `why` | required without a pair | One sentence on what breaking it costs. Rendered only when the rule has no specimens — a pair says the same thing faster. |
+| `why` | required without a pair | One sentence on what breaking it costs. Rendered with or without specimens. |
 | `doHtml` / `dontHtml` | both or neither | Functions returning the specimen pair's markup. |
 | `doCaption` / `dontCaption` | required with a pair | What the picture cannot say. |
 | `except` | optional | Where the rule stops applying. Omit it when the rule has no exception; do not leave it empty or invent a boundary. |
@@ -30,7 +30,9 @@ A rule is a plain object in a content module's `RULES` array.
 
 A content module also exports `TITLE` (the page heading), `BLURB` (one line for the
 Overview row) and, when its specimens need a stage of their own, `SPEC_CSS` — a
-`<style>` string appended after the shared CSS.
+`<style>` string appended after the shared CSS. The page guideline also declares
+`REFERENCE_POLICY = 'specification-only'`: its rule-to-code mapping belongs only in
+[the specification table](specification.md#the-page), and its rules omit `kit`.
 
 ## The contract every page keeps
 
@@ -60,14 +62,17 @@ A rule with no pair stands on its `why` instead.
 ## The collection's own gates
 
 `stories/guidelines/refs.test.js` resolves every `kit` entry on every page: the file
-exists, the line exists, and the line contains the entry's `pattern`. A failure names
-the page, rule, reference, and where the pattern moved to. Shifting a cited line therefore
+exists, the line exists, and the line contains the entry's `pattern`. Each page must
+cite code unless it explicitly declares `specification-only`; the gate pins that policy
+to The page and checks that its rendered text contains no citations, file paths, selectors,
+tokens, function calls or gate names. A failure names the page, rule, reference, and where
+the pattern moved to. Shifting a cited line therefore
 fails CI until the reference is updated. The same file checks each rule's shape: an `imperative` that says something, a pair that is both
 halves or neither, captions on a pair, a `why` on a rule without one, and an `unmet`
 that is `{ issue, note }`.
 
 `stories/guidelines/overview.test.js` is the index gate. It never enumerates the pages
-— it discovers every module beside it that publishes `RULES`, so a sixth page fails the
+— it discovers every module beside it that publishes `RULES`, so a new page fails the
 build until `ENTRIES` in `_overview.js` lists it. It also checks that every link the
 index builds is a story id Storybook publishes, and that the ids the last static build
 published still match. That last check skips when `storybook-static/` is absent.
@@ -76,7 +81,8 @@ published still match. That last check skips when `storybook-static/` is absent.
 
 A story's URL id comes from its **export name**, not its title. `Guidelines/The full
 state set` exports `StateSet`, so the story is `guidelines-the-full-state-set--state-set`
-— a link built from the title alone is a 404 on two of the five pages.
+— a link built from the title alone is a 404 on the pages whose export name and title
+disagree.
 
 `_overview.js` reproduces Storybook's two-step rule (`startCase`, then `sanitize`)
 rather than importing it, so the page bundles no Storybook internals. `overview.test.js`

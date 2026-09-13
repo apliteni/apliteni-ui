@@ -17,6 +17,7 @@ import * as motionContent from './_motion.js';
 import * as paletteContent from './_command-palette.js';
 import * as hoverContent from './_hover-readouts.js';
 import * as backContent from './_going-back.js';
+import * as pageContent from './_the-page.js';
 
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
 import * as destructiveStory from './DestructiveActions.stories.js';
@@ -35,8 +36,10 @@ import * as motionStory from './Motion.stories.js';
 import * as paletteStory from './CommandPalette.stories.js';
 import * as hoverStory from './HoverReadouts.stories.js';
 import * as backStory from './GoingBack.stories.js';
+import * as pageStory from './ThePage.stories.js';
 
 const ENTRIES = [
+  [pageContent, pageStory],
   [destructiveContent, destructiveStory],
   [colourContent, colourStory],
   [stateContent, stateStory],

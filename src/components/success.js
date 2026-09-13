@@ -64,6 +64,7 @@ function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
 // changing one never moves the other.
 export function success({
   layout = 'hero',          // 'hero' | 'split' | 'compact'
+  level,                    // heading level of the title; see the note below
   backdrop = 'aurora',      // 'aurora' | 'glow' | 'flat'
   eyebrow = '',
   title = 'All done',
@@ -75,6 +76,16 @@ export function success({
 } = {}) {
   const cls = ['ui-sx', `ui-sx--${layout}`, `ui-sx--bd-${backdrop}`, confetti && 'ui-sx--confetti', className]
     .filter(Boolean).join(' ');
+
+  // The title's rank follows the layout, because the layout is the question
+  // "how much of the screen does this own": hero and split ARE the page a flow
+  // lands on, so their title is its h1; compact sits beside other content and
+  // takes h2. It was an h3 either way, which left a page whose whole content is
+  // a success() with no h1 at all — the fault Guidelines / The page names.
+  // A caller who knows better passes `level`. The look is the class's.
+  // why: docs/specification.md#the-page
+  const rank = [1, 2, 3, 4, 5, 6].includes(Number(level)) ? Number(level) : (layout === 'compact' ? 2 : 1);
+  const h = `h${rank}`;
 
   const bd = backdrop === 'aurora'
     ? `<div class="ui-sx__aurora" aria-hidden="true">
@@ -99,7 +110,7 @@ export function success({
     <div class="ui-sx__visual">${successCheck()}</div>
     <div class="ui-sx__content">
       ${eyebrowEl}
-      <h3 class="ui-sx__title">${esc(title)}</h3>
+      <${h} class="ui-sx__title">${esc(title)}</${h}>
       ${bodyEl}
       ${actionsEl}
       ${countEl}

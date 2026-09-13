@@ -17,6 +17,10 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { JSDOM } from 'jsdom';
+import { guidelinePage } from './_layout.js';
+import { ThePage } from './ThePage.stories.js';
+import * as thePage from './_the-page.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -94,11 +98,35 @@ const unmetProblems = (page, rule) => {
   return problems;
 };
 
+// The page guideline keeps its mapping in the specification. Check what a
+// reader sees as well as the data, so moving a citation into prose still fails.
+const codeFreeProblems = (mod, html = guidelinePage({ title: mod.TITLE, rules: mod.RULES, css: mod.SPEC_CSS })) => {
+  const problems = [];
+  if (mod.RULES.some((rule) => rule.kit !== undefined)) problems.push('a rule declares `kit`');
+  const doc = JSDOM.fragment(html);
+  if (doc.querySelector('.gc-refs, code')) problems.push('the page renders a citation or code');
+  doc.querySelectorAll('style').forEach((el) => el.remove());
+  if (/(?:[\w.-]+\/)+[\w.-]+|(?<!\w)\.[A-Za-z][\w-]*|--[a-z][\w-]*|\b[a-z][\w]*\(\)|\bui-[\w-]+|\b\w+(?:-\w+)+[\s`'"]+gate\b/.test(doc.textContent)) {
+    problems.push('the page text contains a path, selector, token, function call or gate name');
+  }
+  return problems;
+};
+
+const specificationOnly = [];
+
 for (const page of pages) {
   const mod = await import(path.join(here, page));
   if (!Array.isArray(mod.RULES)) continue;
+  if (mod.REFERENCE_POLICY === 'specification-only') specificationOnly.push(page);
 
   test(`guideline references resolve: stories/guidelines/${page}`, () => {
+    assert.ok(mod.REFERENCE_POLICY === undefined || mod.REFERENCE_POLICY === 'specification-only',
+      `${page}: unknown reference policy`);
+    if (mod.REFERENCE_POLICY === 'specification-only') {
+      assert.deepEqual(codeFreeProblems(mod), [], `${page}: code references belong only in the specification`);
+      return;
+    }
+    assert.ok(mod.RULES.some((rule) => rule.kit?.length), `${page}: no kit citations to resolve`);
     const problems = [];
 
     for (const rule of mod.RULES) {
@@ -162,6 +190,39 @@ for (const page of pages) {
     );
   });
 }
+
+test('only The page declares specification-only references', () => {
+  assert.deepEqual(specificationOnly, ['_the-page.js']);
+});
+
+test('The page story renders no code references', () => {
+  assert.deepEqual(codeFreeProblems(thePage, ThePage.render()), []);
+});
+
+test('specification-only pages reject citations moved into visible text', () => {
+  const mod = { TITLE: 'Example', RULES: [{ id: 'r', imperative: 'Keep it clear.', why: 'Help readers.' }] };
+  assert.deepEqual(codeFreeProblems(mod), []);
+  for (const extra of [
+    { kit: [{ ref: ['fixture/card.css', 7].join(':') }] },
+    { imperative: 'Copy fixture/shell.js:182.' },
+    { why: 'Use .ui-card.' },
+    { why: 'Read refs.test.js.' },
+    { why: 'Use appShell().' },
+    { why: 'Use sidebarNav().' },
+    { why: 'Use breadcrumbs().' },
+    { imperative: 'Use card().' },
+    { why: 'Use ui-app__sub.' },
+    { why: 'Read the the-page gate.' },
+    { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
+      doCaption: 'Use appShell().', dontCaption: 'Avoid extra content.' },
+    { why: 'Read docs/specification.md.' },
+    { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
+      doCaption: 'Use --space-2.', dontCaption: 'Avoid custom spacing.' },
+  ]) {
+    assert.ok(codeFreeProblems({ ...mod, RULES: [{ ...mod.RULES[0], ...extra }] }).length,
+      `accepted code references: ${JSON.stringify(extra)}`);
+  }
+});
 
 // The checker above only ever sees rules that are already well formed, so the
 // shape rules for `unmet` are exercised here against ones that are not.

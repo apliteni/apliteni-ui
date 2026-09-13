@@ -18,6 +18,7 @@ below names its issue. Read [README.md](README.md) for where to record decisions
 - **[Colour and contrast](#colour-and-contrast)** — what every accent clears
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
+- **[The page](#the-page)** — what one screen may hold, and what it may not
 - **[The page shell](#the-page-shell)** — one shell, and what it emits
 - **[The back link](#the-back-link)** — the way up from a page, and what it names
 - **[The drawer](#the-drawer)** — grouped by heading, and moving on open and on close
@@ -627,6 +628,83 @@ el.innerHTML = busyRegion({ label: 'Loading your report…', lines: 4 });
 const rows = await fetch(…);
 setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 ```
+
+## The page
+
+`appShell()` draws a page's chrome and what goes inside it is the caller's. Guidelines / The page
+shows the eight choices a designer makes for each screen, with four Do and Don't pairs.
+The shared page layout and navigation names are already decided and are described here.
+The guideline page contains no code references; the table below is the only rule-to-code mapping.
+
+- **`shell` — use the shared layout for application pages.** Sign-in and other authentication
+  cards do not need a sidebar, and marketing pages are not application screens. The header order,
+  introduction and card limit apply to application pages. The title, heading order, navigation
+  names, closed overlays and table spacing rules apply to all three kinds of page. The primary
+  action limit applies to all except marketing pages.
+- **`head` — put the way back first, then the title, introduction and page content.** Only the
+  way back goes above the title. Put filters, date controls, search and key figures at the start
+  of the content below the introduction.
+- **`one-h1` — give each page exactly one page title, at heading level one.** All other headings
+  belong beneath it.
+- **`outline` — the heading order moves down one level at a time and stops at `h3`.** Use the
+  levels for the page, a card or section, and a group within one. Drawers and other overlays have
+  their own heading order. On the page itself the kit draws no `h4`. A fourth-level heading
+  inside a feedback dialog does not belong to the page's outline. Footer column titles use level two so they cannot skip a level.
+- **`one-primary` — one primary action at most.** Give the main action a filled button and
+  give other actions less emphasis. An overlay can have its own main action, separate from the
+  page's. This limit does not apply to marketing pages.
+- **`stacking` — six stacked cards at most, with no card inside another.** Beyond six, use
+  sections, tabs or another page. Grouping cards together does not reduce their count. A band
+  of key figures counts as one item, even when each figure has its own card. An empty state or
+  an access-denied message also sits in its own card.
+- **`navs` — name each navigation area and use each name only once per page.** The shared
+  layout provides the sidebar and breadcrumb trail, with a name for each. Do not add another
+  copy of either.
+- **`at-rest` — show the page with nothing covering it until the reader asks.** Keep drawers,
+  confirmation dialogs, notifications, hover details and the command palette closed on arrival.
+  They can be ready to open without being visible. When the page itself asks for consent or
+  confirmation, show that request in the page content.
+- **`density` — use compact rows in every table on the page, or in none of them.**
+  `.ui-table--dense` is all of a page's tables or none of them, and no screen writes cell padding
+  of its own — in a style attribute, or in a rule of its own naming `.ui-table`'s cells.
+  A table inside a drawer follows the drawer's spacing rather than the page's.
+- **`lede` — include a short introduction; it is two sentences at most.** Add information
+  the title does not give, without repeating it in the opening sentence.
+
+### Which line of the kit holds each of them
+
+The table is the only place that maps these rules to code. It names files and symbols instead
+of line numbers, so moving a line does not break a reference.
+
+`stories/guidelines/the-page.test.js` checks that every rule has exactly one row, every named
+file exists, and every listed symbol or selector appears in one of that row's files. This
+checks that the references exist; it does not prove that the referenced code enforces the rule.
+`stories/guidelines/refs.test.js` checks the page's explicit declaration that its references
+belong only here, and rejects citations, file paths and selectors in the rendered page.
+
+| Rule | Where the kit holds it |
+|---|---|
+| `shell` | `appShell()` in `src/components/shell.js`, and `financeShell()` in `stories/apps/_finance-nav.js` as the caller's side of it |
+| `head` | the slot order `appShell()` writes in `src/components/shell.js` — the way back, `<h1>`, `.ui-app__sub`, `.ui-app__body` |
+| `one-h1` | `card()` and its kin refuse an `h1` (`src/components/index.js`); `success()` takes its rank from its layout (`src/components/success.js`) |
+| `outline` | the two title sizes the scale has: `rank: page-title` in `src/styles/layout.css` and `rank: card-title` in `src/styles/card.css` |
+| `one-primary` | `.ui-btn--primary` in `src/styles/button.css` |
+| `stacking` | `.ui-card` in `src/styles/card.css` |
+| `navs` | `sidebarNav()` and `breadcrumbs()` in `src/components/nav.js`, both named by `appShell()` in `src/components/shell.js` |
+| `at-rest` | `drawer()`, `confirm()`, `commandPalette()` and `tooltip()` each render closed unless asked — `src/components/drawer.js`, `confirm.js`, `command-palette.js`, `tooltip.js` |
+| `density` | `.ui-table--dense` and the cell padding it overrides, in `src/styles/table.css` |
+| `lede` | `.ui-app__sub`, written by `appShell()` in `src/components/shell.js` |
+
+`stories/guidelines/the-page.test.js` renders every example screen under `stories/apps/` and
+checks all ten rules. It matches checks to rule ids: eight from the guideline page and two
+from `GATED_ELSEWHERE`. A missing rule or check fails the build. The success screen component
+has no example in that collection, so `src/components/success.test.js` checks its title level
+separately.
+
+The card limit, primary action limit, heading depth and choice of compact rows are design
+decisions. [The comparison page](reviews/275-page-limits.html) shows the alternatives as
+complete screens, and [#275](https://github.com/apliteni/apliteni-ui/issues/275) records the
+decisions and their reasons.
 
 ## The page shell
 
