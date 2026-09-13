@@ -110,7 +110,7 @@
    smallest of three weak signals doing the most work, so it grows with the row. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1374 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1400 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 .ui-app__rail .ui-nav__item.is-active .ui-nav__ic svg,
 .ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
@@ -251,7 +251,13 @@
    gives the lockup back rather than leaving an empty band with a hairline under it.
    why: docs/specification.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__head > .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
-:where(.ui-app.is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
+/* …and only in the layout where something arrives on the mark's column. In the
+   topbar layout the toggle is at the rail's foot, nothing lands where the mark
+   stands, and a lockup faded out there leaves a band with nothing in it and its
+   hairline still under it — the defect the 720px block below exists to avoid. So
+   that layout keeps the mark and lets the shared rule above fold away its words.
+   why: docs/specification.md#the-page-shell */
+:where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own

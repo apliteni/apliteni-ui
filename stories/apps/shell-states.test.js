@@ -346,6 +346,26 @@ const FOLD_ONLY = [
   { selector: '.ui-app__brand, .ui-app__brand *', props: ['opacity', 'visibility', 'pointer-events'] },
 ];
 
+test('a folded rail keeps the product\'s mark in the layout where nothing takes its column', () => {
+  const gone = mount(PAIR(true));
+  assert.equal(
+    gone.shown(gone.q('.ui-app__brand')), false,
+    'premise: in the default layout the fold takes the lockup, because the toggle rides the closing '
+    + 'edge onto the column the mark stands on',
+  );
+  const kept = mount(BANDED(true));
+  assert.equal(
+    kept.shown(kept.q('.ui-app__brand')), true,
+    'the topbar layout folds the lockup away as well, and nothing arrives on the column it gave up — '
+    + 'so the rail opens with a 52px band holding nothing, its hairline still under it, which is the '
+    + 'defect the 720px block was written to avoid at the other width',
+  );
+  assert.equal(
+    Number.parseFloat(kept.of(kept.q('.ui-app__brand span'), 'opacity')), 0,
+    'the folded rail keeps the product\'s word as well as its mark, in a rail one glyph wide',
+  );
+});
+
 /** `map` without the phone strip's own declarations, and without a rule left empty by one. */
 function withoutPhoneFloor(map) {
   for (const { selector, prop } of PHONE_ONLY) {
@@ -363,7 +383,13 @@ test('the collapsed rail is the narrow rail, rule for rule', () => {
   const narrow = withoutPhoneFloor(ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main')
     && !sel.includes('.ui-app__fold') && !PHONE_ONLY_RULES.includes(sel)));
   const collapsed = new Map([...ruleMap(css, (sel) => sel.includes('.is-collapsed') && !sel.includes('.ui-app__fold'))]
-    .map(([sel, decls]) => [sel.replace(/:where\(\.ui-app\.is-collapsed\)\s*/g, '').replace('.ui-app.is-collapsed', '.ui-app'), decls])
+    // The layout qualifier comes off with the fold's own: since #308 one rule is
+    // written `:where(.ui-app:not(.ui-app--topbar).is-collapsed)`, because the
+    // lockup only goes in the layout where the toggle arrives on its column. It is
+    // the same rule under the same exception, so it normalises to the same key.
+    .map(([sel, decls]) => [sel
+      .replace(/:where\(\.ui-app(?::not\(\.ui-app--topbar\))?\.is-collapsed\)\s*/g, '')
+      .replace('.ui-app.is-collapsed', '.ui-app'), decls])
     .filter(([sel]) => !FOLD_ONLY_RULES.includes(sel)));
   // A floor, not a count: it catches a sweep that has stopped finding the block,
   // and it sits under the real number so adding or removing one rule does not
