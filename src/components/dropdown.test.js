@@ -77,6 +77,98 @@ test('both directions read one gap, so neither can drift from the other', () => 
   }
 });
 
+/** A shorthand's top-level terms, so `calc(var(--x) * -1)` counts as one. */
+function terms(value) {
+  const out = [];
+  let depth = 0;
+  let buf = '';
+  for (const ch of value) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (/\s/.test(ch) && depth === 0) { if (buf) out.push(buf); buf = ''; } else buf += ch;
+  }
+  if (buf) out.push(buf);
+  return out;
+}
+
+/** Every margin the sheet writes, whichever axis it names. */
+const MARGINS = RULES.flatMap((r) =>
+  [...r.body.matchAll(/(?:^|;)\s*(margin(?:-[\w-]+)?)\s*:([^;]*)/g)]
+    .map((m) => ({ selector: r.selector, prop: m[1], value: m[2].trim().replace(/\s+/g, ' ') })));
+
+// A negative LENGTH, which is what a bleed is written with. The `-1` inside
+// `calc(… * -1)` carries no unit and is a multiplier, not a length.
+const NEG_LEN = /-\s*\d+(?:\.\d+)?(?:px|rem|em|%|ch)/;
+const BLEED = 'calc(var(--ui-dropdown-pad) * -1)';
+
+test('the panel names its padding and pads itself with it', () => {
+  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const pad = decl(panel, '--ui-dropdown-pad');
+  assert.match(pad, /^\d+(\.\d+)?px$/, '--ui-dropdown-pad is declared on the panel as a length');
+  assert.equal(
+    decl(panel, 'padding'), 'var(--ui-dropdown-pad)',
+    'the panel pads itself with the property it declares, so the two cannot disagree',
+  );
+});
+
+test('a block bleeding through the panel reads the padding, never a number of its own', () => {
+  // Discovered from the sheet: any margin that pulls a block back out through
+  // the padding is a subject, whether it is the head, the foot or the next one.
+  // why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+  const bleeds = MARGINS.filter((d) => NEG_LEN.test(d.value) || d.value.includes('--ui-dropdown-pad'));
+  assert.ok(
+    bleeds.length >= 2,
+    'the head and the foot both bleed, so the sweep finds at least two — it found '
+    + `${bleeds.length}, which means a block stopped bleeding or stopped being seen`,
+  );
+  for (const d of bleeds) {
+    assert.doesNotMatch(
+      d.value, NEG_LEN,
+      `${d.selector} { ${d.prop}: ${d.value} } writes the panel's padding out as a number. That is `
+      + `the magic number #306 is about: a consumer copying it out of this file has nothing to read `
+      + `when it changes. Pull back with ${BLEED}.`,
+    );
+    assert.ok(
+      d.value.includes(BLEED),
+      `${d.selector} { ${d.prop}: ${d.value} } pulls through the padding without reading `
+      + '--ui-dropdown-pad',
+    );
+  }
+});
+
+test('the head and the foot are one pair, bleeding to opposite edges', () => {
+  const sel = (cls) => `.ui-dropdown__panel > .${cls}`;
+  const rulesFor = (cls) => RULES.filter((r) => r.selector.split(',').some((s) => s.trim() === sel(cls)));
+  // Whatever the cascade ends on, gathered across every rule that names the
+  // block — so splitting one rule in two, or adding a third, is still read.
+  const of = (cls, prop) => rulesFor(cls).map((r) => decl(r, prop)).filter((v) => v != null).at(-1) ?? null;
+
+  const shared = RULES.find((r) => {
+    const list = r.selector.split(',').map((s) => s.trim());
+    return list.includes(sel('ui-dropdown__head')) && list.includes(sel('ui-dropdown__foot'));
+  });
+  assert.ok(shared && decl(shared, 'padding'), 'the pair takes its inner padding from one rule, not two that can drift');
+  assert.ok(rulesFor('ui-dropdown__head').length && rulesFor('ui-dropdown__foot').length,
+    'the panel styles both a head and a foot');
+
+  const hm = terms(of('ui-dropdown__head', 'margin'));
+  const fm = terms(of('ui-dropdown__foot', 'margin'));
+  assert.deepEqual(hm.slice(0, 2), [BLEED, BLEED], 'the head bleeds to the top edge and both sides');
+  assert.deepEqual(fm.slice(1), [BLEED, BLEED], 'the foot bleeds to both sides and the bottom edge');
+  assert.equal(hm[2], fm[0], 'the head and the foot leave the same gap to the rows between them');
+
+  assert.equal(of('ui-dropdown__head', 'border-bottom'), of('ui-dropdown__foot', 'border-top'),
+    'one line, drawn on the edge each faces');
+  assert.equal(of('ui-dropdown__head', 'border-top'), null, 'the head draws no line on the panel\'s own edge');
+  assert.equal(of('ui-dropdown__foot', 'border-bottom'), null, 'the foot draws no line on the panel\'s own edge');
+
+  const hr = terms(of('ui-dropdown__head', 'border-radius'));
+  const fr = terms(of('ui-dropdown__foot', 'border-radius'));
+  assert.deepEqual(hr.slice(2), ['0', '0'], 'the head rounds the two corners it sits in and no others');
+  assert.deepEqual(fr.slice(0, 2), ['0', '0'], 'the foot rounds the two corners it sits in and no others');
+  assert.deepEqual([hr[0], hr[1]], [fr[2], fr[3]], 'both take the panel\'s own radius');
+});
+
 test('the wiring falls back to the number the sheet declares', () => {
   const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
   const css = parseFloat(decl(panel, '--ui-dropdown-gap'));
@@ -114,6 +206,48 @@ test('the default renders exactly what it rendered before the variants existed',
   assert.doesNotMatch(html, /data-dropdown-direction/);
   assert.doesNotMatch(html, /data-dropdown-portal/);
   assert.match(html, /class="ui-dropdown__panel"/);
+});
+
+test('neither a head nor a foot is drawn unless one was asked for', () => {
+  const html = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }] });
+  assert.doesNotMatch(html, /ui-dropdown__head/);
+  assert.doesNotMatch(html, /ui-dropdown__foot/);
+});
+
+test('a foot is drawn at the panel\'s bottom edge, below the rows', () => {
+  const html = dropdown({
+    value: 'Filters', variant: 'menu', items: [{ label: 'Unpaid' }],
+    foot: '<button class="ui-btn ui-btn--sm">Save</button>',
+  });
+  assert.match(html, /<div class="ui-dropdown__foot"><button class="ui-btn ui-btn--sm">Save<\/button><\/div>/);
+  assert.ok(
+    html.indexOf('ui-dropdown__foot') > html.indexOf('ui-dropdown__item'),
+    'the foot comes after the rows',
+  );
+  assert.doesNotMatch(html, /ui-dropdown__head/, 'a foot alone draws no head');
+});
+
+test('the head is the same block at the other end, and the pair keeps its order', () => {
+  const html = dropdown({
+    value: 'Filters', variant: 'menu', items: [{ label: 'Unpaid' }],
+    head: '<b>Filter payouts</b>', foot: '<button class="ui-btn ui-btn--sm">Save</button>',
+  });
+  assert.match(html, /<div class="ui-dropdown__head"><b>Filter payouts<\/b><\/div>/);
+  const order = ['ui-dropdown__head', 'ui-dropdown__item', 'ui-dropdown__foot'].map((c) => html.indexOf(c));
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'head, then rows, then foot');
+});
+
+test('the blocks that bleed sit outside the unwrapped slots, against the edges they bleed to', () => {
+  const html = dropdown({
+    value: 'Filters', variant: 'menu', items: [{ label: 'Unpaid' }],
+    head: '<b>Head</b>', foot: '<b>Foot</b>',
+    header: '<div class="zz-header"></div>', footer: '<div class="zz-footer"></div>',
+  });
+  const order = ['ui-dropdown__head', 'zz-header', 'ui-dropdown__item', 'zz-footer', 'ui-dropdown__foot']
+    .map((c) => html.indexOf(c));
+  assert.ok(order.every((i) => i >= 0), 'all five are drawn');
+  assert.deepEqual([...order].sort((a, b) => a - b), order,
+    'the bleeding block is the one touching the panel edge; an unwrapped slot sits inside it');
 });
 
 test('direction: up is the panel\'s own class — no wiring needed', () => {

@@ -144,8 +144,11 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {string} [o.variant]     'select' (listbox) | 'menu' (inferred from items)
  * @param {Array}  [o.items]       [{ label, value?, description?, icon?, badge?, selected?, disabled?, href?, danger? }]
  * @param {Array}  [o.sections]    [{ label, items }] — grouped alternative to items
- * @param {string} [o.header]      raw HTML pinned to the top of the panel
- * @param {string} [o.footer]      raw HTML pinned to the bottom of the panel
+ * @param {string} [o.head]        content for a pinned block at the panel's top edge,
+ *   drawn as `.ui-dropdown__head` — raw HTML, so escape your own text
+ * @param {string} [o.foot]        the same at the bottom edge, as `.ui-dropdown__foot`
+ * @param {string} [o.header]      raw HTML pinned to the top of the panel, unwrapped
+ * @param {string} [o.footer]      raw HTML pinned to the bottom of the panel, unwrapped
  * @param {string} [o.align]       'start' (default) | 'end' — the edge the panel hugs
  * @param {string} [o.direction]   'down' (default) | 'up' | 'auto' — the way it opens
  * @param {boolean} [o.portal]     mount the panel on <body>, for a clipping or sticky ancestor
@@ -158,7 +161,7 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  */
 export function dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
-  header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
+  head = '', foot = '', header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
   align = 'start', direction = 'down', portal = false,
   scroll = false, open = false, ariaLabel, id, panelClass = '', search = false,
 } = {}) {
@@ -202,6 +205,13 @@ export function dropdown({
     scroll && scroll !== true && !sx ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
   ].filter(Boolean).join(' ');
 
+  // The pair the sheet bleeds to the panel's edges, drawn only when asked for.
+  // Each sits OUTSIDE its unwrapped neighbour, because the block that bleeds is
+  // the one that has to touch the edge it bleeds to.
+  // why: docs/specification.md#the-dropdown-panel
+  const headBlock = head ? `<div class="ui-dropdown__head">${head}</div>` : '';
+  const footBlock = foot ? `<div class="ui-dropdown__foot">${foot}</div>` : '';
+
   const ddAttrs = 'data-dropdown'
     + (isSelect ? ' data-dropdown-select' : '')
     + (direction === 'auto' ? ' data-dropdown-direction="auto"' : '')
@@ -209,7 +219,9 @@ export function dropdown({
 
   return `<div class="${cx('ui-dropdown', open && 'open')}" ${ddAttrs}${id ? ` id="${esc(id)}"` : ''}>` +
     `<button ${triggerAttrs}>${trig}${chevron ? '<span class="ui-dropdown__chevron" aria-hidden="true"></span>' : ''}</button>` +
-    `<div ${panelAttrs}>${header}${sx ? ddSearchBody({ items, sections }, sx, name, scroll) : ddBody({ items, sections }, isSelect)}${footer}</div>` +
+    `<div ${panelAttrs}>${headBlock}${header}`
+      + `${sx ? ddSearchBody({ items, sections }, sx, name, scroll) : ddBody({ items, sections }, isSelect)}`
+      + `${footer}${footBlock}</div>` +
     `</div>`;
 }
 

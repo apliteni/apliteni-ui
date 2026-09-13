@@ -45,6 +45,12 @@
      the portal's JS, so an upward panel cannot drift from a downward one.
      why: docs/specification.md#the-dropdown-panel */
   --ui-dropdown-gap: 9px;
+  /* The panel's own padding, named for the same reason the offset is: a block
+     that bleeds back through it — the head, the foot, and whatever a consuming
+     page pins there — has to know the number, and #306 was a page copying `-6px`
+     out of this file because nothing exposed it.
+     why: docs/specification.md#the-dropdown-panel */
+  --ui-dropdown-pad: 6px;
   /* The panel states its own role rather than inheriting one, because `portal:
      true` moves it onto <body> and an inherited face is then decided by where
      the panel was MOUNTED rather than by what it is. Measured: the same dropdown
@@ -62,7 +68,7 @@
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 6px;
+  padding: var(--ui-dropdown-pad);
   opacity: 0;
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
@@ -200,12 +206,25 @@
 /* Separator */
 .ui-dropdown__sep { height: 1px; background: var(--border); margin: 5px 4px; }
 
-/* Optional pinned header/footer blocks */
-.ui-dropdown__panel > .ui-dropdown__head {
+/* Optional pinned head/foot blocks. Each bleeds through the panel's padding to
+   the edge it sits on, so its rule and its line run the full width — and each
+   reads --ui-dropdown-pad to do it, so the two cannot drift from the panel or
+   from one another. The pair is symmetrical: the head takes the top corners and
+   a line under it, the foot the bottom corners and a line over it.
+   why: docs/specification.md#the-dropdown-panel */
+.ui-dropdown__panel > .ui-dropdown__head,
+.ui-dropdown__panel > .ui-dropdown__foot {
   padding: 11px 13px;
-  margin: -6px -6px 5px;
+}
+.ui-dropdown__panel > .ui-dropdown__head {
+  margin: calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1) 5px;
   border-bottom: 1px solid var(--border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.ui-dropdown__panel > .ui-dropdown__foot {
+  margin: 5px calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 /* Search — `search: true` pins a field above the rows and filters them as the
