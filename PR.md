@@ -126,7 +126,21 @@ follow-up below lands.
 | `data-dropdown` on the container | It is what `wireDropdown()` looks for. A page that calls `wireDropdown(document)` must not adopt a dropdown React owns — the same decision `<Drawer>` makes about `data-drawer`. The row and panel hooks stay: they are the row contract `docs/library.md` publishes, and nothing queries them outside a wired container. |
 | `portal: true` | It is `wireDropdown()` measuring a trigger and writing viewport coordinates onto a panel it moved, re-run on scroll and resize. It is worth doing and it is not this PR; until it exists, a dropdown inside `.ui-app__rail` wants the vanilla factory, and the README says so. |
 | `search: true` | Same answer, and one more reason: the match is `ddMatch()` inside `dropdown.js`, which the entry does not export. Re-implementing the fold-and-match table in React is exactly the drift this package exists to stop, so the honest port exports the kit's matcher first — the way `<CommandPalette>` imports `rankGroups()` rather than ranking twice. Filed below. |
-| A `foot` slot | `fix/306-dropdown-pad-foot` is adding `--ui-dropdown-pad` and `.ui-dropdown__foot` to the vanilla panel in parallel. It had not landed when this was written, so there is nothing to mirror; `footer` here is the factory's existing raw slot, and a `foot` option arriving on the factory is a one-slot follow-up. No file this branch touches is a file that branch touches. |
+| A `head` / `foot` slot | `fix/306-dropdown-pad-foot` is adding `--ui-dropdown-pad`, `.ui-dropdown__head` and `.ui-dropdown__foot` to the vanilla panel in parallel. Read on its branch at the time of writing: `head` and `foot` wrap their markup in those two blocks, drawn inside the panel and bleeding back through its padding, with `header` and `footer` staying the unwrapped slots inside them. It is not on `main`, so there is nothing this branch's parity gate could compare a mirror against — mirroring an API before it is accepted would bind this PR to that one. `header` and `footer` here are the factory's existing raw slots; mirroring `head` and `foot` is a two-slot follow-up for whichever of the two merges second. |
+
+### Where this collides with `fix/306-dropdown-pad-foot`
+
+Both branches are off `233a1e7` and four files are touched by both, so whoever merges second
+resolves these. Named here so the coordinator can sequence them:
+
+| File | The overlap |
+|---|---|
+| `docs/library.md` | The same line — the dropdown's catalog row. That branch rewrites its signature for `head`/`foot`; this one appends a `**React:**` clause to the end of the same cell. |
+| `scripts/evidence/README.md` | The same opening lines, each adding its own `docs/evidence/*` glob to the list of what the rig produces. |
+| `stories/guidelines/_accessibility-floor.js` | Different entries in the same `GATES` array — that branch adds one, this one adds two. Git merges this cleanly; the page just gains three gates. |
+| `PR.md` | Each branch overwrites it wholesale. It is a scratch file at the repo root, not a record: take whichever body belongs to the PR being opened. |
+
+Nothing else is shared. This branch opens no file under `src/`, `dropdown.css` least of all.
 
 ## Evidence
 
