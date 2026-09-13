@@ -2,6 +2,53 @@
 
 Closes #275.
 
+## Round 9: the gap one ink costs, and a rebase onto the elevation ladder
+
+**The review's one nit, fixed.** The caption sits under its specimen and the why follows the pair,
+and the shared sheet leaves **0px** between them. It was 0px before this branch too — what
+separated them then was ink, `--muted` 12/400 over `--dim` 13/400. With both on `--text` the only
+cue left was weight, and it points the wrong way: the smaller, lower-rank line is the bolder, sitting
+flush against the body line it labels, so a caption reads as a bolded lead-in to the paragraph under
+it rather than as a label on the figure above it.
+
+`.gc-why` takes `margin-block-start: var(--space-3)` in this page's own sheet. **12px, and the
+number is not a taste:** it is the step the imperative already gives on the other side of the
+figure, so the pair is framed by the same gap top and bottom, and it is deliberately larger than the
+`--space-2` a cell gives between a specimen and its caption — so the caption's bond upward stays the
+tighter of the two, which is exactly the ambiguity the review reported.
+
+Measured in Chrome at 1200 wide, both themes:
+
+| | before | after |
+|---|---|---|
+| a caption to the why under it | **0px** | **12px** |
+| a specimen to its own caption | 8px | 8px |
+| the imperative to the figure | 12px | 12px |
+| a rule with no specimen pair | 12px | **12px, unchanged** |
+
+The last row is the one worth saying out loud: a top margin on the why collapses against the
+imperative's own bottom margin, so the four rules that have a why and no figure never had a second
+gap and do not get one.
+
+**The weight is left alone.** A caption row of its own — `--text-sm` at `--weight-normal` — is the
+other half of this, and it is #292's decision rather than this branch's. It is still open.
+
+**Rebased onto `759520d`** (#294 fields at 16px, #295 the elevation ladder). One conflict across the
+thirty commits replayed, `PR.md`, which is a scratch file and always conflicts; this branch's is
+kept. `.storybook/preview.js`, `stories/guidelines/_overview.js` and
+`stories/guidelines/_accessibility-floor.js` all merged with nobody's hand on them, and no citation
+needed repairing — removing this page's line numbers in round 7 is what bought that.
+
+**Both screenshots re-shot on the rebased tree**, because #295 repainted every specimen this page
+draws: the cards, the tables and the stacking blocks are all on new surface values and the kit casts
+no shadow any more. The page is **1200 × 2628** in both themes now, against 2,574 dark and 2,580
+light before — the 48px is the four new caption gaps, and the rest is #295 under it.
+
+**Counts.** `npm test`: **1445 tests, 1444 pass, 0 fail, 1 skipped**. `main`'s own 1416 plus this
+branch's 29 is 1445, so no test was lost in the rebase. The skip is the opt-in `CONTRAST_ACCENTS=1`
+matrix, which is behind an environment variable on `main` too. The contrast wall-clock ceiling came
+in under its bar on this run. `ai-slop-detector` on `_the-page.js` at paranoid: **PASS, 0 findings**.
+
 ## Round 8: one ink, and size carries the rank
 
 **Decision — Artur, 2026-09-13:** *"avoid using gray colors. use font size to change accent,
@@ -401,7 +448,9 @@ pass, and the only failure was this box's contrast clock.
 **The page itself** — `Guidelines / The page`, rendered in both themes:
 `docs/evidence/the-page-guidelines-dark.png`, `docs/evidence/the-page-guidelines-light.png`.
 Eight rules, four specimen pairs and no code references, captured at 1200px wide:
-2,574px high in dark and 2,580px in light, after round 8 moved the page onto one ink.
+**2,628px high in both themes**, after round 8 moved the page onto one ink and round 9 gave the
+caption its gap. Re-shot on `759520d`, where #295 repainted every specimen the page draws. (They
+were 2,574 dark and 2,580 light before that; the 48px this branch adds is the four caption gaps.)
 
 **The two faults** — `docs/evidence/the-page-fixes-dark.png`,
 `docs/evidence/the-page-fixes-light.png`. Top: the consent screen's title as a `div` and as an
@@ -427,6 +476,12 @@ thing left to add on top of this branch.
 Removing this page's citations also removes its three line-number conflicts with #286.
 The rule-to-code mapping remains in the specification table, whose references use file and
 symbol names rather than line numbers.
+
+**One conflict this branch and #286 now both create.** Each of them takes
+`scripts/font-loading.test.js`'s `EXPECTED_LOADERS` from **6** to **7** — this branch for the review
+prototype behind `docs/reviews/275-page-limits.html`, #286 for `scripts/evidence/shot.html`, the page
+its rail shots are taken off. Both are real loaders, so the merged tree's number is **8**, and the
+comment over it names both. Neither branch is wrong; they are counting different pages.
 
 That merge also gives exactly two conflicts, both expected: `PR.md`, whole file — a scratch file,
 take whichever branch merges second — and the `appShell(...)` row of `docs/library.md`, where both
