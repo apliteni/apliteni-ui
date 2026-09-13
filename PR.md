@@ -142,17 +142,22 @@ The brief allowed either and asked for the reason. `row` won:
 
 ### Where this collides with `fix/306-dropdown-pad-foot`
 
-Both branches are off `233a1e7` and four files are touched by both, so whoever merges second
-resolves these. Named here so the coordinator can sequence them:
+Both branches are off `233a1e7`. `git merge-tree` between the two heads, run rather than
+guessed, conflicts in four files; two more are touched by both and merge on their own. Named
+here so the coordinator can sequence them:
 
-| File | The overlap |
-|---|---|
-| `docs/library.md` | The same line — the dropdown's catalog row. That branch rewrites its signature for `head`/`foot`; this one appends a `**React:**` clause to the end of the same cell. |
-| `scripts/evidence/README.md` | The same opening lines, each adding its own `docs/evidence/*` glob to the list of what the rig produces. |
-| `stories/guidelines/_accessibility-floor.js` | Different entries in the same `GATES` array — that branch adds one, this one adds two. Git merges this cleanly; the page just gains three gates. |
-| `PR.md` | Each branch overwrites it wholesale. It is a scratch file at the repo root, not a record: take whichever body belongs to the PR being opened. |
+| File | Merges | The overlap |
+|---|---|---|
+| `docs/library.md` | conflict | The same line — the dropdown's catalog row. That branch rewrites its signature for `head`/`foot`; this one adds the matcher's two names and a `**React:**` clause to the same cell. |
+| `scripts/evidence/README.md` | conflict | The same opening lines, each adding its own `docs/evidence/*` glob to the list of what the rig produces. |
+| `stories/guidelines/_component-choice.js` | conflict | Adjacent lines of one `kit:` array: that branch re-points the two `dropdown.css` refs its padding moved, this one re-points the `dropdown.js` ref the matcher's rename moved. |
+| `PR.md` | conflict | Each branch overwrites it wholesale. It is a scratch file at the repo root, not a record: take whichever body belongs to the PR being opened. |
+| `src/components/dropdown.js` | clean | Different hunks — that branch is inside the factory's panel assembly, this one is the matcher above it. |
+| `stories/guidelines/_accessibility-floor.js` | clean | Different entries in the same `GATES` array: that branch adds one, this one two. |
 
-Nothing else is shared. This branch opens no file under `src/`, `dropdown.css` least of all.
+One thing to check after the second merge rather than assume: the `kit:` refs in
+`_component-choice.js` cite lines in both `dropdown.js` and `dropdown.css`, and both files move
+under the other branch. `stories/guidelines/refs.test.js` fails on a stale one, so run it.
 
 ## Evidence
 
