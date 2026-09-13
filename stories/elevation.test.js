@@ -57,8 +57,8 @@ const sweep = STYLE_FILES.flatMap((file) =>
 // Asserted so coverage cannot shrink to zero and stay green. Moving it means
 // recording the change: CONTRIBUTING.md#the-elevation-gate-and-its-counts
 test('the sweep sees every box-shadow the kit ships', () => {
-  assert.equal(sweep.length, 38,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 38. `
+  assert.equal(sweep.length, 40,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 40. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -120,8 +120,8 @@ test('the only cast shadow under src/ is the floating treatment', () => {
     + 'says how high it is with its step and its hairline; a floating one adds '
     + 'the inner line and var(--elev-drop) and nothing else:\n  ' + offences.join('\n  '));
   // Both themes are walked, so each floating declaration is counted twice.
-  assert.equal(floating, 22,
-    `${floating / THEMES.length} declarations carry the floating treatment, not the pinned 11. `
+  assert.equal(floating, 26,
+    `${floating / THEMES.length} declarations carry the floating treatment, not the pinned 13. `
     + 'If a floating surface dropped it, put it back; if one was added, move the number.');
 });
 

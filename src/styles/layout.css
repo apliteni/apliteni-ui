@@ -238,10 +238,16 @@
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
    clip; the @supports branch below pins it to the row and is the only one that
    survives a scroll. The toggle's selector is unscoped, because it is wordless at
-   both widths. why: docs/specification.md#the-page-shell */
+   both widths.
+
+   It floats by role — a readout placed over the page for as long as a pointer
+   rests on a row — so it takes the floating treatment the hover readout takes,
+   which is the same shape on the same step: the two-step edge and the drops.
+   why: docs/specification.md#the-page-shell
+   why: docs/specification.md#elevation */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
-.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
+.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
   .ui-app.is-collapsed,
   .ui-app:has(.ui-app__fold) { anchor-scope: --ui-rail; }
@@ -343,7 +349,7 @@
   .ui-app__rail .ui-nav__item,
   .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
+  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }
     .ui-app__rail { anchor-name: --ui-rail; }
