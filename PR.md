@@ -17,7 +17,16 @@ The eight citation chips are removed. The page declares `REFERENCE_POLICY = 'spe
 `refs.test.js` pins that declaration and rejects citations, paths and selectors in its rendered
 text, including references moved into captions. Other guideline pages continue to cite code.
 The specification table is unchanged and remains the sole rule-to-code mapping, with both
-existing table checks in place. No tests were removed.
+existing table checks in place. No test definitions were removed; the prose-citation sweep no
+longer discovers this page now that its citations are gone, and three new checks cover the
+explicit policy, the real story render and references moved into visible text.
+
+Round-7 focused verification: 110 tests pass across `the-page.test.js`, `refs.test.js`,
+`doc-refs.test.js` and `code-refs.test.js`. The React build and Storybook build pass.
+Both refreshed screenshots show eight rules and zero code references after fonts load,
+at 1200px wide (light: 2393px high; dark: 2387px high). The specification table and all eight
+specimen render functions are unchanged. The coordinator owns independent review on the
+pushed SHA.
 
 ## Premises
 

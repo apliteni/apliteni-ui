@@ -19,6 +19,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { guidelinePage } from './_layout.js';
+import { ThePage } from './ThePage.stories.js';
+import * as thePage from './_the-page.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -98,10 +100,10 @@ const unmetProblems = (page, rule) => {
 
 // The page guideline keeps its mapping in the specification. Check what a
 // reader sees as well as the data, so moving a citation into prose still fails.
-const codeFreeProblems = (mod) => {
+const codeFreeProblems = (mod, html = guidelinePage({ title: mod.TITLE, rules: mod.RULES, css: mod.SPEC_CSS })) => {
   const problems = [];
   if (mod.RULES.some((rule) => rule.kit !== undefined)) problems.push('a rule declares `kit`');
-  const doc = JSDOM.fragment(guidelinePage({ title: mod.TITLE, rules: mod.RULES, css: mod.SPEC_CSS }));
+  const doc = JSDOM.fragment(html);
   if (doc.querySelector('.gc-refs, code')) problems.push('the page renders a citation or code');
   doc.querySelectorAll('style').forEach((el) => el.remove());
   if (/(?:[\w.-]+\/)+[\w.-]+|(?<!\w)\.[A-Za-z][\w-]*|--[a-z][\w-]*/.test(doc.textContent)) {
@@ -193,12 +195,16 @@ test('only The page declares specification-only references', () => {
   assert.deepEqual(specificationOnly, ['_the-page.js']);
 });
 
+test('The page story renders no code references', () => {
+  assert.deepEqual(codeFreeProblems(thePage, ThePage.render()), []);
+});
+
 test('specification-only pages reject citations moved into visible text', () => {
   const mod = { TITLE: 'Example', RULES: [{ id: 'r', imperative: 'Keep it clear.', why: 'Help readers.' }] };
   assert.deepEqual(codeFreeProblems(mod), []);
   for (const extra of [
-    { kit: [{ ref: 'src/styles/card.css:7' }] },
-    { imperative: 'Copy src/components/shell.js:182.' },
+    { kit: [{ ref: ['fixture/card.css', 7].join(':') }] },
+    { imperative: 'Copy fixture/shell.js:182.' },
     { why: 'Use .ui-card.' },
     { why: 'Read docs/specification.md.' },
     { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
