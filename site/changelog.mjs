@@ -13,6 +13,14 @@
 
 export const RELEASES = [
   {
+    v: '0.33.1', date: '2026-09-13',
+    changes: [
+      ['changed', "A floating surface casts again, and only a floating one. The `--bg-elevated` step as the elevation ladder lists it — a dropdown panel, the account and workspace menus, `confirm()`, the drawer, the React modal, the three toast styles, the hover readout and the command palette — now draws its hairline twice (`--border-strong` on the border, `--border` one pixel inside it) and adds one broad, faint drop under it. Nothing below that step moves: a card, a field, a chip and a row still say how high they are with their step and their line. Decided on #309 against the measured frames in `docs/reviews/295-popover-variants.html`: the panel was 1.05 above the card in light on a 1px line at 1.18, so the whole separation rested on one pixel. The edge now reads 1.64 in dark and 1.44 in light, and the drop's core reads 1.20 / 1.44 against the card.", ['Dropdown', 'Drawer', 'Confirm', 'Callout', 'Tooltip', 'CommandPalette', 'Topbar']],
+      ['added', "`--elev-floating` — the whole treatment in one `box-shadow` list, per theme, in the order Primer's `--shadow-floating-*` uses: the inset 1px line first, then the drops. A floating surface writes `box-shadow: var(--elev-floating)` and composes its focus ring in front of it, `var(--ring), var(--elev-floating)`. `--elev-edge` is the hook a surface carrying its own tint re-points, so a status toast draws its inner line in its own colour; unset it is `--border`. The five deprecated `--shadow-*` tokens are unchanged and still resolve to `0 0 #0000`.", ['Callout']],
+      ['fixed', "The collapsed rail's flyout label read `--shadow-md` in both of its rules — a token deprecated in 0.32 that resolves to the transparent shadow — so it painted nothing while claiming to cast. Dropped. A consumer who sets `--shadow-md` themselves no longer gets a shadow on that label.", ['Shell']],
+    ],
+  },
+  {
     v: '0.33.0', date: '2026-09-13',
     changes: [
       ['breaking', "`appShell()` with `signOutHref` and no `account` draws neither. Sign out is a row of the reader's menu now — the block naming the signed-in reader at the rail's foot is the menu's trigger — and there is no session to end without a reader. A page that passed `signOutHref` alone and relied on a sign-out row in the navigation list has to pass `account` too, and has to call `wireShell()`, because the menu is wired rather than a plain link.", ['Shell']],
