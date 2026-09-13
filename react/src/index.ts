@@ -45,7 +45,7 @@ export type { SkeletonProps, SkeletonTableProps, BusyRegionProps, DeniedProps } 
 export { Dropdown } from './Dropdown';
 export type {
   DropdownProps, DropdownItem, DropdownEntry, DropdownSection, DropdownSeparator,
-  DropdownBadge, DropdownRowProps,
+  DropdownBadge, DropdownRowProps, DropdownSearch,
 } from './Dropdown';
 export { BackLink } from './BackLink';
 export type { BackLinkProps, BackLinkOwnProps } from './BackLink';
