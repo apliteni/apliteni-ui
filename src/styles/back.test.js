@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
  * Read as text, because the package ships CSS as its artifact: the first two are
  * `var()` values, which jsdom resolves to nothing, and the third is an ellipsis,
  * which needs a layout jsdom does not have. What the clip looks like when a
- * browser does the layout is docs/evidence/back-long-*.png.
+ * browser does the layout is docs/evidence/back-label-long-*.png.
  * why: docs/specification.md#the-back-link
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
