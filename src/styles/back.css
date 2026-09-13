@@ -7,10 +7,8 @@
  * ========================================================================== */
 
 /* Its own line, and only as wide as its words, so the hover ground does not run
-   the width of the column — but never wider than the column. `fit-content`
-   alone does not hold that: the label below is `nowrap`, so the box's own
-   min-content is the whole destination name and it would push straight through
-   the closing edge. The ceiling is what hands the overflow to the label. */
+   the width of the column — and never wider than it, which `fit-content` alone
+   does not give once the label below is `nowrap`. why: #303 */
 .ui-back {
   display: flex;
   width: fit-content;
@@ -45,11 +43,8 @@
    the title with it. */
 .ui-app__main > .ui-back { margin-bottom: var(--space-5); }
 
-/* The destination's name, and the only part of this link that can run long — a
-   record's parent is whatever the sidebar calls it. One line, clipped: .ui-back
-   sits above the title, and a second line would push the page down. min-width,
-   because a flex item's own floor is its content. As .ui-nav__label does.
-   why: docs/specification.md#the-back-link */
+/* The one part that can run long. It clips rather than wrapping, as .ui-nav__label
+   does. why: docs/specification.md#the-back-link */
 .ui-back__label {
   min-width: 0;
   overflow: hidden;

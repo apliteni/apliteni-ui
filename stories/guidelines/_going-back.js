@@ -134,6 +134,6 @@ export const RULES = [
       + 'or in the host\'s link colour it competes with the title and the page\'s action on every screen, '
       + 'which is the complaint that opened #270. .ui-back paints --dim, and its colour rule outranks a '
       + 'host a:link, so a page that colours its links leaves this one alone.',
-    kit: [{ ref: 'src/styles/back.css:35', pattern: '.ui-back[href] { color: var(--dim); }' }],
+    kit: [{ ref: 'src/styles/back.css:33', pattern: '.ui-back[href] { color: var(--dim); }' }],
   },
 ];

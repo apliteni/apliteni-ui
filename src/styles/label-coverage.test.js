@@ -1,30 +1,13 @@
 /* Rule: every `__label` the kit's factories put into markup has a rule in the
- * kit's CSS.
- *
- * A `__label` is the part of a component that carries the words, and the words
- * are the part that can run long. A class emitted with nothing behind it looks
- * finished in the source and is unstyled on the page: `.ui-back__label` shipped
- * that way from 0.29.0 and was found by a consumer's own class-coverage guard,
- * not by this repo (#303). Nothing here decides what the rule should SAY — that
- * is each component's own argument, and the ranks and the overflow are pinned
- * where they are written.
- *
- * Subjects are discovered from the shipped source of both workspaces, so a new
- * component is in scope by existing.
+ * kit's CSS. `.ui-back__label` shipped without one from 0.29.0. why: #303
  *
  * What it does not reach:
- * - a class that is not a `__label`. `ui-nav__tab-label`, `ui-nav__crumb-label`,
- *   `ui-footer__col` and `ui-pager__jump-of` are emitted today with no rule of
- *   their own; a pass here is not a claim that the kit styles everything it
- *   emits.
- * - a `__label` a consumer writes by hand from the documentation.
- *   `.ui-tip__label` has a rule and no factory: this gate runs emitted → styled
- *   and never the other way.
- * - what the rule says. A `.ui-x__label {}` with an empty body passes.
- * - story and test files, whose classes are local to a page and styled in its
- *   own <style> block.
- *
- * why: docs/specification.md#the-back-link
+ * - a class that is not a `__label`: `ui-nav__tab-label`, `ui-nav__crumb-label`,
+ *   `ui-footer__col` and `ui-pager__jump-of` are emitted with no rule today.
+ * - a `__label` a consumer writes by hand — `.ui-tip__label` has a rule and no
+ *   factory. This runs emitted → styled, never the other way.
+ * - what the rule says: `.ui-x__label {}` passes.
+ * - story and test files, styled in their own page's <style> block.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
