@@ -214,15 +214,19 @@
   --signal-solid-info: var(--cyan);
   --signal-solid-neutral: var(--muted);
 
-  /* DEPRECATED and `none` in both themes since #295: the kit casts no shadow anywhere.
-     Published still, so a consumer reading one gets nothing rather than an unresolved
-     var(), and a consumer who wants a cast shadow sets them. Nothing in src/ reads them.
-     why: docs/specification.md#elevation */
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-seg: none;
-  --shadow-card: none;
+  /* DEPRECATED since #295: the kit casts no shadow anywhere. Published still, so a
+     consumer reading one gets nothing rather than an unresolved var(), and a consumer who
+     wants a cast shadow sets them. Nothing in src/ reads them.
+
+     A transparent shadow, not `none`, because these are read in a LIST. The kit's own
+     pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is only
+     valid alone — it makes the whole declaration invalid, which silently takes the focus
+     ring with it. `0 0 #0000` composes. why: docs/specification.md#elevation */
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-seg: 0 0 #0000;
+  --shadow-card: 0 0 #0000;
   /* THE ONLY --ring in the kit — light and every data-accent sub-theme declare an
      --accent and inherit this line. Opaque because a translucent ring is a glow, and the
      eight rgba() literals it replaced all missed WCAG 1.4.11's 3:1 (#218). Held by
@@ -331,11 +335,11 @@
   --signal-solid-neutral: var(--muted);
 
   /* Deprecated and unread — see the dark block. */
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-seg: none;
-  --shadow-card: none;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-seg: 0 0 #0000;
+  --shadow-card: 0 0 #0000;
   /* No --ring here. :root's is var(--accent), and light re-points --accent. */
 
   --shadow-ink: #1e1e32;

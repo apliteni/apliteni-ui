@@ -408,7 +408,15 @@ Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured 
 **Nothing in the kit casts a shadow.** A surface says how high it is with two things: its step on
 a ladder of lightness, and the kit's hairline around it. `--shadow-sm`, `--shadow-md`,
 `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still published so a consumer reading one
-does not break, and all five are `none` in both themes. Nothing under `src/` reads them.
+does not break, and all five are the transparent shadow `0 0 #0000` in both themes. Nothing under
+`src/` reads them. **Transparent and not `none`**, because a shadow token is read in a list: the
+kit's own pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is valid
+only on its own — it invalidates the whole declaration and takes the focus ring out with it.
+
+A cast shadow is an **offset** layer of ink under a surface, and that is the thing this rule
+refuses. A zero-offset layer of the signal's own colour is a glow, not a shadow: it says *this is
+lit*, not *this is high*. `--glow-*`, `--sheen`, `--ring` and the two `drop-shadow()` glows on the
+success mark are all that shape and all stay.
 
 The ladder, bottom to top:
 
