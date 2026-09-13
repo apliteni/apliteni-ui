@@ -296,7 +296,7 @@ test('src/styles/confirm.css: a consequence too long for the viewport scrolls', 
   );
 });
 
-// ---- the dropdown panel, and the frame a key opens it in --------------------
+// ---- the menus, and the frame a key opens one in ----------------------------
 //
 // The fourth overlay, and the one with the same `visibility` problem the three
 // above have — from the other end. A panel that is still `hidden` in the frame
@@ -309,68 +309,104 @@ test('src/styles/confirm.css: a consequence too long for the viewport scrolls', 
 // JSDOM cannot see it — it focuses inside a hidden box happily — so the gates
 // that press the keys go on passing with this rule deleted. This is the one that
 // does not. why: docs/specification.md#the-dropdown-panel
+//
+// Swept across every menu the kit ships, not just `dropdown()`'s own panel. The
+// topbar's version switcher and account menu are the same `wireDropdown()` in
+// bespoke clothes — same hooks, same keyboard, same fade — and they had neither
+// fix while `.ui-dropdown__panel` had both, because both gates read one file.
+const MENUS = [
+  {
+    file: 'src/styles/dropdown.css',
+    panel: '.ui-dropdown__panel',
+    // Each named on its own below: the portalled panel is not a descendant of an
+    // open container, so one rule cannot answer for both placements.
+    open: ['.ui-dropdown.open .ui-dropdown__panel', '.ui-dropdown__panel--portal.is-open'],
+    what: 'the kit\'s own dropdown, in place and portalled',
+    cost: 'one of its rows signs the reader out, since #286',
+  },
+  {
+    file: 'src/styles/topbar.css',
+    panel: '.vsw__menu',
+    open: ['.vsw.open .vsw__menu'],
+    what: 'the topbar version switcher',
+    cost: 'its rows change the version the page is reading',
+  },
+  {
+    file: 'src/styles/topbar.css',
+    panel: '.amenu',
+    open: ['.acct.open .amenu'],
+    what: 'the topbar account menu',
+    cost: '`.aout` ends the reader\'s session',
+  },
+];
 
-test('src/styles/dropdown.css: an open panel is visible in the frame it opens, not the next one', () => {
-  const all = rules(read('src/styles/dropdown.css'));
-  const open = all.filter((r) => r.selector.split(',').some((s) => /\.(open|is-open)\b/.test(s)
-    && /__panel/.test(s) && !/__panel--search/.test(s)));
-  assert.ok(open.length, 'no rule keys on an open dropdown panel — this gate is measuring nothing');
+// The rules a menu's open state is written in, one selector at a time. Exact
+// selector parts, so a rule naming two of them answers for both and a rule
+// naming neither answers for nothing.
+const openRules = (all, sel) => all.filter((r) => selects(r, sel));
 
-  const lists = open.flatMap((r) => transitions(r).map((t) => t.trim()));
-  assert.ok(
-    lists.length,
-    'an open dropdown panel no longer swaps its transition list, so `visibility` is still on the '
-    + 'clock while the panel opens: the frame the class lands resolves `hidden`, a browser refuses '
-    + 'to focus a row inside it, and the arrows open a menu the keyboard cannot enter. One rule — '
-    + '`transition-property: opacity, transform` on the open panel — is the whole fix.',
-  );
-  for (const list of lists) {
+for (const m of MENUS) {
+  test(`${m.file}: ${m.panel} is visible in the frame it opens, not the next one`, () => {
+    const all = rules(read(m.file));
+    for (const sel of m.open) {
+      const open = openRules(all, sel);
+      assert.ok(open.length, `no rule keys on \`${sel}\` — this gate is measuring nothing`);
+
+      const lists = open.flatMap((r) => transitions(r).map((t) => t.trim()));
+      assert.ok(
+        lists.length,
+        `\`${sel}\` no longer swaps its transition list, so \`visibility\` is still on the clock `
+        + `while ${m.what} opens: the frame the class lands resolves \`hidden\`, a browser refuses `
+        + 'to focus a row inside it, and the arrows open a menu the keyboard cannot enter. One rule '
+        + '— `transition-property: opacity, transform` on the open menu — is the whole fix.',
+      );
+      for (const list of lists) {
+        assert.ok(
+          !/\bvisibility\b|\ball\b/.test(list),
+          `\`${sel}\` transitions \`${list}\`, which still puts \`visibility\` on a clock — and `
+          + '`all` is a spelling of visibility. The row the arrows aim at is unfocusable for the '
+          + 'first frame, which is the frame the focus call happens in.',
+        );
+      }
+    }
+
+    // The close is not touched: it is what keeps the menu drawn while it fades,
+    // and the rules above only stand while it is open.
+    const base = all.find((r) => selects(r, m.panel));
+    assert.ok(base, `the \`${m.panel}\` rule was found`);
     assert.ok(
-      !/\bvisibility\b|\ball\b/.test(list),
-      `an open dropdown panel transitions \`${list}\`, which still puts \`visibility\` on a clock — `
-      + 'and `all` is a spelling of visibility. The row the arrows aim at is unfocusable for the '
-      + 'first frame, which is the frame the focus call happens in.',
+      transitions(base).some((t) => /\bvisibility\b/.test(t)),
+      `\`${m.panel}\` stopped transitioning \`visibility\` at all, so it is gone in the frame it is `
+      + 'told to close and the fade plays on a box nobody can see',
     );
-  }
+  });
 
-  // The close is not touched: it is what keeps the panel drawn while it fades,
-  // and the rule above only stands while the panel is open.
-  const base = all.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
-  assert.ok(base, 'the panel rule was found');
-  assert.ok(
-    transitions(base).some((t) => /\bvisibility\b/.test(t)),
-    'the panel stopped transitioning `visibility` at all, so it is gone in the frame it is told to '
-    + 'close and the fade plays on a box nobody can see',
-  );
-});
+  // And the other end of that window, which the three overlays above already
+  // gate: a menu drawn while it fades is a menu that is hit. Its rows are <a>
+  // and <button> elements — a menu is actions — so a stray click in the 250ms
+  // after a close activates one of them invisibly.
+  test(`${m.file}: ${m.panel} stops being clickable at once`, () => {
+    const all = rules(read(m.file));
+    const live = /pointer-events\s*:\s*auto/;
 
-// And the other end of that window, which the three overlays above already gate:
-// a panel drawn while it fades is a panel that is hit. Its rows are <a> and
-// <button> elements — a menu is actions — and since #286 one of them signs the
-// reader out, so a stray click in the 250ms after a close is a session ended by
-// a box nobody can see.
-test('src/styles/dropdown.css: a closing panel stops being clickable at once', () => {
-  const all = rules(read('src/styles/dropdown.css'));
-  const live = /pointer-events\s*:\s*auto/;
+    const closed = all.find((r) => selects(r, m.panel));
+    assert.ok(closed, `the \`${m.panel}\` rule was found`);
+    assert.match(
+      closed.body, /pointer-events\s*:\s*none/,
+      `a closed ${m.what} is hit-testable. \`visibility\` is held at \`visible\` for the whole fade `
+      + 'out, so for --dur-med after the menu closes its rows are still there to be clicked — and '
+      + `${m.cost}. \`pointer-events: none\` here, taken back on the open rules, is the same answer `
+      + '.ui-drawer and .ui-cmdk give.',
+    );
 
-  const closed = all.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
-  assert.ok(closed, 'the panel rule was found');
-  assert.match(
-    closed.body, /pointer-events\s*:\s*none/,
-    'a closed dropdown panel is hit-testable. `visibility` is held at `visible` for the whole fade '
-    + 'out, so for --dur-med after the menu closes its rows are still there to be clicked — and one '
-    + 'of them is sign out. `pointer-events: none` here, taken back on the open rules, is the same '
-    + 'answer .ui-drawer and .ui-cmdk give.',
-  );
-
-  const ungated = all.filter((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel')
-    && live.test(r.body));
-  assert.deepEqual(
-    ungated.map((r) => r.selector), [],
-    'the panel is turned back on by a rule that does not ask whether it is open',
-  );
-  assert.ok(
-    all.some((r) => /\.(open|is-open)\b/.test(r.selector) && /__panel/.test(r.selector) && live.test(r.body)),
-    'nothing turns the panel on while it IS open — the menu would not be clickable at all',
-  );
-});
+    const ungated = all.filter((r) => selects(r, m.panel) && live.test(r.body));
+    assert.deepEqual(
+      ungated.map((r) => r.selector), [],
+      `${m.what} is turned back on by a rule that does not ask whether it is open`,
+    );
+    assert.ok(
+      m.open.some((sel) => openRules(all, sel).some((r) => live.test(r.body))),
+      `nothing turns ${m.what} on while it IS open — the menu would not be clickable at all`,
+    );
+  });
+}

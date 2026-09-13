@@ -128,6 +128,10 @@
   padding: 6px;
   opacity: 0;
   visibility: hidden;
+  /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a box
+     that is drawn is a box that is hit. The open rule takes this back.
+     why: docs/specification.md#the-dropdown-panel */
+  pointer-events: none;
   transform: translateY(-6px);
   /* Named properties, not the bare shorthand: `transition: 0.18s` is `all`, and `all`
      includes visibility — held at the OLD value for the whole duration, so the menu is
@@ -138,7 +142,20 @@
     visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
-.vsw.open .vsw__menu { opacity: 1; visibility: visible; transform: translateY(0); }
+/* Open, the menu is clickable and visible AT ONCE. Both menus in this file are
+   `wireDropdown()` in bespoke clothes — same hooks, same keyboard, same fade — so they
+   owe a panel's two rules as much as `.ui-dropdown__panel` does: `visibility` off the
+   open transition, because the frame the open class lands is the frame the wiring moves
+   focus onto a row in and a browser will not focus inside a hidden box; and
+   `pointer-events` back on, because the closed rule turned it off.
+   why: docs/specification.md#the-dropdown-panel */
+.vsw.open .vsw__menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-property: opacity, transform;
+}
 .vopt {
   display: flex;
   gap: 11px;
@@ -210,6 +227,7 @@
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none; /* see .vsw__menu above */
   transform: translateY(-6px);
   /* Named properties — see .vsw__menu above. */
   transition:
@@ -218,7 +236,15 @@
     visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
-.acct.open .amenu { opacity: 1; visibility: visible; transform: translateY(0); }
+/* Clickable and visible at once — see .vsw.open .vsw__menu above. The row this one
+   costs is `.aout`: a stray click in the fade out ends the reader's session. */
+.acct.open .amenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-property: opacity, transform;
+}
 .amenu .ahead { padding: 13px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 11px; }
 .amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
