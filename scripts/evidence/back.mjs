@@ -33,20 +33,24 @@ const SUBJECTS = [
   ['shell', 'phone', { width: 390, height: 620 }],
 ];
 
-for (const theme of ['dark', 'light']) {
-  for (const [subject, suffix, viewport] of SUBJECTS) {
-    const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2 });
-    const page = await ctx.newPage();
-    const q = `theme=${theme}&subject=${subject}`;
-    await page.goto(`http://127.0.0.1:${port.port}/__shot?${q}`, { waitUntil: 'load' });
-    await page.waitForFunction(() => window.__ready === true);
-    await page.evaluate(() => document.fonts.ready);
-    const name = [prefix, subject, suffix, theme].filter(Boolean).join('-');
-    await page.screenshot({ path: path.join(outDir, `${name}.png`) });
-    console.log(`  ${name}.png`);
-    await ctx.close();
+// The server is a child process: a throw between here and the kill would leave
+// it holding its port after this script exits. As guideline.mjs does.
+try {
+  for (const theme of ['dark', 'light']) {
+    for (const [subject, suffix, viewport] of SUBJECTS) {
+      const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2 });
+      const page = await ctx.newPage();
+      const q = `theme=${theme}&subject=${subject}`;
+      await page.goto(`http://127.0.0.1:${port.port}/__shot?${q}`, { waitUntil: 'load' });
+      await page.waitForFunction(() => window.__ready === true);
+      await page.evaluate(() => document.fonts.ready);
+      const name = [prefix, subject, suffix, theme].filter(Boolean).join('-');
+      await page.screenshot({ path: path.join(outDir, `${name}.png`) });
+      console.log(`  ${name}.png`);
+      await ctx.close();
+    }
   }
+} finally {
+  await browser.close();
+  port.proc.kill();
 }
-
-await browser.close();
-port.proc.kill();

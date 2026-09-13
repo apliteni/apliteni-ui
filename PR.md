@@ -193,9 +193,14 @@ Two things the first table settles. **The clip does not cost the target.** 24.0 
 `main` only because it had wrapped, and it is exactly on the floor now. And **nothing overflows in
 either direction**: `past column` is 0 or negative on every row, on both sides.
 
-The short-destination shots — the subject this change does not touch — are not byte-identical
-across the two checkouts. Decoded and compared pixel by pixel they are 4 channel samples apart in
-dark and 2 in light, max delta 6 on a 1120×680 frame: glyph antialiasing, not layout. The long pair
+Re-shot off this checkout after the rig's last edit, all six images came back **byte-for-byte
+identical** to what is committed — the cross-check `scripts/evidence/README.md` asks you to run
+first, and the evidence that the rig is deterministic within one checkout.
+
+Across *two* checkouts it is not, quite. The short-destination shots — the subject this change does
+not touch — are not byte-identical there. Decoded and compared pixel by pixel they are 4 channel
+samples apart in dark and 2 in light, max delta 6 on a 1120×680 frame: glyph antialiasing, not
+layout. The long pair
 is 57,503 samples apart and the shell pair 171,337. That caveat is now in
 `scripts/evidence/README.md`, whose determinism section had implied the byte count was the
 comparison to make.
@@ -267,6 +272,29 @@ and says in its ledger that a pass is no claim that the kit styles everything it
 | the gate's shape | one gate per workspace, one floor each, over one sweep | a single kit-wide gate with a shared count, which is what the first draft did | the repo — `CONTRIBUTING.md` § *One gate per workspace, over one shared implementation*, which the review found the draft contradicted |
 | where the guarantee is recorded | `docs/specification.md` § The back link, naming both gates | the guidelines page, which holds rules for the screen rather than kit guarantees | worker, per `docs/README.md` "Where a decision gets recorded" |
 | the evidence rig | a second page beside `shot.html`, reusing `serve.mjs` | extending `shot.html`, which renders a whole shell and is the rail's subject | worker, small and reversible |
+
+## The base this branch sits on, and the version it does not touch
+
+No version bump and no `docs/changelog.md` entry, per the brief — the lines are under *Changelog
+entry* below for whoever sequences the release.
+
+Worth saying plainly, because a reader who checks out the branch will find it: **`package.json`
+here says `0.32.0`, and that is the base speaking, not a revert.** The diff does not touch the file
+at all. The branch's merge base is `c85f516`, one commit behind `main`, and the commit it is behind
+by is `233a1e7`, *Release 0.33.0*, which touches three files and nothing else:
+
+```
+$ git diff --stat c85f516 origin/main
+ package-lock.json  |  4 ++--
+ package.json       |  2 +-
+ site/changelog.mjs | 14 ++++++++++++++
+```
+
+This branch touches none of those three — the intersection of the two file lists is empty, and
+`git merge-tree --write-tree origin/main HEAD` reports no conflict. So the merge restores `0.33.0`
+on its own and there is nothing to rebase for. Not rebased on purpose: the review reads against
+`c85f516`, and every measurement in this body was taken with `main` at that commit checked out
+beside it.
 
 ## Proof
 
@@ -355,9 +383,10 @@ PR adds were cut twice to get there, with the argument moved here. `label-covera
 - **The ellipsis over the wrap, which is one of two answers the kit already gives.** The rail clips
   (`src/styles/nav.css:99` `overflow: hidden; text-overflow: ellipsis;`) and so does the reader
   block. But the **breadcrumb trail this link replaces wraps** —
-  `src/styles/nav.css:307` `flex-wrap: wrap;` — and so does the dropdown head. The rail's column is fixed and narrow; a back
-  link sits in the reading column, beside the trail that wraps. So this is a choice, not a lookup —
-  the brief said take the kit's answer where the spec is silent, and the kit has two. If a truncated
+  `src/styles/nav.css:307` `flex-wrap: wrap;` — and so does the dropdown head. The rail's column is
+  fixed and narrow; a back link sits in the reading column, beside the trail that wraps. So this is
+  a choice, not a lookup — the brief said take the kit's answer where the spec is silent, and the
+  kit has two. If a truncated
   parent name is worse than a two-line one here, this is the decision to send back; the rule is four
   declarations and a ceiling.
 - **A clipped name has no tooltip.** The full destination stays in the accessible name —
