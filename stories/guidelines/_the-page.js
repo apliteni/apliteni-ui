@@ -53,7 +53,8 @@ export const SPEC_CSS = `
        rather than a number of this page's own: 30, 18, 14.5, 13. The selectors
        belong to stories/guidelines/_layout.js, which draws sixteen other
        guideline pages, so they are restated here — after it — and only this page
-       moves. No rank note: the gate that reads those sweeps src/, not stories/.
+       moves. The caption claims its rank in a note, which #310 taught the gate to
+       read on a story; noting the three above it is that sweep's next step.
        why: #298, decided by Artur on 2026-09-13 */
     .gc > h1 { font-size: var(--text-2xl); font-weight: var(--weight-bold);
       line-height: 1.1; color: var(--text); }
@@ -66,14 +67,17 @@ export const SPEC_CSS = `
        on the other side of the figure and is larger than the --space-2 a cell
        gives its caption, so the caption's bond upward stays the tighter of the
        two; it collapses on a rule with no specimen pair.
-       why: #298 — the caption's own rank is #292 */
+       why: #298 — the caption's own rank arrived in #310 */
     .gc-why { font-size: var(--text-base); font-weight: var(--weight-normal);
       line-height: var(--leading-normal); color: var(--text);
       margin-block-start: var(--space-3);
       max-width: var(--prose-body); }
-    /* The table has no row for a caption under a specimen, so this borrows the
-       row below the why — label — for size and weight, and not its --muted ink. */
-    .gc-cell__cap { font-size: var(--text-sm); font-weight: var(--weight-medium);
+    /* The caption's own row, #310: 13px at the body's weight, so the smaller
+       line under a specimen stops reading as the bolder of the two. Not the
+       label's --muted ink either — one ink on this page. */
+    .gc-cell__cap {
+      /* rank: caption */
+      font-size: var(--text-sm); font-weight: var(--weight-normal);
       color: var(--text); }
   </style>`;
 

@@ -2,8 +2,8 @@
  * that claim it with a `/* rank: label *​/` note, and the ranks keep their order.
  *
  * What it does not reach:
- * - a caption or a title written without a note. Nothing here decides from a
- *   selector that a rule is a label, so such a rule is outside the ranks.
+ * - a label or a caption written without a note. Nothing here decides from a
+ *   selector what rank a rule is, so such a rule is outside the ranks.
  * - a later rule that re-sizes a noted one, like the page title's 25px step
  *   below 720px in layout.css. Overrides are not followed.
  * - a consumer's own scale. This reads the kit's tokens and nobody else's.
@@ -15,14 +15,29 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { kitSheetNames } from '../../scripts/lib/icon-cascade.js';
+import { kitSheetNames, walk } from '../../scripts/lib/icon-cascade.js';
 import { card } from '../components/index.js';
 
 const src = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(src, '..');
 const SPEC = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
 const TOKENS = readFileSync(path.join(src, 'tokens/tokens.css'), 'utf8');
-const SHEETS = kitSheetNames(src).map((rel) => ({ rel, css: readFileSync(path.join(src, rel), 'utf8') }));
+
+/* The subjects: the sheets the kit ships, in import order, and then every other
+ * file this repo draws with. A guideline page writes its CSS in a template
+ * literal, and a rank note there is the same claim a stylesheet makes — #310 put
+ * the first one on a story. A gate's own file is skipped: the notes in the
+ * mutations below are strings, not rules anybody renders.
+ * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
+const DRAWN_IN = ['stories', 'site', 'react/src', '.storybook'];
+const READ = /\.(?:css|m?js|jsx|tsx?)$/;
+const sheets = () => [
+  ...kitSheetNames(src).map((rel) => ({ rel: `src/${rel}`, css: readFileSync(path.join(src, rel), 'utf8') })),
+  ...DRAWN_IN.flatMap((dir) => walk(path.join(root, dir))
+    .filter((f) => READ.test(f) && !/\.test\.[a-z]+$/.test(f))
+    .map((f) => ({ rel: path.relative(root, f), css: readFileSync(f, 'utf8') }))),
+];
+const SHEETS = sheets();
 
 /** The rank table under "## Labels and titles", top row first. */
 const readRanks = (spec) => {
@@ -44,7 +59,7 @@ const blankComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 const notedRules = (sheets) => sheets.flatMap(({ rel, css }) => {
   const text = blankComments(css);
   return [...css.matchAll(/\/\*\s*rank\s*:\s*([^*]*?)\s*\*\//gi)].map((m) => {
-    const where = `src/${rel}:${css.slice(0, m.index).split('\n').length}`;
+    const where = `${rel}:${css.slice(0, m.index).split('\n').length}`;
     const open = text.lastIndexOf('{', m.index);
     const end = text.indexOf('}', m.index);
     if (open < 0 || end < 0 || text.lastIndexOf('}', m.index) > open) return { where, rank: m[1], outside: true };
@@ -106,11 +121,26 @@ const px = (tokens, name) => {
   return Number(m[1]);
 };
 
+const weight = (tokens, name) => {
+  const m = new RegExp(`${name}\\s*:\\s*(\\d+)`).exec(tokens);
+  assert.ok(m, `${name} is not a number in src/tokens/tokens.css`);
+  return Number(m[1]);
+};
+
+// A rank is under the one above it by size, or — where two share a size — by
+// weight. `label` and `caption` are both 13px and only the weight separates them.
 const orderProblems = (ranks, tokens) => ranks.slice(1).flatMap((r, i) => {
   const above = ranks[i];
-  return px(tokens, r.size) < px(tokens, above.size) ? [] : [
-    `${r.name} (${r.size}, ${px(tokens, r.size)}px) is not smaller than ${above.name} `
-    + `(${above.size}, ${px(tokens, above.size)}px) above it.`,
+  const [size, over] = [px(tokens, r.size), px(tokens, above.size)];
+  if (size < over) return [];
+  if (size > over) {
+    return [`${r.name} (${r.size}, ${size}px) is not smaller than ${above.name} `
+      + `(${above.size}, ${over}px) above it.`];
+  }
+  const [light, heavy] = [weight(tokens, r.weight), weight(tokens, above.weight)];
+  return light < heavy ? [] : [
+    `${r.name} shares ${above.name}'s ${size}px and is not lighter than it `
+    + `(${r.weight}, ${light} against ${above.weight}, ${heavy}).`,
   ];
 });
 
@@ -120,12 +150,14 @@ const RULES = notedRules(SHEETS);
 /* The real count. Was 14 at #268: body, page-title and card-title once each,
  * seven labels (eyebrow, table head, nav caption, menu group, footer column
  * title, code sample label, confirmation eyebrow) and four chips (badge, pill,
- * menu row badge, version badge). Move it in the commit that adds or drops a
- * note, and say which. */
-const EXPECTED_NOTES = 14;
+ * menu row badge, version badge). 15 at #310, which added the caption on
+ * Guidelines / The page — the first note outside the kit's own sheets. Move it
+ * in the commit that adds or drops a note, and say which. */
+const EXPECTED_NOTES = 15;
 
-test('the table has its five ranks and every one is taken', () => {
-  assert.deepEqual(RANKS.map((r) => r.name), ['page-title', 'card-title', 'body', 'label', 'chip']);
+test('the table has its six ranks and every one is taken', () => {
+  assert.deepEqual(RANKS.map((r) => r.name),
+    ['page-title', 'card-title', 'body', 'label', 'caption', 'chip']);
   for (const r of RANKS) {
     assert.ok(RULES.some((n) => n.rank === r.name),
       `no rule in the kit claims rank ${r.name}. A rank nobody takes is a row the table has outgrown.`);
@@ -138,7 +170,7 @@ test('every rule that claims a rank sets that rank’s size, weight and line-hei
   assert.deepEqual(rankProblems(RANKS, RULES), []);
 });
 
-test('each rank is smaller than the one above it', () => {
+test('each rank is under the one above it', () => {
   assert.deepEqual(orderProblems(RANKS, TOKENS), []);
 });
 
@@ -163,49 +195,55 @@ const mutate = (rel, from, to) => SHEETS.map((s) => {
 });
 
 test('a table head moved back to the chip size is caught', () => {
-  const got = rankProblems(RANKS, notedRules(mutate('styles/table.css',
+  const got = rankProblems(RANKS, notedRules(mutate('src/styles/table.css',
     /(\/\* rank: label \*\/\s*font-size:\s*)var\(--text-sm\)/, '$1var(--text-xs)')));
   assert.equal(got.length, 1, got.join('\n'));
   assert.match(got[0], /table\.css:\d+ `\.ui-table th` is rank label, whose font-size is var\(--text-sm\)/);
 });
 
 test('a card title set at body leading is caught', () => {
-  const got = rankProblems(RANKS, notedRules(mutate('styles/card.css',
+  const got = rankProblems(RANKS, notedRules(mutate('src/styles/card.css',
     'line-height: var(--leading-snug);', 'line-height: var(--leading-normal);')));
   assert.equal(got.length, 1, got.join('\n'));
   assert.match(got[0], /card\.css:\d+ `\.ui-card__title` is rank card-title, whose line-height/);
 });
 
 test('a note naming a rank the table lacks is caught', () => {
-  const got = rankProblems(RANKS, notedRules(mutate('styles/base.css', '/* rank: label */', '/* rank: caption */')));
+  const got = rankProblems(RANKS, notedRules(mutate('src/styles/base.css', '/* rank: label */', '/* rank: footnote */')));
   assert.equal(got.length, 1, got.join('\n'));
-  assert.match(got[0], /claims rank "caption"/);
+  assert.match(got[0], /claims rank "footnote"/);
 });
 
 test('a font shorthand in a ranked rule is refused', () => {
-  const got = rankProblems(RANKS, notedRules(mutate('styles/badge.css',
+  const got = rankProblems(RANKS, notedRules(mutate('src/styles/badge.css',
     'font-weight: var(--weight-semibold);\n', 'font-weight: var(--weight-semibold);\n  font: 700 10px/1 var(--font-sans);\n')));
   assert.ok(got.some((p) => /badge\.css:\d+ `\.ui-badge` writes the font shorthand/.test(p)), got.join('\n'));
 });
 
 test('the capitals’ letter-spacing put back on the badge is caught', () => {
-  const got = rankProblems(RANKS, notedRules(mutate('styles/badge.css',
+  const got = rankProblems(RANKS, notedRules(mutate('src/styles/badge.css',
     'font-weight: var(--weight-semibold);\n', 'font-weight: var(--weight-semibold);\n  letter-spacing: 0.12em;\n')));
   assert.equal(got.length, 1, got.join('\n'));
   assert.match(got[0], /`\.ui-badge` spaces its letters out \(0\.12em\)/);
 });
 
 test('a misspelt note is a finding, not a rule that left the ranks', () => {
-  const got = rankProblems(RANKS, notedRules(mutate('styles/base.css', '/* rank: label */', '/* Rank: label, see spec */')));
+  const got = rankProblems(RANKS, notedRules(mutate('src/styles/base.css', '/* rank: label */', '/* Rank: label, see spec */')));
   assert.equal(got.length, 1, got.join('\n'));
   assert.match(got[0], /claims rank "label, see spec"/);
 });
 
 test('braces in a comment do not end the block early', () => {
-  const got = rankProblems(RANKS, notedRules(mutate('styles/table.css',
+  const got = rankProblems(RANKS, notedRules(mutate('src/styles/table.css',
     /(\/\* rank: label \*\/\n)(\s*font-size:\s*)var\(--text-sm\)/, '$1  /* like .y {} */\n$2var(--text-xs)')));
   assert.equal(got.length, 1, got.join('\n'));
   assert.match(got[0], /`\.ui-table th` is rank label, whose font-size is var\(--text-sm\); the rule has var\(--text-xs\)/);
+});
+
+test('a caption at the label’s weight has nothing left to hold it under the label', () => {
+  const got = orderProblems(RANKS.map((r) => (r.name === 'caption' ? { ...r, weight: '--weight-medium' } : r)), TOKENS);
+  assert.equal(got.length, 1, got.join('\n'));
+  assert.match(got[0], /caption shares label's 13px and is not lighter than it/);
 });
 
 test('a card title token moved under the body size breaks the order', () => {
