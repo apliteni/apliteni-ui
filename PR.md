@@ -928,6 +928,14 @@ deterministic and which are not. Pointed at `bb5fd04` it reproduces the committe
 `rail-before-dark.png` and `rail-before-light.png` byte for byte, which is the cross-check that it
 is the rig that made them.
 
+**One conflict this branch and #298 now both create.** Each takes
+`scripts/font-loading.test.js`'s `EXPECTED_LOADERS` from **6** to **7** — this branch for
+`scripts/evidence/shot.html`, the page the rail's shots are taken off, and #298 for the review
+prototype behind `docs/reviews/275-page-limits.html`. Both are real loaders and both are counting a
+different page, so the merged tree's number is **8** and the comment over it names both. The rest of
+the #298 merge is the two conflicts its own body predicts: `PR.md`, whole file, and the
+`appShell(...)` row of `docs/library.md`, resolved as a union.
+
 Every figure and every mutation in this body was re-run against the tree as it stands.
 
 ## The version bump this PR does not carry
