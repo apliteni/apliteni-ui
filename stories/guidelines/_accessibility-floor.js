@@ -297,6 +297,18 @@ export const GATES = [
     blind: ['Whether the rule reaches the element. It reads declarations, not the cascade.'],
   },
   {
+    file: 'stories/dropdown-foot-role.test.js',
+    does: 'Puts the same head and foot into each panel dropdown() can emit and runs axe over '
+      + 'the three, so the rule that a control belongs only in the search variant\u2019s dialog is '
+      + 'measured rather than written down.',
+    blind: [
+      'Everything the foot is not. It asks one question of one slot, and says nothing about '
+        + 'the rows, the trigger or the keyboard.',
+      'A control axe has no opinion about. The rule it leans on is aria-required-children, '
+        + 'which counts children by role and not by what they do.',
+    ],
+  },
+  {
     file: 'stories/field-zoom.test.js',
     does: 'Holds the touch-zoom net (#294). Mounts every story into a jsdom carrying no stylesheet '
       + 'at all, asks each field whether the net\u2019s own selector reaches it with matches(), and '
