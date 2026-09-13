@@ -37,13 +37,21 @@ that filter fourth.
 
 A change that only renames a number should move no pixel, and the rig can say so
 rather than the pull request claiming it. Shoot the same subject off both
-checkouts into two directories and compare the bytes:
+checkouts and compare the pixels:
 
 ```sh
 node scripts/evidence/shoot.mjs /tmp/before out/main   rail-user-menu
 node scripts/evidence/shoot.mjs .           out/branch rail-user-menu
-sha256sum out/main/*.png out/branch/*.png
+node scripts/evidence/diff.mjs out/main/rail-user-menu-light.png out/branch/rail-user-menu-light.png
 ```
+
+`diff.mjs` prints how many channel samples differ, the largest difference and the
+box they fall in, and exits non-zero past a bound given as its third argument
+(default 0). **The pixels and not the byte count**, because a `sha256` that has
+moved says only *something is different* — antialiasing that landed a shade
+apart reads exactly like a rule that moved four pixels, and only one of those is
+a finding. When the two agree sample for sample, say so as bytes; when they do
+not, the count and the box are the answer.
 
 `rail-user-menu` is the subject to pick for anything touching the panel: it is
 the only committed shot with a `.ui-dropdown__head` in it.
@@ -54,6 +62,16 @@ the only committed shot with a `.ui-dropdown__head` in it.
 viewport give the same bytes. That is the cross-check to run first — re-shoot
 `rail-before-*` off `main` and compare it with what is committed before trusting
 anything else the rig says.
+
+**They are deterministic because they wait on the document rather than on a
+clock**, and that was bought rather than given. Until #306 each shot sat behind a
+fixed `waitForTimeout` over a running transition, which is a race the rig loses
+quietly: `rail-user-menu-light` came back 25 samples of 3.9M apart between two
+runs of the *same* tree, and a pair shot across two checkouts could not tell that
+from a change. `settle.mjs` is the replacement — `document.getAnimations()`
+holds a `CSSTransition` for every property still travelling, so the wait asks
+whether any is still running and then gives the compositor a frame. Reach for it
+in any new producer here, and never for a number of milliseconds.
 
 `film.mjs` is not, and cannot be. Its frames come off the compositor with
 `Page.startScreencast` and each caption is the time the browser painted that

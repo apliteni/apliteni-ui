@@ -8,6 +8,7 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { settle } from './settle.mjs';
 // Playwright is not a dependency of this package — the kit ships no browser and
 // nothing in `npm test` drives one. Point UI_PLAYWRIGHT at an install of it and
 // UI_CHROME at the Chrome binary. why: scripts/evidence/README.md
@@ -30,21 +31,27 @@ const srv = await new Promise((res, rej) => {
 const PANELS = { 'head-foot': 355, 'foot-controls': 400 };
 
 const browser = await chromium.launch({ executablePath: process.env.UI_CHROME });
-for (const [panel, height] of Object.entries(PANELS)) {
-  for (const theme of ['dark', 'light']) {
-    const name = `${prefix}-${panel}-${theme}`;
-    if (only && !name.includes(only)) continue;
-    const ctx = await browser.newContext({ viewport: { width: 420, height }, deviceScaleFactor: 1 });
-    const page = await ctx.newPage();
-    await page.goto(`http://127.0.0.1:${srv.port}/__shot?subject=dropdown&panel=${panel}&theme=${theme}`, { waitUntil: 'load' });
-    await page.waitForFunction(() => window.__ready === true);
-    await page.evaluate(() => document.fonts.ready);
-    // The panel is rendered open rather than opened, but it still carries the
-    // entry transition; nothing here is mid-travel.
-    await page.waitForTimeout(400);
-    await page.screenshot({ path: path.join(outDir, `${name}.png`) });
-    console.log(`  ${name}.png`);
-    await ctx.close();
+
+// The server is a child process: a throw between here and the kill would leave
+// it holding its port after this script exits.
+try {
+  for (const [panel, height] of Object.entries(PANELS)) {
+    for (const theme of ['dark', 'light']) {
+      const name = `${prefix}-${panel}-${theme}`;
+      if (only && !name.includes(only)) continue;
+      const ctx = await browser.newContext({ viewport: { width: 420, height }, deviceScaleFactor: 1 });
+      const page = await ctx.newPage();
+      await page.goto(`http://127.0.0.1:${srv.port}/__shot?subject=dropdown&panel=${panel}&theme=${theme}`, { waitUntil: 'load' });
+      await page.waitForFunction(() => window.__ready === true);
+      // The panel is rendered open rather than opened, but it still carries the
+      // entry transition. Waited out rather than timed out.
+      await settle(page);
+      await page.screenshot({ path: path.join(outDir, `${name}.png`) });
+      console.log(`  ${name}.png`);
+      await ctx.close();
+    }
   }
+} finally {
+  await browser.close();
+  srv.proc.kill();
 }
-await browser.close(); srv.proc.kill();

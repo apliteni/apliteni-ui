@@ -90,23 +90,47 @@ Both are stories — `Components/Dropdown → A head and a foot (open)` and `A f
 ## Measured, not asserted: the refactor moves no pixel
 
 The whole point of the CSS half is that it changes nothing on screen. Saying so is cheap, so the rig
-says it instead. `rail-user-menu` is the only committed shot with a `.ui-dropdown__head` in it: the
-rail's reader menu, opened from the keyboard. Shot off both checkouts on this box, same Chrome, same
-moment:
+says it instead — and the first version of this section could not, which the wave-2 review caught.
 
-| | `origin/main` at `c85f516` | this branch | |
-|---|---|---|---|
-| dark | `438bff9ed2b5b9dd…` | `438bff9ed2b5b9dd…` | identical |
-| light | `424ade29417e6534…` | `424ade29417e6534…` | identical |
+**The rig was racing itself.** Every shot sat behind a fixed `waitForTimeout` over a running
+transition: 400ms after the ArrowDown that opens the reader menu, 500ms after load. Longer than the
+kit's own `--dur-med`, and still a race, because what lands in the file is whatever the compositor
+had painted when the clock ran out. The reviewer measured it: `rail-user-menu-light` came back **25
+samples of 3.9M apart between two runs of the same tree**, all inside x∈[24,43]. Small enough that
+the conclusion held, and a race all the same — a run of `main` could collide with a run of the
+branch and nothing would say which had happened.
 
-So `--ui-dropdown-pad`, the shared padding rule and `railUser()`'s move to `head` are invisible,
-which is what a refactor of a magic number should be. The README gained that cross-check as a
-documented step, since the next branch touching this panel will want it.
+**It waits on the document now.** `scripts/evidence/settle.mjs`: `document.getAnimations()` holds a
+`CSSTransition` for every property still travelling, so the wait asks whether any is still running,
+then gives the compositor one frame. No number of milliseconds anywhere in `shoot.mjs` or
+`dropdown.mjs`. A ceiling of 5s exists to fail rather than to wait on.
 
-One honest note while I was in there: the committed `docs/evidence/rail-user-menu-light.png` comes
-back **byte-for-byte** from this rig on this machine, and the dark one does not — `main` today paints
-it differently from the day #286 shot it, which is a shot that has gone stale on `main` rather than
-anything this branch did. Not fixed here; it belongs to whoever re-shoots the rail.
+**Re-measured, four runs.** Same box, same Chrome, `origin/main` at `233a1e7` in a worktree beside
+this branch, every shot taken by the same rig — only `src/` comes from the checkout under test:
+
+| | run 1 vs run 2, same checkout | `main` vs this branch |
+|---|---|---|
+| dark | 0 of 2,918,400 samples differ, on each side | **0 of 2,918,400, max delta 0** |
+| light | 0 of 2,918,400 samples differ, on each side | **0 of 2,918,400, max delta 0** |
+
+Two runs of each checkout agree sample for sample, so byte-identity is now a claim this rig can
+make rather than one it got lucky on, and the four files carry two hashes between them —
+`03d283ac…` dark, `424ade29…` light. `--ui-dropdown-pad`, the shared padding rule and `railUser()`'s
+move to `head` are invisible, which is what a refactor of a magic number should be.
+
+**And it retracts something.** The first version of this section reported that the committed
+`rail-user-menu-dark.png` did not reproduce and called it a shot gone stale on `main`. That was the
+race, not `main`: under the settled rig **both** committed rail shots come back byte-for-byte, and
+so do all eight of this branch's own `dropdown-*.png`, off both checkouts. Nothing is stale and
+nothing needed re-shooting.
+
+**How the pixels are counted.** `scripts/evidence/diff.mjs`, new here: reads what the rig's Chrome
+writes (8-bit, uninterlaced, `zlib` and about sixty lines of unfiltering, no dependency) and prints
+differing samples, max delta and the box they fall in. Checked against an oracle rather than
+trusted — the same pair run through a `<canvas>` `getImageData` in that same Chrome returns the same
+82,151 differing samples at max delta 242. It is what the README now tells the next branch to use,
+because a `sha256` that has moved says only *something is different*, and antialiasing a shade apart
+reads exactly like a rule that moved four pixels.
 
 ## The gates this adds, and the mutation that kills each
 
@@ -168,29 +192,37 @@ and both are one commit to reverse.
 |---|---|---|---|
 | *(left for the coordinator)* | | | |
 
-## The version bump this PR does not carry
+## The version this branch shows, and the bump it does not carry
 
-`src/components/dropdown.js`, `src/components/shell.js` and `src/styles/dropdown.css` are inside the
-published tarball and their bytes changed, while `package.json` still says `0.32.0`. CI's
-`Shipped surface vs version` job compares the tarball against the base and exits non-zero when the
-surface moves and the version does not — **so that check goes red as this branch stands, and it is
-not one of the five required ones.** Several PRs are in flight and this repo has already shipped two
-bumping to the same version, so the coordinator sequences the version at merge. The lines are under
-*Changelog entry* below.
+Two separate things, and the first version of this section ran them together.
+
+**`package.json` says `0.32.0` here because the merge base does.** This branch is cut at `c85f516`,
+one commit behind `main`, and the commit it is behind is `233a1e7` — *Release 0.33.0*, which bumps
+`package.json` and the lock file and nothing else. This branch does not touch either file, so the
+merge restores `0.33.0` silently and there is nothing to do about the number on the tin.
+
+**The red check is a different matter, and it is deliberate.** `src/components/dropdown.js`,
+`src/components/shell.js` and `src/styles/dropdown.css` are inside the published tarball and their
+bytes changed, with no bump of their own on top of whatever `main` is at. CI's `Shipped surface vs
+version` job compares the tarball against the base and exits non-zero when the surface moves and the
+version does not — **so it goes red, and it is not one of the five required checks.** Several PRs
+are in flight, so the coordinator sequences versions at merge; the lines are under *Changelog entry*
+below.
 
 ## Proof
 
 - [x] The panel's padding is a custom property and the head reads it. (#306's first acceptance box.)
 - [x] `.ui-dropdown__foot` bleeds the way the head does, to the opposite edge. (#306's second.)
 - [x] A person meets both in something running: two Storybook stories, shot in both themes, above.
-- [x] The refactor moves no pixel — the same subject off both checkouts, byte-identical in both
-      themes, hashes above.
+- [x] The refactor moves no pixel — the same subject off both checkouts, 0 of 2,918,400 samples
+      apart in both themes, on a rig that now agrees with itself across two runs of each side.
 - [x] `railUser()`'s markup is unchanged: the shell rendered before and after the move to `head`
-      compares equal as a string, and the rail's committed menu shot is one of the two hashes.
+      compares equal as a string, and the rail's two committed shots both reproduce byte-for-byte.
 - [x] Eleven mutations, each put on disk, each watched fail, each reverted.
-- [x] `ai-slop-detector` at level 2 over every file this branch touches: **0 errors, 0 medium.** The
-      one warning left is `dropdown.css`'s prose-to-code ratio, which `main` carries at the same
-      0.54:1 — the branch's first draft pushed it to 0.57 and the comments were trimmed back.
+- [x] `ai-slop-detector` at level 2 over every file this branch touches: **0 errors, 0 medium.** Two
+      findings are `main`'s and unchanged by this branch — `dropdown.css`'s prose-to-code ratio, at
+      the same 0.54:1 it carries there, and `shot.html`'s two remote font stylesheets, which the
+      linter cannot read from disk.
 - [x] `npm run build`: clean. React: **353 tests in 17 files, all passing.**
 - [x] `npm run build-storybook`: completed, with both new stories in the built index
       (`components-dropdown--head-and-foot`, `components-dropdown--foot-of-controls`).
