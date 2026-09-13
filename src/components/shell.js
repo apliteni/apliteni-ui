@@ -81,24 +81,17 @@ const toTopbar = (t) => {
 
 // ---- the two layouts, and the two widths ---------------------------------
 //
-// One shell, two arrangements of the same parts. `rail` is what the kit has always
-// drawn and stays the default; `topbar` moves the reader's block to a band over the
-// page and gives its place at the rail's foot to the fold toggle. Anything that is
-// not the second name is the first: a layout is a name the kit knows, and a typo
-// must not draw half a page. why: docs/specification.md#the-page-shell
+// Each is a name the kit knows or the default — read strictly, and not through
+// String(), which turned `['topbar']` into a layout and drew half a page.
+// why: docs/specification.md#the-page-shell
 const toLayout = (v) => (v === 'topbar' ? 'topbar' : 'rail');
 
-// The content column, as a name rather than a number. `centered` is the column the
-// shell has always drawn — capped and centred in its track — and `wide` fills the
-// well. Same reading as the layout: the second name, or the first.
 // why: docs/specification.md#widths
 const toWidth = (v) => (v === 'wide' ? 'wide' : 'centered');
 
-// The topbar's search is a trigger for a palette the caller has already rendered,
-// never a second search: `search: 'palette-id'`, or the same id in `{ palette }`
-// with a placeholder beside it. With no palette to open there is no field — the
-// argument `signOutHref` takes, and for the same reason: a control that does
-// nothing is worse than no control. why: docs/specification.md#the-page-shell
+// `search: 'palette-id'`, or the same id in `{ palette }` with a placeholder beside
+// it. No palette to open, no field — the argument `signOutHref` takes.
+// why: docs/specification.md#the-page-shell
 const toSearch = (v) => {
   const given = typeof v === 'string' ? { palette: v } : (isRecord(v) && !Array.isArray(v) ? v : null);
   const palette = given && typeof given.palette === 'string' ? given.palette.trim() : '';
@@ -202,28 +195,20 @@ const readerFace = (name, email, named, markOnly = false) =>
 // is the trigger of the kit's own dropdown(), with Sign out inside it; without one
 // there is no menu, and with nobody signed in there is no block.
 //
-// One block, two places. The rail's foot and the topbar's end draw the same markup
-// and the same menu; only which way the panel opens is the layout's answer, because
-// a panel drops from a band at the top of the page and rises from a block at the
-// foot of a full-height rail. `portal: true` either way — the rail is sticky with a
-// scroll of its own and the band is sticky too, and each of those traps a panel.
-// why: docs/specification.md#the-page-shell
+// One block, two places: only the direction it opens is the layout's answer.
+// `portal: true` either way — the rail and the band are both sticky.
 function readerBlock({ name, email }, signOutHref, { band = false } = {}) {
   if (!name && !email) return '';
   const cls = `ui-app__user${band ? ' ui-app__user--bar' : ''}`;
   const who = [name, email].filter(Boolean).join(', ');
-  // On the band the mark is the whole trigger, so the name has to be written on it —
-  // the same sentence readerFace() writes when there is no menu and the avatar is the
-  // block. In the rail the two lines are inside the button and naming it again would
-  // be a second copy of them. Two placements, one rule: the name is said once, by
-  // whichever part is actually on screen. why: docs/specification.md#the-page-shell
+  // The name is said once, by whichever part is on screen: the two lines in the rail,
+  // an aria-label on the band where the mark is the whole trigger.
   const face = band ? readerFace(name, email, null, true) : readerFace(name, email, null);
   if (!signOutHref) {
     return `<div class="${cls}">${readerFace(name, email, who, band)}</div>`;
   }
-  // The head says who the menu belongs to — and on a folded rail, or on a band where
-  // the avatar stands alone, it is the only place a sighted reader can read the
-  // address. why: docs/specification.md#the-page-shell
+  // The head says who the menu belongs to — and on a folded rail, or on a band, it is
+  // the only place a sighted reader can read the address.
   const head = `<div class="ui-dropdown__head">`
     + (name ? `<b>${esc(name)}</b>` : '')
     + (email ? `<span>${esc(email)}</span>` : '')
@@ -243,19 +228,9 @@ function readerBlock({ name, email }, signOutHref, { band = false } = {}) {
   })}</div>`;
 }
 
-// The search, drawn as a field and behaving as a button: it opens the palette the
-// caller rendered, which is the kit's one search surface. `data-cmdk-open` is the
-// palette's own trigger hook, so nothing here re-implements opening it, and the
-// button is named by the words inside it rather than by an `aria-label` that would
-// be a second copy of them.
-//
-// The key cap is inside that name, which is the one place this kit reads a shortcut
-// out loud. A palette ROW's key is aria-hidden — forty of them read after forty
-// labels is noise a sighted reader skips — but there is one of these, and the key is
-// the fact it exists to state: a reader who learns it stops reaching for the field.
-// That is the reference's reading too. The cap is the palette's own class, not a
-// second cap written here, and `data-palette-hotkey` is where wireShell() writes the
-// key the reader's own platform uses. why: docs/specification.md#the-page-shell
+// A field to look at, a button to press. `data-cmdk-open` and the cap's class are the
+// palette's own, and the cap is NOT aria-hidden: it is half the button's name.
+// why: docs/specification.md#the-page-shell
 const searchField = ({ palette, placeholder }) =>
   `<button type="button" class="ui-app__search" data-cmdk-open="${esc(palette)}" aria-haspopup="dialog">`
   + `<span class="ui-app__search-ic" aria-hidden="true">${icon('search')}</span>`
@@ -263,13 +238,8 @@ const searchField = ({ palette, placeholder }) =>
   + `<kbd class="ui-cmdk__key" data-palette-hotkey>${esc(paletteHotkey())}</kbd>`
   + `</button>`;
 
-// The band the topbar layout draws: the search at its start, the reader at its end,
-// and nothing in between. A <header> and not a second <nav> — neither of the two
-// things in it is a place to go. It stands over the page and beside the rail rather
-// than across the top of both, which is the reference's shape and the only one where
-// the rail's own head band and this band are one line: the product's mark on the
-// left of it, the reader on the right of it, and one rule under the pair.
-// why: docs/specification.md#the-page-shell
+// The band: search at its start, the reader at its end, beside the rail rather than
+// across the top of both. why: docs/specification.md#the-page-shell
 const shellBar = (search, account, signOutHref) =>
   `<header class="ui-app__bar">`
   + (search ? searchField(search) : '')
@@ -316,11 +286,8 @@ export function appShell(options = {}) {
     activeIs: up ? 'section' : 'page',
     ariaLabel: navLabel,
   });
-  // One band over a page, never two. The `topbar` bag is the compatibility preset's —
-  // the Deck/Text switch, the version list, the theme toggle — and the banded layout
-  // draws its own bar instead, so a caller who passes both gets the layout they asked
-  // for rather than a page with two headers stacked on it.
-  // why: docs/specification.md#the-page-shell
+  // One band over a page, never two: the banded layout draws its own, so the
+  // compatibility bag is not drawn beside it. why: docs/specification.md#the-page-shell
   const compat = banded ? null : topbar;
   // The topbar already says the product word, so the rail head steps aside when there is
   // one. The word is the link's only text and the narrow rail folds it out of view, so
@@ -336,9 +303,7 @@ export function appShell(options = {}) {
   // caller left the choice to the reader; wireShell() applies the stored one there.
   const folded = collapsible && collapsed === true;
   const auto = collapsible && collapsed === null ? ' data-rail="auto"' : '';
-  // Where the fold's control stands is the layout's answer, and it is the one thing
-  // the two layouts disagree about on the rail: at the end of the head band, or at the
-  // rail's foot where the reader's block stood before it moved into the bar.
+  // Where this stands is the one thing the two layouts disagree about on the rail.
   const fold = collapsible ? railToggle(folded) : '';
   // The head band: the product's mark, and the rail's own control at the far end of
   // the same line, under one rule. Either may be absent — a shell with a topbar says
@@ -348,9 +313,8 @@ export function appShell(options = {}) {
   const head = brand || inHead
     ? `<div class="ui-app__head">${brand}${inHead}</div>`
     : '';
-  // The rail's foot: the reader in the layout that keeps them there, the fold's own
-  // control in the layout that does not. Either way one block, ruled off from the rows
-  // above it. why: docs/specification.md#the-page-shell
+  // The rail's foot: the reader, or the control that took their place. One block
+  // either way. why: docs/specification.md#the-page-shell
   const foot = banded
     ? (fold ? `<div class="ui-app__foot">${fold}</div>` : '')
     : readerBlock(account, signOutHref);
@@ -360,9 +324,7 @@ export function appShell(options = {}) {
       ${sub ? `<p class="ui-app__sub">${sub}</p>` : ''}
       <div class="ui-app__body">${body}</div>
     </main>`;
-  // The banded layout gives the shell's second column a box of its own, because the
-  // band and the page are two rows of it. The rail keeps the whole height beside
-  // them, so the band starts at the rail's head rather than above it.
+  // The second column is a box of its own: the band and the page are two rows of it.
   const well = banded
     ? `<div class="ui-app__well">${shellBar(search, account, signOutHref)}${main}</div>`
     : main;
@@ -445,16 +407,8 @@ export function wireShell(root = document, { persist } = {}) {
   // The reader's menu is a dropdown() like any other, so it is wired like any
   // other. Idempotent, and a shell with no account draws none to find.
   wireDropdown(root);
-  // The search field's key hint is drawn before anybody knows what the reader is
-  // holding: paletteHotkey() reads navigator.platform, and on a server there is
-  // none, so the markup ships the key that is right for everyone except a Mac. The
-  // browser is the first place the answer exists, so this is where it is written —
-  // the same string the palette's own hotkey listens for.
-  // why: docs/specification.md#the-page-shell
-  // The root's own window, not the global one: a shell in a frame, in a second
-  // document or under test is a page whose reader is not this realm's. Read bare,
-  // paletteHotkey() answered for whatever `navigator` the module happened to see —
-  // under Node that is a navigator with no platform at all.
+  // A server cannot know which key the reader holds, so the browser corrects it here —
+  // off the ROOT's window, not the global one. why: docs/specification.md#the-page-shell
   const here = root.nodeType === 9 ? root : root.ownerDocument;
   const view = here && here.defaultView;
   const key = paletteHotkey(view && view.navigator ? view.navigator.platform : '');
@@ -517,11 +471,8 @@ export function accountShell({
     signOutHref,
     collapsible,
     collapsed,
-    // The preset takes the layout and the width it is handed and settles neither:
-    // appShell() is where a name becomes a layout, and a second reading here would
-    // be a second answer to give. Under `layout: 'topbar'` the bag below is not
-    // drawn — the shell's own band is — which is the one thing the preset gives up
-    // for that layout. why: docs/specification.md#the-page-shell
+    // Settled nowhere but appShell(). Under `layout: 'topbar'` the bag below is not
+    // drawn, which is what that layout costs the preset.
     layout,
     width,
     search,

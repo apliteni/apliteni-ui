@@ -24,9 +24,14 @@ const srv = await new Promise((res, rej) => {
 });
 
 const browser = await chromium.launch({ executablePath: process.env.UI_CHROME });
+// 1x is what is committed: the same checkout, the same Chrome and the same viewport
+// give the same bytes, which is the cross-check the README asks for first. UI_DSF=2
+// re-shoots the same frames for a retina screen to read — a review page, not the
+// repository. why: scripts/evidence/README.md
+const DSF = Number(process.env.UI_DSF) || 1;
 
 async function open(query, { width = 1280, height = 760 } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: DSF });
   const page = await ctx.newPage();
   await page.goto(`http://127.0.0.1:${srv.port}/__shot?subject=layouts&${query}`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__ready === true);
