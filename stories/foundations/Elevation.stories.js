@@ -34,7 +34,7 @@ const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);color:var(--mu
 export const Ladder = {
   render: () => pad(`
     <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Elevation</h1>
-    ${p('Nothing in the kit casts a shadow. A surface says how high it is with two things — its step on a ladder of lightness, and the hairline around it.')}
+    ${p('Nothing in the kit casts a shadow except a surface that floats. A card, a field, a chip and a row say how high they are with two things — their step on a ladder of lightness, and the hairline around them. A menu, a panel, the drawer, a modal and a toast keep both, draw the hairline twice, and add one soft drop.')}
     ${p('Dark runs the ladder upwards: the page is the darkest thing on screen, and every step above it is lighter than the one under it. Light cannot, because nothing is brighter than the white a card already was — so the page comes off white, the card comes off white behind it, and white is kept for the top. On a light screen a floating panel is the only pure white.')}
 
     ${h3('The ladder, bottom to top')}
@@ -61,7 +61,7 @@ export const Ladder = {
       <div style="padding:22px;border-radius:16px;background:var(--surface)">
         <div style="height:84px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border)"></div>
         <div style="font:600 12.5px/1.5 var(--font-sans);color:var(--strong);margin-top:12px">Step and line</div>
-        <div style="font:400 12px/1.45 var(--font-sans);color:var(--muted)">A panel over a card, as the kit draws it.</div>
+        <div style="font:400 12px/1.45 var(--font-sans);color:var(--muted)">A panel over a card, with the one line a card takes too.</div>
       </div>
       <div style="padding:22px;border-radius:16px;background:var(--surface)">
         <div style="height:84px;border-radius:12px;background:var(--bg-elevated)"></div>
@@ -70,8 +70,24 @@ export const Ladder = {
       </div>
     </div>
 
+    ${h3('The floating step draws its edge twice, and then casts')}
+    ${p('A floating surface takes <code style="font-family:var(--font-mono);color:var(--accent)">--border-strong</code> on its border and <code style="font-family:var(--font-mono);color:var(--accent)">--border</code> as a one-pixel line inside it — an outer line against what is behind, an inner one against the panel. One line measured 1.27 in dark and 1.18 in light against the card; two measure 1.64 and 1.44. The drop comes after both, in the same declaration: broad and faint, so it separates the panel from what it covers rather than drawing its edge.')}
+    ${p('Both live in one token, <code style="font-family:var(--font-mono);color:var(--accent)">--elev-floating</code>. The drop is spent differently per theme, because it is not worth the same in each: near-black ink on a near-black page reaches 1.20 at its core and dark is carried by the edge, while light reaches 1.44 and gets the stronger reading of the two. Decided on <a href="https://github.com/apliteni/apliteni-ui/issues/309" style="color:var(--accent)">#309</a>.')}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;max-width:820px">
+      <div style="padding:30px;border-radius:16px;background:var(--surface)">
+        <div style="height:84px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border-strong);box-shadow:var(--elev-floating)"></div>
+        <div style="font:600 12.5px/1.5 var(--font-sans);color:var(--strong);margin-top:16px">The floating treatment</div>
+        <div style="font:400 12px/1.45 var(--font-sans);color:var(--muted)">A panel over a card, as the kit draws one now.</div>
+      </div>
+      <div style="padding:30px;border-radius:16px;background:var(--surface)">
+        <div style="height:84px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border)"></div>
+        <div style="font:600 12.5px/1.5 var(--font-sans);color:var(--strong);margin-top:16px">The step and one line</div>
+        <div style="font:400 12px/1.45 var(--font-sans);color:var(--muted)">The same two surfaces as the kit drew them before #309.</div>
+      </div>
+    </div>
+
     ${h3('The shadow tokens')}
-    ${p('<code style="font-family:var(--font-mono);color:var(--accent)">--shadow-sm</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-md</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-lg</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-seg</code> and <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-card</code> are deprecated and resolve to the transparent shadow <code style="font-family:var(--font-mono);color:var(--accent)">0 0 #0000</code> in both themes. They stay published so a consumer reading one does not break; nothing in the kit reads them. Transparent rather than <code style="font-family:var(--font-mono);color:var(--accent)">none</code>, because a shadow token is read in a list — <code style="font-family:var(--font-mono);color:var(--accent)">none</code> there invalidates the declaration and takes the focus ring composed beside it. <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-ink</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--sheen</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--ring</code> and <code style="font-family:var(--font-mono);color:var(--accent)">--scrim</code> are untouched — none of them is a cast shadow.')}
+    ${p('<code style="font-family:var(--font-mono);color:var(--accent)">--shadow-sm</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-md</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-lg</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-seg</code> and <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-card</code> are deprecated and resolve to the transparent shadow <code style="font-family:var(--font-mono);color:var(--accent)">0 0 #0000</code> in both themes. They stay published so a consumer reading one does not break; nothing in the kit reads them — the one shadow it paints is <code style="font-family:var(--font-mono);color:var(--accent)">--elev-floating</code>, above. Transparent rather than <code style="font-family:var(--font-mono);color:var(--accent)">none</code>, because a shadow token is read in a list — <code style="font-family:var(--font-mono);color:var(--accent)">none</code> there invalidates the declaration and takes the focus ring composed beside it. <code style="font-family:var(--font-mono);color:var(--accent)">--shadow-ink</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--sheen</code>, <code style="font-family:var(--font-mono);color:var(--accent)">--ring</code> and <code style="font-family:var(--font-mono);color:var(--accent)">--scrim</code> are untouched — none of them is a cast shadow.')}
 
     ${h3('Ambient glow')}
     ${p('The deck’s signature depth is a light source behind the page, not a shadow in front of it, so it is unaffected by the rule above.')}

@@ -407,18 +407,35 @@ Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured 
 
 ## Elevation
 
-**Nothing in the kit casts a shadow.** A surface says how high it is with two things: its step on
-a ladder of lightness, and the kit's hairline around it. `--shadow-sm`, `--shadow-md`,
-`--shadow-lg`, `--shadow-seg` and `--shadow-card` are still published so a consumer reading one
-does not break, and all five are the transparent shadow `0 0 #0000` in both themes. Nothing under
-`src/` reads them. **Transparent and not `none`**, because a shadow token is read in a list: the
-kit's own pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is valid
-only on its own — it invalidates the whole declaration and takes the focus ring out with it.
+**Nothing in the kit casts a shadow except a surface that floats.** A card, a field, a chip and a
+row say how high they are with two things: their step on a ladder of lightness, and the kit's
+hairline around them. A menu, a panel, the drawer, a modal and a toast — the `--bg-elevated` step
+and nothing below it — keep the step, draw the hairline **twice**, and add one soft drop, because
+they are the only surfaces whose whole job is to be temporarily above something else. The drop is
+broad and faint, never tight and dark: it separates the panel from what it covers, it does not
+draw its edge. All five deprecated `--shadow-*` tokens stay transparent and unread;
+`--elev-floating` is the one shadow the kit paints.
 
-A cast shadow is an **offset** layer of ink under a surface, and that is the thing this rule
-refuses. A zero-offset layer of the signal's own colour is a glow, not a shadow: it says *this is
-lit*, not *this is high*. `--glow-*`, `--sheen`, `--ring` and the two `drop-shadow()` glows on the
-success mark are all that shape and all stay.
+`--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
+published so a consumer reading one does not break, and all five are the transparent shadow
+`0 0 #0000` in both themes. Nothing under `src/` reads them. **Transparent and not `none`**,
+because a shadow token is read in a list: the kit's own pre-0.32 pattern was
+`box-shadow: var(--shadow-lg), var(--ring)`, and `none` is valid only on its own — it invalidates
+the whole declaration and takes the focus ring out with it.
+
+A cast shadow is an **offset** layer of ink under a surface. A zero-offset layer of the signal's
+own colour is a glow, not a shadow: it says *this is lit*, not *this is high*. `--glow-*`,
+`--sheen`, `--ring` and the two `drop-shadow()` glows on the success mark are all that shape, and
+none of them is what the rule above is about.
+
+Decided on [#309](https://github.com/apliteni/apliteni-ui/issues/309), against the frames and the
+numbers in `docs/reviews/295-popover-variants.html`. The complaint that opened it was that a
+floating panel reads flat, and the measurements say why: a panel over a card differs by 1.11 in
+dark and 1.05 in light, and its hairline runs at 1.14 / 1.24 against the panel it edges. The whole
+separation rested on a one-pixel line at about 1.2. Five treatments were drawn; two were taken,
+because each carries the theme the other cannot. A line is the only device that works in both,
+and a drop is the only one that separates by **area** rather than by a pixel — which is what a
+reader calling a panel flat is actually looking for.
 
 The ladder, bottom to top:
 
@@ -450,6 +467,43 @@ A step of lightness on its own is a contrast of about 1.1 — enough to read as 
 not enough to draw an edge. The line draws the edge; the step says which way is up. Dropping
 either one leaves a theme carrying the whole separation on the half that is weak for it.
 
+**A floating surface draws that line twice, and the second one is a pixel inside the first.**
+`--border-strong` on the border, `--border` as an inset one-pixel line within it: an outer line
+against what is behind, an inner one against the panel. One line measured 1.27 / 1.18 against the
+card in dark / light; two measure **1.64 / 1.44**, and the two lines read 1.30 / 1.23 against each
+other, which is what makes them two rather than one drawn thick.
+
+**Then the drop, and it is the half that carries light.** One token, `--elev-floating`, holds both
+devices in one `box-shadow` list, in the order Primer's `--shadow-floating-*` uses: the inset line
+first, then two broad faint drops. The alphas are per theme because the device is not worth the
+same in each. Dark spends 62% / 50% of `--shadow-ink` and still only reaches **1.20** at the
+drop's core, because near-black ink on a near-black page has nowhere to go — dark is carried by
+the edge. Light spends 18% / 10%, lands the core at `#d1d2d8`, and reads **1.44** on the card,
+which is the strongest separation either theme gets from any device measured for #295. The page
+measured 1.43 for the same drop, because its prototype wrote the ink as a literal `#101626` at 17%
+rather than reading `--shadow-ink`, which is `#1e1e32` here; the kit's own token is what ships, and
+1.43 is what the gate floors.
+
+Three things follow from writing it as one list.
+
+- **The focus ring composes with it.** A `box-shadow` list replaces the whole list, so a panel
+  writing `box-shadow: var(--ring)` on focus takes off its own edge and its own drop for as long
+  as it holds focus. Every floating panel writes `var(--ring), var(--elev-floating)`.
+- **A tinted surface re-points the inner line.** `--elev-edge` is the hook: unset it is `--border`,
+  which is what a neutral panel wants, and a status toast sets it to its own accent so the inner
+  line does not come out violet-grey over a coloured surface. A solid toast sets it to
+  `transparent` — the status at full fill strength is its own edge, and it keeps only the drop.
+- **A flush panel draws the line in one direction.** The drawer sits against a screen edge, so it
+  has one edge rather than four; a full inset ring would draw lines across the top and bottom of a
+  full-height panel, where there is no edge. Each `--drawer--<edge>` rule draws its own inner line
+  in the direction its border runs.
+
+Held by `stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader in
+`scripts/lib/box-shadow.js`. Both discover every `box-shadow` the kit declares rather than naming
+a component, read each layer's geometry per theme, and refuse a cast layer that is not
+`--elev-floating`. The numbers above are floored there, so a treatment can get better and cannot
+quietly get worse.
+
 **Inside a raised surface, a row or a chip that lifts takes the step above the panel.** A hovered
 row, an active row, a chip and a key cap inside a floating panel paint `--surface-3`, never
 `--surface`: `--surface` is the card step and sits *below* `--bg-elevated` in dark, so a hover
@@ -462,7 +516,7 @@ one `.ui-input` takes.
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
 takes an accent counter under the floor inside a panel. Two rules state it:
 `src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-`src/styles/dropdown.css:176` `.ui-dropdown__badge.is-accent`.
+`src/styles/dropdown.css:179` `.ui-dropdown__badge.is-accent`.
 
 **The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
 the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked
