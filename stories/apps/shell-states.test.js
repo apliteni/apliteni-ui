@@ -488,7 +488,10 @@ test('the lockup leaves on the words\' clock, and its visibility rides with the 
     'the lockup declares no transition, so the product\'s mark blinks out on the first frame of a fold '
     + 'that takes 250ms — while every word on the rows below it fades',
   );
-  for (const prop of ['opacity', 'visibility']) {
+  // `visibility` is discrete: it holds its old value for the whole duration, so a curve
+  // buys nothing and one that leaves [0, 1] flips it mid-fade. stories/motion-tokens.test.js
+  // holds that for every sheet; this pairs it with the clock the two share.
+  for (const [prop, curve] of [['opacity', 'var(--ease)'], ['visibility', 'linear']]) {
     const one = travel.value.split(',').map((x) => x.trim()).find((x) => new RegExp(`^${prop}(\\s|$)`).test(x));
     assert.ok(one, `the lockup transitions \`${travel.value}\`, which does not carry ${prop} — the fold moves both`);
     assert.match(
@@ -497,7 +500,10 @@ test('the lockup leaves on the words\' clock, and its visibility rides with the 
       + 'that clock and the mark leaves with them; --dur-med is the width\'s, and the mark would still be '
       + 'fading when the edge arrived.',
     );
-    assert.match(one, /\bvar\(--ease\)/, `the lockup curves its ${prop} with \`${one}\` instead of --ease`);
+    assert.ok(
+      one.includes(curve),
+      `the lockup curves its ${prop} with \`${one}\` rather than \`${curve}\``,
+    );
   }
   assert.ok(
     !travel.important,

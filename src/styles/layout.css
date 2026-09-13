@@ -66,11 +66,10 @@
   gap: var(--space-2);
   padding: 2px 6px;
   text-decoration: none;
-  /* On the words' clock, because the fold takes the whole lockup and the words
-     on the rows below leave on the same one. `visibility` rides with it so the
-     link leaves the tab order; it is discrete, so it holds `visible` through the
-     fade out and flips on the first frame of the fade in. */
-  transition: opacity var(--dur-fast) var(--ease), visibility var(--dur-fast) var(--ease);
+  /* The lockup leaves on the words' clock, `visibility` with it so the link leaves
+     the tab order — `linear`, as every discrete property in the kit is.
+     why: docs/specification.md#the-page-shell */
+  transition: opacity var(--dur-fast) var(--ease), visibility var(--dur-fast) linear;
   /* display: brand — the rail's lockup is the same mark topbar.css sets, and the
      two have to be the same face or the shell reads as two products. */
   font-family: var(--font-display);
@@ -83,8 +82,8 @@
 .ui-app__brand svg { display: block; flex: none; }
 
 /* The head band: the product's mark, and the rail's own control at the far end of
-   the same line. One rule under the pair, none between them.
-   why: docs/specification.md#the-page-shell */
+   the same line. `min-width: 0` so a long word shrinks the lockup rather than pushing
+   the control off the band. why: docs/specification.md#the-page-shell */
 .ui-app__head {
   display: flex;
   align-items: center;
@@ -92,8 +91,6 @@
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border);
 }
-/* A long product word shrinks the lockup rather than pushing the control off the
-   end of the band, which the rail would then clip on an OPEN rail. */
 .ui-app__head > .ui-app__brand { min-width: 0; }
 
 /* The nav grows, so the reader block below it pins to the bottom of a full-height
@@ -187,21 +184,13 @@
    break in it from widening the panel instead. */
 .ui-app__user-panel .ui-dropdown__head span { display: block; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 
-/* The toggle's cell, at the far end of the brand row. No rule of its own: the band
-   draws one below the line, so the mark that folds the rail and the mark that names
-   the product are one head rather than two compartments. `margin-inline-start: auto`
-   is what puts it at the end whether or not there is a wordmark to its left — a
-   shell with a topbar says the product word up there and this band holds the control
-   alone. why: docs/specification.md#the-page-shell */
+/* The toggle's cell, at the far end of the brand row: the auto margin puts it there
+   with or without a wordmark beside it, and the offset below rides it back onto the
+   glyph column as the rail closes. `position: relative` and not a transform, because
+   the chip inside is `position: fixed`. why: docs/specification.md#the-page-shell */
 .ui-app__fold-row {
   flex: none;
   margin-inline-start: auto;
-  /* The one mark on the rail that does not hold its column. It rides the closing
-     edge, and the edge lands ON the glyph column, because the strip is that column;
-     the offset below is the two widths' own difference. `position: relative` and not
-     a transform, because the name chip inside is `position: fixed` and a transform
-     would make this box its containing block.
-     why: docs/specification.md#the-page-shell */
   position: relative;
   inset-inline-start: 0;
   transition: inset-inline-start var(--dur-med) var(--ease);
@@ -237,16 +226,10 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__who,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-dropdown__chevron,
 :where(.ui-app.is-collapsed) .ui-app__brand span { opacity: 0; pointer-events: none; }
-/* The toggle rides the open column's width back onto the glyph column. It is the
-   whole of the fold for this box: nothing here is laid out again, the button keeps
-   the strip it declares, and the offset arrives on the width's own clock.
-   why: docs/specification.md#the-page-shell */
+/* The toggle rides onto the glyph column — the two widths' own difference — and the
+   lockup goes whole, since that column is where its mark stood. The one pair with no
+   twin in the 720px block. why: docs/specification.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
-/* And the lockup goes whole, not just its words: the column the toggle lands on is
-   the column the mark stands on, and a folded rail is one column wide. This is the
-   one rule of the reader's fold with no twin in the 720px block — there the toggle
-   is not drawn, so nothing takes the mark's place and the mark stays.
-   why: docs/specification.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
