@@ -1,10 +1,14 @@
 # Elevation: nothing casts, and every surface says how high it is (#295)
 
-Prepared for the coordinator to open from `asabirov/295-elevation`. Based on main `bb5fd04`,
-2026-09-12. Implements the three decisions Artur recorded on
+Prepared for the coordinator to open from `asabirov/295-elevation`. Based on main `7cb8727`,
+2026-09-13. Implements the three decisions Artur recorded on
 [#295](https://github.com/apliteni/apliteni-ui/issues/295) from the review page
 `docs/reviews/295-elevation.html`; the research that page rests on is
 [#299](https://github.com/apliteni/apliteni-ui/pull/299), read here and not merged.
+
+**Rebase note.** Rebased onto `7cb8727` (#305, release 0.31.1) on 2026-09-13 — 0.32.0 stays
+above 0.31.1 in `package.json`, `package-lock.json` and the changelog, #305's touch-zoom net is
+untouched, and every check in [Proof](#proof) was re-run on the rebased tree.
 
 ## What & why
 
