@@ -578,6 +578,11 @@ And eight more for the review fixes above, run the same way:
 | the phone rule spreads to the reader's fold, taking the toggle with it | `shell-states.test.js` | **2 red** |
 | the touch floor is written outside the media query, raising both folds at once | `shell-states.test.js` | **1 red** |
 | a folded row's label is `display: none` and its `aria-label` is gone | `accessibility-floor.test.js` | **1 red** |
+| **the head band loses the rail's open column** (`width: auto`, line count unchanged) | `shell-states.test.js` | **1 red** |
+| **the reader block loses it too**, the same way | `shell-states.test.js` | **1 red** |
+| **the menu opens downward instead of up** | `shell.test.js` | **1 red** |
+| **`railMark()` stops taking `icon()`'s wrapper** — a hand-written `<svg>` with no `aria-hidden` or `focusable` | `shell.test.js` | **1 red** |
+| **the toggle's glyph box stops reserving the name's line**, so a hover reflows the rail | `shell-states.test.js` | **1 red** |
 
 The last one is the mutation the review used to show the naming gate had gone blind: against the
 helper as this round first wrote it, it reported **0 red**.
@@ -609,6 +614,18 @@ its own fourteen mutations above. What those rounds fixed is still in the code a
   threw before sending `ui-rail`. It is guarded, and not gated: JSDOM reports a listener's error in
   a window-less document nowhere, so a test for it passes with the guard removed and is worth less
   than the line it would take.
+
+**The eighth round.** The seventh round's review found three things this branch stated as
+guarantees and nothing held: the head band's open column, the menu's `direction: 'up'` and
+`railMark()`'s use of `icon()`'s wrapper. All three survived the whole suite when broken, and all
+three are gated now — the first five rows of the table above. It also found a hover that moves the
+page: the chip rule lifts the toggle's name out of the flow, the 17px glyph left behind is shorter
+than the 17.39px line the name occupied, and the button fell to 35px with the nav under it. Measured
+in Chrome 152 at 1280×800 — nav `y` 124.39 → 124, first row 157.44 → 157.05 — fixed by having the
+glyph box carry the line, and re-measured with nothing moving in either state. Three smaller things
+went with it: the argument in `shell.js`, `layout.css` and `dropdown.css` moved to `CONTRIBUTING.md`
+and the specification with `why:` pointers left behind, the specification's new section stopped
+saying three things twice, and the `rail-persisted-*` pair was removed rather than re-shot.
 
 **What the rework reverses.** The second diff review found five critical problems in the *script*
 that placed the focus tag — stuck after a click or a tap, stale after a resize, wrong under a
@@ -671,6 +688,8 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
       arithmetic behind the strip is gated rather than written down twice.
 - [x] The toggle is drawn by default, in the head band under the wordmark, over a rule of its own.
       Two Tab presses reach it; its mark's centre is the glyph column on every frame of the travel.
+- [x] Hovering the toggle draws its name beside the rail and moves nothing. Measured in Chrome 152
+      at 1280×800, on both sides of the fix, and gated.
 - [x] The account block is a menu trigger and sign out is a row of that menu, reachable from the
       trigger by keyboard and gone from the navigation list. Nine Tabs and one ArrowDown, measured
       in Chrome, with the row carrying the ring and the `--pink` ink; Escape hands focus back.
@@ -694,17 +713,20 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
       only be proven after a release.
 
-**Counts on this box.** `npm test`: 1459 tests, 1457 pass, 1 fail, 1 skipped. The skip is the
+**Counts on this box.** `npm test`: 1463 tests, 1461 pass, 1 fail, 1 skipped. The skip is the
 opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an environment variable on
 `main` too. The failure is `stories/contrast.test.js`'s own wall-clock ceiling: the
-walk took **122.0s** against a 120s bar. That is this box, not the diff, and it is measured rather
-than assumed — `origin/main` at `bb5fd04`, checked out beside this branch and run through the same
-gate on the same machine, takes **128.7s** and fails it harder. `npm run build`: clean. React: 322 tests in 16 files, all
-passing. (1437 before the first review fixes, 1441 after them, 1446 at the sixth round; the
-thirteen this round adds are the toggle's mark against a control's contrast floor, the avatar's
-inset, the account block's declared height, the block's phone floor in both directions, the head
-band's and the foot's rules, the empty band a phone drops, the menu's markup, its keyboard path, its
-press, the shell that draws neither, the open panel's `visibility`, and the closed panel's clicks.)
+walk took **125.4s** and **159.5s** on two runs of the same tree, against a 120s bar. That is this
+box and not the diff — the spread between two runs is larger than anything in this branch — and
+`origin/main` at `bb5fd04`, checked out beside it and run through the same gate on the same machine,
+takes **128.7s** and fails it too. `npm run build`: clean. React: 322 tests in 16 files, all
+passing. (1437 before the first review fixes, 1441 after them, 1446 at the sixth round, 1459 at the
+seventh; the seventh round's thirteen are the toggle's mark against a control's contrast floor, the
+avatar's inset, the account block's declared height, the block's phone floor in both directions, the
+head band's and the foot's rules, the empty band a phone drops, the menu's markup, its keyboard
+path, its press, the shell that draws neither, the open panel's `visibility`, and the closed panel's
+clicks. The eighth round's four are the rail's open column, the menu's direction, the toggle's
+`<svg>` wrapper and the hover that used to move the rail.)
 
 ## What a reviewer should push on
 
@@ -751,7 +773,9 @@ press, the shell that draws neither, the open panel's `visibility`, and the clos
   hang it on. Before this round the same call drew a Sign out row in the nav's footer under an empty
   reader block. `accountShell()` is the path most likely to hit it — its `account` defaults to `{}`
   — and on those pages the topbar's own account menu still carries Sign out, so nothing is stranded.
-  If a rail should offer Sign out to nobody, say so and it is a fallback row in `railUser()`.
+  If a rail should offer Sign out to nobody, say so and it is a fallback row in `railUser()`. It is
+  a change to a published option's contract on a branch that carries no version bump — see *The
+  version bump this PR does not carry* above, which the coordinator sequences at merge.
 - **A menu with one row in it.** `UserMenu` takes a list; this takes `signOutHref` and builds one
   row from it. Adding a `menu` option to `railUser()` is small, and it is not added here because
   nothing in the kit has a second row to put in it — the rail's navigation is the caller's `nav`,
@@ -762,6 +786,31 @@ press, the shell that draws neither, the open panel's `visibility`, and the clos
 - **One rule under the head band on a phone.** Below 720px the toggle is not drawn, so the band is
   the wordmark with a hairline under it. That is the reference's arrangement — its divider sits
   under the band at both widths — but it is one more line on the narrowest screen.
+- **On the `/account` preset the head band is a lone square.** `accountShell()` turns the topbar on,
+  which drops the rail's wordmark, so the band holds the toggle and nothing else: measured on
+  `apps-account-preset--default`, `x16 y72 w216 h48.4` over a full-width hairline, containing one
+  41 × 35.4 control. Artur's note paired the toggle with the brand; on the one page the preset ships
+  there is no brand to pair it with, and the rail opens with an unlabelled square in a compartment
+  of its own. Nothing is broken and nothing here changes it — the alternatives are dropping the band
+  when the wordmark is gone, as the 720px block already does, or leaving the toggle among the rows.
+  Worth one look before merge.
+
+## Filed as a follow-up, not fixed here
+
+**A dropdown does not join the overlay stack, so one Escape closes two things.** `dropdown()`
+answers Escape from a bare `document` listener that never reads `src/components/overlay.js`'s
+per-document stack. With the reader's menu open underneath an open drawer, one Escape closes both
+and focus returns to a trigger behind the scrim. Everything else about that state is correct — the
+panel is `inert` and `aria-hidden="true"`, its `z-index: 30` is under the drawer's `100`, and a
+hit-test on the Sign out row returns the drawer's scrim — so what is wrong is the key, not the
+layering.
+
+This is the kit's, not this branch's. The round-7 review ran the same sequence on `origin/main`
+against the topbar's account menu and got the same result, and nothing in this diff touches that
+listener. Fixing it means moving `dropdown()` onto the overlay stack every other overlay in the kit
+uses, which is a change to a published component's keyboard behaviour and belongs in an issue of its
+own with its own gates. It is recorded here so it is not lost, and it should be filed against
+`src/components/dropdown.js` before this merges.
 
 ## Changelog entry
 
