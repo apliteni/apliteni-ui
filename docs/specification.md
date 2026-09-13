@@ -387,10 +387,11 @@ inks — see Elevation above.
 The floor is **3:1**, the bar WCAG uses for large text and for a graphic — a disabled label has to
 stay identifiable as the word it is, and no standard sets this because 1.4.3 exempts the control
 outright. It is not higher, because the other pressure turns out not to live on this axis: the
-disabled primary reads 6.91:1 in dark and the enabled one reads 5.70:1, and nobody confuses white
-on purple with grey on grey. Contrast carries legibility; the paint carries the state. So the
-guarantee has a second half — **a disabled control never shows the pair it shows enabled** — and
-that is what a control cannot satisfy by looking available.
+disabled primary reads 6.91:1 in dark and 4.89:1 in light, against 5.70:1 and 7.34:1 for the
+enabled one — more contrast than the enabled button in dark and less in light — and nobody
+confuses white on purple with grey on grey in either direction. Contrast carries legibility; the
+paint carries the state. So the guarantee has a second half — **a disabled control never shows the
+pair it shows enabled** — and that is what a control cannot satisfy by looking available.
 
 The trio is neutral, so it does not move with the accent, and a disabled control drops the accent
 by construction. One rule still fades: the switch track, which has no label inside it.

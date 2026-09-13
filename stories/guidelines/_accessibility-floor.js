@@ -31,8 +31,10 @@ export const RING_MIN = 3;
  * word it is or a reader cannot tell which control is unavailable.
  *
  * It is 3 and not 4.5 because contrast is not the axis the state travels on: the
- * kit's disabled primary button measures 5.56:1 against 5.70:1 enabled, a factor
- * of 1.03, and nobody would mistake the two. The paint carries the state, this
+ * kit's disabled primary button measures 6.91:1 in dark and 4.89:1 in light,
+ * against 5.70:1 and 7.34:1 enabled — more contrast than the enabled button in
+ * one theme and less in the other, and nobody would mistake the two either way
+ * in either theme. The paint carries the state, this
  * number carries legibility only, and what stops the floor being cleared by
  * making a disabled control look enabled is the second half of the rule below.
  */
@@ -562,7 +564,7 @@ export const RULES = [
       + 'gate says so about itself.',
     kit: [
       { ref: 'src/styles/button.css:75', pattern: '.ui-btn--sm' },
-      { ref: 'src/styles/input.css:124', pattern: '.ui-check input::before' },
+      { ref: 'src/styles/input.css:134', pattern: '.ui-check input::before' },
     ],
   },
   {
@@ -587,20 +589,22 @@ export const RULES = [
       + 'washed-out accent, and not one disabled control in the light theme reached 3:1. The '
       + '--disabled-ink / --disabled-surface / --disabled-border trio composites predictably '
       + 'instead: the ink is read on the surface beside it, both opaque. Every disabled label on '
-      + `a box of its own now measures between ${DISABLED_FLOOR}:1 and 6.11:1. A ghost button `
+      + `a box of its own measures 6.91:1 in dark and ${DISABLED_FLOOR}:1 in light. A ghost button `
       + 'paints no box, so its label is read on whatever is behind it; it takes '
       + `--disabled-ink-bare, set to clear ${DISABLED_FLOOR}:1 on the dullest ground, and reads `
-      + 'up to 7.00:1 on the brightest (#273).',
+      + 'between 5.20:1 and 7.49:1 depending where it is put (#273).',
     except: 'A disabled control also has to look weaker than an enabled one — and the measurement '
-      + 'says that is not a contrast question. The disabled primary reads 5.56:1 and the enabled '
-      + 'one reads 5.70:1; white on purple and grey on grey are the same ratio and nobody confuses '
-      + 'them. Contrast carries legibility, the paint carries the state, and the second half of '
+      + 'says that is not a contrast question. The disabled primary reads 6.91:1 in dark and '
+      + `${DISABLED_FLOOR}:1 in light, against 5.70:1 and 7.34:1 enabled — MORE contrast than the `
+      + 'enabled button in dark and less in light, and nobody confuses white on purple with grey '
+      + 'on grey in either direction. Contrast carries legibility, the paint carries the state, '
+      + 'and the second half of '
       + 'the imperative is what holds the state: the pair changes, and the accent goes. The one '
       + 'rule still fading with opacity is the switch track, which has no label inside it — its '
       + 'pair is 1.4.11’s, and no gate here measures it.',
     kit: [
       { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
-      { ref: 'src/tokens/tokens.css:171', pattern: '--disabled-ink' },
+      { ref: 'src/tokens/tokens.css:164', pattern: '--disabled-ink: var(--muted);' },
     ],
   },
   {
