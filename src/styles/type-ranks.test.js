@@ -31,13 +31,12 @@ const TOKENS = readFileSync(path.join(src, 'tokens/tokens.css'), 'utf8');
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
 const DRAWN_IN = ['stories', 'site', 'react/src', '.storybook'];
 const READ = /\.(?:css|m?js|jsx|tsx?)$/;
-const sheets = () => [
+const SHEETS = [
   ...kitSheetNames(src).map((rel) => ({ rel: `src/${rel}`, css: readFileSync(path.join(src, rel), 'utf8') })),
   ...DRAWN_IN.flatMap((dir) => walk(path.join(root, dir))
     .filter((f) => READ.test(f) && !/\.test\.[a-z]+$/.test(f))
     .map((f) => ({ rel: path.relative(root, f), css: readFileSync(f, 'utf8') }))),
 ];
-const SHEETS = sheets();
 
 /** The rank table under "## Labels and titles", top row first. */
 const readRanks = (spec) => {
@@ -160,7 +159,7 @@ test('the table has its six ranks and every one is taken', () => {
     ['page-title', 'card-title', 'body', 'label', 'caption', 'chip']);
   for (const r of RANKS) {
     assert.ok(RULES.some((n) => n.rank === r.name),
-      `no rule in the kit claims rank ${r.name}. A rank nobody takes is a row the table has outgrown.`);
+      `no rule claims rank ${r.name}. A rank nobody takes is a row the table has outgrown.`);
   }
   assert.equal(RULES.length, EXPECTED_NOTES,
     `found ${RULES.length} rank notes, expected ${EXPECTED_NOTES}: ${RULES.map((r) => r.where).join(', ')}`);
