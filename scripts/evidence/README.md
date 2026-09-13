@@ -1,8 +1,9 @@
-# The rail's evidence rig
+# The evidence rig
 
-Every image under `docs/evidence/rail-*.png` and `docs/evidence/nav-collapsed-*.png`
-is produced here. Round 9's review said the rig "still has no producer committed,
-so I cannot reproduce ten of them"; this is that producer.
+Every image under `docs/evidence/rail-*.png`, `docs/evidence/nav-collapsed-*.png`
+and `docs/evidence/react-*.png` is produced here. Round 9's review said the rig
+"still has no producer committed, so I cannot reproduce ten of them"; this is
+that producer.
 
 One static server over one checkout, the kit's own factories imported as modules
 in the page, one Chrome, one viewport — so between two checkouts only the code
@@ -27,6 +28,22 @@ node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
 
 A third argument to `shoot.mjs` is a substring filter over the names, so one
 subject can be re-taken on its own.
+
+`react.mjs` is the same rig pointed at the React workspace's own Storybook build,
+which is where `docs/evidence/react-*.png` comes from. A React component needs a
+bundler and `shot.html` has none, so the subject is the built story rather than a
+page that imports the factories:
+
+```sh
+npm run build-storybook -w react                     # react/storybook-static
+node scripts/evidence/react.mjs . out/               # the ten React shots
+node scripts/evidence/react.mjs . out/ select        # one subject, re-taken
+```
+
+It takes the same third-argument filter. Both faces are loaded into the story the
+way `shot.html` loads them — the React Storybook's preview imports the kit's
+stylesheet and nothing else, so without that the shot is of the box's fallback
+face rather than of the kit.
 
 ## What is deterministic and what is not
 

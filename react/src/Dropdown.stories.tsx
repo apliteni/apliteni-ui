@@ -17,7 +17,7 @@ const ACTIONS: DropdownEntry[] = [
 const VERSIONS: DropdownEntry[] = [
   { label: 'v1.2.0', value: '1.2.0', selected: true, badge: 'Live' },
   { label: 'v1.1.0', value: '1.1.0' },
-  { label: 'v1.0.0', value: '1.0.0', description: 'Last year’s release', badge: { text: 'EOL', tone: 'warn' } },
+  { label: 'v1.0.0', value: '1.0.0', description: 'Last year’s release', badge: { text: 'EOL', tone: 'accent' } },
 ];
 
 // Room under the trigger for the panel, which is absolutely placed.
@@ -97,7 +97,7 @@ export const Scrolling: StoryObj<typeof Dropdown> = {
           { label: 'Frankfurt', value: 'fra' },
           { label: 'London', value: 'lhr' },
           { label: 'New York', value: 'nyc' },
-          { label: 'Singapore', value: 'sin', badge: { text: 'Beta', tone: 'warn' } },
+          { label: 'Singapore', value: 'sin', badge: { text: 'Beta', tone: 'accent' } },
           { label: 'São Paulo', value: 'gru' },
           { label: 'Sydney', value: 'syd' },
         ]}
