@@ -412,3 +412,77 @@ test('a shell with nobody signed in draws no trigger and no menu', () => {
   assert.equal(app.querySelector('.ui-app__user'), null, 'the rail draws a reader block for nobody');
   assert.equal(menuPanel(), null, 'a menu was portalled onto the page for a shell that draws no trigger');
 });
+
+// ---- the second layout, under the same wiring (#308) ---------------------
+//
+// The fold and the reader's menu are the same two behaviours wherever the parts
+// stand, so what is gated here is that wireShell() still reaches them once they
+// have moved — and the one thing the band added: a key hint that is wrong until
+// a browser says what the reader is holding.
+// why: docs/specification.md#the-page-shell
+
+const { wireCommandPalette } = await import('../../src/components/command-palette.js');
+
+const banded = (opts = {}) => page({ layout: 'topbar', search: 'cmdk-rail', account: READER, ...opts });
+
+test('the toggle at the rail\'s foot folds the rail, and the cookie keeps it', () => {
+  forget();
+  const { app, btn } = mount(banded());
+  assert.ok(btn.closest('.ui-app__foot'), 'premise: the banded layout stands the toggle at the rail\'s foot');
+  btn.click();
+  assert.equal(folded(app), true, 'the toggle moved to the foot and stopped folding the rail');
+  assert.equal(railCollapsed(), true, 'a press at the foot is not the press the cookie keeps');
+  btn.click();
+  assert.equal(folded(app), false, 'the second press did not open it again');
+});
+
+test('the reader\'s menu opens from the band, and the keyboard reaches sign out', () => {
+  const { host } = mount(banded());
+  const trigger = host.querySelector('.ui-app__bar .ui-app__user-trigger');
+  assert.ok(trigger, 'premise: the banded layout stands the reader on the band');
+  trigger.click();
+  assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'wireShell() no longer wires a menu that has moved');
+  const out = doc.querySelector('.ui-app__user-panel .ui-dropdown__item.is-danger');
+  assert.ok(out, 'sign out is not in the menu the band opens');
+  assert.match(out.getAttribute('href'), /#logout/);
+});
+
+test('the search field opens the palette it names, and nothing else on the page', () => {
+  const { host } = mount(banded({
+    body: '<div class="ui-cmdk" data-cmdk id="cmdk-rail">'
+      + '<div class="ui-cmdk__panel" data-cmdk-panel><input data-cmdk-input>'
+      + '<div class="ui-cmdk__list" data-cmdk-list></div></div></div>',
+  }));
+  wireCommandPalette(doc);
+  const palette = host.querySelector('#cmdk-rail');
+  assert.equal(palette.classList.contains('is-open'), false, 'premise: a page ships its palette closed');
+  host.querySelector('.ui-app__search').click();
+  assert.equal(
+    palette.classList.contains('is-open'), true,
+    'the field did not open the palette it names. It carries [data-cmdk-open], which is the palette\'s '
+    + 'own delegated trigger — nothing in the shell opens one itself.',
+  );
+});
+
+test('wireShell writes the reader\'s own key into the field, over the one a server drew', () => {
+  const { host } = mount(banded());
+  const cap = host.querySelector('.ui-app__search kbd');
+  assert.equal(
+    cap.textContent, 'Ctrl K',
+    'premise: JSDOM reports no Mac, so the browser\'s answer here is the same as a server\'s',
+  );
+  // The reader is on a Mac, and the markup was drawn where nobody could know that.
+  const platform = Object.getOwnPropertyDescriptor(dom.window.navigator, 'platform');
+  Object.defineProperty(dom.window.navigator, 'platform', { value: 'MacIntel', configurable: true });
+  try {
+    const mac = mount(banded());
+    assert.equal(
+      mac.host.querySelector('.ui-app__search kbd').textContent, '⌘K',
+      'the field still states Ctrl K to a reader holding a Mac. paletteHotkey() reads the platform, '
+      + 'a server has none, and the browser is the first place the answer exists — so wireShell() is '
+      + 'where it is written, into the cap and therefore into the field\'s own name.',
+    );
+  } finally {
+    if (platform) Object.defineProperty(dom.window.navigator, 'platform', platform);
+  }
+});

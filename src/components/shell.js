@@ -86,13 +86,13 @@ const toTopbar = (t) => {
 // page and gives its place at the rail's foot to the fold toggle. Anything that is
 // not the second name is the first: a layout is a name the kit knows, and a typo
 // must not draw half a page. why: docs/specification.md#the-page-shell
-const toLayout = (v) => (str(v) === 'topbar' ? 'topbar' : 'rail');
+const toLayout = (v) => (v === 'topbar' ? 'topbar' : 'rail');
 
 // The content column, as a name rather than a number. `centered` is the column the
 // shell has always drawn — capped and centred in its track — and `wide` fills the
 // well. Same reading as the layout: the second name, or the first.
 // why: docs/specification.md#widths
-const toWidth = (v) => (str(v) === 'wide' ? 'wide' : 'centered');
+const toWidth = (v) => (v === 'wide' ? 'wide' : 'centered');
 
 // The topbar's search is a trigger for a palette the caller has already rendered,
 // never a second search: `search: 'palette-id'`, or the same id in `{ palette }`
@@ -101,7 +101,7 @@ const toWidth = (v) => (str(v) === 'wide' ? 'wide' : 'centered');
 // nothing is worse than no control. why: docs/specification.md#the-page-shell
 const toSearch = (v) => {
   const given = typeof v === 'string' ? { palette: v } : (isRecord(v) && !Array.isArray(v) ? v : null);
-  const palette = given ? str(given.palette).trim() : '';
+  const palette = given && typeof given.palette === 'string' ? given.palette.trim() : '';
   if (!palette) return null;
   return { palette, placeholder: str(given.placeholder) || 'Search or run a command…' };
 };
@@ -451,7 +451,13 @@ export function wireShell(root = document, { persist } = {}) {
   // browser is the first place the answer exists, so this is where it is written —
   // the same string the palette's own hotkey listens for.
   // why: docs/specification.md#the-page-shell
-  const key = paletteHotkey();
+  // The root's own window, not the global one: a shell in a frame, in a second
+  // document or under test is a page whose reader is not this realm's. Read bare,
+  // paletteHotkey() answered for whatever `navigator` the module happened to see —
+  // under Node that is a navigator with no platform at all.
+  const here = root.nodeType === 9 ? root : root.ownerDocument;
+  const view = here && here.defaultView;
+  const key = paletteHotkey(view && view.navigator ? view.navigator.platform : '');
   for (const kbd of root.querySelectorAll('[data-palette-hotkey]')) kbd.textContent = key;
   const doc = root.nodeType === 9 ? root : root.ownerDocument;
   listen(doc);

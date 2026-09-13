@@ -1909,3 +1909,71 @@ test('the reader block is announced once, and by the words that are on screen', 
   assert.match(who.textContent, /Ada Lovelace/, 'the block on screen does not say who is signed in');
   assert.match(who.textContent, /ada@apliteni\.com/);
 });
+
+// ---- C8. the second layout, through the cascade (#308) --------------------
+
+test('the band, the rail\'s head and the rail\'s foot are one height, and it is the kit\'s band height', () => {
+  const tall = /\.topbar\s*\{[^}]*?\bheight:\s*([^;]+);/.exec(decomment(read('src/styles/topbar.css')));
+  assert.ok(tall, 'premise: .topbar no longer declares a fixed height — re-derive this band');
+  const band = /--ui-app-band:\s*([^;}]+)/.exec(decomment(read('src/styles/layout.css')));
+  assert.ok(band, 'layout.css no longer declares --ui-app-band, so the banded layout has no height to share');
+  assert.equal(
+    band[1].trim(), tall[1].trim(),
+    `the shell's band is ${band[1].trim()} while the kit's other band is ${tall[1].trim()} tall. Two `
+    + 'literals for one row: a page that carries both draws them at two heights, and neither file '
+    + 'says anything is wrong.',
+  );
+  const at = mount(BANDED(false));
+  const px = (sel) => Number.parseFloat(at.css(sel, 'height'));
+  assert.equal(
+    px('.ui-app__bar'), Number.parseFloat(band[1]),
+    'the band is not the height it declares, so nothing else can be measured against it',
+  );
+  for (const sel of ['.ui-app__head', '.ui-app__foot']) {
+    assert.equal(
+      px(sel), px('.ui-app__bar'),
+      `the rail's ${sel === '.ui-app__head' ? 'head' : 'foot'} band is ${px(sel)}px against the band's `
+      + `${px('.ui-app__bar')}px. The band stands BESIDE the rail and not over it, so the rule under `
+      + 'the head lands on the line the band\'s own rule lands on only while the two agree — a step '
+      + 'at that corner is the whole reason this layout puts the mark in the rail rather than the band.',
+    );
+  }
+  assert.equal(
+    at.css('.ui-app--topbar > .ui-app__rail', 'paddingTop'), '0px',
+    'the rail keeps its top inset as well as declaring the band\'s height, so the head band is that '
+    + 'much taller than the band beside it',
+  );
+});
+
+test('the band sticks at the top of the page, and the rail is not pushed below it', () => {
+  const at = mount(BANDED(false));
+  assert.equal(at.css('.ui-app__bar', 'position'), 'sticky', 'the band scrolls away with the page, taking the way into the palette and the session menu with it');
+  assert.equal(at.css('.ui-app__bar', 'top'), '0px', 'the band sticks somewhere other than the top of the page');
+});
+
+test('the two widths are one column at two caps, and the caller\'s number replaces either', () => {
+  const measure = mount(SHELL).vars.get('--measure').trim();
+  for (const layout of ['rail', 'topbar']) {
+    const at = (width, extra) => mount(appShell({
+      layout, width, title: 'T', account: { name: 'Ada Lovelace', email: 'a@apliteni.com' }, ...extra,
+    }));
+    assert.equal(
+      at('centered').css('.ui-app__main', 'maxWidth'), measure,
+      `on the ${layout} layout the centred column no longer falls through to --measure, which is the `
+      + 'one place a page-scale width is written',
+    );
+    assert.equal(
+      at('wide').css('.ui-app__main', 'maxWidth'), 'none',
+      `on the ${layout} layout the wide column is still capped, so it does not fill the well — which `
+      + 'is the only thing the name says',
+    );
+    // The caller's own number is a custom property on the element, which JSDOM does
+    // not resolve — shell.test.js holds that half on the markup, where it is visible.
+    for (const width of ['centered', 'wide']) {
+      assert.equal(
+        at(width).css('.ui-app__main', 'marginInline'), 'auto',
+        `the ${width} column on the ${layout} layout does not centre in the track it is given`,
+      );
+    }
+  }
+});

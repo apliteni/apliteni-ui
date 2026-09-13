@@ -118,7 +118,7 @@ export const RULES = [
     except: 'A caller may still pass an explicit maxWidth — an override is a decision, not a copy.',
     kit: [
       { ref: 'src/components/shell.js:118', pattern: "s === 'none' || LENGTH.test(s) ? s : ''" },
-      { ref: 'stories/apps/shell.test.js:918', pattern: 'the reading column has one source' },
+      { ref: 'stories/apps/shell.test.js:919', pattern: 'the reading column has one source' },
     ],
   },
   {
