@@ -1,15 +1,12 @@
 /* apliteni-ui — touch-zoom net. iOS Safari zooms the page into a focused field
  * whose text is under 16px and does not zoom back out, so under (pointer: coarse)
- * every field the kit ships is 16px.
+ * every field the kit ships is 16px. Element selectors rather than kit classes,
+ * and !important for the reason reduced-motion.css takes it; left out are the
+ * controls with nothing to type into, which never zoom.
  *
- * Element selectors rather than a list of kit classes: a list needs an edit per
- * component and leaves a host page's own fields zooming on the kit's sheet.
- * `!important` for the reason reduced-motion.css takes it — a net has to outrank
- * a component rule it has never seen. Left out are the controls with nothing to
- * type into, which never zoom.
- *
- * A real 16px, never a 16px scaled down: the zoom reads the computed size, and a
- * transform would shrink the border and the focus ring with the text.
+ * The two costs, argued in the spec below: a 16px scaled back down with a
+ * transform still zooms, and this is a flat size rather than a floor, so a host
+ * field designed ABOVE 16px is shrunk here. The override recipe is there too.
  *
  * why: docs/specification.md#a-field-is-16px-on-a-touch-screen */
 

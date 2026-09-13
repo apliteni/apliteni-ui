@@ -275,13 +275,19 @@ export const GATES = [
   },
   {
     file: 'stories/field-zoom.test.js',
-    does: 'Holds the touch-zoom net (#294). Resolves the kit\u2019s sheet twice \u2014 once as a coarse '
-      + 'pointer sees it, once as a mouse does \u2014 mounts every story against each, and fails a '
-      + 'field under 16px, a field the net has made smaller than it is with a mouse, and a second '
-      + '(pointer: coarse) rule anywhere outside the net\u2019s own file.',
+    does: 'Holds the touch-zoom net (#294). Mounts every story into a jsdom carrying no stylesheet '
+      + 'at all, asks each field whether the net\u2019s own selector reaches it with matches(), and '
+      + 'weighs that against every font-size rule read out of the kit\u2019s sheets as text \u2014 so it '
+      + 'fails a rule sizing a field under 16px, one sizing a field above 16px that the flat net '
+      + 'would shrink, a second !important font size anywhere in the kit, and a second '
+      + '(pointer: coarse) rule outside the net\u2019s own file.',
     blind: [
-      'Whether a browser matches (pointer: coarse) at all. jsdom evaluates no media query, so the '
-        + 'coarse world is built by unwrapping that block in place; the device end is the '
+      'The cascade. Nothing is resolved here: jsdom does not rank !important between rules and '
+        + 'would hand back the component\u2019s size, so the contest is read off the declarations '
+        + 'instead. What the gate proves is that the net is the kit\u2019s only important font '
+        + 'size \u2014 not that a browser resolves it that way.',
+      'Whether a browser matches (pointer: coarse) at all. jsdom evaluates no media query, and this '
+        + 'gate evaluates none either \u2014 the net\u2019s block is read as text. The device end is the '
         + 'screenshots under docs/evidence/294/.',
       'Safari\u2019s threshold. 16px is an observed behaviour of one browser and not a standard, so '
         + 'nothing here can measure the number itself.',
@@ -605,14 +611,20 @@ export const RULES = [
       + '`input`, `select` and `textarea` rather than over kit classes. The size has to be real: '
       + 'the zoom reads the computed size, so a 16px field scaled back down with a transform still '
       + 'zooms, and takes the border and the focus ring down with it.',
-    except: 'A control with nothing to type into — checkbox, radio, range, colour, file, and the '
-      + 'button types — which does not zoom and keeps its size. The other way out of this is a '
+    except: 'A host page’s own field designed above 16px, which the same element reach makes '
+      + 'smaller on a touch screen than it is with a mouse — the net is a flat size, not a floor, '
+      + 'and a floor on the element’s own font size cannot be written in CSS. Such a field is kept '
+      + 'by the host’s own !important rule, one whose selector is more specific than the net’s '
+      + 'bare element — a class on the field, .hero-search input — which then wins whichever '
+      + 'stylesheet loads first. Also a control '
+      + 'with nothing to type into — checkbox, radio, range, colour, file, and the button types — '
+      + 'which does not zoom and keeps its size. The other way out of this is a '
       + 'viewport tag: `user-scalable=no`, or a `maximum-scale=1`, stops the zoom by taking '
       + 'pinch-zoom away from every reader of the page. That fails WCAG 1.4.4, Apple\u2019s own '
       + 'guidance argues against it, and it is not the kit\u2019s to set — a viewport tag belongs to '
       + 'the host page. A font size lives in the stylesheet the fields already come from.',
     kit: [
-      { ref: 'src/styles/field-zoom.css:22', pattern: 'font-size: 16px !important;' },
+      { ref: 'src/styles/field-zoom.css:19', pattern: 'font-size: 16px !important;' },
       { ref: 'react/src/index.ts:9', pattern: "import '../../src/styles/field-zoom.css';" },
     ],
   },

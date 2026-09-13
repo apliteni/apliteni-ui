@@ -456,9 +456,32 @@ is the fix that lives in the stylesheet the fields already come from.
 that hold one grow with it — the pager's size control and jump box most visibly. That is the trade,
 and it is taken on every field rather than on the two a reader was reported to have hit.
 
-Held by `stories/field-zoom.test.js`, which renders every story, resolves the sheet as a coarse
-pointer sees it, and fails a field under 16px — or one the net has made smaller than it is with a
-mouse. It also reads the net's own file: deleting the rule, or its `!important`, fails there too.
+**And what it costs a host page.** Reaching by element is what covers a component nobody has
+written yet, and the same reach lands on fields the kit did not render. The net is a flat size
+rather than a floor — a CSS floor on the element's own font size is not expressible — so a host
+field *designed above 16px*, a 20px hero search among them, is made **smaller** on a touch screen
+than it is with a mouse. Measured in Chromium under an emulated coarse pointer: a 20px host field
+reads 16px with the net on the page.
+
+The way out is the host's own `!important` rule, and it has to outrank the net rather than merely
+repeat it:
+
+```css
+/* wins whichever sheet loads first — more specific than the net's bare element */
+.hero-search input { font-size: 20px !important; }
+```
+
+A bare `input { font-size: 20px !important; }` ties the net on specificity and wins on source
+order alone, so it holds only while the host's stylesheet is loaded after the kit's. A rule
+without `!important` loses either way.
+
+Held by `stories/field-zoom.test.js`, which mounts every story into a jsdom carrying no stylesheet,
+asks each field whether the net's own selector reaches it, and weighs that against every
+`font-size` rule read out of the kit's sheets as text — so a field sized under 16px fails, and so
+does one sized above it, which this flat net would shrink. No cascade is resolved: jsdom does not
+rank `!important` between rules, so the gate proves instead that the net is the kit's only
+important font size. It also reads the net's own file: deleting the rule, or its `!important`,
+fails there too.
 
 Decided in [#294](https://github.com/apliteni/apliteni-ui/issues/294), after
 [#291](https://github.com/apliteni/apliteni-ui/issues/291) answered it for the dropdown's search
