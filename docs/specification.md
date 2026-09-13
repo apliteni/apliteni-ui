@@ -421,29 +421,47 @@ success mark are all that shape and all stay.
 
 The ladder, bottom to top:
 
-| Token | The step |
-| --- | --- |
-| `--bg` | the page |
-| `--surface-2` | sunken — a field, a track, a disabled box, a code block |
-| `--surface` | a card |
-| `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast |
-| `--surface-3` | the top step — the hover readout, a chip, the nav rail's hover |
+| Token | The step | Dark | Light |
+| --- | --- | --- | --- |
+| `--bg` | the page | `#0e0d14` | `#eef0f5` |
+| `--surface-2` | sunken — a field, a track, a disabled box, a code block | `#161520` | `#e3e6ee` |
+| `--surface` | a card | `#211e2d` | `#f8f9fc` |
+| `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
+| `--surface-3` | the top step — the hover readout, a chip, the nav rail's hover | `#2d293c` | `#e7eaf1` |
 
-Dark runs it upwards: the page is the darkest thing on screen and every step above it is lighter.
-Light cannot, because nothing is brighter than the white a card already was — so light runs the
-same rule downwards. The page drops off white, the card drops a step with it, and white is kept
-for the top: **a floating panel is the only pure white on a light screen.**
+Dark runs it upwards: the page is the darkest thing on screen, every step above it is lighter than
+the one under it, and the order in the table is the order on screen. Light cannot, because nothing
+is brighter than the white a card already was — so the page comes off white, the card comes off
+white behind it, and white is kept for the top: **a floating panel is the only pure white on a
+light screen.**
+
+**In light the ladder is not monotonic, and the top step is the exception.** `--surface-3` is
+`#e7eaf1`: below the page, and 1.04:1 above the sunken step. It cannot be above `--bg-elevated`,
+because `--bg-elevated` is white and light has nothing brighter to give it. So in light the top
+step means the **quiet fill** rather than the highest surface — a chip, a hovered row, the hover
+readout's panel — and a reader sees the light readout as a recessed surface rather than a raised
+one. This is the value the picked prototype carried and the one the approved frames were drawn
+with; it is stated here rather than described as a ladder light does not run. Open on
+[#295](https://github.com/apliteni/apliteni-ui/issues/295).
 
 **Every floating surface keeps the hairline as well, and the card takes one in both themes.**
 A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
 not enough to draw an edge. The line draws the edge; the step says which way is up. Dropping
 either one leaves a theme carrying the whole separation on the half that is weak for it.
 
+**Inside a raised surface, a row or a chip that lifts takes the step above the panel.** A hovered
+row, an active row, a chip and a key cap inside a floating panel paint `--surface-3`, never
+`--surface`: `--surface` is the card step and sits *below* `--bg-elevated` in dark, so a hover
+drawn with it sank while the panel it was in floated. In light that step is drawn downwards —
+`--surface-3` is darker than the white panel — which is how a light theme has always shown a
+hover. A field inside a panel goes the other way: it is the sunken step, `--surface-2`, the same
+one `.ui-input` takes.
+
 **The accent wash is painted on a base surface, never a raised one.** A translucent wash over a
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
 takes an accent counter under the floor inside a panel. Two rules state it:
 `src/styles/nav.css:128` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-`src/styles/dropdown.css:164` `.ui-dropdown__badge.is-accent`.
+`src/styles/dropdown.css:170` `.ui-dropdown__badge.is-accent`.
 
 **The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
 the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked

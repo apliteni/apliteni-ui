@@ -35,10 +35,25 @@ export const Ladder = {
   render: () => pad(`
     <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Elevation</h1>
     ${p('Nothing in the kit casts a shadow. A surface says how high it is with two things — its step on a ladder of lightness, and the hairline around it.')}
-    ${p('Dark runs the ladder upwards: the page is the darkest thing on screen and every step above it is lighter. Light cannot, because nothing is brighter than the white a card already was, so light runs the same rule downwards — the page comes off white, the card comes off white behind it, and white is kept for the top. On a light screen a floating panel is the only pure white.')}
+    ${p('Dark runs the ladder upwards: the page is the darkest thing on screen, and every step above it is lighter than the one under it. Light cannot, because nothing is brighter than the white a card already was — so the page comes off white, the card comes off white behind it, and white is kept for the top. On a light screen a floating panel is the only pure white.')}
 
     ${h3('The ladder, bottom to top')}
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px">${LADDER.map(step).join('')}</div>
+
+    ${p('<strong style="color:var(--strong)">In light the top step is the exception.</strong> Switch the theme on this page and the last swatch goes the other way: <code style="font-family:var(--font-mono);color:var(--accent)">--surface-3</code> is <code style="font-family:var(--font-mono);color:var(--accent)">#e7eaf1</code>, below the page and a hair above the sunken step, because it cannot be above a floating panel that is already white. In light it means the quiet fill — a chip, a hovered row, the readout’s panel — and the readout reads as recessed rather than raised. Open on <a href="https://github.com/apliteni/apliteni-ui/issues/295" style="color:var(--accent)">#295</a>.')}
+
+    ${h3('A row inside a raised panel lifts')}
+    ${p('A hovered row, an active row, a chip and a key cap inside a floating panel take the step above the panel, never <code style="font-family:var(--font-mono);color:var(--accent)">--surface</code> — which is the card step and sits below <code style="font-family:var(--font-mono);color:var(--accent)">--bg-elevated</code> in dark, so a hover drawn with it sank while the panel floated. A field inside a panel goes the other way: it is the sunken step.')}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;max-width:820px">
+      <div style="padding:14px;border-radius:14px;background:var(--bg-elevated);border:1px solid var(--border)">
+        <div style="padding:9px 11px;border-radius:8px;background:var(--surface-3);font:500 12.5px/1.4 var(--font-sans);color:var(--text)">A hovered row — the step above</div>
+        <div style="padding:9px 11px;border-radius:8px;font:500 12.5px/1.4 var(--font-sans);color:var(--muted)">A resting row</div>
+      </div>
+      <div style="padding:14px;border-radius:14px;background:var(--bg-elevated);border:1px solid var(--border)">
+        <div style="padding:9px 11px;border-radius:8px;background:var(--surface);font:500 12.5px/1.4 var(--font-sans);color:var(--text)">The card step, as it was — it sinks</div>
+        <div style="padding:9px 11px;border-radius:8px;font:500 12.5px/1.4 var(--font-sans);color:var(--muted)">A resting row</div>
+      </div>
+    </div>
 
     ${h3('The line and the step do different jobs')}
     ${p('A step of lightness is a contrast of about 1.1: enough to read as a change of surface, not enough to draw an edge. The line draws the edge; the step says which way is up. So every floating surface keeps the kit hairline, and the card carries one in both themes — not only in light, as it did before.')}

@@ -249,7 +249,9 @@
   padding: 2px 5px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  background: var(--surface);
+  /* A key cap reads as raised, so it takes the step above the panel rather than
+     the card step below it. why: docs/specification.md#elevation */
+  background: var(--surface-3);
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.5;

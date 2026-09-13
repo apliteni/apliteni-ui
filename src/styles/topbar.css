@@ -159,7 +159,9 @@
   font: inherit;
   transition: background var(--dur-fast) var(--ease);
 }
-.vopt:hover { background: var(--surface); }
+/* The menu is raised, so a hovered row takes the step ABOVE it — see
+   src/styles/dropdown.css:130. why: docs/specification.md#elevation */
+.vopt:hover { background: var(--surface-3); }
 .vopt .vname { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vopt .vmeta { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .vopt .vbadge {
@@ -173,7 +175,7 @@
   margin-top: 1px;
 }
 .vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.vbadge.arch { color: var(--muted); background: var(--surface); }
+.vbadge.arch { color: var(--muted); background: var(--surface-3); }
 /* The switcher keeps its glyph and drops its label where the shell folds — the
    same step the rail folds at: docs/specification.md#breakpoints. */
 @media (max-width: 720px) { .vsw__btn .lbl { display: none; } }
@@ -223,7 +225,7 @@
 .amenu .ahead .anm { color: var(--strong); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: 13px; cursor: pointer; }
-.amenu a:hover { background: var(--surface); }
+.amenu a:hover { background: var(--surface-3); }
 .amenu a.cur { color: var(--accent); }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }

@@ -127,8 +127,12 @@
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
-.ui-dropdown__item:hover { background: var(--surface); }
-.ui-dropdown__item:focus-visible { outline: none; background: var(--surface); box-shadow: var(--ring); }
+/* A row inside a raised panel LIFTS: it takes the step above the panel, never
+   --surface, which is the card step and sits BELOW --bg-elevated in dark — a
+   hover that sank. The palette's active row (src/styles/command-palette.css:174 `.ui-cmdk__item.is-active`)
+   has always been written this way. why: docs/specification.md#elevation */
+.ui-dropdown__item:hover { background: var(--surface-3); }
+.ui-dropdown__item:focus-visible { outline: none; background: var(--surface-3); box-shadow: var(--ring); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ui-dropdown__label { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: 11px; color: var(--muted); line-height: 1.35; }
@@ -154,14 +158,16 @@
   margin-left: auto;
   flex: none;
   color: var(--muted);
-  background: var(--surface);
+  /* A chip is the top step, and inside this panel it has to be: --surface is
+     below --bg-elevated in dark. why: docs/specification.md#elevation */
+  background: var(--surface-3);
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 /* The accent counter keeps the badge's flat surface and changes only the ink — the shape
    src/styles/nav.css:128 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
    The accent wash goes on a base surface, never a raised one, and #295 made this panel a
    raised one. why: docs/specification.md#elevation */
-.ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface); }
+.ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface-3); }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
@@ -222,7 +228,10 @@
   font: inherit;
   font-size: 12.5px;
   color: var(--strong);
-  background: var(--surface);
+  /* A field is the SUNKEN step, the same one .ui-input takes. It painted the card
+     step, which inside this panel is a shallow well in dark and nearly the panel
+     itself in light. why: docs/specification.md#elevation */
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px 12px 8px 34px;
@@ -242,7 +251,7 @@
 
 /* The row Enter would pick. Focus stays in the field, which carries the ring,
    so this row takes the hover fill and a bar rather than a second ring. */
-.ui-dropdown__item.is-active { background: var(--surface); box-shadow: inset 2px 0 0 var(--accent); }
+.ui-dropdown__item.is-active { background: var(--surface-3); box-shadow: inset 2px 0 0 var(--accent); }
 
 /* No match — a nudge and no action, per Guidelines / Microcopy. Empty while
    anything matches, so it takes no room. */

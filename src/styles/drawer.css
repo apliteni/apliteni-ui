@@ -149,7 +149,7 @@
     background var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease);
 }
-.ui-drawer__close:hover { color: var(--strong); background: var(--surface); }
+.ui-drawer__close:hover { color: var(--strong); background: var(--surface-3); }
 .ui-drawer__close:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
 .ui-drawer__close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
 
