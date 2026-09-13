@@ -115,6 +115,12 @@ The brief allowed either and asked for the reason. `row` won:
 
 ## What is deliberately not here
 
+One of these needs saying out loud rather than reading off a table: **the consumer case #304
+reports is a *search* dropdown, and `search` is not here.** What is here closes the half that
+made them re-draw the component — the rows are router links now, and the keyboard is the
+kit's — but a React list of ten or more options still wants the vanilla factory until the
+follow-up below lands.
+
 | Left out | Why |
 |---|---|
 | `data-dropdown` on the container | It is what `wireDropdown()` looks for. A page that calls `wireDropdown(document)` must not adopt a dropdown React owns — the same decision `<Drawer>` makes about `data-drawer`. The row and panel hooks stay: they are the row contract `docs/library.md` publishes, and nothing queries them outside a wired container. |
@@ -156,9 +162,9 @@ did not land on a row.
 
 | Gate | What it holds | What killing it would let through |
 |---|---|---|
-| `react/src/Dropdown.test.tsx`, 28 parity cases | Renders `dropdown()` and `<Dropdown>` for the same options and compares the container's class list plus a shape: the trigger's tag, classes, `type`, `aria-haspopup`, `aria-expanded`, `aria-label`, its prefix and value and chevron; the panel's classes, role, name and inline max-height; every section's role, name and heading; and every row's tag, classes, role, `tabindex`, `data-value`, `aria-selected`, `aria-disabled`, `href`, `target`, label, description, badge and badge tone, and which glyph slots it drew. | A React-only rule. The variant inference drifting. A row that is a `<div>` where the factory draws an `<a>`. A select row quietly becoming a link. A badge tone the factory would have spelt differently. |
-| the same file, 13 keyboard cases under `user-event` | Real key presses: the trigger's click, ArrowDown/ArrowUp opening onto the first row or the selected one, the ring wrapping and stepping over the disabled row, Home and End, Enter and Space, Escape and the focus return, Tab, the outside click, one dropdown closing another, controlled `open` refusing a close, and a `<Link>` row still moving with the arrows. | Any of `wireDropdown()`'s rules being approximated. The most likely regression: a row drawn by a caller falling out of the arrow ring, which is the whole feature. |
-| `react/src/BackLink.test.tsx`, 22 parity cases + 9 script addresses | The same shape comparison against `backLink()`, over the cases `src/components/back.test.js` pins — including every `javascript:` spelling, each asserted to parse as `javascript:` first so none is a straw man — plus `.ui-app__main > .ui-back` matching, and the one difference stated by name. | The guard being written differently in the two languages, which is the one that matters: a `javascript:` address rendering a link in React and nothing in a server render. |
+| `react/src/Dropdown.test.tsx`, 27 parity cases | Renders `dropdown()` and `<Dropdown>` for the same options and compares the container's class list plus a shape: the trigger's tag, classes, `type`, `aria-haspopup`, `aria-expanded`, `aria-label`, its prefix and value and chevron; the panel's classes, role, name and inline max-height; every section's role, name and heading; and every row's tag, classes, role, `tabindex`, `data-value`, `aria-selected`, `aria-disabled`, `href`, `target`, label, description, badge and badge tone, and which glyph slots it drew. | A React-only rule. The variant inference drifting. A row that is a `<div>` where the factory draws an `<a>`. A select row quietly becoming a link. A badge tone the factory would have spelt differently. |
+| the same file, 17 cases under `user-event` | Real key presses: the trigger's click, ArrowDown/ArrowUp opening onto the first row or the selected one, the ring wrapping and stepping over the disabled row, Home and End, Enter and Space, Escape and the focus return, Tab, the outside click, one dropdown closing another, controlled `open` refusing a close, a `<Link>` row still moving with the arrows, a pick surviving a caller that rebuilds its items, and the caller taking the pick back by moving `selected` itself. | Any of `wireDropdown()`'s rules being approximated. The most likely regression: a row drawn by a caller falling out of the arrow ring, which is the whole feature. Two of these were written against a defect this branch shipped and then fixed — a pick held by object identity — and killing `keyOf()` reds six of them. |
+| `react/src/BackLink.test.tsx`, 24 parity cases + 9 script addresses | The same shape comparison against `backLink()`, over the cases `src/components/back.test.js` pins — including every `javascript:` spelling, each asserted to parse as `javascript:` first so none is a straw man — plus `.ui-app__main > .ui-back` matching, and the one difference stated by name. | The guard being written differently in the two languages, which is the one that matters: a `javascript:` address rendering a link in React and nothing in a server render. |
 | `react/src/a11y.test.tsx` (existing, auto-discovering) | Nine new stories × two themes through axe. It already found one thing: a `select` dropdown with no `ariaLabel` is an unnamed listbox. | An unnamed listbox, an option outside a listbox, a menuitem outside a menu. |
 | `stories/guidelines/accessibility-floor.test.js` (existing) | Both new gates are named on the Guidelines / Accessibility floor page with what they check and the blind spots they carry. The page's list is checked against a scan of the tree, so a gate it has never heard of fails the build. | Adding an accessibility gate nobody can find. |
 
@@ -172,10 +178,67 @@ did not land on a row.
 - [x] The vanilla factories and their gates are untouched. `src/` carries no change on this
       branch; `dropdown.css` is not opened, per the fence around `fix/306-dropdown-pad-foot`.
 
+**`npm test` at the root** — one failure, named below:
+
 ```
-$ npm test          # root — REAL TAIL
-$ npm run build     # REAL TAIL
-$ cd react && npm test && npm run build   # REAL TAIL
+ℹ tests 1519
+ℹ suites 0
+ℹ pass 1516
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 279066.179552
+
+✖ failing tests:
+
+test at stories/contrast.test.js:528:1
+✖ the walk has not run away with the clock (1.008659ms)
+  AssertionError: the contrast walk took 167.0s, against a 120s ceiling set from a measured
+  worst case of 47.6s on a fully contended 10-core laptop.
+```
+
+**That one failure is the wall clock, not the walk.** The assertion is a ceiling on how long
+the walk takes, and this box is a shared Linux host running several agents; the brief that
+dispatched this work names it as the one failure that is red on `main` here, and I did not
+re-measure `main` to confirm that. What I did measure: **156.7s** with nothing else running,
+still over the ceiling. Nothing on this branch can move it either way — the walk reads
+`src/styles` and `src/tokens`, and `src/` carries no change here.
+Every other gate is green, the two that this branch had to satisfy among them —
+`scripts/font-loading.test.js`, which counts the rig as the ninth loader, and
+`stories/guidelines/accessibility-floor.test.js`, which finds both new gates named on the page.
+
+**`npm run build`:**
+
+```
+ESM dist/index.js  50.18 KB
+ESM dist/index.css 2.06 KB
+ESM ⚡️ Build success in 203ms
+DTS Build start
+DTS ⚡️ Build success in 5241ms
+DTS dist/index.d.ts 12.73 KB
+```
+
+**`cd react && npm test`:**
+
+```
+ Test Files  19 passed (19)
+      Tests  482 passed (482)
+   Start at  22:51:37
+   Duration  21.13s
+```
+
+**`react/dist/index.d.ts`, after that build:**
+
+```
+declare function Dropdown({ label, value, placeholder, variant, items, sections, header,
+  footer, triggerContent, triggerClass, chevron, align, direction, scroll, ariaLabel, id,
+  panelClass, open: openProp, defaultOpen, onOpenChange, onSelect, row, }: DropdownProps)
+declare function BackLink<T extends ElementType = 'a'>({ href, label, as, className,
+  ...rest }: BackLinkProps<T>): react.JSX.Element | null;
+export { BackLink, type BackLinkOwnProps, type BackLinkProps, …, Dropdown, type DropdownBadge,
+  type DropdownEntry, type DropdownItem, type DropdownProps, type DropdownRowProps,
+  type DropdownSection, type DropdownSeparator, … };
 ```
 
 ## Decisions, and who made each
