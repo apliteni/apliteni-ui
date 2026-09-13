@@ -46,7 +46,7 @@ export const RULES = [
     kit: [
       { ref: 'src/tokens/tokens.css:90', pattern: '--ease: var(--easing-ease-in-out' },
       { ref: 'src/tokens/tokens.css:91', pattern: '--ease-out: var(--easing-ease-out' },
-      { ref: 'src/styles/drawer.css:33', pattern: 'transition: visibility var(--dur-med) linear;' },
+      { ref: 'src/styles/drawer.css:34', pattern: 'transition: visibility var(--dur-med) linear;' },
     ],
   },
   {

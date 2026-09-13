@@ -159,7 +159,7 @@ export function specialiseContextual(css) {
   // never appended to the end of the sheet. The copy gains a class of
   // specificity, so appending would let it out-rank a later, more specific
   // override written for the same element — `.ui-toast--solid .ui-toast__action`
-  // (src/styles/callout.css:137 `.ui-toast--solid .ui-toast__action`) is exactly
+  // (src/styles/callout.css:140 `.ui-toast--solid .ui-toast__action`) is exactly
   // that, and an appended
   // `.ui-toast--danger .ui-toast__action` beat it at equal weight and reported
   // the solid danger toast's action as pink on pink, a fabricated 1.00:1.

@@ -182,7 +182,7 @@ off the end of a 124-line file. Nothing turned red for five commits.
 So write the line, then write what is **on** it:
 
 ```
-src/styles/callout.css:137 `.ui-toast--solid .ui-toast__action`
+src/styles/callout.css:140 `.ui-toast--solid .ui-toast__action`
 src/styles/nav.css:38-40 `font-size: 14.5px;`
 ```
 
@@ -1522,7 +1522,7 @@ The role and portal guarantees are in [Typefaces](docs/specification.md#typeface
 a button. A browser gives a button a grey fill, 2px outset border, shrink-to-fit width,
 centred text, and `font: 400 13.3333px Arial`. The reset at
 src/styles/nav.css:29 `.ui-nav__item {` removes all of these. Before #251,
-src/styles/dropdown.css:110 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
+src/styles/dropdown.css:111 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
 
 Classes such as `.vopt` (`<div role tabindex>`), `.ui-card--interactive` (`<a href>`) and
 `.ui-fbpill` (bare `<div>`) had no button specimen. Classes already shown on a button are

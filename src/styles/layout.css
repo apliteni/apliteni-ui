@@ -76,7 +76,10 @@
    step down so the current one is the brightest whatever --accent is doing, and
    the bar beside it carries the hue. A 3x17px bar on a 45x44 tile was the
    smallest of three weak signals doing the most work, so it grows with the row. */
-.ui-app__rail .ui-nav__ic svg { opacity: 0.62; }
+/* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
+   the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
+   stories/apps/shell-states.test.js:427 `a resting glyph is dimmer but still legible`. */
+.ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 .ui-app__rail .ui-nav__item.is-active .ui-nav__ic svg,
 .ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
 .ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
@@ -226,10 +229,12 @@
   z-index: 1;
   width: 100%;
   max-width: var(--panel-md);
-  background: var(--surface);
+  /* Floats over a spotlit page, so it takes the floating step and the hairline.
+     why: docs/specification.md#elevation */
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-radius: 22px;
   padding: 38px 36px 32px;
-  box-shadow: var(--shadow-lg);
 }
 .ui-auth__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; }
 .ui-auth__brand span { font-size: 15px; font-weight: 600; color: var(--strong); }

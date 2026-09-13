@@ -64,13 +64,13 @@
   to   { opacity: 1; filter: blur(0); }
 }
 
-/* -- Micro-interactions ---------------------------------------------------- */
+/* -- Micro-interactions ----------------------------------------------------
+ * .m-lift is the travel only; it cast --shadow-md until #295. */
 .m-lift {
-  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-med) var(--ease);
+  transition: transform var(--dur-fast) var(--ease);
 }
 .m-lift:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
 }
 .m-press {
   transition: transform var(--dur-instant) var(--ease-sharp);

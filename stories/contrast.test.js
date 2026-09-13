@@ -79,8 +79,8 @@ const LEDGER = [
     fg: '--accent',
     themes: ['dark'],
     bg: 'grounds mixed from the accent itself, in the dark theme',
-    example: 'span.ui-dropdown__badge.is-accent',
-    count: 4,
+    example: 'button.ui-snippet__copy',
+    count: 2,
     worst: 3.97,
     why: 'This was the largest bucket in the ledger until #157 lifted the dark accent onto '
       + '--purple-mid and thinned its wash. That closed every row whose ground was --glow-purple — '
@@ -92,15 +92,17 @@ const LEDGER = [
       + 'the honest statement and it is weaker than the one this entry used to make. What keeps '
       + 'these rows here is not arithmetic but the brand: the accent that closes them is well past '
       + 'the point where it is still this violet, and #96 and #157 both chose the hue before the '
-      + 'ratio. So they are debt with a known price, not an impossibility. Three rules remain, '
-      + 'over four rows. The dropdown badge (src/styles/dropdown.css) is the kit\'s own and is two '
-      + 'of them: its ground is the mix over whatever the row beneath is, and the row lightens to '
-      + '--surface when hovered or focused, which is exactly where it fails. It should follow the '
-      + 'nav badge, which takes --glow-purple on a base surface and, on an active row, the row\'s '
-      + 'own raised surface instead of stacking the wash on top of it; #157 changed that rule when '
-      + 'it found the stacked pair below the floor, and the badge clears on both grounds now. The '
+      + 'ratio. So they are debt with a known price, not an impossibility. Two rules remain, '
+      + 'over two rows. The dropdown badge (src/styles/dropdown.css) was two of them until #295: '
+      + 'its ground was the mix over whatever the row beneath it is, and the row lightens to '
+      + '--surface when hovered or focused, which is exactly where it failed. It takes the shape '
+      + 'the nav badge already had — --glow-purple on a base surface, and on a raised one that '
+      + 'surface itself rather than the wash stacked on top of it. #157 wrote that rule when it '
+      + 'found the stacked pair below the floor; #295 applied it here, because the elevation '
+      + 'ladder made the panel the badge sits in a raised surface and a wash over a raised '
+      + 'surface sits closer to the ink than a wash over the page. The '
       + 'replay control is styled inside the motion story, fails only in its hover state, and '
-      + 'belongs to whoever owns that story. The last row is the odd one out: the hovered copy '
+      + 'belongs to whoever owns that story. The other row is the odd one out: the hovered copy '
       + 'control on the green-tinted snippet bar of a live card, whose ground is not mixed from '
       + 'the accent at all and so does not rise when the accent does. Walked across all eight '
       + 'theme x accent cells it fails in three of them — dark Nebula, Phoenix and Ocean — and '
@@ -119,7 +121,7 @@ const LEDGER = [
     bg: 'the success wash and plain white in the light theme',
     example: 'div.ui-sx__eyebrow',
     count: 4,
-    worst: 3.92,
+    worst: 3.56,
     why: 'Light --green has to stay recognisably green while carrying text, and green is the '
       + 'hue that darkens worst without turning into a colour nobody reads as success. #155 '
       + 'took the live pill and the badge over the line; what is left is the eyebrow on the '
@@ -130,7 +132,11 @@ const LEDGER = [
       + 'the outline card, and #131 closed those rows: the action is the one part of a toast '
       + 'that is both the status colour and a piece of text, so it stopped taking the accent and '
       + 'took the text-grade chip ink instead. That left the rows above, which are not the '
-      + 'accent used as text but the accent used as itself. The floor moved once before that: '
+      + 'accent used as text but the accent used as itself. The floor moved again at #295, and '
+      + 'not because any of these rows changed: the light page stopped being white, so every '
+      + 'translucent wash in the theme composites over a darker ground now and sits that much '
+      + 'closer to the ink read on it. Every pair in this bucket deepened by about the step the '
+      + 'page took. The floor moved once before that: '
       + '#158 re-tinted --glow-green from a colour '
       + 'that matched no token to an exact tint of --green, which darkened the success wash by '
       + 'about one level per channel and took the toast action down with it — which is how deep '
@@ -148,7 +154,7 @@ const LEDGER = [
     bg: 'the info wash and plain white in the light theme',
     example: 'div.ui-snippet > pre > span.f',
     count: 2,
-    worst: 3.53,
+    worst: 3.05,
     why: 'Cyan in the light theme is the same problem as green and for the same reason: the hue '
       + 'runs out of room before it runs out of contrast. #155 moved the info badge; what is '
       + 'left is the flag and URL '
@@ -166,7 +172,7 @@ const LEDGER = [
     bg: 'the accent-tinted card, under the "soon" badge',
     example: 'span.ui-badge.ui-badge--soon',
     count: 1,
-    worst: 4.48,
+    worst: 4.27,
     why: 'The "soon" status is deliberately the quietest thing the kit can render — it marks '
       + 'something that does not exist yet and must not compete with what does. It is set in '
       + 'the mid purple on a purple wash, which is the same ink-on-its-own-hue problem as the '
@@ -181,21 +187,12 @@ const LEDGER = [
       + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
       + 'not, whether it stops being purple or stops being washed.',
   },
-  {
-    id: 'H',
-    fg: '--muted',
-    themes: ['dark'],
-    bg: 'the snippet\'s shell bar, which is lighter than the card it sits in',
-    example: 'button.ui-snippet__copy',
-    count: 1,
-    worst: 4.00,
-    why: 'The copy control on a snippet\'s title bar is muted so the command itself reads first, '
-      + 'and the bar it sits on is lifted off the card for the same reason. The two moves are '
-      + 'individually right and together they close the gap. It is a single control with a '
-      + 'permanent visible label, so nothing is lost to a reader who does not resolve the ink — '
-      + 'but it is one step from the floor and would be cheap to fix by darkening the bar '
-      + 'rather than the ink. Unfiled.',
-  },
+  /* H — --muted on the snippet's shell bar, which is lighter than the card it sits
+     in — is closed. The entry said the cheap fix was to darken the bar rather than
+     the ink; #295 did neither and closed it anyway, by re-picking --muted against the
+     top of the new elevation ladder. The ink rose, the bar did not, and the pair went
+     over the floor. Deleted rather than zeroed, for D's reason: a bucket holding
+     nothing matches nothing and would pass whatever happened to that surface next. */
   {
     id: 'P',
     story: DOC_STORIES.PALETTE,
@@ -420,9 +417,9 @@ test('the style cache watched the real walk, so its guard is not dead code', () 
 test("the dark theme's body text resolves to its known ratio", () => {
   const vars = tokensFor('dark', ACCENT);
   assert.equal(vars.get('--text'), '#e9e7f0');
-  assert.equal(vars.get('--bg'), '#16151f');
+  assert.equal(vars.get('--bg'), '#0e0d14');
   const r = ratio(parseColour(vars.get('--text')), parseColour(vars.get('--bg')));
-  assert.ok(Math.abs(r - 14.7725) < 0.005, `--text on --bg resolved to ${r}, not the known 14.77`);
+  assert.ok(Math.abs(r - 15.7900) < 0.005, `--text on --bg resolved to ${r}, not the known 15.79`);
 });
 
 test('no computed colour anywhere in the walk is the user-agent link blue', () => {

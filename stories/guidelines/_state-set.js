@@ -80,7 +80,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/base.css:140', pattern: '.ui-focusable:focus-visible,' },
       { ref: 'src/styles/base.css:146', pattern: 'box-shadow: var(--ring);' },
-      { ref: 'src/tokens/tokens.css:224', pattern: '--ring: 0 0 0 3px var(--accent);' },
+      { ref: 'src/tokens/tokens.css:235', pattern: '--ring: 0 0 0 3px var(--accent);' },
     ],
   },
   {
@@ -94,8 +94,8 @@ export const RULES = [
     dontHtml: busyDont,
     kit: [
       { ref: 'src/components/index.js:37', pattern: 'busy ⇒ disabled' },
-      { ref: 'src/styles/button.css:125', pattern: '.ui-btn[aria-busy="true"] {' },
-      { ref: 'stories/contrast.test.js:242', pattern: 'inactive components and their whole subtree' },
+      { ref: 'src/styles/button.css:126', pattern: '.ui-btn[aria-busy="true"] {' },
+      { ref: 'stories/contrast.test.js:239', pattern: 'inactive components and their whole subtree' },
     ],
   },
   {

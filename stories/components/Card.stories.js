@@ -8,7 +8,7 @@ export default {
 
 export const Variants = {
   render: () => pad(grid(2,
-    card({ title: 'Default card', sub: 'Flat: a filled surface and generous radius, no drop shadow. Dark groups by surface alone; light adds a hairline border.', body: button({ label: 'Action', variant: 'secondary', size: 'sm' }) }),
+    card({ title: 'Default card', sub: 'Flat: a filled surface, a hairline and a generous radius. Nothing casts — the surface says it is a step above the page, and the line draws its edge.', body: button({ label: 'Action', variant: 'secondary', size: 'sm' }) }),
     card({ variant: 'accent', title: 'Accent card', icon: 'sparkle', sub: 'Tinted with the purple accent and a hairline ring — for the highlighted plan or upsell.', body: button({ label: 'Upgrade', variant: 'primary', size: 'sm' }) }),
     card({ variant: 'live', title: `Live surface ${badge('Live', 'live')}`, sub: 'Green-tinted, for an active/confirmed state such as a connected agent.', body: pill('Connected', 'live') }),
     card({ title: 'With icon chip', icon: 'shield', sub: 'A leading icon chip anchors the header for feature and settings cards.' }),

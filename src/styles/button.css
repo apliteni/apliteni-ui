@@ -102,11 +102,12 @@
   border-color: transparent;
   color: var(--disabled-ink-bare);
 }
-/* With no box, the ink is read on whatever is behind it. --disabled-ink read
-   5.18:1 on a card and 4.66:1 on --surface-3 in dark, under #220's 5.56, so the
-   ghost takes an ink set for the dullest ground: in dark 7.00 / 6.24 / 6.69 /
-   5.62 on --bg / --surface / --surface-2 / --surface-3, in light 6.50 / 6.50 /
-   6.01 / 5.60. The enabled ghost's --dim reads 1.5 times that in dark, 1.6 in light.
+/* With no box, the ink is read on whatever is behind it, so the ghost takes an ink
+   set for the dullest ground: in dark 7.49 / 6.31 / 7.00 / 5.44 on --bg / --surface /
+   --surface-2 / --surface-3, in light 5.70 / 6.17 / 5.20 / 5.39. The enabled ghost's
+   --dim reads about 1.5 times that in both themes. #273 cut this ink to rescue two
+   dark pairs from under #220's floor; #295 re-picked --muted against the elevation
+   ladder and lifted both clear, so it is the margin now rather than the rescue.
 
    #273 got here the long way. It first gave the ghost the flat disabled box
    instead, on the claim that nothing would get less readable. That was false:

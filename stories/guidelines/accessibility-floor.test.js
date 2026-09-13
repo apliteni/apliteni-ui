@@ -22,7 +22,7 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 import {
   STYLE_FILES, kitCssFor, substitute, desugar, parseColour, composite, ratio,
   effectiveBackground, makeStyleCache, installDomGlobals, storyFiles,
-  selectorPath,
+  selectorPath, tokensFor,
 } from '../lib/contrast.js';
 import {
   TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
@@ -753,6 +753,34 @@ test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst the kit
       .filter((f) => f.labelled && Math.round(f.ratio * 100) / 100 < DISABLED_FLOOR)
       .map((f) => `${f.path} at opacity ${f.opacity} — ${f.ratio.toFixed(2)}:1`);
     assert.deepEqual(worse, [], `${theme}: a token moved a disabled pair below the ratchet`);
+  }
+});
+
+// The ratio the rule ARGUES from, pinned to the tokens it is a ratio of. The page
+// quoted 5.56:1 for the disabled primary long after #295 moved every ground under
+// it, and nothing here noticed: the ratchet above holds the floor, not the prose.
+// Both themes, because one theme's number is the cherry-pick that hid the drift.
+// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+test('disabled: the ratio the rule argues from is the ratio the trio makes', () => {
+  const rule = RULES.find((r) => r.id === 'disabled-legibility');
+  assert.ok(rule, 'the disabled-legibility rule is gone from the floor page');
+  const prose = [rule.imperative, rule.why, rule.except].join(' ');
+  for (const theme of THEMES) {
+    const vars = tokensFor(theme);
+    const chain = (name) => {
+      let value = vars.get(name);
+      while (/^var\(\s*--[\w-]+\s*\)$/.test(value.trim())) {
+        value = vars.get(value.trim().slice(4, -1).trim());
+      }
+      return parseColour(value);
+    };
+    const measured = ratio(chain('--disabled-ink'), chain('--disabled-surface')).toFixed(2);
+    assert.ok(
+      prose.includes(`${measured}:1`),
+      `${theme}: --disabled-ink on --disabled-surface measures ${measured}:1 and the rule's own `
+        + 'prose never says so. Write the measured pair for BOTH themes into the rule — a single '
+        + 'number there is a cherry-pick, and it goes stale the next time the ladder moves.',
+    );
   }
 });
 

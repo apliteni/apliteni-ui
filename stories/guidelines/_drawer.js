@@ -58,7 +58,7 @@ export const RULES = [
       + 'container, and a heading is all the structure a group needs inside it.',
     dontCaption: 'The same groups, each in a card: a box inside the panel\'s box, and every card '
       + 'edge is one more line to read past.',
-    why: 'The panel already has an edge, a surface and a shadow, which is everything a card would '
+    why: 'The panel already has an edge and a surface a step above the page, which is everything a card would '
       + 'add. None of the design systems read for #272 nests cards in a drawer. The Finance '
       + 'portal\'s transaction drawer, reported there, shows what happens when a page does: three '
       + 'bordered cards stacked in a bordered panel.',

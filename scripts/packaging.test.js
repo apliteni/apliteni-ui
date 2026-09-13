@@ -482,3 +482,23 @@ test('the React subpath ships built JS, types and CSS', () => {
   const dts = readFileSync(path.join(installed, 'react', 'dist', 'index.d.ts'), 'utf8');
   assert.match(dts, /\bexport\b/, 'react/dist/index.d.ts declares no exports');
 });
+
+// The lockfile states the version twice, and a hand-written bump had missed both
+// before — `main` shipped 0.32.0 with a lockfile still saying 0.31.0, because
+// nothing read it. `npm version` writes all three; this is what says so when a
+// release is edited by hand instead.
+test('package-lock.json states the version package.json states', () => {
+  const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
+  const stated = [
+    ['the lockfile root', lock.version],
+    ['packages[""]', lock.packages?.['']?.version],
+  ];
+  for (const [where, version] of stated) {
+    assert.equal(
+      version,
+      pkg.version,
+      `${where} says ${version} and package.json says ${pkg.version}. Bump it with ` +
+        '`npm version` rather than by hand, or edit both fields.',
+    );
+  }
+});

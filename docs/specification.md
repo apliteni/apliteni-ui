@@ -376,19 +376,22 @@ and the box under it toward the ground together, so what a reader is left with i
 composite lands. A disabled primary button measured 1.48:1 that way — white on a washed-out accent
 — and no disabled control in the light theme reached 3:1. Every disabled rule with a label under
 it now takes `--disabled-ink` on `--disabled-surface` at full opacity, which composites
-predictably, and every disabled label on a box of its own measures between 5.56:1 and 6.11:1.
+predictably, and every disabled label on a box of its own measures between 4.89:1 and 6.91:1.
 A ghost button paints no box, on or off, so its label is read on whatever is behind it. It takes
-`--disabled-ink-bare` instead, set to clear 5.56:1 on the dullest ground the kit paints, and
-reads between 5.60:1 and 7.00:1 depending on where it is put. That is still well under the
-enabled ghost beside it. Settled in [#273][i273].
+`--disabled-ink-bare` instead, set for the dullest ground the kit paints, and reads between
+5.20:1 and 7.49:1 depending on where it is put. That is still well under the enabled ghost beside
+it. Settled in [#273][i273], and re-measured at
+[#295](https://github.com/apliteni/apliteni-ui/issues/295), which moved every ground under both
+inks — see Elevation above.
 
 The floor is **3:1**, the bar WCAG uses for large text and for a graphic — a disabled label has to
 stay identifiable as the word it is, and no standard sets this because 1.4.3 exempts the control
 outright. It is not higher, because the other pressure turns out not to live on this axis: the
-disabled primary reads 5.56:1 and the enabled one reads 5.70:1, and nobody confuses white on
-purple with grey on grey. Contrast carries legibility; the paint carries the state. So the
-guarantee has a second half — **a disabled control never shows the pair it shows enabled** — and
-that is what a control cannot satisfy by looking available.
+disabled primary reads 6.91:1 in dark and 4.89:1 in light, against 5.70:1 and 7.34:1 for the
+enabled one — more contrast than the enabled button in dark and less in light — and nobody
+confuses white on purple with grey on grey in either direction. Contrast carries legibility; the
+paint carries the state. So the guarantee has a second half — **a disabled control never shows the
+pair it shows enabled** — and that is what a control cannot satisfy by looking available.
 
 The trio is neutral, so it does not move with the accent, and a disabled control drops the accent
 by construction. One rule still fades: the switch track, which has no label inside it.
@@ -400,6 +403,77 @@ disabled state taken off the element and the cascade read again.
 
 Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured in
 [#201](https://github.com/apliteni/apliteni-ui/issues/201).
+
+## Elevation
+
+**Nothing in the kit casts a shadow.** A surface says how high it is with two things: its step on
+a ladder of lightness, and the kit's hairline around it. `--shadow-sm`, `--shadow-md`,
+`--shadow-lg`, `--shadow-seg` and `--shadow-card` are still published so a consumer reading one
+does not break, and all five are the transparent shadow `0 0 #0000` in both themes. Nothing under
+`src/` reads them. **Transparent and not `none`**, because a shadow token is read in a list: the
+kit's own pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is valid
+only on its own — it invalidates the whole declaration and takes the focus ring out with it.
+
+A cast shadow is an **offset** layer of ink under a surface, and that is the thing this rule
+refuses. A zero-offset layer of the signal's own colour is a glow, not a shadow: it says *this is
+lit*, not *this is high*. `--glow-*`, `--sheen`, `--ring` and the two `drop-shadow()` glows on the
+success mark are all that shape and all stay.
+
+The ladder, bottom to top:
+
+| Token | The step | Dark | Light |
+| --- | --- | --- | --- |
+| `--bg` | the page | `#0e0d14` | `#eef0f5` |
+| `--surface-2` | sunken — a field, a track, a disabled box, a code block | `#161520` | `#e3e6ee` |
+| `--surface` | a card | `#211e2d` | `#f8f9fc` |
+| `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
+| `--surface-3` | the top step — the hover readout, a chip, the nav rail's hover | `#2d293c` | `#e7eaf1` |
+
+Dark runs it upwards: the page is the darkest thing on screen, every step above it is lighter than
+the one under it, and the order in the table is the order on screen. Light cannot, because nothing
+is brighter than the white a card already was — so the page comes off white, the card comes off
+white behind it, and white is kept for the top: **a floating panel is the only pure white on a
+light screen.**
+
+**In light the ladder is not monotonic, and the top step is the exception.** `--surface-3` is
+`#e7eaf1`: below the page, and 1.04:1 above the sunken step. It cannot be above `--bg-elevated`,
+because `--bg-elevated` is white and light has nothing brighter to give it. So in light the top
+step means the **quiet fill** rather than the highest surface — a chip, a hovered row, the hover
+readout's panel — and a reader sees the light readout as a recessed surface rather than a raised
+one. This is the value the picked prototype carried and the one the approved frames were drawn
+with; it is stated here rather than described as a ladder light does not run. Open on
+[#295](https://github.com/apliteni/apliteni-ui/issues/295).
+
+**Every floating surface keeps the hairline as well, and the card takes one in both themes.**
+A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
+not enough to draw an edge. The line draws the edge; the step says which way is up. Dropping
+either one leaves a theme carrying the whole separation on the half that is weak for it.
+
+**Inside a raised surface, a row or a chip that lifts takes the step above the panel.** A hovered
+row, an active row, a chip and a key cap inside a floating panel paint `--surface-3`, never
+`--surface`: `--surface` is the card step and sits *below* `--bg-elevated` in dark, so a hover
+drawn with it sank while the panel it was in floated. In light that step is drawn downwards —
+`--surface-3` is darker than the white panel — which is how a light theme has always shown a
+hover. A field inside a panel goes the other way: it is the sunken step, `--surface-2`, the same
+one `.ui-input` takes.
+
+**The accent wash is painted on a base surface, never a raised one.** A translucent wash over a
+raised surface sits closer to the ink read on it than the same wash over the page, which is what
+takes an accent counter under the floor inside a panel. Two rules state it:
+`src/styles/nav.css:128` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
+`src/styles/dropdown.css:166` `.ui-dropdown__badge.is-accent`.
+
+**The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
+the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked
+against the TOP of the ladder rather than against the page. That is the standing cost of the rule:
+a raised surface that gets lighter asks the ink to get lighter with it, and the next surface that
+wants to float spends what is left.
+
+Held by `stories/contrast.test.js` and `stories/accent-contrast.test.js`, which measure every
+ground the two token files declare rather than a list typed into a gate.
+
+Decided in [#295](https://github.com/apliteni/apliteni-ui/issues/295), after
+[#284](https://github.com/apliteni/apliteni-ui/issues/284) made the card flat.
 
 ## The focus ring
 

@@ -28,7 +28,6 @@
   background: var(--ui-tip-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.45;
@@ -45,9 +44,9 @@
     visibility var(--dur-fast) linear;
 }
 
-/* Light is an all-white app, so the raised surface is white over a hairline,
-   the way a light card is. */
-:root[data-theme="light"] .ui-tip { --ui-tip-bg: var(--surface); }
+/* No light override: it re-pointed the readout at --surface, which #295 made the card
+   step, so a readout over a card was painted the card's own colour. --surface-3 is the
+   readout's step in both themes. why: docs/specification.md#elevation */
 
 /* Below the mark: the wiring's flip when above would be clipped, or the
    author's own choice. */

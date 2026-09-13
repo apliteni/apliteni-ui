@@ -279,7 +279,7 @@ function swatchesIn(file, html) {
       + 'page paints, and this gate cannot tell you which: keeping the last one silently is how a '
       + 'retired picker left under the live one — or commented out beside it — becomes the thing '
       + 'that gets validated. Delete the old one. (If a second REAL picker ever lands in one file '
-      + '— inlining the {{FOOTER}} placeholder at site/index.html:379 `{{FOOTER}}` would put one '
+      + '— inlining the {{FOOTER}} placeholder at site/index.html:380 `{{FOOTER}}` would put one '
       + 'there — then '
       + 'this gate has to learn to read a picker group rather than a file, which is a change to '
       + 'make deliberately.)',

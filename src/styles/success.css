@@ -19,8 +19,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 20px;
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-md);
+  background: var(--bg-elevated);   /* the floating step carries it. #295 */
+  border: 1px solid var(--border);
   isolation: isolate;
 }
 

@@ -51,3 +51,50 @@ test('no raw colour in a colour-valued property across src/styles', () => {
     `raw colour found — move it into src/tokens/tokens.css and name its job:\n  ${offences.join('\n  ')}`,
   );
 });
+
+/* The same rule, for a colour the scan above cannot see.
+ *
+ * A data URI encodes `#` as `%23`, so a hex inside one is invisible to the LITERAL
+ * pattern — which is how the select's chevron kept dark --muted's pre-#295 value
+ * and reached 2.49:1 on the light field. A stencil in a data URI cannot read a
+ * token (`var()` does not substitute inside url(), and `currentColor` does not
+ * cross into the image's document), so the literal is unavoidable; what is not
+ * unavoidable is a literal the ramp no longer declares.
+ *
+ * What this does NOT reach: whether the value is the RIGHT token for the ground
+ * the image is drawn on. It catches a ramp that moved and left a stencil behind,
+ * which is the failure that happened.
+ */
+const TOKEN_DIR = fileURLToPath(new URL('../src/tokens/', import.meta.url));
+const ENCODED = /%23([0-9a-fA-F]{3,8})\b/g;
+
+test('an encoded colour in a data URI is still a value the ramp declares', () => {
+  const ramp = new Set();
+  for (const file of readdirSync(TOKEN_DIR).filter((f) => f.endsWith('.css'))) {
+    const css = decomment(readFileSync(TOKEN_DIR + file, 'utf8'));
+    for (const m of css.matchAll(/#[0-9a-fA-F]{3,8}\b/g)) ramp.add(m[0].toLowerCase());
+  }
+
+  const orphans = [];
+  let swept = 0;
+  for (const file of readdirSync(STYLES).filter((f) => f.endsWith('.css'))) {
+    const css = decomment(readFileSync(STYLES + file, 'utf8'));
+    for (const m of css.matchAll(ENCODED)) {
+      swept += 1;
+      const hex = `#${m[1].toLowerCase()}`;
+      if (ramp.has(hex)) continue;
+      const line = css.slice(0, m.index).split('\n').length;
+      orphans.push(`${file}:${line}  ${hex} (encoded ${m[0]})`);
+    }
+  }
+
+  assert.ok(swept > 0, 'no encoded colour was found at all — the sweep is reading nothing');
+  assert.deepStrictEqual(
+    orphans,
+    [],
+    'an encoded colour in a data URI is not a value src/tokens declares any more, so the '
+      + 'stencil is painting a hex the kit has moved on from:\n  '
+      + `${orphans.join('\n  ')}\n`
+      + 'Re-encode it from the token it stands for, per theme where the token differs by theme.',
+  );
+});
