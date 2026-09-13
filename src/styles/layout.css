@@ -241,7 +241,7 @@
    both widths. why: docs/specification.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
-.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
+.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
   .ui-app.is-collapsed,
   .ui-app:has(.ui-app__fold) { anchor-scope: --ui-rail; }
@@ -343,7 +343,7 @@
   .ui-app__rail .ui-nav__item,
   .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
+  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }
     .ui-app__rail { anchor-name: --ui-rail; }

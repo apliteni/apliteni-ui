@@ -44,6 +44,13 @@
   width: 100%;
   max-width: var(--panel-md);
   overflow: hidden; /* clips the timer bar + left marker to the rounded corners */
+  /* A toast floats, so it takes the floating treatment — but it carries a STATUS
+     rather than the neutral hairline, so each style below re-points --elev-edge at
+     its own tint instead of letting the inner line come out violet-grey over a
+     coloured surface. The outer line is left where each style already drew it: a
+     tint is the status speaking, and strengthening it would say something louder
+     than the status does. why: docs/specification.md#elevation */
+  box-shadow: var(--elev-floating);
   animation: ui-toast-in var(--dur-med) var(--ease-out) both;
 }
 
@@ -115,6 +122,7 @@
 .ui-toast--soft {
   background: var(--toast-glow);
   border: 1px solid color-mix(in srgb, var(--toast-accent) 22%, transparent);
+  --elev-edge: color-mix(in srgb, var(--toast-accent) 11%, transparent);
 }
 
 /* style: solid — the status at fill strength, inked with the pole opposite it.
@@ -128,6 +136,9 @@
   --toast-ink: var(--signal-solid-ink);
   background: var(--toast-solid);
   color: var(--toast-ink);
+  /* No inner line: a solid toast has no outer one either, and the status at full
+     fill strength is its own edge. It keeps the drop. */
+  --elev-edge: transparent;
 }
 .ui-toast--solid .ui-toast__title { color: var(--toast-ink); }
 /* The body copy is the quieter of the two, but it stays quiet by dilution the
@@ -147,7 +158,7 @@
 .ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-ink) 55%, transparent); }
 
 /* style: outline — elevated card with a status-tinted border */
-.ui-toast--outline { background: var(--bg-elevated); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); }
+.ui-toast--outline { background: var(--bg-elevated); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); --elev-edge: color-mix(in srgb, var(--toast-accent) 20%, transparent); }
 
 /* compact — single line, no body text */
 .ui-toast--compact { align-items: center; padding-top: 10px; padding-bottom: 10px; }

@@ -58,9 +58,16 @@
   display: flex;
   flex-direction: column;
   background: var(--drawer-surface);
+  /* A drawer is FLUSH to the screen edge, so it has one edge rather than four and
+     the two-step edge is drawn along that one: --border-strong on the edge rule
+     below, and the inner line one pixel inside it, in the same direction. The
+     token's own ring is switched off here — a full inset ring would draw 1px lines
+     across the top and bottom of a full-height panel, where there is no edge.
+     why: docs/specification.md#elevation */
+  --elev-edge: transparent;
+  box-shadow: var(--elev-floating);
   transition: transform var(--dur-med) var(--ease);
 }
-.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }
 
 /* -- Edge anchoring + slide-in direction ---------------------------------- */
@@ -72,12 +79,14 @@
 }
 .ui-drawer--right .ui-drawer__panel {
   right: 0;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: inset 1px 0 0 var(--border), var(--elev-floating);
   transform: translateX(100%);
 }
 .ui-drawer--left .ui-drawer__panel {
   left: 0;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-strong);
+  box-shadow: inset -1px 0 0 var(--border), var(--elev-floating);
   transform: translateX(-100%);
 }
 .ui-drawer--top .ui-drawer__panel,
@@ -88,14 +97,23 @@
 }
 .ui-drawer--top .ui-drawer__panel {
   top: 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: inset 0 -1px 0 var(--border), var(--elev-floating);
   transform: translateY(-100%);
 }
 .ui-drawer--bottom .ui-drawer__panel {
   bottom: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-strong);
+  box-shadow: inset 0 1px 0 var(--border), var(--elev-floating);
   transform: translateY(100%);
 }
+
+/* Below the four edge rules, not above them. The ring is COMPOSED with the floating
+   treatment rather than written over it — a box-shadow list replaces the whole list —
+   and `.ui-drawer__panel:focus-visible` weighs the same (0,2,0) as
+   `.ui-drawer--right .ui-drawer__panel`, so above them source order took the ring off
+   every drawer the kit ships. why: docs/specification.md#elevation */
+.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--ring), var(--elev-floating); }
 
 /* -- Sizes ----------------------------------------------------------------- */
 /* left|right → width; top|bottom → height. Same names, axis chosen by side. */

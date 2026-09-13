@@ -133,9 +133,10 @@
   --pink: #e97ca5;
   --amber: #ffcf6a;
 
-  /* The elevation ladder, bottom to top. Nothing casts; a surface says how high it is
-     with its step and with the hairline around it, and --muted caps how far the ladder
-     can go. why: docs/specification.md#elevation */
+  /* The elevation ladder, bottom to top. A surface says how high it is with its step and
+     with the hairline around it, and --muted caps how far the ladder can go. Nothing casts
+     below the floating step; the floating step itself adds --elev-floating and nothing else
+     in the kit does. why: docs/specification.md#elevation */
   --bg: #0e0d14;
   --surface-2: #161520;     /* SUNKEN — fields, tracks, disabled, code */
   --surface: #211e2d;       /* the card */
@@ -214,9 +215,10 @@
   --signal-solid-info: var(--cyan);
   --signal-solid-neutral: var(--muted);
 
-  /* DEPRECATED since #295: the kit casts no shadow anywhere. Published still, so a
-     consumer reading one gets nothing rather than an unresolved var(), and a consumer who
-     wants a cast shadow sets them. Nothing in src/ reads them.
+  /* DEPRECATED since #295: no surface below the floating step casts, and the floating
+     step reads --elev-floating rather than any of these. Published still, so a consumer
+     reading one gets nothing rather than an unresolved var(), and a consumer who wants a
+     cast shadow sets them. Nothing in src/ reads them.
 
      A transparent shadow, not `none`, because these are read in a LIST. The kit's own
      pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is only
@@ -238,6 +240,34 @@
      raised surface. Effects mix these instead of writing rgba(). */
   --shadow-ink: #000000;
   --sheen: #ffffff;
+
+  /* THE FLOATING TREATMENT — the one cast shadow the kit paints, and the only
+     place a --shadow-* style value is read under src/. Two devices in one list,
+     in Primer's --shadow-floating-* order: the 1px inset line first, then the
+     broad faint drops.
+
+     The line is the inner half of a TWO-STEP edge. A floating surface takes
+     --border-strong on its own border and this line one pixel inside it, so the
+     edge is drawn twice — outer against what is behind, inner against the panel.
+     One hairline at 1.2:1 was the whole separation before; two lines measure
+     1.64 / 1.44 against the card in dark / light.
+
+     --elev-edge is the hook a surface that carries its own tint re-points, so a
+     status toast draws its inner line in its own colour rather than in the
+     neutral hairline. Unset, it is --border, which is what every neutral
+     floating surface wants.
+
+     The drop is BROAD AND FAINT, never tight and dark: it separates the panel
+     from what it covers, it does not draw its edge. 62% / 50% of --shadow-ink
+     here, because near-black on a near-black page is nearly invisible and dark
+     leans on the edge instead; light spends far less (see the light block) and
+     gets the stronger reading of the two. Measured: the drop core reads 1.20 on
+     the card in dark and 1.43 in light.
+     why: docs/specification.md#elevation */
+  --elev-floating:
+    inset 0 0 0 1px var(--elev-edge, var(--border)),
+    0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),
+    0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 50%, transparent);
 
   /* Backdrop that dims the page behind an overlay (drawer, modal, composer). */
   --scrim: rgba(0, 0, 0, 0.58);
@@ -344,6 +374,18 @@
 
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
+
+  /* The same treatment, re-measured for a theme that reads a drop well and a
+     lightness step barely at all. 18% / 10% of --shadow-ink, against dark's
+     62% / 50%: light's ink is #1e1e32 rather than black, it falls on a card at
+     #f8f9fc, and 18% is what puts the drop core at #d1d2d8 — 1.43 on the card,
+     the strongest separation either theme gets from any device measured for
+     #295. Pushed to dark's alphas it would be a bruise under every menu.
+     why: docs/specification.md#elevation */
+  --elev-floating:
+    inset 0 0 0 1px var(--elev-edge, var(--border)),
+    0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 18%, transparent),
+    0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 10%, transparent);
 
   --scrim: rgba(20, 22, 40, 0.38);
 

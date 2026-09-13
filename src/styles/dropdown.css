@@ -60,7 +60,10 @@
   /* The floating step, not the sunken one — a panel held open over a card cannot be
      painted the colour of an inset. why: docs/specification.md#elevation */
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  /* The two-step edge and the drop: --border-strong outside, --border one pixel
+     inside it, then the broad faint drop. why: docs/specification.md#elevation */
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--elev-floating);
   border-radius: var(--radius-lg);
   padding: 6px;
   opacity: 0;

@@ -123,7 +123,10 @@
   left: 0;
   min-width: 266px;
   background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
-  border: 1px solid var(--border);
+  /* The two-step edge and the drop: --border-strong outside, --border one pixel
+     inside it, then the broad faint drop. why: docs/specification.md#elevation */
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--elev-floating);
   border-radius: 16px;
   padding: 6px;
   opacity: 0;
@@ -222,7 +225,10 @@
   right: 0; top: 44px;
   width: 252px;
   background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
-  border: 1px solid var(--border);
+  /* The two-step edge and the drop: --border-strong outside, --border one pixel
+     inside it, then the broad faint drop. why: docs/specification.md#elevation */
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--elev-floating);
   border-radius: 14px;
   overflow: hidden;
   opacity: 0;

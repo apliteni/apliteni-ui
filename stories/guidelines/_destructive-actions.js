@@ -80,7 +80,7 @@ export const RULES = [
     dontHtml: menuDont,
     kit: [
       { ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' },
-      { ref: 'src/styles/dropdown.css:186', pattern: '.ui-dropdown__item.is-danger:hover' },
+      { ref: 'src/styles/dropdown.css:189', pattern: '.ui-dropdown__item.is-danger:hover' },
       { ref: 'src/styles/nav.css:111', pattern: '.ui-nav__item.is-danger:hover' },
     ],
   },
@@ -115,7 +115,7 @@ export const RULES = [
     kit: [
       { ref: 'src/components/confirm.js:61', pattern: 'role="alertdialog"' },
       { ref: 'src/components/index.js:246', pattern: 'class="ui-toast__action"' },
-      { ref: 'src/styles/callout.css:83', pattern: '.ui-toast__action { flex: none;' },
+      { ref: 'src/styles/callout.css:90', pattern: '.ui-toast__action { flex: none;' },
     ],
   },
 ];
