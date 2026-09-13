@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Popover separation variants (#295)</title>
+<!-- A review prototype, not kit source. It draws one separation treatment per URL
+     on the kit's OWN dropdown panel, over the kit's own card, with the kit's real
+     stylesheet and factories — for the screenshots on
+     docs/reviews/295-popover-variants.html. Nothing here is imported by src/.
+       ?v=today|edge|shadow|frost|step|tint|all
+       &frame=list|form
+       &theme=light|dark -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../../src/index.css">
+<style>
+  body { margin: 0; background: var(--bg); font-family: var(--font-sans); }
+  .pv-page { padding: var(--space-8) var(--space-6) var(--space-8); }
+  .pv-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-10) var(--space-8); align-items: start; }
+  .pv-row.is-one { grid-template-columns: minmax(0, 420px); }
+  .pv-name { font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 var(--space-3); font-weight: var(--weight-semibold); }
+  .pv-card-body { display: grid; gap: var(--space-3); margin-top: var(--space-5); }
+  .pv-line { display: flex; justify-content: space-between; gap: var(--space-4);
+    font-size: var(--text-sm); color: var(--dim); }
+  .pv-line b { color: var(--text); font-weight: var(--weight-medium); }
+  .pv-trigger-row { display: flex; justify-content: flex-start; }
+  /* The card is deep enough that the open panel stays inside it — a panel that
+     hangs past its own card is reading against the page, not against a card. */
+  .pv-cell .ui-card { min-height: 470px; }
+  /* Breathing room so an element capture of .pv-cell keeps the card's own edge
+     and, for the drop treatments, the falling ink beside it. */
+  .pv-cell { padding: var(--space-4); }
+
+  /* The form the panel holds in ?frame=form — the surface the reporter reacted to. */
+  .pv-form { min-width: 264px; padding: var(--space-4); }
+  .pv-form__title { font-size: var(--text-sm); font-weight: var(--weight-semibold);
+    color: var(--strong); margin: 0 0 var(--space-3); }
+  .pv-form__fields { display: grid; gap: var(--space-3); }
+  .pv-form__foot { display: flex; gap: var(--space-2); justify-content: flex-end;
+    margin-top: var(--space-4); }
+
+  /* ------------------------------------------------------------------ *
+   * The five treatments. Each is a class on the panel and nothing else, *
+   * so every one is read against the same panel, card and page.         *
+   * ------------------------------------------------------------------ */
+
+  /* a · two-step edge — the one line becomes two, outer then inner, and the
+     panel sits inside both. No new token: --border-strong and --border both ship. */
+  .pv--edge { border-color: var(--border-strong); box-shadow: inset 0 0 0 1px var(--border); }
+
+  /* b · a soft shadow kept only on a floating surface. The hairline stays; the
+     drop is built out of --shadow-ink, which already ships. */
+  .pv--shadow { box-shadow: 0 14px 30px -12px var(--pv-drop-far), 0 3px 9px -4px var(--pv-drop-near); }
+
+  /* c · frost. The panel goes translucent and blurs what is behind it. */
+  .pv--frost {
+    background: color-mix(in srgb, var(--bg-elevated) 78%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(165%);
+    backdrop-filter: blur(18px) saturate(165%);
+    border-color: var(--pv-frost-line);
+  }
+  /* The cost every frost carries: a browser without backdrop-filter gets a
+     translucent panel with nothing blurring behind it, so it has to be paid back. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .pv--frost { background: var(--bg-elevated); }
+  }
+
+  /* d · a stronger lightness step, floating surfaces only. */
+  .pv--step { background: var(--pv-float-2); }
+
+  /* e · tinted edge — the shape src/styles/card.css:30 `.ui-card--accent`
+     already uses on a card, applied to a floating panel instead. */
+  .pv--tint {
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+    background: color-mix(in srgb, var(--accent) 5%, var(--bg-elevated));
+  }
+
+  /* a+b · the two stacked, which is the shape Primer's --shadow-floating-* already
+     has: a 1px line in the box-shadow list, then the soft drops after it. */
+  .pv--both {
+    border-color: var(--border-strong);
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 14px 30px -12px var(--pv-drop-far),
+      0 3px 9px -4px var(--pv-drop-near);
+  }
+
+  :root {
+    --pv-drop-far: color-mix(in srgb, var(--shadow-ink) 62%, transparent);
+    --pv-drop-near: color-mix(in srgb, var(--shadow-ink) 50%, transparent);
+    --pv-frost-line: color-mix(in srgb, var(--sheen) 13%, var(--border));
+    --pv-float-2: #38324f;   /* one step above --bg-elevated; --muted still clears AA on it */
+    --pv-card-down: var(--surface);
+  }
+  :root[data-theme="light"] {
+    --pv-drop-far: color-mix(in srgb, #101626 17%, transparent);
+    --pv-drop-near: color-mix(in srgb, #101626 10%, transparent);
+    --pv-frost-line: var(--border-strong);
+    --pv-float-2: #ffffff;   /* light has nothing above white — see the card below */
+    --pv-card-down: #f2f4f9; /* so light buys the step by moving the CARD down instead */
+  }
+  /* Only d changes anything outside the panel, and only in light. */
+  .pv-cell--step .ui-card { background: var(--pv-card-down); }
+
+  @media (max-width: 1100px) {
+    .pv-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .pv-page { padding: var(--space-5) var(--space-4); }
+    .pv-row, .pv-row.is-one { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+  import { dropdown } from '../../../src/components/dropdown.js';
+  import { card, field, select, button } from '../../../src/components/index.js';
+
+  const q = new URLSearchParams(location.search);
+  const frame = q.get('frame') === 'form' ? 'form' : 'list';
+  document.documentElement.setAttribute('data-theme', q.get('theme') === 'light' ? 'light' : 'dark');
+
+  // Every name and figure below is a placeholder: this repository is public.
+  const VARIANTS = [
+    ['today', 'Today — hairline + step', ''],
+    ['edge', 'a · Two-step edge', 'pv--edge'],
+    ['shadow', 'b · Soft shadow, floating only', 'pv--shadow'],
+    ['frost', 'c · Frost', 'pv--frost'],
+    ['step', 'd · Stronger step', 'pv--step'],
+    ['tint', 'e · Tinted edge', 'pv--tint'],
+    ['both', 'a + b · Two-step edge and the drop', 'pv--both'],
+  ];
+
+  const ITEMS = [
+    { label: 'All campaigns', description: 'Every campaign in the workspace', selected: true, value: 'all' },
+    { label: 'Search partners', description: 'Paid search only', value: 'search' },
+    { label: 'Display network', description: 'Banner placements', value: 'display', badge: 'Live' },
+    '---',
+    { label: 'Archived', description: 'Hidden from reports', value: 'archived' },
+  ];
+
+  // Frame one: the kit's dropdown, open over a card.
+  const listPanel = (cls) => dropdown({
+    label: 'Scope:', variant: 'select', items: ITEMS, open: true, panelClass: cls, ariaLabel: 'Scope',
+  });
+
+  // Frame two: a popover holding a small form — two selects and Save / Cancel.
+  // This is the surface the reporter reacted to, so it is drawn the same way:
+  // the kit's own panel class, the kit's own field, select and button.
+  const formPanel = (cls) => `
+    <div class="ui-dropdown open">
+      <button class="ui-dropdown__trigger" type="button" aria-haspopup="dialog" aria-expanded="true">
+        <span class="ui-dropdown__pre">Filter:</span><span class="ui-dropdown__value">2 active</span>
+        <span class="ui-dropdown__chevron" aria-hidden="true"></span>
+      </button>
+      <div class="ui-dropdown__panel pv-form ${cls}" role="dialog" aria-label="Filter report">
+        <p class="pv-form__title">Filter report</p>
+        <div class="pv-form__fields">
+          ${field({ label: 'Period', control: select({ options: ['Last 7 days', 'Last 30 days', 'This quarter'], value: 'Last 30 days' }) })}
+          ${field({ label: 'Grouping', control: select({ options: ['Campaign', 'Partner', 'Country'], value: 'Partner' }) })}
+        </div>
+        <div class="pv-form__foot">
+          ${button({ label: 'Cancel', variant: 'ghost', size: 'sm' })}
+          ${button({ label: 'Save', variant: 'primary', size: 'sm' })}
+        </div>
+      </div>
+    </div>`;
+
+  const panel = (cls) => (frame === 'form' ? formPanel(cls) : listPanel(cls));
+
+  // The scene: the panel held open over a card, on the page. One scene per
+  // treatment, so the step, the line and the ground are identical across them.
+  const scene = (id, name, cls, labelled) => `
+    <div class="pv-cell${id === 'step' ? ' pv-cell--step' : ''}">
+      ${labelled ? `<p class="pv-name">${name}</p>` : ''}
+      ${card({
+        title: 'Partner payouts',
+        sub: 'A placeholder report, so the panel has something to be above.',
+        body: `<div class="pv-trigger-row">${panel(cls)}</div>
+          <div class="pv-card-body">
+            <div class="pv-line"><span>Example Co.</span><b>1,240</b></div>
+            <div class="pv-line"><span>Placeholder Ltd.</span><b>980</b></div>
+            <div class="pv-line"><span>Sample Partners</span><b>615</b></div>
+            <div class="pv-line"><span>Demo Media</span><b>402</b></div>
+            <div class="pv-line"><span>Placeholder Two</span><b>388</b></div>
+            <div class="pv-line"><span>Example North</span><b>274</b></div>
+            <div class="pv-line"><span>Sample South</span><b>195</b></div>
+            <div class="pv-line"><span>Demo West</span><b>140</b></div>
+          </div>`,
+      })}
+    </div>`;
+
+  const want = q.get('v') || 'all';
+  const chosen = want === 'all' ? VARIANTS : VARIANTS.filter(([id]) => id === want);
+  const list = chosen.length ? chosen : [VARIANTS[0]];
+  document.getElementById('root').innerHTML =
+    `<div class="pv-page"><div class="pv-row${list.length === 1 ? ' is-one' : ''}">`
+    + list.map(([id, name, cls]) => scene(id, name, cls, want === 'all')).join('')
+    + `</div></div>`;
+
+  document.fonts.ready.then(() => document.body.setAttribute('data-ready', ''));
+</script>
+</body>
+</html>
