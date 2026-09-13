@@ -460,8 +460,8 @@ one `.ui-input` takes.
 **The accent wash is painted on a base surface, never a raised one.** A translucent wash over a
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
 takes an accent counter under the floor inside a panel. Two rules state it:
-`src/styles/nav.css:128` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-`src/styles/dropdown.css:166` `.ui-dropdown__badge.is-accent`.
+`src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
+`src/styles/dropdown.css:176` `.ui-dropdown__badge.is-accent`.
 
 **The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
 the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked

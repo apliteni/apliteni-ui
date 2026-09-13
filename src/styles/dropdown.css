@@ -170,7 +170,7 @@
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 /* The accent counter keeps the badge's flat surface and changes only the ink — the shape
-   src/styles/nav.css:128 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
+   src/styles/nav.css:163 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
    The accent wash goes on a base surface, never a raised one, and #295 made this panel a
    raised one. why: docs/specification.md#elevation */
 .ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface-3); }

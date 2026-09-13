@@ -183,7 +183,7 @@ So write the line, then write what is **on** it:
 
 ```
 src/styles/callout.css:140 `.ui-toast--solid .ui-toast__action`
-src/styles/nav.css:38-40 `font-size: 14.5px;`
+src/styles/nav.css:61-63 `font-size: 14.5px;`
 ```
 
 `scripts/code-refs.test.js` resolves every one of them — the file exists, the line exists,
@@ -1545,8 +1545,8 @@ The role and portal guarantees are in [Typefaces](docs/specification.md#typeface
 `stories/button-chrome.test.js` checks clickable classes rendered as something other than
 a button. A browser gives a button a grey fill, 2px outset border, shrink-to-fit width,
 centred text, and `font: 400 13.3333px Arial`. The reset at
-src/styles/nav.css:29 `.ui-nav__item {` removes all of these. Before #251,
-src/styles/dropdown.css:111 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
+src/styles/nav.css:52 `.ui-nav__item {` removes all of these. Before #251,
+src/styles/dropdown.css:121 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
 
 Classes such as `.vopt` (`<div role tabindex>`), `.ui-card--interactive` (`<a href>`) and
 `.ui-fbpill` (bare `<div>`) had no button specimen. Classes already shown on a button are
@@ -1624,7 +1624,7 @@ cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
 src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
-property, the symmetric src/styles/layout.css:268 `margin-inline: auto`, against 25 physical left/right
+property, the symmetric src/styles/layout.css:271 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.
