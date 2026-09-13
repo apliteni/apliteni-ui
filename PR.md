@@ -319,17 +319,19 @@ frames rather than a defect to repair here.
 
 ## Proof
 
-Re-run in full after the review round.
+Re-run in full on the rebased tree (`7cb8727`); the earlier run after the review round is
+superseded by this one.
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Node suite | `npm test` | 1,402 tests, **1,400 pass, 2 skipped, 0 fail** (1m56s) |
-| Node suite, serially | `node --test --test-concurrency=1 'src/**/*.test.js' 'stories/**/*.test.js' 'site/**/*.test.js' 'scripts/**/*.test.js'` | same 1,402, **1,400 pass, 2 skipped, 0 fail** (6m30s) — the timing test passes with no contention |
+| Node suite | `npm test` | 1,416 tests, **1,414 pass, 2 skipped, 0 fail** (2m06s) |
+| Node suite, serially | `node --test --test-concurrency=1 'src/**/*.test.js' 'stories/**/*.test.js' 'site/**/*.test.js' 'scripts/**/*.test.js'` | same 1,416, **1,414 pass, 2 skipped, 0 fail** (6m43s) — the timing test passes with no contention |
 | React build | `npm run build --workspace react` | pass |
-| React tests | `npm test --workspace react` | **322 pass**, 16 files |
-| Secrets | `gitleaks detect --config .gitleaks.toml --log-opts origin/main..HEAD` | 15 commits scanned, **no leaks found** (v8.30.1) |
+| React tests | `npm test --workspace react` | **353 pass**, 17 files — the 31 added are #305's `react/src/field-zoom.test.tsx` |
+| Secrets | `gitleaks detect --config .gitleaks.toml --log-opts origin/main..HEAD` | every commit this branch adds to `main`, **no leaks found** (v8.30.1) |
 | Internal terms | the `.pre-commit-config.yaml` denylist, over `git diff origin/main..HEAD -U0` | clean |
 | Slop detector | `slop-detector.js` over every file this branch touches | **0 errors / 4 medium / 3 warnings — identical to the same sweep over the same files on `origin/main`, run back to back** |
+| Gates #305 and this branch both touch | `stories/field-zoom.test.js`; `stories/contrast.test.js`; `stories/accent-contrast.test.js`, `stories/signal-contrast.test.js` and `stories/guidelines/accessibility-floor.test.js` | 14 pass; 21 pass + the accent skip; 122 pass |
 | Citations | `scripts/code-refs.test.js`, `scripts/doc-refs.test.js`, `stories/guidelines/refs.test.js` | 92 pass |
 
 The two skips are the ones `main` skips: the accent sweep behind `CONTRAST_ACCENTS=1`, and the
