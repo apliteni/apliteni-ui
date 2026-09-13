@@ -14,7 +14,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
@@ -378,6 +378,79 @@ test('the specification states the same limits this gate measures', () => {
   assert.deepEqual(missing, [], 'the specification and the page disagree about a limit, or the '
     + 'specification stopped stating one. The number moved in stories/guidelines/_the-page.js and '
     + 'the sentence in docs/specification.md#the-page did not:\n  ' + missing.join('\n  '));
+});
+
+// ---- the rule-to-code table ----------------------------------------------
+// The contract's own table is where each rule meets the kit, and for `shell` and
+// `navs` it is the ONLY citation either has — they left the story when the page
+// was rewritten for a designer. It carries no line numbers on purpose, which is
+// the right call and has a cost: a path that stops existing and a symbol that is
+// renamed both go quiet. So the fenced spans are read out of the table and
+// resolved. Subjects are discovered from the table itself, so a row added
+// tomorrow is checked without editing this file.
+//
+// Ledger, what a pass does not say: nothing about whether the line found is the
+// line that HOLDS the rule — only that the file is there and the name is in it.
+// A symbol is searched as text, so a mention in a comment counts.
+
+const TABLE_HEADING = '### Which line of the kit holds each of them';
+/** A fenced span that names a file rather than a symbol or a selector. */
+const isPath = (span) => /^[\w.\-/]+\.(?:js|css|mjs)$/.test(span);
+
+/** The table's rows, each as `{ rule, spans }`, read out of the contract. */
+function ruleToCode(spec) {
+  const at = spec.indexOf(TABLE_HEADING);
+  assert.ok(at >= 0, `docs/specification.md no longer carries "${TABLE_HEADING}" — this gate is `
+    + 'reading nothing, and the two rules whose only citation lives there are unheld');
+  const section = spec.slice(at, spec.indexOf('\n## ', at + 1));
+  const rows = section.split('\n')
+    .filter((line) => line.startsWith('|') && !/^\|\s*-+/.test(line) && !/^\|\s*Rule\s*\|/.test(line))
+    .map((line) => line.split('|').slice(1, -1).map((c) => c.trim()));
+  const fenced = (cell) => [...cell.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+  return rows.map(([rule, where]) => ({ rule: fenced(rule)[0] ?? rule, spans: fenced(where) }));
+}
+
+const SPEC = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
+
+test('the contract’s rule-to-code table names one row per rule, and only rules', () => {
+  const table = ruleToCode(SPEC);
+  assert.deepEqual(
+    table.map((r) => r.rule).sort(), GATED.map((r) => r.id).sort(),
+    'the rule-to-code table in docs/specification.md#the-page and the rules themselves have '
+    + 'drifted. Every rule needs a row saying where the kit holds it, and a row needs a rule.',
+  );
+});
+
+test('every file the rule-to-code table names exists, and every name it fences is in one', () => {
+  const problems = [];
+  for (const { rule, spans } of ruleToCode(SPEC)) {
+    const paths = spans.filter(isPath);
+    if (!paths.length) { problems.push(`${rule}: the row names no file at all`); continue; }
+    // A row may name siblings by basename alone — `confirm.js` after
+    // `src/components/drawer.js` — so a bare name resolves against the
+    // directories the row has already spelled out.
+    const dirs = [...new Set(paths.filter((f) => f.includes('/')).map((f) => path.dirname(f)))];
+    const resolved = [];
+    for (const file of paths) {
+      const tries = file.includes('/') ? [file] : dirs.map((d) => `${d}/${file}`);
+      const found = tries.find((f) => existsSync(path.join(root, f)));
+      if (found) resolved.push(found);
+      else problems.push(`${rule}: \`${file}\` does not exist (looked at ${tries.join(', ')})`);
+    }
+    const text = resolved.map((f) => readFileSync(path.join(root, f), 'utf8')).join('\n');
+    for (const span of spans.filter((x) => !isPath(x))) {
+      // `appShell()` is written `appShell` where it is declared, `<h1>` is written
+      // `<h1 class=…` where it is emitted, and a class is `.ui-app__sub` in a
+      // stylesheet and `ui-app__sub` in the markup that carries it.
+      const needle = span.replace(/\(\)$/, '').replace(/^<(\w+)>$/, '<$1').replace(/^\./, '');
+      if (!text.includes(needle)) {
+        problems.push(`${rule}: \`${span}\` is in none of ${resolved.join(', ')}`);
+      }
+    }
+  }
+  assert.deepEqual(problems, [], 'the rule-to-code table in docs/specification.md#the-page cites '
+    + 'code that is not there. The table is the only citation `shell` and `navs` have, and it '
+    + 'carries no line numbers, so nothing else would have said so:\n  ' + problems.join('\n  '));
 });
 
 // A rule reaches this gate two ways — drawn on the page, or stated only in the

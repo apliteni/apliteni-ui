@@ -680,6 +680,13 @@ named by file and symbol rather than by line number, because a line number in a 
 resolves is a citation that rots in silence — the story's own citations carry the numbers, and
 `stories/guidelines/refs.test.js` resolves every one of them.
 
+The table resolves too. `stories/guidelines/the-page.test.js` reads its rows out of this section:
+every rule has one row and every row has a rule, every file a row names exists, and every symbol
+and selector a row fences is found in one of the files that row names. It says nothing about
+whether the line it found is the line that holds the rule — only that the file is there and the
+name is in it — which is the half a missing line number was costing. For `shell` and `navs` this
+table is the only citation either has.
+
 | Rule | Where the kit holds it |
 |---|---|
 | `shell` | `appShell()` in `src/components/shell.js`, and `financeShell()` in `stories/apps/_finance-nav.js` as the caller's side of it |
@@ -688,7 +695,7 @@ resolves is a citation that rots in silence — the story's own citations carry 
 | `outline` | the two title sizes the scale has: `rank: page-title` in `src/styles/layout.css` and `rank: card-title` in `src/styles/card.css` |
 | `one-primary` | `.ui-btn--primary` in `src/styles/button.css` |
 | `stacking` | `.ui-card` in `src/styles/card.css` |
-| `navs` | `sidebarNav()` and `breadcrumbs()` in `src/components/nav.js`, both named by `appShell()` |
+| `navs` | `sidebarNav()` and `breadcrumbs()` in `src/components/nav.js`, both named by `appShell()` in `src/components/shell.js` |
 | `at-rest` | `drawer()`, `confirm()`, `commandPalette()` and `tooltip()` each render closed unless asked — `src/components/drawer.js`, `confirm.js`, `command-palette.js`, `tooltip.js` |
 | `density` | `.ui-table--dense` and the cell padding it overrides, in `src/styles/table.css` |
 | `lede` | `.ui-app__sub`, written by `appShell()` in `src/components/shell.js` |

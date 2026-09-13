@@ -240,6 +240,13 @@ and the class is the look.
   test is what stops the next one.
 - **The specification is held to the same numbers.** A test reads the `## The page` section and
   fails if it stops stating a limit, or states a different one from `LIMITS`.
+- **The rule-to-code table resolves.** The contract's own *"Which line of the kit holds each of
+  them"* table is the only citation `shell` and `navs` have, now that both rules have left the
+  page, and it carries no line numbers on purpose — so nothing was holding its file paths either.
+  Two tests read its rows out of the section: every rule has one row and every row has a rule, and
+  every file a row names exists with every symbol and selector that row fences found inside one of
+  them. It is deliberately not a claim that the line found is the line that *holds* the rule; it
+  is the half that a missing line number was costing, which is that the name is still there.
 
 **Each rule was broken on purpose and watched go red.** A temporary `stories/apps/` story per
 fault — a page with no chrome, a toolbar above the title, two `h1`s, an `h1 → h3` jump, two
@@ -247,6 +254,19 @@ primary buttons, seven cards, a card in a card, an unnamed `<nav>`, a second `<n
 "Finance", a drawer opened at load, a dense table beside a roomy one, a three-sentence lede.
 All ten rule checks went red, each naming the story that broke it and the fault, and nothing
 else did. The file was deleted.
+
+**The table gate was broken four ways**, each mutation applied to `docs/specification.md`, the
+gate run for real, and the file restored and its SHA-256 compared with the one taken before:
+
+| Mutation | Result |
+|---|---|
+| `src/components/index.js` → `src/components/does-not-exist.js` in the `one-h1` row | **1 red**, naming the row and the paths it looked at |
+| `.ui-btn--primary` → `.ui-btn--never-written` in the `one-primary` row | **1 red**, naming the file it is not in |
+| the `stacking` row deleted | **1 red**, on the row-per-rule test |
+| the section's heading reworded | **2 red** — the gate says it is reading nothing rather than passing |
+
+Before the gate, the reviewer ran both of the first two against the whole suite: 1422 tests, 1419
+pass, and the only failure was this box's contrast clock.
 
 ## Discoverable where consumers look
 
@@ -341,7 +361,7 @@ them passes.
 
 ```
                        before (7ffbde4)                 after (round 6, on bb5fd04)
-root npm test          1397 tests, 1394 pass            1422 tests, 1420 pass
+root npm test          1397 tests, 1394 pass            1424 tests, 1422 pass
                        1 fail (the clock, 206.7s)       1 fail (the clock, 123.4s)
                        2 skipped                        1 skipped
 ```
@@ -353,7 +373,8 @@ suite, at a load average of 14. It missed by 3%. Run alone on the same box minut
 and the walk inside it clearing its own ceiling. Nothing else in the suite fails in either run.
 
 The round-6 rewrite adds and removes no tests — the gate still walks ten rules, eight read off the
-story and two off its `GATED_ELSEWHERE` — so the count is the same 1422 it was before it.
+story and two off its `GATED_ELSEWHERE` — so the count was the same 1422 it was before it. The two
+that hold the rule-to-code table take it to 1424.
 
 The skip count moves because one of the two is `overview.test.js`'s built-ids check, which skips
 when `storybook-static/` is absent and ran here against a fresh build. Eighteen of the new tests
