@@ -21,6 +21,11 @@ existing table checks in place. No test definitions were removed; the prose-cita
 longer discovers this page now that its citations are gone, and three new checks cover the
 explicit policy, the real story render and references moved into visible text.
 
+Round-7 full verification: **1426 tests, 1424 pass, 1 fail, 1 skip**, up from 1424 tests
+in round 6. The only failure is the discounted contrast wall-clock ceiling (139.7s against
+120s); every contrast measurement passes. The skip is the opt-in theme × accent matrix,
+which requires `CONTRAST_ACCENTS=1`. All 322 React tests pass.
+
 Round-7 focused verification: 110 tests pass across `the-page.test.js`, `refs.test.js`,
 `doc-refs.test.js` and `code-refs.test.js`. The React build and Storybook build pass.
 Both refreshed screenshots show eight rules and zero code references after fonts load,
@@ -148,24 +153,20 @@ under the Overview, because it is the frame the other sixteen hang off.
 | `shell` | the contract | An application page is `appShell()`'s, and it draws one `<main>` |
 | `navs` | the contract | Every navigation landmark named, and no two on a page sharing a name |
 
-Each of the eight on the page ends in one citation — a file, a line and a literal on that line —
-and `stories/guidelines/refs.test.js` resolves all eight, so a rule whose line has moved fails the
-build rather than pointing a reader at the wrong code. The two in the contract cite by file and
-symbol instead, in the mapping table under
-[docs/specification.md#the-page](docs/specification.md#the-page); nothing there carries a line
-number, because a line number in a document no gate resolves is a citation that rots in silence.
+The eight rules on the page have no code references. All ten rules map to code only in
+[the specification table](docs/specification.md#the-page), by file and symbol.
+`stories/guidelines/refs.test.js` checks the page's explicit absence of references, while
+`stories/guidelines/the-page.test.js` checks the table and every rule.
 
 ## Round 6: only UX, and the two rules that left the page
 
 Artur's verdict on the round-5 page: *"Too verbose. I don't want too low details — like
 guidelines for code. Only UX."* The four numbers were settled in the same round and did not move.
 
-**What the page says now.** Each rule is one plain sentence, its Do/Don't where it has one, one
-sentence of why, and one citation. Gone from it: the function and component names, the CSS
-selectors, the gate names, the `Except` paragraphs about markup, and the rows of two and three
-citations under each rule. Nothing that was true was dropped — it moved to
-[docs/specification.md#the-page](docs/specification.md#the-page), which is where a contributor
-reads, and which now also carries a table naming the line of the kit each rule hangs on.
+**What round 6 changed.** It removed function and component names, CSS selectors, gate names
+and markup exceptions from the prose, and reduced each rule to one citation. Round 7 removes
+those remaining citations and rewrites the text again for designers and product owners.
+The implementation detail remains in [the specification](docs/specification.md#the-page).
 
 **Two rules left the page.** `shell` — compose the page with `appShell()` — and `navs` — name
 every navigation landmark — are not decisions anybody takes per screen. The kit has already taken
@@ -176,7 +177,7 @@ both lists, and a rule on neither is still a build failure. `refs.test.js` holds
 rule drawn on the page and never sees `GATED_ELSEWHERE`, so the gate checks that shape itself: an
 entry with no `id` or no sentence fails there rather than naming a test `undefined`.
 
-**Where the length landed, and where the brief said it would.** The brief asked for roughly a
+**Historical round-6 measurements.** The brief asked for roughly a
 third of the page's height. Measured at 1200 wide in the same browser, before and after:
 
 | | before | after |
@@ -267,8 +268,8 @@ and the class is the look.
 - **The specification is held to the same numbers.** A test reads the `## The page` section and
   fails if it stops stating a limit, or states a different one from `LIMITS`.
 - **The rule-to-code table resolves.** The contract's own *"Which line of the kit holds each of
-  them"* table is the only citation `shell` and `navs` have, now that both rules have left the
-  page, and it carries no line numbers on purpose — so nothing was holding its file paths either.
+  them"* table is the sole rule-to-code mapping for all ten rules. It uses file and symbol
+  names, with no line numbers.
   Two tests read its rows out of the section: every rule has one row and every row has a rule, and
   every file a row names exists with every symbol and selector that row fences found inside one of
   them. It is deliberately not a claim that the line found is the line that *holds* the rule; it
@@ -364,7 +365,7 @@ end on the same box minutes earlier. Nothing else about
 the walk changed — it measures the same elements plus the new page's specimens, and every one of
 them passes.
 
-## The gates
+## Earlier verification (round 6)
 
 ```
                        before (7ffbde4)                 after (round 6, on bb5fd04)
