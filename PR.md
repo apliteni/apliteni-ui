@@ -64,7 +64,8 @@ reader block it has always been — a trigger that opens an empty panel is a con
 
 **What the menu turned up.** Building it on the kit's own `dropdown()` rather than on a menu written
 for the rail is what found the defect below: the arrows opened the panel and left focus on the
-trigger, in every dropdown the kit ships. That is fixed here, in one rule.
+trigger, in every dropdown the kit ships. That is fixed here, in one rule — and, after a ninth
+review round measured the claim, in the same rule again for each of the two menus the topbar draws.
 
 ### A defect the port found, in the dropdown and not in the rail
 
@@ -82,6 +83,29 @@ in the same words — *"a browser will not focus a field in a box that is still 
 every panel's now: one `transition-property: opacity, transform` while the panel is open, closing
 untouched. `stories/overlay-css.test.js` is where it is gated, because that file exists for exactly
 the rules JSDOM cannot check.
+
+**Half of that was not true until the ninth round, and the review is what found it.** The kit ships
+four menus, not one: `dropdown()`'s panel, the rail's portalled copy of it, and the topbar's version
+switcher and account menu, which are the same `wireDropdown()` in bespoke clothes. The two fixes key
+on `.ui-dropdown__panel` and live in `dropdown.css`; `.vsw__menu` and `.amenu` are written in
+`topbar.css`, which this branch did not touch at all — so nineteen panels across the stories were
+fixed and eight were not, while the body claimed every menu the kit ships. Both gates read
+`dropdown.css` and only that file, which is why nothing said so. Nothing had regressed: both defects
+are `main`'s, in the topbar, from before this branch. Measured in Chrome 152 at 1280×900, over CDP on
+a page importing the kit's own modules, on either side of the fix:
+
+| | ArrowDown from the trigger lands on | a click 90ms into the fade out hits |
+|---|---|---|
+| `.vsw__menu` — version switcher, before | `button.vsw__btn`, the trigger | `div.vopt`, a row |
+| `.vsw__menu` — after | `div.vopt`, a row | the page behind it |
+| `.amenu` — account menu, before | `button.avatar`, the trigger | **`a.aout`, Sign out** |
+| `.amenu` — after | `a.cur`, a row | the page behind it |
+| `.ui-dropdown__panel` — the control, either side | a row | the page behind it |
+
+Both gates now read a table of `{ file, panel, open rules }` and ask every menu the kit ships the
+same two questions, rather than reading one sheet. Six mutations hold it — each menu's closed
+`pointer-events`, each open rule's `pointer-events`, each open rule's transition list — and each goes
+red naming the menu it broke.
 
 ### An independent review of this round, and the eight things it found
 
@@ -587,6 +611,25 @@ And eight more for the review fixes above, run the same way:
 The last one is the mutation the review used to show the naming gate had gone blind: against the
 helper as this round first wrote it, it reported **0 red**.
 
+And eight for the ninth round, all of them in `overlay-css.test.js`, which now reads three menus
+rather than one sheet:
+
+| Mutation | Result |
+|---|---|
+| **the version switcher's closed menu takes clicks again** (`pointer-events: none` deleted) | **1 red** |
+| **its open menu is never turned clickable** | **1 red** |
+| **its open menu keeps `visibility` on the transition** | **1 red** |
+| **the account menu's closed menu takes clicks again** | **1 red** |
+| **its open menu is never turned clickable** | **1 red** |
+| **its open menu keeps `visibility` on the transition** | **1 red** |
+| **the dropdown panel in place is never turned clickable** | **1 red** |
+| **the portalled dropdown panel is never turned clickable** | **1 red** |
+
+The last two are the review's second finding, and both reported **0 red** before this round: one
+assertion asked whether *any* rule turned the panel on while it was open, and either half satisfied
+it alone. Every mutation above was applied on disk, the gate run for real, the file restored and its
+SHA-256 compared with the one taken first. Every restore matched.
+
 One mutation is reported as **0 red** and is not a hole: filling the mark
 (`fill="none"` → `fill="currentColor"`) changes nothing a reader sees, because
 `.ui-nav__ic svg { fill: none }` in `nav.css` decides the paint for every glyph on the rail and
@@ -626,6 +669,20 @@ glyph box carry the line, and re-measured with nothing moving in either state. T
 went with it: the argument in `shell.js`, `layout.css` and `dropdown.css` moved to `CONTRIBUTING.md`
 and the specification with `why:` pointers left behind, the specification's new section stopped
 saying three things twice, and the `rail-persisted-*` pair was removed rather than re-shot.
+
+**The ninth round.** The eighth round's review measured the body's own claim — the two dropdown
+defects fixed *in every menu the kit ships* — and found half of it false: `.ui-dropdown__panel` had
+both fixes and the topbar's `.vsw__menu` and `.amenu` had neither, because `topbar.css` was
+byte-identical to `main` and both gates read `dropdown.css` alone. It measured `main` and this branch
+and got the same answer both times, so nothing had regressed. The four lines are in `topbar.css` now,
+both gates sweep a table of menus, and each menu's three rules are held by a mutation of its own. The
+round also found that the new `pointer-events` fix had two halves with one assertion between them,
+and that `e678ac1`'s per-realm portal contract was cited by four comments in `dropdown.js` and
+written down nowhere — `docs/specification.md` still said the panel mounts on `<body>`, and
+`docs/library.md` said it too. Both are answered above. Its fourth item is this body's own: the
+*"every menu"* claim, the checklist tick that went with it, and a plain statement of what
+sign-out-needs-JavaScript costs a page that runs none, which is the bullet under *What a reviewer
+should push on*.
 
 **What the rework reverses.** The second diff review found five critical problems in the *script*
 that placed the focus tag — stuck after a click or a tap, stale after a resize, wrong under a
@@ -693,8 +750,11 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [x] The account block is a menu trigger and sign out is a row of that menu, reachable from the
       trigger by keyboard and gone from the navigation list. Nine Tabs and one ArrowDown, measured
       in Chrome, with the row carrying the ring and the `--pink` ink; Escape hands focus back.
-- [x] Every menu the kit ships can be entered from the keyboard. It could not before this branch —
-      one rule, and the gate that notices is in the file written for the rules JSDOM cannot check.
+- [x] Every menu the kit ships can be entered from the keyboard: `dropdown()`'s panel, the rail's
+      portalled copy, the topbar's version switcher and its account menu. None could before this
+      branch — one rule in each of the two sheets those menus are written in, and the gate that
+      notices is in the file written for the rules JSDOM cannot check. All four measured in Chrome,
+      before and after; the topbar's two took a ninth review round to find.
 - [x] The toggle is one icon and no words, as the reference's is, and the seam moves with the state.
       Photographed in both themes and frame by frame through the travel; the distance is held to the
       mark's own geometry rather than to a number repeated in a test.
@@ -713,20 +773,26 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
 - [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
       only be proven after a release.
 
-**Counts on this box.** `npm test`: 1463 tests, 1461 pass, 1 fail, 1 skipped. The skip is the
-opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an environment variable on
-`main` too. The failure is `stories/contrast.test.js`'s own wall-clock ceiling: the
-walk took **125.4s** and **159.5s** on two runs of the same tree, against a 120s bar. That is this
-box and not the diff — the spread between two runs is larger than anything in this branch — and
+**Counts on this box.** `npm test`: **1467 tests, 1 skipped**, and either 1465 pass with 1 fail or
+1466 pass with none, depending on the run. The skip is the opt-in `CONTRAST_ACCENTS=1` theme ×
+accent matrix, which is behind an environment variable on `main` too. The failure, when there is
+one, is `stories/contrast.test.js`'s own wall-clock ceiling: the walk took **125.4s** and **159.5s**
+on two runs of the same tree, and at the ninth round **121.7s** and **121.6s** on two runs and under
+the 120s bar on two more. Four runs, two red and two green, straddling the ceiling — which is a
+plainer statement of what this box does to that gate than any single number.
+That is this box and not the diff — the spread between two runs is larger than anything in this
+branch — and
 `origin/main` at `bb5fd04`, checked out beside it and run through the same gate on the same machine,
 takes **128.7s** and fails it too. `npm run build`: clean. React: 322 tests in 16 files, all
 passing. (1437 before the first review fixes, 1441 after them, 1446 at the sixth round, 1459 at the
-seventh; the seventh round's thirteen are the toggle's mark against a control's contrast floor, the
-avatar's inset, the account block's declared height, the block's phone floor in both directions, the
-head band's and the foot's rules, the empty band a phone drops, the menu's markup, its keyboard
-path, its press, the shell that draws neither, the open panel's `visibility`, and the closed panel's
-clicks. The eighth round's four are the rail's open column, the menu's direction, the toggle's
-`<svg>` wrapper and the hover that used to move the rail.)
+seventh, 1463 at the eighth; the seventh round's thirteen are the toggle's mark against a control's
+contrast floor, the avatar's inset, the account block's declared height, the block's phone floor in
+both directions, the head band's and the foot's rules, the empty band a phone drops, the menu's
+markup, its keyboard path, its press, the shell that draws neither, the open panel's `visibility`,
+and the closed panel's clicks. The eighth round's four are the rail's open column, the menu's
+direction, the toggle's `<svg>` wrapper and the hover that used to move the rail. The ninth round's
+four are the topbar's two menus, each asked the same two questions `dropdown()`'s own panel is
+asked.)
 
 ## What a reviewer should push on
 
@@ -760,13 +826,36 @@ clicks. The eighth round's four are the rail's open column, the menu's direction
   shell draws itself, not a switcher a consumer fills, so there is no second owner to crowd. If the
   argument does transfer after all, moving it back is one expression in `appShell()` and one
   selector in `wireShell()`.
-- **Sign out needs JavaScript now.** It was an `<a href>` in the nav list that worked with none; it
-  is a row of a menu a `dropdown()` opens. `wireTopbar()` wires dropdowns too, so the published
-  `/account` path is covered either way — but a consumer who wires neither loses sign out, where
-  before they lost only the fold. The toggle has `collapsible: false` for exactly this case and the
-  menu has no equivalent; the answer here is "do not pass `signOutHref` on a page that will never
-  call `wireShell()`", stated in the spec and in `docs/library.md`. Say the word and it is a
-  `menu: false` beside `collapsible: false`.
+- **Sign out needs JavaScript now, on every shape of the shell.** It was an `<a href>` in the nav
+  list that worked with none; it is a row of a menu a `dropdown()` opens. The ninth review round
+  measured what that costs a page running no kit JS at all — the sign-out anchors that are *not*
+  inside a menu panel — and asked for the answer to be put plainly rather than left as
+  *"sign out needs JavaScript now"*. Counted again here, on both trees, one call at a time:
+
+  | the call | `main` `bb5fd04` | this branch |
+  |---|---|---|
+  | `appShell({ account, signOutHref })` | 1 anchor, **1 works with no JS** — `a.ui-nav__item.is-danger` | 1 anchor, **none works** |
+  | `accountShell({ word, account })` — the published `/account` preset | 2 anchors, **1 works with no JS** | 2 anchors, **none works** |
+  | `accountShell({ word })` — nobody signed in | 2 anchors, **1 works with no JS** | 1 anchor, **none works** |
+
+  So the change is larger than the sentence reads. On `main`, **every shape of the shell that draws
+  a sign-out gives exactly one that survives with no script** — the plain `<a>` in the nav list. On
+  this branch **none of them do**, the published `/account` preset included, which a consumer does
+  not opt into.
+
+  For the strategy portal's own surface the change is nevertheless **neutral**, and that is the part
+  worth saying out loud: the portal's account menu is already `.acct` / `.amenu` — README's
+  *Adopting into the strategy portal* is where the kit promises it those class names — and that
+  menu's Sign out has always been a row inside a panel that `wireTopbar()` has to open. It needed
+  JavaScript before this branch and needs it after.
+
+  What is not neutral is a server-rendered page that calls `appShell({ signOutHref })` and runs no
+  kit JS: it loses the link with no error, no console warning and no gate. The documented escape —
+  "do not pass `signOutHref` on a page that will never call `wireShell()`", stated in the spec and in
+  `docs/library.md` — is opt-out by omission rather than a named option, and `accountShell()` passes
+  `#logout` for you, which an empty string turns off. `collapsible: false` exists for exactly this
+  shape of problem and the menu has no equivalent. The reviewer would take a `menu: false` beside
+  it, because it turns a silent loss into a decision. **Artur's call; say the word and it is that.**
 - **`signOutHref` with no `account` now draws nothing.** This is the one behaviour change a
   consumer can be surprised by, so it is stated rather than buried: the menu hangs off the block
   that says who is signed in, and with nobody signed in there is no session to end and no block to
@@ -839,9 +928,13 @@ own with its own gates. It is recorded here so it is not lost, and it should be 
   `wireShell()`; it is portalled clear of the rail and opens upward. With no `signOutHref` the block
   stays the plain reader block and no menu is drawn.
 - A dropdown panel is visible in the frame it opens rather than the next one, so the arrows can put
-  focus on a row. Every menu the kit draws was opening to the arrows and leaving focus on the
-  trigger, with the next Tab stepping out of the dropdown entirely. A destructive dropdown row now
-  turns `--pink` under the keyboard as well as under the pointer.
+  focus on a row, and it stops taking clicks the moment it begins to fade out rather than a quarter
+  of a second later. Both hold for every menu the kit draws — `dropdown()`'s panel, the rail's
+  portalled copy of it, and the topbar's version switcher and account menu. All four were opening to
+  the arrows and leaving focus on the trigger, with the next Tab stepping out of the dropdown
+  entirely, and all four were still taking a click for `--dur-med` after they closed — which in the
+  account menu meant a stray click could sign the reader out of a menu nobody could see. A
+  destructive dropdown row now turns `--pink` under the keyboard as well as under the pointer.
 - New exports: `wireShell`, `railCollapsed`, `RAIL_COOKIE`.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

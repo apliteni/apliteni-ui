@@ -196,12 +196,12 @@ second line. On a 380px chat column, feed length 1567.45px → 1507.03px. Where 
 the two faces measure identically — the kit's line-heights are unitless, so a face only moves a
 box by changing where a line breaks.
 
-**A panel that leaves its subtree states its own role.** `portal: true` moves a dropdown's panel to
-the top of its trigger's own tree ([The dropdown panel](#the-dropdown-panel)), so what it inherits
-is decided by where it landed rather than by the trigger it came out of. Measured on one dropdown inside a display-face
-subtree: `var(--font-display)` in place, `var(--font-sans)` once portalled. `.ui-dropdown__panel`
-names the text face itself, so both placements answer the same — a flag that positions a panel does
-not change what it is set in.
+**A panel that leaves its subtree states its own role.** `portal: true` moves a dropdown's panel
+to the top of its trigger's own tree ([The dropdown panel](#the-dropdown-panel)), so what it
+inherits is decided by where it landed rather than by the trigger it came out of. Measured on one
+dropdown inside a display-face subtree: `var(--font-display)` in place, `var(--font-sans)` once
+portalled. `.ui-dropdown__panel` names the text face itself, so both placements answer the same — a
+flag that positions a panel does not change what it is set in.
 
 Held by `src/styles/typeface-roles.test.js` and `scripts/font-loading.test.js`. Decided in
 [#253](https://github.com/apliteni/apliteni-ui/issues/253).
@@ -863,8 +863,8 @@ inside it, at the same 9px from the trigger.
 
 **A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` move the panel to
 the top of the tree its trigger is in, as `position: fixed`, with the trigger's viewport coordinates
-written inline, repositioned on scroll and resize. Two ancestor properties make that the only remedy, and `.ui-app__rail` has
-both:
+written inline, repositioned on scroll and resize. Two ancestor properties make that the only
+remedy, and `.ui-app__rail` has both:
 
 - An `overflow` other than `visible` on one axis makes the other non-visible too, so the rail's
   `overflow-y: auto` clips the panel on X as well — a 304px panel in a 249px rail loses its right
@@ -897,24 +897,24 @@ the realm it was drawn in:
   which is the same reason `wireShell()` listens once per document it is handed. Click-outside,
   Escape and the repositioning sweep are registered once per document that holds a dropdown.
 
-Reaching them is the other half. The close handlers walk a module-level `Set` of every wired
-container rather than querying the page, because `document.querySelectorAll` enters no shadow root
+Finding the dropdowns to close is the other half. The handlers walk a module-level `Set` of every
+wired container rather than querying the page, because `document.querySelectorAll` enters no shadow root
 and sees no other document: before it, opening a menu inside a shadow root left one open on the page
 behind it, and a click on the page left the shadow root's open.
 
 **Escape is scoped and click-outside is not**, which is a decision and not an oversight. Escape
 dismisses what the reader is in, so it closes an open dropdown in the document the key landed in and
 nothing in another — pressed in a frame it leaves the page's menu alone. A click closes every open
-dropdown in every realm, because "I clicked elsewhere" is elsewhere wherever it happened. Either way
+dropdown anywhere, because "I clicked elsewhere" is elsewhere wherever it happened. Either way
 focus returns to the trigger, which a reader outside a shadow root meets retargeted to its host.
 
 Held by `stories/apps/shell-rail.test.js`: *a shell in a frame is wired in its own document, and
 reads its own cookie*, and *a shell inside an open shadow root folds, and keeps its menu inside the
 root*. Moving the portal target back to the page's `body`, or the close handlers back onto the
-module's own realm, goes red there.
+module's own document, goes red there.
 
 `portal: true` is opt-in and not the default because it has a cost: the panel leaves its trigger's
-place in the reading order and lands at the end of `<body>`. Opening it still moves focus onto a
+place in the reading order and lands at the end of the tree it was moved into. Opening it still moves focus onto a
 row, and `aria-haspopup`, `aria-expanded` and the panel's own `role` and `aria-label` are unchanged,
 so nothing is unreachable — but a reader moving linearly meets the two apart. Reach for it when an
 ancestor traps the panel, which is what the rail does, and not otherwise.
@@ -925,10 +925,10 @@ so a page already working around this keeps working.
 **A closing panel stops taking clicks before it stops being drawn.** `visibility` is held at
 `visible` for the whole of the fade out, so the rows do not vanish mid-fade — and a box that is
 drawn is a box that is hit. A menu row is an `<a>` or a `<button>`, so a click landing in that
-window activates it invisibly, and since [#286](https://github.com/apliteni/apliteni-ui/issues/286)
-one of those rows signs the reader out. The closed panel is `pointer-events: none` and the open
-rules take it back, which is the answer `.ui-drawer` and `.ui-cmdk` already give. Held by
-`stories/overlay-css.test.js`.
+window activates it invisibly — the topbar's account menu has had a Sign out row in it since long
+before the rail did, and [#286](https://github.com/apliteni/apliteni-ui/issues/286) adds a second on
+the rail. The closed panel is `pointer-events: none` and the open rules take it back, which is the
+answer `.ui-drawer` and `.ui-cmdk` already give.
 
 **A panel the keyboard opens is visible in the frame the key lands.** `visibility` is discrete, so
 hidden → visible still resolves `hidden` in the frame the open class lands, and a browser will not
@@ -937,10 +937,19 @@ panel, focus stayed on the trigger and the next Tab left the dropdown altogether
 Chrome: `getComputedStyle(panel).visibility` reads `hidden` in that frame and `visible` in the
 next. An open panel therefore transitions `opacity` and `transform` only, leaving `visibility` off
 the clock to apply at once; closing still fades on every property it always did. The rule was
-written for the search variant, where opening puts focus in a field, and it belongs to every panel,
-because opening any of them with a key puts focus on a row. Held by `stories/overlay-css.test.js`,
-which is the one gate that can see it — JSDOM focuses inside a hidden box happily, so the gates
-that press the keys pass with the rule deleted.
+written for the search variant, where opening puts focus in a field, and it belongs to every menu
+the kit ships, because opening any of them with a key puts focus on a row. Held by
+`stories/overlay-css.test.js`, which is the one gate that can see it — JSDOM focuses inside a hidden
+box happily, so the gates that press the keys pass with the rule deleted.
+
+**Every menu the kit ships owes both of those rules, in whichever sheet it is written in.** They are
+written in two: `.ui-dropdown__panel` in `src/styles/dropdown.css`, and the topbar's `.vsw__menu` and
+`.amenu` in `src/styles/topbar.css`, which are the same `wireDropdown()` in bespoke clothes — the
+same hooks, the same keyboard, the same fade. A fix that keys on `.ui-dropdown__panel` reaches the
+first and not the second, and a gate that reads one sheet cannot tell. So the gate reads a table of
+`{ file, panel, open rules }`, asks every menu in it the same two questions, and asks each named open
+rule on its own: the panel in place and the portalled panel carry one `pointer-events: auto` each,
+and either alone used to satisfy one assertion standing for both.
 
 Held by `src/components/dropdown.test.js`, which reads the offsets out of the stylesheet — any
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
