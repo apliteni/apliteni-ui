@@ -316,6 +316,8 @@ test('an icon-less row on the icon-only rail is given a mark of its own', () => 
 // ---- 3. appShell() — the kit's one page shell ----------------------------
 
 const { appShell, accountShell, ACCOUNT_NAV, RAIL_COOKIE } = await import('../../src/components/shell.js');
+const { icon } = await import('../../src/components/index.js');
+const { dropdown } = await import('../../src/components/dropdown.js');
 const { accountMenu } = await import('../../src/components/topbar.js');
 
 // The signed-in reader the rail draws. A menu hangs off this block, so anything
@@ -370,6 +372,28 @@ test('the toggle is named for the press and announces the rail as it is', () => 
       btn.querySelector('.ui-nav__label').textContent, name,
       'the toggle\'s written label says something other than its name',
     );
+  }
+});
+
+// Only the frame and the seam are written by hand in shell.js — a seam that
+// travels has to be a child a stylesheet can reach, and icon() emits one opaque
+// string. The <svg> around them is icon()'s own, so the box, the stroke and the
+// aria pair cannot drift from the glyphs above it. "By construction" is what this
+// gate makes true. why: docs/specification.md#the-page-shell
+test('the toggle\'s mark is drawn inside icon()\'s own wrapper, aria pair and all', () => {
+  const attrs = (svg) => Object.fromEntries([...svg.attributes].map((a) => [a.name, a.value]));
+  const mark = dom(appShell({ collapsible: true })).querySelector('[data-rail-toggle] .ui-nav__ic svg');
+  assert.ok(mark, 'the toggle draws no <svg> at all, so it has no mark to be the state with');
+  const wrapper = attrs(dom(`<i>${icon('chart')}</i>`).querySelector('svg'));
+  assert.deepEqual(
+    attrs(mark), wrapper,
+    'the toggle\'s <svg> is not the one icon() emits. A wrapper written out by hand here is a '
+    + 'second copy of the factory\'s box, stroke and aria pair, and it drifts silently: drop '
+    + 'aria-hidden and a screen reader announces the mark beside the name it already read, drop '
+    + 'focusable="false" and the mark is a tab stop of its own in legacy Edge.',
+  );
+  for (const [name, value] of [['aria-hidden', 'true'], ['focusable', 'false']]) {
+    assert.equal(mark.getAttribute(name), value, `the toggle's mark is missing ${name}="${value}"`);
   }
 });
 
@@ -558,6 +582,28 @@ test('sign out is a row of the reader\'s menu, and is nowhere in the nav list', 
     + 'of the two is a destructive action among places to go',
   );
   assert.equal(doc.querySelector('nav .ui-nav__foot'), null, 'the nav still draws a footer slot for a row that left it');
+});
+
+// The block is the last thing in a full-height rail, so a menu that opened
+// downward would open off the bottom of it. The marker is read off dropdown()
+// rather than written out here, so renaming it in the kit moves this gate with
+// it. why: docs/specification.md#the-page-shell
+test('the reader\'s menu opens upward, off the foot of a full-height rail', () => {
+  const panel = (html) => dom(html).querySelector('[data-dropdown-panel]');
+  const spec = { variant: 'menu', items: [{ label: 'Sign out', href: '#logout' }] };
+  const up = [...panel(dropdown({ ...spec, direction: 'up' })).classList];
+  const down = panel(dropdown({ ...spec, direction: 'down' }));
+  const marks = up.filter((c) => !down.classList.contains(c));
+  assert.ok(marks.length, 'dropdown() no longer marks an upward panel, so this gate reads nothing');
+  const menu = panel(appShell({ account: READER, signOutHref: '#logout' }));
+  for (const mark of marks) {
+    assert.ok(
+      menu.classList.contains(mark),
+      `the reader's menu is missing \`${mark}\`, so it opens downward off the bottom of a `
+      + 'full-height rail — the block it hangs from is the last thing in the rail, and there is '
+      + 'no room below it.',
+    );
+  }
 });
 
 // A reader is what the menu hangs off, so with nobody signed in there is nobody to

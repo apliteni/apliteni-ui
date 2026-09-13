@@ -1198,6 +1198,35 @@ test('the toggle\'s own mark clears the floor a control answers to', () => {
   }
 });
 
+// ---- C2b. every block of the rail keeps the rail's open column -----------
+//
+// nav.css gives the column to its own blocks (`.ui-nav--side > *`). The head
+// band, the toggle's row and the reader block are siblings of the nav, so
+// layout.css declares it for them, and the fold is what makes it matter: the box
+// closes to the strip over a column that keeps its width.
+// why: docs/specification.md#the-page-shell
+
+test('every block of the rail keeps the open column while the box closes over it', () => {
+  const col = pxOf('src/styles/nav.css', '.ui-app', '--ui-nav-col');
+  assert.ok(col, 'nav.css no longer declares --ui-nav-col, so the rail has no open column to keep');
+  for (const [rail, at] of [['an open', mount(PAIR(false))], ['a folded', mount(PAIR(true))]]) {
+    for (const sel of ['.ui-app__head', '.ui-app__fold-row', '.ui-app__user']) {
+      assert.equal(
+        Number.parseFloat(at.css(sel, 'width')), col,
+        `${sel} is \`${at.css(sel, 'width')}\` wide on ${rail} rail instead of the ${col}px column `
+        + 'nav.css declares. The fold closes the box over a column that holds its width, so a block '
+        + 'that has not been given it is laid out a second way on the press: the wordmark wraps to '
+        + 'two lines, the head grows, and the toggle and every row under it step down the rail — '
+        + 'which is the one thing the travel promises does not happen.',
+      );
+      assert.equal(
+        at.css(sel, 'flexShrink'), '0',
+        `${sel} shrinks with the rail on ${rail} rail, so the column it declares is one the fold takes back`,
+      );
+    }
+  }
+});
+
 // ---- C3. the rail is ruled at its two ends and nowhere between ------------
 
 // A width with no style paints nothing, and JSDOM hands back the initial

@@ -689,8 +689,11 @@ What the shell guarantees:
   liked — it is twice a row's own glyph centre, its padding plus half a glyph, which is the one
   width that leaves the glyph standing in the middle of the closed rail. `--ui-nav-col` and
   `--ui-nav-strip` in `nav.css` are the only two places either is written, and
-  `stories/apps/shell-states.test.js` derives the strip from the rules it is read off and holds the
-  width's own travel to `--dur-med` and `--ease` in both sheets that write it. Under
+  `stories/apps/shell-states.test.js` derives the strip from the rules it is read off, holds the
+  width's own travel to `--dur-med` and `--ease` in both sheets that write it, and resolves the open
+  column on every block of the rail at both widths — the nav declares it for its own rows, and a
+  block beside the nav that has not been given it wraps its contents on the press and steps every
+  row under it down the rail. Under
   `prefers-reduced-motion` the kit's net takes both to 0.01ms, so the fold arrives in one frame —
   the same file refuses a travel written `!important`, which is the only way the net loses.
 - **The two folds are one fold, with one named difference.** A media query cannot share a block
@@ -712,7 +715,9 @@ What the shell guarantees:
   `src/components/shell.js` and not added to `icons.js`, because a seam that travels has to be a
   child a stylesheet can reach; `icon()` emits one opaque string with no hook on an inner node. Only
   the frame and the seam are written there: the `<svg>` around them is taken from `icon()` itself, so
-  a rail glyph's box, stroke and `aria-hidden`/`focusable` pair are the factory's by construction. Its
+  a rail glyph's box, stroke and `aria-hidden`/`focusable` pair are the factory's by construction —
+  `stories/apps/shell.test.js` compares the two attribute for attribute, which is what makes "by
+  construction" a thing a reader can check. Its
   name is written out in the markup rather than put in a tooltip, because the name IS the chip — on
   a folded rail the glyph column is the whole of every row, and on an open rail it is the whole of
   this one, so in both the label is squeezed to nothing by its own `overflow: hidden` until a
@@ -768,7 +773,9 @@ What the shell guarantees:
   passed without one draws nothing at all — the menu hangs off the reader, and there is no session
   to end without one. Signing out needs `wireShell()`: it was a plain link in the nav list and it is
   a menu row now, so a page that will never wire the shell should not pass `signOutHref` — the same
-  call `collapsible: false` is the way out of for the toggle. Held by `stories/apps/shell-rail.test.js`.
+  call `collapsible: false` is the way out of for the toggle. Held by `stories/apps/shell-rail.test.js`,
+  and the upward direction by `stories/apps/shell.test.js`, which reads the marker off `dropdown()`
+  rather than writing it out a second time.
 - **One rule closes the rail, and one closes its head.** The nav's footer slot is empty now that
   Sign out is in the menu, so the hairline that fenced Sign out off is on the block that opens it.
   Two of them twenty pixels apart read as a third region of the rail rather than as its foot.
