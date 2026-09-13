@@ -1521,22 +1521,31 @@ guarantees remain in [docs/specification.md](docs/specification.md).
 ### The elevation gate and its counts
 
 `stories/elevation.test.js` sweeps every `box-shadow` the kit's stylesheets declare and refuses
-a cast layer that is not `var(--elev-floating)`. Two numbers are pinned in it, and both are
+a cast layer that is not `var(--elev-drop)`. Two numbers are pinned in it, and both are
 pinned so that coverage cannot shrink to zero and stay green — a sweep that finds nothing passes
 every other assertion in the file.
 
 | Sweep | Floating | Recorded change |
 | --- | --- | --- |
-| 38 | 11 | #309: the floating step takes `--elev-floating`. Nine surfaces under `src/`, two of them twice — a panel and its `:focus-visible` rule, because a `box-shadow` list replaces the whole list and a bare `var(--ring)` would take the treatment off for as long as the panel held focus. The React modal is the tenth surface and is counted by `react/src/elevation.test.ts` instead. |
+| 38 | 11 | #309: the floating step takes the treatment. Nine surfaces under `src/`, two of them twice — a panel and its `:focus-visible` rule, because a `box-shadow` list replaces the whole list and a bare `var(--ring)` would take the treatment off for as long as the panel held focus. The React modal is the tenth surface and is counted by `react/src/elevation.test.ts` instead. |
+| 40 | 13 | #314 review, findings 1 and 6: the treatment stops being one token. `--elev-floating` held `inset … var(--elev-edge, …)` inside a `:root` declaration, where CSS substitutes it against `:root` and no component can re-point it — five overrides were dead. The drops keep one home, `--elev-drop`; the line is written at each call site. And the collapsed rail's flyout label, the hover readout's twin on the same step and with the same job, takes the treatment it had been left out of: two more declarations, one per width. |
 
 Move a number by adding a row, not by editing one: the count on its own says nothing about
 whether the change behind it was wanted.
 
 The drawer is the reason the two numbers do not move together. It is flush to a screen edge, so
 its inner line runs in one direction rather than as a ring, and each `--drawer--<edge>` rule
-sets `--drawer-line` — a **custom property**, which the sweep does not see — instead of writing
-a fifth and sixth `box-shadow`. Written as literals in each edge rule, the four cost four sweep
-entries and left `.ui-drawer__panel:focus-visible` unable to compose the line it was over.
+sets `--drawer-line` — a **custom property** — instead of writing a fifth and sixth `box-shadow`.
+Written as literals in each edge rule, the four cost four sweep entries and left
+`.ui-drawer__panel:focus-visible` unable to compose the line it was over.
+
+A custom property is how the sweep can be walked past, and the #314 review walked past it: a
+`--drawer-line` redeclared with a genuine cast shadow went unseen, because the reader kept the
+**first** declaration of a name and the browser used a later one. The reader takes the last one
+now (`stories/lib/contrast.js`), and the sweep judges every layer against **every** value the kit
+gives the properties it reads, one name at a time — an over-approximation, which can call a cast
+no element paints and cannot miss one some element does. What it still cannot see is a cast that
+needs two properties off their winning values at once; that is in the gate's ledger.
 
 ### Font family count history
 
