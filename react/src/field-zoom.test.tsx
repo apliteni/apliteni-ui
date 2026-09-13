@@ -79,6 +79,14 @@ describe('field zoom: what the workspace ships', () => {
     expect(fields.length).toBeGreaterThan(0);
   });
 
+  // The net names three element kinds, and a walk that renders only two proves
+  // nothing about the third: dropping textarea from the net left this gate green
+  // until Modal's Playground grew one. The kinds are pinned so it cannot go back.
+  it('the React catalogue renders all three of the net\'s element kinds', () => {
+    expect(distinct(fields.map((f: { tag: string }) => f.tag)))
+      .toEqual(['input', 'select', 'textarea']);
+  });
+
   it('the net reaches every field a React story renders', () => {
     expect(fields.filter((f) => f.inNet === null).map((f) => `${f.path} (${f.id})`)).toEqual([]);
     expect(distinct(fields.filter((f) => f.inNet === false).map((f) => `${f.path} (${f.id})`))).toEqual([]);

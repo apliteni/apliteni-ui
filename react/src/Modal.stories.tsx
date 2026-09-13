@@ -18,6 +18,15 @@ export const Playground: StoryObj<typeof Modal> = {
             <label className="ui-field__label" htmlFor="rx-modal-demo-name">Name</label>
             <input id="rx-modal-demo-name" className="ui-input" placeholder="e.g. Nutra — DE push" />
           </div>
+          {/* The one textarea in the React catalogue: without it the touch-zoom
+              gate next door covers only two of the net's three element kinds,
+              and react/src/field-zoom.test.tsx pins that it stays.
+              why: docs/specification.md#a-field-is-16px-on-a-touch-screen */}
+          <div className="ui-field">
+            <label className="ui-field__label" htmlFor="rx-modal-demo-notes">Notes</label>
+            <textarea id="rx-modal-demo-notes" className="ui-textarea" rows={3}
+              placeholder="What this campaign is for" />
+          </div>
         </Modal>
       </>
     );
