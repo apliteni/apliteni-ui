@@ -356,22 +356,19 @@ column.
 | dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-focus-dark.png) |
 | light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-focus-light.png) |
 
-**Persists across navigation.** The page is drawn with no `collapsed` at all and loaded with the
-cookie already set, which is what a second page load looks like. `wireShell()` applied the stored
-choice.
+**Persists across navigation — and there is no picture of it, on purpose.** A second page load is
+drawn with no `collapsed` at all against a jar that already holds the cookie, and it comes up
+looking exactly like the folded pair above: 0 pixels of 972,800 apart. A shot of it would be a
+second copy of a picture already in this body, and a reviewer could not tell it from one. So the
+evidence is the measurement in *Measured in a browser* below — the cookie read back off the
+browser's own jar (`apliteni-ui-rail=collapsed`, `path=/`, `SameSite=Lax`, 365 days), and the second
+load coming up `class="ui-app is-collapsed" data-rail="auto"` with the toggle already named *Expand
+sidebar*. `stories/apps/shell-rail.test.js` gates all of it.
 
-| dark | light |
-|---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-persisted-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-persisted-light.png) |
-
-These two files differ from the folded pair above in **0 pixels of 972,800** — two independent
-shots, taken on separate loads and compared channel by channel, not one file copied. That is what a
-persisted fold looks like — but it means the pictures are not themselves evidence of persistence, and a reviewer
-should not read them as such. What is evidence is in *Measured in a browser* below: the cookie read
-back off the browser's own jar (`apliteni-ui-rail=collapsed`, `path=/`, `SameSite=Lax`, 365 days),
-and a second load drawn with no `collapsed` coming up `class="ui-app is-collapsed"
-data-rail="auto"` with the toggle already named *Expand sidebar*. `stories/apps/shell-rail.test.js`
-gates all of it.
+Round 7's review reported the committed `rail-persisted-*` pair as byte-identical to the folded pair
+and said so could not be told from a copy. It was right: the two files are the same bytes, and they
+have been removed rather than re-shot, because the shot that would distinguish them does not exist —
+the state is identical by construction.
 
 **`sidebarNav({ collapsed })` with the current page inside a group.** Before: the group is shut,
 its list is `display: none`, the current page is gone and four rows are drawn. After: the group is
