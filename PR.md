@@ -235,8 +235,8 @@ loader count (8 → 9), because the evidence page loads the kit's faces — a sh
 fallback faces is a shot of a different kit.
 
 **Five `file:line` citations this branch shifted are repaired**, and one of them —
-`src/styles/topbar.css` → `dropdown.css:130` — was already stale on `main`, pointing at `border: 0`
-rather than at the hover rule it describes.
+the topbar's pointer at the dropdown's hover rule — was already stale on `main`, pointing at
+`border: 0` rather than at the rule it describes.
 
 ## The version bump
 
