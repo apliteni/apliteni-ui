@@ -5,8 +5,7 @@
  * What it does not reach:
  * - a class that is not a `__label`: `ui-nav__tab-label`, `ui-nav__crumb-label`,
  *   `ui-footer__col` and `ui-pager__jump-of` are named with no rule today.
- * - a `__label` a consumer writes from the documentation — `.ui-tip__label` has
- *   a rule and no source naming it. This runs named → styled, never the reverse.
+ * - a `__label` only a consumer writes. This runs named → styled, never back.
  * - what the rule says: `.ui-x__label {}` passes.
  * - emission: a `querySelector` for a class counts as naming it.
  * - story and test files, styled in their own page's <style> block.
@@ -25,14 +24,36 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 /** Source with `//` and block comments blanked, so a class a comment mentions is not a site. */
 const decomment = (js) => stripComments(js).replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 
-/** Every `…__label` a file names, with the files that name it. */
+/* A class name a file builds out of a fragment — `ui-tip__${k}` in tooltip.js —
+ * is invisible to a sweep that reads names, and invisible is silent: the class
+ * leaves coverage and no count moves. So the site is refused unless it carries a
+ * note spelling the classes out, and the note is what puts them in the set.
+ * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+const ASSEMBLED = /[\w-]+__(?=\$\{)/g;
+const NOTE = /(?:\/\*|\/\/)[^\n]*?classes:([^*\n]+)/g;
+
+/** Every `…__label` a file names, with the files that name it. Unreadable sites refuse. */
 const namedIn = (files) => {
   const found = new Map();
+  const add = (cls, rel) => {
+    if (!found.has(cls)) found.set(cls, new Set());
+    found.get(cls).add(rel);
+  };
   for (const rel of files) {
-    for (const m of decomment(read(rel)).matchAll(/[\w-]+__label(?![\w-])/g)) {
-      if (!found.has(m[0])) found.set(m[0], new Set());
-      found.get(m[0]).add(rel);
+    const raw = read(rel);
+    assert.deepEqual(
+      [...raw.matchAll(ASSEMBLED)]
+        .filter((m) => ![...raw.matchAll(NOTE)].some((n) => n[1].includes(m[0])))
+        .map((m) => `${rel}:${raw.slice(0, m.index).split('\n').length} builds "${m[0]}\${…}"`),
+      [],
+      'a class name is assembled from a fragment here, so this gate cannot read the classes it '
+        + 'produces and would drop them from coverage without the count moving. Spell them out in a '
+        + "note at the site — `/* classes: ui-x__label ui-x__value */` — and they become subjects.",
+    );
+    for (const n of raw.matchAll(NOTE)) {
+      for (const cls of n[1].trim().split(/\s+/)) if (/__label$/.test(cls)) add(cls, rel);
     }
+    for (const m of decomment(raw).matchAll(/[\w-]+__label(?![\w-])/g)) add(m[0], rel);
   }
   return found;
 };
@@ -68,7 +89,7 @@ const WORKSPACES = [
     name: 'the kit',
     source: files('src/components', (f) => f.endsWith('.js') && !f.endsWith('.test.js')),
     sheets: kitSheetNames(src).map((rel) => `src/${rel}`),
-    floor: 5,
+    floor: 7,
   },
   {
     name: 'React',

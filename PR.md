@@ -256,7 +256,9 @@ and says in its ledger that a pass is no claim that the kit styles everything it
 
 ## Proof
 
-Run on this tree at `d51e7f6`, Node 24.20.0, `jq` present.
+Run on the code as it stands at `4b059e6`, Node 24.20.0, `jq` present. The image URLs above
+point at `d51e7f6`, the commit that added the last of them; nothing in `docs/evidence/` has moved
+since.
 
 ```
 $ npm test
