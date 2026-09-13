@@ -1,13 +1,12 @@
 // Rule: no field the kit renders is under the floor to a coarse pointer, or iOS
 // Safari zooms the page into a focused field and does not zoom back out.
 //
-// Three claims, in the order the tests make them: the net reaches every field a
-// story renders, it wins wherever it reaches, and no field is sized above the
-// floor, where a flat 16px would be a shrink. Nothing is enumerated — every
-// story is mounted and every text-entry control in it is a subject. Reach is
-// asked of the element, with matches(); the contest is read off the declarations,
-// because JSDOM's cascade does not rank !important between rules. What a green
-// run does not prove is on the floor page, beside this gate's name.
+// Three claims: the net reaches every field a story renders, it wins wherever it
+// reaches, and no field is sized above the floor, where a flat 16px would shrink
+// it. Nothing is enumerated. No cascade is resolved and no stylesheet is on the
+// page: reach is asked of the element with matches(), and the contest is read off
+// declarations, because JSDOM does not rank !important between rules. What a
+// green run does not prove is on the floor page, beside this gate's name.
 //
 // why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen
@@ -33,11 +32,16 @@ const kitRules = STYLE_FILES.flatMap((file) => sizingRules(substitute(read(file)
 
 // ---- the walk ---------------------------------------------------------------
 
-function windowFor(css) {
+// A bare document, carrying no stylesheet. Nothing here is resolved through a
+// cascade: reach is asked of the element with matches(), and the contest between
+// the net and a component rule is read off the declarations, because JSDOM does
+// not rank !important between rules. So the DOM is a place to mount markup and
+// ask a selector a question, and a <style> block would only suggest otherwise.
+function emptyWindow() {
   const quiet = new VirtualConsole();
   quiet.on('jsdomError', () => {});
   const dom = new JSDOM(
-    `<!doctype html><html lang="en" data-theme="dark"><head><style>${css}</style></head><body></body></html>`,
+    '<!doctype html><html lang="en" data-theme="dark"><head></head><body></body></html>',
     { pretendToBeVisual: true, virtualConsole: quiet },
   );
   installDomGlobals(dom.window);
@@ -56,9 +60,10 @@ const serialize = (out) => {
  * sheets — a story sizing its demo field is a field on the page like any other.
  */
 async function walk() {
-  const win = windowFor(read('src/index.css').replace(/@import[^;]+;/g, ''));
+  const win = emptyWindow();
   const fields = [];
   const problems = [];
+  const unmatchable = [];
   let stories = 0;
 
   for (const rel of storyFiles) {
@@ -87,18 +92,27 @@ async function walk() {
         .flatMap((m) => sizingRules(substitute(m[1], vars), where));
       for (const el of win.document.querySelectorAll(FIELDS)) {
         if (!typeable(el)) continue;
+        // A selector this DOM cannot parse answers neither yes nor no, and
+        // dropping it would take the rule out of the contest in silence.
+        // why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+        const sized = [];
+        for (const rule of [...kitRules, ...local]) {
+          const hit = reaches(el, rule.selector);
+          if (hit === null) unmatchable.push(`${rule.where} — ${rule.selector} { ${rule.raw} }`);
+          else if (hit) sized.push(rule);
+        }
         fields.push({
           where,
           path: selectorPath(el),
           tag: el.tagName.toLowerCase(),
           key: `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`,
           inNet: reaches(el, netSelector),
-          sized: [...kitRules, ...local].filter((r) => reaches(el, r.selector)),
+          sized,
         });
       }
     }
   }
-  return { fields, problems, stories };
+  return { fields, problems, stories, unmatchable: distinct(unmatchable) };
 }
 
 const run = await walk();
@@ -115,6 +129,19 @@ test('the walk finds fields of all three kinds, from more than one component', (
   assert.deepEqual(tags, ['input', 'select', 'textarea'], `found only ${tags.join(', ')}`);
   const keys = distinct(run.fields.map((f) => f.key));
   assert.ok(keys.length > 5, `only ${keys.length} distinct fields — the sweep has narrowed`);
+});
+
+// A rule whose selector this DOM cannot parse is a rule the contest never heard
+// from: it is neither in `sized` nor reported, so a component sizing a field
+// through a selector nwsapi rejects would leave the floor unguarded in silence.
+// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+test('every rule that sizes a field has a selector this gate can match', () => {
+  assert.deepEqual(
+    run.unmatchable, [],
+    'a font-size rule whose selector this DOM will not parse. It was dropped from every field\'s '
+    + 'contest rather than weighed, so the floor is unguarded wherever it reaches. Rewrite the '
+    + 'selector, or teach this gate to match it.',
+  );
 });
 
 test('every rule that sizes a field states a size this gate can read', () => {
