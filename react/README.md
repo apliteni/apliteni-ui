@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Button`, `Badge`, `Card`, `Icon`.
 
 `CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
 kit's ranking rather than repeating it — so a palette a server rendered and the same palette
@@ -93,6 +93,71 @@ so a destructive palette row that opens a Modal takes one Escape to answer, not 
 closes both. The vanilla `drawer()`, `confirm()` and `commandPalette()` keep a separate
 stack that this one cannot see, so do not open a React dialog and a vanilla overlay over
 each other on the same page.
+
+## Dropdown
+
+`Dropdown` renders the kit's `dropdown()` markup, class for class, and carries
+`wireDropdown()`'s keyboard: the arrows open it onto the first row or the selected one and
+then walk the ring, stepping over a disabled row and wrapping at both ends; Home and End go
+to the first and last; Enter and Space pick the row focus is on; Escape closes and returns
+focus to the trigger; Tab closes; a click outside closes it, and opening one closes every
+other on the page. Both flavours are here — `variant="select"` is a listbox that writes the
+pick into the trigger and moves the tick, `variant="menu"` is an action list — and, as in
+the factory, the variant is inferred when you leave it out.
+
+```tsx
+<Dropdown items={items} ariaLabel="Row actions" triggerContent="Actions"
+  onSelect={(value, item) => run(item)} />
+```
+
+**A row can be anything, including a router link.** `row` is handed the item and every prop
+the row has to carry — the classes, the role, the tab stop the panel moves itself, the pick
+and the click — and you spread them onto whatever element the row should be:
+
+```tsx
+import { Link } from 'react-router';
+
+<Dropdown items={items} row={(item, props) => <Link to={item.href!} {...props} />} />
+```
+
+That is the shape #304 was opened for, and it is a render prop rather than an `as` because
+the row is where a router link needs props of its own: `as={Link}` could pass the item's
+`href`, but not the `to`, `state`, `replace` or `prefetch` a real call site writes — and it
+could not vary them per row. Every row is still in the arrow-key ring, because the panel
+finds its rows by `data-dd-item`, which is in the props you spread.
+
+`open` and `onOpenChange` make the open state controlled, the way `sort` does on `DataTable`;
+leave `open` out and the component keeps its own, starting from `defaultOpen`. `onSelect`
+reports the item's `value` and the item. Pass `ariaLabel` to a `select` dropdown: a listbox
+needs a name, and axe says so — the same reason every vanilla dropdown story passes one.
+
+Two things the factory has that this does not, both deliberate. It emits no `data-dropdown`
+on the container, so a page that calls `wireDropdown(document)` cannot adopt a dropdown React
+owns — the same decision `Drawer` makes about `data-drawer`; the row and panel hooks stay,
+because they are the row contract `docs/library.md` publishes. And it has neither `portal:
+true` nor `search: true` yet: the panel is a child of the trigger's container, so a dropdown
+inside `.ui-app__rail` (`position: sticky` with `overflow-y: auto`) still wants the vanilla
+factory, and a list of ten or more options — which Guidelines / Component choice says needs a
+search field — wants it too.
+
+## BackLink
+
+`BackLink` is the kit's `backLink()`, rendered by React rather than through
+`dangerouslySetInnerHTML`. It holds the same rules: no address, or a `javascript:` one,
+renders nothing; the label is the destination as the sidebar spells it, and one that already
+says "Back to" is not said twice; the arrow is `aria-hidden`, so the accessible name says
+"Back to" that destination in words.
+
+```tsx
+<BackLink href="/invoices?status=open&page=3" label="Invoices" />
+<BackLink as={Link} to="/invoices" href="/invoices" label="Invoices" />
+```
+
+It renders the anchor itself, so `ui-back` is on the element the shell's
+`.ui-app__main > .ui-back` rule looks for — which is the whole reason a stateless component
+is here. `as` takes the element the link is drawn as and passes it every prop this component
+does not read, which is how a router link gets its own `to`; `href` is still required,
+because it is what the `javascript:` guard reads.
 
 ## Work on them
 
