@@ -320,16 +320,21 @@ const PHONE_ONLY = [
  * nothing; on the reader's fold that band holds the only control that opens the
  * rail. Each is measured both ways under this constant rather than merely excluded.
  */
-const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))'];
+const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand'];
 
 /**
  * And the one rule the reader's fold writes that the 720px block must not, which is
  * the same exception read the other way. The toggle stands at the end of the brand
  * row and rides the closing edge back onto the glyph column, so the column it lands
- * on is the column the product's mark stands on and the lockup goes whole. Below
- * 720px the toggle is not drawn, nothing takes the mark's place, and the mark stays
- * — a phone rail whose head band went with it would have lost the product. Measured
- * both ways by the gate under FOLD_ONLY.
+ * on is the column the product's mark stands on and the lockup goes whole.
+ *
+ * This is the one entry that is an exception in BOTH lists, because the two blocks
+ * write it in opposite directions rather than one of them writing it alone. Below
+ * 720px the toggle is not drawn, so nothing arrives on the column the mark gives up
+ * — and `.is-collapsed` is reachable at that width, out of the same cookie a desktop
+ * press wrote or out of a documented `collapsed: true`. The 720px block therefore
+ * gives the lockup back, and a rail folded on a phone keeps the product and the link
+ * home. Both directions are measured under FOLD_ONLY rather than merely excluded.
  */
 const FOLD_ONLY_RULES = ['.ui-app__brand'];
 
@@ -478,6 +483,36 @@ test('the reader\'s fold takes the product\'s lockup whole, and the phone strip 
   assert.equal(
     narrow.css('.ui-app__brand span', 'opacity'), '0',
     'the phone strip keeps the product\'s word beside the mark, in a rail 74px wide',
+  );
+
+  // The state the rule above is really about, and the one an exclusion on its own
+  // would hide: a rail that is BOTH below 720px and carrying `.is-collapsed`. Every
+  // default shell is `data-rail="auto"` and takes the stored choice, so a reader who
+  // folds on a desktop and opens the same site on a phone lands here, as does any
+  // caller passing the documented `collapsed: true`. The toggle is display:none at
+  // this width, so if the fade reached the mark there would be nothing in the band
+  // and nothing to press.
+  const narrowFolded = mount(PAIR(true), { narrow: true });
+  assert.equal(
+    narrowFolded.css('.ui-app__brand', 'opacity'), '1',
+    'a rail folded on a phone fades the product\'s mark off a column nothing arrives on — the toggle '
+    + 'is not drawn below 720px, so the head band is 41px of nothing over its own hairline. The fade '
+    + 'belongs to the widths where the control replaces the mark it takes.',
+  );
+  assert.equal(
+    narrowFolded.css('.ui-app__brand', 'visibility'), 'visible',
+    'a rail folded on a phone takes the lockup out of the tab order, and with the toggle not drawn at '
+    + 'this width that is the link home gone as well — the Tab walk into the rail starts at the first '
+    + 'nav row and there is no way back to an open rail at all',
+  );
+  assert.equal(
+    narrowFolded.css('.ui-app__brand', 'pointerEvents'), 'auto',
+    'a rail folded on a phone keeps the mark drawn but refuses the tap on it',
+  );
+  assert.equal(narrowFolded.shown(narrowFolded.q('.ui-app__brand')), true, 'the phone rail\'s lockup is not drawn once it is folded');
+  assert.equal(
+    narrowFolded.css('.ui-app__brand span', 'opacity'), '0',
+    'the folded phone rail keeps the product\'s word in a rail 74px wide',
   );
 });
 

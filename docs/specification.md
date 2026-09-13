@@ -730,10 +730,15 @@ What the shell guarantees:
   down the rail, which is the one thing the travel promises not to do; a pointer on a desktop is
   held to the kit's 24px floor there and clears it. The second runs the other way: the reader's fold
   hides the product's lockup and the 720px fold does not, because below 720px the toggle is not
-  drawn and nothing lands on the mark's column. `stories/apps/shell-states.test.js` compares the two
+  drawn and nothing lands on the mark's column. The two widths are not two shells, so the press's
+  own class reaches a phone: a rail is `data-rail="auto"` by default and takes the choice the cookie
+  holds, and `collapsed: true` is a documented argument. The 720px block therefore writes the lockup
+  back rather than the press's rule being left unqualified — a folded rail on a phone that took the
+  fade would be a 41px band with nothing in it, its hairline still under it, and no control anywhere
+  on the rail to open it again. `stories/apps/shell-states.test.js` compares the two
   blocks rule for rule and element for element, and holds both halves of each — the touch floor is
   really in the 720px block and really not in the other, and the lockup really goes on the press and
-  really stays on a phone.
+  really stays on a phone, folded or open.
 - **The rail's own skin is not a place to go.** The toggle is a `<button>` in a row of the rail
   outside the `<nav>`: folding a panel is not a place to go, and a row of the navigation list is
   what it would be read as inside one. The head band it stands in draws one rule under the line, not

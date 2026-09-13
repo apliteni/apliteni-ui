@@ -227,8 +227,10 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-dropdown__chevron,
 :where(.ui-app.is-collapsed) .ui-app__brand span { opacity: 0; pointer-events: none; }
 /* The toggle rides onto the glyph column — the two widths' own difference — and the
-   lockup goes whole, since that column is where its mark stood. The one pair with no
-   twin in the 720px block. why: docs/specification.md#the-page-shell */
+   lockup goes whole, since that column is where its mark stood. The mark may only go
+   where the control arrives: below 720px the toggle is not drawn, so the 720px block
+   gives the lockup back rather than leaving an empty band with a hairline under it.
+   why: docs/specification.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
 :where(.ui-app.is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
@@ -318,6 +320,13 @@
      drawn over nothing. The reader's fold cannot take this rule — there the toggle
      IS drawn. why: docs/specification.md#the-page-shell */
   .ui-app__head:not(:has(> .ui-app__brand)) { display: none; }
+  /* And where the band does hold the mark, the mark stays — at this width the press
+     that folded the rail on a desktop still reads out of the cookie, and the control
+     that would undo it is the one above. A head band faded to nothing here is an empty
+     41px box over a rule, with no way home. The reader's fold cannot take this rule —
+     there the toggle lands on the column the mark gives up.
+     why: docs/specification.md#the-page-shell */
+  .ui-app__brand { opacity: 1; visibility: visible; pointer-events: auto; }
   .ui-app__rail .ui-nav__cap,
   .ui-app__rail .ui-nav__label,
   .ui-app__rail .ui-nav__badge,
