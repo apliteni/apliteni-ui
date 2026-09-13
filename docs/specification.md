@@ -53,6 +53,23 @@ bounds the page takes the first; a box that bounds a line of text takes the seco
 declared once, in `src/tokens/tokens.css`, and nothing in `src/`, `stories/` or `site/` writes a
 page-scale width as a literal.
 
+The column comes in two widths, and they are names rather than numbers: `appShell({ width })`
+takes `centered` — the capped, centred column the kit has always drawn — or `wide`, which takes
+the cap off and fills the track beside the rail. Both are drawn in both layouts. `centered` is
+the default and writes no class, because it is the rule that was already there; `wide` is the one
+that adds `.ui-app__main--wide`, and that rule's whole content is the cap it removes. Neither
+writes a second copy of a number.
+
+`maxWidth` is the number under either name. The name picks the cap the column falls back to —
+`var(--measure)` centred, `none` wide — and a caller who passes `maxWidth` replaces that fallback
+on either, so the two options cannot disagree: there is one column, one cap, and the name says
+which cap applies when nobody gave a number. Held by `stories/apps/shell.test.js` on the markup
+and `stories/apps/shell-states.test.js` through the resolved cascade. Decided in
+[#308](https://github.com/apliteni/apliteni-ui/issues/308); `wide` and `centered` are the
+reference's `full` and `reading` under the kit's own names, and the reference's cap — the
+container less the rail less the inset — was not taken, because `--measure` is where this kit
+records a reading column and a third derived width would be a fourth number.
+
 `appShell()` writes no `--ui-app-main` when the caller passes none, so the reading column falls
 through to `var(--measure)` rather than being copied into JavaScript. A caller who passes an
 unusable `maxWidth` gets the property removed, not replaced — a custom property accepts any token
@@ -632,10 +649,19 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 ## The page
 
 `appShell()` draws a page's chrome and what goes inside it is the caller's. Guidelines / The page
-shows the eight choices a designer makes for each screen, with four Do and Don't pairs.
+shows the ten choices a designer makes for each screen, with five Do and Don't pairs.
 The shared page layout and navigation names are already decided and are described here.
 The guideline page contains no code references; the table below is the only rule-to-code mapping.
 
+- **`layout` — a product takes one shell layout and every screen keeps it.** The shared layout
+  comes in two: the rail on its own, and the rail with a bar over the page carrying search and the
+  reader's menu. Which one a product takes is a decision for the product, not for a screen. On a
+  page, what this means is that the parts a layout moves are drawn once: one block naming the
+  signed-in reader, one way into the command palette, one bar.
+- **`width` — the content column comes in two widths, and the page picks one.** Wide fills the
+  space beside the rail; centred is capped and sits in the middle of it. Tables and boards take
+  the wide one, reading and forms the centred one. A page does not write a width of its own inside
+  the column.
 - **`shell` — use the shared layout for application pages.** Sign-in and other authentication
   cards do not need a sidebar, and marketing pages are not application screens. The header order,
   introduction and card limit apply to application pages. The title, heading order, navigation
@@ -684,6 +710,8 @@ belong only here, and rejects citations, file paths and selectors in the rendere
 
 | Rule | Where the kit holds it |
 |---|---|
+| `layout` | the `layout` option on `appShell()` in `src/components/shell.js`, which draws `.ui-app__bar` in `src/styles/layout.css` |
+| `width` | the `width` option on `appShell()` in `src/components/shell.js`, and `.ui-app__main--wide` in `src/styles/layout.css` |
 | `shell` | `appShell()` in `src/components/shell.js`, and `financeShell()` in `stories/apps/_finance-nav.js` as the caller's side of it |
 | `head` | the slot order `appShell()` writes in `src/components/shell.js` — the way back, `<h1>`, `.ui-app__sub`, `.ui-app__body` |
 | `one-h1` | `card()` and its kin refuse an `h1` (`src/components/index.js`); `success()` takes its rank from its layout (`src/components/success.js`) |
@@ -696,7 +724,7 @@ belong only here, and rejects citations, file paths and selectors in the rendere
 | `lede` | `.ui-app__sub`, written by `appShell()` in `src/components/shell.js` |
 
 `stories/guidelines/the-page.test.js` renders every example screen under `stories/apps/` and
-checks all ten rules. It matches checks to rule ids: eight from the guideline page and two
+checks all twelve rules. It matches checks to rule ids: ten from the guideline page and two
 from `GATED_ELSEWHERE`. A missing rule or check fails the build. The success screen component
 has no example in that collection, so `src/components/success.test.js` checks its title level
 separately.
@@ -896,6 +924,68 @@ What the shell guarantees:
 - **The rail holds nothing that has to escape it.** `.ui-app__rail` is `position: sticky` with
   `overflow-y: auto`, and each of those traps a popover on its own — see
   [The dropdown panel](#the-dropdown-panel). A dropdown mounted in the rail passes `portal: true`.
+
+### The second layout
+
+`appShell({ layout: 'topbar' })` is the same shell with three parts in different places, and
+`layout: 'rail'` — the default, and what every page already on the shell gets — is the
+arrangement above. `accountShell()` passes the option through and settles nothing of its own.
+Every guarantee in this section holds in both: the fold, the cookie, `wireShell()`, the name
+chips, the 720px strip, the reader's menu and the accessibility floor are the same behaviour with
+the same wiring, and the gates that hold them were extended rather than duplicated.
+
+What moves, and what each move buys:
+
+- **The reader's block leaves the rail's foot for a band over the page, and the fold's control
+  takes its place.** The toggle stands at the rail's foot, which is where the reference draws it
+  and where it stood before Artur moved it to the head band on 2026-09-13 for the other layout.
+  At the foot it needs no travel: it is on the glyph column from the first frame, so the fold
+  moves it nowhere, and the ride along the closing edge belongs to the head band alone — the one
+  place on the rail where a mark does not start on that column.
+- **The band stands beside the rail, not across the top of both.** The rail keeps the viewport's
+  own top edge and its whole height; the band is the first row of the column next to it. This is
+  the reference's shape, and it is the only one in which the rail's head band and the band are one
+  line: the product's mark at the left of that line, the reader at the right, and one rule under
+  the pair. Stacked above the rail instead, the mark would sit in a second band under the first.
+  The three boxes — the band, the rail's head, the rail's foot — are one height, `--ui-app-band`,
+  and `stories/apps/shell-states.test.js` holds that height to the one `.topbar` is. The band is
+  not wrapped in `.ui-app-page`: that wrapper offsets the rail below the compatibility topbar,
+  which does stand over it.
+- **The band carries a search field and the reader, and nothing else.** A `<header>`, outside the
+  navigation landmark, because neither of the two is a place to go.
+- **The search field is a palette trigger drawn as a field.** It is `lessly-ui`'s
+  `QuickSearchRow` and Artur's call on 2026-09-13: it looks like a search box, states the key that
+  opens the same palette, and carries `[data-cmdk-open]` — the palette's own delegated trigger —
+  so the kit has one search surface and not two. The caller names the palette they rendered, and
+  with no palette named there is no field, the argument `signOutHref` takes. The key cap is the
+  palette's own `.ui-cmdk__key`, and it is **inside** the button's accessible name rather than
+  `aria-hidden`: a palette row hides its shortcut, because forty of them read after forty labels
+  is noise, but there is one of these and the key is the fact it exists to teach. `paletteHotkey()`
+  reads the platform, a server has none, so the markup ships `Ctrl K` and `wireShell()` writes the
+  reader's own key into the cap — and therefore into the name — off the root's own window.
+- **On the band the mark is the whole trigger, and it carries the name.** There is no room for the
+  reader's two lines on a 52px row, so the block is the avatar, and the sentence the rail's two
+  lines said is written on the control instead — the same sentence `readerFace()` writes when there
+  is no menu and the avatar is the block. The address is in the panel's head, where a folded rail
+  already put it. This is the reference's reading of a user menu in a top bar.
+- **One band over a page, never two.** `layout: 'topbar'` and the compatibility `topbar` bag are
+  not composed: the layout draws its own band and the bag is not drawn. A caller who passes both
+  gets the layout they named rather than two headers stacked on one page — which costs that caller
+  the version switcher and the theme toggle, and is the one thing the preset gives up for this
+  layout.
+- **A name the kit does not know is the layout it has always drawn.** `layout` and `width` are
+  read strictly, against the one name each that is not the default. A typo must not draw half a
+  second layout — a page with no reader on it — and neither option is read through `String()`,
+  which turned `['topbar']` into a layout.
+
+Held by `stories/apps/shell.test.js` (the markup and the parts that move),
+`stories/apps/shell-states.test.js` (the three heights, the band's stick, and the two caps through
+the resolved cascade) and `stories/apps/shell-rail.test.js` (the fold from the rail's foot, the
+menu from the band, the field opening the palette, and the key `wireShell()` writes). The React
+package publishes components and no shell, so there is no `<AppShell>` for the options to reach.
+Decided in [#308](https://github.com/apliteni/apliteni-ui/issues/308), reworked on
+`lessly-hub/lessly-ui` at `d1a25eda` — `app-shell.tsx`'s band and well, `app-sidebar.tsx`'s foot
+band, `quick-search-row.tsx` and `user-menu.tsx`'s top-bar reading.
 
 The nav's own rules beat a host stylesheet: `.ui-nav .ui-nav__item` is (0,2,0) and a host sheet's
 `a:link` is (0,1,1), so dropping the kit into a page that styles its links does not restyle the

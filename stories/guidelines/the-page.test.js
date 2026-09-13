@@ -86,6 +86,58 @@ const inOverlay = (el) => OVERLAY_ROOTS.some((sel) => el.closest(sel));
 // what a reader sees when it is not, so each names the screen and the fault.
 
 const CHECKS = {
+  // One layout per product is a decision nothing on one screen can show, so what is
+  // measured here is the half a screen CAN break: the parts a layout moves must not
+  // be drawn twice. A screen that hand-rolls a second search box, or names the reader
+  // in the rail and again on the band, has two answers to one question.
+  layout(s) {
+    if (s.kind !== 'app') return [];
+    const problems = [];
+    const readers = s.doc.querySelectorAll('.ui-app__user');
+    if (readers.length > 1) {
+      problems.push(`${s.where} names the signed-in reader ${readers.length} times. The block moves `
+        + 'between the two layouts; it is not drawn in both places at once, and a page with two of '
+        + 'them asks a reader which one ends their session.');
+    }
+    const ways = [...s.doc.querySelectorAll('[data-cmdk-open]')].filter((el) => !inOverlay(el));
+    if (ways.length > 1) {
+      problems.push(`${s.where} draws ${ways.length} ways into the command palette. One page, one `
+        + 'field: a second control that opens the same thing is a choice a reader has to make and '
+        + 'cannot get right.');
+    }
+    const bands = s.doc.querySelectorAll('.ui-app__bar, header.topbar');
+    if (bands.length > 1) {
+      problems.push(`${s.where} stacks ${bands.length} bands over the page. A screen takes the bar `
+        + 'its layout draws, and no other.');
+    }
+    return problems;
+  },
+
+  // The column is the shell's, and the screen does not write one of its own. A page
+  // that sets a width inside its own <main> has left the two names behind and is
+  // carrying a third number nothing else in the kit knows about.
+  width(s) {
+    if (s.kind !== 'app') return [];
+    const main = s.doc.querySelector('main.ui-app__main');
+    const problems = [];
+    const columns = s.doc.querySelectorAll('main.ui-app__main');
+    if (columns.length !== 1) {
+      problems.push(`${s.where} draws ${columns.length} content columns. Both widths are one column `
+        + 'at two caps.');
+    }
+    // An absolute cap, and not a percentage: a skeleton bar at 40% is as wide as
+    // whatever column it was put in and cannot fight the shell's. A number in px or
+    // rem is a second page width, which is the thing the two names replace.
+    const own = [...main.querySelectorAll('[style*="max-width"]')]
+      .filter((el) => !inOverlay(el) && /max-width\s*:\s*[\d.]+(?:px|rem|em|ch)/.test(el.getAttribute('style') || ''));
+    if (own.length) {
+      problems.push(`${s.where} caps the page at a width of its own — `
+        + `${own.map((el) => `"${el.getAttribute('style')}"`).join(', ')}. The column is the shell's, `
+        + 'and the two names it comes in are the whole of the choice.');
+    }
+    return problems;
+  },
+
   shell(s) {
     if (s.kind === 'none') {
       return [`${s.where} is none of the three page kinds — it draws neither the shell's <main>, `
