@@ -16,6 +16,7 @@
 @import "./tokens/accents.css";
 @import "./styles/base.css";
 @import "./styles/reduced-motion.css";
+@import "./styles/field-zoom.css";
 @import "./styles/motion.css";
 @import "./styles/button.css";
 @import "./styles/card.css";

@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.31.1', date: '2026-09-12',
+    changes: [
+      ['fixed', "Every field the kit ships is 16px on a touch screen, so focusing one no longer zooms the page. iOS Safari zooms into a focused field whose text is under 16px and does not zoom back out; the kit's form controls were 14.5px, the pager's size and jump controls 13px, and the dropdown's search field 12.5px. One `(pointer: coarse)` rule in the new `src/styles/field-zoom.css` takes `input`, `select` and `textarea` to 16px, and both published stylesheets import it — the React one as well, the way both carry the reduced-motion net. It is written over elements rather than kit classes, so a host page's own fields are covered too, and it is `!important`, because a net has to outrank a component rule it has never seen. That reach has a cost worth knowing before you upgrade: the rule is a flat size and not a floor, so a host field *designed above* 16px — a 20px hero search — is made smaller on a touch screen than it is with a mouse. Keep one with an `!important` rule of your own, more specific than a bare element: `.hero-search input { font-size: 20px !important; }` wins whichever stylesheet loads first. The controls with nothing to type into keep their size. With a mouse nothing changes. The local rule 0.30.0 gave the dropdown's search field is gone, replaced by the shared one.", ['Inputs', 'Dropdown', 'Pagination', 'CommandPalette', 'Feedback']],
+    ],
+  },
+  {
     v: '0.31.0', date: '2026-09-12',
     changes: [
       ['breaking', "Already shipped: everything in this entry has been on npm since 0.30.0. The three changes below merged before #287 bumped the version, so 0.28.0, 0.29.0 and 0.30.0 carried them without describing them. A consumer on 0.30.0 already has the capitals gone and the card title as a heading; this is the entry that says so."],

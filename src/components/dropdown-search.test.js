@@ -314,15 +314,23 @@ test('the divider goes between the groups still showing, never above the first o
 // ---- Touch ---------------------------------------------------------------
 
 // iOS Safari zooms the page into a focused field whose text is under 16px, and
-// opening the panel focuses this one.
-test('on a touch screen the field is 16px, so focusing it does not zoom the page', () => {
+// opening the panel focuses this one. What it is sized to on a touch screen is
+// the kit's one net, src/styles/field-zoom.css, held by stories/field-zoom.test.js
+// over every field the kit renders. This sheet states the mouse size and carries
+// no (pointer: coarse) rule of its own, which is the second answer that could
+// disagree with the net. #294
+test('the field is 12.5px with a mouse, and this sheet does not size it on touch', () => {
   const rules = sheet();
   const base = rules.find((r) => r.selectorText === '.ui-dropdown__search-input');
   assert.equal(base?.style.fontSize, '12.5px', 'a mouse keeps the size the rows use');
-  const touch = rules.filter((r) => r.media && /\(\s*pointer\s*:\s*coarse\s*\)/.test(r.media.mediaText))
-    .flatMap((r) => [...r.cssRules]).find((r) => r.selectorText === '.ui-dropdown__search-input');
-  assert.ok(touch, 'a (pointer: coarse) rule sizes the field');
-  assert.ok(parseFloat(touch.style.fontSize) >= 16, `font-size: ${touch.style.fontSize}`);
+  const coarse = rules
+    .filter((r) => r.media && /\(\s*pointer\s*:\s*coarse\s*\)/.test(r.media.mediaText))
+    .flatMap((r) => [...r.cssRules].map((inner) => inner.cssText));
+  assert.deepEqual(coarse, [], 'a local touch rule beside the net is a second answer to one question');
+  // The net is written over element selectors, so what puts this field inside it
+  // is that the field is an <input>.
+  const field = mount(searchable()).doc.querySelector('.ui-dropdown__search-input');
+  assert.equal(field.tagName, 'INPUT', 'the net reaches the field through its element');
 });
 
 // ---- Portalled -----------------------------------------------------------
