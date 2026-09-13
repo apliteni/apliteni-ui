@@ -7,14 +7,11 @@
  * the Storybook preview makes. Then it reads back the rail, the toggle, focus,
  * the names a folded rail's rows answer to, the cookie and the `ui-rail` event.
  *
- * It also presses the account block, which is a menu trigger since #286: sign out
- * left the nav list for it, and what is gated here is that wireShell() reaches the
- * menu and that the keyboard gets to the row.
+ * It also presses the account block, which is a menu trigger since #286: what is
+ * gated here is that wireShell() reaches the menu and the keyboard gets to the row.
  *
  * What it does not reach: Enter and Space on the toggle, which are the browser's on
- * a native <button> — a press here is a click; the chip a folded row gives its name
- * back in, which is CSS and is gated in shell-states.test.js; and Tab order, which
- * is layout's.
+ * a native <button>; the folded row's chip, which is CSS; and Tab order.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

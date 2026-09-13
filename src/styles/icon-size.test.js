@@ -44,9 +44,8 @@ const src = path.resolve(here, '..');
 // `.ui-back svg`, the back link's arrow — a width and a height, sized and stroked
 // in one rule); 66 (#283: `.ui-dropdown__search-ic svg` sizes the search field's
 // glyph, width and height); 70 (#267: the stat band's change arrow and its trend
-// slot, two rules of two declarations each); 68 (#277: the folded rail stopped
-// drawing its glyph a size of its own — the fold closes a box over the rows now,
-// so a rail row's glyph is one rule at both widths).
+// slot, two rules of two declarations each); 68 (#277: the fold closes a box over
+// the rows, so a rail row's glyph is one rule at both widths).
 const EXPECTED_SUBJECTS = 68;
 
 const SHEETS = kitSheetNames(src);

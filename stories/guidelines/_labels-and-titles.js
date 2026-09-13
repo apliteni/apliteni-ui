@@ -56,7 +56,7 @@ export const RULES = [
     doHtml: rankDo,
     dontHtml: rankDont,
     kit: [
-      { ref: 'src/styles/layout.css:283', pattern: 'rank: page-title' },
+      { ref: 'src/styles/layout.css:262', pattern: 'rank: page-title' },
       { ref: 'src/styles/card.css:64', pattern: 'rank: card-title' },
     ],
   },

@@ -897,6 +897,26 @@ ancestor traps the panel, which is what the rail does, and not otherwise.
 The default renders byte-for-byte what it rendered before either variant existed. Both are opt-in,
 so a page already working around this keeps working.
 
+**A closing panel stops taking clicks before it stops being drawn.** `visibility` is held at
+`visible` for the whole of the fade out, so the rows do not vanish mid-fade — and a box that is
+drawn is a box that is hit. A menu row is an `<a>` or a `<button>`, so a click landing in that
+window activates it invisibly, and since [#286](https://github.com/apliteni/apliteni-ui/issues/286)
+one of those rows signs the reader out. The closed panel is `pointer-events: none` and the open
+rules take it back, which is the answer `.ui-drawer` and `.ui-cmdk` already give. Held by
+`stories/overlay-css.test.js`.
+
+**A panel the keyboard opens is visible in the frame the key lands.** `visibility` is discrete, so
+hidden → visible still resolves `hidden` in the frame the open class lands, and a browser will not
+move focus into a box that is hidden. Every row carries `tabindex="-1"`, so the arrows opened the
+panel, focus stayed on the trigger and the next Tab left the dropdown altogether. Measured in
+Chrome: `getComputedStyle(panel).visibility` reads `hidden` in that frame and `visible` in the
+next. An open panel therefore transitions `opacity` and `transform` only, leaving `visibility` off
+the clock to apply at once; closing still fades on every property it always did. The rule was
+written for the search variant, where opening puts focus in a field, and it belongs to every panel,
+because opening any of them with a key puts focus on a row. Held by `stories/overlay-css.test.js`,
+which is the one gate that can see it — JSDOM focuses inside a hidden box happily, so the gates
+that press the keys pass with the rule deleted.
+
 Held by `src/components/dropdown.test.js`, which reads the offsets out of the stylesheet — any
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
 property — and feeds the wiring measured rects, JSDOM having no layout of its own.
@@ -905,6 +925,12 @@ property — and feeds the wiring measured rects, JSDOM having no layout of its 
 
 `.ui-dropdown__item` renders identically under all three tags, and which one a row is written as
 is the page's decision rather than the kit's.
+
+A destructive row rests quiet and turns `--pink` on the way to being pressed, in both states rather
+than on hover alone: a pointer resting on the row is one way of being about to press it and the
+keyboard landing on it is the other, and painting only the first made the destructive signal
+pointer-only. The ring says where the reader is; it does not say that this row is the one that ends
+something. It is the same two-step `.ui-nav__item` and `.ui-btn--danger` write.
 
 The kit had already said a row gets chosen — `.ui-dropdown__tick` is the listbox variant's trailing
 check, and `.ui-dropdown__item.is-selected` is what shows it — and choosing is a `<button>`'s job.
@@ -960,9 +986,9 @@ the list through `aria-controls`. The rows stay `role="option"`, and the row Ent
 named by `aria-activedescendant`, so the reader can keep typing. The field has the focus and carries
 `--ring`; the active row takes the hover fill and a 2px accent bar, because two rings of equal
 weight leave the reader unable to tell focus from the pick. Opening the panel puts focus in the
-field, with the selected row active or the first one. For that, the open search panel is visible at
-once rather than at the first step of its `visibility` transition: a browser will not focus a field
-in a box that is still `hidden`, so the focus call was lost. Closing still fades.
+field, with the selected row active or the first one. For that, the open panel is visible at
+once rather than at the first step of its `visibility` transition — see
+[The dropdown panel](#the-dropdown-panel), which is where that rule now lives for every panel.
 
 - ↑ and ↓ move through the rows still showing, skip a disabled row, and wrap at the ends.
 - Enter picks the active row, writes it into the trigger and closes. With nothing showing, it does

@@ -1083,6 +1083,30 @@ therefore renumbers guideline pages outside your diff, so prefer appending to
 whether the gap is still real — grep `unmet` when an issue closes, or the Guidelines Overview
 goes on advertising it publicly.
 
+### A rule that outranks another cancels every state that other one writes
+
+`layout.css` is imported after `nav.css`, so `.ui-app__rail .ui-nav__item:hover` ties
+`.ui-nav__item:hover` on specificity and wins on source order alone. Re-skinning the rail's rows
+therefore silently takes over every state the nav writes for a row, including the ones the new rule
+never mentions.
+
+Two of them were lost that way, and both were found by eye rather than by a gate:
+
+- **The destructive row.** `nav.css` washes `.is-danger:hover` in `--glow-pink`. The rail's own
+  hover paints `--surface-3` over it, so Sign out quietly stopped taking the pink the guideline page
+  cites `nav.css` for. It is excluded from the rail's hover by name.
+- **The row the reader is standing on.** `.is-active` already rests on `--surface-3`, so painting
+  the same colour on hover made the one row the reader is standing on the one row that ignores the
+  pointer. Excluded by name as well.
+
+The resting ink has the mirror of the same problem: a rail-scoped `--muted` on `.is-danger` pre-empts
+the step `nav.css` writes for it and makes the destructive row the quietest thing in the rail. So the
+rail names both of `nav.css`'s danger states rather than hover alone — a state the override forgets
+is a state it silently cancels.
+
+When a rule re-skins rows another sheet already styles, list every state that other sheet writes and
+decide each one. See [The page shell](docs/specification.md#the-page-shell).
+
 ### A shorthand resets the axis it does not mention
 
 `padding` sets all four sides, including the ones you leave out. So `style="padding:70px 0"`
@@ -1600,7 +1624,7 @@ cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
 src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
-property, the symmetric src/styles/layout.css:275 `margin-inline: auto`, against 25 physical left/right
+property, the symmetric src/styles/layout.css:254 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.

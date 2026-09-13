@@ -222,12 +222,11 @@ export function dropdown({
 // Per-instance trigger + keyboard handlers are attached once (guarded by a flag
 // on the element). Document-level click-outside + Esc are attached once per
 // document. Safe to call repeatedly (e.g. Storybook re-renders).
+
 // Every wired container, so the close handlers can reach a dropdown wherever it
-// was drawn. `document.querySelectorAll` cannot: it does not enter a shadow root
-// and it does not see another document at all, so a dropdown in a frame or a
-// shadow root stayed open on the click that should have closed it. A Set and not
-// a WeakSet, because this has to be walked; disconnected entries are dropped on
-// the way past. why: docs/specification.md#the-dropdown-panel
+// was drawn: `document.querySelectorAll` enters no shadow root and sees no other
+// document. A Set and not a WeakSet, because this has to be walked.
+// why: docs/specification.md#the-dropdown-panel
 const _ddAll = new Set();
 // One pair of close handlers per document that holds a dropdown, the same way
 // wireShell() listens once per document it is handed.
