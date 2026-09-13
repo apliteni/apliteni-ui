@@ -60,9 +60,16 @@ export const SPEC_CSS = `
     .gc-imperative { font-size: var(--text-lg); font-weight: var(--weight-semibold);
       line-height: var(--leading-snug); color: var(--text); }
     /* --prose-body, because the why is body size now; the shared sheet's
-       --prose-dense is the step for prose set below 13px. */
+       --prose-dense is the step for prose set below 13px. The top margin is what
+       one ink costs: the shared sheet leaves 0px under a caption, which ink used
+       to separate and no longer does. --space-3 is the step the imperative gives
+       on the other side of the figure and is larger than the --space-2 a cell
+       gives its caption, so the caption's bond upward stays the tighter of the
+       two; it collapses on a rule with no specimen pair.
+       why: #298 — the caption's own rank is #292 */
     .gc-why { font-size: var(--text-base); font-weight: var(--weight-normal);
       line-height: var(--leading-normal); color: var(--text);
+      margin-block-start: var(--space-3);
       max-width: var(--prose-body); }
     /* The table has no row for a caption under a specimen, so this borrows the
        row below the why — label — for size and weight, and not its --muted ink. */
