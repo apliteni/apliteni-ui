@@ -1,232 +1,260 @@
-# Fields: 16px on a touch screen, from one net (#294)
+# Elevation: nothing casts, and every surface says how high it is (#295)
 
-Prepared for the coordinator to open `asabirov/294-inputs-16px`. Based on main `bb5fd04`,
-2026-09-12. Reporter: Artur (@asabirov).
+Prepared for the coordinator to open from `asabirov/295-elevation`. Based on main `bb5fd04`,
+2026-09-12. Implements the three decisions Artur recorded on
+[#295](https://github.com/apliteni/apliteni-ui/issues/295) from the review page
+`docs/reviews/295-elevation.html`; the research that page rests on is
+[#299](https://github.com/apliteni/apliteni-ui/pull/299), read here and not merged.
 
 ## What & why
 
-iOS Safari zooms the page into a focused field whose text is under 16px and does not zoom
-back out. Every field the kit ships was under it. One `@media (pointer: coarse)` rule —
-`src/styles/field-zoom.css` — now takes `input`, `select` and `textarea` to 16px, both
-published stylesheets import it, and #291's local rule on the dropdown's search field is
-gone. Two gates hold it, one per workspace. Version 0.31.1: a patch, because nothing
-changes with a mouse and no API moves.
+Since [#284](https://github.com/apliteni/apliteni-ui/issues/284) the card is flat and ten other
+places still cast. #295 asked what should separate a surface once the shadow goes. The answer
+picked is `lift-line`: **nothing casts anywhere**, a surface says how high it is with its step on
+a ladder of lightness, and every floating surface keeps the kit's hairline. The card takes one in
+both themes, where only light had one.
 
-## Problem
-
-| Field | Size before | Zoomed on focus |
-| --- | --- | --- |
-| `.ui-input`, `.ui-textarea`, `.ui-select` | 14.5px (`--text-base`) | yes |
-| `.ui-dropdown__search-input` | 12.5px, 16px under `(pointer: coarse)` since #291 | no |
-| `.ui-pager__size-select`, `.ui-pager__jump-input` | 13px (`--text-sm`) | yes |
-| `.ui-cmdk__input` | 15.5px (`--text-md`) | yes |
-| `.ui-fbcomposer textarea` | 14.5px | yes |
-
-#291 answered it for the one field whose panel focuses it on open. The other six were
-left, and the answer was written on the dropdown's own sheet, where nothing else could
-reach it.
+The five `--shadow-*` tokens stay published and resolve to `none`. See
+[Deprecated, not deleted](#deprecated-not-deleted) for why.
 
 ## Premises
 
-- The fix has to reach a field nobody has written yet. A rule naming kit classes needs an
-  edit per component, and it leaves a host page's own fields zooming on the kit's sheet.
-- A net that reaches by element has to outrank component rules it has never seen, which is
-  `!important` — the same trade `src/styles/reduced-motion.css` already makes, and the
-  same idempotence, so importing both stylesheets costs nothing.
-- The size must be real. The zoom reads the computed font size, so a 16px field scaled
-  back with a `transform` still zooms, and the transform takes the border and the focus
-  ring with it.
-- A viewport tag is not available to us. `user-scalable=no` / `maximum-scale=1` stops the
-  zoom by removing pinch-zoom for every reader, fails WCAG 1.4.4, is argued against by
-  Apple's own Human Interface Guidelines, and belongs to the host page rather than to a
-  stylesheet. Stated under [A field is 16px on a touch
-  screen](docs/specification.md#a-field-is-16px-on-a-touch-screen).
-- A flat 16px is a size, not a floor, so it shrinks a field designed above it. No kit field
-  is above it, and a gate now refuses one. **A host page's field can be**, and the same
-  element reach that covers a component nobody has written yet lands on that one too — see
-  [the open decision](#open-decision-how-far-the-net-should-reach) below.
+- The model, the light half and the ink were decided by Artur on the review page, from rendered
+  frames. This branch implements those three picks; it does not re-open them.
+- `docs/reviews/295-elevation/elevation.css` on `asabirov/295-elevation-variants` is the source
+  for the exact values. Every token below was checked against it, and the review page's
+  measured-surface line was checked against the rendered frames here.
+- The research already warned where the bill lands: *"the dark ladder has about one step of
+  headroom left, and `--muted` is what spends it."* The light half of that bill — every
+  translucent wash in the theme composites over a page that is no longer white — was not on the
+  review page, and is the largest part of this diff. It is itemised under
+  [The ladder's bill](#the-ladders-bill).
+- Nothing in `docs/reviews/` is touched. The prototype was copied into a scratch tree to draw the
+  frames; the **after** frames are the real stylesheet from `src/`, with no prototype override
+  loaded at all.
+
+## The decision record
+
+| Decision | Pick | The reason, from the review page |
+| --- | --- | --- |
+| Which elevation model should the kit ship? | **lift-line** — lightness and a hairline | *"What Atlassian, Primer, Geist and Radix all actually ship, and it is what makes light survivable: the ladder carries dark, the line carries light, and neither theme depends on the half that is weak for it."* The cost named there is the one this branch pays: the card is no longer edgeless in dark. |
+| In light, does the card come off white? | **card-steps-down** | *"Light gets a real ladder, which means a panel is still separated if a line is ever dropped, and it matches Radix (step 1 is not white) and Geist (#fafafa, not #ffffff)."* The rejected option kept the card white and made the card and every floating panel the same white, so light could never drop its hairline. |
+| Dark has about one step of headroom left. Who spends it? | **repick-muted** | *"The honest version of the rule: if raised surfaces get lighter, the ink on them gets lighter too, once, deliberately."* The alternative capped the ladder and enforced the cap with nothing — *"a quiet 4.38 that no gate catches."* |
 
 ## What changed
 
-| Area | Change |
-| --- | --- |
-| `src/styles/field-zoom.css` | New. One `@media (pointer: coarse)` block, one declaration: `font-size: 16px !important` over `input` (less the ten types with nothing to type into), `select` and `textarea`. |
-| `src/index.css`, `src/inline.js` | Import and read it, beside the reduced-motion net. |
-| `react/src/index.ts` | Imports it too, so `apliteni-ui/react/css` carries a net as well. Confirmed in the built `react/dist/index.css`. |
-| `src/styles/dropdown.css` | #291's `(pointer: coarse)` rule removed; the sheet states the mouse size and points at the net. |
-| `src/components/dropdown-search.test.js` | That component's touch test now holds the mouse size and refuses a local coarse rule beside the net. |
-| `stories/field-zoom.test.js`, `react/src/field-zoom.test.tsx`, `stories/lib/field-zoom.js` | The gates, one per workspace over one shared implementation. |
-| `react/src/Modal.stories.tsx` | A Notes field beside the Name field in `Playground` — the React catalogue had no textarea, so the React gate covered two of the net's three element kinds. |
-| `stories/guidelines/_accessibility-floor.js` | A fourth number, `FIELD_MIN`, the rule that states it, and both gates with their blind spots. |
-| `docs/specification.md` | The guarantee, the rejected viewport fix, what the larger text costs — including what it costs a **host page's** own field, with the override recipe — and the dropdown section pointing there. |
-| `docs/evidence/294/` | The input at 390 in both themes, before and after. |
-| `package.json`, `site/changelog.mjs` | 0.31.1 and its entry. |
+### The ladder
 
-## How the gates are built
+Bottom to top. Every value verified against `elevation.css`, and read back off the rendered page.
 
-**No cascade is resolved, and no stylesheet is on the page.** JSDOM does not rank
-`!important` between rules: written the way the kit imports them, its cascade hands back the
-component's size and reports the net beaten. So neither gate asks it. Each mounts the stories
-into a bare document, takes every text-entry control as a subject, asks the element whether
-the net's own selector — read out of the net's file as text, not retyped — reaches it with
-`matches()`, and reads the contest off the declarations: the net is important, and the gate
-fails if anything else in the kit or in a story's `<style>` block is. What that proves is
-that the net is the kit's only important font size, not that a browser resolves it that way;
-the browser end is the measured table below.
+| Token | The step | Dark before → after | Light before → after |
+| --- | --- | --- | --- |
+| `--bg` | the page | `#16151f` → `#0e0d14` | `#ffffff` → `#eef0f5` |
+| `--surface-2` | **sunken** — fields, tracks, disabled, code | `#1b1927` → `#161520` | `#f5f6f9` → `#e3e6ee` |
+| `--surface` | the card | `#221f2e` → `#211e2d` | `#ffffff` → `#f8f9fc` |
+| `--bg-elevated` | **floating** — menus, panels, drawer, modal, toasts | `#1c1a28` → `#2a2639` | `#ffffff` (unchanged) |
+| `--surface-3` | the top step — the readout, chips, the rail's hover | `#2a2739` → `#2d293c` | `#eceef3` → `#e7eaf1` |
+| `--seg-active-bg` | the active segmented pill | `#34314a` → `#383350` | `#ffffff` (unchanged) |
 
-A selector `matches()` will not parse used to drop out of that contest in silence — a skip,
-which [CONTRIBUTING.md](CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip)
-forbids. The vanilla gate now fails on one and names it.
+Dark's `--bg-elevated` used to sit **below** the card it floated over — `#1c1a28` against
+`#221f2e`. It is a full step above it now.
 
-Every mutation was put on disk, the diff confirmed, the failure watched, and the edit
-reverted.
+### Nothing casts
 
-| Mutation | Result |
-| --- | --- |
-| `!important` removed from the net | 2 vanilla tests fail |
-| floor lowered to 14px | 2 vanilla tests fail |
-| `textarea` dropped from the net's selector | 2 vanilla tests fail, **and** the React gate's reach test — 3 in all |
-| `(pointer: coarse)` rule added back to `dropdown.css` | 1 vanilla test fails |
-| `.ui-textarea` sized 18px, above the floor | 1 vanilla test fails ("the net would shrink it") |
-| `select` dropped from the net's selector | React gate fails (`.ui-select`, Modal story) |
-| a `font-size` rule added under a selector jsdom will not parse (`::highlight(found) .ui-input`) | 1 vanilla test fails, naming the rule |
-| the textarea taken back out of React's `Modal → Playground` | React gate fails ("all three of the net's element kinds") |
+Sixteen rules stop drawing a `box-shadow`, which is the list the issue and the review page
+carry: the switch knob, the topbar theme pill, the soft toast (`--shadow-sm`); the success
+panel, the outline toast, the hover readout (`--shadow-md`); the dropdown panel, the account
+menu, the workspace menu, the confirm, the drawer, the command palette, the auth card, the solid
+toast, the React modal (`--shadow-lg`); the active segmented pill (`--shadow-seg`).
 
-The `textarea` row read "4 tests fail" before this branch was reviewed, and it did not
-reproduce: 2 vanilla tests failed and **the React gate stayed green**, because no React story
-rendered a textarea. `Modal → Playground` now has one — a Notes field beside the Name field,
-the kit's own `.ui-textarea` markup — and the React gate pins that all three of the net's
-element kinds are rendered, so that hole cannot reopen quietly.
+**Two more were not on that list, and this branch found them by re-running the sweep:**
 
-The "without the net, the kit sizes fields under the floor" test is what stops the suite
-passing on its own constant: it lists the rules that are under 16px today and fails if
-there are fewer than four.
+- `src/styles/feedback.css:70` `.ui-fbcomposer {` — a floating composer whose only edge was
+  `--shadow-lg`. It already painted `--bg-elevated`; it takes the hairline now.
+- `src/styles/motion.css:72` `.m-lift:hover {` — a published utility that cast `--shadow-md` on
+  hover. It is the travel alone now, and the `box-shadow` it transitioned went with it.
 
-## Proof, measured in a browser
+Six floating surfaces stop painting `--surface-2` and paint `--bg-elevated`: the same token
+cannot be both a field's inset and a menu's lift. The confirm, the palette and the drawer take it
+on the hook each publishes, never on the full-viewport container.
 
-Headless Chromium over CDP, `Emulation.setEmulatedMedia` with `pointer: coarse`, sizes read
-off the rendered fields. Full set, both themes, in `/tmp/asabirov/294-inputs-16px/`; the
-before/after pair is committed under `docs/evidence/294/`.
+One trap worth naming, because it is silent: the drawer, the confirm and the palette composed
+their local shadow with the focus ring — `box-shadow: var(--drawer-shadow), var(--ring)`. With
+the shadow at `none` that is `box-shadow: none, var(--ring)`, which **does not parse**, and the
+declaration would have been dropped along with the focus ring. The three local hooks are gone and
+those rules are `box-shadow: var(--ring)`.
 
-| Screen | 1440, fine pointer | 390, coarse pointer |
+### Two wiring faults the ladder exposed
+
+- **In light the hover readout lost its panel.** `src/styles/tooltip.css` re-pointed
+  `--ui-tip-bg` at `--surface`, which was white while the page was white. The ladder makes
+  `--surface` the card step, so a readout drawn over a card was painted the card's own colour.
+  The override is gone; the readout takes `--surface-3` in both themes. Drawn, rather than
+  described: [`found-light-tip-unwired-1440.png`](docs/evidence/elevation/found-light-tip-unwired-1440.png)
+  is this branch's stylesheet with that one override put back — the readout measures `#f8f9fc`,
+  exactly the card under it. With the fix it measures `#e7eaf1`.
+- **The dropdown's accent counter stacked a wash on a raised surface.**
+  `.ui-dropdown__badge.is-accent` mixed 14% accent over the row under it. That is fine over the
+  page and not over a panel; the ladder made the panel a raised surface and every dark
+  theme × accent cell but Emerald went under AA. It takes the shape the nav badge has had since
+  #157 — `src/styles/nav.css:128` `.ui-nav__item.is-active .ui-nav__badge.is-accent` — the flat
+  surface, the accent as ink. This also closes two of the four rows in the contrast ledger's
+  bucket B, which had been prescribing exactly this fix since #157.
+
+### Deprecated, not deleted
+
+`--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` **stay
+published** and are set to `none` in both themes. Deleting them would leave a consumer's
+`box-shadow: var(--shadow-lg)` as an unresolved `var()` — which computes to the property's
+initial value in most cases but is a silent cliff, and a consumer who deliberately wants a cast
+shadow back can set the token instead of rewriting their rules. Nothing under `src/` reads any of
+them. `--shadow-ink`, `--sheen`, `--ring` and `--scrim` are untouched: none of them is a cast
+shadow.
+
+The three local hooks `--drawer-shadow`, `--confirm-shadow` and `--cmdk-shadow` are removed
+rather than zeroed, because a local hook that resolves to `none` and is composed with `--ring` is
+the parse trap above.
+
+## `--muted`, measured
+
+The decision asks for `--muted` picked against the **top** of the dark ladder, clearing AA 4.5
+with room to spare — a target of ≥ 5.0 on `--bg-elevated` and on `--surface-3`. Dark `--muted`
+goes `#948fa8` → `#a29db6`: the same violet-grey, lifted fourteen steps on every channel, so
+`G = R − 5` and `B = R + 20` hold exactly as before and the hue does not move.
+
+Every surface dark `--muted` sits on, WCAG 2.x:
+
+| Surface | Old ink on old surface | **Old ink on the new surface** | **New ink on the new surface** |
+| --- | --- | --- | --- |
+| `--bg` `#0e0d14` | 5.82 | 6.22 | **7.40** |
+| `--surface-2` `#161520` | 5.56 | 5.81 | **6.91** |
+| `--surface` `#211e2d` | 5.18 | 5.24 | **6.24** |
+| `--bg-elevated` `#2a2639` | 5.50 | 4.71 | **5.60** |
+| `--surface-3` `#2d293c` | 4.66 | 4.52 | **5.38** |
+| `--seg-active-bg` `#383350` | 4.01 | 3.84 | **4.57** |
+
+The middle column is what shipping the ladder without the repick would have cost: the two
+floating steps clearing by hundredths, which is the 4.71 / 4.52 the research measured. Every
+surface clears 4.5 with the new ink, the two floating steps clear 5.0 with room, and
+`--seg-active-bg` — which no rule paints `--muted` on today, and which was already the worst
+ground in the kit at 4.01 — clears 4.5 for the first time.
+
+Light `--muted` (`#5c6270`) does not move. It is measured on every new light ground and the worst
+is the sunken step: `--bg` 5.36, `--surface` 5.81, `--bg-elevated` 6.11, `--surface-3` 5.07,
+`--surface-2` **4.89**. That 4.89 is the ratchet move under [The ladder's bill](#the-ladders-bill).
+
+## The ladder's bill
+
+Everything below moved because a token the decision named moved. Each one is a gate turning red,
+not a preference.
+
+| What moved | Why | Gate |
 | --- | --- | --- |
-| Inputs / Text fields | `.ui-input` 14.5px ×5 | 16px ×5 |
-| Inputs / Textarea | `.ui-textarea` 14.5px | 16px |
-| Inputs / Select and search | 14.5px ×3 | 16px ×3 |
-| Dropdown / Search open | `.ui-dropdown__search-input` 12.5px | 16px |
-| Pagination / Playground | `.ui-pager__size-select` 13px | 16px |
-| Command palette / Playground | `.ui-cmdk__input` 15.5px | 16px |
-| Feedback / Default | composer textarea 14.5px | 16px |
+| Light `--pink` `#b63361` → `#a92d59`, `--glow-pink` re-tinted from it | Every `--pink`-on-its-own-tint pair reads over the page, and the page is no longer white: the danger nav row, the danger badge, the hovered danger button and the composer's error all fell to 4.38 or below | `stories/signal-contrast.test.js` |
+| Light `--chip-success-ink` `#1c7034`, `--chip-warn-ink` `#825900`, `--chip-info-ink` `#096a7c` | #131 gave a toast's action the chip ink; the soft toast's wash composites over the page | `stories/contrast.test.js` |
+| Light Ocean `--accent` `#005bc8` → `#005ab4`; light Emerald `#087a52` → `#076c48` | Emerald was the only cell that failed **flat** as well as washed — green has the least room of the four hues | `stories/accent-contrast.test.js` |
+| `.ui-app__rail .ui-nav__ic svg` opacity `0.62` → `0.66` | The light rail is `--surface-2` and went down a step with the page; the resting glyph fell to 4.34 against a hard 4.5 bar | `stories/apps/shell-states.test.js` |
+| `DISABLED_FLOOR` `5.56` → `4.89` | The 5.56–6.11 band was a property of a white light app. `--disabled-surface` is the sunken step, and light's sunken step used to sit one notch under `#ffffff`. The label still clears WCAG AA, and `DISABLED_MIN` — the bar the rule is actually held to — is 3 | `stories/guidelines/accessibility-floor.test.js` |
+| `GLYPH_FLOOR` `4.39` → `3.85` | The four callout glyphs are painted straight on the callout's own translucent wash. Every one is a graphic held to `GRAPHIC_AA` 3:1 and still clears it by more than a quarter again. Deepening four more chip inks to hold a ratchet none of them is failing was the worse trade | `stories/signal-contrast.test.js` |
+| Contrast ledger: bucket H deleted, bucket B 4 → 2 rows, buckets C / E / F deepened | H closed because `--muted` rose; B closed two rows because the dropdown badge was fixed; C, E and F deepened by about the step the light page took | `stories/contrast.test.js` |
+| Accent gate stops measuring the wash over `--bg-elevated` | It is a raised surface now, and the kit's own rule is that the accent wash goes on a base surface — which is true again once the dropdown badge is fixed | `stories/accent-contrast.test.js` |
 
-Nothing moves at 1440. The emulation is stated as emulation in the evidence README: it
-proves the media query matches and the size lands, never Safari's own zoom, which is the
-issue's report from a device.
+Both ratchets move **down**, which the repo treats as a decision somebody writes rather than a
+number somebody edits, so each carries the reason at its declaration. Neither is a WCAG bar, and
+no WCAG bar is crossed anywhere in this branch.
 
-## Decisions
+## Evidence
 
-| Decision | Why |
-| --- | --- |
-| Element selectors, not kit classes | Covers a component nobody has written yet, and a host page's own fields. A class list is an edit per component. **The reach into host fields is not settled — see below.** |
-| `!important` | The net has to outrank component rules; `reduced-motion.css` is the precedent, and no other font size in the kit is important — the gate keeps it that way. |
-| A new file rather than a block in `input.css` | The net reaches six components, and `input.css` is imported before four of them. A file of its own is also what both stylesheet entries can import. |
-| `font-size`, never a viewport tag | Pinch-zoom stays; WCAG 1.4.4; and the tag is the host page's. |
-| Keep the flat 16px, and gate the shrink | Writing the net as a `max()` floor complicates every field to protect a case the kit does not have. The gate refuses the case instead. |
-| Patch, 0.31.1 | No API moves and nothing changes with a mouse. `asabirov/295-elevation` takes the next minor. |
-| The React entry imports the net | A consumer who takes only `apliteni-ui/react/css` would otherwise have no net, which is the hole reduced motion had before #271. |
+The board frame the research drew — two cards, the plan dropdown held open over a card, the
+account menu, the hover readout over a chart, an outline and a soft toast — plus the React modal
+over all of it. Before is `origin/main`, after is this branch, both through the same prototype
+page with **no override stylesheet loaded**, so the after frames are the shipped kit.
 
-### Open decision: how far the net should reach
+| Frame | Dark before | Dark after | Light before | Light after |
+| --- | --- | --- | --- | --- |
+| Board, 1440 | [png](docs/evidence/elevation/before-board-dark-1440.png) | [png](docs/evidence/elevation/after-board-dark-1440.png) | [png](docs/evidence/elevation/before-board-light-1440.png) | [png](docs/evidence/elevation/after-board-light-1440.png) |
+| Board, 390 | [png](docs/evidence/elevation/before-board-dark-390.png) | [png](docs/evidence/elevation/after-board-dark-390.png) | [png](docs/evidence/elevation/before-board-light-390.png) | [png](docs/evidence/elevation/after-board-light-390.png) |
+| Modal, 1440 | [png](docs/evidence/elevation/before-modal-dark-1440.png) | [png](docs/evidence/elevation/after-modal-dark-1440.png) | [png](docs/evidence/elevation/before-modal-light-1440.png) | [png](docs/evidence/elevation/after-modal-light-1440.png) |
+| Modal, 390 | [png](docs/evidence/elevation/before-modal-dark-390.png) | [png](docs/evidence/elevation/after-modal-dark-390.png) | [png](docs/evidence/elevation/before-modal-light-390.png) | [png](docs/evidence/elevation/after-modal-light-390.png) |
 
-**This is the one call left for Artur, and it is worth making before merge, because the two
-answers ship different CSS and a different changelog entry.**
+Plus [`found-light-tip-unwired-1440.png`](docs/evidence/elevation/found-light-tip-unwired-1440.png)
+— the readout fault, drawn from this branch with the one removed override put back.
 
-Reaching host fields by element selector was presented as pure benefit. It is not. The net is
-a flat size, and a floor on an element's own font size cannot be written in CSS, so a host
-field *designed above 16px* is **shrunk** on a touch screen. A host page with
-`html { font-size: 112.5% }` and `input { font-size: 1rem }` renders an 18px field; a 20px
-hero search is the same case. Measured in headless Chromium under an emulated coarse pointer,
-with the kit's sheet on the page:
+Surfaces read off the rendered pixels rather than the stylesheet, page / card / dropdown panel /
+readout / account menu:
 
-| Host rule | Size on a coarse pointer |
-| --- | --- |
-| `#a { font-size: 20px; }` | **16px** — the net wins, the field shrinks |
-| `#b { font-size: 20px !important; }` | 20px — the host wins |
-| `input.hero { font-size: 20px !important; }`, host sheet after the kit's | 20px — the host wins |
-| `input { font-size: 20px !important; }`, host sheet **before** the kit's | **16px** — ties on specificity, loses on source order |
-| `.hero input { font-size: 20px !important; }`, host sheet **before** the kit's | 20px — the host wins |
+- **dark before** `#16151f` / `#221f2e` / `#1b1927` / `#2a2739` / `#1b1927` — the panel and the
+  menu are *darker* than the card they float over.
+- **dark after** `#0e0d14` / `#211e2d` / `#2a2639` / `#2d293c` / `#2a2639`.
+- **light before** `#ffffff` / `#ffffff` / `#f5f6f9` / `#ffffff` / `#f5f6f9`.
+- **light after** `#eef0f5` / `#f8f9fc` / `#ffffff` / `#e7eaf1` / `#ffffff`.
 
-So the override recipe is precise, and it is now published in
-[the specification](docs/specification.md#a-field-is-16px-on-a-touch-screen), in the changelog
-entry and in the net's own file: **an `!important` rule more specific than a bare element**,
-which wins whichever stylesheet loads first.
+## Where the rule is written now
 
-| Option | What ships | What it costs |
-| --- | --- | --- |
-| **A — keep the reach (what this branch does)** | `input, select, textarea` under `(pointer: coarse)`, as written. | A host field above 16px is shrunk until its author writes an `!important` override. That is a silent visual regression on a consumer's page, arriving in a **patch** release — they have to read the changelog to know to look. In exchange, a host page's small fields stop zooming with no work at all, which is most host pages. |
-| **B — kit fields only** | The same declaration scoped to the kit's own fields — `.ui-input, .ui-textarea, .ui-select, .ui-dropdown__search-input, .ui-pager__size-select, .ui-pager__jump-input, .ui-cmdk__input, .ui-fbcomposer textarea` — or an `:where()` class list beside the elements. | No host page is touched, so nothing regresses for anyone. But the list needs an edit per component, which is the failure mode #294 set out to avoid, and a host page's own small fields go on zooming — the reader still gets the bug, just not from the kit's own controls. `!important` is still needed, and the gate over it is unchanged either way. |
+- `docs/specification.md` gets an **Elevation** section: the ladder, why light runs it downwards,
+  what the line does that the step cannot, where the accent wash may be painted, and the standing
+  cost to the ink.
+- `Foundations/Elevation` in Storybook was three shadow swatches that now render nothing. It
+  draws the ladder instead, each step over the step it actually sits on, with a pair showing what
+  the hairline adds. The story export is renamed `Shadows` → `Ladder`; nothing references its id.
+- `Foundations/Backgrounds` orders its surface list by the ladder and says so. The card story,
+  the drawer guideline and the site's bento cells stop calling light an all-white app, and the
+  site's adoption prompt stops telling a consumer to migrate to `--shadow-*`.
 
-A middle option exists and is **not** recommended: keep the element reach but wrap the
-declaration so it applies only below 16px. It cannot be written — `max()` compares lengths,
-not the element's own inherited size, and there is no `font-size: max(16px, self)`.
-
-Recommendation: **A**, on the grounds that the consumers of this kit are Apliteni's own
-applications rather than arbitrary pages, no field in any of them is above 16px today, and
-the override is one line. But the regression is real, it lands in a patch, and the call is
-Artur's.
-
-## Checks
-
-Re-run in full after the independent review's four findings were fixed.
+## Proof
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Unit + a11y, serial | `node --test --test-concurrency=1 'src/**/*.test.js' 'stories/**/*.test.js' 'site/**/*.test.js' 'scripts/**/*.test.js'` | 1410 tests: 1408 pass, 0 fail, 2 skipped (447.0s). |
-| Unit + a11y, parallel | `npm test` | 1408 pass, 0 fail, 2 skipped, 124.8s. The wall-clock ceiling that failed on an earlier run of this branch did not fail here. |
-| React build | `npm run build` | tsup ESM + d.ts build clean; `react/dist/index.css` carries the net (one `(pointer: coarse)` block). |
-| React tests | `npm test --workspace react` | 353 pass in 17 files. |
-| Citation gates | `node --test scripts/doc-refs.test.js stories/guidelines/refs.test.js scripts/code-refs.test.js` | 88 pass. (An earlier note here said 89; 88 is what this tree returns, on `main` as well.) |
-| gitleaks | `gitleaks git --pre-commit --redact --staged --verbose --config .gitleaks.toml` | no leaks found. |
-| gitleaks rules | `node scripts/gitleaks-rules.check.mjs` | 64 mutations, every rule and allowlist entry killed by one. |
-| Secret-scan range | `node scripts/secret-scan-range.check.mjs` | 9 scenarios pass. |
-| Internal-terms denylist | the staged-diff grep from `.pre-commit-config.yaml` | clean. |
-| Slop detector | `slop-detector <8 changed files> --level 3` | 0 errors, 0 medium, 1 warning — `docs/specification.md`'s drawer sentence, present on `main` unchanged. Two `comment-essay` findings the review's edits introduced (the net's header and the gate's) were fixed by moving the argument into the specification and leaving a pointer, not by deleting it. |
+| Node suite | `npm test` | 1,399 tests, **1,397 pass, 2 skipped, 0 fail** — see the timing note below |
+| React build | `npm run build --workspace react` | pass |
+| React tests | `npm test --workspace react` | **322 pass**, 16 files |
+| Secrets | `gitleaks detect --config .gitleaks.toml --log-opts origin/main..HEAD` | 6 commits scanned, **no leaks found** (v8.30.1) |
+| Internal terms | the `.pre-commit-config.yaml` denylist, over `git diff origin/main..HEAD -U0` | clean |
+| Slop detector | `slop-detector.js` over every file this branch touches | **0 errors / 4 medium / 3 warnings — identical to the same sweep on `origin/main`** |
+| Citations | `scripts/code-refs.test.js`, `scripts/doc-refs.test.js`, `stories/guidelines/refs.test.js` | 92 pass |
 
-## Verification
+**Timing note.** `stories/contrast.test.js` "the walk has not run away with the clock" is on the
+edge of its 120s ceiling on this host and flips with load. It failed twice during the branch's
+runs — 157.9s under the full suite's contention, and 122.8s with the file run alone — and passed
+on the final full run (whole-suite wall clock 119.4s). The same file run alone on `origin/main`,
+back to back in the same shell, measured **125.9s** against this branch's **122.8s**: the branch
+is *faster* than main on the same machine, so the ceiling is a property of the host rather than
+of this change, and it is not touched here. A CI run is the number to trust.
 
-- [x] `npm test` passes serially; the one parallel failure is the wall-clock ceiling, named above.
-- [x] React build and React tests pass.
-- [x] Every gate in this change fails under a mutation that removes what it holds.
-- [x] Screenshots at 1440 and 390, both themes, for every screen the change touches. The review added one screen — React `Modal → Playground`, which now renders a textarea — captured in `/tmp/asabirov/294-inputs-16px/`, along with the guidelines floor page whose touch rule gained the host-field exception. The React workspace's Storybook pins `data-theme="dark"`, so its light captures set the attribute on the preview document.
-- [x] The new React textarea measured in the browser: 14.5px with a fine pointer, 16px with a coarse one.
-- [x] No protected data added. The evidence PNGs are Storybook specimens with the kit's own placeholder copy.
+## Decisions taken while implementing
 
-## Reviews
+Small and reversible, listed rather than asked:
 
-| Reviewer/model | Commit | Result |
-| --- | --- | --- |
-| Implementer / Claude Opus 5 | working tree | Self-check only: mutations, both suites, browser measurement |
-| Independent review / Claude Opus 5 | `aab494f` | Four findings, all fixed on this branch: the undisclosed host-field shrink (medium), the gate's published account not matching what it does, an unparseable selector dropping out of the contest in silence, and a mutation count that did not reproduce. The scope question the first finding raises is [left for Artur](#open-decision-how-far-the-net-should-reach). |
+| Decision | Why |
+| --- | --- |
+| Deprecate the five `--shadow-*` in place rather than delete them | A published token a consumer reads should degrade to nothing, not to an unresolved `var()`. Named in the changelog as **breaking** anyway, because the kit's own appearance changes |
+| Remove `--drawer-shadow` / `--confirm-shadow` / `--cmdk-shadow` | A local hook at `none` composed with `--ring` is a parse error that silently deletes the focus ring |
+| `--shadow-card` set to `none` in light as well | It was already `none` in dark and unread since #284; leaving light's two-layer value published would contradict the rule the same file states |
+| The soft toast takes a status-tinted hairline at 22% (the outline style's is 40%) | Its shadow was its only edge. A `--border` hairline on a status-tinted wash reads as a stray line; the status tint at half the outline's weight is the same vocabulary |
+| The solid toast takes no border | It is the status at full fill strength and needs no edge to be found |
+| `.ui-card--accent` re-colours the card's hairline instead of keeping its inset ring | With the card edged in both themes, the ring drew a second line inside the first |
+| `--disabled-ink-bare` kept, though the ladder closed the three grounds it was cut for | It is the margin above the floor now rather than the rescue from under it, and the rule that holds every box-less disabled rule to it is unchanged. Retiring it is its own change |
+| Light `--muted` left alone | The decision names dark. Its worst new ground is 4.89, which clears AA; holding the 5.56 ratchet would have meant darkening the secondary ink across the whole light theme, which nobody asked for |
+| `site/index.html`'s `.term` keeps its window shadow | It is chrome for a simulated terminal window, not a kit surface. Worth a second opinion |
 
-## Earned merge
+## Not done
 
-- Closes the defect for every field rather than the one #291 reached, and removes the split
-  answer #291 left on the dropdown's sheet.
-- A version bump and its changelog entry are included, so `Shipped surface vs version` has
-  both halves.
-- Required before merge: Artur's review, and **his answer to [the open scope
-  decision](#open-decision-how-far-the-net-should-reach)** — option B would change the net's
-  selector and its changelog entry.
+- **`docs/reviews/`** is untouched. The prototype and its `elevation.css` stay on
+  [#299](https://github.com/apliteni/apliteni-ui/pull/299).
+- **`--disabled-ink-bare` is now within one step of `--muted`** (`#a39eb7` against `#a29db6`,
+  5.44 against 5.38 on `--surface-3`). The token has arguably outlived its reason; retiring it
+  belongs to whoever owns #273, not to this issue.
+- **No Storybook static build** was run, so the one story-id check that needs
+  `storybook-static/` stays skipped, as it does on main.
+- Light's ladder **tops out at white**. A floating panel and anything that would need to float
+  above it are the same colour, which is the limit the rejected `card-stays-white` option would
+  have hit one step sooner. Nothing in the kit needs that step today.
 
 ## Linked issue
 
-Closes #294.
+Closes [#295](https://github.com/apliteni/apliteni-ui/issues/295).
 
 ## Changelog entry
 
-- Every field the kit ships is 16px on a touch screen, so focusing one no longer zooms the
-  page. Nothing changes with a mouse. The rule reaches a host page's own fields too, and it
-  is a flat size rather than a floor — a host field designed above 16px is made smaller on a
-  touch screen, and is kept with an `!important` rule more specific than a bare element.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-https://claude.ai/code/session_01Hx7UY34c8XEvXvU7hcetRP
+`0.32.0` in `site/changelog.mjs` — four `breaking`, three `changed`, three `fixed`. `0.32.0` was
+free: `origin/main` is on `0.31.0` and no open branch had taken it.
