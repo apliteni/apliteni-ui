@@ -643,6 +643,54 @@ test('the toggle carries a name at both widths, because it is wordless at both',
   }
 });
 
+// The chip rule is what makes this a question: it lifts the name out of the flow,
+// and the glyph left standing there is shorter than the line the name vacated, so
+// the button shrank under the pointer and took the nav below it up with it.
+// #282's rule is that a hover readout overlays the page and never reflows it.
+// why: docs/specification.md#the-page-shell
+
+/** The line a box sets, in px — what the name occupies while it is in the flow. */
+const lineBox = (at, el) => {
+  const lh = at.of(el, 'lineHeight');
+  const line = /^[\d.]+$/.test(lh) ? Number(lh) * Number.parseFloat(at.of(el, 'fontSize')) : Number.parseFloat(lh);
+  assert.ok(Number.isFinite(line), 'no line resolves on the toggle\'s name — this gate is measuring nothing');
+  return line;
+};
+
+/** The glyph box's own height: the box it declares, or the mark it wraps. */
+const glyphBox = (at, ic) => {
+  const declared = Number.parseFloat(at.of(ic, 'height'));
+  if (Number.isFinite(declared)) return declared;
+  const svg = ic.querySelector('svg');
+  assert.ok(svg, 'the toggle wraps no mark at all');
+  return Number.parseFloat(at.of(svg, 'height'));
+};
+
+test('hovering the toggle draws the chip over the rail and does not move it', () => {
+  for (const [rail, at] of [['an open', mount(PAIR(false))], ['a folded', mount(PAIR(true))]]) {
+    const btn = at.q('.ui-app__fold');
+    const label = btn.querySelector('.ui-nav__label');
+    const ic = btn.querySelector('.ui-nav__ic');
+    assert.ok(label && ic, 'the toggle is no longer a glyph and a name, so there is no pair for a hover to take apart');
+    const glyph = glyphBox(at, ic);
+    const line = lineBox(at, label);
+    for (const [state, who] of CHIP_STATES) {
+      btn.setAttribute('data-ui-state', state);
+      const left = at.of(label, 'position');
+      btn.removeAttribute('data-ui-state');
+      assert.equal(left, 'fixed', `${rail} rail keeps the toggle's name in the flow for ${who} — see the gate above`);
+    }
+    assert.ok(
+      r2(glyph) >= r2(line),
+      `on ${rail} rail the toggle's glyph box is ${r2(glyph)}px inside a ${r2(line)}px line. The name `
+      + `leaves the flow to become the chip, so the button falls to ${r2(glyph)}px the moment a pointer `
+      + 'or the keyboard reaches it, and the nav under it — and every row in it — steps up the rail. '
+      + 'A hover readout overlays the page; it does not reflow it. The glyph box has to carry the '
+      + 'line, so the flow keeps its height whether the name is in it or not.',
+    );
+  }
+});
+
 test('the fold toggle is drawn wherever there is a fold to choose, and only there', () => {
   const on = (html, opts) => { const at = mount(html, opts); return at.shown(at.q('.ui-app__fold')); };
   assert.equal(on(PAIR(false)), true, 'the wide rail has no control to fold it');

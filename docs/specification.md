@@ -670,7 +670,10 @@ What the shell guarantees:
   folded rail, and it takes that chip on an open rail too. Every other row reads its own name on an
   open rail; the toggle is the one row that is its mark at both widths, so it is the one row whose
   chip is not scoped to the fold — on hover and on keyboard focus, at both widths, the label leaves
-  the flow and lands beside the rail. The mark is drawn by hand in `src/components/shell.js` rather than added to
+  the flow and lands beside the rail. The glyph box carries the line the name vacates, so the button
+  keeps its height in both states: a hover readout overlays the page and never reflows it, and
+  without that the toggle fell 35.39px to 35px under the pointer and took every row of the nav up
+  the rail with it. The mark is drawn by hand in `src/components/shell.js` rather than added to
   `icons.js`, because a seam that travels has to be a child a stylesheet can reach and `icon()`
   emits one opaque string. It stands in the glyph column — `--ui-nav-strip`, a row's padding either
   side of a glyph, which is the width the closed rail is derived from — so it holds its place at

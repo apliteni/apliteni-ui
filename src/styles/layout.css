@@ -213,6 +213,11 @@
    content box, so the label below is squeezed to nothing until the chip rule lifts
    it out. why: docs/specification.md#the-page-shell */
 .ui-app__fold { width: var(--ui-nav-strip); gap: 0; }
+/* The chip rule lifts the name out of the flow, and a 17px glyph is shorter than
+   the line the name occupied — so the button lost 0.39px on hover and moved every
+   row under it. The glyph box carries the line instead, in both states.
+   why: docs/specification.md#the-page-shell */
+.ui-app__fold .ui-nav__ic { height: 1lh; }
 .ui-app .ui-app__fold { color: var(--dim); }
 .ui-app .ui-app__fold:hover,
 .ui-app .ui-app__fold:focus-visible { color: var(--strong); }
