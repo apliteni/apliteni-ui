@@ -106,8 +106,8 @@ const codeFreeProblems = (mod, html = guidelinePage({ title: mod.TITLE, rules: m
   const doc = JSDOM.fragment(html);
   if (doc.querySelector('.gc-refs, code')) problems.push('the page renders a citation or code');
   doc.querySelectorAll('style').forEach((el) => el.remove());
-  if (/(?:[\w.-]+\/)+[\w.-]+|(?<!\w)\.[A-Za-z][\w-]*|--[a-z][\w-]*/.test(doc.textContent)) {
-    problems.push('the page text contains a file path, selector or token');
+  if (/(?:[\w.-]+\/)+[\w.-]+|(?<!\w)\.[A-Za-z][\w-]*|--[a-z][\w-]*|\b[a-z][\w]*\(\)|\bui-[\w-]+|\b\w+(?:-\w+)+[\s`'"]+gate\b/.test(doc.textContent)) {
+    problems.push('the page text contains a path, selector, token, function call or gate name');
   }
   return problems;
 };
@@ -206,6 +206,15 @@ test('specification-only pages reject citations moved into visible text', () => 
     { kit: [{ ref: ['fixture/card.css', 7].join(':') }] },
     { imperative: 'Copy fixture/shell.js:182.' },
     { why: 'Use .ui-card.' },
+    { why: 'Read refs.test.js.' },
+    { why: 'Use appShell().' },
+    { why: 'Use sidebarNav().' },
+    { why: 'Use breadcrumbs().' },
+    { imperative: 'Use card().' },
+    { why: 'Use ui-app__sub.' },
+    { why: 'Read the the-page gate.' },
+    { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
+      doCaption: 'Use appShell().', dontCaption: 'Avoid extra content.' },
     { why: 'Read docs/specification.md.' },
     { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
       doCaption: 'Use --space-2.', dontCaption: 'Avoid custom spacing.' },

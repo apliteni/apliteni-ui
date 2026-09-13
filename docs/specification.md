@@ -631,7 +631,7 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 
 ## The page
 
-These rules keep a page clear and manageable, whatever it is about. Guidelines / The page
+`appShell()` draws a page's chrome and what goes inside it is the caller's. Guidelines / The page
 shows the eight choices a designer makes for each screen, with four Do and Don't pairs.
 The shared page layout and navigation names are already decided and are described here.
 The guideline page contains no code references; the table below is the only rule-to-code mapping.
@@ -648,8 +648,8 @@ The guideline page contains no code references; the table below is the only rule
   belong beneath it.
 - **`outline` — the heading order moves down one level at a time and stops at `h3`.** Use the
   levels for the page, a card or section, and a group within one. Drawers and other overlays have
-  their own heading order. A fourth-level heading inside a feedback dialog does not belong to
-  the page's outline. Footer column titles use level two so they cannot skip a level.
+  their own heading order. On the page itself the kit draws no `h4`. A fourth-level heading
+  inside a feedback dialog does not belong to the page's outline. Footer column titles use level two so they cannot skip a level.
 - **`one-primary` — one primary action at most.** Give the main action a filled button and
   give other actions less emphasis. An overlay can have its own main action, separate from the
   page's. This limit does not apply to marketing pages.
@@ -664,9 +664,10 @@ The guideline page contains no code references; the table below is the only rule
   confirmation dialogs, notifications, hover details and the command palette closed on arrival.
   They can be ready to open without being visible. When the page itself asks for consent or
   confirmation, show that request in the page content.
-- **`density` — use compact rows in every table on the page, or in none of them.** Use the
-  standard row spacing without adding custom cell padding. A table inside a drawer follows
-  the drawer's spacing rather than the page's.
+- **`density` — use compact rows in every table on the page, or in none of them.**
+  `.ui-table--dense` is all of a page's tables or none of them, and no screen writes cell padding
+  of its own — in a style attribute, or in a rule of its own naming `.ui-table`'s cells.
+  A table inside a drawer follows the drawer's spacing rather than the page's.
 - **`lede` — include a short introduction; it is two sentences at most.** Add information
   the title does not give, without repeating it in the opening sentence.
 

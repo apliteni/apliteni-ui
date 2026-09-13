@@ -64,8 +64,9 @@ A rule with no pair stands on its `why` instead.
 `stories/guidelines/refs.test.js` resolves every `kit` entry on every page: the file
 exists, the line exists, and the line contains the entry's `pattern`. Each page must
 cite code unless it explicitly declares `specification-only`; the gate pins that policy
-to The page and checks that its rendered text contains no citations, file paths or selectors. A failure names
-the page, rule, reference, and where the pattern moved to. Shifting a cited line therefore
+to The page and checks that its rendered text contains no citations, file paths, selectors,
+tokens, function calls or gate names. A failure names the page, rule, reference, and where
+the pattern moved to. Shifting a cited line therefore
 fails CI until the reference is updated. The same file checks each rule's shape: an `imperative` that says something, a pair that is both
 halves or neither, captions on a pair, a `why` on a rule without one, and an `unmet`
 that is `{ issue, note }`.

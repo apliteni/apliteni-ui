@@ -3,7 +3,7 @@ import { card, button, badge } from '../../src/components/index.js';
 
 export const TITLE = 'The page';
 
-export const BLURB = 'Arrange the page, make its main action clear, and keep its content manageable.';
+export const BLURB = 'What fits on one page: where readers start, which action leads, and when to split the content.';
 
 export const REFERENCE_POLICY = 'specification-only';
 
@@ -15,11 +15,9 @@ export const LIMITS = { cards: 6, outline: 3, primary: 1, lede: 2 };
 
 // A limit is a number to the gate and a word to the reader. Spelling it here
 // rather than typing the word into the sentence is what keeps the two the same.
-const said = (n) => ['zero', 'one', 'two', 'three', 'four', 'five', 'six'][n] ?? String(n);
+const said = (n) => ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'][n] ?? String(n);
 
-// The specimens. Two of them are drawn rather than photographed, and both say
-// so in their caption: an outline is a shape a reader hears rather than sees,
-// and twelve cards do not fit a 420px cell at life size.
+// The outline uses labels for heading levels; the stack uses one block per card.
 export const SPEC_CSS = `
   <style>
     .tp-out { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -129,19 +127,19 @@ export const RULES = [
   {
     id: 'head',
     imperative: 'Put the way back first, then the page title and a short introduction, with all other content below.',
-    why: 'The title should come before filters, date controls and key figures so readers know where they are.',
+    why: 'Filters above the title ask readers to make choices before they know which page they are on.',
   },
   {
     id: 'one-h1',
     imperative: 'Give each page exactly one page title.',
-    why: 'People who navigate by headings need one clear starting point.',
+    why: 'A missing page title leaves people navigating by headings nowhere to land, as the access confirmation screen once did.',
   },
   {
     id: 'outline',
     imperative: `Use headings in order, without skipping a level, and stop at h${LIMITS.outline}: page, section, then group.`,
     why: 'Skipping a level makes content seem missing; needing a fourth level is a reason to split the page.',
-    doCaption: 'The diagram shows the heading order: one page title, sections, then a group within a section.',
-    dontCaption: 'The diagram shows two page titles, a skipped level and a fourth level that is too deep.',
+    doCaption: 'These are labels for heading levels, not headings on this page; each level belongs to the one above it.',
+    dontCaption: 'A broken heading order leaves readers to guess which content belongs together.',
     doHtml: outlineDo,
     dontHtml: outlineDont,
   },
@@ -149,7 +147,7 @@ export const RULES = [
     id: 'one-primary',
     imperative: `Use ${said(LIMITS.primary)} filled button for the main action and give other actions less emphasis.`,
     why: 'When several buttons stand out equally, readers have to work out which action matters most.',
-    doCaption: 'Create token stands out as the main action; Import agents and Export have less emphasis.',
+    doCaption: 'Readers can start with Create token without first weighing it against Import agents and Export.',
     dontCaption: 'All three actions have equal emphasis, so the main action is unclear.',
     doHtml: primaryDo,
     dontHtml: primaryDont,
@@ -157,7 +155,7 @@ export const RULES = [
   {
     id: 'stacking',
     imperative: `Stack no more than ${said(LIMITS.cards)} cards and keep cards out of other cards.`,
-    why: `Beyond ${said(LIMITS.cards)} cards, use sections, tabs or another page to make content easier to find.`,
+    why: 'A page of twelve cards makes readers scroll past eleven to reach the one they came for.',
     doCaption: `Each block represents a card: ${said(LIMITS.cards)} cards reach the limit.`,
     dontCaption: 'Twelve cards exceed the limit; the blocks use the same scale in both examples.',
     doHtml: stackDo,
@@ -179,8 +177,8 @@ export const RULES = [
   },
   {
     id: 'lede',
-    imperative: `Keep the introduction to ${said(LIMITS.lede)} sentences at most and add something the title does not say.`,
-    why: 'An introduction should help readers understand the page, without making them read its title twice.',
+    imperative: `Keep the introduction to ${said(LIMITS.lede)} sentence${LIMITS.lede === 1 ? '' : 's'} at most and add something the title does not say.`,
+    why: 'An introduction such as “This is the payouts page” under “Payouts” spends the reader’s time telling them nothing new.',
   },
 ];
 

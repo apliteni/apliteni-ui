@@ -14,14 +14,14 @@ are unchanged: six cards, one primary action, headings through h3, compact table
 and an introduction of at most two sentences.
 
 The eight citation chips are removed. The page declares `REFERENCE_POLICY = 'specification-only'`;
-`refs.test.js` pins that declaration and rejects citations, paths and selectors in its rendered
+`refs.test.js` pins that declaration and rejects citations, paths, selectors, tokens, function calls and named gates in its rendered
 text, including references moved into captions. Other guideline pages continue to cite code.
 The specification table is unchanged and remains the sole rule-to-code mapping, with both
 existing table checks in place. No test definitions were removed; the prose-citation sweep no
 longer discovers this page now that its citations are gone, and three new checks cover the
 explicit policy, the real story render and references moved into visible text.
 
-Round-7 full verification: **1426 tests, 1424 pass, 1 fail, 1 skip**, up from 1424 tests
+Earlier round-7 full verification: **1426 tests, 1424 pass, 1 fail, 1 skip**, up from 1424 tests
 in round 6. The only failure is the discounted contrast wall-clock ceiling (139.7s against
 120s); every contrast measurement passes. The skip is the opt-in theme × accent matrix,
 which requires `CONTRAST_ACCENTS=1`. All 322 React tests pass.
@@ -32,6 +32,33 @@ Both refreshed screenshots show eight rules and zero code references after fonts
 at 1200px wide (light: 2393px high; dark: 2387px high). The specification table and all eight
 specimen render functions are unchanged. The coordinator owns independent review on the
 pushed SHA.
+
+## Round-7 delta review
+
+The four explanations for the header order, page title, card limit and introduction now
+name the cost to the reader. Three captions explain what to take from the specimens,
+including why the heading levels are printed as labels, and the Overview description
+now says when content needs another page. The rules table below uses the page's current
+instructions verbatim.
+
+The reference gate now also rejects function calls, dotless kit classes and named gates.
+Twelve separate mutations of the actual story text each turn its render check red: a path,
+a filename, a selector, a token, a filename in a caption, three function names, a function
+in an instruction, a dotless class, a gate name and a function in a caption. The plain-prose
+control stays green. Regression fixtures exercise the new forms independently.
+
+The specification again forbids custom table-cell padding in both inline styles and
+screen-specific CSS, and states that the page itself has no fourth-level heading.
+The four limits, specimen code and specification table are byte-for-byte unchanged.
+Alternate-limit checks render “one sentence” and “seven cards”.
+
+Current verification: **1426 tests, 1424 pass, 1 fail, 1 skip**. The only failure is the
+allowed contrast clock (140.9s against 120s); all contrast measurements pass. All 110 focused
+tests pass, and Storybook builds. Source and rendered prose pass the slop detector at
+paranoid with no warnings. The refreshed screenshots are **1200 × 2387px in dark** and
+**1200 × 2393px in light**, with eight rules and no code references in the guideline content.
+At 375px wide, the light page has no horizontal overflow. Independent review of the pushed
+commit remains with the coordinator.
 
 ## Premises
 
@@ -142,14 +169,14 @@ under the Overview, because it is the frame the other sixteen hang off.
 
 | Rule | Where it is stated | What it holds |
 |---|---|---|
-| `head` | the page | The way back, the title, the line under it. Nothing else above the title |
-| `one-h1` | the page | One title, and only one |
-| `outline` | the page | Down one level at a time, stopping three deep |
-| `one-primary` | the page | One filled button; everything else is quieter |
-| `stacking` | the page | Six cards at most, and no card inside a card |
-| `at-rest` | the page | Nothing over the page until the reader asks |
-| `density` | the page | One row height, every table or none |
-| `lede` | the page | Two sentences at most, and not one of them the title again |
+| `head` | the page | Put the way back first, then the page title and a short introduction, with all other content below. |
+| `one-h1` | the page | Give each page exactly one page title. |
+| `outline` | the page | Use headings in order, without skipping a level, and stop at h3: page, section, then group. |
+| `one-primary` | the page | Use one filled button for the main action and give other actions less emphasis. |
+| `stacking` | the page | Stack no more than six cards and keep cards out of other cards. |
+| `at-rest` | the page | Show the page with nothing covering it until the reader chooses to open something. |
+| `density` | the page | Use compact rows in every table on the page, or in none of them. |
+| `lede` | the page | Keep the introduction to two sentences at most and add something the title does not say. |
 | `shell` | the contract | An application page is `appShell()`'s, and it draws one `<main>` |
 | `navs` | the contract | Every navigation landmark named, and no two on a page sharing a name |
 
@@ -313,7 +340,8 @@ pass, and the only failure was this box's contrast clock.
 
 **The page itself** — `Guidelines / The page`, rendered in both themes:
 `docs/evidence/the-page-guidelines-dark.png`, `docs/evidence/the-page-guidelines-light.png`.
-Eight rules, four specimen pairs and no code references, captured at 1200px wide.
+Eight rules, four specimen pairs and no code references, captured at 1200px wide:
+2,387px high in dark and 2,393px in light.
 
 **The two faults** — `docs/evidence/the-page-fixes-dark.png`,
 `docs/evidence/the-page-fixes-light.png`. Top: the consent screen's title as a `div` and as an
