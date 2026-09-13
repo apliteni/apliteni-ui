@@ -700,7 +700,9 @@ What the shell guarantees:
   outside the `<nav>`, at the foot under a rule of its own: the head of the rail is the product's
   and the foot is the rail talking about itself. The mark it draws is written by hand in
   `src/components/shell.js` and not added to `icons.js`, because a seam that travels has to be a
-  child a stylesheet can reach; `icon()` emits one opaque string with no hook on an inner node. Its
+  child a stylesheet can reach; `icon()` emits one opaque string with no hook on an inner node. Only
+  the frame and the seam are written there: the `<svg>` around them is taken from `icon()` itself, so
+  a rail glyph's box, stroke and `aria-hidden`/`focusable` pair are the factory's by construction. Its
   name is written out in the markup rather than put in a tooltip, because the name IS the chip — on
   a folded rail the glyph column is the whole of every row, and on an open rail it is the whole of
   this one, so in both the label is squeezed to nothing by its own `overflow: hidden` until a

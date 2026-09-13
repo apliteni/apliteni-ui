@@ -120,17 +120,17 @@ export function railCollapsed(cookies) {
 // The name says what the press will do, and aria-expanded says what the rail is.
 const railName = (collapsed) => (collapsed ? 'Expand sidebar' : 'Collapse sidebar');
 
-// A frame that holds still and a seam that crosses it (lessly-ui's RailToggle),
-// drawn here and not in icons.js because only a child of its own can travel. Every
-// attribute is the factory's, so nav.css decides this glyph's size and stroke with
-// the rest. The seam's travel is in layout.css and the arithmetic that ties it to
-// the drawing is stories/apps/shell-states.test.js.
+// A frame that holds still and a seam that crosses it (lessly-ui's RailToggle).
+// Only the two nodes are written here, because only a child of its own can travel
+// and icon() emits one opaque string. The <svg> around them is the factory's, not
+// a copy of it: icon() wraps nothing for a name the set does not hold, and the
+// mark is spliced into that, so the box, the stroke and the aria pair cannot drift
+// from the glyphs above it. The seam's travel is in layout.css and
+// the arithmetic that ties it to the drawing is stories/apps/shell-states.test.js.
 // why: docs/specification.md#the-page-shell
-const railMark = () =>
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"'
-  + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
-  + '<rect x="3" y="3" width="18" height="18" rx="2"/>'
-  + '<path class="ui-app__fold-seam" d="M9 3v18"/></svg>';
+const MARK = '<rect x="3" y="3" width="18" height="18" rx="2"/>'
+  + '<path class="ui-app__fold-seam" d="M9 3v18"/>';
+const railMark = () => icon('').replace('></svg>', `>${MARK}</svg>`);
 
 // The rail's own skin, outside the <nav>: folding the rail is not a place to go.
 // The name is written out rather than put in a tooltip, because the name IS the

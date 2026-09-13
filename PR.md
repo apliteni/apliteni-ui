@@ -52,6 +52,18 @@ directions — the line cannot go missing, and it cannot spread to the reader's 
 This is a coordinator's call, not Artur's. Reverting it is one line in `layout.css`, one named
 exception in `shell-states.test.js` and one gate in `accessibility-floor.test.js`.
 
+**The phone strip is 16px wider than it was, and that is the same rewrite.** At 375 the rail
+measures **74px** on this branch against **58px** on `main` — 4% of the viewport. `main` wrote the
+narrow rail as a literal `grid-template-columns: 58px 1fr` with the rail's padding cut to 6px at
+that width. This branch stops re-laying the rail out at 720px at all: the narrow rail is the
+reader's fold, so it takes the same `--ui-rail-w` the press does —
+`--ui-nav-strip` + 2 × `--space-4` + the rule, which is 41 + 32 + 1. The 41 is the glyph column, a
+17px glyph inside 12px of a row's padding either side; the 32 is the rail's own inset, unchanged
+from the open rail, which is what keeps a focus ring out of the rail's clip. Measured in Chrome at
+375×760: `74px`, eight rows, every one of them 44px, and the toggle not drawn. Making it 58 again
+means either a second narrow layout — the thing the rewrite removed, and what the two equality
+gates exist to refuse — or a smaller inset on the fold as well.
+
 ## What this is about
 
 On a desktop the shell's rail is always full width. A reader who wants that room for the page
@@ -83,7 +95,7 @@ focus**, in CSS. `wireShell()` wires the toggle and keeps the choice in a cookie
 |---|---|
 | The column stays open-width and is clipped, so every glyph holds its place while the width animates | The same. 249px → 74px on `--dur-med`, labels and counters on `--dur-fast`. Sampled frame by frame below: the top row's glyph centre is 36.5px on all 22 frames of the travel |
 | The toggle is always drawn, at the rail's foot, under its own rule | The same, and `collapsible` is now `true` unless a caller passes `false` |
-| `RailToggle` is one icon and no words: a frame that holds still, a seam that crosses it, and no tooltip of its own — on a folded rail it takes the same name chip every other row takes | The same, and this is Artur's sixth-round call. The mark is drawn by hand in `shell.js` for the reason the reference gives for not taking lucide's: the divide is baked into the same path as the frame, and only a child of its own can travel — `icon()` emits one opaque string with no hook on an inner node |
+| `RailToggle` is one icon and no words: a frame that holds still, a seam that crosses it, and no tooltip of its own — on a folded rail it takes the same name chip every other row takes | The same, and this is Artur's sixth-round call. The mark is drawn by hand in `shell.js` for the reason the reference gives for not taking lucide's: the divide is baked into the same path as the frame, and only a child of its own can travel — `icon()` emits one opaque string with no hook on an inner node. Only the two nodes are hand-written: the `<svg>` around them is taken from `icon()` at call time, so the box, the stroke and the `aria-hidden`/`focusable` pair are the factory's by construction and not by a second copy |
 | `RAIL_COLUMN_BOX`: one 40px box on the glyph column, the same at both widths | The kit's own column, `--ui-nav-strip`. The reference's box is 40 because its glyph is 16; the kit's is 41 because a rail row is a 17px glyph inside 12px of padding, and that is the number `nav.css` already derives the closed rail from. One box, written once, so the mark does not step sideways on the press |
 | The seam travels on the same clock as the rail, and stops under reduced motion | The same: `--dur-med` and `--ease`, the rail's own travel and not the words' `--dur-fast`, so the mark and the closing edge arrive together. No `!important`, so the kit's net takes it to one frame with everything else |
 | The toggle is a `<button>` whose name says what the press will do (*"Expand sidebar"* / *"Collapse sidebar"*), with `aria-expanded` saying what the rail is, and no `aria-controls` | The same: `railToggle()` in `src/components/shell.js` |
@@ -334,7 +346,7 @@ three close a hole the review found; the fourth is the floor it found missing.
 
 | Mutation | Gate | Result |
 |---|---|---|
-| **both `transition: width` lines deleted — the fold snaps** | `shell-states.test.js` | **2 red** (before: 0 red across eight gates, 259 tests) |
+| **both `transition: width` lines deleted — the fold snaps** | `shell-states.test.js` | **1 red** (before: 0 red across eight gates, 259 tests) |
 | the fold's duration written as the literal `0.25s` | `shell-states.test.js` | **1 red** |
 | the nav's travel written `!important`, outranking the reduced-motion net | `shell-states.test.js` | **1 red** |
 | `reduced-motion.css`'s clamp stripped of its `!important` | `shell-states.test.js` | **1 red** |
