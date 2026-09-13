@@ -143,22 +143,55 @@ node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank befor
 
 ## Proof
 
-Pasted from the runs on this branch, not summarised:
+Pasted from the runs on this branch, not summarised.
 
 ```
-npm test        — PENDING
-npm run build   — ESM dist/index.js 39.58 KB, dist/index.css 2.06 KB, DTS dist/index.d.ts 8.49 KB, build success
-react tests     — Test Files 17 passed (17), Tests 353 passed (353), Duration 20.46s
+npm run build   — ESM dist/index.js 39.58 KB, dist/index.css 2.06 KB,
+                  DTS dist/index.d.ts 8.49 KB, build success
+react tests     — Test Files 17 passed (17), Tests 353 passed (353), Duration 28.54s
 ```
 
-Focused, the four gates this diff touches or could break:
+The six gates this diff touches or could break, run together:
 
 ```
 node --test src/styles/type-ranks.test.js stories/guidelines/letter-case.test.js \
             stories/guidelines/refs.test.js stories/guidelines/the-page.test.js \
-            scripts/doc-refs.test.js
-ℹ tests 81   ℹ pass 81   ℹ fail 0
+            scripts/doc-refs.test.js scripts/code-refs.test.js
+ℹ tests 134   ℹ pass 134   ℹ fail 0
 ```
+
+`npm test`, whole suite:
+
+```
+ℹ tests 1426   ℹ pass 1422   ℹ fail 0   ℹ cancelled 3   ℹ skipped 1   ℹ duration_ms 169596
+```
+
+**Read that count with the box it ran on.** This branch shares an eight-core machine with four
+other workers running the same suite, and the run above sat at a load average near 28. Three files
+— `scripts/tag-on-bump.test.js`, `stories/contrast.test.js` and
+`stories/guidelines/accessibility-floor.test.js`, the three slowest — were **cancelled**, not
+failed: *"Promise resolution is still pending but the event loop has already resolved"*, which is
+the runner losing a starved child. Re-run on their own afterwards:
+
+```
+node --test scripts/tag-on-bump.test.js stories/guidelines/accessibility-floor.test.js
+ℹ tests 76   ℹ pass 76   ℹ fail 0   ℹ cancelled 0
+```
+
+**`stories/contrast.test.js` is the one real failure, and it is the box.** Twenty of its
+twenty-two pass, one is the opt-in `CONTRAST_ACCENTS=1` matrix that is skipped on `main` too, and
+the failure is its wall-clock ceiling:
+
+```
+✖ the walk has not run away with the clock
+  the contrast walk took 246.3s, against a 120s ceiling …
+```
+
+`origin/main` at `233a1e7`, checked out beside this branch and run the same way minutes later,
+fails the same assertion at **226.2s**. The ceiling's own message says "at this margin the cause
+is not a slow machine" — on a quiet machine that is right, and PR #298 cleared it at the same
+settings. It is not this diff: nothing here is in the contrast walk's path, and the branch and
+`main` measure within 9% of each other on the same contended box.
 
 ## Review
 
