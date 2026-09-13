@@ -12,7 +12,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { kitSheetNames, walk } from '../../scripts/lib/icon-cascade.js';
@@ -30,10 +30,10 @@ const TOKENS = readFileSync(path.join(src, 'tokens/tokens.css'), 'utf8');
  * mutations below are strings, not rules anybody renders.
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
 const DRAWN_IN = ['stories', 'site', 'react/src', '.storybook'];
-const READ = /\.(?:css|m?js|jsx|tsx?)$/;
+const READ = /\.(?:css|m?js|jsx|tsx?|html)$/;
 const SHEETS = [
   ...kitSheetNames(src).map((rel) => ({ rel: `src/${rel}`, css: readFileSync(path.join(src, rel), 'utf8') })),
-  ...DRAWN_IN.flatMap((dir) => walk(path.join(root, dir))
+  ...DRAWN_IN.map((dir) => path.join(root, dir)).filter(existsSync).flatMap((dir) => walk(dir)
     .filter((f) => READ.test(f) && !/\.test\.[a-z]+$/.test(f))
     .map((f) => ({ rel: path.relative(root, f), css: readFileSync(f, 'utf8') }))),
 ];
@@ -106,9 +106,12 @@ const rankProblems = (ranks, rules) => {
           + `the rule has ${r.decls[prop] ?? 'none'}.`);
       }
     }
-    if (!rank.leading && 'line-height' in r.decls) {
+    // `inherit` is the one line-height a rank that inherits one may write, and a
+    // restated selector needs it: an earlier rule for the same element can have
+    // pinned a number, and omitting the property does not take that back.
+    if (!rank.leading && 'line-height' in r.decls && r.decls['line-height'] !== 'inherit') {
       out.push(`${r.where} \`${r.selector}\` is rank ${rank.name}, which inherits its line-height; `
-        + `the rule sets ${r.decls['line-height']}.`);
+        + `the rule sets ${r.decls['line-height']}. Write \`inherit\` or nothing.`);
     }
   }
   return out;
@@ -243,6 +246,14 @@ test('a caption at the label’s weight has nothing left to hold it under the la
   const got = orderProblems(RANKS.map((r) => (r.name === 'caption' ? { ...r, weight: '--weight-medium' } : r)), TOKENS);
   assert.equal(got.length, 1, got.join('\n'));
   assert.match(got[0], /caption shares label's 13px and is not lighter than it/);
+});
+
+test('a number where a rank inherits its leading is caught, and `inherit` is not', () => {
+  const pinned = rankProblems(RANKS, notedRules(mutate('stories/guidelines/_the-page.js',
+    'line-height: inherit;', 'line-height: 1.55;')));
+  assert.equal(pinned.length, 1, pinned.join('\n'));
+  assert.match(pinned[0], /`\.gc-cell__cap` is rank caption, which inherits its line-height; the rule sets 1\.55/);
+  assert.deepEqual(rankProblems(RANKS, RULES), [], 'the rule as written says `inherit`, which is allowed');
 });
 
 test('a card title token moved under the body size breaks the order', () => {

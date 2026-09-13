@@ -21,11 +21,15 @@ themes:
 
 | | before | after |
 | --- | --- | --- |
-| `.gc-cell__cap` | 13px / 500 / 20.15px | 13px / 400 / 20.15px |
+| `.gc-cell__cap` | 13px / 500 / 20.15px | 13px / 400 / 21.06px |
 | `.gc-why` | 14.5px / 400 / 23.49px | unchanged |
 | ink, light | `rgb(26, 30, 39)` | unchanged |
 | ink, dark | `rgb(233, 231, 240)` | unchanged |
 
-**The page is 20px shorter after**, 2628 → 2608. Of the eight captions, seven keep their height
-and "Twelve cards exceed the limit…" falls from two lines to one: normal weight is narrower, so it
-stops wrapping at this width. Nothing else on the page moved.
+The leading moves because the rank inherits one: the shared sheet's `font` shorthand had pinned
+1.55 on this selector, and the page's rule says `inherit` now, which is the body's 1.62.
+
+**The page is 14px shorter after**, 2628 → 2614. Seven of the eight captions keep their line count
+and gain the 0.91px a line the looser leading costs; the eighth, "Twelve cards exceed the limit…",
+falls from two lines to one, because normal weight is narrower and it stops wrapping at this width.
+Nothing else on the page moved.

@@ -74,11 +74,13 @@ export const SPEC_CSS = `
       max-width: var(--prose-body); }
     /* The caption's own row, #310: 13px at the body's weight, so the smaller
        line under a specimen stops reading as the bolder of the two. Not the
-       label's --muted ink either — one ink on this page. */
+       label's --muted ink either — one ink on this page. The leading is written
+       out because the rank inherits one and the shared sheet's shorthand pinned
+       1.55: dropping the property here would leave that number standing. */
     .gc-cell__cap {
       /* rank: caption */
       font-size: var(--text-sm); font-weight: var(--weight-normal);
-      color: var(--text); }
+      line-height: inherit; color: var(--text); }
   </style>`;
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
