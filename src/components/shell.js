@@ -123,8 +123,8 @@ const MARK = '<rect x="3" y="3" width="18" height="18" rx="2"/>'
 const railMark = () => icon('').replace('></svg>', `>${MARK}</svg>`);
 
 // The rail's own skin, outside the <nav>: folding the rail is not a place to go.
-// It stands in the head band under the wordmark, and its name is written out
-// rather than put in a tooltip, because the name IS the chip layout.css lands
+// It stands at the far end of the head band's brand row, and its name is written
+// out rather than put in a tooltip, because the name IS the chip layout.css lands
 // beside the glyph — at both widths. why: docs/specification.md#the-page-shell
 const railToggle = (collapsed) =>
   `<div class="ui-app__fold-row">`
@@ -244,9 +244,10 @@ export function appShell(options = {}) {
   // caller left the choice to the reader; wireShell() applies the stored one there.
   const folded = collapsible && collapsed === true;
   const auto = collapsible && collapsed === null ? ' data-rail="auto"' : '';
-  // The head band: the product's mark and the rail's own control, under one rule.
-  // Either may be absent — a shell with a topbar says the word up there, and
-  // `collapsible: false` draws no toggle — so the band itself goes when both are.
+  // The head band: the product's mark, and the rail's own control at the far end of
+  // the same line, under one rule. Either may be absent — a shell with a topbar says
+  // the word up there, and `collapsible: false` draws no toggle — so the band itself
+  // goes when both are.
   const head = brand || collapsible
     ? `<div class="ui-app__head">${brand}${collapsible ? railToggle(folded) : ''}</div>`
     : '';

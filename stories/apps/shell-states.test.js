@@ -322,6 +322,23 @@ const PHONE_ONLY = [
  */
 const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))'];
 
+/**
+ * And the one rule the reader's fold writes that the 720px block must not, which is
+ * the same exception read the other way. The toggle stands at the end of the brand
+ * row and rides the closing edge back onto the glyph column, so the column it lands
+ * on is the column the product's mark stands on and the lockup goes whole. Below
+ * 720px the toggle is not drawn, nothing takes the mark's place, and the mark stays
+ * — a phone rail whose head band went with it would have lost the product. Measured
+ * both ways by the gate under FOLD_ONLY.
+ */
+const FOLD_ONLY_RULES = ['.ui-app__brand'];
+
+/** The same exception, by element and property, for the sweep that resolves the
+ *  cascade rather than reading the sheet. */
+const FOLD_ONLY = [
+  { selector: '.ui-app__brand, .ui-app__brand *', props: ['opacity', 'visibility', 'pointer-events'] },
+];
+
 /** `map` without the phone strip's own declarations, and without a rule left empty by one. */
 function withoutPhoneFloor(map) {
   for (const { selector, prop } of PHONE_ONLY) {
@@ -339,7 +356,8 @@ test('the collapsed rail is the narrow rail, rule for rule', () => {
   const narrow = withoutPhoneFloor(ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main')
     && !sel.includes('.ui-app__fold') && !PHONE_ONLY_RULES.includes(sel)));
   const collapsed = new Map([...ruleMap(css, (sel) => sel.includes('.is-collapsed') && !sel.includes('.ui-app__fold'))]
-    .map(([sel, decls]) => [sel.replace(/:where\(\.ui-app\.is-collapsed\)\s*/g, '').replace('.ui-app.is-collapsed', '.ui-app'), decls]));
+    .map(([sel, decls]) => [sel.replace(/:where\(\.ui-app\.is-collapsed\)\s*/g, '').replace('.ui-app.is-collapsed', '.ui-app'), decls])
+    .filter(([sel]) => !FOLD_ONLY_RULES.includes(sel)));
   // A floor, not a count: it catches a sweep that has stopped finding the block,
   // and it sits under the real number so adding or removing one rule does not
   // have to be re-typed here. The fold is short on purpose now — it closes a box
@@ -426,6 +444,68 @@ test('the phone strip drops a head band with nothing left to draw, and the reade
   );
 });
 
+test('the reader\'s fold takes the product\'s lockup whole, and the phone strip takes only its words', () => {
+  const open = mount(PAIR(false));
+  const folded = mount(PAIR(true));
+  const narrow = mount(PAIR(false), { narrow: true });
+
+  assert.equal(open.css('.ui-app__brand', 'opacity'), '1', 'the open rail fades out the mark that names the product');
+  assert.equal(
+    folded.css('.ui-app__brand', 'opacity'), '0',
+    'the folded rail keeps the lockup on the glyph column the toggle rides onto, so the product\'s mark '
+    + 'and the control that opens the rail are drawn one on top of the other. A folded rail is one '
+    + 'column wide: the control takes it, and the lockup goes with the words it carries.',
+  );
+  assert.equal(
+    folded.css('.ui-app__brand', 'visibility'), 'hidden',
+    'the folded lockup is faded to nothing but still in the tab order, so the first Tab into the rail '
+    + 'lands on an invisible link under the control that replaced it. `visibility` is what takes a box '
+    + 'out of the tab order without taking its space — and the head band needs that space, or it loses '
+    + 'the height it had on the open rail and every row below it steps up.',
+  );
+  assert.equal(folded.shown(folded.q('.ui-app__brand')), false, 'the folded lockup is still drawn');
+  assert.equal(
+    folded.css('.ui-app__brand', 'pointerEvents'), 'none',
+    'the folded lockup still takes the pointer, over the control standing on the same column',
+  );
+
+  assert.equal(
+    narrow.css('.ui-app__brand', 'opacity'), '1',
+    'below 720px the toggle is not drawn, so nothing arrives on the mark\'s column — and this fade '
+    + 'leaves the phone rail\'s head band empty. It belongs to the reader\'s fold alone.',
+  );
+  assert.equal(narrow.css('.ui-app__brand', 'visibility'), 'visible', '…and the phone strip takes the mark out of its own tab order too');
+  assert.equal(
+    narrow.css('.ui-app__brand span', 'opacity'), '0',
+    'the phone strip keeps the product\'s word beside the mark, in a rail 74px wide',
+  );
+});
+
+test('the lockup leaves on the words\' clock, and its visibility rides with the fade', () => {
+  const travel = travelOf({ file: 'src/styles/layout.css', selector: '.ui-app__brand' });
+  assert.ok(
+    travel,
+    'the lockup declares no transition, so the product\'s mark blinks out on the first frame of a fold '
+    + 'that takes 250ms — while every word on the rows below it fades',
+  );
+  for (const prop of ['opacity', 'visibility']) {
+    const one = travel.value.split(',').map((x) => x.trim()).find((x) => new RegExp(`^${prop}(\\s|$)`).test(x));
+    assert.ok(one, `the lockup transitions \`${travel.value}\`, which does not carry ${prop} — the fold moves both`);
+    assert.match(
+      one, /\bvar\(--dur-fast\)/,
+      `the lockup times its ${prop} with \`${one}\` instead of --dur-fast. The words on the rail leave on `
+      + 'that clock and the mark leaves with them; --dur-med is the width\'s, and the mark would still be '
+      + 'fading when the edge arrived.',
+    );
+    assert.match(one, /\bvar\(--ease\)/, `the lockup curves its ${prop} with \`${one}\` instead of --ease`);
+  }
+  assert.ok(
+    !travel.important,
+    'the lockup writes its transition !important, which outranks the reduced-motion net — the mark '
+    + 'would fade for 150ms in front of a reader who asked for none',
+  );
+});
+
 const nameOf = (el) => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`
   + (el.getAttribute('aria-label') ? ` "${el.getAttribute('aria-label')}"` : '');
 const railOf = (at) => [at.q('.ui-app'), ...at.doc.querySelectorAll('.ui-app__rail, .ui-app__rail *')]
@@ -447,6 +527,8 @@ test('the collapsed rail is the narrow rail, element for element', () => {
         for (const p of new Set([...Array.from(cx), ...Array.from(cy)])) {
           // The phone strip's touch floors — see PHONE_ONLY. Held apart there.
           if (PHONE_ONLY.some((e) => p === e.prop && x.matches(e.selector.split(' ').pop()))) continue;
+          // The product's lockup — see FOLD_ONLY_RULES. Held apart there.
+          if (FOLD_ONLY.some((e) => e.props.includes(p) && x.matches(e.selector))) continue;
           const vx = cx.getPropertyValue(p);
           const vy = cy.getPropertyValue(p);
           if (vx !== vy) diffs.push(`${theme}${state} ${nameOf(x)} ${p}: narrow "${vx}", collapsed "${vy}"`);
@@ -1248,17 +1330,18 @@ test('the toggle\'s own mark clears the floor a control answers to', () => {
 
 // ---- C2b. every block of the rail keeps the rail's open column -----------
 //
-// nav.css gives the column to its own blocks (`.ui-nav--side > *`). The head
-// band, the toggle's row and the reader block are siblings of the nav, so
-// layout.css declares it for them, and the fold is what makes it matter: the box
-// closes to the strip over a column that keeps its width.
-// why: docs/specification.md#the-page-shell
+// nav.css gives the column to its own blocks (`.ui-nav--side > *`). The head band
+// and the reader block are siblings of the nav, so layout.css declares it for
+// them, and the fold is what makes it matter: the box closes to the strip over a
+// column that keeps its width. The toggle's cell is not one of them — it is a cell
+// of the head band, at its end, and the gate under this one is the one that holds
+// it there. why: docs/specification.md#the-page-shell
 
 test('every block of the rail keeps the open column while the box closes over it', () => {
   const col = pxOf('src/styles/nav.css', '.ui-app', '--ui-nav-col');
   assert.ok(col, 'nav.css no longer declares --ui-nav-col, so the rail has no open column to keep');
   for (const [rail, at] of [['an open', mount(PAIR(false))], ['a folded', mount(PAIR(true))]]) {
-    for (const sel of ['.ui-app__head', '.ui-app__fold-row', '.ui-app__user']) {
+    for (const sel of ['.ui-app__head', '.ui-app__user']) {
       assert.equal(
         Number.parseFloat(at.css(sel, 'width')), col,
         `${sel} is \`${at.css(sel, 'width')}\` wide on ${rail} rail instead of the ${col}px column `
@@ -1273,6 +1356,123 @@ test('every block of the rail keeps the open column while the box closes over it
       );
     }
   }
+});
+
+// ---- C2c. the toggle stands at the end of the brand row -------------------
+//
+// Artur's call on 2026-09-13, over the round that had it stacked under the
+// wordmark: *"no, show icon to the right."* The band is one line now, the mark at
+// its start and the control at its end. That costs the toggle the glyph column on
+// an open rail, which is the one thing the round before it had bought — so the
+// three gates here hold what it keeps instead: the end of the band while the rail
+// is open, the closing edge all the way down the travel, and the glyph column when
+// the travel stops. why: docs/specification.md#the-page-shell
+
+test('the toggle stands at the far end of the brand row, on the wordmark\'s own line', () => {
+  const band = /\.ui-app__head\s*\{([^{}]*)\}/.exec(decomment(read('src/styles/layout.css')));
+  assert.ok(band, 'layout.css no longer lays the head band out at all — this gate is measuring nothing');
+  assert.doesNotMatch(
+    band[1], /flex-direction\s*:\s*column/,
+    'the head band stacks its two marks again, so the toggle is under the wordmark and not at the end '
+    + 'of its line. That was the round before this one; Artur sent it back on 2026-09-13.',
+  );
+  for (const [rail, at] of [['an open', mount(PAIR(false))], ['a folded', mount(PAIR(true))]]) {
+    assert.equal(at.css('.ui-app__head', 'display'), 'flex', `${rail} rail no longer lays the head band out as a flex line`);
+    assert.equal(
+      at.css('.ui-app__head', 'flexDirection'), 'row',
+      `${rail} rail lays the head band out as a \`${at.css('.ui-app__head', 'flexDirection')}\`, so the `
+      + 'mark and the control are stacked rather than sharing one line',
+    );
+    assert.equal(
+      at.css('.ui-app__head', 'alignItems'), 'center',
+      `${rail} rail aligns the band's two boxes with \`${at.css('.ui-app__head', 'alignItems')}\`, so the `
+      + 'control and the wordmark sit on one line without sitting on one baseline',
+    );
+    assert.equal(
+      at.css('.ui-app__fold-row', 'marginInlineStart'), 'auto',
+      `on ${rail} rail nothing pushes the toggle's cell to the end of the band, so it stands against the `
+      + 'wordmark — and, in a shell whose word is in the topbar, at the band\'s start with the whole '
+      + 'column empty beside it. The auto margin is what puts it at the end in both shapes.',
+    );
+    assert.equal(
+      at.css('.ui-app__fold-row', 'flexShrink'), '0',
+      `on ${rail} rail the toggle's cell shrinks with the band, so a long product word squeezes the `
+      + 'control off the glyph column it is drawn on',
+    );
+    assert.equal(
+      Number.parseFloat(at.css('.ui-app__head > .ui-app__brand', 'minWidth')), 0,
+      `on ${rail} rail the lockup keeps its automatic minimum, so a product word wider than the band `
+      + 'pushes the control past the end of it — where the rail clips it away with the rail still '
+      + 'open, and there is nothing left to fold it with',
+    );
+  }
+  const at = mount(PAIR(false));
+  assert.deepEqual(
+    [...at.q('.ui-app__head').children].map((el) => el.className),
+    ['ui-app__brand', 'ui-app__fold-row'],
+    'the band draws its two boxes in the other order, so the reading order and the tab order disagree '
+    + 'with what is on screen: the control is at the end of the line and first under the keyboard',
+  );
+});
+
+test('the toggle rides the closing edge, and the edge lands it on the glyph column', () => {
+  const col = pxOf('src/styles/nav.css', '.ui-app', '--ui-nav-col');
+  const strip = pxOf('src/styles/nav.css', '.ui-app', '--ui-nav-strip');
+  assert.ok(col && strip, `read col=${col} strip=${strip} — nav.css no longer declares the rail's two widths`);
+  const open = mount(PAIR(false));
+  const folded = mount(PAIR(true));
+  assert.equal(
+    Number.parseFloat(open.css('.ui-app__fold-row', 'insetInlineStart')) || 0, 0,
+    'the open rail already offsets the toggle from the end of the band, so the travel below is measured '
+    + 'from somewhere other than where the control is drawn',
+  );
+  assert.equal(
+    Number.parseFloat(folded.css('.ui-app__fold-row', 'insetInlineStart')), strip - col,
+    `the folded rail moves the toggle \`${folded.css('.ui-app__fold-row', 'insetInlineStart')}\` back `
+    + `along the band, against the ${strip - col}px between the open column and the strip. The band keeps `
+    + 'the open column and the control sits at its end, so exactly that distance is what lands the '
+    + 'control on the strip — the glyph column every row of a folded rail stands on. Anything shorter '
+    + 'leaves it outside the rail\'s clip, where a folded rail has no control to open it.',
+  );
+  const declared = /:where\(\.ui-app\.is-collapsed\)\s*\.ui-app__fold-row\s*\{([^{}]*)\}/
+    .exec(decomment(read('src/styles/layout.css')));
+  assert.ok(
+    declared,
+    'the reader\'s fold no longer moves the toggle, so a folded rail draws the one control that opens '
+    + 'it 175px outside itself',
+  );
+  assert.match(
+    declared[1], /calc\(\s*var\(--ui-nav-strip\)\s*-\s*var\(--ui-nav-col\)\s*\)/,
+    `the fold offsets the toggle by \`${declared[1].trim()}\`. It is the two widths' own difference, and `
+    + 'both are declared once in nav.css; a literal here is a third copy of a number the column and the '
+    + 'strip already fix, and it drifts the moment either of them moves.',
+  );
+});
+
+test('the toggle arrives with the rail\'s own edge, and stops when the rail does', () => {
+  const travel = travelOf({ file: 'src/styles/layout.css', selector: '.ui-app__fold-row' });
+  assert.ok(
+    travel,
+    'the toggle\'s cell declares no transition, so the control jumps to the glyph column on the first '
+    + 'frame of a press while the edge it is riding is still 175px away from it',
+  );
+  assert.match(
+    travel.value, /^inset-inline-start(\s|,|$)/,
+    `the cell transitions \`${travel.value}\`, which is not the property that moves it`,
+  );
+  const one = travel.value.split(',').map((x) => x.trim()).find((x) => /^inset-inline-start(\s|$)/.test(x));
+  assert.match(
+    one, /\bvar\(--dur-med\)/,
+    `the cell times the toggle with \`${one}\` instead of --dur-med. This mark is the one riding the `
+    + 'closing edge, so it is on the width\'s clock and not the words\' --dur-fast — anything else and '
+    + 'the control arrives somewhere the rail is not.',
+  );
+  assert.match(one, /\bvar\(--ease\)/, `the cell curves the toggle with \`${one}\` instead of --ease`);
+  assert.ok(
+    !travel.important,
+    'the cell writes its travel !important, which outranks the reduced-motion net — the toggle would '
+    + 'slide for 250ms in front of a reader who asked for none',
+  );
 });
 
 // ---- C3. the rail is ruled at its two ends and nowhere between ------------
@@ -1294,7 +1494,7 @@ test('the rail draws one rule under its head and one over its foot, and none bet
     hairline(at, '.ui-app__fold-row', 'Top'), false,
     'a second hairline inside the head boxes the toggle into a compartment of its own, eight '
     + 'pixels under the one below the band. The head is one band: the product\'s mark, and the '
-    + 'rail\'s own control under it.',
+    + 'rail\'s own control at the end of its line.',
   );
   assert.equal(
     hairline(at, '.ui-app__user', 'Top'), true,
