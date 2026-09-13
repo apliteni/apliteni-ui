@@ -44,12 +44,9 @@
   width: 100%;
   max-width: var(--panel-md);
   overflow: hidden; /* clips the timer bar + left marker to the rounded corners */
-  /* A toast floats, so it takes the floating treatment — but it carries a STATUS
-     rather than the neutral hairline, so each style below re-points --elev-edge at
-     its own tint instead of letting the inner line come out violet-grey over a
-     coloured surface. The outer line is left where each style already drew it: a
-     tint is the status speaking, and strengthening it would say something louder
-     than the status does. why: docs/specification.md#elevation */
+  /* A toast floats. It carries a status rather than the neutral hairline, so each
+     style below re-points --elev-edge at its own tint and leaves the outer line
+     where it already drew it. why: docs/specification.md#elevation */
   box-shadow: var(--elev-floating);
   animation: ui-toast-in var(--dur-med) var(--ease-out) both;
 }
@@ -136,8 +133,7 @@
   --toast-ink: var(--signal-solid-ink);
   background: var(--toast-solid);
   color: var(--toast-ink);
-  /* No inner line: a solid toast has no outer one either, and the status at full
-     fill strength is its own edge. It keeps the drop. */
+  /* No inner line: a solid toast has no outer one either. It keeps the drop. */
   --elev-edge: transparent;
 }
 .ui-toast--solid .ui-toast__title { color: var(--toast-ink); }

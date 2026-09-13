@@ -180,7 +180,8 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* The menu is raised, so a hovered row takes the step ABOVE it — see
-   src/styles/dropdown.css:130. why: docs/specification.md#elevation */
+   src/styles/dropdown.css:144 `.ui-dropdown__item:hover`.
+   why: docs/specification.md#elevation */
 .vopt:hover { background: var(--surface-3); }
 .vopt .vname { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vopt .vmeta { font-size: 11px; color: var(--muted); margin-top: 2px; }

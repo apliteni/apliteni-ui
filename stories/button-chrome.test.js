@@ -92,7 +92,7 @@ const FACETS = [
   // The three the `font` shorthand carries, read separately and repaired
   // together: `font: inherit` answers all three at once, and is the only answer
   // that does. Any font longhand the rule means to keep has to be written AFTER
-  // it — src/styles/callout.css:90 `.ui-toast__action` is the shape. Three rules in
+  // it — src/styles/callout.css:87 `.ui-toast__action` is the shape. Three rules in
   // the kit have a longhand to keep: that one keeps its weight, `.avatar` keeps its
   // weight and size, and `.ui-fbpill` keeps the family, the size and the weight.
   { name: 'font-family', read: (cs) => cs.fontFamily, hint: 'add `font: inherit` to the rule' },

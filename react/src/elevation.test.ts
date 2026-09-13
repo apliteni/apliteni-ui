@@ -4,18 +4,11 @@
 // why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
 //
 // Same rule as stories/elevation.test.js, over the same reader
-// (scripts/lib/box-shadow.js): nothing below the floating step casts a shadow, and
-// the floating step casts exactly one — `--elev-floating`. The walk is this
-// workspace's own, because discovery is Vite's here: `import.meta.glob` is
-// evaluated for its KEYS only, so a component stylesheet added tomorrow is in the
-// gate the moment it exists, and the count below is asserted so it cannot fall out
-// unnoticed.
-//
-// Read off disk, not through Vitest's `css` option: the sheets are read as text
-// and the theme's tokens substituted into them, exactly as contrast.test.tsx does,
-// because every colour in this workspace is a var() onto a vanilla-kit token.
-//
-// The vanilla gate's ledger applies here unchanged.
+// (scripts/lib/box-shadow.js), and its ledger applies here unchanged. The walk is
+// this workspace's own: `import.meta.glob` is evaluated for its keys only, so a
+// stylesheet added tomorrow is in the gate the moment it exists. Sheets are read
+// off disk as text with the theme's tokens substituted in, as contrast.test.tsx
+// does, because every colour here is a var() onto a vanilla-kit token.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

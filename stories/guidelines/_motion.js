@@ -19,8 +19,8 @@ export const RULES = [
     except: 'Text that changes in place, such as a count, a range or a status line, changes at '
       + 'once. A number in motion is a number nobody can read yet.',
     kit: [
-      { ref: 'src/styles/drawer.css:69', pattern: 'transition: transform var(--dur-med) var(--ease);' },
-      { ref: 'src/styles/callout.css:54', pattern: 'animation: ui-toast-in var(--dur-med) var(--ease-out) both;' },
+      { ref: 'src/styles/drawer.css:72', pattern: 'transition: transform var(--dur-med) var(--ease);' },
+      { ref: 'src/styles/callout.css:51', pattern: 'animation: ui-toast-in var(--dur-med) var(--ease-out) both;' },
     ],
   },
   {
@@ -65,7 +65,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/reduced-motion.css:15', pattern: 'animation-duration: 0.01ms !important;' },
       { ref: 'src/styles/reduced-motion.css:17', pattern: 'transition-duration: 0.01ms !important;' },
-      { ref: 'src/styles/drawer.css:245', pattern: '.ui-drawer.is-open * { transition: none !important; }' },
+      { ref: 'src/styles/drawer.css:247', pattern: '.ui-drawer.is-open * { transition: none !important; }' },
     ],
   },
 ];

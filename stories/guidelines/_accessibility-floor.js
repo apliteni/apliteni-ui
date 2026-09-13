@@ -234,6 +234,19 @@ export const GATES = [
     blind: ['Anything a component composes that the tokens do not state on their own.'],
   },
   {
+    file: 'stories/elevation.test.js',
+    does: 'Sweeps every box-shadow the kit’s sheets declare, reads each layer’s geometry per '
+      + 'theme, and refuses a cast shadow that is not the floating treatment. It also holds the '
+      + 'floor this page cares about: --muted on the raised surfaces clears AA in both themes.',
+    blind: [
+      'The rendered result. Its ratios are arithmetic over flat colours, and a blurred penumbra '
+        + 'is not one — the drop is scored at its core, the darkest ink it lays down.',
+      'filter: drop-shadow(). Two ship, both zero-offset glows of a signal colour; an offset one '
+        + 'would pass here unread.',
+      'A shadow arriving from markup — an inline style= in a story, or a consumer’s own sheet.',
+    ],
+  },
+  {
     file: 'stories/signal-contrast.test.js',
     does: 'Reads declarations out of the source and holds twenty status-glyph pairs to the bar '
       + 'the stroke-width rule sets by stroke width.',

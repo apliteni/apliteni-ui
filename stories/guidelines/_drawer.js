@@ -64,7 +64,7 @@ export const RULES = [
       + 'bordered cards stacked in a bordered panel.',
     kit: [
       { ref: 'src/components/drawer.js:88', pattern: 'export function drawerSection(' },
-      { ref: 'src/styles/drawer.css:203', pattern: '.ui-drawer__section + .ui-drawer__section' },
+      { ref: 'src/styles/drawer.css:205', pattern: '.ui-drawer__section + .ui-drawer__section' },
     ],
   },
   {
@@ -78,8 +78,8 @@ export const RULES = [
       + 'reported. Ant and Primer keep a header and footer rule, Primer\'s once the body scrolls; '
       + 'Material draws a divider between unrelated sections and none inside one.',
     kit: [
-      { ref: 'src/styles/drawer.css:132', pattern: '.ui-drawer__header {' },
-      { ref: 'src/styles/drawer.css:203', pattern: '.ui-drawer__section + .ui-drawer__section {' },
+      { ref: 'src/styles/drawer.css:134', pattern: '.ui-drawer__header {' },
+      { ref: 'src/styles/drawer.css:205', pattern: '.ui-drawer__section + .ui-drawer__section {' },
     ],
   },
   {
@@ -101,7 +101,7 @@ export const RULES = [
       + 'table() and right-align them there.',
     kit: [
       { ref: 'src/components/drawer.js:92', pattern: '<dl class="ui-drawer__rows">' },
-      { ref: 'src/styles/drawer.css:233', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
+      { ref: 'src/styles/drawer.css:235', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
     ],
   },
 ];

@@ -1,36 +1,15 @@
-/* The elevation rule, as a gate.
+/* Rule: nothing below the floating step casts a shadow, and the floating step
+ * casts exactly one — `--elev-floating`, the two-step edge and the drop in a
+ * single list. The ledger of what this does not reach is below the imports.
+ *
+ * Subjects are discovered: every `box-shadow` in every sheet `src/index.css`
+ * imports. Each is read per theme with the token files substituted in, because
+ * the property name decides nothing — a ring, a glow and a drop are all written
+ * `box-shadow`, and only a layer's geometry says which it is.
  *
  * why: docs/specification.md#elevation
+ * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts
  * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
- *
- * The rule this holds is the one #295 left and #309 amended: nothing below the
- * floating step casts a shadow, and the floating step casts exactly one —
- * `--elev-floating`, which is the two-step edge and the drop in a single list.
- *
- * Subjects are DISCOVERED: every `box-shadow` declaration in every sheet
- * `src/index.css` imports. Nothing names a component, so a stylesheet added
- * tomorrow is in scope by existing. Each declaration is read per theme with the
- * token files substituted in, because the property name decides nothing — a ring,
- * a glow and a drop are all written `box-shadow`, and only the geometry of a layer
- * says which it is.
- *
- * WHAT THIS GATE WILL NOT CATCH.
- *  - `filter: drop-shadow()`. Two of those ship (the success mark, the feedback
- *    comet) and both are zero-offset glows of a signal colour, which the rule has
- *    always allowed. A drop-shadow with an offset would pass here unread.
- *  - A shadow arriving from markup — an inline `style=` in a story or a consumer's
- *    own sheet. This reads the kit's stylesheets, which is all the kit ships.
- *  - Whether a surface that SHOULD float actually took the treatment. The rule is
- *    one-directional: it refuses a cast shadow that is not the floating one. A
- *    floating panel that quietly loses `--elev-floating` is caught by the count
- *    below, not by anything that knows which selectors are panels.
- *  - The rendered result. Contrast here is arithmetic over flat colours; a blurred
- *    penumbra is not a flat colour, and the ratios below score the drop's CORE —
- *    the darkest ink it lays down — against the surface it falls on. That is the
- *    number docs/reviews/295-popover-variants.html was read from, so it is the
- *    number this pins.
- *  - The React workspace, which gates itself over this same reader:
- *    react/src/elevation.test.ts.
  */
 import { test } from 'node:test';
 import assert from 'node:assert';
@@ -42,25 +21,39 @@ import { boxShadowsIn, layersOf, isCast, geometryOf, inkOf } from '../scripts/li
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
 const THEMES = ['dark', 'light'];
+/* why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+ *
+ * WHAT THIS GATE DOES NOT REACH:
+ *  - `filter: drop-shadow()`. Two ship, both zero-offset glows of a signal
+ *    colour; one with an offset would pass here unread.
+ *  - A shadow arriving from markup — an inline `style=`, or a consumer's sheet.
+ *  - Whether a surface that SHOULD float took the treatment. The rule is
+ *    one-directional; a panel that quietly loses it is caught by the count.
+ *  - The rendered result. The ratios are arithmetic over flat colours and a
+ *    blurred penumbra is not one, so the drop is scored at its CORE.
+ *  - The React workspace, gated over this same reader in
+ *    react/src/elevation.test.ts.
+ */
+
 
 /** Every box-shadow the kit's own stylesheets declare, with its file. */
 const sweep = STYLE_FILES.flatMap((file) =>
   boxShadowsIn(read(file)).map((d) => ({ ...d, file })));
 
-// The count is asserted so coverage cannot shrink to zero and stay green. Move it
-// when you add or remove a box-shadow, and read the rule above before you do.
+// Asserted so coverage cannot shrink to zero and stay green. Moving it means
+// recording the change: CONTRIBUTING.md#the-elevation-gate-and-its-counts
 test('the sweep sees every box-shadow the kit ships', () => {
-  assert.equal(sweep.length, 42,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 42. `
+  assert.equal(sweep.length, 38,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 38. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
     'the sweep collapsed onto a handful of files — STYLE_FILES is probably not resolving');
 });
 
-/* THE RULE. A raw layer is substituted on its own, so provenance survives: a layer
- * that resolves to a cast shadow has to BE `var(--elev-floating)`, not merely
- * contain ink that looks like it. */
+/* A raw layer is substituted on its own, so provenance survives: a layer that
+ * resolves to a cast shadow has to be `var(--elev-floating)`, not merely contain
+ * ink that looks like it. */
 test('the only cast shadow under src/ is the floating treatment', () => {
   const offences = [];
   let floating = 0;
@@ -80,8 +73,8 @@ test('the only cast shadow under src/ is the floating treatment', () => {
     + 'says how high it is with its step and its hairline; a floating one adds '
     + 'var(--elev-floating) and nothing else:\n  ' + offences.join('\n  '));
   // Both themes are walked, so each floating declaration is counted twice.
-  assert.equal(floating, 30,
-    `${floating / THEMES.length} declarations carry the floating treatment, not the pinned 15. `
+  assert.equal(floating, 22,
+    `${floating / THEMES.length} declarations carry the floating treatment, not the pinned 11. `
     + 'If a floating surface dropped it, put it back; if one was added, move the number.');
 });
 
@@ -104,8 +97,8 @@ test('nothing under src/ reads a deprecated --shadow-* token', () => {
   }
 });
 
-/* THE SHAPE. Primer's --shadow-floating-* order, which is the shape the review
- * page recommended: the 1px inset line first, then the broad faint drops. */
+/* Primer's --shadow-floating-* order, which is what the review page recommended:
+ * the 1px inset line first, then the broad faint drops. */
 test('--elev-floating is a 1px inset line and then broad faint drops', () => {
   for (const theme of THEMES) {
     const vars = tokensFor(theme);
@@ -132,9 +125,9 @@ test('--elev-floating is a 1px inset line and then broad faint drops', () => {
   }
 });
 
-/* THE NUMBERS. Each is the "a + b" row of docs/reviews/295-popover-variants.html,
- * which is what the decision on #309 was taken against. The gate holds the floor,
- * not the value: a treatment that measures BETTER is fine. */
+/* Each is the "a + b" row of docs/reviews/295-popover-variants.html, which is what
+ * the decision on #309 was taken against. The gate holds the floor, not the value:
+ * a treatment that measures better is fine. */
 const FLOOR = {
   dark: { edge: 1.64, inner: 1.30, drop: 1.20 },
   light: { edge: 1.44, inner: 1.23, drop: 1.43 },

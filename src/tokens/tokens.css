@@ -241,29 +241,12 @@
   --shadow-ink: #000000;
   --sheen: #ffffff;
 
-  /* THE FLOATING TREATMENT — the one cast shadow the kit paints, and the only
-     place a --shadow-* style value is read under src/. Two devices in one list,
-     in Primer's --shadow-floating-* order: the 1px inset line first, then the
-     broad faint drops.
-
-     The line is the inner half of a TWO-STEP edge. A floating surface takes
-     --border-strong on its own border and this line one pixel inside it, so the
-     edge is drawn twice — outer against what is behind, inner against the panel.
-     One hairline at 1.2:1 was the whole separation before; two lines measure
-     1.64 / 1.44 against the card in dark / light.
-
-     --elev-edge is the hook a surface that carries its own tint re-points, so a
-     status toast draws its inner line in its own colour rather than in the
-     neutral hairline. Unset, it is --border, which is what every neutral
-     floating surface wants.
-
-     The drop is BROAD AND FAINT, never tight and dark: it separates the panel
-     from what it covers, it does not draw its edge. 62% / 50% of --shadow-ink
-     here, because near-black on a near-black page is nearly invisible and dark
-     leans on the edge instead; light spends far less (see the light block) and
-     gets the stronger reading of the two. Measured: the drop core reads 1.20 on
-     the card in dark and 1.43 in light.
-     why: docs/specification.md#elevation */
+  /* The floating treatment — the one cast shadow the kit paints. Two devices in
+     one list, in Primer's --shadow-floating-* order: the inner half of the
+     two-step edge, then the broad faint drops. --elev-edge is the hook a tinted
+     surface re-points; unset it is --border. Dark spends 62% / 50% of the ink
+     and reaches 1.20 at the drop's core, because near-black on a near-black page
+     has nowhere to go. why: docs/specification.md#elevation */
   --elev-floating:
     inset 0 0 0 1px var(--elev-edge, var(--border)),
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),
@@ -375,13 +358,9 @@
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
 
-  /* The same treatment, re-measured for a theme that reads a drop well and a
-     lightness step barely at all. 18% / 10% of --shadow-ink, against dark's
-     62% / 50%: light's ink is #1e1e32 rather than black, it falls on a card at
-     #f8f9fc, and 18% is what puts the drop core at #d1d2d8 — 1.43 on the card,
-     the strongest separation either theme gets from any device measured for
-     #295. Pushed to dark's alphas it would be a bruise under every menu.
-     why: docs/specification.md#elevation */
+  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card at
+     #f8f9fc, and 18% is what puts the drop core at #d1d2d8 — 1.44, the strongest
+     separation either theme gets. why: docs/specification.md#elevation */
   --elev-floating:
     inset 0 0 0 1px var(--elev-edge, var(--border)),
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 18%, transparent),

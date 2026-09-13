@@ -12,10 +12,9 @@
   display: grid; place-items: center; z-index: calc(var(--z-overlay) + 1);
   opacity: 0; transition: opacity var(--dur-med) var(--ease); }
 .rx-scrim.is-open { opacity: 1; }
-/* The floating step of the elevation ladder plus the kit hairline — not the card
-   surface and a shadow. why: docs/specification.md#elevation */
-/* The two-step edge and the drop: --border-strong outside, --border one pixel inside
-   it, then the broad faint drop. why: docs/specification.md#elevation */
+/* The floating step of the elevation ladder, with the treatment that step takes: the
+   two-step edge — --border-strong outside, --border one pixel inside it — and then the
+   broad faint drop, all of it in --elev-floating. why: docs/specification.md#elevation */
 .rx-modal { width: min(480px, 92vw); background: var(--bg-elevated); border: 1px solid var(--border-strong);
   box-shadow: var(--elev-floating);
   border-radius: var(--radius-xl); overflow: hidden;
