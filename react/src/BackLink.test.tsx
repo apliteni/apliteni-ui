@@ -1,18 +1,9 @@
 // Shape parity gate for <BackLink>.
 // why: CONTRIBUTING.md#react-components-react
 //
-// The vanilla backLink() is the source of truth. Every case below renders both and
-// compares the anchor's class list — the rule CONTRIBUTING states — plus the shape
-// read back off each DOM: the tag, the address, the accessible name, the visible
-// text and the glyph. The cases are the ones src/components/back.test.js pins, so a
-// rule that moves there moves here.
-//
-// One difference is deliberate and is asserted by name at the foot of this file:
-// the chevron goes through <Icon>, the workspace's own glyph primitive, which wraps
-// the svg in an aria-hidden span. The factory writes the svg straight into the
-// anchor. `.ui-back svg` is a descendant selector and `.ui-back`'s only other child
-// is the label, so the wrapper changes no rule — and <Button> already ships the same
-// wrapper against button()'s inline glyph.
+// backLink() is the source of truth, over the cases src/components/back.test.js
+// pins. One difference is deliberate and is asserted by name at the foot of this
+// file: the chevron goes through <Icon>, which wraps the svg in a span.
 import { render, cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 import { backLink } from '@apliteni/apliteni-ui';

@@ -1,8 +1,9 @@
 import {
-  Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState,
+  Fragment, useCallback, useEffect, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
 import { icon } from '@apliteni/apliteni-ui';
+import { useIsoLayoutEffect } from './dialog';
 
 // The React face of the kit's dropdown() factory and of wireDropdown()'s keyboard.
 // The vanilla output is the source of truth for every class, role and aria
@@ -114,6 +115,9 @@ function RowBadge({ badge }: { badge: DropdownBadge }) {
   return <span className={`ui-dropdown__badge is-${tone}`}>{text}</span>;
 }
 
+/** What names a row across a re-render: its value, or its label when it has none. */
+const keyOf = (it: DropdownItem) => (it.value != null ? `v:${it.value}` : `l:${it.label}`);
+
 /** Every enabled row still showing, in the order the arrows walk them. */
 const itemsIn = (panel: HTMLElement | null) =>
   Array.from(panel?.querySelectorAll<HTMLElement>('[data-dd-item]') ?? [])
@@ -138,9 +142,11 @@ export function Dropdown({
 }: DropdownProps) {
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
   const open = openProp ?? selfOpen;
-  // The row picked since this dropdown was mounted, which is what the trigger shows
-  // and what carries the tick — until a `value` prop says the host owns that.
-  const [picked, setPicked] = useState<DropdownItem | null>(null);
+  // The row picked since the caller last moved the selection itself. Held as a key and
+  // not as the item, because a caller that rebuilds its items on every render — the
+  // ordinary `items.map(…)` — hands back equal rows that are not the same objects, and
+  // a pick compared by identity would lose its tick on the next render.
+  const [pickedKey, setPickedKey] = useState<string | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -154,7 +160,7 @@ export function Dropdown({
     onOpenChange?.(next);
   }, [openProp, onOpenChange]);
   const close = useRef(setOpen);
-  useLayoutEffect(() => { close.current = setOpen; });
+  useIsoLayoutEffect(() => { close.current = setOpen; });
 
   const entries: DropdownEntry[] = sections?.length
     ? sections.flatMap((s) => s.items || [])
@@ -163,11 +169,24 @@ export function Dropdown({
   const isSelect = variant === 'select'
     || (variant == null && rows.some((it) => it.selected || it.value != null));
   const listRole = isSelect ? 'listbox' : 'menu';
+  // The caller's own selection. When it moves, the caller has taken the pick back and
+  // this component's is dropped — the same shape <Pagination> uses to drop a page-jump
+  // draft when the page moves under it.
+  const given = rows.find((it) => it.selected);
+  const givenKey = given ? keyOf(given) : null;
+  const [seenGiven, setSeenGiven] = useState(givenKey);
+  if (seenGiven !== givenKey) {
+    setSeenGiven(givenKey);
+    setPickedKey(null);
+  }
+  const picked = pickedKey != null ? rows.find((it) => keyOf(it) === pickedKey) : undefined;
   const shown = value != null ? value
-    : (isSelect ? (picked?.label ?? rows.find((it) => it.selected)?.label) : null);
+    : (isSelect ? (picked?.label ?? given?.label) : null);
   // After a pick the tick follows it, the way selectOption() rewrites the panel —
   // and like it, a disabled row keeps the state it was rendered with.
-  const selectedOf = (it: DropdownItem) => (picked ? (it.disabled ? !!it.selected : it === picked) : !!it.selected);
+  const selectedOf = (it: DropdownItem) => (pickedKey != null
+    ? (it.disabled ? !!it.selected : keyOf(it) === pickedKey)
+    : !!it.selected);
 
   // Opening closes every other dropdown on the page.
   useEffect(() => {
@@ -199,7 +218,7 @@ export function Dropdown({
     };
   }, [open]);
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const want = landOn.current;
     landOn.current = null;
     if (!open || want == null) return;
@@ -212,7 +231,7 @@ export function Dropdown({
 
   const choose = (item: DropdownItem, e: ReactMouseEvent) => {
     if (item.disabled) { e.preventDefault(); return; }
-    if (isSelect) setPicked(item);
+    if (isSelect) setPickedKey(keyOf(item));
     onSelect?.(item.value, item);
     setOpen(false);
     trigger.current?.focus();

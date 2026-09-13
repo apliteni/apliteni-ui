@@ -1,28 +1,23 @@
 import type { ComponentPropsWithoutRef, ElementType } from 'react';
 import { Icon } from './primitives/Icon';
 
-// The React face of the kit's backLink(). Stateless, so it is here for one reason
-// only: a consumer rendering the factory's string through dangerouslySetInnerHTML
-// puts a wrapper element between `.ui-app__main` and `.ui-back`, and the shell's
-// `.ui-app__main > .ui-back` rule stops matching. This renders the anchor itself,
-// and BackLink.test.tsx compares it against the factory rule for rule.
+// The React face of the kit's backLink(), stateless and here for one reason: a
+// consumer rendering the factory's string through dangerouslySetInnerHTML puts a
+// wrapper between `.ui-app__main` and `.ui-back`, and the shell's direct-child rule
+// stops matching. BackLink.test.tsx compares this against the factory rule for rule.
 // why: docs/specification.md#the-back-link
 
 // "Back" names a direction rather than a place. It is what a caller who names no
 // destination gets, and the one label that is not spelled out as "Back to …".
 const BARE = 'Back';
 
-// A `javascript:` address is the history walk this component replaces, arriving
-// through the one parameter it has. Before a browser reads the scheme it strips
-// C0 controls and spaces from the front and removes every tab, LF and CR wherever
-// they sit, so "java\tscript:" is still javascript:. Read the same way here as in
-// src/components/back.js (WHATWG URL Standard, basic URL parser).
+// The address guard, read the way a browser reads a scheme. Why each of these three
+// is needed is argued in src/components/back.js, over the same constants.
 const SCRIPTED = /^javascript:/i;
 const LEADING = /^[\u0000-\u0020]+/;
 const TAB_OR_NEWLINE = /[\t\n\r]/g;
 
-// A label that already says "Back to Invoices" names the place after those words, or
-// the link would be read as "Back to Back to Invoices".
+// "Back to Invoices" names the place after those words, or the link is read twice.
 const SAID = /^back\s+to(?:\s+|$)/i;
 
 const text = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v).trim() : '');

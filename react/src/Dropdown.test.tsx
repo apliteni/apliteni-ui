@@ -1,19 +1,10 @@
 // Shape parity gate for <Dropdown>, and the keyboard model under real key presses.
 // why: CONTRIBUTING.md#react-components-react
 //
-// The vanilla dropdown() is the source of truth. Every case below renders both and
-// compares the container's class list — the rule CONTRIBUTING states — plus the shape
-// read back off each DOM: the trigger, the panel, and every row's tag, classes, role,
-// aria attributes, value and text. A React rule that disagrees with the factory fails
-// here, and the fix is this component rather than the factory.
-//
-// What this does NOT compare, and why:
-//
-//   `data-dropdown` on the container. It is what wireDropdown() looks for, and a
-//   vanilla wiring pass over a page must not adopt a dropdown React owns — the same
-//   decision <Drawer> makes about `data-drawer`. The row and panel hooks stay, because
-//   they are the row contract docs/library.md publishes and nothing queries them
-//   outside a wired container.
+// dropdown() is the source of truth: every case renders both and compares the
+// container's class list plus the shape read off each DOM. The one thing not
+// compared is `data-dropdown` on the container, which is deliberate — see the test
+// that asserts its absence, at the foot of the parity block.
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -276,6 +267,55 @@ it('a pick writes itself into the trigger and moves the tick, the way selectOpti
   const rows = rowsOf(dd);
   expect(rows.map((el) => el.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
   expect(rows.map((el) => el.classList.contains('is-selected'))).toEqual([false, true, false]);
+});
+
+it('a pick survives a caller that rebuilds its items on every render', async () => {
+  const user = userEvent.setup();
+  // The ordinary call site: `items` is a fresh array of fresh objects each render, so
+  // the row picked a moment ago is an equal object and not the same one.
+  const Rebuilt = () => {
+    const [n, setN] = useState(0);
+    return (
+      <>
+        <button type="button" onClick={() => setN(n + 1)}>Re-render {n}</button>
+        <Dropdown variant="select" ariaLabel="Version"
+          items={['1.2.0', '1.1.0'].map((v) => ({ label: `v${v}`, value: v }))} />
+      </>
+    );
+  };
+  render(<Rebuilt />);
+  const dd = document.querySelector('.ui-dropdown')!;
+  await user.click(within(dd as HTMLElement).getByRole('button'));
+  await user.click(screen.getByText('v1.1.0'));
+  expect(rowsOf(dd).map((el) => el.getAttribute('aria-selected'))).toEqual(['false', 'true']);
+  await user.click(screen.getByText(/Re-render/));
+  expect(dd.querySelector('.ui-dropdown__value')!.textContent).toBe('v1.1.0');
+  expect(rowsOf(dd).map((el) => el.getAttribute('aria-selected')),
+    'the tick is on the row that was picked, not gone with the objects').toEqual(['false', 'true']);
+});
+
+it('a caller that moves the selection itself takes the pick back', async () => {
+  const user = userEvent.setup();
+  const Held = () => {
+    const [at, setAt] = useState('1.2.0');
+    return (
+      <>
+        <button type="button" onClick={() => setAt('1.0.0')}>Elsewhere</button>
+        <Dropdown variant="select" ariaLabel="Version"
+          items={['1.2.0', '1.1.0', '1.0.0'].map((v) => ({ label: `v${v}`, value: v, selected: v === at }))} />
+      </>
+    );
+  };
+  render(<Held />);
+  const dd = document.querySelector('.ui-dropdown')!;
+  await user.click(within(dd as HTMLElement).getByRole('button'));
+  await user.click(screen.getByText('v1.1.0'));
+  expect(dd.querySelector('.ui-dropdown__value')!.textContent).toBe('v1.1.0');
+  // The owner of the rows moves the selection for its own reasons — a refetch, another
+  // control on the same query. What it says goes.
+  await user.click(screen.getByText('Elsewhere'));
+  expect(dd.querySelector('.ui-dropdown__value')!.textContent).toBe('v1.0.0');
+  expect(rowsOf(dd).map((el) => el.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true']);
 });
 
 it('a menu row reports its pick and does not move a tick', async () => {
