@@ -936,6 +936,12 @@ different page, so the merged tree's number is **8** and the comment over it nam
 the #298 merge is the two conflicts its own body predicts: `PR.md`, whole file, and the
 `appShell(...)` row of `docs/library.md`, resolved as a union.
 
+**Both merges were run, in that order, onto `759520d` in a clean worktree.** This branch merges
+with **no conflict at all** — after the rebase `main` is its ancestor, so it fast-forwards. #298 on
+top gives exactly the three above and nothing else. The merged tree: **1520 tests, 1517 pass, 1 fail,
+2 skipped** — 1416 + 75 + 29, so no test is lost — and the one failure is the contrast walk's clock,
+which is red on `main` alone.
+
 Every figure and every mutation in this body was re-run against the tree as it stands.
 
 ## The version bump this PR does not carry
