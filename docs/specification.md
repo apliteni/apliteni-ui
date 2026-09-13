@@ -924,6 +924,11 @@ What the kit guarantees:
   still contains the visible text. Given no name, or the word Back, it shows "Back" and nothing
   more. A name that already begins "Back to" is read as the place after those words, so the link
   is never named "Back to Back to" anything.
+- **A long name clips rather than wrapping.** The destination is whatever the sidebar calls
+  the parent page, and the kit does not control its length. `.ui-back__label` takes the one
+  line and ends in an ellipsis when the column is narrower than the words, as `.ui-nav__label`
+  does in the rail: the link stands above the page title, and a second line would push the
+  page down.
 - **It takes the trail's place, above the title.** `appShell({ back })` draws the link where the
   breadcrumb trail would go and draws no trail: a page has one or the other. A `back` that
   `backLink()` refuses leaves the trail standing.
@@ -944,9 +949,12 @@ link: a chevron and the destination's name in dim ink, in the slot the trail wou
 the only one the kit builds; the other three stay on that page as the comparison it was chosen
 against.
 
-Held by `src/components/back.test.js` and `src/styles/back.test.js`.
+Held by `src/components/back.test.js` and `src/styles/back.test.js`. That every `__label`
+the kit emits has a rule at all — the omission [#303][i303] reported — is held kit-wide by
+`src/styles/label-coverage.test.js`.
 
 [i270]: https://github.com/apliteni/apliteni-ui/issues/270
+[i303]: https://github.com/apliteni/apliteni-ui/issues/303
 
 ## The dropdown panel
 

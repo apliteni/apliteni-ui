@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); }
+  .bx { padding: var(--space-6); display: grid; gap: var(--space-5); justify-items: start; }
+  .cap { font: 600 11px/1 var(--font-sans); color: var(--muted); margin-bottom: var(--space-2); }
+  /* The column the link is given. A dashed edge, because the whole subject is
+     what the words do when they reach one — with no edge drawn there is nothing
+     in the image to say the link was ever narrowed. */
+  .col { outline: 1px dashed var(--border); outline-offset: 4px; }
+</style>
+</head>
+<body>
+<script type="module">
+import { backLink } from '/src/components/back.js';
+
+// The destination is whatever the sidebar calls the parent page. The short one is
+// the case that must not move; the long one is a workspace-scoped section name.
+const SHORT = 'Invoices';
+const LONG = 'Access and agents in the Frankfurt workspace';
+
+const params = new URLSearchParams(location.search);
+document.documentElement.dataset.theme = params.get('theme') || 'dark';
+
+const cell = (cap, html, width) => `<div><div class="cap">${cap}</div>`
+  + (width ? `<div class="col" style="width:${width}px">${html}</div>` : html)
+  + '</div>';
+
+const subject = params.get('subject') || 'long';
+document.body.innerHTML = `<div class="bx">${
+  subject === 'short'
+    ? cell('A short destination', backLink({ href: '#invoices', label: SHORT }))
+      + cell('A short destination, in a column wider than it', backLink({ href: '#invoices', label: SHORT }), 320)
+    : cell('Room for all of it', backLink({ href: '#access', label: LONG }))
+      + cell('A 220px column', backLink({ href: '#access', label: LONG }), 220)
+      + cell('A 120px column', backLink({ href: '#access', label: LONG }), 120)
+}</div>`;
+
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

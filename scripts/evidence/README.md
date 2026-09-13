@@ -1,8 +1,9 @@
-# The rail's evidence rig
+# The evidence rig
 
-Every image under `docs/evidence/rail-*.png` and `docs/evidence/nav-collapsed-*.png`
-is produced here. Round 9's review said the rig "still has no producer committed,
-so I cannot reproduce ten of them"; this is that producer.
+Every image under `docs/evidence/rail-*.png`, `docs/evidence/nav-collapsed-*.png`
+and `docs/evidence/back-label-*.png` is produced here. Round 9's review said the
+rig "still has no producer committed, so I cannot reproduce ten of them"; this is
+that producer.
 
 One static server over one checkout, the kit's own factories imported as modules
 in the page, one Chrome, one viewport — so between two checkouts only the code
@@ -25,15 +26,28 @@ node scripts/evidence/shoot.mjs /tmp/before out/ rail-before
 node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
 ```
 
+The back link's label is its own subject, on its own page (#303):
+
+```sh
+node scripts/evidence/back.mjs . out/                       # short and long, both themes
+node scripts/evidence/back.mjs /tmp/before out/ back-label-before
+```
+
 A third argument to `shoot.mjs` is a substring filter over the names, so one
-subject can be re-taken on its own.
+subject can be re-taken on its own; `back.mjs` takes a name prefix there instead.
 
 ## What is deterministic and what is not
 
-`shoot.mjs` and `nav.mjs` are: the same checkout, the same Chrome and the same
-viewport give the same bytes. That is the cross-check to run first — re-shoot
-`rail-before-*` off `main` and compare it with what is committed before trusting
-anything else the rig says.
+`shoot.mjs`, `nav.mjs` and `back.mjs` are: the same checkout, the same Chrome and
+the same viewport give the same bytes. That is the cross-check to run first —
+re-shoot `rail-before-*` off `main` and compare it with what is committed before
+trusting anything else the rig says.
+
+One caveat measured on #303, where the pair was shot across two checkouts rather
+than twice off one: a subject the change does not touch comes back a handful of
+channel samples apart, max delta 6 on a 1120×680 frame — glyph antialiasing, not
+layout. Compare the pixels rather than the byte count when the question is
+whether a subject moved.
 
 `film.mjs` is not, and cannot be. Its frames come off the compositor with
 `Page.startScreencast` and each caption is the time the browser painted that
