@@ -404,9 +404,15 @@ for (const m of MENUS) {
       ungated.map((r) => r.selector), [],
       `${m.what} is turned back on by a rule that does not ask whether it is open`,
     );
-    assert.ok(
-      m.open.some((sel) => openRules(all, sel).some((r) => live.test(r.body))),
-      `nothing turns ${m.what} on while it IS open — the menu would not be clickable at all`,
-    );
+    // Each named open rule on its own, not `some` of them: with one assertion for
+    // the set, deleting either of the dropdown's two left the whole suite green
+    // and the rail's Sign out drawn, opaque and unclickable.
+    for (const sel of m.open) {
+      assert.ok(
+        openRules(all, sel).some((r) => live.test(r.body)),
+        `nothing turns \`${sel}\` on while it IS open — that menu is drawn, opaque and unclickable, `
+        + 'and the hit-test at a row\'s centre returns whatever is behind it',
+      );
+    }
   });
 }
