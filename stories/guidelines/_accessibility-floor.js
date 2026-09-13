@@ -135,6 +135,28 @@ export const AIMS = [
  */
 export const GATES = [
   {
+    file: 'react/src/BackLink.test.tsx',
+    does: 'Holds the React back link against the factory rule for rule: the arrow stays aria-hidden '
+      + 'so the name is said in words, the name contains the visible text as WCAG 2.5.3 asks, and a '
+      + 'name that already says "Back to" is not said twice.',
+    blind: ['Whether the link is reachable where it sits. It is a static anchor with no state, so '
+      + 'nothing here presses a key at it; the shell gate is what places it on a page.'],
+  },
+  {
+    file: 'react/src/Dropdown.test.tsx',
+    does: 'Presses real keys at the React dropdown: the arrows that open it onto the first row or '
+      + 'the selected one, the ring they walk and the disabled row they step over, Home and End, '
+      + 'Enter and Space, Escape and Tab, and where focus goes when the panel closes. It also holds '
+      + 'every row role, aria-selected and aria-disabled against the factory.',
+    blind: [
+      'Whether the focus it asks for lands. JSDOM moves focus into a box the stylesheet has hidden, '
+      + 'so the rule that makes an opening panel visible in the frame the key lands is held by '
+      + 'stories/overlay-css.test.js against the sheet, not here.',
+      'A row a caller draws is only as accessible as the element they spread the props onto: the '
+      + 'gate checks the props reach it, not what they are spread onto in a consumer.',
+    ],
+  },
+  {
     file: 'react/src/Pagination.test.tsx',
     does: 'Where focus lands when a pressed pager step turns disabled at an end or while loading, and that the jump box never commits a page the reader did not ask for.',
     blind: ['Real browser focus: jsdom does not blur a control that turns disabled, so the drop to <body> is simulated in the tests.'],
