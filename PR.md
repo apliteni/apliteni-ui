@@ -869,13 +869,15 @@ coordinator sequences the version at merge. The changelog lines are under *Chang
       only be proven after a release.
 
 **Counts on this box.** `npm test`: **1472 tests, 1 skipped**, and either 1470 pass with 1 fail or
-1471 pass with none, depending on the run. The skip is the opt-in `CONTRAST_ACCENTS=1` theme ×
+1471 pass with none, depending on the run — every run of this round came in with the fail. The skip is the opt-in `CONTRAST_ACCENTS=1` theme ×
 accent matrix, which is behind an environment variable on `main` too. The failure, when there is
 one, is `stories/contrast.test.js`'s own wall-clock ceiling: the walk took **125.4s** and **159.5s**
 on two runs of the same tree, at the ninth round **121.7s** and **121.6s** on two runs and under the
 120s bar on two more, and at the tenth **127.1s** on the branch before this round's first commit and
-**126.8s**, **122.4s** and **160.9s** after it. Eight runs, six red and two green, straddling the
-ceiling — which is a plainer statement of what this box does to that gate than any single number.
+**126.8s**, **122.4s**, **160.9s** and **124.1s** after it. Nine runs, seven red and two green,
+straddling the ceiling — which is a plainer statement of what this box does to that gate than any
+single number. The last of the nine is this round's final run: **1472 tests, 1470 pass, 1 fail,
+1 skipped**, and the one failure is that clock.
 That is this box and not the diff — the spread between two runs is larger than anything in this
 branch — and
 `origin/main` at `bb5fd04`, checked out beside it and run through the same gate on the same machine,
