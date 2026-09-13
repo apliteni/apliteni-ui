@@ -68,12 +68,13 @@ function sideLeaf(it, active, { collapsed, sub, current = 'page' } = {}) {
 }
 
 // A collapsible group: a toggle button (aria-expanded/-controls) over a nested
-// list. In collapsed (icon-only) mode groups don't expand, so we render the
-// group head as a plain, non-collapsing icon row.
+// list. It opens and closes the same way on the folded rail: forcing it shut
+// there hid the current page's own row and left the toggle announcing a list
+// nobody could reach.
 function sideGroup(it, active, { collapsed, current } = {}) {
   const listId = nextId('nav-grp');
   const childActive = (it.items || []).some((c) => c.id != null && c.id === active);
-  const open = collapsed ? false : (it.open != null ? !!it.open : childActive);
+  const open = it.open != null ? !!it.open : childActive;
   const lead = it.icon ? `<span class="ui-nav__ic">${icon(it.icon)}</span>` : '';
   const label = it.label || '';
   const text = `<span class="ui-nav__label">${esc(label)}</span>`;

@@ -99,12 +99,19 @@ test('a preset query hides what it does not match, anywhere in the label, and ne
 // Found in Chromium, where jsdom cannot look: with `visibility` transitioned on
 // open, the panel is still `hidden` when the field is focused, and the focus is
 // lost. So the open search panel transitions everything but visibility.
+// The rule this reads is every panel's now, not the search variant's alone (#286):
+// a menu opened with the arrows puts focus on a row, and a row inside a box that
+// still resolves `hidden` cannot take it either. So the selectors matched here are
+// the general ones, and what the search variant needs is that they cover it.
 test('the open search panel does not transition visibility, so the field can take focus', () => {
   const css = readFileSync(new URL('../styles/dropdown.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   const open = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
-    .filter(([, sel]) => /\.ui-dropdown\.open \.ui-dropdown__panel--search/.test(sel) && /\.ui-dropdown__panel--search\.is-open/.test(sel));
-  assert.equal(open.length, 1, 'one rule opens the search panel, in place and portalled');
-  const property = /transition-property\s*:([^;]*)/.exec(open[0][2])?.[1] ?? '';
+    .filter(([, sel]) => /\.ui-dropdown\.open \.ui-dropdown__panel\b/.test(sel)
+      && /\.ui-dropdown__panel--portal\.is-open/.test(sel));
+  const swapped = open.filter(([, , body]) => /transition-property/.test(body));
+  assert.equal(swapped.length, 1, 'one rule opens the panel, in place and portalled — and it is the '
+    + 'one that takes `visibility` off the clock so a key can put focus inside');
+  const property = /transition-property\s*:([^;]*)/.exec(swapped[0][2])?.[1] ?? '';
   assert.ok(property.includes('opacity') && !/visibility/.test(property), `transition-property: ${property.trim()}`);
 });
 

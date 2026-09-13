@@ -408,7 +408,10 @@ async function walk(win, styles, vars, visit) {
         : html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (m, inner) => `<style>${probeGeometry(decomment(inner))}</style>`);
       if (styles) styles.mutate(() => { win.document.body.innerHTML = markup; });
       else win.document.body.innerHTML = markup;
-      visit(`${rel}:${name}`);
+      // The markup goes with it, so a caller can put the same story in front of
+      // a second sheet — which is how the phone strip is measured below without
+      // walking every story twice.
+      visit(`${rel}:${name}`, markup);
     }
   }
   return { stories, problems };
@@ -427,23 +430,147 @@ function windowFor(theme, css) {
 
 // ---- 1. the minimum target size -------------------------------------------
 
+/**
+ * WCAG 2.5.5, AAA. Not the bar the kit holds everywhere — TARGET_MIN is — and
+ * not a number this file chose: it is the floor the rail's 720px block has
+ * carried since before #277, where the strip is the whole of the rail and a
+ * finger is the only pointer it has.
+ *
+ * It is measured here and not merely compared, because the two copies of the
+ * fold are held equal to each other by stories/apps/shell-states.test.js and
+ * equality cannot see a shared value fall: when the 720px block was rewritten
+ * the floor went out with it, both gates stayed green, and a row on a phone
+ * went from 44px to 31px.
+ */
+const TOUCH_MIN = 44;
+
+/** One at-rule's body, brace-matched. JSDOM resolves no @media, so a rule that
+ *  only applies on a phone is lifted out and appended where a browser would
+ *  apply it — the same device stories/apps/shell-states.test.js uses. */
+function unwrap(css, query) {
+  const at = css.indexOf(query);
+  if (at < 0) return null;
+  const open = css.indexOf('{', at);
+  let depth = 0;
+  for (let i = open; i < css.length; i += 1) {
+    if (css[i] === '{') depth += 1;
+    else if (css[i] === '}') { depth -= 1; if (depth === 0) return css.slice(open + 1, i); }
+  }
+  return null;
+}
+
+const FOLD = '@media (max-width: 720px)';
+const RAIL_SHEET = 'src/styles/layout.css';
+// Read out of layout.css by name, not out of the joined sheet: footer.css and
+// topbar.css fold at 720px too, and the first block in the concatenation is one
+// of theirs. Lifting the wrong one measured the rail at its desktop height and
+// reported it as the phone's.
+const narrowSheet = () => {
+  const body = unwrap(decomment(readFileSync(path.join(root, RAIL_SHEET), 'utf8')), FOLD);
+  assert.ok(body, `${RAIL_SHEET} no longer folds at ${FOLD}, so nothing here is measuring a phone`);
+  return `${sheet()}\n${body}`;
+};
+
+/** Is every ancestor of `el`, and `el` itself, on screen? */
+const onScreenIn = (el, win) => {
+  for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+    if (n.hasAttribute('hidden') || win.getComputedStyle(n).display === 'none') return false;
+  }
+  return true;
+};
+
+/**
+ * A control's accessible name, near enough for a rail: the `aria-label` it carries,
+ * or else the text it DRAWS, with the aria-hidden parts taken out — which is what a
+ * screen reader reads off a control that names itself by its own contents. Reading
+ * `aria-label` alone reported the rail's account block as nameless, and it is named
+ * by the two lines inside it (#286).
+ *
+ * Walked in the live tree rather than in a clone, because what the name turns on is
+ * `display` and `visibility`, and a clone has no cascade: a fold that took a label
+ * out with `display: none` still had its text in `textContent`, so the fallback
+ * named a row a browser names nothing. That is the one mutation this helper has to
+ * stay red for. A space after each element, because textContent runs children
+ * together and a browser does not.
+ */
+const accessibleName = (el, win) => {
+  const label = el.getAttribute('aria-label');
+  if (label) return label.trim();
+  const parts = [];
+  const walk = (node) => {
+    if (node.nodeType === 3) { parts.push(node.data); return; }
+    if (node.nodeType !== 1) return;
+    if (node.getAttribute('aria-hidden') === 'true' || node.hasAttribute('hidden')) return;
+    const cs = win.getComputedStyle(node);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return;
+    for (const kid of node.childNodes) walk(kid);
+    parts.push(' ');
+  };
+  for (const kid of el.childNodes) walk(kid);
+  return parts.join('').replace(/\s+/g, ' ').trim();
+};
+
 const targetRun = await (async () => {
   const win = windowFor('dark', probeGeometry(sheet()));
+  // The same stories in front of the same sheet with the 720px fold applied.
+  // Only a story that draws a rail is put in front of it, so the walk stays one
+  // walk and the phone costs what the shell stories cost.
+  const narrowWin = windowFor('dark', probeGeometry(narrowSheet()));
   const controls = new Map();
-  const { stories, problems } = await walk(win, null, null, (where) => {
+  const folded = [];
+  const strip = [];
+  const { stories, problems } = await walk(win, null, null, (where, markup) => {
+    if (win.document.body.querySelector('.ui-app__rail')) {
+      narrowWin.document.body.innerHTML = markup;
+      for (const el of narrowWin.document.body.querySelectorAll('.ui-app__rail .ui-nav__item')) {
+        const cs = narrowWin.getComputedStyle(el);
+        if (cs.opacity === '0' || probe(cs, 'position') === 'absolute') continue;
+        // The fold toggle is display:none at this width — the strip is the only
+        // layout there and there is nothing for it to choose.
+        if (!onScreenIn(el, narrowWin)) continue;
+        strip.push({
+          where,
+          name: el.getAttribute('aria-label') || '',
+          ...boxOf(el, cs, glyphOf(el, narrowWin)),
+        });
+      }
+    }
     for (const el of win.document.body.querySelectorAll(INTERACTIVE)) {
       const cs = win.getComputedStyle(el);
       // A control the page hides from the pointer is not a target. The kit's
       // switch and checkbox inputs are 0x0 under their own painted track, and
       // the track is the target; the input is not.
       if (cs.opacity === '0' || probe(cs, 'position') === 'absolute') continue;
+      // A rail the reader folded draws the same classes as an open one, so the
+      // de-duplication below would measure whichever a story drew first. Its
+      // controls are kept apart and every one is measured (#277).
+      // The reader's menu is a panel, not a row of the rail (#286): closed, its rows
+      // are behind `visibility: hidden` and reachable from nowhere, and open it is
+      // portalled off the rail entirely. It is measured as the dropdown it is, in the
+      // de-duplicated walk below; here it would be held to every rule a rail row keeps.
+      if (el.closest('.ui-app.is-collapsed .ui-app__rail') && !el.closest('[data-dropdown-panel]')) {
+        // `onScreen`, not `drawn`: boxOf() returns a `drawn` key of its own —
+        // the drawn box — and the spread below lands on top of this key. It used
+        // to be called `drawn`, and every folded control came out of here with a
+        // truthy `{height, width}` where the boolean was meant to be, so the
+        // test that reads it could not fail. Named apart rather than reordered,
+        // because a spread whose order is load-bearing is the same trap again.
+        folded.push({
+          where,
+          name: accessibleName(el, win),
+          label: (el.querySelector('.ui-nav__label')?.textContent || '').trim(),
+          onScreen: onScreenIn(el, win),
+          inClosedGroup: Boolean(el.closest('.ui-nav__sub[hidden]')),
+          ...boxOf(el, cs, glyphOf(el, win)),
+        });
+      }
       const key = `${el.tagName.toLowerCase()}.${[...el.classList].join('.')}`;
       if (controls.has(key)) continue;
       const box = boxOf(el, cs, glyphOf(el, win));
       controls.set(key, { key, ...box, where, path: selectorPath(el) });
     }
   });
-  return { stories, problems, controls: [...controls.values()] };
+  return { stories, problems, controls: [...controls.values()], folded, strip };
 })();
 
 test('target size: every control the stories render is measured, none skipped', () => {
@@ -531,6 +658,72 @@ test('target size: the sm size the kit ships is measured, and is on the record',
   for (const c of sm) {
     assert.ok(c.height >= TARGET_MIN, `${c.key} is ${c.height}px high, under ${TARGET_MIN}px`);
   }
+});
+
+// ---- 1b. the rail the reader folded (#277) --------------------------------
+//
+// Folding the rail takes every label off the screen, which is exactly when the
+// floor is easiest to lose: a row is its glyph, its name is only an attribute,
+// and a rule that hides a row takes it out of the keyboard's reach.
+
+test('folded rail: a story renders one, and every control in it is measured', () => {
+  const specimens = new Set(targetRun.folded.map((c) => c.where));
+  assert.ok(
+    specimens.size >= 1,
+    'no story renders a rail the reader folded, so nothing measures the state the shell is folded into',
+  );
+  assert.ok(targetRun.folded.length >= 5, `only ${targetRun.folded.length} controls found in a folded rail`);
+  const short = targetRun.folded
+    .filter((c) => c.height < TARGET_MIN)
+    .map((c) => `${c.name || '(unnamed)'} — ${c.height}px high (${c.where})`);
+  assert.deepEqual(short, [], `a folded rail control under ${TARGET_MIN}px`);
+});
+
+test('folded rail: every control keeps a name with its label gone, and the name starts with the label', () => {
+  const bad = targetRun.folded
+    .filter((c) => !c.name || (c.label && !c.name.startsWith(c.label)))
+    .map((c) => `"${c.name}" for a row labelled "${c.label}" (${c.where})`);
+  assert.deepEqual(bad, [], 'a folded row has no name of its own, or one a speech user cannot say from the tag');
+});
+
+// The phone strip, measured rather than compared. shell-states.test.js holds the
+// reader's fold and the 720px fold equal to each other, rule for rule and
+// property for property — and that is exactly why neither could notice when the
+// floor they share went down: equality is silent about a value that falls on
+// both sides at once. This reads the box a finger lands on at 375px.
+test(`phone strip: no rail row is shorter than ${TOUCH_MIN}px below 720px`, () => {
+  assert.ok(
+    targetRun.strip.length >= 5,
+    `only ${targetRun.strip.length} rail rows measured below 720px — no story draws a shell rail any `
+    + 'more, or the fold stopped being lifted, and this gate is measuring nothing',
+  );
+  const short = targetRun.strip
+    .filter((c) => c.height < TOUCH_MIN)
+    .map((c) => `${c.name || '(unnamed)'} — ${c.height}px high (${c.where})`);
+  assert.deepEqual(
+    short, [],
+    `a rail row on a phone is under the ${TOUCH_MIN}px touch floor. At this width the strip is the `
+    + 'whole of the rail and a finger is the only pointer it has, so the row is the target. The floor '
+    + 'is the 720px block\'s own `min-height` in src/styles/layout.css.',
+  );
+});
+
+test('folded rail: every control a reader can reach is drawn', () => {
+  // The tripwire for the bug this test had: a truthy object in place of the
+  // boolean made the filter below unfalsifiable, and the test went on passing
+  // over a rail with a `display: none` row in it.
+  const notBoolean = targetRun.folded
+    .filter((c) => typeof c.onScreen !== 'boolean')
+    .map((c) => `${c.name || '(unnamed)'} → ${Object.prototype.toString.call(c.onScreen)}`);
+  assert.deepEqual(
+    notBoolean, [],
+    'a folded control reports something other than true or false for whether it is on screen, so the '
+    + 'check below is reading a value that cannot be falsy and this gate holds nothing',
+  );
+  const gone = targetRun.folded
+    .filter((c) => !c.onScreen && !c.inClosedGroup)
+    .map((c) => `${c.name} (${c.where})`);
+  assert.deepEqual(gone, [], 'a folded rail control is display:none, so Tab passes it by');
 });
 
 // ---- 2. the ring's contrast ------------------------------------------------

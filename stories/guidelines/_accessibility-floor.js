@@ -261,7 +261,9 @@ export const GATES = [
       + 'render — the box it draws UNION the pseudo-elements it generates, which is what a '
       + 'pointer can land on — the ring against every ground it lands on, and the composite a '
       + 'disabled control leaves on the page, measured twice: as the story renders it, and again '
-      + 'with the disabled attribute taken off, so the state has to change the pair.',
+      + 'with the disabled attribute taken off, so the state has to change the pair. Every control '
+      + 'in a rail the reader folded is measured on its own, with its name read while the label is '
+      + 'off the screen.',
     blind: [
       'A disabled input’s VALUE. The walk measures text nodes, and an input holds its value in a '
         + 'property — so .ui-input:disabled is discovered, is repainted, and contributes no pair. '
@@ -417,14 +419,29 @@ export const GATES = [
   {
     file: 'stories/apps/shell.test.js',
     does: 'The shell\u2019s composition: one <main>, a named navigation landmark, a rail item that '
-      + 'stays named at every width, and the crumb trail the caller owns.',
-    blind: ['What the markup looks like once it meets the stylesheet — shell-states.test.js has that.'],
+      + 'stays named at every width, the crumb trail the caller owns, and the fold toggle \u2014 drawn '
+      + 'only when asked for, a native button outside the landmark, named for the press.',
+    blind: ['What the markup looks like once it meets the stylesheet \u2014 shell-states.test.js has that.'],
   },
   {
     file: 'stories/apps/shell-states.test.js',
     does: 'The shell resolved through the real cascade at every width, theme and accent, so '
-      + 'nothing it draws goes missing at one of them.',
+      + 'nothing it draws goes missing at one of them \u2014 and the rail the reader folds held equal '
+      + 'to the narrow rail rule for rule and on every element, at rest and focused.',
     blind: ['Layout, again. Width is a class here, not a viewport.'],
+  },
+  {
+    file: 'stories/apps/shell-rail.test.js',
+    does: 'Presses the fold toggle through wireShell() and asserts the rail, the announced state, '
+      + 'where focus is, the titles a folded rail\u2019s rows take, the cookie and its path, the '
+      + 'opt-out and the ui-rail event \u2014 then draws the next page and checks it remembered.',
+    blind: [
+      'Enter and Space. The toggle is a native button and JSDOM runs no activation for a key, so '
+        + 'a press here is a click.',
+      'The tooltip itself. A title is set and taken off; whether a browser shows it is the browser\u2019s.',
+      'The paint before script. A server that does not read the cookie paints the rail open for '
+        + 'one frame, and only a browser shows that.',
+    ],
   },
   {
     file: 'stories/danger-colour.test.js',
@@ -515,8 +532,9 @@ export const GATES = [
 export const UNGATED = [
   {
     what: 'Keyboard, past the topbar and the tabs',
-    note: 'The dropdown, the table, the segmented control, the feedback composer and the whole '
-      + 'app-shell nav have no keyboard gate. They are untested, not covered.',
+    note: 'The dropdown, the table, the segmented control, the feedback composer and the '
+      + 'app-shell nav\u2019s rows have no keyboard gate. shell-rail.test.js presses the fold '
+      + 'toggle and a group toggle; nothing presses Tab through the rail. They are untested, not covered.',
   },
   {
     what: 'Stacking',

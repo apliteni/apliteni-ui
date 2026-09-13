@@ -197,12 +197,12 @@ second line. On a 380px chat column, feed length 1567.45px → 1507.03px. Where 
 the two faces measure identically — the kit's line-heights are unitless, so a face only moves a
 box by changing where a line breaks.
 
-**A panel that leaves its subtree states its own role.** `portal: true` mounts a dropdown's panel
-on `<body>` ([The dropdown panel](#the-dropdown-panel)), so what it inherits is decided by where it
-landed rather than by the trigger it came out of. Measured on one dropdown inside a display-face
-subtree: `var(--font-display)` in place, `var(--font-sans)` once portalled. `.ui-dropdown__panel`
-names the text face itself, so both placements answer the same — a flag that positions a panel does
-not change what it is set in.
+**A panel that leaves its subtree states its own role.** `portal: true` moves a dropdown's panel
+to the top of its trigger's own tree ([The dropdown panel](#the-dropdown-panel)), so what it
+inherits is decided by where it landed rather than by the trigger it came out of. Measured on one
+dropdown inside a display-face subtree: `var(--font-display)` in place, `var(--font-sans)` once
+portalled. `.ui-dropdown__panel` names the text face itself, so both placements answer the same — a
+flag that positions a panel does not change what it is set in.
 
 Held by `src/styles/typeface-roles.test.js` and `scripts/font-loading.test.js`. Decided in
 [#253](https://github.com/apliteni/apliteni-ui/issues/253).
@@ -461,8 +461,8 @@ one `.ui-input` takes.
 **The accent wash is painted on a base surface, never a raised one.** A translucent wash over a
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
 takes an accent counter under the floor inside a panel. Two rules state it:
-`src/styles/nav.css:128` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-`src/styles/dropdown.css:166` `.ui-dropdown__badge.is-accent`.
+`src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
+`src/styles/dropdown.css:176` `.ui-dropdown__badge.is-accent`.
 
 **The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
 the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked
@@ -724,6 +724,174 @@ What the shell guarantees:
 - **The narrow rail is CSS, not JavaScript.** `sideLeaf()` emits `aria-label` at every width, so
   `layout.css` folds `.ui-nav__label` out of view below 720px with the accessible name intact.
   Nothing re-renders on resize and the consumer wires no listener.
+- **The reader can fold the rail, and the control is drawn by default.** `appShell()` draws a
+  toggle in the rail's head band — at the far end of the brand row, on the wordmark's own line and
+  above the rule that closes the band — that folds the rail to the same icon strip and opens it
+  again. The head is where a reader looks for the control that changes the panel they are looking
+  at, and the end of that line is where a reader looks for it in the head: both are Artur's calls
+  on 2026-09-13. Before them it stood at the rail's foot, as the reference's does, and then for one
+  round under the wordmark. `collapsible: false` is the way out, for a page that will never call
+  `wireShell()` and would otherwise ship a control that does nothing. It is a native `<button>`
+  outside the navigation landmark, named for what the press will do — "Collapse sidebar", "Expand
+  sidebar" — with `aria-expanded` saying what the rail is now. Below 720px the toggle is not drawn,
+  because the strip is the only layout there, and the band goes with it when the wordmark has
+  already gone to a topbar.
+- **The toggle stands at the end of the brand row, and the fold rides it back onto the glyph
+  column.** The band is one line: the product's mark at its start, the rail's own control at its
+  end. That is the one place on the rail where a mark does not stand on the glyph column, and the
+  toggle is the only mark that gives the column up — so the fold cannot simply clip the band, or it
+  would clip away the one control that opens a folded rail. The control rides the closing edge
+  instead. The band keeps the open column and the control sits at its end, so an offset of exactly
+  `--ui-nav-strip - --ui-nav-col` lands it on the strip, and the strip *is* the glyph column: when
+  the travel stops, the toggle's mark stands on the line every glyph above it stands on. The offset
+  is on the width's own clock, so the control and the edge arrive together — measured frame by
+  frame, the mark is 37.5px from the rail's closing edge on every frame, which is the rail's
+  hairline plus its inset plus a glyph's own centre in its row. What the toggle keeps is the closing
+  edge rather than a column; what the edge lands it on is the column. Nothing else on the rail
+  moves: a nav glyph and the reader's avatar each hold one centre from the first frame to the last.
+  The lockup goes whole on that fold rather than only its words, because the column the control
+  lands on is the column the mark stands on and a folded rail is one column wide — `visibility` as
+  well as `opacity`, so the link leaves the tab order instead of standing invisible under the
+  control that replaced it, and the box keeps its space so the band keeps its height. Below 720px
+  the toggle is not drawn, nothing arrives on the mark's column, and the band is the lockup alone
+  with its words folded away.
+- **The toggle is one mark, and the mark is the state.** The control is a frame that holds still
+  and a seam that crosses it — `lessly-ui`'s `RailToggle`, which this rail is reworked on — so what
+  a reader takes from it is which arrangement the panel is in rather than a direction to press. No
+  words beside it and no tooltip of its own: it takes the same name chip every other row takes on a
+  folded rail, and it takes that chip on an open rail too. Every other row reads its own name on an
+  open rail; the toggle is the one row that is its mark at both widths, so it is the one row whose
+  chip is not scoped to the fold — on hover and on keyboard focus, at both widths, the label leaves
+  the flow and lands beside the rail. The glyph box carries the line the name vacates, so the button
+  keeps its height in both states: a hover readout overlays the page and never reflows it, and
+  without that the toggle fell 35.39px to 35px under the pointer and took every row of the nav up
+  the rail with it. The name is squeezed to nothing by its own `overflow: hidden` until a pointer or
+  the keyboard lifts it out, which is what makes the name the chip rather than a second copy of it
+  in a tooltip. Only the frame and the seam are drawn by hand in `src/components/shell.js`, because
+  a seam that travels has to be a child a stylesheet can reach and `icon()` emits one opaque string
+  with no hook on an inner node; the `<svg>` around them is taken from `icon()` itself, so a rail
+  glyph's box, stroke and `aria-hidden`/`focusable` pair are the factory's by construction, and
+  `stories/apps/shell.test.js` compares the two attribute for attribute — which is what makes "by
+  construction" a thing a reader can check. The box it is drawn in is the glyph column —
+  `--ui-nav-strip`, a row's padding either side of a glyph, which is the width the closed rail is
+  derived from — one box, written once, at both widths; where that box stands is the bullet above. The seam moves on `--dur-med`, the rail's own
+  clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and its
+  distance is the frame's own mirror rather than a number: the seam is drawn at 9 in an 18-unit
+  frame and lands at 15, so the narrow compartment changes sides.
+  `stories/apps/shell-states.test.js` reads the frame and the seam out of the factory and refuses a
+  travel the mark does not explain, a control wider or narrower than the column, a seam that holds
+  still between the two states, an offset written as a number rather than as the two widths' own
+  difference, and a band that stacks its marks again. The same file resolves the toggle's chip at both widths, under
+  the pointer and under the keyboard, so the rule cannot be scoped back to the fold.
+- **The fold travels, and no glyph moves while it does — except the one that rides the edge.** The
+  rail's column keeps its open width and the box closes over it, so nothing inside is laid out a
+  second way: the width goes from
+  249px to 74px on `--dur-med` and `--ease`, and the words fade on `--dur-fast` so the closing edge
+  slides over an empty row rather than cutting through a label. The strip is not a number somebody
+  liked — it is twice a row's own glyph centre, its padding plus half a glyph, which is the one
+  width that leaves the glyph standing in the middle of the closed rail. `--ui-nav-col` and
+  `--ui-nav-strip` in `nav.css` are the only two places either is written, and
+  `stories/apps/shell-states.test.js` derives the strip from the rules it is read off, holds the
+  width's own travel to `--dur-med` and `--ease` in both sheets that write it, and resolves the open
+  column on every block of the rail at both widths — the nav declares it for its own rows, and a
+  block beside the nav that has not been given it wraps its contents on the press and steps every
+  row under it down the rail. Under
+  `prefers-reduced-motion` the kit's net takes both to 0.01ms, so the fold arrives in one frame —
+  the same file refuses a travel written `!important`, which is the only way the net loses.
+- **The two folds are one fold, with two named differences.** A media query cannot share a block
+  with a class, so the reader's fold and the 720px fold are written twice in `layout.css` and each
+  rule has its twin. The reader's copy sits behind `:where()`, which weighs nothing, so the pair
+  rank alike and the media query's own precedence is what separates them. One declaration is
+  deliberately not shared: below 720px the strip is the whole of the rail and a finger is the only
+  pointer it has, so a row is held to 44px — WCAG 2.5.5 (AAA). The reader's fold cannot take that
+  floor, because a row is 35.4px open and growing it on the press would step every glyph below it
+  down the rail, which is the one thing the travel promises not to do; a pointer on a desktop is
+  held to the kit's 24px floor there and clears it. The second runs the other way: the reader's fold
+  hides the product's lockup and the 720px fold does not, because below 720px the toggle is not
+  drawn and nothing lands on the mark's column. The two widths are not two shells, so the press's
+  own class reaches a phone: a rail is `data-rail="auto"` by default and takes the choice the cookie
+  holds, and `collapsed: true` is a documented argument. The 720px block therefore writes the lockup
+  back rather than the press's rule being left unqualified — a folded rail on a phone that took the
+  fade would be a 41px band with nothing in it, its hairline still under it, and no control anywhere
+  on the rail to open it again. `stories/apps/shell-states.test.js` compares the two
+  blocks rule for rule and element for element, and holds both halves of each — the touch floor is
+  really in the 720px block and really not in the other, and the lockup really goes on the press and
+  really stays on a phone, folded or open.
+- **The rail's own skin is not a place to go.** The toggle is a `<button>` in a row of the rail
+  outside the `<nav>`: folding a panel is not a place to go, and a row of the navigation list is
+  what it would be read as inside one. The head band it stands in draws one rule under the line, not
+  one above it — the product's mark and the rail's own control are one head, and a second hairline
+  would box the toggle into a compartment of its own. The control is the band's last child as well
+  as its last box, so the reading order, the tab order and what is on screen agree.
+- **The reader's choice outlives the page.** A press is written to the `apliteni-ui-rail` cookie
+  (a year, `path=/`, `SameSite=Lax`). `appShell()` itself reads nothing. A boolean `collapsed`
+  is the caller's and is left alone, and it does nothing under `collapsible: false`, since a fold
+  needs the control that undoes it. A collapsible shell drawn without one takes the stored choice
+  when `wireShell()` runs, which a client-rendered route change does after mounting, as every
+  `wire*` function asks. A cookie and not `localStorage`, because a server can read it:
+  `appShell({ collapsed: railCollapsed(request.headers.cookie) })` paints the
+  right width on a full page load, where waiting for `wireShell()` paints it open for a frame.
+  `wireShell(root, { persist: false })` keeps every shell under that root out of the cookie, shells
+  drawn there later included, and applies no stored choice to them; a later call without the
+  option does not undo it. Each press sends a bubbling `ui-rail` event whose `detail.collapsed`
+  says what the rail is now. Held by `stories/apps/shell-rail.test.js`.
+- **A folded row gives its name back, to the keyboard as well as the pointer.** Fading a label
+  costs a screen reader nothing, because the name is the row's `aria-label`, and the counter is
+  spelled into it, so a badge that fades out is not a count that is lost. On hover or keyboard
+  focus the label itself leaves the flow and lands beside the rail as a chip — one string on
+  screen and in the accessibility tree, where a `title` was a second copy and showed to a pointer
+  only. The rail is a scroll box and clips across as well as down, so the chip is `position:
+  fixed` — and `fixed` rather than `absolute` because the rail is `position: sticky`, which makes
+  it the containing block for every absolutely positioned descendant, so an `absolute` chip is
+  clipped by it wherever the rest of the tree is positioned. Where the browser has CSS anchor
+  positioning the chip is pinned to the rail's edge and to the row, which is what keeps it in place
+  through a scroll of the rail, a scroll of the page and a resize — measured at the row's own
+  centre, within a hundredth of a pixel, in all four.
+  Without anchor positioning the chip keeps the place its row gave it when the rail was last laid
+  out, so it is exact until the rail scrolls and then stands as far above its row as the rail has
+  scrolled. That is the one thing anchor positioning buys and nothing else in CSS does: a box that
+  escapes the rail's clip has left the rail's scroll, and a box that has not escaped it is not
+  drawn. Every control in a folded rail clears the 24px target floor, wears the focus ring
+  every row wears, and stays drawn, so Tab reaches it. Held by `stories/apps/shell-rail.test.js`,
+  `stories/apps/shell-states.test.js` and `stories/guidelines/accessibility-floor.test.js`.
+- **The signed-in reader is the trigger of a menu, and signing out is a row of it.** The account
+  block at the rail's foot — the avatar, the name and the address — is a `dropdown()` trigger when
+  the caller passes `signOutHref`, and the menu holds a head naming the reader and the rows that act
+  on the session, Sign out among them. This is `lessly-ui`'s `UserMenu` and Artur's call on
+  2026-09-13; before it, Sign out was the last row of the navigation list. It left because it does
+  not go anywhere: it ends a session, and it was the one destructive thing standing among places to
+  go. The menu is the kit's own `dropdown()` and not a second one written for the rail, so Enter,
+  the arrows, Escape-closes-and-returns-focus and the click-outside are the wiring every panel in
+  the kit shares; `wireShell()` wires it along with the fold and the nav's groups. It is
+  `portal: true`, because the rail is `position: sticky` with `overflow-y: auto` and each of those
+  traps a panel on its own, and it opens upward, because the block is the last thing in a
+  full-height rail. On a folded rail the trigger is the avatar alone and takes the same name chip a
+  folded row takes, with the reader's two lines in it. The trigger is named by the words inside it
+  rather than by an `aria-label`, so there is no second copy of them to go stale; the initials are
+  `aria-hidden`, since they are made of the name beside them. With no `signOutHref` there is no
+  menu: a trigger that opens an empty panel is a control that does nothing, and the block is the
+  plain reader block it has always been. With no `account` there is no block, so a `signOutHref`
+  passed without one draws nothing at all — the menu hangs off the reader, and there is no session
+  to end without one. Signing out needs `wireShell()`: it was a plain link in the nav list and it is
+  a menu row now, so a page that will never wire the shell should not pass `signOutHref` — the same
+  call `collapsible: false` is the way out of for the toggle. Held by `stories/apps/shell-rail.test.js`,
+  and the upward direction by `stories/apps/shell.test.js`, which reads the marker off `dropdown()`
+  rather than writing it out a second time.
+- **One rule closes the rail, and one closes its head.** The nav's footer slot is empty now that
+  Sign out is in the menu, so the hairline that fenced Sign out off is on the block that opens it.
+  Two of them twenty pixels apart read as a third region of the rail rather than as its foot.
+- **The account block stands on the rail's own column.** The avatar is inset by half the difference
+  between the glyph column and itself, so its centre is on the line every glyph above it stands on
+  and the fold moves it nowhere. Its box declares the height the mark inside it gives it — the
+  avatar plus the trigger's own padding — because a floor written as a `calc()` over custom
+  properties is a floor the target-size gate cannot read. Below 720px the block takes the 44px touch
+  floor the rows beside it take; it cannot take that floor on the reader's fold, where growing it
+  would move a box the travel promises holds still. Both halves are held by
+  `stories/apps/shell-states.test.js`, and the floor is measured by
+  `stories/guidelines/accessibility-floor.test.js`.
+- **The icon-only `sidebarNav({ collapsed })` keeps the current page reachable.** A group opens
+  over the page the reader is on, as it does at any width, and a row with no glyph is given a dot
+  rather than left blank. Held by `stories/apps/shell.test.js`.
 - **A nav entry carries the same icon and label everywhere it appears.**
 - **The rail holds nothing that has to escape it.** `.ui-app__rail` is `position: sticky` with
   `overflow-y: auto`, and each of those traps a popover on its own — see
@@ -734,7 +902,11 @@ The nav's own rules beat a host stylesheet: `.ui-nav .ui-nav__item` is (0,2,0) a
 navigation.
 
 Decided in [#127](https://github.com/apliteni/apliteni-ui/issues/127). `appShell()` was the
-owner's choice between three shells built and rendered side by side, not a derivation.
+owner's choice between three shells built and rendered side by side, not a derivation. The fold is
+[#277](https://github.com/apliteni/apliteni-ui/issues/277), reworked on `lessly-hub/lessly-ui`; the
+toggle's move to the head, its place at the end of the brand row, and the reader's menu are
+[#286](https://github.com/apliteni/apliteni-ui/issues/286), and both are ported from the same
+reference — `app-sidebar.tsx`'s head band and `user-menu.tsx`.
 
 ## The back link
 
@@ -793,10 +965,10 @@ standing got a panel fourteen pixels tall. Measured in a browser at 1280×800, t
 foot of a 249px rail went from 128.8px tall and hanging 66px below the fold to 128.8px tall and
 inside it, at the same 9px from the trigger.
 
-**A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` mount the panel on
-`<body>` as `position: fixed`, with the trigger's viewport coordinates written inline, repositioned
-on scroll and resize. Two ancestor properties make that the only remedy, and `.ui-app__rail` has
-both:
+**A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` move the panel to
+the top of the tree its trigger is in, as `position: fixed`, with the trigger's viewport coordinates
+written inline, repositioned on scroll and resize. Two ancestor properties make that the only
+remedy, and `.ui-app__rail` has both:
 
 - An `overflow` other than `visible` on one axis makes the other non-visible too, so the rail's
   `overflow-y: auto` clips the panel on X as well — a 304px panel in a 249px rail loses its right
@@ -812,16 +984,76 @@ that selector stops matching the moment the panel is moved. It carries `is-open`
 and the wiring keeps `.open` on the container so the chevron, `aria-expanded`, click-outside and
 Escape are unchanged. Keyboard handling is bound to the panel as well as the container, since a
 keystroke on a row no longer bubbles to it, and a panel whose container has been re-rendered away
-is swept off `<body>` rather than accumulating.
+is swept out of the tree it was put in rather than accumulating.
+
+**The top of the trigger's tree, which is not always the page's `<body>`.** A document's top is its
+`<body>`, a frame's is the frame's own `<body>`, and an open shadow root's is the root itself. The
+panel never crosses one of those boundaries, because everything that keeps it working is scoped to
+the realm it was drawn in:
+
+- **Its stylesheet.** A sheet adopted by a shadow root, or loaded by a frame, does not reach the
+  page's `<body>`. A panel lifted out there has none of its own rules — `position: fixed` and
+  `--z-dropdown` among them, so it lands in the flow of whatever it was appended to, at no layer.
+- **The viewport it is measured against.** A panel in a frame is laid out against the frame's
+  viewport and not the page's, so the coordinates written inline, and the `scroll` and `resize` they
+  are re-written on, come from the panel's own `defaultView`.
+- **Its close handlers.** A listener on the page's document never fires for a click inside a frame,
+  which is the same reason `wireShell()` listens once per document it is handed. Click-outside,
+  Escape and the repositioning sweep are registered once per document that holds a dropdown.
+
+Finding the dropdowns to close is the other half. The handlers walk a module-level `Set` of every
+wired container rather than querying the page, because `document.querySelectorAll` enters no shadow root
+and sees no other document: before it, opening a menu inside a shadow root left one open on the page
+behind it, and a click on the page left the shadow root's open.
+
+**Escape is scoped and click-outside is not**, which is a decision and not an oversight. Escape
+dismisses what the reader is in, so it closes an open dropdown in the document the key landed in and
+nothing in another — pressed in a frame it leaves the page's menu alone. A click closes every open
+dropdown anywhere, because "I clicked elsewhere" is elsewhere wherever it happened. Either way
+focus returns to the trigger, which a reader outside a shadow root meets retargeted to its host.
+
+Held by `stories/apps/shell-rail.test.js`: *a shell in a frame is wired in its own document, and
+reads its own cookie*, and *a shell inside an open shadow root folds, and keeps its menu inside the
+root*. Moving the portal target back to the page's `body`, or the close handlers back onto the
+module's own document, goes red there.
 
 `portal: true` is opt-in and not the default because it has a cost: the panel leaves its trigger's
-place in the reading order and lands at the end of `<body>`. Opening it still moves focus onto a
+place in the reading order and lands at the end of the tree it was moved into. Opening it still moves focus onto a
 row, and `aria-haspopup`, `aria-expanded` and the panel's own `role` and `aria-label` are unchanged,
 so nothing is unreachable — but a reader moving linearly meets the two apart. Reach for it when an
 ancestor traps the panel, which is what the rail does, and not otherwise.
 
 The default renders byte-for-byte what it rendered before either variant existed. Both are opt-in,
 so a page already working around this keeps working.
+
+**A closing panel stops taking clicks before it stops being drawn.** `visibility` is held at
+`visible` for the whole of the fade out, so the rows do not vanish mid-fade — and a box that is
+drawn is a box that is hit. A menu row is an `<a>` or a `<button>`, so a click landing in that
+window activates it invisibly — the topbar's account menu has had a Sign out row in it since long
+before the rail did, and [#286](https://github.com/apliteni/apliteni-ui/issues/286) adds a second on
+the rail. The closed panel is `pointer-events: none` and the open rules take it back, which is the
+answer `.ui-drawer` and `.ui-cmdk` already give.
+
+**A panel the keyboard opens is visible in the frame the key lands.** `visibility` is discrete, so
+hidden → visible still resolves `hidden` in the frame the open class lands, and a browser will not
+move focus into a box that is hidden. Every row carries `tabindex="-1"`, so the arrows opened the
+panel, focus stayed on the trigger and the next Tab left the dropdown altogether. Measured in
+Chrome: `getComputedStyle(panel).visibility` reads `hidden` in that frame and `visible` in the
+next. An open panel therefore transitions `opacity` and `transform` only, leaving `visibility` off
+the clock to apply at once; closing still fades on every property it always did. The rule was
+written for the search variant, where opening puts focus in a field, and it belongs to every menu
+the kit ships, because opening any of them with a key puts focus on a row. Held by
+`stories/overlay-css.test.js`, which is the one gate that can see it — JSDOM focuses inside a hidden
+box happily, so the gates that press the keys pass with the rule deleted.
+
+**Every menu the kit ships owes both of those rules, in whichever sheet it is written in.** They are
+written in two: `.ui-dropdown__panel` in `src/styles/dropdown.css`, and the topbar's `.vsw__menu` and
+`.amenu` in `src/styles/topbar.css`, which are the same `wireDropdown()` in bespoke clothes — the
+same hooks, the same keyboard, the same fade. A fix that keys on `.ui-dropdown__panel` reaches the
+first and not the second, and a gate that reads one sheet cannot tell. So the gate reads a table of
+`{ file, panel, open rules }`, asks every menu in it the same two questions, and asks each named open
+rule on its own: the panel in place and the portalled panel carry one `pointer-events: auto` each,
+and either alone used to satisfy one assertion standing for both.
 
 Held by `src/components/dropdown.test.js`, which reads the offsets out of the stylesheet — any
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
@@ -831,6 +1063,12 @@ property — and feeds the wiring measured rects, JSDOM having no layout of its 
 
 `.ui-dropdown__item` renders identically under all three tags, and which one a row is written as
 is the page's decision rather than the kit's.
+
+A destructive row rests quiet and turns `--pink` on the way to being pressed, in both states rather
+than on hover alone: a pointer resting on the row is one way of being about to press it and the
+keyboard landing on it is the other, and painting only the first made the destructive signal
+pointer-only. The ring says where the reader is; it does not say that this row is the one that ends
+something. It is the same two-step `.ui-nav__item` and `.ui-btn--danger` write.
 
 The kit had already said a row gets chosen — `.ui-dropdown__tick` is the listbox variant's trailing
 check, and `.ui-dropdown__item.is-selected` is what shows it — and choosing is a `<button>`'s job.
@@ -886,9 +1124,9 @@ the list through `aria-controls`. The rows stay `role="option"`, and the row Ent
 named by `aria-activedescendant`, so the reader can keep typing. The field has the focus and carries
 `--ring`; the active row takes the hover fill and a 2px accent bar, because two rings of equal
 weight leave the reader unable to tell focus from the pick. Opening the panel puts focus in the
-field, with the selected row active or the first one. For that, the open search panel is visible at
-once rather than at the first step of its `visibility` transition: a browser will not focus a field
-in a box that is still `hidden`, so the focus call was lost. Closing still fades.
+field, with the selected row active or the first one. For that, the open panel is visible at
+once rather than at the first step of its `visibility` transition — see
+[The dropdown panel](#the-dropdown-panel), which is where that rule now lives for every panel.
 
 - ↑ and ↓ move through the rows still showing, skip a disabled row, and wrap at the ends.
 - Enter picks the active row, writes it into the trigger and closes. With nothing showing, it does

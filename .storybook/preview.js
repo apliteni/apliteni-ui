@@ -1,6 +1,6 @@
 import '../src/index.css';
 import { wireTopbar, applyTheme } from '../src/components/topbar.js';
-import { wireNav } from '../src/components/nav.js';
+import { wireShell } from '../src/components/shell.js';
 import { wireDrawer } from '../src/components/drawer.js';
 import { wireConfirm } from '../src/components/confirm.js';
 import { wireCommandPalette } from '../src/components/command-palette.js';
@@ -174,7 +174,7 @@ const preview = {
       if (typeof out === 'string') wrap.innerHTML = out; else wrap.append(out);
       // Wire interactive behaviours after render.
       requestAnimationFrame(() => {
-        wireTopbar(wrap); wireNav(wrap); wireDrawer(wrap); wireConfirm(wrap); wireCommandPalette(wrap); initTabs(wrap); wireTooltip(wrap);
+        wireTopbar(wrap); wireShell(wrap); wireDrawer(wrap); wireConfirm(wrap); wireCommandPalette(wrap); initTabs(wrap); wireTooltip(wrap);
         // Repaint the inspector overlay after layout settles (or clear it when off).
         requestAnimationFrame(() => paintInspector(ctx.globals.inspect));
       });
