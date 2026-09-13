@@ -299,21 +299,15 @@ test('src/styles/confirm.css: a consequence too long for the viewport scrolls', 
 // ---- the menus, and the frame a key opens one in ----------------------------
 //
 // The fourth overlay, and the one with the same `visibility` problem the three
-// above have — from the other end. A panel that is still `hidden` in the frame
-// its open class lands is a panel a browser will not move focus into, and every
-// row in it carries `tabindex="-1"`: the arrows opened the menu, focus stayed on
-// the trigger, and the next Tab left the dropdown entirely. Measured in Chrome
-// rather than reasoned about: the resolved `visibility` was `hidden` in that
-// frame and `visible` in the next.
+// above have, from the other end: a panel still `hidden` in the frame its open
+// class lands is one a browser will not move focus into, and every row in it
+// carries `tabindex="-1"`. JSDOM focuses inside a hidden box happily, so the
+// gates that press the keys go on passing with the rule deleted; this file is
+// the one that does not.
 //
-// JSDOM cannot see it — it focuses inside a hidden box happily — so the gates
-// that press the keys go on passing with this rule deleted. This is the one that
-// does not. why: docs/specification.md#the-dropdown-panel
-//
-// Swept across every menu the kit ships, not just `dropdown()`'s own panel. The
-// topbar's version switcher and account menu are the same `wireDropdown()` in
-// bespoke clothes — same hooks, same keyboard, same fade — and they had neither
-// fix while `.ui-dropdown__panel` had both, because both gates read one file.
+// Every menu the kit ships, not just `dropdown()`'s own panel: the fixes key on
+// `.ui-dropdown__panel` and two of the four menus are written in another sheet.
+// why: docs/specification.md#the-dropdown-panel
 const MENUS = [
   {
     file: 'src/styles/dropdown.css',
