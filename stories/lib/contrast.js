@@ -39,17 +39,13 @@ export const TOKEN_FILES = ['src/tokens/brand.generated.css', 'src/tokens/tokens
 
 /**
  * Every declaration of every custom property, per theme + accent, in the order a
- * browser would apply them: `Map<name, {file, selector, value}[]>`, last entry
- * last declared. Token files first and theme-selectively, so the requested
- * theme's value wins; then every custom property declared anywhere under
- * src/styles/. Component-scoped properties have to be harvested or
- * --ui-fb-pill-grad (src/styles/feedback.css) resolves to nothing and the pill
- * reports a fabricated 1.00:1.
+ * browser applies them: `Map<name, {file, selector, value}[]>`, last declared
+ * last. Token files first and theme-selectively; then src/styles/, whose
+ * component-scoped properties have to be harvested or --ui-fb-pill-grad
+ * (src/styles/feedback.css) reports a fabricated 1.00:1.
  *
- * A name is kept with ALL of its declarations rather than one, because a single
- * value is a guess about the cascade and a reader that guesses can be walked
- * past: the #314 review planted a real cast shadow in a SECOND declaration of
- * --drawer-line and the sweep, which kept the first, never saw it.
+ * ALL of a name's declarations, because one value is a guess about the cascade
+ * and a guess can be walked past: #314 planted a cast in a SECOND --drawer-line.
  * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
  */
 const declCache = new Map();

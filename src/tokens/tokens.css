@@ -241,18 +241,14 @@
   --shadow-ink: #000000;
   --sheen: #ffffff;
 
-  /* The drops of the floating treatment — the one cast shadow the kit paints —
-     in Primer's --shadow-floating-* order, which is the inner half of the
-     two-step edge and then these. The edge layer is NOT in this token, and
-     cannot be: a var() written inside a custom property is substituted on the
-     element that DECLARES it, so an --elev-edge read here would resolve against
-     :root once and no surface below could re-point it. A floating surface writes
-     the pair itself —
+  /* The drops of the floating treatment, in Primer's --shadow-floating-* order:
+     the inner half of the two-step edge, then these. The line is NOT in this
+     token and cannot be — a var() inside a custom property is substituted on the
+     element that DECLARES it, so an --elev-edge read here resolves at :root and
+     nothing below could re-point it. A floating surface writes the pair itself:
        box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
-     — which leaves one place to change the drop and puts the edge where the
-     element setting --elev-edge can reach it. Dark spends 62% / 50% of the ink
-     and reaches 1.20 at the drop's core, because near-black on a near-black page
-     has nowhere to go. why: docs/specification.md#elevation */
+     Dark spends 62% / 50% of the ink and reaches 1.20 at the drop's core, having
+     nowhere to go on a near-black page. why: docs/specification.md#elevation */
   --elev-drop:
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),
     0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 50%, transparent);
