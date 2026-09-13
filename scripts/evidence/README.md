@@ -1,7 +1,7 @@
-# The rail's evidence rig
+# The evidence rig
 
-Every image under `docs/evidence/rail-*.png` and `docs/evidence/nav-collapsed-*.png`
-is produced here. Round 9's review said the rig "still has no producer committed,
+Every image under `docs/evidence/rail-*.png`, `docs/evidence/nav-collapsed-*.png` and
+`docs/evidence/295-floating/` is produced here. Round 9's review said the rig "still has no producer committed,
 so I cannot reproduce ten of them"; this is that producer.
 
 One static server over one checkout, the kit's own factories imported as modules
@@ -28,10 +28,30 @@ node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
 A third argument to `shoot.mjs` is a substring filter over the names, so one
 subject can be re-taken on its own.
 
+`float.mjs` is the floating step's pair, added for #309. Two subjects — the kit's
+dropdown panel held open over a card, and a popover holding a small form — in both
+themes at 1440 and 390, which is the frame set
+`docs/reviews/295-popover-variants.html` measured the decision against. Its third
+argument is the name prefix rather than a filter, because both sides of the pair
+are the same eight names:
+
+```sh
+node scripts/evidence/float.mjs .          out/ after
+git worktree add --detach /tmp/before origin/main
+node scripts/evidence/float.mjs /tmp/before out/ before
+```
+
+It captures `.fl-cell` rather than the viewport, so the frame carries the ground
+beside the card — a drop falls outside the card it is over, and a viewport shot
+cropped to the card would cut off the thing the pair is about. Nothing in
+`float.html` writes a shadow: both sides are that page over a different checkout,
+so the only thing that can differ between them is what the kit's own stylesheet
+paints.
+
 ## What is deterministic and what is not
 
-`shoot.mjs` and `nav.mjs` are: the same checkout, the same Chrome and the same
-viewport give the same bytes. That is the cross-check to run first — re-shoot
+`shoot.mjs`, `nav.mjs` and `float.mjs` are: the same checkout, the same Chrome and
+the same viewport give the same bytes. That is the cross-check to run first — re-shoot
 `rail-before-*` off `main` and compare it with what is committed before trusting
 anything else the rig says.
 
