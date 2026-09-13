@@ -25,23 +25,27 @@ const server = await new Promise((resolve, reject) => {
 
 const browser = await chromium.launch({ executablePath: CHROME });
 
-for (const theme of ['light', 'dark']) {
-  const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 }, deviceScaleFactor: 1 });
-  const tab = await ctx.newPage();
-  await tab.goto(`http://127.0.0.1:${server.port}/__shot?theme=${theme}&page=${page}`, { waitUntil: 'load' });
-  await tab.waitForFunction(() => window.__ready === true);
-  await tab.evaluate(() => document.fonts.ready);
+// The server is a child process: a throw between here and the kill would leave
+// it holding its port after this script exits.
+try {
+  for (const theme of ['light', 'dark']) {
+    const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 }, deviceScaleFactor: 1 });
+    const tab = await ctx.newPage();
+    await tab.goto(`http://127.0.0.1:${server.port}/__shot?theme=${theme}&page=${page}`, { waitUntil: 'load' });
+    await tab.waitForFunction(() => window.__ready === true);
+    await tab.evaluate(() => document.fonts.ready);
 
-  await tab.screenshot({ path: path.join(outDir, `${side}-page-${theme}.png`), fullPage: true });
-  console.log(`  ${side}-page-${theme}.png`);
+    await tab.screenshot({ path: path.join(outDir, `${side}-page-${theme}.png`), fullPage: true });
+    console.log(`  ${side}-page-${theme}.png`);
 
-  // The first rule that draws a specimen pair, so a caption and the why under
-  // it are both in the crop at life size.
-  const rule = tab.locator('.gc-rule').filter({ has: tab.locator('.gc-cell__cap') }).first();
-  await rule.screenshot({ path: path.join(outDir, `${side}-rule-${theme}.png`) });
-  console.log(`  ${side}-rule-${theme}.png`);
-  await ctx.close();
+    // The first rule that draws a specimen pair, so a caption and the why under
+    // it are both in the crop at life size.
+    const rule = tab.locator('.gc-rule').filter({ has: tab.locator('.gc-cell__cap') }).first();
+    await rule.screenshot({ path: path.join(outDir, `${side}-rule-${theme}.png`) });
+    console.log(`  ${side}-rule-${theme}.png`);
+    await ctx.close();
+  }
+} finally {
+  await browser.close();
+  server.proc.kill();
 }
-
-await browser.close();
-server.proc.kill();

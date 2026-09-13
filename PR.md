@@ -115,6 +115,9 @@ for the one-line ones. The eighth, *"Twelve cards exceed the limit…"*, falls f
 normal weight is narrower, so it stops wrapping at 1200 wide. 2628px → 2614px is those two effects
 against each other, and nothing else on the page moved.
 
+**The rig's own cross-check**, which its README asks for before anything else it says is trusted:
+the after pair re-shot on the same checkout is byte-identical to what is committed.
+
 Reproduce either side:
 
 ```sh
