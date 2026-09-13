@@ -323,8 +323,8 @@ thousandths of a pixel.
 
 | | Before | After |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-after-expanded-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-after-expanded-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-after-expanded-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-after-expanded-light.png) |
 
 **The reader's menu, opened from the keyboard.** Nine Tab presses reach the account block; one
 ArrowDown opens the menu and lands focus on Sign out, which is why the row carries the ring and
@@ -333,7 +333,7 @@ menu's head names the reader, and the row is a `menuitem` with the caller's `sig
 
 | dark | light |
 |---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-user-menu-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-user-menu-light.png) |
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-user-menu-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-user-menu-light.png) |
 
 **The fold, frame by frame.** Six frames taken off the compositor with `Page.startScreencast` and
 captioned with the time each was painted, so the clock is the browser's and not a screenshot call's
@@ -344,7 +344,7 @@ wide — and the reading column widens frame by frame.
 
 | dark | light |
 |---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-fold-frames-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-fold-frames-light.png) |
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-fold-frames-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-fold-frames-light.png) |
 
 **Folded, and a folded row under the keyboard.** Eight real Tab presses reached *Access & agents*;
 the chip is its own label, 8px clear of the rail's edge and centred on the row. The head is the
@@ -353,8 +353,8 @@ column.
 
 | | Folded | Focused |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-collapsed-focus-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-collapsed-focus-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-focus-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-collapsed-focus-light.png) |
 
 **Persists across navigation.** The page is drawn with no `collapsed` at all and loaded with the
 cookie already set, which is what a second page load looks like. `wireShell()` applied the stored
@@ -362,7 +362,7 @@ choice.
 
 | dark | light |
 |---|---|
-| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-persisted-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/rail-persisted-light.png) |
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-persisted-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/rail-persisted-light.png) |
 
 These two files differ from the folded pair above in **0 pixels of 972,800** — two independent
 shots, taken on separate loads and compared channel by channel, not one file copied. That is what a
@@ -380,8 +380,8 @@ what is drawn, not on what is in the DOM — a folded-away row is still a node.
 
 | | Before | After |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/nav-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/nav-collapsed-after-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/nav-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e25ffae/docs/evidence/nav-collapsed-after-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/nav-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/nav-collapsed-after-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/nav-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/e678ac1/docs/evidence/nav-collapsed-after-light.png) |
 
 ## Measured in a browser, not asserted
 
