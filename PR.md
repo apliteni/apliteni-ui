@@ -68,8 +68,17 @@ floor each, because a shared count cancels — `CONTRIBUTING.md` § *One gate pe
 shared implementation*. The kit's subjects come from `src/components/*.js` against `src/index.css`'s
 manifest; React's from every `.ts`/`.tsx` under `react/src` that is not a test or a story, against
 that manifest plus `react/src/*.css`, since the React package ships beside `./css` and its stories
-load both. So the next component is in scope by existing. It carries the ledger `CONTRIBUTING.md`
-asks for, and the classes it deliberately does not reach are named in it.
+load both. So the next component is in scope by existing.
+
+**And a class it cannot read is refused rather than skipped.** `tooltip.js` builds its parts as
+`ui-tip__${k}`, so a sweep that reads names sees nothing there — the silent shape `CONTRIBUTING.md`
+§ *A spelling the sweep cannot see costs coverage in silence* is about, and the first draft of this
+gate had `.ui-tip__label` in its ledger as out of reach on a reason that was simply wrong. An
+assembled class name now fails the gate unless the site spells the classes out in a `classes:` note,
+and the note is what puts them in the subject set — the exception shape `CONTRIBUTING.md` § *An
+exception is a note at the site, read by the gate* asks for. The one such note in the kit today is
+`src/components/tooltip.js:17` `classes: ui-tip__label`, and `.ui-tip__label` is a subject because
+of it.
 
 **A guarantee in `docs/specification.md`** § *The back link*, naming the two gates that hold it.
 
@@ -212,13 +221,18 @@ did not change the file was refused rather than applied; none was. Every restore
 | the kit's source list is emptied | `label-coverage.test.js` | **1 red** |
 | React's source list is emptied | `label-coverage.test.js` | **1 red** |
 | the kit's sheet list is emptied | `label-coverage.test.js` | **2 red** |
+| **a component assembles a class name and does not spell it out** | `label-coverage.test.js` | **1 red** |
+| the note stays and `.ui-tip__label` loses its rule | `label-coverage.test.js` | **1 red** |
+| the kit's floor is raised past its real count | `label-coverage.test.js` | **1 red** |
+all mutations red, all restores matched
 
 The first is the defect this PR is about, reproduced: the gate names `ui-back__label` and the file
 that names it. Rows five to eight are the review's own positive controls — a class that survives
 only inside a comment, a string, a `:not()` or a declaration body is not a rule, and each of the
-last three was **green** against the first draft of this gate. The last three are the floor doing
-its job: a sweep that has been emptied fails instead of passing loudly, and each workspace fails in
-its own red rather than into a shared count.
+last three was **green** against the first draft. Rows eleven to thirteen are the floor doing its
+job: a sweep that has been emptied fails instead of passing loudly, and each workspace fails in its
+own red rather than into a shared count. The last three hold the `classes:` note — the site refuses
+without one, the class it names is a real subject with it, and the floor is at the true count.
 
 `back.test.js` reads the sheet as text, as the rest of that file does. It cannot measure an
 ellipsis — jsdom has no layout. That is what the browser tables above are for, and the test header
@@ -256,7 +270,7 @@ and says in its ledger that a pass is no claim that the kit styles everything it
 
 ## Proof
 
-Run on the code as it stands at `4b059e6`, Node 24.20.0, `jq` present. The image URLs above
+Run on the code as it stands at `5b98af4`, Node 24.20.0, `jq` present. The image URLs above
 point at `d51e7f6`, the commit that added the last of them; nothing in `docs/evidence/` has moved
 since.
 
@@ -268,16 +282,16 @@ $ npm test
 ℹ skipped 2
 
 $ npm run build
-ESM dist/index.css 2.06 KB
 ESM dist/index.js  39.58 KB
-ESM ⚡️ Build success in 84ms
-DTS ⚡️ Build success in 2115ms
+ESM dist/index.css 2.06 KB
+ESM ⚡️ Build success in 169ms
+DTS ⚡️ Build success in 5201ms
 DTS dist/index.d.ts 8.49 KB
 
 $ cd react && npm test
  Test Files  17 passed (17)
       Tests  353 passed (353)
-   Duration  11.49s
+   Duration  21.32s
 ```
 
 **The one failure is the box, not the branch — and here is the arithmetic, because this branch does
@@ -318,12 +332,14 @@ reference into `back.css`, moved by the comment above it, re-pinned at line 33).
 
 `ai-slop-detector` at level `recommended`, over every file this PR adds or changes: **0 errors**,
 and one new finding. The review found the first version of this paragraph understated it, so here
-is the full count. The run reports 2 medium and 2 warnings; three of those four fire on `main`'s own
-copies of the same files, and the fourth is the new one:
+is the full count. The run over the ten source files this PR touches, plus `docs/specification.md`
+and this body, reports **3 medium and 2 warnings**. Four of the five are shapes `main` already has;
+one is new:
 
 | Finding | File | On `main`? |
 |---|---|---|
 | `scope-template` | `docs/specification.md` | yes — a pre-existing sentence this PR does not touch |
+| `css-unreadable` | `scripts/evidence/back.html` | yes — `shot.html`, the rig this page sits beside, reports the same thing for the same two Google Fonts links |
 | `comment-essay`, 12 lines | `scripts/font-loading.test.js`, the file header | yes, unchanged |
 | `comment-essay`, 12 lines | `scripts/font-loading.test.js`, the loader list | yes, at **13** — this PR's edit made it shorter |
 | `comment-ratio`, 0.77 | `src/styles/back.css` | **new** |
@@ -332,7 +348,7 @@ The new one is a threshold artifact rather than a regression: the rule skips a f
 lines, `main`'s `back.css` has 19, and its prose-to-code ratio there is already **0.89**. With this
 change the file has 26 code lines, so the rule starts measuring — at **0.77**. The two comments this
 PR adds were cut twice to get there, with the argument moved here. `label-coverage.test.js`,
-`back.test.js`, the story, both rig files and this body run clean.
+`back.test.js`, `back.mjs`, `tooltip.js`, the story and this body run clean.
 
 ## What a reviewer should push on
 
@@ -381,15 +397,16 @@ PR adds were cut twice to get there, with the argument moved here. `label-covera
 ## The review before this was opened
 
 A read-only sub-agent reviewed the branch against `CONTRIBUTING.md` and re-derived every number in
-this body, breaking rules on copies in a scratchpad to prove its findings. It reported eight; six
-are fixed here and two stand.
+this body, breaking rules on copies in a scratchpad to prove its findings. It reported eight; seven
+are fixed here, one stands, and following one of them up found a hole the review had missed.
 
 | # | Finding | Resolution |
 |---|---|---|
 | 1 | The gate was **one sweep and one count over both workspaces**, which `CONTRIBUTING.md` § *One gate per workspace* argues against by name | **Fixed.** Two gates, two floors, one implementation. Each workspace's sweep now fails in its own red — the last three mutation rows. |
 | 2 | The CSS side **matched a class inside a string and inside `:not()`** — proven green by mutation | **Fixed.** Strings are blanked with `blankStrings` (the helper in the same lib whose comment names that trap), only a block's prelude is read, and `:not(…)` is dropped. Four of the mutation rows are the reviewer's own controls. |
 | 3 | The source side **counted comments and `querySelector` calls** as emission sites, which the docblock did not say | **Fixed for comments** (they are blanked now). **Kept for `querySelector`**, and the ledger says so: both are a site that needs the class to exist, which is the question the gate asks. |
-| 4 | The floor is `>=` at today's count, so a label added and later dropped is silent | **Stands.** It is the pattern every sweep in this repo uses (`onDisk.length >= 10`, `SHEETS.length >= 20`), and the per-workspace split narrows what a single number can hide. |
+| 3b | Following that up found a hole the review did not: `.ui-tip__label` was ledgered as out of reach because "no source names it", when in fact `tooltip.js` **assembles** it | **Fixed.** An assembled class name is refused unless the site carries a `classes:` note; `.ui-tip__label` is a subject now, and the kit's floor went 5 → 7. |
+| 4 | The floor is `>=` at today's count, so a label added and later dropped is silent | **Stands.** It is the pattern every sweep in this repo uses (`onDisk.length >= 10`, `SHEETS.length >= 20`), and the per-workspace split narrows what a single number can hide. Both floors sit on the real count — raising either by one goes red. |
 | 5 | `back.test.js`'s header cited `docs/evidence/back-long-*.png`, which does not exist | **Fixed** — `back-label-long-*.png`. No gate resolves a glob, so nothing had caught it. |
 | 6 | The slop-detector claim in this body **counted only the new finding** | **Fixed** — the full count and its per-file table are in *Proof*. |
 | 7 | Four small overstatements: `.ui-tip__label` has no factory; `walkReact` keeps `.d.ts` and `test-setup.ts`; `ui-pager__jump-of` is also emitted by React; the rule is `.ui-nav__label`'s *clip* declarations, not all of it | **Fixed**, all four. |
@@ -416,7 +433,7 @@ It also raised the breadcrumb precedent and the missing tooltip, which are not d
 | Phase | Model | Skills and context |
 |---|---|---|
 | implement, verify, evidence | [none] `claude-opus-5` (Claude Code) | <ul><li>Skills: the repo's own rules (`AGENTS.md`, `CONTRIBUTING.md`, `docs/`), `ai-slop-detector`</li><li>Context: issue #303 read over the public REST API (`gh` holds no credential on this host); the coordinator's brief naming PR #279 as the bar and PR #286 as this body's shape; `origin/main` at `c85f516`</li></ul> |
-| independent review | [none] `claude-opus-5` sub-agent, read-only | <ul><li>Context: `git diff origin/main...HEAD`, `CONTRIBUTING.md` § How the gates work</li></ul> |
+| independent review, then the fixes | [none] `claude-opus-5` sub-agent, read-only, holding no editing tool | <ul><li>Context: `git diff origin/main...HEAD`, this body, `CONTRIBUTING.md` § How the gates work, issue #303 over the public API. It broke rules on copies in its own scratchpad to prove each finding. Its eight findings and what happened to each are in *The review before this was opened*.</li></ul> |
 | open the PR | [orchestrator] | — |
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
