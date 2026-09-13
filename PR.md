@@ -168,8 +168,12 @@ anchored rule must pin `top`, `bottom` and `left` to `anchor()`, in both copies 
   closed rail is derived from — so it holds that column at both widths while the rail travels past
   it. The seam crosses the frame on the press, on the rail's own `--dur-med`, and its distance is
   the frame's mirror rather than a number: drawn at 9 in an 18-unit frame, it lands at 15. The name
-  is still in the markup, because the name IS the chip — a folded rail hands the toggle the same one
-  every other row gets, instead of a tooltip written for this one control.
+  is still in the markup, because the name IS the chip — the rail hands the toggle the same one
+  every other row gets, instead of a tooltip written for this one control. It gets it at **both**
+  widths, not on the fold alone: every other row reads its own name on an open rail, and the toggle
+  is the one row that is its mark at both, so its chip rule carries no `.is-collapsed` scope. That
+  is the reference's own arrangement — `app-sidebar.tsx` wraps `RailToggle` in a tooltip at both
+  widths, and only the offset varies with the fold.
 - **`sidebarNav({ collapsed })`.** A group is no longer forced shut, its list is no longer hidden
   by CSS, and a row with no glyph gets the fold's dot.
 
@@ -180,7 +184,9 @@ and after is this branch; each side is rendered by its own tree's factories and 
 stylesheets, off two static servers, so only the code under test differs.
 
 **The rail on a desktop.** Before: no way to fold it. After: the toggle at the foot, under its own
-rule.
+rule, reached by real Tab presses so the focus ring and the name chip are the browser's own and not
+a state forced on. The chip is 130.1 × 31.4, 8px clear of the rail's edge, and centred on the
+toggle within eight thousandths of a pixel.
 
 | | Before | After |
 |---|---|---|
@@ -272,6 +278,18 @@ after the page scrolls 200      -0.01        8       0      -0.01        8
 hover, no keyboard              -0.01        8       0      -0.01        8
 ```
 
+**The toggle's own chip, at both widths**, same run and same two branches. It is the one row that
+is icon-only on an open rail as well, so its chip rule carries no `.is-collapsed` scope:
+
+```
+                                          chip box       dY     gap
+open rail,   7 Tabs / hover           130.08 x 31.39   -0.01       8
+folded rail, 7 Tabs / hover           122.56 x 31.39   -0.01       8
+```
+
+The two boxes differ by the words alone — *Collapse sidebar* against *Expand sidebar*. Before this,
+the open rail's toggle was a 41 × 35.4 square with no name on hover, on focus or at rest.
+
 The fallback is exact everywhere the rail has not scrolled, and off by exactly the scroll where it
 has. That is the one line in this table that anchor positioning buys, and it is why the `@supports`
 branch exists.
@@ -347,6 +365,7 @@ was run for real, and the file was restored and its SHA-256 compared with the on
 | the seam drawn on the frame's centre, so its mirror is no travel at all | `shell-states.test.js` | **1 red** |
 | the control given the whole row back, so its mark steps sideways on the press | `shell-states.test.js` | **1 red** |
 | the column written as the literal `41px` rather than `--ui-nav-strip` | `shell-states.test.js` | **1 red** |
+| **the toggle's chip re-scoped to `.is-collapsed`, so an open rail's is nameless again** | `shell-states.test.js` | **1 red** |
 
 One mutation is reported as **0 red** and is not a hole: filling the mark
 (`fill="none"` → `fill="currentColor"`) changes nothing a reader sees, because

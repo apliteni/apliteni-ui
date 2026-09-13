@@ -658,8 +658,11 @@ What the shell guarantees:
 - **The toggle is one mark, and the mark is the state.** The control is a frame that holds still
   and a seam that crosses it — `lessly-ui`'s `RailToggle`, which this rail is reworked on — so what
   a reader takes from it is which arrangement the panel is in rather than a direction to press. No
-  words beside it and no tooltip of its own: on a folded rail it takes the same name chip every
-  other row takes. The mark is drawn by hand in `src/components/shell.js` rather than added to
+  words beside it and no tooltip of its own: it takes the same name chip every other row takes on a
+  folded rail, and it takes that chip on an open rail too. Every other row reads its own name on an
+  open rail; the toggle is the one row that is its mark at both widths, so it is the one row whose
+  chip is not scoped to the fold — on hover and on keyboard focus, at both widths, the label leaves
+  the flow and lands beside the rail. The mark is drawn by hand in `src/components/shell.js` rather than added to
   `icons.js`, because a seam that travels has to be a child a stylesheet can reach and `icon()`
   emits one opaque string. It stands in the glyph column — `--ui-nav-strip`, a row's padding either
   side of a glyph, which is the width the closed rail is derived from — so it holds its place at
@@ -669,7 +672,8 @@ What the shell guarantees:
   frame and lands at 15, so the narrow compartment changes sides.
   `stories/apps/shell-states.test.js` reads the frame and the seam out of the factory and refuses a
   travel the mark does not explain, a control wider or narrower than the column, and a seam that
-  holds still between the two states.
+  holds still between the two states. The same file resolves the toggle's chip at both widths, under
+  the pointer and under the keyboard, so the rule cannot be scoped back to the fold.
 - **The fold travels, and no glyph moves while it does.** The rail's column keeps its open width
   and the box closes over it, so nothing inside is laid out a second way: the width goes from
   249px to 74px on `--dur-med` and `--ease`, and the words fade on `--dur-fast` so the closing edge

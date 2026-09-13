@@ -194,13 +194,20 @@
    own width, holding the place its row gave it — right until the rail scrolls.
    The @supports block below takes the near edge from the rail and pins both ends
    to the row, and is the only placement that survives a scroll as well as the
-   clip. Why there is no third: docs/specification.md#the-page-shell. */
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
+   clip. Why there is no third: docs/specification.md#the-page-shell.
+   The toggle takes the chip at BOTH widths, unscoped — it is icon-only at both,
+   so it owes a name at both. That is the second selector of each pair below. */
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
+.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
-  .ui-app.is-collapsed { anchor-scope: --ui-rail; }
-  :where(.ui-app.is-collapsed) .ui-app__rail { anchor-name: --ui-rail; }
-  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
-  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
+  .ui-app.is-collapsed,
+  .ui-app:has(.ui-app__fold) { anchor-scope: --ui-rail; }
+  :where(.ui-app.is-collapsed) .ui-app__rail,
+  .ui-app__rail:has(.ui-app__fold) { anchor-name: --ui-rail; }
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item,
+  .ui-app__rail .ui-app__fold { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
+  .ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
 }
 
 /* The reading column centres in the track it is given — without width: 100% it

@@ -533,7 +533,7 @@ test('a folded row\'s chip is placed twice: from the rail\'s width, and from the
 
 test('an open rail leaves its labels where they are, in both states', () => {
   const at = mount(PAIR(false));
-  const row = at.doc.querySelector('.ui-app__rail .ui-nav__item[aria-label]');
+  const row = at.doc.querySelector('.ui-app__rail .ui-nav__item[aria-label]:not(.ui-app__fold)');
   const label = row.querySelector('.ui-nav__label');
   for (const [state] of CHIP_STATES) {
     row.setAttribute('data-ui-state', state);
@@ -541,6 +541,33 @@ test('an open rail leaves its labels where they are, in both states', () => {
     row.removeAttribute('data-ui-state');
   }
   assert.equal(at.of(label, 'opacity'), '1', 'an open rail fades its own labels');
+});
+
+// The one row of the rail that is icon-only at BOTH widths, so it is the one
+// whose chip is not scoped to the fold. why: docs/specification.md#the-page-shell
+test('the toggle carries a name at both widths, because it is wordless at both', () => {
+  for (const [rail, at] of [['an open', mount(PAIR(false))], ['a folded', mount(PAIR(true))]]) {
+    const btn = at.q('.ui-app__fold');
+    const label = btn.querySelector('.ui-nav__label');
+    assert.equal(
+      at.of(label, 'position'), 'static',
+      `${rail} rail draws the toggle's chip with nothing pointing at it`,
+    );
+    for (const [state, who] of CHIP_STATES) {
+      btn.setAttribute('data-ui-state', state);
+      assert.equal(
+        at.of(label, 'position'), 'fixed',
+        `${rail} rail leaves the toggle's name in the flow for ${who}, where the glyph column is the `
+        + 'whole of the control and `overflow: hidden` squeezes it to nothing. The toggle is its mark '
+        + 'at both widths, so it owes the chip at both — the rule cannot be scoped to .is-collapsed.',
+      );
+      assert.equal(
+        at.of(label, 'opacity'), '1',
+        `${rail} rail hands ${who} a chip that is faded out`,
+      );
+      btn.removeAttribute('data-ui-state');
+    }
+  }
 });
 
 test('the fold toggle is drawn wherever there is a fold to choose, and only there', () => {
