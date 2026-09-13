@@ -194,7 +194,7 @@ bumping to the same version, so the coordinator sequences the version at merge. 
 - [x] `npm run build`: clean. React: **353 tests in 17 files, all passing.**
 - [x] `npm run build-storybook`: completed, with both new stories in the built index
       (`components-dropdown--head-and-foot`, `components-dropdown--foot-of-controls`).
-- [x] `npm test`: **1530 tests, 1527 pass, 1 fail, 2 skipped** — see the box below.
+- [x] `npm test`: **1529 tests, 1527 pass, 1 fail, 1 skipped** — see the box below.
 - [ ] Exercised in the page that reported #306. Not done here: it installs a published version, so
       it can only be proven after a release.
 
@@ -210,9 +210,9 @@ critical path:
 | this branch's own base, clean tree, earlier in the day | **198.1s** |
 
 Three runs, three different numbers, all far over the bar, and `main` is the slowest of them. The
-diff is not in it. The two skips are opt-in on `main` too: the `CONTRAST_ACCENTS=1` theme × accent
-matrix, and `overview.test.js`'s built-index check, which needs `storybook-static/` — after
-`npm run build-storybook` that one runs and passes (5/5).
+diff is not in it. The skip is opt-in on `main` too: the `CONTRAST_ACCENTS=1` theme × accent matrix.
+There is a second one on a tree with no `storybook-static/` — `overview.test.js`'s built-index check
+— and after `npm run build-storybook` it runs and passes (5/5), which is the count above.
 
 ## What a reviewer should push on
 
