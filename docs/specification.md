@@ -462,7 +462,7 @@ one `.ui-input` takes.
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
 takes an accent counter under the floor inside a panel. Two rules state it:
 `src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-`src/styles/dropdown.css:176` `.ui-dropdown__badge.is-accent`.
+src/styles/dropdown.css:182 `.ui-dropdown__badge.is-accent`.
 
 **The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
 the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked
@@ -950,7 +950,7 @@ Held by `src/components/back.test.js` and `src/styles/back.test.js`.
 
 ## The dropdown panel
 
-`dropdown()` places its panel; a consuming page never writes a rule to move it. Two things are
+`dropdown()` places its panel; a consuming page never writes a rule to move it. Three things are
 guaranteed, and each exists because the page had to write one.
 
 **One offset, both directions.** `--ui-dropdown-gap` is declared once on `.ui-dropdown__panel` and
@@ -964,6 +964,38 @@ edges pinned is stretched between them, so a page that set `bottom` and left the
 standing got a panel fourteen pixels tall. Measured in a browser at 1280×800, the same menu at the
 foot of a 249px rail went from 128.8px tall and hanging 66px below the fold to 128.8px tall and
 inside it, at the same 9px from the trigger.
+
+**One padding, and two blocks that bleed back through it.** `--ui-dropdown-pad` is declared on
+`.ui-dropdown__panel` beside the offset, and the panel's own `padding` reads it —
+src/styles/dropdown.css:71 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
+panel has to come back out through that padding to reach the edge, and before
+[#306](https://github.com/apliteni/apliteni-ui/issues/306) the only way to write that was to copy
+the number: the head's bleed was `margin: -6px -6px 5px` and a page building its own footer wrote
+the same `-6px` by hand, which its design-token guard refused as a magic number.
+
+`.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
+construction. One rule gives both their inner padding, at
+src/styles/dropdown.css:215-218 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+back to the edge it sits on with
+`calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
+it stands in. `dropdown({ head, foot })` draws them; `header` and `footer` remain the unwrapped
+slots and sit inside the drawn blocks, because the block that bleeds is the one that has to touch
+the edge it bleeds to.
+
+Held by `src/components/dropdown.test.js`, which sweeps every margin in the sheet: a negative length
+written out rather than read from the property fails, whichever rule it is in, and the head and the
+foot are compared term by term against each other.
+
+**What goes in them is the page's, and the panel's role says what may.** The kit gives the pair the
+bleed, the line and the corners, and no layout — a foot is a block, so a page laying out a
+Save / Cancel pair lays it out. The one constraint is ARIA rather than taste: a `role="menu"` panel
+takes menuitems and a `role="listbox"` panel takes options, so a control in either one's foot is
+refused by axe's `aria-required-children`. `search: true` makes the panel a `role="dialog"`, which
+is the same answer this component already gives for the field above the rows, and a control-bearing
+foot goes there. Non-interactive content — a title, a count, a note — is at home in all three.
+
+Measured by `stories/dropdown-foot-role.test.js`, which puts the same foot into each panel the
+factory emits and records which axe refuses, so the sentence above cannot quietly stop being true.
 
 **A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` move the panel to
 the top of the tree its trigger is in, as `position: fixed`, with the trigger's viewport coordinates

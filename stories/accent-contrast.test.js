@@ -89,7 +89,7 @@ const GROUNDS = CANDIDATE_GROUNDS.filter((g) => !NOT_MEASURED.has(g));
  *  so a sixth surface joins both lists at once. Leaving the raised ones out is a claim about the
  *  kit rather than a gap here — the accent wash is painted on a base surface, never a raised one.
  *  src/styles/nav.css:163 `.ui-nav__item.is-active .ui-nav__badge.is-accent` is one rule that used
- *  to and its comment carries the numbers; src/styles/dropdown.css:176 `.ui-dropdown__badge.is-accent`
+ *  to and its comment carries the numbers; src/styles/dropdown.css:182 `.ui-dropdown__badge.is-accent`
  *  is the other, and #295 moved it for the same reason — the ladder made --bg-elevated the floating
  *  step, so a wash over it sits far closer to the ink than a wash over the page did, and every dark
  *  cell but Emerald went under the bar. Nothing holds the claim mechanically: a token gate cannot
