@@ -190,7 +190,28 @@ and both are one commit to reverse.
 
 | Review | When | Findings | Resolved |
 |---|---|---|---|
-| *(left for the coordinator)* | | | |
+| Independent, wave 2 | 2026-09-14 | 2 should-fix, 2 nits | 4 of 4, in `582231f` |
+| *(further rows for the coordinator)* | | | |
+
+**What it found, and what changed.** The two should-fixes were both about this body rather than the
+code, and both were right:
+
+1. *"Measured, not asserted" does not reproduce.* The rig waited a fixed 400ms over a running
+   transition, so two runs of one tree came back 25 samples of 3.9M apart and a `main` run could
+   collide with a branch run. The rig waits on `document.getAnimations()` now, the claim is restated
+   as what it measures, and the section above carries the re-measurement and the retraction that
+   came with it.
+2. *The version section gave the wrong reason.* It read as a hold; the `0.32.0` is the merge base's,
+   and the red check is a separate, deliberate thing. Split in two above.
+
+The nits: the accent-badge citation in `docs/specification.md` lost the backticks its neighbour
+keeps, and
+`scripts/evidence/dropdown.mjs` leaked its static server on a throw — the `try`/`finally`
+`guideline.mjs` has is in both it and `shoot.mjs`, since the new settle can throw in either.
+
+It also flagged `head` beside the `foot` #306 asked for, and the foot having no layout where
+`.ui-drawer__footer` has one. Both are already argued under *What a reviewer should push on*; they
+are Artur's calls and are left standing.
 
 ## The version this branch shows, and the bump it does not carry
 
