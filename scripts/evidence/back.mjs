@@ -24,18 +24,27 @@ const port = await new Promise((resolve, reject) => {
 // Small enough that the subject fills the frame, at 2x so the ellipsis is legible
 // in a PR body: three characters are the whole point of the image.
 const browser = await chromium.launch({ executablePath: process.env.UI_CHROME });
-const ctx = await browser.newContext({ viewport: { width: 560, height: 340 }, deviceScaleFactor: 2 });
+
+// The link on its own, then the page shell at the one width where a reading
+// column is narrow enough to reach a long destination.
+const SUBJECTS = [
+  ['short', '', { width: 560, height: 340 }],
+  ['long', '', { width: 560, height: 340 }],
+  ['shell', 'phone', { width: 390, height: 620 }],
+];
 
 for (const theme of ['dark', 'light']) {
-  for (const subject of ['short', 'long']) {
+  for (const [subject, suffix, viewport] of SUBJECTS) {
+    const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
-    await page.goto(`http://127.0.0.1:${port.port}/__shot?theme=${theme}&subject=${subject}`, { waitUntil: 'load' });
+    const q = `theme=${theme}&subject=${subject}`;
+    await page.goto(`http://127.0.0.1:${port.port}/__shot?${q}`, { waitUntil: 'load' });
     await page.waitForFunction(() => window.__ready === true);
     await page.evaluate(() => document.fonts.ready);
-    const name = `${prefix}-${subject}-${theme}`;
+    const name = [prefix, subject, suffix, theme].filter(Boolean).join('-');
     await page.screenshot({ path: path.join(outDir, `${name}.png`) });
     console.log(`  ${name}.png`);
-    await page.close();
+    await ctx.close();
   }
 }
 

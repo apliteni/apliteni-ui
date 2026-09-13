@@ -18,6 +18,8 @@
 <body>
 <script type="module">
 import { backLink } from '/src/components/back.js';
+import { appShell } from '/src/components/shell.js';
+import { card } from '/src/components/index.js';
 
 // The destination is whatever the sidebar calls the parent page. The short one is
 // the case that must not move; the long one is a workspace-scoped section name.
@@ -31,15 +33,31 @@ const cell = (cap, html, width) => `<div><div class="cap">${cap}</div>`
   + (width ? `<div class="col" style="width:${width}px">${html}</div>` : html)
   + '</div>';
 
+// The third subject is the link where it actually lives: a record opened from a
+// list, in the page shell, at the width where the reading column is narrow enough
+// to reach the words. why: docs/specification.md#the-back-link
+const shell = (label) => appShell({
+  nav: [{ id: 'invoices', icon: 'doc', label: 'Invoices', href: '#invoices' }],
+  active: 'invoices',
+  back: { href: '#invoices', label },
+  title: 'INV-1001',
+  sub: 'A placeholder record opened from the invoice list.',
+  body: card({ title: 'Details', body: '<p style="margin:0">Example Co. — €4,200.00</p>' }),
+});
+
 const subject = params.get('subject') || 'long';
-document.body.innerHTML = `<div class="bx">${
-  subject === 'short'
-    ? cell('A short destination', backLink({ href: '#invoices', label: SHORT }))
-      + cell('A short destination, in a column wider than it', backLink({ href: '#invoices', label: SHORT }), 320)
-    : cell('Room for all of it', backLink({ href: '#access', label: LONG }))
-      + cell('A 220px column', backLink({ href: '#access', label: LONG }), 220)
-      + cell('A 120px column', backLink({ href: '#access', label: LONG }), 120)
-}</div>`;
+if (subject === 'shell') {
+  document.body.innerHTML = shell(params.get('label') === 'short' ? SHORT : LONG);
+} else {
+  document.body.innerHTML = `<div class="bx">${
+    subject === 'short'
+      ? cell('A short destination', backLink({ href: '#invoices', label: SHORT }))
+        + cell('A short destination, in a column wider than it', backLink({ href: '#invoices', label: SHORT }), 320)
+      : cell('Room for all of it', backLink({ href: '#access', label: LONG }))
+        + cell('A 220px column', backLink({ href: '#access', label: LONG }), 220)
+        + cell('A 120px column', backLink({ href: '#access', label: LONG }), 120)
+  }</div>`;
+}
 
 await document.fonts.ready;
 window.__ready = true;

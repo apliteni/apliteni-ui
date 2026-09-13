@@ -26,10 +26,12 @@ node scripts/evidence/shoot.mjs /tmp/before out/ rail-before
 node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
 ```
 
-The back link's label is its own subject, on its own page (#303):
+The back link's label is its own subject, on its own page (#303) — the link alone
+at 560×340, and the page shell at 390 wide, where a reading column is narrow
+enough for a long destination to reach its edge:
 
 ```sh
-node scripts/evidence/back.mjs . out/                       # short and long, both themes
+node scripts/evidence/back.mjs . out/               # short, long and the shell, both themes
 node scripts/evidence/back.mjs /tmp/before out/ back-label-before
 ```
 
