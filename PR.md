@@ -190,8 +190,8 @@ toggle within eight thousandths of a pixel.
 
 | | Before | After |
 |---|---|---|
-| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-after-expanded-dark.png) |
-| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-after-expanded-light.png) |
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/dc7242a/docs/evidence/rail-after-expanded-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/4500c65/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/dc7242a/docs/evidence/rail-after-expanded-light.png) |
 
 **The fold, frame by frame.** Six frames taken off the compositor with `Page.startScreencast` and
 captioned with the time each was painted, so the clock is the browser's and not a screenshot call's
