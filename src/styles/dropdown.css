@@ -63,7 +63,7 @@
   /* The two-step edge and the drop: --border-strong outside, --border one pixel
      inside it, then the broad faint drop. why: docs/specification.md#elevation */
   border: 1px solid var(--border-strong);
-  box-shadow: var(--elev-floating);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   border-radius: var(--radius-lg);
   padding: 6px;
   opacity: 0;

@@ -47,7 +47,7 @@
   /* A toast floats. It carries a status rather than the neutral hairline, so each
      style below re-points --elev-edge at its own tint and leaves the outer line
      where it already drew it. why: docs/specification.md#elevation */
-  box-shadow: var(--elev-floating);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   animation: ui-toast-in var(--dur-med) var(--ease-out) both;
 }
 

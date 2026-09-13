@@ -72,7 +72,7 @@
   /* The two-step edge and the drop: --border-strong outside, --border one pixel
      inside it, then the broad faint drop. why: docs/specification.md#elevation */
   border: 1px solid var(--border-strong);
-  box-shadow: var(--elev-floating);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   border-radius: var(--radius-lg);
   overflow: hidden;
   opacity: 0;
@@ -86,7 +86,7 @@
    box-shadow list replaces the whole list, so `box-shadow: var(--ring)` alone
    took the panel's edge and its drop off for as long as it held focus.
    why: docs/specification.md#elevation */
-.ui-cmdk__panel:focus-visible { outline: none; box-shadow: var(--ring), var(--elev-floating); }
+.ui-cmdk__panel:focus-visible { outline: none; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); }
 
 /* -- The text box --------------------------------------------------------- */
 

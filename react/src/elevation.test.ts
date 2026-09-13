@@ -35,8 +35,8 @@ describe('elevation', () => {
       for (const sheet of SHEETS) {
         for (const d of boxShadowsIn(read(sheet))) {
           for (const raw of layersOf(d.value)) {
+            if (raw === 'var(--elev-drop)') { floating += 1; continue; }
             if (!layersOf(substitute(raw, vars)).some(isCast)) continue;
-            if (raw === 'var(--elev-floating)') { floating += 1; continue; }
             offences.push(`react/src${sheet.slice(1)}:${d.line} (${theme})  ${d.selector} { … ${raw} … }`);
           }
         }
