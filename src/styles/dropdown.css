@@ -127,10 +127,7 @@
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
-/* A row inside a raised panel LIFTS: it takes the step above the panel, never
-   --surface, which is the card step and sits BELOW --bg-elevated in dark — a
-   hover that sank. The palette's active row (src/styles/command-palette.css:174 `.ui-cmdk__item.is-active`)
-   has always been written this way. why: docs/specification.md#elevation */
+/* A row in a raised panel lifts: the step above it, never the card step below. why: docs/specification.md#elevation */
 .ui-dropdown__item:hover { background: var(--surface-3); }
 .ui-dropdown__item:focus-visible { outline: none; background: var(--surface-3); box-shadow: var(--ring); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -158,8 +155,7 @@
   margin-left: auto;
   flex: none;
   color: var(--muted);
-  /* A chip is the top step, and inside this panel it has to be: --surface is
-     below --bg-elevated in dark. why: docs/specification.md#elevation */
+  /* A chip is the top step. why: docs/specification.md#elevation */
   background: var(--surface-3);
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
@@ -228,9 +224,7 @@
   font: inherit;
   font-size: 12.5px;
   color: var(--strong);
-  /* A field is the SUNKEN step, the same one .ui-input takes. It painted the card
-     step, which inside this panel is a shallow well in dark and nearly the panel
-     itself in light. why: docs/specification.md#elevation */
+  /* A field is the sunken step, the same one .ui-input takes. why: docs/specification.md#elevation */
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
