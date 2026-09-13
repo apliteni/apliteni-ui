@@ -146,8 +146,10 @@ export const GATES = [
     file: 'react/src/Dropdown.test.tsx',
     does: 'Presses real keys at the React dropdown: the arrows that open it onto the first row or '
       + 'the selected one, the ring they walk and the disabled row they step over, Home and End, '
-      + 'Enter and Space, Escape and Tab, and where focus goes when the panel closes. It also holds '
-      + 'every row role, aria-selected and aria-disabled against the factory.',
+      + 'Enter and Space, Escape and Tab, and where focus goes when the panel closes. With a search '
+      + 'field it asks the other half: focus stays in the combobox, the row Enter would pick is the '
+      + 'one aria-activedescendant names, and Home and End belong to the caret. It also holds every '
+      + 'row role, aria-selected and aria-disabled against the factory.',
     blind: [
       'Whether the focus it asks for lands. JSDOM moves focus into a box the stylesheet has hidden, '
       + 'so the rule that makes an opening panel visible in the frame the key lands is held by '

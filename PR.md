@@ -90,6 +90,25 @@ caller spreads them onto whatever element the row should be:
 <Dropdown items={items} row={(item, props) => <Link to={item.href!} {...props} />} />
 ```
 
+**`search` is here, because the case #304 reports is a search dropdown.** The field the
+factory draws, the list under it, the no-match region, and `wireDropdown()`'s model: typing
+filters, focus stays in the field — a `role="combobox"` naming the row Enter would pick through
+`aria-activedescendant` — the arrows walk what is left and skip a disabled row, Home and End
+stay the caret's, Enter picks, every open starts from the whole list, and the pointer moves the
+pick. With a field in it the panel is a `role="dialog"` and every row is an option, a row
+carrying `href` included, exactly as the factory draws it — which is what `row` is for when
+those rows must be router links.
+
+**The match is published, not copied.** `dropdownMatch(label, query)` and
+`dropdownFiltering(query)` are exported from `src/components/dropdown.js` — the same two
+functions the factory and the wiring already asked, under their public spelling — and
+`<Dropdown>` imports them, the way `<CommandPalette>` imports `rankGroups()`. This is the one
+part of the port where a second implementation would have been a second answer: a fold table
+with `ł`, `ø`, `đ`, `ß`, `æ`, `œ`, `ı` and `þ` in it, re-typed in TypeScript, drifting the day
+anybody adds the ninth letter. The vanilla behaviour is untouched — the rename is internal, and
+`src/components/dropdown.test.js` and `dropdown-search.test.js` are green on it — and the export
+carries six tests of its own.
+
 **`react/src/BackLink.tsx`** — a stateless port of `backLink()`, rule for rule: no address, or
 a `javascript:` address however it is spelt, renders nothing; the label is the destination and
 one that already says "Back to" is not said twice; `aria-label` only when a destination is
@@ -115,17 +134,10 @@ The brief allowed either and asked for the reason. `row` won:
 
 ## What is deliberately not here
 
-One of these needs saying out loud rather than reading off a table: **the consumer case #304
-reports is a *search* dropdown, and `search` is not here.** What is here closes the half that
-made them re-draw the component — the rows are router links now, and the keyboard is the
-kit's — but a React list of ten or more options still wants the vanilla factory until the
-follow-up below lands.
-
 | Left out | Why |
 |---|---|
 | `data-dropdown` on the container | It is what `wireDropdown()` looks for. A page that calls `wireDropdown(document)` must not adopt a dropdown React owns — the same decision `<Drawer>` makes about `data-drawer`. The row and panel hooks stay: they are the row contract `docs/library.md` publishes, and nothing queries them outside a wired container. |
 | `portal: true` | It is `wireDropdown()` measuring a trigger and writing viewport coordinates onto a panel it moved, re-run on scroll and resize. It is worth doing and it is not this PR; until it exists, a dropdown inside `.ui-app__rail` wants the vanilla factory, and the README says so. |
-| `search: true` | Same answer, and one more reason: the match is `ddMatch()` inside `dropdown.js`, which the entry does not export. Re-implementing the fold-and-match table in React is exactly the drift this package exists to stop, so the honest port exports the kit's matcher first — the way `<CommandPalette>` imports `rankGroups()` rather than ranking twice. Filed below. |
 | A `head` / `foot` slot | `fix/306-dropdown-pad-foot` is adding `--ui-dropdown-pad`, `.ui-dropdown__head` and `.ui-dropdown__foot` to the vanilla panel in parallel. Read on its branch at the time of writing: `head` and `foot` wrap their markup in those two blocks, drawn inside the panel and bleeding back through its padding, with `header` and `footer` staying the unwrapped slots inside them. It is not on `main`, so there is nothing this branch's parity gate could compare a mirror against — mirroring an API before it is accepted would bind this PR to that one. `header` and `footer` here are the factory's existing raw slots; mirroring `head` and `foot` is a two-slot follow-up for whichever of the two merges second. |
 
 ### Where this collides with `fix/306-dropdown-pad-foot`
@@ -144,7 +156,7 @@ Nothing else is shared. This branch opens no file under `src/`, `dropdown.css` l
 
 ## Evidence
 
-Ten shots, light and dark, produced by `scripts/evidence/react.mjs` — #286's rig pointed at the
+Fourteen shots, light and dark, produced by `scripts/evidence/react.mjs` — #286's rig pointed at the
 React workspace's own Storybook build, with the kit's two faces loaded into the page the way
 `shot.html` loads them.
 
@@ -165,6 +177,20 @@ did not land on a row.
 ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-link-row-dark.png)
 ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-link-row-light.png)
 
+**The search field, with a query typed into it** — not preset on the story: the rig clicks the
+field and types, so what is shot is the state a reader types their way into. The rows that went
+are gone, the field holds the query and carries the ring, and the row Enter would pick carries
+the accent bar.
+
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-light.png)
+
+**The case #304 reports, in one picture: a search dropdown whose rows are router links.**
+Typed "pay"; one `<Link>` row is left and it is the row Enter would pick.
+
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-links-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-links-light.png)
+
 **The back link, short and long**, in the slot the trail would take, above the title.
 
 ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-back-short-dark.png)
@@ -176,70 +202,78 @@ did not land on a row.
 
 | Gate | What it holds | What killing it would let through |
 |---|---|---|
-| `react/src/Dropdown.test.tsx`, 27 parity cases | Renders `dropdown()` and `<Dropdown>` for the same options and compares the container's class list plus a shape: the trigger's tag, classes, `type`, `aria-haspopup`, `aria-expanded`, `aria-label`, its prefix and value and chevron; the panel's classes, role, name and inline max-height; every section's role, name and heading; and every row's tag, classes, role, `tabindex`, `data-value`, `aria-selected`, `aria-disabled`, `href`, `target`, label, description, badge and badge tone, and which glyph slots it drew. | A React-only rule. The variant inference drifting. A row that is a `<div>` where the factory draws an `<a>`. A select row quietly becoming a link. A badge tone the factory would have spelt differently. |
-| the same file, 17 cases under `user-event` | Real key presses: the trigger's click, ArrowDown/ArrowUp opening onto the first row or the selected one, the ring wrapping and stepping over the disabled row, Home and End, Enter and Space, Escape and the focus return, Tab, the outside click, one dropdown closing another, controlled `open` refusing a close, a `<Link>` row still moving with the arrows, a pick surviving a caller that rebuilds its items, and the caller taking the pick back by moving `selected` itself. | Any of `wireDropdown()`'s rules being approximated. The most likely regression: a row drawn by a caller falling out of the arrow ring, which is the whole feature. Two of these were written against a defect this branch shipped and then fixed — a pick held by object identity — and killing `keyOf()` reds six of them. |
+| `react/src/Dropdown.test.tsx`, 36 parity cases | Renders `dropdown()` and `<Dropdown>` for the same options and compares the container's class list plus a shape: the trigger's tag, classes, `type`, `aria-haspopup`, `aria-expanded`, `aria-label`, its prefix and value and chevron; the panel's classes, role, name and inline max-height; every section's role, name and heading; and every row's tag, classes, role, `tabindex`, `data-value`, `aria-selected`, `aria-disabled`, `href`, `target`, label, description, badge and badge tone, and which glyph slots it drew — and, with `search`, the field (its role, its name, its placeholder, whether its `aria-controls` points at the list and its `aria-activedescendant` at the active row), the list, the no-match region and which rows a preset query left hidden. | A React-only rule. The variant inference drifting. A row that is a `<div>` where the factory draws an `<a>`. A select row quietly becoming a link. A badge tone the factory would have spelt differently. |
+| the same file, 12 wired-parity cases | Mounts the factory's markup, runs the kit's own `wireDropdown()` over it, opens it and types a query with `user-event` — then does the same to the component and compares the rows left showing, the row Enter would pick, the separators, the groups and the no-match line. Twelve queries: a word mid-label, a code at the end, a capital query, an accent the row has and the query does not, one that finds only the disabled row, one that matches nothing, spaces, one letter, and two over sections. | A matcher that starts guessing. Replacing `dropdownMatch()` with a starts-with test reds twelve of these plus two parity cases — measured, not assumed. |
+| the same file, 18 keyboard cases under `user-event` | Real key presses: the trigger's click, ArrowDown/ArrowUp opening onto the first row or the selected one, the ring wrapping and stepping over the disabled row, Home and End, Enter and Space, Escape and the focus return, Tab, the outside click, one dropdown closing another, controlled `open` refusing a close, a `<Link>` row still moving with the arrows, a pick surviving a caller that rebuilds its items, the caller taking the pick back, and — with the field — the arrows moving the pick while focus stays in the combobox, Home and End staying the caret's, Enter picking, every open starting from the whole list, the pointer moving the pick, and a search dropdown whose rows the caller drew being filtered and then picked. | Any of `wireDropdown()`'s rules being approximated. The most likely regression: a row drawn by a caller falling out of the arrow ring, which is the whole feature. Two of these were written against a defect this branch shipped and then fixed — a pick held by object identity — and killing `keyOf()` reds six of them. |
 | `react/src/BackLink.test.tsx`, 24 parity cases + 9 script addresses | The same shape comparison against `backLink()`, over the cases `src/components/back.test.js` pins — including every `javascript:` spelling, each asserted to parse as `javascript:` first so none is a straw man — plus `.ui-app__main > .ui-back` matching, and the one difference stated by name. | The guard being written differently in the two languages, which is the one that matters: a `javascript:` address rendering a link in React and nothing in a server render. |
-| `react/src/a11y.test.tsx` (existing, auto-discovering) | Nine new stories × two themes through axe. It already found one thing: a `select` dropdown with no `ariaLabel` is an unnamed listbox. | An unnamed listbox, an option outside a listbox, a menuitem outside a menu. |
+| `src/components/dropdown-search.test.js` (existing, extended) | Six cases on the published matcher: a substring anywhere, case and accents including the letters that carry their own mark, a blank query matching everything, a label that is not a string, the query trimmed and the label not — and one that reads the factory's own hidden rows back against the export, so the two cannot drift apart. | The export becoming a second implementation of what the factory does. |
+| `react/src/a11y.test.tsx` (existing, auto-discovering) | Eleven new stories × two themes through axe, the search panel among them — a field inside a `role="listbox"` fails `aria-required-children`, which is why the panel is a dialog. It already found one thing: a `select` dropdown with no `ariaLabel` is an unnamed listbox. | An unnamed listbox, an option outside a listbox, a menuitem outside a menu. |
 | `stories/guidelines/accessibility-floor.test.js` (existing) | Both new gates are named on the Guidelines / Accessibility floor page with what they check and the blind spots they carry. The page's list is checked against a scan of the tree, so a gate it has never heard of fails the build. | Adding an accessibility gate nobody can find. |
 
 ## Proof
 
-- [x] A person meets it in something running: the ten screens above, both themes, off the
-      React Storybook's own build.
+- [x] A person meets it in something running: the fourteen screens above, both themes, off
+      the React Storybook's own build.
 - [x] A consumer can write the row as a router link and every row still moves with the arrow
       keys — asserted in the gate, and shot with the ring on it.
 - [x] `react/dist/index.d.ts` names both components and their props after the build.
-- [x] The vanilla factories and their gates are untouched. `src/` carries no change on this
-      branch; `dropdown.css` is not opened, per the fence around `fix/306-dropdown-pad-foot`.
+- [x] The factory's own output is unchanged. The one file this branch opens under `src/` is
+      `src/components/dropdown.js`, and only to publish two functions it already had under
+      private names; `src/components/dropdown.test.js` and `dropdown-search.test.js` are green
+      on it. `dropdown.css` is not opened at all, per the fence around
+      `fix/306-dropdown-pad-foot`.
 
 **`npm test` at the root** — one failure, named below:
 
 ```
-ℹ tests 1519
+ℹ tests 1526
 ℹ suites 0
-ℹ pass 1516
+ℹ pass 1523
 ℹ fail 1
 ℹ cancelled 0
 ℹ skipped 2
 ℹ todo 0
-ℹ duration_ms 279066.179552
+ℹ duration_ms 215240.160579
 
 ✖ failing tests:
 
-test at stories/contrast.test.js:528:1
-✖ the walk has not run away with the clock (1.008659ms)
-  AssertionError: the contrast walk took 167.0s, against a 120s ceiling set from a measured
+✖ the walk has not run away with the clock (1.141853ms)
+  AssertionError: the contrast walk took 194.7s, against a 120s ceiling set from a measured
   worst case of 47.6s on a fully contended 10-core laptop.
 ```
+
+The assertion is stories/contrast.test.js:528, `the walk has not run away with the clock`.
 
 **That one failure is the wall clock, not the walk.** The assertion is a ceiling on how long
 the walk takes, and this box is a shared Linux host running several agents; the brief that
 dispatched this work names it as the one failure that is red on `main` here, and I did not
 re-measure `main` to confirm that. What I did measure: **156.7s** with nothing else running,
-still over the ceiling. Nothing on this branch can move it either way — the walk reads
-`src/styles` and `src/tokens`, and `src/` carries no change here.
-Every other gate is green, the two that this branch had to satisfy among them —
-`scripts/font-loading.test.js`, which counts the rig as the ninth loader, and
-`stories/guidelines/accessibility-floor.test.js`, which finds both new gates named on the page.
+still over the ceiling. Nothing on this branch can move it either way: the walk reads
+`src/styles` and `src/tokens`, and neither is opened here.
+
+Every other gate is green, the four this branch had to satisfy among them —
+`scripts/font-loading.test.js`, which counts the rig as the ninth loader;
+`stories/guidelines/accessibility-floor.test.js`, which finds both new gates named on the page;
+`stories/guidelines/refs.test.js`, because publishing the matcher moved the line Guidelines /
+Component choice cites for it; and `scripts/code-refs.test.js`, which reads this very file.
 
 **`npm run build`:**
 
 ```
-ESM dist/index.js  50.18 KB
 ESM dist/index.css 2.06 KB
-ESM ⚡️ Build success in 203ms
+ESM dist/index.js  55.94 KB
+ESM ⚡️ Build success in 229ms
 DTS Build start
-DTS ⚡️ Build success in 5241ms
-DTS dist/index.d.ts 12.73 KB
+DTS ⚡️ Build success in 6078ms
+DTS dist/index.d.ts 13.41 KB
 ```
 
 **`cd react && npm test`:**
 
 ```
  Test Files  19 passed (19)
-      Tests  482 passed (482)
-   Start at  22:51:37
-   Duration  21.13s
+      Tests  524 passed (524)
+   Duration  29.09s
 ```
 
 **`react/dist/index.d.ts`, after that build:**
@@ -264,7 +298,8 @@ export { BackLink, type BackLinkOwnProps, type BackLinkProps, …, Dropdown, typ
 | `<BackLink>` takes `as` rather than a render prop | This branch | Same |
 | The container carries no `data-dropdown` | This branch, following `<Drawer>`'s `data-drawer` | Stated in `Dropdown.test.tsx`'s header, held by a test |
 | The panel is always rendered and the container toggles `open` | This branch, following the factory | Stated in `Dropdown.tsx`, and it is what keeps #286's two round-8 rules true in React |
-| `portal` and `search` are follow-ups | This branch | The table above, `react/README.md`, and the follow-ups below |
+| `portal` stays a follow-up; `search` does not | The coordinator, after the first round | The table above and the follow-ups below |
+| The kit publishes its matcher rather than React re-typing it | This branch, following `rankGroups()` | `src/components/dropdown.js`, `docs/library.md`, and the gate that types the same query into both |
 | The chevron in `<BackLink>` goes through `<Icon>`, wrapper span and all | This branch, following `<Button>` | Asserted by name in `BackLink.test.tsx` |
 
 ## Reviews
@@ -293,11 +328,8 @@ export { BackLink, type BackLinkOwnProps, type BackLinkProps, …, Dropdown, typ
 
 - **`portal: true` for the React dropdown** — the rail case. It needs the measuring and the
   scroll/resize repositioning `wireDropdown()` does, and it is a PR of its own.
-- **`search: true` for the React dropdown**, and the export it needs: `ddMatch()` and its fold
-  table are private to `dropdown.js`. The right first step is publishing the kit's matcher, so
-  a server render and a React render hide the same rows — the `rankGroups()` precedent.
-  Guidelines / Component choice requires a search field at ten options or more, so until then
-  a React list that long wants the factory.
+- **`head` and `foot`**, once `fix/306-dropdown-pad-foot` is on `main` — see the table above for
+  the shape it lands in.
 
 ## Changelog entry
 
@@ -305,7 +337,13 @@ export { BackLink, type BackLinkOwnProps, type BackLinkProps, …, Dropdown, typ
   both variants, sections, badges, separators, disabled and danger rows, controlled or
   uncontrolled `open`, `onSelect` and `onOpenChange`. A `row` render prop draws each row, so a
   router `<Link>` can be the row without losing its classes, role, tab stop or keyboard.
-  Held against the factory shape by shape. No `portal` and no `search` yet. (#304)
+  `search` puts the kit's own field over the rows, filtering through the kit's own matcher.
+  Held against the factory shape by shape, and against the factory-plus-`wireDropdown()` for
+  what a typed query leaves standing. No `portal` yet. (#304)
+- **`dropdownMatch(label, query)` and `dropdownFiltering(query)`** are exported from the kit:
+  the match a dropdown's search field already used, published so a second implementation of that
+  dropdown asks rather than writes a second fold table. The factory's own behaviour is
+  unchanged. (#304)
 - **React: `<BackLink>`.** The React face of `backLink()`, with the same rules and the same
   refusals, rendered rather than interpolated — which is what keeps `ui-back` on the element
   the shell's `.ui-app__main > .ui-back` rule looks for. Takes `as`, so a router link can be
