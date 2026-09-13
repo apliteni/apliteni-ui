@@ -9,7 +9,6 @@
 
 :root {
   --ui-fb-pill-grad: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  --ui-fb-pill-glow: color-mix(in srgb, var(--accent) 45%, transparent);
   --ui-fb-sel: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
@@ -34,23 +33,21 @@
   border: 0; text-align: center; font: inherit;
   font-family: var(--font-sans); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: .01em;
   padding: 9px 17px 9px 15px; border-radius: 999px; cursor: pointer; white-space: nowrap; overflow: hidden;
-  box-shadow: 0 10px 26px var(--ui-fb-pill-glow),
-              0 2px 6px color-mix(in srgb, var(--shadow-ink) 28%, transparent),
-              inset 0 1px 0 color-mix(in srgb, var(--sheen) 28%, transparent);
+  /* The pill cast two layers of ink and an accent glow until #295, and grew both on
+     hover. Nothing casts now, and it takes no hairline either: it is the accent at full
+     fill strength on the page, found the way the solid toast is found. What is left is an
+     inset sheen — gloss on the surface, not a shadow under it — so the hover is the travel
+     alone and the box-shadow it transitioned went with it.
+     why: docs/specification.md#elevation */
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sheen) 28%, transparent);
   transition:
     transform var(--dur-fast) var(--ease-spring),
-    opacity var(--dur-fast) var(--ease),
-    box-shadow var(--dur-fast) var(--ease);
+    opacity var(--dur-fast) var(--ease);
 }
 .ui-fbpill.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -100%) translateY(-9px) scale(1); }
-.ui-fbpill:hover {
-  box-shadow: 0 14px 34px var(--ui-fb-pill-glow),
-              0 3px 9px color-mix(in srgb, var(--shadow-ink) 30%, transparent),
-              inset 0 1px 0 color-mix(in srgb, var(--sheen) 34%, transparent);
-}
 .ui-fbpill.show:hover { transform: translate(-50%, -100%) translateY(-12px) scale(1.04); }
 .ui-fbpill:active { transform: translate(-50%, -100%) translateY(-8px) scale(.98); }
-.ui-fbpill svg { width: 16px; height: 16px; stroke-width: 2.4; color: currentColor; filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--shadow-ink) 25%, transparent)); }
+.ui-fbpill svg { width: 16px; height: 16px; stroke-width: 2.4; color: currentColor; }
 .ui-fbpill::before {
   content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
   background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--sheen) 55%, transparent), transparent); transform: skewX(-18deg);
