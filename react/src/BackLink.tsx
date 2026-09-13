@@ -27,13 +27,16 @@ export type BackLinkOwnProps = {
   href?: string;
   /** The destination, spelled the way the sidebar or the trail spells it. */
   label?: string;
-  /** The element the anchor is drawn as — a router `<Link>`, say. Default `'a'`. */
-  as?: ElementType;
   className?: string;
 };
 
-export type BackLinkProps<T extends ElementType = 'a'> =
-  BackLinkOwnProps & Omit<ComponentPropsWithoutRef<T>, keyof BackLinkOwnProps>;
+// `as` is the generic itself and not a field of BackLinkOwnProps, or TypeScript has
+// nothing to infer the element from: `as={Link}` would leave T at 'a' and reject the
+// router's own `to`, which is the one prop this exists to pass through.
+export type BackLinkProps<T extends ElementType = 'a'> = BackLinkOwnProps & {
+  /** The element the anchor is drawn as — a router `<Link>`, say. Default `'a'`. */
+  as?: T;
+} & Omit<ComponentPropsWithoutRef<T>, keyof BackLinkOwnProps | 'as'>;
 
 /**
  * The link a page under another page puts above its title.

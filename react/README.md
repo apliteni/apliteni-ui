@@ -131,14 +131,35 @@ leave `open` out and the component keeps its own, starting from `defaultOpen`. `
 reports the item's `value` and the item. Pass `ariaLabel` to a `select` dropdown: a listbox
 needs a name, and axe says so — the same reason every vanilla dropdown story passes one.
 
+**`search` puts a field over the rows**, the same one the factory draws, and Guidelines /
+Component choice makes it a rule at ten options or any list fed by data:
+
+```tsx
+<Dropdown variant="select" label="currency:" ariaLabel="Currency" scroll={220}
+  search={{ placeholder: 'Search currencies' }} items={currencies} onSelect={setCurrency} />
+```
+
+Typing filters and focus stays in the field, which is a `role="combobox"` naming the row Enter
+would pick through `aria-activedescendant`. ↑ and ↓ walk the rows still showing, skip a disabled
+one and wrap; Enter picks; Home and End move the caret, because they belong to the text field;
+Escape closes and Tab closes. Every open starts from the whole list. A query that matches nothing
+shows "No match for “…”" and a nudge — reword either with `search.empty` (where `{q}` stands for
+the query) and `search.hint`. With a field in it the panel is a `role="dialog"`, so every row
+becomes an option: a row carrying `href` is drawn as a plain option rather than a link, exactly as
+the factory draws it — which is what `row` is for when the rows must be router links.
+
+**The match is the kit's, not this package's.** `dropdownMatch()` and `dropdownFiltering()` are
+exported from `@apliteni/apliteni-ui` and imported here, the way `CommandPalette` imports
+`rankGroups()`, so a list a server rendered and the same list after a keystroke hide the same
+rows. `Dropdown.test.tsx` types the same query into the factory-plus-`wireDropdown()` and into
+this component and compares what is left.
+
 Two things the factory has that this does not, both deliberate. It emits no `data-dropdown`
 on the container, so a page that calls `wireDropdown(document)` cannot adopt a dropdown React
 owns — the same decision `Drawer` makes about `data-drawer`; the row and panel hooks stay,
-because they are the row contract `docs/library.md` publishes. And it has neither `portal:
-true` nor `search: true` yet: the panel is a child of the trigger's container, so a dropdown
-inside `.ui-app__rail` (`position: sticky` with `overflow-y: auto`) still wants the vanilla
-factory, and a list of ten or more options — which Guidelines / Component choice says needs a
-search field — wants it too.
+because they are the row contract `docs/library.md` publishes. And it has no `portal: true`: the
+panel is a child of the trigger's container, so a dropdown inside `.ui-app__rail`
+(`position: sticky` with `overflow-y: auto`) still wants the vanilla factory.
 
 ## BackLink
 

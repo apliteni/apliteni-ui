@@ -5,6 +5,12 @@ declare module '@apliteni/apliteni-ui' {
   export function card(opts?: Record<string, unknown>): string;
   export function pagination(opts?: Record<string, unknown>): string;
   export function drawer(opts?: Record<string, unknown>): string;
+  export function dropdown(opts?: Record<string, unknown>): string;
+  export function wireDropdown(root?: Document | Element): void;
+  /** The kit's own match, asked rather than re-implemented by <Dropdown>. */
+  export function dropdownMatch(label: unknown, query: unknown): boolean;
+  export function dropdownFiltering(query: unknown): boolean;
+  export function backLink(opts?: Record<string, unknown>): string;
   export function statBand(opts?: Record<string, unknown>): string;
   export function commandPalette(opts?: Record<string, unknown>): string;
   export function rankGroups<G>(groups: readonly G[], query: string): G[];

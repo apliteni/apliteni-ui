@@ -1,17 +1,20 @@
 import {
-  Fragment, useCallback, useEffect, useRef, useState,
+  Fragment, useCallback, useEffect, useId, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
-import { icon } from '@apliteni/apliteni-ui';
+import { icon, dropdownMatch, dropdownFiltering } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 
 // The React face of the kit's dropdown() factory and of wireDropdown()'s keyboard.
 // The vanilla output is the source of truth for every class, role and aria
 // attribute here, and Dropdown.test.tsx compares the two shape by shape — a rule
 // this file expresses differently from src/components/dropdown.js is a failure
-// there rather than a drift.
+// there rather than a drift. The one rule that is not re-expressed at all is the
+// search match: dropdownMatch() is imported, so a list a server rendered and the
+// same list after a keystroke hide the same rows.
 // why: docs/specification.md#the-dropdown-panel
 // why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button
+// why: docs/specification.md#a-dropdown-with-a-search-field
 
 export type DropdownBadge = string | { text: string; tone?: string };
 
@@ -36,6 +39,19 @@ export type DropdownSeparator = '---' | { separator: true };
 export type DropdownEntry = DropdownItem | DropdownSeparator;
 export type DropdownSection = { label?: string; items?: DropdownEntry[] };
 
+/** The field above the rows. `true` takes every default. */
+export type DropdownSearch = {
+  placeholder?: string;
+  /** Names the field. Without one it is named "Search " + the dropdown's name. */
+  label?: string;
+  /** The no-match line. `{q}` in it stands for the query. */
+  empty?: string;
+  /** The nudge under it. */
+  hint?: string;
+  /** What the field holds before it is opened; every open starts from the whole list. */
+  query?: string;
+};
+
 /**
  * What a row has to carry to be a row: the classes, the role, the tab stop the
  * panel moves itself, the pick and the click. Spread it onto whatever element the
@@ -51,6 +67,9 @@ export type DropdownRowProps = {
   'aria-disabled'?: true;
   href?: string;
   target?: string;
+  /** Only with `search`: the field names the row Enter would pick. */
+  id?: string;
+  hidden?: boolean;
   onClick: (e: ReactMouseEvent) => void;
   children: ReactNode;
 };
@@ -78,6 +97,8 @@ export type DropdownProps = {
   direction?: 'down' | 'up';
   /** `true`, or a max height in px, to cap the panel and scroll it. */
   scroll?: boolean | number;
+  /** A field above the rows that filters them as the reader types. */
+  search?: boolean | DropdownSearch;
   ariaLabel?: string;
   id?: string;
   panelClass?: string;
@@ -133,10 +154,16 @@ const openNow = new Set<() => void>();
 // driving the list. Safari's committing Enter carries keyCode 229, not isComposing.
 const composing = (e: { isComposing?: boolean; keyCode?: number }) => e.isComposing || e.keyCode === 229;
 
+const SEARCH_DEFAULTS = {
+  placeholder: 'Search',
+  empty: 'No match for “{q}”',
+  hint: 'Check the spelling, or try fewer letters.',
+};
+
 export function Dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
   header, footer, triggerContent, triggerClass = '', chevron = true,
-  align = 'start', direction = 'down', scroll = false,
+  align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, id, panelClass = '',
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
 }: DropdownProps) {
@@ -147,13 +174,24 @@ export function Dropdown({
   // ordinary `items.map(…)` — hands back equal rows that are not the same objects, and
   // a pick compared by identity would lose its tick on the next render.
   const [pickedKey, setPickedKey] = useState<string | null>(null);
+  const [query, setQuery] = useState(() => (search && search !== true ? search.query || '' : ''));
+  // The row Enter would pick, by key. Null means "whichever is first in the list as it
+  // stands", which is where every query change and every open put it.
+  const [activeKey, setActiveKey] = useState<string | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const field = useRef<HTMLInputElement>(null);
   // Where the keyboard asked focus to land once the panel is open: an index, or the
   // selected row. Read in a layout effect, because the rows have to be styled open
   // before one of them can take focus. why: docs/specification.md#the-dropdown-panel
   const landOn = useRef<number | 'selected' | null>(null);
+  // The pointer's last position. A move event carrying the one it already had is the
+  // browser's own after a scroll, not the reader's, and it would take the active row
+  // away from the arrows.
+  const at = useRef('');
+  const auto = useId().replace(/:/g, '');
+  const uid = id ?? auto;
 
   const setOpen = useCallback((next: boolean) => {
     if (openProp === undefined) setSelfOpen(next);
@@ -162,6 +200,7 @@ export function Dropdown({
   const close = useRef(setOpen);
   useIsoLayoutEffect(() => { close.current = setOpen; });
 
+  const sx = search ? { ...SEARCH_DEFAULTS, ...strip(search === true ? {} : search) } : null;
   const entries: DropdownEntry[] = sections?.length
     ? sections.flatMap((s) => s.items || [])
     : (items || []);
@@ -169,6 +208,10 @@ export function Dropdown({
   const isSelect = variant === 'select'
     || (variant == null && rows.some((it) => it.selected || it.value != null));
   const listRole = isSelect ? 'listbox' : 'menu';
+  // With a field in it the panel is a dialog — a listbox may own only options and
+  // groups — and every row inside becomes an option, a row carrying an href included.
+  const asOption = isSelect || Boolean(sx);
+  const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || 'Options';
   // The caller's own selection. When it moves, the caller has taken the pick back and
   // this component's is dropped — the same shape <Pagination> uses to drop a page-jump
   // draft when the page moves under it.
@@ -187,6 +230,17 @@ export function Dropdown({
   const selectedOf = (it: DropdownItem) => (pickedKey != null
     ? (it.disabled ? !!it.selected : keyOf(it) === pickedKey)
     : !!it.selected);
+
+  // The rows the query leaves showing, and of those the ones the arrows walk. Both are
+  // read off the items rather than off the DOM, so the panel renders what it filtered.
+  const hiddenBy = (it: DropdownItem) => Boolean(sx) && !dropdownMatch(it.label, query);
+  const filtering = Boolean(sx) && dropdownFiltering(query);
+  const visible = rows.filter((it) => !hiddenBy(it));
+  const ring = visible.filter((it) => !it.disabled);
+  const active = ring.find((it) => keyOf(it) === activeKey) ?? ring[0];
+  const rowIds = new Map<DropdownItem, string>();
+  rows.forEach((it, i) => rowIds.set(it, `${uid}-opt-${i}`));
+  const listId = `${uid}-list`;
 
   // Opening closes every other dropdown on the page.
   useEffect(() => {
@@ -221,13 +275,45 @@ export function Dropdown({
   useIsoLayoutEffect(() => {
     const want = landOn.current;
     landOn.current = null;
-    if (!open || want == null) return;
+    if (!open) return;
+    // With a field, focus goes to it however the panel was opened, and the row Enter
+    // would pick is the selected one or the first. Every open starts from the whole
+    // list, so the query is cleared here and not on the way out — a panel fading out
+    // after a pick does not flash back to every row.
+    if (sx) {
+      setQuery('');
+      const enabled = rows.filter((it) => !it.disabled);
+      const start = enabled.find(selectedOf) ?? enabled[0];
+      setActiveKey(start ? keyOf(start) : null);
+      if (panel.current) {
+        // Hold the width the whole list needs, so the panel does not narrow as rows go.
+        panel.current.style.minWidth = '';
+        if (panel.current.offsetWidth) panel.current.style.minWidth = `${panel.current.offsetWidth}px`;
+      }
+      field.current?.focus();
+      return;
+    }
+    if (want == null) return;
     const els = itemsIn(panel.current);
     if (!els.length) return;
     const sel = els.findIndex((el) => el.getAttribute('aria-selected') === 'true');
-    const at = want === 'selected' ? (sel >= 0 ? sel : 0) : want;
-    (els[at] || els[0]).focus();
+    const to = want === 'selected' ? (sel >= 0 ? sel : 0) : want;
+    (els[to] || els[0]).focus();
   }, [open]);
+
+  // Keep the active row inside the list's own scroll box, without scrolling the page
+  // the way scrollIntoView() would.
+  useIsoLayoutEffect(() => {
+    if (!sx || !open || !active) return;
+    const el = panel.current?.querySelector<HTMLElement>('[data-dd-item].is-active');
+    const list = el?.closest<HTMLElement>('.ui-dropdown__list');
+    if (!el || !list || !list.clientHeight) return;
+    const top = el.offsetTop - list.offsetTop;
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (top + el.offsetHeight > list.scrollTop + list.clientHeight) {
+      list.scrollTop = top + el.offsetHeight - list.clientHeight;
+    }
+  });
 
   const choose = (item: DropdownItem, e: ReactMouseEvent) => {
     if (item.disabled) { e.preventDefault(); return; }
@@ -239,6 +325,28 @@ export function Dropdown({
 
   const onKeyDown = (e: ReactKeyboardEvent) => {
     const onTrigger = e.target === trigger.current;
+    const onField = e.target === field.current;
+    if (onField && composing(e)) return;
+    if (sx && open) {
+      // The arrows walk the rows still showing; focus stays in the field.
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!ring.length) return;
+        const i = active ? ring.indexOf(active) : -1;
+        const next = e.key === 'ArrowDown' ? (i + 1) % ring.length : (i <= 0 ? ring.length - 1 : i - 1);
+        setActiveKey(keyOf(ring[next]));
+        return;
+      }
+      if (onField && e.key === 'Enter') {
+        e.preventDefault();
+        // The element and not the item: a row a caller drew is a link, and a link is
+        // followed by the click rather than by the callback beside it.
+        panel.current?.querySelector<HTMLElement>('[data-dd-item].is-active')?.click();
+        return;
+      }
+      // Home and End move the caret in a text field; they are not the list's.
+      if (onField && (e.key === 'Home' || e.key === 'End')) return;
+    }
     if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && (onTrigger || open)) {
       e.preventDefault();
       if (!open) {
@@ -272,21 +380,37 @@ export function Dropdown({
     }
   };
 
+  // The pointer moves the pick too, so Enter takes the row under it.
+  const onMouseMove = (e: ReactMouseEvent) => {
+    if (!sx) return;
+    const here = `${e.clientX},${e.clientY}`;
+    if (here === at.current) return;
+    at.current = here;
+    const el = (e.target as HTMLElement).closest?.('[data-dd-item]');
+    if (!el || el.getAttribute('aria-disabled') === 'true' || el.classList.contains('is-active')) return;
+    const item = rows.find((it) => rowIds.get(it) === el.id);
+    if (item) setActiveKey(keyOf(item));
+  };
+
   function renderRow(entry: DropdownEntry, key: string) {
-    if (!isRow(entry)) return <div key={key} className="ui-dropdown__sep" role="separator" />;
+    if (!isRow(entry)) {
+      return <div key={key} className="ui-dropdown__sep" role="separator" hidden={filtering || undefined} />;
+    }
     const disabled = !!entry.disabled;
     const selected = selectedOf(entry);
-    const asLink = !!entry.href && !disabled && !isSelect;
+    const asLink = !!entry.href && !disabled && !asOption;
     const props: DropdownRowProps = {
       className: cx('ui-dropdown__item', selected && 'is-selected',
-        disabled && 'is-disabled', entry.danger && 'is-danger'),
+        disabled && 'is-disabled', entry.danger && 'is-danger',
+        Boolean(sx) && open && entry === active && 'is-active'),
       'data-dd-item': '',
-      role: isSelect ? 'option' : 'menuitem',
+      role: asOption ? 'option' : 'menuitem',
       tabIndex: -1,
       ...(entry.value != null ? { 'data-value': String(entry.value) } : null),
-      ...(isSelect ? { 'aria-selected': selected } : null),
+      ...(asOption ? { 'aria-selected': selected } : null),
       ...(disabled ? { 'aria-disabled': true as const } : null),
       ...(asLink ? { href: entry.href, ...(entry.target ? { target: entry.target } : null) } : null),
+      ...(sx ? { id: rowIds.get(entry), hidden: hiddenBy(entry) || undefined } : null),
       onClick: (e: ReactMouseEvent) => choose(entry, e),
       children: (
         <>
@@ -296,7 +420,7 @@ export function Dropdown({
             {entry.description && <span className="ui-dropdown__desc">{entry.description}</span>}
           </span>
           {entry.badge ? <RowBadge badge={entry.badge} /> : null}
-          {isSelect && <Glyph name="check" className="ui-dropdown__tick" hidden />}
+          {asOption && <Glyph name="check" className="ui-dropdown__tick" hidden />}
         </>
       ),
     };
@@ -306,18 +430,35 @@ export function Dropdown({
   }
 
   const body = sections?.length
-    ? sections.map((section, si) => (
-      <div
-        key={section.label ?? `s${si}`}
-        className="ui-dropdown__section"
-        role="group"
-        aria-label={section.label || undefined}
-      >
-        {section.label && <div className="ui-dropdown__group" role="presentation">{section.label}</div>}
-        {(section.items || []).map((entry, i) => renderRow(entry, `s${si}-${i}`))}
-      </div>
-    ))
+    ? sections.map((section, si) => {
+      // A group with nothing left in it goes, and so does its heading.
+      const gone = filtering && !(section.items || []).some((it) => isRow(it) && !hiddenBy(it));
+      return (
+        <div
+          key={section.label ?? `s${si}`}
+          className="ui-dropdown__section"
+          role="group"
+          aria-label={section.label || undefined}
+          hidden={gone || undefined}
+        >
+          {section.label && <div className="ui-dropdown__group" role="presentation">{section.label}</div>}
+          {(section.items || []).map((entry, i) => renderRow(entry, `s${si}-${i}`))}
+        </div>
+      );
+    })
     : (items || []).map((entry, i) => renderRow(entry, `i${i}`));
+
+  const cap = scroll && scroll !== true
+    ? { maxHeight: typeof scroll === 'number' ? `${scroll}px` : scroll }
+    : undefined;
+  // The no-match state. A function replacer, so a `$&` typed into the field is text
+  // rather than a replacement pattern.
+  const none = sx && filtering && !visible.length ? (
+    <>
+      <span className="ui-dropdown__none-title">{sx.empty.replace('{q}', () => query.trim())}</span>
+      <span className="ui-dropdown__none-hint">{sx.hint}</span>
+    </>
+  ) : null;
 
   return (
     <div className={cx('ui-dropdown', open && 'open')} id={id} ref={root} onKeyDown={onKeyDown}>
@@ -325,7 +466,7 @@ export function Dropdown({
         type="button"
         className={cx('ui-dropdown__trigger', triggerClass)}
         data-dropdown-trigger=""
-        aria-haspopup={listRole}
+        aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
         ref={trigger}
@@ -341,20 +482,65 @@ export function Dropdown({
       </button>
       <div
         className={cx('ui-dropdown__panel', align === 'end' && 'is-end', direction === 'up' && 'is-up',
-          Boolean(scroll) && 'is-scroll', panelClass)}
+          Boolean(scroll) && !sx && 'is-scroll', Boolean(sx) && 'ui-dropdown__panel--search', panelClass)}
         data-dropdown-panel=""
-        role={listRole}
-        aria-label={ariaLabel}
-        style={scroll && scroll !== true
-          ? { maxHeight: typeof scroll === 'number' ? `${scroll}px` : scroll }
-          : undefined}
+        role={sx ? 'dialog' : listRole}
+        aria-label={sx ? name : ariaLabel}
+        style={sx ? undefined : cap}
         ref={panel}
         onClick={(e) => e.stopPropagation()}
+        onMouseMove={onMouseMove}
       >
         {header}
-        {body}
+        {sx ? (
+          <>
+            {/* The field is a combobox that owns the list; the rows stay options, and
+                the one Enter would pick is named by aria-activedescendant, so focus
+                never leaves the field while the reader types. */}
+            <div className="ui-dropdown__search">
+              <Glyph name="search" className="ui-dropdown__search-ic" hidden />
+              <input
+                className="ui-dropdown__search-input"
+                type="text"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded
+                aria-controls={listId}
+                aria-label={sx.label || `Search ${name}`}
+                aria-activedescendant={open && active ? rowIds.get(active) : undefined}
+                placeholder={sx.placeholder}
+                autoComplete="off"
+                spellCheck={false}
+                data-dd-search=""
+                value={query}
+                ref={field}
+                onChange={(e) => { setQuery(e.target.value); setActiveKey(null); }}
+              />
+            </div>
+            <div className="ui-dropdown__list" role="listbox" id={listId} aria-label={name} style={cap}>
+              {body}
+            </div>
+            <div
+              className="ui-dropdown__none"
+              role="status"
+              data-dd-none=""
+              data-dd-empty={sx.empty}
+              data-dd-hint={sx.hint}
+            >
+              {none}
+            </div>
+          </>
+        ) : body}
         {footer}
       </div>
     </div>
   );
+}
+
+/** Drop what a caller left empty, so it does not shadow a default — the `||` the
+ *  factory writes on each of these fields, said once. */
+function strip(o: DropdownSearch): DropdownSearch {
+  return Object.fromEntries(
+    Object.entries(o).filter(([, v]) => v != null && v !== ''),
+  ) as DropdownSearch;
 }

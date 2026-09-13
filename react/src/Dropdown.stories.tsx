@@ -14,6 +14,19 @@ const ACTIONS: DropdownEntry[] = [
   { label: 'Delete', danger: true },
 ];
 
+const CURRENCIES = [
+  { label: 'US dollar (USD)', value: 'USD' },
+  { label: 'Canadian dollar (CAD)', value: 'CAD' },
+  { label: 'Euro (EUR)', value: 'EUR' },
+  { label: 'British pound (GBP)', value: 'GBP' },
+  { label: 'Polish złoty (PLN)', value: 'PLN' },
+  { label: 'Swiss franc (CHF)', value: 'CHF' },
+  { label: 'Japanese yen (JPY)', value: 'JPY' },
+  { label: 'Australian dollar (AUD)', value: 'AUD' },
+  { label: 'Brazilian real (BRL)', value: 'BRL' },
+  { label: 'Indian rupee (INR)', value: 'INR' },
+];
+
 const VERSIONS: DropdownEntry[] = [
   { label: 'v1.2.0', value: '1.2.0', selected: true, badge: 'Live' },
   { label: 'v1.1.0', value: '1.1.0' },
@@ -101,6 +114,50 @@ export const Scrolling: StoryObj<typeof Dropdown> = {
           { label: 'São Paulo', value: 'gru' },
           { label: 'Sydney', value: 'syd' },
         ]}
+      />
+    </Stage>
+  ),
+};
+
+// A long list with a field over it, which Guidelines / Component choice makes a rule at
+// ten options. The query is typed by the evidence rig, not preset here: this is the state
+// a reader arrives at, and `defaultOpen` is what the shot needs.
+export const Search: StoryObj<typeof Dropdown> = {
+  render: () => {
+    const [currency, setCurrency] = useState('USD');
+    return (
+      <Stage>
+        <Dropdown
+          label="currency:"
+          ariaLabel="Currency"
+          variant="select"
+          search={{ placeholder: 'Search currencies' }}
+          scroll={220}
+          items={CURRENCIES.map((it) => ({ ...it, selected: it.value === currency }))}
+          onSelect={(value) => setCurrency(String(value))}
+          defaultOpen
+        />
+      </Stage>
+    );
+  },
+};
+
+// The case #304 reports: a search dropdown whose rows are router links.
+export const SearchWithLinkRows: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Stage>
+      <Dropdown
+        ariaLabel="Go to"
+        triggerContent="Jump to…"
+        search={{ placeholder: 'Search pages' }}
+        items={[
+          { label: 'Invoices', href: '/invoices', icon: 'doc' },
+          { label: 'Payouts', href: '/payouts', icon: 'wallet' },
+          { label: 'Customers', href: '/customers', icon: 'user' },
+          { label: 'Reconciliation reports', href: '/reports', icon: 'chart' },
+        ]}
+        row={(item, props) => <Link to={item.href!} {...props} />}
+        defaultOpen
       />
     </Stage>
   ),

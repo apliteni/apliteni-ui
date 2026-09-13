@@ -9,7 +9,7 @@ import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach } from 'vitest';
-import { dropdown } from '@apliteni/apliteni-ui';
+import { dropdown, wireDropdown, dropdownMatch } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownProps, type DropdownEntry } from './Dropdown';
 import { classesOf, classesOfEl } from './test/classlist';
 
@@ -49,6 +49,7 @@ function shape(dd: Element) {
     },
     sections: [...dd.querySelectorAll('.ui-dropdown__section')].map((s) => ({
       role: s.getAttribute('role'),
+      hidden: (s as HTMLElement).hidden,
       label: s.getAttribute('aria-label'),
       head: s.querySelector('.ui-dropdown__group')?.textContent ?? null,
       headRole: s.querySelector('.ui-dropdown__group')?.getAttribute('role') ?? null,
@@ -68,6 +69,7 @@ function shape(dd: Element) {
       href: el.getAttribute('href'),
       target: el.getAttribute('target'),
       hook: el.hasAttribute('data-dd-item'),
+      hidden: (el as HTMLElement).hidden,
       label: el.querySelector('.ui-dropdown__label')?.textContent ?? null,
       desc: el.querySelector('.ui-dropdown__desc')?.textContent ?? null,
       badge: el.querySelector('.ui-dropdown__badge')?.textContent ?? null,
@@ -75,6 +77,52 @@ function shape(dd: Element) {
       icons: [...el.querySelectorAll('.ui-dropdown__ic svg, .ui-dropdown__tick svg')]
         .map((svg) => (svg.parentElement as HTMLElement).className),
     })),
+  };
+}
+
+/** The field, the list and the no-match region — the parts `search` adds. */
+function searchShape(dd: Element) {
+  const field = dd.querySelector('.ui-dropdown__search-input') as HTMLInputElement | null;
+  const list = dd.querySelector('.ui-dropdown__list');
+  const none = dd.querySelector('.ui-dropdown__none');
+  const active = dd.querySelector('[data-dd-item].is-active');
+  return {
+    field: field && {
+      role: field.getAttribute('role'),
+      autocomplete: field.getAttribute('aria-autocomplete'),
+      expanded: field.getAttribute('aria-expanded'),
+      label: field.getAttribute('aria-label'),
+      placeholder: field.placeholder,
+      value: field.value,
+      off: field.getAttribute('autocomplete'),
+      spellcheck: field.getAttribute('spellcheck'),
+      hook: field.hasAttribute('data-dd-search'),
+      // The ids differ by seed, so what is compared is what they point AT.
+      controlsTheList: field.getAttribute('aria-controls') === list?.id,
+      namesTheActiveRow: (field.getAttribute('aria-activedescendant') ?? null) === (active?.id ?? null),
+    },
+    list: list && {
+      role: list.getAttribute('role'),
+      label: list.getAttribute('aria-label'),
+      maxHeight: (list as HTMLElement).style.maxHeight || null,
+    },
+    glyph: dd.querySelectorAll('.ui-dropdown__search-ic svg').length,
+    none: none && {
+      role: none.getAttribute('role'),
+      empty: none.getAttribute('data-dd-empty'),
+      hint: none.getAttribute('data-dd-hint'),
+      text: none.textContent,
+    },
+    // What the query did: which rows are left, and which one Enter would pick.
+    showing: [...dd.querySelectorAll('[data-dd-item]')]
+      .filter((el) => !(el as HTMLElement).hidden)
+      .map((el) => el.querySelector('.ui-dropdown__label')?.textContent),
+    active: active?.querySelector('.ui-dropdown__label')?.textContent ?? null,
+    seps: [...dd.querySelectorAll('.ui-dropdown__sep')].map((el) => (el as HTMLElement).hidden),
+    groups: [...dd.querySelectorAll('.ui-dropdown__section')]
+      .filter((el) => !(el as HTMLElement).hidden)
+      .map((el) => el.querySelector('.ui-dropdown__group')?.textContent),
+    value: dd.querySelector('.ui-dropdown__value')?.textContent ?? null,
   };
 }
 
@@ -86,6 +134,7 @@ function parity(name: string, opts: DropdownProps) {
   expect(classesOfEl(react), `${name}: container class list`)
     .toEqual(classesOf(dropdown(opts as Record<string, unknown>)));
   expect(shape(react), `${name}: rendered shape`).toEqual(shape(factory));
+  expect(searchShape(react), `${name}: the search parts`).toEqual(searchShape(factory));
   return react;
 }
 
@@ -101,6 +150,18 @@ const SELECT: DropdownEntry[] = [
   { label: 'v1.2.0', value: '1.2.0', selected: true, badge: 'Live' },
   { label: 'v1.1.0', value: '1.1.0' },
   { label: 'v1.0.0', value: '1.0.0', description: 'Last year’s release', badge: { text: 'EOL', tone: 'warn' } },
+];
+
+// The list #283 was reported on, cut to seven: accents, a disabled row, a separator.
+const CURRENCIES: DropdownEntry[] = [
+  { label: 'US dollar (USD)', value: 'USD', selected: true },
+  { label: 'Canadian dollar (CAD)', value: 'CAD' },
+  { label: 'Euro (EUR)', value: 'EUR' },
+  { label: 'Polish złoty (PLN)', value: 'PLN' },
+  '---',
+  { label: 'Australian dollar (AUD)', value: 'AUD' },
+  { label: 'Swiss franc (CHF)', value: 'CHF', disabled: true },
+  { label: 'Japanese yen (JPY)', value: 'JPY' },
 ];
 
 const SECTIONS = [
@@ -138,6 +199,20 @@ const CASES: [string, DropdownProps][] = [
   ['an icon in a row', { items: [{ label: 'Rename', icon: 'edit' }] }],
   ['a description under a label', { items: [{ label: 'Rename', description: 'Give it another name' }] }],
   ['a numeric value', { variant: 'select', items: [{ label: '25 rows', value: 25 }] }],
+  // ---- search: the static render, before anything is wired or typed ----------
+  ['a search field', { items: CURRENCIES, search: true, label: 'currency:', ariaLabel: 'Currency' }],
+  ['a search field on a menu, whose rows become options', { items: MENU, search: true, ariaLabel: 'Actions' }],
+  ['a search field with every line reworded', {
+    items: CURRENCIES,
+    ariaLabel: 'Currency',
+    search: { placeholder: 'Find a currency', label: 'Search currencies', empty: 'Nothing called “{q}”', hint: 'Try the code.' },
+  }],
+  ['a preset query, filtered before any wiring runs', { items: CURRENCIES, ariaLabel: 'Currency', search: { query: 'dollar' } }],
+  ['a preset query nothing matches, showing the empty state', { items: CURRENCIES, ariaLabel: 'Currency', search: { query: 'xyzzy' } }],
+  ['a preset query of spaces, which narrows nothing', { items: CURRENCIES, ariaLabel: 'Currency', search: { query: '   ' } }],
+  ['a search field over sections', { sections: SECTIONS, ariaLabel: 'Go to', search: { query: 'bill' } }],
+  ['a capped, scrolling search panel', { items: CURRENCIES, ariaLabel: 'Currency', search: true, scroll: 240 }],
+  ['a search field on a select', { variant: 'select', items: SELECT, search: true, label: 'version:' }],
 ];
 
 for (const [name, opts] of CASES) {
@@ -438,4 +513,208 @@ it('a row drawn by the caller keeps the row’s classes, role, tab stop and keyb
   expect(document.activeElement, 'the arrows still move').toBe(rows[1]);
   await user.keyboard('{Enter}');
   expect(picks).toEqual(['Members']);
+});
+
+// ---- search: the factory plus its wiring, against the component ---------------
+//
+// The strongest form of the parity rule this file exists for: the same items and the
+// same query, typed into each with real key presses, must leave the same rows showing
+// and the same row picked. The kit's own wireDropdown() drives one side; nothing here
+// re-implements the match, because both sides call dropdownMatch().
+
+/** Mount the factory's html, wire it, open it, type — then read the panel back. */
+async function wired(opts: DropdownProps, query: string) {
+  const user = userEvent.setup();
+  const host = document.createElement('div');
+  host.innerHTML = dropdown(opts as Record<string, unknown>);
+  document.body.appendChild(host);
+  wireDropdown(document);
+  const dd = host.firstElementChild!;
+  await user.click(dd.querySelector('.ui-dropdown__trigger')!);
+  if (query) await user.type(dd.querySelector('.ui-dropdown__search-input')!, query);
+  const read = searchShape(dd);
+  host.remove();
+  return read;
+}
+
+/** The same, through the component. */
+async function typed(opts: DropdownProps, query: string) {
+  const user = userEvent.setup();
+  const { container, unmount } = render(<Dropdown {...opts} />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  await user.click(dd.querySelector('.ui-dropdown__trigger')!);
+  if (query) await user.type(dd.querySelector('.ui-dropdown__search-input')!, query);
+  const read = searchShape(dd);
+  unmount();
+  return read;
+}
+
+const SEARCHABLE: DropdownProps = {
+  label: 'currency:', ariaLabel: 'Currency', items: CURRENCIES, search: true,
+};
+
+const QUERIES: [string, string, DropdownProps][] = [
+  ['nothing typed', '', SEARCHABLE],
+  ['a word in the middle of the label', 'dollar', SEARCHABLE],
+  ['the code at the end', 'usd', SEARCHABLE],
+  ['a capital query against lowercase rows', 'DOLLAR', SEARCHABLE],
+  ['a query that finds one row', 'yen', SEARCHABLE],
+  ['an accent the row has and the query does not', 'zloty', SEARCHABLE],
+  ['a query that finds the disabled row and nothing else', 'franc', SEARCHABLE],
+  ['a query nothing matches', 'xyzzy', SEARCHABLE],
+  ['a query of spaces, which narrows nothing', '   ', SEARCHABLE],
+  ['one letter', 'a', SEARCHABLE],
+  ['sections, where a whole group goes', 'bill', { sections: SECTIONS, ariaLabel: 'Go to', search: true }],
+  ['sections, where both groups keep a row', 'e', { sections: SECTIONS, ariaLabel: 'Go to', search: true }],
+];
+
+for (const [name, query, opts] of QUERIES) {
+  it(`hides what the kit's own wiring hides: ${name}`, async () => {
+    const theirs = await wired(opts, query);
+    cleanup();
+    const mine = await typed(opts, query);
+    expect(mine.showing, `${name}: the rows left showing`).toEqual(theirs.showing);
+    expect(mine, `${name}: the panel after typing`).toEqual(theirs);
+  });
+}
+
+it('the rows it leaves showing are the ones the published matcher keeps', async () => {
+  // The gate above compares two implementations; this one compares the result against
+  // the rule itself, so both agreeing on the wrong thing still fails.
+  const mine = await typed(SEARCHABLE, 'dollar');
+  const byRule = CURRENCIES.filter((it) => typeof it !== 'string' && !('separator' in it))
+    .filter((it) => dropdownMatch((it as { label: string }).label, 'dollar'))
+    .map((it) => (it as { label: string }).label);
+  expect(mine.showing).toEqual(byRule);
+  expect(byRule.length).toBe(3);
+});
+
+// ---- search: the keyboard ----------------------------------------------------
+
+const openSearch = async (props: Partial<DropdownProps> = {}) => {
+  const user = userEvent.setup();
+  const { container } = render(<Dropdown {...SEARCHABLE} {...props} />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  await user.click(dd.querySelector('.ui-dropdown__trigger')!);
+  return { user, dd, field: dd.querySelector('.ui-dropdown__search-input') as HTMLInputElement };
+};
+
+it('opening puts focus in the field, on the selected row, however it was opened', async () => {
+  const { dd, field } = await openSearch();
+  expect(document.activeElement).toBe(field);
+  expect(searchShape(dd).active).toBe('US dollar (USD)');
+  expect(field.getAttribute('aria-activedescendant')).toBe(dd.querySelector('.is-active')!.id);
+});
+
+it('the arrows walk the rows still showing and leave focus in the field', async () => {
+  const { user, dd, field } = await openSearch();
+  await user.type(field, 'dollar');
+  expect(searchShape(dd).showing).toHaveLength(3);
+  expect(searchShape(dd).active, 'the first row still showing').toBe('US dollar (USD)');
+  await user.keyboard('{ArrowDown}');
+  expect(searchShape(dd).active).toBe('Canadian dollar (CAD)');
+  expect(document.activeElement, 'focus never leaves the field').toBe(field);
+  await user.keyboard('{ArrowDown}{ArrowDown}');
+  expect(searchShape(dd).active, 'and it wraps at the end').toBe('US dollar (USD)');
+  await user.keyboard('{ArrowUp}');
+  expect(searchShape(dd).active).toBe('Australian dollar (AUD)');
+});
+
+it('a disabled row is never the row Enter would pick', async () => {
+  const { user, dd, field } = await openSearch();
+  await user.type(field, 'franc');
+  expect(searchShape(dd).showing, 'it is shown').toEqual(['Swiss franc (CHF)']);
+  expect(searchShape(dd).active, 'and it is not picked').toBe(null);
+  await user.keyboard('{ArrowDown}');
+  expect(searchShape(dd).active).toBe(null);
+});
+
+it('Enter picks the active row, writes it into the trigger and closes', async () => {
+  const picks: unknown[] = [];
+  const { user, dd, field } = await openSearch({ variant: 'select', onSelect: (v) => picks.push(v) });
+  await user.type(field, 'yen');
+  await user.keyboard('{Enter}');
+  expect(picks).toEqual(['JPY']);
+  expect(dd.classList.contains('open')).toBe(false);
+  expect(dd.querySelector('.ui-dropdown__value')!.textContent).toBe('Japanese yen (JPY)');
+});
+
+it('Enter with nothing showing does nothing', async () => {
+  const picks: unknown[] = [];
+  const { user, dd, field } = await openSearch({ onSelect: (v) => picks.push(v) });
+  await user.type(field, 'xyzzy');
+  await user.keyboard('{Enter}');
+  expect(picks).toEqual([]);
+  expect(dd.classList.contains('open')).toBe(true);
+});
+
+it('Home and End belong to the caret, not to the list', async () => {
+  const { user, dd, field } = await openSearch();
+  await user.type(field, 'dollar');
+  await user.keyboard('{ArrowDown}');
+  const active = searchShape(dd).active;
+  await user.keyboard('{Home}');
+  expect(searchShape(dd).active, 'Home moved the caret and not the pick').toBe(active);
+  await user.keyboard('{End}');
+  expect(searchShape(dd).active).toBe(active);
+  expect(document.activeElement).toBe(field);
+  expect(dd.classList.contains('open')).toBe(true);
+});
+
+it('Escape closes and returns focus to the trigger; Tab closes', async () => {
+  const { user, dd, field } = await openSearch();
+  await user.type(field, 'euro');
+  await user.keyboard('{Escape}');
+  expect(dd.classList.contains('open')).toBe(false);
+  expect(document.activeElement).toBe(dd.querySelector('.ui-dropdown__trigger'));
+  await user.keyboard('{ArrowDown}');
+  expect(dd.classList.contains('open')).toBe(true);
+  await user.tab();
+  expect(dd.classList.contains('open')).toBe(false);
+});
+
+it('every open starts from the whole list', async () => {
+  const { user, dd, field } = await openSearch();
+  await user.type(field, 'yen');
+  expect(searchShape(dd).showing).toHaveLength(1);
+  await user.keyboard('{Escape}');
+  await user.click(dd.querySelector('.ui-dropdown__trigger')!);
+  expect((dd.querySelector('.ui-dropdown__search-input') as HTMLInputElement).value).toBe('');
+  expect(searchShape(dd).showing).toHaveLength(7);
+});
+
+it('the pointer moves the pick, so Enter never takes a row other than the one under it', async () => {
+  const { user, dd } = await openSearch();
+  const row = [...dd.querySelectorAll('[data-dd-item]')][2];
+  await user.hover(row);
+  expect(searchShape(dd).active).toBe('Euro (EUR)');
+});
+
+it('a search dropdown whose rows the caller draws is still filtered and still picked', async () => {
+  // The case #304 reports: a search dropdown whose rows must be router links. A plain
+  // <a> with a prop of its own stands in for the router's <Link>.
+  const user = userEvent.setup();
+  const picks: string[] = [];
+  const Link = ({ to, ...rest }: { to: string } & React.ComponentPropsWithoutRef<'a'>) => (
+    <a data-to={to} {...rest} />
+  );
+  const items: DropdownEntry[] = [
+    { label: 'Invoices', value: 'inv', href: '/invoices' },
+    { label: 'Payouts', value: 'pay', href: '/payouts' },
+    { label: 'Customers', value: 'cus', href: '/customers' },
+  ];
+  const { container } = render(
+    <Dropdown ariaLabel="Go to" triggerContent="Jump to…" items={items} search
+      onSelect={(_v, item) => picks.push(item.label)}
+      row={(item, props) => <Link to={item.href!} {...props} />} />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  await user.click(dd.querySelector('.ui-dropdown__trigger')!);
+  const field = dd.querySelector('.ui-dropdown__search-input') as HTMLInputElement;
+  expect([...dd.querySelectorAll('[data-dd-item]')].map((el) => el.tagName)).toEqual(['A', 'A', 'A']);
+  await user.type(field, 'pay');
+  expect(searchShape(dd).showing).toEqual(['Payouts']);
+  expect(searchShape(dd).active).toBe('Payouts');
+  // Enter clicks the row itself, which is what makes a router link navigate.
+  await user.keyboard('{Enter}');
+  expect(picks).toEqual(['Payouts']);
 });

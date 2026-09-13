@@ -79,6 +79,25 @@ for (const theme of ['dark', 'light']) {
     await ctx.close();
   }
 
+  // The search variant, with a query typed into the field rather than preset on the
+  // story: what the shot has to show is the state a reader types their way into —
+  // the rows that went, the one Enter would pick, and the field holding the query.
+  for (const [name, story, query] of [
+    ['react-dropdown-search', 'react-dropdown--search', 'dollar'],
+    ['react-dropdown-search-links', 'react-dropdown--search-with-link-rows', 'pay'],
+  ]) {
+    if (!want(`${name}-${theme}`)) continue;
+    const { ctx, page } = await open(story, theme, { height: 420 });
+    await page.click('.ui-dropdown__search-input');
+    await page.type('.ui-dropdown__search-input', query, { delay: 40 });
+    await page.waitForTimeout(300);
+    const left = await page.evaluate(() => document.querySelectorAll(
+      '.ui-dropdown__item:not([hidden])').length);
+    if (!left) throw new Error(`${name}: the query left no rows to shoot`);
+    await save(page, `${name}-${theme}`);
+    await ctx.close();
+  }
+
   // The row a router <Link> draws, under the keyboard. Two real presses: Tab to the
   // trigger, then ArrowDown, which is what puts the ring on the first row — so the
   // ring is the browser's own and not a class forced on.
