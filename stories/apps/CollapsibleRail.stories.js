@@ -12,8 +12,9 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
-// A group with the current page inside it, a counter and the sign-out row: the
-// three things a fold has to keep reachable and named.
+// A group with the current page inside it and a counter: the two things a fold has
+// to keep reachable and named. The third — sign out — is a row of the reader's menu
+// now, which the block at the rail's foot opens.
 const NAV = [
   { id: 'overview', icon: 'chart', label: 'Overview' },
   {

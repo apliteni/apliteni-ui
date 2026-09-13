@@ -295,3 +295,51 @@ test('src/styles/confirm.css: a consequence too long for the viewport scrolls', 
     'the answers must not be the thing that shrinks — they are what the dialog is for',
   );
 });
+
+// ---- the dropdown panel, and the frame a key opens it in --------------------
+//
+// The fourth overlay, and the one with the same `visibility` problem the three
+// above have — from the other end. A panel that is still `hidden` in the frame
+// its open class lands is a panel a browser will not move focus into, and every
+// row in it carries `tabindex="-1"`: the arrows opened the menu, focus stayed on
+// the trigger, and the next Tab left the dropdown entirely. Measured in Chrome
+// rather than reasoned about: the resolved `visibility` was `hidden` in that
+// frame and `visible` in the next.
+//
+// JSDOM cannot see it — it focuses inside a hidden box happily — so the gates
+// that press the keys go on passing with this rule deleted. This is the one that
+// does not. why: docs/specification.md#the-dropdown-panel
+
+test('src/styles/dropdown.css: an open panel is visible in the frame it opens, not the next one', () => {
+  const all = rules(read('src/styles/dropdown.css'));
+  const open = all.filter((r) => r.selector.split(',').some((s) => /\.(open|is-open)\b/.test(s)
+    && /__panel/.test(s) && !/__panel--search/.test(s)));
+  assert.ok(open.length, 'no rule keys on an open dropdown panel — this gate is measuring nothing');
+
+  const lists = open.flatMap((r) => transitions(r).map((t) => t.trim()));
+  assert.ok(
+    lists.length,
+    'an open dropdown panel no longer swaps its transition list, so `visibility` is still on the '
+    + 'clock while the panel opens: the frame the class lands resolves `hidden`, a browser refuses '
+    + 'to focus a row inside it, and the arrows open a menu the keyboard cannot enter. One rule — '
+    + '`transition-property: opacity, transform` on the open panel — is the whole fix.',
+  );
+  for (const list of lists) {
+    assert.ok(
+      !/\bvisibility\b|\ball\b/.test(list),
+      `an open dropdown panel transitions \`${list}\`, which still puts \`visibility\` on a clock — `
+      + 'and `all` is a spelling of visibility. The row the arrows aim at is unfocusable for the '
+      + 'first frame, which is the frame the focus call happens in.',
+    );
+  }
+
+  // The close is not touched: it is what keeps the panel drawn while it fades,
+  // and the rule above only stands while the panel is open.
+  const base = all.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  assert.ok(base, 'the panel rule was found');
+  assert.ok(
+    transitions(base).some((t) => /\bvisibility\b/.test(t)),
+    'the panel stopped transitioning `visibility` at all, so it is gone in the frame it is told to '
+    + 'close and the fade plays on a box nobody can see',
+  );
+});

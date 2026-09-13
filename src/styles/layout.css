@@ -55,8 +55,8 @@
   transition: width var(--dur-med) var(--ease);
 }
 /* Each block of the rail keeps the open column while the box closes over it. The
-   nav declares its own; these are the three that are not the nav. */
-.ui-app__brand,
+   nav declares its own; these are the two that are not the nav. */
+.ui-app__head,
 .ui-app__user { width: var(--ui-nav-col); flex: none; }
 /* The rail's hover WAS --surface-2, so moving the rail onto it would have made
    hovering a row do nothing. Scoped, so a sidebarNav() anywhere else is
@@ -84,11 +84,25 @@
 .ui-app .ui-app__brand { color: var(--strong); }
 .ui-app__brand svg { display: block; flex: none; }
 
+/* The head band: the product's mark and the rail's own control, stacked and ruled
+   off from the rows below. A column and not a row, because beside the wordmark is
+   off the glyph column — the fold would carry the toggle out over the rail's edge
+   and clip it away, and the one control that opens a folded rail cannot be the one
+   the fold takes. Stacked, both marks stand where they stood.
+   why: docs/specification.md#the-page-shell */
+.ui-app__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
 /* The nav grows, so the reader block below it pins to the bottom of a full-height
-   rail instead of hugging the last nav row, and the nav's own footer — sign out —
-   sits directly above it. */
+   rail instead of hugging the last nav row. The nav's own footer slot is unused —
+   sign out is in the reader's menu, because it ends a session rather than going
+   anywhere — so the rail's foot is the account block alone. */
 .ui-app__rail .ui-nav--side { flex: 1 1 auto; }
-.ui-app__rail .ui-nav__foot { margin-top: auto; }
 
 /* Which row is current is structural here, not chromatic: the resting glyphs
    step down so the current one is the brightest whatever --accent is doing, and
@@ -102,24 +116,36 @@
 .ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
 .ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
 
-/* Sign out is a navigation row and rests like one. The danger intent is the
-   step nav.css writes for it, which a resting --muted was pre-empting — it made
-   the last row of the rail the quietest thing in it. Both of nav.css's danger
-   states are named here, not hover alone: this rule outranks them, so a state
-   it forgets is a state it silently cancels. */
+/* A destructive row of the rail is a navigation row and rests like one. The danger
+   intent is the step nav.css writes for it, which a resting --muted was pre-empting —
+   it made the row the quietest thing in the rail. Both of nav.css's danger states are
+   named here, not hover alone: this rule outranks them, so a state it forgets is a
+   state it silently cancels. Sign out used to be the row this was written for; it is
+   in the reader's menu now, and any danger row a consumer passes still rests here. */
 .ui-app__rail .ui-nav__item.is-danger:not(:hover):not(:focus-visible) { color: var(--text); }
 
-/* One rule closes the rail, not two twenty pixels apart: the nav's own footer
-   keeps its hairline and the reader block is separated by space alone — it has
-   an avatar and a weight change already. */
+/* One rule closes the rail, and it is this one: the nav's footer slot is empty now
+   that sign out is in the menu this block opens, so the hairline that fenced sign
+   out off moved down onto the block it was fencing. Two of them twenty pixels apart
+   read as a third region of the rail rather than as its foot. */
 .ui-app__user {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-5) var(--space-1) 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
 }
+/* The avatar is the reader block's own glyph, so it stands on the column every glyph
+   in the rail stands on: the strip is --ui-nav-strip wide and the avatar is --ui-app-av,
+   so half the difference is the inset that centres it there. Written as the arithmetic
+   rather than as the 5.5 it comes to, because both numbers are declared elsewhere and a
+   third copy of either is a drift nothing would report. The inset is on the avatar and
+   not on the block, so the menu trigger's own plate still reaches the rail's row edges.
+   why: docs/specification.md#the-page-shell */
+.ui-app { --ui-app-av: 30px; }
 .ui-app__av {
-  width: 30px; height: 30px; flex: none;
+  width: var(--ui-app-av); height: var(--ui-app-av); flex: none;
+  margin-inline-start: calc((var(--ui-nav-strip) - var(--ui-app-av)) / 2);
   border-radius: var(--radius-pill);
   background: var(--surface-3);
   color: var(--strong);
@@ -133,14 +159,49 @@
    the rail column is max-content, so a long one widens the rail instead. */
 .ui-app__who span { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* The rule above the toggle is the hairline and the 8px step the nav's own footer
-   draws above sign out, so the two are one family.
+/* -- the reader's menu ---------------------------------------------------- */
+/* The account block is a dropdown() trigger, so it takes the rail's own row skin
+   rather than the dropdown's pill: in place it is the last row of the rail, and a
+   bordered capsule would be the one boxed thing on the column. The dropdown's own
+   ring is left standing — it is the kit's, and this control owes the same one every
+   row of the rail wears. why: docs/specification.md#the-page-shell */
+.ui-app__user .ui-dropdown { width: 100%; }
+.ui-app .ui-app__user-trigger {
+  width: 100%;
+  gap: var(--space-2);
+  /* The control is as tall as the mark inside it plus its own padding — 30 + 4 + 4.
+     Written out rather than as the calc() it comes from, because a custom property
+     is a value a stylesheet reader resolves and a gate cannot: a min-height written
+     `calc(var(--ui-app-av) + …)` is a floor that measures nothing and reports green.
+     stories/apps/shell-states.test.js derives the number from the two declarations
+     it is made of, so it cannot drift from either.
+     why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green */
+  min-height: 38px;
+  padding: var(--space-1) 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: normal;
+}
+.ui-app .ui-app__user-trigger:hover { background: var(--surface-3); }
+.ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
+/* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
+   time it is open it is no longer inside the rail that drew it.
+   why: docs/specification.md#the-dropdown-panel */
+.ui-app__user-panel .ui-dropdown__head { display: flex; flex-direction: column; gap: 2px; }
+.ui-app__user-panel .ui-dropdown__head b { display: block; color: var(--strong); font-size: 12.5px; font-weight: var(--weight-semibold); }
+.ui-app__user-panel .ui-dropdown__head span { display: block; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+
+/* The toggle's row inside the head band. No rule of its own: the band draws one
+   below the pair, so the mark that folds the rail and the mark that names the
+   product are one head rather than two compartments.
    why: docs/specification.md#the-page-shell */
 .ui-app__fold-row {
   flex: none;
   width: var(--ui-nav-col);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--border);
 }
 /* One box on the glyph column at both widths — --ui-nav-strip, the width nav.css
    derives the closed rail from. `gap: 0` leaves that column the whole of the
@@ -166,6 +227,7 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__badge,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__caret,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__who,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-dropdown__chevron,
 :where(.ui-app.is-collapsed) .ui-app__brand span { opacity: 0; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
@@ -175,6 +237,7 @@
    toggle, unscoped, because it is wordless at both widths.
    why: docs/specification.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
 .ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
   .ui-app.is-collapsed,
@@ -182,8 +245,10 @@
   :where(.ui-app.is-collapsed) .ui-app__rail,
   .ui-app__rail:has(.ui-app__fold) { anchor-name: --ui-rail; }
   :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item,
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger,
   .ui-app__rail .ui-app__fold { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
   :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
   .ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
 }
 
@@ -252,20 +317,28 @@
   .ui-app__rail .ui-nav__badge,
   .ui-app__rail .ui-nav__caret,
   .ui-app__rail .ui-app__who,
+  .ui-app__rail .ui-dropdown__chevron,
   .ui-app__brand span { opacity: 0; pointer-events: none; }
   .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
   .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
   /* The one line of this block that is deliberately NOT the reader's fold: a
-     finger is the only pointer this width has, so a row is held to 44px. It
-     cannot spread to the press — shell-states.test.js measures both halves.
+     finger is the only pointer this width has, so a row is held to 44px — and so
+     is the account block, which is a control of the rail since #286 and reached
+     by the same finger. Neither floor can spread to the press: the box would grow
+     on it, which is the one thing the travel promises nothing does.
+     shell-states.test.js names both and measures both halves of each.
      why: docs/specification.md#the-page-shell */
-  .ui-app__rail .ui-nav__item { min-height: 44px; }
-  .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
+  .ui-app__rail .ui-nav__item,
+  .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
+  .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
+  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); box-shadow: var(--shadow-md); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }
     .ui-app__rail { anchor-name: --ui-rail; }
-    .ui-app__rail .ui-nav__item { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
-    .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
+    .ui-app__rail .ui-nav__item,
+    .ui-app__rail .ui-app__user-trigger { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
+    .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
+    .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
   }
   .ui-app__main { padding: 28px var(--space-4) 56px; }
   .ui-app__main h1 { font-size: 25px; }

@@ -318,6 +318,10 @@ test('an icon-less row on the icon-only rail is given a mark of its own', () => 
 const { appShell, accountShell, ACCOUNT_NAV, RAIL_COOKIE } = await import('../../src/components/shell.js');
 const { accountMenu } = await import('../../src/components/topbar.js');
 
+// The signed-in reader the rail draws. A menu hangs off this block, so anything
+// about sign out has to pass one: with nobody signed in there is nobody to sign out.
+const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
+
 test('the shell emits exactly one main landmark', () => {
   const html = appShell({ title: 'T', body: '<p>x</p>' });
   assert.equal(
@@ -538,16 +542,34 @@ test('the shell has no sign-out link unless the caller asks for one', () => {
   assert.doesNotMatch(appShell({ title: 'T' }), /ui-nav__foot/);
 });
 
-test('a sign-out link is a navigation action, so it goes in the nav footer', () => {
-  const doc = dom(appShell({ signOutHref: '#logout' }));
-  const out = doc.querySelector('nav .ui-nav__foot .ui-nav__item.is-danger');
-  assert.ok(out, 'the sign-out link is not the nav\'s footer row');
+// Signing out ends a session; it does not go anywhere. It was the one destructive
+// thing standing among the places to go, and it is a row of the reader's menu now
+// (#286). why: docs/specification.md#the-page-shell
+test('sign out is a row of the reader\'s menu, and is nowhere in the nav list', () => {
+  const doc = dom(appShell({ account: READER, signOutHref: '#logout' }));
+  const out = doc.querySelector('.ui-app__user [data-dropdown-panel] .ui-dropdown__item.is-danger');
+  assert.ok(out, 'the reader\'s menu has no sign-out row');
   assert.equal(out.getAttribute('href'), '#logout');
+  assert.equal(out.getAttribute('role'), 'menuitem');
   assert.match(out.textContent, /Sign out/);
+  assert.equal(
+    doc.querySelector('nav .ui-nav__item.is-danger'), null,
+    'sign out is still a row of the navigation list as well, so the rail offers it twice and one '
+    + 'of the two is a destructive action among places to go',
+  );
+  assert.equal(doc.querySelector('nav .ui-nav__foot'), null, 'the nav still draws a footer slot for a row that left it');
+});
+
+// A reader is what the menu hangs off, so with nobody signed in there is nobody to
+// sign out: the block is not drawn, and the caller's href has nowhere to land.
+test('a sign-out href with no reader behind it draws no menu at all', () => {
+  const html = appShell({ signOutHref: '#logout' });
+  assert.doesNotMatch(html, /Sign out/);
+  assert.doesNotMatch(html, /ui-app__user/);
 });
 
 test('the sign-out href is escaped like every other caller string', () => {
-  assert.match(appShell({ signOutHref: '/out?a=1&b=2' }), /href="\/out\?a=1&amp;b=2"/);
+  assert.match(appShell({ account: READER, signOutHref: '/out?a=1&b=2' }), /href="\/out\?a=1&amp;b=2"/);
 });
 
 test('the rail head is dropped when a topbar already carries the product word', () => {
@@ -1049,7 +1071,9 @@ test('the shell\'s own anchors keep the kit\'s ink under a consumer\'s a:link', 
     'the rail head takes the host\'s link colour — .ui-app__brand is (0,1,0) against a:link at (0,1,1)',
   );
   assert.equal(
-    at('.ui-nav__item:not(.is-active)'), colour(vars.get('--text')),
+    // The toggle is a .ui-nav__item too and stands above the rows now, and it is
+    // a <button> with an ink of its own — not a link, and not what this asks about.
+    at('.ui-nav__item:not(.is-active):not(.ui-app__fold)'), colour(vars.get('--text')),
     'a rail row inside the shell takes the host\'s link colour',
   );
 });

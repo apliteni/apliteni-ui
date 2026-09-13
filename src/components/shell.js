@@ -1,13 +1,15 @@
-// The kit's one page shell. `appShell()` is a full-height rail — brand, the
-// kit's own sidebarNav(), the signed-in reader, the control that folds it —
-// beside one <main> that opens with a breadcrumb trail the caller owns.
-// `accountShell()` is a thin preset over it that keeps the topbar, so the
-// published /account API still works. Call wireShell() once after mounting for
-// the fold and the nav's groups, and wireTopbar() for the account menu.
+// The kit's one page shell. `appShell()` is a full-height rail — a head band
+// holding the brand and the control that folds the rail, the kit's own
+// sidebarNav(), and the signed-in reader as the trigger of a menu — beside one
+// <main> that opens with a breadcrumb trail the caller owns. `accountShell()` is
+// a thin preset over it that keeps the topbar, so the published /account API
+// still works. Call wireShell() once after mounting for the fold, the nav's
+// groups and the reader's menu, and wireTopbar() for the topbar's own.
 // why: docs/specification.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs, wireNav } from './nav.js';
+import { dropdown, wireDropdown } from './dropdown.js';
 import { backLink } from './back.js';
 import { prism } from '../assets/brand.js';
 import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
@@ -133,6 +135,11 @@ const MARK = '<rect x="3" y="3" width="18" height="18" rx="2"/>'
 const railMark = () => icon('').replace('></svg>', `>${MARK}</svg>`);
 
 // The rail's own skin, outside the <nav>: folding the rail is not a place to go.
+// It stands in the head band under the wordmark rather than at the rail's foot —
+// Artur's seventh-round call — so the two marks a reader steers the rail with are
+// one band, and the foot is the account block alone. Beneath the wordmark and not
+// beside it, because beside it is off the glyph column and the fold would clip it
+// away. why: docs/specification.md#the-page-shell
 // The name is written out rather than put in a tooltip, because the name IS the
 // chip layout.css lands beside the glyph — at both widths, since the glyph column
 // is the whole of this control on an open rail too.
@@ -169,28 +176,59 @@ function settle(options) {
   return out;
 }
 
-// Signing out is a navigation action, so it belongs in the rail nav's footer slot.
-// Opt-in: rendering it unasked puts a dead link on a page with no session behind it.
-const signOut = (href) =>
-  `<a class="ui-nav__item is-danger" href="${esc(href)}" aria-label="Sign out">` +
-  `<span class="ui-nav__ic">${icon('logout')}</span>` +
-  `<span class="ui-nav__label">Sign out</span></a>`;
+// The face of the reader block: the initials, and the two lines beside them that
+// the fold takes away. `named` is the accessible name when this block is the whole
+// of the control — the plain shape, where nothing else carries one. Under the menu
+// trigger it is null: the button is named by the words inside it, so a second name
+// on the avatar would announce the reader twice.
+const readerFace = (name, email, named) =>
+  `<span class="ui-app__av"${named ? ` role="img" aria-label="Signed in as ${esc(named)}"` : ' aria-hidden="true"'}>`
+  + `${esc(initials(name, email))}</span>`
+  + `<span class="ui-app__who"${named ? ' aria-hidden="true"' : ''}>`
+  + (name ? `<b>${esc(name)}</b>` : '')
+  + (email ? `<span>${esc(email)}</span>` : '')
+  + `</span>`;
 
-// Who is signed in. A sibling of the <nav>, not its footer: a name and address are not
-// navigation, and inside the landmark a screen reader announces the address as an entry.
-// Empty when nobody is. The initials carry the name and the spelled-out half is
-// aria-hidden, because the narrow rail folds `.ui-app__who` out of view and a name that
-// lived only there left nothing in the accessibility tree.
-function railUser({ name, email }) {
+// Who is signed in, and the one action on the session. A sibling of the <nav>, not its
+// footer: a name and address are not navigation, and inside the landmark a screen reader
+// announces the address as an entry. Empty when nobody is.
+//
+// Given a sign-out href the block is a menu trigger — lessly-ui's `UserMenu`, and Artur's
+// seventh-round call. Sign out left the nav list to get here: it ends a session rather
+// than going anywhere, and the row it used to be was the one destructive thing sitting
+// among places to go. The menu is the kit's own dropdown(), not a second one written
+// here, so Enter, the arrows, Escape and the click-outside are the wiring every other
+// panel in the kit uses. `portal: true` because the rail is `position: sticky` with
+// `overflow-y: auto`, and each of those traps a panel on its own; `direction: 'up'`
+// because the block is the last thing in a full-height rail and there is no room below
+// it. why: docs/specification.md#the-page-shell
+//
+// Without a sign-out href there is no menu at all: a trigger that opens an empty panel is
+// a control that does nothing, and the same argument that keeps `signOutHref` opt-in —
+// no dead link on a page with no session behind it — keeps the menu opt-in with it.
+function railUser({ name, email }, signOutHref) {
   if (!name && !email) return '';
   const who = [name, email].filter(Boolean).join(', ');
-  return `<div class="ui-app__user">` +
-    `<span class="ui-app__av" role="img" aria-label="Signed in as ${esc(who)}">` +
-    `${esc(initials(name, email))}</span>` +
-    `<span class="ui-app__who" aria-hidden="true">` +
-    (name ? `<b>${esc(name)}</b>` : '') +
-    (email ? `<span>${esc(email)}</span>` : '') +
-    `</span></div>`;
+  if (!signOutHref) {
+    return `<div class="ui-app__user">${readerFace(name, email, who)}</div>`;
+  }
+  // The head says who the menu belongs to. Expanded, the trigger under it says the same
+  // thing; folded, the trigger is an avatar alone and this is the only place the address
+  // appears — so it is written at both widths rather than drawn twice.
+  const head = `<div class="ui-dropdown__head">`
+    + (name ? `<b>${esc(name)}</b>` : '')
+    + (email ? `<span>${esc(email)}</span>` : '')
+    + `</div>`;
+  return `<div class="ui-app__user">${dropdown({
+    variant: 'menu',
+    portal: true,
+    direction: 'up',
+    triggerClass: 'ui-app__user-trigger',
+    triggerContent: readerFace(name, email, null),
+    panelClass: 'ui-app__user-panel',
+    header: head,
+    items: [{ label: 'Sign out', icon: 'logout', href: signOutHref, danger: true }],
+  })}</div>`;
 }
 
 // Unique-per-render suffix for the brand mark's clip id — the same reason
@@ -219,12 +257,13 @@ export function appShell(options = {}) {
     collapsed,
   } = settle(options);
   const up = back ? backLink(back) : '';
+  // No footer slot: the nav is places to go, and the one thing that was in it —
+  // sign out — is in the reader's menu at the rail's foot.
   const rail = sidebarNav({
     sections: [{ label: navLabel, items: nav }],
     active,
     activeIs: up ? 'section' : 'page',
     ariaLabel: navLabel,
-    footer: signOutHref ? signOut(signOutHref) : '',
   });
   // The topbar already says the product word, so the rail head steps aside when there is
   // one. The word is the link's only text and the narrow rail folds it out of view, so
@@ -238,12 +277,17 @@ export function appShell(options = {}) {
   // caller left the choice to the reader; wireShell() applies the stored one there.
   const folded = collapsible && collapsed === true;
   const auto = collapsible && collapsed === null ? ' data-rail="auto"' : '';
+  // The head band: the product's mark and the rail's own control, under one rule.
+  // Either may be absent — a shell with a topbar says the word up there, and
+  // `collapsible: false` draws no toggle — so the band itself goes when both are.
+  const head = brand || collapsible
+    ? `<div class="ui-app__head">${brand}${collapsible ? railToggle(folded) : ''}</div>`
+    : '';
   const grid = `<div class="ui-app${folded ? ' is-collapsed' : ''}"${auto}>
     <div class="ui-app__rail">
-      ${brand}
+      ${head}
       ${rail}
-      ${railUser(account)}
-      ${collapsible ? railToggle(folded) : ''}
+      ${railUser(account, signOutHref)}
     </div>
     <main class="ui-app__main"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
       ${up || (crumbs.length ? breadcrumbs({ items: crumbs }) : '')}
@@ -263,6 +307,14 @@ export function appShell(options = {}) {
 const _wiredDocs = new WeakSet();
 const _unpersisted = new WeakSet();
 
+// The toggle, addressed from the rail that owns it: the head band of a shell's own
+// rail and nowhere else, so a stray [data-rail-toggle] in the page body folds nothing.
+// The path is written once — the listener, the reflector and wireShell() all have to
+// mean the same control, and the head band put one more step between them.
+// why: docs/specification.md#the-page-shell
+const FOLD_PATH = '.ui-app__head > .ui-app__fold-row > [data-rail-toggle]';
+const RAIL_FOLD = `.ui-app__rail > ${FOLD_PATH}`;
+
 // Under an opted-out root? Steps out of a shadow root through its host.
 const optedOut = (node) => {
   for (let n = node; n; n = n.parentNode || n.host) if (_unpersisted.has(n)) return true;
@@ -273,7 +325,7 @@ function setRail(app, collapsed) {
   app.classList.toggle('is-collapsed', collapsed);
   const rail = app.querySelector(':scope > .ui-app__rail');
   if (!rail) return;
-  for (const btn of rail.querySelectorAll(':scope > .ui-app__fold-row > [data-rail-toggle]')) {
+  for (const btn of rail.querySelectorAll(`:scope > ${FOLD_PATH}`)) {
     btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
     btn.setAttribute('aria-label', railName(collapsed));
     const label = btn.querySelector('.ui-nav__label');
@@ -285,12 +337,14 @@ function listen(doc) {
   if (_wiredDocs.has(doc)) return;
   _wiredDocs.add(doc);
   doc.addEventListener('click', (e) => {
-    // A shell's own toggle only, in the foot of its own rail: a stray
+    // A shell's own toggle only, in the head of its own rail: a stray
     // [data-rail-toggle] in the page body folds nothing. composedPath() rather
-    // than target, so a shell inside an open shadow root is found.
-    const btn = e.composedPath().find((n) => n.nodeType === 1 && n.matches('.ui-app__rail > .ui-app__fold-row > [data-rail-toggle]'));
-    const app = btn && btn.parentElement.parentElement.parentElement;
-    if (!app || !app.classList.contains('ui-app')) return;
+    // than target, so a shell inside an open shadow root is found. closest()
+    // rather than a chain of parents, which the head band made one link longer
+    // and which said nothing about what it was walking through.
+    const btn = e.composedPath().find((n) => n.nodeType === 1 && n.matches(RAIL_FOLD));
+    const app = btn && btn.closest('.ui-app');
+    if (!app) return;
     const next = !app.classList.contains('is-collapsed');
     setRail(app, next);
     if (!optedOut(app)) {
@@ -309,6 +363,9 @@ function listen(doc) {
 
 export function wireShell(root = document, { persist } = {}) {
   wireNav(root);
+  // The reader's menu is a dropdown() like any other, so it is wired like any
+  // other. Idempotent, and a shell with no account draws none to find.
+  wireDropdown(root);
   const doc = root.nodeType === 9 ? root : root.ownerDocument;
   listen(doc);
   if (persist === false) _unpersisted.add(root);
@@ -317,7 +374,7 @@ export function wireShell(root = document, { persist } = {}) {
   const apps = [...root.querySelectorAll('.ui-app')];
   if (root.matches && root.matches('.ui-app')) apps.push(root);
   for (const app of apps) {
-    if (!app.querySelector(':scope > .ui-app__rail > .ui-app__fold-row > [data-rail-toggle]')) continue;
+    if (!app.querySelector(`:scope > ${RAIL_FOLD}`)) continue;
     // The stored choice goes to a shell whose caller left it to the reader — a
     // paint late, where a server drew it without reading the cookie. Any other
     // shell keeps what it was drawn with, and gets its rows' titles if folded.

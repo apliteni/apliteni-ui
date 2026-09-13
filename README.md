@@ -89,7 +89,7 @@ el.innerHTML = accountShell({
   body: card({ title: 'Appearance', body: switchToggle({ label: 'Reduce motion' }) }),
 });
 wireTopbar(el);                                  // menus, theme toggle, segmented controls
-wireShell(el);                                   // the toggle that folds the rail, and the nav's groups
+wireShell(el);                                   // the toggle that folds the rail, the reader's menu, the nav's groups
 
 // Custom sidebar nav? pass `nav: [['prefs','gear','Preferences'], ['billing','wallet','Billing']]`
 // A page that will never call wireShell()? pass `collapsible: false` and no toggle is drawn

@@ -147,6 +147,10 @@ const GATED = [
   // a danger menu row is only --pink while its row is hovered, and the hover
   // paints the row --surface. That is the ground, not the menu panel.
   { file: '../src/styles/dropdown.css', selector: '.ui-dropdown__item.is-danger:hover .ui-dropdown__label', on: 'var(--surface)' },
+  // and the same row under the keyboard, which paints the row --surface too. Sign
+  // out is a row of this menu since #286, so the state a reader with no pointer
+  // reaches it in is read here rather than left to the hover above it.
+  { file: '../src/styles/dropdown.css', selector: '.ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label', on: 'var(--surface)' },
   { file: '../src/styles/topbar.css', selector: '.amenu a.aout:hover', on: 'var(--surface)' },
   { file: '../src/styles/feedback.css', selector: '.ui-fbc__err', on: 'var(--bg)' },
   { file: '../site/changelog.html', selector: '.tag--removed', on: 'var(--bg)' },
@@ -159,10 +163,15 @@ const sourceOf = (file) => {
   return SOURCES.get(file);
 };
 
-/** The `color` and (optional) `background` a rule declares in its own file. */
+/** The `color` and (optional) `background` a rule declares in its own file.
+ *  A rule head is a LIST, so each of its selectors is looked at: two states that
+ *  paint alike are one rule with two selectors, and matching the head as one
+ *  string reported the second of them as a rule that is not in the sheet. */
+const heads = (sel) => sel.split(',').map((one) => one.trim().replace(/\s+/g, ' '));
+
 function paintOf({ file, selector }) {
   for (const [, sel, body] of sourceOf(file).matchAll(RULE)) {
-    if (sel.trim() !== selector) continue;
+    if (!heads(sel).includes(selector)) continue;
     const pick = (prop) => {
       const m = new RegExp(`(?:^|[;{])\\s*${prop}\\s*:\\s*([^;]+)`).exec(body);
       return m ? m[1].trim() : undefined;
@@ -793,7 +802,7 @@ test('soft and outline leave the status icon alone', () => {
  * the list emptied, a selector were renamed, or a parse silently returned
  * nothing, the gate would pass by measuring nothing at all. */
 test('the contrast gate actually measures something', () => {
-  assert.strictEqual(GATED.length, 18, 'the gated-rule list changed size unexpectedly');
+  assert.strictEqual(GATED.length, 19, 'the gated-rule list changed size unexpectedly');
 
   // Every file in the list must really be contributing rules — an .html page
   // whose <style> block moved, or a stylesheet that was split, would otherwise

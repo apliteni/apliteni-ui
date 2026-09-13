@@ -31,10 +31,13 @@ const root = path.resolve(here, '../..');
 const read = (p) => readFileSync(path.join(root, p), 'utf8');
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 
-// The three sheets the shell's own rail is drawn by, in the order index.css
+// The four sheets the shell's own rail is drawn by, in the order index.css
 // imports them — layout.css last, which is what lets it override nav.css at
-// equal weight.
-const SHEETS = ['src/styles/base.css', 'src/styles/nav.css', 'src/styles/layout.css'];
+// equal weight, and dropdown.css before both because the reader's menu is the
+// kit's own dropdown() and the rail only reskins its trigger (#286).
+const SHEETS = [
+  'src/styles/base.css', 'src/styles/dropdown.css', 'src/styles/nav.css', 'src/styles/layout.css',
+];
 const FOLD = '@media (max-width: 720px)';
 
 /** One at-rule's body, brace-matched — the regex the other resolvers use cannot nest. */
@@ -169,7 +172,7 @@ test('every entry in the rail is on screen in the folded rail', () => {
   // is not a place to go, and the strip is the only layout at this width, so it
   // is drawn nowhere here — see the 720px block.
   const rows = [...at.doc.querySelectorAll('.ui-app__rail .ui-nav__item:not(.ui-app__fold)')];
-  assert.ok(rows.length >= 4, 'the fixture stopped carrying a group, a leaf and a footer row');
+  assert.ok(rows.length >= 3, 'the fixture stopped carrying a group, a leaf and the group\'s child');
   const missing = rows.filter((row) => !at.shown(row)).map((row) => row.getAttribute('aria-label'));
   assert.deepEqual(
     missing, [],
@@ -291,27 +294,33 @@ function ruleMap(css, keep) {
 }
 
 /**
- * The one declaration the two folds are meant NOT to share, named here rather
- * than left to look like drift. Below 720px a finger is the only pointer the
- * strip has and a row is held to 44px; the reader's fold cannot take the same
- * floor, because a row is 35.4px open and growing it on the press would step
- * every glyph below it down the rail. Two gates under this one hold both halves:
- * the line is really in the narrow block, and it is really not in the other.
+ * The declarations the two folds are meant NOT to share, named here rather than
+ * left to look like drift. Below 720px a finger is the only pointer the strip has,
+ * so a control there is held to 44px — WCAG 2.5.5 (AAA). The reader's fold cannot
+ * take the same floor: a row is 35.4px open and the account block 38px, and growing
+ * either on the press would move a box the travel promises holds still. Two gates
+ * under this one hold both halves: the line is really in the narrow block, and the
+ * press really does not raise the box in the other.
  *
  * An exclusion on its own would be a hole. This is the same shape as the fold
  * toggle, which is left out of both gates because it is drawn in one fold and
  * gone in the other — except that a value, unlike a control, can fall silently,
- * so the floor it names is measured rather than trusted.
+ * so each floor named here is measured rather than trusted.
  */
-const PHONE_ONLY = { selector: '.ui-app__rail .ui-nav__item', prop: 'min-height', floor: 44 };
+const PHONE_ONLY = [
+  { selector: '.ui-app__rail .ui-nav__item', prop: 'min-height', floor: 44, what: 'a rail row' },
+  { selector: '.ui-app__rail .ui-app__user-trigger', prop: 'min-height', floor: 44, what: 'the account block' },
+];
 
-/** `map` without the phone strip's own declaration, and without a rule left empty by it. */
+/** `map` without the phone strip's own declarations, and without a rule left empty by one. */
 function withoutPhoneFloor(map) {
-  const decls = map.get(PHONE_ONLY.selector);
-  if (decls == null) return map;
-  const kept = decls.split('; ').filter((d) => !d.startsWith(`${PHONE_ONLY.prop}:`));
-  if (kept.length) map.set(PHONE_ONLY.selector, kept.join('; '));
-  else map.delete(PHONE_ONLY.selector);
+  for (const { selector, prop } of PHONE_ONLY) {
+    const decls = map.get(selector);
+    if (decls == null) continue;
+    const kept = decls.split('; ').filter((d) => !d.startsWith(`${prop}:`));
+    if (kept.length) map.set(selector, kept.join('; '));
+    else map.delete(selector);
+  }
   return map;
 }
 
@@ -332,25 +341,30 @@ test('the collapsed rail is the narrow rail, rule for rule', () => {
   );
 });
 
-test('the phone strip holds a row to the touch floor, and the reader\'s fold does not', () => {
-  const { selector, prop, floor } = PHONE_ONLY;
-  const row = (at) => Number.parseFloat(at.css(selector, prop)) || 0;
+test('the phone strip holds its controls to the touch floor, and the reader\'s fold does not', () => {
+  for (const { selector, prop, floor, what } of PHONE_ONLY) {
+    const box = (at) => Number.parseFloat(at.css(selector, prop)) || 0;
 
-  const narrow = row(mount(PAIR(false), { narrow: true }));
-  assert.ok(
-    narrow >= floor,
-    `a rail row resolves to ${prop}: ${narrow}px below 720px, under the ${floor}px touch floor. The `
-    + 'strip is the whole of the rail at that width and a finger is the only pointer it has, so a row '
-    + `is ${floor}px there (WCAG 2.5.5). Restore it in the 720px block of layout.css.`,
-  );
+    const narrow = box(mount(PAIR(false), { narrow: true }));
+    assert.ok(
+      narrow >= floor,
+      `${what} resolves to ${prop}: ${narrow}px below 720px, under the ${floor}px touch floor. The `
+      + 'strip is the whole of the rail at that width and a finger is the only pointer it has, so a '
+      + `control is ${floor}px there (WCAG 2.5.5). Restore it in the 720px block of layout.css.`,
+    );
 
-  const folded = row(mount(PAIR(true)));
-  assert.equal(
-    folded, 0,
-    `the reader's fold now sets ${prop}: ${folded}px on a rail row. A row is 35.4px open, so a floor `
-    + 'that applies on the press grows every row and steps every glyph below it down the rail — the '
-    + 'one thing the travel promises not to do. The floor belongs to the 720px block alone.',
-  );
+    // Not "is it zero" but "did the press change it": the floor is phone-only either
+    // way, and one of these boxes has a height of its own on every other viewport.
+    const open = box(mount(PAIR(false)));
+    const folded = box(mount(PAIR(true)));
+    assert.equal(
+      folded, open,
+      `the reader's fold takes ${what} from ${prop}: ${open}px to ${folded}px. A row is 35.4px open `
+      + 'and the account block 38px, so a floor that applies on the press grows the box and moves '
+      + 'what is under it — the one thing the travel promises not to do. The floor belongs to the '
+      + '720px block alone.',
+    );
+  }
 });
 
 const nameOf = (el) => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`
@@ -372,8 +386,8 @@ test('the collapsed rail is the narrow rail, element for element', () => {
         const cx = narrow.doc.defaultView.getComputedStyle(x);
         const cy = folded.doc.defaultView.getComputedStyle(y);
         for (const p of new Set([...Array.from(cx), ...Array.from(cy)])) {
-          // The phone strip's touch floor — see PHONE_ONLY. Held apart there.
-          if (p === PHONE_ONLY.prop && x.matches('.ui-nav__item')) continue;
+          // The phone strip's touch floors — see PHONE_ONLY. Held apart there.
+          if (PHONE_ONLY.some((e) => p === e.prop && x.matches(e.selector.split(' ').pop()))) continue;
           const vx = cx.getPropertyValue(p);
           const vy = cy.getPropertyValue(p);
           if (vx !== vy) diffs.push(`${theme}${state} ${nameOf(x)} ${p}: narrow "${vx}", collapsed "${vy}"`);
@@ -398,7 +412,7 @@ test('the collapsed rail is the narrow rail, element for element', () => {
 test('every entry in the collapsed rail is drawn, the current page among them', () => {
   const at = mount(PAIR(true));
   const rows = [...at.doc.querySelectorAll('.ui-app__rail .ui-nav__item')];
-  assert.ok(rows.length >= 5, 'the fixture stopped carrying a leaf, a group, its child, sign out and the toggle');
+  assert.ok(rows.length >= 4, 'the fixture stopped carrying a leaf, a group, its child and the toggle');
   const missing = rows.filter((row) => !at.shown(row)).map((row) => row.getAttribute('aria-label'));
   assert.deepEqual(missing, [], `${missing.length} rows are display:none in the collapsed rail, so the keyboard cannot reach them`);
   assert.equal(at.shown(at.q('[aria-current="page"]')), true, 'the fold hid the row of the page the reader is on');
@@ -801,6 +815,66 @@ test('the seam arrives with the rail\'s own edge, and stops when the rail does',
   );
 });
 
+// ---- A1f. the account block is a row of the same rail ---------------------
+//
+// The block is a control since #286 — the trigger of the reader's menu — and on a
+// folded rail its avatar is the whole of it. Two numbers decide whether it reads as
+// a row of the rail it closes rather than as a box parked under one: the inset that
+// puts the avatar on the glyph column, and the height the box declares because the
+// mark inside it is what gives it one. A floor JSDOM cannot resolve measures nothing
+// and reports green, so the height is a literal in the sheet — and it is held to the
+// two declarations it is made of here rather than left as a number somebody liked.
+// why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green
+
+/** The avatar's own size, read off the one place layout.css writes it. */
+function avatarSize() {
+  const m = /--ui-app-av\s*:\s*([\d.]+)px/.exec(decomment(read('src/styles/layout.css')));
+  assert.ok(m, 'layout.css no longer declares --ui-app-av, so the two rules derived from it have nothing to read');
+  return Number(m[1]);
+}
+
+test('the avatar is inset by the arithmetic between the column and itself, not by a third number', () => {
+  const css = decomment(read('src/styles/layout.css'));
+  const block = /\.ui-app__av\s*\{([^{}]*)\}/.exec(css);
+  assert.ok(block, 'layout.css no longer draws the rail\'s avatar — this gate is measuring nothing');
+  const inset = /margin-inline-start\s*:\s*([^;}]+)/.exec(block[1])?.[1] ?? '';
+  for (const token of ['--ui-nav-strip', '--ui-app-av']) {
+    assert.ok(
+      inset.includes(`var(${token})`),
+      `the avatar is inset by \`${inset.trim() || 'nothing'}\`, which does not read ${token}. Half the `
+      + 'difference between the glyph column and the mark is what lands the avatar on the line every '
+      + 'glyph above it stands on; a literal here is a third copy of a number written twice already, '
+      + 'and it steps the block off that line the moment either changes.',
+    );
+  }
+  const strip = pxOf('src/styles/nav.css', '.ui-nav--side', '--ui-nav-strip');
+  const av = avatarSize();
+  assert.ok(
+    av < strip,
+    `the avatar is ${av}px inside a ${strip}px column, so the inset the rule above computes is `
+    + 'negative and the folded rail clips the mark it is meant to centre',
+  );
+});
+
+test('the account block declares the height the mark inside it gives it', () => {
+  const at = mount(SHELL);
+  const pad = Number.parseFloat(at.css('.ui-app__user-trigger', 'paddingTop'));
+  const floor = Number.parseFloat(at.css('.ui-app__user-trigger', 'minHeight'));
+  const av = avatarSize();
+  assert.ok(
+    Number.isFinite(pad) && Number.isFinite(floor),
+    `read padding=${pad} min-height=${floor} off the account block — one of them stopped resolving, `
+    + 'and a floor nothing can read is a floor that reports green',
+  );
+  assert.equal(
+    floor, av + 2 * pad,
+    `the account block declares min-height: ${floor}px around a ${av}px mark and ${pad}px of padding, `
+    + `which comes to ${av + 2 * pad}px. The two disagree, so the box the stylesheet states is not the `
+    + 'box a browser lays out — and it is the stated one that stories/guidelines/accessibility-floor.'
+    + 'test.js measures against the target floor.',
+  );
+});
+
 // ---- A1b. an icon-less row is not a blank target -------------------------
 //
 // sidebarNav() documents `icon` as optional at every level, and the folded rail
@@ -995,13 +1069,20 @@ test('a resting row still hovers to the step below the current row', () => {
 });
 
 // ---- C2. the active row is the brightest by construction -----------------
+//
+// The fold toggle carries a rail row's skin and stands above the rows, so it is
+// what `.ui-nav__item` reaches first now. It is not one of them: it is the rail's
+// own control, resting a step quieter on purpose, and it is measured against a
+// control's floor in the test under these three rather than left out of all four.
+const RESTING_GLYPH = '.ui-nav__item:not(.is-active):not(.is-danger):not(.ui-app__fold) .ui-nav__ic svg';
+
 
 test('the active glyph is the brightest in the rail, whatever the accent is', () => {
   for (const theme of ['dark', 'light']) {
     for (const accent of ['default', 'phoenix', 'ocean', 'emerald']) {
       const at = mount(SHELL, { theme, accent });
       const on = at.glyph('.ui-nav__item.is-active .ui-nav__ic svg');
-      const off = at.glyph('.ui-nav__item:not(.is-active):not(.is-danger) .ui-nav__ic svg');
+      const off = at.glyph(RESTING_GLYPH);
       assert.ok(
         on.ratio > off.ratio,
         `${theme}/${accent}: the active glyph is ${r2(on.ratio)}:1 and a resting one is `
@@ -1029,7 +1110,7 @@ test('the active glyph takes no colour from the accent at all', () => {
 test('a resting glyph is dimmer but still legible on its own', () => {
   for (const theme of ['dark', 'light']) {
     const at = mount(SHELL, { theme });
-    const off = at.glyph('.ui-nav__item:not(.is-active):not(.is-danger) .ui-nav__ic svg');
+    const off = at.glyph(RESTING_GLYPH);
     assert.ok(
       off.ratio >= 4.5,
       `a resting glyph is ${r2(off.ratio)}:1 against the rail in ${theme}. Below 720px the `
@@ -1039,36 +1120,82 @@ test('a resting glyph is dimmer but still legible on its own', () => {
   }
 });
 
-// ---- C3. one rule at the bottom of the rail ------------------------------
+// The one glyph the three above leave out, measured here rather than dropped. The
+// toggle rests in --dim, a step under the rows, because it is the rail talking about
+// itself and not one of the places the rail goes — and it is a control, so WCAG
+// 1.4.11 is the bar it answers to rather than the text grade the rows hold. Below
+// that bar the mark is the state and the state has gone.
+test('the toggle\'s own mark clears the floor a control answers to', () => {
+  for (const theme of ['dark', 'light']) {
+    const at = mount(SHELL, { theme });
+    const mark = at.glyph('.ui-app__fold .ui-nav__ic svg');
+    assert.ok(
+      mark.ratio >= 3,
+      `the toggle's mark is ${r2(mark.ratio)}:1 against the rail in ${theme}, under the 3:1 WCAG `
+      + '1.4.11 asks of a user-interface component. The mark is the whole of this control at both '
+      + 'widths and the seam inside it is the whole of the state, so a mark that fades out is a '
+      + 'rail that no longer says which way it is folded.',
+    );
+  }
+});
+
+// ---- C3. the rail is ruled at its two ends and nowhere between ------------
 
 // A width with no style paints nothing, and JSDOM hands back the initial
 // `medium` for a border nobody declared — so the style is what says "hairline".
-test('the bottom of the rail draws one rule, not two twenty pixels apart', () => {
+const hairline = (at, sel, side) =>
+  !['none', 'hidden', ''].includes(at.css(sel, `border${side}Style`))
+  && Number.parseFloat(at.css(sel, `border${side}Width`)) > 0;
+
+test('the rail draws one rule under its head and one over its foot, and none between', () => {
   const at = mount(SHELL);
-  const ruled = ['.ui-nav__foot', '.ui-app__user'].filter((sel) =>
-    !['none', 'hidden', ''].includes(at.css(sel, 'borderTopStyle'))
-    && Number.parseFloat(at.css(sel, 'borderTopWidth')) > 0);
-  assert.deepEqual(
-    ruled.length, 1,
-    `${ruled.length} hairlines close the rail (${ruled.join(' + ') || 'none'}). Two of them `
-    + 'twenty pixels apart box sign out into a compartment of its own, which reads as a third '
-    + 'region of the rail rather than as the last row of the nav.',
+  assert.equal(
+    hairline(at, '.ui-app__head', 'Bottom'), true,
+    'the head band — the product\'s mark and the control that folds the rail — is not ruled off '
+    + 'from the rows below it, so the rail opens with a control standing among places to go',
+  );
+  assert.equal(
+    hairline(at, '.ui-app__fold-row', 'Top'), false,
+    'a second hairline inside the head boxes the toggle into a compartment of its own, eight '
+    + 'pixels under the one below the band. The head is one band: the product\'s mark, and the '
+    + 'rail\'s own control under it.',
+  );
+  assert.equal(
+    hairline(at, '.ui-app__user', 'Top'), true,
+    'nothing closes the rail. The nav\'s footer slot carried the hairline while sign out was in '
+    + 'it; sign out is in the reader\'s menu now, so the rule belongs to the block that opens it.',
+  );
+  assert.equal(
+    at.doc.querySelector('.ui-nav__foot'), null,
+    'the nav still draws its footer slot, so the rail closes with an empty compartment under a '
+    + 'hairline of its own — two rules twenty pixels apart',
   );
 });
 
-test('sign out rests in the rail\'s own ink and turns --pink on the way to being clicked', () => {
+// Sign out left the nav list for the reader's menu (#286), so the two-step it
+// rests in is the menu's. A destructive row is quiet until you reach for it —
+// and reaching for it is a pointer OR the keyboard, which is the half that was
+// painted nowhere until this row arrived.
+const menuInk = (at, state) => {
+  const row = at.q('.ui-app__user-panel .ui-dropdown__item.is-danger');
+  if (state) row.setAttribute('data-ui-state', state);
+  const value = at.of(row.querySelector('.ui-dropdown__label'), 'color');
+  row.removeAttribute('data-ui-state');
+  return value;
+};
+const hex = (v) => v.trim().replace(/^#(\w\w)(\w\w)(\w\w)$/, (m, r, g, b) =>
+  `rgb(${parseInt(r, 16)}, ${parseInt(g, 16)}, ${parseInt(b, 16)})`);
+
+test('sign out rests quiet in the menu and turns --pink on the way to being clicked', () => {
   const at = mount(SHELL);
-  const text = at.css('.ui-nav__item:not(.is-active):not(.is-danger)', 'color');
-  assert.equal(
-    at.css('.ui-nav__item.is-danger', 'color'), text,
-    'sign out is the quietest thing in the rail while also being the most fenced-off. It is a '
-    + 'navigation row: it rests like one, and the danger intent belongs on hover.',
+  assert.notEqual(
+    menuInk(at, null), hex(at.vars.get('--pink')),
+    'sign out is painted --pink at rest, so the menu opens with one row already shouting and the '
+    + 'step that says "you are about to end this session" has nowhere left to go',
   );
   assert.equal(
-    at.inState('.ui-nav__item.is-danger', 'hover', 'color'),
-    at.vars.get('--pink').trim().replace(/^#(\w\w)(\w\w)(\w\w)$/, (m, r, g, b) =>
-      `rgb(${parseInt(r, 16)}, ${parseInt(g, 16)}, ${parseInt(b, 16)})`),
-    'raising the resting ink swallowed the hover step — the two-step is the whole point',
+    menuInk(at, 'hover'), hex(at.vars.get('--pink')),
+    'the pointer resting on sign out does not reach --pink — the two-step is the whole point',
   );
 });
 
@@ -1079,15 +1206,9 @@ test('the keyboard reaches sign out the same way the pointer does', () => {
   for (const theme of ['dark', 'light']) {
     const at = mount(SHELL, { theme });
     assert.equal(
-      at.inState('.ui-nav__item.is-danger', 'focus-visible', 'color'),
-      at.inState('.ui-nav__item.is-danger', 'hover', 'color'),
+      menuInk(at, 'focus-visible'), menuInk(at, 'hover'),
       `sign out is --pink under the pointer and something else under the keyboard in ${theme}. `
       + 'The focus ring says where you are; it does not say that this row is the destructive one.',
-    );
-    assert.equal(
-      at.inState('.ui-nav__item.is-danger', 'focus-visible', 'backgroundColor'),
-      at.inState('.ui-nav__item.is-danger', 'hover', 'backgroundColor'),
-      `the danger wash is pointer-only in ${theme}`,
     );
   }
 });
@@ -1346,21 +1467,31 @@ test('the shell offsets its rail by exactly the height the topbar actually is', 
 
 // ---- C7. the reader block agrees with itself -----------------------------
 
-test('the reader block is announced once, and by the same block that is on screen', () => {
+test('the reader block is announced once, and by the words that are on screen', () => {
   const at = mount(SHELL, { narrow: true });
+  const trigger = at.q('.ui-app__user-trigger');
   const av = at.q('.ui-app__av');
+  const who = at.q('.ui-app__who');
   assert.equal(at.shown(av), true, 'premise: the initials are what stays on screen at 375px');
-  assert.notEqual(
-    av.getAttribute('aria-hidden'), 'true',
-    'the initials are on screen below 720px and .ui-app__who — the only named half of the '
-    + 'pair — is display:none there, so the accessibility tree holds nothing at all while a '
-    + 'divider is drawn around something',
-  );
-  const name = av.getAttribute('aria-label') || '';
-  assert.match(name, /Ada Lovelace/, 'the block on screen does not say who is signed in');
-  assert.match(name, /ada@apliteni\.com/);
   assert.equal(
-    at.q('.ui-app__who').getAttribute('aria-hidden'), 'true',
-    'the name is now in the tree twice — once on the block, once in its own text',
+    at.shown(who), true,
+    'the fold takes .ui-app__who out of the accessibility tree as well as off the screen, and it '
+    + 'is what names the control — the trigger would be a button with nothing in it. The fold is '
+    + 'an opacity, which a screen reader still reads.',
   );
+  // The trigger is named by its own contents, so there is nothing to keep in step:
+  // an aria-label here would be a second copy of the two lines under it, and the
+  // avatar carrying one as well would announce the reader twice over.
+  assert.equal(
+    trigger.getAttribute('aria-label'), null,
+    'the menu trigger writes a name of its own over the words inside it, which is a second copy '
+    + 'of a string the block already carries and the one that goes stale',
+  );
+  assert.equal(
+    av.getAttribute('aria-hidden'), 'true',
+    'the initials are announced as well as the name they are made of, so the reader is named '
+    + 'twice on one control',
+  );
+  assert.match(who.textContent, /Ada Lovelace/, 'the block on screen does not say who is signed in');
+  assert.match(who.textContent, /ada@apliteni\.com/);
 });

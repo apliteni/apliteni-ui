@@ -90,6 +90,20 @@
 }
 
 .ui-dropdown.open .ui-dropdown__panel { opacity: 1; visibility: visible; transform: translateY(0); }
+/* Open, the panel is visible AT ONCE rather than at the first step of the
+   `visibility` transition. `visibility` is discrete: going hidden → visible it is
+   still `hidden` in the frame the class lands, and a browser will not move focus
+   into a box that is hidden — so the arrows opened the panel and left focus on the
+   trigger, with every row `tabindex="-1"` and the next Tab out of the dropdown
+   altogether. Measured in Chrome: `getComputedStyle(panel).visibility` is `hidden`
+   in the frame the class lands and `visible` in the next.
+   The property list is swapped only while the panel is open, so closing still fades
+   on every property it always did. Written for the search variant first, because
+   opening one puts focus in its field; it belongs to every panel, because opening
+   any of them with a key puts focus on a row.
+   why: docs/specification.md#the-dropdown-panel */
+.ui-dropdown.open .ui-dropdown__panel,
+.ui-dropdown__panel--portal.is-open { transition-property: opacity, transform; }
 
 /* Portalled panel — wireDropdown() moves it onto <body>, clear of every
    ancestor's overflow and every ancestor's stacking context. The descendant
@@ -169,8 +183,15 @@
 .ui-dropdown__item.is-disabled { color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
 .ui-dropdown__item.is-disabled .ui-dropdown__label,
 .ui-dropdown__item.is-disabled .ui-dropdown__desc { color: inherit; }
+/* A destructive row rests quiet and turns --pink on the way to being clicked. Both
+   states, not hover alone: a pointer resting on the row is one way of being about to
+   press it and the keyboard landing on it is the other, and painting only the first
+   made the destructive signal pointer-only. The ring says where you are; it does not
+   say that this row is the one that ends something. The same two-step .ui-nav__item
+   and .ui-btn--danger write. */
 .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--muted); }
-.ui-dropdown__item.is-danger:hover .ui-dropdown__label { color: var(--pink); }
+.ui-dropdown__item.is-danger:hover .ui-dropdown__label,
+.ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label { color: var(--pink); }
 
 /* Grouped sections. `~` and :not([hidden]), because `+` counts a group a search
    query has hidden and drew the divider above the first group left showing. */
@@ -200,11 +221,6 @@
    variant emits, so the plain dropdown renders as it did.
    why: docs/specification.md#a-dropdown-with-a-search-field */
 .ui-dropdown__panel--search { min-width: 280px; }
-/* Open, the panel is visible at once instead of at the first step of the
-   `visibility` transition, because a browser will not focus a field in a box
-   that is still `hidden` and opening puts focus in the field. Closing still fades. */
-.ui-dropdown.open .ui-dropdown__panel--search,
-.ui-dropdown__panel--search.is-open { transition-property: opacity, transform; }
 
 .ui-dropdown__search { position: relative; display: flex; align-items: center; margin-bottom: 6px; }
 .ui-dropdown__search-ic {

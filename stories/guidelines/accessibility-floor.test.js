@@ -479,6 +479,24 @@ const onScreenIn = (el, win) => {
   return true;
 };
 
+/**
+ * A control's accessible name, near enough for a rail: the `aria-label` it carries,
+ * or else the text it draws with the aria-hidden parts taken out — which is what a
+ * screen reader reads off a control that names itself by its own contents. Reading
+ * `aria-label` alone reported the rail's account block as nameless, and it is named
+ * by the two lines inside it (#286).
+ */
+const accessibleName = (el) => {
+  const label = el.getAttribute('aria-label');
+  if (label) return label.trim();
+  const copy = el.cloneNode(true);
+  for (const hidden of copy.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
+  // A space after each element, because textContent runs the children together and
+  // a browser does not: the account block's two lines came out as one word.
+  for (const child of copy.querySelectorAll('*')) child.append(' ');
+  return copy.textContent.replace(/\s+/g, ' ').trim();
+};
+
 const targetRun = await (async () => {
   const win = windowFor('dark', probeGeometry(sheet()));
   // The same stories in front of the same sheet with the 720px fold applied.
@@ -513,7 +531,11 @@ const targetRun = await (async () => {
       // A rail the reader folded draws the same classes as an open one, so the
       // de-duplication below would measure whichever a story drew first. Its
       // controls are kept apart and every one is measured (#277).
-      if (el.closest('.ui-app.is-collapsed .ui-app__rail')) {
+      // The reader's menu is a panel, not a row of the rail (#286): closed, its rows
+      // are behind `visibility: hidden` and reachable from nowhere, and open it is
+      // portalled off the rail entirely. It is measured as the dropdown it is, in the
+      // de-duplicated walk below; here it would be held to every rule a rail row keeps.
+      if (el.closest('.ui-app.is-collapsed .ui-app__rail') && !el.closest('[data-dropdown-panel]')) {
         // `onScreen`, not `drawn`: boxOf() returns a `drawn` key of its own —
         // the drawn box — and the spread below lands on top of this key. It used
         // to be called `drawn`, and every folded control came out of here with a
@@ -522,7 +544,7 @@ const targetRun = await (async () => {
         // because a spread whose order is load-bearing is the same trap again.
         folded.push({
           where,
-          name: el.getAttribute('aria-label') || '',
+          name: accessibleName(el),
           label: (el.querySelector('.ui-nav__label')?.textContent || '').trim(),
           onScreen: onScreenIn(el, win),
           inClosedGroup: Boolean(el.closest('.ui-nav__sub[hidden]')),

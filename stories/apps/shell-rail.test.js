@@ -7,10 +7,14 @@
  * the Storybook preview makes. Then it reads back the rail, the toggle, focus,
  * the names a folded rail's rows answer to, the cookie and the `ui-rail` event.
  *
- * What it does not reach: Enter and Space, which are the browser's on a native
- * <button> — a press here is a click; the chip a folded row gives its name back
- * in, which is CSS and is gated in shell-states.test.js; and Tab order, which is
- * layout's.
+ * It also presses the account block, which is a menu trigger since #286: sign out
+ * left the nav list for it, and what is gated here is that wireShell() reaches the
+ * menu and that the keyboard gets to the row.
+ *
+ * What it does not reach: Enter and Space on the toggle, which are the browser's on
+ * a native <button> — a press here is a click; the chip a folded row gives its name
+ * back in, which is CSS and is gated in shell-states.test.js; and Tab order, which
+ * is layout's.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,9 +28,12 @@ virtualConsole.on('jsdomError', (e) => errors.push(e));
 const dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>', {
   url: 'http://localhost/app/page', pretendToBeVisual: true, virtualConsole,
 });
-for (const key of ['window', 'document', 'Node', 'Element', 'HTMLElement', 'Event', 'MouseEvent']) {
+for (const key of ['window', 'document', 'Node', 'Element', 'HTMLElement', 'Event', 'MouseEvent', 'KeyboardEvent']) {
   Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
 }
+// The menu's wiring measures its trigger, and a method lifted off a window and
+// called bare is a method with no window. Wrapped rather than copied.
+globalThis.getComputedStyle = (...a) => dom.window.getComputedStyle(...a);
 
 const { appShell, wireShell, railCollapsed, RAIL_COOKIE } = await import('../../src/components/shell.js');
 
@@ -82,7 +89,7 @@ test('a fold writes no tooltip attribute — the name on screen is the row\'s ow
   forget();
   const { app, btn } = mount(page({ collapsed: false }));
   btn.click();
-  assert.ok(rows(app).length >= 5, 'the fixture stopped carrying a leaf, a group, its child, sign out and the toggle');
+  assert.ok(rows(app).length >= 4, 'the fixture stopped carrying a leaf, a group, its child and the toggle');
   // `title` showed the name to a pointer and to nobody else, and it was a second
   // copy of a string the row already carried. The folded rail gives the label
   // itself back beside the glyph instead, on hover and on keyboard focus — CSS,
@@ -291,4 +298,83 @@ test('a document that refuses cookies still folds, and says nothing is stored', 
   } finally {
     delete doc.cookie;
   }
+});
+
+// ---- the reader's menu (#286) ----------------------------------------------
+//
+// Sign out ends a session rather than going anywhere, so it left the rail's
+// navigation for a menu on the account block. The menu is the kit's own
+// dropdown(), whose open/close, arrows and Escape are gated in
+// src/components/dropdown.test.js; what is gated here is the shell's half —
+// that wireShell() reaches the menu at all, that the keyboard gets to the row,
+// and that the row is in the menu and not in the list of places to go.
+
+const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
+const withMenu = (opts = {}) => page({ account: READER, ...opts });
+const press = (el, key) =>
+  el.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+// wireDropdown() lifts the panel onto <body>, out of the rail's clip and its
+// stacking context, so it is no longer inside the shell that drew it.
+const menuPanel = () => doc.querySelector('.ui-app__user-panel');
+const signOutRow = () => menuPanel().querySelector('.ui-dropdown__item.is-danger');
+
+test('the account block is a menu trigger, and sign out is a row of it', () => {
+  forget();
+  const { app } = mount(withMenu());
+  assert.equal(
+    app.querySelector('nav .ui-nav__item.is-danger'), null,
+    'sign out is still a row of the navigation list, so the rail offers the one destructive '
+    + 'thing it has among the places a reader can go',
+  );
+  const trigger = app.querySelector('.ui-app__user-trigger');
+  assert.ok(trigger, 'the account block is not a control — there is nothing to open the menu with');
+  assert.equal(trigger.tagName, 'BUTTON', 'the trigger is not a native button, so it owes its own key handling');
+  assert.equal(trigger.getAttribute('aria-haspopup'), 'menu');
+  assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'the trigger announces a menu that is not open');
+  const out = signOutRow();
+  assert.ok(out, 'the menu has no sign-out row, so signing out is reachable from nowhere at all');
+  assert.match(out.textContent, /Sign out/);
+  assert.equal(out.getAttribute('href'), '#logout');
+  assert.equal(out.getAttribute('role'), 'menuitem');
+});
+
+test('the keyboard opens the menu, lands on sign out, and Escape hands focus back', () => {
+  forget();
+  const { app } = mount(withMenu());
+  const trigger = app.querySelector('.ui-app__user-trigger');
+  trigger.focus();
+  press(trigger, 'ArrowDown');
+  assert.equal(
+    trigger.getAttribute('aria-expanded'), 'true',
+    'the arrows do not open the reader\'s menu — wireShell() drew a dropdown and wired nothing to it',
+  );
+  assert.equal(
+    doc.activeElement, signOutRow(),
+    'the menu opened and left focus behind, so the keyboard cannot reach the row inside it',
+  );
+  press(signOutRow(), 'Escape');
+  assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'Escape left the menu open');
+  assert.equal(
+    doc.activeElement, trigger,
+    'Escape closed the menu and dropped focus, so the keyboard is back at the top of the page',
+  );
+  assert.deepEqual(errors, []);
+});
+
+test('a press on the block opens the menu, and the trigger says so', () => {
+  forget();
+  const { app } = mount(withMenu());
+  const trigger = app.querySelector('.ui-app__user-trigger');
+  trigger.click();
+  assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'clicking the account block opens nothing');
+  assert.equal(menuPanel().classList.contains('is-open'), true, 'the panel is portalled and was never told to show');
+  trigger.click();
+  assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'a second press left the menu open');
+});
+
+test('a shell with nobody signed in draws no trigger and no menu', () => {
+  forget();
+  const { app } = mount(page());
+  assert.equal(app.querySelector('.ui-app__user'), null, 'the rail draws a reader block for nobody');
+  assert.equal(menuPanel(), null, 'a menu was portalled onto the page for a shell that draws no trigger');
 });

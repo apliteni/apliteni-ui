@@ -647,14 +647,22 @@ What the shell guarantees:
   `layout.css` folds `.ui-nav__label` out of view below 720px with the accessible name intact.
   Nothing re-renders on resize and the consumer wires no listener.
 - **The reader can fold the rail, and the control is drawn by default.** `appShell()` draws a
-  toggle at the rail's foot, under a rule of its own, that folds the rail to the same icon strip
-  and opens it again. `collapsible: false` is the way out, for a page that will never call
+  toggle in the rail's head band — under the wordmark, above the rule that closes the band — that
+  folds the rail to the same icon strip and opens it again. The head is where a reader looks for
+  the control that changes the panel they are looking at, which is the call Artur made on
+  2026-09-13; before that it stood at the foot, as the reference's does. `collapsible: false` is the way out, for a page that will never call
   `wireShell()` and would otherwise ship a control that does nothing. It is a native `<button>`
   outside the navigation landmark, named for what the press will do — "Collapse sidebar", "Expand
   sidebar" — with `aria-expanded` saying what the rail is now. A media query cannot share a block
   with a class, so the fold is written twice in `layout.css`; `stories/apps/shell-states.test.js`
   compares the two rule for rule and resolves both on every element of the rail. Below 720px the
   toggle is not drawn, because the strip is the only layout there.
+- **The toggle stands under the wordmark, not beside it.** The band holds the product's mark and
+  the rail's own control, and it stacks them rather than putting them on one line: beside the
+  wordmark is off the glyph column, so the fold would carry the toggle out over the rail's edge and
+  clip away the one control that opens a folded rail. Stacked, both marks stand where they stood and
+  the fold takes only the words. Below 720px the toggle is not drawn and the band is the wordmark
+  alone.
 - **The toggle is one mark, and the mark is the state.** The control is a frame that holds still
   and a seam that crosses it — `lessly-ui`'s `RailToggle`, which this rail is reworked on — so what
   a reader takes from it is which arrangement the panel is in rather than a direction to press. No
@@ -697,8 +705,10 @@ What the shell guarantees:
   two blocks rule for rule and element for element, and holds both halves of the exception — the
   line is really in the 720px block, and it is really not in the other.
 - **The rail's own skin is not a place to go.** The toggle is a `<button>` in a row of the rail
-  outside the `<nav>`, at the foot under a rule of its own: the head of the rail is the product's
-  and the foot is the rail talking about itself. The mark it draws is written by hand in
+  outside the `<nav>`: folding a panel is not a place to go, and a row of the navigation list is
+  what it would be read as inside one. The head band it stands in draws one rule under the pair, not
+  one between them — the product's mark and the rail's own control are one head, and a second
+  hairline eight pixels up would box the toggle into a compartment of its own. The mark it draws is written by hand in
   `src/components/shell.js` and not added to `icons.js`, because a seam that travels has to be a
   child a stylesheet can reach; `icon()` emits one opaque string with no hook on an inner node. Only
   the frame and the seam are written there: the `<svg>` around them is taken from `icon()` itself, so
@@ -738,6 +748,35 @@ What the shell guarantees:
   drawn. Every control in a folded rail clears the 24px target floor, wears the focus ring
   every row wears, and stays drawn, so Tab reaches it. Held by `stories/apps/shell-rail.test.js`,
   `stories/apps/shell-states.test.js` and `stories/guidelines/accessibility-floor.test.js`.
+- **The signed-in reader is the trigger of a menu, and signing out is a row of it.** The account
+  block at the rail's foot — the avatar, the name and the address — is a `dropdown()` trigger when
+  the caller passes `signOutHref`, and the menu holds a head naming the reader and the rows that act
+  on the session, Sign out among them. This is `lessly-ui`'s `UserMenu` and Artur's call on
+  2026-09-13; before it, Sign out was the last row of the navigation list. It left because it does
+  not go anywhere: it ends a session, and it was the one destructive thing standing among places to
+  go. The menu is the kit's own `dropdown()` and not a second one written for the rail, so Enter,
+  the arrows, Escape-closes-and-returns-focus and the click-outside are the wiring every panel in
+  the kit shares; `wireShell()` wires it along with the fold and the nav's groups. It is
+  `portal: true`, because the rail is `position: sticky` with `overflow-y: auto` and each of those
+  traps a panel on its own, and it opens upward, because the block is the last thing in a
+  full-height rail. On a folded rail the trigger is the avatar alone and takes the same name chip a
+  folded row takes, with the reader's two lines in it. The trigger is named by the words inside it
+  rather than by an `aria-label`, so there is no second copy of them to go stale; the initials are
+  `aria-hidden`, since they are made of the name beside them. With no `signOutHref` there is no
+  menu: a trigger that opens an empty panel is a control that does nothing, and the block is the
+  plain reader block it has always been. Held by `stories/apps/shell-rail.test.js`.
+- **One rule closes the rail, and one closes its head.** The nav's footer slot is empty now that
+  Sign out is in the menu, so the hairline that fenced Sign out off is on the block that opens it.
+  Two of them twenty pixels apart read as a third region of the rail rather than as its foot.
+- **The account block stands on the rail's own column.** The avatar is inset by half the difference
+  between the glyph column and itself, so its centre is on the line every glyph above it stands on
+  and the fold moves it nowhere. Its box declares the height the mark inside it gives it — the
+  avatar plus the trigger's own padding — because a floor written as a `calc()` over custom
+  properties is a floor the target-size gate cannot read. Below 720px the block takes the 44px touch
+  floor the rows beside it take; it cannot take that floor on the reader's fold, where growing it
+  would move a box the travel promises holds still. Both halves are held by
+  `stories/apps/shell-states.test.js`, and the floor is measured by
+  `stories/guidelines/accessibility-floor.test.js`.
 - **The icon-only `sidebarNav({ collapsed })` keeps the current page reachable.** A group opens
   over the page the reader is on, as it does at any width, and a row with no glyph is given a dot
   rather than left blank. Held by `stories/apps/shell.test.js`.
@@ -751,7 +790,11 @@ The nav's own rules beat a host stylesheet: `.ui-nav .ui-nav__item` is (0,2,0) a
 navigation.
 
 Decided in [#127](https://github.com/apliteni/apliteni-ui/issues/127). `appShell()` was the
-owner's choice between three shells built and rendered side by side, not a derivation.
+owner's choice between three shells built and rendered side by side, not a derivation. The fold is
+[#277](https://github.com/apliteni/apliteni-ui/issues/277), reworked on `lessly-hub/lessly-ui`; the
+toggle's move to the head and the reader's menu are
+[#286](https://github.com/apliteni/apliteni-ui/issues/286), and both are ported from the same
+reference — `app-sidebar.tsx`'s head band and `user-menu.tsx`.
 
 ## The back link
 
