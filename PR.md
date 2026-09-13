@@ -492,6 +492,12 @@ and Guidelines / The page draws it"*, with its link to `docs/specification.md#th
 `appShell` cell after "beside exactly one `<main>`." Nothing else conflicts — I applied that union
 on the merge above and it is what the merged `docs/library.md` says.
 
+**Both merges were run again after the rebase**, in that order, onto `759520d` in a clean worktree.
+#286 now fast-forwards — `main` is its ancestor — and this branch on top gives exactly the three
+conflicts named here and nothing else. The merged tree: **1520 tests, 1517 pass, 1 fail,
+2 skipped**, which is 1416 + 75 + 29, so no test is lost; the one failure is the contrast walk's
+clock, which is red on `main` alone.
+
 ## A ledger this moved, and one failure that is the box
 
 `scripts/font-loading.test.js` counts the pages in the tree that load a webfont, because *"a
