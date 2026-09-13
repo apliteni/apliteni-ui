@@ -2,9 +2,10 @@
 
 Research behind `docs/reviews/295-popover-variants.html`. The kit went shadowless at
 [#295](https://github.com/apliteni/apliteni-ui/issues/295); the reporter's answer to the merged
-elevation ladder was *"i dont like how flat popover — now offer more solutions"*. These notes
+elevation ladder was *"i dont like how flat popover and now - offer more solutions"*. These notes
 record what the current panel actually measures, what other 2025–26 systems do in the same
-position, and where each of the five offered variants comes from.
+position, and where each of the five offered variants — and the pair of them the review page
+recommends — comes from.
 
 Nothing here changes `src/`. The prototype that renders the variants is
 `docs/reviews/295-popover-variants/variants.html`.
@@ -24,7 +25,7 @@ so the figures can be re-run.
 | `--muted` on the panel (the row description, the readout label) | 5.60 | 6.11 |
 | `--surface-3` row hover against the panel | 1.04 | 1.20 |
 
-Two things follow, and both are the complaint stated as numbers.
+Three things follow, and the first two are the complaint stated as numbers.
 
 **The step is spent.** A floating panel over a card differs by 1.11 in dark and 1.05 in light.
 1.05 is below the threshold at which most viewers will see an edge at all on a large flat area;
