@@ -2,6 +2,66 @@
 
 Closes #275.
 
+## Round 8: one ink, and size carries the rank
+
+**Decision — Artur, 2026-09-13:** *"avoid using gray colors. use font size to change accent,
+not color."* This page only.
+
+The page set its hierarchy in three inks — the rule in `--strong`, the why in `--dim`, the
+Do/Don't caption in `--muted` — over four sizes it had invented for itself. Every text on it is
+`var(--text)` now, and every size is a row of the rank table in
+`docs/specification.md#labels-and-titles`:
+
+| what | was | is | rank |
+| ---- | --- | --- | ---- |
+| page title | 27px / 700 / `--strong` | 30px / 700 | `page-title` |
+| rule | 16px / 600 / `--strong` | 18px / 600 | `card-title` |
+| why | 13px / 400 / `--dim` | 14.5px / 400 | `body` |
+| Do/Don't caption | 12px / 400 / `--muted` | 13px / 500 | `label`, borrowed — below |
+| outline rank chip | 11px / 500 / `--muted` | 11px / 600 | `chip` |
+
+Confirmed in the browser: all five compute to `rgb(26, 30, 39)` in light, which is `--text`.
+The only other ink in the page's own text is `--pink`, on the three rank chips of the broken
+outline, which is the Don't saying so and not a hierarchy.
+
+**The rank the table does not have.** There is no row for a caption under a specimen. The five
+rows are `page-title`, `card-title`, `body`, `label` and `chip`, and the `label` row's *what
+takes it* list is eyebrows, table heads, nav and menu captions, footer column titles, a code
+sample's label and a confirmation's eyebrow — not a sentence under a figure. So the caption
+borrows `label`, which is the rank one step below the why and a row of the table rather than a
+number invented here. **This has a visible cost:** `label` is medium weight and `body` is normal,
+so in the screenshots each caption reads a shade heavier than the why printed under it, despite
+being the smaller of the two. A caption row of its own — `--text-sm` at `--weight-normal` —
+would settle it, and that is #292's decision rather than this branch's. What the caption
+does *not* take is the rank's ink: the specification says of `label` that *"its `--muted` ink and
+medium weight now set it apart, which capitals used to do"*, and here the weight does it alone.
+
+**Grey that stays, and why.** Inside the specimens the kit's own components still draw their own
+inks — `.ui-card__title` in `--strong`, `.ui-card__sub` and table cells in `--dim`, table heads in
+`--muted`. Those are the kit rendering itself as evidence; repainting them would make the
+specimens stop showing what a reader will actually build. No token moved.
+
+**Scope.** `stories/guidelines/_the-page.js` only. The four text selectors live in
+`stories/guidelines/_layout.js`, which draws sixteen other guideline pages, so this page restates
+them in its own sheet — which `guidelinePage()` emits after the shared one — instead of editing
+them there. Whether the rest of the collection follows is a separate decision Artur has not taken.
+One token follows the size: the why's column is `--prose-body` rather than the shared sheet's
+`--prose-dense`, because that step is for prose set below 13px and the why is body size now. It is
+539px against 562px — the token being right, not the column moving.
+
+**No gate holds this.** `src/styles/type-ranks.test.js` reads `/* rank: … */` notes out of the
+kit's own stylesheets and does not sweep `stories/`, so the four rules carry no such note: one
+here would be a claim with nothing behind it. They are written as longhands the way that gate
+reads them, against the day its sweep arrives.
+
+Verification: **1426 tests, 1425 pass, 0 fail, 1 skip**, 127.4s — the same 1426 as round 7, and
+this run the contrast wall-clock ceiling came in under its 120s too, so nothing failed. The skip
+is the opt-in theme × accent matrix behind `CONTRAST_ACCENTS=1`. Focused: 76 tests pass across
+`the-page.test.js`, `refs.test.js`, `letter-case.test.js` and `type-ranks.test.js` — both gates
+named in the instruction stay green. Storybook builds. Both screenshots re-shot at 1200px wide from that build after
+`document.fonts.ready`: **1200 × 2580px light**, **1200 × 2574px dark**, eight rules and no code
+references.
+
 ## Round 7: designer-facing guidance
 
 **Decision — Artur, 2026-09-13:** The page carries no code references. Its texts are
@@ -341,7 +401,7 @@ pass, and the only failure was this box's contrast clock.
 **The page itself** — `Guidelines / The page`, rendered in both themes:
 `docs/evidence/the-page-guidelines-dark.png`, `docs/evidence/the-page-guidelines-light.png`.
 Eight rules, four specimen pairs and no code references, captured at 1200px wide:
-2,387px high in dark and 2,393px in light.
+2,574px high in dark and 2,580px in light, after round 8 moved the page onto one ink.
 
 **The two faults** — `docs/evidence/the-page-fixes-dark.png`,
 `docs/evidence/the-page-fixes-light.png`. Top: the consent screen's title as a `div` and as an

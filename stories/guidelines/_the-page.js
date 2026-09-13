@@ -23,7 +23,10 @@ export const SPEC_CSS = `
     .tp-out { display: flex; flex-direction: column; gap: var(--space-2); }
     .tp-out__row { display: flex; align-items: baseline; gap: var(--space-3);
       font: 400 13px/1.5 var(--font-sans); color: var(--text); }
-    .tp-out__rank { font: 500 11px/1.6 var(--font-mono); color: var(--muted);
+    /* Rank chip. Longhands and no line-height, because the chip rank inherits
+       one; the ink is the body's, like everything else on this page. */
+    .tp-out__rank { font-family: var(--font-mono); font-size: var(--text-xs);
+      font-weight: var(--weight-semibold); color: var(--text);
       background: var(--surface-3); border-radius: var(--radius-xs); padding: 1px 6px; flex: none; }
     .tp-out__row--2 { padding-left: var(--space-4); }
     .tp-out__row--3 { padding-left: var(--space-8); }
@@ -44,6 +47,27 @@ export const SPEC_CSS = `
 
     .tp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .tp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
+
+    /* One ink, and size carries the rank. Every text below is var(--text), and
+       every size is a row of the table in docs/specification.md#labels-and-titles
+       rather than a number of this page's own: 30, 18, 14.5, 13. The selectors
+       belong to stories/guidelines/_layout.js, which draws sixteen other
+       guideline pages, so they are restated here — after it — and only this page
+       moves. No rank note: the gate that reads those sweeps src/, not stories/.
+       why: #298, decided by Artur on 2026-09-13 */
+    .gc > h1 { font-size: var(--text-2xl); font-weight: var(--weight-bold);
+      line-height: 1.1; color: var(--text); }
+    .gc-imperative { font-size: var(--text-lg); font-weight: var(--weight-semibold);
+      line-height: var(--leading-snug); color: var(--text); }
+    /* --prose-body, because the why is body size now; the shared sheet's
+       --prose-dense is the step for prose set below 13px. */
+    .gc-why { font-size: var(--text-base); font-weight: var(--weight-normal);
+      line-height: var(--leading-normal); color: var(--text);
+      max-width: var(--prose-body); }
+    /* The table has no row for a caption under a specimen, so this borrows the
+       row below the why — label — for size and weight, and not its --muted ink. */
+    .gc-cell__cap { font-size: var(--text-sm); font-weight: var(--weight-medium);
+      color: var(--text); }
   </style>`;
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
