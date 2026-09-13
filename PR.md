@@ -197,22 +197,46 @@ about.
 
 | | |
 | --- | --- |
-| `npm test` | 1526 tests, 1525 pass, 2 skipped, **1 fail** — see below |
+| `npm test` | 1525 tests, 1522 pass, 2 skipped, **1 fail** — see below |
 | `npm run build` (React, tsup) | pass |
 | `npx vitest run` (react) | 18 files, 355 tests, pass |
 | gitleaks 8.30.1, `--log-opts origin/main..HEAD` | no leaks |
 | gitleaks 8.30.1, `--no-git` over the tree | no leaks |
 | internal-terms denylist (`security.yml`'s own grep) | clean |
-| AI-slop detector, paranoid, on this branch's prose | see below |
+| AI-slop detector, paranoid, over this branch's prose | 0 errors, 0 medium, 3 warnings — the same three `main` reports on the same files |
 
-**The one failure is the contrast walk's wall-clock ceiling, and it fails the same way on `main`.**
-`stories/contrast.test.js` asserts the walk finishes inside 120s. It takes **146.5s** here. Shot on
-a detached `origin/main` worktree on the same idle host, the same test takes **147.2s** — this
-branch is 0.7s *faster*. The deterministic half of that pair, the style cache's miss rate, passes
-on both at 0.198 against a 0.30 ceiling, and the gate's own comment says the two are kept apart
-precisely so a busy or slow machine cannot be mistaken for a regression. This host is about 3x
-slower than the laptop the ceiling was measured on. Nothing in this branch adds a theme×accent
-cell.
+The two skips are the opt-in `CONTRAST_ACCENTS=1` matrix, behind an environment variable on `main`
+too.
+
+**The one failure is the contrast walk's wall-clock ceiling, and `main` fails it the same way on
+this host.** `stories/contrast.test.js` asserts the walk finishes inside 120s, a number set at
+~2.5x a measured 47.6s worst case on a contended 10-core laptop. Paired runs, this branch against a
+detached `origin/main` worktree on the same machine:
+
+| | this branch | `origin/main` |
+| --- | --- | --- |
+| idle host | **146.5s** | **147.2s** |
+| host at load ~10 | 173.4s / 15,994 pairs | 159.0s / 15,478 pairs |
+
+This host is about 3x slower than the laptop the ceiling came from, and `main` is over the bar
+before this branch touches anything. The branch does add work — **+516 pairs, 3.3%** — and the
+source is named rather than waved at: one row on the accessibility floor page, the entry
+registering `stories/elevation.test.js` and its three blind spots. Per pair the two trees are
+10.84ms and 10.27ms, which is inside the gap between the two runs' load averages.
+
+The deterministic half of that pair passes on both: the style cache's miss rate is 0.195 against a
+0.30 ceiling. The gate's own comment says the two are kept apart precisely so a busy or slow
+machine cannot be mistaken for a regression, and nothing here adds a theme×accent cell.
+
+**Three counts moved, each in a commit that says why.** The elevation gate's sweep (42 → 38) and
+its floating declarations (15 → 11), both because the drawer's four edge rules now set a custom
+property instead of writing a fifth and sixth `box-shadow`; and `scripts/font-loading.test.js`'s
+loader count (8 → 9), because the evidence page loads the kit's faces — a shot taken in the
+fallback faces is a shot of a different kit.
+
+**Five `file:line` citations this branch shifted are repaired**, and one of them —
+`src/styles/topbar.css` → `dropdown.css:130` — was already stale on `main`, pointing at `border: 0`
+rather than at the hover rule it describes.
 
 ## The version bump
 
