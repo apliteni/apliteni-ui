@@ -295,3 +295,118 @@ test('src/styles/confirm.css: a consequence too long for the viewport scrolls', 
     'the answers must not be the thing that shrinks — they are what the dialog is for',
   );
 });
+
+// ---- the menus, and the frame a key opens one in ----------------------------
+//
+// The fourth overlay, and the one with the same `visibility` problem the three
+// above have, from the other end: a panel still `hidden` in the frame its open
+// class lands is one a browser will not move focus into, and every row in it
+// carries `tabindex="-1"`. JSDOM focuses inside a hidden box happily, so the
+// gates that press the keys go on passing with the rule deleted; this file is
+// the one that does not.
+//
+// Every menu the kit ships, not just `dropdown()`'s own panel: the fixes key on
+// `.ui-dropdown__panel` and two of the four menus are written in another sheet.
+// why: docs/specification.md#the-dropdown-panel
+const MENUS = [
+  {
+    file: 'src/styles/dropdown.css',
+    panel: '.ui-dropdown__panel',
+    // Each named on its own below: the portalled panel is not a descendant of an
+    // open container, so one rule cannot answer for both placements.
+    open: ['.ui-dropdown.open .ui-dropdown__panel', '.ui-dropdown__panel--portal.is-open'],
+    what: 'the kit\'s own dropdown, in place and portalled',
+    cost: 'one of its rows signs the reader out, since #286',
+  },
+  {
+    file: 'src/styles/topbar.css',
+    panel: '.vsw__menu',
+    open: ['.vsw.open .vsw__menu'],
+    what: 'the topbar version switcher',
+    cost: 'its rows change the version the page is reading',
+  },
+  {
+    file: 'src/styles/topbar.css',
+    panel: '.amenu',
+    open: ['.acct.open .amenu'],
+    what: 'the topbar account menu',
+    cost: '`.aout` ends the reader\'s session',
+  },
+];
+
+// The rules a menu's open state is written in, one selector at a time. Exact
+// selector parts, so a rule naming two of them answers for both and a rule
+// naming neither answers for nothing.
+const openRules = (all, sel) => all.filter((r) => selects(r, sel));
+
+for (const m of MENUS) {
+  test(`${m.file}: ${m.panel} is visible in the frame it opens, not the next one`, () => {
+    const all = rules(read(m.file));
+    for (const sel of m.open) {
+      const open = openRules(all, sel);
+      assert.ok(open.length, `no rule keys on \`${sel}\` — this gate is measuring nothing`);
+
+      const lists = open.flatMap((r) => transitions(r).map((t) => t.trim()));
+      assert.ok(
+        lists.length,
+        `\`${sel}\` no longer swaps its transition list, so \`visibility\` is still on the clock `
+        + `while ${m.what} opens: the frame the class lands resolves \`hidden\`, a browser refuses `
+        + 'to focus a row inside it, and the arrows open a menu the keyboard cannot enter. One rule '
+        + '— `transition-property: opacity, transform` on the open menu — is the whole fix.',
+      );
+      for (const list of lists) {
+        assert.ok(
+          !/\bvisibility\b|\ball\b/.test(list),
+          `\`${sel}\` transitions \`${list}\`, which still puts \`visibility\` on a clock — and `
+          + '`all` is a spelling of visibility. The row the arrows aim at is unfocusable for the '
+          + 'first frame, which is the frame the focus call happens in.',
+        );
+      }
+    }
+
+    // The close is not touched: it is what keeps the menu drawn while it fades,
+    // and the rules above only stand while it is open.
+    const base = all.find((r) => selects(r, m.panel));
+    assert.ok(base, `the \`${m.panel}\` rule was found`);
+    assert.ok(
+      transitions(base).some((t) => /\bvisibility\b/.test(t)),
+      `\`${m.panel}\` stopped transitioning \`visibility\` at all, so it is gone in the frame it is `
+      + 'told to close and the fade plays on a box nobody can see',
+    );
+  });
+
+  // And the other end of that window, which the three overlays above already
+  // gate: a menu drawn while it fades is a menu that is hit. Its rows are <a>
+  // and <button> elements — a menu is actions — so a stray click in the 250ms
+  // after a close activates one of them invisibly.
+  test(`${m.file}: ${m.panel} stops being clickable at once`, () => {
+    const all = rules(read(m.file));
+    const live = /pointer-events\s*:\s*auto/;
+
+    const closed = all.find((r) => selects(r, m.panel));
+    assert.ok(closed, `the \`${m.panel}\` rule was found`);
+    assert.match(
+      closed.body, /pointer-events\s*:\s*none/,
+      `a closed ${m.what} is hit-testable. \`visibility\` is held at \`visible\` for the whole fade `
+      + 'out, so for --dur-med after the menu closes its rows are still there to be clicked — and '
+      + `${m.cost}. \`pointer-events: none\` here, taken back on the open rules, is the same answer `
+      + '.ui-drawer and .ui-cmdk give.',
+    );
+
+    const ungated = all.filter((r) => selects(r, m.panel) && live.test(r.body));
+    assert.deepEqual(
+      ungated.map((r) => r.selector), [],
+      `${m.what} is turned back on by a rule that does not ask whether it is open`,
+    );
+    // Each named open rule on its own, not `some` of them: with one assertion for
+    // the set, deleting either of the dropdown's two left the whole suite green
+    // and the rail's Sign out drawn, opaque and unclickable.
+    for (const sel of m.open) {
+      assert.ok(
+        openRules(all, sel).some((r) => live.test(r.body)),
+        `nothing turns \`${sel}\` on while it IS open — that menu is drawn, opaque and unclickable, `
+        + 'and the hit-test at a row\'s centre returns whatever is behind it',
+      );
+    }
+  });
+}

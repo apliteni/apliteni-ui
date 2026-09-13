@@ -183,7 +183,7 @@ So write the line, then write what is **on** it:
 
 ```
 src/styles/callout.css:140 `.ui-toast--solid .ui-toast__action`
-src/styles/nav.css:38-40 `font-size: 14.5px;`
+src/styles/nav.css:61-63 `font-size: 14.5px;`
 ```
 
 `scripts/code-refs.test.js` resolves every one of them — the file exists, the line exists,
@@ -204,7 +204,7 @@ Four things the form asks of you, and the reason for each:
   count against what the pages declare, so a `ref:` written where that walk cannot see it
   makes the two disagree rather than falling between them.
 - **Story copy a reader sees anchors with a second code span**, not a backtick that would
-  land on the page: `${code('src/styles/nav.css:80')} ${code('.ui-nav__item.is-danger:hover')}`.
+  land on the page: `${code('src/styles/nav.css:111')} ${code('.ui-nav__item.is-danger:hover')}`.
 
 Two forms are exempt by construction, never by a list. A `<sha>:` prefix makes the citation
 historical — a claim about a tree that is not this one. And a path whose first segment is not
@@ -1083,6 +1083,30 @@ therefore renumbers guideline pages outside your diff, so prefer appending to
 whether the gap is still real — grep `unmet` when an issue closes, or the Guidelines Overview
 goes on advertising it publicly.
 
+### A rule that outranks another cancels every state that other one writes
+
+`layout.css` is imported after `nav.css`, so `.ui-app__rail .ui-nav__item:hover` ties
+`.ui-nav__item:hover` on specificity and wins on source order alone. Re-skinning the rail's rows
+therefore silently takes over every state the nav writes for a row, including the ones the new rule
+never mentions.
+
+Two of them were lost that way, and both were found by eye rather than by a gate:
+
+- **The destructive row.** `nav.css` washes `.is-danger:hover` in `--glow-pink`. The rail's own
+  hover paints `--surface-3` over it, so Sign out quietly stopped taking the pink the guideline page
+  cites `nav.css` for. It is excluded from the rail's hover by name.
+- **The row the reader is standing on.** `.is-active` already rests on `--surface-3`, so painting
+  the same colour on hover made the one row the reader is standing on the one row that ignores the
+  pointer. Excluded by name as well.
+
+The resting ink has the mirror of the same problem: a rail-scoped `--muted` on `.is-danger` pre-empts
+the step `nav.css` writes for it and makes the destructive row the quietest thing in the rail. So the
+rail names both of `nav.css`'s danger states rather than hover alone — a state the override forgets
+is a state it silently cancels.
+
+When a rule re-skins rows another sheet already styles, list every state that other sheet writes and
+decide each one. See [The page shell](docs/specification.md#the-page-shell).
+
 ### A shorthand resets the axis it does not mention
 
 `padding` sets all four sides, including the ones you leave out. So `style="padding:70px 0"`
@@ -1521,8 +1545,8 @@ The role and portal guarantees are in [Typefaces](docs/specification.md#typeface
 `stories/button-chrome.test.js` checks clickable classes rendered as something other than
 a button. A browser gives a button a grey fill, 2px outset border, shrink-to-fit width,
 centred text, and `font: 400 13.3333px Arial`. The reset at
-src/styles/nav.css:29 `.ui-nav__item {` removes all of these. Before #251,
-src/styles/dropdown.css:111 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
+src/styles/nav.css:52 `.ui-nav__item {` removes all of these. Before #251,
+src/styles/dropdown.css:121 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
 
 Classes such as `.vopt` (`<div role tabindex>`), `.ui-card--interactive` (`<a href>`) and
 `.ui-fbpill` (bare `<div>`) had no button specimen. Classes already shown on a button are
@@ -1599,8 +1623,8 @@ repairs held at zero failures. Counts are exact, as in `stories/contrast.test.js
 cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-of-what-it-does-not-reach).
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
-src/styles/nav.css:29 `.ui-nav__item {`. The recorded direction audit found one logical
-property, symmetric `margin-inline: auto` at layout.css:125, against 25 physical left/right
+src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
+property, the symmetric src/styles/layout.css:271 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.
@@ -1647,6 +1671,29 @@ Reduced-motion blocks belong to the separate gate.
 
 See [Motion](docs/specification.md#motion) and
 [on-site exceptions](#an-exception-is-a-note-at-the-site-read-by-the-gate).
+
+### The rail's fold is read off the declaration, not through the cascade
+
+`stories/apps/shell-states.test.js` holds the fold's travel — the width in both sheets that write
+it, and the toggle's seam — by reading the `transition` declarations as text. Two reasons, and
+neither is a shortcut.
+
+The width is invisible to `stories/motion-coverage.test.js`. That gate's `MOVES` list is closed and
+carries no `width`, and what the fold re-points is `--ui-rail-w`, a custom property, so no rule
+under a state hook declares the property that travels. Both `transition: width` lines could be
+deleted and eight gates stayed green while the fold snapped from 249px to 74px in one frame. The
+travel is what version 1 of #277 was sent back for, and it was the one claim on the branch with
+nothing under it.
+
+Text is also the right reading. JSDOM expands no `transition` shorthand, so
+`getComputedStyle(rail).transitionDuration` answers `0s` whatever the sheet says — but what has to
+be there is the tokens, and a literal that happens to resolve to 250ms is a second tempo, which is
+the whole of what `stories/motion-tokens.test.js` says about every other transition the kit writes.
+The same reading is what lets the gate refuse a travel written `!important`, since that is the one
+way the reduced-motion net loses.
+
+See [The page shell](docs/specification.md#the-page-shell) and
+[Motion](docs/specification.md#motion).
 
 ### Reduced motion measurements
 

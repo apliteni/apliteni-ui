@@ -1,400 +1,1185 @@
-# Elevation: nothing casts, and every surface says how high it is (#295)
+# App shell: a rail the reader folds, with the control in its head and the session in a menu
 
-Prepared for the coordinator to open from `asabirov/295-elevation`. Based on main `7cb8727`,
-2026-09-13. Implements the three decisions Artur recorded on
-[#295](https://github.com/apliteni/apliteni-ui/issues/295) from the review page
-`docs/reviews/295-elevation.html`; the research that page rests on is
-[#299](https://github.com/apliteni/apliteni-ui/pull/299), read here and not merged.
+Closes #277 and #286.
 
-**Rebase note.** Rebased onto `7cb8727` (#305, release 0.31.1) on 2026-09-13 — 0.32.0 stays
-above 0.31.1 in `package.json`, `package-lock.json` and the changelog, #305's touch-zoom net is
-untouched, and every check in [Proof](#proof) was re-run on the rebased tree.
+## The decision this is built on
 
-## What & why
+Artur reviewed the first version of this pull request on 2026-09-12 and sent it back: *"I don't
+like that. Reuse lessly-hub/lessly-ui solution."*
 
-Since [#284](https://github.com/apliteni/apliteni-ui/issues/284) the card is flat and ten other
-places still cast. #295 asked what should separate a surface once the shadow goes. The answer
-picked is `lift-line`: **nothing casts anywhere**, a surface says how high it is with its step on
-a ladder of lightness, and every floating surface keeps the kit's hairline. The card takes one in
-both themes, where only light had one.
+That version had rejected three of the reference's decisions on cost grounds — the fold snapped
+instead of animating, the toggle was opt-in, and a folded row named itself to a pointer and not to
+the keyboard. All three rejections are reversed here. The reference is `lessly-hub/lessly-ui`
+(`AppSidebar`, `RailToggle`, `useSidebar`), read from the checkout on 2026-09-12, and its 4.0.0
+changelog entry is the argument the rework follows:
 
-The five `--shadow-*` tokens stay published and resolve to the transparent shadow `0 0 #0000`.
-See [Deprecated, not deleted](#deprecated-not-deleted) for why, and why not `none`.
+> A closed rail keeps the column it had open and clips it, instead of rebuilding every row narrow —
+> so a mark stands on the same column at both widths and nothing shifts while the rail closes.
 
-**An independent review of this branch raised ten findings. Nine are fixed here and the tenth is
-[a question for Artur](#open-to-artur); [the review round](#the-review-round) lists all ten.**
+> `AppSidebar` always draws its collapse toggle, and it draws it at the rail's foot under a rule of
+> its own, where the header band above stays the organization's.
 
-## Premises
+One thing is deliberately not taken, and it is the only one: the reference keeps no state at all,
+and this kit keeps the reader's fold in a cookie. #277 asks for it and an HTML kit has no host app
+to lean on. It is the first row of the *Not taken* table below.
 
-- The model, the light half and the ink were decided by Artur on the review page, from rendered
-  frames. This branch implements those three picks; it does not re-open them.
-- `docs/reviews/295-elevation/elevation.css` on `asabirov/295-elevation-variants` is the source
-  for the exact values. Every token below was checked against it, and the review page's
-  measured-surface line was checked against the rendered frames here.
-- The research already warned where the bill lands: *"the dark ladder has about one step of
-  headroom left, and `--muted` is what spends it."* The light half of that bill — every
-  translucent wash in the theme composites over a page that is no longer white — was not on the
-  review page, and is the largest part of this diff. It is itemised under
-  [The ladder's bill](#the-ladders-bill).
-- Nothing in `docs/reviews/` is touched. The prototype was copied into a scratch tree to draw the
-  frames; the **after** frames are the real stylesheet from `src/`, with no prototype override
-  loaded at all.
+### The sixth round, and the last rejection it reversed
 
-## The decision record
+Artur read the reworked pull request on 2026-09-12 and sent back one line: *"make just one icon like
+lessly-ui has."* That is the last row of *Not taken* that argued against the reference on cost
+grounds, and it is reversed here. The toggle was the kit's `chevronLeft` turned 180° with the words
+"Collapse sidebar" beside it; it is now the reference's own control — one mark, no words, standing
+in the glyph column — at the rail's foot then, and in its head band since the round below. What that
+took is in the *taken* table, and the row it came out of is gone from *Not taken*.
 
-| Decision | Pick | The reason, from the review page |
-| --- | --- | --- |
-| Which elevation model should the kit ship? | **lift-line** — lightness and a hairline | *"What Atlassian, Primer, Geist and Radix all actually ship, and it is what makes light survivable: the ladder carries dark, the line carries light, and neither theme depends on the half that is weak for it."* The cost named there is the one this branch pays: the card is no longer edgeless in dark. |
-| In light, does the card come off white? | **card-steps-down** | *"Light gets a real ladder, which means a panel is still separated if a line is ever dropped, and it matches Radix (step 1 is not white) and Geist (#fafafa, not #ffffff)."* The rejected option kept the card white and made the card and every floating panel the same white, so light could never drop its hairline. |
-| Dark has about one step of headroom left. Who spends it? | **repick-muted** | *"The honest version of the rule: if raised surfaces get lighter, the ink on them gets lighter too, once, deliberately."* The alternative capped the ladder and enforced the cap with nothing — *"a quiet 4.38 that no gate catches."* |
+### The seventh round: the toggle to the head, Sign out into a menu
 
-## What changed
+Artur read the pull request again on 2026-09-13 and sent back two arrows over two screenshots:
+*"move toggler to the top?"* — from the toggle at the rail's foot up to the brand row — and
+*"move Sign out to User menu?"* — from the Sign out row into a menu on the account block. Both are
+taken, and both come out of the same reference this rework follows.
 
-### The ladder
+**The toggle is in the head band now.** `app-sidebar.tsx`'s band holds the organization's mark and,
+folded, that mark alone, standing in `RAIL_COLUMN_BOX` — the glyph column every row is on. The kit's
+band now holds the product's mark and the rail's own control. This round stacked them, the toggle
+*under* the wordmark, on the argument that beside it is off the glyph column and the fold would
+carry the toggle out over the rail's closing edge; the tenth round below put it beside the wordmark
+after all, and answers that argument rather than dropping it. The rule that used to sit above the
+toggle at the foot is now under the band, so the head is one band rather than two compartments eight
+pixels apart. Standing the toggle in the head at all is a departure from the reference, which keeps
+its toggle at the foot; it is the first row of *Not taken* below.
 
-Bottom to top. Every value verified against `elevation.css`, and read back off the rendered page.
+**The account block is a menu trigger.** `user-menu.tsx` makes the avatar, name and address a
+dropdown trigger over a menu holding a label and the rows that act on the session, Sign out among
+them; folded, the trigger is the avatar alone with its name on hover. The kit does the same with its
+own `dropdown()` — `portal: true`, because the rail is `position: sticky` with `overflow-y: auto`
+and each of those traps a panel on its own, and `direction: 'up'`, because the block is the last
+thing in a full-height rail. Sign out left the nav list to get here, which is the point: it ends a
+session rather than going anywhere, and it was the one destructive thing standing among the places a
+reader can go. On the folded rail the trigger takes the same name chip every folded row takes, with
+the reader's two lines in it. With no `signOutHref` there is no menu and the block is the plain
+reader block it has always been — a trigger that opens an empty panel is a control that does nothing.
 
-| Token | The step | Dark before → after | Light before → after |
-| --- | --- | --- | --- |
-| `--bg` | the page | `#16151f` → `#0e0d14` | `#ffffff` → `#eef0f5` |
-| `--surface-2` | **sunken** — fields, tracks, disabled, code | `#1b1927` → `#161520` | `#f5f6f9` → `#e3e6ee` |
-| `--surface` | the card | `#221f2e` → `#211e2d` | `#ffffff` → `#f8f9fc` |
-| `--bg-elevated` | **floating** — menus, panels, drawer, modal, toasts | `#1c1a28` → `#2a2639` | `#ffffff` (unchanged) |
-| `--surface-3` | the top step — the readout, chips, the rail's hover | `#2a2739` → `#2d293c` | `#eceef3` → `#e7eaf1` |
-| `--seg-active-bg` | the active segmented pill | `#34314a` → `#383350` | `#ffffff` (unchanged) |
+**What the menu turned up.** Building it on the kit's own `dropdown()` rather than on a menu written
+for the rail is what found the defect below: the arrows opened the panel and left focus on the
+trigger, in every dropdown the kit ships. That is fixed here, in one rule — and, after a ninth
+review round measured the claim, in the same rule again for each of the two menus the topbar draws.
 
-Dark's `--bg-elevated` used to sit **below** the card it floated over — `#1c1a28` against
-`#221f2e`. It is a full step above it now.
+### A defect the port found, in the dropdown and not in the rail
 
-### Nothing casts
+`dropdown()`'s panel is `visibility: hidden` with `visibility` on the same transition as the fade.
+`visibility` is discrete: going hidden → visible it is still `hidden` in the frame the open class
+lands — and a browser will not move focus into a hidden box. So `openDropdown()`'s `items[0].focus()`
+did nothing, focus stayed on the trigger, and since every row carries `tabindex="-1"` the next Tab
+left the dropdown altogether. **Every menu the kit ships opened to the arrows and let no keyboard
+in.** Measured in Chrome: the panel's resolved `visibility` is `hidden` in that frame and `visible`
+in the next.
 
-Sixteen rules stop drawing a `box-shadow`, which is the list the issue and the review page
-carry: the switch knob, the topbar theme pill, the soft toast (`--shadow-sm`); the success
-panel, the outline toast, the hover readout (`--shadow-md`); the dropdown panel, the account
-menu, the workspace menu, the confirm, the drawer, the command palette, the auth card, the solid
-toast, the React modal (`--shadow-lg`); the active segmented pill (`--shadow-seg`).
+JSDOM focuses inside a hidden box happily, so none of the gates that press the keys could see it;
+`dropdown.css` already had the fix written for the search variant alone, for the same reason stated
+in the same words — *"a browser will not focus a field in a box that is still `hidden`"*. It is
+every panel's now: one `transition-property: opacity, transform` while the panel is open, closing
+untouched. `stories/overlay-css.test.js` is where it is gated, because that file exists for exactly
+the rules JSDOM cannot check.
 
-**Three more were not on that list, and re-running the sweep found them:**
+**Half of that was not true until the ninth round, and the review is what found it.** The kit ships
+four menus, not one: `dropdown()`'s panel, the rail's portalled copy of it, and the topbar's version
+switcher and account menu, which are the same `wireDropdown()` in bespoke clothes. The two fixes key
+on `.ui-dropdown__panel` and live in `dropdown.css`; `.vsw__menu` and `.amenu` are written in
+`topbar.css`, which this branch did not touch at all — so nineteen panels across the stories were
+fixed and eight were not, while the body claimed every menu the kit ships. Both gates read
+`dropdown.css` and only that file, which is why nothing said so. Nothing had regressed: both defects
+are `main`'s, in the topbar, from before this branch. Measured in Chrome 152 at 1280×900, over CDP on
+a page importing the kit's own modules, on either side of the fix:
 
-- `src/styles/feedback.css:70` `.ui-fbcomposer {` — a floating composer whose only edge was
-  `--shadow-lg`. It already painted `--bg-elevated`; it takes the hairline now.
-- `src/styles/motion.css:72` `.m-lift:hover {` — a published utility that cast `--shadow-md` on
-  hover. It is the travel alone now, and the `box-shadow` it transitioned went with it.
-- `src/styles/feedback.css:36` `.ui-fbpill` — found by the review round, and the one the first
-  sweep missed twice over: it wrote its two layers by hand rather than through a `--shadow-*`
-  token, so a sweep looking for the tokens did not see it. It cast an accent glow ten pixels down
-  and a layer of ink under that, grew both on hover, and its glyph carried a 1px ink
-  `drop-shadow()` as well. All of that is gone. It takes **no hairline** in exchange — see
-  [the review round](#the-review-round).
+| | ArrowDown from the trigger lands on | a click 90ms into the fade out hits |
+|---|---|---|
+| `.vsw__menu` — version switcher, before | `button.vsw__btn`, the trigger | `div.vopt`, a row |
+| `.vsw__menu` — after | `div.vopt`, a row | the page behind it |
+| `.amenu` — account menu, before | `button.avatar`, the trigger | **`a.aout`, Sign out** |
+| `.amenu` — after | `a.cur`, a row | the page behind it |
+| `.ui-dropdown__panel` — the control, either side | a row | the page behind it |
 
-The count in the changelog went with them: the entry names the surfaces and no longer states a
-number a reader cannot check against the list beside it.
+Both gates now read a table of `{ file, panel, open rules }` and ask every menu the kit ships the
+same two questions, rather than reading one sheet. Six mutations hold it — each menu's closed
+`pointer-events`, each open rule's `pointer-events`, each open rule's transition list — and each goes
+red naming the menu it broke.
 
-Six floating surfaces stop painting `--surface-2` and paint `--bg-elevated`: the same token
-cannot be both a field's inset and a menu's lift. The confirm, the palette and the drawer take it
-on the hook each publishes, never on the full-viewport container.
+### An independent review of this round, and the eight things it found
 
-One trap worth naming, because it is silent: the drawer, the confirm and the palette composed
-their local shadow with the focus ring — `box-shadow: var(--drawer-shadow), var(--ring)`. With
-the shadow at `none` that is `box-shadow: none, var(--ring)`, which **does not parse**, and the
-declaration would have been dropped along with the focus ring. The three local hooks are gone and
-those rules are `box-shadow: var(--ring)`.
+A read-only review ran against the two commits above and broke rules on disk to prove each finding.
+Seven are fixed here and one is documented rather than changed. Three of them were not about the
+rail at all — they were about `dropdown()`, which this round is the first to put on a shipped
+surface with a **destructive** row in it.
 
-### Two wiring faults the ladder exposed
+1. **`wireShell()` stopped keeping its own per-document promise.** It is written to be handed a
+   foreign root — a frame's document, an open shadow root — and `wireDropdown()` was not: it
+   portalled every panel to the *module realm's* `document.body`, queried that document to close
+   dropdowns, and registered its click-outside and Escape handlers once, on it. So a shell in a
+   frame put its menu on the page holding the frame, styled by whatever sheet that page has, and
+   nothing closed it; a shell in a shadow root had its panel lifted into the light DOM, out of reach
+   of every style scoped to that root. Fixed in `dropdown.js`: a portalled panel goes to the top of
+   the tree its trigger is in, the close handlers are registered once per document that holds a
+   dropdown — the shape `wireShell()`'s own `listen()` already had — and `closeAllDropdowns()` walks
+   a registry of wired containers instead of `document.querySelectorAll`, which enters no shadow
+   root and sees no other document. The two environment gates in `shell-rail.test.js` now draw a
+   shell **with an account**, so the menu is a subject in both; before, their fixture had none and
+   the new surface reached neither.
+2. **An empty ruled band at the top of every phone /account rail.** The band's hairline and padding
+   moved from the toggle's row onto the band, and below 720px the toggle is not drawn — so for a
+   shell whose word is in the topbar the band was 12px of padding and a rule over nothing. The
+   720px block drops a band with no wordmark in it; the reader's fold cannot take the same rule,
+   because there the toggle *is* drawn and hiding the band would take away the only way back to an
+   open rail. Named beside the touch floors in `shell-states.test.js` and measured both ways.
+3. **A closed dropdown panel took clicks for a quarter of a second.** `visibility` is held at
+   `visible` for the whole fade out so the rows do not vanish mid-fade — and a drawn box is a box
+   that is hit, with no `pointer-events` rule anywhere in `dropdown.css`. A stray click in that
+   window activated a row invisibly, and since this round one of those rows is **Sign out**. This
+   is the same defect `overlay-css.test.js` already gates for the drawer, the confirm and the
+   palette, and the fix is the one those three already ship.
+4. **A gate this round added had quietly weakened an older one.** `accessibleName()` fell back to
+   an element's text when it carries no `aria-label` — which the account block needs — but read
+   text out of a clone, and a clone has no cascade. A fold that took a label out with
+   `display: none` still had the words in `textContent`, so the folded-rail naming gate would have
+   passed on rows a browser names nothing. It walks the live tree now and skips what is not
+   rendered.
+5. **The touch floor's measured half had been relaxed.** Extending the exception list from one
+   entry to two turned `min-height` must be `0` on the reader's fold into `must be what it is on an
+   open rail`, which is blind to a floor written *outside* the media query — that raises both folds
+   together. Both halves are asserted now.
+6. **Sign out needs JavaScript.** Not changed: see *What a reviewer should push on*.
+7. An `overflow: hidden` + `text-overflow: ellipsis` pair in the menu's head with nothing bounding
+   it — the inert pair `.ui-app__who`'s own comment warns about. The address wraps instead.
+8. A comment claiming the folded trigger is the only place the address appears; the fold is an
+   opacity, so it never left the accessibility tree, and `shell-states.test.js` says so. Reworded.
 
-- **In light the hover readout lost its panel.** `src/styles/tooltip.css` re-pointed
-  `--ui-tip-bg` at `--surface`, which was white while the page was white. The ladder makes
-  `--surface` the card step, so a readout drawn over a card was painted the card's own colour.
-  The override is gone; the readout takes `--surface-3` in both themes. Drawn, rather than
-  described: [`found-light-tip-unwired-1440.png`](docs/evidence/elevation/found-light-tip-unwired-1440.png)
-  is this branch's stylesheet with that one override put back — the readout measures `#f8f9fc`,
-  exactly the card under it. With the fix it measures `#e7eaf1`.
-- **The dropdown's accent counter stacked a wash on a raised surface.**
-  `.ui-dropdown__badge.is-accent` mixed 14% accent over the row under it. That is fine over the
-  page and not over a panel; the ladder made the panel a raised surface and every dark
-  theme × accent cell but Emerald went under AA. It takes the shape the nav badge has had since
-  #157 — `src/styles/nav.css:128` `.ui-nav__item.is-active .ui-nav__badge.is-accent` — the flat
-  surface, the accent as ink. This also closes two of the four rows in the contrast ledger's
-  bucket B, which had been prescribing exactly this fix since #157.
+### One decision made after review, by the coordinator, and reversible
 
-### Deprecated, not deleted
+An independent review found that rewriting the 720px block took its
+`min-height: 44px` out with everything else: a rail row on a phone went from **44px to 31px**. It
+still clears WCAG 2.5.8 (24px) and the kit's own floor, so nothing was red — and the two equality
+gates, which hold the reader's fold and the 720px fold identical, are exactly why nothing could be:
+equality is silent about a value that falls on both sides at once.
 
-`--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` **stay
-published** and are set to the transparent shadow `0 0 #0000` in both themes. Deleting them would
-leave a consumer's
-`box-shadow: var(--shadow-lg)` as an unresolved `var()` — which computes to the property's
-initial value in most cases but is a silent cliff, and a consumer who deliberately wants a cast
-shadow back can set the token instead of rewriting their rules. Nothing under `src/` reads any of
-them. `--shadow-ink`, `--sheen`, `--ring` and `--scrim` are untouched: none of them is a cast
-shadow.
+The floor is restored **in the 720px block only**. It cannot be shared with the reader's fold: a
+rail row is 35.4px open, so a floor that applied on the press would grow every row and step every
+glyph below it down the rail — the one thing *the fold travels, and no glyph moves while it does*
+promises not to do, and the thing the evidence below shows. So below 720px, where the strip is the
+whole of the rail and a finger is the only pointer it has, a row is 44px (WCAG 2.5.5); on a desktop
+fold a row keeps its open height and clears the 24px floor a pointer is held to. That is one
+deliberate difference between the two copies, named at the declaration and gated in both
+directions — the line cannot go missing, and it cannot spread to the reader's fold.
 
-The three local hooks `--drawer-shadow`, `--confirm-shadow` and `--cmdk-shadow` are removed
-rather than zeroed, because a local hook that resolves to `none` and is composed with `--ring` is
-the parse trap above.
+This is a coordinator's call, not Artur's. Reverting it is one line in `layout.css`, one named
+exception in `shell-states.test.js` and one gate in `accessibility-floor.test.js`.
 
-**The deprecated tokens were `none` until the review round, and that was the same trap pointed at
-the consumer.** `none` is valid only on its own, so `box-shadow: var(--shadow-lg), var(--ring)` —
-the kit's own pre-0.32 pattern, and the exact line three of its components carried — became
-invalid the moment the token resolved, and the browser dropped the whole declaration with the
-focus ring inside it. `0 0 #0000` paints the same nothing and composes in a list. The changelog's
-breaking entry says so and carries the migration note: a consumer composing a kit shadow with
-anything else needs no migration, and one who wants the surface bare should drop the `var()`
-rather than rely on it painting nothing.
+### The tenth round: the toggle to the right of the brand row
 
-## `--muted`, measured
+Artur read the pull request again on 2026-09-13 and sent back one line: *"no, show icon to the
+right."* The toggle stays in the head band; it moves out from under the wordmark onto the wordmark's
+own line, at the far end of it.
 
-The decision asks for `--muted` picked against the **top** of the dark ladder, clearing AA 4.5
-with room to spare — a target of ≥ 5.0 on `--bg-elevated` and on `--surface-3`. Dark `--muted`
-goes `#948fa8` → `#a29db6`: the same violet-grey, lifted fourteen steps on every channel, so
-`G = R − 5` and `B = R + 20` hold exactly as before and the hue does not move.
+**The argument the seventh round made for stacking is correct, and this is the answer to it.** The
+end of the band is 175px off the glyph column, and the fold closes the rail over a band that keeps
+its open width — so a band that is only clipped clips away the one control that opens a folded rail.
+The control is therefore not clipped: it **rides the closing edge**. The band keeps the open column
+and the control sits at its end, so an offset of exactly `--ui-nav-strip - --ui-nav-col` puts it on
+the strip; and the strip *is* the glyph column, twice a row's own glyph centre. So the toggle's mark
+ends the travel standing on the line every glyph above it stands on. The offset is
+`inset-inline-start` on a relatively positioned box, transitioned on `--dur-med` and `--ease` — the
+width's own clock, so the control and the edge arrive together. `position: relative` and not a
+transform, because the name chip inside the box is `position: fixed` and a transform would make the
+box its containing block.
 
-Every surface dark `--muted` sits on, WCAG 2.x:
+**Which column the toggle keeps, since it cannot keep one at both widths.** It keeps none: it keeps
+the *edge*, and the edge lands it on the column. Measured frame by frame below, the mark stands
+37.5px from the rail's closing edge on every frame of the travel — the rail's hairline plus its
+inset plus a glyph's own centre in its row, which is the mirror of the 36.5px the nav's glyphs hold
+from the opening edge. Everything else on the rail holds its column exactly as before: the top row's
+glyph and the reader's avatar each report one distinct centre, 36.5px, across all 38 frames sampled.
 
-| Surface | Old ink on old surface | **Old ink on the new surface** | **New ink on the new surface** |
-| --- | --- | --- | --- |
-| `--bg` `#0e0d14` | 5.82 | 6.22 | **7.40** |
-| `--surface-2` `#161520` | 5.56 | 5.81 | **6.91** |
-| `--surface` `#211e2d` | 5.18 | 5.24 | **6.24** |
-| `--bg-elevated` `#2a2639` | 5.50 | 4.71 | **5.60** |
-| `--surface-3` `#2d293c` | 4.66 | 4.52 | **5.38** |
-| `--seg-active-bg` `#383350` | 4.01 | 3.84 | **4.57** |
+**And the product's lockup goes whole on the fold, not just its words.** The column the control
+lands on is the column the mark stands on, and a folded rail is one column wide, so the two would be
+drawn one over the other. `visibility: hidden` rides with the fade, which is what takes the link out
+of the tab order rather than leaving it invisible under the control that replaced it — the first Tab
+into a folded rail lands on the toggle, measured — while the box keeps its space, so the band keeps
+the height it had open and nothing under it steps. This is the reader's fold alone: below 720px the
+toggle is not drawn, nothing arrives on the mark's column, and the mark stays — which this round
+claimed and the round below is what actually makes true. It is the second named difference between
+the two folds, and both halves of it are measured rather than excluded, as the touch floor's are.
 
-The middle column is what shipping the ladder without the repick would have cost: the two
-floating steps clearing by hundredths, which is the 4.71 / 4.52 the research measured. Every
-surface clears 4.5 with the new ink, the two floating steps clear 5.0 with room, and
-`--seg-active-bg` — which no rule paints `--muted` on today, and which was already the worst
-ground in the kit at 4.01 — clears 4.5 for the first time.
+**The phone strip is 16px wider than it was, and that is the same rewrite.** At 375 the rail
+measures **74px** on this branch against **58px** on `main` — 4% of the viewport. `main` wrote the
+narrow rail as a literal `grid-template-columns: 58px 1fr` with the rail's padding cut to 6px at
+that width. This branch stops re-laying the rail out at 720px at all: the narrow rail is the
+reader's fold, so it takes the same `--ui-rail-w` the press does —
+`--ui-nav-strip` + 2 × `--space-4` + the rule, which is 41 + 32 + 1. The 41 is the glyph column, a
+17px glyph inside 12px of a row's padding either side; the 32 is the rail's own inset, unchanged
+from the open rail, which is what keeps a focus ring out of the rail's clip. Measured in Chrome at
+375×760: `74px`, eight rows, every one of them 44px, and the toggle not drawn. Making it 58 again
+means either a second narrow layout — the thing the rewrite removed, and what the two equality
+gates exist to refuse — or a smaller inset on the fold as well.
 
-Light `--muted` (`#5c6270`) does not move. It is measured on every new light ground and the worst
-is the sunken step: `--bg` 5.36, `--surface` 5.81, `--bg-elevated` 6.11, `--surface-3` 5.07,
-`--surface-2` **4.89**. That 4.89 is the ratchet move under [The ladder's bill](#the-ladders-bill).
+### The eleventh round: the mark stays on the phone strip, folded or not
 
-## The ladder's bill
+Round 9's review found one should-fix, and it arrived with the round above. The rule that takes the
+product's lockup on the reader's fold carried no width qualifier, and the toggle that is supposed to
+arrive on the column the lockup gives up is `display: none` below 720px. A rail that was both folded
+and narrow therefore drew an **empty 41px head band with its hairline still under it**: no mark, no
+control, and the Tab walk into the rail starting at the first nav row, the link home gone with the
+mark.
 
-Everything below moved because a token the decision named moved. Each one is a gate turning red,
-not a preference.
+Nobody had to write a cookie by hand to get there. Every default shell is `data-rail="auto"` and
+takes the stored choice, so a reader who folds on a desktop and opens the same site on a phone lands
+in it — and so does any caller passing the documented `collapsed: true`.
 
-| What moved | Why | Gate |
-| --- | --- | --- |
-| Light `--pink` `#b63361` → `#a92d59`, `--glow-pink` re-tinted from it | Every `--pink`-on-its-own-tint pair reads over the page, and the page is no longer white: the danger nav row, the danger badge, the hovered danger button and the composer's error all fell to 4.38 or below | `stories/signal-contrast.test.js` |
-| Light `--chip-success-ink` `#1c7034`, `--chip-warn-ink` `#825900`, `--chip-info-ink` `#096a7c` | #131 gave a toast's action the chip ink; the soft toast's wash composites over the page | `stories/contrast.test.js` |
-| Light Ocean `--accent` `#005bc8` → `#005ab4`; light Emerald `#087a52` → `#076c48` | Emerald was the only cell that failed **flat** as well as washed — green has the least room of the four hues | `stories/accent-contrast.test.js` |
-| `.ui-app__rail .ui-nav__ic svg` opacity `0.62` → `0.66` | The light rail is `--surface-2` and went down a step with the page; the resting glyph fell to 4.34 against a hard 4.5 bar | `stories/apps/shell-states.test.js` |
-| `DISABLED_FLOOR` `5.56` → `4.89` | The 5.56–6.11 band was a property of a white light app. `--disabled-surface` is the sunken step, and light's sunken step used to sit one notch under `#ffffff`. The label still clears WCAG AA, and `DISABLED_MIN` — the bar the rule is actually held to — is 3 | `stories/guidelines/accessibility-floor.test.js` |
-| `GLYPH_FLOOR` `4.39` → `3.85` | The four callout glyphs are painted straight on the callout's own translucent wash. Every one is a graphic held to `GRAPHIC_AA` 3:1 and still clears it by more than a quarter again. Deepening four more chip inks to hold a ratchet none of them is failing was the worse trade | `stories/signal-contrast.test.js` |
-| Contrast ledger: bucket H deleted, bucket B 4 → 2 rows, buckets C / E / F deepened | H closed because `--muted` rose; B closed two rows because the dropdown badge was fixed; C, E and F deepened by about the step the light page took | `stories/contrast.test.js` |
-| Accent gate stops measuring the wash over `--bg-elevated` | It is a raised surface now, and the kit's own rule is that the accent wash goes on a base surface — which is true again once the dropdown badge is fixed | `stories/accent-contrast.test.js` |
+**The 720px block writes the lockup back**, which is the direction the rest of the file already
+reads in: the reader's copy sits behind `:where()` and weighs nothing, so the media query's own
+precedence is what separates the two. The alternative the review offered — scoping the press's rule
+to `@media (min-width: 721px)` — would have put the pair in a block JSDOM resolves nothing in, and
+the gates that hold the two folds against each other read that file rather than a browser.
 
-Both ratchets move **down**, which the repo treats as a decision somebody writes rather than a
-number somebody edits, so each carries the reason at its declaration. Neither is a WCAG bar, and
-no WCAG bar is crossed anywhere in this branch.
+**The gate that went green over it now mounts the state.** `shell-states.test.js` asserted the mark
+at narrow width, but it mounted `PAIR(false)` there — the rail that is *not* folded. It mounts
+`PAIR(true)` narrow as well now and reads the lockup's three properties in that state, so the
+exception is measured in both directions rather than excluded in one. `.ui-app__brand` is the one
+selector that is an exception in *both* lists, because the two blocks write it in opposite
+directions, and the comment over each says so.
 
-## Evidence
+Five mutations, five red, both files restored with their SHA-256 compared: the restore rule deleted;
+the restore giving back `opacity` but not `visibility`; the restore scoped to a rail that is not
+folded; the restore lifted out of the 720px block so it spreads to the press; and the toggle given
+back to the phone strip so nothing is missing from that column.
 
-The board frame the research drew — two cards, the plan dropdown held open over a card, the
-account menu, the hover readout over a chart, an outline and a soft toast — plus the React modal
-over all of it. Before is `origin/main`, after is this branch, both through the same prototype
-page with **no override stylesheet loaded**, so the after frames are the shipped kit.
+| at 390×800, folded | before | after |
+|---|---|---|
+| the mark | `opacity 0`, `visibility: hidden` | **`opacity 1`, `visible`** |
+| the head band | 41px, empty, its hairline still under it | **41px, the mark in it** |
+| the link home in the tab order | gone | **there** |
+| the toggle | not drawn at this width | not drawn at this width |
 
-| Frame | Dark before | Dark after | Light before | Light after |
-| --- | --- | --- | --- | --- |
-| Board, 1440 | [png](docs/evidence/elevation/before-board-dark-1440.png) | [png](docs/evidence/elevation/after-board-dark-1440.png) | [png](docs/evidence/elevation/before-board-light-1440.png) | [png](docs/evidence/elevation/after-board-light-1440.png) |
-| Board, 390 | [png](docs/evidence/elevation/before-board-dark-390.png) | [png](docs/evidence/elevation/after-board-dark-390.png) | [png](docs/evidence/elevation/before-board-light-390.png) | [png](docs/evidence/elevation/after-board-light-390.png) |
-| Modal, 1440 | [png](docs/evidence/elevation/before-modal-dark-1440.png) | [png](docs/evidence/elevation/after-modal-dark-1440.png) | [png](docs/evidence/elevation/before-modal-light-1440.png) | [png](docs/evidence/elevation/after-modal-light-1440.png) |
-| Modal, 390 | [png](docs/evidence/elevation/before-modal-dark-390.png) | [png](docs/evidence/elevation/after-modal-dark-390.png) | [png](docs/evidence/elevation/before-modal-light-390.png) | [png](docs/evidence/elevation/after-modal-light-390.png) |
+| | Before (the rule unqualified) | After |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-collapsed-light.png) |
 
-Plus [`found-light-tip-unwired-1440.png`](docs/evidence/elevation/found-light-tip-unwired-1440.png)
-— the readout fault, drawn from this branch with the one removed override put back.
+Both sides are the same tree with one line taken out of it, so nothing but that line differs. The
+open phone rail, for the third state:
 
-**The after frames and the found frame were re-shot after the review round**, from the same page
-with no override loaded. Each was diffed pixel-for-pixel against the frame it replaced: the only
-pixels that moved anywhere in the set are a 20×20 box at the switch knob, which is the hairline
-the review round gave it. The before frames are `origin/main` and are untouched.
+| dark | light |
+|---|---|
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-open-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-phone-open-light.png) |
 
-Two pairs for the fixes a board frame cannot show, each drawn the way the readout fault above was
-— this branch's stylesheet with the one rule put back:
+Round 9's second finding — that on a shell whose word is in the topbar the toggle now stands at the
+far right of an otherwise empty band — is a stated decision and Artur's call, and is left as it is.
+It is in *What a reviewer should push on* below.
 
-| Fix | Before | After |
-| --- | --- | --- |
-| A hovered row in a raised panel, dark. Before it measures `#211e2d` — the card step — inside a `#2a2639` panel, so the hover is *darker* than the surface it is on. After, `#2d293c` | [png](docs/evidence/elevation/review-dropdown-hover-before-dark-1440.png) | [png](docs/evidence/elevation/review-dropdown-hover-after-dark-1440.png) |
-| The switch knob, light, off: a white disc on `#e7eaf1` with and without the hairline | [png](docs/evidence/elevation/review-switch-before-light-1440.png) | [png](docs/evidence/elevation/review-switch-after-light-1440.png) |
-| The feedback pill, dark, with and without the accent glow and the ink under it. It is an accent gradient on the page: it is found without either | [png](docs/evidence/elevation/review-pill-before-dark-1440.png) | [png](docs/evidence/elevation/review-pill-after-dark-1440.png) |
+## What this is about
 
-Surfaces read off the rendered pixels rather than the stylesheet, page / card / dropdown panel /
-readout / account menu:
+On a desktop the shell's rail is always full width. A reader who wants that room for the page
+cannot fold it, and the only fold the kit has switches on by itself below 720px.
 
-- **dark before** `#16151f` / `#221f2e` / `#1b1927` / `#2a2739` / `#1b1927` — the panel and the
-  menu are *darker* than the card they float over.
-- **dark after** `#0e0d14` / `#211e2d` / `#2a2639` / `#2d293c` / `#2a2639`.
-- **light before** `#ffffff` / `#ffffff` / `#f5f6f9` / `#ffffff` / `#f5f6f9`.
-- **light after** `#eef0f5` / `#f8f9fc` / `#ffffff` / `#e7eaf1` / `#ffffff`.
+**What I found.**
 
-## The review round
+- The kit already draws two icon strips: the shell's own 720px fold (`src/styles/layout.css`) and
+  `sidebarNav({ collapsed })` (`src/styles/nav.css`). A reader cannot switch either one.
+- `sidebarNav({ collapsed })` forced every group shut and hid its list with `display: none` while
+  the group's toggle still flipped `hidden`. On the folded rail the current page's own row was
+  gone, and the toggle announced a list nobody could open. Fixed here, and photographed below:
+  four rows drawn and the current page missing, against six rows with *Pending* carrying its bar.
+- The reference does not persist the state at all: *"Pure — no persistence or context; the host app
+  owns persistence"* (`lessly-ui/src/hooks/use-sidebar.ts:20-21`). This kit is HTML and CSS with no
+  host app, so if the kit does nothing, "persists across navigation" is left to every consumer.
+- A folded row already had a name for a screen reader, since `aria-label` is emitted at every
+  width. It had nothing for a sighted reader on the keyboard.
 
-An independent review of the branch — grep over the sweep, the ladder's values, the `--muted`
-table, the bill and both ratchets — raised ten findings. Nine are fixed in the commits above;
-number 3 is [Open to Artur](#open-to-artur) below, because it is a value he picked from rendered
-frames and not a defect to repair quietly.
+**What I did.** `appShell()` draws a toggle in the rail's head band, at the far end of the brand
+row, by default. The press folds the rail from 249px to 74px over `--dur-med` by clipping a column
+that keeps its open width, so no glyph moves; the words and the counters fade on `--dur-fast` ahead of
+the closing edge. A folded row gives its name back beside the glyph on hover **and on keyboard
+focus**, in CSS. `wireShell()` wires the toggle and keeps the choice in a cookie a server can read.
+The rail's foot is the account block alone, and it is the trigger of a menu holding Sign out.
 
-| # | Finding | What was done |
-| --- | --- | --- |
-| 1 | `.ui-fbpill` still cast a real drop shadow — a `0 10px 26px` accent glow plus `0 2px 6px` of ink, heavier on hover — under a spec and a changelog that say nothing casts | **Stripped**, and the glyph's `drop-shadow()` with it. Decision below |
-| 2 | `--shadow-*: none` makes `box-shadow: var(--shadow-lg), var(--ring)` — the kit's own pre-0.32 pattern — invalid, silently deleting the consumer's focus ring | Deprecated to `0 0 #0000`, which composes. Changelog's breaking entry says so and carries the migration note |
-| 3 | Light's ladder is not monotonic: `--surface-3` sits below the page, so the light readout renders like an input, while the spec and the Elevation story claimed a monotonic ladder | **Open to Artur.** The spec and the story now state what actually ships, and neither claims monotonic |
-| 4 | Hover/active rows and chips inside raised panels painted `--surface`, a step *below* `--bg-elevated` in dark: menu hover sank while the palette lifted | Every one of them lifts to `--surface-3`. The dropdown's search field goes the other way to the sunken step |
-| 5 | The switch knob lost its only edge: white on `#e7eaf1` at 1.20:1 with no hairline | Takes `--border-strong`, the edge the checkbox beside it uses |
-| 6 | `package-lock.json` still said `0.31.0`, in both places it states a version | Bumped, and the packaging guard now reads the lockfile so it cannot drift again |
-| 7 | The floor page cited `src/tokens/tokens.css:171` `--disabled-ink-bare` for a rule about `--disabled-ink` | Re-pointed to `src/tokens/tokens.css:164` `--disabled-ink: var(--muted);`, with the whole declaration as the pattern — the old citation passed only because `--disabled-ink` is a prefix of `--disabled-ink-bare` |
-| 8 | The changelog said the dark card got *lighter* (it went `#221f2e` → `#211e2d`, darker) and its swept list was two rules short | Corrected, list completed, count dropped, three entries added for this round |
-| 9 | "The disabled primary reads 6.91:1 in dark" cherry-picks — light reads 4.89, and the floor page still said 5.56 | Both themes stated in both places, and a new test measures the pair and requires the rule's prose to say both |
-| 10 | The select's chevron hard-codes dark `--muted`'s old `#948fa8` inside a data URI — 2.49:1 on the light field | Written once per theme from the current `--muted`, and the colour gate now decodes `%23` so it can see the next one |
+## The reference, and what this took from it
 
-Three of the nine were fixed by **adding a gate**, because each had survived precisely because
-nothing read it:
+| From the reference | Here |
+|---|---|
+| The column stays open-width and is clipped, so every glyph holds its place while the width animates | The same. 249px → 74px on `--dur-med`, labels and counters on `--dur-fast`. Sampled frame by frame below: the top row's glyph centre is 36.5px on all 38 frames of the travel |
+| The toggle is always drawn, under a rule of its own | The same, and `collapsible` is now `true` unless a caller passes `false`. Which end of the rail it stands at is the one thing this does not take — see *Not taken* |
+| `app-sidebar.tsx`'s head band: the mark, the words beside it, and folded the mark alone, standing in `RAIL_COLUMN_BOX` | The same band, and the rail's own control at the end of its line — Artur's call. Folded, the band holds the control alone, standing in the kit's own `RAIL_COLUMN_BOX`: the glyph column is one box wide, and the control is the one thing a folded rail cannot be without, so it is the mark the band keeps. One rule under the line, not one between its two marks |
+| `user-menu.tsx`: the account block is a dropdown trigger; the menu holds a label naming the reader and the rows that act on the session; folded, the trigger is the avatar alone with its name on hover | The same, built on the kit's own `dropdown()` — `portal: true` for the rail's clip and its stacking context, `direction: 'up'` because the block is the last thing in a full-height rail. Folded, the trigger takes the same name chip every folded row takes, with the reader's two lines in it. Sign out left the nav list to get here |
+| The trigger is a button; the menu opens to Enter and the arrows, Escape closes it and returns focus | The same, and it is the kit's one dropdown wiring rather than a second one written for the rail. Building it this way is what found the defect above: every menu in the kit opened to the arrows and let no keyboard in |
+| `RailToggle` is one icon and no words: a frame that holds still, a seam that crosses it, and no tooltip of its own — on a folded rail it takes the same name chip every other row takes | The same, and this is Artur's sixth-round call. The mark is drawn by hand in `shell.js` for the reason the reference gives for not taking lucide's: the divide is baked into the same path as the frame, and only a child of its own can travel — `icon()` emits one opaque string with no hook on an inner node. Only the two nodes are hand-written: the `<svg>` around them is taken from `icon()` at call time, so the box, the stroke and the `aria-hidden`/`focusable` pair are the factory's by construction and not by a second copy |
+| `RAIL_COLUMN_BOX`: one 40px box on the glyph column, the same at both widths | The kit's own column, `--ui-nav-strip`. The reference's box is 40 because its glyph is 16; the kit's is 41 because a rail row is a 17px glyph inside 12px of padding, and that is the number `nav.css` already derives the closed rail from. One box, written once, at both widths. Where the box *stands* is the one thing that differs: at the end of the brand row while the rail is open, riding the closing edge onto the glyph column as it folds — see *Not taken* |
+| The seam travels on the same clock as the rail, and stops under reduced motion | The same: `--dur-med` and `--ease`, the rail's own travel and not the words' `--dur-fast`, so the mark and the closing edge arrive together. No `!important`, so the kit's net takes it to one frame with everything else |
+| The toggle is a `<button>` whose name says what the press will do (*"Expand sidebar"* / *"Collapse sidebar"*), with `aria-expanded` saying what the rail is, and no `aria-controls` | The same: `railToggle()` in `src/components/shell.js` |
+| A folded row shows its name beside it on hover **and on keyboard focus** | The same, in CSS. The reference portals a Radix tooltip; this kit has no positioning library, so the chip is the label itself, taken out of flow and anchored to the row |
+| A badge fades out with the words, and the count stays in the row's accessible name | The same. `leafName()` spells the count into `aria-label` at every width, so a counter that fades is not a count that is lost |
+| A disclosure row keeps working on the folded rail, and the page the reader is on stays reachable | The same, and this is the #277 defect the first version fixed. A group stays open in the fold, its children become rows of the strip, and the indent travels with the width rather than snapping |
+| Motion reads tokens and stops under reduced motion | The kit's own scale: `--dur-med` (250ms) for the width where the reference takes 200, `--dur-fast` (150ms) for the words where it takes 100. Both are the kit's published tokens (`docs/specification.md#motion`); the reference's numbers are its own scale, and writing them here would be two literals `stories/motion-tokens.test.js` refuses |
+| The rail collapses rather than hiding off-canvas | The same. Below 720px the kit keeps its CSS fold and draws no toggle, because the strip is the only layout there |
 
-- `stories/colour-tokens.test.js` sweeps encoded colours in data URIs and requires each to still
-  be a value `src/tokens` declares. Verified by putting `#948fa8` back: it reds and names the line.
-- `scripts/packaging.test.js` asserts both of the lockfile's version fields against
-  `package.json`.
-- `stories/guidelines/accessibility-floor.test.js` measures `--disabled-ink` on
-  `--disabled-surface` in both themes and requires the floor page's own prose to quote both.
-  Verified by putting `5.56:1` back: it reds and prints the measured number.
+**Not taken, and why — the whole list.**
 
-**Why the pill takes no hairline.** The rule is a step on the ladder plus a line, and the pill is
-on neither: it paints an accent gradient at full fill strength, over the page. That is the solid
-toast's case — *"it is the status at full fill strength and needs no edge to be found"* — and a
-grey `--border` line around a purple gradient is not a vocabulary this kit has. What stays is the
-inset sheen, which is gloss on the surface rather than a layer of ink under it. Stripping the
-glyph's `drop-shadow()` draws the line the spec now states: **a cast shadow is an offset layer of
-ink, whichever property draws it; a zero-offset layer of the signal's own colour is a glow.** That
-is what keeps the success mark's two green `drop-shadow()` glows legitimate, and they stay.
+| The reference | Here, and why |
+|---|---|
+| The toggle lives at the rail's **foot**, under its own rule, because "the header band above stays the organization's" | **In the head band, at the right of the brand row.** Two calls of Artur's on 2026-09-13, in that order: the head is where a reader looks for the control that changes the panel they are looking at, and the end of the brand row is where a reader looks for it in the head. The reference's argument for the foot does not transfer cleanly — its band is an organization switcher a consumer fills, and the kit's is a product wordmark the shell draws itself, so there is no second owner for the toggle to crowd. Most of what the foot's placement bought is kept: the control is still outside the `<nav>`, still one strip-wide box written once, still the one row whose chip is not scoped to the fold. One thing is not: on an open rail the control no longer stands on the glyph column. It holds the closing edge instead — 37.5px from it on every frame of the travel — and the edge lands it on the column when the rail is folded, which is the width at which a rail has only that column to offer. The product's lockup goes with the fold rather than sharing the column with it |
+| No persistence: the host app owns it | **Persisted by default, in a cookie. The one deliberate difference.** #277 requires it and an HTML kit has no host state to lean on. A cookie and not `localStorage` because a server can read one: `appShell({ collapsed: railCollapsed(request.headers.cookie) })` paints the stored width before any script runs, where `localStorage` paints the rail open and snaps it shut a frame later |
+| A Radix tooltip, portalled to `<body>` and positioned by a floating-UI library | **CSS anchor positioning, with a stated fallback.** Where `anchor-name` and `anchor-scope` are supported the chip is pinned to the row and to the rail's edge, and lands within a hundredth of a pixel of the row's centre through a scroll of the rail, a scroll of the page and a resize — the two cases the earlier attempt failed on, measured below. Where they are not, the chip keeps the place its row gave it at the last layout: exact until the rail scrolls, and then as far above its row as the rail has scrolled, measured at 149.99px after a 150px scroll. That is the whole of what anchor positioning buys and nothing else in CSS does — see "The fallback, and why it is the shape it is" |
+| Below 768px a separate JS tree renders a drawer | The kit keeps its CSS fold at 720px, and no toggle below it |
+| `railTop`, `header`, `logoCollapsed`, `children`-as-function — the band's and the rail's consumer slots | Still out of scope. `appShell()` composes one rail: the head band draws the product's own mark and takes no node from the caller, and the middle is the kit's `sidebarNav()`. The band itself is taken; the slots in it are a second issue |
+| `UserMenu` takes its rows from the caller, with icons, hrefs and a `destructive` flag | The menu holds the reader and Sign out. One row, because one is what the shell has to offer: the rail's own navigation is the caller's `nav`, and the /account preset's topbar already carries an account menu. A `menu` option is a small change to `railUser()` if a consumer asks for one |
 
-## Open to Artur
+## The fallback, and why it is the shape it is
 
-**Light's ladder is not monotonic, and its top step is the one that cannot be.**
+The rail is a scroll box: `position: sticky` for the column, `overflow-x: hidden` to clip the fold,
+`overflow-y: auto` for a nav taller than the viewport. That is three constraints on one box, and
+together they leave exactly one way out for a chip that has to sit beside a row and outside the
+rail. I measured each candidate in headless Chrome rather than reasoning about it — "drawn" is
+hit-testing at the chip's own centre, which respects an ancestor's clip where a bounding box does
+not:
 
-| | Dark | Light |
-| --- | --- | --- |
-| `--bg` the page | `#0e0d14` | `#eef0f5` |
-| `--surface-2` sunken | `#161520` | `#e3e6ee` |
-| `--surface` card | `#211e2d` | `#f8f9fc` |
-| `--bg-elevated` floating | `#2a2639` | `#ffffff` |
-| `--surface-3` **top** | `#2d293c` | **`#e7eaf1`** |
+| The chip is… | Drawn beside the row | Stays on its row when the rail scrolls |
+|---|---|---|
+| `position: absolute` | **no** — clipped, painted nowhere, whatever you make its containing block | yes |
+| `position: fixed` | yes | **no** — 59.99px off after a 60px scroll, which is the scroll |
+| `position: fixed` + `anchor()` | yes | yes — 0.01px from the row's centre, through both scrolls and a resize |
 
-In dark every step is lighter than the one under it. In light `--surface-3` is *below the page*
-and 1.04:1 above the sunken step — so the hover readout, which is the surface that rides highest
-in the kit, renders in light as a recessed panel that reads like an input
-([`after-board-light-1440.png`](docs/evidence/elevation/after-board-light-1440.png), the readout
-above the bars). `#e7eaf1` is the value the picked prototype carried and the frames were approved
-on, so it ships as picked. The two options:
+`absolute` is one row and not two because the choice a reader expects to have is not there: the
+rail is `position: sticky`, which makes it the containing block for every absolutely positioned
+descendant. Moving the containing block outward does nothing — with `.ui-app` set to
+`position: relative` and the row back to `static`, the chip's `offsetParent` is still
+`.ui-app__rail`, and the clip still lands on it.
 
-1. **Keep it, and say what it means** — what this branch does. Light's top step is the *quiet
-   fill*: a chip, a hovered row, the readout's panel. The spec says so, the Elevation story says
-   so, and neither claims a ladder light does not run. A hover inside a white panel is drawn
-   downwards, which is how light themes have always drawn one.
-2. **Give the readout the top** — it would have to take `--bg-elevated` (white) with the hairline,
-   since nothing in light is brighter than white. That makes the readout and the panel it is
-   drawn over the same colour, which is exactly the trap the rejected `card-stays-white` option
-   was rejected for; the line would be carrying all of the separation.
+So a box that escapes the clip has left the rail's scroll with it, and a box that has not escaped
+it is not drawn at all. The anchored branch is the mechanism and the unanchored one is a graceful
+degradation, not a second implementation. Both are gated in
+`stories/apps/shell-states.test.js` — the plain rule must place the chip from `--ui-rail-w`, the
+anchored rule must pin `top`, `bottom` and `left` to `anchor()`, in both copies of the fold.
 
-**Recommended: 1.** It is the picked value, it is honest about what light can do, and option 2
-spends the one step light has left on the surface that needs it least — a readout is transient
-and small, and the hairline it already has is doing the work. If the recessed readout is wrong to
-your eye, the fix is a new value for light's `--surface-3`, which is a pick to make on rendered
-frames rather than a defect to repair here.
+## What this does
 
-## Where the rule is written now
+- **Drawn by default, in the head.** `appShell()` draws the toggle at the far end of the brand row,
+  in a band ruled off from the rows below it; `collapsible: false` is the way out, for a page that
+  will never call `wireShell()` and would otherwise ship a control that does nothing.
+  `accountShell()` passes both options through.
+- **The reader's menu.** The account block is a `dropdown()` trigger when the caller passes
+  `signOutHref`, and Sign out is a row of that menu rather than the last row of the navigation
+  list. `wireShell()` wires it along with the fold and the nav's groups. The trigger is named by the
+  two lines inside it rather than by an `aria-label`, so there is no second copy of them to go
+  stale, and the initials are `aria-hidden` because they are made of the name beside them.
+- **The fold travels.** `.ui-app.is-collapsed` applies the 720px block's rail rules, written a
+  second time behind `:where(.ui-app.is-collapsed)`. `:where()` adds no specificity, so each copy
+  ranks the same as its twin. A media query cannot share a block with a class, and that is why the
+  rules appear twice. Two gates hold the copies together: one compares the blocks rule for rule,
+  reading inside `@supports` and refusing a selector written twice; the other compares every
+  computed property on every element of the rail, at rest and focused.
+- **The strip is not a number somebody liked.** `--ui-nav-strip` is twice a row's own glyph
+  centre — its padding plus half a glyph — which is the one width that leaves the glyph standing in
+  the middle of the closed rail. `nav.css` is the only place it and `--ui-nav-col` are written, and
+  `shell-states.test.js` derives the strip from the rules it is read off rather than repeating it.
+- **Who decides the first paint.** `appShell()` reads no state. A boolean `collapsed` is the
+  caller's, and nothing overrides it. A shell drawn without one is marked `data-rail="auto"`, and
+  `wireShell()` gives it the reader's stored choice.
+- **Persistence, by default.** A press writes `apliteni-ui-rail=collapsed|expanded` (a year,
+  `path=/`, `SameSite=Lax`). `wireShell(root, { persist: false })` keeps every shell under that
+  root out of the cookie and applies no stored choice to them, shells drawn there later included; a
+  later call without the option does not undo it. Each press sends a bubbling `ui-rail` event with
+  `detail.collapsed`.
+- **Identification.** A folded row keeps its `aria-label`, counter and all. On hover or keyboard
+  focus the label itself leaves the flow and lands beside the rail as a chip — one string on screen
+  and in the accessibility tree, where a `title` was a second copy that showed to a pointer only.
+  No attribute is written, so nothing can go stale. Every folded control keeps the kit's focus ring,
+  clears the 24px target floor, and stays drawn, so Tab reaches it.
+- **Where it is wired.** `wireShell()` listens once per document it is handed, so a frame and an
+  open shadow root work. Only a rail's own toggle folds anything. The Storybook preview now calls
+  `wireShell()` in place of `wireNav()`, which it calls for you.
+- **Reduced motion.** The kit's net takes both durations to 0.01ms, so the fold arrives in one
+  frame. Verified in Chrome with the preference emulated: the rail's resolved
+  `transition-duration` is `1e-05s` and the width is 74px on the frame after the press.
+- **One icon, and no words.** The toggle is a frame and a seam and nothing else, in a box that is
+  the glyph column — `--ui-nav-strip`, which is a row's padding either side of a glyph and the width
+  the closed rail is derived from — written once and the same at both widths. The box stands at the
+  end of the brand row while the rail is open and rides the closing edge onto the glyph column as it
+  folds, 37.5px from that edge on every frame. The seam crosses the frame on the press, on the
+  rail's own `--dur-med`, and its distance is the frame's mirror rather than a number: drawn at 9 in
+  an 18-unit frame, it lands at 15. The name
+  is still in the markup, because the name IS the chip — the rail hands the toggle the same one
+  every other row gets, instead of a tooltip written for this one control. It gets it at **both**
+  widths, not on the fold alone: every other row reads its own name on an open rail, and the toggle
+  is the one row that is its mark at both, so its chip rule carries no `.is-collapsed` scope. That
+  is the reference's own arrangement — `app-sidebar.tsx` wraps `RailToggle` in a tooltip at both
+  widths, and only the offset varies with the fold.
+- **`sidebarNav({ collapsed })`.** A group is no longer forced shut, its list is no longer hidden
+  by CSS, and a row with no glyph gets the fold's dot.
+- **The head band, and the foot.** The band is one line — the product's mark at its start, the
+  toggle at its end — with one rule under it. Folded, the toggle has ridden onto the mark's column
+  and the lockup has gone with the words, so the band is the control alone. The foot is the account
+  block alone, over the rule that used to fence sign out off inside the nav. The avatar is inset by half the difference between the glyph column
+  and itself, so it stands on the line every glyph above it stands on, and the block declares the
+  height the avatar gives it — a number `accessibility-floor.test.js` can read, held to that
+  arithmetic by `shell-states.test.js`.
 
-- `docs/specification.md` gets an **Elevation** section: the ladder with both themes' values,
-  what the line does that the step cannot, where the accent wash may be painted, what a row inside
-  a raised panel takes, the line between a cast shadow and a glow, the standing cost to the ink —
-  and, after the review round, the plain statement that **light's ladder is not monotonic** and
-  what its top step means instead.
-- `Foundations/Elevation` in Storybook was three shadow swatches that now render nothing. It
-  draws the ladder instead, each step over the step it actually sits on, with a pair showing what
-  the hairline adds. The story export is renamed `Shadows` → `Ladder`; nothing references its id.
-- `Foundations/Backgrounds` orders its surface list by the ladder and says so. The card story,
-  the drawer guideline and the site's bento cells stop calling light an all-white app, and the
-  site's adoption prompt stops telling a consumer to migrate to `--shadow-*`.
+## Before / After
+
+Same viewport (1280×760), same nav, same data, both themes. Before is `origin/main` at `759520d`
+and after is this branch; **both sides are shot by the same rig** — one static server over the
+checkout under test, the kit's own factories imported as modules in the page, one Chrome, one
+viewport — so only the code differs. The rig is `scripts/evidence/`, committed this round; pointed
+at `bb5fd04` it reproduces the pair that was committed before the rebase byte for byte, which is the
+cross-check that it is the one that made them.
+
+**Every image below was re-taken after the rebase onto `759520d`.** #295 re-picked every surface
+token and took the kit's shadows off, so the palette in the old pictures no longer exists anywhere.
+What that changes in them is #295's doing and not this branch's: the rail is a darker step, the
+reader's menu and the toggle's name chip are the floating step with a hairline instead of a shadowed
+panel, and a hovered menu row takes the step above it rather than the card's. Both sides of every
+pair moved together, so every comparison below is still about this branch alone.
+
+**The rail on a desktop.** Before: no way to fold it, and Sign out as the last row of the
+navigation. After: the toggle at the far end of the brand row, on the wordmark's own line, reached
+by **two** real Tab presses so the focus ring and the name chip are the browser's own and not a
+state forced on; the account block at the foot, over a rule, carrying the chevron that says it opens
+something. The chip is 130.1 × 31.4, 8px clear of the rail's edge, and centred on the toggle exactly
+— the glyph box carries the name's line, so there is nothing left to round.
+
+| | Before | After |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-after-expanded-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-after-expanded-light.png) |
+
+**The reader's menu, opened from the keyboard.** Nine Tab presses reach the account block; one
+ArrowDown opens the menu and lands focus on Sign out, which is why the row carries the ring and
+the `--pink` ink in the shot. A press on the block would show the same panel and prove less. The
+menu's head names the reader, and the row is a `menuitem` with the caller's `signOutHref`.
+
+| dark | light |
+|---|---|
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-user-menu-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-user-menu-light.png) |
+
+**The fold, frame by frame.** Six frames taken off the compositor with `Page.startScreencast` and
+captioned with the time each was painted, so the clock is the browser's and not a screenshot call's
+latency. Every glyph holds its column while the words fade and the width travels, the group's
+children walk back onto their parent's column, the reading column widens frame by frame — and the
+one box that moves is the toggle, which you can watch travel down the band from the far end to the
+glyph column, always the same distance from the closing edge. The product's lockup fades with the
+words and is gone by the fourth frame. The toggle renames itself on the first frame: the chip beside
+it already reads *Expand sidebar* at 0 ms, while the rail is still 249px wide.
+
+| dark | light |
+|---|---|
+| ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-fold-frames-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-fold-frames-light.png) |
+
+**Folded, and a folded row under the keyboard.** Seven real Tab presses reached *Access & agents* —
+one fewer than the round before, because the product's lockup leaves the tab order with the fold;
+the chip is its own label, 8px clear of the rail's edge and centred on the row. The head is the
+toggle alone, standing where the brand mark stood, on the glyph column; the foot is the avatar, on
+that same column.
+
+| | Folded | Focused |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-focus-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/rail-collapsed-focus-light.png) |
+
+**Persists across navigation — and there is no picture of it, on purpose.** A second page load is
+drawn with no `collapsed` at all against a jar that already holds the cookie, and it comes up
+looking exactly like the folded pair above: 0 pixels of 972,800 apart. A shot of it would be a
+second copy of a picture already in this body, and a reviewer could not tell it from one. So the
+evidence is the measurement in *Measured in a browser* below — the cookie read back off the
+browser's own jar (`apliteni-ui-rail=collapsed`, `path=/`, `SameSite=Lax`, 365 days), and the second
+load coming up `class="ui-app is-collapsed" data-rail="auto"` with the toggle already named *Expand
+sidebar*. `stories/apps/shell-rail.test.js` gates all of it.
+
+Round 7's review reported the committed `rail-persisted-*` pair as byte-identical to the folded pair
+and said so could not be told from a copy. It was right: the two files are the same bytes, and they
+have been removed rather than re-shot, because the shot that would distinguish them does not exist —
+the state is identical by construction.
+
+**`sidebarNav({ collapsed })` with the current page inside a group.** Before: the group is shut,
+its list is `display: none`, the current page is gone and four rows are drawn. After: the group is
+open over it, six rows are drawn, and *Pending* carries its active bar. This is the one pair whose
+frame is the new rig's rather than the old one's — the original placed that nav on a canvas nothing
+in the repo describes, and it is drawn on the rail's own surface here, which is the only place a
+collapsed `sidebarNav()` is ever painted. Same subject, same claim, a slightly different box around
+it. Counted in the browser on
+what is drawn, not on what is in the DOM — a folded-away row is still a node.
+
+| | Before | After |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-before-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-after-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-before-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/217f64a/docs/evidence/nav-collapsed-after-light.png) |
+
+## Measured in a browser, not asserted
+
+Headless Chrome 152, the kit's own factories and stylesheets, the shell wired by `wireShell()`.
+Everything the tenth round moves — the travel, every chip the rail draws, the menu's keyboard path
+and the reduced-motion figures — was re-measured on this tree. The two anchor-positioning tables
+below stand from the round before it, because what they measure is a folded nav row's chip, which
+this round does not touch.
+
+**The travel** — the rail, the top row's glyph centre, a group child's glyph centre, **the toggle's
+mark and the reader's avatar**, the distance from the toggle's mark to the rail's closing edge, the
+label, badge and lockup opacities and the reading column's left edge, sampled on every animation
+frame from the press and read off at the times below:
+
+```
+           railW   topGlyph   subGlyph   foldMark   edgeGap   avatar   label   badge   lockup   mainLeft
+t=1        249.0       36.5       65.5      211.5      37.5     36.5    1.00    1.00     1.00      334.5
+t=45       225.6       36.5       61.8      188.1      37.5     36.5    0.54    0.54     0.54      322.8
+t=78       169.0       36.5       52.7      131.5      37.5     36.5    0.16    0.16     0.16      294.5
+t=111      121.3       36.5       45.0       83.8      37.5     36.5    0.03    0.03     0.03      270.6
+t=161       87.9       36.5       39.7       50.4      37.5     36.5    0.00    0.00     0.00      253.9
+t=245       74.0       36.5       36.5       36.5      37.5     36.5    0.00    0.00     0.00      247.0
+settled     74.0       36.5       36.5       36.5      37.5     36.5    0.00    0.00     0.00      247.0
+```
+
+38 frames were sampled, in each theme. Across all of them the top row's glyph and the avatar each
+report **one** distinct centre, 36.5px, the glyph column: nothing the reader can see on both sides
+of the press moves sideways on it. The toggle is the one box that does move, and what it reports is
+one distinct *distance* instead — 37.5px from the rail's closing edge on 37 of the 38 frames and
+37.4 on one, which is the same number twice, since each end was rounded to a tenth before the
+subtraction. 37.5 is the rail's hairline plus its inset plus a glyph's own centre in its row, so at
+the last frame — where the rail is 74px and the mark is at 36.5 — the toggle is standing on the
+glyph column, and the two claims meet. The child's glyph walks 29px onto its parent's column rather
+than jumping there, because the nested list's indent is on the same clock as the width. The lockup
+fades on the words' clock and its `visibility` flips to `hidden` on the frame after the fade reaches
+zero, which is what takes the link out of the tab order without taking its space.
+
+**The chip**, with focus moved by real Tab presses so `:focus-visible` is the browser's own. `dY`
+is the chip's centre minus the row's centre; `gap` is the chip's left edge minus the rail's right
+edge. The right-hand pair is the same run with the `@supports` block's declarations neutralised,
+which is what a browser without `anchor-name` falls back to.
+
+```
+                                anchor positioning          the fallback
+                                dY      gap   railScroll    dY       gap
+first row, at rest              -0.01        8       0      -0.01        8
+a row 255px down the rail       -0.01        8       0      -0.01        8
+the rail scrolled 150 under it  -0.01        8     150     149.99        8
+after a resize to 900           -0.01        8       0      -0.01        8
+after the page scrolls 200      -0.01        8       0      -0.01        8
+hover, no keyboard              -0.01        8       0      -0.01        8
+```
+
+**Every chip the rail draws**, re-measured after the move. `dY` is the chip's centre minus its
+control's centre; `gap` is the chip's left edge minus the rail's right edge:
+
+```
+                                          chip box       dY     gap   text
+open rail,   the toggle               130.08 x 31.39    0.00    8.00   Collapse sidebar
+folded rail, the toggle               122.56 x 31.39    0.00    8.00   Expand sidebar
+folded rail, a nav row                 82.50 x 31.39   -0.01    8.00   Overview
+folded rail, the account block        123.02 x 46.50    0.00    8.00   Ada Lovelace / ada@apliteni.com
+```
+
+The toggle's chip is still 8px clear of the rail's edge and still centred on the control at both
+widths, although the control now stands at the far end of an open rail rather than on its glyph
+column: the chip is anchored to the row, not to the column. With the `@supports` block neutralised
+— what a browser without `anchor-name` is left with — the same four runs report `dY -0.02` and the
+same 8px gap, under a real Tab walk and under the pointer alike.
+
+The toggle is the one row that is icon-only on an open rail as well, so its chip rule carries no
+`.is-collapsed` scope, and its two boxes differ by the words alone. The account block's chip is the
+reader's own two lines — the block *is* the label there — which is why it is 46.5 tall where a row's
+is 31.4. Before this round the block was not a control at all and had no chip, no ring and no menu.
+
+**The chip after the rail scrolls under it**, in a 420px viewport so the rail really overflows, with
+the `@supports` block's declarations neutralised on the right — which is what a browser without
+`anchor-name` is left with:
+
+```
+                                        anchored dY   fallback dY
+a folded row                                  -0.01         59.99   (the rail scrolled 60px)
+the account block                              0.00         58.00   (the rail scrolled 58px)
+```
+
+The fallback is exact everywhere the rail has not scrolled, and off by exactly the scroll where it
+has — for the new chip exactly as for the old one. That is the one line in this table that anchor
+positioning buys, and it is why the `@supports` branch exists.
+
+**The reader's menu, in a real browser.** Nine Tab presses reach the account block. Before the
+press the trigger says `aria-expanded="false"` and the panel resolves `visibility: hidden`; one
+ArrowDown and the trigger says `true`, the panel resolves `visible` **in that frame**, and focus is
+on the row `.ui-dropdown__item.is-danger`, whose label reads *Sign out* and whose ink is
+`rgb(233, 124, 165)` — `--pink`, which the row reaches under the keyboard as well as under the
+pointer since this round. The panel opens upward, 9px above the trigger and flush with its left
+edge — 9 is `--ui-dropdown-gap`, the one number both the sheet's edges and the portal's JS read.
+Escape closes it and hands focus back to `.ui-app__user-trigger`. Re-run on this round's tree, with
+the same nine presses: the toggle moved inside the head band and the tab order did not, because the
+control is the band's last child as well as its last box.
+
+Without the one-rule fix above, the same run leaves `visibility: hidden` in that frame and focus on
+the trigger: the menu opens and the keyboard cannot enter it.
+
+**Reduced motion.** With the preference emulated, `getComputedStyle(rail).transitionDuration` is
+`1e-05s`, and so are the seam's, the toggle's cell and the lockup's — the two the tenth round adds
+go under the net with everything else, because neither writes `!important`. The rail measures 249,
+249, 74, 74 on the four frames after the press: the open width until the frame it is the closed one,
+with nothing in between. Without the preference the travel is the table above.
+
+## The gates this adds, and the mutation that kills each
+
+Each rule was broken on disk against the code as it stands after the rebase, the named gate was run
+for real, and the file was restored and its SHA-256 compared with the one taken before the edit. A
+mutation whose text did not appear exactly once in the file was refused rather than applied, so
+nothing below is a mutation that missed its mechanism.
+
+| Mutation | Gate | Result |
+|---|---|---|
+| the collapsed dot rule is made to match nothing | `shell-states.test.js` | **1 red** |
+| a divergent duplicate is added earlier in the 720px block | `shell-states.test.js` | **2 red** |
+| the collapsed rail is given an inset the 720px rail does not have | `shell-states.test.js` | **2 red** |
+| a `font-weight` is put on the collapsed rows only | `shell-states.test.js` | **2 red** |
+| the chip is placed from a literal instead of the rail's own width | `shell-states.test.js` | **3 red** |
+| the chip is positioned `relative`, so the rail clips it | `shell-states.test.js` | **5 red** |
+| the anchored chip loses both of its ends | `shell-states.test.js` | **2 red** |
+| the 720px fold loses its `@supports` block | `shell-states.test.js` | **2 red** |
+| a folded row is allowed to shrink under the 24px floor | `accessibility-floor.test.js` | **2 red** |
+| the label stops moving between the two states | `motion-coverage.test.js` | **1 red** |
+| a group is forced shut on the folded rail again | `shell.test.js` | **1 red** |
+| the count is dropped from the name a folded row answers to | `shell-rail.test.js` | **1 red** |
+| the opt-out is checked on the shell alone, not on its root | `shell-rail.test.js` | **2 red** |
+| the stored choice is applied to an opted-out shell | `shell-rail.test.js` | **1 red** |
+| any `[data-rail-toggle]` on the page folds the nearest shell | `shell-rail.test.js` | **1 red** |
+| the cookie loses `path=/` | `shell-rail.test.js` | **3 red** |
+| the cookie loses `max-age`, so it dies with the session | `shell-rail.test.js` | **1 red** |
+| `wireShell()` reads the page's cookie instead of the document it was handed | `shell-rail.test.js` | **1 red** |
+| a missing Cookie header falls back to this document's cookie | `shell-rail.test.js` | **1 red** |
+| the caller's boolean is overridden by the cookie | `shell-rail.test.js` | **2 red** |
+| `collapsible` falls back to opt-in | `shell.test.js` | **2 red** |
+
+Four gates were added after an independent review, each with the mutation that kills it. The first
+three close a hole the review found; the fourth is the floor it found missing.
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **both `transition: width` lines deleted — the fold snaps** | `shell-states.test.js` | **1 red** (before: 0 red across eight gates, 259 tests) |
+| the fold's duration written as the literal `0.25s` | `shell-states.test.js` | **1 red** |
+| the nav's travel written `!important`, outranking the reduced-motion net | `shell-states.test.js` | **1 red** |
+| `reduced-motion.css`'s clamp stripped of its `!important` | `shell-states.test.js` | **1 red** |
+| a folded sub-row made `display: none` | `accessibility-floor.test.js` | **1 red** (before: 0 red — the check could not fail) |
+| the phone strip's `min-height` deleted | `accessibility-floor.test.js`, `shell-states.test.js` | **2 red** |
+| the phone strip's floor spread to the reader's fold | `shell-states.test.js` | **2 red** |
+
+Two rules are asserted both ways rather than mutated, because the mutation is the assertion's own
+negation: a fold writes no `title` and the chip's text is the row's own label
+(`shell-rail.test.js`), and `collapsible: false` draws no toggle and folds nothing, checked against
+a fake `document` holding the cookie (`shell.test.js`).
+
+The floor gate de-duplicates controls by class, so a folded row, which has the same classes as an
+open one, was never measured. Folded-rail controls are now collected separately and every one is
+measured.
+
+Four more arrived with Artur's one icon, and they hold the two halves of it: the mark is the state,
+and the control is the column. Each rule was broken on disk against the code as it stands, the gate
+was run for real, and the file was restored and its SHA-256 compared with the one taken before.
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **the folded rail stops moving the seam — one mark, drawn twice** | `shell-states.test.js` | **2 red** |
+| the seam travels 4 units instead of the frame's own mirror | `shell-states.test.js` | **1 red** |
+| the seam loses its transition, so the mark arrives before the edge | `shell-states.test.js` | **1 red** |
+| the seam's travel written `!important`, outranking the reduced-motion net | `shell-states.test.js` | **1 red** |
+| the seam timed with the literal `0.25s` | `shell-states.test.js` | **1 red** |
+| the seam drawn on the frame's centre, so its mirror is no travel at all | `shell-states.test.js` | **1 red** |
+| the control given the whole row back, so its mark steps sideways on the press | `shell-states.test.js` | **1 red** |
+| the column written as the literal `41px` rather than `--ui-nav-strip` | `shell-states.test.js` | **1 red** |
+| **the toggle's chip re-scoped to `.is-collapsed`, so an open rail's is nameless again** | `shell-states.test.js` | **1 red** |
+
+Fourteen more arrived with Artur's seventh round — the toggle in the head, the reader's menu, and
+the dropdown defect the menu turned up. Each rule was broken on disk against the code as it stands,
+the named gate was run for real, and the file was restored and its SHA-256 compared with the one
+taken before. A mutation whose text did not appear exactly once was refused rather than applied;
+none was.
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **the toggle goes back to the rail's foot** | `shell-rail.test.js` | **13 red** |
+| **sign out goes back into the nav's footer slot** | `shell.test.js`, `shell-rail.test.js` | **3 red** |
+| **an open dropdown panel keeps `visibility` on the clock — the keyboard cannot enter any menu** | `overlay-css.test.js` | **1 red** |
+| the menu trigger writes an `aria-label` over the words inside it | `shell-states.test.js` | **1 red** |
+| the account block loses the height the mark inside it gives it | `accessibility-floor.test.js`, `shell-states.test.js` | **3 red** |
+| the account block's declared height stops matching that mark (38 → 40) | `shell-states.test.js` | **1 red** |
+| the phone strip's 44px floor is taken off the account block | `shell-states.test.js` | **1 red** |
+| the phone strip's floor spreads to the account block on the reader's fold | `shell-states.test.js` | **2 red** |
+| the avatar's inset is written as the 5.5px it comes to | `shell-states.test.js` | **1 red** |
+| the account block's chip is dropped from the 720px fold | `shell-states.test.js` | **1 red** |
+| the head band's rule moves back between the wordmark and the toggle | `shell-states.test.js` | **1 red** |
+| nothing closes the rail — the account block loses its rule | `shell-states.test.js` | **1 red** |
+| the destructive menu row is `--pink` under the pointer and not under the keyboard | `shell-states.test.js`, `signal-contrast.test.js` | **4 red** |
+| the toggle's mark is dimmed past the 3:1 floor a control answers to | `shell-states.test.js` | **1 red** |
+
+The first two are the round's two asks, and they are what the equality gates could never have
+noticed on their own: moving a control from one end of the rail to the other changes no computed
+property of anything. What notices is the wiring — `wireShell()` addresses the toggle through the
+head band and nowhere else — and the markup gates that say where sign out is.
+
+And eight more for the review fixes above, run the same way:
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **a portalled panel is lifted onto the page holding the frame** | `shell-rail.test.js` | **2 red** |
+| the close handlers go back to one document | `shell-rail.test.js` | **1 red** |
+| `closeAllDropdowns()` goes back to querying the page | `shell-rail.test.js` | **2 red** |
+| **a closed dropdown panel is hit-testable again** | `overlay-css.test.js` | **1 red** |
+| the empty head band is drawn on a phone again | `shell-states.test.js` | **1 red** |
+| the phone rule spreads to the reader's fold, taking the toggle with it | `shell-states.test.js` | **2 red** |
+| the touch floor is written outside the media query, raising both folds at once | `shell-states.test.js` | **1 red** |
+| a folded row's label is `display: none` and its `aria-label` is gone | `accessibility-floor.test.js` | **1 red** |
+| **the head band loses the rail's open column** (`width: auto`, line count unchanged) | `shell-states.test.js` | **1 red** |
+| **the reader block loses it too**, the same way | `shell-states.test.js` | **1 red** |
+| **the menu opens downward instead of up** | `shell.test.js` | **1 red** |
+| **`railMark()` stops taking `icon()`'s wrapper** — a hand-written `<svg>` with no `aria-hidden` or `focusable` | `shell.test.js` | **1 red** |
+| **the toggle's glyph box stops reserving the name's line**, so a hover reflows the rail | `shell-states.test.js` | **1 red** |
+
+The last one is the mutation the review used to show the naming gate had gone blind: against the
+helper as this round first wrote it, it reported **0 red**.
+
+And eight for the ninth round, all of them in `overlay-css.test.js`, which now reads three menus
+rather than one sheet:
+
+| Mutation | Result |
+|---|---|
+| **the version switcher's closed menu takes clicks again** (`pointer-events: none` deleted) | **1 red** |
+| **its open menu is never turned clickable** | **1 red** |
+| **its open menu keeps `visibility` on the transition** | **1 red** |
+| **the account menu's closed menu takes clicks again** | **1 red** |
+| **its open menu is never turned clickable** | **1 red** |
+| **its open menu keeps `visibility` on the transition** | **1 red** |
+| **the dropdown panel in place is never turned clickable** | **1 red** |
+| **the portalled dropdown panel is never turned clickable** | **1 red** |
+
+And thirteen for the tenth round, run the same way — five gates in `shell-states.test.js`, each
+mutation naming the one it broke:
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **the head band stacks its two marks again** | the band is a line | **1 red** |
+| nothing pushes the toggle to the end of the band | the band is a line | **1 red** |
+| the toggle's cell shrinks with the band | the band is a line | **1 red** |
+| **the control is drawn before the mark it stands beside** — the tab order and the screen disagree | the band is a line | **1 red** |
+| **the fold no longer moves the toggle** — the control is drawn 175px outside a folded rail | the toggle rides the edge | **1 red** |
+| the offset is written as the `-175px` it comes to | the toggle rides the edge | **1 red** |
+| **the toggle jumps instead of riding** — the transition is deleted | the toggle arrives with the edge | **1 red** |
+| the toggle rides on the words' `--dur-fast` | the toggle arrives with the edge | **1 red** |
+| **the folded rail keeps the lockup on the toggle's column** | the lockup goes whole | **1 red** |
+| **the folded lockup is faded but still focusable** (`visibility` dropped) | the lockup goes whole | **1 red** |
+| **the phone strip loses the mark as well** | the lockup goes whole, and the rule-for-rule sweep | **2 red** |
+| the lockup blinks out instead of fading | the lockup's clock | **1 red** |
+| the lockup eases `visibility`, a discrete property | the lockup's clock, and `motion-tokens.test.js` | **2 red** |
+
+The fourth is the one an equality gate could never notice: reordering two boxes inside the band
+changes no computed property of either. What notices is the band's own child list, read in the order
+the markup gives it.
+
+The last two of the ninth round's are the review's second finding, and both reported **0 red** before
+that round: one assertion asked whether *any* rule turned the panel on while it was open, and either
+half satisfied it alone. Every mutation above was applied on disk, the gate run for real, the file restored and its
+SHA-256 compared with the one taken first. Every restore matched.
+
+One mutation is reported as **0 red** and is not a hole: filling the mark
+(`fill="none"` → `fill="currentColor"`) changes nothing a reader sees, because
+`.ui-nav__ic svg { fill: none }` in `nav.css` decides the paint for every glyph on the rail and
+outranks the attribute. Checked in JSDOM rather than assumed — the resolved fill is
+`rgba(0, 0, 0, 0)` with the markup filled.
+
+## The review history
+
+Three read-only reviews ran against the first version, each followed by a fix round, and an
+independent review of the whole wave (`review-wave-1.md`) broke seven rules on disk and watched the
+named gate go red each time. The seventh round added an eighth mechanism — the reader's menu — and
+its own fourteen mutations above. What those rounds fixed is still in the code and still gated:
+
+- `persist: false` can no longer be undone by a later default call, it covers shells drawn under
+  the root later, and it keeps the stored choice off them.
+- Only a rail's own toggle folds anything; a stray `[data-rail-toggle]` in the page body used to
+  fold a shell that had no way back.
+- The rule-for-rule gate refuses a selector written twice, since a second copy is where a drift
+  would hide.
+- The cookie's `path=/` assertion is real: the test page lives at `/app/page`.
+- A frame reads its own cookie, not the page's.
+- The factory read `document.cookie`, so one call drew different markup on a server and in a
+  browser. It reads nothing.
+- A press in a document with no window (`DOMParser`, `createHTMLDocument`) folded the rail and then
+  threw before sending `ui-rail`. It is guarded, and not gated: JSDOM reports a listener's error in
+  a window-less document nowhere, so a test for it passes with the guard removed and is worth less
+  than the line it would take.
+
+**The eighth round.** The seventh round's review found three things this branch stated as
+guarantees and nothing held: the head band's open column, the menu's `direction: 'up'` and
+`railMark()`'s use of `icon()`'s wrapper. All three survived the whole suite when broken, and all
+three are gated now — the first five rows of the table above. It also found a hover that moves the
+page: the chip rule lifts the toggle's name out of the flow, the 17px glyph left behind is shorter
+than the 17.39px line the name occupied, and the button fell to 35px with the nav under it. Measured
+in Chrome 152 at 1280×800 — nav `y` 124.39 → 124, first row 157.44 → 157.05 — fixed by having the
+glyph box carry the line, and re-measured with nothing moving in either state. Three smaller things
+went with it: the argument in `shell.js`, `layout.css` and `dropdown.css` moved to `CONTRIBUTING.md`
+and the specification with `why:` pointers left behind, the specification's new section stopped
+saying three things twice, and the `rail-persisted-*` pair was removed rather than re-shot.
+
+**The ninth round.** The eighth round's review measured the body's own claim — the two dropdown
+defects fixed *in every menu the kit ships* — and found half of it false: `.ui-dropdown__panel` had
+both fixes and the topbar's `.vsw__menu` and `.amenu` had neither, because `topbar.css` was
+byte-identical to `main` and both gates read `dropdown.css` alone. It measured `main` and this branch
+and got the same answer both times, so nothing had regressed. The four lines are in `topbar.css` now,
+both gates sweep a table of menus, and each menu's three rules are held by a mutation of its own. The
+round also found that the new `pointer-events` fix had two halves with one assertion between them,
+and that `e678ac1`'s per-realm portal contract was cited by four comments in `dropdown.js` and
+written down nowhere — `docs/specification.md` still said the panel mounts on `<body>`, and
+`docs/library.md` said it too. Both are answered above. Its fourth item is this body's own: the
+*"every menu"* claim, the checklist tick that went with it, and a plain statement of what
+sign-out-needs-JavaScript costs a page that runs none, which is the bullet under *What a reviewer
+should push on*.
+
+**The tenth round.** Artur's, not a review's: *"no, show icon to the right."* The toggle moves from
+under the wordmark to the end of its line, and the seventh round's argument against that placement —
+the end of the band is off the glyph column, so the fold would clip the control away — is answered
+by having the control ride the closing edge instead of being clipped by it. The offset is the two
+widths' own difference, so it lands on the glyph column exactly, and it is on the width's own clock,
+so it lands there as the edge does. The product's lockup goes with the fold rather than sharing a
+41px column with the control, and leaves the tab order when it does. Five gates and twelve
+mutations, and every rail image and both filmstrips re-shot. The kit's own gates caught two things
+on the way: `motion-tokens.test.js` refused the lockup's `visibility` on a curve, because a discrete
+property holds its old value for the whole duration and a curve that leaves [0, 1] flips it
+mid-fade; and `ai-slop-detector` reported `comment-ratio` on `layout.css`, which had been one line
+under the bar. The argument is in the specification, and the sheet keeps pointers to it.
+
+`ai-slop-detector` on this round, at strict, over `layout.css`, `shell-states.test.js`, this body
+and all six files of the new rig: **0 errors**, and every warning it does report was already there
+before the round. `layout.css`'s `comment-ratio` is 0.54:1 against 0.51:1 last round — eight lines
+of *why* over one new rule, with the argument itself in the specification where it can be reviewed.
+This body's two `scope-template` warnings are the two literal spatial ranges round 9 called false
+positives, and its `vocab-density` warning is the paragraph about the overlay realm, unchanged since
+round 9. The one new finding is a `css-unreadable` medium on `scripts/evidence/shot.html`: the page
+links Google Fonts, which no linter can read off disk, and that link is exactly what
+`scripts/font-loading.test.js` counts it for — a shot taken in the fallback faces is a shot of a
+different kit.
+
+**What the rework reverses.** The second diff review found five critical problems in the *script*
+that placed the focus tag — stuck after a click or a tap, stale after a resize, wrong under a
+`transform` wrapper, blind inside shadow roots — and the first version's answer was to delete the
+tag. This version does it in CSS instead, which has none of those five failure modes: there is no
+script, no listener and no measurement, so there is nothing to go stale and nothing a wrapper can
+mislead. The two cases that review named, a scrolled rail and a resize, are measured above.
+
+**Declined, with the reason.**
+
+- *An open group and a shut one look the same in the fold.* That was already true at 720px. It is a
+  design call about the strip and belongs in its own issue.
+- *The dot and the un-indented list exist three times, with `0.62` unnamed.* Naming the
+  resting-glyph opacity is a token change beyond this issue.
+- *`wireNav()` in frames and shadow roots.* It predates this issue. The docs say what it does.
+- *Right-to-left.* The kit records that it is LTR-only (`stories/button-chrome.test.js`).
+- *A folded shell also folds a shell nested in its body.* Nobody nests shells, and the 720px fold
+  already folds every shell on the page.
+- *The menu could carry the account nav as well.* The rail already draws those rows; a menu that
+  repeats them is the `#127` drift in miniature. `accountShell()`'s topbar keeps its own account
+  menu, which is the surface that answers for the preset.
+
+## Rebased twice, and what each rebase touched
+
+**Onto `7ffbde4`** (#292, #289, #293, #267). One conflict, in `src/styles/icon-size.test.js`: both
+sides move `EXPECTED_SUBJECTS`, #267 up by four for the stat band's change arrow and trend slot,
+this branch down by two because the folded rail stopped sizing its glyph a second time. Resolved to
+**68**, with both justifications kept in the comment above it, as that tripwire asks.
+
+**Onto `bb5fd04`** (#302, #300, #301). One conflict, in `stories/button-chrome.test.js`: #301 moved
+the gate's whole reasoning block into `CONTRIBUTING.md`, and this branch had corrected two line
+numbers inside it. Resolved to #301's shape, with both corrections applied where the prose now
+lives — `.ui-nav__item {` moved down 23 lines in `nav.css` when the fold gave it a `transition`,
+and the direction audit's one logical property, `margin-inline: auto`, moved down 91 in
+`layout.css`. The second needed a backticked anchor after its citation as well as a line, since
+`scripts/code-refs.test.js` refuses a bare path-and-line. `PR.md` conflicted as a whole file, which is what a PR body always does; this
+branch's is kept. `EXPECTED_SUBJECTS` did not move again — nothing in this round adds or removes a
+rule that sizes a glyph.
+
+**Onto `759520d`** (#294 fields at 16px, #295 the elevation ladder). Five conflicts across the
+forty commits replayed, and only one of them was a decision.
+
+`stories/accent-contrast.test.js` is the decision: #295 rewrote `WASHED_GROUNDS` to subtract a
+`RAISED` set carrying `--bg-elevated` as well as `--surface-3`, and this branch carried the older
+single-exclusion form with the older paragraph beside it. #295's supersedes it and this branch adds
+nothing of its own there, so that side was taken whole and only its two citations repaired.
+
+The other four were line numbers: `CONTRIBUTING.md` four times, `PR.md` twice, and the guideline
+pages `_component-choice.js`, `_destructive-actions.js`, `_iconography.js`, `_labels-and-titles.js`
+and `_layout-and-density.js`. `.storybook/preview.js`, `README.md`, `docs/library.md` and
+`stories/guidelines/_accessibility-floor.js` merged with nobody's hand on them.
+
+**And the conflicts were not the whole cost.** The merged tree then failed on stale citations the
+rebase itself created — **seventeen line numbers across nine files**, every one named by the gate
+that failed on it, in `nav.css`, `card.css`, `dropdown.css`, `layout.css` and
+`signal-contrast.test.js`. Nothing there is a judgement; it is the elevation and field rounds having
+moved a lot of lines under this branch. `refs.test.js`, `code-refs.test.js` and `doc-refs.test.js`
+are green on all of it.
+
+**#295 repainted the pictures, so the pictures were re-taken.** The elevation round re-picked every
+surface token and took the kit's shadows off, and this body's sixteen images were all of the old
+palette. Every one is re-shot on the rebased tree: the rail is a darker step than it was, the
+reader's menu and the toggle's name chip are the floating step with a hairline where they used to be
+a shadowed panel, and a hovered row in the menu takes the step above it rather than the card's. The
+before side of each pair is now `main` at `759520d` rather than `bb5fd04`, which is what keeps the
+comparison about this branch.
+
+**The rig that takes them is committed**, which round 9 asked for — it reported that the producer
+was missing and that ten of the images could not be reproduced. `scripts/evidence/` holds the static
+server, the page the shots are taken off and the three drivers, with a README saying which parts are
+deterministic and which are not. Pointed at `bb5fd04` it reproduces the committed
+`rail-before-dark.png` and `rail-before-light.png` byte for byte, which is the cross-check that it
+is the rig that made them.
+
+**One conflict this branch and #298 now both create.** Each takes
+`scripts/font-loading.test.js`'s `EXPECTED_LOADERS` from **6** to **7** — this branch for
+`scripts/evidence/shot.html`, the page the rail's shots are taken off, and #298 for the review
+prototype behind `docs/reviews/275-page-limits.html`. Both are real loaders and both are counting a
+different page, so the merged tree's number is **8** and the comment over it names both. The rest of
+the #298 merge is the two conflicts its own body predicts: `PR.md`, whole file, and the
+`appShell(...)` row of `docs/library.md`, resolved as a union.
+
+**Both merges were run, in that order, onto `759520d` in a clean worktree.** This branch merges
+with **no conflict at all** — after the rebase `main` is its ancestor, so it fast-forwards. #298 on
+top gives exactly the three above and nothing else. The merged tree: **1520 tests, 1517 pass, 1 fail,
+2 skipped** — 1416 + 75 + 29, so no test is lost — and the one failure is the contrast walk's clock,
+which is red on `main` alone.
+
+Every figure and every mutation in this body was re-run against the tree as it stands.
+
+## The version bump this PR does not carry
+
+`src/components/shell.js` and `src/components/nav.js` are inside the published tarball and their
+bytes changed, while `package.json` still says `0.31.0`. CI's `Shipped surface vs version` job
+compares the tarball against the base and exits non-zero when the surface moves and the version
+does not — **so this branch fails that check as it stands, and it is the only red one.** Several
+PRs are in flight and this repo has already shipped two bumping to the same version, so the
+coordinator sequences the version at merge. `main` is **0.32.0** and tagged since #295 landed, so
+the bump after this branch is to 0.33.0 rather than the 0.32.0 an earlier round expected. Round 9
+also reported that the `Shipped surface vs version` check no longer appears on this PR at all, and
+that all five checks are green. The changelog lines are under *Changelog entry* below.
 
 ## Proof
 
-Re-run in full on the rebased tree (`7cb8727`); the earlier run after the review round is
-superseded by this one.
+- [x] A person meets it in something running: the screens above, in both themes, and the filmstrip.
+- [x] The fold animates and no glyph moves while it does. Sampled frame by frame in Chrome, and the
+      arithmetic behind the strip is gated rather than written down twice.
+- [x] The toggle is drawn by default, in the head band at the far end of the brand row, over a rule
+      of its own. Two Tab presses reach it; it holds the rail's closing edge on every frame of the
+      travel — 37.5px — and the edge lands it on the glyph column, where a folded rail's rows are.
+- [x] Hovering the toggle draws its name beside the rail and moves nothing. Measured in Chrome 152
+      at 1280×800, on both sides of the fix, and gated.
+- [x] The account block is a menu trigger and sign out is a row of that menu, reachable from the
+      trigger by keyboard and gone from the navigation list. Nine Tabs and one ArrowDown, measured
+      in Chrome, with the row carrying the ring and the `--pink` ink; Escape hands focus back.
+- [x] Every menu the kit ships can be entered from the keyboard: `dropdown()`'s panel, the rail's
+      portalled copy, the topbar's version switcher and its account menu. None could before this
+      branch — one rule in each of the two sheets those menus are written in, and the gate that
+      notices is in the file written for the rules JSDOM cannot check. All four measured in Chrome,
+      before and after; the topbar's two took a ninth review round to find.
+- [x] The toggle is one icon and no words, as the reference's is, and the seam moves with the state.
+      Photographed in both themes and frame by frame through the travel; the distance is held to the
+      mark's own geometry rather than to a number repeated in a test.
+- [x] A folded row shows its name on keyboard focus as well as hover, and stays beside the row after
+      the rail scrolls and after a resize. Measured in Chrome; the fallback's limit is measured too
+      and stated rather than glossed.
+- [x] A badge fades out and its count stays in the row's accessible name.
+- [x] A disclosure row keeps the current page reachable on the folded rail. Photographed before and
+      after, and gated.
+- [x] A rail folded on a phone keeps the product's mark and the link home. Photographed at 390×800
+      on both sides of the one line that decides it, and gated in the state a cookie produces —
+      which is the state the gate used to skip.
+- [x] The folded state persists across navigation, and a server can paint it first.
+- [x] `prefers-reduced-motion` takes the fold to one frame. Verified in Chrome, and the net is
+      gated by `stories/reduced-motion.test.js`.
+- [x] `npm run build` and the React tests pass; `npm test` is green but for
+      `stories/contrast.test.js`'s wall-clock ceiling on this box, which fails the same way with
+      this round reverted, and on `main` itself. Counts below.
+- [x] The rig that produced every image in this body is committed, which round 9 asked for.
+      `scripts/evidence/`, with a README saying what is deterministic and what cannot be.
+- [ ] Exercised in the finance portal. Not done here: it installs a published version, so this can
+      only be proven after a release.
 
-| Check | Command | Result |
-| --- | --- | --- |
-| Node suite | `npm test` | 1,416 tests, **1,414 pass, 2 skipped, 0 fail** (2m06s) |
-| Node suite, serially | `node --test --test-concurrency=1 'src/**/*.test.js' 'stories/**/*.test.js' 'site/**/*.test.js' 'scripts/**/*.test.js'` | same 1,416, **1,414 pass, 2 skipped, 0 fail** (6m43s) — the timing test passes with no contention |
-| React build | `npm run build --workspace react` | pass |
-| React tests | `npm test --workspace react` | **353 pass**, 17 files — the 31 added are #305's `react/src/field-zoom.test.tsx` |
-| Secrets | `gitleaks detect --config .gitleaks.toml --log-opts origin/main..HEAD` | every commit this branch adds to `main`, **no leaks found** (v8.30.1) |
-| Internal terms | the `.pre-commit-config.yaml` denylist, over `git diff origin/main..HEAD -U0` | clean |
-| Slop detector | `slop-detector.js` over every file this branch touches | **0 errors / 4 medium / 3 warnings — identical to the same sweep over the same files on `origin/main`, run back to back** |
-| Gates #305 and this branch both touch | `stories/field-zoom.test.js`; `stories/contrast.test.js`; `stories/accent-contrast.test.js`, `stories/signal-contrast.test.js` and `stories/guidelines/accessibility-floor.test.js` | 14 pass; 21 pass + the accent skip; 122 pass |
-| Citations | `scripts/code-refs.test.js`, `scripts/doc-refs.test.js`, `stories/guidelines/refs.test.js` | 92 pass |
+**Counts on this box.** `npm test`: **1491 tests, 1 skipped**, and either 1489 pass with 1 fail or
+1490 pass with none, depending on the run — every run of this round came in with the fail. It was
+1472 before the rebase onto `759520d`; `main`'s own 1416 plus this branch's 75 is 1491, so no test
+was lost in the move. The skip is the opt-in `CONTRAST_ACCENTS=1` theme ×
+accent matrix, which is behind an environment variable on `main` too. The failure, when there is
+one, is `stories/contrast.test.js`'s own wall-clock ceiling: the walk took **125.4s** and **159.5s**
+on two runs of the same tree, at the ninth round **121.7s** and **121.6s** on two runs and under the
+120s bar on two more, and at the tenth **127.1s** on the branch before this round's first commit and
+**126.8s**, **122.4s**, **160.9s** and **124.1s** after it. Nine runs, seven red and two green,
+straddling the ceiling — which is a plainer statement of what this box does to that gate than any
+single number. This round's final run, on the rebased tree: **1491 tests, 1489 pass, 1 fail,
+1 skipped**, at **127.0s**, and the one failure is that clock.
+That is this box and not the diff — the spread between two runs is larger than anything in this
+branch — and
+`origin/main` at `759520d`, checked out beside it and run through the same gate on the same machine,
+fails it too — round 9's independent review measured 162-188s against the 120s bar on `main` itself. `npm run build`: clean. React: 322 tests in 16 files, all
+passing. (1437 before the first review fixes, 1441 after them, 1446 at the sixth round, 1459 at the
+seventh, 1463 at the eighth; the seventh round's thirteen are the toggle's mark against a control's
+contrast floor, the avatar's inset, the account block's declared height, the block's phone floor in
+both directions, the head band's and the foot's rules, the empty band a phone drops, the menu's
+markup, its keyboard path, its press, the shell that draws neither, the open panel's `visibility`,
+and the closed panel's clicks. The eighth round's four are the rail's open column, the menu's
+direction, the toggle's `<svg>` wrapper and the hover that used to move the rail. The ninth round's
+four are the topbar's two menus, each asked the same two questions `dropdown()`'s own panel is
+asked. The tenth round's five are the band's line, the toggle's offset, the clock that offset
+rides, the lockup's fade and the lockup's own clock. The eleventh round adds no test of its own: its
+four assertions go inside the gate that was already asking the wrong shell about the phone strip.)
 
-The two skips are the ones `main` skips: the accent sweep behind `CONTRAST_ACCENTS=1`, and the
-story-id check that needs a `storybook-static/` build.
+## What a reviewer should push on
 
-**Timing note.** `stories/contrast.test.js` "the walk has not run away with the clock" is on the
-edge of its 120s ceiling and flips with load. It failed twice during the branch's earlier runs —
-157.9s under the full suite's contention, and 122.8s with the file run alone. It passed on both
-runs above, and the serial run is the clean read: with nothing else on the machine it does not
-come near the ceiling. The same file run alone on `origin/main`, back to back in the same shell,
-measured **125.9s** against this branch's **122.8s**: the branch is *faster* than main on the same
-machine, so the ceiling is a property of the host rather than of this change, and it is not
-touched here.
+- **The toggle at the far right of an empty band, on a shell whose word is in the topbar.** Round 9
+  put the picture in front of Artur rather than calling it a defect, and this round leaves it alone.
+  The `/account` preset draws its word in the topbar, so the rail's head band holds the toggle and
+  nothing else: 216px of band, one 41px control at its end, 175px of nothing beside it, a hairline
+  underneath. It stood on the glyph column, in line with the nav glyphs, before the tenth round.
+  This follows from applying *"show icon to the right"* globally, and the gate's own message says
+  the auto margin puts it at the end in both shapes — but Artur's note was about the brand row, and
+  this shape has no brand row. It is his call and nobody else's.
+- **The fallback.** Without anchor positioning a folded row's chip drifts by the rail's scroll
+  offset. The table above says why nothing in CSS does better, and the honest alternatives are a
+  `title` on every rail row at every width — a native tooltip repeating a label a reader can already
+  see, and two names on hover where anchor positioning *is* supported — or a positioning script,
+  which is what the last review killed. If you would rather have the `title`, say so and it is four
+  lines.
+- **`--dur-med` where the reference takes 200ms.** The kit's scale has no 200. Adding one is a
+  token change; using 250 keeps the fold on the same clock as every other surface the kit moves.
+- **A glyph drawn outside `icons.js`.** The toggle's mark is written in `shell.js`, which makes it
+  the one stroked glyph in the kit that the icon set does not hold. The reason is mechanical — a
+  seam that travels has to be a child a stylesheet can reach, and `icon()` returns one opaque
+  string — but it is still a second place a glyph can live, and the alternative is an `icon()` that
+  takes a class for an inner node. Say so and it is a small change to the factory.
+- **A 41px box where the reference's is 40.** The kit's rail row is a 17px glyph inside 12px of
+  padding, so its glyph column is 41; the reference's is 16 inside 12, so its is 40. Taking the
+  reference's number would put the mark a half-pixel off the column every glyph above it stands on,
+  which is the one thing the fold's travel promises not to do.
+- **A cookie by default, for a year.** shadcn keeps its cookie for 7 days and GitLab for 10 years.
+  `localStorage` was rejected because a server cannot read it.
+- **No keyboard shortcut.** shadcn uses Cmd/Ctrl+B, GitLab `mod+\`, Atlassian Ctrl+[. All three
+  collide with something. One can be added later without changing anything here.
+- **`collapsible: false` still exists.** The reference deleted its opt-out in 4.0.0. This kit keeps
+  one because nothing works until a consumer calls `wireShell()`, and the README's own example did
+  not, until this pull request.
+- **The toggle in the head rather than the foot.** This is the one place the rework now departs
+  from `lessly-ui`, and it is Artur's call. The reference's argument for the foot — "the header band
+  above stays the organization's" — does not transfer: the kit's band is a product wordmark the
+  shell draws itself, not a switcher a consumer fills, so there is no second owner to crowd. If the
+  argument does transfer after all, moving it back is one expression in `appShell()` and one
+  selector in `wireShell()`.
+- **Sign out needs JavaScript now, on every shape of the shell.** It was an `<a href>` in the nav
+  list that worked with none; it is a row of a menu a `dropdown()` opens. The ninth review round
+  measured what that costs a page running no kit JS at all — the sign-out anchors that are *not*
+  inside a menu panel — and asked for the answer to be put plainly rather than left as
+  *"sign out needs JavaScript now"*. Counted again here, on both trees, one call at a time:
 
-## Decisions taken while implementing
+  | the call | `main` `bb5fd04` | this branch |
+  |---|---|---|
+  | `appShell({ account, signOutHref })` | 1 anchor, **1 works with no JS** — `a.ui-nav__item.is-danger` | 1 anchor, **none works** |
+  | `accountShell({ word, account })` — the published `/account` preset | 2 anchors, **1 works with no JS** | 2 anchors, **none works** |
+  | `accountShell({ word })` — nobody signed in | 2 anchors, **1 works with no JS** | 1 anchor, **none works** |
 
-Small and reversible, listed rather than asked:
+  So the change is larger than the sentence reads. On `main`, **every shape of the shell that draws
+  a sign-out gives exactly one that survives with no script** — the plain `<a>` in the nav list. On
+  this branch **none of them do**, the published `/account` preset included, which a consumer does
+  not opt into.
 
-| Decision | Why |
-| --- | --- |
-| Deprecate the five `--shadow-*` in place rather than delete them, at `0 0 #0000` rather than `none` | A published token a consumer reads should degrade to nothing, not to an unresolved `var()` — and not to a value that is invalid in the list the kit's own pattern reads it in. Named in the changelog as **breaking** anyway, because the kit's own appearance changes |
-| Remove `--drawer-shadow` / `--confirm-shadow` / `--cmdk-shadow` | A local hook at `none` composed with `--ring` is a parse error that silently deletes the focus ring |
-| `--shadow-card` deprecated in light as well | It was already `none` in dark and unread since #284; leaving light's two-layer value published would contradict the rule the same file states |
-| The soft toast takes a status-tinted hairline at 22% (the outline style's is 40%) | Its shadow was its only edge. A `--border` hairline on a status-tinted wash reads as a stray line; the status tint at half the outline's weight is the same vocabulary |
-| The solid toast takes no border | It is the status at full fill strength and needs no edge to be found |
-| `.ui-card--accent` re-colours the card's hairline instead of keeping its inset ring | With the card edged in both themes, the ring drew a second line inside the first |
-| `--disabled-ink-bare` kept, though the ladder closed the three grounds it was cut for | It is the margin above the floor now rather than the rescue from under it, and the rule that holds every box-less disabled rule to it is unchanged. Retiring it is its own change |
-| Light `--muted` left alone | The decision names dark. Its worst new ground is 4.89, which clears AA; holding the 5.56 ratchet would have meant darkening the secondary ink across the whole light theme, which nobody asked for |
-| `site/index.html`'s `.term` keeps its window shadow | It is chrome for a simulated terminal window, not a kit surface. Worth a second opinion |
+  For the strategy portal's own surface the change is nevertheless **neutral**, and that is the part
+  worth saying out loud: the portal's account menu is already `.acct` / `.amenu` — README's
+  *Adopting into the strategy portal* is where the kit promises it those class names — and that
+  menu's Sign out has always been a row inside a panel that `wireTopbar()` has to open. It needed
+  JavaScript before this branch and needs it after.
 
-## Not done
+  What is not neutral is a server-rendered page that calls `appShell({ signOutHref })` and runs no
+  kit JS: it loses the link with no error, no console warning and no gate. The documented escape —
+  "do not pass `signOutHref` on a page that will never call `wireShell()`", stated in the spec and in
+  `docs/library.md` — is opt-out by omission rather than a named option, and `accountShell()` passes
+  `#logout` for you, which an empty string turns off. `collapsible: false` exists for exactly this
+  shape of problem and the menu has no equivalent. The reviewer would take a `menu: false` beside
+  it, because it turns a silent loss into a decision. **Artur's call; say the word and it is that.**
+- **`signOutHref` with no `account` now draws nothing.** This is the one behaviour change a
+  consumer can be surprised by, so it is stated rather than buried: the menu hangs off the block
+  that says who is signed in, and with nobody signed in there is no session to end and no block to
+  hang it on. Before this round the same call drew a Sign out row in the nav's footer under an empty
+  reader block. `accountShell()` is the path most likely to hit it — its `account` defaults to `{}`
+  — and on those pages the topbar's own account menu still carries Sign out, so nothing is stranded.
+  If a rail should offer Sign out to nobody, say so and it is a fallback row in `railUser()`. It is
+  a change to a published option's contract on a branch that carries no version bump — see *The
+  version bump this PR does not carry* above, which the coordinator sequences at merge.
+- **A menu with one row in it.** `UserMenu` takes a list; this takes `signOutHref` and builds one
+  row from it. Adding a `menu` option to `railUser()` is small, and it is not added here because
+  nothing in the kit has a second row to put in it — the rail's navigation is the caller's `nav`,
+  and `accountShell()`'s topbar already carries an account menu of its own.
+- **Two account menus on the /account preset.** `accountShell()` draws a topbar whose account menu
+  already ends in Sign out, and the rail's block now offers one too. That was true before this round
+  as well, with the rail's sign-out row instead of a menu; it is a preset question, not this one's.
+- **One rule under the head band on a phone.** Below 720px the toggle is not drawn, so the band is
+  the wordmark with a hairline under it. That is the reference's arrangement — its divider sits
+  under the band at both widths — but it is one more line on the narrowest screen.
+- **On the `/account` preset the head band is one control on an empty line.** `accountShell()` turns
+  the topbar on, which drops the rail's wordmark, so the band holds the toggle and nothing else:
+  re-measured on this round's tree, the band is `x16 y72 w216 h48.4` over a full-width hairline and
+  the control is `x191 y72 w41 h35.4` — at the far right of it, where the tenth round puts it. That
+  reads better than the lone square at the left this note first described, because a control at the
+  top-right of a panel is the arrangement a reader already knows; but it is still an unlabelled
+  control in a band of its own, and Artur's note paired the toggle with a brand the preset does not
+  draw. Nothing is broken and nothing here changes it — the alternatives are dropping the band when
+  the wordmark is gone, as the 720px block already does, or leaving the toggle among the rows. Worth
+  one look before merge.
 
-- **`docs/reviews/`** is untouched. The prototype and its `elevation.css` stay on
-  [#299](https://github.com/apliteni/apliteni-ui/pull/299).
-- **`--disabled-ink-bare` is now within one step of `--muted`** (`#a39eb7` against `#a29db6`,
-  5.44 against 5.38 on `--surface-3`). The token has arguably outlived its reason; retiring it
-  belongs to whoever owns #273, not to this issue.
-- **No Storybook static build** was run, so the one story-id check that needs
-  `storybook-static/` stays skipped, as it does on main.
-- Light's ladder **tops out at white**. A floating panel and anything that would need to float
-  above it are the same colour, which is the limit the rejected `card-stays-white` option would
-  have hit one step sooner. Nothing in the kit needs that step today.
+## Filed as a follow-up, not fixed here
 
-Found during the review round and deliberately left, each one a change nobody asked for:
+**A dropdown does not join the overlay stack, so one Escape closes two things.** `dropdown()`
+answers Escape from a bare `document` listener that never reads `src/components/overlay.js`'s
+per-document stack. With the reader's menu open underneath an open drawer, one Escape closes both
+and focus returns to a trigger behind the scrim. Everything else about that state is correct — the
+panel is `inert` and `aria-hidden="true"`, its `z-index: 30` is under the drawer's `100`, and a
+hit-test on the Sign out row returns the drawer's scrim — so what is wrong is the key, not the
+layering.
 
-- **`src/styles/badge.css:29` `.ui-badge--archive`** paints `--surface` in dark, so a neutral
-  badge on a card is the card's own colour. Light already gives the same chip `--surface-3`
-  (`badge.css:39`), which is what the ladder says a chip is. Unifying them would re-colour every
-  neutral badge in dark, which is a design change rather than a defect fix — and it is outside a
-  raised panel, where the finding was.
-- **`src/styles/command-palette.css:297` `.ui-cmdk--roomy .ui-cmdk__ic`** paints `--surface`
-  inside the raised palette, so the icon tile is a well rather than a tile. It is deliberately
-  paired with an active state one step deeper (`--surface-2`), so moving it is a design decision
-  about that pair, not a mis-wiring.
-- **The three prose ratios in the floor page's history** (1.48, 1.35, the 5.56–6.11 band) are
-  past-tense and stay; only the present-tense pair is pinned by the new test.
-
-## Linked issue
-
-Closes [#295](https://github.com/apliteni/apliteni-ui/issues/295).
+This is the kit's, not this branch's. The round-7 review ran the same sequence on `origin/main`
+against the topbar's account menu and got the same result, and nothing in this diff touches that
+listener. Fixing it means moving `dropdown()` onto the overlay stack every other overlay in the kit
+uses, which is a change to a published component's keyboard behaviour and belongs in an issue of its
+own with its own gates. It is recorded here so it is not lost, and it should be filed against
+`src/components/dropdown.js` before this merges.
 
 ## Changelog entry
 
-`0.32.0` in `site/changelog.mjs` — four `breaking`, two `changed`, six `fixed`. `0.32.0` was
-free: `origin/main` is on `0.31.0` and no open branch had taken it. The kit's #305 is `0.31.1`
-and lands first. `package.json` and both of `package-lock.json`'s version fields agree.
+- `appShell()` draws a toggle in the rail's head band, at the far end of the brand row, that folds
+  the rail to the icon strip used below 720px and opens it again. The fold animates: the rail's column keeps
+  its open width and the box closes over it, so every glyph holds its place while the width travels
+  and the words and counters fade ahead of the closing edge. `collapsible: false` draws no toggle,
+  for a page that will never call `wireShell()`.
+- A folded row gives its name back beside the glyph on hover and on keyboard focus, drawn in CSS.
+  Where the browser has CSS anchor positioning the chip is pinned to the row and follows it through
+  a scroll and a resize.
+- `wireShell()` wires the toggle and the nav's groups. The reader's choice is kept in the
+  `apliteni-ui-rail` cookie and applied to any collapsible shell drawn without `collapsed`. A server
+  can pass `railCollapsed(request.headers.cookie)` to paint the right width first.
+  `wireShell(root, { persist: false })` keeps every shell under `root` out of the cookie, and each
+  press sends a `ui-rail` event.
+- The toggle is one icon and no words: a frame that holds still and a seam that crosses it when the
+  rail folds, drawn in one glyph-column box at both widths. It stands at the end of the brand row on
+  an open rail and rides the closing edge onto the glyph column as the rail folds, arriving with the
+  edge; the product's lockup goes with the fold, since that column is where it stood. On a folded
+  rail the toggle takes the same name chip every other row takes, rather than a tooltip of its own.
+- `sidebarNav({ collapsed })` no longer forces a group shut or hides its list, so the current page
+  stays reachable on the folded rail. A row with no glyph gets a dot.
+- The signed-in reader at the rail's foot is the trigger of a menu, and Sign out is a row of it
+  rather than the last row of the navigation list. **`signOutHref` without an `account` now draws
+  neither**: the menu hangs off the block naming the reader, and there is no session to end without
+  one. The menu is the kit's own `dropdown()`, wired by
+  `wireShell()`; it is portalled clear of the rail and opens upward. With no `signOutHref` the block
+  stays the plain reader block and no menu is drawn.
+- A dropdown panel is visible in the frame it opens rather than the next one, so the arrows can put
+  focus on a row, and it stops taking clicks the moment it begins to fade out rather than a quarter
+  of a second later. Both hold for every menu the kit draws — `dropdown()`'s panel, the rail's
+  portalled copy of it, and the topbar's version switcher and account menu. All four were opening to
+  the arrows and leaving focus on the trigger, with the next Tab stepping out of the dropdown
+  entirely, and all four were still taking a click for `--dur-med` after they closed — which in the
+  account menu meant a stray click could sign the reader out of a menu nobody could see. A
+  destructive dropdown row now turns `--pink` under the keyboard as well as under the pointer.
+- New exports: `wireShell`, `railCollapsed`, `RAIL_COOKIE`.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01F6sVNZxbvjxdZ6J1NtpH26

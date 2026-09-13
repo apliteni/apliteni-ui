@@ -65,6 +65,10 @@
   padding: 6px;
   opacity: 0;
   visibility: hidden;
+  /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
+     box that is drawn is a box that is hit. The open rules take this back.
+     why: docs/specification.md#the-dropdown-panel */
+  pointer-events: none;
   transform: translateY(-6px);
   transition:
     opacity var(--dur-med) var(--ease),
@@ -89,7 +93,13 @@
   transform: translateY(6px);
 }
 
-.ui-dropdown.open .ui-dropdown__panel { opacity: 1; visibility: visible; transform: translateY(0); }
+.ui-dropdown.open .ui-dropdown__panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
+/* Open, the panel is visible AT ONCE: `visibility` is off the list, so it is not
+   held at `hidden` for the frame a key opens the panel in — the frame the focus
+   call happens in. Closing still fades on every property it always did.
+   why: docs/specification.md#the-dropdown-panel */
+.ui-dropdown.open .ui-dropdown__panel,
+.ui-dropdown__panel--portal.is-open { transition-property: opacity, transform; }
 
 /* Portalled panel — wireDropdown() moves it onto <body>, clear of every
    ancestor's overflow and every ancestor's stacking context. The descendant
@@ -101,7 +111,7 @@
   position: fixed;
   top: auto; right: auto; bottom: auto; left: auto;
 }
-.ui-dropdown__panel--portal.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+.ui-dropdown__panel--portal.is-open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
 
 /* Item row — [icon] [main: label + desc] [badge] [tick]. A row is a <div>, an
    <a href> or a <button>: `is-selected` and __tick below mean a row gets
@@ -160,7 +170,7 @@
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 /* The accent counter keeps the badge's flat surface and changes only the ink — the shape
-   src/styles/nav.css:128 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
+   src/styles/nav.css:163 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
    The accent wash goes on a base surface, never a raised one, and #295 made this panel a
    raised one. why: docs/specification.md#elevation */
 .ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface-3); }
@@ -169,8 +179,12 @@
 .ui-dropdown__item.is-disabled { color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
 .ui-dropdown__item.is-disabled .ui-dropdown__label,
 .ui-dropdown__item.is-disabled .ui-dropdown__desc { color: inherit; }
+/* Quiet at rest, --pink on the way to being pressed. Both states, not hover alone:
+   the ring says where the reader is, not that this row ends something.
+   why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--muted); }
-.ui-dropdown__item.is-danger:hover .ui-dropdown__label { color: var(--pink); }
+.ui-dropdown__item.is-danger:hover .ui-dropdown__label,
+.ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label { color: var(--pink); }
 
 /* Grouped sections. `~` and :not([hidden]), because `+` counts a group a search
    query has hidden and drew the divider above the first group left showing. */
@@ -200,11 +214,6 @@
    variant emits, so the plain dropdown renders as it did.
    why: docs/specification.md#a-dropdown-with-a-search-field */
 .ui-dropdown__panel--search { min-width: 280px; }
-/* Open, the panel is visible at once instead of at the first step of the
-   `visibility` transition, because a browser will not focus a field in a box
-   that is still `hidden` and opening puts focus in the field. Closing still fades. */
-.ui-dropdown.open .ui-dropdown__panel--search,
-.ui-dropdown__panel--search.is-open { transition-property: opacity, transform; }
 
 .ui-dropdown__search { position: relative; display: flex; align-items: center; margin-bottom: 6px; }
 .ui-dropdown__search-ic {
