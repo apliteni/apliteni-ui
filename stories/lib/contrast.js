@@ -90,24 +90,36 @@ export function declarationsFor(theme, accent = 'default') {
 }
 
 /**
- * The value each custom property resolves to for a theme + accent — one map, the
- * shape every caller here wants.
+ * The winner of each name in a declaration map — the value a browser would use.
  *
  * A token file's value wins over a component sheet's, because :root is where the
  * palette lives and a component property is a local hook. Among component sheets
  * the LAST declaration wins, which is what the browser does at equal specificity
  * and what the first-wins reader this replaced got backwards.
+ *
+ * Taken as an argument rather than read, so a gate that adds its own workspace's
+ * declarations to the map picks its winners by the same rule —
+ * react/src/elevation.test.ts does. why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ */
+export function winnersOf(decls) {
+  const vars = new Map();
+  for (const [name, entries] of decls) {
+    const rooted = entries.filter((e) => e.root);
+    const winner = (rooted.length ? rooted : entries).at(-1);
+    vars.set(name, winner.value);
+  }
+  return vars;
+}
+
+/**
+ * The value each custom property resolves to for a theme + accent — one map, the
+ * shape every caller here wants.
  */
 const tokenCache = new Map();
 export function tokensFor(theme, accent = 'default') {
   const cached = tokenCache.get(`${theme}|${accent}`);
   if (cached) return cached;
-  const vars = new Map();
-  for (const [name, entries] of declarationsFor(theme, accent)) {
-    const rooted = entries.filter((e) => e.root);
-    const winner = (rooted.length ? rooted : entries).at(-1);
-    vars.set(name, winner.value);
-  }
+  const vars = winnersOf(declarationsFor(theme, accent));
   // Memoised: the gate resolves a token per finding per ledger entry, and
   // re-reading every stylesheet each time cost more than the walk itself.
   tokenCache.set(`${theme}|${accent}`, vars);

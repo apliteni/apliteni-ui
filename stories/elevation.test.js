@@ -16,7 +16,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, substitute, parseColour, composite, ratio } from './lib/contrast.js';
-import { boxShadowsIn, layersOf, isCast, geometryOf, inkOf } from '../scripts/lib/box-shadow.js';
+import { boxShadowsIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf } from '../scripts/lib/box-shadow.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -65,39 +65,13 @@ test('the sweep sees every box-shadow the kit ships', () => {
     'the sweep collapsed onto a handful of files — STYLE_FILES is probably not resolving');
 });
 
-/** Every custom property a value reads, transitively. */
-function namesRead(value, vars, seen = new Set()) {
-  for (const [, name] of value.matchAll(/var\(\s*(--[\w-]+)/g)) {
-    if (seen.has(name)) continue;
-    seen.add(name);
-    namesRead(vars.get(name) ?? '', vars, seen);
-  }
-  return seen;
-}
-
-/* Every value a layer can resolve to: the cascade's winner, and then the winner
- * with one of the properties it reads swapped for each OTHER value the kit gives
- * that name anywhere. A reader that resolves one declaration per name is a guess
- * about the cascade, and a guess can be walked past — the #314 review planted a
- * genuine cast in a redeclared `--drawer-line` and watched the sweep stay green,
- * because the sweep kept the first declaration and the browser used the second.
- * Trying every declared value is an over-approximation on purpose: it can call a
- * cast that no element actually paints, and it cannot miss one that some element
- * does. why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
-function resolutionsOf(raw, theme) {
-  const vars = tokensFor(theme);
-  const decls = declarationsFor(theme);
-  const out = new Set([substitute(raw, vars)]);
-  for (const name of namesRead(raw, vars)) {
-    for (const entry of decls.get(name) ?? []) {
-      if (entry.value === vars.get(name)) continue;
-      const alt = new Map(vars);
-      alt.set(name, entry.value);
-      out.add(substitute(raw, alt));
-    }
-  }
-  return [...out];
-}
+/* The cascade this workspace judges a layer against: every value the kit gives
+ * every name, so a cast written behind a redeclared custom property cannot walk
+ * past the sweep. The resolver itself lives beside the reader in
+ * scripts/lib/box-shadow.js, where react/src/elevation.test.ts reads it too.
+ * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
+const cascadeFor = (theme) =>
+  ({ vars: tokensFor(theme), decls: declarationsFor(theme), substitute });
 
 /* A raw layer is substituted on its own, so provenance survives: a layer that
  * resolves to a cast shadow has to be `var(--elev-drop)`, not merely contain ink
@@ -106,10 +80,11 @@ test('the only cast shadow under src/ is the floating treatment', () => {
   const offences = [];
   let floating = 0;
   for (const theme of THEMES) {
+    const cascade = cascadeFor(theme);
     for (const d of sweep) {
       for (const raw of layersOf(d.value)) {
         if (raw === TREATMENT_DROP) { floating += 1; continue; }
-        const casts = resolutionsOf(raw, theme).some((v) => layersOf(v).some(isCast));
+        const casts = resolutionsOf(raw, cascade).some((v) => layersOf(v).some(isCast));
         if (!casts) continue;
         offences.push(`${d.file}:${d.line} (${theme})  ${d.selector} { box-shadow: … ${raw} … }`);
       }

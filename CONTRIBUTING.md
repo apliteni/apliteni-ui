@@ -1547,6 +1547,14 @@ gives the properties it reads, one name at a time — an over-approximation, whi
 no element paints and cannot miss one some element does. What it still cannot see is a cast that
 needs two properties off their winning values at once; that is in the gate's ledger.
 
+That resolver is `resolutionsOf` in `scripts/lib/box-shadow.js`, beside the reader, and it takes
+the cascade as an argument rather than importing one. `react/src/elevation.test.ts` hands it the
+kit's declarations with its **own** sheets layered on, picking the winners with the same
+`winnersOf`: the vanilla resolver stops at what `src/index.css` imports, so before that a custom
+property declared in `react/src/` was invisible, and the round-2 review parked a real drop behind
+one and watched the React gate stay green. The two gates stay separate and the arithmetic does
+not — [one gate per workspace, over one shared implementation](#one-gate-per-workspace-over-one-shared-implementation).
+
 ### Font family count history
 
 `src/styles/typeface-roles.test.js` pins the exact number of declarations that name a family

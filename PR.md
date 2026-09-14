@@ -159,16 +159,17 @@ deprecated `--shadow-*`, and so is `--muted`, which still measures 5.60 / 6.11 o
 Foundations → Backgrounds. All four are re-scoped to *no cast shadow but the floating step's*. The
 prose was the whole enforcement, which is exactly why this PR adds the gate the claim never had:
 
-`stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader,
-`scripts/lib/box-shadow.js`. Both **discover** their subjects — every `box-shadow` declaration in
-every sheet `src/index.css` imports — rather than naming a component, so a stylesheet added
-tomorrow is in scope by existing. Each declaration is read per theme with the token files
+`stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader and one cascade
+resolver, `scripts/lib/box-shadow.js`. Both **discover** their subjects — every `box-shadow`
+declaration in every sheet `src/index.css` imports, and in the React workspace's own sheets —
+rather than naming a component, so a stylesheet added tomorrow is in scope by existing. Each declaration is read per theme with the token files
 substituted in, because the property name decides nothing: a ring, a glow and a drop are all
 written `box-shadow`, and only a layer's geometry says which it is. A layer that resolves to a cast
 shadow has to **be** `var(--elev-drop)`, not merely contain ink that looks like it — and it is
-judged against **every** value the kit gives the properties it read, not one guess at the cascade,
+judged against **every** value the kit gives the properties it read — each gate resolving against
+its own workspace's declarations as well as the token files — not one guess at the cascade,
 because a reader that keeps one declaration per name can be walked past by writing a second one.
-Round 1 did exactly that; see below.
+Round 1 did exactly that; see below, and round 2 did it again on the React side.
 
 It holds eight things: the shape of the drops (no sideways offset, a blur at least twice the
 offset, a negative spread), the shape of the line at every call site (inset, a hairline, in front

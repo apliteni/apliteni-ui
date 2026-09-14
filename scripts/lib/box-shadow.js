@@ -83,8 +83,33 @@ export function isCast(layer) {
  * that did would be reported with its quotes, which is loud rather than silent. */
 const RULE = /([^{}]+)\{([^{}]*)\}/g;
 
+/** Blank a comment out without moving a line, so a counted line stays honest. */
+const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+
+/** Every custom property a stylesheet declares, with the selector it sits under.
+ *  The React gate harvests its own workspace with this, because the vanilla
+ *  resolver (stories/lib/contrast.js) reads what `src/index.css` imports and
+ *  nothing else — a property declared in `react/src/` was invisible to it, and a
+ *  cast written behind one resolved to nothing at all. #314 round 2, finding 2. */
+export function customPropertiesIn(css) {
+  const clean = decomment(css);
+  const found = [];
+  for (const m of clean.matchAll(RULE)) {
+    const selector = m[1].trim().replace(/\s+/g, ' ');
+    if (selector.startsWith('@')) continue;
+    for (const decl of m[2].split(';')) {
+      const i = decl.indexOf(':');
+      if (i < 0) continue;
+      const name = decl.slice(0, i).trim();
+      if (!name.startsWith('--')) continue;
+      found.push({ selector, name, value: decl.slice(i + 1).trim() });
+    }
+  }
+  return found;
+}
+
 export function boxShadowsIn(css) {
-  const clean = css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+  const clean = decomment(css);
   const found = [];
   for (const m of clean.matchAll(RULE)) {
     const selector = m[1].trim().replace(/\s+/g, ' ');
@@ -118,4 +143,36 @@ export function inkOf(layer) {
     word += c;
   }
   return '';
+}
+
+/** Every custom property a value reads, transitively, through `vars`. */
+export function namesRead(value, vars, seen = new Set()) {
+  for (const [, name] of value.matchAll(/var\(\s*(--[\w-]+)/g)) {
+    if (seen.has(name)) continue;
+    seen.add(name);
+    namesRead(vars.get(name) ?? '', vars, seen);
+  }
+  return seen;
+}
+
+/* Every value a layer can resolve to: the cascade's winner, then that winner with
+ * one of the properties it reads swapped for each OTHER value the kit gives that
+ * name. Resolving one declaration per name is a guess about the cascade, and a
+ * guess can be walked past — #314 parked a real drop behind a redeclared property
+ * and watched a gate stay green, twice. Trying every declared value is an
+ * over-approximation on purpose: it can call a cast no element paints, and cannot
+ * miss one some element does. The cascade is an argument rather than an import, so
+ * each workspace's gate hands over its own declarations as well as the kit's.
+ * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
+export function resolutionsOf(raw, { vars, decls, substitute }) {
+  const out = new Set([substitute(raw, vars)]);
+  for (const name of namesRead(raw, vars)) {
+    for (const entry of decls.get(name) ?? []) {
+      if (entry.value === vars.get(name)) continue;
+      const alt = new Map(vars);
+      alt.set(name, entry.value);
+      out.add(substitute(raw, alt));
+    }
+  }
+  return [...out];
 }

@@ -525,12 +525,14 @@ Three things follow from writing it as one list.
   all: it composes `var(--drawer-line), var(--elev-drop)`, and each `--drawer--<edge>` rule sets
   `--drawer-line` in the direction its border runs.
 
-Held by `stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader in
-`scripts/lib/box-shadow.js` and its own tests in `scripts/lib/box-shadow.test.js`. Both discover
-every `box-shadow` the kit declares rather than naming a component, read each layer's geometry
-per theme, and refuse a cast layer that is not `--elev-drop`. A layer is judged against every
-value the kit gives the properties it reads, not against one guess at the cascade, because a
-reader that keeps one declaration per name can be walked past by writing a second one. Two rules
+Held by `stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader and one
+cascade resolver in `scripts/lib/box-shadow.js`, with their own tests in
+`scripts/lib/box-shadow.test.js`. Both discover every `box-shadow` the kit declares rather than
+naming a component, read each layer's geometry per theme, and refuse a cast layer that is not
+`--elev-drop`. A layer is judged against every value the kit gives the properties it reads —
+each gate resolving against its own workspace's declarations as well as the token files — not
+against one guess at the cascade, because a reader that keeps one declaration per name can be
+walked past by writing a second one. Two rules
 hold the shape above as well: a `:root` token may not read a hook a component re-points, and a
 component may not re-point `--elev-edge` on an element that writes no inner line. The numbers
 above are floored there, so a treatment can get better and cannot quietly get worse.
