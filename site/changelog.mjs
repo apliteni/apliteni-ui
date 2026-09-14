@@ -13,6 +13,13 @@
 
 export const RELEASES = [
   {
+    v: '0.34.1', date: '2026-09-14',
+    changes: [
+      ['changed', "The topbar band's search field leaves the sunken step. Every other field in the kit takes `--surface-2`, one rung under the surface it sits in; this one sits on the band, and the band is `--bg`, the bottom of the ladder, so a sunken fill there had nowhere to go but into its own ground — measured in light it was 1.10:1 below the band and its key cap 1.04:1 against the field. It takes `--surface` now, one rung above: 1.08:1 above the band, the cap 1.14:1. Chosen on #318 from five looks rendered off one branch (today, bordered, lifted, quiet, wide — the survey of seven systems and all forty frames are in `docs/reviews/318-search-field.*`); the width, the palette's sentence and the boxed key stay. In dark the cap's edge softens with the lift (1.29:1 → 1.16:1), left as it lands.", ['Shell']],
+      ['fixed', "The same field takes the kit's focus ring. It is a `<button>` without `.ui-btn`, so the shared rule never reached it and focus fell through to the browser's square outline, drawn around a 12px radius. It draws `--ring` and the accent edge on `:focus-visible` now, like every other control on the band.", ['Shell']],
+    ],
+  },
+  {
     v: '0.34.0', date: '2026-09-14',
     changes: [
       ['added', "The app shell has a second layout. `appShell({ layout: 'topbar' })` moves the signed-in reader out of the rail's foot and onto a band beside the rail, carrying a search field and the reader's menu; the fold's control takes the place at the rail's foot. The rail-only layout is unchanged and stays the default. `accountShell()` passes `layout` through. The banded layout does not compose with the compatibility `topbar` bag, so a page taking it has no version switcher or theme toggle in the band. Decided on #308 from the reference read from source: the band stands beside the rail rather than above it, and on the band the trigger is the avatar alone.", ['Shell']],
