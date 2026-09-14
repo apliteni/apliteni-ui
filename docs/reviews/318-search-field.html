@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Review</title>
+  <style>
+    :root {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #202b36;
+      background: #f5f6f7;
+      font-size: 16px;
+      line-height: 1.55;
+      --accent: #245ca6;
+      --muted: #536170;
+      --line: #c6cdd4;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+    }
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+    }
+    a:visited {
+      color: #68428a;
+    }
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+    button,
+    select {
+      min-height: 44px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 5px;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+    }
+    button.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 32px;
+      line-height: 1.2;
+    }
+    h2 {
+      font-size: 23px;
+    }
+    h3 {
+      font-size: 18px;
+    }
+    .muted,
+    small {
+      color: var(--muted);
+    }
+    small {
+      font-size: 14px;
+    }
+    .shell {
+      max-width: 1400px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+    }
+    aside {
+      padding: 32px 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--line);
+      overflow: auto;
+    }
+    aside strong {
+      display: block;
+      margin-bottom: 20px;
+    }
+    nav a {
+      display: block;
+      padding: 10px 0;
+      text-decoration: none;
+    }
+    main {
+      padding: 36px 40px 80px;
+      min-width: 0;
+    }
+    header {
+      max-width: 850px;
+      margin-bottom: 32px;
+    }
+    .bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 16px 0;
+    }
+    .round {
+      margin: 28px 0;
+    }
+    .decision {
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      scroll-margin-top: 16px;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .option {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 18px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .option:has(input:checked) {
+      border: 2px solid var(--accent);
+      padding: 17px;
+    }
+    .pick {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .pick input {
+      width: 20px;
+      height: 20px;
+      flex: none;
+      accent-color: var(--accent);
+    }
+    .option img {
+      display: block;
+      width: 100%;
+      max-height: 340px;
+      object-fit: contain;
+      background: #fff;
+    }
+    .option p {
+      margin: 0;
+    }
+    .recommendation {
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .comment {
+      display: block;
+      margin-top: 16px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      margin-top: 6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: white;
+      color: inherit;
+      resize: vertical;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    details {
+      margin: 20px 0;
+    }
+    summary {
+      cursor: pointer;
+      min-height: 44px;
+      padding: 8px 0;
+      font-weight: bold;
+    }
+    .prior {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+    #status {
+      min-height: 25px;
+      color: var(--muted);
+    }
+    #status.error {
+      color: #9c2626;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: white;
+      padding: 16px;
+      border: 1px solid var(--line);
+    }
+    [hidden] {
+      display: none !important;
+    }
+    .skip {
+      position: absolute;
+      left: -9999px;
+    }
+    .skip:focus {
+      left: 12px;
+      top: 12px;
+      background: white;
+      padding: 12px;
+      z-index: 10;
+    }
+    fieldset {
+      border: 0;
+      padding: 0;
+      margin: 0;
+      min-width: 0;
+    }
+    legend {
+      font-size: 18px;
+      font-weight: bold;
+      padding: 0;
+    }
+    #round {
+      max-width: 100%;
+    }
+    .context {
+      max-width: 78ch;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    @media (max-width: 760px) {
+      .shell {
+        display: block;
+      }
+      aside {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 16px 20px;
+      }
+      aside strong {
+        margin-bottom: 4px;
+      }
+      nav {
+        display: flex;
+        gap: 16px;
+        overflow: auto;
+      }
+      nav a {
+        white-space: nowrap;
+      }
+      main {
+        padding: 24px 20px 60px;
+      }
+      h1 {
+        font-size: 27px;
+      }
+      .options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <a class="skip" href="#main">Skip to review</a>
+  <div class="shell">
+    <aside>
+      <strong>Review workspace</strong>
+      <p id="progress" class="muted"></p>
+      <nav aria-label="Decisions" id="nav"></nav>
+    </aside>
+    <main id="main">
+      <header>
+        <p class="muted">Review and decide</p>
+        <h1 id="title"></h1>
+        <p id="goal"></p>
+        <ul id="constraints"></ul>
+        <a id="source">Authoritative task record</a>
+      </header>
+      <div class="bar">
+        <label for="round">Review round</label
+        ><select id="round"></select>
+      </div>
+      <div class="toolbar">
+        <button class="primary" id="copy">Copy feedback</button
+        ><button id="markdown">Download Markdown</button
+        ><button id="export">Export JSON</button
+        ><button id="import">Import JSON</button
+        ><input type="file" id="file" accept="application/json,.json" hidden />
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+      <p class="muted">
+        Choices stay as local drafts. Copy or export them to share; nothing is
+        submitted automatically.
+      </p>
+      <details id="fallback" hidden>
+        <summary>Feedback to copy manually</summary>
+        <textarea aria-label="Feedback to copy" readonly></textarea>
+      </details>
+      <section aria-label="Previous decisions" id="prior"></section>
+      <div id="decisions"></div>
+      <details>
+        <summary>Previous drafts for changed content</summary>
+        <p class="muted">
+          These choices refer to earlier content and have not been applied to
+          this round.
+        </p>
+        <div id="archive"></div>
+      </details>
+    </main>
+  </div>
+  <script type="application/json" id="review-data">
+{
+  "id": "apliteni-ui-318-search-field",
+  "title": "The topbar band’s search field: which of five looks does it take?",
+  "goal": "Pick the look the palette trigger takes in appShell({ layout: 'topbar' }). The reporter said it looks ugly and did not say what is wrong, so this is five renders off one branch rather than one fix.",
+  "constraints": [
+    "Placeholder names and figures only. This repository is public, so nothing here is real.",
+    "The markup does not change. The key cap stays inside the field’s accessible name — that was decided on 2026-09-14 and is not reopened — and `[data-cmdk-open]` stays the palette’s own hook. Every variant is a stylesheet; one of them also shortens a placeholder string.",
+    "Whatever is chosen keeps the gates the field already has: stories/apps/shell.test.js, shell-rail.test.js and shell-states.test.js are green on all five today.",
+    "No package.json bump and no changelog entry on this branch — the coordinator sequences releases.",
+    "Nothing merges without Artur’s approval. This branch is pushed; the coordinator opens the pull request."
+  ],
+  "source": "https://github.com/apliteni/apliteni-ui/issues/318",
+  "rounds": [
+    {
+      "id": "r1",
+      "title": "The band’s search field · round 1 (variants)",
+      "prior": [
+        {
+          "title": "The topbar layout itself",
+          "choice": "Approved — a band beside the rail, the toggle at the rail’s foot, two content widths",
+          "reason": "#308 / PR #317, merged at 6b4af3e on 2026-09-14. The band’s arrangement, its 52px height and the centred content width are settled and are not reopened here; only the field inside it is in question.",
+          "source": "https://github.com/apliteni/apliteni-ui/pull/317"
+        },
+        {
+          "title": "The key cap is part of the field’s name",
+          "choice": "Kept — the cap is not aria-hidden",
+          "reason": "Artur, on #317, 2026-09-14. The kit’s palette-row rule hides a row’s own key because forty of them read after forty labels is noise; there is one of these, and the shortcut is the fact a reader needs before they stop reaching for the sidebar. Every option below keeps it.",
+          "source": "https://github.com/apliteni/apliteni-ui/pull/317"
+        },
+        {
+          "title": "What was asked",
+          "choice": "“btw it search field looks ugly”",
+          "reason": "The reporter, verbatim, on #317 on 2026-09-14 while approving the layout. No further detail was given, which is why this page is five looks rather than one fix.",
+          "source": "https://github.com/apliteni/apliteni-ui/issues/318"
+        }
+      ],
+      "decisions": [
+        {
+          "id": "look",
+          "title": "Which look does the band’s search field take?",
+          "context": "Every frame is the same screen off the same branch — one static server, one Chrome, one viewport, the kit’s own appShell() — so between any two of them only the field’s look differs. The look is a stylesheet’s, keyed off `data-search-variant`; the button, its accessible name, its `[data-cmdk-open]` and its `kbd` are the same bytes in all five, so every gate the field already has is green on each. Each option carries six frames: the band alone at life size in both themes (the fastest comparison — the subject is a 34px control and a 1280 frame renders it in a corner), the whole screen at 1280, a phone at 390, and the field under a real Tab press. The numbers under each option are WCAG contrast ratios measured from the tokens: the fill is the field against the band it sits on, the edge is its border against that same band, and the ink is the placeholder on whatever the field becomes. One finding is not a choice and is fixed in all four: today the field is the only control on the band that does not take the kit’s focus ring — it is a \u003cbutton> without .ui-btn, so base.css never reaches it and focus falls through to Chrome’s square black-and-white outline drawn over a 12px radius. Compare today’s Tab frame with any variant’s. Recommended: b · Lifted, and the reason is in PR.md — it is the one change every readable reference system agrees on (nobody draws this control on the sunken step), it is one declaration, it keeps the field looking like the kit’s other fields, and it leaves the two things that are arguably wrong but are separately fixable — the sentence and the width — to be decided on their own. If the light theme is what looks ugly and the fill is not enough, a is the stronger answer: it is the only option that moves the edge as well. The survey the four came out of, with every source and every measurement, is docs/reviews/318-search-field.md.",
+          "recommendation": "lifted",
+          "options": [
+            {
+              "id": "today",
+              "title": "Today — what #317 ships",
+              "summary": "A 320px pill on the sunken step (--surface-2) inside a 1px --border, 12px radius, the palette’s own sentence “Search or run a command…”, and the palette’s own key cap: a --surface-3 box with a --border edge. Here as the thing the other four are read against, rendered off this branch rather than copied from #317’s evidence.",
+              "tradeoff": "In light the fill measures 1.10:1 against the band and the edge 1.09:1 — two devices, neither of which reads, which is what a smudge is. The cap is worse: --surface-3 on --surface-2 is 1.04:1 and its border 1.01:1, so a filled, bordered box is drawn where a reader can see neither the fill nor the border. Dark is the theme this was built in and it holds up there (1.07 fill, 1.50 edge). Costs nothing, because it is already built. Focus is the browser’s own square outline over a 12px radius — the only control on the band that does not take the kit’s ring.",
+              "evidence": [
+                {
+                  "label": "Today — the band, life size, light",
+                  "url": "../evidence/318-search-field/318-search-today-light-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Today — the band, life size, dark",
+                  "url": "../evidence/318-search-field/318-search-today-dark-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Today — the screen, light, 1280",
+                  "url": "../evidence/318-search-field/318-search-today-light-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Today — the screen, dark, 1280",
+                  "url": "../evidence/318-search-field/318-search-today-dark-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Today — a phone, light, 390",
+                  "url": "../evidence/318-search-field/318-search-today-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Today — a phone, dark, 390",
+                  "url": "../evidence/318-search-field/318-search-today-dark-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Today — under a real Tab press, light",
+                  "url": "../evidence/318-search-field/318-search-today-focus-light.png",
+                  "image": true
+                },
+                {
+                  "label": "Today — under a real Tab press, dark",
+                  "url": "../evidence/318-search-field/318-search-today-focus-dark.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "bordered",
+              "title": "a · Bordered — the fill goes, the edge carries it",
+              "summary": "The field stands on the band’s own ground with no fill at all, held by 1px of --border-strong at a 9px radius; the key cap follows, outlined on the same ground instead of filled. Notion’s search is this exactly — 1px of rgba(0,0,0,.08), 8px, no fill — and GitHub’s header cap is a 1px border over `background-color:#0000`.",
+              "tradeoff": "The edge goes from 1.09:1 to 1.33:1 in light and 1.50 to 1.95 in dark, and the placeholder is read on --bg rather than --surface-2, which raises it from 4.89:1 to 5.36:1 in light. One rule in both themes, no new token, and the cap stops being a box nobody can see. What it gives up is the field’s resemblance to the kit’s other fields: .ui-input is sunken-and-hairlined everywhere else, so this is the one field in the kit drawn on the page.",
+              "evidence": [
+                {
+                  "label": "Bordered — the band, life size, light",
+                  "url": "../evidence/318-search-field/318-search-bordered-light-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered — the band, life size, dark",
+                  "url": "../evidence/318-search-field/318-search-bordered-dark-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered — the screen, light, 1280",
+                  "url": "../evidence/318-search-field/318-search-bordered-light-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered — the screen, dark, 1280",
+                  "url": "../evidence/318-search-field/318-search-bordered-dark-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered — a phone, light, 390",
+                  "url": "../evidence/318-search-field/318-search-bordered-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered — a phone, dark, 390",
+                  "url": "../evidence/318-search-field/318-search-bordered-dark-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered — under a real Tab press, light",
+                  "url": "../evidence/318-search-field/318-search-bordered-focus-light.png",
+                  "image": true
+                },
+                {
+                  "label": "Bordered — under a real Tab press, dark",
+                  "url": "../evidence/318-search-field/318-search-bordered-focus-dark.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "lifted",
+              "title": "b · Lifted — the same pill, one step up",
+              "summary": "Nothing changes but which way the step goes: --surface (the card step) instead of --surface-2, with the hairline it already has. This is what lessly-ui’s own QuickSearchRow does and says why in its comment — `bg-bg-overlay` where every other field takes `bg-bg-primary`, “because … the field’s own fill would be its ground and only the border would say it is there” — and what Vercel’s docs trigger does, white on a grey rail.",
+              "tradeoff": "The smallest change on the list: one declaration. In light the fill goes from 1.10 below the band to 1.08 above it, and the placeholder reads at 5.81:1 instead of 4.89. The cap finally has a ground to sit on — --surface-3 on --surface is 1.14:1 rather than 1.04. In dark it is the least distinguishable from today (1.19 against 1.07), so this is the option that fixes light and barely moves dark. The edge stays --border at 1.09:1 in light, so the field is still carried by its fill alone.",
+              "evidence": [
+                {
+                  "label": "Lifted — the band, life size, light",
+                  "url": "../evidence/318-search-field/318-search-lifted-light-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Lifted — the band, life size, dark",
+                  "url": "../evidence/318-search-field/318-search-lifted-dark-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Lifted — the screen, light, 1280",
+                  "url": "../evidence/318-search-field/318-search-lifted-light-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Lifted — the screen, dark, 1280",
+                  "url": "../evidence/318-search-field/318-search-lifted-dark-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Lifted — a phone, light, 390",
+                  "url": "../evidence/318-search-field/318-search-lifted-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Lifted — a phone, dark, 390",
+                  "url": "../evidence/318-search-field/318-search-lifted-dark-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Lifted — under a real Tab press, light",
+                  "url": "../evidence/318-search-field/318-search-lifted-focus-light.png",
+                  "image": true
+                },
+                {
+                  "label": "Lifted — under a real Tab press, dark",
+                  "url": "../evidence/318-search-field/318-search-lifted-focus-dark.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "quiet",
+              "title": "c · Quiet — fewer words, a narrower box, the key unboxed",
+              "summary": "Today’s fill and today’s step, untouched. What changes is everything that is not chrome: 240px instead of 320, “Search…” instead of the palette’s sentence, a pill radius, and the key set beside the words as plain medium text rather than framed. Tailwind’s docs trigger is this at its smallest — a magnifier, a plain “⌘K”, no words at all.",
+              "tradeoff": "It is the only option that fixes the phone: at 390 the 320px field shrinks and “Search or run a command…” clips to “Search or run a co…”, and “Search…” does not. It also removes the invisible cap by removing the box rather than by giving it a ground. What it does NOT do is touch the fill, so the light lozenge is still 1.10:1 on the band — a tidier smudge. One of its changes is a string and not a rule: the placeholder is an argument to appShell(), so choosing this changes shell.js:99 as well as the sheet.",
+              "evidence": [
+                {
+                  "label": "Quiet — the band, life size, light",
+                  "url": "../evidence/318-search-field/318-search-quiet-light-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet — the band, life size, dark",
+                  "url": "../evidence/318-search-field/318-search-quiet-dark-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet — the screen, light, 1280",
+                  "url": "../evidence/318-search-field/318-search-quiet-light-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet — the screen, dark, 1280",
+                  "url": "../evidence/318-search-field/318-search-quiet-dark-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet — a phone, light, 390",
+                  "url": "../evidence/318-search-field/318-search-quiet-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet — a phone, dark, 390",
+                  "url": "../evidence/318-search-field/318-search-quiet-dark-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet — under a real Tab press, light",
+                  "url": "../evidence/318-search-field/318-search-quiet-focus-light.png",
+                  "image": true
+                },
+                {
+                  "label": "Quiet — under a real Tab press, dark",
+                  "url": "../evidence/318-search-field/318-search-quiet-focus-dark.png",
+                  "image": true
+                }
+              ]
+            },
+            {
+              "id": "wide",
+              "title": "d · Wide — the field takes the band",
+              "summary": "The arrangement rather than the chrome: the field grows to the reader’s mark instead of sitting at 320px, and is bordered on the ground for the same reason a is — a sunken slab this wide is a bigger smudge, not a smaller one. GitHub’s product command bar is the shape this copies.",
+              "tradeoff": "It answers the thing the other three do not: at 1280 this band is a 320px control, a 28px mark and about 700px of nothing between them, and the field is the one control the band exists for. The cost is that the band stops being quiet — a full-width bordered box is the loudest thing on the screen above the page title, and it makes the topbar layout look less like the rail layout it is a sibling of. It also means the palette’s sentence sits in a 700px box with 600px of space after it.",
+              "evidence": [
+                {
+                  "label": "Wide — the band, life size, light",
+                  "url": "../evidence/318-search-field/318-search-wide-light-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Wide — the band, life size, dark",
+                  "url": "../evidence/318-search-field/318-search-wide-dark-band.png",
+                  "image": true
+                },
+                {
+                  "label": "Wide — the screen, light, 1280",
+                  "url": "../evidence/318-search-field/318-search-wide-light-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Wide — the screen, dark, 1280",
+                  "url": "../evidence/318-search-field/318-search-wide-dark-1280.png",
+                  "image": true
+                },
+                {
+                  "label": "Wide — a phone, light, 390",
+                  "url": "../evidence/318-search-field/318-search-wide-light-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Wide — a phone, dark, 390",
+                  "url": "../evidence/318-search-field/318-search-wide-dark-390.png",
+                  "image": true
+                },
+                {
+                  "label": "Wide — under a real Tab press, light",
+                  "url": "../evidence/318-search-field/318-search-wide-focus-light.png",
+                  "image": true
+                },
+                {
+                  "label": "Wide — under a real Tab press, dark",
+                  "url": "../evidence/318-search-field/318-search-wide-focus-dark.png",
+                  "image": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <script>
+    "use strict";
+    const $ = (s) => document.querySelector(s);
+    const el = (tag, text, cls) => {
+      const n = document.createElement(tag);
+      if (text !== undefined) n.textContent = text;
+      if (cls) n.className = cls;
+      return n;
+    };
+    const notice = (text, error = false) => {
+      $("#status").textContent = text;
+      $("#status").className = error ? "error" : "";
+    };
+    const safeURL = (value) => {
+      if (typeof value !== "string" || !value.trim()) return null;
+      try {
+        const u = new URL(value, location.href);
+        return ["http:", "https:"].includes(u.protocol) ||
+          (u.protocol === "file:" && location.protocol === "file:")
+          ? u.href
+          : null;
+      } catch {
+        return null;
+      }
+    };
+    function link(label, url) {
+      const a = el("a", label),
+        u = safeURL(url);
+      if (u) {
+        a.href = u;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      } else {
+        a.removeAttribute("href");
+        a.append(" (link unavailable)");
+      }
+      return a;
+    }
+    function sourceRef(label, value) {
+      return typeof value === "string" &&
+        /^https?:\/\//i.test(value) &&
+        safeURL(value)
+        ? link(label, value)
+        : el("span", "Source: " + (value || "not recorded"), "muted");
+    }
+    let data, storageKey;
+    function unique(items) {
+      return (
+        new Set(items.map((x) => x.id)).size === items.length &&
+        items.every(
+          (x) =>
+            typeof x.id === "string" &&
+            x.id.length > 0 &&
+            !["__proto__", "constructor", "prototype"].includes(x.id),
+        )
+      );
+    }
+    function validate() {
+      if (
+        !data.id ||
+        !Array.isArray(data.rounds) ||
+        !data.rounds.length ||
+        !unique(data.rounds)
+      )
+        throw Error("Task and unique round IDs are required.");
+      for (const r of data.rounds) {
+        if (!Array.isArray(r.decisions) || !unique(r.decisions))
+          throw Error("Decision IDs must be unique.");
+        for (const d of r.decisions)
+          if (
+            !Array.isArray(d.options) ||
+            !d.options.length ||
+            !unique(d.options) ||
+            d.options.some((o) => ["defer", "custom"].includes(o.id))
+          )
+            throw Error("Use unique option IDs other than defer/custom.");
+      }
+    }
+    let book = {},
+      round,
+      signature,
+      answers,
+      storageError = "";
+    function readBook() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (!parsed || Array.isArray(parsed) || typeof parsed !== "object")
+            throw Error("Invalid draft data");
+          book = parsed;
+        }
+      } catch {
+        storageError =
+          "Saved drafts could not be read. Export before closing; existing storage will not be overwritten.";
+      }
+    }
+    function save() {
+      if (storageError) {
+        notice(storageError, true);
+        return;
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(book));
+        notice("Draft saved locally. Export a copy to keep it.");
+      } catch {
+        notice(
+          "Local saving failed. Your draft is still here; export it before closing.",
+          true,
+        );
+      }
+    }
+    function validAnswers(value, r) {
+      if (
+        !r ||
+        !Array.isArray(r.decisions) ||
+        r.decisions.some((d) => !d || !Array.isArray(d.options)) ||
+        !value ||
+        typeof value !== "object" ||
+        Array.isArray(value)
+      )
+        return false;
+      return Object.entries(value).every(([id, a]) => {
+        const d = r.decisions.find((x) => x.id === id);
+        return (
+          d &&
+          a &&
+          typeof a === "object" &&
+          typeof a.note === "string" &&
+          typeof a.choice === "string" &&
+          ["", "defer", "custom", ...d.options.map((x) => x.id)].includes(
+            a.choice,
+          )
+        );
+      });
+    }
+    function payload(entry = book[signature]) {
+      return {
+        version: 1,
+        task: data.id,
+        signature: entry.signature,
+        round: entry.round,
+        context: entry.context,
+        answers: entry.answers,
+      };
+    }
+    function markdown(entry = book[signature]) {
+      const c = entry.context,
+        r = entry.round;
+      let lines = [
+        "# " + c.title,
+        "",
+        c.goal,
+        "",
+        "Task: " + data.id,
+        "Round: " + r.id + " — " + r.title,
+        "Record: " + (c.source || "not recorded"),
+        "",
+        "## Constraints",
+        ...(c.constraints || []).map((x) => "- " + x),
+        "",
+        "## Previous decisions",
+      ];
+      for (const p of r.prior || [])
+        lines.push(
+          "",
+          p.title + ": " + p.choice,
+          "Reason: " + p.reason,
+          "Source: " + (p.source || "not recorded"),
+        );
+      lines.push("", "## Feedback");
+      for (const d of r.decisions) {
+        const a = entry.answers[d.id] || { choice: "", note: "" },
+          o = d.options.find((x) => x.id === a.choice);
+        lines.push(
+          "",
+          "### " + d.id + " — " + d.title,
+          d.context || "Context not recorded",
+          "Selection: " +
+            (o
+              ? o.title + " [" + o.id + "]"
+              : { defer: "Decide later", custom: "Suggest another approach" }[
+                  a.choice
+                ] || "Unanswered"),
+        );
+        if (a.note) lines.push("Comment: " + a.note);
+      }
+      return lines.join("\n");
+    }
+    function download(text, type, extension) {
+      const url = URL.createObjectURL(new Blob([text], { type }));
+      const a = el("a");
+      a.href = url;
+      a.download =
+        "review-" +
+        data.id.replace(/[^a-z0-9_-]/gi, "-") +
+        "-" +
+        round.id.replace(/[^a-z0-9_-]/gi, "-") +
+        "-" +
+        Date.now() +
+        "." +
+        extension;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function progress() {
+      const count = round.decisions.filter((d) => answers[d.id]?.choice).length;
+      $("#progress").textContent =
+        count + " of " + round.decisions.length + " choices made";
+      for (const a of $("#nav").children) {
+        const answer = answers[a.dataset.id];
+        a.textContent =
+          (answer?.choice ? "✓ " : "") +
+          round.decisions.find((d) => d.id === a.dataset.id).title;
+      }
+    }
+    function update(id, key, value) {
+      answers[id] ??= { choice: "", note: "" };
+      answers[id][key] = value;
+      save();
+      progress();
+    }
+    function showArchive() {
+      const root = $("#archive");
+      root.replaceChildren();
+      for (const [key, entry] of Object.entries(book)) {
+        if (
+          key === signature ||
+          entry?.round?.id !== round.id ||
+          !entry ||
+          !entry.round ||
+          !entry.context ||
+          !validAnswers(entry.answers, entry.round)
+        )
+          continue;
+        const d = el("details");
+        d.append(el("summary", entry.round.title), el("pre", markdown(entry)));
+        root.append(d);
+      }
+      if (!root.children.length)
+        root.append(el("p", "No previous drafts in this browser."));
+    }
+    function render() {
+      const root = $("#decisions"),
+        nav = $("#nav"),
+        prior = $("#prior");
+      root.replaceChildren();
+      nav.replaceChildren();
+      prior.replaceChildren();
+      if (round.prior?.length) {
+        const details = el("details");
+        details.append(el("summary", "Decisions already made"));
+        for (const p of round.prior) {
+          const row = el("div", undefined, "prior");
+          row.append(
+            el("h3", p.title),
+            el("p", p.choice),
+            el("p", "Why: " + p.reason, "muted"),
+            sourceRef("Decision source", p.source),
+          );
+          details.append(row);
+        }
+        prior.append(details);
+      }
+      round.decisions.forEach((d, index) => {
+        const section = el("section", undefined, "decision");
+        section.id = "decision-" + index;
+        const a = el("a", d.title);
+        a.href = "#" + section.id;
+        a.dataset.id = d.id;
+        nav.append(a);
+        section.append(el("h2", d.title), el("p", d.context, "context"));
+        const group = el("fieldset");
+        group.append(el("legend", "Choose an approach"));
+        const options = el("div", undefined, "options");
+        for (const o of d.options) {
+          const box = el("div", undefined, "option");
+          const label = el("label", undefined, "pick"),
+            radio = el("input");
+          radio.type = "radio";
+          radio.name = "choice-" + index;
+          radio.value = o.id;
+          radio.checked = answers[d.id]?.choice === o.id;
+          radio.addEventListener("change", () => update(d.id, "choice", o.id));
+          label.append(radio, el("span", o.title));
+          box.append(label);
+          if (d.recommendation === o.id)
+            box.append(el("span", "Agent recommendation", "recommendation"));
+          box.append(el("p", o.summary), el("p", o.tradeoff, "muted"));
+          for (const ev of o.evidence || []) {
+            const u = safeURL(ev.url);
+            if (ev.image && u) {
+              const img = el("img");
+              img.src = u;
+              img.alt = ev.label;
+              img.addEventListener("error", () => {
+                img.replaceWith(el("p", "Image unavailable: " + ev.label));
+                notice("An evidence image could not load.", true);
+              });
+              box.append(img);
+            }
+            box.append(link(ev.label, ev.url));
+          }
+          options.append(box);
+        }
+        group.append(options);
+        const other = el("div", undefined, "bar");
+        for (const [value, title] of [
+          ["defer", "Decide later"],
+          ["custom", "Suggest another approach"],
+        ]) {
+          const label = el("label", undefined, "pick"),
+            radio = el("input");
+          radio.type = "radio";
+          radio.name = "choice-" + index;
+          radio.value = value;
+          radio.checked = answers[d.id]?.choice === value;
+          radio.addEventListener("change", () => update(d.id, "choice", value));
+          label.append(radio, el("span", title));
+          other.append(label);
+        }
+        const clear = el("button", "Clear choice");
+        clear.addEventListener("click", () => {
+          update(d.id, "choice", "");
+          group.querySelectorAll("input").forEach((x) => (x.checked = false));
+        });
+        other.append(clear);
+        group.append(other);
+        section.append(group);
+        const label = el("label", "Your comment", "comment"),
+          note = el("textarea");
+        note.value = answers[d.id]?.note || "";
+        note.addEventListener("input", () => update(d.id, "note", note.value));
+        label.append(note);
+        section.append(label);
+        root.append(section);
+      });
+      progress();
+      showArchive();
+    }
+    function selectRound() {
+      round = data.rounds[Number($("#round").value)];
+      const context = {
+        title: data.title,
+        goal: data.goal,
+        constraints: data.constraints || [],
+        source: data.source,
+      };
+      signature = JSON.stringify({ context, round });
+      const entry = Object.hasOwn(book, signature) ? book[signature] : null;
+      if (entry && !validAnswers(entry.answers, round)) {
+        storageError =
+          "Saved feedback is invalid. The original is preserved; export your new draft before closing.";
+        delete book[signature];
+      }
+      const changed =
+        !entry && Object.values(book).some((e) => e?.round?.id === round.id);
+      $("#fallback").hidden = true;
+      let carried = 0;
+      const inherited = {};
+      if (!book[signature]) {
+        const previous = Object.values(book)
+          .reverse()
+          .find(
+            (e) =>
+              e?.round?.id === round.id &&
+              JSON.stringify(e.context) === JSON.stringify(context) &&
+              JSON.stringify(e.round.prior || []) ===
+                JSON.stringify(round.prior || []) &&
+              validAnswers(e.answers, e.round),
+          );
+        if (previous)
+          for (const d of round.decisions) {
+            const old = previous.round.decisions.find((o) => o.id === d.id);
+            if (
+              JSON.stringify(old) === JSON.stringify(d) &&
+              Object.hasOwn(previous.answers, d.id)
+            ) {
+              inherited[d.id] = structuredClone(previous.answers[d.id]);
+              carried++;
+            }
+          }
+      }
+      book[signature] ??= {
+        signature,
+        round: structuredClone(round),
+        context: structuredClone(context),
+        answers: inherited,
+      };
+      answers = book[signature].answers;
+      render();
+      notice(
+        storageError ||
+          (carried
+            ? "Restored feedback for unchanged decisions. Changed decisions need a fresh choice."
+            : changed
+              ? "Review content changed. Earlier drafts are preserved below; changed decisions need a fresh choice."
+              : Object.values(answers).some((a) => a.choice || a.note)
+                ? "Saved draft restored."
+                : "Choose an option or leave a comment."),
+        !!storageError,
+      );
+    }
+    $("#copy").onclick = async () => {
+      const text = markdown();
+      try {
+        await navigator.clipboard.writeText(text);
+        $("#fallback").hidden = true;
+        notice("Feedback copied. Paste it into the task conversation.");
+      } catch {
+        $("#fallback").hidden = false;
+        $("#fallback").open = true;
+        $("#fallback textarea").value = text;
+        $("#fallback textarea").focus();
+        $("#fallback textarea").select();
+        notice(
+          "Clipboard unavailable. Copy the text below or download Markdown.",
+          true,
+        );
+      }
+    };
+    $("#markdown").onclick = () => download(markdown(), "text/markdown", "md");
+    $("#export").onclick = () =>
+      download(JSON.stringify(payload(), null, 2), "application/json", "json");
+    $("#import").onclick = () => $("#file").click();
+    $("#file").onchange = async (e) => {
+      try {
+        const f = e.target.files[0];
+        if (!f) return;
+        const incoming = JSON.parse(await f.text());
+        if (
+          incoming.version !== 1 ||
+          incoming.task !== data.id ||
+          incoming.signature !== signature ||
+          JSON.stringify({
+            context: incoming.context,
+            round: incoming.round,
+          }) !== signature ||
+          !validAnswers(incoming.answers, round)
+        )
+          throw Error(
+            "This export does not match the current task, content, or options.",
+          );
+        if (
+          !confirm(
+            "Replace this round’s draft with the imported feedback? Export first if you need to keep the current draft.",
+          )
+        ) {
+          notice("Import cancelled; the current draft is unchanged.");
+          return;
+        }
+        answers = structuredClone(incoming.answers);
+        book[signature].answers = answers;
+        render();
+        save();
+      } catch (error) {
+        notice("Import rejected: " + error.message, true);
+      } finally {
+        e.target.value = "";
+      }
+    };
+    window.addEventListener("storage", (e) => {
+      if (e.key === storageKey) {
+        storageError =
+          "Another tab changed this task's drafts. Export this draft, then reload before editing further.";
+        notice(storageError, true);
+      }
+    });
+    try {
+      data = JSON.parse($("#review-data").textContent);
+      validate();
+      storageKey = "review-page:" + data.id;
+      document.title = data.title + " · Review";
+      $("#title").textContent = data.title;
+      $("#goal").textContent = data.goal;
+      for (const text of data.constraints || [])
+        $("#constraints").append(el("li", text));
+      $("#source").replaceWith(
+        sourceRef("Authoritative task record", data.source),
+      );
+      data.rounds.forEach((r, i) => {
+        const o = el("option", r.title);
+        o.value = i;
+        $("#round").append(o);
+      });
+      $("#round").value = data.rounds.length - 1;
+      readBook();
+      $("#round").onchange = () => {
+        try {
+          selectRound();
+        } catch (e) {
+          notice(e.message, true);
+        }
+      };
+      selectRound();
+    } catch (error) {
+      notice("Review could not load: " + error.message, true);
+      document
+        .querySelectorAll(".toolbar button")
+        .forEach((b) => (b.disabled = true));
+    }
+  </script>
+</html>

@@ -583,3 +583,109 @@
 .ui-section-head { text-align: center; max-width: var(--panel-lg); margin: 0 auto clamp(40px, 6vh, 64px); }
 .ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
 .ui-section-head p { color: var(--dim); font-size: 17px; line-height: 1.6; }
+
+/* -- #318 · the search field's look, four alternatives to choose from ------ */
+/* BRANCH STATE, not a feature. Every block below is keyed off
+   `data-search-variant` on any ancestor, which nothing in `src/` writes and no
+   consumer sets — unset, the field is exactly what #317 shipped. Two things set
+   it: the evidence rig puts it on the root (scripts/evidence/shot.html), so all
+   five looks come off one branch, one Chrome and one viewport and only the look
+   differs between two frames; and Apps/Shell layouts/SearchVariants wraps each
+   screen in a box carrying it, which is what lands the ring selector below for
+   stories/guidelines/accessibility-floor.test.js to measure. An ancestor and
+   not `:root` for that second reason: a story is mounted into the body, and a
+   rule keyed on <html> is a rule no gate can reach.
+   The markup is untouched: the button, its name, its `[data-cmdk-open]` and its
+   `kbd` are the same bytes in every variant, so every gate in
+   stories/apps/shell*.test.js holds on all of them.
+   Two commits settle this: one folds the chosen block's declarations into
+   `.ui-app__search` above, the other deletes this whole section.
+   why: https://github.com/apliteni/apliteni-ui/issues/318 */
+
+/* The one thing every variant fixes and none of them chose: today the field is
+   the only control on the band that does NOT take the kit's ring. It is a
+   <button> without `.ui-btn`, so base.css:140 does not reach it and focus falls
+   through to the browser's own outline — black-on-white, square, drawn over a
+   12px radius. Compare shell-topbar-search-light.png with any variant's focus
+   frame. why: docs/specification.md#the-focus-ring */
+[data-search-variant] .ui-app__search:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+/* a · Bordered — the field leaves the sunken step and stands on the band's own
+   ground, held by an edge instead of a fill. Notion's help search is this
+   exactly (1px on rgba(0,0,0,.08), 8px radius, no fill at all), and it is the
+   half of lessly-ui's QuickSearchRow that survives in a light theme: there the
+   fill is LIFTED above the rail, here the band already is --bg, so the fill
+   goes and the edge does the work. --border-strong and not --border, because
+   --border on --bg measures 1.03:1 in light. */
+[data-search-variant="bordered"] .ui-app__search {
+  background: transparent;
+  border-color: var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+[data-search-variant="bordered"] .ui-app__search:hover { border-color: var(--muted); }
+[data-search-variant="bordered"] .ui-app__search:focus-visible { border-color: var(--accent); }
+/* The cap follows the field: an edge on the same ground rather than a second
+   filled box inside the first. GitHub's header cap is drawn this way — a 1px
+   border over `background-color:#0000`. */
+[data-search-variant="bordered"] .ui-app__search kbd {
+  background: transparent;
+  border-color: var(--border-strong);
+}
+
+/* b · Lifted — the same filled pill, one step the other way. Every other field
+   in the kit is sunken because it sits on a card; this one sits on the band,
+   and --bg is already the bottom of the ladder, so --surface-2 can only read as
+   a darker smudge. lessly-ui's row says so in its own comment — `bg-bg-overlay`
+   where every other field takes `bg-bg-primary`, "because … the field's own
+   fill would be its ground and only the border would say it is there" — and
+   Vercel's docs trigger does the same, `bg-background-100` (white) on a grey
+   rail. why: docs/specification.md#elevation */
+[data-search-variant="lifted"] .ui-app__search {
+  background: var(--surface);
+  border-color: var(--border);
+}
+[data-search-variant="lifted"] .ui-app__search:hover { border-color: var(--border-strong); }
+[data-search-variant="lifted"] .ui-app__search:focus-visible { border-color: var(--accent); }
+
+/* c · Quiet — today's fill and today's step, with the two things the reference
+   systems do not do taken off: the sentence and the box around the key. The
+   trigger says a word, not the palette's own prompt, and the key is set beside
+   it rather than framed. Tailwind's docs trigger is this at its smallest —
+   magnifier, plain "⌘K", no words at all — and 240px is where the words stop
+   being clipped on a phone, which at 320px they are (shell-topbar-phone-*.png).
+   The words themselves are the rig's, not this sheet's: the placeholder is an
+   argument to appShell(), so a variant that shortens it shortens a string and
+   not a rule. */
+[data-search-variant="quiet"] .ui-app__search {
+  flex-basis: 240px;
+  border-radius: 999px;
+}
+[data-search-variant="quiet"] .ui-app__search kbd {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: var(--weight-medium);
+  color: var(--muted);
+}
+
+/* d · Wide — the field takes the band. The band today is a 320px control, a
+   28px mark and 700px of nothing between them; this is the arrangement that
+   answers that rather than the field's own chrome. Bordered on the ground for
+   the reason a: a sunken slab this wide is a bigger smudge, not a smaller one.
+   GitHub's product command bar is the shape this copies. */
+[data-search-variant="wide"] .ui-app__search {
+  flex: 1 1 auto;
+  background: transparent;
+  border-color: var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+[data-search-variant="wide"] .ui-app__search:hover { border-color: var(--muted); }
+[data-search-variant="wide"] .ui-app__search:focus-visible { border-color: var(--accent); }
+[data-search-variant="wide"] .ui-app__search kbd {
+  background: transparent;
+  border-color: var(--border-strong);
+}
