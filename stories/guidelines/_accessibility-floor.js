@@ -244,6 +244,8 @@ export const GATES = [
       'filter: drop-shadow(). Two ship, both zero-offset glows of a signal colour; an offset one '
         + 'would pass here unread.',
       'A shadow arriving from markup — an inline style= in a story, or a consumer’s own sheet.',
+      'A cast that appears only when two custom properties are off their winning values at the '
+        + 'same time. Each name is tried against every value the kit gives it, one at a time.',
     ],
   },
   {
