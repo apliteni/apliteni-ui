@@ -215,6 +215,7 @@ function wireDocument(doc) {
   doc.__tipDocWired = true;
   doc.addEventListener('keydown', (e) => {
     doc.__tipTouch = false;
+    doc.__tipTapping = false;
     if (e.key !== 'Escape') return;
     doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
       const host = tip.__tipHost;
@@ -224,11 +225,19 @@ function wireDocument(doc) {
       host.__tipDismissed = mark;
     });
   });
-  doc.addEventListener('pointerdown', (e) => { touching(doc, e); }, true);
+  // A tap lands focus on the mark on its way to the click that decides, so the
+  // focus between a pointerdown and its click is the tap's own. Focus that no
+  // tap brought is not, and opens the readout under a coarse pointer as it
+  // always did — a reader swiping through the marks with a screen reader gets
+  // the value and the `aria-describedby` that announces it.
+  doc.addEventListener('pointerdown', (e) => { touching(doc, e); doc.__tipTapping = true; }, true);
+  doc.addEventListener('pointercancel', () => { doc.__tipTapping = false; }, true);
   // Captured, so a host the tap lands in has already lost every other host's
   // readout by the time it opens its own.
   doc.addEventListener('click', (e) => {
-    if (e.__tipDismissal || !touching(doc)) return;
+    if (e.__tipDismissal) return;
+    doc.__tipTapping = false;
+    if (!touching(doc)) return;
     doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
       const host = tip.__tipHost;
       if (host && !host.contains(e.target)) hideTooltip(host);
@@ -291,8 +300,10 @@ export function wireTooltip(root = document) {
     host.addEventListener('focusin', (e) => {
       anchorHost(host);
       // A tap lands focus on its way to the click that decides, so under a
-      // finger the readout waits for the tap rather than opening twice.
-      if (touching(doc)) return;
+      // finger the readout waits for that tap rather than opening twice. Focus
+      // arriving on its own under the same pointer is a reader reaching the
+      // mark another way, and opens it.
+      if (touching(doc) && doc.__tipTapping) return;
       const mark = markOf(e.target);
       if (mark) showTooltip(host, mark);
     });

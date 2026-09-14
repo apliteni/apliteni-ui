@@ -694,6 +694,27 @@ test('the tap that opens a readout still reaches what the document dismisses on 
   );
 });
 
+test('under a coarse pointer, focus that no tap brought opens the readout', () => {
+  const window = mount(MARKS.replace('id="m1"', 'id="m1" tabindex="0"') + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  Object.defineProperty(window, 'matchMedia', {
+    value: (q) => ({ matches: q.replace(/\s+/g, '') === '(pointer:coarse)', media: q }),
+    configurable: true,
+  });
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+
+  m1.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
+  assert.ok(isOpen(tip), 'a screen reader stepping onto the mark is not a tap, and no key precedes it');
+  assert.equal(m1.getAttribute('aria-describedby'), tip.id, 'so the value is announced with the mark');
+
+  hideTooltip(doc.getElementById('host'));
+  touchEvent(window, m1, 'pointerdown');
+  m1.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
+  assert.equal(isOpen(tip), false, 'the focus a tap lands on its way to the click still opens nothing');
+});
+
 test('a mouse arriving after a finger hovers the way it always did', () => {
   const window = mount(MARKS + tooltip());
   const doc = window.document;

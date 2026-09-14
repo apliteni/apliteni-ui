@@ -158,7 +158,7 @@ export const RULES = [
       + 'hands the readout back to focus.',
     kit: [
       { ref: 'src/components/tooltip.js:200', pattern: 'function touching(doc, e)' },
-      { ref: 'src/components/tooltip.js:306', pattern: "host.addEventListener('click'" },
+      { ref: 'src/components/tooltip.js:317', pattern: "host.addEventListener('click'" },
     ],
   },
   {
@@ -166,10 +166,12 @@ export const RULES = [
     imperative: 'Never make hover the only way to a value.',
     why: 'A pointer is one of three ways to reach a chart, and the only one a readout is built '
       + 'around. The kit\'s wiring opens the readout on focus and on a tap as well, and lets Escape '
-      + 'dismiss it, but it adds no tab stop — a year of daily points would be 365 of them. So the '
-      + 'figure a card leads with, and a table or a labelled summary of the series, carry what '
-      + 'matters without pointing at anything. Whether a chart\'s marks should take focus at all is '
-      + 'the question still open on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:291', pattern: "host.addEventListener('focusin'" }],
+      + 'dismiss it; focus opens it on a touch screen too, where focus no tap landed is a reader '
+      + 'arriving through a screen reader rather than a finger on its way to a click. But the '
+      + 'wiring adds no tab stop — a year of daily points would be 365 of them. So the figure a '
+      + 'card leads with, and a table or a labelled summary of the series, carry what matters '
+      + 'without pointing at anything. Whether a chart\'s marks should take focus at all is the '
+      + 'question still open on #282.',
+    kit: [{ ref: 'src/components/tooltip.js:300', pattern: "host.addEventListener('focusin'" }],
   },
 ];
