@@ -239,7 +239,7 @@ moved nothing on a surface that does not re-point its edge, and the rig reproduc
 
 | | |
 | --- | --- |
-| `npm test` | 1537 tests, 1534 pass, 2 skipped, **1 fail** — see below |
+| `npm test` | 1538 tests, 1535 pass, 2 skipped, **1 fail** — see below |
 | `npm run build` (React, tsup) | pass — ESM 39.58 KB, DTS 8.49 KB |
 | `npx vitest run` (react) | 18 files, 356 tests, pass |
 | `node --test` over the five colour and elevation gates and the reader's own tests | 150 tests, pass |
@@ -451,13 +451,14 @@ Swept over the kit's sheets: all 40 declarations now report a line that holds a 
 where three did not, and the `--elev-drop` mutation is now reported on
 `src/tokens/tokens.css:252` `--elev-drop:`, where it used to be named ten lines above.
 
-**Re-run after the three.** `npm test` → 1537 tests, 1534 pass, 2 skipped, 1 fail — the contrast
-walk's wall clock, the same one `main` fails on this host, and nothing else. The two extra tests
-are finding 3's cases. React: `npm run build` passes (ESM 39.58 KB, DTS 8.49 KB), `npx vitest run`
+**Re-run after the three.** `npm test` → 1538 tests, 1535 pass, 2 skipped, 1 fail — the contrast
+walk's wall clock, the same one `main` fails on this host, and nothing else. Three tests are new:
+finding 3's two cases, and `scripts/code-refs.test.js`'s own subject for this file, which joined
+the walk by this section citing two lines. React: `npm run build` passes (ESM 39.58 KB, DTS 8.49 KB), `npx vitest run`
 is 18 files / 356 tests / pass — one more than round 1, the planted case. The slop detector at
 `--level paranoid` over all 42 non-PNG files the branch touches still reads 0 errors, 5 medium,
 7 warnings. The walk's own seconds are not comparable with the pairing above: that host was
-quieter, and this run measured 222.2s against the same 120s ceiling `main` also fails.
+quieter, and this run measured 158.8s against the same 120s ceiling `main` also fails.
 
 ## The version bump
 
