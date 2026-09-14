@@ -13,6 +13,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { tooltip, wireTooltip, showTooltip, hideTooltip } from './tooltip.js';
+import { dropdown, wireDropdown } from './dropdown.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -669,6 +670,28 @@ test('under a finger the tap decides, and a key hands the readout back to focus'
   hideTooltip(doc.getElementById('host'));
   m1.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
   assert.ok(isOpen(tip), 'a keyboard is in hand again, and focus opens the readout as it always did');
+});
+
+test('the tap that opens a readout still reaches what the document dismisses on a click', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  doc.getElementById('page').insertAdjacentHTML('beforeend', dropdown({
+    value: 'Workspace', variant: 'menu', open: true,
+    items: [{ label: 'Phoenix' }, { label: 'Aurora' }],
+  }));
+  wireDropdown(doc);
+  const dd = doc.querySelector('[data-dropdown]');
+  assert.ok(dd.classList.contains('open'), 'the panel is standing over the page to begin with');
+
+  tap(window, doc.getElementById('m1'));
+  assert.ok(isOpen(tip), 'the tap opens the readout');
+  assert.equal(
+    dd.classList.contains('open'), false,
+    'and the panel goes, the way it would under any other tap — stopping the tap on its way to '
+    + 'the mark must not stop it reaching the listener every overlay dismisses itself from',
+  );
 });
 
 test('a mouse arriving after a finger hovers the way it always did', () => {

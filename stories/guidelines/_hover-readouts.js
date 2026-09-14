@@ -144,19 +144,21 @@ export const RULES = [
   {
     id: 'on-touch',
     imperative: 'On a touch screen, open the readout with a tap and close it with the next one.',
-    why: 'A finger rests nowhere. It arrives already pressing and it is gone the moment it lifts, so '
-      + 'a readout that waits for hover flashes under the tap and is never read. The tap is the '
+    why: 'A finger rests nowhere. It arrives already pressing and it is gone the moment it lifts, '
+      + 'so a readout that waits for hover flashes under the tap and is never read. The tap is the '
       + 'switch instead: one tap on a mark opens its readout, a tap on another mark moves it there, '
       + 'and a tap on the same mark — or anywhere else on the page — closes it. The tap that opens '
       + 'the readout is spent opening it and does not reach the mark\'s own click, so a chart that '
       + 'drills down on a bar does not drill down on the tap that was asking what the bar says; the '
-      + 'tap that closes the readout does, which puts the drill-down one tap further away and is the '
-      + 'one thing a reader has to learn. The kit decides which pointer is in play rather than which '
-      + 'device it is on, so a laptop with a touch screen hovers under its mouse and taps under a '
-      + 'finger, and a key hands the readout back to focus.',
+      + 'tap that closes the readout does, which puts the drill-down one tap further away and is '
+      + 'the one thing a reader has to learn. The page still hears that tap where it listens for '
+      + 'one, so a dropdown or a menu standing open closes under it as it would under a tap '
+      + 'anywhere else. The kit decides which pointer is in play rather than which device it is on, '
+      + 'so a laptop with a touch screen hovers under its mouse and taps under a finger, and a key '
+      + 'hands the readout back to focus.',
     kit: [
       { ref: 'src/components/tooltip.js:200', pattern: 'function touching(doc, e)' },
-      { ref: 'src/components/tooltip.js:290', pattern: "host.addEventListener('click'" },
+      { ref: 'src/components/tooltip.js:306', pattern: "host.addEventListener('click'" },
     ],
   },
   {
@@ -168,6 +170,6 @@ export const RULES = [
       + 'figure a card leads with, and a table or a labelled summary of the series, carry what '
       + 'matters without pointing at anything. Whether a chart\'s marks should take focus at all is '
       + 'the question still open on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:277', pattern: "host.addEventListener('focusin'" }],
+    kit: [{ ref: 'src/components/tooltip.js:291', pattern: "host.addEventListener('focusin'" }],
   },
 ];

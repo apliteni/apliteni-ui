@@ -228,12 +228,26 @@ function wireDocument(doc) {
   // Captured, so a host the tap lands in has already lost every other host's
   // readout by the time it opens its own.
   doc.addEventListener('click', (e) => {
-    if (!touching(doc)) return;
+    if (e.__tipDismissal || !touching(doc)) return;
     doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
       const host = tip.__tipHost;
       if (host && !host.contains(e.target)) hideTooltip(host);
     });
   }, true);
+}
+
+// An opening tap is stopped on its way to the mark, and stopping it takes it
+// away from the document as well — where other overlays keep the click listener
+// that dismisses them, so a dropdown panel would stand open behind the readout
+// the tap just opened. The tap is handed to the document itself instead. Its
+// target is the root element, which every dismissal listener hears and no
+// delegated trigger matches, since no trigger's attribute is on the root.
+function dismissOverlays(doc) {
+  const view = doc.defaultView;
+  if (!view || !doc.documentElement) return;
+  const passed = new view.MouseEvent('click', { bubbles: true, cancelable: true });
+  passed.__tipDismissal = true;
+  doc.documentElement.dispatchEvent(passed);
 }
 
 // The readout is placed in px from its host, so the host has to be the box it is
@@ -287,6 +301,8 @@ export function wireTooltip(root = document) {
     // and never reaches the mark's own click — a chart drilling down on a bar
     // does not drill down on the tap that asked what the bar says. The tap that
     // closes the readout is let through, so the drill-down is one tap further.
+    // What the opening tap is stopped from reaching, it is handed to: see
+    // dismissOverlays(), so an open overlay closes under it as under any tap.
     host.addEventListener('click', (e) => {
       if (!touching(doc)) return;
       anchorHost(host);
@@ -295,6 +311,7 @@ export function wireTooltip(root = document) {
       if (mark === host.__tipMark) { close(host); host.__tipDismissed = mark; return; }
       e.preventDefault();
       e.stopPropagation();
+      dismissOverlays(doc);
       // A tap is deliberate, so it ends a dismissal rather than being refused by
       // one. What a dismissal stops is the readout coming back on its own.
       host.__tipDismissed = null;
