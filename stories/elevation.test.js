@@ -15,8 +15,8 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, substitute, parseColour, composite, ratio } from './lib/contrast.js';
-import { boxShadowsIn, customPropertiesIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf } from '../scripts/lib/box-shadow.js';
+import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, composite, ratio } from './lib/contrast.js';
+import { boxShadowsIn, customPropertiesIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, TREATMENT_DROP } from '../scripts/lib/box-shadow.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -28,7 +28,8 @@ const THEMES = ['dark', 'light'];
  * every component that re-points it writes a dead declaration. #314 found five.
  * why: docs/specification.md#elevation */
 const TREATMENT_LINE = 'inset 0 0 0 1px var(--elev-edge, var(--border))';
-const TREATMENT_DROP = 'var(--elev-drop)';
+/* TREATMENT_DROP — `var(--elev-drop)` — comes from the reader, which also holds
+ * the two rules that read the layer rather than counting its spelling. */
 /* why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
  *
  * WHAT THIS GATE DOES NOT REACH:
@@ -42,6 +43,10 @@ const TREATMENT_DROP = 'var(--elev-drop)';
  *  - A cast that appears only when two custom properties take non-winning values
  *    at the same time. Each name is tried against every value the kit gives it,
  *    one name at a time, against the cascade's winner for the rest.
+ *  - A --elev-drop re-pointed on a component's OWN element — not at :root — to
+ *    the token's exact geometry with a heavier alpha. The drop's ink is floored
+ *    against what the review page measured, and the floor is read off the
+ *    palette's token; nothing caps the alpha a re-pointing could spend.
  *  - The rendered result. The contrast ratios here — the two lines, the drop, and
  *    --muted at AA on a raised surface — are arithmetic over flat colours, and a
  *    blurred penumbra is not one, so the drop is scored at its CORE.
@@ -123,23 +128,59 @@ test('nothing under src/ reads a deprecated --shadow-* token', () => {
  * the 1px inset line first, then the broad faint drops. */
 test('--elev-drop is broad faint drops and nothing else', () => {
   for (const theme of THEMES) {
-    const vars = tokensFor(theme);
-    const raw = vars.get('--elev-drop');
+    const raw = tokensFor(theme).get('--elev-drop');
     assert.ok(raw, `--elev-drop is missing in ${theme}`);
-    const drops = layersOf(raw);
-    assert.equal(drops.length, 2, `${theme}: --elev-drop has ${drops.length} layers, expected 2`);
-
-    for (const drop of drops) {
-      assert.ok(!/(^|\s)inset(\s|$)/.test(drop), `${theme}: a drop went inset`);
-      const { x, y, blur, spread } = geometryOf(drop);
-      assert.equal(x, 0, `${theme}: a drop offset sideways; light falls from above in this kit`);
-      assert.ok(y > 0, `${theme}: a drop with no downward offset is a glow, not a drop`);
-      assert.ok(blur >= 2 * y, `${theme}: blur ${blur} against offset ${y} — the drop is tight, `
-        + 'and a tight drop draws an edge instead of separating a surface from what it covers');
-      assert.ok(spread < 0, `${theme}: a drop with no negative spread reaches past the panel on `
-        + 'every side and reads as a halo');
-    }
+    // The same sentence a re-pointed drop is held to, so the palette's own value
+    // and a component's cannot be judged by two different readings of "faint".
+    assert.equal(dropShapeOffence(raw), '', `${theme}: ${dropShapeOffence(raw)}`);
   }
+});
+
+/* #314 round 3. `var(--elev-drop)` is the one layer the sweep above counts by
+ * its spelling and never reads, because resolving it through isCast() would
+ * report the kit's own shadow on all thirteen floating surfaces. The spelling is
+ * not the value: the round-3 review wrote `:root { --elev-drop: 0 40px 80px
+ * rgba(0,0,0,0.9) }` into src/styles/callout.css and both gates stayed green on
+ * a tight dark cast. The layer is resolved here instead, against where the token
+ * may be declared and what shape every value it reaches has to keep —
+ * scripts/lib/box-shadow.js holds both, so the React gate reads the same two. */
+test('the drop layer is read rather than counted', () => {
+  const offences = THEMES.flatMap((theme) =>
+    dropOffences(cascadeFor(theme), TOKEN_FILES).map((o) => `(${theme})  ${o}`));
+  assert.deepStrictEqual(offences, [],
+    'the drops are the kit\'s one shadow and the palette is where they are written. A sheet '
+    + 'that re-points --elev-drop at :root changes what every floating surface casts, and a '
+    + 'value that is not two broad faint drops is the cast this whole rule is against:\n  '
+    + offences.join('\n  '));
+});
+
+/* The review's plant, pinned as a pair: the same sheet with and without it. The
+ * cascade is built here rather than on disk so the case names the shape it
+ * refuses — react/src/elevation.test.ts pins the other half from its workspace. */
+test('#314 sees a sheet outside the palette re-point the drop at :root', () => {
+  const withSheet = (css) => {
+    const decls = new Map([...declarationsFor('dark')].map(([name, e]) => [name, [...e]]));
+    for (const d of customPropertiesIn(css)) {
+      if (!decls.has(d.name)) decls.set(d.name, []);
+      decls.get(d.name).push({ file: 'src/styles/planted.css', selector: d.selector, root: false, value: d.value });
+    }
+    return { vars: winnersOf(decls), decls, substitute };
+  };
+  const planted = ':root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }\n';
+
+  // What the plant ADDS, so the case reads the same whether or not the tree it
+  // borrows its cascade from is clean.
+  const base = dropOffences(withSheet(''), TOKEN_FILES);
+  const caught = dropOffences(withSheet(planted), TOKEN_FILES).filter((o) => !base.includes(o));
+  assert.equal(caught.length, 2, `the plant was caught ${caught.length} times, expected 2:\n  `
+    + caught.join('\n  '));
+  // Where it is written, and what it resolves to. Both, because either alone
+  // clears half the shape: a :root re-pointing that keeps the shape still moves
+  // the kit's shadow, and a component's own re-pointing is not at :root at all.
+  assert.match(caught[0], /^src\/styles\/planted\.css {2}:root \{ --elev-drop: 0 40px 80px rgba\(0,0,0,0\.9\) \}/);
+  assert.match(caught[1], /^var\(--elev-drop\) resolves to "0 40px 80px rgba\(0,0,0,0\.9\)" — 1 layer/);
+  assert.deepStrictEqual(base, [],
+    'the same sheet without the plant is clean — without this half the case proves nothing');
 });
 
 /* #314 finding 1. A var() written inside a custom property is substituted at

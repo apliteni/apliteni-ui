@@ -13,9 +13,11 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { boxShadowsIn, layersOf, isCast, customPropertiesIn, resolutionsOf } from '../../scripts/lib/box-shadow.js';
+import {
+  boxShadowsIn, layersOf, isCast, customPropertiesIn, resolutionsOf, dropOffences, TREATMENT_DROP,
+} from '../../scripts/lib/box-shadow.js';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
-import { declarationsFor, winnersOf, substitute } from '../../stories/lib/contrast.js';
+import { declarationsFor, winnersOf, substitute, TOKEN_FILES } from '../../stories/lib/contrast.js';
 
 const SHEETS = Object.keys(import.meta.glob('./**/*.css')).sort();
 const read = (rel: string) =>
@@ -47,12 +49,15 @@ const cascadeFor = (theme: string, sheets: Sheet[]) => {
  *  the floating drops. */
 function walk(sheets: Sheet[], theme: string) {
   const cascade = cascadeFor(theme, sheets);
-  const offences: string[] = [];
+  // The drops themselves, read rather than counted: this workspace can declare
+  // `:root { --elev-drop: … }` as easily as the kit's own sheets can, and both
+  // gates passed one. #314 round 3, finding 1.
+  const offences: string[] = dropOffences(cascade, TOKEN_FILES).map((o: string) => `(${theme})  ${o}`);
   let floating = 0;
   for (const { name, css } of sheets) {
     for (const d of boxShadowsIn(css)) {
       for (const raw of layersOf(d.value)) {
-        if (raw === 'var(--elev-drop)') { floating += 1; continue; }
+        if (raw === TREATMENT_DROP) { floating += 1; continue; }
         if (!resolutionsOf(raw, cascade).some((v: string) => layersOf(v).some(isCast))) continue;
         offences.push(`${where(name)}:${d.line} (${theme})  ${d.selector} { … ${raw} … }`);
       }
@@ -95,6 +100,28 @@ describe('elevation', () => {
     // Line 3 is the box-shadow's own, not the line --rx-lift ends on.
     expect(caught.offences).toEqual([
       `${where(sheet)}:3 (dark)  .rx-modal { … var(--rx-lift) … }`,
+    ]);
+    expect(walk([{ name: sheet, css: clean }], 'dark').offences).toEqual([]);
+  });
+
+  /* Round 3's plant, on this side. `var(--elev-drop)` was counted by its spelling
+   * and never read, and this workspace's `root: false` declarations lose to the
+   * palette in winnersOf() — so a `:root` rule here re-pointed the kit's one
+   * shadow at a tight dark cast and both gates stayed green. The pair again: the
+   * plant is refused, the same sheet without it is clean. */
+  it('#314 sees this workspace re-point the drop at :root', () => {
+    const line = 'inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop)';
+    const sheet = './Planted.css';
+    const drop = ':root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }';
+    const planted = `${drop}\n.rx-modal {\n  box-shadow: ${line};\n}\n`;
+    const clean = `.rx-modal {\n  box-shadow: ${line};\n}\n`;
+
+    expect(walk([{ name: sheet, css: planted }], 'dark').offences).toEqual([
+      '(dark)  react/src/Planted.css  :root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) } — the '
+      + 'palette is the only place this token is declared at :root, and a component sheet '
+      + 'declaring it there changes the one shadow every floating surface in the kit reads',
+      '(dark)  var(--elev-drop) resolves to "0 40px 80px rgba(0,0,0,0.9)" — 1 layer, where the '
+      + 'drop is two',
     ]);
     expect(walk([{ name: sheet, css: clean }], 'dark').offences).toEqual([]);
   });
