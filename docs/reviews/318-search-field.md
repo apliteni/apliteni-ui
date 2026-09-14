@@ -1,5 +1,10 @@
 # The topbar band's search field: what seven other systems draw, and what this one draws
 
+**Settled on 2026-09-14: Artur chose b · lifted**, from the frames this survey produced — the field
+leaves the sunken step for `--surface`, so its fill is lighter than the band rather than darker, and
+it takes the kit's focus ring. `a · bordered`, `c · quiet` and `d · wide` were not taken. What
+follows is the survey as it was written before the choice, unchanged.
+
 Read for [#318](https://github.com/apliteni/apliteni-ui/issues/318) on 2026-09-14. Artur, on
 [#317](https://github.com/apliteni/apliteni-ui/pull/317) while approving the layout: *"btw it
 search field looks ugly"*. He did not say what is wrong, so this is the survey the four variants

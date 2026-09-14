@@ -110,47 +110,6 @@ for (const theme of ['dark', 'light']) {
     await save(page, name);
     await ctx.close();
   }
-
-  // --- #318: the band's own field, in the five looks the decision is between.
-  // `today` passes no variant at all, so its frames are the branch drawing what
-  // #317 shipped rather than a reconstruction of it; the other four are one
-  // attribute on the root and the same markup underneath. Desktop and phone,
-  // because 320px of sentence is clipped at 390 and that is half the question,
-  // then the same field under a real Tab press, because the browser's own
-  // outline on the untouched field is the other half.
-  // why: https://github.com/apliteni/apliteni-ui/issues/318
-  for (const v of ['today', 'bordered', 'lifted', 'quiet', 'wide']) {
-    const q = `theme=${theme}&layout=topbar&width=wide&collapsed=0`
-      + (v === 'today' ? '' : `&search=${v}`);
-    for (const [w, h] of [[1280, 760], [390, 800]]) {
-      const name = `318-search-${v}-${theme}-${w}`;
-      if (!want(name)) continue;
-      const { ctx, page } = await open(q, { width: w, height: h });
-      await save(page, name);
-      await ctx.close();
-    }
-    // The band alone, life size. A 1280-wide frame renders the subject about 34px
-    // tall in the corner of it, which is not a frame anyone can choose from; this
-    // is the same 1032×52 box in every variant, so the five stack into a column
-    // that compares. `.ui-app__bar` and not a hand-written clip, for the reason
-    // float.mjs captures `.fl-cell`: a box measured from the document cannot
-    // drift from what the document draws.
-    const band = `318-search-${v}-${theme}-band`;
-    if (want(band)) {
-      const { ctx, page } = await open(q);
-      await page.locator('.ui-app__bar').screenshot({ path: path.join(outDir, `${band}.png`) });
-      console.log(`  ${band}.png`);
-      await ctx.close();
-    }
-
-    const focus = `318-search-${v}-focus-${theme}`;
-    if (!want(focus)) continue;
-    const { ctx, page } = await open(q);
-    if (!await tabTo(page, '.ui-app__search')) throw new Error('the search field is not reachable by Tab');
-    await settle(page);
-    await save(page, focus);
-    await ctx.close();
-  }
 }
 
 await browser.close();

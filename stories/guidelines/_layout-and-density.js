@@ -185,7 +185,7 @@ export const RULES = [
       + 'box; the numbers match today and neither follows the other, so a comment claiming a link '
       + 'that does not exist would cost a reader more than the silence does.',
     kit: [
-      { ref: 'src/styles/layout.css:416', pattern: '@media (max-width: 720px)' },
+      { ref: 'src/styles/layout.css:429', pattern: '@media (max-width: 720px)' },
       { ref: 'stories/breakpoints.test.js:117', pattern: 'every breakpoint is one of the documented steps' },
       { ref: 'stories/breakpoints.test.js:139', pattern: 'every documented step is a step something queries' },
     ],

@@ -1,266 +1,219 @@
-# The band's search field, in five looks: a survey, four variants, and the decision to put to Artur
+# The topbar band's search field leaves the sunken step
 
-Prepares #318. **This branch is not a fix and is not meant to merge as it stands.** It carries all
-five looks at once so Artur can choose from renders rather than from prose; the chosen one is one
-commit to keep and the other four are one commit to remove, and both commits are written out below.
+Closes #318.
 
 ## The decision this is built on
 
 Artur, on PR #317 on 2026-09-14 while approving the topbar layout and keeping the key cap inside the
-field's accessible name: *"btw it search field looks ugly"*.
+field's accessible name: *"btw it search field looks ugly"*. He did not say which part, so #318 was
+opened as a decision to prepare rather than a fix to guess at: a survey read from source, four
+variants rendered against what #317 shipped, and a recommendation he could overrule.
 
-That is the whole of the brief. He did not say which part, so the one thing this branch is careful
-not to do is guess — #318 asks for a survey, renders, and a recommendation, and the recommendation
-below is labelled as the author's rather than presented as the answer.
+**Artur chose `b · lifted`, on the companion page, round 11, 2026-09-14.** That is the whole of what
+this branch now does. `a · bordered`, `c · quiet` and `d · wide` were not taken. The record is
+[#318](https://github.com/apliteni/apliteni-ui/issues/318); the page he chose from is
+`docs/reviews/318-search-field.html`, which now says on each option which way it went, and the forty
+frames the choice was made from are kept under `docs/evidence/318-search-field/`.
 
-Two things from #317 are settled and are not reopened here: the band's arrangement (beside the rail,
-52px, the reader's mark at its end), and the key cap being part of the field's name rather than
-`aria-hidden`. Every option keeps both.
+| Decision | Choice | Who, and where |
+| --- | --- | --- |
+| Which look the band's search field takes | **b · lifted** — `--surface` instead of the sunken `--surface-2` | Artur, companion round 11, 2026-09-14, recorded on #318 |
+| Whether the field takes the kit's focus ring | **Yes** — it was the only control on the band that did not | Derived, not chosen: a defect all four variants fixed, and it ships with the chosen one |
+| `a · bordered` — no fill, `--border-strong` carries the edge | Not taken | Artur, same round |
+| `c · quiet` — 240px, `Search…`, the key unboxed | Not taken | Artur, same round |
+| `d · wide` — the field grows to the reader's mark | Not taken | Artur, same round |
+| The band's arrangement, and the key cap inside the field's name | Settled at #317, not reopened | Artur, 2026-09-14 |
 
-## What was found in the code, before anything was drawn
+## What ships
 
-src/components/shell.js:234 `const searchField = ({ palette, placeholder }) =>` and
-src/styles/layout.css:340 `.ui-app__search {`, at `6b4af3e`. Three of these are measurements, not
-opinions.
+Fourteen lines in one file. `src/styles/layout.css`, against `origin/main`:
 
-**The field is the only control on the band that does not take the kit's focus ring.** It is a
-`<button>` without `.ui-btn`, so the shared rule —
-src/styles/base.css:140 `.ui-focusable:focus-visible,` — never reaches it and `:focus-visible`
-falls through to Chrome's own square black-and-white outline, drawn around a 12px
-radius. `docs/evidence/shell-layouts/shell-topbar-search-light.png`, already committed on `main`,
-is a picture of it. **This is a defect rather than a preference and every variant fixes it**,
-including — if `today` is what Artur picks — the do-nothing option.
+```css
+   color: var(--muted);
+-  background: var(--surface-2);
++  /* --surface, not the sunken --surface-2 every other field in the kit takes: …  */
++  background: var(--surface);
+   border: 1px solid var(--border);
+   …
+ .ui-app__search:hover { border-color: var(--border-strong); color: var(--strong); }
++/* Every other control on the band takes the kit's ring. This one is a <button>
++   without `.ui-btn`, so base.css's shared rule never reached it … */
++.ui-app__search:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+```
 
-**In the light theme the field is a smudge, by the numbers.** The fill, `--surface-2` over the
-band's `--bg`, measures **1.10:1**. The edge, `--border` over the same `--bg`, measures **1.09:1**.
-Two devices, neither of which reads. Dark is the theme it was built in and holds up there (1.07 and
-1.50).
+**One declaration, and a focus rule.** The declaration is the decision; the rule is the defect the
+survey found on the way and that every variant fixed.
 
-**The key cap is a box that is not there.** `.ui-cmdk__key` was drawn for the palette panel, whose
-ground is `--surface-2`, and fills itself with `--surface-3`. On the band the field is *also*
-`--surface-2`, so in light the cap's fill measures **1.04:1 against the field it sits in** and its
-border **1.01:1** — a filled, bordered box with neither a visible fill nor a visible border.
+**Why the fill goes up and not down**, in the comment beside it and at length in the survey: every
+other field in the kit is sunken because it sits on a card, and this one sits on the band — which is
+`--bg`, the bottom of the elevation ladder — so a sunken fill has nowhere to go but down into its
+own ground. Measured in light, the field was **1.10:1 below the band**; it is **1.08 above** it now.
+The key cap moves with it for free: `--surface-3` on `--surface-2` measured **1.04:1**, a filled,
+bordered box with neither a visible fill nor a visible border, and it is **1.14:1** on the new
+ground.
 
-**The words on the trigger are the palette's own.**
-src/components/shell.js:99 `return { palette, placeholder: str(given.placeholder) || 'Search or run a command…' };`
-defaults the trigger's words to the palette's own placeholder — the prompt for a box
-you have already opened. At 390px the 320px field shrinks and it clips to *"Search or run a co…"*
-(`docs/evidence/shell-layouts/shell-topbar-phone-light.png`).
+**Why the focus rule.** `.ui-app__search` is a `<button>` without `.ui-btn`, so the kit's shared
+ring rule — src/styles/base.css:140 `.ui-focusable:focus-visible,` — never reached it and
+`:focus-visible` fell through to Chrome's own square black-and-white outline, drawn around a 12px
+radius. Compare `shell-topbar-search-light.png` before and after, below.
 
-## The survey
+## What the settling commit removed
 
-`docs/reviews/318-search-field.md`. Seven systems, each read from its own source on 2026-09-14 —
-the files on this box for `lessly-ui` at `d1a25eda`, and the served HTML plus the served stylesheet,
+The branch carried all five looks while the decision was open. The settling commit took the other
+four out. **Three of the four files it touched are byte-identical to `origin/main` again** —
+`git diff origin/main` prints nothing for any of them:
+
+| File | What went |
+| --- | --- |
+| `src/styles/layout.css` | The whole `#318` section — the four `[data-search-variant="…"]` blocks and the ring rule they shared, 104 lines. The ring rule came back on `.ui-app__search` itself. |
+| `scripts/evidence/shot.html` | The `SEARCH_WORDS` map, the `variant` parameter on `laid()`, and the three lines that read `&search=` and set the attribute on the root. **Byte-identical to `main`.** |
+| `scripts/evidence/layouts.mjs` | The `#318` loop — five looks × two themes × four frames. **Byte-identical to `main`.** |
+| `stories/apps/ShellLayouts.stories.js` | `SEARCH_VARIANTS` and the `SearchVariant` story. **Byte-identical to `main`.** |
+
+Nothing in `src/` ever wrote `data-search-variant` and no consumer set it, so no published API had
+it and none loses it.
+
+**One consequence, stated rather than left to be noticed.** The band close-up — `.ui-app__bar`
+captured on its own at 1032×52, which is the frame the five looks were actually compared in — was
+part of the `#318` loop, so the settled rig has no producer for it. The ten committed band frames
+stay as the decision's record, and the check under *Evidence* below shows they are the same pixels
+as the band region of the frames the settled tree draws today. If the band is worth shooting
+routinely, that is its own small issue rather than a reason to keep half of a removed loop.
+
+**Two things were kept**, and both are records rather than state:
+
+- `stories/elevation.test.js` stays pinned at **41** box-shadows, with the row recording the change
+  in `CONTRIBUTING.md#the-elevation-gate-and-its-counts` rewritten from "branch state" to what
+  shipped. The 41st is the field's ring. The floating count is untouched at 13, because a ring is
+  not a cast layer.
+- `docs/reviews/318-search-field.md` and `.html`, and all forty frames under
+  `docs/evidence/318-search-field/`. `docs/README.md` says why a design was chosen goes in the issue,
+  and that closing an issue which settled something means writing the decision into it; these are
+  what that sentence on #318 points at.
+
+## The survey the choice was made from
+
+`docs/reviews/318-search-field.md`. Seven systems, each read from its own source on 2026-09-14 — the
+files on this box for `lessly-ui` at `d1a25eda`, and the served HTML plus the served stylesheet,
 fetched and grepped, for the rest. Width, ground, border, radius, glyph, placeholder, key-cap
-treatment, focus treatment, and whether the thing is a field or a button drawn as one, for each.
+treatment, focus treatment, and whether the thing is a field or a button drawn as one.
 
-The finding that produced two of the four variants: **nobody draws this control on the sunken step.**
-Primer's is `#fff` on a white page and lets a `#d1d9e0` border do all of it. Geist's is `#fff` on a
-grey rail. lessly-ui's `QuickSearchRow` is `bg-bg-overlay` where every other field in that kit is
-`bg-bg-primary`, and its own comment argues it: *"every other field sits on a card or a page and
-this one sits on the rail — which IS `bg-bg-primary`, so the field's own fill would be its ground
-and only the border would say it is there"*. Notion's has no fill at all. This kit's is sunken
-because `.ui-app__search` borrowed `.ui-input`'s ladder wholesale, and `.ui-input` is drawn on a
-card.
+The finding the chosen look answers: **nobody draws this control on the sunken step.** Two of the
+seven put it a step above its ground — Vercel Geist's is `#fff` on a grey rail, `lessly-ui`'s
+`QuickSearchRow` is `bg-bg-overlay` where every other field in that kit is `bg-bg-primary` — and
+`QuickSearchRow`'s own comment argues it: *"every other field sits on a card or a page and this one
+sits on the rail — which IS `bg-bg-primary`, so the field's own fill would be its ground and only
+the border would say it is there"*. Four give it effectively no fill at all, 1.05:1 or less against
+the page: GitHub's header trigger at `#00000003`, Primer's real `TextInput` at the page's own
+`#fff`, Notion's none, Tailwind's 2% black. **None of the seven puts it on a fill a step below.**
 
 **Linear is in the table as a row that could not be read, not as one written from memory.**
-`linear.app/docs` renders its search trigger from a client-side chunk (fetched: four lines
-re-exporting a component from a bundled design system), the served CSS carries no rule for it, and
-the app is behind a login this box has no credential for. Raycast's and Slack's rows carry a smaller
-version of the same caveat, stated in the survey: they are documentation searches, not those
-products' app chrome.
-
-## The five looks
-
-The look is a stylesheet's, keyed off `data-search-variant`. **The markup is identical in all
-five** — the same `<button>`, the same accessible name, the same `[data-cmdk-open]`, the same
-`kbd` — which is why every gate the field already has is green on each of them.
-
-| | What changes | Read from | Light: fill / edge |
-| --- | --- | --- | --- |
-| **today** | nothing — what #317 ships, rendered off this branch | — | 1.10 / 1.09 |
-| **a · bordered** | no fill at all; `--border-strong` carries it at 9px; the cap outlined on the same ground | Notion's search; GitHub's header cap (`background-color:#0000` + 1px border) | — / **1.33** |
-| **b · lifted** | the same pill one step **up** (`--surface`), so the fill is lighter than the band | lessly-ui's own comment; Geist's white-on-grey | **1.08 above** / 1.09 |
-| **c · quiet** | 240px, `Search…`, the key set beside the words rather than boxed | Tailwind's docs trigger; lessly-ui's plain-text shortcut | 1.10 / 1.09 |
-| **d · wide** | the field grows to the reader's mark, bordered | GitHub's product command bar | — / 1.33 |
-
-`today` is shot off this branch with no attribute set at all, so the baseline in the comparison is
-the branch drawing #317 rather than a copy of #317's evidence.
-
-One of the four changes a string as well as a rule: **c** shortens the placeholder, and the
-placeholder is an argument to `appShell()`. On this branch the rig passes it
-(`scripts/evidence/shot.html`); if **c** is chosen, `shell.js:99`'s default moves with it.
-
-## My recommendation, and the reason
-
-**b · lifted**, and this is the author's call rather than Artur's — he has not seen the frames yet
-as this is written.
-
-Three reasons, in the order they matter:
-
-1. **It is the one thing every readable reference agrees on.** Two of the seven put this control
-   a step *above* its ground (lessly-ui, Geist), four give it effectively no fill at all —
-   1.05:1 or less against the page (GitHub's header at `#00000003`, Primer's real field at the
-   page's own `#fff`, Notion's none, Tailwind's 2% black) — and **none of the seven puts it on a
-   fill a step below**. That is not a taste; it is what happens when a field designed for a card
-   is moved onto a page. The band is `--bg`, the bottom of the ladder, so a sunken fill has
-   nowhere to go but down into it.
-2. **It is one declaration, and it fixes the cap for free.** The cap stops being invisible without
-   being redesigned: `--surface-3` on `--surface` is 1.14:1 rather than 1.04:1. Nothing else in
-   the kit moves, and `.ui-app__search` keeps its family resemblance to `.ui-input` — same radius,
-   same hairline, same shape, one step the other way.
-3. **It leaves the separable questions separate.** The sentence and the width are arguably wrong
-   too, but each is fixable on its own afterwards and neither needs to ride on this decision.
-
-**Where I would go instead:** if what reads as ugly is specifically the light theme, **a** is the
-stronger answer — it is the only option that moves the *edge*, which is the device carrying the
-control in every reference that has no fill to lean on, and 1.09 → 1.33 is the largest single
-improvement on the list. And if what reads as ugly is the phone, **c** is the only one that fixes it.
-
-I would not pick **d** without Artur saying the empty band is the complaint: it makes the topbar
-layout stop looking like a sibling of the rail layout, which is a larger change than he asked for.
+`linear.app/docs` renders its search trigger from a client-side chunk, the served CSS carries no
+rule for it, and the app is behind a login this box has no credential for. Raycast's and Slack's
+rows carry a smaller version of the same caveat, stated in the survey: they are documentation
+searches, not those products' app chrome.
 
 ## Evidence
 
-Forty frames under `docs/evidence/318-search-field/`, all from the committed rig —
-`scripts/evidence/layouts.mjs`, extended with a variant switch rather than shot by hand, over the
-same server, the same `shot.html` and the same Chrome. Eight per look:
+**Before and after, in place.** The twelve `shell-topbar-*` frames under
+`docs/evidence/shell-layouts/` are re-shot off the settled tree through the committed rig —
+`scripts/evidence/layouts.mjs`, the same server, the same `shot.html`, the same Chrome, waiting on
+`settle()` and never on a clock. The `before` side is what those same paths held on `main` from
+#317, so the diff of this pull request *is* the before/after pair.
 
-| What | Files |
+What moved, measured with `scripts/evidence/diff.mjs` rather than by hash:
+
+```
+shell-topbar-wide-light       32552 of 2918400 samples differ, max delta 21 in x∈[300,619] y∈[6,44]
+shell-topbar-wide-dark        32516 of 2918400 samples differ, max delta 13 in x∈[300,619] y∈[6,44]
+shell-topbar-centered-light   32552 of 2918400 samples differ, max delta 21 in x∈[300,619] y∈[6,44]
+shell-topbar-centered-dark    32516 of 2918400 samples differ, max delta 13 in x∈[300,619] y∈[6,44]
+shell-topbar-folded-light     32552 of 2918400 samples differ, max delta 21 in x∈[125,444] y∈[6,44]
+shell-topbar-folded-dark      32516 of 2918400 samples differ, max delta 13 in x∈[125,444] y∈[6,44]
+shell-topbar-menu-light       32552 of 2918400 samples differ, max delta 21 in x∈[300,619] y∈[6,44]
+shell-topbar-menu-dark        32516 of 2918400 samples differ, max delta 13 in x∈[300,619] y∈[6,44]
+shell-topbar-phone-light      20803 of  936000 samples differ, max delta 21 in x∈ [98,311] y∈[6,44]
+shell-topbar-phone-dark       20765 of  936000 samples differ, max delta 13 in x∈ [98,311] y∈[6,44]
+shell-topbar-search-light     40942 of 2918400 samples differ, max delta 236 in x∈[42,622] y∈[3,166]
+shell-topbar-search-dark      40889 of 2918400 samples differ, max delta 240 in x∈[297,622] y∈[3,47]
+```
+
+**The box is the whole review.** In every at-rest frame the difference is confined to
+`x∈[300,619] y∈[6,44]` — the field's own 320×34 box at the band's start, moved to `x∈[125,444]` when
+the rail is folded and to `x∈[98,311]` on a phone. Nothing else on any of those pages moved a
+sample. The two focus frames are the larger box and the larger delta, because that is the rule that
+replaced Chrome's outline with the kit's ring, which spreads 3px past the field.
+
+The six **rail** frames are deliberately not re-shot: the rail layout draws no search field, so this
+change cannot reach them. See the caveat below for what happened when they were shot anyway.
+
+**The frames Artur chose from are the frames that shipped.** The settled tree's output compared with
+the committed `lifted` variant frames:
+
+```
+shell-topbar-wide-light    vs 318-search-lifted-light-1280.png    0 of 2918400 samples differ, max delta 0
+shell-topbar-wide-dark     vs 318-search-lifted-dark-1280.png     0 of 2918400 samples differ, max delta 0
+shell-topbar-phone-light   vs 318-search-lifted-light-390.png     0 of  936000 samples differ, max delta 0
+shell-topbar-phone-dark    vs 318-search-lifted-dark-390.png      0 of  936000 samples differ, max delta 0
+shell-topbar-search-light  vs 318-search-lifted-focus-light.png   19 of 2918400 samples differ, max delta 28 in x∈[42,43] y∈[15,166]
+shell-topbar-search-dark   vs 318-search-lifted-focus-dark.png    34 of 2918400 samples differ, max delta 7 in x∈[49,227] y∈[213,214]
+```
+
+Four of six to the byte. The two that are not differ **only in the rail**, in the two boxes the
+rig's own README already names as raster jitter this host cannot settle — the brand mark's
+`clipPath` corners and the active nav row's rounded plate — and neither box contains any part of the
+subject. The same two boxes are the only disagreement between **two runs of the settled tree
+itself**: eleven of its twelve topbar frames are byte-identical across runs A and B, and the twelfth
+is `shell-topbar-search-light`, at the same 19 samples in `x∈[42,43] y∈[15,166]`.
+
+**And the band close-up**, which has no producer on the settled rig. The committed
+`318-search-lifted-{light,dark}-band.png` were compared sample for sample against the band's region
+of the frames the settled tree draws today — the 1032×52 box at `(249, 0)` inside
+`shell-topbar-wide-*`:
+
+```
+318-search-lifted-light-band.png: 0 of 160836 samples differ, max delta 0
+318-search-lifted-dark-band.png:  0 of 160836 samples differ, max delta 0
+```
+
+So all four kinds of frame — band, 1280, 390 and focus, in both themes — are shown to be what the
+settled tree draws.
+
+A 2× set of the twelve is at `/home/orca/shots-318-settled/` on the host, shot by the same script
+under `UI_DSF=2`. Deliberately not committed: 1× is what the rig's README calls the reproducible
+cross-check.
+
+### A caveat about this host, found while shooting and not caused by this branch
+
+The six `shell-rail-*` frames committed by #317 do not reproduce on this box. Re-shot from
+`origin/main` itself, with `main`'s own rig and stylesheet, they come back **156 of 2,918,400 samples
+apart, max delta 126, in one 13×8 box at `x∈[222,234] y∈[717,724]`** — the chevron on the reader's
+trigger at the rail's foot. It is not the Chrome build: `chromium-1194`, `1234` and `1243` all agree
+with each other and all disagree with what is committed, identically. It is this Linux host against
+whatever machine shot them.
+
+That is why the rail frames are left alone rather than re-shot: re-shooting them would put a
+156-sample change into this pull request that has nothing to do with the search field and whose
+cause is the shooter's machine. Worth an issue — the rig's README promises "the same checkout, the
+same Chrome and the same viewport give the same bytes", and the third variable is not in that list.
+
+## Gates
+
+Every gate the field already had is green on the settled tree, unchanged. Four of them shaped this
+work while the decision was open, and each is worth naming because each is the repo's own discipline
+doing its job:
+
+| Gate | What it said |
 | --- | --- |
-| the band alone, life size (1032×52) — the fastest comparison | `318-search-<v>-{light,dark}-band.png` |
-| the whole screen, 1280×760 | `318-search-<v>-{light,dark}-1280.png` |
-| a phone, 390×800 — where today's sentence clips | `318-search-<v>-{light,dark}-390.png` |
-| the field under a **real Tab press** — today's browser outline against every variant's kit ring | `318-search-<v>-focus-{light,dark}.png` |
-
-`<v>` is `today`, `bordered`, `lifted`, `quiet`, `wide`.
-
-The band close-up is captured as `.ui-app__bar` rather than as a hand-written clip box, for the
-reason `float.mjs` captures `.fl-cell`: a box measured from the document cannot drift from what the
-document draws. The focus frames are reached by real `Tab` presses through `tabTo()`, and the rig
-waits on `settle()` — `document.getAnimations()` — and never on a clock.
-
-A 2× set of the same forty is at `/home/orca/shots-318/` on the host for the review page, shot by
-the same script under `UI_DSF=2`. **Deliberately not committed**: 1× is what the rig's README calls
-the reproducible cross-check.
-
-### Re-shot, and what did not hold still
-
-The eight `lifted` frames were re-shot off the committed branch after the last code change and
-compared with `scripts/evidence/diff.mjs`, pixel by pixel rather than by hash:
-
-```
-0 of 2918400 samples differ, max delta 0      (light 1280, dark 1280, both focus frames)
-0 of  936000 samples differ, max delta 0      (both phones)
-0 of  160836 samples differ, max delta 0      (both bands)
-34 of 2918400 samples differ, max delta 7 in x∈[49,227] y∈[213,214]   (dark, 1280)
-```
-
-Seven of eight to the byte. The eighth is the caveat #317 measured and wrote into the rig's README:
-in the topbar layout, the active nav row's rounded plate rasterises one of two ways at its bottom
-corners — `rows 213–215` at `x 49–51` and `x 226–228`, which is the box above. It is not in the
-subject, it is not this branch's, and it is named rather than rounded to "deterministic".
-
-### The comparison page
-
-`docs/reviews/318-search-field.html`, in the shape of `docs/reviews/295-popover-variants.html` —
-the same `review-page` template, the goal, the constraints, the prior decisions with their sources,
-five options each with its own tradeoff paragraph and its eight frames, and a recommendation marked
-as a recommendation.
-
-## What this branch changes, and what it does not
-
-| File | What |
-| --- | --- |
-| `src/styles/layout.css` | The `#318` section at the end of the file: one focus-ring rule the variants share, and four `[data-search-variant="…"]` blocks. **Nothing above that banner is touched.** |
-| `scripts/evidence/shot.html` | Reads `&search=<v>` and sets the attribute on the root; names the one variant that shortens the placeholder. |
-| `scripts/evidence/layouts.mjs` | The `#318` loop — five looks × two themes × four frames. Filtered by the rig's existing third argument, so `… . out 318-search` shoots only these. |
-| `stories/apps/ShellLayouts.stories.js` | `SearchVariant` — one screen in a box carrying the attribute, the look picked from a control. |
-| `stories/elevation.test.js`, `CONTRIBUTING.md` | The pinned box-shadow count, 40 → 41 — the variants' shared focus rule — and the row in the count table that records it. |
-| `docs/reviews/318-search-field.md`, `.html` | The survey and the comparison page. |
-| `docs/evidence/318-search-field/` | The forty frames. |
-
-Nothing in `src/` writes `data-search-variant` and no consumer sets it, so **unset — which is every
-consumer — the field is byte-for-byte what #317 shipped.**
-
-The attribute is read on *any ancestor* rather than on `:root`, and that is not cosmetic: a story is
-mounted into the body, so a rule keyed on `<html>` is a rule no gate can reach. Keying it on an
-ancestor is what lets `SearchVariant` land the variants' ring selector for
-`stories/guidelines/accessibility-floor.test.js` to measure — which is the gate that caught this in
-the first place, on the first run, with `a ring selector no story renders is a ring nobody
-measured`.
-
-## The two commits that settle it
-
-**To keep the chosen one** — replace `.ui-app__search`'s own declarations with the chosen block's,
-and add the shared focus rule to it. Written out so the commit is mechanical:
-
-```css
-/* whichever is chosen, this lands: the field takes the kit's ring like every
-   other control on the band. why: docs/specification.md#the-focus-ring */
-.ui-app__search:focus-visible { outline: none; box-shadow: var(--ring); }
-
-/* a · bordered */ background: transparent; border-color: var(--border-strong);
-                   border-radius: var(--radius-sm);
-                   :hover { border-color: var(--muted) }
-                   :focus-visible { border-color: var(--accent) }
-                   kbd { background: transparent; border-color: var(--border-strong) }
-/* b · lifted   */ background: var(--surface); border-color: var(--border);
-                   :hover { border-color: var(--border-strong) }
-                   :focus-visible { border-color: var(--accent) }
-/* c · quiet    */ flex-basis: 240px; border-radius: 999px;
-                   kbd { min-width: 0; padding: 0; border: 0; background: none;
-                         font-weight: var(--weight-medium); color: var(--muted) }
-                   …and shell.js:99's default placeholder becomes 'Search…'
-/* d · wide     */ flex: 1 1 auto; background: transparent;
-                   border-color: var(--border-strong); border-radius: var(--radius-sm);
-                   :hover { border-color: var(--muted) }
-                   :focus-visible { border-color: var(--accent) }
-                   kbd { background: transparent; border-color: var(--border-strong) }
-```
-
-**To remove the other four** — delete four additive hunks and nothing else:
-
-1. `src/styles/layout.css`: everything from `/* -- #318 · the search field's look` to the end of
-   the file.
-2. `scripts/evidence/shot.html`: the `SEARCH_WORDS` map, the `variant` parameter on `laid()`, and
-   the three lines in the `layouts` branch that read `&search=` and set the attribute.
-3. `scripts/evidence/layouts.mjs`: the `#318` loop.
-4. `stories/apps/ShellLayouts.stories.js`: `SEARCH_VARIANTS` and `SearchVariant`.
-5. `stories/elevation.test.js` and its row in `CONTRIBUTING.md`: back to 40 — unless the chosen
-   look keeps the focus rule, which it should, in which case 41 stays and the row is rewritten
-   from "branch state" to what shipped.
-
-Then re-shoot `318-search-<chosen>` into `docs/evidence/318-search-field/` off the folded version
-and drop the other thirty-two frames, so what is committed is the look that shipped.
-
-### Both commits were rehearsed, on a scratch branch, and thrown away
-
-Not asserted. `b · lifted` was folded into `.ui-app__search` and the whole `#318` section, the rig's
-two hunks and the story were deleted, exactly as written above. What came out:
-
-- `scripts/evidence/shot.html`, `scripts/evidence/layouts.mjs` and
-  `stories/apps/ShellLayouts.stories.js` are **byte-identical to `origin/main`** — `git diff` prints
-  nothing for any of the three.
-- `src/styles/layout.css` is `main` **plus five lines**: `--surface-2` → `--surface` on one
-  declaration, and the four-line focus rule. That is the whole of what shipping `lifted` is.
-- 243 tests across `shell.test.js`, `shell-states.test.js`, `shell-rail.test.js`, `the-page.test.js`,
-  `accessibility-floor.test.js` and `elevation.test.js` pass on the folded tree. The elevation pin
-  stays at 41, because the folded field keeps the ring.
-- The folded tree re-shot through the rig's ordinary `shell-topbar-wide` frames comes back
-  **byte-identical** to the committed variant frames — `0 of 2918400 samples differ, max delta 0`
-  in both themes against `318-search-lifted-{light,dark}-1280.png`. The picture Artur chooses from
-  is the picture that ships.
-
-The four other looks fold the same way; `lifted` was rehearsed because it is the one recommended.
-The scratch branch was deleted and this branch still carries all five.
-
-The survey, the comparison page and the frames stay whichever way it goes: #318 is closed by
-writing the decision into the issue, and the page is the evidence it was taken from.
+| `stories/guidelines/accessibility-floor.test.js` | Refused the new ring rule until a story rendered it — *"a ring selector no story renders is a ring nobody measured"*. On the settled tree the `Apps/Shell layouts` topbar stories land it, so nothing extra is needed. |
+| `stories/guidelines/the-page.test.js` | Refused the variants story's first shape: five shells stacked is five `<main>`s, five `h1`s and five nav landmarks sharing a name. Correct — that is not a page. |
+| `stories/elevation.test.js` | Refused the kit's 41st `box-shadow` until the pinned count moved **and** the change was recorded, per CONTRIBUTING's own standing instruction to move a number by adding a row. |
+| `scripts/doc-refs.test.js`, `scripts/code-refs.test.js` | Refused four citations, including an earlier draft of this body quoting a wrong anchor verbatim. Every `path:line` in the survey is now anchored by a code span quoting the line it names. |
+| `stories/guidelines/refs.test.js` | Refused two Guidelines pages after the settling commit: adding twelve lines of comment to `layout.css` moved `rank: page-title` from line 381 to 394 and the 720px block from 416 to 429, and `Labels and titles` and `Layout and density` both cite those lines. Both references are updated. A rule that cites a line number is a rule that notices when the line moves. |
 
 ## Proof
 
-Run on this host at the branch head, nothing else running. `origin/main` is at `6b4af3e`.
+Run on this host at the branch head, nothing else running, with `origin/main` (`6ddbe3d`) merged in.
 
 ```
 $ npm test
@@ -279,111 +232,80 @@ $ npm test -w react
 $ npm run build
 ESM dist/index.js  55.98 KB
 ESM dist/index.css 2.15 KB
-ESM ⚡️ Build success in 210ms
-DTS ⚡️ Build success in 4928ms
+ESM ⚡️ Build success in 140ms
+DTS ⚡️ Build success in 3126ms
 DTS dist/index.d.ts 13.43 KB
 ```
 
 **The one failure is this host, not this branch, and it is measured rather than asserted.**
-`stories/contrast.test.js` — *"the walk has not run away with the clock"* — took 197.7s against a
-120s ceiling. `origin/main` fails the same gate on the same box:
+`stories/contrast.test.js` — *"the walk has not run away with the clock"* — runs past its 120s
+ceiling. `origin/main` fails the same gate on the same box:
 
 ```
-$ node --test stories/contrast.test.js          # feat/318-search-field
-branch walk: 188.95 s   ℹ pass 20  ℹ fail 1
-
-$ node --test stories/contrast.test.js          # origin/main at 6b4af3e, same node_modules
-main walk: 182.01 s     ℹ pass 20  ℹ fail 1
+the contrast walk took 181.2s   # the settled tree, in the run above
+main walk: 182.01 s             # origin/main, same node_modules, timed on its own
 ```
 
-So the branch costs **7s of 182**, about 4%, which is one extra screen in every theme × accent
-cell and is what one extra screen should cost. The ceiling is a number pinned from a measured worst
-case on a ten-core laptop; this box is eight cores shared with the rest of the run, so **the ceiling
-is not moved** — moving it to make a slow host green is the thing the gate exists to stop. The two
-skips are `CONTRAST_ACCENTS=1`'s opt-in cells, which `main` skips too.
-
-Two gates caught real mistakes on the way and are worth naming, because both are the repo's own
-discipline working:
-
-- `stories/guidelines/accessibility-floor.test.js` refused the variants' ring rule until a story
-  rendered it — *"a ring selector no story renders is a ring nobody measured"*. That is why
-  `SearchVariant` exists and why the selector is not `:root`-keyed.
-- `scripts/doc-refs.test.js` refused the ring rule's citation, which named an anchor `#focus` the
-  specification does not have — it is `#the-focus-ring` — and named the right one back. It then
-  refused this list's first draft, which quoted the wrong anchor verbatim.
-- `scripts/code-refs.test.js` refused three prose citations in the survey until each was anchored
-  by a code span quoting the line it names.
-- `stories/guidelines/the-page.test.js` refused the story's first shape — five shells stacked on
-  one page, which is five `<main>`s, five `h1`s and five nav landmarks sharing a name. Correctly:
-  that is not a page. It is one screen with the look on a control now, which is also what the
-  contrast walk's own clock gate was objecting to — five extra screens are paid for again in every
-  theme × accent cell, and it timed out at 205s against a 120s ceiling.
-- `stories/elevation.test.js` refused the 41st `box-shadow` in the kit until the pinned count moved
-  and the change was recorded in CONTRIBUTING's count table. The 41st is the variants' focus ring.
+The settled tree carries no story `main` does not have, so its walk **is** `main`'s — 181.2s against
+182.01s, within the noise of a shared box. While the branch still carried the extra variants story
+it measured 188.95s, about 4% more, which is what one extra screen in every theme × accent cell
+should cost; that screen is gone. The ceiling is pinned from a measured worst case on a ten-core
+laptop and this box is eight cores shared with the rest of the run, so **the ceiling is not moved** —
+moving it to make a slow host green is what the gate exists to stop. The two skips are
+`CONTRAST_ACCENTS=1`'s opt-in cells, which `main` skips too.
 
 ## `ai-slop-detector`, recommended level
 
-Run over `PR.md`, the survey, the comparison page, the variants CSS, the story and both rig files.
-Two findings were real and are fixed; two are stated rather than rounded to a pass.
+Run over `PR.md`, the survey, the comparison page, `CONTRIBUTING.md`, the settled `layout.css`, the
+story and `elevation.test.js`. Nothing this branch adds is flagged as its own finding. What remains:
 
-**Fixed.** `comment-essay` at the `#318` banner in `layout.css` — a 17-line prose block in a
-stylesheet, which is what CONTRIBUTING's "No visual slop" is about. It is nine lines now, and the
-argument lives here and in the issue where it can be reviewed and superseded.
+- **`comment-ratio` on `src/styles/layout.css`, 0.63:1 — pre-existing.** `main`'s own copy measures
+  0.60:1 and warns identically; the settled tree adds twelve lines of comment to it. Bringing the
+  file under the rule means rewriting comments this branch did not write.
+- **`comment-essay` on `stories/elevation.test.js` at line 31 — pre-existing.** The 23-line
+  `TREATMENT_DROP` block, which `main` carries unchanged and this branch does not touch.
+- **`middot-chain` on `PR.md` and the survey — stated, not fixed.** It is matching the variant
+  labels, `a · bordered` and the rest, which is the naming `docs/reviews/295-popover-variants.html`
+  used for its own options (`a · Two-step edge`) in a page Artur read and chose from. The rule is
+  about a line that packs unrelated facts into a dotted chain; `a · bordered` is one label. Kept for
+  continuity with #295, and named here so it is not a silent pass.
 
-**Fixed.** `comment-ratio` on `stories/elevation.test.js`. The moved pin needed recording, and the
-first draft recorded it as a comment beside the number — which tipped a file that sits at 0.497:1
-on `main` over the rule. The repo already has the right home for it and the test file already
-points at it: the count table in **CONTRIBUTING.md#the-elevation-gate-and-its-counts**, whose
-standing instruction is *"Move a number by adding a row, not by editing one"*. There is a `41` row
-there now and no comment in the test file.
-
-**Stated, not fixed — `comment-ratio` on `layout.css`, 0.65:1.** Pre-existing: `origin/main`'s copy
-of the same file measures 0.60:1 and warns identically. This branch moved it by five hundredths.
-Bringing the file under the rule means rewriting comments this branch did not write.
-
-**Stated, not fixed — `middot-chain` on `PR.md` and the survey.** It is matching the variant labels,
-`a · bordered` and the rest, which is the naming `docs/reviews/295-popover-variants.html` used for
-its own options (`a · Two-step edge`) in a page Artur read and chose from. The rule is about a line
-that packs unrelated facts into a dotted chain; `a · bordered` is one label. Kept for continuity
-with #295, and named here so it is not a silent pass.
-
-One finding on `stories/elevation.test.js` is pre-existing and untouched: `comment-essay` at its
-line 31, the 23-line `TREATMENT_DROP` block, which `origin/main` carries identically.
+Two findings that were real are gone with the variants: the `comment-essay` in the `#318` banner,
+and a `comment-ratio` on `elevation.test.js` from recording the moved pin as a comment beside the
+number. The pin's record lives in CONTRIBUTING's count table, which is where the file already
+pointed.
 
 ## No version bump, no changelog entry
 
-Per the standing rule: the version is untouched at `0.33.1` and `docs/changelog.md` has no new
-RELEASES entry. The coordinator sequences versions at merge.
+The version is untouched at `0.34.0` and `docs/changelog.md` has no new RELEASES entry. The
+coordinator sequences versions at merge.
 
 ## Changelog entry
 
-Nothing has shipped yet — this branch is the decision, not the change. The line to write when the
-chosen look lands is one of these, and the second half is the same in all five:
-
 ```
-- **The topbar layout's search field is drawn <the chosen look>.** <one clause naming what moved.>
-  The field's markup, its accessible name and the key cap inside it are unchanged. (#318, #308)
+- **The topbar layout's search field is lighter than the band, not darker.** It takes `--surface`
+  instead of the sunken `--surface-2` every other field in the kit takes — those sit on a card and
+  this one sits on the band, which is already the bottom of the elevation ladder. In the light
+  theme the field measured 1.10:1 below its own ground and its key cap 1.04:1 against the field it
+  sits in; they are 1.08 above and 1.14 now. Chosen from four rendered alternatives. (#318, #308)
 - **The topbar layout's search field takes the kit's focus ring.** It was the one control on the
-  band falling through to the browser's own outline. (#318)
+  band falling through to the browser's own outline: a `<button>` without `.ui-btn`, which the
+  shared rule in `base.css` never reached. (#318)
 ```
 
-## Open questions
+## Open, and deliberately left
 
-1. **Which look lands.** With Artur; the branch carries all five until he answers.
-2. **Whether the trigger keeps the palette's sentence.** Only option **c** decides this as part of
-   the look. If anything else is chosen, `'Search or run a command…'` on a 320px trigger — and its
-   clipping at 390 — is a separate, smaller question, and probably its own issue.
-3. **Whether `.ui-cmdk__key` should be the cap here at all.** It is the palette panel's cap, and
-   the panel's ground is not the band's. Options **a**, **c** and **d** each answer it differently
-   in passing; **b** answers it by giving the cap a ground to sit on. Worth a line in the issue
-   whichever way it goes.
-
-## How to look at it
-
-```sh
-npm run storybook            # Apps / Shell layouts / Search variant — flip `variant`, Tab into the field
-open docs/reviews/318-search-field.html
-```
+1. **The band close-up has no producer on the settled rig**, as above. Its own small issue if it is
+   worth shooting routinely.
+2. **`shell-rail-*` does not reproduce across machines**, as above. The rig's README promises
+   determinism over checkout, Chrome and viewport, and the host is a fourth variable it does not
+   name.
+3. **The trigger still says the palette's own sentence.**
+   src/components/shell.js:99 `return { palette, placeholder: str(given.placeholder) || 'Search or run a command…' };`
+   takes its default from `command-palette.js`'s own placeholder — the prompt for a box you have
+   already opened — and at 390px it clips to *"Search or run a co…"*. Every readable reference in
+   the survey puts one or two words on the trigger. `c · quiet` would have decided this as part of
+   the look and was not taken, so it stays a separate, smaller question.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

@@ -57,19 +57,11 @@ const screen = (collapsed) => appShell({
 // between any two of these shots only the option under test differs. The topbar
 // layout's field opens a palette, so the page carries one — closed, as a page does.
 const PALETTE_ID = 'shot-cmdk';
-// #318. The look is a stylesheet's — `data-search-variant` on the root, and the
-// blocks src/styles/layout.css keys off it — so the markup below is the same
-// bytes in every frame. One of the four variants also shortens the words, and
-// the words are an argument rather than a rule, so they are named here beside
-// the name of the look. Unset, this is exactly what #317 shipped.
-const SEARCH_WORDS = { quiet: 'Search…' };
-const laid = ({ layout, width, collapsed, variant }) => appShell({
+const laid = ({ layout, width, collapsed }) => appShell({
   word: 'Finance',
   layout,
   width,
-  search: layout === 'topbar'
-    ? { palette: PALETTE_ID, placeholder: SEARCH_WORDS[variant] || undefined }
-    : undefined,
+  search: layout === 'topbar' ? PALETTE_ID : undefined,
   nav: NAV,
   active: 'pending',
   account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
@@ -169,15 +161,10 @@ if (params.get('subject') === 'caret') {
     + '.navbox{padding:var(--space-5) var(--space-4)}';
   document.head.append(st);
 } else if (params.get('subject') === 'layouts') {
-  // #318. A name the variants sheet knows, or nothing at all — and nothing at all
-  // is what every frame shot before #318 passes, so those are unchanged.
-  const variant = params.get('search') || '';
-  if (variant) document.documentElement.dataset.searchVariant = variant;
   document.body.innerHTML = laid({
     layout: params.get('layout') || 'rail',
     width: params.get('width') || 'centered',
     collapsed,
-    variant,
   });
   wireShell(document.body);
   const { wireCommandPalette } = await import('/src/components/command-palette.js');

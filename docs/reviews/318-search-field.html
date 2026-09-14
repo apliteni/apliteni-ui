@@ -351,6 +351,12 @@
       "title": "The band’s search field · round 1 (variants)",
       "prior": [
         {
+          "title": "How it went",
+          "choice": "Settled — b · lifted",
+          "reason": "Artur, companion round 11, 2026-09-14, choosing from the frames below. The field leaves the sunken step for --surface, so its fill is lighter than the band rather than darker, and it takes the kit's focus ring. a · bordered, c · quiet and d · wide were not taken; the shared focus-ring fix landed with the chosen look. This page stays as the evidence the choice was made from — the frames under docs/evidence/318-search-field/ are all five looks as they were rendered, and shell-layouts/shell-topbar-*.png is what shipped.",
+          "source": "https://github.com/apliteni/apliteni-ui/issues/318"
+        },
+        {
           "title": "The topbar layout itself",
           "choice": "Approved — a band beside the rail, the toggle at the rail’s foot, two content widths",
           "reason": "#308 / PR #317, merged at 6b4af3e on 2026-09-14. The band’s arrangement, its 52px height and the centred content width are settled and are not reopened here; only the field inside it is in question.",
@@ -373,12 +379,12 @@
         {
           "id": "look",
           "title": "Which look does the band’s search field take?",
-          "context": "Every frame is the same screen off the same branch — one static server, one Chrome, one viewport, the kit’s own appShell() — so between any two of them only the field’s look differs. The look is a stylesheet’s, keyed off `data-search-variant`; the button, its accessible name, its `[data-cmdk-open]` and its `kbd` are the same bytes in all five, so every gate the field already has is green on each. Each option carries six frames: the band alone at life size in both themes (the fastest comparison — the subject is a 34px control and a 1280 frame renders it in a corner), the whole screen at 1280, a phone at 390, and the field under a real Tab press. The numbers under each option are WCAG contrast ratios measured from the tokens: the fill is the field against the band it sits on, the edge is its border against that same band, and the ink is the placeholder on whatever the field becomes. One finding is not a choice and is fixed in all four: today the field is the only control on the band that does not take the kit’s focus ring — it is a \u003cbutton> without .ui-btn, so base.css never reaches it and focus falls through to Chrome’s square black-and-white outline drawn over a 12px radius. Compare today’s Tab frame with any variant’s. Recommended: b · Lifted, and the reason is in PR.md — it is the one change every readable reference system agrees on (nobody draws this control on the sunken step), it is one declaration, it keeps the field looking like the kit’s other fields, and it leaves the two things that are arguably wrong but are separately fixable — the sentence and the width — to be decided on their own. If the light theme is what looks ugly and the fill is not enough, a is the stronger answer: it is the only option that moves the edge as well. The survey the four came out of, with every source and every measurement, is docs/reviews/318-search-field.md.",
+          "context": "SETTLED on 2026-09-14: Artur chose b · lifted. What follows is the page the choice was made from, unchanged. Every frame is the same screen off the same branch — one static server, one Chrome, one viewport, the kit’s own appShell() — so between any two of them only the field’s look differs. The look is a stylesheet’s, keyed off `data-search-variant`; the button, its accessible name, its `[data-cmdk-open]` and its `kbd` are the same bytes in all five, so every gate the field already has is green on each. Each option carries six frames: the band alone at life size in both themes (the fastest comparison — the subject is a 34px control and a 1280 frame renders it in a corner), the whole screen at 1280, a phone at 390, and the field under a real Tab press. The numbers under each option are WCAG contrast ratios measured from the tokens: the fill is the field against the band it sits on, the edge is its border against that same band, and the ink is the placeholder on whatever the field becomes. One finding is not a choice and is fixed in all four: today the field is the only control on the band that does not take the kit’s focus ring — it is a \u003cbutton> without .ui-btn, so base.css never reaches it and focus falls through to Chrome’s square black-and-white outline drawn over a 12px radius. Compare today’s Tab frame with any variant’s. Recommended: b · Lifted, and the reason is in PR.md — it is the one change every readable reference system agrees on (nobody draws this control on the sunken step), it is one declaration, it keeps the field looking like the kit’s other fields, and it leaves the two things that are arguably wrong but are separately fixable — the sentence and the width — to be decided on their own. If the light theme is what looks ugly and the fill is not enough, a is the stronger answer: it is the only option that moves the edge as well. The survey the four came out of, with every source and every measurement, is docs/reviews/318-search-field.md.",
           "recommendation": "lifted",
           "options": [
             {
               "id": "today",
-              "title": "Today — what #317 ships",
+              "title": "Not taken — Today — what #317 ships",
               "summary": "A 320px pill on the sunken step (--surface-2) inside a 1px --border, 12px radius, the palette’s own sentence “Search or run a command…”, and the palette’s own key cap: a --surface-3 box with a --border edge. Here as the thing the other four are read against, rendered off this branch rather than copied from #317’s evidence.",
               "tradeoff": "In light the fill measures 1.10:1 against the band and the edge 1.09:1 — two devices, neither of which reads, which is what a smudge is. The cap is worse: --surface-3 on --surface-2 is 1.04:1 and its border 1.01:1, so a filled, bordered box is drawn where a reader can see neither the fill nor the border. Dark is the theme this was built in and it holds up there (1.07 fill, 1.50 edge). Costs nothing, because it is already built. Focus is the browser’s own square outline over a 12px radius — the only control on the band that does not take the kit’s ring.",
               "evidence": [
@@ -426,7 +432,7 @@
             },
             {
               "id": "bordered",
-              "title": "a · Bordered — the fill goes, the edge carries it",
+              "title": "Not taken — a · Bordered — the fill goes, the edge carries it",
               "summary": "The field stands on the band’s own ground with no fill at all, held by 1px of --border-strong at a 9px radius; the key cap follows, outlined on the same ground instead of filled. Notion’s search is this exactly — 1px of rgba(0,0,0,.08), 8px, no fill — and GitHub’s header cap is a 1px border over `background-color:#0000`.",
               "tradeoff": "The edge goes from 1.09:1 to 1.33:1 in light and 1.50 to 1.95 in dark, and the placeholder is read on --bg rather than --surface-2, which raises it from 4.89:1 to 5.36:1 in light. One rule in both themes, no new token, and the cap stops being a box nobody can see. What it gives up is the field’s resemblance to the kit’s other fields: .ui-input is sunken-and-hairlined everywhere else, so this is the one field in the kit drawn on the page.",
               "evidence": [
@@ -474,7 +480,7 @@
             },
             {
               "id": "lifted",
-              "title": "b · Lifted — the same pill, one step up",
+              "title": "CHOSEN — b · Lifted — the same pill, one step up",
               "summary": "Nothing changes but which way the step goes: --surface (the card step) instead of --surface-2, with the hairline it already has. This is what lessly-ui’s own QuickSearchRow does and says why in its comment — `bg-bg-overlay` where every other field takes `bg-bg-primary`, “because … the field’s own fill would be its ground and only the border would say it is there” — and what Vercel’s docs trigger does, white on a grey rail.",
               "tradeoff": "The smallest change on the list: one declaration. In light the fill goes from 1.10 below the band to 1.08 above it, and the placeholder reads at 5.81:1 instead of 4.89. The cap finally has a ground to sit on — --surface-3 on --surface is 1.14:1 rather than 1.04. In dark it is the least distinguishable from today (1.19 against 1.07), so this is the option that fixes light and barely moves dark. The edge stays --border at 1.09:1 in light, so the field is still carried by its fill alone.",
               "evidence": [
@@ -522,7 +528,7 @@
             },
             {
               "id": "quiet",
-              "title": "c · Quiet — fewer words, a narrower box, the key unboxed",
+              "title": "Not taken — c · Quiet — fewer words, a narrower box, the key unboxed",
               "summary": "Today’s fill and today’s step, untouched. What changes is everything that is not chrome: 240px instead of 320, “Search…” instead of the palette’s sentence, a pill radius, and the key set beside the words as plain medium text rather than framed. Tailwind’s docs trigger is this at its smallest — a magnifier, a plain “⌘K”, no words at all.",
               "tradeoff": "It is the only option that fixes the phone: at 390 the 320px field shrinks and “Search or run a command…” clips to “Search or run a co…”, and “Search…” does not. It also removes the invisible cap by removing the box rather than by giving it a ground. What it does NOT do is touch the fill, so the light lozenge is still 1.10:1 on the band — a tidier smudge. One of its changes is a string and not a rule: the placeholder is an argument to appShell(), so choosing this changes shell.js:99 as well as the sheet.",
               "evidence": [
@@ -570,7 +576,7 @@
             },
             {
               "id": "wide",
-              "title": "d · Wide — the field takes the band",
+              "title": "Not taken — d · Wide — the field takes the band",
               "summary": "The arrangement rather than the chrome: the field grows to the reader’s mark instead of sitting at 320px, and is bordered on the ground for the same reason a is — a sunken slab this wide is a bigger smudge, not a smaller one. GitHub’s product command bar is the shape this copies.",
               "tradeoff": "It answers the thing the other three do not: at 1280 this band is a 320px control, a 28px mark and about 700px of nothing between them, and the field is the one control the band exists for. The cost is that the band stops being quiet — a full-width bordered box is the loudest thing on the screen above the page title, and it makes the topbar layout look less like the rail layout it is a sibling of. It also means the palette’s sentence sits in a 700px box with 600px of space after it.",
               "evidence": [
