@@ -77,21 +77,21 @@ const loaders = () => {
 const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*))?/g)]
   .map((m) => [decodeURIComponent(m[1]).replace(/\+/g, ' '), m[2] ?? '']);
 
-/* Nine files load fonts today: the Storybook preview iframe, the Storybook
+/* Ten files load fonts today: the Storybook preview iframe, the Storybook
  * manager chrome, the two site pages, the snippet in README.md that tells a
  * consumer what to put in their own <head>, the two review prototypes —
  * docs/reviews/270-back-control/variants.html (#270) and
  * docs/reviews/275-page-limits.html (#275), which draw their screenshots in the
- * kit's own faces — and the two evidence pages, scripts/evidence/shot.html (#286,
- * the rail) and scripts/evidence/float.html (#309, the floating step): a shot
- * taken in the fallback faces is a shot of a different kit, so each loads them
- * and waits on document.fonts.ready.
- * The readme is a subject on purpose —
+ * kit's own faces — and the three evidence pages, scripts/evidence/shot.html (#286,
+ * the rail), scripts/evidence/float.html (#309, the floating step) and
+ * scripts/evidence/guideline.html (#310, the guideline pages): a shot taken in
+ * the fallback faces is a shot of a different kit, so each loads them and waits
+ * on document.fonts.ready. The readme is a subject on purpose —
  * it is the copy of this list that lives outside the repository, in every app
  * that installed the package, and it was the one nothing watched. The count is
  * asserted because a loader that stops being found stops being checked, and an
  * empty sweep passes as loudly as a full one. */
-const EXPECTED_LOADERS = 9;
+const EXPECTED_LOADERS = 10;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

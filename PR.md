@@ -1,555 +1,276 @@
-# Elevation: the floating step takes a two-step edge and a soft drop
+# Type ranks: a caption row, and a gate that reads a note on a story
 
-Closes #309. Follows #295, which built the ladder this sits on top of.
+Closes #310.
 
 ## Premises
 
-**A floating panel reads flat, and the complaint is a number rather than a taste.** #295 replaced
-every cast shadow in the kit with a step of lightness and a hairline. The ladder is right and this
-PR does not touch it, but at the top of it the two devices run out of room at once:
+**The decision was already taken.** Artur, companion round 9, 2026-09-13: *"Add a caption rank
+(13px, normal weight)."* This branch builds that and does not reopen it. The `label` row is
+untouched — an eyebrow, a table head and a nav caption keep their medium weight and `--muted` ink.
 
-| | dark | light |
+**The gap it closes.** `docs/specification.md#labels-and-titles` had five ranks and no row for a
+sentence under a figure, so PR #298's Guidelines / The page borrowed `label`. The cost was written
+into that PR's own body: `label` is medium and `body` is normal, so each caption read a shade
+heavier than the 14.5px why printed under it, *despite being the smaller of the two*. The hierarchy
+ran backwards.
+
+**No version bump and no changelog entry**, by instruction — the lines are under
+[Changelog entry](#changelog-entry) for the coordinator to sequence. Nothing under `src/` that the
+tarball ships changed: the diff is the specification, one gate, one story and a shot script.
+
+## What was found in the code
+
+**One: the borrowed rank, measured.** In Chrome at 1200 wide, on `origin/main` at `233a1e7`, the
+page's caption and the why under it compute to:
+
+| | before | after |
+|---|---|---|
+| `.gc-cell__cap` — a caption | 13px / **500** / **20.15px** | 13px / **400** / **21.06px** |
+| `.gc-why` — the why under it | 14.5px / 400 / 23.49px | unchanged |
+| ink, both, light | `rgb(26, 30, 39)` | unchanged |
+| ink, both, dark | `rgb(233, 231, 240)` | unchanged |
+
+Two properties move, on one selector. The weight is the decision; the leading is the rank's word
+*inherited* actually taking effect — see the review below, which is what found it.
+
+**Two: two ranks now share a size.** `caption` is `--text-sm`, which is `label`'s size. The gate's
+order rule was *each rank strictly smaller than the one above it*, and a sixth row at 13px under a
+13px row fails it. That rule had to be restated rather than dodged: a rank is under the one above it
+**by size, or — where two share a size — by weight**. `label` at medium against `caption` at normal
+is what separates them, and it is the same distinction the reader sees on the page.
+
+**Three: the gate could not see the subject.** `src/styles/type-ranks.test.js` read its rules out of
+`kitSheetNames()`, which is the sheets `src/index.css` imports and nothing else. The caption lives in
+a `<style>` block inside `stories/guidelines/_the-page.js`, so a note on it would have been a claim
+nobody checked. #298 knew this and said so in the sheet — *"No rank note: the gate that reads those
+sweeps `src/`, not `stories/`"* — and wrote its four restated rules as longhands *"against the day
+its sweep arrives"*. This is that day.
+
+**Four: what actually says "five".** `grep -rn "five"` over the tree, every hit read: four
+statements are about the ranks — `docs/specification.md` line 17 and the rank paragraph,
+`stories/foundations/Typography.stories.js`, and the gate's own first test name. The rest are about
+easings, toast statuses, protected checks and a comment block's line budget. **`docs/guidelines.md`
+carries no count at all** — the issue lists it, and it states nothing about ranks. Nothing was
+edited there.
+
+## What was done
+
+**The row.** `docs/specification.md`, between `label` and `chip`:
+
+| rank | size | weight | line-height | what takes it |
+| --- | --- | --- | --- | --- |
+| `caption` | `--text-sm` | `--weight-normal` | inherited | a sentence under a specimen, figure or screenshot |
+
+The paragraph above it now says six ranks and states the tie-break; the paragraph below adds why a
+caption keeps the body's weight; the *Held by* paragraph says the sweep reaches the stories and
+pages this repo draws; and the *Decided in* paragraph names #310 and whose call it was.
+
+**The gate.** `src/styles/type-ranks.test.js`:
+
+- Its subjects are the kit's sheets in import order, then every `.css`, `.js`, `.mjs`, `.jsx`,
+  `.ts`, `.tsx` and `.html` file under `stories/`, `site/`, `docs/`, `react/src` and `.storybook`
+  — walked, not listed, with build output pruned by the shared `walk()` and a missing directory
+  skipped rather than thrown on, the way the sibling gate does it. `docs/` is in that list for the
+  three review prototypes under `docs/reviews/`, which draw their screenshots in the kit's own
+  faces and are subjects of `scripts/font-loading.test.js` for the same reason. A gate's own file
+  is skipped too: the rank notes in its mutations are strings, not rules anybody renders.
+- The order rule reads a weight token where two ranks tie on size, and says so in the failure:
+  *"caption shares label's 13px and is not lighter than it (--weight-medium, 500 against
+  --weight-medium, 500)"*.
+- The note count moves 14 → 15, with the comment saying which note arrived and that it is the first
+  one outside the kit's own sheets.
+- One existing mutation used `caption` as the rank the table lacks; it now uses `footnote`, because
+  `caption` is a real row and that mutation would have been caught for the wrong reason.
+- A new mutation: the caption row set to the label's weight, which leaves nothing holding it under
+  the label. It fails, and the failure names both ranks.
+- Where a rank inherits its leading, a rule may write `line-height: inherit` and nothing else — the
+  one value that takes back a number an earlier rule for the same element pinned. A second mutation
+  puts 1.55 on the caption and the gate names it.
+
+**The page.** `stories/guidelines/_the-page.js`: `.gc-cell__cap` carries `/* rank: caption */`,
+`--weight-normal` and `line-height: inherit`. The comment above the four restated selectors no
+longer says the gate cannot reach them.
+
+**The Typography story** now names six ranks, caption among them. **`scripts/font-loading.test.js`**
+counts nine pages that load the kit's faces rather than eight: the shot page below is the ninth, for
+the reason `shot.html` is the eighth.
+
+**A producer for the evidence.** `scripts/evidence/guideline.mjs` and `guideline.html`, on the rail
+rig's own `serve.mjs`: one static server over the checkout under test, the story's own
+`guidelinePage()` call under Storybook's own theme decorator, one Chrome, one viewport — so between
+two checkouts only the code differs and the before side is the same script pointed at `main`. It
+takes any guideline page by name, and shoots the full page and a life-size crop of the first rule
+that draws a specimen pair.
+
+## Evidence
+
+`docs/evidence/caption-rank/`, shot at 1200 wide, `deviceScaleFactor: 1`, both themes, before off
+`origin/main` at `233a1e7` and after off this branch:
+
+| | light | dark |
 | --- | --- | --- |
-| the panel against the card it covers | 1.11 | **1.05** |
-| its hairline against that card | 1.27 | 1.18 |
-| its hairline against the panel it edges | 1.14 | 1.24 |
+| the page, before | `before-page-light.png` (1200 × 2628) | `before-page-dark.png` (1200 × 2628) |
+| the page, after | `after-page-light.png` (1200 × 2614) | `after-page-dark.png` (1200 × 2614) |
+| one rule, life size, before | `before-rule-light.png` | `before-rule-dark.png` |
+| one rule, life size, after | `after-rule-light.png` | `after-rule-dark.png` |
 
-In light, 1.05 is below the level at which most viewers see an edge on a large flat area at all,
-so the whole separation rests on a one-pixel line at 1.18. A better hairline colour cannot fix
-that: no hairline colour makes a 1.05 step read as raised.
+The crop is the heading-order rule: two captions and the why under them in one frame, which is where
+the weight is legible at 1:1.
 
-**The ladder cannot buy the step back.** `--muted` is the faintest text a panel carries, and the
-specification already says the ladder is capped by ink rather than by taste. Raising
-`--bg-elevated` in dark until the step reads takes `--muted` to 4.62 — AA by 0.12, with the next
-value failing outright. Light has nothing above white to give the panel at all.
+**The 14px the page lost.** Eight captions, measured in the same browser. Seven keep their line count
+and gain the 0.91px a line that 1.62 costs over 1.55 — 40px → 42px for the two-line ones, 20px → 21px
+for the one-line ones. The eighth, *"Twelve cards exceed the limit…"*, falls from two lines to one:
+normal weight is narrower, so it stops wrapping at 1200 wide. 2628px → 2614px is those two effects
+against each other, and nothing else on the page moved.
 
-**So the separation has to come from a device the ladder does not own.** Seven were drawn and
-measured against the same scene in `docs/reviews/295-popover-variants.html`; five were real
-candidates.
+**The rig's own cross-check**, which its README asks for before anything else it says is trusted:
+the after pair re-shot on the same checkout is byte-identical to what is committed.
 
-## Decision record
+Reproduce either side:
 
-**Artur, on #309, 2026-09-13: a + b — the two-step edge *and* the soft drop, in one declaration,
-kept to the floating step.** The page's own recommendation, unopposed, on both questions it asked:
-
-| the page asked | the page recommended | picked |
-| --- | --- | --- |
-| which treatment | `a + b` · the two-step edge with the floating drop | **a + b** |
-| which surfaces | the floating step as the elevation ladder already lists it | **that list** |
-
-**Why two devices and not one.** Each covers the theme the other cannot.
-
-- **The second line works identically in both themes and does nothing for the step.**
-  `--border-strong` on the border with `--border` one pixel inside it takes the edge from
-  1.27 / 1.18 to **1.64 / 1.44**, and the two lines read 1.30 / 1.23 against *each other*, which is
-  what makes them two lines rather than one drawn thick. It makes the panel better drawn. It does
-  not make it higher.
-- **The drop is the only device that separates by area rather than by one pixel,** and it is the
-  only thing that lifts the light frame: the drop's core reads **1.44** against the card in light.
-  In dark it reaches **1.20** and no further, because near-black ink on a near-black page has
-  nowhere to go — which is the observation the no-shadow rule was built on, and it is still true.
-
-Taken together: light is carried by the drop, dark by the doubled edge, and neither theme is left
-holding the separation on the half that is weak for it. It is also the shape GitHub Primer's
-`--shadow-floating-*` and Vercel Geist already ship — a 1px line in the `box-shadow` list, then
-broad faint drops, reserved for the overlay layer and nothing under it.
-
-**The three rejected options, in one line each.** `c` frost: translucency composites the panel
-*toward* what is behind it, so the step goes **down**, 1.11 → 1.08 and 1.05 → 1.04. `d` a stronger
-lightness step: the biggest dark gain on offer and it spends `--muted` to get it, and light cannot
-do it at all without taking the card down until the card stops reading as a card. `e` tinted edge:
-the strongest line of the five, and in this kit the accent already means *this one is chosen* — it
-would make every panel look permanently selected.
-
-### Two places this PR does not follow the page, and why
-
-**The token is `--elev-drop`, not the page's `--shadow-float`.** Five `--shadow-*` tokens are
-deprecated and resolve to `0 0 #0000`. A live token named into that family would be the one member
-of it that paints, and `stories/elevation.test.js` has a test whose whole subject is that nothing
-under `src/` reads a `--shadow-*`. `--elev-*` says which layer it belongs to and cannot be confused
-with the dead five. It holds the drops alone — the reason is the round-1 review's first finding,
-below.
-
-**The drafted specification sentence is taken but not quoted verbatim.** The page drafted it under
-option `b`, the drop alone, so as written it says a floating surface keeps its step and its
-hairline and adds a drop — it does not mention the doubled edge, which is half of what was picked,
-and it names `--shadow-float`. The opening clause, which is the part that matters, is verbatim:
-
-> **Nothing in the kit casts a shadow except a surface that floats.**
-
-The rest carries the draft's shape and its sentence about the drop word for word, with the hairline
-clause amended to say the line is drawn **twice**. `docs/specification.md#elevation` has it.
-
-## What changed
-
-**Both devices in one `box-shadow` list in Primer's order** — the inset line first, then the drops.
-The drops are a token, one per theme; the line is written on the floating surface's own rule:
-
-```css
-/* :root, per theme */
---elev-drop:
-  0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),   /* light: 18% */
-  0 3px 9px -4px  color-mix(in srgb, var(--shadow-ink) 50%, transparent);     /* light: 10% */
-
-/* every floating surface */
-box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+```sh
+export UI_PLAYWRIGHT=/path/to/playwright/index.mjs
+export UI_CHROME=/path/to/chrome
+node scripts/evidence/guideline.mjs . docs/evidence/caption-rank after
+git worktree add --detach /tmp/before origin/main
+node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
 ```
 
-The alphas are per theme because the device is not worth the same in each; the geometry is not,
-because the shape of a drop is not a theme's business. Light's 18% is what lands the core at
-`#d1d2d8`. `--elev-edge` is the hook a surface carrying its own tint re-points; unset it is
-`--border`.
+## Decisions
 
-**The line cannot live in the token, and this is the round-1 blocker.** A `var()` written inside a
-custom property is substituted at computed-value time on the element that *declares* it. Written
-inside a `:root` token, `var(--elev-edge, var(--border))` resolves at `:root`, bakes `--border` in,
-and inherits the already-literal string down — so every component that re-points the hook writes a
-declaration the browser ignores. Composed at the call site, the surface setting `--elev-edge` is
-the surface the layer is substituted on, and the override lands. Both halves are proven in Chrome
-under **Review round 1**, below. One place still owns the drop; thirteen declarations own a line
-they are allowed to tint.
-
-**Thirteen declarations under `src/` take it, plus the React modal** — every surface whose job is
-to be temporarily above something else, and nothing else:
-
-| | |
-| --- | --- |
-| `src/styles/dropdown.css` | the dropdown panel |
-| `src/styles/topbar.css` | the workspace switcher, the account menu |
-| `src/styles/confirm.css` | the panel, and its focus rule |
-| `src/styles/drawer.css` | the panel, and its focus rule |
-| `src/styles/command-palette.css` | the panel, and its focus rule |
-| `src/styles/callout.css` | all three toast styles |
-| `src/styles/tooltip.css` | the hover readout |
-| `src/styles/layout.css` | the collapsed rail's flyout label, in both of its rules |
-| `react/src/Modal.css` | the React modal |
-
-Nine surfaces: three write the treatment twice, once on the panel and once on its focus rule, and
-the flyout writes it twice because it is one surface at two widths. Most of them paint the
-`--bg-elevated` step; the hover readout and the flyout paint `--surface-3`, the rung above it, and
-they float for the same reason the rest do — **what floats is the surface's job, not its rung.**
-The card, the field, the chip and the row are untouched. So is the ladder, so are the five
-deprecated `--shadow-*`, and so is `--muted`, which still measures 5.60 / 6.11 on a panel.
-
-### Three things fell out of doing it
-
-- **The focus ring has to be composed with the treatment, not written over it.** A `box-shadow`
-  list replaces the whole list, so a panel writing `box-shadow: var(--ring)` on focus would take
-  its own edge and its own drop off for as long as it held focus. The three that have a focus rule
-  — the drawer, `confirm()` and the command palette — write the ring in front of the treatment
-  rather than over it.
-- **The drawer is flush to a screen edge, so it has one edge rather than four.** A full inset ring
-  would draw 1px lines across the top and bottom of a full-height panel, where there is no edge, so
-  it is the one floating surface that writes no ring at all: `var(--drawer-line), var(--elev-drop)`,
-  with each `--drawer--<edge>` rule setting `--drawer-line` in the direction its own border runs.
-  Holding that line in a variable rather than in four literal `box-shadow` declarations is what
-  lets the focus rule compose all three layers without knowing which edge it is on — and it removes
-  a source-order hazard, because `.ui-drawer__panel:focus-visible` weighs the same `(0,2,0)` as
-  `.ui-drawer--right .ui-drawer__panel`.
-- **The collapsed rail's flyout label read `var(--shadow-md)` in both of its rules.** Deprecated in
-  #295 and resolving to `0 0 #0000`, so it painted nothing while the specification said nothing
-  under `src/` read one. It takes the floating treatment now — it is the hover readout's twin, and
-  round 1 is where that was settled. A consumer who set `--shadow-md` themselves gets the kit's
-  drop there instead of their own shadow.
-
-## The gate, and the one that had to be re-scoped
-
-**Nothing mechanical asserted "no box-shadow anywhere" — that claim lived only in prose,** in
-`docs/specification.md#elevation`, in `src/tokens/tokens.css`, and on Foundations → Elevation and
-Foundations → Backgrounds. All four are re-scoped to *no cast shadow but the floating step's*. The
-prose was the whole enforcement, which is exactly why this PR adds the gate the claim never had:
-
-`stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader and one cascade
-resolver, `scripts/lib/box-shadow.js`. Both **discover** their subjects — every `box-shadow`
-declaration in every sheet `src/index.css` imports, and in the React workspace's own sheets —
-rather than naming a component, so a stylesheet added tomorrow is in scope by existing. Each declaration is read per theme with the token files
-substituted in, because the property name decides nothing: a ring, a glow and a drop are all
-written `box-shadow`, and only a layer's geometry says which it is. A layer that resolves to a cast
-shadow has to **be** `var(--elev-drop)`, not merely contain ink that looks like it — and it is
-judged against **every** value the kit gives the properties it read — each gate resolving against
-its own workspace's declarations as well as the token files — not one guess at the cascade,
-because a reader that keeps one declaration per name can be walked past by writing a second one.
-Round 1 did exactly that; see below, and round 2 did it again on the React side.
-
-It holds eight things: the shape of the drops (no sideways offset, a blur at least twice the
-offset, a negative spread), the shape of the line at every call site (inset, a hairline, in front
-of the drops, with the focus ring in front of both), the counts (40 declarations swept, 13 of them
-floating), the numbers as a **floor** — the review page's `a + b` row, so a treatment can get
-better and cannot quietly get worse — `--muted` at AA on both raised surfaces, that no `:root`
-token reads a hook a component re-points, and that no component re-points `--elev-edge` on an
-element that writes no line to tint. The last two are the rule behind round 1's blocker, held as a
-shape rather than as a value.
-
-One existing gate needed a line: `stories/guidelines/accessibility-floor.test.js` discovers every
-accessibility gate in the tree and fails when the floor page has not heard of one.
-`stories/elevation.test.js` measures contrast, so it is one, and it is on the page with the blind
-spots it states about itself — three at first, four after round 1.
-
-The blind spots, stated rather than papered over: `filter: drop-shadow()` (two ship, both
-zero-offset glows of a signal colour; an offset one would pass unread); a shadow arriving from
-markup; whether a surface that *should* float actually took the treatment — the rule is
-one-directional, the count catches a panel that quietly loses it, and a **swap** (a card gaining it
-while a panel loses it) leaves both counts where they are; a cast that needs two custom properties
-off their winning values at the same time, since each name is tried against its own alternatives
-one at a time; and the rendered result, because a blurred penumbra is not a flat colour and the
-ratios score the drop's **core**, which is the number the review page was read from.
+| decision | who | where it is recorded |
+| --- | --- | --- |
+| a caption rank at 13px, normal weight | Artur, companion round 9, 2026-09-13 | issue #310; `docs/specification.md#labels-and-titles` |
+| the `label` row keeps its medium weight and `--muted` ink | Artur, same round | issue #310 |
+| `caption` sits between `label` and `chip`, not above `label` | this branch | the table reads down in decreasing prominence, and at equal size the lighter row is the lower one |
+| a tie on size is broken by weight rather than by dropping the order rule | this branch | `src/styles/type-ranks.test.js`, and the sentence it reads in the specification |
+| a rank that inherits its leading may write `line-height: inherit`, and only that | this branch | the gate's own comment; it is the one value that takes back a number an earlier rule for the same element pinned |
+| the rank-note sweep reaches `stories/`, `site/`, `docs/`, `react/src` and `.storybook` | this branch | the gate's own comment; #298 had asked for it in the sheet it could not gate, and `docs/reviews/` is where the review prototypes draw in the kit's own faces |
+| the three other restated rules on that page stay unnoted | this branch | they are #298's rules and outside this issue; noting them is additive and needs no decision from Artur — say the word and it is three lines |
+| no version bump, no changelog entry | the coordinator's standing rule | this file, below |
 
 ## Proof
 
-**The numbers, measured off the real token files** (`stories/lib/contrast.js`, both themes):
+Pasted from the runs on this branch, not summarised.
 
-| | dark | light | the page's `a + b` |
+```
+npm run build   — ESM dist/index.js 39.58 KB, dist/index.css 2.06 KB,
+                  DTS dist/index.d.ts 8.49 KB, build success
+react tests     — Test Files 17 passed (17), Tests 353 passed (353), Duration 28.54s
+```
+
+The six gates this diff touches or could break, run together:
+
+```
+node --test src/styles/type-ranks.test.js stories/guidelines/letter-case.test.js \
+            stories/guidelines/refs.test.js stories/guidelines/the-page.test.js \
+            scripts/doc-refs.test.js scripts/code-refs.test.js
+ℹ tests 134   ℹ pass 134   ℹ fail 0
+```
+
+`npm test`, whole suite, on the branch as it stands:
+
+```
+✖ the walk has not run away with the clock
+  the contrast walk took 184.7s, against a 120s ceiling …
+
+ℹ tests 1521   ℹ suites 0   ℹ pass 1518   ℹ fail 1   ℹ cancelled 0   ℹ skipped 2
+ℹ duration_ms 204117
+```
+
+**The one red is `stories/contrast.test.js`'s wall-clock ceiling, and it is the box.** This branch
+shares an eight-core machine with four other workers running the same suite. `origin/main` at
+`233a1e7`, checked out beside this branch and run the same way, fails the same assertion at
+**226.2s**; the branch has measured 184.7s and 246.3s on two runs, which is the load moving and not
+the diff. The ceiling's own message says "at this margin the cause is not a slow machine" — on a
+quiet machine that is right, and PR #298 cleared it at the same settings. Nothing in this diff is
+in the contrast walk's path.
+
+The two skips are the opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an
+environment variable on `main` too, and the built-Storybook index check, which wants
+`npm run build-storybook` first.
+
+An earlier run of the same suite reported `fail 0` with **three files cancelled** —
+`scripts/tag-on-bump.test.js`, `stories/contrast.test.js` and
+`stories/guidelines/accessibility-floor.test.js`, the three slowest — with *"Promise resolution is
+still pending but the event loop has already resolved"*, which is the runner losing a starved child
+at a load average near 28. Those two re-run clean on their own (`ℹ tests 76 ℹ pass 76 ℹ fail 0`),
+and the run pasted above is the one to read.
+
+## Review
+
+One independent diff review ran on this branch before it was handed over. It was interrupted
+partway — its four specialist passes never returned — so it is one critical pass, and what it did
+not reach is listed with it. **Two findings, both real, both fixed and re-verified.**
+
+**The caption claimed a leading it did not render.** The rank table says a caption's line-height is
+*inherited*. The page's rule set size, weight and ink and left line-height out — but
+`stories/guidelines/_layout.js` writes `.gc-cell__cap { font: 400 12px/1.55 … }` for the same
+selector *earlier* in the cascade, and omitting a property does not take back a number an earlier
+rule pinned. The rendered caption kept 1.55, a number of this page's own, which is exactly what the
+comment four lines above says the page does not do. The gate could not see it: it refuses the `font`
+shorthand *inside* a noted rule for this very reason, and here the shorthand sat in an unnoted rule
+for the same selector. The three siblings on that page each reset their leading; the caption was the
+only one that did not.
+
+Fixed both halves. `.gc-cell__cap` writes `line-height: inherit`, and the gate now accepts `inherit`
+— and only `inherit` — where a rank inherits its leading, with a mutation putting 1.55 back to prove
+the check still bites. The caption's leading is `--leading-normal` from the body now, 21.06px against
+20.15px, which is the second property in the before/after table above and the reason the page is
+2614px rather than 2608px.
+
+**The widened sweep could not read an HTML file.** `READ` listed `css`, `js`, `mjs`, `jsx`, `ts` and
+`tsx`, while the sibling gate named beside it in the specification — `letter-case.test.js` — sweeps
+the same four directories *including* `.html`. `site/index.html` and `site/changelog.html` each carry
+a `<style>` block with a dozen `font-size` declarations, so a rank note written in one would have
+been read by nobody, and the sentence this branch added to the specification — *"the stories and
+pages this repo draws"* — would have overstated the gate. `html` is in the pattern now; the note
+count is unchanged, because none of those files carries a note today. The same finding's second
+half: `walk()` throws on a directory that is not there, where the sibling gate guards with
+`existsSync`. It does too now — latent rather than live, all four exist.
+
+**Verified clean by the same pass**, each against the tree rather than against this body: the note
+count of 15; all eight of the original mutation tests still killing the case they name; the order
+rule matching the sentence the specification now carries; the px figures 30/18/14.5/13/13/11 against
+`tokens.css`; the `label` row untouched; and no statement of "five ranks" left anywhere — it read
+every `grep -rni "five"` hit and found the rest to be about easings, shadows, stylesheets, statuses
+and poll intervals.
+
+**What the review did not reach**, stated because it was cut short rather than because it was
+scoped out: this body and the evidence README were not fact-checked; `scripts/evidence/guideline.mjs`
+was not reviewed; the other citation gates were not run by it (they are run below); and its red-team
+pass never ran.
+
+**One thing it raised that is deliberately not fixed here.** The sixteen other guideline pages still
+take `.gc-cell__cap` from the shared sheet — 12px, medium-free but `--muted` — with no note, so the
+new row does not describe them. That is #298's decision that only this page moves, and moving the
+rest is a separate change with sixteen pages of evidence behind it.
+
+| review | who | findings | resolved |
 | --- | --- | --- | --- |
-| outer line against the card | **1.64** | **1.44** | 1.64 / 1.44 |
-| the two lines against each other | 1.30 | 1.23 | 1.30 / 1.23 |
-| the drop's core against the card | **1.20** | **1.44** | 1.20 / 1.43 |
-| `--muted` on the panel | 5.60 | 6.11 | untouched |
-| `--muted` on `--surface-3` | 5.38 | 5.07 | — |
+| diff review, one critical pass (interrupted before its specialist passes) | `diff-reviewer`, on this branch at `add05a0` | 2 real (1 × P1, 1 × P2) | both, with a gate mutation for the first and the note count re-run for the second |
 
-Light's drop reads 1.44 where the page measured 1.43, because the prototype wrote the ink as a
-literal `#101626` at 17% rather than reading `--shadow-ink`, which is `#1e1e32`. The gate floors
-1.43, so the page's own number is what has to hold.
+_The rows below are the coordinator's._
 
-Every one of these was measured again after round 1 and none of them moved: 1.645 / 1.440,
-1.297 / 1.225, 1.199 / 1.438, 5.600 / 6.112 and 5.378 / 5.075, with light's drop core landing on
-`#d1d2d8` exactly. The refactor moved the treatment's *composition*, not its arithmetic — the
-drops and both line colours are the same values in the same order.
+| review | who | findings | resolved |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
-**Frames.** `docs/evidence/295-floating/`, thirty-two of them, before and after, light and dark,
-1440 and 390. Two subjects are the review page's — the kit's dropdown panel held open over a card,
-and a popover holding a small form. Two were added in round 1, because they are the surfaces that
-carry their own inner line rather than the neutral one: the drawer, whose line runs in one
-direction, and the three toast styles, each of which re-points that line at its own status.
+**`ai-slop-detector`**: PASS at paranoid over `PR.md`, the gate, the story and the shot scripts. One
+warning stands on `docs/evidence/caption-rank/README.md` — `scope-template` on *"falls from two
+lines to one"*, which is a measurement of two rendered line counts and not the enumerating-scope
+cliché the rule is after. Left as written.
 
-The producer is committed with them: `scripts/evidence/float.mjs` and `float.html`, a sibling of
-the rail's rig. One static server over one checkout, the kit's own factories imported as modules,
-one Chrome, one viewport — the before side is the same page pointed at a `main` worktree, so the
-only thing that can differ between the two sides is what the kit's stylesheet paints. Nothing in
-`float.html` writes a shadow. It captures `.fl-cell` rather than the viewport, because a drop falls
-outside the card it is over and a frame cropped to the card would cut off the thing the pair is
-about; the drawer is the exception and is clipped out of the viewport, because what its frame has
-to show is the top and bottom of a full-height panel, where there is no edge and no line belongs.
-
-The eight neutral frames are byte-for-byte what they were. Shot again against this branch *and*
-against `55b2df2`, the pre-round-1 commit, the two are pixel-identical in both directions — 0
-differing pixels of 210,840 at 1440 and 179,716 at 390 — so composing the line at the call site
-moved nothing on a surface that does not re-point its edge, and the rig reproduces what is on disk.
-
-**Checks.**
-
-| | |
-| --- | --- |
-| `npm test` | 1540 tests, 1537 pass, 2 skipped, **1 fail** — see below |
-| `npm run build` (React, tsup) | pass — ESM 39.58 KB, DTS 8.49 KB |
-| `npx vitest run` (react) | 18 files, 357 tests, pass |
-| `node --test` over the five colour and elevation gates and the reader's own tests | 152 tests, pass |
-| gitleaks 8.30.1, `--log-opts origin/main..HEAD` | no leaks, every commit on the branch |
-| gitleaks 8.30.1, `--no-git` over the tree | no leaks, the whole tree |
-| internal-terms denylist (`security.yml`'s own grep, verbatim) | clean |
-| AI-slop detector, paranoid, over every file this branch touched | 0 errors, 5 medium, 7 warnings — what `55b2df2` reported, same files |
-
-The five gates run individually for the record are `stories/accent-contrast.test.js` (`--accent` at
-AA on every ground, every theme×accent, including the 3:1 ring),
-`stories/signal-contrast.test.js` (the five toast statuses, danger never `var(--accent)`),
-`stories/danger-colour.test.js`, `stories/guidelines/accessibility-floor.test.js` (which discovers
-every accessibility gate in the tree, the elevation one included) and
-`stories/elevation.test.js`, plus `scripts/lib/box-shadow.test.js`, new in round 1.
-
-The two skips are the opt-in `CONTRAST_ACCENTS=1` matrix, behind an environment variable on `main`
-too.
-
-**The one failure is the contrast walk's wall-clock ceiling, and `main` fails it the same way on
-this host.** `stories/contrast.test.js` asserts the walk finishes inside 120s, a number set at
-~2.5x a measured 47.6s worst case on a contended 10-core laptop. Paired runs, back to back,
-nothing else running, this branch against a detached `origin/main` worktree on the same 8-core box:
-
-| | this branch | `origin/main` |
-| --- | --- | --- |
-| the walk | **141.8s** — over the ceiling | **147.6s** — over the ceiling |
-| wall clock | 143.9s | 149.5s |
-| pairs judged | 16,000 | 15,478 |
-| per pair | **8.86ms** | 9.54ms |
-| style-cache miss rate | 0.1948 | 0.1986 |
-
-The pairing was taken at `ad5cd79`; every commit after it is prose or a gate, and the prose — a
-line on the accessibility floor page, then round 2's two paragraphs on Foundations → Elevation —
-puts the branch at **16,010** pairs in the final `npm test` on the same host.
-
-`main` is over the bar before this branch touches anything, and in this pairing it was the slower
-of the two. The branch adds work — **+532 pairs, +3.4%** — and the source is named rather than
-waved at: the accessibility floor page's row registering `stories/elevation.test.js` and the blind
-spots it states, plus the rail's flyout, which now has a shadow and a firmer border for the walk to
-read. Per pair the branch is *faster* than `main`, so the extra pairs are the whole of the extra
-work.
-
-The deterministic half of that pair passes on both: the style cache's miss rate is 0.195 against a
-0.30 ceiling. The gate's own comment says the two are kept apart precisely so a busy or slow
-machine cannot be mistaken for a regression, and nothing here adds a theme×accent cell.
-
-**Three counts moved, each in a commit that says why.** The elevation gate's sweep (42 → 38 → 40)
-and its floating declarations (15 → 11 → 13): down first, because the drawer's four edge rules set
-a custom property instead of writing a fifth and sixth `box-shadow`; up again in round 1, because
-the rail's flyout label takes the treatment in both of its rules. And
-`scripts/font-loading.test.js`'s loader count (8 → 9), because the evidence page loads the kit's
-faces — a shot taken in the fallback faces is a shot of a different kit. Both elevation moves are
-rows in `CONTRIBUTING.md`'s ledger, which is where that gate records a number rather than editing
-one.
-
-**Nine `file:line` citations this branch shifted are repaired.** One of them — the topbar's pointer
-at the dropdown's hover rule — was already stale on `main`, pointing at `border: 0` rather than at
-the rule it describes. Four more moved in round 1: three into `src/styles/layout.css`, which the
-flyout's own `box-shadow` pushed down six lines, and one into `stories/lib/contrast.js`.
-
-## Review round 1
-
-An independent review of `274c33f` returned **FIX FIRST**: three blockers, three should-fixes,
-three nits. All nine are addressed here. The reviewer's own reproduction is used where it was
-sharper than anything this PR had.
-
-**Finding 1, BLOCKER — `--elev-edge` never resolved.** Written inside a `:root` custom property, it was
-substituted at `:root`, so five component overrides were dead: the drawer drew a 1px ring across
-the top, bottom and outer edge of a full-height panel — the thing `src/styles/drawer.css` says in
-prose it prevents — and all three toasts drew the neutral hairline, the solid one putting a grey
-rim on a filled surface. *Fixed:* the treatment stops being one token. `--elev-drop` keeps the
-drops, one place per theme; the line is written at each call site, where the element setting
-`--elev-edge` is the element it is substituted on. The drawer writes no ring at all, so its dead
-`--elev-edge: transparent` goes with it and `--drawer-line` becomes load-bearing.
-
-**Finding 2, BLOCKER — the gate could not see finding 1,** because it modelled the same token a third
-way: first-declaration-wins gave `--elev-edge` the drawer's `transparent` on every surface, where
-the browser painted `--border` on every surface. *Fixed:* the reader is cascade-aware (finding 4),
-and two new cases hold the *shape* rather than a value — either would have caught this. **A
-`:root` token may not read a hook a component re-points** — a name the palette never gives a
-value, so the read always takes the fallback. **A component may not re-point `--elev-edge` on an
-element that writes no line to tint** — which is exactly what the drawer was doing. Two more check
-the composition itself: the line in front of the drops at every call site, and every neutral
-surface writing the same line. Counts re-pinned, 38 → 40 and 11 → 13.
-
-**Finding 3, BLOCKER — `npm test` failed two tests, not the one PR.md reported.** This file named the
-dropdown's hover rule by bare filename, with no directory in front of it, and
-`scripts/code-refs.test.js` refuses that rather than guessing a directory. *Already repaired on
-the branch in `55b2df2`, and verified here:* `node --test scripts/code-refs.test.js` → 53 pass,
-0 fail, on the branch as it stands.
-
-**Finding 4, SHOULD-FIX — the sweep was defeatable by a custom property redeclared after its first
-declaration,** which is the shape this PR introduced. The reviewer planted a real cast shadow in a
-second `--drawer-line` and the gate stayed green. *Fixed:* `stories/lib/contrast.js` keeps every
-declaration of every name in the order the sheets declare them, and `tokensFor()` picks the winner
-off that — a token file over a component, and among components the last declared. The sweep goes
-further and judges each layer against every value the kit gives the names it reads, one name at a
-time, so a cast planted in a *middle* declaration is caught too. The reviewer's mutation fails the
-gate now; reverted, it passes.
-
-**Finding 5, SHOULD-FIX — the spec contradicted itself about the hover readout.** Its new opening said
-the floating step was "the `--bg-elevated` step and nothing below it"; its ladder table put the
-readout a rung above that, on `--surface-3`, where the kit casts on it and the decision on #309
-named it. *Decided with the ladder, and the ladder says the readout floats:* what casts is decided
-by the surface's **job**, not by its rung. The spec says that now, the enumeration names every
-floating surface including the readout and the command palette, and the table carries the note
-that two of its top-step surfaces float and the rest of that step does not.
-
-**Finding 6, SHOULD-FIX — the collapsed rail's flyout label is the hover readout's twin and was treated
-the opposite way:** this PR took its dead `--shadow-md` off and gave it nothing, while giving the
-readout the full treatment. *Decided with finding 5, and it takes the treatment.* Same step, same
-job, same shape — a readout placed over the page for as long as a pointer rests on a row — and the
-ladder gives no reason to separate them. Both of its rules, because it is one surface at two
-widths; its border firms to `--border-strong` with the rest of the floating step.
-
-**Finding 7, NIT — `--drawer-line` painted nothing of its own while finding 1 stood,** so the four edges
-had to be re-shot rather than trusted. *Done, and committed:* the drawer is one of the two subjects
-added to `scripts/evidence/float.mjs`, and all four edges are verified in both themes below.
-
-**Finding 8, NIT — `geometryOf` misread a layer whose offsets come from a `var()`.** `0 var(--y) 10px
-black` read as `{x: 0, y: 10, blur: 0}`, so `isCast` cleared an offset layer as flat, while the
-reader is documented as working on a raw value as well as a substituted one. *Fixed:* a `var()`
-standing where a length belongs is `NaN` — every comparison against it is false, so the layer is
-taken **for** a cast rather than cleared as one. A `var()` in the last slot is the colour, which is
-how the drawer writes its line, and a colour function is never a length. The reader gets its own
-tests, `scripts/lib/box-shadow.test.js`.
-
-**Finding 9, NIT — the evidence README's opening paragraph ran past the file's wrap width.** Rewrapped;
-nothing in that file is over 90 columns now.
-
-**Finding 1, proven in Chrome.** The reviewer's isolation probe, run again against both shapes:
-
-| | dark | light |
-| --- | --- | --- |
-| a hook read inside a `:root` custom property | `overrideWorks: false` | `overrideWorks: false` |
-| the same hook read at the call site, as the kit writes it | **`overrideWorks: true`** | **`overrideWorks: true`** |
-
-The CSS rule has not been worked around — it is the same rule, asked at a place where it gives the
-answer the design needs. `getComputedStyle(document.documentElement)` has no `--elev-floating` left
-to bake anything into; `--elev-drop` carries the two drops and no colour that belongs to a surface.
-
-**All four drawer edges, both themes** — one directional line in the direction its border runs, and
-no ring:
+## Changelog entry
 
 ```
-dark  right  → rgb(51,47,69)  1px 0 0 0 inset, <drop>, <drop>
-dark  left   → rgb(51,47,69) -1px 0 0 0 inset, <drop>, <drop>
-dark  top    → rgb(51,47,69)  0 -1px 0 0 inset, <drop>, <drop>
-dark  bottom → rgb(51,47,69)  0  1px 0 0 inset, <drop>, <drop>
-(light identical with rgb(228,231,238))
+Type ranks — a sixth rank, caption: --text-sm at --weight-normal, for a sentence under a
+specimen, figure or screenshot. It is the first rank that does not take a size of its own: it
+shares the label's 13px and is separated from it by weight, so the rank table's order rule now
+reads "smaller, or the same size and lighter". Guidelines / The page had been borrowing the label
+rank for its captions, which put a medium 13px line under a normal 14.5px one; its captions are
+normal weight now.
+The gate that holds the ranks, src/styles/type-ranks.test.js, reads /* rank: … */ notes from the
+stories, site pages and React sources as well as from the sheets the kit ships — a rule drawn in a
+story is now held by the same table.
 ```
-
-**All three toast tints, both themes** — each surface's own inner line, which is what was dead:
-
-| style | dark | light |
-| --- | --- | --- |
-| soft, the status at 11% | `color(srgb 0.596 1 0.561 / 0.11)` | `color(srgb 0.110 0.541 0.173 / 0.11)` |
-| solid, no inner line | `rgba(0, 0, 0, 0)` | `rgba(0, 0, 0, 0)` |
-| outline, the status at 20% | `color(srgb 0.125 0.863 0.961 / 0.2)` | `color(srgb 0.047 0.561 0.659 / 0.2)` |
-
-The rail's flyout resolves the same way in both themes and both widths: `--border-strong` on the
-border, `rgb(51,47,69)` — `--border` — as the inner line, and the two drops behind it.
-
-## Review round 2
-
-A second independent review, of `dab4c65`, verified all nine round-1 findings fixed — in the
-browser, by mutation, and by re-shooting every committed frame — and returned **FIX FIRST** on
-three more. None of them changes a pixel: two are prose, one is a gate's scope, one is a
-diagnostic. All three are fixed here, one commit each.
-
-**Finding 1, SHOULD-FIX — the Elevation story and the changelog still said what the spec stopped
-saying.** Round 1's findings 5/6 replaced the rung framing in `docs/specification.md`, and
-`stories/foundations/Backgrounds.stories.js` followed it; two of the four surfaces did not.
-Foundations → Elevation listed the floating surfaces as "a menu, a panel, the drawer, a modal and
-a toast", which leaves out the two that float from the step *above* a floating panel, and it still
-asserted the readout reads recessed in light where the spec now says *on its fill alone*. The
-changelog put the hover readout inside "the `--bg-elevated` step as the elevation ladder lists
-it", and the readout paints `--surface-3`:
-`src/styles/tooltip.css:17` `--ui-tip-bg: var(--surface-3);`.
-*Fixed:* all three say the role rule, with the readout on its own step. The
-story's ladder grid carries the same note the spec's table carries, since the grid is where a
-reader would otherwise read the rule off a rung.
-
-**Finding 2, SHOULD-FIX — round 1's finding 4 was still open in the React gate, and three places
-said it was closed.** The React gate resolved each layer with one `substitute()` against
-`stories/lib/contrast.js`, which reads what `src/index.css` imports and nothing else — so a custom
-property declared in `react/src/` was invisible, and a cast parked behind one resolved to nothing
-rather than to a cast. The reviewer planted round 1's own shape, a real drop in `--rx-lift`, and
-the gate passed it. *Fixed:* `resolutionsOf` moves out of `stories/elevation.test.js` and into
-`scripts/lib/box-shadow.js`, beside the reader both gates already share, taking the cascade as an
-argument rather than importing one. The React gate harvests `react/src/*.css` with
-`customPropertiesIn`, layers those declarations onto `declarationsFor()` and picks the winners
-with `winnersOf`, extracted from `tokensFor` so both gates pick them the same way. The plant is a
-case now rather than a claim, and against the real sheet it fails the gate in both themes and
-passes on revert. The sentences in `react/src/elevation.test.ts`, `docs/specification.md` and this
-file say what each gate resolves against instead of implying one map.
-
-**Finding 3, SHOULD-FIX — every offence the elevation gate printed named the wrong line.** The
-line was counted from `m[0].indexOf(decl)`, and `decl` comes out of `m[2].split(';')` — so it began at
-the character after the *previous* declaration's semicolon, and the line printed was where that
-one ended. The callout's panel was reported four lines above itself, and a mutation on
-`--elev-drop` was reported ten lines above its own declaration, because the comment block between
-them is blanked with its newlines kept. *Fixed:* `boxShadowsIn` and `customPropertiesIn` walk
-declarations over one generator that carries each declaration's offset, and the line is counted
-from the property name. The `:root`-hook test reads that helper instead of re-walking the CSS with
-its own copy of the bug. Two cases pin it — a declaration under a three-line comment block, and
-one split across lines — and the React gate's planted case pins the `box-shadow`'s own line.
-Swept over the kit's sheets: all 40 declarations now report a line that holds a `box-shadow`,
-where three did not, and the `--elev-drop` mutation is now reported on
-`src/tokens/tokens.css:252` `--elev-drop:`, where it used to be named ten lines above.
-
-**Re-run after the three.** `npm test` → 1538 tests, 1535 pass, 2 skipped, 1 fail — the contrast
-walk's wall clock, the same one `main` fails on this host, and nothing else. Three tests are new:
-finding 3's two cases, and `scripts/code-refs.test.js`'s own subject for this file, which joined
-the walk by this section citing two lines. React: `npm run build` passes (ESM 39.58 KB, DTS 8.49 KB), `npx vitest run`
-is 18 files / 356 tests / pass — one more than round 1, the planted case. The slop detector at
-`--level paranoid` over all 42 non-PNG files the branch touches still reads 0 errors, 5 medium,
-7 warnings. The walk's own seconds are not comparable with the pairing above: that host was
-quieter, and this run measured 158.8s against the same 120s ceiling `main` also fails.
-
-## Review round 3
-
-A third independent review, of `0aedb74`, returned **MERGE**. All three round-2 findings were
-verified by running them rather than by reading the claim — the React gate refuses round 2's own
-plant in both themes and two harder ones, `resolutionsOf` is shared rather than copied, and all 40
-swept declarations print a line that holds a `box-shadow`. Every number in this file reproduced on
-that host, including the walk's 16,010 pairs and the eight contrast ratios to three decimals, and
-the eight drawer and toast frames re-shot byte-identical. One finding was left, a **NIT** the
-reviewer called out of proportion to hold a merge on. It is fixed here anyway — the gate in
-one commit, the prose that describes it in another.
-
-**The one layer no gate resolved.** Both gates short-circuited on the spelling `var(--elev-drop)`
-— it is the treatment's own drop, so the cast rule would refuse it on all thirteen floating
-surfaces — and counted that layer without ever reading it. The reviewer appended
-`:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }` to `src/styles/callout.css`, and the same to
-`react/src/Modal.css`, and a tight near-opaque drop shipped from either workspace with both gates
-green. The resolver alone would not have caught it: a cascade marks every declaration it did not
-read from a token file `root: false` (`stories/lib/contrast.js:84` `root: false`), so the palette
-wins in
-`winnersOf` where a browser — equal specificity, later in the cascade — would let the component's
-`:root` win.
-
-*Fixed:* `dropOffences`, in `scripts/lib/box-shadow.js` beside the reader both gates already
-share, holds that layer on two rules. **Where it is declared:** the palette is the only place
-`--elev-drop` is written at `:root`, because a re-pointing that keeps the shape still changes what
-every floating surface casts, and naming the declaration points at the sheet that wrote it rather
-than at the thirteen that read it. **What it can hold:** every value the layer resolves to —
-through the same `resolutionsOf` every other layer goes through — has to keep the token's shape,
-which is two broad faint drops, offset straight down, blurred wider than they are offset, spread
-back inside the panel, inked as a `color-mix` against `transparent` rather than as a colour.
-`--elev-drop is broad faint drops and nothing else` reads that same sentence now, so the palette's
-value and a re-pointed one are judged once rather than twice.
-
-**The reviewer's two plants are cases, one per workspace**, each a pair: the plant refused, the
-same sheet without it clean. Against the real sheets, both reverted afterwards:
-
-```
-$ printf '\n:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }\n' >> src/styles/callout.css
-$ node --test stories/elevation.test.js            →  11 tests, 9 pass, 2 fail
-✖ the drop layer is read rather than counted
-    (dark)  src/styles/callout.css  :root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) } — the
-            palette is the only place this token is declared at :root, …
-    (dark)  var(--elev-drop) resolves to "0 40px 80px rgba(0,0,0,0.9)" — 1 layer, where the drop is two
-    (light)  … the same two
-$ git checkout src/styles/callout.css              →  11 tests, 11 pass
-
-$ printf '\n:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }\n' >> react/src/Modal.css
-$ cd react && npx vitest run src/elevation.test.ts →  1 failed | 3 passed
-AssertionError: expected [ …(4) ] to deeply equal []
-+   "(dark)  react/src/Modal.css  :root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) } — the palette
-     is the only place this token is declared at :root, …"
-+   "(dark)  var(--elev-drop) resolves to \"0 40px 80px rgba(0,0,0,0.9)\" — 1 layer, where the drop is two"
-+   "(light)  … the same two"
-$ git checkout react/src/Modal.css                 →  4 passed
-```
-
-Each plant fails the gate that owns the sheet, in both themes. The vanilla gate still passes the
-React plant, and that is the design rather than a hole: its sweep is what `src/index.css` imports,
-and `react/src/` belongs to the other workspace's gate —
-[one gate per workspace](CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation).
-
-**`docs/specification.md:528-533` `judged against every value` stands, and gained a sentence.**
-The claim that a layer is
-judged against every value the kit gives the properties it reads is true of the drop layer now,
-which is what made it worth fixing rather than narrowing. The paragraph says how that layer is
-judged — at the shape rather than at the cast rule, which the kit's one sanctioned cast would fail
-— and states the `:root` rule beside the two hook rules it already carried. What the shape rule
-still cannot see is in the gate's ledger and in `CONTRIBUTING.md`: the token's own geometry at a
-heavier alpha, re-pointed on a component's **own** element rather than at `:root`. The drop's ink
-is floored against what the review page measured and nothing caps it, so that one is a judgement
-about how faint is faint rather than a shape a reader can check.
-
-**Re-run after the fix.** `npm test` → 1540 tests, 1537 pass, 2 skipped, 1 fail — the contrast
-walk's wall clock, at 146.4s against the 120s ceiling `main` fails on this host too, and nothing
-else. Two tests are new, one per gate, and the walk still judges 16,010 pairs: this round adds no
-theme×accent cell and no rule to a stylesheet. React: `npm run build` passes (ESM 39.58 KB, CSS
-2.15 KB, DTS 8.49 KB), `npx vitest run` is 18 files / 357 tests / pass. The five gates and the
-reader's own tests are 152 / 152. The slop detector at `--level paranoid` over all 42 non-PNG
-files still reads 0 errors, 5 medium, 7 warnings — the reader's new comments were cut back to
-hold its ratio, and the argument they carried lives in `CONTRIBUTING.md`, which is where that
-gate's long notes go.
-
-Nothing rendered changed: the round is a reader, two gates and prose, and the diff touches no
-stylesheet and no component.
-
-
-## The version bump
-
-**0.33.1.** `main` is at 0.33.0, tagged `v0.33.0`. A patch: no API moves, no class is renamed,
-nothing a consumer imports changes shape. The changelog entry in `site/changelog.mjs` names the
-decision, the reason and the numbers.
-
-#296 takes the next patch after this one.
