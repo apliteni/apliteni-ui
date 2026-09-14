@@ -1,4 +1,5 @@
 import { dropdown } from '../../src/components/dropdown.js';
+import { button } from '../../src/components/index.js';
 import { pad, row, specimen } from '../_gallery.js';
 import { currencyItems } from '../_currencies.js';
 
@@ -184,6 +185,59 @@ export const SearchGrouped = {
       ],
     }),
   ), 380)),
+};
+
+// A head and a foot — two blocks pinned to the panel's edges, each bleeding back
+// through its padding so its rule runs edge to edge. The kit gives them the
+// bleed and the line; what goes inside is the page's, laid out by the page.
+// `foot` draws its block; a head is the page's own markup through the unwrapped
+// `header` slot, which is how `railUser()` has always written one.
+// why: docs/specification.md#the-dropdown-panel
+const FILTERS = [
+  { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
+  { label: 'Awaiting approval', description: '3 payouts', icon: 'shield' },
+  { label: 'Paid this month', description: '48 payouts', icon: 'check' },
+];
+
+const note = (text) => `<span class="ui-dropdown__desc">${text}</span>`;
+const HEAD = '<div class="ui-dropdown__head"><b>Filter payouts</b></div>';
+
+export const HeadAndFoot = {
+  name: 'A head and a foot (open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+'A title over the rows and a note under them, both running edge to edge without the page '
+    + 'knowing what the panel is padded by',
+    dropdown({
+      value: 'Filter', variant: 'menu', ariaLabel: 'Filter payouts', open: true,
+      header: HEAD,
+      items: FILTERS,
+      foot: note('Counts refresh every 5 minutes.'),
+    }),
+  ), 360)),
+};
+
+// A foot of controls goes in a panel that may hold one. A menu takes menuitems
+// and a listbox takes options, so a Save / Cancel pair under either is refused
+// by axe's aria-required-children; `search: true` makes the panel a dialog,
+// which is the same answer the kit already gives for the field above the rows.
+// why: docs/specification.md#the-dropdown-panel
+export const FootOfControls = {
+  name: 'A foot of controls (open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(specimen(
+    'A Save / Cancel pair under the list, in the panel role that may hold one',
+    dropdown({
+      value: 'Filter', ariaLabel: 'Filter payouts', open: true,
+      search: { placeholder: 'Search filters' },
+      header: HEAD,
+      items: FILTERS,
+      foot: '<div style="display:flex;justify-content:flex-end;gap:8px">'
+        + button({ label: 'Cancel', variant: 'ghost', size: 'sm' })
+        + button({ label: 'Save', variant: 'primary', size: 'sm' })
+        + '</div>',
+    }),
+  ), 460)),
 };
 
 // The trigger sits at the foot of its bay, so the panel opens into the space

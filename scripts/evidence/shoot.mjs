@@ -7,6 +7,7 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { settle } from './settle.mjs';
 // Playwright is not a dependency of this package — the kit ships no browser and
 // nothing in `npm test` drives one. Point UI_PLAYWRIGHT at an install of it and
 // UI_CHROME at the Chrome binary. why: scripts/evidence/README.md
@@ -33,9 +34,8 @@ async function open(query, { width = 1280, height = 760 } = {}) {
   const page = await ctx.newPage();
   await page.goto(url(query), { waitUntil: 'load' });
   await page.waitForFunction(() => window.__ready === true);
-  await page.evaluate(() => document.fonts.ready);
-  // The fold and the menus are on a clock; nothing here is mid-travel.
-  await page.waitForTimeout(500);
+  // The fold and the menus are on a clock. Waited out rather than timed out.
+  await settle(page);
   return { ctx, page };
 }
 
@@ -45,6 +45,9 @@ const save = async (page, name) => {
   console.log(`  ${name}.png`);
 };
 
+// The server is a child process: a throw between here and the kill would leave
+// it holding its port after this script exits. The settle above can throw.
+try {
 for (const theme of ['dark', 'light']) {
   // --- the rail on `main`, at rest. No key is pressed: the before side of the
   // pair is what the reader is handed, and `main` has no control to focus.
@@ -60,7 +63,7 @@ for (const theme of ['dark', 'light']) {
     const { ctx, page } = await open(`theme=${theme}&collapsed=0`);
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
-    await page.waitForTimeout(300);
+    await settle(page);
     await save(page, `rail-after-expanded-${theme}`);
     await ctx.close();
   }
@@ -75,7 +78,7 @@ for (const theme of ['dark', 'light']) {
       await page.keyboard.press('Tab');
     }
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(400);
+    await settle(page);
     await save(page, `rail-user-menu-${theme}`);
     await ctx.close();
   }
@@ -96,7 +99,7 @@ for (const theme of ['dark', 'light']) {
       const on = await page.evaluate(() => document.activeElement?.getAttribute('aria-label') || '');
       if (on === 'Access & agents') break;
     }
-    await page.waitForTimeout(300);
+    await settle(page);
     await save(page, `rail-collapsed-focus-${theme}`);
     await ctx.close();
   }
@@ -111,5 +114,7 @@ for (const theme of ['dark', 'light']) {
   }
 }
 
-await browser.close();
-port.proc.kill();
+} finally {
+  await browser.close();
+  port.proc.kill();
+}
