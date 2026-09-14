@@ -147,8 +147,10 @@ export const RULES = [
     why: 'A finger rests nowhere. It arrives already pressing and it is gone the moment it lifts, '
       + 'so a readout that waits for hover flashes under the tap and is never read. The tap is the '
       + 'switch instead: one tap on a mark opens its readout, a tap on another mark moves it there, '
-      + 'and a tap on the same mark — or anywhere else on the page — closes it. The tap that opens '
-      + 'the readout is spent opening it and does not reach the mark\'s own click, so a chart that '
+      + 'and a tap on the same mark — or anywhere else on the page — closes it. Closing it on the '
+      + 'mark and closing it on the chart\'s ground beside the mark do the same thing, so nothing a '
+      + 'reader sees depends on where in the chart the finger came down. The tap that opens the '
+      + 'readout is spent opening it and does not reach the mark\'s own click, so a chart that '
       + 'drills down on a bar does not drill down on the tap that was asking what the bar says; the '
       + 'tap that closes the readout does, which puts the drill-down one tap further away and is '
       + 'the one thing a reader has to learn. The page still hears that tap where it listens for '
@@ -157,8 +159,8 @@ export const RULES = [
       + 'so a laptop with a touch screen hovers under its mouse and taps under a finger, and a key '
       + 'hands the readout back to focus.',
     kit: [
-      { ref: 'src/components/tooltip.js:200', pattern: 'function touching(doc, e)' },
-      { ref: 'src/components/tooltip.js:317', pattern: "host.addEventListener('click'" },
+      { ref: 'src/components/tooltip.js:210', pattern: 'function touching(doc, e)' },
+      { ref: 'src/components/tooltip.js:327', pattern: "host.addEventListener('click'" },
     ],
   },
   {
@@ -172,6 +174,6 @@ export const RULES = [
       + 'card leads with, and a table or a labelled summary of the series, carry what matters '
       + 'without pointing at anything. Whether a chart\'s marks should take focus at all is the '
       + 'question still open on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:300', pattern: "host.addEventListener('focusin'" }],
+    kit: [{ ref: 'src/components/tooltip.js:310', pattern: "host.addEventListener('focusin'" }],
   },
 ];

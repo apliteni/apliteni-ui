@@ -715,6 +715,27 @@ test('under a coarse pointer, focus that no tap brought opens the readout', () =
   assert.equal(isOpen(tip), false, 'the focus a tap lands on its way to the click still opens nothing');
 });
 
+test('a tap on the host beside the mark dismisses it, the way a tap on the mark does', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const host = doc.getElementById('host');
+  const m1 = doc.getElementById('m1');
+
+  tap(window, m1);
+  tap(window, doc.querySelector('svg'));
+  assert.equal(isOpen(tip), false, 'the ground between two bars is not a mark, so the readout closes');
+  showTooltip(host, m1);
+  assert.equal(
+    isOpen(tip), false,
+    'and the mark is dismissed, so a chart sampling it does not bring the readout straight back — '
+    + 'a tap that closes a readout does one thing, wherever in the host it lands',
+  );
+  tap(window, m1);
+  assert.ok(isOpen(tip), 'and a tap is deliberate enough to end that dismissal, either way');
+});
+
 test('a mouse arriving after a finger hovers the way it always did', () => {
   const window = mount(MARKS + tooltip());
   const doc = window.document;

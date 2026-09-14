@@ -178,6 +178,16 @@ export function hideTooltip(host) {
   host.__tipDismissed = null;
 }
 
+// A tap that closes a readout dismisses that mark the way Escape does, so a
+// chart sampling its own marks does not bring it straight back. Which is true
+// of the tap that lands on the mark and of the tap that lands on the host's
+// ground beside it: both are the reader putting the readout away.
+function dismiss(host) {
+  const mark = host.__tipMark;
+  close(host);
+  host.__tipDismissed = mark;
+}
+
 // ---- Pointer kinds -------------------------------------------------------
 
 // A finger has no hover. It arrives already pressing, so the pointerover under
@@ -318,8 +328,7 @@ export function wireTooltip(root = document) {
       if (!touching(doc)) return;
       anchorHost(host);
       const mark = markOf(e.target);
-      if (!mark) { hideTooltip(host); return; }
-      if (mark === host.__tipMark) { close(host); host.__tipDismissed = mark; return; }
+      if (!mark || mark === host.__tipMark) { dismiss(host); return; }
       e.preventDefault();
       e.stopPropagation();
       dismissOverlays(doc);
