@@ -96,7 +96,7 @@ export const RULES = [
       + 'heatmaps, a truncated cell.',
     kit: [
       { ref: 'src/styles/tooltip.css:18', pattern: 'position: absolute;' },
-      { ref: 'src/styles/tooltip.css:55', pattern: '.ui-tip.is-open { opacity: 1; visibility: visible; }' },
+      { ref: 'src/styles/tooltip.css:58', pattern: '.ui-tip.is-open { opacity: 1; visibility: visible; }' },
     ],
   },
   {
