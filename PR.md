@@ -22,20 +22,28 @@ spec said as much and called it undecided. This decides it.
   host in the capture phase and stopped there, so a chart that drills down on a bar does not
   drill down on the tap that was asking what the bar says. The tap that closes the readout *is*
   let through, so the drill-down is one tap further away rather than unreachable — the
-  reveal-then-activate pattern a touch screen has always used for anything behind a hover.
+  reveal-then-activate pattern a touch screen has always used for anything behind a hover. What
+  the opening tap is stopped from reaching, it is handed to: the document hears it aimed at the
+  root element, so an overlay that dismisses itself on a click outside goes under it as it would
+  under any other tap.
 - **Which pointer is in play is read from the event, not from the device.** A pointer event
   carries `pointerType`; a click and a focus do not, so the last kind seen is remembered for
   them, and `(pointer: coarse)` answers for a gesture that arrives before any pointer event. A
-  laptop with a touch screen therefore hovers under its mouse and taps under a finger.
-- **A keystroke hands the readout back to focus.** Focus landing on a mark is suppressed while a
-  finger is in play, because a browser focuses a focusable mark on the way down and the readout
-  would open and immediately toggle shut. Any key clears that, so a tablet with a keyboard tabs
-  to a mark and gets the readout as it always did. Escape still closes it.
+  laptop with a touch screen therefore hovers under its mouse and taps under a finger. A pen taps
+  with that finger: it presses the screen rather than resting over it, and the mouse is the one
+  pointer that hovers.
+- **Focus still opens the readout, and only the tap's own focus does not.** A browser focuses a
+  focusable mark on the way down under a finger, and the readout would open on that focus and
+  toggle straight shut — so the focus between a `pointerdown` and its `click` opens nothing. Any
+  other focus does, under a coarse pointer as under a mouse: a tablet with a keyboard tabs to a
+  mark and gets the readout as it always did, and so does a reader stepping onto one with a
+  screen reader, `aria-describedby` and all. Escape still closes it.
 - **The dismissed-mark rule from #287 still holds.** A tap that closes a readout dismisses that
-  mark the way Escape does, so a chart calling `showTooltip()` on every pointer sample does not
-  bring it straight back. One decision inside that: **another tap on the same mark opens it
-  again.** A tap is deliberate and a sample is not, and a toggle that needs an intervening tap
-  somewhere else to reset is not a toggle. Say so and it is a one-line change.
+  mark the way Escape does — on the mark or on the host's ground beside it, one and the same — so
+  a chart calling `showTooltip()` on every pointer sample does not bring it straight back. One
+  decision inside that: **another tap on the same mark opens it again.** A tap is deliberate and
+  a sample is not, and a toggle that needs an intervening tap somewhere else to reset is not a
+  toggle. Say so and it is a one-line change.
 
 **The guideline.** Guidelines / Hover readouts gains a fifth rule — *On a touch screen, open the
 readout with a tap and close it with the next one* — and stops telling readers a tap shows the
@@ -53,7 +61,7 @@ trust.
 
 ## Tests
 
-`src/components/tooltip.test.js` gains nine, against a coarse pointer simulated from both sides
+`src/components/tooltip.test.js` gains thirteen, against a coarse pointer simulated from both sides
 the wiring reads: events carrying the `pointerType` a browser puts on them, and a
 `(pointer: coarse)` answer for the gesture that arrives before any of them. JSDOM dispatches no
 `PointerEvent` and answers no media query, so both had to be supplied.
@@ -67,7 +75,7 @@ closes; a tap on another mark moves it; a tap away closes it, inside the host an
 the opening tap is not the mark's click and the closing one is; a mark a tap closed is not
 reopened by a pointer sample but is by another tap; `(pointer: coarse)` alone is enough; the
 focus a tap lands opens nothing and a key hands it back; and a mouse arriving after a finger
-hovers the way it always did.
+hovers the way it always did. The four the review added are listed in *Review after the rebase*.
 
 ## Not in this pull request
 
@@ -142,6 +150,45 @@ numbers this section used to quote (66, 50, 14) were main's at 0.31.x and have a
 As measured now: `icon-size` 70, `typeface-roles` 52, `type-ranks` 15, `elevation` 41 swept and
 13 floating. This branch changes none of them: it adds no glyph, no family declaration, no type
 rank and no shadow. Each of the suites asserting those numbers ran green after the rebase.
+
+## Review after the rebase
+
+The rebased branch was reviewed on 2026-09-14 against `2a5a921`: **merge**, with four findings,
+none of them blocking. All four are fixed here rather than carried, one commit each, and each
+carries a test that fails when its fix is undone.
+
+- **The opening tap reaches the document again.** The capture-phase `stopPropagation()` that
+  keeps the tap off the mark also kept it off `document`, where `dropdown.js` has its
+  click-outside (`doc.addEventListener('click', () => closeAllDropdowns())`) — so on a phone a
+  dropdown panel stood open behind the readout the tap had just opened. The tap is handed to the
+  document instead of the suppression being narrowed: a click aimed at the root element, marked
+  so the kit's own listener leaves it alone. Every dismissal listener hears it; a delegated
+  trigger needs its own attribute on the target and the root carries none, so none fires. The
+  reveal-then-activate behaviour is unchanged. Pinned with a real `dropdown({ open: true })`
+  beside the marks.
+- **Focus that no tap brought opens the readout under a coarse pointer.** `focusin` returned
+  whenever the document was on the touch path, and on a phone that is true from the first
+  gesture, so a screen reader swiping onto a mark opened nothing and `aria-describedby` was never
+  set. What the suppression is for is narrower: the focus a tap lands on its way to the click
+  that decides. The document remembers that a tap is in flight — set on `pointerdown`, cleared by
+  its `click`, by a `pointercancel`, and by a keystroke — and that focus alone is suppressed.
+  This is the half of #282 a page that adds its own `tabindex` would have hit; the tab-stop
+  question itself is still open.
+- **A tap that closes a readout dismisses the mark wherever in the host it lands.** The tap on
+  the mark remembered the dismissal and the tap on the host's ground beside it cleared it, where
+  the spec sentence covers both. Both go through one `dismiss()` now. The third case stays
+  deliberately different, and the spec says so: a tap outside the host is the pointer leaving,
+  which is what ends a dismissal.
+- **A pen taps.** `touching()` asked for `pointerType === 'touch'` alone, so a stylus took the
+  hover path and, on a tablet with no hover, the flash this branch removes for a finger. A pen is
+  on the tap's side of the line: it presses a screen rather than resting over one, the tablets it
+  comes with report `(pointer: coarse)`, and the few millimetres of hover a modern pen offers is
+  not what the readout is placed against. The mouse is the fine pointer, and the rule is written
+  down in the spec rather than left in one clause of the code.
+
+`docs/specification.md`, the guideline page's *On a touch screen* and *Never make hover the only
+way to a value* rules, and the changelog entry all state the behaviour as it now is. The version
+stays **0.34.2**: `origin/main` is still 0.34.1.
 
 ## Verification after the rebase
 
