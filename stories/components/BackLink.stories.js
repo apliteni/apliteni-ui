@@ -30,6 +30,22 @@ export const Gallery = {
   )),
 };
 
+// A destination name the kit does not control: it is whatever the sidebar or the
+// trail calls the parent page, and a workspace-scoped one runs long. The link is
+// only as wide as its words until the column stops it, so the three columns below
+// are the three widths the same link is given — the words go, the line does not.
+const LONG = 'Access and agents in the Frankfurt workspace';
+
+export const LongDestination = {
+  name: 'A long destination',
+  render: () => pad(grid(
+    3,
+    specimen('Room for all of it', backLink({ href: '#access', label: LONG })),
+    specimen('Clipped', `<div style="max-width:220px">${backLink({ href: '#access', label: LONG })}</div>`),
+    specimen('Clipped harder', `<div style="max-width:120px">${backLink({ href: '#access', label: LONG })}</div>`),
+  )),
+};
+
 // A record's fields, laid out the way a detail page lays them. Every value is a
 // placeholder: this repo is public, and the page is about the link above it.
 const FACTS_CSS = `<style>

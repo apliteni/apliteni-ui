@@ -1,276 +1,470 @@
-# Type ranks: a caption row, and a gate that reads a note on a story
+# Back link: the destination's name clips instead of wrapping, and a gate over every `__label`
 
-Closes #310.
+Closes #303.
 
 ## Premises
 
-**The decision was already taken.** Artur, companion round 9, 2026-09-13: *"Add a caption rank
-(13px, normal weight)."* This branch builds that and does not reopen it. The `label` row is
-untouched — an eyebrow, a table head and a nav caption keep their medium weight and `--muted` ink.
+Three, and the first two come from the issue.
 
-**The gap it closes.** `docs/specification.md#labels-and-titles` had five ranks and no row for a
-sentence under a figure, so PR #298's Guidelines / The page borrowed `label`. The cost was written
-into that PR's own body: `label` is medium and `body` is normal, so each caption read a shade
-heavier than the 14.5px why printed under it, *despite being the smaller of the two*. The hierarchy
-ran backwards.
-
-**No version bump and no changelog entry**, by instruction — the lines are under
-[Changelog entry](#changelog-entry) for the coordinator to sequence. Nothing under `src/` that the
-tarball ships changed: the diff is the specification, one gate, one story and a shot script.
+1. **`backLink()` has emitted a class nothing styles since 0.29.0.** `<span class="ui-back__label">`
+   is in the markup; `src/styles/back.css` styles the anchor, its colour, its focus ring and its
+   glyph, and stops. Verified on `origin/main` at `c85f516`: `grep -c 'ui-back__label'
+   src/styles/back.css` → `0`.
+2. **It is the only one.** The five other `__label` classes a factory emits — `.ui-nav__label`,
+   `.ui-cmdk__label`, `.ui-dropdown__label`, `.ui-field__label` and `.ui-stat__label` — all have a
+   rule, and so does `.ui-tip__label`, which the documentation asks a consumer to write by hand.
+   That is what made a consumer's class-coverage guard refuse this one, and it is why the reporter
+   carries `.ui-nav__label`'s declaration by hand today.
+3. **The spec says nothing about how a back link's destination behaves when it runs long.**
+   `docs/specification.md` § *The back link* was read in full: it guarantees an `<a href>`, an
+   accessible name, the trail's place above the title, the lit section, and a colour that holds
+   against a host `a:link`. Nothing about wrap or clip. So the brief's condition applies — take the
+   kit's existing answer — and the kit's existing answer is `.ui-nav__label`'s.
 
 ## What was found in the code
 
-**One: the borrowed rank, measured.** In Chrome at 1200 wide, on `origin/main` at `233a1e7`, the
-page's caption and the why under it compute to:
+**The reporter's four declarations are half the fix.** `.ui-back` is `width: fit-content`, and
+`fit-content` resolves to at least the box's own **min-content**. A `nowrap` label makes min-content
+the whole destination name — so with the four declarations and nothing else, the link stops wrapping
+and pushes straight through the closing edge of its column instead. Measured with the ceiling line
+deleted: in a 120px column the box is 305px wide and stands 185px past the edge — the middle block
+of the table below. `.ui-back` takes `max-width: 100%`, and that is what hands the overflow to
+the label.
 
-| | before | after |
-|---|---|---|
-| `.gc-cell__cap` — a caption | 13px / **500** / **20.15px** | 13px / **400** / **21.06px** |
-| `.gc-why` — the why under it | 14.5px / 400 / 23.49px | unchanged |
-| ink, both, light | `rgb(26, 30, 39)` | unchanged |
-| ink, both, dark | `rgb(233, 231, 240)` | unchanged |
+**The pre-fix behaviour is wrapping, not overflowing.** Worth saying because the issue's wording
+("a long destination has no overflow rule") could be read either way. On `main` the box obeys the
+column and the words wrap: 2 lines at 220px, 4 lines at 120px, and the link is 67.6px tall in a slot
+the shell gives 24px and a `--space-5` margin. It pushes the page title down.
 
-Two properties move, on one selector. The weight is the decision; the leading is the rank's word
-*inherited* actually taking effect — see the review below, which is what found it.
+**Nothing in the repo would have caught it.** `scripts/stylesheet-manifest.test.js` checks that
+every *sheet* reaches a consumer; `scripts/entry-reachability.test.js` checks that every *module*
+does. No gate ran the other direction — from a class the kit emits to a rule that styles it — so
+there was nothing to extend. This PR adds the smallest test that closes it.
 
-**Two: two ranks now share a size.** `caption` is `--text-sm`, which is `label`'s size. The gate's
-order rule was *each rank strictly smaller than the one above it*, and a sixth row at 13px under a
-13px row fails it. That rule had to be restated rather than dodged: a rank is under the one above it
-**by size, or — where two share a size — by weight**. `label` at medium against `caption` at normal
-is what separates them, and it is the same distinction the reader sees on the page.
+## What this does
 
-**Three: the gate could not see the subject.** `src/styles/type-ranks.test.js` read its rules out of
-`kitSheetNames()`, which is the sheets `src/index.css` imports and nothing else. The caption lives in
-a `<style>` block inside `stories/guidelines/_the-page.js`, so a note on it would have been a claim
-nobody checked. #298 knew this and said so in the sheet — *"No rank note: the gate that reads those
-sweeps `src/`, not `stories/`"* — and wrote its four restated rules as longhands *"against the day
-its sweep arrives"*. This is that day.
+**One rule, and the ceiling that makes it work.**
 
-**Four: what actually says "five".** `grep -rn "five"` over the tree, every hit read: four
-statements are about the ranks — `docs/specification.md` line 17 and the rank paragraph,
-`stories/foundations/Typography.stories.js`, and the gate's own first test name. The rest are about
-easings, toast statuses, protected checks and a comment block's line budget. **`docs/guidelines.md`
-carries no count at all** — the issue lists it, and it states nothing about ranks. Nothing was
-edited there.
+```css
+.ui-back { width: fit-content; max-width: 100%; … }
 
-## What was done
-
-**The row.** `docs/specification.md`, between `label` and `chip`:
-
-| rank | size | weight | line-height | what takes it |
-| --- | --- | --- | --- | --- |
-| `caption` | `--text-sm` | `--weight-normal` | inherited | a sentence under a specimen, figure or screenshot |
-
-The paragraph above it now says six ranks and states the tie-break; the paragraph below adds why a
-caption keeps the body's weight; the *Held by* paragraph says the sweep reaches the stories and
-pages this repo draws; and the *Decided in* paragraph names #310 and whose call it was.
-
-**The gate.** `src/styles/type-ranks.test.js`:
-
-- Its subjects are the kit's sheets in import order, then every `.css`, `.js`, `.mjs`, `.jsx`,
-  `.ts`, `.tsx` and `.html` file under `stories/`, `site/`, `docs/`, `react/src` and `.storybook`
-  — walked, not listed, with build output pruned by the shared `walk()` and a missing directory
-  skipped rather than thrown on, the way the sibling gate does it. `docs/` is in that list for the
-  three review prototypes under `docs/reviews/`, which draw their screenshots in the kit's own
-  faces and are subjects of `scripts/font-loading.test.js` for the same reason. A gate's own file
-  is skipped too: the rank notes in its mutations are strings, not rules anybody renders.
-- The order rule reads a weight token where two ranks tie on size, and says so in the failure:
-  *"caption shares label's 13px and is not lighter than it (--weight-medium, 500 against
-  --weight-medium, 500)"*.
-- The note count moves 14 → 15, with the comment saying which note arrived and that it is the first
-  one outside the kit's own sheets.
-- One existing mutation used `caption` as the rank the table lacks; it now uses `footnote`, because
-  `caption` is a real row and that mutation would have been caught for the wrong reason.
-- A new mutation: the caption row set to the label's weight, which leaves nothing holding it under
-  the label. It fails, and the failure names both ranks.
-- Where a rank inherits its leading, a rule may write `line-height: inherit` and nothing else — the
-  one value that takes back a number an earlier rule for the same element pinned. A second mutation
-  puts 1.55 on the caption and the gate names it.
-
-**The page.** `stories/guidelines/_the-page.js`: `.gc-cell__cap` carries `/* rank: caption */`,
-`--weight-normal` and `line-height: inherit`. The comment above the four restated selectors no
-longer says the gate cannot reach them.
-
-**The Typography story** now names six ranks, caption among them. **`scripts/font-loading.test.js`**
-counts nine pages that load the kit's faces rather than eight: the shot page below is the ninth, for
-the reason `shot.html` is the eighth.
-
-**A producer for the evidence.** `scripts/evidence/guideline.mjs` and `guideline.html`, on the rail
-rig's own `serve.mjs`: one static server over the checkout under test, the story's own
-`guidelinePage()` call under Storybook's own theme decorator, one Chrome, one viewport — so between
-two checkouts only the code differs and the before side is the same script pointed at `main`. It
-takes any guideline page by name, and shoots the full page and a life-size crop of the first rule
-that draws a specimen pair.
-
-## Evidence
-
-`docs/evidence/caption-rank/`, shot at 1200 wide, `deviceScaleFactor: 1`, both themes, before off
-`origin/main` at `233a1e7` and after off this branch:
-
-| | light | dark |
-| --- | --- | --- |
-| the page, before | `before-page-light.png` (1200 × 2628) | `before-page-dark.png` (1200 × 2628) |
-| the page, after | `after-page-light.png` (1200 × 2614) | `after-page-dark.png` (1200 × 2614) |
-| one rule, life size, before | `before-rule-light.png` | `before-rule-dark.png` |
-| one rule, life size, after | `after-rule-light.png` | `after-rule-dark.png` |
-
-The crop is the heading-order rule: two captions and the why under them in one frame, which is where
-the weight is legible at 1:1.
-
-**The 14px the page lost.** Eight captions, measured in the same browser. Seven keep their line count
-and gain the 0.91px a line that 1.62 costs over 1.55 — 40px → 42px for the two-line ones, 20px → 21px
-for the one-line ones. The eighth, *"Twelve cards exceed the limit…"*, falls from two lines to one:
-normal weight is narrower, so it stops wrapping at 1200 wide. 2628px → 2614px is those two effects
-against each other, and nothing else on the page moved.
-
-**The rig's own cross-check**, which its README asks for before anything else it says is trusted:
-the after pair re-shot on the same checkout is byte-identical to what is committed.
-
-Reproduce either side:
-
-```sh
-export UI_PLAYWRIGHT=/path/to/playwright/index.mjs
-export UI_CHROME=/path/to/chrome
-node scripts/evidence/guideline.mjs . docs/evidence/caption-rank after
-git worktree add --detach /tmp/before origin/main
-node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
+.ui-back__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 ```
 
-## Decisions
+`min-width: 0` because a flex item's own floor is its content; without it the label refuses to
+shrink and the other three never come into play. Those four are `.ui-nav__label`'s four clip
+declarations (`src/styles/nav.css:99` `overflow: hidden; text-overflow: ellipsis;`), which is the
+point — the rail already answers this question and the kit should answer it once. The rail's own
+rule carries two more, `flex: 1 1 auto` and a transition, that a link with one label does not need.
 
-| decision | who | where it is recorded |
-| --- | --- | --- |
-| a caption rank at 13px, normal weight | Artur, companion round 9, 2026-09-13 | issue #310; `docs/specification.md#labels-and-titles` |
-| the `label` row keeps its medium weight and `--muted` ink | Artur, same round | issue #310 |
-| `caption` sits between `label` and `chip`, not above `label` | this branch | the table reads down in decreasing prominence, and at equal size the lighter row is the lower one |
-| a tie on size is broken by weight rather than by dropping the order rule | this branch | `src/styles/type-ranks.test.js`, and the sentence it reads in the specification |
-| a rank that inherits its leading may write `line-height: inherit`, and only that | this branch | the gate's own comment; it is the one value that takes back a number an earlier rule for the same element pinned |
-| the rank-note sweep reaches `stories/`, `site/`, `docs/`, `react/src` and `.storybook` | this branch | the gate's own comment; #298 had asked for it in the sheet it could not gate, and `docs/reviews/` is where the review prototypes draw in the kit's own faces |
-| the three other restated rules on that page stay unnoted | this branch | they are #298's rules and outside this issue; noting them is additive and needs no decision from Artur — say the word and it is three lines |
-| no version bump, no changelog entry | the coordinator's standing rule | this file, below |
+**Two gates over one sweep**, `src/styles/label-coverage.test.js`: every `__label` a workspace's
+shipped source names has a rule in the CSS that workspace ships. One gate per workspace and one
+floor each, because a shared count cancels — `CONTRIBUTING.md` § *One gate per workspace, over one
+shared implementation*. The kit's subjects come from `src/components/*.js` against `src/index.css`'s
+manifest; React's from every `.ts`/`.tsx` under `react/src` that is not a test or a story, against
+that manifest plus `react/src/*.css`, since the React package ships beside `./css` and its stories
+load both. So the next component is in scope by existing.
+
+**And a class it cannot read is refused rather than skipped.** `tooltip.js` builds its parts as
+`ui-tip__${k}`, so a sweep that reads names sees nothing there — the silent shape `CONTRIBUTING.md`
+§ *A spelling the sweep cannot see costs coverage in silence* is about, and the first draft of this
+gate had `.ui-tip__label` in its ledger as out of reach on a reason that was simply wrong. An
+assembled class name now fails the gate unless the site spells the classes out in a `classes:` note,
+and the note is what puts them in the subject set — the exception shape `CONTRIBUTING.md` § *An
+exception is a note at the site, read by the gate* asks for. The one such note in the kit today is
+`src/components/tooltip.js:17` `classes: ui-tip__label`, and `.ui-tip__label` is a subject because
+of it.
+
+**A guarantee in `docs/specification.md`** § *The back link*, naming the two gates that hold it.
+
+**Storybook**: `Components/Back link → A long destination`, the same link at three widths.
+
+## Before / After
+
+Same rig, same destination, both themes — 560×340 at 2× for the link alone, 390×620 for the shell.
+Before is `origin/main` at `c85f516` and after is this branch; **both sides are shot by the same
+rig** — one static server over the checkout under test, the kit's own factories imported as modules
+in the page, one Chrome, one viewport — so only the code differs. The rig is committed at
+`scripts/evidence/back.mjs` and `scripts/evidence/back.html`, and it takes three subjects: the link
+alone with a short name, the same with a long one at three column widths, and the page shell at a
+phone width.
+
+The dashed edge in the first two pairs is the column the link is given. Without one drawn there is
+nothing in the picture to say the link was ever narrowed.
+
+**A long destination.** Before: two lines at 220px, four at 120px, the link 33.8px and 67.6px tall
+in a slot that is 24px on a short name — the page title moves down by how long the parent page's
+name happens to be. After: one line and an ellipsis at both widths, 24px tall at both. The first
+row of each image is the same link with room for all of it, unchanged on both sides.
+
+| | Before | After |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-before-long-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-long-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-before-long-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-long-light.png) |
+
+**A short destination — the case that must not move.** The link is still only as wide as its words,
+in a column three times wider than it. 82.3 × 24 on both sides.
+
+| | Before | After |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-before-short-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-short-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-before-short-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-short-light.png) |
+
+**In the page shell, at 390 wide.** This is the case the fix is for. The link sits above the page
+title, so a wrapped destination pushes the title down by however long the parent page's name happens
+to be — and the arrow ends up centred against two lines of text instead of standing beside one.
+`appShell()`, one nav row, the record open. Before: two lines, the link 33.8px tall, `<h1>` starting
+at y=81.8. After: one line, 24.0px, `<h1>` back at y=72 — exactly where a short name puts it.
+
+| | Before | After |
+|---|---|---|
+| dark | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-before-shell-phone-dark.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-shell-phone-dark.png) |
+| light | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-before-shell-phone-light.png) | ![](https://raw.githubusercontent.com/apliteni/apliteni-ui/d51e7f6/docs/evidence/back-label-shell-phone-light.png) |
+
+## Measured in a browser, not asserted
+
+Headless Chrome for Testing 153.0.8010.12, the kit's own factories and stylesheet, the checkouts
+served by the same rig. `clipped` is `scrollWidth > clientWidth` on the label; `past column` is the
+link's right edge minus its column's.
+
+```
+                                      boxW    boxH   lines   clipped   past column
+before — origin/main c85f516
+  room for all of it                 305.0    24.0       1     false          0.0
+  a 220px column                     220.0    33.8       2     false          0.0
+  a 120px column                     120.0    67.6       4     false          0.0
+  a short destination                 82.3    24.0       1     false        -14.6
+  a short destination, wide column     82.3    24.0       1     false       -237.7
+
+the four declarations with no ceiling — the state this PR does not ship
+  room for all of it                 305.0    24.0       1     false          0.0
+  a 220px column                     305.0    24.0       1     false         85.0
+  a 120px column                     305.0    24.0       1     false        185.0
+  a short destination                 82.3    24.0       1     false        -14.6
+  a short destination, wide column     82.3    24.0       1     false       -237.7
+
+after — this branch
+  room for all of it                 305.0    24.0       1     false          0.0
+  a 220px column                     220.0    24.0       1      true          0.0
+  a 120px column                     120.0    24.0       1      true          0.0
+  a short destination                 82.3    24.0       1     false        -14.6
+  a short destination, wide column     82.3    24.0       1     false       -237.7
+```
+
+The middle block is the reporter's four declarations on their own, measured by deleting the
+`max-width` line from this branch and restoring it: the wrap stops and the link keeps its
+max-content width, standing 185px past a 120px column. That is why the ceiling is in the diff.
+
+And the same link inside `appShell()`, at three viewport widths — which is what says the change is
+confined to the case it is for. `past main` is the link's right edge minus `.ui-app__main`'s;
+`title top` is the `<h1>`'s.
+
+```
+                        box       past main   title top   clipped
+before — origin/main c85f516
+  vw=1280  short      85.3x24.0      -723.5        84.0     false
+  vw=1280  long      331.7x24.0      -477.1        84.0     false
+  vw=900   short      85.3x24.0      -529.7        84.0     false
+  vw=900   long      331.7x24.0      -283.3        84.0     false
+  vw=390   short      85.3x24.0      -214.7        72.0     false
+  vw=390   long      284.0x33.8       -16.0        81.8     false
+
+after — this branch
+  vw=1280  short      85.3x24.0      -723.5        84.0     false
+  vw=1280  long      331.7x24.0      -477.1        84.0     false
+  vw=900   short      85.3x24.0      -529.7        84.0     false
+  vw=900   long      331.7x24.0      -283.3        84.0     false
+  vw=390   short      85.3x24.0      -214.7        72.0     false
+  vw=390   long      284.0x24.0       -16.0        72.0      true
+```
+
+**Five of the six rows are identical across the two checkouts.** The one that moves is the one the
+issue is about: a long destination on a phone, where the reading column is narrow enough to reach
+the words. At 1280 and 900 the link is 331.7px in a column with room to spare, and the
+ceiling does nothing.
+
+Two things the first table settles. **The clip does not cost the target.** 24.0 is `--space-6`, the
+`min-height` `.ui-back` already declared for WCAG 2.5.8 — the link was taller than the floor on
+`main` only because it had wrapped, and it is exactly on the floor now. And **nothing overflows in
+either direction**: `past column` is 0 or negative on every row, on both sides.
+
+Re-shot off this checkout after the rig's last edit, all six images came back **byte-for-byte
+identical** to what is committed — the cross-check `scripts/evidence/README.md` asks you to run
+first, and the evidence that the rig is deterministic within one checkout.
+
+Across *two* checkouts it is not, quite. The short-destination shots — the subject this change does
+not touch — are not byte-identical there. Decoded and compared pixel by pixel they are 4 channel
+samples apart in dark and 2 in light, max delta 6 on a 1120×680 frame: glyph antialiasing, not
+layout. The long pair
+is 57,503 samples apart and the shell pair 171,337. That caveat is now in
+`scripts/evidence/README.md`, whose determinism section had implied the byte count was the
+comparison to make.
+
+## The gates this adds, and the mutation that kills each
+
+Each rule was broken on disk against the code as it stands, the named gate was run for real, the
+file was restored and its SHA-256 compared with the one taken before the edit. A mutation whose text
+did not change the file was refused rather than applied; none was. Every restore matched.
+
+| Mutation | Gate | Result |
+|---|---|---|
+| **the `.ui-back__label` rule is deleted** | `label-coverage.test.js`, `back.test.js` | **2 red** |
+| **`.ui-back` loses its `max-width` ceiling** — the four declarations are dead | `back.test.js` | **1 red** |
+| the label keeps `nowrap` and loses `min-width: 0` | `back.test.js` | **1 red** |
+| the label is allowed to wrap | `back.test.js` | **1 red** |
+| the rule survives only inside a CSS comment | `label-coverage.test.js` | **1 red** |
+| the class survives only inside a string (`content: "… .ui-back__label …"`) | `label-coverage.test.js` | **1 red** |
+| the class survives only inside a `:not()` | `label-coverage.test.js` | **1 red** |
+| the class survives only in a declaration body | `label-coverage.test.js` | **1 red** |
+| **a kit component names a new `__label` with no rule** | `label-coverage.test.js` | **1 red** |
+| **a React component names a new `__label` with no rule** | `label-coverage.test.js` | **1 red** |
+| the kit's source list is emptied | `label-coverage.test.js` | **1 red** |
+| React's source list is emptied | `label-coverage.test.js` | **1 red** |
+| the kit's sheet list is emptied | `label-coverage.test.js` | **2 red** |
+| **a component assembles a class name and does not spell it out** | `label-coverage.test.js` | **1 red** |
+| the note stays and `.ui-tip__label` loses its rule | `label-coverage.test.js` | **1 red** |
+| the kit's floor is raised past its real count | `label-coverage.test.js` | **1 red** |
+all mutations red, all restores matched
+
+The first is the defect this PR is about, reproduced: the gate names `ui-back__label` and the file
+that names it. Rows five to eight are the review's own positive controls — a class that survives
+only inside a comment, a string, a `:not()` or a declaration body is not a rule, and each of the
+last three was **green** against the first draft. Rows eleven to thirteen are the floor doing its
+job: a sweep that has been emptied fails instead of passing loudly, and each workspace fails in its
+own red rather than into a shared count. The last three hold the `classes:` note — the site refuses
+without one, the class it names is a real subject with it, and the floor is at the true count.
+
+`back.test.js` reads the sheet as text, as the rest of that file does. It cannot measure an
+ellipsis — jsdom has no layout. That is what the browser tables above are for, and the test header
+says so.
+
+## What the gate does not reach
+
+At the gate, and repeated here because it is the one place this PR is deliberately narrower than it
+could be. Four classes the kit emits have no rule of their own today:
+
+| Class | Emitted by | Styled |
+|---|---|---|
+| `ui-nav__tab-label` | `src/components/nav.js:137` `ui-nav__tab-label` | no |
+| `ui-nav__crumb-label` | `src/components/nav.js:160` `ui-nav__crumb-label` | no |
+| `ui-footer__col` | `src/components/footer.js:41` `ui-footer__col` | no — `.ui-footer__col-title` is a different class |
+| `ui-pager__jump-of` | `src/components/pagination.js:212` `ui-pager__jump-of`, and `react/src/Pagination.tsx:221` `ui-pager__jump-of` | no |
+
+A gate over *every* class the kit emits would fail on all four, and each would need either a rule or
+a note at its own site saying why a consumer-targetable hook is deliberately unstyled. Those are
+four decisions about three other components, and this is a one-concern PR about the back link. The
+gate
+therefore runs over `__label` — the part that carries words, which is the part that can run long —
+and says in its ledger that a pass is no claim that the kit styles everything it emits. Filed below.
+
+## Decisions, and who made them
+
+| Decision | Chosen | Rejected | Who |
+|---|---|---|---|
+| clip, or wrap | clip to one line with an ellipsis | wrap to a second line | the kit, via `.ui-nav__label` — the brief's condition was "unless the spec says wrap", and the spec says neither |
+| where the ceiling goes | `max-width: 100%` on `.ui-back` | dropping `width: fit-content`, which would run the hover ground the width of the column and undo #270's quiet link | worker, small and reversible |
+| the gate's subject | every `__label` a workspace's source names | every class the kit emits (fails on four today, see above); a `back.css`-only check (would not refuse the next one) | worker, small and reversible; the wider gate is filed |
+| the gate's shape | one gate per workspace, one floor each, over one sweep | a single kit-wide gate with a shared count, which is what the first draft did | the repo — `CONTRIBUTING.md` § *One gate per workspace, over one shared implementation*, which the review found the draft contradicted |
+| where the guarantee is recorded | `docs/specification.md` § The back link, naming both gates | the guidelines page, which holds rules for the screen rather than kit guarantees | worker, per `docs/README.md` "Where a decision gets recorded" |
+| the evidence rig | a second page beside `shot.html`, reusing `serve.mjs` | extending `shot.html`, which renders a whole shell and is the rail's subject | worker, small and reversible |
+
+## The base this branch sits on, and the version it does not touch
+
+No version bump and no `docs/changelog.md` entry, per the brief — the lines are under *Changelog
+entry* below for whoever sequences the release.
+
+Worth saying plainly, because a reader who checks out the branch will find it: **`package.json`
+here says `0.32.0`, and that is the base speaking, not a revert.** The diff does not touch the file
+at all. The branch's merge base is `c85f516`, one commit behind `main`, and the commit it is behind
+by is `233a1e7`, *Release 0.33.0*, which touches three files and nothing else:
+
+```
+$ git diff --stat c85f516 origin/main
+ package-lock.json  |  4 ++--
+ package.json       |  2 +-
+ site/changelog.mjs | 14 ++++++++++++++
+```
+
+This branch touches none of those three — the intersection of the two file lists is empty, and
+`git merge-tree --write-tree origin/main HEAD` reports no conflict. So the merge restores `0.33.0`
+on its own and there is nothing to rebase for. Not rebased on purpose: the review reads against
+`c85f516`, and every measurement in this body was taken with `main` at that commit checked out
+beside it.
 
 ## Proof
 
-Pasted from the runs on this branch, not summarised.
+Run on the code as it stands at `5b98af4`, Node 24.20.0, `jq` present. The image URLs above
+point at `d51e7f6`, the commit that added the last of them; nothing in `docs/evidence/` has moved
+since.
 
 ```
-npm run build   — ESM dist/index.js 39.58 KB, dist/index.css 2.06 KB,
-                  DTS dist/index.d.ts 8.49 KB, build success
-react tests     — Test Files 17 passed (17), Tests 353 passed (353), Duration 28.54s
+$ npm test
+ℹ tests 1525
+ℹ pass 1522
+ℹ fail 1
+ℹ skipped 2
+
+$ npm run build
+ESM dist/index.js  39.58 KB
+ESM dist/index.css 2.06 KB
+ESM ⚡️ Build success in 169ms
+DTS ⚡️ Build success in 5201ms
+DTS dist/index.d.ts 8.49 KB
+
+$ cd react && npm test
+ Test Files  17 passed (17)
+      Tests  353 passed (353)
+   Duration  21.32s
 ```
 
-The six gates this diff touches or could break, run together:
+**The one failure is the box, not the branch — and here is the arithmetic, because this branch does
+add a story.** `stories/contrast.test.js` → *the walk has not run away with the clock* fails against
+a 120s ceiling whose comment sets it from "a measured worst case of 47.6s on a fully contended
+10-core laptop". `origin/main` at `c85f516` was checked out into a second worktree on the same
+machine and run against the same `node_modules`. Both fail it, and the wall clock crosses over
+between runs:
 
 ```
-node --test src/styles/type-ranks.test.js stories/guidelines/letter-case.test.js \
-            stories/guidelines/refs.test.js stories/guidelines/the-page.test.js \
-            scripts/doc-refs.test.js scripts/code-refs.test.js
-ℹ tests 134   ℹ pass 134   ℹ fail 0
+                 branch                          main
+run 1            156.7s                          157.0s
+run 2            201.1s                          172.9s
+run 3            160.3s                          224.7s
 ```
 
-`npm test`, whole suite, on the branch as it stands:
+`main` is the *slower* side of the third pair, which is what a busy box looks like. The gate
+immediately above it in the same file is the deterministic one — the style cache's miss rate — and
+it is the one its own comment says catches a real regression, "unlike the wall clock". It passes,
+and its counters are comparable across checkouts:
 
-```
-✖ the walk has not run away with the clock
-  the contrast walk took 184.7s, against a 120s ceiling …
+| | branch | `main` | delta |
+|---|---|---|---|
+| style reads | 353,092 | 352,622 | **+470 (+0.13%)** |
+| miss rate | 0.1987 | 0.1986 | +0.0001, against a 0.30 ceiling |
+| pairs judged | 15,502 | 15,478 | **+24 (+0.16%)** |
+| distinct failures | 182 | 182 | 0 |
 
-ℹ tests 1521   ℹ suites 0   ℹ pass 1518   ℹ fail 1   ℹ cancelled 0   ℹ skipped 2
-ℹ duration_ms 204117
-```
+The 24 pairs are the new story, walked in both themes. That is the whole cost of it, and it is 0.16%
+of a walk whose ceiling is 2.5× its measured worst case. The two skips are the same two `main` has —
+the `CONTRAST_ACCENTS=1` matrix, which is opt-in, and the built Storybook index, which needs
+`npm run build-storybook`.
 
-**The one red is `stories/contrast.test.js`'s wall-clock ceiling, and it is the box.** This branch
-shares an eight-core machine with four other workers running the same suite. `origin/main` at
-`233a1e7`, checked out beside this branch and run the same way, fails the same assertion at
-**226.2s**; the branch has measured 184.7s and 246.3s on two runs, which is the load moving and not
-the diff. The ceiling's own message says "at this margin the cause is not a slow machine" — on a
-quiet machine that is right, and PR #298 cleared it at the same settings. Nothing in this diff is
-in the contrast walk's path.
+The gates this change moved, each re-run green: `scripts/font-loading.test.js` (`EXPECTED_LOADERS`
+8 → 9, and the header now names `back.html` beside `shot.html`, which is what that gate's own
+message asks for in the same commit) and `stories/guidelines/refs.test.js` (`_going-back.js`'s `kit`
+reference into `back.css`, moved by the comment above it, re-pinned at line 33).
 
-The two skips are the opt-in `CONTRAST_ACCENTS=1` theme × accent matrix, which is behind an
-environment variable on `main` too, and the built-Storybook index check, which wants
-`npm run build-storybook` first.
+`ai-slop-detector` at level `recommended`, over every file this PR adds or changes: **0 errors**,
+and one new finding. The review found the first version of this paragraph understated it, so here
+is the full count. The run over the ten source files this PR touches, plus `docs/specification.md`
+and this body, reports **3 medium and 2 warnings**. Four of the five are shapes `main` already has;
+one is new:
 
-An earlier run of the same suite reported `fail 0` with **three files cancelled** —
-`scripts/tag-on-bump.test.js`, `stories/contrast.test.js` and
-`stories/guidelines/accessibility-floor.test.js`, the three slowest — with *"Promise resolution is
-still pending but the event loop has already resolved"*, which is the runner losing a starved child
-at a load average near 28. Those two re-run clean on their own (`ℹ tests 76 ℹ pass 76 ℹ fail 0`),
-and the run pasted above is the one to read.
+| Finding | File | On `main`? |
+|---|---|---|
+| `scope-template` | `docs/specification.md` | yes — a pre-existing sentence this PR does not touch |
+| `css-unreadable` | `scripts/evidence/back.html` | yes — `shot.html`, the rig this page sits beside, reports the same thing for the same two Google Fonts links |
+| `comment-essay`, 12 lines | `scripts/font-loading.test.js`, the file header | yes, unchanged |
+| `comment-essay`, 12 lines | `scripts/font-loading.test.js`, the loader list | yes, at **13** — this PR's edit made it shorter |
+| `comment-ratio`, 0.77 | `src/styles/back.css` | **new** |
 
-## Review
+The new one is a threshold artifact rather than a regression: the rule skips a file under 20 code
+lines, `main`'s `back.css` has 19, and its prose-to-code ratio there is already **0.89**. With this
+change the file has 26 code lines, so the rule starts measuring — at **0.77**. The two comments this
+PR adds were cut twice to get there, with the argument moved here. `label-coverage.test.js`,
+`back.test.js`, `back.mjs`, `tooltip.js`, the story and this body run clean.
 
-One independent diff review ran on this branch before it was handed over. It was interrupted
-partway — its four specialist passes never returned — so it is one critical pass, and what it did
-not reach is listed with it. **Two findings, both real, both fixed and re-verified.**
+## What a reviewer should push on
 
-**The caption claimed a leading it did not render.** The rank table says a caption's line-height is
-*inherited*. The page's rule set size, weight and ink and left line-height out — but
-`stories/guidelines/_layout.js` writes `.gc-cell__cap { font: 400 12px/1.55 … }` for the same
-selector *earlier* in the cascade, and omitting a property does not take back a number an earlier
-rule pinned. The rendered caption kept 1.55, a number of this page's own, which is exactly what the
-comment four lines above says the page does not do. The gate could not see it: it refuses the `font`
-shorthand *inside* a noted rule for this very reason, and here the shorthand sat in an unnoted rule
-for the same selector. The three siblings on that page each reset their leading; the caption was the
-only one that did not.
+- **The ellipsis over the wrap, which is one of two answers the kit already gives.** The rail clips
+  (`src/styles/nav.css:99` `overflow: hidden; text-overflow: ellipsis;`) and so does the reader
+  block. But the **breadcrumb trail this link replaces wraps** —
+  `src/styles/nav.css:307` `flex-wrap: wrap;` — and so does the dropdown head. The rail's column is
+  fixed and narrow; a back link sits in the reading column, beside the trail that wraps. So this is
+  a choice, not a lookup — the brief said take the kit's answer where the spec is silent, and the
+  kit has two. If a truncated
+  parent name is worse than a two-line one here, this is the decision to send back; the rule is four
+  declarations and a ceiling.
+- **A clipped name has no tooltip.** The full destination stays in the accessible name —
+  `backLink()` writes `aria-label="Back to …"` whenever it is given one — so a screen reader still
+  hears all of it. A sighted pointer user gets the ellipsis and nothing else. Adding `title` was not
+  in scope for this PR and is a decision about every truncated label in the kit, not this one.
+- **`max-width: 100%` on `.ui-back`.** It is a change to the anchor, not just to the new span. It
+  binds the link to its containing block in every context the kit puts it in.
+- **The gate's narrowness.** See *What the gate does not reach* above.
 
-Fixed both halves. `.gc-cell__cap` writes `line-height: inherit`, and the gate now accepts `inherit`
-— and only `inherit` — where a rank inherits its leading, with a mutation putting 1.55 back to prove
-the check still bites. The caption's leading is `--leading-normal` from the body now, 21.06px against
-20.15px, which is the second property in the before/after table above and the reason the page is
-2614px rather than 2608px.
+## Filed as a follow-up, not fixed here
 
-**The widened sweep could not read an HTML file.** `READ` listed `css`, `js`, `mjs`, `jsx`, `ts` and
-`tsx`, while the sibling gate named beside it in the specification — `letter-case.test.js` — sweeps
-the same four directories *including* `.html`. `site/index.html` and `site/changelog.html` each carry
-a `<style>` block with a dozen `font-size` declarations, so a rank note written in one would have
-been read by nobody, and the sentence this branch added to the specification — *"the stories and
-pages this repo draws"* — would have overstated the gate. `html` is in the pattern now; the note
-count is unchanged, because none of those files carries a note today. The same finding's second
-half: `walk()` throws on a directory that is not there, where the sibling gate guards with
-`existsSync`. It does too now — latent rather than live, all four exist.
-
-**Verified clean by the same pass**, each against the tree rather than against this body: the note
-count of 15; all eight of the original mutation tests still killing the case they name; the order
-rule matching the sentence the specification now carries; the px figures 30/18/14.5/13/13/11 against
-`tokens.css`; the `label` row untouched; and no statement of "five ranks" left anywhere — it read
-every `grep -rni "five"` hit and found the rest to be about easings, shadows, stylesheets, statuses
-and poll intervals.
-
-**What the review did not reach**, stated because it was cut short rather than because it was
-scoped out: this body and the evidence README were not fact-checked; `scripts/evidence/guideline.mjs`
-was not reviewed; the other citation gates were not run by it (they are run below); and its red-team
-pass never ran.
-
-**One thing it raised that is deliberately not fixed here.** The sixteen other guideline pages still
-take `.gc-cell__cap` from the shared sheet — 12px, medium-free but `--muted` — with no note, so the
-new row does not describe them. That is #298's decision that only this page moves, and moving the
-rest is a separate change with sixteen pages of evidence behind it.
-
-| review | who | findings | resolved |
-| --- | --- | --- | --- |
-| diff review, one critical pass (interrupted before its specialist passes) | `diff-reviewer`, on this branch at `add05a0` | 2 real (1 × P1, 1 × P2) | both, with a gate mutation for the first and the note count re-run for the second |
-
-_The rows below are the coordinator's._
-
-| review | who | findings | resolved |
-| --- | --- | --- | --- |
-|  |  |  |  |
-
-**`ai-slop-detector`**: PASS at paranoid over `PR.md`, the gate, the story and the shot scripts. One
-warning stands on `docs/evidence/caption-rank/README.md` — `scope-template` on *"falls from two
-lines to one"*, which is a measurement of two rendered line counts and not the enumerating-scope
-cliché the rule is after. Left as written.
+- **A gate over every class the kit emits, not only `__label`.** The four unstyled classes above
+  each need a rule or a note at the site; the mechanism for the note (the exception shape
+  `CONTRIBUTING.md` § *An exception is a note at the site* asks for) has to be decided for JS
+  emission sites, where the kit only has it for CSS today.
 
 ## Changelog entry
 
 ```
-Type ranks — a sixth rank, caption: --text-sm at --weight-normal, for a sentence under a
-specimen, figure or screenshot. It is the first rank that does not take a size of its own: it
-shares the label's 13px and is separated from it by weight, so the rank table's order rule now
-reads "smaller, or the same size and lighter". Guidelines / The page had been borrowing the label
-rank for its captions, which put a medium 13px line under a normal 14.5px one; its captions are
-normal weight now.
-The gate that holds the ranks, src/styles/type-ranks.test.js, reads /* rank: … */ notes from the
-stories, site pages and React sources as well as from the sheets the kit ships — a rule drawn in a
-story is now held by the same table.
+### Fixed
+
+- **Back link — the destination's name clips instead of wrapping.** `backLink()` has emitted
+  `<span class="ui-back__label">` since 0.29.0 with no rule behind it, so a parent page with a long
+  name wrapped to two lines or four above the page title. It now takes one line and an ellipsis, the
+  same way a rail row's label does, and `.ui-back` takes a `max-width` so the column is what stops
+  it. A short name is unchanged. ([#303](https://github.com/apliteni/apliteni-ui/issues/303))
+
+### Added
+
+- **A gate over every `__label` the kit emits.** `src/styles/label-coverage.test.js` refuses a
+  component that puts a `__label` into its markup with no rule for it in either workspace's CSS —
+  the omission above, which a consumer's own class-coverage guard found first.
+  ([#303](https://github.com/apliteni/apliteni-ui/issues/303))
 ```
+
+## The review before this was opened
+
+A read-only sub-agent reviewed the branch against `CONTRIBUTING.md` and re-derived every number in
+this body, breaking rules on copies in a scratchpad to prove its findings. It reported eight; seven
+are fixed here, one stands, and following one of them up found a hole the review had missed.
+
+| # | Finding | Resolution |
+|---|---|---|
+| 1 | The gate was **one sweep and one count over both workspaces**, which `CONTRIBUTING.md` § *One gate per workspace* argues against by name | **Fixed.** Two gates, two floors, one implementation. Each workspace's sweep now fails in its own red — the last three mutation rows. |
+| 2 | The CSS side **matched a class inside a string and inside `:not()`** — proven green by mutation | **Fixed.** Strings are blanked with `blankStrings` (the helper in the same lib whose comment names that trap), only a block's prelude is read, and `:not(…)` is dropped. Four of the mutation rows are the reviewer's own controls. |
+| 3 | The source side **counted comments and `querySelector` calls** as emission sites, which the docblock did not say | **Fixed for comments** (they are blanked now). **Kept for `querySelector`**, and the ledger says so: both are a site that needs the class to exist, which is the question the gate asks. |
+| 3b | Following that up found a hole the review did not: `.ui-tip__label` was ledgered as out of reach because "no source names it", when in fact `tooltip.js` **assembles** it | **Fixed.** An assembled class name is refused unless the site carries a `classes:` note; `.ui-tip__label` is a subject now, and the kit's floor went 5 → 7. |
+| 4 | The floor is `>=` at today's count, so a label added and later dropped is silent | **Stands.** It is the pattern every sweep in this repo uses (`onDisk.length >= 10`, `SHEETS.length >= 20`), and the per-workspace split narrows what a single number can hide. Both floors sit on the real count — raising either by one goes red. |
+| 5 | `back.test.js`'s header cited `docs/evidence/back-long-*.png`, which does not exist | **Fixed** — `back-label-long-*.png`. No gate resolves a glob, so nothing had caught it. |
+| 6 | The slop-detector claim in this body **counted only the new finding** | **Fixed** — the full count and its per-file table are in *Proof*. |
+| 7 | Four small overstatements: `.ui-tip__label` has no factory; `walkReact` keeps `.d.ts` and `test-setup.ts`; `ui-pager__jump-of` is also emitted by React; the rule is `.ui-nav__label`'s *clip* declarations, not all of it | **Fixed**, all four. |
+| 8 | Committed image URLs pointed at a commit without the shell images | **Fixed** — every URL is `d51e7f6`, checked with `git cat-file -e` per file. |
+
+Two things it could not check, said here rather than left implied: it has no Chrome on its host, so
+the two browser tables are the author's measurement and not independently reproduced; and its own
+`npm test` was killed by its 600s ceiling mid-contrast-walk, so it confirmed the new gate green
+inside the suite but not the suite's total.
+
+It also raised the breadcrumb precedent and the missing tooltip, which are not defects — they are in
+*What a reviewer should push on*.
+
+## Reviews
+
+*Left for the coordinator.*
+
+| Review | Round | Findings | Resolved |
+|---|---|---|---|
+| | | | |
+
+## How this was made
+
+| Phase | Model | Skills and context |
+|---|---|---|
+| implement, verify, evidence | [none] `claude-opus-5` (Claude Code) | <ul><li>Skills: the repo's own rules (`AGENTS.md`, `CONTRIBUTING.md`, `docs/`), `ai-slop-detector`</li><li>Context: issue #303 read over the public REST API (`gh` holds no credential on this host); the coordinator's brief naming PR #279 as the bar and PR #286 as this body's shape; `origin/main` at `c85f516`</li></ul> |
+| independent review, then the fixes | [none] `claude-opus-5` sub-agent, read-only, holding no editing tool | <ul><li>Context: `git diff origin/main...HEAD`, this body, `CONTRIBUTING.md` § How the gates work, issue #303 over the public API. It broke rules on copies in its own scratchpad to prove each finding. Its eight findings and what happened to each are in *The review before this was opened*.</li></ul> |
+| open the PR | [orchestrator] | — |
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01CyP12qn69Db7kx7vQjLFoR
