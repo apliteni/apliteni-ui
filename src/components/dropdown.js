@@ -144,9 +144,8 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {string} [o.variant]     'select' (listbox) | 'menu' (inferred from items)
  * @param {Array}  [o.items]       [{ label, value?, description?, icon?, badge?, selected?, disabled?, href?, danger? }]
  * @param {Array}  [o.sections]    [{ label, items }] — grouped alternative to items
- * @param {string} [o.head]        content for a pinned block at the panel's top edge,
- *   drawn as `.ui-dropdown__head` — raw HTML, so escape your own text
- * @param {string} [o.foot]        the same at the bottom edge, as `.ui-dropdown__foot`
+ * @param {string} [o.foot]        content for a pinned block at the panel's bottom edge,
+ *   drawn as `.ui-dropdown__foot` — raw HTML, so escape your own text
  * @param {string} [o.header]      raw HTML pinned to the top of the panel, unwrapped
  * @param {string} [o.footer]      raw HTML pinned to the bottom of the panel, unwrapped
  * @param {string} [o.align]       'start' (default) | 'end' — the edge the panel hugs
@@ -161,7 +160,7 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  */
 export function dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
-  head = '', foot = '', header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
+  foot = '', header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
   align = 'start', direction = 'down', portal = false,
   scroll = false, open = false, ariaLabel, id, panelClass = '', search = false,
 } = {}) {
@@ -205,10 +204,9 @@ export function dropdown({
     scroll && scroll !== true && !sx ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
   ].filter(Boolean).join(' ');
 
-  // The pair the sheet bleeds to the panel's edges. Each sits OUTSIDE its
-  // unwrapped neighbour, because the block that bleeds is the one that has to
+  // The block the sheet bleeds to the panel's bottom edge. It sits OUTSIDE the
+  // unwrapped `footer`, because the block that bleeds is the one that has to
   // touch the edge. why: docs/specification.md#the-dropdown-panel
-  const headBlock = head ? `<div class="ui-dropdown__head">${head}</div>` : '';
   const footBlock = foot ? `<div class="ui-dropdown__foot">${foot}</div>` : '';
 
   const ddAttrs = 'data-dropdown'
@@ -218,7 +216,7 @@ export function dropdown({
 
   return `<div class="${cx('ui-dropdown', open && 'open')}" ${ddAttrs}${id ? ` id="${esc(id)}"` : ''}>` +
     `<button ${triggerAttrs}>${trig}${chevron ? '<span class="ui-dropdown__chevron" aria-hidden="true"></span>' : ''}</button>` +
-    `<div ${panelAttrs}>${headBlock}${header}`
+    `<div ${panelAttrs}>${header}`
       + `${sx ? ddSearchBody({ items, sections }, sx, name, scroll) : ddBody({ items, sections }, isSelect)}`
       + `${footer}${footBlock}</div>` +
     `</div>`;

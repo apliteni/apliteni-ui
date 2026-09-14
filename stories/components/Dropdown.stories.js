@@ -190,6 +190,8 @@ export const SearchGrouped = {
 // A head and a foot — two blocks pinned to the panel's edges, each bleeding back
 // through its padding so its rule runs edge to edge. The kit gives them the
 // bleed and the line; what goes inside is the page's, laid out by the page.
+// `foot` draws its block; a head is the page's own markup through the unwrapped
+// `header` slot, which is how `railUser()` has always written one.
 // why: docs/specification.md#the-dropdown-panel
 const FILTERS = [
   { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
@@ -198,16 +200,17 @@ const FILTERS = [
 ];
 
 const note = (text) => `<span class="ui-dropdown__desc">${text}</span>`;
+const HEAD = '<div class="ui-dropdown__head"><b>Filter payouts</b></div>';
 
 export const HeadAndFoot = {
   name: 'A head and a foot (open)',
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
-    'head: and foot: — a title over the rows and a note under them, both running edge to edge '
-    + 'without the page knowing what the panel is padded by',
+'A title over the rows and a note under them, both running edge to edge without the page '
+    + 'knowing what the panel is padded by',
     dropdown({
       value: 'Filter', variant: 'menu', ariaLabel: 'Filter payouts', open: true,
-      head: '<b>Filter payouts</b>',
+      header: HEAD,
       items: FILTERS,
       foot: note('Counts refresh every 5 minutes.'),
     }),
@@ -227,7 +230,7 @@ export const FootOfControls = {
     dropdown({
       value: 'Filter', ariaLabel: 'Filter payouts', open: true,
       search: { placeholder: 'Search filters' },
-      head: '<b>Filter payouts</b>',
+      header: HEAD,
       items: FILTERS,
       foot: '<div style="display:flex;justify-content:flex-end;gap:8px">'
         + button({ label: 'Cancel', variant: 'ghost', size: 'sm' })

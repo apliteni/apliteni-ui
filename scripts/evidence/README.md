@@ -101,6 +101,16 @@ holds a `CSSTransition` for every property still travelling, so the wait asks
 whether any is still running and then gives the compositor a frame. Reach for it
 in any new producer here, and never for a number of milliseconds.
 
+**One box it does not settle, measured on #306's round 10.** The rail subjects
+jitter in `x∈[24,43] y∈[28,47]` — the brand mark's own 20×20 — by up to 13
+channel samples of 2.9M, intermittently, between two runs of ONE checkout. It is
+not a transition, so no wait reaches it: the mark is an SVG whose rounded corners
+come from a `clipPath`, and Chrome does not always rasterise that clip the same
+way twice. Nothing else in the frame moves, and the subjects with no brand mark
+in them — every `dropdown-*` — are byte-stable over repeated runs. So when a
+rail pair comes back a handful of samples apart in that box, `diff.mjs` names the
+box and the answer is the rig rather than the diff.
+
 `film.mjs` is not, and cannot be. Its frames come off the compositor with
 `Page.startScreencast` and each caption is the time the browser painted that
 frame, so the six times land near 0, 50, 100, 150, 200 and 250 ms but never on

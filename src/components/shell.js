@@ -181,11 +181,11 @@ function railUser({ name, email }, signOutHref) {
     return `<div class="ui-app__user">${readerFace(name, email, who)}</div>`;
   }
   // The head says who the menu belongs to — and on a folded rail it is the only place
-  // a sighted reader can read the address. The block itself is the panel's own
-  // `head`, so the rail names no dropdown class of its own.
-  // why: docs/specification.md#the-page-shell
-  const head = (name ? `<b>${esc(name)}</b>` : '')
-    + (email ? `<span>${esc(email)}</span>` : '');
+  // a sighted reader can read the address. why: docs/specification.md#the-page-shell
+  const head = `<div class="ui-dropdown__head">`
+    + (name ? `<b>${esc(name)}</b>` : '')
+    + (email ? `<span>${esc(email)}</span>` : '')
+    + `</div>`;
   return `<div class="ui-app__user">${dropdown({
     variant: 'menu',
     portal: true,
@@ -193,7 +193,7 @@ function railUser({ name, email }, signOutHref) {
     triggerClass: 'ui-app__user-trigger',
     triggerContent: readerFace(name, email, null),
     panelClass: 'ui-app__user-panel',
-    head,
+    header: head,
     items: [{ label: 'Sign out', icon: 'logout', href: signOutHref, danger: true }],
   })}</div>`;
 }

@@ -69,9 +69,12 @@ test('the factory writes the role each panel is named for here', () => {
 });
 
 test('a head and a foot of text sit in any panel the factory emits', async () => {
+  // The head arrives as the page's own markup through the unwrapped slot, which
+  // is how every head in this kit is written; the foot is the factory's block.
+  const HEAD = '<div class="ui-dropdown__head"><b>Filter payouts</b></div>';
   for (const [role, make] of Object.entries(PANELS)) {
     assert.deepEqual(
-      await violations(make({ head: '<b>Filter payouts</b>', foot: TEXT })), [],
+      await violations(make({ header: HEAD, foot: TEXT })), [],
       `a text head and foot are refused in the ${role} panel`,
     );
   }

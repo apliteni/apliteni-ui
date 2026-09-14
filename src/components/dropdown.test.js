@@ -136,6 +136,47 @@ test('a block bleeding through the panel reads the padding, never a number of it
   }
 });
 
+// The caret is an L of two borders on a rotated square, so the ink is not the
+// box and centring the box leaves the mark off centre — measured in Chrome at
+// dSF 8: 1.75px low closed, 3.88px high open, against the trigger's middle.
+// Both halves of the fix are read here, because either one alone leaves it wrong.
+// why: docs/specification.md#the-dropdown-panel
+test('the caret is centred in both states, and shifted in page space', () => {
+  const closed = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__chevron'));
+  const open = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown.open .ui-dropdown__chevron'));
+  assert.ok(closed && open, 'the sheet draws a caret and flips it');
+
+  const off = decl(closed, '--caret-off');
+  assert.ok(
+    off && off.includes('var(--caret)') && off.includes('var(--caret-ink)'),
+    `--caret-off is derived from the square and its stroke, not typed: ${off}`,
+  );
+
+  const shift = (rule) => terms(decl(rule, 'transform'));
+  for (const [state, rule] of [['closed', closed], ['open', open]]) {
+    const [first, second] = shift(rule);
+    assert.match(
+      first, /^translateY\(/,
+      `the ${state} caret rotates before it shifts (${first}), so the shift travels along the `
+      + 'turned axis and moves the mark sideways as well — which is what the hand-tuned numbers '
+      + 'this replaces were doing',
+    );
+    assert.match(second, /^rotate\(/, `the ${state} caret turns`);
+    assert.ok(
+      first.includes('var(--caret-off)'),
+      `the ${state} caret shifts by something other than --caret-off: ${first}`,
+    );
+  }
+  // Opposite ways: the mark points down in one state and up in the other, so the
+  // ink sits on opposite sides of the box and the correction flips with it.
+  const negated = (t) => /\*\s*-1|-\s*var\(--caret-off\)|calc\(\s*-/.test(t);
+  assert.notEqual(
+    negated(shift(closed)[0]), negated(shift(open)[0]),
+    'both states shift the caret the same way, so one of them is now further off centre than it '
+    + 'was before the correction',
+  );
+});
+
 test('the head and the foot are one pair, bleeding to opposite edges', () => {
   const sel = (cls) => `.ui-dropdown__panel > .${cls}`;
   const rulesFor = (cls) => RULES.filter((r) => r.selector.split(',').some((s) => s.trim() === sel(cls)));
@@ -208,10 +249,11 @@ test('the default renders exactly what it rendered before the variants existed',
   assert.match(html, /class="ui-dropdown__panel"/);
 });
 
-test('neither a head nor a foot is drawn unless one was asked for', () => {
+test('no foot is drawn unless one was asked for, and none is invented', () => {
   const html = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }] });
-  assert.doesNotMatch(html, /ui-dropdown__head/);
   assert.doesNotMatch(html, /ui-dropdown__foot/);
+  // The head is markup a page writes, so the factory never emits its class either.
+  assert.doesNotMatch(html, /ui-dropdown__head/);
 });
 
 test('a foot is drawn at the panel\'s bottom edge, below the rows', () => {
@@ -224,28 +266,31 @@ test('a foot is drawn at the panel\'s bottom edge, below the rows', () => {
     html.indexOf('ui-dropdown__foot') > html.indexOf('ui-dropdown__item'),
     'the foot comes after the rows',
   );
-  assert.doesNotMatch(html, /ui-dropdown__head/, 'a foot alone draws no head');
 });
 
-test('the head is the same block at the other end, and the pair keeps its order', () => {
+// The head is the page's own markup through the unwrapped `header` slot — the
+// shape `railUser()` in src/components/shell.js has always written — and the
+// foot is the one block the factory draws. Both still bleed, so the order in
+// the panel has to hold across the two ways in.
+// why: docs/specification.md#the-dropdown-panel
+test('a head written by hand and a foot drawn by the factory keep their order', () => {
   const html = dropdown({
     value: 'Filters', variant: 'menu', items: [{ label: 'Unpaid' }],
-    head: '<b>Filter payouts</b>', foot: '<button class="ui-btn ui-btn--sm">Save</button>',
+    header: '<div class="ui-dropdown__head"><b>Filter payouts</b></div>',
+    foot: '<button class="ui-btn ui-btn--sm">Save</button>',
   });
-  assert.match(html, /<div class="ui-dropdown__head"><b>Filter payouts<\/b><\/div>/);
   const order = ['ui-dropdown__head', 'ui-dropdown__item', 'ui-dropdown__foot'].map((c) => html.indexOf(c));
+  assert.ok(order.every((i) => i >= 0), 'all three are drawn');
   assert.deepEqual([...order].sort((a, b) => a - b), order, 'head, then rows, then foot');
 });
 
-test('the blocks that bleed sit outside the unwrapped slots, against the edges they bleed to', () => {
+test('the foot sits outside the unwrapped footer, against the edge it bleeds to', () => {
   const html = dropdown({
     value: 'Filters', variant: 'menu', items: [{ label: 'Unpaid' }],
-    head: '<b>Head</b>', foot: '<b>Foot</b>',
-    header: '<div class="zz-header"></div>', footer: '<div class="zz-footer"></div>',
+    foot: '<b>Foot</b>', footer: '<div class="zz-footer"></div>',
   });
-  const order = ['ui-dropdown__head', 'zz-header', 'ui-dropdown__item', 'zz-footer', 'ui-dropdown__foot']
-    .map((c) => html.indexOf(c));
-  assert.ok(order.every((i) => i >= 0), 'all five are drawn');
+  const order = ['ui-dropdown__item', 'zz-footer', 'ui-dropdown__foot'].map((c) => html.indexOf(c));
+  assert.ok(order.every((i) => i >= 0), 'all three are drawn');
   assert.deepEqual([...order].sort((a, b) => a - b), order,
     'the bleeding block is the one touching the panel edge; an unwrapped slot sits inside it');
 });

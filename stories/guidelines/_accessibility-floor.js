@@ -312,6 +312,18 @@ export const GATES = [
     blind: ['Whether the rule reaches the element. It reads declarations, not the cascade.'],
   },
   {
+    file: 'stories/dropdown-field-ground.test.js',
+    does: 'Measures how deep a well the dropdown\u2019s search field sinks into the panel it sits in, '
+      + 'against the kit\u2019s own field on a card, per theme \u2014 the surface a sunken box sits in '
+      + 'decides how far it sinks, and a floating panel is a rung above a card.',
+    blind: [
+      'Legibility. It reads a field\u2019s ground against its surround, which is a question about '
+        + 'depth; whether the text inside clears AA is the contrast walk\u2019s.',
+      'Every other field in the kit. One selector in one sheet, so a second field dropped into a '
+        + 'panel tomorrow is not a subject here.',
+    ],
+  },
+  {
     file: 'stories/dropdown-foot-role.test.js',
     does: 'Puts the same head and foot into each panel dropdown() can emit and runs axe over '
       + 'the three, so the rule that a control belongs only in the search variant\u2019s dialog is '

@@ -51,6 +51,19 @@ try {
       await ctx.close();
     }
   }
+  // The caret on its own, at a scale the mark can be judged at.
+  for (const theme of ['dark', 'light']) {
+    const name = `${prefix}-caret-${theme}`;
+    if (only && !name.includes(only)) continue;
+    const ctx = await browser.newContext({ viewport: { width: 260, height: 90 }, deviceScaleFactor: 4 });
+    const page = await ctx.newPage();
+    await page.goto(`http://127.0.0.1:${srv.port}/__shot?subject=caret&theme=${theme}`, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.__ready === true);
+    await settle(page);
+    await page.screenshot({ path: path.join(outDir, `${name}.png`) });
+    console.log(`  ${name}.png`);
+    await ctx.close();
+  }
 } finally {
   await browser.close();
   srv.proc.kill();
