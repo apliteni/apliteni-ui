@@ -8,6 +8,10 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+// The rig waits on the document rather than on a clock: a fixed timeout over a
+// running transition is a race, and the two post-Tab frames were losing it by 8px.
+// why: scripts/evidence/README.md
+import { settle } from './settle.mjs';
 // Playwright is not a dependency of this package — the kit ships no browser and
 // nothing in `npm test` drives one. why: scripts/evidence/README.md
 const { chromium } = await import(process.env.UI_PLAYWRIGHT || 'playwright');
@@ -35,9 +39,9 @@ async function open(query, { width = 1280, height = 760 } = {}) {
   const page = await ctx.newPage();
   await page.goto(`http://127.0.0.1:${srv.port}/__shot?subject=layouts&${query}`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__ready === true);
-  await page.evaluate(() => document.fonts.ready);
-  // The fold, the menus and the palette are on a clock; nothing here is mid-travel.
-  await page.waitForTimeout(500);
+  // The fold, the menus and the palette are on a clock; settle() asks the document
+  // whether any of them is still running rather than guessing at a number.
+  await settle(page);
   return { ctx, page };
 }
 
@@ -81,7 +85,7 @@ for (const theme of ['dark', 'light']) {
   if (want(`shell-topbar-search-${theme}`)) {
     const { ctx, page } = await open(`theme=${theme}&layout=topbar&width=wide&collapsed=0`);
     if (!await tabTo(page, '.ui-app__search')) throw new Error('the search field is not reachable by Tab');
-    await page.waitForTimeout(300);
+    await settle(page);
     await save(page, `shell-topbar-search-${theme}`);
     await ctx.close();
   }
@@ -92,7 +96,7 @@ for (const theme of ['dark', 'light']) {
     const { ctx, page } = await open(`theme=${theme}&layout=topbar&width=wide&collapsed=0`);
     if (!await tabTo(page, '.ui-app__bar .ui-app__user-trigger')) throw new Error('the reader block is not reachable by Tab');
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(400);
+    await settle(page);
     await save(page, `shell-topbar-menu-${theme}`);
     await ctx.close();
   }

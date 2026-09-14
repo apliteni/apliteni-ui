@@ -944,13 +944,27 @@ What moves, and what each move buys:
   place on the rail where a mark does not start on that column.
 - **The band stands beside the rail, not across the top of both.** The rail keeps the viewport's
   own top edge and its whole height; the band is the first row of the column next to it. This is
-  the reference's shape, and it is the only one in which the rail's head band and the band are one
-  line: the product's mark at the left of that line, the reader at the right, and one rule under
-  the pair. Stacked above the rail instead, the mark would sit in a second band under the first.
-  The three boxes — the band, the rail's head, the rail's foot — are one height, `--ui-app-band`,
-  and `stories/apps/shell-states.test.js` holds that height to the one `.topbar` is. The band is
-  not wrapped in `.ui-app-page`: that wrapper offsets the rail below the compatibility topbar,
-  which does stand over it.
+  the reference's shape, and it is the arrangement in which the rail's head band and the band
+  **close at the same height**: the product's mark at the left of that line, the search field and
+  the reader at the right, and nothing stepping at the corner where the two meet. Stacked above
+  the rail instead, the mark would sit in a second band under the first. The three boxes — the
+  band, the rail's head, the rail's foot — are one height, `--ui-app-band`, and
+  `stories/apps/shell-states.test.js` holds that height to the one `.topbar` is.
+
+  **What that is not, measured at 1280 in Chrome:** the two rules land level — both boxes end at
+  `52` — but they are **not one continuous stroke**. The rail insets its rule by the rail's own
+  `--space-4`, so the rail's half runs `x 16→232` and the band's starts at `249`, a 17px break.
+  And in the light theme the rail's half is effectively invisible: `--border` `#e4e7ee` on the
+  rail's `--surface-2` `#e3e6ee` is 1.009:1, against 1.086:1 for the same rule on the band's
+  `--bg`. Both are inherited — the ladder is [#295](https://github.com/apliteni/apliteni-ui/issues/295)
+  and the inset is the rail's — and neither is repainted here: the rail's head, its foot and the
+  reader block all take one hairline, so repainting the head alone would leave the rail's own two
+  rules disagreeing, and bleeding the head's rule to the rail's edges would cost it the open
+  column every block of the rail keeps. What the gate holds, and what this bullet claims, is the
+  height.
+
+  The band is not wrapped in `.ui-app-page`: that wrapper offsets the rail below the compatibility
+  topbar, which does stand over it.
 - **The band carries a search field and the reader, and nothing else.** A `<header>`, outside the
   navigation landmark, because neither of the two is a place to go.
 - **The search field is a palette trigger drawn as a field.** It is `lessly-ui`'s

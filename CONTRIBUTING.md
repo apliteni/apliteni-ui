@@ -1625,7 +1625,7 @@ cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
 src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
-property, the symmetric src/styles/layout.css:294 `margin-inline: auto`, against 25 physical left/right
+property, the symmetric src/styles/layout.css:293 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.

@@ -104,7 +104,7 @@ export const RULES = [
       + 'beside it. A shell whose main column is --container has no sidebar. Reconciling the two '
       + 'as if they competed is what made nine widths look like one disagreement.',
     kit: [
-      { ref: 'src/styles/layout.css:293', pattern: 'var(--ui-app-main, var(--measure))' },
+      { ref: 'src/styles/layout.css:292', pattern: 'var(--ui-app-main, var(--measure))' },
       { ref: 'src/tokens/tokens.css:43', pattern: '--measure: 860px' },
     ],
   },

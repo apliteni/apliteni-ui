@@ -30,8 +30,9 @@ the issue, and each one reversed something this branch had already built.
 **The band stands beside the rail, not across the top of both.** `app-shell.tsx` gives the rail the
 viewport's left edge and its whole height, and puts the top bar in the column next to it — with a
 comment saying why: the bar is `h-14`, *"the same height `AppSidebar`'s header band"*, so *"the
-sidebar divider is the only line the band needs"* and the two rules meet as one line across the app
-(#320 in their tracker). The first version here stacked a full-width band above the rail, which is
+sidebar divider is the only line the band needs"* and the two bands close at the same height
+(#320 in their tracker; what this kit gets from that shape, and what it does not, is measured
+below). The first version here stacked a full-width band above the rail, which is
 what the kit's compatibility `.topbar` does. That put the product's mark in a second band directly
 under the first — two horizontal bands in the top-left corner, saying the same thing twice. The band
 moved beside the rail, `.ui-app` grew a `.ui-app__well` for the second column's two rows, and the
@@ -140,7 +141,7 @@ Eighteen images under `docs/evidence/shell-layouts/`, all produced by the commit
 | rail, dark | `shell-rail-wide-dark.png` | `shell-rail-centered-dark.png` |
 | rail, light | `shell-rail-wide-light.png` | `shell-rail-centered-light.png` |
 
-**The states the layout is about:**
+And the states the layout is about:
 
 | What | Files |
 | --- | --- |
@@ -152,9 +153,28 @@ Eighteen images under `docs/evidence/shell-layouts/`, all produced by the commit
 Every focused and open state is reached by real `Tab` and `ArrowDown` presses, not by a class forced
 on — the rig walks the tab order until the element it wants has focus, and fails if it never does.
 
+### The rig waits on the document, not on a clock
+
+The first version of `layouts.mjs` slept 500ms after load and 300/400ms after a keystroke, and the
+wave-3 review measured **8px of drift in the two post-`Tab` frames**: the ring and the panel were
+being photographed mid-transition. `scripts/evidence/settle.mjs` — taken from
+`fix/306-dropdown-pad-foot`, byte-identical, so it merges clean whichever branch lands first — asks
+`document.getAnimations()` whether any `CSSTransition` is still running and waits for a painted
+frame either side of the answer. There is no `waitForTimeout` left in this shooter.
+
+Proof it settled, run just now:
+
+- **Two consecutive full runs are byte-identical**, all eighteen frames: `cmp` reports `same` for
+  every file between `runA/` and `runB/`.
+- Against what the clock-based version had committed, **exactly four frames moved** —
+  `shell-topbar-search-{dark,light}.png` and `shell-topbar-menu-{dark,light}.png`, the four the
+  review named. The fourteen at-rest frames are unchanged byte for byte, which is what says the
+  timeouts were only ever a race where a keystroke had started a transition.
+
 A 2× set of the same frames (minus the phones) is at `/home/orca/shots-308/` on the host for the
-review page, shot by the same script under `UI_DSF=2`. It is deliberately **not** committed: 1× is
-what the rig's README calls the reproducible cross-check.
+review page, shot by the same script under `UI_DSF=2` and re-shot through `settle()` with the rest.
+It is deliberately **not** committed: 1× is what the rig's README calls the reproducible
+cross-check.
 
 ## The gates this adds
 
@@ -171,7 +191,7 @@ Every rule below is enforced, and each one names the mutation that kills it.
 | `shell.test.js` — the key | the cap is `.ui-cmdk__key`, is not `aria-hidden`, and holds `paletteHotkey()`'s answer | hiding the key, or writing a cap of the shell's own |
 | `shell.test.js` — the widths | both widths in both layouts; one `main.ui-app__main`; `--wide` iff wide | a second column, or a class on the wrong width |
 | `shell.test.js` — the number | `maxWidth` survives either width name | letting the name outrank the number |
-| `shell.test.js` — strictness | six wrong layout names and five wrong width names all fall to the default | reading either through `String()` |
+| `shell.test.js` — strictness | six wrong layout names and six wrong width names all fall to the default, `['topbar']` and `['wide']` among them | reading either through `String()` — proven, see below |
 | `shell.test.js` — one band | `layout: 'topbar'` + a `topbar` bag draws one `<header>`, and it is not `.topbar` | composing the two into a page with two headers |
 | `shell-states.test.js` — one height | the band, the rail's head and the rail's foot resolve to one height, and it is `.topbar`'s | a second literal for either box |
 | `shell-states.test.js` — the stick | the band is `sticky` at `top: 0` | a band that scrolls away with the page |
@@ -191,15 +211,68 @@ Two rules on **Guidelines / The page** (#298's page, which landed four commits b
 each with a check keyed to its id in `the-page.test.js` and a row in the contract's rule-to-code
 table:
 
-- **`layout`** — *Choose one shell layout for a product and keep every screen on it.* One layout per
-  product is not something one screen can show, so what the check measures is the half a screen
-  **can** break: the parts a layout moves must not be drawn twice.
-- **`width`** — *Give a page the wide content column when it is mostly tables and boards, and the
-  centred one when it is mostly reading and forms.* With a Do/Don't pair, drawn to scale: the same
-  table in the wide column and in the centred one, where its last column is off the side.
+| Rule | The imperative on the page | What its check measures |
+| --- | --- | --- |
+| `layout` | *Choose one shell layout for a product and keep every screen on it.* | One layout per product is not something one screen can show, so the check takes the half a screen can break: the parts a layout moves must not be drawn twice. |
+| `width` | *Give a page the wide content column when it is mostly tables and boards, and the centred one when it is mostly reading and forms.* | That no screen caps its own page at a number. Carries a Do/Don't pair drawn to scale: the same table in the wide column and in the centred one, where its last column is off the side. |
 
 The page now carries ten rules and five Do/Don't pairs; the counts in `docs/specification.md` moved
 with it, and a gate holds rules, checks and table rows in step.
+
+## The wave-3 review, and what each finding changed
+
+Verdict was "ready for Artur" with five should-fix and two nits. All seven are answered here; the
+two open questions below are untouched, as instructed.
+
+**1. The strictness gate covered `layout` and not `width`.** Correct, and the mutation proves it:
+`toWidth` changed to `String(v) === 'wide'` left all 97 cases in `shell.test.js` green. The width
+list now carries `['wide']` beside the layout list's `['topbar']`, and the same mutation is red:
+
+```
+✖ a layout or a width the kit does not know is the one it has always drawn
+  AssertionError: width: ["wide"] took the cap off
+```
+
+Restored, the file is 97 tests, 97 pass.
+
+**2. The corner does not show what the body said.** Also correct, and measured again here at 1280
+in Chrome rather than taken on trust: both boxes end at `52`, so the two rules are **level** — but
+the rail's half runs `x 16→232` and the band's starts at `249`, a 17px break, and in light the
+rail's half is `rgb(228,231,238)` on a rail ground of `rgb(227,230,238)`, which is **1.009:1**.
+Invisible. The band's half, same ink on `--bg`, is 1.086:1.
+
+**The prose is softened rather than the rule repainted**, in `PR.md`, `docs/specification.md` and
+the CSS comment, and the specification now carries the measurement. Three reasons for that
+direction:
+
+- The rail's head, its foot and the reader block all take one hairline. Repainting the head alone
+  leaves the rail's own two rules disagreeing with each other, which is a worse corner than the
+  one being described.
+- 1.009:1 is `--border` against `--surface-2`, which is the elevation ladder decided in #295 —
+  Artur's call, inherited from `main`, and every surface in the kit that pairs those two tokens has
+  it. That is a token question for its own issue, not something to slip into a layout PR.
+- Closing the 17px break needs the head band's rule bled to the rail's edges, which costs it the
+  open column **every block of the rail keeps** — a #277 guarantee with a gate on it.
+
+What the gate holds is what the body now claims: the height. The invisible-in-light hairline is
+named here rather than quietly dropped, and is worth an issue of its own.
+
+**3. The icon-size ledger** now carries its `#308` entry for `.ui-app__search-ic svg`, beside the
+#277 one it stopped at.
+
+**4. The rig waited on a clock.** Fixed with `settle.mjs`; the two-run agreement and the four
+frames that moved are under [Evidence](#the-rig-waits-on-the-document-not-on-a-clock) above.
+
+**5. The slop claim was false.** It was, and it is corrected under
+[`ai-slop-detector`, paranoid level](#ai-slop-detector-paranoid-level) — the two items are fixed
+*and* the remaining `layout.css` warning is stated rather than rounded to a pass.
+
+**6. The overlap table** is above, computed with `git merge-tree`.
+
+**7. The two nits.** The stray blank line at `layout.css:30` is gone, and
+`.ui-app__foot { display: none }` in the 720px block is `.ui-app__rail .ui-app__foot` now, scoped
+like its neighbours — which the `PHONE_ONLY_RULES` entry in `shell-states.test.js` follows, so the
+rule-for-rule gate still pairs it with its twin.
 
 ## Proof
 
@@ -207,9 +280,9 @@ Run on this host at the branch head.
 
 ```
 $ npm test
-ℹ tests 1545
+ℹ tests 1546
 ℹ suites 0
-ℹ pass 1542
+ℹ pass 1543
 ℹ fail 1
 ℹ cancelled 0
 ℹ skipped 2
@@ -217,7 +290,7 @@ $ npm test
 
 ✖ failing tests:
 ✖ the walk has not run away with the clock
-  AssertionError [ERR_ASSERTION]: the contrast walk took 199.5s, against a 120s ceiling
+  AssertionError [ERR_ASSERTION]: the contrast walk took 165.6s, against a 120s ceiling
   set from a measured worst case of 47.6s on a fully contended 10-core laptop.
 ```
 
@@ -232,7 +305,7 @@ same `node_modules`, `node --test stories/contrast.test.js`:
   AssertionError: the contrast walk took 160.2s, against a 120s ceiling…
 ```
 
-So `main` is 160.2s and this branch 199.5s, both over a 120s bar, on a box running several agents.
+So `main` is 160.2s and this branch 165.6s, both over a 120s bar, on a box running several agents.
 The walk's own assertions — every ground, every chip pair, both themes — pass on both. The two skips
 are the opt-in `CONTRAST_ACCENTS=1` matrix and the `jq`-gated publish check, skipped on `main` as
 well.
@@ -256,13 +329,21 @@ $ npx vitest run   # in react/
 `Pagination` and the loading set — components, not layout. The acceptance criterion's "if one
 exists" is answered: it does not, and building one is a larger question than this issue.
 
-**`ai-slop-detector`, paranoid level:** `ShellLayouts.stories.js` **pass**,
-`_the-page.js` **pass**, `layouts.mjs` **pass**, `PR.md` **pass**, `shell.js` **pass**.
-`layout.css` warns on `comment-ratio` at 0.58:1 — it warns on `main` too, at 0.54:1, so the file
-was already over the bar and this branch is 0.04 further along it. The rule CONTRIBUTING actually
-enforces — a comment block that has become a design document — is clean on every file here; the
-first draft of `shell.js` was not, and the argument it carried moved into
-`docs/specification.md#the-page-shell`, where it can be reviewed and superseded.
+### `ai-slop-detector`, paranoid level
+
+`ShellLayouts.stories.js`, `_the-page.js`, `layouts.mjs`, `settle.mjs`, `shell.js` and `PR.md`
+pass. One file still warns, and it is not claimed clean:
+
+- `layout.css` — `comment-ratio` 0.58:1. It warns on `main` too, at 0.54:1, so the file was
+  already over the bar and this branch is 0.04 further along it.
+- `PR.md` — warned on `bold-header-list` (2 items) in the round the wave-3 review read, while this
+  body claimed a pass it did not have. The two were the guideline rules above, written as
+  `- **\`layout\`** — …`; they are a table now, and the file passes. The claim was the defect, not
+  the formatting.
+
+The rule CONTRIBUTING actually enforces — a comment block that has become a design document — is
+clean on every file here. The first draft of `shell.js` was not, and the argument it carried moved
+into `docs/specification.md#the-page-shell`, where it can be reviewed and superseded.
 
 ## Decisions, and who made each
 
@@ -288,11 +369,29 @@ first draft of `shell.js` was not, and the argument it carried moved into
    comparison. Asked on 2026-09-13; unanswered when this was written.
 2. **The key cap in the accessible name.** Kept, on the reference's argument. One word reverses it.
 
+## Overlap with `fix/306-dropdown-pad-foot`, which merges ahead of this
+
+Computed, not guessed: `git merge-tree --write-tree HEAD origin/fix/306-dropdown-pad-foot`
+against merge base `c85f516`. Six files are touched by both branches; three conflict.
+
+| File | Conflicts? | How to resolve |
+| --- | --- | --- |
+| `src/components/shell.js` | **yes, and it is real** | #306 takes the reader menu's head out of the rail: it drops the `<div class="ui-dropdown__head">` wrapper (the panel's own `head` slot draws it) and renames the option `header:` → `head:`. This branch still writes that wrapper and still passes `header:`, because it forked the function into `readerBlock()` for the band. **Take #306's raw `head` — the two `<b>`/`<span>` lines with no wrapper — and its `head:` key, inside this branch's `readerBlock()`, keeping the `cls`, `band`, `direction`, `align`, `chevron` and `ariaLabel` arguments.** Taking this side whole nests two heads and passes a key #306's `dropdown()` no longer reads. |
+| `scripts/evidence/shot.html` | **yes, trivially** | Both add an import on the same line. #306 adds `button` to the `index.js` import and a `dropdown` import; this branch adds `commandPalette`. **Keep both.** |
+| `PR.md` | yes, always | A scratch file. Neither side's body is wanted in the other's; discard whichever is not being opened. |
+| `CONTRIBUTING.md` | no — auto-merges | Different sections: #306's is its own, this branch's is the font-family count row. |
+| `docs/library.md` | no — auto-merges | Different rows of the table. |
+| `docs/specification.md` | no — auto-merges | #306 writes in the dropdown's section, this branch in the shell's and in Widths. |
+
+`scripts/evidence/settle.mjs` is on both branches and is **byte-identical** — this branch took it
+from `origin/fix/306-dropdown-pad-foot` rather than writing a second copy, so it merges clean
+whichever lands first. Verified with `git show origin/fix/306-dropdown-pad-foot:scripts/evidence/settle.mjs | diff - scripts/evidence/settle.mjs`.
+
 ## What a reviewer should push on
 
 - **The band beside the rail is the biggest departure from what this kit already had**, and it is
   the one thing a screenshot settles faster than prose. Look at the top-left corner of
-  `shell-topbar-wide-dark.png`: the rule under `Finance` and the rule under the band are one line.
+  `shell-topbar-wide-dark.png`: the rule under `Finance` and the rule under the band are level.
   If that corner is wrong, the whole arrangement is wrong.
 - **`layout: 'topbar'` silently drops the `topbar` bag.** That costs `accountShell()` its version
   switcher and its theme toggle in this layout. It is stated in the contract and gated, but it is a

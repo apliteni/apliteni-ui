@@ -1337,7 +1337,10 @@ test('a layout or a width the kit does not know is the one it has always drawn',
       + 'anything else is the default, because a typo must not draw a page with no reader on it.',
     );
   }
-  for (const bad of ['Wide', 'full', '', null, 0]) {
+  // `['wide']` for the same reason the layout list carries `['topbar']`: String() is
+  // what turned a one-element array into a name, and a list that tries it on one
+  // option and not the other only holds half the rule.
+  for (const bad of ['Wide', 'full', '', null, 0, ['wide']]) {
     assert.doesNotMatch(LAID({ width: bad }), /ui-app__main--wide/, `width: ${JSON.stringify(bad)} took the cap off`);
   }
 });

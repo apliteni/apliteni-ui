@@ -322,7 +322,7 @@ const PHONE_ONLY = [
  * it holds the toggle and nothing else. Each is measured both ways under this constant
  * rather than merely excluded.
  */
-const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand', '.ui-app__foot'];
+const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand', '.ui-app__rail .ui-app__foot'];
 
 /**
  * And the one rule the reader's fold writes that the 720px block must not, which is
@@ -1960,8 +1960,9 @@ test('the band, the rail\'s head and the rail\'s foot are one height, and it is 
       px(sel), px('.ui-app__bar'),
       `the rail's ${sel === '.ui-app__head' ? 'head' : 'foot'} band is ${px(sel)}px against the band's `
       + `${px('.ui-app__bar')}px. The band stands BESIDE the rail and not over it, so the rule under `
-      + 'the head lands on the line the band\'s own rule lands on only while the two agree — a step '
-      + 'at that corner is the whole reason this layout puts the mark in the rail rather than the band.',
+      + 'the head lands level with the band\'s own only while the two agree — a step at that corner '
+      + 'is the whole reason this layout puts the mark in the rail rather than the band. Level is '
+      + 'all this holds: the rail insets its rule, so the two are not one continuous stroke.',
     );
   }
   assert.equal(

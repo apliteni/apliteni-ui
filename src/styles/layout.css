@@ -27,7 +27,6 @@
 .ui-app-page { --ui-app-top: 52px; }
 .ui-app-page .topbar { position: sticky; top: 0; z-index: var(--z-sticky); }
 
-
 /* --surface-2, not --bg-elevated: elevated resolves to --bg itself in the light
    theme, an exact no-op that left the border as the whole of the rail.
    overflow-y, because the box is pinned at the viewport's height for the whole
@@ -299,10 +298,11 @@
 .ui-app__main--wide { max-width: var(--ui-app-main, none); }
 
 /* -- The topbar layout ----------------------------------------------------- */
-/* The band stands BESIDE the rail, not across the top of both, which is the one
-   arrangement where the rail's head band and the band are one line across the app —
-   and is what the three heights below are for.
-   why: docs/specification.md#the-page-shell */
+/* The band stands BESIDE the rail, not across the top of both, which is the
+   arrangement where the rail's head band and the band close at the same height — what
+   the three heights below are for. Level, not one continuous stroke: the rail insets
+   its own rule, and in light that half is 1.009:1 on the rail's ground.
+   why: docs/specification.md#the-second-layout */
 .ui-app { --ui-app-band: 52px; }
 .ui-app__well { display: flex; flex-direction: column; min-width: 0; }
 .ui-app__bar {
@@ -413,9 +413,9 @@
   .ui-app__rail .ui-app__fold-row { display: none; }
   /* …and the foot goes with it, for the reason the head band does below: in the
      topbar layout that box holds the toggle and nothing else, so at this width it is
-     padding and a hairline drawn over nothing.
-     why: docs/specification.md#the-page-shell */
-  .ui-app__foot { display: none; }
+     padding and a hairline drawn over nothing. Scoped to the shell's own rail, like
+     every other rule in this block. why: docs/specification.md#the-page-shell */
+  .ui-app__rail .ui-app__foot { display: none; }
   /* …and with it the band, when the band has nothing else in it: a head with no
      wordmark is the toggle alone, so at this width it is padding and a hairline
      drawn over nothing. The reader's fold cannot take this rule — there the toggle
