@@ -1,9 +1,11 @@
 # The evidence rig
 
 Every image under `docs/evidence/rail-*.png`, `docs/evidence/nav-collapsed-*.png`,
-`docs/evidence/back-label-*.png`, `docs/evidence/react-*.png` and `docs/evidence/295-floating/`
-is produced here. Round 9's review said the rig "still has no producer committed, so I cannot
-reproduce ten of them"; this is that producer.
+`docs/evidence/dropdown-*.png`, `docs/evidence/back-label-*.png`,
+`docs/evidence/react-*.png` and `docs/evidence/295-floating/` is produced here.
+Round 9's review said the rig "still has no producer committed, so I cannot
+reproduce ten of them"; this is that producer, and everything shot since is shot
+with it.
 
 One static server over one checkout, the kit's own factories imported as modules
 in the page, one Chrome, one viewport — so between two checkouts only the code
@@ -24,6 +26,9 @@ node scripts/evidence/nav.mjs   . out/ nav-collapsed-after
 git worktree add --detach /tmp/before origin/main
 node scripts/evidence/shoot.mjs /tmp/before out/ rail-before
 node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
+
+node scripts/evidence/dropdown.mjs .          out/ dropdown-after    # the head/foot pair, #306
+node scripts/evidence/dropdown.mjs /tmp/before out/ dropdown-before
 ```
 
 The back link's label is its own subject, on its own page (#303) — the link alone
@@ -36,7 +41,31 @@ node scripts/evidence/back.mjs /tmp/before out/ back-label-before
 ```
 
 A third argument to `shoot.mjs` is a substring filter over the names, so one
-subject can be re-taken on its own; `back.mjs` takes a name prefix there instead.
+subject can be re-taken on its own; `back.mjs` takes a name prefix there instead,
+and `dropdown.mjs` takes the prefix third and that filter fourth.
+
+## The one cross-check worth running on a refactor
+
+A change that only renames a number should move no pixel, and the rig can say so
+rather than the pull request claiming it. Shoot the same subject off both
+checkouts and compare the pixels:
+
+```sh
+node scripts/evidence/shoot.mjs /tmp/before out/main   rail-user-menu
+node scripts/evidence/shoot.mjs .           out/branch rail-user-menu
+node scripts/evidence/diff.mjs out/main/rail-user-menu-light.png out/branch/rail-user-menu-light.png
+```
+
+`diff.mjs` prints how many channel samples differ, the largest difference and the
+box they fall in, and exits non-zero past a bound given as its third argument
+(default 0). **The pixels and not the byte count**, because a `sha256` that has
+moved says only *something is different* — antialiasing that landed a shade
+apart reads exactly like a rule that moved four pixels, and only one of those is
+a finding. When the two agree sample for sample, say so as bytes; when they do
+not, the count and the box are the answer.
+
+`rail-user-menu` is the subject to pick for anything touching the panel: it is
+the only committed shot with a `.ui-dropdown__head` in it.
 
 `float.mjs` is the floating step's pair, added for #309. Four subjects in both
 themes at 1440 and 390. Two are the frame set
@@ -119,16 +148,36 @@ before the webfaces land freezes a width measured in the fallback.
 
 ## What is deterministic and what is not
 
-`shoot.mjs`, `nav.mjs`, `float.mjs`, `guideline.mjs` and `back.mjs` are: the same checkout,
-the same Chrome and the same viewport give the same bytes. That is the cross-check to run
-first — re-shoot `rail-before-*` off `main` and compare it with what is committed
-before trusting anything else the rig says.
+`shoot.mjs`, `nav.mjs`, `float.mjs`, `guideline.mjs`, `back.mjs` and `dropdown.mjs`
+are: the same checkout, the same Chrome and the same viewport give the same bytes.
+That is the cross-check to run first — re-shoot `rail-before-*` off `main` and
+compare it with what is committed before trusting anything else the rig says.
 
 One caveat measured on #303, where the pair was shot across two checkouts rather
 than twice off one: a subject the change does not touch comes back a handful of
 channel samples apart, max delta 6 on a 1120×680 frame — glyph antialiasing, not
-layout. Compare the pixels rather than the byte count when the question is
-whether a subject moved.
+layout. `diff.mjs` above is the answer to that: compare the pixels rather than
+the byte count when the question is whether a subject moved.
+
+**They are deterministic because they wait on the document rather than on a
+clock**, and that was bought rather than given. Until #306 each shot sat behind a
+fixed `waitForTimeout` over a running transition, which is a race the rig loses
+quietly: `rail-user-menu-light` came back 25 samples of 3.9M apart between two
+runs of the *same* tree, and a pair shot across two checkouts could not tell that
+from a change. `settle.mjs` is the replacement — `document.getAnimations()`
+holds a `CSSTransition` for every property still travelling, so the wait asks
+whether any is still running and then gives the compositor a frame. Reach for it
+in any new producer here, and never for a number of milliseconds.
+
+**One box it does not settle, measured on #306's round 10.** The rail subjects
+jitter in `x∈[24,43] y∈[28,47]` — the brand mark's own 20×20 — by up to 13
+channel samples of 2.9M, intermittently, between two runs of ONE checkout. It is
+not a transition, so no wait reaches it: the mark is an SVG whose rounded corners
+come from a `clipPath`, and Chrome does not always rasterise that clip the same
+way twice. Nothing else in the frame moves, and the subjects with no brand mark
+in them — every `dropdown-*` — are byte-stable over repeated runs. So when a
+rail pair comes back a handful of samples apart in that box, `diff.mjs` names the
+box and the answer is the rig rather than the diff.
 
 `film.mjs` is not, and cannot be. Its frames come off the compositor with
 `Page.startScreencast` and each caption is the time the browser painted that

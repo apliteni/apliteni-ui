@@ -28,16 +28,23 @@
 .ui-dropdown__pre { color: var(--muted); }
 .ui-dropdown__value { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 
-/* Chevron — border caret that flips when the container is .open */
+/* Chevron — border caret that flips when the container is .open. Its ink is an L
+   on a rotated square, so centring the BOX leaves the mark off centre; --caret-off
+   is that gap, derived rather than typed.
+   why: docs/specification.md#the-dropdown-panel */
 .ui-dropdown__chevron {
-  width: 8px; height: 8px;
-  border-right: 1.6px solid var(--muted);
-  border-bottom: 1.6px solid var(--muted);
-  transform: rotate(45deg) translateY(-1px);
+  --caret: 8px;
+  --caret-ink: 1.6px;
+  --caret-off: calc((var(--caret) - var(--caret-ink)) / 2.8284);  /* 2√2 — the 45° turn's projection */
+  width: var(--caret); height: var(--caret);
+  border-right: var(--caret-ink) solid var(--muted);
+  border-bottom: var(--caret-ink) solid var(--muted);
+  /* Shift BEFORE rotate, so it lands in page space rather than on the turned axis. */
+  transform: translateY(calc(var(--caret-off) * -1)) rotate(45deg);
   transition: transform var(--dur-fast) var(--ease);
   flex: none;
 }
-.ui-dropdown.open .ui-dropdown__chevron { transform: rotate(-135deg) translateY(2px); }
+.ui-dropdown.open .ui-dropdown__chevron { transform: translateY(var(--caret-off)) rotate(-135deg); }
 
 /* Panel — the popover surface */
 .ui-dropdown__panel {
@@ -45,6 +52,10 @@
      the portal's JS, so an upward panel cannot drift from a downward one.
      why: docs/specification.md#the-dropdown-panel */
   --ui-dropdown-gap: 9px;
+  /* Named for the same reason the offset is: a block pinned to an edge has to
+     bleed back through it, and #306 is a page copying the number by hand.
+     why: docs/specification.md#the-dropdown-panel */
+  --ui-dropdown-pad: 6px;
   /* The panel states its own role rather than inheriting one, because `portal:
      true` moves it onto <body> and an inherited face is then decided by where
      the panel was MOUNTED rather than by what it is. Measured: the same dropdown
@@ -65,7 +76,7 @@
   border: 1px solid var(--border-strong);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   border-radius: var(--radius-lg);
-  padding: 6px;
+  padding: var(--ui-dropdown-pad);
   opacity: 0;
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
@@ -203,12 +214,22 @@
 /* Separator */
 .ui-dropdown__sep { height: 1px; background: var(--border); margin: 5px 4px; }
 
-/* Optional pinned header/footer blocks */
-.ui-dropdown__panel > .ui-dropdown__head {
+/* Optional pinned head/foot blocks — symmetrical: one inner padding, and each
+   bleeding to the edge it sits on, lining the edge it faces.
+   why: docs/specification.md#the-dropdown-panel */
+.ui-dropdown__panel > .ui-dropdown__head,
+.ui-dropdown__panel > .ui-dropdown__foot {
   padding: 11px 13px;
-  margin: -6px -6px 5px;
+}
+.ui-dropdown__panel > .ui-dropdown__head {
+  margin: calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1) 5px;
   border-bottom: 1px solid var(--border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.ui-dropdown__panel > .ui-dropdown__foot {
+  margin: 5px calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 /* Search — `search: true` pins a field above the rows and filters them as the
@@ -246,6 +267,12 @@
   min-height: 38px;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
+/* Light sinks the field one rung less far: its panel is the only pure white the
+   kit paints, so --surface-2 falls two rungs under it rather than one. The
+   numbers are in the spec and the gate is stories/dropdown-field-ground.test.js.
+   why: docs/specification.md#elevation */
+:root[data-theme="light"] .ui-dropdown__search-input { background: var(--bg); }
+
 .ui-dropdown__search-input::placeholder { color: var(--muted); }
 .ui-dropdown__search-input:hover { border-color: var(--border-strong); }
 .ui-dropdown__search-input:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--ring); }

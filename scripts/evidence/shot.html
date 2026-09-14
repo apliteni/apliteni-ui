@@ -13,9 +13,10 @@
 // the before side of every pair is shot off `main` with this same page.
 import * as shell from '/src/components/shell.js';
 const { appShell, wireShell, ACCOUNT_NAV } = shell;
-import { card } from '/src/components/index.js';
+import { button, card } from '/src/components/index.js';
 import { sidebarNav } from '/src/components/nav.js';
 import { commandPalette } from '/src/components/command-palette.js';
+import { dropdown } from '/src/components/dropdown.js';
 
 // The same definition Apps/Collapsible rail renders — a group holding the page
 // the reader is on, a counter on it, and the account rows the preset adds.
@@ -92,9 +93,63 @@ const collapsed = params.get('collapsed') === '1'
   ? true
   : (params.get('collapsed') === '0' ? false : undefined);
 
+// The third subject: a panel with a head and a foot, the pair #306 added the
+// property for. `main` has no `foot`, so the before side of the pair draws the
+// head alone and the shot shows what a page could not have without writing the
+// kit's padding out by hand.
+const FILTERS = [
+  { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
+  { label: 'Awaiting approval', description: '3 payouts', icon: 'shield' },
+  { label: 'Paid this month', description: '48 payouts', icon: 'check' },
+];
+const HEAD = '<div class="ui-dropdown__head"><b>Filter payouts</b></div>';
+const PANELS = {
+  'head-foot': {
+    value: 'Filter', variant: 'menu', ariaLabel: 'Filter payouts', open: true, items: FILTERS,
+    header: HEAD,
+    foot: '<span class="ui-dropdown__desc">Counts refresh every 5 minutes.</span>',
+  },
+  'foot-controls': {
+    value: 'Filter', ariaLabel: 'Filter payouts', open: true, items: FILTERS,
+    search: { placeholder: 'Search filters' },
+    header: HEAD,
+    foot: '<div style="display:flex;justify-content:flex-end;gap:8px">'
+      + button({ label: 'Cancel', variant: 'ghost', size: 'sm' })
+      + button({ label: 'Save', variant: 'primary', size: 'sm' })
+      + '</div>',
+  },
+};
+
+// The trigger's caret, closed and open, side by side. Shot at a device scale
+// the mark can be judged at: it is an 8px square carrying a 1.6px stroke, and
+// at 1x a reader cannot see where its ink sits in the button.
+if (params.get('subject') === 'caret') {
+  const one = (label, open) => `<div class="cr-cell">`
+    + `<div class="cr-cap">${label}</div>`
+    + dropdown({ value: 'Filter', variant: 'menu', ariaLabel: 'Filter', open, items: FILTERS })
+    + `</div>`;
+  document.body.innerHTML = `<div class="cr-row">${one('closed', false)}${one('open', true)}</div>`;
+  // The panel would cover the row; this subject is the trigger.
+  const st = document.createElement('style');
+  st.textContent = 'html,body{margin:0;background:var(--bg);color:var(--text);'
+    + 'font-family:var(--font-sans)}'
+    + '.cr-row{display:flex;gap:20px;padding:18px}'
+    + '.cr-cell{display:flex;flex-direction:column;gap:7px}'
+    + '.cr-cap{font:600 9px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}'
+    + '.ui-dropdown__panel{display:none}';
+  document.head.append(st);
+} else if (params.get('subject') === 'dropdown') {
+  document.body.innerHTML = `<div class="ddbox">${dropdown(PANELS[params.get('panel')])}</div>`;
+  // The page surface a dropdown is opened over, so the panel's own step reads
+  // against the ground it is raised from.
+  const st = document.createElement('style');
+  st.textContent = 'html,body{margin:0;background:var(--bg);color:var(--text);'
+    + 'font-family:var(--font-sans)}'
+    + '.ddbox{padding:var(--space-5) var(--space-5) 0}';
+  document.head.append(st);
 // The second subject: sidebarNav({ collapsed }) on its own, with the page the
 // reader is standing on inside a group — the row a shut group used to swallow.
-if (params.get('subject') === 'nav') {
+} else if (params.get('subject') === 'nav') {
   document.body.innerHTML = `<div class="navbox">${sidebarNav({
     items: NAV, active: 'pending', collapsed: true,
   })}</div>`;

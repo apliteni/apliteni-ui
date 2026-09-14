@@ -80,7 +80,7 @@ export const RULES = [
     dontHtml: menuDont,
     kit: [
       { ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' },
-      { ref: 'src/styles/dropdown.css:189', pattern: '.ui-dropdown__item.is-danger:hover' },
+      { ref: 'src/styles/dropdown.css:200', pattern: '.ui-dropdown__item.is-danger:hover' },
       { ref: 'src/styles/nav.css:111', pattern: '.ui-nav__item.is-danger:hover' },
     ],
   },

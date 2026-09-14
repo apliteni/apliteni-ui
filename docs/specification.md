@@ -483,6 +483,24 @@ The ladder, bottom to top:
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | the top step — the hover readout, a chip, the nav rail's hover | `#2d293c` | `#e7eaf1` |
 
+**A sunken box is read against the surface it sits in, and a floating panel is a rung above a
+card.** `--surface-2` is one rung under `--surface`, which is what makes a field on a card read as a
+well. Inside a panel it is two rungs under `--bg-elevated`, and in light that panel is the only pure
+white the kit paints, so the same token reads as a hole: the dropdown's search field measured
+**1.249 against its panel and a 20.9-point drop in lightness**, where a kit field on a card measures
+**1.186 and 15.6**. Reported on [#306](https://github.com/apliteni/apliteni-ui/issues/306)'s round 10
+as the search box looking too dark, and the field was innocent — it paints exactly what `.ui-input`
+paints. What moved was underneath it, when #314 took a light panel to white.
+
+In light the field takes `--bg`, which puts it at **1.140 and 12.9** against the panel: a shallower
+well than a card's, on a surface a step brighter than a card. Light needs its own value because its
+top rungs are compressed — `--surface` inside the panel is only 1.053, a field flattened into the
+surface with its border doing all the work. **Dark is unchanged and is an open question.** Its panel
+is a middle step rather than white, so the same two-rung drop reads as a well and not a hole, and
+nobody has been asked about it; `stories/dropdown-field-ground.test.js` holds light against the card
+measurement and holds dark at the **1.234** this tree measures, so deepening dark is a decision
+somebody writes rather than a drift, and bringing it in line lowers the number and passes.
+
 The ladder measures lightness, not elevation. Two surfaces on its top step — the hover readout
 and the collapsed rail's flyout label — float by role and take the treatment; the rest of that
 step, a chip and a hovered row, does not.
@@ -582,7 +600,7 @@ one `.ui-input` takes.
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
 takes an accent counter under the floor inside a panel. Two rules state it:
 `src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-`src/styles/dropdown.css:179` `.ui-dropdown__badge.is-accent`.
+`src/styles/dropdown.css:190` `.ui-dropdown__badge.is-accent`.
 
 **The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
 the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked
@@ -1167,7 +1185,7 @@ the kit emits has a rule at all — the omission [#303][i303] reported — is he
 
 ## The dropdown panel
 
-`dropdown()` places its panel; a consuming page never writes a rule to move it. Two things are
+`dropdown()` places its panel; a consuming page never writes a rule to move it. Three things are
 guaranteed, and each exists because the page had to write one.
 
 **One offset, both directions.** `--ui-dropdown-gap` is declared once on `.ui-dropdown__panel` and
@@ -1181,6 +1199,60 @@ edges pinned is stretched between them, so a page that set `bottom` and left the
 standing got a panel fourteen pixels tall. Measured in a browser at 1280×800, the same menu at the
 foot of a 249px rail went from 128.8px tall and hanging 66px below the fold to 128.8px tall and
 inside it, at the same 9px from the trigger.
+
+**One padding, and two blocks that bleed back through it.** `--ui-dropdown-pad` is declared on
+`.ui-dropdown__panel` beside the offset, and the panel's own `padding` reads it —
+src/styles/dropdown.css:79 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
+panel has to come back out through that padding to reach the edge, and before
+[#306](https://github.com/apliteni/apliteni-ui/issues/306) the only way to write that was to copy
+the number: the head's bleed was `margin: -6px -6px 5px` and a page building its own footer wrote
+the same `-6px` by hand, which its design-token guard refused as a magic number.
+
+`.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
+construction. One rule gives both their inner padding, at
+src/styles/dropdown.css:220-223 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+back to the edge it sits on with
+`calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
+it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the
+unwrapped `header` slot, which is the shape `railUser()` in `src/components/shell.js` has always
+written one in. `footer` remains the unwrapped slot at the bottom and sits inside the drawn foot,
+because the block that bleeds is the one that has to touch the edge it bleeds to.
+
+**Only the foot is an option, and that is Artur's call rather than a symmetry argument.** #306 asks
+for a foot; a `head` option was built beside it and rejected on review, on the ground that the kit
+should not grow a second way to write a block it already draws correctly by hand. The class, the
+bleed and the gate over the pair are what the issue is about, and they apply to a head written as
+markup exactly as they apply to a drawn foot.
+
+Held by `src/components/dropdown.test.js`, which sweeps every margin in the sheet: a negative length
+written out rather than read from the property fails, whichever rule it is in, and the head and the
+foot are compared term by term against each other.
+
+**What goes in them is the page's, and the panel's role says what may.** The kit gives the pair the
+bleed, the line and the corners, and no layout — a foot is a block, so a page laying out a
+Save / Cancel pair lays it out. The one constraint is ARIA rather than taste: a `role="menu"` panel
+takes menuitems and a `role="listbox"` panel takes options, so a control in either one's foot is
+refused by axe's `aria-required-children`. `search: true` makes the panel a `role="dialog"`, which
+is the same answer this component already gives for the field above the rows, and a control-bearing
+foot goes there. Non-interactive content — a title, a count, a note — is at home in all three.
+
+Measured by `stories/dropdown-foot-role.test.js`, which puts the same foot into each panel the
+factory emits and records which axe refuses, so the sentence above cannot quietly stop being true.
+
+**The trigger's caret is centred on its ink, not on its box.** The caret is two borders of a square
+turned 45°, so the mark is an L and the corner opposite it carries nothing: centring the element
+leaves the mark low when it points down and high when it points up. Measured in Chrome at a device
+scale of 8, against the trigger's own middle, the ink sat **1.75px low closed and 3.88px high open**
+— which is what [#306](https://github.com/apliteni/apliteni-ui/issues/306)'s round 10 reported as
+the open arrow needing centring. `--caret-off` is that gap, `(--caret − --caret-ink) / 2√2`, derived
+from the square and its stroke rather than typed, and it is applied **before** the rotation so it
+lands in page space: written after it, `translateY` travels along the turned axis and moves the mark
+sideways as well, which is what the two hand-tuned numbers it replaces were doing. Re-measured the
+same way, both states land within **0.25px** of the middle — the antialiasing fringe, symmetric
+about it.
+
+Held by `src/components/dropdown.test.js`, which reads both transforms: each shifts by
+`--caret-off`, each shifts before it turns, and the two shift opposite ways.
 
 **A panel can leave its trigger's subtree.** `portal: true` has `wireDropdown()` move the panel to
 the top of the tree its trigger is in, as `position: fixed`, with the trigger's viewport coordinates
