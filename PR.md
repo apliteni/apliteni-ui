@@ -234,6 +234,27 @@ and add the shared focus rule to it. Written out so the commit is mechanical:
 Then re-shoot `318-search-<chosen>` into `docs/evidence/318-search-field/` off the folded version
 and drop the other thirty-two frames, so what is committed is the look that shipped.
 
+### Both commits were rehearsed, on a scratch branch, and thrown away
+
+Not asserted. `b · lifted` was folded into `.ui-app__search` and the whole `#318` section, the rig's
+two hunks and the story were deleted, exactly as written above. What came out:
+
+- `scripts/evidence/shot.html`, `scripts/evidence/layouts.mjs` and
+  `stories/apps/ShellLayouts.stories.js` are **byte-identical to `origin/main`** — `git diff` prints
+  nothing for any of the three.
+- `src/styles/layout.css` is `main` **plus five lines**: `--surface-2` → `--surface` on one
+  declaration, and the four-line focus rule. That is the whole of what shipping `lifted` is.
+- 243 tests across `shell.test.js`, `shell-states.test.js`, `shell-rail.test.js`, `the-page.test.js`,
+  `accessibility-floor.test.js` and `elevation.test.js` pass on the folded tree. The elevation pin
+  stays at 41, because the folded field keeps the ring.
+- The folded tree re-shot through the rig's ordinary `shell-topbar-wide` frames comes back
+  **byte-identical** to the committed variant frames — `0 of 2918400 samples differ, max delta 0`
+  in both themes against `318-search-lifted-{light,dark}-1280.png`. The picture Artur chooses from
+  is the picture that ships.
+
+The four other looks fold the same way; `lifted` was rehearsed because it is the one recommended.
+The scratch branch was deleted and this branch still carries all five.
+
 The survey, the comparison page and the frames stay whichever way it goes: #318 is closed by
 writing the decision into the issue, and the page is the evidence it was taken from.
 
