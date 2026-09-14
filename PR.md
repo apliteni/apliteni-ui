@@ -209,6 +209,11 @@ Light's drop reads 1.44 where the page measured 1.43, because the prototype wrot
 literal `#101626` at 17% rather than reading `--shadow-ink`, which is `#1e1e32`. The gate floors
 1.43, so the page's own number is what has to hold.
 
+Every one of these was measured again after round 1 and none of them moved: 1.645 / 1.440,
+1.297 / 1.225, 1.199 / 1.438, 5.600 / 6.112 and 5.378 / 5.075, with light's drop core landing on
+`#d1d2d8` exactly. The refactor moved the treatment's *composition*, not its arithmetic — the
+drops and both line colours are the same values in the same order.
+
 **Frames.** `docs/evidence/295-floating/`, thirty-two of them, before and after, light and dark,
 1440 and 390. Two subjects are the review page's — the kit's dropdown panel held open over a card,
 and a popover holding a small form. Two were added in round 1, because they are the surfaces that
