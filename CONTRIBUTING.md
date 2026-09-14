@@ -1555,6 +1555,22 @@ property declared in `react/src/` was invisible, and the round-2 review parked a
 one and watched the React gate stay green. The two gates stay separate and the arithmetic does
 not — [one gate per workspace, over one shared implementation](#one-gate-per-workspace-over-one-shared-implementation).
 
+`resolutionsOf` read every layer but one. `var(--elev-drop)` is the treatment's own drop, so
+sending it through the cast rule would report the kit's shadow on all thirteen floating surfaces —
+both gates short-circuited on the spelling instead, counting the layer and never reading it. The
+third round of the #314 review wrote `:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) }` into a
+component sheet in each workspace and watched both gates stay green on a tight dark cast. The
+resolver on its own could not have caught it: a cascade marks every declaration it did not read
+from a token file `root: false`, so the palette wins in `winnersOf` where a browser at equal
+specificity and later in the cascade would let the component's `:root` win. `dropOffences` holds
+that layer instead, on two rules — the palette is the only place `--elev-drop` is declared at
+`:root`, and every value the layer can resolve to has to keep the token's shape, which is the one
+sentence `--elev-drop is broad faint drops and nothing else` now reads as well. Each gate pins the
+review's plant from its own workspace, as a pair: the plant refused, the same sheet without it
+clean. What the shape rule still does not reach — that geometry at a heavier alpha, re-pointed on a
+component's own element rather than at `:root` — is in the gate's ledger, because the drop's ink is
+floored against what the review page measured and nothing caps it.
+
 ### Font family count history
 
 `src/styles/typeface-roles.test.js` pins the exact number of declarations that name a family

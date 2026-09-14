@@ -181,28 +181,19 @@ export function resolutionsOf(raw, { vars, decls, substitute }) {
   return [...out];
 }
 
-/* The treatment's drop layer, as a floating surface writes it.
- *
- * Both gates used to count this spelling and never read it — `var(--elev-drop)`
- * resolves to the kit's own shadow, so putting it through isCast() would report
- * every floating surface as an offence. But the spelling is not the value. A
- * component sheet that writes `:root { --elev-drop: 0 40px 80px rgba(0,0,0,.9) }`
- * re-points the one shadow the kit paints — a browser takes it at equal
- * specificity and later in the cascade — and both gates stayed green on a tight
- * dark cast, from either workspace. #314 round 3, finding 1.
- *
- * So the layer is resolved like every other, against the two rules that hold it
- * rather than against isCast(): where the token may be declared, and what shape
- * every value it can resolve to has to keep. */
+/* The treatment's drop layer, as a floating surface writes it. Both gates used
+ * to count this spelling and never read it — isCast() would refuse the kit's own
+ * shadow on all thirteen floating surfaces — and #314's third review re-pointed
+ * `--elev-drop` from a component sheet and stayed green on a tight dark cast. So
+ * the layer is resolved like every other, against the two rules below.
+ * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
 export const TREATMENT_DROP = 'var(--elev-drop)';
 const DROP = '--elev-drop';
 
-/** Why `value` is not the shape --elev-drop may take, or '' if it is.
- *  Primer's --shadow-floating-* order: two broad faint drops, each offset
- *  straight down, blurred wider than it is offset, and pulled back inside the
- *  panel's own footprint by a negative spread. The reader is one so that the
- *  palette's token and a re-pointed one are judged by the same sentence.
- *  why: docs/specification.md#elevation */
+/** Why `value` is not the shape --elev-drop may take, or '' if it is: two broad
+ *  faint drops, each offset straight down, blurred wider than it is offset, held
+ *  inside the panel's footprint by a negative spread, and inked at an alpha
+ *  rather than a colour. why: docs/specification.md#elevation */
 export function dropShapeOffence(value) {
   const drops = layersOf(value);
   if (drops.length !== 2) return `${drops.length} layer${drops.length === 1 ? '' : 's'}, where the drop is two`;
@@ -226,21 +217,16 @@ export function dropShapeOffence(value) {
 
 /** Everything wrong with the drop layer in one cascade: where --elev-drop is
  *  declared, and every value it can resolve to. `palette` is the files the token
- *  is allowed to come from — each gate hands over the ones it reads.
- *
- *  The palette is the only place the token may be declared at `:root`, and the
- *  rule cannot be left to the resolver: a cascade marks every declaration it did
- *  not read from a token file `root: false` (stories/lib/contrast.js), so the
- *  palette wins in winnersOf() where a browser at equal specificity would let
- *  the later `:root` declaration win, and the winner alone would clear a
- *  re-pointing that ships. Naming the declaration is both the repair and the
- *  better error: it points at the sheet that wrote it rather than at the
- *  thirteen surfaces that read it. */
+ *  may come from — each gate hands over the ones it reads. The first rule cannot
+ *  be left to the resolver: a cascade marks what it did not read from a token
+ *  file `root: false`, so the palette wins where a browser would let a later
+ *  `:root` declaration win. why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
 export function dropOffences(cascade, palette) {
   const out = [];
   for (const entry of cascade.decls.get(DROP) ?? []) {
     if (palette.includes(entry.file)) continue;
-    if (!entry.selector.split(',').some((s) => /^:root\b/.test(s.trim()))) continue;
+    // (?![\w-]) rather than \b, so a class named `:root-…` is not read as :root.
+    if (!entry.selector.split(',').some((sel) => /^:root(?![\w-])/.test(sel.trim()))) continue;
     out.push(`${entry.file}  ${entry.selector} { ${DROP}: ${entry.value} } — the palette is the `
       + 'only place this token is declared at :root, and a component sheet declaring it there '
       + 'changes the one shadow every floating surface in the kit reads');

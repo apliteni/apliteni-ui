@@ -239,10 +239,10 @@ moved nothing on a surface that does not re-point its edge, and the rig reproduc
 
 | | |
 | --- | --- |
-| `npm test` | 1538 tests, 1535 pass, 2 skipped, **1 fail** — see below |
+| `npm test` | 1540 tests, 1537 pass, 2 skipped, **1 fail** — see below |
 | `npm run build` (React, tsup) | pass — ESM 39.58 KB, DTS 8.49 KB |
-| `npx vitest run` (react) | 18 files, 356 tests, pass |
-| `node --test` over the five colour and elevation gates and the reader's own tests | 150 tests, pass |
+| `npx vitest run` (react) | 18 files, 357 tests, pass |
+| `node --test` over the five colour and elevation gates and the reader's own tests | 152 tests, pass |
 | gitleaks 8.30.1, `--log-opts origin/main..HEAD` | no leaks, every commit on the branch |
 | gitleaks 8.30.1, `--no-git` over the tree | no leaks, the whole tree |
 | internal-terms denylist (`security.yml`'s own grep, verbatim) | clean |
@@ -459,6 +459,92 @@ is 18 files / 356 tests / pass — one more than round 1, the planted case. The 
 `--level paranoid` over all 42 non-PNG files the branch touches still reads 0 errors, 5 medium,
 7 warnings. The walk's own seconds are not comparable with the pairing above: that host was
 quieter, and this run measured 158.8s against the same 120s ceiling `main` also fails.
+
+## Review round 3
+
+A third independent review, of `0aedb74`, returned **MERGE**. All three round-2 findings were
+verified by running them rather than by reading the claim — the React gate refuses round 2's own
+plant in both themes and two harder ones, `resolutionsOf` is shared rather than copied, and all 40
+swept declarations print a line that holds a `box-shadow`. Every number in this file reproduced on
+that host, including the walk's 16,010 pairs and the eight contrast ratios to three decimals, and
+the eight drawer and toast frames re-shot byte-identical. One finding was left, a **NIT** the
+reviewer called out of proportion to hold a merge on. It is fixed here anyway — the gate in
+one commit, the prose that describes it in another.
+
+**The one layer no gate resolved.** Both gates short-circuited on the spelling `var(--elev-drop)`
+— it is the treatment's own drop, so the cast rule would refuse it on all thirteen floating
+surfaces — and counted that layer without ever reading it. The reviewer appended
+`:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }` to `src/styles/callout.css`, and the same to
+`react/src/Modal.css`, and a tight near-opaque drop shipped from either workspace with both gates
+green. The resolver alone would not have caught it: a cascade marks every declaration it did not
+read from a token file `root: false` (`stories/lib/contrast.js:84` `root: false`), so the palette
+wins in
+`winnersOf` where a browser — equal specificity, later in the cascade — would let the component's
+`:root` win.
+
+*Fixed:* `dropOffences`, in `scripts/lib/box-shadow.js` beside the reader both gates already
+share, holds that layer on two rules. **Where it is declared:** the palette is the only place
+`--elev-drop` is written at `:root`, because a re-pointing that keeps the shape still changes what
+every floating surface casts, and naming the declaration points at the sheet that wrote it rather
+than at the thirteen that read it. **What it can hold:** every value the layer resolves to —
+through the same `resolutionsOf` every other layer goes through — has to keep the token's shape,
+which is two broad faint drops, offset straight down, blurred wider than they are offset, spread
+back inside the panel, inked as a `color-mix` against `transparent` rather than as a colour.
+`--elev-drop is broad faint drops and nothing else` reads that same sentence now, so the palette's
+value and a re-pointed one are judged once rather than twice.
+
+**The reviewer's two plants are cases, one per workspace**, each a pair: the plant refused, the
+same sheet without it clean. Against the real sheets, both reverted afterwards:
+
+```
+$ printf '\n:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }\n' >> src/styles/callout.css
+$ node --test stories/elevation.test.js            →  11 tests, 9 pass, 2 fail
+✖ the drop layer is read rather than counted
+    (dark)  src/styles/callout.css  :root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) } — the
+            palette is the only place this token is declared at :root, …
+    (dark)  var(--elev-drop) resolves to "0 40px 80px rgba(0,0,0,0.9)" — 1 layer, where the drop is two
+    (light)  … the same two
+$ git checkout src/styles/callout.css              →  11 tests, 11 pass
+
+$ printf '\n:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }\n' >> react/src/Modal.css
+$ cd react && npx vitest run src/elevation.test.ts →  1 failed | 3 passed
+AssertionError: expected [ …(4) ] to deeply equal []
++   "(dark)  react/src/Modal.css  :root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) } — the palette
+     is the only place this token is declared at :root, …"
++   "(dark)  var(--elev-drop) resolves to \"0 40px 80px rgba(0,0,0,0.9)\" — 1 layer, where the drop is two"
++   "(light)  … the same two"
+$ git checkout react/src/Modal.css                 →  4 passed
+```
+
+Each plant fails the gate that owns the sheet, in both themes. The vanilla gate still passes the
+React plant, and that is the design rather than a hole: its sweep is what `src/index.css` imports,
+and `react/src/` belongs to the other workspace's gate —
+[one gate per workspace](CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation).
+
+**`docs/specification.md:528-533` `judged against every value` stands, and gained a sentence.**
+The claim that a layer is
+judged against every value the kit gives the properties it reads is true of the drop layer now,
+which is what made it worth fixing rather than narrowing. The paragraph says how that layer is
+judged — at the shape rather than at the cast rule, which the kit's one sanctioned cast would fail
+— and states the `:root` rule beside the two hook rules it already carried. What the shape rule
+still cannot see is in the gate's ledger and in `CONTRIBUTING.md`: the token's own geometry at a
+heavier alpha, re-pointed on a component's **own** element rather than at `:root`. The drop's ink
+is floored against what the review page measured and nothing caps it, so that one is a judgement
+about how faint is faint rather than a shape a reader can check.
+
+**Re-run after the fix.** `npm test` → 1540 tests, 1537 pass, 2 skipped, 1 fail — the contrast
+walk's wall clock, at 146.4s against the 120s ceiling `main` fails on this host too, and nothing
+else. Two tests are new, one per gate, and the walk still judges 16,010 pairs: this round adds no
+theme×accent cell and no rule to a stylesheet. React: `npm run build` passes (ESM 39.58 KB, CSS
+2.15 KB, DTS 8.49 KB), `npx vitest run` is 18 files / 357 tests / pass. The five gates and the
+reader's own tests are 152 / 152. The slop detector at `--level paranoid` over all 42 non-PNG
+files still reads 0 errors, 5 medium, 7 warnings — the reader's new comments were cut back to
+hold its ratio, and the argument they carried lives in `CONTRIBUTING.md`, which is where that
+gate's long notes go.
+
+Nothing rendered changed: the round is a reader, two gates and prose, and the diff touches no
+stylesheet and no component.
+
 
 ## The version bump
 

@@ -532,9 +532,14 @@ naming a component, read each layer's geometry per theme, and refuse a cast laye
 `--elev-drop`. A layer is judged against every value the kit gives the properties it reads —
 each gate resolving against its own workspace's declarations as well as the token files — not
 against one guess at the cascade, because a reader that keeps one declaration per name can be
-walked past by writing a second one. Two rules
-hold the shape above as well: a `:root` token may not read a hook a component re-points, and a
-component may not re-point `--elev-edge` on an element that writes no inner line. The numbers
+walked past by writing a second one. The drops are read there too, at the shape above rather than
+at the cast rule — they are the one cast this rule sanctions, so the cast rule would refuse them —
+and until #314's third review the gates counted that layer by its spelling and never resolved it,
+which let a component sheet re-point `--elev-drop` at a tight dark cast and stay green. Three rules
+hold the shape above as well: a `:root` token may not read a hook a component re-points, a
+component may not re-point `--elev-edge` on an element that writes no inner line, and `--elev-drop`
+is declared at `:root` in the palette and nowhere else, because a sheet re-pointing it there
+changes what every floating surface casts. The numbers
 above are floored there, so a treatment can get better and cannot quietly get worse.
 
 **Inside a raised surface, a row or a chip that lifts takes the step above the panel.** A hovered
