@@ -1,458 +1,369 @@
-# app shell: a second layout, and a content column in two widths
+# The band's search field, in five looks: a survey, four variants, and the decision to put to Artur
 
-Closes #308.
+Prepares #318. **This branch is not a fix and is not meant to merge as it stands.** It carries all
+five looks at once so Artur can choose from renders rather than from prose; the chosen one is one
+commit to keep and the other four are one commit to remove, and both commits are written out below.
 
 ## The decision this is built on
 
-Artur, reviewing PR #286 on 2026-09-13: *"make another layout: sidebar (logo, togger on the
-bottom), topbar (searchbox, usemenu), content layout in shell (two types - wide and centered)"*.
+Artur, on PR #317 on 2026-09-14 while approving the topbar layout and keeping the key cap inside the
+field's accessible name: *"btw it search field looks ugly"*.
 
-He then answered the three questions the issue left open, on the issue itself, and those answers
-are the brief rather than the acceptance criteria written above them:
+That is the whole of the brief. He did not say which part, so the one thing this branch is careful
+not to do is guess — #318 asks for a survey, renders, and a recommendation, and the recommendation
+below is labelled as the author's rather than presented as the answer.
 
-| Question | Artur's answer |
-| --- | --- |
-| What is the topbar's search box? | A palette trigger drawn as a field — `lessly-ui`'s `QuickSearchRow` moved into the topbar. Looks like a search field, shows ⌘K, opens `commandPalette()` (#274). No second search implementation. |
-| How does it ship? | `appShell({ layout: 'topbar' })` — a second layout on the one shell. The current layout stays the default. `accountShell()` passes it through. |
-| Where does wide vs centred apply? | Both layouts: `appShell({ width: 'wide' \| 'centered' })`. Render both; Artur picks the default next round. **He did, on 2026-09-14: `centered`.** |
+Two things from #317 are settled and are not reopened here: the band's arrangement (beside the rail,
+52px, the reader's mark at its end), and the key cap being part of the field's name rather than
+`aria-hidden`. Every option keeps both.
 
-The reference is `lessly-hub/lessly-ui` at `d1a25eda` — `app-shell.tsx`, `app-sidebar.tsx`,
-`quick-search-row.tsx`, `user-menu.tsx`, `page-column.tsx` and `.page-column` in `src/styles.css`.
-Read from source on 2026-09-13, not from memory. The clone refused on this host (the repository is
-private and no credential lives here, by design); the six files were handed over instead, and the
-escalation is in the run.
+## What was found in the code, before anything was drawn
 
-## What the reference actually says, and the three things it changed
+src/components/shell.js:234 `const searchField = ({ palette, placeholder }) =>` and
+src/styles/layout.css:340 `.ui-app__search {`, at `6b4af3e`. Three of these are measurements, not
+opinions.
 
-The band's shape and two of the smaller decisions came out of reading the files rather than out of
-the issue, and each one reversed something this branch had already built.
+**The field is the only control on the band that does not take the kit's focus ring.** It is a
+`<button>` without `.ui-btn`, so the shared rule —
+src/styles/base.css:140 `.ui-focusable:focus-visible,` — never reaches it and `:focus-visible`
+falls through to Chrome's own square black-and-white outline, drawn around a 12px
+radius. `docs/evidence/shell-layouts/shell-topbar-search-light.png`, already committed on `main`,
+is a picture of it. **This is a defect rather than a preference and every variant fixes it**,
+including — if `today` is what Artur picks — the do-nothing option.
 
-**The band stands beside the rail, not across the top of both.** `app-shell.tsx` gives the rail the
-viewport's left edge and its whole height, and puts the top bar in the column next to it — with a
-comment saying why: the bar is `h-14`, *"the same height `AppSidebar`'s header band"*, so *"the
-sidebar divider is the only line the band needs"* and the two bands close at the same height
-(#320 in their tracker; what this kit gets from that shape, and what it does not, is measured
-below). The first version here stacked a full-width band above the rail, which is
-what the kit's compatibility `.topbar` does. That put the product's mark in a second band directly
-under the first — two horizontal bands in the top-left corner, saying the same thing twice. The band
-moved beside the rail, `.ui-app` grew a `.ui-app__well` for the second column's two rows, and the
-three boxes — the band, the rail's head, the rail's foot — were given one height.
+**In the light theme the field is a smudge, by the numbers.** The fill, `--surface-2` over the
+band's `--bg`, measures **1.10:1**. The edge, `--border` over the same `--bg`, measures **1.09:1**.
+Two devices, neither of which reads. Dark is the theme it was built in and holds up there (1.07 and
+1.50).
 
-**On a band, the user menu is the mark alone.** `user-menu.tsx` carries the note in its props:
-*"A top bar is the case for turning it off: the avatar"*, with `aria-label={user.name}` on the
-trigger. The first version here reused the rail's trigger whole — avatar, name and address — which
-does technically fit a 52px row and reads as a rail block that wandered onto a bar. It is the avatar
-now, and the sentence the two lines said is written on the control, which is the same sentence
-`readerFace()` already writes when there is no menu and the avatar is the block.
+**The key cap is a box that is not there.** `.ui-cmdk__key` was drawn for the palette panel, whose
+ground is `--surface-2`, and fills itself with `--surface-3`. On the band the field is *also*
+`--surface-2`, so in light the cap's fill measures **1.04:1 against the field it sits in** and its
+border **1.01:1** — a filled, bordered box with neither a visible fill nor a visible border.
 
-**The key is read out loud.** `quick-search-row.tsx` builds its accessible name as
-`` `${label} ${stated}` `` and argues for it: the shortcut is *"the one fact a person needs before
-they stop reaching for the sidebar at all"*. The first version here had the cap `aria-hidden`, on
-the kit's own palette-row rule. That rule is about forty rows — *"a screen reader reading 'G then I'
-after every label is noise a sighted reader can simply skip"* — and there is one of these. The cap
-is inside the name now, and Artur kept it there on 2026-09-14.
+**The words on the trigger are the palette's own.**
+src/components/shell.js:99 `return { palette, placeholder: str(given.placeholder) || 'Search or run a command…' };`
+defaults the trigger's words to the palette's own placeholder — the prompt for a box
+you have already opened. At 390px the 320px field shrinks and it clips to *"Search or run a co…"*
+(`docs/evidence/shell-layouts/shell-topbar-phone-light.png`).
 
-One thing the reference does that Artur's answer overrides: `QuickSearchRow` is the **rail's** first
-row there (`railTop`, *"between the header's rule and the rows"*). He asked for it in the topbar,
-so that is where it is.
+## The survey
 
-## What this does
+`docs/reviews/318-search-field.md`. Seven systems, each read from its own source on 2026-09-14 —
+the files on this box for `lessly-ui` at `d1a25eda`, and the served HTML plus the served stylesheet,
+fetched and grepped, for the rest. Width, ground, border, radius, glyph, placeholder, key-cap
+treatment, focus treatment, and whether the thing is a field or a button drawn as one, for each.
 
-`appShell({ layout: 'topbar' })` is the same shell with three parts in different places.
-`layout: 'rail'` is the default and is what every page already on the shell keeps — untouched.
+The finding that produced two of the four variants: **nobody draws this control on the sunken step.**
+Primer's is `#fff` on a white page and lets a `#d1d9e0` border do all of it. Geist's is `#fff` on a
+grey rail. lessly-ui's `QuickSearchRow` is `bg-bg-overlay` where every other field in that kit is
+`bg-bg-primary`, and its own comment argues it: *"every other field sits on a card or a page and
+this one sits on the rail — which IS `bg-bg-primary`, so the field's own fill would be its ground
+and only the border would say it is there"*. Notion's has no fill at all. This kit's is sunken
+because `.ui-app__search` borrowed `.ui-input`'s ladder wholesale, and `.ui-input` is drawn on a
+card.
 
-- **The reader's block leaves the rail's foot for the band, and the fold's control takes its
-  place.** At the foot the toggle stands on the glyph column from the first frame, so the fold moves
-  it nowhere; the ride along the closing edge stays the head band's, which is the one place on the
-  rail where a mark does not start on that column. The toggle at the foot is where the reference
-  draws it, and where this kit drew it before Artur moved it to the head for the other layout.
-- **The band carries a search field at its start and the reader at its end.** A `<header>` outside
-  the navigation landmark — neither of the two is a place to go.
-- **The search field is a palette trigger drawn as a field.** It carries `[data-cmdk-open]`, the
-  palette's own delegated trigger, so the kit has one search surface and not two. The caller names
-  the palette they rendered; with no palette named there is no field — the argument `signOutHref`
-  takes. `paletteHotkey()` reads the platform and a server has none, so the markup ships `Ctrl K`
-  and `wireShell()` writes the reader's own key into the cap.
-- **`width: 'wide' | 'centered'` on both layouts.** `centered` — Artur's default, taken on
-  2026-09-14 — is the column the kit has always drawn; `wide` takes the cap off and fills the well.
+**Linear is in the table as a row that could not be read, not as one written from memory.**
+`linear.app/docs` renders its search trigger from a client-side chunk (fetched: four lines
+re-exporting a component from a bundled design system), the served CSS carries no rule for it, and
+the app is behind a login this box has no credential for. Raycast's and Slack's rows carry a smaller
+version of the same caveat, stated in the survey: they are documentation searches, not those
+products' app chrome.
 
-### What was reused, and what was not
+## The five looks
 
-The issue asked this to be said out loud.
+The look is a stylesheet's, keyed off `data-search-variant`. **The markup is identical in all
+five** — the same `<button>`, the same accessible name, the same `[data-cmdk-open]`, the same
+`kbd` — which is why every gate the field already has is green on each of them.
 
-| From | Reused | Not reused, and why |
-| --- | --- | --- |
-| `topbar()` / `.topbar` | The **height**. `--ui-app-band` is held to `.topbar`'s own height by a gate, so the kit has one band height. The `.ui-app-page` sticky-offset pattern was read and deliberately not used — see the right column. | Everything it draws. `topbar()` is the compatibility preset: `brand()`, the Deck/Text switch, the version switcher, the theme toggle and `accountMenu()` — a second account menu with its own `.acct`/`.avatar` classes. Artur asked for the #286 menu, which is `dropdown()`-based. Reusing `topbar()` would have put two account menus in the kit's one shell. `.ui-app-page` is not used either: it offsets the rail *below* a band, and this band does not stand over the rail. |
-| `railUser()` (#286) | The **whole block** — the same `dropdown()`, the same panel head, the same Sign out row, the same `wireDropdown()` wiring. One function draws it in both places. | Nothing. Only `direction`, `align`, the chevron and the trigger's contents differ, and each is an argument. |
-| `commandPalette()` (#274) | The **trigger hook** (`[data-cmdk-open]`), `paletteHotkey()`, and the key cap class `.ui-cmdk__key`. | Nothing. The shell draws no palette of its own and implements no search. |
-| `.ui-input` | The field ladder — the sunken step, the kit's hairline, the field radius. | The class itself: `.ui-input` is `width: 100%`, which is wrong for an item on a band. |
-| `.ui-cmdk__search-ic` | The glyph's **box and stroke**, 17px at 2.2, so the trigger and the thing it opens are not two search marks. | — |
-| The #277/#286 gates | Extended in place: `PHONE_ONLY_RULES` grew the rail's foot, the fold-offset gate was scoped to the head band, the collapsed/narrow normaliser learned the layout qualifier. | A second set of gates. Every one of the four shell test files is the same file. |
+| | What changes | Read from | Light: fill / edge |
+| --- | --- | --- | --- |
+| **today** | nothing — what #317 ships, rendered off this branch | — | 1.10 / 1.09 |
+| **a · bordered** | no fill at all; `--border-strong` carries it at 9px; the cap outlined on the same ground | Notion's search; GitHub's header cap (`background-color:#0000` + 1px border) | — / **1.33** |
+| **b · lifted** | the same pill one step **up** (`--surface`), so the fill is lighter than the band | lessly-ui's own comment; Geist's white-on-grey | **1.08 above** / 1.09 |
+| **c · quiet** | 240px, `Search…`, the key set beside the words rather than boxed | Tailwind's docs trigger; lessly-ui's plain-text shortcut | 1.10 / 1.09 |
+| **d · wide** | the field grows to the reader's mark, bordered | GitHub's product command bar | — / 1.33 |
 
-### How `width` and `maxWidth` were reconciled
+`today` is shot off this branch with no attribute set at all, so the baseline in the comparison is
+the branch drawing #317 rather than a copy of #317's evidence.
 
-One column, one cap, two ways to name it:
+One of the four changes a string as well as a rule: **c** shortens the placeholder, and the
+placeholder is an argument to `appShell()`. On this branch the rig passes it
+(`scripts/evidence/shot.html`); if **c** is chosen, `shell.js:99`'s default moves with it.
 
-- `width` picks the cap the column **falls back to** — `var(--measure)` centred, `none` wide.
-- `maxWidth` is the **number**, and it replaces that fallback on either width.
+## My recommendation, and the reason
 
-So the two options cannot disagree, and neither writes a second copy of a number. `centered` adds no
-class, because it is the rule that was already there; `wide` adds `.ui-app__main--wide`, whose whole
-content is the cap it removes. This is the reference's own discipline — *"`full` is the absence of
-that class, never a second copy of the number"* — inverted so that markup already on `.ui-app__main`
-keeps the column it had.
+**b · lifted**, and this is the author's call rather than Artur's — he has not seen the frames yet
+as this is written.
 
-The reference's cap is **not** taken. `.page-column` is
-`calc(var(--grid-container-max) - 249px - 48px)` — the container less the rail less the inset. This
-kit records a reading column in `--measure` (#198, #208, Artur's own call between three options),
-and a third derived width would be a fourth number for one gate to hold against three files. Named
-here rather than left to look like an oversight.
+Three reasons, in the order they matter:
 
-## A defect the gates found, and two the pictures did
+1. **It is the one thing every readable reference agrees on.** Two of the seven put this control
+   a step *above* its ground (lessly-ui, Geist), four give it effectively no fill at all —
+   1.05:1 or less against the page (GitHub's header at `#00000003`, Primer's real field at the
+   page's own `#fff`, Notion's none, Tailwind's 2% black) — and **none of the seven puts it on a
+   fill a step below**. That is not a taste; it is what happens when a field designed for a card
+   is moved onto a page. The band is `--bg`, the bottom of the ladder, so a sunken fill has
+   nowhere to go but down into it.
+2. **It is one declaration, and it fixes the cap for free.** The cap stops being invisible without
+   being redesigned: `--surface-3` on `--surface` is 1.14:1 rather than 1.04:1. Nothing else in
+   the kit moves, and `.ui-app__search` keeps its family resemblance to `.ui-input` — same radius,
+   same hairline, same shape, one step the other way.
+3. **It leaves the separable questions separate.** The sentence and the width are arguably wrong
+   too, but each is fixable on its own afterwards and neither needs to ride on this decision.
 
-**`layout: ['topbar']` drew half a second layout.** The option was read through `String()`, and
-`String(['topbar'])` is `'topbar'`. Both names are read strictly now, against the one name each that
-is not the default. Found by the gate that tries the wrong values on purpose.
+**Where I would go instead:** if what reads as ugly is specifically the light theme, **a** is the
+stronger answer — it is the only option that moves the *edge*, which is the device carrying the
+control in every reference that has no fill to lean on, and 1.09 → 1.33 is the largest single
+improvement on the list. And if what reads as ugly is the phone, **c** is the only one that fixes it.
 
-**`wireShell()` read the wrong realm's `navigator`.** `paletteHotkey()` defaults to the global one,
-so a shell in a frame, in a second document, or under test was handed another page's platform — and
-under Node, a `navigator` with no platform at all. It reads the root's own window now, which is the
-discipline `command-palette.js` already keeps for its events.
-
-**A folded rail in the new layout drew an empty band.** The first evidence run showed a 52px head
-band with nothing in it and its hairline still under it at the top-left — which is the exact defect
-`docs/specification.md#the-page-shell` says the 720px block exists to avoid, arriving on a desktop
-instead. The lockup only goes where something *arrives* on its column; in this layout the toggle is
-at the foot and nothing does. The fade is scoped to the layout that earns it, the mark stays and its
-word still folds away, and a gate holds both halves.
+I would not pick **d** without Artur saying the empty band is the complaint: it makes the topbar
+layout stop looking like a sibling of the rail layout, which is a larger change than he asked for.
 
 ## Evidence
 
-Eighteen images under `docs/evidence/shell-layouts/`, all produced by the committed rig —
-`scripts/evidence/layouts.mjs`, new beside `shoot.mjs` and `nav.mjs`, over the same server, the same
-`shot.html` and the same Chrome. 1280×760 unless said otherwise.
-
-**Both layouts × both widths × both themes** — the matrix Artur picked the default from:
-
-| | wide | centred |
-| --- | --- | --- |
-| topbar, dark | `shell-topbar-wide-dark.png` | `shell-topbar-centered-dark.png` |
-| topbar, light | `shell-topbar-wide-light.png` | `shell-topbar-centered-light.png` |
-| rail, dark | `shell-rail-wide-dark.png` | `shell-rail-centered-dark.png` |
-| rail, light | `shell-rail-wide-light.png` | `shell-rail-centered-light.png` |
-
-And the states the layout is about:
+Forty frames under `docs/evidence/318-search-field/`, all from the committed rig —
+`scripts/evidence/layouts.mjs`, extended with a variant switch rather than shot by hand, over the
+same server, the same `shot.html` and the same Chrome. Eight per look:
 
 | What | Files |
 | --- | --- |
-| the banded layout folded — the toggle has not moved, the mark has stayed | `shell-topbar-folded-{dark,light}.png` |
-| the search field under the keyboard, with the browser's own ring | `shell-topbar-search-{dark,light}.png` |
-| the reader's menu open from the band, focus on Sign out | `shell-topbar-menu-{dark,light}.png` |
-| a phone at 390×800, one per layout | `shell-{rail,topbar}-phone-{dark,light}.png` |
+| the band alone, life size (1032×52) — the fastest comparison | `318-search-<v>-{light,dark}-band.png` |
+| the whole screen, 1280×760 | `318-search-<v>-{light,dark}-1280.png` |
+| a phone, 390×800 — where today's sentence clips | `318-search-<v>-{light,dark}-390.png` |
+| the field under a **real Tab press** — today's browser outline against every variant's kit ring | `318-search-<v>-focus-{light,dark}.png` |
 
-Every focused and open state is reached by real `Tab` and `ArrowDown` presses, not by a class forced
-on — the rig walks the tab order until the element it wants has focus, and fails if it never does.
+`<v>` is `today`, `bordered`, `lifted`, `quiet`, `wide`.
 
-### The rig waits on the document, not on a clock
+The band close-up is captured as `.ui-app__bar` rather than as a hand-written clip box, for the
+reason `float.mjs` captures `.fl-cell`: a box measured from the document cannot drift from what the
+document draws. The focus frames are reached by real `Tab` presses through `tabTo()`, and the rig
+waits on `settle()` — `document.getAnimations()` — and never on a clock.
 
-The first version of `layouts.mjs` slept 500ms after load and 300/400ms after a keystroke, and the
-wave-3 review measured **8px of drift in the two post-`Tab` frames**: the ring and the panel were
-being photographed mid-transition. `scripts/evidence/settle.mjs` — taken from
-`fix/306-dropdown-pad-foot`, byte-identical, so it merges clean whichever branch lands first — asks
-`document.getAnimations()` whether any `CSSTransition` is still running and waits for a painted
-frame either side of the answer. There is no `waitForTimeout` left in this shooter.
+A 2× set of the same forty is at `/home/orca/shots-318/` on the host for the review page, shot by
+the same script under `UI_DSF=2`. **Deliberately not committed**: 1× is what the rig's README calls
+the reproducible cross-check.
 
-Proof it settled, run just now:
+### Re-shot, and what did not hold still
 
-- **Two consecutive full runs are byte-identical**, all eighteen frames: `cmp` reports `same` for
-  every file between `runA/` and `runB/`.
-- Against what the clock-based version had committed, **exactly four frames moved** —
-  `shell-topbar-search-{dark,light}.png` and `shell-topbar-menu-{dark,light}.png`, the four the
-  review named. The fourteen at-rest frames are unchanged byte for byte, which is what says the
-  timeouts were only ever a race where a keystroke had started a transition.
-
-**One caveat, arrived with the merges and measured rather than assumed.** Re-shot against
-`origin/main` at `a162922`, two runs of the same tree now disagree on **two** frames —
-`shell-topbar-menu-dark.png` and `shell-topbar-search-dark.png` — by **21 pixels each, confined to
-rows 213–215**, at `x 49–51` and `x 226–228`. That is the two bottom corners of the active nav
-row's rounded plate, rasterizing one of two ways; the pixels flip between near-black and
-near-white, so it is a coin-flip on a 3px antialiased corner rather than anything still moving.
-The other sixteen frames, both phone widths and every light frame included, are byte-identical
-across runs.
-
-It is not `settle()` failing and not this branch's: at `e2bcd89`, before either merge, two full
-runs agreed on all eighteen frames and the 2× set agreed on all fourteen. It appears only in the
-topbar layout, where the band puts the rail's rows on a different sub-pixel phase from the
-rail-only layout, whose frames are unaffected. Nothing a reviewer judges is in those 21 pixels,
-so the frames are committed as shot and the limit is stated here instead of being rounded to
-"deterministic".
-
-A 2× set of the same frames (minus the phones) is at `/home/orca/shots-308/` on the host for the
-review page, shot by the same script under `UI_DSF=2` and re-shot through `settle()` with the rest.
-It is deliberately **not** committed: 1× is what the rig's README calls the reproducible
-cross-check.
-
-## The gates this adds
-
-Every rule below is enforced, and each one names the mutation that kills it.
-
-| Gate | What it holds | What breaks it |
-| --- | --- | --- |
-| `shell.test.js` — the band | `layout: 'topbar'` draws a `<header>` outside the nav; the default draws none; `accountShell()` passes the option through | drawing the band in both layouts, or swallowing the option in the preset |
-| `shell.test.js` — the well | the band is the first of exactly two rows in `.ui-app__well`, and nothing wraps the shell in `.ui-app-page` | putting the band back above the rail, or re-using the compatibility wrapper that offsets the rail |
-| `shell.test.js` — one reader | exactly one `.ui-app__user` per layout, in the band or at the foot, never both | drawing the block in both places |
-| `shell.test.js` — the band's trigger | the avatar alone, named by `aria-label`, initials `aria-hidden` | reusing the rail's two-line trigger, or leaving the button with no name |
-| `shell.test.js` — one toggle | exactly one `[data-rail-toggle]`, in the rail, at the foot or in the head band | drawing it twice, or leaving it outside the rail |
-| `shell.test.js` — the search | no palette named, no field; `[data-cmdk-open]` carries the id; `aria-haspopup="dialog"` | drawing a field that opens nothing, or implementing the open |
-| `shell.test.js` — the key | the cap is `.ui-cmdk__key`, is not `aria-hidden`, and holds `paletteHotkey()`'s answer | hiding the key, or writing a cap of the shell's own |
-| `shell.test.js` — the widths | both widths in both layouts; one `main.ui-app__main`; `--wide` iff wide | a second column, or a class on the wrong width |
-| `shell.test.js` — the number | `maxWidth` survives either width name | letting the name outrank the number |
-| `shell.test.js` — strictness | six wrong layout names and six wrong width names all fall to the default, `['topbar']` and `['wide']` among them | reading either through `String()` — proven, see below |
-| `shell.test.js` — one band | `layout: 'topbar'` + a `topbar` bag draws one `<header>`, and it is not `.topbar` | composing the two into a page with two headers |
-| `shell-states.test.js` — one height | the band, the rail's head and the rail's foot resolve to one height, and it is `.topbar`'s | a second literal for either box |
-| `shell-states.test.js` — the stick | the band is `sticky` at `top: 0` | a band that scrolls away with the page |
-| `shell-states.test.js` — the caps | centred falls to `--measure`, wide to `none`, both centre in their track | capping the wide column, or copying `--measure` into a second rule |
-| `shell-states.test.js` — the mark | a folded rail keeps the lockup in the banded layout and loses it in the default, and loses its word in both | fading the mark where nothing takes its column |
-| `shell-states.test.js` — the foot, both ways | below 720px the rail's foot is not drawn; on the reader's fold it is | hiding the foot on the press, or leaving an empty one on a phone |
-| `shell-rail.test.js` — the fold | the toggle at the foot folds the rail and writes the cookie, both ways | a fold path that only finds the head band's control |
-| `shell-rail.test.js` — the menu | `wireShell()` reaches the menu on the band; Sign out is in it | wiring only what is in the rail |
-| `shell-rail.test.js` — the open | the field opens the palette it names | dropping the trigger hook |
-| `shell-rail.test.js` — the platform | with `navigator.platform` set to a Mac, the cap reads `⌘K` | reading the global `navigator`, which is the defect above |
-| `the-page.test.js` — `layout` | no screen the kit draws names the reader twice, opens the palette from two controls, or stacks two bands | a demo screen that hand-rolls a second search box or menu |
-| `the-page.test.js` — `width` | no screen caps its own page at a number | a page-scale `max-width` inside `main` |
-
-## Guidelines
-
-Two rules on **Guidelines / The page** (#298's page, which landed four commits before this branch),
-each with a check keyed to its id in `the-page.test.js` and a row in the contract's rule-to-code
-table:
-
-| Rule | The imperative on the page | What its check measures |
-| --- | --- | --- |
-| `layout` | *Choose one shell layout for a product and keep every screen on it.* | One layout per product is not something one screen can show, so the check takes the half a screen can break: the parts a layout moves must not be drawn twice. |
-| `width` | *Give a page the wide content column when it is mostly tables and boards, and the centred one when it is mostly reading and forms.* | That no screen caps its own page at a number. Carries a Do/Don't pair drawn to scale: the same table in the wide column and in the centred one, where its last column is off the side. |
-
-The page now carries ten rules and five Do/Don't pairs; the counts in `docs/specification.md` moved
-with it, and a gate holds rules, checks and table rows in step.
-
-## The wave-3 review, and what each finding changed
-
-Verdict was "ready for Artur" with five should-fix and two nits. All seven are answered here; the
-two open questions below are untouched, as instructed.
-
-**1. The strictness gate covered `layout` and not `width`.** Correct, and the mutation proves it:
-`toWidth` changed to `String(v) === 'wide'` left all 97 cases in `shell.test.js` green. The width
-list now carries `['wide']` beside the layout list's `['topbar']`, and the same mutation is red:
+The eight `lifted` frames were re-shot off the committed branch after the last code change and
+compared with `scripts/evidence/diff.mjs`, pixel by pixel rather than by hash:
 
 ```
-✖ a layout or a width the kit does not know is the one it has always drawn
-  AssertionError: width: ["wide"] took the cap off
+0 of 2918400 samples differ, max delta 0      (light 1280, dark 1280, both focus frames)
+0 of  936000 samples differ, max delta 0      (both phones)
+0 of  160836 samples differ, max delta 0      (both bands)
+34 of 2918400 samples differ, max delta 7 in x∈[49,227] y∈[213,214]   (dark, 1280)
 ```
 
-Restored, the file is 97 tests, 97 pass.
+Seven of eight to the byte. The eighth is the caveat #317 measured and wrote into the rig's README:
+in the topbar layout, the active nav row's rounded plate rasterises one of two ways at its bottom
+corners — `rows 213–215` at `x 49–51` and `x 226–228`, which is the box above. It is not in the
+subject, it is not this branch's, and it is named rather than rounded to "deterministic".
 
-**2. The corner does not show what the body said.** Also correct, and measured again here at 1280
-in Chrome rather than taken on trust: both boxes end at `52`, so the two rules are **level** — but
-the rail's half runs `x 16→232` and the band's starts at `249`, a 17px break, and in light the
-rail's half is `rgb(228,231,238)` on a rail ground of `rgb(227,230,238)`, which is **1.009:1**.
-Invisible. The band's half, same ink on `--bg`, is 1.086:1.
+### The comparison page
 
-**The prose is softened rather than the rule repainted**, in `PR.md`, `docs/specification.md` and
-the CSS comment, and the specification now carries the measurement. Three reasons for that
-direction:
+`docs/reviews/318-search-field.html`, in the shape of `docs/reviews/295-popover-variants.html` —
+the same `review-page` template, the goal, the constraints, the prior decisions with their sources,
+five options each with its own tradeoff paragraph and its eight frames, and a recommendation marked
+as a recommendation.
 
-- The rail's head, its foot and the reader block all take one hairline. Repainting the head alone
-  leaves the rail's own two rules disagreeing with each other, which is a worse corner than the
-  one being described.
-- 1.009:1 is `--border` against `--surface-2`, which is the elevation ladder decided in #295 —
-  Artur's call, inherited from `main`, and every surface in the kit that pairs those two tokens has
-  it. That is a token question for its own issue, not something to slip into a layout PR.
-- Closing the 17px break needs the head band's rule bled to the rail's edges, which costs it the
-  open column **every block of the rail keeps** — a #277 guarantee with a gate on it.
+## What this branch changes, and what it does not
 
-What the gate holds is what the body now claims: the height. The invisible-in-light hairline is
-named here rather than quietly dropped, and is worth an issue of its own.
+| File | What |
+| --- | --- |
+| `src/styles/layout.css` | The `#318` section at the end of the file: one focus-ring rule the variants share, and four `[data-search-variant="…"]` blocks. **Nothing above that banner is touched.** |
+| `scripts/evidence/shot.html` | Reads `&search=<v>` and sets the attribute on the root; names the one variant that shortens the placeholder. |
+| `scripts/evidence/layouts.mjs` | The `#318` loop — five looks × two themes × four frames. Filtered by the rig's existing third argument, so `… . out 318-search` shoots only these. |
+| `stories/apps/ShellLayouts.stories.js` | `SearchVariant` — one screen in a box carrying the attribute, the look picked from a control. |
+| `stories/elevation.test.js`, `CONTRIBUTING.md` | The pinned box-shadow count, 40 → 41 — the variants' shared focus rule — and the row in the count table that records it. |
+| `docs/reviews/318-search-field.md`, `.html` | The survey and the comparison page. |
+| `docs/evidence/318-search-field/` | The forty frames. |
 
-**3. The icon-size ledger** now carries its `#308` entry for `.ui-app__search-ic svg`, beside the
-#277 one it stopped at.
+Nothing in `src/` writes `data-search-variant` and no consumer sets it, so **unset — which is every
+consumer — the field is byte-for-byte what #317 shipped.**
 
-**4. The rig waited on a clock.** Fixed with `settle.mjs`; the two-run agreement and the four
-frames that moved are under [Evidence](#the-rig-waits-on-the-document-not-on-a-clock) above.
+The attribute is read on *any ancestor* rather than on `:root`, and that is not cosmetic: a story is
+mounted into the body, so a rule keyed on `<html>` is a rule no gate can reach. Keying it on an
+ancestor is what lets `SearchVariant` land the variants' ring selector for
+`stories/guidelines/accessibility-floor.test.js` to measure — which is the gate that caught this in
+the first place, on the first run, with `a ring selector no story renders is a ring nobody
+measured`.
 
-**5. The slop claim was false.** It was, and it is corrected under
-[`ai-slop-detector`, paranoid level](#ai-slop-detector-paranoid-level) — the two items are fixed
-*and* the remaining `layout.css` warning is stated rather than rounded to a pass.
+## The two commits that settle it
 
-**6. The overlap table** is above, computed with `git merge-tree`.
+**To keep the chosen one** — replace `.ui-app__search`'s own declarations with the chosen block's,
+and add the shared focus rule to it. Written out so the commit is mechanical:
 
-**7. The two nits.** The stray blank line at `layout.css:30` is gone, and
-`.ui-app__foot { display: none }` in the 720px block is `.ui-app__rail .ui-app__foot` now, scoped
-like its neighbours — which the `PHONE_ONLY_RULES` entry in `shell-states.test.js` follows, so the
-rule-for-rule gate still pairs it with its twin.
+```css
+/* whichever is chosen, this lands: the field takes the kit's ring like every
+   other control on the band. why: docs/specification.md#the-focus-ring */
+.ui-app__search:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* a · bordered */ background: transparent; border-color: var(--border-strong);
+                   border-radius: var(--radius-sm);
+                   :hover { border-color: var(--muted) }
+                   :focus-visible { border-color: var(--accent) }
+                   kbd { background: transparent; border-color: var(--border-strong) }
+/* b · lifted   */ background: var(--surface); border-color: var(--border);
+                   :hover { border-color: var(--border-strong) }
+                   :focus-visible { border-color: var(--accent) }
+/* c · quiet    */ flex-basis: 240px; border-radius: 999px;
+                   kbd { min-width: 0; padding: 0; border: 0; background: none;
+                         font-weight: var(--weight-medium); color: var(--muted) }
+                   …and shell.js:99's default placeholder becomes 'Search…'
+/* d · wide     */ flex: 1 1 auto; background: transparent;
+                   border-color: var(--border-strong); border-radius: var(--radius-sm);
+                   :hover { border-color: var(--muted) }
+                   :focus-visible { border-color: var(--accent) }
+                   kbd { background: transparent; border-color: var(--border-strong) }
+```
+
+**To remove the other four** — delete four additive hunks and nothing else:
+
+1. `src/styles/layout.css`: everything from `/* -- #318 · the search field's look` to the end of
+   the file.
+2. `scripts/evidence/shot.html`: the `SEARCH_WORDS` map, the `variant` parameter on `laid()`, and
+   the three lines in the `layouts` branch that read `&search=` and set the attribute.
+3. `scripts/evidence/layouts.mjs`: the `#318` loop.
+4. `stories/apps/ShellLayouts.stories.js`: `SEARCH_VARIANTS` and `SearchVariant`.
+5. `stories/elevation.test.js` and its row in `CONTRIBUTING.md`: back to 40 — unless the chosen
+   look keeps the focus rule, which it should, in which case 41 stays and the row is rewritten
+   from "branch state" to what shipped.
+
+Then re-shoot `318-search-<chosen>` into `docs/evidence/318-search-field/` off the folded version
+and drop the other thirty-two frames, so what is committed is the look that shipped.
+
+The survey, the comparison page and the frames stay whichever way it goes: #318 is closed by
+writing the decision into the issue, and the page is the evidence it was taken from.
 
 ## Proof
 
-Run on this host at the branch head, with `origin/main` (`a162922`) merged in.
+Run on this host at the branch head, nothing else running. `origin/main` is at `6b4af3e`.
 
 ```
 $ npm test
-ℹ tests 1579
+ℹ tests 1595
 ℹ suites 0
-ℹ pass 1576
+ℹ pass 1592
 ℹ fail 1
 ℹ cancelled 0
 ℹ skipped 2
 ℹ todo 0
 
-✖ failing tests:
-✖ the walk has not run away with the clock
-  AssertionError [ERR_ASSERTION]: the contrast walk took 259.4s, against a 120s ceiling
-  set from a measured worst case of 47.6s on a fully contended 10-core laptop.
-```
-
-**That one failure is the wall-clock ceiling and nothing else, and it is red on `main` on this host
-too.** Measured, not asserted: `main` checked out at `233a1e7` in a second worktree over the same
-`node_modules`, `node --test stories/contrast.test.js`:
-
-```
-ℹ tests 22
-ℹ pass 20
-ℹ fail 1
-  AssertionError: the contrast walk took 160.2s, against a 120s ceiling…
-```
-
-The walk's own assertions — every ground, every chip pair, both themes — pass on both. What the
-number is depends entirely on what else the box is running: this branch measured 165.6s on one run
-and 259.4s on another, against `main`'s 160.2s, with several agents working alongside. The bar is
-120s on an unloaded 10-core laptop, and nothing here is that. The two skips are the opt-in
-`CONTRAST_ACCENTS=1` matrix and the `jq`-gated publish check, skipped on `main` as well.
-
-```
-$ npm run build
-ESM dist/index.css 2.15 KB
-ESM dist/index.js  55.98 KB
-ESM ⚡️ Build success in 112ms
-DTS ⚡️ Build success in 3102ms
-DTS dist/index.d.ts 13.43 KB
-
-$ npx vitest run   # in react/
+$ npm test -w react
  Test Files  20 passed (20)
       Tests  530 passed (530)
+
+$ npm run build
+ESM dist/index.js  55.98 KB
+ESM dist/index.css 2.15 KB
+ESM ⚡️ Build success in 210ms
+DTS ⚡️ Build success in 4928ms
+DTS dist/index.d.ts 13.43 KB
 ```
 
-**There is no React `<AppShell>` for these options to reach.** `react/src/index.ts` publishes
-`Icon`, `Button`, `Badge`, `Card`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `DataTable`,
-`Pagination`, the loading set, and — since #316 merged into this branch — `Dropdown` and
-`BackLink`: components, not layout. The acceptance criterion's "if one
-exists" is answered: it does not, and building one is a larger question than this issue.
+**The one failure is this host, not this branch, and it is measured rather than asserted.**
+`stories/contrast.test.js` — *"the walk has not run away with the clock"* — took 197.7s against a
+120s ceiling. `origin/main` fails the same gate on the same box:
 
-### `ai-slop-detector`, paranoid level
+```
+$ node --test stories/contrast.test.js          # feat/318-search-field
+branch walk: 188.95 s   ℹ pass 20  ℹ fail 1
 
-`ShellLayouts.stories.js`, `_the-page.js`, `layouts.mjs`, `settle.mjs`, `shell.js` and `PR.md`
-pass. One file still warns, and it is not claimed clean:
+$ node --test stories/contrast.test.js          # origin/main at 6b4af3e, same node_modules
+main walk: 182.01 s     ℹ pass 20  ℹ fail 1
+```
 
-- `layout.css` — `comment-ratio` 0.58:1. It warns on `main` too, at 0.54:1, so the file was
-  already over the bar and this branch is 0.04 further along it.
-- `PR.md` — warned on `bold-header-list` (2 items) in the round the wave-3 review read, while this
-  body claimed a pass it did not have. The two were the guideline rules above, written as
-  `- **\`layout\`** — …`; they are a table now, and the file passes. The claim was the defect, not
-  the formatting.
+So the branch costs **7s of 182**, about 4%, which is one extra screen in every theme × accent
+cell and is what one extra screen should cost. The ceiling is a number pinned from a measured worst
+case on a ten-core laptop; this box is eight cores shared with the rest of the run, so **the ceiling
+is not moved** — moving it to make a slow host green is the thing the gate exists to stop. The two
+skips are `CONTRAST_ACCENTS=1`'s opt-in cells, which `main` skips too.
 
-The rule CONTRIBUTING actually enforces — a comment block that has become a design document — is
-clean on every file here. The first draft of `shell.js` was not, and the argument it carried moved
-into `docs/specification.md#the-page-shell`, where it can be reviewed and superseded.
+Two gates caught real mistakes on the way and are worth naming, because both are the repo's own
+discipline working:
 
-## Decisions, and who made each
+- `stories/guidelines/accessibility-floor.test.js` refused the variants' ring rule until a story
+  rendered it — *"a ring selector no story renders is a ring nobody measured"*. That is why
+  `SearchVariant` exists and why the selector is not `:root`-keyed.
+- `scripts/doc-refs.test.js` refused the ring rule's citation, which named an anchor `#focus` the
+  specification does not have — it is `#the-focus-ring` — and named the right one back. It then
+  refused this list's first draft, which quoted the wrong anchor verbatim.
+- `scripts/code-refs.test.js` refused three prose citations in the survey until each was anchored
+  by a code span quoting the line it names.
+- `stories/guidelines/the-page.test.js` refused the story's first shape — five shells stacked on
+  one page, which is five `<main>`s, five `h1`s and five nav landmarks sharing a name. Correctly:
+  that is not a page. It is one screen with the look on a control now, which is also what the
+  contrast walk's own clock gate was objecting to — five extra screens are paid for again in every
+  theme × accent cell, and it timed out at 205s against a 120s ceiling.
+- `stories/elevation.test.js` refused the 41st `box-shadow` in the kit until the pinned count moved
+  and the change was recorded in CONTRIBUTING's count table. The 41st is the variants' focus ring.
 
-| Decision | Who | Where it is recorded |
-| --- | --- | --- |
-| A second layout at all; the rail keeps the logo, the toggle goes to the bottom, the topbar carries search and the user menu; content wide or centred | **Artur**, 2026-09-13 | #308 |
-| The search is a palette trigger, not a second search | **Artur**, on #308 | the contract, *The second layout* |
-| It ships as `layout: 'topbar'`, the current layout stays the default, `accountShell()` passes it through | **Artur**, on #308 | the contract |
-| `width` applies to both layouts | **Artur**, on #308 | the contract, *Widths* |
-| **`centered` is the default width** | **Artur**, 2026-09-14, from the eight matrix frames | #308, and the contract, *Widths* |
-| The band stands beside the rail rather than above it | worker, from `app-shell.tsx` | the contract; reversible |
-| On the band the trigger is the avatar alone | worker, from `user-menu.tsx` | the contract; reversible |
-| `width` names the cap, `maxWidth` is the number under it | worker | the contract, *Widths* |
-| The reference's `container − rail − inset` cap is not taken; `--measure` stands | worker | the contract, *Widths* |
-| One band per page: `layout: 'topbar'` does not compose with the `topbar` bag | worker | the contract; the cost is named there |
-| A folded rail in the banded layout keeps the product's mark | worker, from the first evidence run | the contract |
-| **The key cap stays inside the field's accessible name** | **Artur**, 2026-09-14; proposed by the worker from `quick-search-row.tsx` | #308, and the contract, *The second layout* |
+## `ai-slop-detector`, recommended level
 
-### Both questions are answered
+Run over `PR.md`, the survey, the comparison page, the variants CSS, the story and both rig files.
+Two findings were real and are fixed; two are stated rather than rounded to a pass.
 
-Round 10 on the companion page, 2026-09-14. Artur took `centered` as the default width and kept
-the key cap inside the accessible name — which is what the branch was already holding
-provisionally, so **the code did not change; only the prose that called them open**. PR #317 is
-approved to merge with those two applied.
+**Fixed.** `comment-essay` at the `#318` banner in `layout.css` — a 17-line prose block in a
+stylesheet, which is what CONTRIBUTING's "No visual slop" is about. It is nine lines now, and the
+argument lives here and in the issue where it can be reviewed and superseded.
 
-The frames he chose from are the eight in the matrix above, and both decisions are now stated as
-decisions in `docs/specification.md` — the default under *Widths*, the key cap under *The second
-layout* — each attributed and pointing at #308 as the record.
+**Fixed.** `comment-ratio` on `stories/elevation.test.js`. The moved pin needed recording, and the
+first draft recorded it as a comment beside the number — which tipped a file that sits at 0.497:1
+on `main` over the rule. The repo already has the right home for it and the test file already
+points at it: the count table in **CONTRIBUTING.md#the-elevation-gate-and-its-counts**, whose
+standing instruction is *"Move a number by adding a row, not by editing one"*. There is a `41` row
+there now and no comment in the test file.
 
-### Follow-ups, filed rather than fixed here
+**Stated, not fixed — `comment-ratio` on `layout.css`, 0.65:1.** Pre-existing: `origin/main`'s copy
+of the same file measures 0.60:1 and warns identically. This branch moved it by five hundredths.
+Bringing the file under the rule means rewriting comments this branch did not write.
 
-- **The search field's look.** Artur, on the same round: *"btw it search field looks ugly"*. The
-  field is deliberately unchanged in this PR; it is being filed as its own issue with rendered
-  variants for him to pick from, so a look is chosen the way the default width was rather than
-  guessed at inside a merge. That is
-  [#318](https://github.com/apliteni/apliteni-ui/issues/318).
-- **The rail's hairline is invisible in light.** `--border` on `--surface-2` is 1.009:1, inherited
-  from `main` and shared by every surface pairing those two tokens. Named under the wave-3 review
-  above; it is a token question and wants its own issue.
+**Stated, not fixed — `middot-chain` on `PR.md` and the survey.** It is matching the variant labels,
+`a · bordered` and the rest, which is the naming `docs/reviews/295-popover-variants.html` used for
+its own options (`a · Two-step edge`) in a page Artur read and chose from. The rule is about a line
+that packs unrelated facts into a dotted chain; `a · bordered` is one label. Kept for continuity
+with #295, and named here so it is not a silent pass.
 
-## Overlap with `fix/306-dropdown-pad-foot`, which merges ahead of this
+One finding on `stories/elevation.test.js` is pre-existing and untouched: `comment-essay` at its
+line 31, the 23-line `TREATMENT_DROP` block, which `origin/main` carries identically.
 
-Computed, not guessed: `git merge-tree --write-tree HEAD origin/fix/306-dropdown-pad-foot`
-against merge base `c85f516`. Six files are touched by both branches; three conflict.
+## No version bump, no changelog entry
 
-| File | Conflicts? | How to resolve |
-| --- | --- | --- |
-| `src/components/shell.js` | **yes, and it is real** | #306 takes the reader menu's head out of the rail: it drops the `<div class="ui-dropdown__head">` wrapper (the panel's own `head` slot draws it) and renames the option `header:` → `head:`. This branch still writes that wrapper and still passes `header:`, because it forked the function into `readerBlock()` for the band. **Take #306's raw `head` — the two `<b>`/`<span>` lines with no wrapper — and its `head:` key, inside this branch's `readerBlock()`, keeping the `cls`, `band`, `direction`, `align`, `chevron` and `ariaLabel` arguments.** Taking this side whole nests two heads and passes a key #306's `dropdown()` no longer reads. |
-| `scripts/evidence/shot.html` | **yes, trivially** | Both add an import on the same line. #306 adds `button` to the `index.js` import and a `dropdown` import; this branch adds `commandPalette`. **Keep both.** |
-| `PR.md` | yes, always | A scratch file. Neither side's body is wanted in the other's; discard whichever is not being opened. |
-| `CONTRIBUTING.md` | no — auto-merges | Different sections: #306's is its own, this branch's is the font-family count row. |
-| `docs/library.md` | no — auto-merges | Different rows of the table. |
-| `docs/specification.md` | no — auto-merges | #306 writes in the dropdown's section, this branch in the shell's and in Widths. |
-
-`scripts/evidence/settle.mjs` is on both branches and is **byte-identical** — this branch took it
-from `origin/fix/306-dropdown-pad-foot` rather than writing a second copy, so it merges clean
-whichever lands first. Verified with `git show origin/fix/306-dropdown-pad-foot:scripts/evidence/settle.mjs | diff - scripts/evidence/settle.mjs`.
-
-## What a reviewer should push on
-
-- **The band beside the rail is the biggest departure from what this kit already had**, and it is
-  the one thing a screenshot settles faster than prose. Look at the top-left corner of
-  `shell-topbar-wide-dark.png`: the rule under `Finance` and the rule under the band are level.
-  If that corner is wrong, the whole arrangement is wrong.
-- **`layout: 'topbar'` silently drops the `topbar` bag.** That costs `accountShell()` its version
-  switcher and its theme toggle in this layout. It is stated in the contract and gated, but it is a
-  real loss and the alternative — composing the two — is a page with two headers.
-- **The rail gives up its top inset in this layout** so the head band can declare a height. Nothing
-  else on the rail moved, and the gates measure the three heights, but it is a geometry change
-  scoped by a class and worth a look.
+Per the standing rule: the version is untouched at `0.33.1` and `docs/changelog.md` has no new
+RELEASES entry. The coordinator sequences versions at merge.
 
 ## Changelog entry
 
+Nothing has shipped yet — this branch is the decision, not the change. The line to write when the
+chosen look lands is one of these, and the second half is the same in all five:
+
 ```
-- **The app shell has a second layout.** `appShell({ layout: 'topbar' })` moves the signed-in
-  reader out of the rail's foot and onto a band beside the rail, carrying a search field and the
-  reader's menu; the fold's control takes the place at the rail's foot. The rail-only layout is
-  unchanged and stays the default. `accountShell()` passes `layout` through. (#308)
-- **The content column comes in two widths.** `appShell({ width: 'wide' | 'centered' })`, on both
-  layouts: `centered` — the default — is the capped, centred column the kit has always drawn, and
-  `wide` fills the track beside the rail. `maxWidth` is the number under either name. (#308)
-- **The topbar layout's search opens the command palette.** It is a trigger drawn as a field,
-  carrying the palette's own `[data-cmdk-open]` hook and the key that opens it; `wireShell()`
-  writes the reader's own platform into the key. (#308, #274)
+- **The topbar layout's search field is drawn <the chosen look>.** <one clause naming what moved.>
+  The field's markup, its accessible name and the key cap inside it are unchanged. (#318, #308)
+- **The topbar layout's search field takes the kit's focus ring.** It was the one control on the
+  band falling through to the browser's own outline. (#318)
 ```
 
-## Reviews
+## Open questions
 
-The two this branch knows about are below; the rest is the coordinator's to fill.
+1. **Which look lands.** With Artur; the branch carries all five until he answers.
+2. **Whether the trigger keeps the palette's sentence.** Only option **c** decides this as part of
+   the look. If anything else is chosen, `'Search or run a command…'` on a 320px trigger — and its
+   clipping at 390 — is a separate, smaller question, and probably its own issue.
+3. **Whether `.ui-cmdk__key` should be the cap here at all.** It is the palette panel's cap, and
+   the panel's ground is not the band's. Options **a**, **c** and **d** each answer it differently
+   in passing; **b** answers it by giving the cap a ground to sit on. Worth a line in the issue
+   whichever way it goes.
 
-| Review | Reviewer | Verdict |
-| --- | --- | --- |
-| Wave-3 independent review of #317 at `66fe87a` | an independent reviewer | Ready for Artur, with five should-fix and two nits. All seven answered in `e2bcd89` — see *The wave-3 review* above. 30 mutations red, the rail-only layout pixel-identical to `main`, real keyboard walks through the band pass. |
-| Companion round 10, 2026-09-14 | **Artur** | **Approved.** `width` defaults to `centered`; the key cap stays inside the accessible name; merge with both applied. One follow-up, not for this PR: the search field's look. |
-| | | |
+## How to look at it
+
+```sh
+npm run storybook            # Apps / Shell layouts / Search variant — flip `variant`, Tab into the field
+open docs/reviews/318-search-field.html
+```
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_0138PyywufL61DGrtHuRSSqP

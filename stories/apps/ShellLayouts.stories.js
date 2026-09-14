@@ -85,48 +85,39 @@ export const RailWide = { render: () => screen({ layout: 'rail', width: 'wide' }
 
 export const RailCentered = { render: () => screen({ layout: 'rail', width: 'centered' }) };
 
-// #318 · the four looks the band's field is being chosen between, and what #317
-// shipped, stacked so they read against each other. BRANCH STATE: the look is a
-// stylesheet's, keyed off `data-search-variant` on the box around each screen
-// (src/styles/layout.css), and the markup inside is the same bytes every time —
-// the same button, the same name, the same `[data-cmdk-open]`. One of these
-// blocks becomes `.ui-app__search` and the rest are deleted.
+// #318 · the band's search field, in the look being chosen. BRANCH STATE: the
+// look is a stylesheet's, keyed off `data-search-variant` on the box around the
+// screen (src/styles/layout.css), and the markup inside is the same bytes
+// whichever is set — the same button, the same name, the same `[data-cmdk-open]`.
+// Flip `variant` in the controls panel to compare; `Topbar wide` above is the
+// same screen with no attribute at all, which is what #317 ships.
 //
-// This story is also what lands the variants' ring selector for
-// stories/guidelines/accessibility-floor.test.js, which asks that every selector
-// the sheet paints a ring on is rendered by a story somewhere. Press Tab into a
-// field to see it: today's is the browser's outline, and every variant's is the
-// kit's.
-const VARIANTS = [
-  ['today', 'What #317 ships — a sunken pill, a filled key cap, the palette’s own sentence'],
-  ['bordered', 'a · The fill goes; --border-strong carries the edge, and the cap is outlined'],
-  ['lifted', 'b · The same pill one step UP, so it is lighter than the band and not darker'],
-  ['quiet', 'c · 240px, “Search…”, and the key set beside the words rather than boxed'],
-  ['wide', 'd · The field takes the band to the reader’s mark'],
-];
+// One screen and not five, for two reasons the gates gave: a story holding five
+// shells is five <main>s and five h1s on one page, which the-page.test.js is
+// right to refuse, and each extra screen is paid for again in every theme x
+// accent cell of the contrast walk. It is also what lands the variants' ring
+// selector for accessibility-floor.test.js — press Tab into the field.
+const SEARCH_VARIANTS = ['bordered', 'lifted', 'quiet', 'wide'];
 
-// Each screen needs a palette id of its own: five shells on one page is five
-// palettes, and a trigger names the one it opens.
-const variantScreen = ([variant, note]) => `
-  <section${variant === 'today' ? '' : ` data-search-variant="${variant}"`}>
-    <p style="margin:0;padding:var(--space-4) clamp(24px, 4vw, 56px) var(--space-2);
-              color:var(--muted);font-size:var(--text-sm)">${note}</p>
-    ${appShell({
-      word: 'Finance',
-      layout: 'topbar',
-      width: 'wide',
-      search: { palette: `cmdk-${variant}`, placeholder: variant === 'quiet' ? 'Search…' : undefined },
-      nav: NAV,
-      active: 'reports',
-      navLabel: 'Finance',
-      account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
-      signOutHref: '#logout',
-      crumbs: [{ label: 'Finance', href: '#' }, { label: 'Payouts' }],
-      title: 'Payouts',
-      sub: 'Two of the four that arrived this week are waiting for a second approval.',
-      body: card({ title: 'Payouts this week', body: ledger() })
-        + commandPalette({ groups: PALETTE, id: `cmdk-${variant}` }),
-    })}
-  </section>`;
-
-export const SearchVariants = { render: () => VARIANTS.map(variantScreen).join('') };
+export const SearchVariant = {
+  args: { variant: 'lifted' },
+  argTypes: { variant: { control: 'select', options: SEARCH_VARIANTS } },
+  // The words are an argument rather than a rule, so the one variant that
+  // shortens them shortens them here. A default on the whole bag and not on the
+  // property: two of the gates call render() with nothing at all.
+  render: ({ variant } = {}) => `<div data-search-variant="${variant || 'lifted'}">${appShell({
+    word: 'Finance',
+    layout: 'topbar',
+    width: 'wide',
+    search: { palette: 'cmdk-variant', placeholder: variant === 'quiet' ? 'Search…' : undefined },
+    nav: NAV,
+    active: 'reports',
+    navLabel: 'Finance',
+    account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+    signOutHref: '#logout',
+    crumbs: [{ label: 'Finance', href: '#' }, { label: 'Payouts' }],
+    title: 'Payouts',
+    sub: 'Two of the four that arrived this week are waiting for a second approval.',
+    body: page('wide') + commandPalette({ groups: PALETTE, id: 'cmdk-variant' }),
+  })}</div>`,
+};

@@ -12,7 +12,8 @@ remembered border width is not evidence.
 
 ## What this kit draws today
 
-`src/components/shell.js:234` and `src/styles/layout.css:340`, at `6b4af3e`:
+src/components/shell.js:234 `const searchField = ({ palette, placeholder }) =>` and
+src/styles/layout.css:340 `.ui-app__search {`, at `6b4af3e`:
 
 ```
 <button class="ui-app__search" data-cmdk-open="…" aria-haspopup="dialog">
@@ -91,8 +92,9 @@ cost is visible rather than theoretical: at 390px the 320px field shrinks and th
 to *"Search or run a co…"* (`docs/evidence/shell-layouts/shell-topbar-phone-light.png`).
 
 **5. Every one of them styles its own focus. This field does not.** `.ui-app__search` is a
-`<button>` without `.ui-btn`, so `src/styles/base.css:140` never reaches it and `:focus-visible`
-falls through to Chrome's default — a square black-and-white outline drawn around a 12px radius
+`<button>` without `.ui-btn`, so the kit's shared ring rule —
+src/styles/base.css:140 `.ui-focusable:focus-visible,` — never reaches it and `:focus-visible` falls
+through to Chrome's default — a square black-and-white outline drawn around a 12px radius
 (`docs/evidence/shell-layouts/shell-topbar-search-light.png`). This is the one finding in the
 survey that is a defect rather than a preference, and all four variants fix it whichever is
 chosen.

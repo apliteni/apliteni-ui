@@ -585,21 +585,14 @@
 .ui-section-head p { color: var(--dim); font-size: 17px; line-height: 1.6; }
 
 /* -- #318 · the search field's look, four alternatives to choose from ------ */
-/* BRANCH STATE, not a feature. Every block below is keyed off
-   `data-search-variant` on any ancestor, which nothing in `src/` writes and no
-   consumer sets — unset, the field is exactly what #317 shipped. Two things set
-   it: the evidence rig puts it on the root (scripts/evidence/shot.html), so all
-   five looks come off one branch, one Chrome and one viewport and only the look
-   differs between two frames; and Apps/Shell layouts/SearchVariants wraps each
-   screen in a box carrying it, which is what lands the ring selector below for
-   stories/guidelines/accessibility-floor.test.js to measure. An ancestor and
-   not `:root` for that second reason: a story is mounted into the body, and a
-   rule keyed on <html> is a rule no gate can reach.
-   The markup is untouched: the button, its name, its `[data-cmdk-open]` and its
-   `kbd` are the same bytes in every variant, so every gate in
-   stories/apps/shell*.test.js holds on all of them.
-   Two commits settle this: one folds the chosen block's declarations into
-   `.ui-app__search` above, the other deletes this whole section.
+/* BRANCH STATE, not a feature: one of these blocks is folded into
+   `.ui-app__search` above and the rest of this section is deleted, once Artur
+   has chosen. Nothing in `src/` writes `data-search-variant` and no consumer
+   sets it, so unset the field is what #317 shipped. The markup is untouched in
+   every variant, which is why the shell gates hold on all five.
+   An ancestor and not `:root`, deliberately: a story is mounted into the body,
+   so a rule keyed on <html> is one no gate can reach — and the ring rule below
+   is measured by walking Apps/Shell layouts/SearchVariant.
    why: https://github.com/apliteni/apliteni-ui/issues/318 */
 
 /* The one thing every variant fixes and none of them chose: today the field is
