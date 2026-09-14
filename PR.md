@@ -143,7 +143,7 @@ The brief allowed either and asked for the reason. `row` won:
 ### Where this collides with `fix/306-dropdown-pad-foot`
 
 Both branches are off `233a1e7`. `git merge-tree` between the two heads, run rather than
-guessed, conflicts in four files; two more are touched by both and merge on their own. Named
+guessed, conflicts in four files; three more are touched by both and merge on their own. Named
 here so the coordinator can sequence them:
 
 | File | Merges | The overlap |
@@ -153,6 +153,7 @@ here so the coordinator can sequence them:
 | `stories/guidelines/_component-choice.js` | conflict | Adjacent lines of one `kit:` array: that branch re-points the two `dropdown.css` refs its padding moved, this one re-points the `dropdown.js` ref the matcher's rename moved. |
 | `PR.md` | conflict | Each branch overwrites it wholesale. It is a scratch file at the repo root, not a record: take whichever body belongs to the PR being opened. |
 | `src/components/dropdown.js` | clean | Different hunks — that branch is inside the factory's panel assembly, this one is the matcher above it. |
+| `scripts/evidence/settle.mjs` | clean | The same file, byte for byte: taken from that branch with `git checkout origin/fix/306-dropdown-pad-foot --`, so whichever lands first the other adds nothing. |
 | `stories/guidelines/_accessibility-floor.js` | clean | Different entries in the same `GATES` array: that branch adds one, this one two. |
 
 One thing to check after the second merge rather than assume: the `kit:` refs in
@@ -219,41 +220,41 @@ React workspace's own Storybook build, with the kit's two faces loaded into the 
 
 **The menu, open.** Icons, a description, a separator, a disabled row and a danger row.
 
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-menu-dark.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-menu-light.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-menu-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-menu-light.png)
 
 **The select, open.** The pick in the trigger, the tick beside it, a live badge and an accent one.
 
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-select-dark.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-select-light.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-select-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-select-light.png)
 
 **A row a router `<Link>` drew, under the keyboard.** Two real presses — Tab to the trigger,
 then ArrowDown — so the ring is the browser's own. The rig fails rather than shoots if the ring
 did not land on a row.
 
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-link-row-dark.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-dropdown-link-row-light.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-link-row-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-link-row-light.png)
 
 **The search field, with a query typed into it** — not preset on the story: the rig clicks the
 field and types, so what is shot is the state a reader types their way into. The rows that went
 are gone, the field holds the query and carries the ring, and the row Enter would pick carries
 the accent bar.
 
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-dark.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-light.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-search-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-search-light.png)
 
 **The case #304 reports, in one picture: a search dropdown whose rows are router links.**
 Typed "pay"; one `<Link>` row is left and it is the row Enter would pick.
 
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-links-dark.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/731bcfd/docs/evidence/react-dropdown-search-links-light.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-search-links-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-dropdown-search-links-light.png)
 
 **The back link, short and long**, in the slot the trail would take, above the title.
 
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-back-short-dark.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-back-short-light.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-back-long-dark.png)
-![](https://raw.githubusercontent.com/apliteni/apliteni-ui/a2e9748/docs/evidence/react-back-long-light.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-back-short-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-back-short-light.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-back-long-dark.png)
+![](https://raw.githubusercontent.com/apliteni/apliteni-ui/6a0620f/docs/evidence/react-back-long-light.png)
 
 ## The gates this adds, and what each would catch
 
