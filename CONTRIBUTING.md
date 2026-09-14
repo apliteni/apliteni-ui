@@ -1529,6 +1529,7 @@ every other assertion in the file.
 | --- | --- | --- |
 | 38 | 11 | #309: the floating step takes the treatment. Nine surfaces under `src/`, two of them twice — a panel and its `:focus-visible` rule, because a `box-shadow` list replaces the whole list and a bare `var(--ring)` would take the treatment off for as long as the panel held focus. The React modal is the tenth surface and is counted by `react/src/elevation.test.ts` instead. |
 | 40 | 13 | #314 review, findings 1 and 6: the treatment stops being one token. `--elev-floating` held `inset … var(--elev-edge, …)` inside a `:root` declaration, where CSS substitutes it against `:root` and no component can re-point it — five overrides were dead. The drops keep one home, `--elev-drop`; the line is written at each call site. And the collapsed rail's flyout label, the hover readout's twin on the same step and with the same job, takes the treatment it had been left out of: two more declarations, one per width. |
+| 41 | 13 | #318: the topbar band's search field takes `var(--ring)` on `:focus-visible`. It was the one control on the band without it — a `<button>` with no `.ui-btn`, so `src/styles/base.css`'s shared rule never reached it and focus fell through to the browser's own square outline, drawn around a 12px radius. The ring is not a cast layer, so the floating count does not move with it. |
 
 Move a number by adding a row, not by editing one: the count on its own says nothing about
 whether the change behind it was wanted.

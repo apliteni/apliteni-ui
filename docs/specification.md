@@ -483,6 +483,12 @@ The ladder, bottom to top:
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | the top step — the hover readout, a chip, the nav rail's hover | `#2d293c` | `#e7eaf1` |
 
+**One field in the kit is not on the sunken step**: the topbar band's search field takes `--surface`,
+because the band is `--bg` and a sunken fill on the bottom rung has nowhere to go but down into its
+own ground — measured at 1.10:1 below the band in light before the change, and 1.08:1 above it after
+(#318, chosen by the owner from four rendered alternatives;
+src/styles/layout.css:365 `background: var(--surface);`).
+
 **A sunken box is read against the surface it sits in, and a floating panel is a rung above a
 card.** `--surface-2` is one rung under `--surface`, which is what makes a field on a card read as a
 well. Inside a panel it is two rungs under `--bg-elevated`, and in light that panel is the only pure
@@ -594,7 +600,9 @@ row, an active row, a chip and a key cap inside a floating panel paint `--surfac
 drawn with it sank while the panel it was in floated. In light that step is drawn downwards —
 `--surface-3` is darker than the white panel — which is how a light theme has always shown a
 hover. A field inside a panel goes the other way: it is the sunken step, `--surface-2`, the same
-one `.ui-input` takes.
+one `.ui-input` takes. The one field that takes neither is the topbar band's search field, which is
+on `--surface` because its own ground is the bottom of the ladder — the exception stated under the
+ladder above, and settled on #318.
 
 **The accent wash is painted on a base surface, never a raised one.** A translucent wash over a
 raised surface sits closer to the ink read on it than the same wash over the page, which is what
