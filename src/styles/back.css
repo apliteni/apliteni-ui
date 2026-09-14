@@ -7,10 +7,12 @@
  * ========================================================================== */
 
 /* Its own line, and only as wide as its words, so the hover ground does not run
-   the width of the column. */
+   the width of the column — and never wider than it, which `fit-content` alone
+   does not give once the label below is `nowrap`. why: #303 */
 .ui-back {
   display: flex;
   width: fit-content;
+  max-width: 100%;
   align-items: center;
   gap: var(--space-1);
   /* WCAG 2.5.8's 24px: the line of text alone is 17px tall. */
@@ -40,3 +42,12 @@
 /* In the page shell it takes the trail's place, and the trail's distance from
    the title with it. */
 .ui-app__main > .ui-back { margin-bottom: var(--space-5); }
+
+/* The one part that can run long. It clips rather than wrapping, as .ui-nav__label
+   does. why: docs/specification.md#the-back-link */
+.ui-back__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

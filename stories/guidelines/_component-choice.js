@@ -148,7 +148,7 @@ export const RULES = [
     doHtml: searchDo,
     dontHtml: searchDont,
     kit: [
-      { ref: 'src/components/dropdown.js:84', pattern: 'const ddMatch' },
+      { ref: 'src/components/dropdown.js:96', pattern: 'export const dropdownMatch' },
       { ref: 'src/styles/dropdown.css:240', pattern: '.ui-dropdown__panel--search' },
       { ref: 'src/styles/dropdown.css:291', pattern: '.ui-dropdown__none {' },
     ],
