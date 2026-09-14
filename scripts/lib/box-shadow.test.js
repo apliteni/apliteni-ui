@@ -13,7 +13,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boxShadowsIn, geometryOf, inkOf, isCast, layersOf } from './box-shadow.js';
+import { boxShadowsIn, customPropertiesIn, geometryOf, inkOf, isCast, layersOf } from './box-shadow.js';
 
 test('a layer reads its four lengths in order, and a missing one is zero', () => {
   assert.deepEqual(geometryOf('0 14px 30px -12px black'), { x: 0, y: 14, blur: 30, spread: -12 });
@@ -55,4 +55,32 @@ test('a zero-offset layer is a ring or a glow, and an offset one is a cast', () 
 test('a commented-out declaration is not a declaration', () => {
   const css = '.a { /* box-shadow: 0 2px 4px black; */ box-shadow: var(--elev-drop); }';
   assert.deepEqual(boxShadowsIn(css).map((d) => d.value), ['var(--elev-drop)']);
+});
+
+/* #314 round 2, finding 3. The line was counted from the character after the
+ * previous semicolon, so every offence the two gates printed named the line the
+ * declaration BEFORE it ended on — and a comment block between the two pushed it
+ * as far out as the comment is tall — four lines, for the callout's panel. A
+ * file:line a reader is handed has to land on the thing it names;
+ * scripts/code-refs.test.js holds this repo's prose to that, and a gate handing
+ * one out is no different. */
+test('the line named is the line the declaration is written on', () => {
+  const css = [
+    '.a {',                    // 1
+    '  overflow: hidden;',     // 2
+    '  /* a comment block',    // 3
+    '     three lines tall',   // 4
+    '     that a blank keeps */', // 5
+    '  box-shadow: var(--elev-drop);', // 6
+    '}',                       // 7
+    '.b { --x: 1px; box-shadow: none; }', // 8
+  ].join('\n');
+
+  assert.deepEqual(boxShadowsIn(css).map((d) => `${d.selector}:${d.line}`), ['.a:6', '.b:8']);
+  assert.deepEqual(customPropertiesIn(css).map((d) => `${d.name}:${d.line}`), ['--x:8']);
+});
+
+test('a declaration split across lines is named at its property', () => {
+  const css = '.a {\n  border: 0;\n  box-shadow:\n    0 1px 2px black,\n    0 2px 4px black;\n}';
+  assert.deepEqual(boxShadowsIn(css).map((d) => d.line), [3]);
 });

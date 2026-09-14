@@ -16,7 +16,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, substitute, parseColour, composite, ratio } from './lib/contrast.js';
-import { boxShadowsIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf } from '../scripts/lib/box-shadow.js';
+import { boxShadowsIn, customPropertiesIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf } from '../scripts/lib/box-shadow.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -154,42 +154,24 @@ test('--elev-drop is broad faint drops and nothing else', () => {
  * The rule is general and needs no list: a name a component sheet declares may
  * not be READ inside a :root token. */
 test('a hook a component re-points is read at the call site, not inside a root token', () => {
-  const blank = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
-  const RULE = /([^{}]+)\{([^{}]*)\}/g;
-  const declared = (files, keep) => {
-    const names = new Set();
-    for (const file of files) {
-      for (const [, selector, body] of blank(read(file)).matchAll(RULE)) {
-        if (!keep(selector)) continue;
-        for (const decl of body.split(';')) {
-          const i = decl.indexOf(':');
-          if (i > 0 && decl.slice(0, i).trim().startsWith('--')) names.add(decl.slice(0, i).trim());
-        }
-      }
-    }
-    return names;
-  };
+  // Over the same reader as the sweep, so a name and the line it is written on
+  // are found one way. #314 round 2 found this loop counting its own line from
+  // the character after the previous semicolon, ten lines out past a comment.
+  const declared = (files, keep) => new Set(files.flatMap((file) =>
+    customPropertiesIn(read(file)).filter((d) => keep(d.selector)).map((d) => d.name)));
   // A hook: a name the palette never gives a value, so a read of it ALWAYS takes
   // the fallback unless the element itself sets it. --elev-edge is one.
   const palette = declared(TOKEN_FILES, () => true);
-  const hooks = new Set([...declared(STYLE_FILES, (sel) => !sel.trimStart().startsWith('@'))]
+  const hooks = new Set([...declared(STYLE_FILES, (sel) => !sel.startsWith('@'))]
     .filter((name) => !palette.has(name)));
 
   const offences = [];
   for (const file of TOKEN_FILES) {
-    const css = blank(read(file));
-    for (const m of css.matchAll(RULE)) {
-      if (!m[1].trim().startsWith(':root')) continue;
-      for (const decl of m[2].split(';')) {
-        const i = decl.indexOf(':');
-        if (i < 0) continue;
-        const name = decl.slice(0, i).trim();
-        if (!name.startsWith('--')) continue;
-        for (const [, hook] of decl.slice(i + 1).matchAll(/var\(\s*(--[\w-]+)/g)) {
-          if (!hooks.has(hook)) continue;
-          const line = css.slice(0, m.index + m[0].indexOf(decl)).split('\n').length;
-          offences.push(`${file}:${line}  ${name} reads var(${hook}), and ${hook} is a hook src/styles/ re-points`);
-        }
+    for (const d of customPropertiesIn(read(file))) {
+      if (!d.selector.startsWith(':root')) continue;
+      for (const [, hook] of d.value.matchAll(/var\(\s*(--[\w-]+)/g)) {
+        if (!hooks.has(hook)) continue;
+        offences.push(`${file}:${d.line}  ${d.name} reads var(${hook}), and ${hook} is a hook src/styles/ re-points`);
       }
     }
   }

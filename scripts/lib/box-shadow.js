@@ -86,42 +86,46 @@ const RULE = /([^{}]+)\{([^{}]*)\}/g;
 /** Blank a comment out without moving a line, so a counted line stays honest. */
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
+/* Each rule of a stylesheet, and each declaration in it, with the offset of the
+ * declaration's PROPERTY NAME in the sheet — not of the character after the
+ * previous semicolon, which is where the line the two gates printed used to be
+ * counted from. That put every offence on the line the declaration before it
+ * ended on, and on the far side of a comment block it was ten lines out.
+ * #314 round 2, finding 3. */
+function* declarationsIn(css) {
+  for (const m of css.matchAll(RULE)) {
+    const selector = m[1].trim().replace(/\s+/g, ' ');
+    // m[0] is `<selector>{<body>}`, so the body starts one character past it.
+    let at = m.index + m[1].length + 1;
+    for (const decl of m[2].split(';')) {
+      const start = at + (decl.length - decl.trimStart().length);
+      at += decl.length + 1; // the `;` the split took out
+      const i = decl.indexOf(':');
+      if (i < 0) continue;
+      yield {
+        selector,
+        name: decl.slice(0, i).trim(),
+        value: decl.slice(i + 1).trim(),
+        line: css.slice(0, start).split('\n').length,
+      };
+    }
+  }
+}
+
 /** Every custom property a stylesheet declares, with the selector it sits under.
  *  The React gate harvests its own workspace with this, because the vanilla
  *  resolver (stories/lib/contrast.js) reads what `src/index.css` imports and
  *  nothing else — a property declared in `react/src/` was invisible to it, and a
- *  cast written behind one resolved to nothing at all. #314 round 2, finding 2. */
+ *  cast written behind one resolved to nothing at all. #314 round 2, finding 2.
+ *  At-rules are not filtered here: which selectors count is the caller's rule. */
 export function customPropertiesIn(css) {
-  const clean = decomment(css);
-  const found = [];
-  for (const m of clean.matchAll(RULE)) {
-    const selector = m[1].trim().replace(/\s+/g, ' ');
-    if (selector.startsWith('@')) continue;
-    for (const decl of m[2].split(';')) {
-      const i = decl.indexOf(':');
-      if (i < 0) continue;
-      const name = decl.slice(0, i).trim();
-      if (!name.startsWith('--')) continue;
-      found.push({ selector, name, value: decl.slice(i + 1).trim() });
-    }
-  }
-  return found;
+  return [...declarationsIn(decomment(css))].filter((d) => d.name.startsWith('--'));
 }
 
 export function boxShadowsIn(css) {
-  const clean = decomment(css);
-  const found = [];
-  for (const m of clean.matchAll(RULE)) {
-    const selector = m[1].trim().replace(/\s+/g, ' ');
-    for (const decl of m[2].split(';')) {
-      const i = decl.indexOf(':');
-      if (i < 0) continue;
-      if (decl.slice(0, i).trim().toLowerCase() !== 'box-shadow') continue;
-      const line = clean.slice(0, m.index + m[0].indexOf(decl)).split('\n').length;
-      found.push({ selector, value: decl.slice(i + 1).trim(), line });
-    }
-  }
-  return found;
+  return [...declarationsIn(decomment(css))]
+    .filter((d) => d.name.toLowerCase() === 'box-shadow')
+    .map(({ selector, value, line }) => ({ selector, value, line }));
 }
 
 /** The ink of one layer: everything that is not `inset` and not a leading length. */

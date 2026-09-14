@@ -35,6 +35,7 @@ const cascadeFor = (theme: string, sheets: Sheet[]) => {
   for (const [name, entries] of declarationsFor(theme)) decls.set(name, [...entries]);
   for (const { name, css } of sheets) {
     for (const d of customPropertiesIn(css)) {
+      if (d.selector.startsWith('@')) continue;
       if (!decls.has(d.name)) decls.set(d.name, []);
       decls.get(d.name)!.push({ file: where(name), selector: d.selector, root: false, value: d.value });
     }
@@ -89,9 +90,12 @@ describe('elevation', () => {
     const planted = `.rx-modal {\n  --rx-lift: 0 12px 24px rgba(0,0,0,0.6);\n  box-shadow: var(--rx-lift), ${line};\n}\n`;
     const clean = `.rx-modal {\n  box-shadow: ${line};\n}\n`;
 
-    const caught = walk([{ name: './Planted.css', css: planted }], 'dark');
-    expect(caught.offences).toHaveLength(1);
-    expect(caught.offences[0]).toContain('.rx-modal { … var(--rx-lift) … }');
-    expect(walk([{ name: './Planted.css', css: clean }], 'dark').offences).toEqual([]);
+    const sheet = './Planted.css';
+    const caught = walk([{ name: sheet, css: planted }], 'dark');
+    // Line 3 is the box-shadow's own, not the line --rx-lift ends on.
+    expect(caught.offences).toEqual([
+      `${where(sheet)}:3 (dark)  .rx-modal { … var(--rx-lift) … }`,
+    ]);
+    expect(walk([{ name: sheet, css: clean }], 'dark').offences).toEqual([]);
   });
 });
