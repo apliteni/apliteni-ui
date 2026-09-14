@@ -5,7 +5,7 @@ import { CHART_CSS, EXPENSES, REVENUE, bars, eur, pointOf, sparkline } from '../
 
 export const TITLE = 'Hover readouts';
 
-export const BLURB = 'Where a value shown on hover goes, what it says, and why it never moves the page.';
+export const BLURB = 'Where a value shown on hover goes, what it says, what a tap does instead, and why it never moves the page.';
 
 // Every readout below is rendered open, at the anchor the wiring would have
 // measured, so the gates can read it. The charts are fixed-size for the same
@@ -114,8 +114,8 @@ export const RULES = [
       + 'when the preferred side is too tight and the other is roomier, and slides the readout along '
       + 'the mark\'s edge rather than off the screen.',
     kit: [
-      { ref: 'src/components/tooltip.js:111', pattern: 'const flip = prefersBelow' },
-      { ref: 'src/components/tooltip.js:117', pattern: 'const left = Math.max(clip.left' },
+      { ref: 'src/components/tooltip.js:112', pattern: 'const flip = prefersBelow' },
+      { ref: 'src/components/tooltip.js:118', pattern: 'const left = Math.max(clip.left' },
     ],
   },
   {
@@ -139,18 +139,42 @@ export const RULES = [
       + 'be pressed; a control the reader needs belongs on the page. Format the value the way the '
       + 'page formats it elsewhere — the same currency, the same precision — so the readout and the '
       + 'figure beside the chart never disagree.',
-    kit: [{ ref: 'src/components/tooltip.js:131', pattern: 'el.textContent = t;' }],
+    kit: [{ ref: 'src/components/tooltip.js:132', pattern: 'el.textContent = t;' }],
+  },
+  {
+    id: 'on-touch',
+    imperative: 'On a touch screen, open the readout with a tap and close it with the next one.',
+    why: 'A finger rests nowhere. It arrives already pressing and it is gone the moment it lifts, '
+      + 'so a readout that waits for hover flashes under the tap and is never read. The tap is the '
+      + 'switch instead: one tap on a mark opens its readout, a tap on another mark moves it there, '
+      + 'and a tap on the same mark — or anywhere else on the page — closes it. Closing it on the '
+      + 'mark and closing it on the chart\'s ground beside the mark do the same thing, so nothing a '
+      + 'reader sees depends on where in the chart the finger came down. The tap that opens the '
+      + 'readout is spent opening it and does not reach the mark\'s own click, so a chart that '
+      + 'drills down on a bar does not drill down on the tap that was asking what the bar says; the '
+      + 'tap that closes the readout does, which puts the drill-down one tap further away and is '
+      + 'the one thing a reader has to learn. The page still hears that tap where it listens for '
+      + 'one, so a dropdown or a menu standing open closes under it as it would under a tap '
+      + 'anywhere else. The kit decides which pointer is in play rather than which device it is on, '
+      + 'so a laptop with a touch screen hovers under its mouse and taps under a finger — a pen '
+      + 'taps with that finger rather than hovering with the mouse, and a key hands the readout '
+      + 'back to focus.',
+    kit: [
+      { ref: 'src/components/tooltip.js:216', pattern: 'function touching(doc, e)' },
+      { ref: 'src/components/tooltip.js:333', pattern: "host.addEventListener('click'" },
+    ],
   },
   {
     id: 'not-only-hover',
     imperative: 'Never make hover the only way to a value.',
     why: 'A pointer is one of three ways to reach a chart, and the only one a readout is built '
-      + 'around. The kit\'s wiring also opens the readout when focus lands on a mark and lets Escape '
-      + 'dismiss it, but it adds no tab stop — a year of daily points would be 365 of them — and on '
-      + 'a touch screen a tap shows it only while the finger is down. So the figure a card leads '
-      + 'with, and a table or a labelled summary of the series, carry what matters without hovering. '
-      + 'Whether a chart\'s marks should take focus at all, and whether a tap should pin the readout '
-      + 'or a finger scrub along the line, is not decided yet: it is the open question on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:233', pattern: "host.addEventListener('focusin'" }],
+      + 'around. The kit\'s wiring opens the readout on focus and on a tap as well, and lets Escape '
+      + 'dismiss it; focus opens it on a touch screen too, where focus no tap landed is a reader '
+      + 'arriving through a screen reader rather than a finger on its way to a click. But the '
+      + 'wiring adds no tab stop — a year of daily points would be 365 of them. So the figure a '
+      + 'card leads with, and a table or a labelled summary of the series, carry what matters '
+      + 'without pointing at anything. Whether a chart\'s marks should take focus at all is the '
+      + 'question still open on #282.',
+    kit: [{ ref: 'src/components/tooltip.js:316', pattern: "host.addEventListener('focusin'" }],
   },
 ];

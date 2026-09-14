@@ -13,6 +13,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { tooltip, wireTooltip, showTooltip, hideTooltip } from './tooltip.js';
+import { dropdown, wireDropdown } from './dropdown.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -518,4 +519,253 @@ test('a host wired before it is in the document is made the box once it is in on
   } finally {
     globalThis.getComputedStyle = real;
   }
+});
+
+// ---- The tap -------------------------------------------------------------
+// JSDOM dispatches no PointerEvent and answers no media query, so a coarse
+// pointer is simulated from both sides the wiring reads: the events carry the
+// `pointerType` a browser puts on them, and one test answers `(pointer: coarse)`
+// instead — what a phone reports before any event has been dispatched at all.
+// A pen is the same simulation with the other `pointerType`, because the two
+// kinds that press a screen take one path and only the mouse takes the other.
+
+function pointerEvent(window, el, type, kind = 'touch') {
+  const e = new window.MouseEvent(type, { bubbles: type !== 'pointerleave', cancelable: true });
+  Object.defineProperty(e, 'pointerType', { value: kind });
+  el.dispatchEvent(e);
+  return e;
+}
+
+const touchEvent = (window, el, type) => pointerEvent(window, el, type);
+
+// One tap, in the order a browser fires it for a finger: the pointer arrives
+// already pressing, leaves before the click, and the click comes last.
+function tap(window, el, kind = 'touch') {
+  const host = el.closest?.('[data-tip-host]');
+  pointerEvent(window, el, 'pointerover', kind);
+  pointerEvent(window, el, 'pointerdown', kind);
+  pointerEvent(window, el, 'pointerup', kind);
+  if (host) pointerEvent(window, host, 'pointerleave', kind);
+  return el.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+}
+
+const isOpen = (tip) => tip.classList.contains('is-open');
+
+test('under a finger, crossing a mark opens nothing — nothing rests there', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  touchEvent(window, doc.getElementById('m1'), 'pointerover');
+  assert.equal(isOpen(tip), false, 'the pointerover under a tap is the tap, not a hover');
+});
+
+test('a tap opens the readout, and a tap on the same mark closes it', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+  tap(window, m1);
+  assert.ok(isOpen(tip));
+  assert.equal(tip.querySelector('.ui-tip__value').textContent, '€41,000');
+  assert.equal(m1.getAttribute('aria-describedby'), tip.id, 'it describes the mark while it shows');
+  tap(window, m1);
+  assert.equal(isOpen(tip), false);
+  assert.equal(m1.hasAttribute('aria-describedby'), false, 'the description goes with the readout');
+});
+
+test('a tap on another mark moves the readout to it', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  tap(window, doc.getElementById('m1'));
+  tap(window, doc.getElementById('m2'));
+  assert.ok(isOpen(tip));
+  assert.equal(tip.querySelector('.ui-tip__value').textContent, '€46,210');
+});
+
+test('a tap away from the mark closes it, inside the host and outside it', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  tap(window, doc.getElementById('m1'));
+  tap(window, doc.querySelector('svg'));
+  assert.equal(isOpen(tip), false, 'the gap between two bars is not a mark');
+
+  tap(window, doc.getElementById('m1'));
+  assert.ok(isOpen(tip));
+  tap(window, doc.getElementById('below'));
+  assert.equal(isOpen(tip), false, 'a tap on the page outside the host takes it down');
+});
+
+test('the tap that opens the readout is not the mark\'s own click; the one that closes it is', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+  let drilled = 0;
+  m1.addEventListener('click', () => { drilled += 1; });
+
+  tap(window, m1);
+  assert.ok(isOpen(tip));
+  assert.equal(drilled, 0, 'the tap was asking what the bar says, not to open the bar');
+  tap(window, m1);
+  assert.equal(isOpen(tip), false);
+  assert.equal(drilled, 1, 'with the readout read, the next tap is the drill-down');
+});
+
+test('a mark a tap closed is not reopened by a pointer sample, and a tap opens it again', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const host = doc.getElementById('host');
+  const m1 = doc.getElementById('m1');
+
+  tap(window, m1);
+  tap(window, m1);
+  showTooltip(host, m1);
+  assert.equal(isOpen(tip), false, 'a chart sampling its own marks does not undo the tap that closed it');
+  showTooltip(host, doc.getElementById('m2'));
+  assert.ok(isOpen(tip), 'another mark shows it');
+
+  tap(window, m1);
+  tap(window, m1);
+  tap(window, m1);
+  assert.ok(isOpen(tip), 'a tap is deliberate, so it ends the dismissal rather than being refused by it');
+});
+
+test('a device that reports a coarse pointer is on the tap from its first gesture', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  Object.defineProperty(window, 'matchMedia', {
+    value: (q) => ({ matches: q.replace(/\s+/g, '') === '(pointer:coarse)', media: q }),
+    configurable: true,
+  });
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+  pointer(window, m1, 'pointerover');
+  assert.equal(isOpen(tip), false, 'no event said which pointer it was, and the device has no fine one');
+  m1.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+  assert.ok(isOpen(tip), 'the tap opens it');
+});
+
+test('under a finger the tap decides, and a key hands the readout back to focus', () => {
+  const window = mount(MARKS.replace('id="m1"', 'id="m1" tabindex="0"') + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+
+  // A browser focuses a focusable mark on the way down, before the click.
+  touchEvent(window, m1, 'pointerover');
+  touchEvent(window, m1, 'pointerdown');
+  m1.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
+  assert.equal(isOpen(tip), false, 'the focus a tap lands opens nothing — the tap does');
+  m1.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+  assert.ok(isOpen(tip));
+
+  doc.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+  hideTooltip(doc.getElementById('host'));
+  m1.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
+  assert.ok(isOpen(tip), 'a keyboard is in hand again, and focus opens the readout as it always did');
+});
+
+test('the tap that opens a readout still reaches what the document dismisses on a click', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  doc.getElementById('page').insertAdjacentHTML('beforeend', dropdown({
+    value: 'Workspace', variant: 'menu', open: true,
+    items: [{ label: 'Phoenix' }, { label: 'Aurora' }],
+  }));
+  wireDropdown(doc);
+  const dd = doc.querySelector('[data-dropdown]');
+  assert.ok(dd.classList.contains('open'), 'the panel is standing over the page to begin with');
+
+  tap(window, doc.getElementById('m1'));
+  assert.ok(isOpen(tip), 'the tap opens the readout');
+  assert.equal(
+    dd.classList.contains('open'), false,
+    'and the panel goes, the way it would under any other tap — stopping the tap on its way to '
+    + 'the mark must not stop it reaching the listener every overlay dismisses itself from',
+  );
+});
+
+test('under a coarse pointer, focus that no tap brought opens the readout', () => {
+  const window = mount(MARKS.replace('id="m1"', 'id="m1" tabindex="0"') + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  Object.defineProperty(window, 'matchMedia', {
+    value: (q) => ({ matches: q.replace(/\s+/g, '') === '(pointer:coarse)', media: q }),
+    configurable: true,
+  });
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+
+  m1.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
+  assert.ok(isOpen(tip), 'a screen reader stepping onto the mark is not a tap, and no key precedes it');
+  assert.equal(m1.getAttribute('aria-describedby'), tip.id, 'so the value is announced with the mark');
+
+  hideTooltip(doc.getElementById('host'));
+  touchEvent(window, m1, 'pointerdown');
+  m1.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
+  assert.equal(isOpen(tip), false, 'the focus a tap lands on its way to the click still opens nothing');
+});
+
+test('a tap on the host beside the mark dismisses it, the way a tap on the mark does', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const host = doc.getElementById('host');
+  const m1 = doc.getElementById('m1');
+
+  tap(window, m1);
+  tap(window, doc.querySelector('svg'));
+  assert.equal(isOpen(tip), false, 'the ground between two bars is not a mark, so the readout closes');
+  showTooltip(host, m1);
+  assert.equal(
+    isOpen(tip), false,
+    'and the mark is dismissed, so a chart sampling it does not bring the readout straight back — '
+    + 'a tap that closes a readout does one thing, wherever in the host it lands',
+  );
+  tap(window, m1);
+  assert.ok(isOpen(tip), 'and a tap is deliberate enough to end that dismissal, either way');
+});
+
+test('a pen taps the way a finger does rather than hovering the way a mouse does', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+
+  pointerEvent(window, m1, 'pointerover', 'pen');
+  assert.equal(isOpen(tip), false, 'a pen presses the screen rather than resting over it');
+  tap(window, m1, 'pen');
+  assert.ok(isOpen(tip), 'its tap opens the readout');
+  assert.equal(tip.querySelector('.ui-tip__value').textContent, '€41,000');
+  tap(window, m1, 'pen');
+  assert.equal(isOpen(tip), false, 'and the next one closes it, with no flash in between');
+});
+
+test('a mouse arriving after a finger hovers the way it always did', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  tap(window, doc.getElementById('m1'));
+  tap(window, doc.getElementById('m1'));
+
+  const e = new window.MouseEvent('pointerover', { bubbles: true, cancelable: true });
+  Object.defineProperty(e, 'pointerType', { value: 'mouse' });
+  doc.getElementById('m2').dispatchEvent(e);
+  assert.ok(isOpen(tip), 'a hybrid device is whichever pointer is in play, not whichever it was first');
 });

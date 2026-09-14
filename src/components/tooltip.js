@@ -9,7 +9,8 @@
 //   wireTooltip(container);
 //
 // A mark carries `data-tip-value`, with `data-tip-label` and `data-tip-detail`;
-// a `[data-tip-anchor]` inside it is where the readout opens.
+// a `[data-tip-anchor]` inside it is where the readout opens. Under a finger
+// there is no hover, so a tap is the switch: see Pointer kinds below.
 // why: docs/specification.md#the-hover-readout
 import { esc } from './index.js';
 
@@ -157,7 +158,7 @@ export function showTooltip(host, mark) {
   host.__tipDismissed = null;
   tip.__tipHost = host;
   tip.classList.add('is-open');
-  wireEscape(host.ownerDocument);
+  wireDocument(host.ownerDocument);
 }
 
 function releaseMark(host) {
@@ -177,15 +178,60 @@ export function hideTooltip(host) {
   host.__tipDismissed = null;
 }
 
+// A tap that closes a readout dismisses that mark the way Escape does, so a
+// chart sampling its own marks does not bring it straight back. Which is true
+// of the tap that lands on the mark and of the tap that lands on the host's
+// ground beside it: both are the reader putting the readout away.
+function dismiss(host) {
+  const mark = host.__tipMark;
+  close(host);
+  host.__tipDismissed = mark;
+}
+
+// ---- Pointer kinds -------------------------------------------------------
+
+// A finger has no hover. It arrives already pressing, so the pointerover under
+// a tap is the tap itself: a readout opened on it would open on the way to
+// whatever the mark does when pressed, and go again the moment the finger
+// lifts. Under a coarse pointer the tap is the switch instead — one tap opens
+// the readout, the next closes it, and a tap anywhere else closes it too.
+
+/** Whether the device reports no fine pointer at all: a phone, a tablet. */
+function coarse(doc) {
+  try {
+    return doc.defaultView?.matchMedia?.('(pointer: coarse)')?.matches === true;
+  } catch { return false; }
+}
+
+// A pointer event says which kind of pointer it is; a click and a focus do not,
+// so the last kind seen is remembered for them. A keystroke clears it, because
+// a keyboard on a tablet is a third way in and focus has to open the readout
+// again after a tap. Before any of that, the media query answers.
+//
+// A pen is on the tap's side of that line with the finger. It presses a screen
+// rather than resting over one, the tablets it comes with report `(pointer:
+// coarse)`, and a hover a pen does offer is a few millimetres of one nothing
+// here is placed against — so a stylus that fell to the hover path would get
+// the flash this component exists to remove. A mouse is the fine pointer.
+function touching(doc, e) {
+  if (e?.pointerType) doc.__tipTouch = e.pointerType === 'touch' || e.pointerType === 'pen';
+  return doc.__tipTouch ?? coarse(doc);
+}
+
 // Escape dismisses every readout the kit is showing without the pointer having
 // to move — the reader it covers something for. One rendered open and never
 // shown is a picture, and stays. The dismissed mark is remembered until another
 // mark shows or the pointer leaves, so crossing the gap between marks and coming
 // back does not return the readout to the mark it was dismissed from.
-function wireEscape(doc) {
-  if (doc.__tipEscapeWired) return;
-  doc.__tipEscapeWired = true;
+//
+// The same document is where the kind of pointer in play is tracked, and where
+// a tap that lands outside a readout's host takes that readout down.
+function wireDocument(doc) {
+  if (doc.__tipDocWired) return;
+  doc.__tipDocWired = true;
   doc.addEventListener('keydown', (e) => {
+    doc.__tipTouch = false;
+    doc.__tipTapping = false;
     if (e.key !== 'Escape') return;
     doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
       const host = tip.__tipHost;
@@ -195,6 +241,38 @@ function wireEscape(doc) {
       host.__tipDismissed = mark;
     });
   });
+  // A tap lands focus on the mark on its way to the click that decides, so the
+  // focus between a pointerdown and its click is the tap's own. Focus that no
+  // tap brought is not, and opens the readout under a coarse pointer as it
+  // always did — a reader swiping through the marks with a screen reader gets
+  // the value and the `aria-describedby` that announces it.
+  doc.addEventListener('pointerdown', (e) => { touching(doc, e); doc.__tipTapping = true; }, true);
+  doc.addEventListener('pointercancel', () => { doc.__tipTapping = false; }, true);
+  // Captured, so a host the tap lands in has already lost every other host's
+  // readout by the time it opens its own.
+  doc.addEventListener('click', (e) => {
+    if (e.__tipDismissal) return;
+    doc.__tipTapping = false;
+    if (!touching(doc)) return;
+    doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
+      const host = tip.__tipHost;
+      if (host && !host.contains(e.target)) hideTooltip(host);
+    });
+  }, true);
+}
+
+// An opening tap is stopped on its way to the mark, and stopping it takes it
+// away from the document as well — where other overlays keep the click listener
+// that dismisses them, so a dropdown panel would stand open behind the readout
+// the tap just opened. The tap is handed to the document itself instead. Its
+// target is the root element, which every dismissal listener hears and no
+// delegated trigger matches, since no trigger's attribute is on the root.
+function dismissOverlays(doc) {
+  const view = doc.defaultView;
+  if (!view || !doc.documentElement) return;
+  const passed = new view.MouseEvent('click', { bubbles: true, cancelable: true });
+  passed.__tipDismissal = true;
+  doc.documentElement.dispatchEvent(passed);
 }
 
 // The readout is placed in px from its host, so the host has to be the box it is
@@ -208,8 +286,10 @@ function anchorHost(host) {
 
 /**
  * Wire every `[data-tip-host]` under root: a pointer resting on a mark, or focus
- * landing on one, shows the readout; leaving the marks hides it. A host with no
- * readout of its own is given one here, once, never on hover. Safe to call again.
+ * landing on one, shows the readout; leaving the marks hides it. Under a coarse
+ * pointer nothing rests, so a tap on a mark opens the readout and a second tap —
+ * or a tap anywhere else — closes it. A host with no readout of its own is given
+ * one here, once, never on hover. Safe to call again.
  */
 export function wireTooltip(root = document) {
   const hosts = [...root.querySelectorAll('[data-tip-host]')];
@@ -217,6 +297,8 @@ export function wireTooltip(root = document) {
   hosts.forEach((host) => {
     if (host.__tipWired) return;
     host.__tipWired = true;
+    const doc = host.ownerDocument;
+    wireDocument(doc);
     anchorHost(host);
     if (!tipOf(host)) host.insertAdjacentHTML('beforeend', tooltip());
     const markOf = (t) => {
@@ -225,16 +307,41 @@ export function wireTooltip(root = document) {
     };
     host.addEventListener('pointerover', (e) => {
       anchorHost(host);
+      if (touching(doc, e)) return;
       const mark = markOf(e.target);
       if (!mark) close(host);
       else if (mark !== host.__tipMark) showTooltip(host, mark);
     });
-    host.addEventListener('pointerleave', () => hideTooltip(host));
+    host.addEventListener('pointerleave', (e) => { if (!touching(doc, e)) hideTooltip(host); });
     host.addEventListener('focusin', (e) => {
       anchorHost(host);
+      // A tap lands focus on its way to the click that decides, so under a
+      // finger the readout waits for that tap rather than opening twice. Focus
+      // arriving on its own under the same pointer is a reader reaching the
+      // mark another way, and opens it.
+      if (touching(doc) && doc.__tipTapping) return;
       const mark = markOf(e.target);
       if (mark) showTooltip(host, mark);
     });
     host.addEventListener('focusout', (e) => { if (!markOf(e.relatedTarget)) hideTooltip(host); });
+    // The tap. Captured, so the tap that opens the readout is spent opening it
+    // and never reaches the mark's own click — a chart drilling down on a bar
+    // does not drill down on the tap that asked what the bar says. The tap that
+    // closes the readout is let through, so the drill-down is one tap further.
+    // What the opening tap is stopped from reaching, it is handed to: see
+    // dismissOverlays(), so an open overlay closes under it as under any tap.
+    host.addEventListener('click', (e) => {
+      if (!touching(doc)) return;
+      anchorHost(host);
+      const mark = markOf(e.target);
+      if (!mark || mark === host.__tipMark) { dismiss(host); return; }
+      e.preventDefault();
+      e.stopPropagation();
+      dismissOverlays(doc);
+      // A tap is deliberate, so it ends a dismissal rather than being refused by
+      // one. What a dismissal stops is the readout coming back on its own.
+      host.__tipDismissed = null;
+      showTooltip(host, mark);
+    }, true);
   });
 }
