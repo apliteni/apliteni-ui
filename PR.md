@@ -73,8 +73,8 @@ so that is where it is.
   the palette they rendered; with no palette named there is no field — the argument `signOutHref`
   takes. `paletteHotkey()` reads the platform and a server has none, so the markup ships `Ctrl K`
   and `wireShell()` writes the reader's own key into the cap.
-- **`width: 'wide' | 'centered'` on both layouts.** `centered` is the column the kit has always
-  drawn; `wide` takes the cap off and fills the well.
+- **`width: 'wide' | 'centered'` on both layouts.** `centered` — Artur's default, taken on
+  2026-09-14 — is the column the kit has always drawn; `wide` takes the cap off and fills the well.
 
 ### What was reused, and what was not
 
@@ -292,13 +292,13 @@ rule-for-rule gate still pairs it with its twin.
 
 ## Proof
 
-Run on this host at the branch head.
+Run on this host at the branch head, with `origin/main` (`a162922`) merged in.
 
 ```
 $ npm test
-ℹ tests 1546
+ℹ tests 1579
 ℹ suites 0
-ℹ pass 1543
+ℹ pass 1576
 ℹ fail 1
 ℹ cancelled 0
 ℹ skipped 2
@@ -306,13 +306,13 @@ $ npm test
 
 ✖ failing tests:
 ✖ the walk has not run away with the clock
-  AssertionError [ERR_ASSERTION]: the contrast walk took 165.6s, against a 120s ceiling
+  AssertionError [ERR_ASSERTION]: the contrast walk took 259.4s, against a 120s ceiling
   set from a measured worst case of 47.6s on a fully contended 10-core laptop.
 ```
 
 **That one failure is the wall-clock ceiling and nothing else, and it is red on `main` on this host
-too.** Measured, not asserted: `origin/main` checked out at `233a1e7` in a second worktree over the
-same `node_modules`, `node --test stories/contrast.test.js`:
+too.** Measured, not asserted: `main` checked out at `233a1e7` in a second worktree over the same
+`node_modules`, `node --test stories/contrast.test.js`:
 
 ```
 ℹ tests 22
@@ -321,28 +321,29 @@ same `node_modules`, `node --test stories/contrast.test.js`:
   AssertionError: the contrast walk took 160.2s, against a 120s ceiling…
 ```
 
-So `main` is 160.2s and this branch 165.6s, both over a 120s bar, on a box running several agents.
-The walk's own assertions — every ground, every chip pair, both themes — pass on both. The two skips
-are the opt-in `CONTRAST_ACCENTS=1` matrix and the `jq`-gated publish check, skipped on `main` as
-well.
+The walk's own assertions — every ground, every chip pair, both themes — pass on both. What the
+number is depends entirely on what else the box is running: this branch measured 165.6s on one run
+and 259.4s on another, against `main`'s 160.2s, with several agents working alongside. The bar is
+120s on an unloaded 10-core laptop, and nothing here is that. The two skips are the opt-in
+`CONTRAST_ACCENTS=1` matrix and the `jq`-gated publish check, skipped on `main` as well.
 
 ```
 $ npm run build
-ESM dist/index.css 2.06 KB
-ESM dist/index.js  39.58 KB
-ESM ⚡️ Build success in 89ms
-DTS ⚡️ Build success in 2151ms
-DTS dist/index.d.ts 8.49 KB
+ESM dist/index.css 2.15 KB
+ESM dist/index.js  55.98 KB
+ESM ⚡️ Build success in 112ms
+DTS ⚡️ Build success in 3102ms
+DTS dist/index.d.ts 13.43 KB
 
 $ npx vitest run   # in react/
- Test Files  17 passed (17)
-      Tests  353 passed (353)
-   Duration  11.79s
+ Test Files  20 passed (20)
+      Tests  530 passed (530)
 ```
 
 **There is no React `<AppShell>` for these options to reach.** `react/src/index.ts` publishes
 `Icon`, `Button`, `Badge`, `Card`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `DataTable`,
-`Pagination` and the loading set — components, not layout. The acceptance criterion's "if one
+`Pagination`, the loading set, and — since #316 merged into this branch — `Dropdown` and
+`BackLink`: components, not layout. The acceptance criterion's "if one
 exists" is answered: it does not, and building one is a larger question than this issue.
 
 ### `ai-slop-detector`, paranoid level
