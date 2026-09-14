@@ -171,6 +171,22 @@ Proof it settled, run just now:
   review named. The fourteen at-rest frames are unchanged byte for byte, which is what says the
   timeouts were only ever a race where a keystroke had started a transition.
 
+**One caveat, arrived with the merges and measured rather than assumed.** Re-shot against
+`origin/main` at `a162922`, two runs of the same tree now disagree on **two** frames —
+`shell-topbar-menu-dark.png` and `shell-topbar-search-dark.png` — by **21 pixels each, confined to
+rows 213–215**, at `x 49–51` and `x 226–228`. That is the two bottom corners of the active nav
+row's rounded plate, rasterizing one of two ways; the pixels flip between near-black and
+near-white, so it is a coin-flip on a 3px antialiased corner rather than anything still moving.
+The other sixteen frames, both phone widths and every light frame included, are byte-identical
+across runs.
+
+It is not `settle()` failing and not this branch's: at `e2bcd89`, before either merge, two full
+runs agreed on all eighteen frames and the 2× set agreed on all fourteen. It appears only in the
+topbar layout, where the band puts the rail's rows on a different sub-pixel phase from the
+rail-only layout, whose frames are unaffected. Nothing a reviewer judges is in those 21 pixels,
+so the frames are committed as shot and the limit is stated here instead of being rounded to
+"deterministic".
+
 A 2× set of the same frames (minus the phones) is at `/home/orca/shots-308/` on the host for the
 review page, shot by the same script under `UI_DSF=2` and re-shot through `settle()` with the rest.
 It is deliberately **not** committed: 1× is what the rig's README calls the reproducible
