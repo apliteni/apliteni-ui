@@ -26,12 +26,20 @@ frames the choice was made from are kept under `docs/evidence/318-search-field/`
 
 ## What ships
 
-Fourteen lines in one file. `src/styles/layout.css`, against `origin/main`:
+One declaration and a focus rule, in one stylesheet, plus the two places the specification had to
+say so. Against `origin/main`:
+
+```
+ src/styles/layout.css | 25 ++++++++++++++++-----
+ docs/specification.md | 10 +++++++++-
+```
+
+`layout.css` is one changed declaration, one new rule, and the comments that say why:
 
 ```css
    color: var(--muted);
 -  background: var(--surface-2);
-+  /* --surface, not the sunken --surface-2 every other field in the kit takes: …  */
++  /* --surface, not the sunken --surface-2 every other field in the kit takes: … */
 +  background: var(--surface);
    border: 1px solid var(--border);
    …
@@ -41,16 +49,26 @@ Fourteen lines in one file. `src/styles/layout.css`, against `origin/main`:
 +.ui-app__search:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
 ```
 
-**One declaration, and a focus rule.** The declaration is the decision; the rule is the defect the
-survey found on the way and that every variant fixed.
+`docs/specification.md` gains one sentence under the elevation ladder and one in the paragraph about
+fields inside panels, because the ladder said *every* field is on the sunken step and now one is not.
+Both name #318 as the record, and the first cites the declaration.
+
+The rule's own opening comment changed too: it used to say the field takes `.ui-input`'s ladder —
+*"the sunken step, the hairline and the radius"* — which is the sentence this PR makes false. It
+claims the hairline and the radius now, and points at the declaration for the step.
 
 **Why the fill goes up and not down**, in the comment beside it and at length in the survey: every
 other field in the kit is sunken because it sits on a card, and this one sits on the band — which is
 `--bg`, the bottom of the elevation ladder — so a sunken fill has nowhere to go but down into its
 own ground. Measured in light, the field was **1.10:1 below the band**; it is **1.08 above** it now.
-The key cap moves with it for free: `--surface-3` on `--surface-2` measured **1.04:1**, a filled,
-bordered box with neither a visible fill nor a visible border, and it is **1.14:1** on the new
-ground.
+The key cap moves with it, and **not for free** — it trades dark for light. On `--surface-2` its fill
+measured **1.04:1** and its border **1.01:1**, a filled, bordered box with neither a visible fill nor
+a visible border; on `--surface` those are **1.14:1** and **1.18:1**. In dark they go the other way,
+1.29 → **1.16** and 1.41 → **1.27**, because `--surface-3` and `--surface` are two adjacent rungs
+there. That is a consequence of the lift rather than a defect in it: the cap in dark after the change
+still reads better than the cap in light did before, and every dark number is above the light one it
+replaces. It is named under *Open* below rather than fixed here, because fixing it means changing a
+control Artur has just looked at pixel by pixel.
 
 **Why the focus rule.** `.ui-app__search` is a `<button>` without `.ui-btn`, so the kit's shared
 ring rule — src/styles/base.css:140 `.ui-focusable:focus-visible,` — never reached it and
@@ -74,7 +92,7 @@ Nothing in `src/` ever wrote `data-search-variant` and no consumer set it, so no
 it and none loses it.
 
 **One consequence, stated rather than left to be noticed.** The band close-up — `.ui-app__bar`
-captured on its own at 1032×52, which is the frame the five looks were actually compared in — was
+captured on its own at 1031×52, which is the frame the five looks were actually compared in — was
 part of the `#318` loop, so the settled rig has no producer for it. The ten committed band frames
 stay as the decision's record, and the check under *Evidence* below shows they are the same pixels
 as the band region of the frames the settled tree draws today. If the band is worth shooting
@@ -142,7 +160,11 @@ shell-topbar-search-dark      40889 of 2918400 samples differ, max delta 240 in 
 `x∈[300,619] y∈[6,44]` — the field's own 320×34 box at the band's start, moved to `x∈[125,444]` when
 the rail is folded and to `x∈[98,311]` on a phone. Nothing else on any of those pages moved a
 sample. The two focus frames are the larger box and the larger delta, because that is the rule that
-replaced Chrome's outline with the kit's ring, which spreads 3px past the field.
+replaced Chrome's outline with the kit's ring, which spreads 3px past the field. **One of those two
+boxes is not all ring**: `shell-topbar-search-light`'s `x∈[42,622] y∈[3,166]` is the union of the
+ring's own box and the rail's jitter sliver at `x∈[42,43] y∈[15,166]` — the 19 samples that also
+separate two runs of this tree from each other, below. The ring's share of it ends at the field.
+`shell-topbar-search-dark`'s `x∈[297,622] y∈[3,47]` is the ring alone.
 
 The six **rail** frames are deliberately not re-shot: the rail layout draws no search field, so this
 change cannot reach them. See the caveat below for what happened when they were shot anyway.
@@ -168,7 +190,7 @@ is `shell-topbar-search-light`, at the same 19 samples in `x∈[42,43] y∈[15,1
 
 **And the band close-up**, which has no producer on the settled rig. The committed
 `318-search-lifted-{light,dark}-band.png` were compared sample for sample against the band's region
-of the frames the settled tree draws today — the 1032×52 box at `(249, 0)` inside
+of the frames the settled tree draws today — the 1031×52 box at `(249, 0)` inside
 `shell-topbar-wide-*`:
 
 ```
@@ -185,10 +207,12 @@ cross-check.
 
 ### A caveat about this host, found while shooting and not caused by this branch
 
-The six `shell-rail-*` frames committed by #317 do not reproduce on this box. Re-shot from
-`origin/main` itself, with `main`'s own rig and stylesheet, they come back **156 of 2,918,400 samples
-apart, max delta 126, in one 13×8 box at `x∈[222,234] y∈[717,724]`** — the chevron on the reader's
-trigger at the rail's foot. It is not the Chrome build: `chromium-1194`, `1234` and `1243` all agree
+**Four** of the six `shell-rail-*` frames committed by #317 do not reproduce on this box — the four
+at 1280. Re-shot from `origin/main` itself, with `main`'s own rig and stylesheet, they come back
+**156 of 2,918,400 samples apart, max delta 126, in one 13×8 box at `x∈[222,234] y∈[717,724]`** — the
+chevron on the reader's trigger at the rail's foot. The two `shell-rail-phone-*` frames come back
+**byte-identical**, which fits: below 720px the rail is the glyph strip and that chevron is not
+drawn. It is not the Chrome build: `chromium-1194`, `1234` and `1243` all agree
 with each other and all disagree with what is committed, identically. It is this Linux host against
 whatever machine shot them.
 
@@ -211,6 +235,47 @@ doing its job:
 | `scripts/doc-refs.test.js`, `scripts/code-refs.test.js` | Refused four citations, including an earlier draft of this body quoting a wrong anchor verbatim. Every `path:line` in the survey is now anchored by a code span quoting the line it names. |
 | `stories/guidelines/refs.test.js` | Refused two Guidelines pages after the settling commit: adding twelve lines of comment to `layout.css` moved `rank: page-title` from line 381 to 394 and the 720px block from 416 to 429, and `Labels and titles` and `Layout and density` both cite those lines. Both references are updated. A rule that cites a line number is a rule that notices when the line moves. |
 
+## The independent review, and what each finding changed
+
+Verdict: *fix first* on two documentation edits, then ready. All six items are answered here; each
+was reproduced to the sample before it was acted on.
+
+**1. The rule's opening comment still said "the sunken step".** It did —
+`src/styles/layout.css`'s `.ui-app__search` banner claimed the field takes `.ui-input`'s ladder,
+*"the sunken step, the hairline and the radius"*, twelve lines above a new comment saying it does
+not. It claims the hairline and the radius now and points at the declaration for the step.
+
+**2. The specification still said every field is sunken.** Also true, in two places: the elevation
+ladder's `--surface-2` row reads *"sunken — a field, a track, a disabled box, a code block"*, and
+the panel paragraph ends *"A field inside a panel goes the other way: it is the sunken step"*. The
+new comment's own `why:` points at `#elevation`, so the page it pointed at contradicted it. One
+sentence in each, both naming #318, and the first citing the declaration.
+
+**3. The rail caveat said six frames where four is right.** Correct. The two `shell-rail-phone-*`
+frames reproduce byte-identically on this box; only the four at 1280 do not, and the reason fits —
+below 720px the rail is the glyph strip and the chevron that differs is not drawn. Fixed, with the
+phone result stated.
+
+**4. The light focus frame's box is not all ring.** Correct, and the number was already in the body
+saying so: `x∈[42,622] y∈[3,166]` is the union of the ring's box and the rail's 19-sample jitter
+sliver at `x∈[42,43] y∈[15,166]`. The dark frame's box is the ring alone. Both are now written as
+what they are.
+
+**5. The band close-up is 1031×52, not 1032.** It is: 1280 less the 249px rail, and the crop check's
+own 160836 samples are 1031 × 52 × 3. Two occurrences fixed.
+
+**6. The dark key cap drops from 1.29:1 to 1.16:1.** It does, and the border with it, 1.41 → 1.27 —
+`--surface-3` and `--surface` are adjacent rungs in dark. The body claimed the cap moved "for free"
+on the strength of the light numbers alone, which was the light half of a trade. It now states both
+directions, in the body and in the stylesheet's own comment, with the observation that every dark
+number after the change is still above the light one it replaces.
+
+There is a one-line answer and it is **deliberately not taken**:
+`.ui-app__search kbd { border-color: var(--border-strong); }` puts the cap's edge at 1.64 dark and
+1.44 light, better than either theme has measured at any point in this issue, and costs nothing
+else. It is a visible change to the control Artur chose the look of one round ago, so it is under
+*Open* for him to say yes to rather than something to slip in behind the decision he made.
+
 ## Proof
 
 Run on this host at the branch head, nothing else running, with `origin/main` (`6ddbe3d`) merged in.
@@ -232,8 +297,8 @@ $ npm test -w react
 $ npm run build
 ESM dist/index.js  55.98 KB
 ESM dist/index.css 2.15 KB
-ESM ⚡️ Build success in 140ms
-DTS ⚡️ Build success in 3126ms
+ESM ⚡️ Build success in 164ms
+DTS ⚡️ Build success in 3174ms
 DTS dist/index.d.ts 13.43 KB
 ```
 
@@ -242,13 +307,14 @@ DTS dist/index.d.ts 13.43 KB
 ceiling. `origin/main` fails the same gate on the same box:
 
 ```
-the contrast walk took 181.2s   # the settled tree, in the run above
+the contrast walk took 182.7s   # this tree, timed on its own
 main walk: 182.01 s             # origin/main, same node_modules, timed on its own
 ```
 
-The settled tree carries no story `main` does not have, so its walk **is** `main`'s — 181.2s against
-182.01s, within the noise of a shared box. While the branch still carried the extra variants story
-it measured 188.95s, about 4% more, which is what one extra screen in every theme × accent cell
+The settled tree carries no story `main` does not have, so its walk **is** `main`'s — 182.7s against
+182.01s, within the noise of a shared box. (Inside a full `npm test` with another run overlapping it,
+the same walk reported 229.4s; the number above is the solo one.) While the branch still carried the
+extra variants story it measured 188.95s, about 4% more, which is what one extra screen in every theme × accent cell
 should cost; that screen is gone. The ceiling is pinned from a measured worst case on a ten-core
 laptop and this box is eight cores shared with the rest of the run, so **the ceiling is not moved** —
 moving it to make a slow host green is what the gate exists to stop. The two skips are
@@ -259,11 +325,14 @@ moving it to make a slow host green is what the gate exists to stop. The two ski
 Run over `PR.md`, the survey, the comparison page, `CONTRIBUTING.md`, the settled `layout.css`, the
 story and `elevation.test.js`. Nothing this branch adds is flagged as its own finding. What remains:
 
-- **`comment-ratio` on `src/styles/layout.css`, 0.63:1 — pre-existing.** `main`'s own copy measures
-  0.60:1 and warns identically; the settled tree adds twelve lines of comment to it. Bringing the
-  file under the rule means rewriting comments this branch did not write.
+- **`comment-ratio` on `src/styles/layout.css`, 0.64:1 — pre-existing.** `main`'s own copy measures
+  0.60:1 and warns identically; this branch adds sixteen lines of comment to a 347-line file, two of
+  them the review's own fix. Bringing the file under the rule means rewriting comments this branch
+  did not write.
 - **`comment-essay` on `stories/elevation.test.js` at line 31 — pre-existing.** The 23-line
   `TREATMENT_DROP` block, which `main` carries unchanged and this branch does not touch.
+- **`scope-template` on `docs/specification.md` — pre-existing.** It matches a sentence about the
+  drawer's scrim, untouched here; `main`'s own copy of the page carries the same single finding.
 - **`middot-chain` on `PR.md` and the survey — stated, not fixed.** It is matching the variant
   labels, `a · bordered` and the rest, which is the naming `docs/reviews/295-popover-variants.html`
   used for its own options (`a · Two-step edge`) in a page Artur read and chose from. The rule is
@@ -300,7 +369,14 @@ coordinator sequences versions at merge.
 2. **`shell-rail-*` does not reproduce across machines**, as above. The rig's README promises
    determinism over checkout, Chrome and viewport, and the host is a fourth variable it does not
    name.
-3. **The trigger still says the palette's own sentence.**
+3. **The key cap loses in dark what it gains in light**, as above — fill 1.29 → 1.16, border
+   1.41 → 1.27, because `--surface-3` and `--surface` are adjacent rungs. There is a one-line
+   answer and it is deliberately not taken here: `.ui-app__search kbd { border-color:
+   var(--border-strong); }` puts the cap's edge at **1.64 dark and 1.44 light**, better than either
+   theme has ever measured, and costs nothing else. It is a visible change to the control Artur has
+   just chosen the look of, in the round after he chose it, so it is his to say yes to rather than
+   mine to slip in. One word on #318 and it is a commit.
+4. **The trigger still says the palette's own sentence.**
    src/components/shell.js:99 `return { palette, placeholder: str(given.placeholder) || 'Search or run a command…' };`
    takes its default from `command-palette.js`'s own placeholder — the prompt for a box you have
    already opened — and at 390px it clips to *"Search or run a co…"*. Every readable reference in

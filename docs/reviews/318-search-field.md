@@ -17,8 +17,10 @@ remembered border width is not evidence.
 
 ## What this kit draws today
 
-src/components/shell.js:234 `const searchField = ({ palette, placeholder }) =>` and
-src/styles/layout.css:340 `.ui-app__search {`, at `6b4af3e`:
+The tree at `6b4af3e`, which is the state this survey was read against — the SHA in front says so,
+and keeps these two from being chased every time the file moves:
+6b4af3e:src/components/shell.js:234 `const searchField = ({ palette, placeholder }) =>` and
+6b4af3e:src/styles/layout.css:340 `.ui-app__search {`.
 
 ```
 <button class="ui-app__search" data-cmdk-open="…" aria-haspopup="dialog">

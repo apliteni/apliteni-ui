@@ -333,9 +333,11 @@
 .ui-app--topbar > .ui-app__rail > .ui-app__head { height: var(--ui-app-band); padding-bottom: 0; }
 .ui-app--topbar > .ui-app__rail > .ui-app__foot { height: var(--ui-app-band); padding-top: 0; }
 
-/* Drawn as a field, behaving as a button. The ladder is the field's — the sunken
-   step, the hairline and the radius src/styles/input.css:20 `.ui-input` sets — because
-   what it looks like is the point. It gives way before anything else on the band.
+/* Drawn as a field, behaving as a button. The hairline and the radius are the
+   field's — src/styles/input.css:20 `.ui-input,` sets both — because what it looks
+   like is the point. The STEP is not, and that is the one thing this control does
+   differently from every other field in the kit: the reason is on the declaration
+   below. It gives way before anything else on the band.
    why: docs/specification.md#the-page-shell */
 .ui-app__search {
   display: flex;
@@ -354,7 +356,9 @@
      those sit on a card and this one sits on the band, and the band IS --bg, the
      bottom of the ladder — so a sunken fill has nowhere to go but down into its
      own ground. Measured in light, the field was 1.10:1 BELOW the band and its
-     cap 1.04:1 against the field it sits in; it is 1.08 above and 1.14 now.
+     key cap 1.04:1 against the field it sits in; they are 1.08 above and 1.14 now.
+     Dark trades the other way and is stated rather than hidden: the cap goes
+     1.29 -> 1.16, because --surface-3 and --surface are adjacent rungs there.
      Artur chose this over three alternatives on #318; the survey of what seven
      other systems do is docs/reviews/318-search-field.md.
      why: docs/specification.md#elevation */
