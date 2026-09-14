@@ -414,6 +414,37 @@ it('a caller that moves the selection itself takes the pick back', async () => {
   expect(rowsOf(dd).map((el) => el.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true']);
 });
 
+it('a pick the caller took back does not come back when the caller returns to where it was', async () => {
+  // A pick is taken back by the caller moving its selection, and taken back for good: a
+  // list that goes a → b → a is one refetch and one undo, not permission for a pick made
+  // three renders ago to reappear over the caller's own answer — silently, because
+  // nothing reports it. Comparing the pick against the caller's current selection is not
+  // enough for that; the pick has to be dropped when the caller first moves.
+  const user = userEvent.setup();
+  const Held = () => {
+    const [at, setAt] = useState('1.2.0');
+    return (
+      <>
+        <button type="button" onClick={() => setAt('1.1.0')}>To v1.1.0</button>
+        <button type="button" onClick={() => setAt('1.2.0')}>Back to v1.2.0</button>
+        <Dropdown variant="select" ariaLabel="Version"
+          items={['1.2.0', '1.1.0', '1.0.0'].map((v) => ({ label: `v${v}`, value: v, selected: v === at }))} />
+      </>
+    );
+  };
+  render(<Held />);
+  const dd = document.querySelector('.ui-dropdown')!;
+  const value = () => dd.querySelector('.ui-dropdown__value')!.textContent;
+  await user.click(within(dd as HTMLElement).getByRole('button', { name: /v1\.2\.0/ }));
+  await user.click(screen.getByText('v1.0.0'));
+  expect(value(), 'the reader picked it').toBe('v1.0.0');
+  await user.click(screen.getByText('To v1.1.0'));
+  expect(value(), 'the caller moved, so the caller wins').toBe('v1.1.0');
+  await user.click(screen.getByText('Back to v1.2.0'));
+  expect(value(), 'and it stays the caller’s when the caller goes back').toBe('v1.2.0');
+  expect(rowsOf(dd).map((el) => el.getAttribute('aria-selected'))).toEqual(['true', 'false', 'false']);
+});
+
 it('a menu row reports its pick and does not move a tick', async () => {
   const user = userEvent.setup();
   const picks: string[] = [];

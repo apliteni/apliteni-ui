@@ -222,6 +222,13 @@ export function Dropdown({
   const given = rows.find((it) => it.selected);
   const givenKey = given ? keyOf(given) : null;
   const pickedKey = pick && pick.against === givenKey ? pick.key : null;
+  // And taken back for good. The line above answers the frame the caller's move lands
+  // in; this drops the pick, because a caller whose selection goes a → b → a has
+  // refetched or undone something and not handed a pick made three renders ago its
+  // place back — silently, since nothing reports that the two now disagree.
+  useEffect(() => {
+    if (pick && pick.against !== givenKey) setPick(null);
+  }, [givenKey, pick]);
   const picked = pickedKey != null ? rows.find((it) => keyOf(it) === pickedKey) : undefined;
   const shown = value != null ? value
     : (isSelect ? (picked?.label ?? given?.label) : null);
