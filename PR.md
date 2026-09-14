@@ -270,8 +270,12 @@ nothing else running, this branch against a detached `origin/main` worktree on t
 | per pair | **8.86ms** | 9.54ms |
 | style-cache miss rate | 0.1948 | 0.1986 |
 
+The pairing was taken at `ad5cd79`; the two commits after it are prose, and one of them — a line
+added to the accessibility floor page — puts the branch at **16,002** pairs in the final `npm test`
+on the same host.
+
 `main` is over the bar before this branch touches anything, and in this pairing it was the slower
-of the two. The branch adds work — **+522 pairs, +3.4%** — and the source is named rather than
+of the two. The branch adds work — **+524 pairs, +3.4%** — and the source is named rather than
 waved at: the accessibility floor page's row registering `stories/elevation.test.js` and the blind
 spots it states, plus the rail's flyout, which now has a shadow and a firmer border for the walk to
 read. Per pair the branch is *faster* than `main`, so the extra pairs are the whole of the extra
