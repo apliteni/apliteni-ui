@@ -243,7 +243,7 @@ moved nothing on a surface that does not re-point its edge, and the rig reproduc
 | `npm run build` (React, tsup) | pass — ESM 39.58 KB, DTS 8.49 KB |
 | `npx vitest run` (react) | 18 files, 356 tests, pass |
 | `node --test` over the five colour and elevation gates and the reader's own tests | 150 tests, pass |
-| gitleaks 8.30.1, `--log-opts origin/main..HEAD` | no leaks, 21 commits |
+| gitleaks 8.30.1, `--log-opts origin/main..HEAD` | no leaks, every commit on the branch |
 | gitleaks 8.30.1, `--no-git` over the tree | no leaks, 3.61 MB |
 | internal-terms denylist (`security.yml`'s own grep, verbatim) | clean |
 | AI-slop detector, paranoid, over every file this branch touched | 0 errors, 5 medium, 7 warnings — what `55b2df2` reported, same files |
