@@ -6,9 +6,12 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * What the back link's sheet decides that nothing else checks: that the colour
- * holds against a host stylesheet's link rule, and that the target is 24px tall.
- * Read as text, because the package ships CSS as its artifact and both subjects
- * are `var()` values, which jsdom resolves to nothing.
+ * holds against a host stylesheet's link rule, that the target is 24px tall, and
+ * that a long destination clips rather than wrapping.
+ * Read as text, because the package ships CSS as its artifact: the first two are
+ * `var()` values, which jsdom resolves to nothing, and the third is an ellipsis,
+ * which needs a layout jsdom does not have. What the clip looks like when a
+ * browser does the layout is docs/evidence/back-label-long-*.png.
  * why: docs/specification.md#the-back-link
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -60,4 +63,26 @@ test('the link is at least a 24px target', () => {
   const m = /min-height\s*:\s*var\(--(space-[\w-]+)\)/.exec(base.body);
   assert.ok(m, '.ui-back declares no min-height from the spacing scale');
   assert.ok(SPACE[m[1]] >= 24, `--${m[1]} is ${SPACE[m[1]]}px`);
+});
+
+test("the destination's name clips to one line rather than wrapping", () => {
+  // The link stands above the page title, so a second line moves the page down.
+  // Which four declarations, and why min-width is one of them: back.css's own
+  // note on the rule. That it EXISTS at all is src/styles/label-coverage.test.js.
+  const decl = (rule, prop) => new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`).exec(rule.body)?.[1].trim();
+  const label = rules.find((r) => r.selector === '.ui-back__label');
+  assert.ok(label, 'no rule for .ui-back__label');
+  assert.equal(decl(label, 'white-space'), 'nowrap');
+  assert.equal(decl(label, 'overflow'), 'hidden');
+  assert.equal(decl(label, 'text-overflow'), 'ellipsis');
+  // A flex item's own floor is its content, so the three above never come into
+  // play without this: the label refuses to shrink and the link overflows instead.
+  assert.equal(decl(label, 'min-width'), '0');
+
+  // And the link itself needs a ceiling. `width: fit-content` resolves to at
+  // least the box's own min-content, which a `nowrap` label makes the whole
+  // destination name — so without this the four declarations above are dead and
+  // the link pushes through the column. Measured: docs/evidence/back-label-*.png.
+  const base = rules.find((r) => r.selector === '.ui-back');
+  assert.equal(decl(base, 'max-width'), '100%');
 });

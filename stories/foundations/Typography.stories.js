@@ -43,7 +43,7 @@ export const Scale = {
       ${specimenRow('30px', 700, 'Page title, h1', 'Access &amp; agents', 'display')}
       ${specimenRow('22px', 600, 'Section', 'Connect over MCP', 'display')}
 
-      ${h3('Text — <code style="font-family:var(--font-mono);font-size:.85em">--font-sans</code>', 'IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in. Page title, card title, body, label and chip are the five ranks in docs/specification.md#labels-and-titles.')}
+      ${h3('Text — <code style="font-family:var(--font-mono);font-size:.85em">--font-sans</code>', 'IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in. Page title, card title, body, label, caption and chip are the six ranks in docs/specification.md#labels-and-titles.')}
       ${specimenRow('18px', 600, 'Card title, h2', 'Appearance', 'sans')}
       ${specimenRow('15.5px', 400, 'Body large', 'The readable long-form version of the strategy.', 'sans')}
       ${specimenRow('14.5px', 400, 'Body', 'Personal tokens agents use to read the strategy.', 'sans')}
