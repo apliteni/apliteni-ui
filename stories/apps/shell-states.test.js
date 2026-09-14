@@ -318,9 +318,11 @@ const PHONE_ONLY = [
  * that is drawn in one fold and gone in the other. Below 720px the toggle is not
  * drawn, so a head band holding nothing else is padding and a hairline over
  * nothing; on the reader's fold that band holds the only control that opens the
- * rail. Each is measured both ways under this constant rather than merely excluded.
+ * rail. The rail's foot in the topbar layout is the same rule read at the other end —
+ * it holds the toggle and nothing else. Each is measured both ways under this constant
+ * rather than merely excluded.
  */
-const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand'];
+const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand', '.ui-app__rail .ui-app__foot'];
 
 /**
  * And the one rule the reader's fold writes that the 720px block must not, which is
@@ -344,6 +346,26 @@ const FOLD_ONLY = [
   { selector: '.ui-app__brand, .ui-app__brand *', props: ['opacity', 'visibility', 'pointer-events'] },
 ];
 
+test('a folded rail keeps the product\'s mark in the layout where nothing takes its column', () => {
+  const gone = mount(PAIR(true));
+  assert.equal(
+    gone.shown(gone.q('.ui-app__brand')), false,
+    'premise: in the default layout the fold takes the lockup, because the toggle rides the closing '
+    + 'edge onto the column the mark stands on',
+  );
+  const kept = mount(BANDED(true));
+  assert.equal(
+    kept.shown(kept.q('.ui-app__brand')), true,
+    'the topbar layout folds the lockup away as well, and nothing arrives on the column it gave up — '
+    + 'so the rail opens with a 52px band holding nothing, its hairline still under it, which is the '
+    + 'defect the 720px block was written to avoid at the other width',
+  );
+  assert.equal(
+    Number.parseFloat(kept.of(kept.q('.ui-app__brand span'), 'opacity')), 0,
+    'the folded rail keeps the product\'s word as well as its mark, in a rail one glyph wide',
+  );
+});
+
 /** `map` without the phone strip's own declarations, and without a rule left empty by one. */
 function withoutPhoneFloor(map) {
   for (const { selector, prop } of PHONE_ONLY) {
@@ -361,7 +383,13 @@ test('the collapsed rail is the narrow rail, rule for rule', () => {
   const narrow = withoutPhoneFloor(ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main')
     && !sel.includes('.ui-app__fold') && !PHONE_ONLY_RULES.includes(sel)));
   const collapsed = new Map([...ruleMap(css, (sel) => sel.includes('.is-collapsed') && !sel.includes('.ui-app__fold'))]
-    .map(([sel, decls]) => [sel.replace(/:where\(\.ui-app\.is-collapsed\)\s*/g, '').replace('.ui-app.is-collapsed', '.ui-app'), decls])
+    // The layout qualifier comes off with the fold's own: since #308 one rule is
+    // written `:where(.ui-app:not(.ui-app--topbar).is-collapsed)`, because the
+    // lockup only goes in the layout where the toggle arrives on its column. It is
+    // the same rule under the same exception, so it normalises to the same key.
+    .map(([sel, decls]) => [sel
+      .replace(/:where\(\.ui-app(?::not\(\.ui-app--topbar\))?\.is-collapsed\)\s*/g, '')
+      .replace('.ui-app.is-collapsed', '.ui-app'), decls])
     .filter(([sel]) => !FOLD_ONLY_RULES.includes(sel)));
   // A floor, not a count: it catches a sweep that has stopped finding the block,
   // and it sits under the real number so adding or removing one rule does not
@@ -421,6 +449,38 @@ const TOPPED = (collapsed) => appShell({
   signOutHref: '#logout',
   collapsible: true,
   collapsed,
+});
+
+// The second layout, where the reader's block is on the band and the fold's control
+// has taken its place at the rail's foot.
+const BANDED = (collapsed) => appShell({
+  word: 'Finance',
+  layout: 'topbar',
+  search: 'states-cmdk',
+  nav: [{ id: 'dashboard', icon: 'chart', label: 'Dashboard' }],
+  active: 'dashboard',
+  account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+  signOutHref: '#logout',
+  collapsible: true,
+  collapsed,
+});
+
+test('the phone strip drops the rail\'s foot with nothing left in it, and the reader\'s fold keeps it', () => {
+  const narrow = mount(BANDED(false), { narrow: true });
+  assert.equal(
+    narrow.shown(narrow.q('.ui-app__foot')), false,
+    'below 720px the toggle is not drawn, so the foot that holds it in the topbar layout is 20px of '
+    + 'padding and a hairline over nothing at the bottom of the rail — the head band\'s rule, read '
+    + 'at the other end of the rail',
+  );
+
+  const folded = mount(BANDED(true));
+  assert.equal(
+    folded.shown(folded.q('.ui-app__foot')), true,
+    'the reader\'s fold took the rail\'s foot with it, and the toggle inside it is the only way back '
+    + 'to an open rail. This rule belongs to the 720px block alone.',
+  );
+  assert.equal(folded.shown(folded.q('.ui-app__fold')), true, 'the folded rail cannot be opened again');
 });
 
 test('the phone strip drops a head band with nothing left to draw, and the reader\'s fold keeps it', () => {
@@ -1475,12 +1535,15 @@ test('the toggle rides the closing edge, and the edge lands it on the glyph colu
     + 'control on the strip — the glyph column every row of a folded rail stands on. Anything shorter '
     + 'leaves it outside the rail\'s clip, where a folded rail has no control to open it.',
   );
-  const declared = /:where\(\.ui-app\.is-collapsed\)\s*\.ui-app__fold-row\s*\{([^{}]*)\}/
+  // Scoped to the head band since #308: the topbar layout stands the same row at the
+  // rail's foot, where the control is on the glyph column from the first frame and has
+  // no edge to ride. The travel belongs to the band, so the rule that writes it says so.
+  const declared = /:where\(\.ui-app\.is-collapsed\)\s*\.ui-app__head\s*>\s*\.ui-app__fold-row\s*\{([^{}]*)\}/
     .exec(decomment(read('src/styles/layout.css')));
   assert.ok(
     declared,
-    'the reader\'s fold no longer moves the toggle, so a folded rail draws the one control that opens '
-    + 'it 175px outside itself',
+    'the reader\'s fold no longer moves the toggle in the head band, so a folded rail draws the one '
+    + 'control that opens it 175px outside itself',
   );
   assert.match(
     declared[1], /calc\(\s*var\(--ui-nav-strip\)\s*-\s*var\(--ui-nav-col\)\s*\)/,
@@ -1871,4 +1934,73 @@ test('the reader block is announced once, and by the words that are on screen', 
   );
   assert.match(who.textContent, /Ada Lovelace/, 'the block on screen does not say who is signed in');
   assert.match(who.textContent, /ada@apliteni\.com/);
+});
+
+// ---- C8. the second layout, through the cascade (#308) --------------------
+
+test('the band, the rail\'s head and the rail\'s foot are one height, and it is the kit\'s band height', () => {
+  const tall = /\.topbar\s*\{[^}]*?\bheight:\s*([^;]+);/.exec(decomment(read('src/styles/topbar.css')));
+  assert.ok(tall, 'premise: .topbar no longer declares a fixed height — re-derive this band');
+  const band = /--ui-app-band:\s*([^;}]+)/.exec(decomment(read('src/styles/layout.css')));
+  assert.ok(band, 'layout.css no longer declares --ui-app-band, so the banded layout has no height to share');
+  assert.equal(
+    band[1].trim(), tall[1].trim(),
+    `the shell's band is ${band[1].trim()} while the kit's other band is ${tall[1].trim()} tall. Two `
+    + 'literals for one row: a page that carries both draws them at two heights, and neither file '
+    + 'says anything is wrong.',
+  );
+  const at = mount(BANDED(false));
+  const px = (sel) => Number.parseFloat(at.css(sel, 'height'));
+  assert.equal(
+    px('.ui-app__bar'), Number.parseFloat(band[1]),
+    'the band is not the height it declares, so nothing else can be measured against it',
+  );
+  for (const sel of ['.ui-app__head', '.ui-app__foot']) {
+    assert.equal(
+      px(sel), px('.ui-app__bar'),
+      `the rail's ${sel === '.ui-app__head' ? 'head' : 'foot'} band is ${px(sel)}px against the band's `
+      + `${px('.ui-app__bar')}px. The band stands BESIDE the rail and not over it, so the rule under `
+      + 'the head lands level with the band\'s own only while the two agree — a step at that corner '
+      + 'is the whole reason this layout puts the mark in the rail rather than the band. Level is '
+      + 'all this holds: the rail insets its rule, so the two are not one continuous stroke.',
+    );
+  }
+  assert.equal(
+    at.css('.ui-app--topbar > .ui-app__rail', 'paddingTop'), '0px',
+    'the rail keeps its top inset as well as declaring the band\'s height, so the head band is that '
+    + 'much taller than the band beside it',
+  );
+});
+
+test('the band sticks at the top of the page, and the rail is not pushed below it', () => {
+  const at = mount(BANDED(false));
+  assert.equal(at.css('.ui-app__bar', 'position'), 'sticky', 'the band scrolls away with the page, taking the way into the palette and the session menu with it');
+  assert.equal(at.css('.ui-app__bar', 'top'), '0px', 'the band sticks somewhere other than the top of the page');
+});
+
+test('the two widths are one column at two caps, and the caller\'s number replaces either', () => {
+  const measure = mount(SHELL).vars.get('--measure').trim();
+  for (const layout of ['rail', 'topbar']) {
+    const at = (width, extra) => mount(appShell({
+      layout, width, title: 'T', account: { name: 'Ada Lovelace', email: 'a@apliteni.com' }, ...extra,
+    }));
+    assert.equal(
+      at('centered').css('.ui-app__main', 'maxWidth'), measure,
+      `on the ${layout} layout the centred column no longer falls through to --measure, which is the `
+      + 'one place a page-scale width is written',
+    );
+    assert.equal(
+      at('wide').css('.ui-app__main', 'maxWidth'), 'none',
+      `on the ${layout} layout the wide column is still capped, so it does not fill the well — which `
+      + 'is the only thing the name says',
+    );
+    // The caller's own number is a custom property on the element, which JSDOM does
+    // not resolve — shell.test.js holds that half on the markup, where it is visible.
+    for (const width of ['centered', 'wide']) {
+      assert.equal(
+        at(width).css('.ui-app__main', 'marginInline'), 'auto',
+        `the ${width} column on the ${layout} layout does not centre in the track it is given`,
+      );
+    }
+  }
 });

@@ -319,6 +319,7 @@ const { appShell, accountShell, ACCOUNT_NAV, RAIL_COOKIE } = await import('../..
 const { icon } = await import('../../src/components/index.js');
 const { dropdown } = await import('../../src/components/dropdown.js');
 const { accountMenu } = await import('../../src/components/topbar.js');
+const { paletteHotkey } = await import('../../src/components/command-palette.js');
 
 // The signed-in reader the rail draws. A menu hangs off this block, so anything
 // about sign out has to pass one: with nobody signed in there is nobody to sign out.
@@ -1121,5 +1122,239 @@ test('the shell\'s own anchors keep the kit\'s ink under a consumer\'s a:link', 
     // a <button> with an ink of its own — not a link, and not what this asks about.
     at('.ui-nav__item:not(.is-active):not(.ui-app__fold)'), colour(vars.get('--text')),
     'a rail row inside the shell takes the host\'s link colour',
+  );
+});
+
+// ---- 8. the second layout, and the two content widths (#308) --------------
+//
+// One shell, two arrangements. What these gates hold is that the parts move
+// rather than multiply: one reader block, one fold control, one band, one
+// content column, whichever layout and whichever width the caller asked for.
+// why: docs/specification.md#the-page-shell
+
+/** The shell at a layout and a width, with every part it can draw. */
+const LAID = (o = {}) => appShell({
+  word: 'Finance',
+  nav: [{ id: 'overview', icon: 'chart', label: 'Overview' }],
+  active: 'overview',
+  account: READER,
+  signOutHref: '#logout',
+  title: 'Payouts',
+  search: 'cmdk-1',
+  ...o,
+});
+
+const LAYOUTS = ['rail', 'topbar'];
+const WIDTHS = ['centered', 'wide'];
+
+test('the topbar layout draws a band, and the layout the kit has always drawn draws none', () => {
+  assert.equal(
+    dom(LAID({ layout: 'rail' })).querySelector('.ui-app__bar'), null,
+    'the default layout grew a band of its own, so every page already on appShell() has one it '
+    + 'never asked for',
+  );
+  const band = dom(LAID({ layout: 'topbar' })).querySelector('.ui-app__bar');
+  assert.ok(band, 'appShell({ layout: "topbar" }) drew no band, which is the whole of what the option names');
+  assert.equal(band.tagName, 'HEADER', 'the band is not a <header>, so the page has no banner to land on');
+  assert.equal(
+    band.closest('nav'), null,
+    'the band sits inside the navigation landmark — a search field and a session menu are not places to go',
+  );
+  assert.match(accountShell({ layout: 'topbar' }), /ui-app__bar/, 'the /account preset swallowed the layout it was handed');
+});
+
+test('the band stands beside the rail, in the shell\'s own second column', () => {
+  const doc = dom(LAID({ layout: 'topbar' }));
+  const well = doc.querySelector('.ui-app > .ui-app__well');
+  assert.ok(well, 'the banded layout draws no well, so the band and the page are not one column');
+  assert.deepEqual(
+    [...well.children].map((el) => el.tagName.toLowerCase()), ['header', 'main'],
+    'the well holds something other than the band and the page, in that order — the band is the '
+    + 'first row of the column beside the rail, which is what puts it on the rail\'s own head band line',
+  );
+  assert.equal(
+    doc.querySelector('.ui-app__bar').previousElementSibling, null,
+    'the band has a sibling before it inside the well, so it no longer starts the column',
+  );
+  assert.equal(
+    doc.querySelector('.ui-app-page'), null,
+    'the banded layout is wrapped in .ui-app-page, which offsets the rail below a band by '
+    + '--ui-app-top. That wrapper is the compatibility topbar\'s, which does stand over the rail; '
+    + 'this band does not, and the rail keeps the viewport\'s own top edge.',
+  );
+});
+
+test('one reader block, and the layout says where it stands', () => {
+  for (const layout of LAYOUTS) {
+    const doc = dom(LAID({ layout }));
+    const blocks = doc.querySelectorAll('.ui-app__user');
+    assert.equal(
+      blocks.length, 1,
+      `${layout} draws ${blocks.length} reader blocks. The block moves between the layouts; a page `
+      + 'with two of them asks a reader which one ends their session.',
+    );
+    const inBand = !!blocks[0].closest('.ui-app__bar');
+    assert.equal(
+      inBand, layout === 'topbar',
+      `on the ${layout} layout the reader stands ${inBand ? 'on the band' : 'at the rail\'s foot'}, `
+      + 'which is the other layout\'s answer',
+    );
+  }
+});
+
+test('on the band the mark is the whole trigger, and it carries the name the two lines carried', () => {
+  const rail = dom(LAID({ layout: 'rail' })).querySelector('.ui-app__user-trigger');
+  const band = dom(LAID({ layout: 'topbar' })).querySelector('.ui-app__user-trigger');
+  assert.ok(rail.querySelector('.ui-app__who'), 'premise: the rail\'s trigger is named by the words inside it');
+  assert.equal(rail.getAttribute('aria-label'), null, 'premise: and so writes no name of its own');
+  assert.equal(
+    band.querySelector('.ui-app__who'), null,
+    'the band\'s trigger draws the reader\'s two lines on a 52px row, where the address has nowhere to go',
+  );
+  assert.equal(
+    band.getAttribute('aria-label'), `Signed in as ${READER.name}, ${READER.email}`,
+    'the band\'s trigger is the avatar alone and says nothing about who is signed in — the initials '
+    + 'are aria-hidden, so the control would announce as a button with no name at all',
+  );
+  assert.equal(
+    band.querySelector('.ui-app__av').getAttribute('aria-hidden'), 'true',
+    'the initials are announced beside the name written on the button, so the reader is named twice',
+  );
+});
+
+test('one fold control, and the layout says where that stands too', () => {
+  for (const layout of LAYOUTS) {
+    const doc = dom(LAID({ layout }));
+    const toggles = doc.querySelectorAll('[data-rail-toggle]');
+    assert.equal(toggles.length, 1, `${layout} draws ${toggles.length} fold controls`);
+    const atFoot = !!toggles[0].closest('.ui-app__foot');
+    assert.equal(
+      atFoot, layout === 'topbar',
+      `on the ${layout} layout the toggle stands ${atFoot ? 'at the rail\'s foot' : 'in the head band'}, `
+      + 'which is the other layout\'s answer',
+    );
+    assert.ok(
+      toggles[0].closest('.ui-app__rail'),
+      `on the ${layout} layout the toggle left the rail it folds`,
+    );
+  }
+  assert.doesNotMatch(
+    LAID({ layout: 'topbar', collapsible: false }), /ui-app__foot/,
+    'the banded layout draws the rail\'s foot with nothing in it, which is padding and a hairline over nothing',
+  );
+});
+
+test('the banded layout keeps the product\'s mark in the rail\'s head', () => {
+  const doc = dom(LAID({ layout: 'topbar' }));
+  const head = doc.querySelector('.ui-app__head');
+  assert.ok(head?.querySelector('.ui-app__brand'), 'the banded layout drew no lockup anywhere in the rail');
+  assert.equal(
+    head.querySelector('.ui-app__fold-row'), null,
+    'the head band still holds the toggle in the banded layout, so the rail has a control at each end',
+  );
+  assert.equal(
+    doc.querySelector('.ui-app__bar .ui-app__brand'), null,
+    'the band says the product word as well as the rail, so the page names the product twice on one line',
+  );
+});
+
+test('the search is drawn only when there is a palette for it to open', () => {
+  assert.equal(
+    dom(LAID({ layout: 'topbar', search: undefined })).querySelector('.ui-app__search'), null,
+    'a search field with no palette behind it is a control that does nothing — the argument '
+    + 'signOutHref takes, for the same reason',
+  );
+  const field = dom(LAID({ layout: 'topbar', search: 'cmdk-1' })).querySelector('.ui-app__search');
+  assert.equal(field.tagName, 'BUTTON', 'the search is an <input>, so a reader types into a box that cannot search');
+  assert.equal(field.getAttribute('type'), 'button', 'a trigger inside a form would submit it');
+  assert.equal(
+    field.getAttribute('data-cmdk-open'), 'cmdk-1',
+    'the field does not carry the palette\'s own trigger hook, so opening it is a second implementation',
+  );
+  assert.equal(field.getAttribute('aria-haspopup'), 'dialog', 'the field does not say it opens a dialog');
+  assert.equal(
+    dom(LAID({ layout: 'topbar', search: { palette: 'cmdk-1' } })).querySelector('.ui-app__search')
+      .getAttribute('data-cmdk-open'), 'cmdk-1',
+    'the field reads the palette id out of a record as well as out of a string',
+  );
+  assert.equal(
+    dom(LAID({ layout: 'topbar', search: { placeholder: 'Find anything' } })).querySelector('.ui-app__search'),
+    null,
+    'a record with a placeholder and no palette drew a field that opens nothing',
+  );
+});
+
+test('the key that opens the palette is inside the field\'s own name', () => {
+  const field = dom(LAID({ layout: 'topbar' })).querySelector('.ui-app__search');
+  assert.equal(field.getAttribute('aria-label'), null, 'the field writes a name over the words inside it');
+  const cap = field.querySelector('kbd');
+  assert.ok(cap, 'the field states no shortcut at all, which is the one fact it exists to teach');
+  assert.equal(
+    cap.getAttribute('aria-hidden'), null,
+    'the key is hidden from the reader who most needs telling there is a key. A palette ROW hides '
+    + 'its own — forty of them read after forty labels is noise — but there is one of these.',
+  );
+  assert.equal(cap.className, 'ui-cmdk__key', 'the field draws a key cap of its own instead of the palette\'s');
+  assert.equal(cap.textContent, paletteHotkey(''), 'the cap is drawn with something other than the palette\'s own key');
+  assert.ok(field.hasAttribute('data-cmdk-open') && cap.hasAttribute('data-palette-hotkey'));
+});
+
+test('both widths are drawn in both layouts, and a page has one content column either way', () => {
+  for (const layout of LAYOUTS) {
+    for (const width of WIDTHS) {
+      const doc = dom(LAID({ layout, width }));
+      const mains = doc.querySelectorAll('main.ui-app__main');
+      assert.equal(
+        mains.length, 1,
+        `${layout} × ${width} draws ${mains.length} content columns. The width names which cap the `
+        + 'one column takes, not how many columns there are.',
+      );
+      assert.equal(
+        mains[0].classList.contains('ui-app__main--wide'), width === 'wide',
+        `${layout} × ${width} draws the other width's column. \`centered\` is the cap the shell has `
+        + 'always drawn and writes no class; `wide` is the one that takes it off.',
+      );
+    }
+  }
+});
+
+test('the number under the width is the caller\'s, and it survives either name', () => {
+  for (const width of WIDTHS) {
+    const main = dom(LAID({ width, maxWidth: '980px' })).querySelector('main');
+    assert.match(
+      main.getAttribute('style'), /--ui-app-main: 980px/,
+      `\`width: '${width}'\` dropped the caller's own maxWidth. The name picks the cap the column `
+      + 'falls back to; the number replaces it, on either.',
+    );
+  }
+});
+
+test('a layout or a width the kit does not know is the one it has always drawn', () => {
+  for (const bad of ['Topbar', 'banner', '', null, 0, ['topbar']]) {
+    assert.doesNotMatch(
+      LAID({ layout: bad }), /ui-app__bar/,
+      `layout: ${JSON.stringify(bad)} drew half a second layout. A name the kit knows is a layout; `
+      + 'anything else is the default, because a typo must not draw a page with no reader on it.',
+    );
+  }
+  // `['wide']` for the same reason the layout list carries `['topbar']`: String() is
+  // what turned a one-element array into a name, and a list that tries it on one
+  // option and not the other only holds half the rule.
+  for (const bad of ['Wide', 'full', '', null, 0, ['wide']]) {
+    assert.doesNotMatch(LAID({ width: bad }), /ui-app__main--wide/, `width: ${JSON.stringify(bad)} took the cap off`);
+  }
+});
+
+test('one band over a page, never two', () => {
+  const html = LAID({ layout: 'topbar', topbar: { word: 'Finance' } });
+  assert.equal(
+    (html.match(/<header/g) || []).length, 1,
+    'a caller who passed both the banded layout and the compatibility topbar bag got two headers '
+    + 'stacked on one page. The layout they asked for is the one they get.',
+  );
+  assert.doesNotMatch(html, /class="topbar"/, 'the compatibility topbar is drawn under the layout that replaces it');
+  assert.match(
+    LAID({ layout: 'rail', topbar: { word: 'Finance' } }), /class="topbar"/,
+    'the compatibility topbar stopped being drawn in the layout that has always drawn it',
   );
 });

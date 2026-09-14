@@ -1590,6 +1590,7 @@ or reset the font. Update it with the declaration and its reason.
 | 49 | #270: `.ui-back` states the text role, like other controls naming a place |
 | 50 | #283: `.ui-dropdown__search-input { font: inherit }` takes the panel's face |
 | 51 | #267: `.ui-stat__value` uses the display face under the `readout` exception |
+| 52 | #308: `.ui-app__search { font: inherit }` takes the shell's face off the browser's button default |
 
 The role and portal guarantees are in [Typefaces](docs/specification.md#typefaces).
 
@@ -1677,7 +1678,7 @@ cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
 src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
-property, the symmetric src/styles/layout.css:277 `margin-inline: auto`, against 25 physical left/right
+property, the symmetric src/styles/layout.css:299 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.

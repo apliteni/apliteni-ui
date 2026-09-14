@@ -45,8 +45,11 @@ const src = path.resolve(here, '..');
 // in one rule); 66 (#283: `.ui-dropdown__search-ic svg` sizes the search field's
 // glyph, width and height); 70 (#267: the stat band's change arrow and its trend
 // slot, two rules of two declarations each); 68 (#277: the fold closes a box over
-// the rows, so a rail row's glyph is one rule at both widths).
-const EXPECTED_SUBJECTS = 68;
+// the rows, so a rail row's glyph is one rule at both widths); 70 (#308:
+// `.ui-app__search-ic svg` sizes the magnifier on the topbar layout's search
+// field, a width and a height — the palette's own box and stroke, so the trigger
+// and the thing it opens are not two search marks).
+const EXPECTED_SUBJECTS = 70;
 
 const SHEETS = kitSheetNames(src);
 

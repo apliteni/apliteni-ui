@@ -45,6 +45,26 @@ export const SPEC_CSS = `
       background: color-mix(in srgb, var(--muted) 55%, transparent); }
     .tp-stack--over .tp-card { background: var(--surface-2); }
 
+    /* The layout and width specimens. A shell cannot be photographed at life size in
+       a 420px cell either, so these are drawn to scale: the rail, the band and the
+       content column as blocks, and the page's content as the bars a reader skims.
+       The ratio is true and the pixels are not, which the captions say. */
+    .tp-lay { display: flex; gap: 5px; height: 150px; }
+    .tp-lay__rail { width: 20px; flex: none; border-radius: 3px;
+      background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+    .tp-lay__well { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+    .tp-lay__bar { height: 13px; flex: none; border-radius: 3px;
+      background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+    .tp-lay__col { flex: 1; min-width: 0; border-radius: 3px; padding: 7px;
+      display: flex; flex-direction: column; gap: 5px;
+      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+    .tp-lay__col--centered { width: 58%; margin-inline: auto; }
+    .tp-lay__ln { height: 4px; border-radius: 2px; flex: none;
+      background: color-mix(in srgb, var(--muted) 55%, transparent); }
+    /* The one thing a too-narrow column does to a table: the last column leaves. */
+    .tp-lay__col--clip { overflow: hidden; }
+    .tp-lay__ln--over { width: 150%; flex: none; }
+
     .tp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .tp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
 
@@ -157,10 +177,40 @@ export const densityDont = () => stage(`<div class="tp-rows">
   ${card({ title: 'Invoices', body: miniTable(false) })}
 </div>`);
 
+// ---- which column the page takes ----------------------------------------
+
+const lines = (n, over) => Array.from({ length: n }, () =>
+  `<div class="tp-lay__ln${over ? ' tp-lay__ln--over' : ''}"></div>`).join('');
+
+const frame = (centered, over) => stage(`<div class="tp-lay">
+  <div class="tp-lay__rail"></div>
+  <div class="tp-lay__well">
+    <div class="tp-lay__bar"></div>
+    <div class="tp-lay__col${centered ? ' tp-lay__col--centered' : ''} tp-lay__col--clip">${lines(7, over)}</div>
+  </div>
+</div>`);
+
+export const widthDo = () => frame(false, false);
+export const widthDont = () => frame(true, true);
+
 // The rules a designer decides, in the order a page is read. Each is one
 // sentence, a picture where a picture says it better, and one line of why.
 // Which line of the kit holds each of them is docs/specification.md#the-page.
 export const RULES = [
+  {
+    id: 'layout',
+    imperative: 'Choose one shell layout for a product and keep every screen on it: the rail alone, or the rail with a bar over the page carrying search and the reader’s menu.',
+    why: 'A reader learns once where search and their own account live; moving either between screens spends that again on every page.',
+  },
+  {
+    id: 'width',
+    imperative: 'Give a page the wide content column when it is mostly tables and boards, and the centred one when it is mostly reading and forms.',
+    why: 'A table in the centred column loses its last column off the side, and a paragraph across the whole page runs past the length a reader can follow back.',
+    doCaption: 'Drawn to scale: the wide column gives the table every column at once.',
+    dontCaption: 'The same table in the centred column, at the same scale: the last column is off the side.',
+    doHtml: widthDo,
+    dontHtml: widthDont,
+  },
   {
     id: 'head',
     imperative: 'Put the way back first, then the page title and a short introduction, with all other content below.',

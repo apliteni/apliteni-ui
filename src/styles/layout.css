@@ -52,9 +52,13 @@
   transition: width var(--dur-med) var(--ease);
 }
 /* Each block of the rail keeps the open column while the box closes over it. The
-   nav declares its own; these are the two that are not the nav. */
-.ui-app__head,
-.ui-app__user { width: var(--ui-nav-col); flex: none; }
+   nav declares its own; these are the three that are not the nav. Scoped to the rail,
+   because the topbar layout draws the reader's block in its band instead and a column
+   the rail's width is no measurement for a box on a 52px line.
+   why: docs/specification.md#the-page-shell */
+.ui-app__rail > .ui-app__head,
+.ui-app__rail > .ui-app__user,
+.ui-app__rail > .ui-app__foot { width: var(--ui-nav-col); flex: none; }
 /* The rail's hover WAS --surface-2, so moving the rail onto it would have made
    hovering a row do nothing. The danger row and the current row are left out by
    name, because this rule outranks the states nav.css writes for them.
@@ -105,7 +109,7 @@
    smallest of three weak signals doing the most work, so it grows with the row. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1340 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1400 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 .ui-app__rail .ui-nav__item.is-active .ui-nav__ic svg,
 .ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
@@ -128,6 +132,18 @@
   padding-top: var(--space-5);
   border-top: 1px solid var(--border);
 }
+/* The other thing that can close a rail: where the reader's block is in the band,
+   the fold's control takes its place under the same rule.
+   why: docs/specification.md#the-page-shell */
+.ui-app__foot {
+  display: flex;
+  align-items: center;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+/* On the glyph column from the first frame, so the fold moves it nowhere — the ride
+   along the closing edge belongs to the head band, where the mark holds that column. */
+.ui-app__foot > .ui-app__fold-row { margin-inline-start: 0; }
 /* The avatar is the reader block's own glyph, so half the difference between the
    glyph column and itself is the inset that centres it on the line every glyph above
    it stands on. The arithmetic and not the 5.5 it comes to: both numbers are declared
@@ -231,8 +247,14 @@
    where the control arrives: below 720px the toggle is not drawn, so the 720px block
    gives the lockup back rather than leaving an empty band with a hairline under it.
    why: docs/specification.md#the-page-shell */
-:where(.ui-app.is-collapsed) .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
-:where(.ui-app.is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
+:where(.ui-app.is-collapsed) .ui-app__head > .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
+/* …and only in the layout where something arrives on the mark's column. In the
+   topbar layout the toggle is at the rail's foot, nothing lands where the mark
+   stands, and a lockup faded out there leaves a band with nothing in it and its
+   hairline still under it — the defect the 720px block below exists to avoid. So
+   that layout keeps the mark and lets the shared rule above fold away its words.
+   why: docs/specification.md#the-page-shell */
+:where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
@@ -277,6 +299,80 @@
   margin-inline: auto;
   padding: 40px clamp(24px, 4vw, 56px) 72px;
 }
+/* The whole of the difference: `centered` is the rule above and `wide` takes its cap
+   off. `maxWidth` is the number under either name. why: docs/specification.md#widths */
+.ui-app__main--wide { max-width: var(--ui-app-main, none); }
+
+/* -- The topbar layout ----------------------------------------------------- */
+/* The band stands BESIDE the rail, not across the top of both, which is the
+   arrangement where the rail's head band and the band close at the same height — what
+   the three heights below are for. Level, not one continuous stroke: the rail insets
+   its own rule, and in light that half is 1.009:1 on the rail's ground.
+   why: docs/specification.md#the-second-layout */
+.ui-app { --ui-app-band: 52px; }
+.ui-app__well { display: flex; flex-direction: column; min-width: 0; }
+.ui-app__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--ui-app-band);
+  flex: none;
+  padding-inline: clamp(24px, 4vw, 56px);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  /* Sticky for the reason the rail beside it is: chrome that scrolls away is chrome
+     you scroll back up for. */
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+.ui-app__bar-gap { flex: 1 1 auto; }
+/* The rail's two bands take the band's height, so the rule under the head lands on
+   the line the band's own rule lands on. The rail gives up its top inset to buy it. */
+.ui-app--topbar > .ui-app__rail { padding-top: 0; }
+.ui-app--topbar > .ui-app__rail > .ui-app__head { height: var(--ui-app-band); padding-bottom: 0; }
+.ui-app--topbar > .ui-app__rail > .ui-app__foot { height: var(--ui-app-band); padding-top: 0; }
+
+/* Drawn as a field, behaving as a button. The ladder is the field's — the sunken
+   step, the hairline and the radius src/styles/input.css:20 `.ui-input` sets — because
+   what it looks like is the point. It gives way before anything else on the band.
+   why: docs/specification.md#the-page-shell */
+.ui-app__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 1 var(--panel-sm);
+  min-width: 0;
+  padding: 7px 10px;
+  /* A family alone leaves the browser's leading behind: `font: inherit` first, then
+     the one step this row takes. why: CONTRIBUTING.md#button-chrome-ledgers */
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: start;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--dur-med) var(--ease), color var(--dur-med) var(--ease);
+}
+.ui-app__search:hover { border-color: var(--border-strong); color: var(--strong); }
+/* The same glyph the palette draws in its own search box, at the same box and the
+   same stroke: the trigger and the thing it opens are not two search marks.
+   src/styles/command-palette.css:107 `.ui-cmdk__search-ic svg` */
+.ui-app__search-ic { display: flex; flex: none; }
+.ui-app__search-ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+/* Part of the button's name, so it is squeezed rather than dropped: an ellipsis
+   still leaves the whole string in the tree. */
+.ui-app__search-txt { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The other half of the name, so it never gives way. */
+.ui-app__search kbd { flex: none; }
+
+/* The mark alone — no room for two lines on a 52px row. No rule over it, since the
+   band's hairline is under the whole of it, and no column, since this is not the rail.
+   why: docs/specification.md#the-page-shell */
+.ui-app__user--bar { flex: none; padding-top: 0; border-top: 0; }
+.ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
 /* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and
    the h1 8px off its subtitle, so all three ranks read as one. */
 .ui-app__main .ui-nav--crumbs { margin-bottom: var(--space-5); }
@@ -321,6 +417,11 @@
   .ui-app { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
   /* The strip is the only layout this width has, so there is nothing to fold. */
   .ui-app__rail .ui-app__fold-row { display: none; }
+  /* …and the foot goes with it, for the reason the head band does below: in the
+     topbar layout that box holds the toggle and nothing else, so at this width it is
+     padding and a hairline drawn over nothing. Scoped to the shell's own rail, like
+     every other rule in this block. why: docs/specification.md#the-page-shell */
+  .ui-app__rail .ui-app__foot { display: none; }
   /* …and with it the band, when the band has nothing else in it: a head with no
      wordmark is the toggle alone, so at this width it is padding and a hairline
      drawn over nothing. The reader's fold cannot take this rule — there the toggle

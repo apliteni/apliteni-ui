@@ -15,6 +15,7 @@ import * as shell from '/src/components/shell.js';
 const { appShell, wireShell, ACCOUNT_NAV } = shell;
 import { button, card } from '/src/components/index.js';
 import { sidebarNav } from '/src/components/nav.js';
+import { commandPalette } from '/src/components/command-palette.js';
 import { dropdown } from '/src/components/dropdown.js';
 
 // The same definition Apps/Collapsible rail renders — a group holding the page
@@ -50,6 +51,40 @@ const screen = (collapsed) => appShell({
       + settingRow('Globex', 'Requested by Ada Lovelace', '<span>€860.00</span>')
       + settingRow('Initech', 'Requested by Ada Lovelace', '<span>€1,975.50</span>'),
   }),
+});
+
+// The two layouts and the two widths (#308). Same nav, same reader, same page, so
+// between any two of these shots only the option under test differs. The topbar
+// layout's field opens a palette, so the page carries one — closed, as a page does.
+const PALETTE_ID = 'shot-cmdk';
+const laid = ({ layout, width, collapsed }) => appShell({
+  word: 'Finance',
+  layout,
+  width,
+  search: layout === 'topbar' ? PALETTE_ID : undefined,
+  nav: NAV,
+  active: 'pending',
+  account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+  signOutHref: '#logout',
+  crumbs: [{ label: 'Payouts', href: '#' }, { label: 'Pending' }],
+  title: 'Pending payouts',
+  sub: 'Three of the nine that arrived this week are waiting for a second approval.',
+  collapsed,
+  body: card({
+    title: 'Waiting for approval',
+    body: settingRow('Northwind Traders', 'Requested by Ada Lovelace', '<span>€4,200.00</span>')
+      + settingRow('Globex', 'Requested by Ada Lovelace', '<span>€860.00</span>')
+      + settingRow('Initech', 'Requested by Ada Lovelace', '<span>€1,975.50</span>'),
+  }) + (layout === 'topbar' ? commandPalette({
+    id: PALETTE_ID,
+    groups: [{
+      label: 'Go to',
+      items: [
+        { id: 'overview', label: 'Overview', description: 'Traffic and revenue', icon: 'chart', href: '#overview' },
+        { id: 'pending', label: 'Pending payouts', description: 'Three waiting', icon: 'clock', href: '#pending' },
+      ],
+    }],
+  }) : ''),
 });
 
 const params = new URLSearchParams(location.search);
@@ -125,6 +160,15 @@ if (params.get('subject') === 'caret') {
     + 'font-family:var(--font-sans)}'
     + '.navbox{padding:var(--space-5) var(--space-4)}';
   document.head.append(st);
+} else if (params.get('subject') === 'layouts') {
+  document.body.innerHTML = laid({
+    layout: params.get('layout') || 'rail',
+    width: params.get('width') || 'centered',
+    collapsed,
+  });
+  wireShell(document.body);
+  const { wireCommandPalette } = await import('/src/components/command-palette.js');
+  wireCommandPalette(document);
 } else {
   document.body.innerHTML = screen(collapsed);
   if (typeof wireShell === 'function') wireShell(document.body);
