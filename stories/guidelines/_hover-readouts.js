@@ -156,11 +156,12 @@ export const RULES = [
       + 'the one thing a reader has to learn. The page still hears that tap where it listens for '
       + 'one, so a dropdown or a menu standing open closes under it as it would under a tap '
       + 'anywhere else. The kit decides which pointer is in play rather than which device it is on, '
-      + 'so a laptop with a touch screen hovers under its mouse and taps under a finger, and a key '
-      + 'hands the readout back to focus.',
+      + 'so a laptop with a touch screen hovers under its mouse and taps under a finger — a pen '
+      + 'taps with that finger rather than hovering with the mouse, and a key hands the readout '
+      + 'back to focus.',
     kit: [
-      { ref: 'src/components/tooltip.js:210', pattern: 'function touching(doc, e)' },
-      { ref: 'src/components/tooltip.js:327', pattern: "host.addEventListener('click'" },
+      { ref: 'src/components/tooltip.js:216', pattern: 'function touching(doc, e)' },
+      { ref: 'src/components/tooltip.js:333', pattern: "host.addEventListener('click'" },
     ],
   },
   {
@@ -174,6 +175,6 @@ export const RULES = [
       + 'card leads with, and a table or a labelled summary of the series, carry what matters '
       + 'without pointing at anything. Whether a chart\'s marks should take focus at all is the '
       + 'question still open on #282.',
-    kit: [{ ref: 'src/components/tooltip.js:310', pattern: "host.addEventListener('focusin'" }],
+    kit: [{ ref: 'src/components/tooltip.js:316', pattern: "host.addEventListener('focusin'" }],
   },
 ];

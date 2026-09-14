@@ -207,8 +207,14 @@ function coarse(doc) {
 // so the last kind seen is remembered for them. A keystroke clears it, because
 // a keyboard on a tablet is a third way in and focus has to open the readout
 // again after a tap. Before any of that, the media query answers.
+//
+// A pen is on the tap's side of that line with the finger. It presses a screen
+// rather than resting over one, the tablets it comes with report `(pointer:
+// coarse)`, and a hover a pen does offer is a few millimetres of one nothing
+// here is placed against — so a stylus that fell to the hover path would get
+// the flash this component exists to remove. A mouse is the fine pointer.
 function touching(doc, e) {
-  if (e?.pointerType) doc.__tipTouch = e.pointerType === 'touch';
+  if (e?.pointerType) doc.__tipTouch = e.pointerType === 'touch' || e.pointerType === 'pen';
   return doc.__tipTouch ?? coarse(doc);
 }
 

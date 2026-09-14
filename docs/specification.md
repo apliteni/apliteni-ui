@@ -1569,10 +1569,12 @@ moving a readout never changes the size or the place of anything else on the pag
   edge do not. Which pointer is in play is read from the event rather than from the device —
   `pointerType`, falling back to `(pointer: coarse)` before any pointer event has arrived — so a
   laptop with a touch screen hovers under its mouse and taps under a finger, and a keystroke hands
-  the readout back to focus. Focus opens the readout under a coarse pointer as well, unless it is
-  the focus a tap lands on its way to the click that decides — the focus between a `pointerdown` and
-  its `click`. A reader stepping onto a mark with a screen reader, which is focus no tap brought and
-  no key either, therefore gets the readout and the `aria-describedby` that announces its value.
+  the readout back to focus. A pen taps with that finger: `pointerType` `pen` takes the tap path,
+  because a stylus presses the screen rather than resting over it, and the mouse is the pointer that
+  hovers. Focus opens the readout under a coarse pointer as well, unless it is the focus a tap lands
+  on its way to the click that decides — the focus between a `pointerdown` and its `click`. A reader
+  stepping onto a mark with a screen reader, which is focus no tap brought and no key either,
+  therefore gets the readout and the `aria-describedby` that announces its value.
 - A readout rendered with `open` is a picture of one, the way a documentation page shows it. Its
   host carries `.ui-tip-host` and no `[data-tip-host]`, so no wiring reaches it, and Escape leaves
   it alone because the kit never showed it.

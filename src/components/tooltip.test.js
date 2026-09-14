@@ -526,22 +526,26 @@ test('a host wired before it is in the document is made the box once it is in on
 // pointer is simulated from both sides the wiring reads: the events carry the
 // `pointerType` a browser puts on them, and one test answers `(pointer: coarse)`
 // instead — what a phone reports before any event has been dispatched at all.
+// A pen is the same simulation with the other `pointerType`, because the two
+// kinds that press a screen take one path and only the mouse takes the other.
 
-function touchEvent(window, el, type) {
+function pointerEvent(window, el, type, kind = 'touch') {
   const e = new window.MouseEvent(type, { bubbles: type !== 'pointerleave', cancelable: true });
-  Object.defineProperty(e, 'pointerType', { value: 'touch' });
+  Object.defineProperty(e, 'pointerType', { value: kind });
   el.dispatchEvent(e);
   return e;
 }
 
+const touchEvent = (window, el, type) => pointerEvent(window, el, type);
+
 // One tap, in the order a browser fires it for a finger: the pointer arrives
 // already pressing, leaves before the click, and the click comes last.
-function tap(window, el) {
+function tap(window, el, kind = 'touch') {
   const host = el.closest?.('[data-tip-host]');
-  touchEvent(window, el, 'pointerover');
-  touchEvent(window, el, 'pointerdown');
-  touchEvent(window, el, 'pointerup');
-  if (host) touchEvent(window, host, 'pointerleave');
+  pointerEvent(window, el, 'pointerover', kind);
+  pointerEvent(window, el, 'pointerdown', kind);
+  pointerEvent(window, el, 'pointerup', kind);
+  if (host) pointerEvent(window, host, 'pointerleave', kind);
   return el.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
 }
 
@@ -734,6 +738,22 @@ test('a tap on the host beside the mark dismisses it, the way a tap on the mark 
   );
   tap(window, m1);
   assert.ok(isOpen(tip), 'and a tap is deliberate enough to end that dismissal, either way');
+});
+
+test('a pen taps the way a finger does rather than hovering the way a mouse does', () => {
+  const window = mount(MARKS + tooltip());
+  const doc = window.document;
+  const tip = measure(window);
+  wireTooltip(doc);
+  const m1 = doc.getElementById('m1');
+
+  pointerEvent(window, m1, 'pointerover', 'pen');
+  assert.equal(isOpen(tip), false, 'a pen presses the screen rather than resting over it');
+  tap(window, m1, 'pen');
+  assert.ok(isOpen(tip), 'its tap opens the readout');
+  assert.equal(tip.querySelector('.ui-tip__value').textContent, '€41,000');
+  tap(window, m1, 'pen');
+  assert.equal(isOpen(tip), false, 'and the next one closes it, with no flash in between');
 });
 
 test('a mouse arriving after a finger hovers the way it always did', () => {
