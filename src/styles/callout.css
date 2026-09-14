@@ -44,6 +44,10 @@
   width: 100%;
   max-width: var(--panel-md);
   overflow: hidden; /* clips the timer bar + left marker to the rounded corners */
+  /* A toast floats. It carries a status rather than the neutral hairline, so each
+     style below re-points --elev-edge at its own tint and leaves the outer line
+     where it already drew it. why: docs/specification.md#elevation */
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   animation: ui-toast-in var(--dur-med) var(--ease-out) both;
 }
 
@@ -115,6 +119,7 @@
 .ui-toast--soft {
   background: var(--toast-glow);
   border: 1px solid color-mix(in srgb, var(--toast-accent) 22%, transparent);
+  --elev-edge: color-mix(in srgb, var(--toast-accent) 11%, transparent);
 }
 
 /* style: solid — the status at fill strength, inked with the pole opposite it.
@@ -128,6 +133,8 @@
   --toast-ink: var(--signal-solid-ink);
   background: var(--toast-solid);
   color: var(--toast-ink);
+  /* No inner line: a solid toast has no outer one either. It keeps the drop. */
+  --elev-edge: transparent;
 }
 .ui-toast--solid .ui-toast__title { color: var(--toast-ink); }
 /* The body copy is the quieter of the two, but it stays quiet by dilution the
@@ -147,7 +154,7 @@
 .ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-ink) 55%, transparent); }
 
 /* style: outline — elevated card with a status-tinted border */
-.ui-toast--outline { background: var(--bg-elevated); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); }
+.ui-toast--outline { background: var(--bg-elevated); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); --elev-edge: color-mix(in srgb, var(--toast-accent) 20%, transparent); }
 
 /* compact — single line, no body text */
 .ui-toast--compact { align-items: center; padding-top: 10px; padding-bottom: 10px; }

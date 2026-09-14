@@ -182,7 +182,7 @@ off the end of a 124-line file. Nothing turned red for five commits.
 So write the line, then write what is **on** it:
 
 ```
-src/styles/callout.css:140 `.ui-toast--solid .ui-toast__action`
+src/styles/callout.css:147 `.ui-toast--solid .ui-toast__action`
 src/styles/nav.css:61-63 `font-size: 14.5px;`
 ```
 
@@ -1518,6 +1518,59 @@ above — long count histories and recorded measurements, which describe the cha
 introduced them. A note that still fits stays at the declaration it explains. The
 guarantees remain in [docs/specification.md](docs/specification.md).
 
+### The elevation gate and its counts
+
+`stories/elevation.test.js` sweeps every `box-shadow` the kit's stylesheets declare and refuses
+a cast layer that is not `var(--elev-drop)`. Two numbers are pinned in it, and both are
+pinned so that coverage cannot shrink to zero and stay green — a sweep that finds nothing passes
+every other assertion in the file.
+
+| Sweep | Floating | Recorded change |
+| --- | --- | --- |
+| 38 | 11 | #309: the floating step takes the treatment. Nine surfaces under `src/`, two of them twice — a panel and its `:focus-visible` rule, because a `box-shadow` list replaces the whole list and a bare `var(--ring)` would take the treatment off for as long as the panel held focus. The React modal is the tenth surface and is counted by `react/src/elevation.test.ts` instead. |
+| 40 | 13 | #314 review, findings 1 and 6: the treatment stops being one token. `--elev-floating` held `inset … var(--elev-edge, …)` inside a `:root` declaration, where CSS substitutes it against `:root` and no component can re-point it — five overrides were dead. The drops keep one home, `--elev-drop`; the line is written at each call site. And the collapsed rail's flyout label, the hover readout's twin on the same step and with the same job, takes the treatment it had been left out of: two more declarations, one per width. |
+
+Move a number by adding a row, not by editing one: the count on its own says nothing about
+whether the change behind it was wanted.
+
+The drawer is the reason the two numbers do not move together. It is flush to a screen edge, so
+its inner line runs in one direction rather than as a ring, and each `--drawer--<edge>` rule
+sets `--drawer-line` — a **custom property** — instead of writing a fifth and sixth `box-shadow`.
+Written as literals in each edge rule, the four cost four sweep entries and left
+`.ui-drawer__panel:focus-visible` unable to compose the line it was over.
+
+A custom property is how the sweep can be walked past, and the #314 review walked past it: a
+`--drawer-line` redeclared with a genuine cast shadow went unseen, because the reader kept the
+**first** declaration of a name and the browser used a later one. The reader takes the last one
+now (`stories/lib/contrast.js`), and the sweep judges every layer against **every** value the kit
+gives the properties it reads, one name at a time — an over-approximation, which can call a cast
+no element paints and cannot miss one some element does. What it still cannot see is a cast that
+needs two properties off their winning values at once; that is in the gate's ledger.
+
+That resolver is `resolutionsOf` in `scripts/lib/box-shadow.js`, beside the reader, and it takes
+the cascade as an argument rather than importing one. `react/src/elevation.test.ts` hands it the
+kit's declarations with its **own** sheets layered on, picking the winners with the same
+`winnersOf`: the vanilla resolver stops at what `src/index.css` imports, so before that a custom
+property declared in `react/src/` was invisible, and the round-2 review parked a real drop behind
+one and watched the React gate stay green. The two gates stay separate and the arithmetic does
+not — [one gate per workspace, over one shared implementation](#one-gate-per-workspace-over-one-shared-implementation).
+
+`resolutionsOf` read every layer but one. `var(--elev-drop)` is the treatment's own drop, so
+sending it through the cast rule would report the kit's shadow on all thirteen floating surfaces —
+both gates short-circuited on the spelling instead, counting the layer and never reading it. The
+third round of the #314 review wrote `:root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) }` into a
+component sheet in each workspace and watched both gates stay green on a tight dark cast. The
+resolver on its own could not have caught it: a cascade marks every declaration it did not read
+from a token file `root: false`, so the palette wins in `winnersOf` where a browser at equal
+specificity and later in the cascade would let the component's `:root` win. `dropOffences` holds
+that layer instead, on two rules — the palette is the only place `--elev-drop` is declared at
+`:root`, and every value the layer can resolve to has to keep the token's shape, which is the one
+sentence `--elev-drop is broad faint drops and nothing else` now reads as well. Each gate pins the
+review's plant from its own workspace, as a pair: the plant refused, the same sheet without it
+clean. What the shape rule still does not reach — that geometry at a heavier alpha, re-pointed on a
+component's own element rather than at `:root` — is in the gate's ledger, because the drop's ink is
+floored against what the review page measured and nothing caps it.
+
 ### Font family count history
 
 `src/styles/typeface-roles.test.js` pins the exact number of declarations that name a family
@@ -1546,7 +1599,7 @@ The role and portal guarantees are in [Typefaces](docs/specification.md#typeface
 a button. A browser gives a button a grey fill, 2px outset border, shrink-to-fit width,
 centred text, and `font: 400 13.3333px Arial`. The reset at
 src/styles/nav.css:52 `.ui-nav__item {` removes all of these. Before #251,
-src/styles/dropdown.css:125 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
+src/styles/dropdown.css:128 `.ui-dropdown__item {` removed none; 0.25.1 repaired it.
 
 Classes such as `.vopt` (`<div role tabindex>`), `.ui-card--interactive` (`<a href>`) and
 `.ui-fbpill` (bare `<div>`) had no button specimen. Classes already shown on a button are
@@ -1624,7 +1677,7 @@ cannot hide another regression. See [coverage ledgers](#a-gate-carries-a-ledger-
 
 Two repaired subjects use `text-align: left`, following #251 and 0.25.1's dropdown reset at
 src/styles/nav.css:52 `.ui-nav__item {`. The recorded direction audit found one logical
-property, the symmetric src/styles/layout.css:271 `margin-inline: auto`, against 25 physical left/right
+property, the symmetric src/styles/layout.css:277 `margin-inline: auto`, against 25 physical left/right
 margin and padding declarations; no `dir=`, `[dir="rtl"]` or `:dir(`; and only physical
 text alignment. Vertical writing is a [non-goal](docs/specification.md#what-the-kit-does-not-do)
 held by the icon gate. RTL support would require revisiting these five declarations together.

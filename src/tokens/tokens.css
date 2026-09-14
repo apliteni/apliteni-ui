@@ -133,9 +133,10 @@
   --pink: #e97ca5;
   --amber: #ffcf6a;
 
-  /* The elevation ladder, bottom to top. Nothing casts; a surface says how high it is
-     with its step and with the hairline around it, and --muted caps how far the ladder
-     can go. why: docs/specification.md#elevation */
+  /* The elevation ladder, bottom to top. A surface says how high it is with its step and
+     with the hairline around it, and --muted caps how far the ladder can go. Nothing casts
+     below the floating step; the floating step itself adds --elev-drop under its inner
+     line and nothing else in the kit does. why: docs/specification.md#elevation */
   --bg: #0e0d14;
   --surface-2: #161520;     /* SUNKEN — fields, tracks, disabled, code */
   --surface: #211e2d;       /* the card */
@@ -214,9 +215,10 @@
   --signal-solid-info: var(--cyan);
   --signal-solid-neutral: var(--muted);
 
-  /* DEPRECATED since #295: the kit casts no shadow anywhere. Published still, so a
-     consumer reading one gets nothing rather than an unresolved var(), and a consumer who
-     wants a cast shadow sets them. Nothing in src/ reads them.
+  /* DEPRECATED since #295: no surface below the floating step casts, and the floating
+     step reads --elev-drop rather than any of these. Published still, so a consumer
+     reading one gets nothing rather than an unresolved var(), and a consumer who wants a
+     cast shadow sets them. Nothing in src/ reads them.
 
      A transparent shadow, not `none`, because these are read in a LIST. The kit's own
      pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is only
@@ -238,6 +240,18 @@
      raised surface. Effects mix these instead of writing rgba(). */
   --shadow-ink: #000000;
   --sheen: #ffffff;
+
+  /* The drops of the floating treatment, in Primer's --shadow-floating-* order:
+     the inner half of the two-step edge, then these. The line is NOT in this
+     token and cannot be — a var() inside a custom property is substituted on the
+     element that DECLARES it, so an --elev-edge read here resolves at :root and
+     nothing below could re-point it. A floating surface writes the pair itself:
+       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+     Dark spends 62% / 50% of the ink and reaches 1.20 at the drop's core, having
+     nowhere to go on a near-black page. why: docs/specification.md#elevation */
+  --elev-drop:
+    0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),
+    0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 50%, transparent);
 
   /* Backdrop that dims the page behind an overlay (drawer, modal, composer). */
   --scrim: rgba(0, 0, 0, 0.58);
@@ -344,6 +358,13 @@
 
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
+
+  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card at
+     #f8f9fc, and 18% is what puts the drop core at #d1d2d8 — 1.44, the strongest
+     separation either theme gets. why: docs/specification.md#elevation */
+  --elev-drop:
+    0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 18%, transparent),
+    0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 10%, transparent);
 
   --scrim: rgba(20, 22, 40, 0.38);
 
