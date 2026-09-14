@@ -239,12 +239,12 @@ moved nothing on a surface that does not re-point its edge, and the rig reproduc
 
 | | |
 | --- | --- |
-| `npm test` | 1535 tests, 1532 pass, 2 skipped, **1 fail** — see below |
+| `npm test` | 1537 tests, 1534 pass, 2 skipped, **1 fail** — see below |
 | `npm run build` (React, tsup) | pass — ESM 39.58 KB, DTS 8.49 KB |
-| `npx vitest run` (react) | 18 files, 355 tests, pass |
-| `node --test` over the five colour and elevation gates and the reader's own tests | 148 tests, pass |
-| gitleaks 8.30.1, `--log-opts origin/main..HEAD` | no leaks, 14 commits |
-| gitleaks 8.30.1, `--no-git` over the tree | no leaks, 3.59 MB |
+| `npx vitest run` (react) | 18 files, 356 tests, pass |
+| `node --test` over the five colour and elevation gates and the reader's own tests | 150 tests, pass |
+| gitleaks 8.30.1, `--log-opts origin/main..HEAD` | no leaks, 21 commits |
+| gitleaks 8.30.1, `--no-git` over the tree | no leaks, 3.61 MB |
 | internal-terms denylist (`security.yml`'s own grep, verbatim) | clean |
 | AI-slop detector, paranoid, over every file this branch touched | 0 errors, 5 medium, 7 warnings — what `55b2df2` reported, same files |
 
@@ -271,12 +271,12 @@ nothing else running, this branch against a detached `origin/main` worktree on t
 | per pair | **8.86ms** | 9.54ms |
 | style-cache miss rate | 0.1948 | 0.1986 |
 
-The pairing was taken at `ad5cd79`; the two commits after it are prose, and one of them — a line
-added to the accessibility floor page — puts the branch at **16,002** pairs in the final `npm test`
-on the same host.
+The pairing was taken at `ad5cd79`; every commit after it is prose or a gate, and the prose — a
+line on the accessibility floor page, then round 2's two paragraphs on Foundations → Elevation —
+puts the branch at **16,010** pairs in the final `npm test` on the same host.
 
 `main` is over the bar before this branch touches anything, and in this pairing it was the slower
-of the two. The branch adds work — **+524 pairs, +3.4%** — and the source is named rather than
+of the two. The branch adds work — **+532 pairs, +3.4%** — and the source is named rather than
 waved at: the accessibility floor page's row registering `stories/elevation.test.js` and the blind
 spots it states, plus the rail's flyout, which now has a shadow and a firmer border for the walk to
 read. Per pair the branch is *faster* than `main`, so the extra pairs are the whole of the extra
@@ -402,6 +402,62 @@ dark  bottom → rgb(51,47,69)  0  1px 0 0 inset, <drop>, <drop>
 
 The rail's flyout resolves the same way in both themes and both widths: `--border-strong` on the
 border, `rgb(51,47,69)` — `--border` — as the inner line, and the two drops behind it.
+
+## Review round 2
+
+A second independent review, of `dab4c65`, verified all nine round-1 findings fixed — in the
+browser, by mutation, and by re-shooting every committed frame — and returned **FIX FIRST** on
+three more. None of them changes a pixel: two are prose, one is a gate's scope, one is a
+diagnostic. All three are fixed here, one commit each.
+
+**Finding 1, SHOULD-FIX — the Elevation story and the changelog still said what the spec stopped
+saying.** Round 1's findings 5/6 replaced the rung framing in `docs/specification.md`, and
+`stories/foundations/Backgrounds.stories.js` followed it; two of the four surfaces did not.
+Foundations → Elevation listed the floating surfaces as "a menu, a panel, the drawer, a modal and
+a toast", which leaves out the two that float from the step *above* a floating panel, and it still
+asserted the readout reads recessed in light where the spec now says *on its fill alone*. The
+changelog put the hover readout inside "the `--bg-elevated` step as the elevation ladder lists
+it", and the readout paints `--surface-3`:
+`src/styles/tooltip.css:17` `--ui-tip-bg: var(--surface-3);`.
+*Fixed:* all three say the role rule, with the readout on its own step. The
+story's ladder grid carries the same note the spec's table carries, since the grid is where a
+reader would otherwise read the rule off a rung.
+
+**Finding 2, SHOULD-FIX — round 1's finding 4 was still open in the React gate, and three places
+said it was closed.** The React gate resolved each layer with one `substitute()` against
+`stories/lib/contrast.js`, which reads what `src/index.css` imports and nothing else — so a custom
+property declared in `react/src/` was invisible, and a cast parked behind one resolved to nothing
+rather than to a cast. The reviewer planted round 1's own shape, a real drop in `--rx-lift`, and
+the gate passed it. *Fixed:* `resolutionsOf` moves out of `stories/elevation.test.js` and into
+`scripts/lib/box-shadow.js`, beside the reader both gates already share, taking the cascade as an
+argument rather than importing one. The React gate harvests `react/src/*.css` with
+`customPropertiesIn`, layers those declarations onto `declarationsFor()` and picks the winners
+with `winnersOf`, extracted from `tokensFor` so both gates pick them the same way. The plant is a
+case now rather than a claim, and against the real sheet it fails the gate in both themes and
+passes on revert. The sentences in `react/src/elevation.test.ts`, `docs/specification.md` and this
+file say what each gate resolves against instead of implying one map.
+
+**Finding 3, SHOULD-FIX — every offence the elevation gate printed named the wrong line.** The
+line was counted from `m[0].indexOf(decl)`, and `decl` comes out of `m[2].split(';')` — so it began at
+the character after the *previous* declaration's semicolon, and the line printed was where that
+one ended. The callout's panel was reported four lines above itself, and a mutation on
+`--elev-drop` was reported ten lines above its own declaration, because the comment block between
+them is blanked with its newlines kept. *Fixed:* `boxShadowsIn` and `customPropertiesIn` walk
+declarations over one generator that carries each declaration's offset, and the line is counted
+from the property name. The `:root`-hook test reads that helper instead of re-walking the CSS with
+its own copy of the bug. Two cases pin it — a declaration under a three-line comment block, and
+one split across lines — and the React gate's planted case pins the `box-shadow`'s own line.
+Swept over the kit's sheets: all 40 declarations now report a line that holds a `box-shadow`,
+where three did not, and the `--elev-drop` mutation is now reported on
+`src/tokens/tokens.css:252` `--elev-drop:`, where it used to be named ten lines above.
+
+**Re-run after the three.** `npm test` → 1537 tests, 1534 pass, 2 skipped, 1 fail — the contrast
+walk's wall clock, the same one `main` fails on this host, and nothing else. The two extra tests
+are finding 3's cases. React: `npm run build` passes (ESM 39.58 KB, DTS 8.49 KB), `npx vitest run`
+is 18 files / 356 tests / pass — one more than round 1, the planted case. The slop detector at
+`--level paranoid` over all 42 non-PNG files the branch touches still reads 0 errors, 5 medium,
+7 warnings. The walk's own seconds are not comparable with the pairing above: that host was
+quieter, and this run measured 222.2s against the same 120s ceiling `main` also fails.
 
 ## The version bump
 
