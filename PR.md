@@ -159,6 +159,58 @@ One thing to check after the second merge rather than assume: the `kit:` refs in
 `_component-choice.js` cite lines in both `dropdown.js` and `dropdown.css`, and both files move
 under the other branch. `stories/guidelines/refs.test.js` fails on a stale one, so run it.
 
+### What the wave-3 review changed
+
+Two should-fixes, both root-caused rather than retried.
+
+**The pick was held in state that a render could clear.** `Dropdown.test.tsx`'s "a pick
+survives a caller that rebuilds its items on every render" went red once under load — the tick
+was on the right row and the trigger had gone back to its placeholder — and then green on ten
+sequential and eight concurrent runs. It would not reproduce here either: twelve full-file runs
+and one hundred and twenty in-process repeats of that test body under ten-way CPU load, all
+green. So the answer is not a retry but the code: the component held the pick in `pickedKey`
+and cleared it from a **render-phase `setState`** — the derived-state pattern — which was the
+one write to that state not tied to an event or an effect, and the only path that could produce
+exactly what was seen. It is gone. The pick and the caller's selection it was made against are
+now one state written only from the click, and "the caller has taken the pick back" is derived:
+
+```tsx
+const [pick, setPick] = useState<{ key: string; against: string | null } | null>(null);
+const pickedKey = pick && pick.against === givenKey ? pick.key : null;
+```
+
+Same behaviour, both cases still green, and nothing outside an event handler can move it.
+
+**The rig waited on a clock.** Three `waitForTimeout(300/400)` over running transitions, and the
+review measured 2px of drift between two runs of the same tree. `scripts/evidence/settle.mjs`
+comes from `fix/306-dropdown-pad-foot` unchanged — it asks `document.getAnimations()` whether any
+`CSSTransition` is still travelling — and every wait here is now that. It was necessary and not
+sufficient: with the clocks gone, one frame of fourteen still differed between runs, by a single
+level of antialiasing on a rounded corner, and the frame it picked moved from run to run. What
+closed it was making the raster deterministic as well — hinting off, so a glyph advance cannot
+land a 64th of a pixel differently; reduced motion, so no frame can catch a compositor layer
+mid-travel; and Chromium's own pixel-test switches, `--deterministic-mode` and
+`--disable-partial-raster`. **Four runs, fourteen frames, byte-identical**, the last of them
+against what is committed here:
+
+```
+$ for d in t1 t2 t3; do node scripts/evidence/react.mjs . /tmp/$d; done
+$ cd /tmp/t1 && for f in *.png; do cmp -s "$f" "../t2/$f" && cmp -s "$f" "../t3/$f" \
+    && echo "same  $f" || echo "DIFF  $f"; done
+same  react-back-long-dark.png          same  react-dropdown-menu-light.png
+same  react-back-long-light.png         same  react-dropdown-search-dark.png
+same  react-back-short-dark.png         same  react-dropdown-search-light.png
+same  react-back-short-light.png        same  react-dropdown-search-links-dark.png
+same  react-dropdown-link-row-dark.png  same  react-dropdown-search-links-light.png
+same  react-dropdown-link-row-light.png same  react-dropdown-select-dark.png
+same  react-dropdown-menu-dark.png      same  react-dropdown-select-light.png
+```
+
+The two search stories stopped opening themselves for the same reason: the panel freezes the
+width the whole list needs as it opens, so one opened before the webfaces land freezes a width
+measured in the fallback. The rig opens them with a real click once the page has settled, which
+is also the truer picture.
+
 ## Evidence
 
 Fourteen shots, light and dark, produced by `scripts/evidence/react.mjs` — #286's rig pointed at the
@@ -209,7 +261,7 @@ Typed "pay"; one `<Link>` row is left and it is the row Enter would pick.
 |---|---|---|
 | `react/src/Dropdown.test.tsx`, 36 parity cases | Renders `dropdown()` and `<Dropdown>` for the same options and compares the container's class list plus a shape: the trigger's tag, classes, `type`, `aria-haspopup`, `aria-expanded`, `aria-label`, its prefix and value and chevron; the panel's classes, role, name and inline max-height; every section's role, name and heading; and every row's tag, classes, role, `tabindex`, `data-value`, `aria-selected`, `aria-disabled`, `href`, `target`, label, description, badge and badge tone, and which glyph slots it drew — and, with `search`, the field (its role, its name, its placeholder, whether its `aria-controls` points at the list and its `aria-activedescendant` at the active row), the list, the no-match region and which rows a preset query left hidden. | A React-only rule. The variant inference drifting. A row that is a `<div>` where the factory draws an `<a>`. A select row quietly becoming a link. A badge tone the factory would have spelt differently. |
 | the same file, 12 wired-parity cases | Mounts the factory's markup, runs the kit's own `wireDropdown()` over it, opens it and types a query with `user-event` — then does the same to the component and compares the rows left showing, the row Enter would pick, the separators, the groups and the no-match line. Twelve queries: a word mid-label, a code at the end, a capital query, an accent the row has and the query does not, one that finds only the disabled row, one that matches nothing, spaces, one letter, and two over sections. | A matcher that starts guessing. Replacing `dropdownMatch()` with a starts-with test reds twelve of these plus two parity cases — measured, not assumed. |
-| the same file, 18 keyboard cases under `user-event` | Real key presses: the trigger's click, ArrowDown/ArrowUp opening onto the first row or the selected one, the ring wrapping and stepping over the disabled row, Home and End, Enter and Space, Escape and the focus return, Tab, the outside click, one dropdown closing another, controlled `open` refusing a close, a `<Link>` row still moving with the arrows, a pick surviving a caller that rebuilds its items, the caller taking the pick back, and — with the field — the arrows moving the pick while focus stays in the combobox, Home and End staying the caret's, Enter picking, every open starting from the whole list, the pointer moving the pick, and a search dropdown whose rows the caller drew being filtered and then picked. | Any of `wireDropdown()`'s rules being approximated. The most likely regression: a row drawn by a caller falling out of the arrow ring, which is the whole feature. Two of these were written against a defect this branch shipped and then fixed — a pick held by object identity — and killing `keyOf()` reds six of them. |
+| the same file, 28 cases under `user-event`, ten of them the field's | Real key presses: the trigger's click, ArrowDown/ArrowUp opening onto the first row or the selected one, the ring wrapping and stepping over the disabled row, Home and End, Enter and Space, Escape and the focus return, Tab, the outside click, one dropdown closing another, controlled `open` refusing a close, a `<Link>` row still moving with the arrows, a pick surviving a caller that rebuilds its items, the caller taking the pick back, and — with the field — the arrows moving the pick while focus stays in the combobox, Home and End staying the caret's, Enter picking, every open starting from the whole list, the pointer moving the pick, and a search dropdown whose rows the caller drew being filtered and then picked. | Any of `wireDropdown()`'s rules being approximated. The most likely regression: a row drawn by a caller falling out of the arrow ring, which is the whole feature. Three of these hold the key the pick is stored under, and each mutation of `keyOf()` reds a different set: returning the item itself — the object identity this branch shipped and then fixed — reds one, the rebuild case it was written for; keying every row alike (`keyOf = () => 'k'`) reds seven; keying on the label alone reds one, the two-rows-called-Main case the review asked for, which nothing else catches. |
 | `react/src/BackLink.test.tsx`, 24 parity cases + 9 script addresses | The same shape comparison against `backLink()`, over the cases `src/components/back.test.js` pins — including every `javascript:` spelling, each asserted to parse as `javascript:` first so none is a straw man — plus `.ui-app__main > .ui-back` matching, and the one difference stated by name. | The guard being written differently in the two languages, which is the one that matters: a `javascript:` address rendering a link in React and nothing in a server render. |
 | `src/components/dropdown-search.test.js` (existing, extended) | Six cases on the published matcher: a substring anywhere, case and accents including the letters that carry their own mark, a blank query matching everything, a label that is not a string, the query trimmed and the label not — and one that reads the factory's own hidden rows back against the export, so the two cannot drift apart. | The export becoming a second implementation of what the factory does. |
 | `react/src/a11y.test.tsx` (existing, auto-discovering) | Eleven new stories × two themes through axe, the search panel among them — a field inside a `role="listbox"` fails `aria-required-children`, which is why the panel is a dialog. It already found one thing: a `select` dropdown with no `ariaLabel` is an unnamed listbox. | An unnamed listbox, an option outside a listbox, a menuitem outside a menu. |
@@ -238,12 +290,12 @@ Typed "pay"; one `<Link>` row is left and it is the row Enter would pick.
 ℹ cancelled 0
 ℹ skipped 2
 ℹ todo 0
-ℹ duration_ms 215240.160579
+ℹ duration_ms 272854.188193
 
 ✖ failing tests:
 
-✖ the walk has not run away with the clock (1.141853ms)
-  AssertionError: the contrast walk took 194.7s, against a 120s ceiling set from a measured
+✖ the walk has not run away with the clock (0.813382ms)
+  AssertionError: the contrast walk took 245.0s, against a 120s ceiling set from a measured
   worst case of 47.6s on a fully contended 10-core laptop.
 ```
 
@@ -266,19 +318,19 @@ Component choice cites for it; and `scripts/code-refs.test.js`, which reads this
 
 ```
 ESM dist/index.css 2.06 KB
-ESM dist/index.js  55.94 KB
-ESM ⚡️ Build success in 229ms
+ESM dist/index.js  55.88 KB
+ESM ⚡️ Build success in 85ms
 DTS Build start
-DTS ⚡️ Build success in 6078ms
-DTS dist/index.d.ts 13.41 KB
+DTS ⚡️ Build success in 2403ms
+DTS dist/index.d.ts 13.43 KB
 ```
 
 **`cd react && npm test`:**
 
 ```
  Test Files  19 passed (19)
-      Tests  524 passed (524)
-   Duration  29.09s
+      Tests  525 passed (525)
+   Duration  26.08s
 ```
 
 **`react/dist/index.d.ts`, after that build:**

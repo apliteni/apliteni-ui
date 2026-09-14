@@ -169,11 +169,14 @@ export function Dropdown({
 }: DropdownProps) {
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
   const open = openProp ?? selfOpen;
-  // The row picked since the caller last moved the selection itself. Held as a key and
-  // not as the item, because a caller that rebuilds its items on every render — the
-  // ordinary `items.map(…)` — hands back equal rows that are not the same objects, and
-  // a pick compared by identity would lose its tick on the next render.
-  const [pickedKey, setPickedKey] = useState<string | null>(null);
+  // The row picked in this component, and the caller's own selection it was picked
+  // against. Held as keys and not as items, because a caller that rebuilds its items on
+  // every render — the ordinary `items.map(…)` — hands back equal rows that are not the
+  // same objects, and a pick compared by identity would lose its tick on the next render.
+  // Both halves are in ONE state written only from the click: a pick that stops applying
+  // is derived below rather than cleared during a render, so nothing but an event can
+  // move it. why: react/README.md#dropdown
+  const [pick, setPick] = useState<{ key: string; against: string | null } | null>(null);
   const [query, setQuery] = useState(() => (search && search !== true ? search.query || '' : ''));
   // The row Enter would pick, by key. Null means "whichever is first in the list as it
   // stands", which is where every query change and every open put it.
@@ -212,16 +215,13 @@ export function Dropdown({
   // groups — and every row inside becomes an option, a row carrying an href included.
   const asOption = isSelect || Boolean(sx);
   const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || 'Options';
-  // The caller's own selection. When it moves, the caller has taken the pick back and
-  // this component's is dropped — the same shape <Pagination> uses to drop a page-jump
-  // draft when the page moves under it.
+  // The caller's own selection, and the pick measured against it: once the caller moves
+  // its selection the pick was made against, the caller has taken the pick back and this
+  // component's stops applying. Derived, so a re-render cannot drop a pick the reader
+  // made and an unrelated render cannot restore one they did not.
   const given = rows.find((it) => it.selected);
   const givenKey = given ? keyOf(given) : null;
-  const [seenGiven, setSeenGiven] = useState(givenKey);
-  if (seenGiven !== givenKey) {
-    setSeenGiven(givenKey);
-    setPickedKey(null);
-  }
+  const pickedKey = pick && pick.against === givenKey ? pick.key : null;
   const picked = pickedKey != null ? rows.find((it) => keyOf(it) === pickedKey) : undefined;
   const shown = value != null ? value
     : (isSelect ? (picked?.label ?? given?.label) : null);
@@ -317,7 +317,7 @@ export function Dropdown({
 
   const choose = (item: DropdownItem, e: ReactMouseEvent) => {
     if (item.disabled) { e.preventDefault(); return; }
-    if (isSelect) setPickedKey(keyOf(item));
+    if (isSelect) setPick({ key: keyOf(item), against: givenKey });
     onSelect?.(item.value, item);
     setOpen(false);
     trigger.current?.focus();

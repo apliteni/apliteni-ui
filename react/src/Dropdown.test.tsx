@@ -369,6 +369,27 @@ it('a pick survives a caller that rebuilds its items on every render', async () 
     'the tick is on the row that was picked, not gone with the objects').toEqual(['false', 'true']);
 });
 
+it('two rows that share a label are told apart by their values', async () => {
+  // A real list has these: two accounts called "Main", two regions called "Frankfurt"
+  // under different providers. The pick is keyed on the value when there is one, so the
+  // row that takes the tick is the row that was clicked and not its namesake.
+  const user = userEvent.setup();
+  const picks: unknown[] = [];
+  const { container } = render(
+    <Dropdown variant="select" ariaLabel="Account" onSelect={(v) => picks.push(v)} items={[
+      { label: 'Main', value: 'eu-main' },
+      { label: 'Main', value: 'us-main' },
+      { label: 'Spare', value: 'spare' },
+    ]} />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  await user.click(within(dd as HTMLElement).getByRole('button'));
+  await user.click(rowsOf(dd)[1]);
+  expect(picks).toEqual(['us-main']);
+  expect(rowsOf(dd).map((el) => el.getAttribute('aria-selected')),
+    'the namesake above it keeps its own state').toEqual(['false', 'true', 'false']);
+  expect(rowsOf(dd).map((el) => el.classList.contains('is-selected'))).toEqual([false, true, false]);
+});
+
 it('a caller that moves the selection itself takes the pick back', async () => {
   const user = userEvent.setup();
   const Held = () => {

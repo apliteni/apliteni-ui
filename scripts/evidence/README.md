@@ -45,6 +45,33 @@ way `shot.html` loads them — the React Storybook's preview imports the kit's
 stylesheet and nothing else, so without that the shot is of the box's fallback
 face rather than of the kit.
 
+It waits on `settle.mjs` and never on a clock: the panel renders open, so its fade
+is running when the page arrives, and a query typed into the field starts another.
+A fixed `waitForTimeout` over a running transition is a race the rig loses quietly
+— it cost 2px of drift in `react-dropdown-search-links-dark.png` between two runs
+of the same tree, which a pair shot across two checkouts could not tell from a
+change. Reach for `settle()` in any new producer here, and never for a number of
+milliseconds.
+
+The clocks were necessary and not sufficient. With them gone, one frame of fourteen
+still differed between two runs — a single level of antialiasing on a rounded
+corner, and a different frame each time. Three more things buy the rest, and each
+is on the launch or the context rather than in a shot:
+
+- `--font-render-hinting=none` and `--disable-lcd-text`, because hinting snaps a
+  glyph to the pixel grid from state the browser carries, and one advance landing a
+  64th of a pixel differently moves a corner by a level.
+- `reducedMotion: 'reduce'`, so no frame can catch a compositor layer mid-travel.
+  The kit's net takes the travel off rather than changing what is drawn.
+- `--deterministic-mode` and `--disable-partial-raster`, Chromium's own pixel-test
+  switches: one raster pass per frame, and no re-raster of a tile already drawn.
+
+Four runs of fourteen frames agree to the byte with those on, and the last of them
+against what is committed under `docs/evidence/react-*.png`. A subject that has to
+open itself is opened by the rig with a real click once the page has settled: the
+dropdown panel freezes the width the whole list needs as it opens, so a panel open
+before the webfaces land freezes a width measured in the fallback.
+
 ## What is deterministic and what is not
 
 `shoot.mjs` and `nav.mjs` are: the same checkout, the same Chrome and the same

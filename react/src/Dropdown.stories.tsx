@@ -121,7 +121,11 @@ export const Scrolling: StoryObj<typeof Dropdown> = {
 
 // A long list with a field over it, which Guidelines / Component choice makes a rule at
 // ten options. The query is typed by the evidence rig, not preset here: this is the state
-// a reader arrives at, and `defaultOpen` is what the shot needs.
+// a reader types their way into. Neither search story opens itself — the panel freezes the
+// width the whole list needs the moment it opens, so a panel opened before the webfaces
+// land freezes a width measured in the fallback, and the rig's two runs then disagree on
+// the edge by a level of antialiasing. The rig opens them with a real click once the page
+// has settled.
 export const Search: StoryObj<typeof Dropdown> = {
   render: () => {
     const [currency, setCurrency] = useState('USD');
@@ -135,7 +139,6 @@ export const Search: StoryObj<typeof Dropdown> = {
           scroll={220}
           items={CURRENCIES.map((it) => ({ ...it, selected: it.value === currency }))}
           onSelect={(value) => setCurrency(String(value))}
-          defaultOpen
         />
       </Stage>
     );
@@ -157,7 +160,6 @@ export const SearchWithLinkRows: StoryObj<typeof Dropdown> = {
           { label: 'Reconciliation reports', href: '/reports', icon: 'chart' },
         ]}
         row={(item, props) => <Link to={item.href!} {...props} />}
-        defaultOpen
       />
     </Stage>
   ),

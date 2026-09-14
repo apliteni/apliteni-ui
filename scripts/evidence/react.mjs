@@ -10,6 +10,7 @@
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { settle } from './settle.mjs';
 // Playwright is not a dependency of this package — the kit ships no browser and
 // nothing in `npm test` drives one. Point UI_PLAYWRIGHT at an install of it and
 // UI_CHROME at the Chrome binary. why: scripts/evidence/README.md
@@ -31,11 +32,29 @@ const port = await new Promise((resolve, reject) => {
   p.once('error', reject);
 });
 
-const browser = await chromium.launch({ executablePath: CHROME });
+// Text is rasterised the same way on every run: hinting snaps a glyph to the pixel
+// grid from state the browser carries, and the panel freezes the width the whole list
+// needs, so one glyph advance landing a 64th of a pixel differently moves a rounded
+// corner by a level of antialiasing. Off, the two runs agree to the byte.
+const browser = await chromium.launch({
+  executablePath: CHROME,
+  args: [
+    '--font-render-hinting=none', '--disable-lcd-text', '--disable-gpu',
+    // Chromium's own pixel-test switch: one raster pass per frame, no partial
+    // re-raster of a tile that was already drawn, no threaded animation.
+    '--deterministic-mode', '--disable-partial-raster', '--disable-skia-runtime-opts',
+  ],
+});
 
 /** One story at the shot viewport, in the theme asked for, with both faces resolved. */
 async function open(story, theme, { width = 560, height = 380 } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
+  // Reduced motion, because every subject here is a panel that opens: the kit's net
+  // takes the travel off rather than changing what is drawn, so the frame is the rest
+  // state by construction and no shot can catch a compositor layer mid-flight.
+  // why: docs/specification.md#motion
+  const ctx = await browser.newContext({
+    viewport: { width, height }, deviceScaleFactor: 1, reducedMotion: 'reduce',
+  });
   const page = await ctx.newPage();
   await page.goto(`http://127.0.0.1:${port.port}/iframe.html?id=${story}&viewMode=story`,
     { waitUntil: 'load' });
@@ -51,9 +70,9 @@ async function open(story, theme, { width = 560, height = 380 } = {}) {
   // The preview stamps dark on arrival; the toolbar is not in the iframe, so the
   // theme is set the way a reader's own choice sets it — on the root element.
   await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
-  await page.evaluate(() => document.fonts.ready);
-  // Nothing is mid-travel: the panel's own fade is --dur-med.
-  await page.waitForTimeout(400);
+  // Nothing is mid-travel — asked of the document rather than of a clock. The panel
+  // renders open, so its fade is running when the page arrives.
+  await settle(page);
   return { ctx, page };
 }
 
@@ -88,9 +107,13 @@ for (const theme of ['dark', 'light']) {
   ]) {
     if (!want(`${name}-${theme}`)) continue;
     const { ctx, page } = await open(story, theme, { height: 420 });
-    await page.click('.ui-dropdown__search-input');
+    // Opened with a real click, and only once the page has settled: the panel freezes
+    // the width the whole list needs as it opens, and one opened before the faces land
+    // freezes a width measured in the fallback.
+    await page.click('.ui-dropdown__trigger');
+    await settle(page);
     await page.type('.ui-dropdown__search-input', query, { delay: 40 });
-    await page.waitForTimeout(300);
+    await settle(page);
     const left = await page.evaluate(() => document.querySelectorAll(
       '.ui-dropdown__item:not([hidden])').length);
     if (!left) throw new Error(`${name}: the query left no rows to shoot`);
@@ -105,7 +128,7 @@ for (const theme of ['dark', 'light']) {
     const { ctx, page } = await open('react-dropdown--rows-are-links', theme);
     await page.keyboard.press('Tab');
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(300);
+    await settle(page);
     const on = await page.evaluate(() => document.activeElement?.className || '');
     if (!on.includes('ui-dropdown__item')) throw new Error(`the ring did not land on a row: ${on}`);
     await save(page, `react-dropdown-link-row-${theme}`);
