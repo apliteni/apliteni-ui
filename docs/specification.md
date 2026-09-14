@@ -55,10 +55,13 @@ page-scale width as a literal.
 
 The column comes in two widths, and they are names rather than numbers: `appShell({ width })`
 takes `centered` — the capped, centred column the kit has always drawn — or `wide`, which takes
-the cap off and fills the track beside the rail. Both are drawn in both layouts. `centered` is
-the default and writes no class, because it is the rule that was already there; `wide` is the one
-that adds `.ui-app__main--wide`, and that rule's whole content is the cap it removes. Neither
-writes a second copy of a number.
+the cap off and fills the track beside the rail. Both are drawn in both layouts.
+
+**`centered` is the default — Artur's call on 2026-09-14**, taken from both widths rendered in
+both layouts and read side by side; the frames are under `docs/evidence/shell-layouts/` and the
+verdict is on [#308](https://github.com/apliteni/apliteni-ui/issues/308). It also writes no class,
+because it is the rule that was already there; `wide` is the one that adds `.ui-app__main--wide`,
+and that rule's whole content is the cap it removes. Neither writes a second copy of a number.
 
 `maxWidth` is the number under either name. The name picks the cap the column falls back to —
 `var(--measure)` centred, `none` wide — and a caller who passes `maxWidth` replaces that fallback
@@ -1065,8 +1068,10 @@ What moves, and what each move buys:
   so the kit has one search surface and not two. The caller names the palette they rendered, and
   with no palette named there is no field, the argument `signOutHref` takes. The key cap is the
   palette's own `.ui-cmdk__key`, and it is **inside** the button's accessible name rather than
-  `aria-hidden`: a palette row hides its shortcut, because forty of them read after forty labels
-  is noise, but there is one of these and the key is the fact it exists to teach. `paletteHotkey()`
+  `aria-hidden` — Artur's call on 2026-09-14, recorded on
+  [#308](https://github.com/apliteni/apliteni-ui/issues/308). A palette row hides its shortcut,
+  because forty of them read after forty labels is noise, but there is one of these and the key is
+  the fact it exists to teach. `paletteHotkey()`
   reads the platform, a server has none, so the markup ships `Ctrl K` and `wireShell()` writes the
   reader's own key into the cap — and therefore into the name — off the root's own window.
 - **On the band the mark is the whole trigger, and it carries the name.** There is no room for the

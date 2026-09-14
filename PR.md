@@ -14,7 +14,7 @@ are the brief rather than the acceptance criteria written above them:
 | --- | --- |
 | What is the topbar's search box? | A palette trigger drawn as a field — `lessly-ui`'s `QuickSearchRow` moved into the topbar. Looks like a search field, shows ⌘K, opens `commandPalette()` (#274). No second search implementation. |
 | How does it ship? | `appShell({ layout: 'topbar' })` — a second layout on the one shell. The current layout stays the default. `accountShell()` passes it through. |
-| Where does wide vs centred apply? | Both layouts: `appShell({ width: 'wide' \| 'centered' })`. Render both; Artur picks the default next round. |
+| Where does wide vs centred apply? | Both layouts: `appShell({ width: 'wide' \| 'centered' })`. Render both; Artur picks the default next round. **He did, on 2026-09-14: `centered`.** |
 
 The reference is `lessly-hub/lessly-ui` at `d1a25eda` — `app-shell.tsx`, `app-sidebar.tsx`,
 `quick-search-row.tsx`, `user-menu.tsx`, `page-column.tsx` and `.page-column` in `src/styles.css`.
@@ -50,7 +50,7 @@ now, and the sentence the two lines said is written on the control, which is the
 they stop reaching for the sidebar at all"*. The first version here had the cap `aria-hidden`, on
 the kit's own palette-row rule. That rule is about forty rows — *"a screen reader reading 'G then I'
 after every label is noise a sighted reader can simply skip"* — and there is one of these. The cap
-is inside the name now. It is the smaller of the two decisions left open below.
+is inside the name now, and Artur kept it there on 2026-09-14.
 
 One thing the reference does that Artur's answer overrides: `QuickSearchRow` is the **rail's** first
 row there (`railTop`, *"between the header's rule and the rows"*). He asked for it in the topbar,
@@ -132,7 +132,7 @@ Eighteen images under `docs/evidence/shell-layouts/`, all produced by the commit
 `scripts/evidence/layouts.mjs`, new beside `shoot.mjs` and `nav.mjs`, over the same server, the same
 `shot.html` and the same Chrome. 1280×760 unless said otherwise.
 
-**Both layouts × both widths × both themes** — the matrix Artur picks the default from:
+**Both layouts × both widths × both themes** — the matrix Artur picked the default from:
 
 | | wide | centred |
 | --- | --- | --- |
@@ -352,22 +352,37 @@ into `docs/specification.md#the-page-shell`, where it can be reviewed and supers
 | A second layout at all; the rail keeps the logo, the toggle goes to the bottom, the topbar carries search and the user menu; content wide or centred | **Artur**, 2026-09-13 | #308 |
 | The search is a palette trigger, not a second search | **Artur**, on #308 | the contract, *The second layout* |
 | It ships as `layout: 'topbar'`, the current layout stays the default, `accountShell()` passes it through | **Artur**, on #308 | the contract |
-| `width` applies to both layouts; Artur picks the default | **Artur**, on #308 | **open — see below** |
+| `width` applies to both layouts | **Artur**, on #308 | the contract, *Widths* |
+| **`centered` is the default width** | **Artur**, 2026-09-14, from the eight matrix frames | #308, and the contract, *Widths* |
 | The band stands beside the rail rather than above it | worker, from `app-shell.tsx` | the contract; reversible |
 | On the band the trigger is the avatar alone | worker, from `user-menu.tsx` | the contract; reversible |
 | `width` names the cap, `maxWidth` is the number under it | worker | the contract, *Widths* |
 | The reference's `container − rail − inset` cap is not taken; `--measure` stands | worker | the contract, *Widths* |
 | One band per page: `layout: 'topbar'` does not compose with the `topbar` bag | worker | the contract; the cost is named there |
 | A folded rail in the banded layout keeps the product's mark | worker, from the first evidence run | the contract |
-| The key cap is inside the field's accessible name | worker, from `quick-search-row.tsx` | **open — see below** |
+| **The key cap stays inside the field's accessible name** | **Artur**, 2026-09-14; proposed by the worker from `quick-search-row.tsx` | #308, and the contract, *The second layout* |
 
-### Open, and put to Artur
+### Both questions are answered
 
-1. **The default `width`.** `centered` ships provisionally, because it is the column the kit has
-   always drawn and nothing already on `appShell()` moves. But every screen the kit itself draws is
-   a table or a card stack, which the wide column suits. The eight matrix shots above are the
-   comparison. Asked on 2026-09-13; unanswered when this was written.
-2. **The key cap in the accessible name.** Kept, on the reference's argument. One word reverses it.
+Round 10 on the companion page, 2026-09-14. Artur took `centered` as the default width and kept
+the key cap inside the accessible name — which is what the branch was already holding
+provisionally, so **the code did not change; only the prose that called them open**. PR #317 is
+approved to merge with those two applied.
+
+The frames he chose from are the eight in the matrix above, and both decisions are now stated as
+decisions in `docs/specification.md` — the default under *Widths*, the key cap under *The second
+layout* — each attributed and pointing at #308 as the record.
+
+### Follow-ups, filed rather than fixed here
+
+- **The search field's look.** Artur, on the same round: *"btw it search field looks ugly"*. The
+  field is deliberately unchanged in this PR; it is being filed as its own issue with rendered
+  variants for him to pick from, so a look is chosen the way the default width was rather than
+  guessed at inside a merge. That is
+  [#318](https://github.com/apliteni/apliteni-ui/issues/318).
+- **The rail's hairline is invisible in light.** `--border` on `--surface-2` is 1.009:1, inherited
+  from `main` and shared by every surface pairing those two tokens. Named under the wave-3 review
+  above; it is a token question and wants its own issue.
 
 ## Overlap with `fix/306-dropdown-pad-foot`, which merges ahead of this
 
@@ -408,8 +423,8 @@ whichever lands first. Verified with `git show origin/fix/306-dropdown-pad-foot:
   reader's menu; the fold's control takes the place at the rail's foot. The rail-only layout is
   unchanged and stays the default. `accountShell()` passes `layout` through. (#308)
 - **The content column comes in two widths.** `appShell({ width: 'wide' | 'centered' })`, on both
-  layouts: `centered` is the capped, centred column the kit has always drawn, `wide` fills the
-  track beside the rail. `maxWidth` is the number under either name. (#308)
+  layouts: `centered` — the default — is the capped, centred column the kit has always drawn, and
+  `wide` fills the track beside the rail. `maxWidth` is the number under either name. (#308)
 - **The topbar layout's search opens the command palette.** It is a trigger drawn as a field,
   carrying the palette's own `[data-cmdk-open]` hook and the key that opens it; `wireShell()`
   writes the reader's own platform into the key. (#308, #274)
@@ -417,8 +432,10 @@ whichever lands first. Verified with `git show origin/fix/306-dropdown-pad-foot:
 
 ## Reviews
 
-_Left for the coordinator._
+The two this branch knows about are below; the rest is the coordinator's to fill.
 
 | Review | Reviewer | Verdict |
 | --- | --- | --- |
+| Wave-3 independent review of #317 at `66fe87a` | an independent reviewer | Ready for Artur, with five should-fix and two nits. All seven answered in `e2bcd89` — see *The wave-3 review* above. 30 mutations red, the rail-only layout pixel-identical to `main`, real keyboard walks through the band pass. |
+| Companion round 10, 2026-09-14 | **Artur** | **Approved.** `width` defaults to `centered`; the key cap stays inside the accessible name; merge with both applied. One follow-up, not for this PR: the search field's look. |
 | | | |

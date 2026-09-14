@@ -359,7 +359,7 @@
 .ui-app__search:hover { border-color: var(--border-strong); color: var(--strong); }
 /* The same glyph the palette draws in its own search box, at the same box and the
    same stroke: the trigger and the thing it opens are not two search marks.
-   src/styles/command-palette.css:100 `.ui-cmdk__search-ic svg` */
+   src/styles/command-palette.css:107 `.ui-cmdk__search-ic svg` */
 .ui-app__search-ic { display: flex; flex: none; }
 .ui-app__search-ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 /* Part of the button's name, so it is squeezed rather than dropped: an ellipsis
