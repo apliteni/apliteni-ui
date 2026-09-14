@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>html,body{margin:0;padding:0;font-family:var(--font-sans);color:var(--text)}</style>
+</head>
+<body>
+<script type="module">
+// The story's own render call, under the same theme decorator Storybook runs:
+// applyTheme() on the root and the canvas painted --bg. A namespace import for
+// the page, so a checkout whose module exports less still loads.
+import { guidelinePage } from '/stories/guidelines/_layout.js';
+import { applyTheme } from '/src/components/topbar.js';
+const params = new URLSearchParams(location.search);
+const page = await import(`/stories/guidelines/_${params.get('page') || 'the-page'}.js`);
+
+applyTheme(params.get('theme') || 'dark', document.documentElement);
+document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+document.body.innerHTML = guidelinePage({ title: page.TITLE, rules: page.RULES, css: page.SPEC_CSS });
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

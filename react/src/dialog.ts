@@ -61,8 +61,9 @@ export const dismissOnScrim = (onClose: () => void) => (e: ReactMouseEvent) => {
 type Ref = RefObject<HTMLElement | null>;
 
 // Layout effects, so the enter class and the exit wait are in place before the browser
-// paints. A plain effect on the server, where React 18 warns about the other.
-const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
+// paints. A plain effect on the server, where React 18 warns about the other. Exported
+// for <Dropdown>, which needs the same answer and must not carry a second copy of it.
+export const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
 
 /** The longest `transition-duration` + `transition-delay` on `el`, in ms, as computed. */
 function transitionMs(el: Element): number {

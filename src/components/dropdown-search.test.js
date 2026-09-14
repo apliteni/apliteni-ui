@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { dropdown, wireDropdown } from './dropdown.js';
+import { dropdown, wireDropdown, dropdownMatch, dropdownFiltering } from './dropdown.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -354,4 +354,60 @@ test('a portalled search panel still filters and picks from the keyboard', () =>
   field.dispatchEvent(new m.window.Event('input', { bubbles: true }));
   press(m, field, 'Enter');
   assert.equal(trigger.querySelector('.ui-dropdown__value').textContent, 'Polish złoty (PLN)');
+});
+
+// ---- The matcher, published ------------------------------------------------
+//
+// dropdownMatch() and dropdownFiltering() are the kit's answer to "does this row
+// stay?", exported so a second implementation of this dropdown asks rather than
+// re-implements — the React <Dropdown> does, the way <CommandPalette> asks
+// rankGroups(). These tests are the export's contract; the ones above prove the
+// factory and the wiring ask the same pair. #304
+
+test('the matcher finds a substring anywhere in the label, not only at the front', () => {
+  assert.equal(dropdownMatch('Acme Payments Ltd', 'payments'), true);
+  assert.equal(dropdownMatch('US dollar (USD)', 'dollar'), true);
+  assert.equal(dropdownMatch('US dollar (USD)', 'usd'), true);
+  assert.equal(dropdownMatch('US dollar (USD)', 'euro'), false);
+});
+
+test('it ignores case, accents, and the letters that carry their own mark', () => {
+  for (const [label, query] of [
+    ['Polish złoty (PLN)', 'zloty'], ['Café', 'cafe'], ['Örebro', 'orebro'],
+    ['Ärger', 'arger'], ['Straße', 'strasse'], ['Ærø', 'aero'], ['Œuvre', 'oeuvre'],
+    ['Đà Nẵng', 'da nang'], ['Ísafjörður', 'isafjordur'], ['İstanbul', 'istanbul'],
+  ]) {
+    assert.equal(dropdownMatch(label, query), true, `${label} should be found by ${query}`);
+  }
+});
+
+test('a query with nothing in it matches every row, so nothing is hidden', () => {
+  for (const q of ['', '   ', undefined, null, '\u0301']) {
+    assert.equal(dropdownMatch('Anything', q), true, `query ${JSON.stringify(q)}`);
+    assert.equal(dropdownFiltering(q), false, `query ${JSON.stringify(q)} narrows nothing`);
+  }
+});
+
+test('a label that is not a string is read the way the factory reads one', () => {
+  for (const label of [undefined, null, 0, false]) {
+    assert.equal(dropdownMatch(label, 'x'), false, `label ${JSON.stringify(label)}`);
+    assert.equal(dropdownMatch(label, ''), true, `label ${JSON.stringify(label)} with no query`);
+  }
+  assert.equal(dropdownMatch(1250, '25'), true, 'a number label is its digits');
+});
+
+test('the query is trimmed and the label is not: a space inside a name still counts', () => {
+  assert.equal(dropdownMatch('Back office', '  back off  '), true);
+  assert.equal(dropdownMatch('Backoffice', 'back off'), false);
+  assert.equal(dropdownFiltering('  x  '), true);
+});
+
+test('what the factory hides is what the export says to hide', () => {
+  // The two are one function, and this is the assertion that says so: the rows the
+  // factory renders hidden for a preset query are exactly the ones that fail the
+  // published matcher.
+  const m = mount(searchable({ search: { query: 'dollar' } }));
+  const byExport = ITEMS.filter((it) => dropdownMatch(it.label, 'dollar')).map((it) => it.label);
+  assert.deepEqual(m.shown(), byExport);
+  assert.ok(byExport.length > 1 && byExport.length < ITEMS.length, 'a query that neither shows nor hides everything');
 });

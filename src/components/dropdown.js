@@ -63,7 +63,8 @@ function ddBody({ items, sections }, listbox, sx) {
   if (sections && sections.length) {
     return sections.map((s) => {
       const head = s.label ? `<div class="ui-dropdown__group" role="presentation">${esc(s.label)}</div>` : '';
-      const gone = sx && ddFiltering(sx.q) && !(s.items || []).some((it) => ddIsRow(it) && ddMatch(it.label, sx.q));
+      const gone = sx && dropdownFiltering(sx.q)
+        && !(s.items || []).some((it) => ddIsRow(it) && dropdownMatch(it.label, sx.q));
       return `<div class="ui-dropdown__section" role="group"${s.label ? ` aria-label="${esc(s.label)}"` : ''}${gone ? ' hidden' : ''}>${head}${(s.items || []).map(one).join('')}</div>`;
     }).join('');
   }
@@ -73,15 +74,26 @@ function ddBody({ items, sections }, listbox, sx) {
 // ---- Search --------------------------------------------------------------
 // The match is a substring of the label, anywhere in it, ignoring case and
 // accents; rows keep their order. The factory and the wiring both ask
-// ddMatch(), so a preset query and a typed one hide the same rows.
+// dropdownMatch(), so a preset query and a typed one hide the same rows.
 // why: docs/specification.md#a-dropdown-with-a-search-field
 // NFD takes the mark off é or ö; ł, ø, đ and the rest are letters of their own
 // with nothing to take off, so they are mapped by hand.
 const FOLD = { ł: 'l', ø: 'o', đ: 'd', ð: 'd', ß: 'ss', æ: 'ae', œ: 'oe', ı: 'i', þ: 'th' };
 const fold = (s) => String(s == null ? '' : s).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
   .replace(/[łøđðßæœıþ]/g, (c) => FOLD[c]);
-const ddFiltering = (q) => fold(q).trim() !== '';
-const ddMatch = (label, q) => fold(label).includes(fold(q).trim());
+
+/**
+ * Is this query narrowing anything? A query of spaces, or of marks with no letter
+ * under them, is not — it leaves every row showing, and the separators with them.
+ *
+ * Public because a second implementation of this dropdown cannot write its own: the
+ * React <Dropdown> asks these two, the way <CommandPalette> asks rankGroups(), so a
+ * list a server rendered and the same list after a keystroke hide the same rows.
+ */
+export const dropdownFiltering = (query) => fold(query).trim() !== '';
+
+/** Does `label` match `query`? A substring, anywhere, ignoring case and accents. */
+export const dropdownMatch = (label, query) => fold(label).includes(fold(query).trim());
 const ddIsRow = (it) => it && it !== '---' && !it.separator;
 
 let _ddSeq = 0;
@@ -100,8 +112,8 @@ function ddSearchContext(search, id) {
 }
 
 function ddRowExt(it, sx) {
-  if (!ddIsRow(it)) return { filtering: ddFiltering(sx.q) };
-  return { id: `${sx.base}-opt-${sx.n++}`, hidden: !ddMatch(it.label, sx.q) };
+  if (!ddIsRow(it)) return { filtering: dropdownFiltering(sx.q) };
+  return { id: `${sx.base}-opt-${sx.n++}`, hidden: !dropdownMatch(it.label, sx.q) };
 }
 
 // The no-match state. A function replacer, so a `$&` typed into the field is
@@ -118,7 +130,7 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
   const listId = `${sx.base}-list`;
   const rows = ddBody({ items, sections }, true, sx);
   const flat = (sections ? sections.flatMap((s) => s.items || []) : (items || [])).filter(ddIsRow);
-  const shown = flat.some((it) => ddMatch(it.label, sx.q));
+  const shown = flat.some((it) => dropdownMatch(it.label, sx.q));
   const cap = scroll && scroll !== true ? ` style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '';
   const input = [
     'class="ui-dropdown__search-input"', 'type="text"', 'role="combobox"',
@@ -131,7 +143,7 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
     + `<span class="ui-dropdown__search-ic" aria-hidden="true">${icon('search')}</span><input ${input}></div>`
     + `<div class="ui-dropdown__list" role="listbox" id="${esc(listId)}" aria-label="${esc(name)}"${cap}>${rows}</div>`
     + `<div class="ui-dropdown__none" role="status" data-dd-none data-dd-empty="${esc(sx.empty)}" data-dd-hint="${esc(sx.hint)}">`
-    + `${shown || !ddFiltering(sx.q) ? '' : ddNone(sx.empty, sx.hint, sx.q)}</div>`;
+    + `${shown || !dropdownFiltering(sx.q) ? '' : ddNone(sx.empty, sx.hint, sx.q)}</div>`;
 }
 
 /**
@@ -294,14 +306,14 @@ function ddFilter(dd) {
   const q = search.value;
   let shown = 0;
   panel.querySelectorAll('[data-dd-item]').forEach((row) => {
-    row.hidden = !ddMatch((row.querySelector('.ui-dropdown__label') || row).textContent, q);
+    row.hidden = !dropdownMatch((row.querySelector('.ui-dropdown__label') || row).textContent, q);
     if (!row.hidden) shown += 1;
   });
-  panel.querySelectorAll('.ui-dropdown__sep').forEach((el) => { el.hidden = ddFiltering(q); });
+  panel.querySelectorAll('.ui-dropdown__sep').forEach((el) => { el.hidden = dropdownFiltering(q); });
   panel.querySelectorAll('.ui-dropdown__section').forEach((el) => { el.hidden = !el.querySelector('[data-dd-item]:not([hidden])'); });
   const none = panel.querySelector('[data-dd-none]');
   if (none) {
-    none.innerHTML = shown || !ddFiltering(q) ? ''
+    none.innerHTML = shown || !dropdownFiltering(q) ? ''
       : ddNone(none.getAttribute('data-dd-empty') || '', none.getAttribute('data-dd-hint') || '', q);
   }
   ddSetActive(dd, ddItemsOf(dd)[0] || null);

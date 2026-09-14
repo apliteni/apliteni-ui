@@ -14,7 +14,7 @@ below names its issue. Read [README.md](README.md) for where to record decisions
 - **[Breakpoints](#breakpoints)** — six literals, on purpose
 - **[Spacing and rhythm](#spacing-and-rhythm)** — one scale, and how a tie breaks
 - **[Typefaces](#typefaces)** — two roles, and which one an element takes
-- **[Labels and titles](#labels-and-titles)** — sentence case, and five ranks in order
+- **[Labels and titles](#labels-and-titles)** — sentence case, and six ranks in order
 - **[Colour and contrast](#colour-and-contrast)** — what every accent clears
 - **[The focus ring](#the-focus-ring)** — one declaration, derived from the accent
 - **[Icons and glyphs](#icons-and-glyphs)** — size, stroke, and which bar a mark takes
@@ -244,8 +244,8 @@ Where the displayed text was a key, the kit now writes the word: `versionSwitche
 `Live` and `Archive` for `live` and `archive`. Text a caller hands a badge is shown as handed,
 so a status passed as `paid` reads `paid`.
 
-**Five ranks, each smaller than the one above it.** A screen stacks a page title, card titles,
-running text, labels and chips, and each takes one rank:
+**Six ranks, each under the one above it.** A screen stacks a page title, card titles,
+running text, labels, captions and chips, and each takes one rank:
 
 | rank         | size          | weight              | line-height        | what takes it |
 | ------------ | ------------- | ------------------- | ------------------ | ------------- |
@@ -253,11 +253,16 @@ running text, labels and chips, and each takes one rank:
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
 | `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label, a confirmation's eyebrow |
+| `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
-That is 30, 18, 14.5, 13 and 11px on the kit's own scale. A label sits one step under the body,
-and its `--muted` ink and medium weight now set it apart, which capitals used to do. A chip is the smallest
-because its fill already sets it apart.
+That is 30, 18, 14.5, 13, 13 and 11px on the kit's own scale. A rank is under the one above it by
+size, or — where two share a size — by weight: `label` and `caption` are both 13px, and the label's
+medium against the caption's normal is what separates them. A label sits one step under the body,
+and its `--muted` ink and medium weight now set it apart, which capitals used to do. A caption keeps
+the body's weight because it is a sentence and not a label: at medium it reads as the bolder line of
+the two, which runs the hierarchy backwards under a figure. A chip is the smallest because its fill
+already sets it apart.
 
 **A card title is a heading, one level under the page's.** `card()` and `<Card>` emit it as an
 `h2`, and `level` moves it to `h3`–`h6` for a card inside a section with an `h2` of its own. The
@@ -268,15 +273,18 @@ title is a label and not a heading: it names the kind of thing, and the title na
 Held by `stories/guidelines/letter-case.test.js`, which sweeps `src/`, `stories/`, `site/`,
 `react/src` and `.storybook` for a case change in a stylesheet, a `<style>` block, an inline style
 or a JSX style object; and by `src/styles/type-ranks.test.js`, which reads the table above at run
-time, finds every rule that claims a rank with a `/* rank: … */` note, and fails one that
-disagrees with its row, writes the `font` shorthand or spaces its letters out, or a table whose
-sizes stop descending.
+time, finds every rule that claims a rank with a `/* rank: … */` note — in the sheets the kit ships
+and in the stories and pages this repo draws — and fails one that disagrees with its row, writes the
+`font` shorthand or spaces its letters out, or a table whose ranks stop descending.
 
 Decided in [#268][i268] and [#269][i269]. The label and chip sizes were the owner's choice between
-three treatments rendered side by side, not a derivation.
+three treatments rendered side by side, not a derivation. The caption row is [#310][i310]: 13px at
+normal weight, the owner's call, so a caption under a figure stops outweighing the running text
+beside it.
 
 [i268]: https://github.com/apliteni/apliteni-ui/issues/268
 [i269]: https://github.com/apliteni/apliteni-ui/issues/269
+[i310]: https://github.com/apliteni/apliteni-ui/issues/310
 
 ## Motion
 
@@ -1125,6 +1133,11 @@ What the kit guarantees:
   still contains the visible text. Given no name, or the word Back, it shows "Back" and nothing
   more. A name that already begins "Back to" is read as the place after those words, so the link
   is never named "Back to Back to" anything.
+- **A long name clips rather than wrapping.** The destination is whatever the sidebar calls
+  the parent page, and the kit does not control its length. `.ui-back__label` takes the one
+  line and ends in an ellipsis when the column is narrower than the words, as `.ui-nav__label`
+  does in the rail: the link stands above the page title, and a second line would push the
+  page down.
 - **It takes the trail's place, above the title.** `appShell({ back })` draws the link where the
   breadcrumb trail would go and draws no trail: a page has one or the other. A `back` that
   `backLink()` refuses leaves the trail standing.
@@ -1145,9 +1158,12 @@ link: a chevron and the destination's name in dim ink, in the slot the trail wou
 the only one the kit builds; the other three stay on that page as the comparison it was chosen
 against.
 
-Held by `src/components/back.test.js` and `src/styles/back.test.js`.
+Held by `src/components/back.test.js` and `src/styles/back.test.js`. That every `__label`
+the kit emits has a rule at all — the omission [#303][i303] reported — is held kit-wide by
+`src/styles/label-coverage.test.js`.
 
 [i270]: https://github.com/apliteni/apliteni-ui/issues/270
+[i303]: https://github.com/apliteni/apliteni-ui/issues/303
 
 ## The dropdown panel
 
