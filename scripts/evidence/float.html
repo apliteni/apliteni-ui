@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>
+  /* The scene, and nothing else. No treatment is written here: both sides of a
+     pair are this page over a different checkout, so the only thing that can
+     differ between them is what the kit's own stylesheet paints. The layout is
+     the one docs/reviews/295-popover-variants.html drew its frames in, so the
+     after side is comparable with the review the decision was taken against. */
+  body { margin: 0; background: var(--bg); font-family: var(--font-sans); }
+  .fl-page { padding: var(--space-8) var(--space-6); }
+  .fl-cell { padding: var(--space-4); max-width: 420px; }
+  /* Deep enough that the open panel stays inside the card — a panel hanging past
+     its own card is read against the page, not against a card. */
+  .fl-cell .ui-card { min-height: 470px; }
+  .fl-card-body { display: grid; gap: var(--space-3); margin-top: var(--space-5); }
+  .fl-line { display: flex; justify-content: space-between; gap: var(--space-4);
+    font-size: var(--text-sm); color: var(--dim); }
+  .fl-line b { color: var(--text); font-weight: var(--weight-medium); }
+  .fl-trigger-row { display: flex; justify-content: flex-start; }
+
+  /* The toast frame: the three styles down one column, over the same card, so a
+     status tint and the neutral hairline are read against the same ground. */
+  .fl-toasts { display: grid; gap: var(--space-4); margin-top: var(--space-5); }
+
+  .fl-form { min-width: 264px; padding: var(--space-4); }
+  .fl-form__title { font-size: var(--text-sm); font-weight: var(--weight-semibold);
+    color: var(--strong); margin: 0 0 var(--space-3); }
+  .fl-form__fields { display: grid; gap: var(--space-3); }
+  .fl-form__foot { display: flex; gap: var(--space-2); justify-content: flex-end;
+    margin-top: var(--space-4); }
+
+  @media (max-width: 700px) {
+    .fl-page { padding: var(--space-5) var(--space-4); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+import { dropdown } from '/src/components/dropdown.js';
+import { drawer, drawerSection } from '/src/components/drawer.js';
+import { card, field, select, button, toast } from '/src/components/index.js';
+
+const q = new URLSearchParams(location.search);
+const FRAMES = ['list', 'form', 'drawer', 'toast'];
+const frame = FRAMES.includes(q.get('frame')) ? q.get('frame') : 'list';
+document.documentElement.dataset.theme = q.get('theme') === 'light' ? 'light' : 'dark';
+
+const ITEMS = [
+  { label: 'All campaigns', description: 'Every campaign in the workspace', selected: true, value: 'all' },
+  { label: 'Search partners', description: 'Paid search only', value: 'search' },
+  { label: 'Display network', description: 'Banner placements', value: 'display', badge: 'Live' },
+  '---',
+  { label: 'Archived', description: 'Hidden from reports', value: 'archived' },
+];
+
+// Frame one: the kit's dropdown, open over a card.
+const listPanel = () => dropdown({
+  label: 'Scope:', variant: 'select', items: ITEMS, open: true, ariaLabel: 'Scope',
+});
+
+// Frame two: a popover holding a small form — two selects and Save / Cancel.
+// This is the surface #295 was reported about, drawn with the kit's own panel
+// class, field, select and button.
+const formPanel = () => `
+  <div class="ui-dropdown open">
+    <button class="ui-dropdown__trigger" type="button" aria-haspopup="dialog" aria-expanded="true">
+      <span class="ui-dropdown__pre">Filter:</span><span class="ui-dropdown__value">2 active</span>
+      <span class="ui-dropdown__chevron" aria-hidden="true"></span>
+    </button>
+    <div class="ui-dropdown__panel fl-form" role="dialog" aria-label="Filter report">
+      <p class="fl-form__title">Filter report</p>
+      <div class="fl-form__fields">
+        ${field({ label: 'Period', control: select({ options: ['Last 7 days', 'Last 30 days', 'This quarter'], value: 'Last 30 days' }) })}
+        ${field({ label: 'Grouping', control: select({ options: ['Campaign', 'Partner', 'Country'], value: 'Partner' }) })}
+      </div>
+      <div class="fl-form__foot">
+        ${button({ label: 'Cancel', variant: 'ghost', size: 'sm' })}
+        ${button({ label: 'Save', variant: 'primary', size: 'sm' })}
+      </div>
+    </div>
+  </div>`;
+
+// Frame three: the drawer, open against the right edge. It is the one floating
+// surface flush to a screen edge, so it draws its inner line in one direction —
+// and this frame is shot over the viewport rather than over the cell, because
+// what it has to show is the top and bottom of a full-height panel, where there
+// is no edge and no line belongs.
+const drawerPanel = () => drawer({
+  side: 'right', size: 'md', open: true, title: 'Partner detail',
+  body: drawerSection({
+    title: 'Payout',
+    rows: [['Partner', 'Example Co.'], ['Period', 'Last 30 days'], ['Clicks', '1,240'], ['Status', 'Approved']],
+  }),
+  footer: `${button({ label: 'Close', variant: 'ghost', size: 'sm' })}${button({ label: 'Approve', variant: 'primary', size: 'sm' })}`,
+});
+
+// Frame four: the three toast styles. Each carries its own status colour, and
+// each re-points the inner line at it — the soft at 11%, the outline at 20%, the
+// solid to `transparent`, the status at full fill strength being its own edge.
+const toasts = () => `<div class="fl-toasts">
+  ${toast({ variant: 'success', style: 'soft', title: 'Payout approved', body: 'Example Co. will be paid on the 1st.', dismissible: false })}
+  ${toast({ variant: 'danger', style: 'solid', title: 'Payout failed', body: 'The partner has no payment method on file.', dismissible: false })}
+  ${toast({ variant: 'info', style: 'outline', title: 'Report queued', body: 'It will appear under Reports when it is ready.', dismissible: false })}
+</div>`;
+
+const PANEL = { list: listPanel, form: formPanel };
+
+document.getElementById('root').innerHTML = frame === 'drawer'
+  ? `<div class="fl-page"><div class="fl-cell">${card({
+    title: 'Partner payouts',
+    sub: 'A placeholder report, so the drawer has something to be over.',
+    body: '<div class="fl-card-body">'
+      + ['Example Co.', 'Placeholder Ltd.', 'Sample Partners', 'Demo Media', 'Placeholder Two', 'Example North']
+        .map((n, i) => `<div class="fl-line"><span>${n}</span><b>${[1240, 980, 615, 402, 388, 274][i]}</b></div>`).join('')
+      + '</div>',
+  })}</div></div>${drawerPanel()}`
+  : `<div class="fl-page"><div class="fl-cell">${card({
+  title: 'Partner payouts',
+  sub: 'A placeholder report, so the panel has something to be above.',
+  body: `${frame === 'toast' ? '' : `<div class="fl-trigger-row">${PANEL[frame]()}</div>`}
+    ${frame === 'toast' ? toasts() : ''}
+    <div class="fl-card-body">
+      <div class="fl-line"><span>Example Co.</span><b>1,240</b></div>
+      <div class="fl-line"><span>Placeholder Ltd.</span><b>980</b></div>
+      <div class="fl-line"><span>Sample Partners</span><b>615</b></div>
+      <div class="fl-line"><span>Demo Media</span><b>402</b></div>
+      <div class="fl-line"><span>Placeholder Two</span><b>388</b></div>
+      <div class="fl-line"><span>Example North</span><b>274</b></div>
+      <div class="fl-line"><span>Sample South</span><b>195</b></div>
+      <div class="fl-line"><span>Demo West</span><b>140</b></div>
+    </div>`,
+})}</div></div>`;
+
+/* The toast frame carries no open panel, so the card does not need the depth the
+   other two reserve for one. */
+if (frame === 'toast') document.querySelector('.fl-cell .ui-card').style.minHeight = 'auto';
+
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

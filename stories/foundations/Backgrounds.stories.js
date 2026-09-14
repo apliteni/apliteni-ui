@@ -50,7 +50,7 @@ export const Default = {
     <p style="color:var(--dim);max-width:60ch">Every backdrop in the kit — the surface ladder, the signature ambient glow, and drop-in backdrop treatments. All read the accent tokens, so they re-theme with the sub-theme and hold up in dark and light.</p>
 
     ${h3('The elevation ladder')}
-    <p style="color:var(--dim);max-width:60ch;margin-bottom:20px">Bottom to top. Nothing casts a shadow: a surface says how high it is with its step and with the hairline around it. See Foundations → Elevation.</p>
+    <p style="color:var(--dim);max-width:60ch;margin-bottom:20px">Bottom to top. A surface says how high it is with its step and with the hairline around it. Nothing casts a shadow because of its step; a surface that floats — one whose job is to be temporarily above something else — adds one soft drop, and the hover readout on the top step is one of them. See Foundations → Elevation.</p>
     ${g('180px', ...SURFACES.map(swatch))}
 
     ${h3('Ambient glow')}
