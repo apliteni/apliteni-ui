@@ -58,9 +58,19 @@
   display: flex;
   flex-direction: column;
   background: var(--drawer-surface);
+  /* A drawer is flush to a screen edge, so it has one edge rather than four and the
+     two-step edge runs along that one: --border-strong on the edge rule below, the
+     inner line one pixel inside it. This is the one floating surface that writes no
+     inset RING — a full ring would draw 1px lines across the top and bottom of a
+     full-height panel, where there is no edge — so it composes its own directional
+     line with the drops instead. The line is a variable so the focus rule can
+     compose all three layers without knowing which edge it is on; its default is a
+     no-op layer rather than `none`, which is valid only alone and would invalidate
+     the list. why: docs/specification.md#elevation */
+  --drawer-line: 0 0 0 0 transparent;
+  box-shadow: var(--drawer-line), var(--elev-drop);
   transition: transform var(--dur-med) var(--ease);
 }
-.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }
 
 /* -- Edge anchoring + slide-in direction ---------------------------------- */
@@ -72,12 +82,14 @@
 }
 .ui-drawer--right .ui-drawer__panel {
   right: 0;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--border-strong);
+  --drawer-line: inset 1px 0 0 var(--border);
   transform: translateX(100%);
 }
 .ui-drawer--left .ui-drawer__panel {
   left: 0;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-strong);
+  --drawer-line: inset -1px 0 0 var(--border);
   transform: translateX(-100%);
 }
 .ui-drawer--top .ui-drawer__panel,
@@ -88,14 +100,22 @@
 }
 .ui-drawer--top .ui-drawer__panel {
   top: 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-strong);
+  --drawer-line: inset 0 -1px 0 var(--border);
   transform: translateY(-100%);
 }
 .ui-drawer--bottom .ui-drawer__panel {
   bottom: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-strong);
+  --drawer-line: inset 0 1px 0 var(--border);
   transform: translateY(100%);
 }
+
+/* The ring is COMPOSED with the floating treatment rather than written over it — a
+   box-shadow list replaces the whole list, so a bare `box-shadow: var(--ring)` would
+   take the drawer's edge and its drop off for as long as it held focus.
+   why: docs/specification.md#elevation */
+.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--ring), var(--drawer-line), var(--elev-drop); }
 
 /* -- Sizes ----------------------------------------------------------------- */
 /* left|right → width; top|bottom → height. Same names, axis chosen by side. */

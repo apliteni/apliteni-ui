@@ -167,7 +167,7 @@ export const RULES = [
       + 'a different set of groups when it sees one.',
     kit: [
       { ref: 'src/components/command-palette.js:255', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:141', pattern: '.ui-cmdk__group-head' },
+      { ref: 'src/styles/command-palette.css:148', pattern: '.ui-cmdk__group-head' },
     ],
   },
   {
@@ -241,7 +241,7 @@ export const RULES = [
       + 'silent one.',
     kit: [
       { ref: 'src/components/command-palette.js:229', pattern: 'const isRefused = (it) =>' },
-      { ref: 'src/styles/command-palette.css:230', pattern: '.ui-cmdk__item.is-danger' },
+      { ref: 'src/styles/command-palette.css:236', pattern: '.ui-cmdk__item.is-danger' },
     ],
   },
 ];
