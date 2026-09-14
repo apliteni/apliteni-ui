@@ -35,27 +35,34 @@ export const STYLE_FILES = decomment(read('src/index.css'))
   .filter(Boolean)
   .map((m) => `src/${m[1]}`);
 
-const TOKEN_FILES = ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css'];
+export const TOKEN_FILES = ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css'];
 
 /**
- * Custom properties in effect for a theme + accent.
+ * Every declaration of every custom property, per theme + accent, in the order a
+ * browser applies them: `Map<name, {file, selector, value}[]>`, last declared
+ * last. Token files first and theme-selectively; then src/styles/, whose
+ * component-scoped properties have to be harvested or --ui-fb-pill-grad
+ * (src/styles/feedback.css) reports a fabricated 1.00:1.
  *
- * Token files first and theme-selectively, so the requested theme's value wins;
- * then every custom property declared anywhere under src/styles/, but only if
- * the token files did not already define it. Component-scoped properties have to
- * be harvested or --ui-fb-pill-grad (src/styles/feedback.css) resolves to
- * nothing and the pill reports a fabricated 1.00:1.
+ * ALL of a name's declarations, because one value is a guess about the cascade
+ * and a guess can be walked past: #314 planted a cast in a SECOND --drawer-line.
+ * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
  */
-const tokenCache = new Map();
-export function tokensFor(theme, accent = 'default') {
-  const cached = tokenCache.get(`${theme}|${accent}`);
+const declCache = new Map();
+export function declarationsFor(theme, accent = 'default') {
+  const key = `${theme}|${accent}`;
+  const cached = declCache.get(key);
   if (cached) return cached;
   const wanted = [
     ':root',
     `:root[data-theme="${theme}"]`,
     ...(accent === 'default' ? [] : [`:root[data-theme="${theme}"][data-accent="${accent}"]`]),
   ];
-  const vars = new Map();
+  const decls = new Map();
+  const push = (name, entry) => {
+    if (!decls.has(name)) decls.set(name, []);
+    decls.get(name).push(entry);
+  };
   for (const file of TOKEN_FILES) {
     for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
       if (!selector.split(',').map((s) => s.trim()).some((s) => wanted.includes(s))) continue;
@@ -63,7 +70,7 @@ export function tokensFor(theme, accent = 'default') {
         const i = decl.indexOf(':');
         if (i < 0) continue;
         const name = decl.slice(0, i).trim();
-        if (name.startsWith('--')) vars.set(name, decl.slice(i + 1).trim());
+        if (name.startsWith('--')) push(name, { file, selector: selector.trim(), root: true, value: decl.slice(i + 1).trim() });
       }
     }
   }
@@ -74,10 +81,45 @@ export function tokensFor(theme, accent = 'default') {
         const i = decl.indexOf(':');
         if (i < 0) continue;
         const name = decl.slice(0, i).trim();
-        if (name.startsWith('--') && !vars.has(name)) vars.set(name, decl.slice(i + 1).trim());
+        if (name.startsWith('--')) push(name, { file, selector: selector.trim().replace(/\s+/g, ' '), root: false, value: decl.slice(i + 1).trim() });
       }
     }
   }
+  declCache.set(key, decls);
+  return decls;
+}
+
+/**
+ * The winner of each name in a declaration map — the value a browser would use.
+ *
+ * A token file's value wins over a component sheet's, because :root is where the
+ * palette lives and a component property is a local hook. Among component sheets
+ * the LAST declaration wins, which is what the browser does at equal specificity
+ * and what the first-wins reader this replaced got backwards.
+ *
+ * Taken as an argument rather than read, so a gate that adds its own workspace's
+ * declarations to the map picks its winners by the same rule —
+ * react/src/elevation.test.ts does. why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ */
+export function winnersOf(decls) {
+  const vars = new Map();
+  for (const [name, entries] of decls) {
+    const rooted = entries.filter((e) => e.root);
+    const winner = (rooted.length ? rooted : entries).at(-1);
+    vars.set(name, winner.value);
+  }
+  return vars;
+}
+
+/**
+ * The value each custom property resolves to for a theme + accent — one map, the
+ * shape every caller here wants.
+ */
+const tokenCache = new Map();
+export function tokensFor(theme, accent = 'default') {
+  const cached = tokenCache.get(`${theme}|${accent}`);
+  if (cached) return cached;
+  const vars = winnersOf(declarationsFor(theme, accent));
   // Memoised: the gate resolves a token per finding per ledger entry, and
   // re-reading every stylesheet each time cost more than the walk itself.
   tokenCache.set(`${theme}|${accent}`, vars);
@@ -159,7 +201,7 @@ export function specialiseContextual(css) {
   // never appended to the end of the sheet. The copy gains a class of
   // specificity, so appending would let it out-rank a later, more specific
   // override written for the same element — `.ui-toast--solid .ui-toast__action`
-  // (src/styles/callout.css:140 `.ui-toast--solid .ui-toast__action`) is exactly
+  // (src/styles/callout.css:147 `.ui-toast--solid .ui-toast__action`) is exactly
   // that, and an appended
   // `.ui-toast--danger .ui-toast__action` beat it at equal weight and reported
   // the solid danger toast's action as pink on pink, a fabricated 1.00:1.
