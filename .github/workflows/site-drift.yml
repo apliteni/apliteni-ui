@@ -25,21 +25,64 @@ jobs:
         with:
           node-version: 24
       - name: Assess deployed site
-        id: assess
         run: node scripts/site-drift.mjs > site-drift.json
       - name: Open an issue when the site drifts
-        if: steps.assess.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          verdict=$(cat site-drift.json)
-          gh label create site-drift --color d93f0b --description 'Deployed ui.apli.tech is behind main' 2>/dev/null || true
-          existing=$(gh issue list --state open --label site-drift --json number --jq 'length')
-          if [ "$existing" -gt 0 ]; then
-            echo "An open site-drift issue already exists."
-            exit 0
-          fi
-          gh issue create \
-            --title "ui.apli.tech has drifted from main" \
-            --label site-drift \
-            --body "The deployed site does not match the repository.\n\n\`$verdict\`\n\nFiled by .github/workflows/site-drift.yml."
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('node:fs');
+            const verdict = JSON.parse(fs.readFileSync('site-drift.json', 'utf8'));
+            core.info(verdict.summary);
+            if (!verdict.drift) {
+              const cannotTell = ['site-unreadable', 'site-unreachable'];
+              if (cannotTell.includes(verdict.reason)) {
+                core.warning(
+                  `Drift could not be assessed (${verdict.reason}): ${verdict.summary} `
+                    + 'This run checked nothing — it is not a clean bill of health.',
+                );
+              } else {
+                core.info(`No issue to file (${verdict.reason}).`);
+              }
+              return;
+            }
+
+            const MARKER = 'site-drift';
+            try {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: MARKER,
+                color: 'd93f0b',
+                description: 'Deployed ui.apli.tech is behind main',
+              });
+            } catch (error) {
+              if (error.status !== 422) throw error;
+            }
+
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: MARKER,
+              per_page: 1,
+            });
+            if (open.data.length > 0) {
+              core.info(`#${open.data[0].number} is already open — nothing to do.`);
+              return;
+            }
+
+            const body = [
+              'The deployed site does not match the repository.',
+              '',
+              `\`${JSON.stringify(verdict)}\``,
+              '',
+              'Filed by `.github/workflows/site-drift.yml`.',
+            ].join('\n');
+            const created = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'ui.apli.tech has drifted from main',
+              body,
+              labels: [MARKER],
+            });
+            core.notice(`Filed #${created.data.number}: ${verdict.summary}`);
