@@ -1,0 +1,45 @@
+name: Site drift (deployed site vs main)
+
+on:
+  schedule:
+    - cron: '47 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: site-drift
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe502c # v7.0.0
+        with:
+          node-version: 24
+      - name: Assess deployed site
+        id: assess
+        run: node scripts/site-drift.mjs > site-drift.json
+      - name: Open an issue when the site drifts
+        if: steps.assess.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          verdict=$(cat site-drift.json)
+          gh label create site-drift --color d93f0b --description 'Deployed ui.apli.tech is behind main' 2>/dev/null || true
+          existing=$(gh issue list --state open --label site-drift --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "An open site-drift issue already exists."
+            exit 0
+          fi
+          gh issue create \
+            --title "ui.apli.tech has drifted from main" \
+            --label site-drift \
+            --body "The deployed site does not match the repository.\n\n\`$verdict\`\n\nFiled by .github/workflows/site-drift.yml."
