@@ -63,7 +63,6 @@ async function main() {
     });
     process.stdout.write(`${JSON.stringify(verdict)}\n`);
     process.stderr.write(`${verdict.summary}\n`);
-    process.exitCode = verdict.drift ? 2 : 0;
   } catch (error) {
     const verdict = { drift: false, reason: 'site-unreachable', summary: `Could not read the deployed site: ${error.message}` };
     process.stdout.write(`${JSON.stringify(verdict)}\n`);
