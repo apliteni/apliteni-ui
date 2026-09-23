@@ -13,7 +13,7 @@
 
 export const RELEASES = [
   {
-    v: '0.35.0', date: '2026-09-23',
+    v: '0.36.0', date: '2026-09-23',
     changes: [
       ['changed', 'Words use body ink at every size instead of muted or dim ink for hierarchy. Descriptions, labels, captions, table cells and enabled actions keep their sizes and spacing; glyphs, state colours and empty-slot placeholders retain their exception ink. Generic badges use body ink, while archived and disabled states remain distinct. Decided in #340 and #341.', ['Typography']],
       ['changed', 'Guidelines explain why contrast alone does not justify fading words. Labels and titles shows body and muted ink at three sizes, states the closed exception list, and directs extensions through an issue; Accessibility Floor and Back link agree with the rule.', ['Typography']],
