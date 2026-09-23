@@ -49,7 +49,8 @@ const src = path.resolve(here, '..');
 // `.ui-app__search-ic svg` sizes the magnifier on the topbar layout's search
 // field, a width and a height — the palette's own box and stroke, so the trigger
 // and the thing it opens are not two search marks).
-const EXPECTED_SUBJECTS = 70;
+// #339 adds xs Button glyph width and height.
+const EXPECTED_SUBJECTS = 72;
 
 const SHEETS = kitSheetNames(src);
 

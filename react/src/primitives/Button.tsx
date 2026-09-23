@@ -3,7 +3,7 @@ import { Icon } from './Icon';
 
 export type ButtonProps = {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   icon?: string;
   iconRight?: string;
   iconOnly?: boolean;

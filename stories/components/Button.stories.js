@@ -8,7 +8,7 @@ export default {
   argTypes: {
     label: { control: 'text' },
     variant: { control: 'select', options: ['primary', 'secondary', 'ghost', 'danger'] },
-    size: { control: 'inline-radio', options: ['sm', 'md', 'lg'] },
+    size: { control: 'inline-radio', options: ['xs', 'sm', 'md', 'lg'] },
     icon: { control: 'select', options: [undefined, 'bolt', 'plug', 'key', 'arrowRight', 'check'] },
     iconRight: { control: 'select', options: [undefined, 'arrowRight'] },
     block: { control: 'boolean' },
@@ -46,17 +46,18 @@ export const Variants = {
 export const Sizes = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(stack(
-    specimen('Small', row(
-      button({ label: 'Small', variant: 'primary', size: 'sm' }),
-      button({ label: 'Small', variant: 'secondary', size: 'sm' }),
+    ...['xs', 'sm', 'md', 'lg'].map(size => specimen(size === 'md' ? 'md (default)' : size, row(
+      button({ label: 'Copy', variant: 'primary', size, icon: 'copy' }),
+      button({ label: 'Continue', variant: 'secondary', size, iconRight: 'arrowRight' }),
+      button({ label: 'Copy', variant: 'ghost', size, icon: 'copy', iconOnly: true }),
+    ))),
+    specimen('Inline beside body text', row(
+      ...['xs', 'sm'].map(size => `<span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-sm)">Project ID${button({ label: 'Copy project ID', variant: 'ghost', size, icon: 'copy', iconOnly: true })}</span>`),
     )),
-    specimen('Medium (default)', row(
-      button({ label: 'Medium', variant: 'primary' }),
-      button({ label: 'Medium', variant: 'secondary' }),
-    )),
-    specimen('Large', row(
-      button({ label: 'Large', variant: 'primary', size: 'lg' }),
-      button({ label: 'Large', variant: 'secondary', size: 'lg' }),
+    specimen('xs states', row(
+      button({ label: 'Copy', size: 'xs', icon: 'copy', disabled: true }),
+      button({ label: 'Saving…', size: 'xs', busy: true }),
+      button({ label: 'Copying…', size: 'xs', icon: 'copy', iconOnly: true, busy: true }),
     )),
   )),
 };
