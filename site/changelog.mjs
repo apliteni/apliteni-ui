@@ -13,7 +13,7 @@
 
 export const RELEASES = [
   {
-    v: '0.35.0', date: '2026-09-23',
+    v: '0.37.0', date: '2026-09-23',
     changes: [
       ['changed', 'Focus uses a separated solid band with a soft glow. The 1px surface-coloured gap keeps the 2px accent band distinct from filled controls; the glow is decorative, as chosen in #343.'],
       ['added', 'Focus-ring width, colour and gap can be tuned independently. The composed --ring remains available; kit surfaces recompose it for their background, so an ancestor custom --ring override must also be applied on those surfaces.'],
