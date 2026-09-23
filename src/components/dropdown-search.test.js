@@ -8,6 +8,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { sizingRules } from '../../stories/lib/field-zoom.js';
 import { dropdown, wireDropdown, dropdownMatch, dropdownFiltering } from './dropdown.js';
 
 const quiet = new VirtualConsole();
@@ -329,7 +331,8 @@ test('the divider goes between the groups still showing, never above the first o
 test('the field is 12.5px with a mouse, and this sheet does not size it on touch', () => {
   const rules = sheet();
   const base = rules.find((r) => r.selectorText === '.ui-dropdown__search-input');
-  assert.equal(base?.style.fontSize, '12.5px', 'a mouse keeps the size the rows use');
+  const resolved = sizingRules(substitute(base.cssText, tokensFor('light')), 'dropdown.css');
+  assert.equal(resolved[0].px, 12.5, 'a mouse keeps the size the rows use');
   const coarse = rules
     .filter((r) => r.media && /\(\s*pointer\s*:\s*coarse\s*\)/.test(r.media.mediaText))
     .flatMap((r) => [...r.cssRules].map((inner) => inner.cssText));

@@ -51,7 +51,10 @@ export function sizingRules(css, where) {
       const prop = decl.slice(0, at).trim().toLowerCase();
       if (prop !== 'font-size' && prop !== 'font') continue;
       const raw = decl.slice(at + 1).trim();
-      const size = /(^|\s)(-?[\d.]+)px(\s|\/|$)/.exec(raw);
+      // Tokens have already been substituted by the caller; accept only px arithmetic.
+      const resolved = raw.replace(/calc\(\s*(-?[\d.]+)px\s*([+-])\s*([\d.]+)px\s*\)/g,
+        (_, left, op, right) => `${Number(left) + (op === '+' ? 1 : -1) * Number(right)}px`);
+      const size = /(^|\s)(-?[\d.]+)px(\s|\/|$)/.exec(resolved);
       out.push({
         selector: selector.trim().replace(/\s+/g, ' '),
         px: size ? Number(size[2]) : null,
