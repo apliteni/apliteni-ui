@@ -177,7 +177,9 @@ Held by `stories/table-rhythm.test.js`. Decided in
 Component font sizes follow the `--text-*` scale. Sizes between tokens use the nearest
 step plus a fixed pixel offset, preserving the default size while following a host
 override. Equidistant sizes use the smaller step. The flat touch-field size remains
-the safety exception described under [A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen).
+a safety exception described under [A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen).
+The landing hero and section display text in `layout.css` deliberately retain their
+viewport-driven `clamp()` sizes.
 
 The kit names **two** families, and the split is a role split rather than a preference:
 

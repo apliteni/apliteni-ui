@@ -194,8 +194,9 @@ else.
 
 ## Component type scale
 
-`font-scale.mjs` discovers the baseline's literal component font sizes and checks
-all 63 replacements in Chromium: exact default parity and a 1px increase when
+`font-scale.mjs` is a one-off evidence script for #322, not a permanent gate.
+It discovers changed pixel sizes in `font-size`, `font` and `--*-font` against
+the supplied pre-change revision and checks their replacements in Chromium: exact default parity and a 1px increase when
 all text tokens grow by 1px (`--text-sm: 14px`, for example). It also renders the
 source stories at 1280px and 390px, compares every element's computed font size,
 and requires each changed selector to grow in at least one real story.
