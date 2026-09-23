@@ -31,7 +31,7 @@
      either way and is declared because leaving it to the element is the dependency
      this refuses. why: #251 */
   border: 0; text-align: center; font: inherit;
-  font-family: var(--font-sans); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: .01em;
+  font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: .01em;
   padding: 9px 17px 9px 15px; border-radius: 999px; cursor: pointer; white-space: nowrap; overflow: hidden;
   /* The pill cast two layers of ink and an accent glow until #295, and grew both on
      hover. Nothing casts now, and it takes no hairline either: it is the accent at full
@@ -74,24 +74,24 @@
 .ui-fbcomposer.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
 
 .ui-fbc__head { display: flex; align-items: center; gap: 12px; padding: 17px 20px 0; }
-.ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ui-fbc__chip svg { width: 14px; height: 14px; flex: none; opacity: .85; stroke-width: 2.7; }
 .ui-fbc__x { margin-left: auto; background: var(--surface-2); color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; font: inherit; }
 .ui-fbc__x:hover { color: var(--strong); }
 .ui-fbc__x svg { width: 14px; height: 14px; stroke-width: 2.7; }
 .ui-fbc__quote { margin: 14px 20px 0; background: var(--surface-2); border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }
-.ui-fbc__qm { color: var(--accent); font-size: 22px; font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
-.ui-fbc__quote q { quotes: none; color: var(--dim); font-style: italic; font-size: 13.5px; line-height: 1.55; }
+.ui-fbc__qm { color: var(--accent); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
+.ui-fbc__quote q { quotes: none; color: var(--dim); font-style: italic; font-size: calc(var(--text-sm) + 0.5px); line-height: 1.55; }
 .ui-fbc__body { padding: 14px 20px 0; }
 .ui-fbcomposer textarea {
-  width: 100%; min-height: 96px; resize: vertical; font-family: var(--font-sans); font-size: 14.5px; line-height: 1.55;
+  width: 100%; min-height: 96px; resize: vertical; font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.55;
   color: var(--strong); background: var(--surface-2); border: 0; border-radius: 12px; padding: 13px 15px; transition: box-shadow var(--dur-fast) var(--ease);
 }
 .ui-fbcomposer textarea::placeholder { color: var(--muted); }
 .ui-fbcomposer textarea:focus { outline: none; box-shadow: 0 0 0 2px var(--accent); }
 .ui-fbc__foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 20px 18px; }
 
-.ui-fbbtn { font-family: var(--font-sans); font-size: 13.5px; font-weight: var(--weight-semibold); border-radius: 10px; padding: 9px 17px; cursor: pointer; border: 0; transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+.ui-fbbtn { font-family: var(--font-sans); font-size: calc(var(--text-sm) + 0.5px); font-weight: var(--weight-semibold); border-radius: 10px; padding: 9px 17px; cursor: pointer; border: 0; transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
 .ui-fbbtn.ghost { background: transparent; color: var(--dim); }
 .ui-fbbtn.ghost:hover { color: var(--strong); background: var(--surface-2); }
 .ui-fbbtn.primary { background: var(--accent-strong); color: var(--accent-contrast); display: inline-flex; align-items: center; gap: 9px; }
@@ -114,8 +114,8 @@
 .ui-fbck-t { fill: none; stroke: var(--surface-2); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
 .ui-fbck-m { fill: none; stroke: var(--green); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 118; stroke-dashoffset: 118; animation: uiFbCkDraw .6s cubic-bezier(.5,0,.3,1) .1s forwards; /* motion: choreographed — the mark draws while the spring is still settling */ }
 .ui-fbck-s { fill: none; stroke: var(--sheen); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 15 400; stroke-dashoffset: 133; filter: drop-shadow(0 0 8px var(--green)) drop-shadow(0 0 15px var(--green)); opacity: 0; animation: uiFbCkComet .6s cubic-bezier(.5,0,.3,1) .1s forwards; /* motion: choreographed — the comet rides the mark, so it shares its duration and delay exactly */ }
-.ui-fbc__done h4 { color: var(--strong); font-size: 19px; font-weight: var(--weight-semibold); letter-spacing: -.01em; margin-bottom: 7px; }
-.ui-fbc__done p { color: var(--dim); font-size: 13.5px; line-height: 1.55; max-width: var(--prose-caption); margin: 0 auto; }
+.ui-fbc__done h4 { color: var(--strong); font-size: calc(var(--text-lg) + 1px); font-weight: var(--weight-semibold); letter-spacing: -.01em; margin-bottom: 7px; }
+.ui-fbc__done p { color: var(--dim); font-size: calc(var(--text-sm) + 0.5px); line-height: 1.55; max-width: var(--prose-caption); margin: 0 auto; }
 .ui-fbc__done p b { color: var(--text); font-weight: var(--weight-semibold); }
 .ui-fbc__done .row { margin-top: 18px; display: flex; gap: 10px; justify-content: center; }
 @keyframes uiFbCkDraw { to { stroke-dashoffset: 0; } }
@@ -123,7 +123,7 @@
 @keyframes uiFbCkSpring { 0% { transform: scale(1.32); } 62% { transform: scale(.965); } 82% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
 /* Error banner */
-.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); color: var(--pink); font-size: 13px; padding: 11px 15px; border-radius: 11px; display: none; }
+.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); color: var(--pink); font-size: var(--text-sm); padding: 11px 15px; border-radius: 11px; display: none; }
 .ui-fbc__err.show { display: block; }
 /* A failed send's line fades in; wireFeedback() adds the class as it shows it. */
 .ui-fbc__err.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }

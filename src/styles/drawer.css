@@ -147,7 +147,7 @@
 .ui-drawer__title {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: calc(var(--text-base) + 0.5px);
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--strong);
@@ -180,7 +180,7 @@
   padding: 20px;
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 

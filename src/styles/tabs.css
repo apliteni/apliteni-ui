@@ -13,7 +13,7 @@
   background: none;
   border: 0;
   cursor: pointer;
-  font: 600 14px/1 var(--font-sans);
+  font: 600 calc(var(--text-base) - 0.5px)/1 var(--font-sans);
   color: var(--dim);
   padding: 11px 14px;
   border-bottom: 2px solid transparent;

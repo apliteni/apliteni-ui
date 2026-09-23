@@ -58,7 +58,7 @@
   padding: 9px 12px;
   border-radius: 10px;
   text-decoration: none;
-  font-size: 14.5px;
+  font-size: var(--text-base);
   font-weight: 400;
   line-height: 1.2;
   background: none;
@@ -137,7 +137,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1;
   background: var(--surface-3);
@@ -188,7 +188,7 @@
   --m-dist: var(--space-1);
   animation: m-slide-down var(--dur-fast) var(--ease-out) both;
 }
-.ui-nav__item--sub { font-size: 14px; padding: 7px 12px; }
+.ui-nav__item--sub { font-size: calc(var(--text-base) - 0.5px); padding: 7px 12px; }
 /* No hairline on a nested current row — but only at rest. box-shadow carries
    both the hairline and the focus ring, so a rule about the resting look must
    say so, or it silently cancels the ring (WCAG 2.4.7). */
@@ -269,7 +269,7 @@
   padding: 11px 14px;
   color: var(--dim);
   text-decoration: none;
-  font-size: 14px;
+  font-size: calc(var(--text-base) - 0.5px);
   font-weight: 500;
   border-radius: 10px 10px 0 0;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
@@ -322,7 +322,7 @@
   padding: 3px 6px;
   border-radius: 7px;
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--text-sm);
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 /* Carries the block's class as well as its own, for the reason .ui-nav__item

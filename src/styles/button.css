@@ -72,7 +72,7 @@
 }
 
 /* -- Sizes -------------------------------------------------------------- */
-.ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: 12.5px; }
+.ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: calc(var(--text-sm) - 0.5px); }
 .ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); border-radius: var(--radius-md); }
 
 /* Icon-only */

@@ -183,7 +183,7 @@ So write the line, then write what is **on** it:
 
 ```
 src/styles/callout.css:147 `.ui-toast--solid .ui-toast__action`
-src/styles/nav.css:61-63 `font-size: 14.5px;`
+src/styles/nav.css:61-63 `font-size: var(--text-base);`
 ```
 
 `scripts/code-refs.test.js` resolves every one of them — the file exists, the line exists,

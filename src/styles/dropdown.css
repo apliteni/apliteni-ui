@@ -14,7 +14,7 @@
   gap: 8px;
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 12.5px;
+  font-size: calc(var(--text-sm) - 0.5px);
   font-weight: 500;
   color: var(--text);
   background: var(--surface);
@@ -155,8 +155,8 @@
 .ui-dropdown__item:hover { background: var(--surface-3); }
 .ui-dropdown__item:focus-visible { outline: none; background: var(--surface-3); box-shadow: var(--ring); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ui-dropdown__label { font-family: var(--font-sans); font-size: 12.5px; color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
-.ui-dropdown__desc { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.ui-dropdown__label { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+.ui-dropdown__desc { font-size: var(--text-xs); color: var(--muted); line-height: 1.35; }
 .ui-dropdown__ic { display: inline-flex; flex: none; color: var(--muted); }
 .ui-dropdown__ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
 
@@ -255,7 +255,7 @@
 .ui-dropdown__search-input {
   width: 100%;
   font: inherit;
-  font-size: 12.5px;
+  font-size: calc(var(--text-sm) - 0.5px);
   color: var(--strong);
   /* A field is the sunken step, the same one .ui-input takes. why: docs/specification.md#elevation */
   background: var(--surface-2);
@@ -290,5 +290,5 @@
    anything matches, so it takes no room. */
 .ui-dropdown__none { display: flex; flex-direction: column; gap: 3px; padding: 14px 12px 10px; text-align: center; }
 .ui-dropdown__none:empty { display: none; }
-.ui-dropdown__none-title { font-size: 12.5px; font-weight: 600; color: var(--strong); }
-.ui-dropdown__none-hint { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.ui-dropdown__none-title { font-size: calc(var(--text-sm) - 0.5px); font-weight: 600; color: var(--strong); }
+.ui-dropdown__none-hint { font-size: var(--text-xs); color: var(--muted); line-height: 1.35; }

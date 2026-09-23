@@ -191,3 +191,22 @@ The page loads Poppins and IBM Plex Sans from Google Fonts and waits on
 bytes will not match — `scripts/font-loading.test.js` is the gate that says why
 a token whose family never loads is a token that silently resolves to something
 else.
+
+## Component type scale
+
+`font-scale.mjs` is a one-off evidence script for #322, not a permanent gate.
+It discovers changed pixel sizes in `font-size`, `font` and `--*-font` against
+the supplied pre-change revision and checks their replacements in Chromium: exact default parity and a 1px increase when
+all text tokens grow by 1px (`--text-sm: 14px`, for example). It also renders the
+source stories at 1280px and 390px, compares every element's computed font size,
+and requires each changed selector to grow in at least one real story.
+
+```sh
+UI_PLAYWRIGHT=/path/to/playwright/index.mjs UI_CHROME=/path/to/chrome \
+  node scripts/evidence/font-scale.mjs <revision-before-322> /tmp/font-scale
+```
+
+The output includes a JSON measurement ledger and 1x before/default/larger
+screenshots of the first matching story in each component file. The run uses
+light theme and available system fonts; it does not certify other host CSS or
+font metrics. The deliberate flat 16px touch-field protection is excluded.
