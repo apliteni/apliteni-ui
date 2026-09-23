@@ -13,7 +13,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boxShadowsIn, customPropertiesIn, geometryOf, inkOf, isCast, layersOf } from './box-shadow.js';
+import { boxShadowsIn, customPropertiesIn, geometryOf, inkOf, isCast, isFocusRing, layersOf } from './box-shadow.js';
 
 test('a layer reads its four lengths in order, and a missing one is zero', () => {
   assert.deepEqual(geometryOf('0 14px 30px -12px black'), { x: 0, y: 14, blur: 30, spread: -12 });
@@ -83,4 +83,14 @@ test('the line named is the line the declaration is written on', () => {
 test('a declaration split across lines is named at its property', () => {
   const css = '.a {\n  border: 0;\n  box-shadow:\n    0 1px 2px black,\n    0 2px 4px black;\n}';
   assert.deepEqual(boxShadowsIn(css).map((d) => d.line), [3]);
+});
+
+// A glow is allowed only as the approved ring, never as a disguised cast shadow.
+test('G2 admits its halo and rejects a shifted, widened or recoloured drop', () => {
+  const ring = '0 0 0 1px #fff, 0 0 0 calc(1px + 2px) #005ab4, 0 0 12px 2px color-mix(in srgb, #005ab4 45%, transparent)';
+  assert.equal(isFocusRing(ring), true);
+  for (const changed of [ring.replace('0 0 12px', '0 1px 12px'), ring.replace('12px', '16px'), ring.replace('45%', '90%'), ring.replace('1px + 2px', '1px + 0px')]) {
+    assert.equal(isFocusRing(changed), false, changed);
+  }
+  assert.deepEqual(geometryOf('0 0 0 calc(1px + 2px) #005ab4'), { x: 0, y: 0, blur: 0, spread: 3 });
 });

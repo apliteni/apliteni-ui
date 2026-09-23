@@ -99,7 +99,7 @@
   display: grid;
   place-items: center;
   /* muted-ink: glyph — permission seal */ color: var(--dim);
-  background: color-mix(in srgb, var(--text) 7%, transparent);
+  background: color-mix(in srgb, var(--text) 7%, transparent); /* ring-gap: inherit — decorative paint has no nested focus target. */
 }
 .ui-denied__seal svg {
   width: 20px;

@@ -9,7 +9,7 @@
   height: 52px;
   display: flex;
   align-items: center;
-  background: var(--bg);
+  background: var(--bg); /* ring-gap: inherit — page background inherits root overrides. */
   border-bottom: 1px solid var(--border);
 }
 .topbar__in {
@@ -48,7 +48,7 @@
   display: none;
   align-items: center;
   gap: 2px;
-  background: var(--surface-2);
+  background: var(--surface-2); --ring-gap: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 3px;
@@ -66,7 +66,7 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .dtsw a:hover { color: var(--strong); }
-.dtsw a.cur { color: var(--strong); background: var(--surface); }
+.dtsw a.cur { color: var(--strong); background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 
 /* Theme toggle — a single icon-only switch (no label). */
 .toggle {
@@ -75,7 +75,7 @@
   width: 34px;
   height: 34px;
   cursor: pointer;
-  background: var(--surface);
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -100,7 +100,7 @@
   font-size: calc(var(--text-sm) - 0.5px);
   font-weight: 500;
   color: var(--text);
-  background: var(--surface);
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 7px 11px 7px 13px;
@@ -122,7 +122,7 @@
   top: calc(100% + 9px);
   left: 0;
   min-width: 266px;
-  background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
+  background: var(--bg-elevated); --ring-gap: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
   /* The two-step edge and the drop: --border-strong outside, --border one pixel
      inside it, then the broad faint drop. why: docs/specification.md#elevation */
   border: 1px solid var(--border-strong);
@@ -182,7 +182,7 @@
 /* The menu is raised, so a hovered row takes the step ABOVE it — see
    src/styles/dropdown.css:155 `.ui-dropdown__item:hover`.
    why: docs/specification.md#elevation */
-.vopt:hover { background: var(--surface-3); }
+.vopt:hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vopt .vmeta { font-size: var(--text-xs); color: var(--text); margin-top: 2px; }
 .vopt .vbadge {
@@ -195,8 +195,8 @@
   flex: none;
   margin-top: 1px;
 }
-.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface-3); }
+.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 /* The switcher keeps its glyph and drops its label where the shell folds — the
    same step the rail folds at: docs/specification.md#breakpoints. */
 @media (max-width: 720px) { .vsw__btn .lbl { display: none; } }
@@ -225,7 +225,7 @@
   position: absolute;
   right: 0; top: 44px;
   width: 252px;
-  background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
+  background: var(--bg-elevated); --ring-gap: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
   /* The two-step edge and the drop: --border-strong outside, --border one pixel
      inside it, then the broad faint drop. why: docs/specification.md#elevation */
   border: 1px solid var(--border-strong);
@@ -258,7 +258,7 @@
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; }
-.amenu a:hover { background: var(--surface-3); }
+.amenu a:hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .amenu a.cur { color: var(--accent); }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }

@@ -16,7 +16,7 @@
    two-step edge — --border-strong outside, --border one pixel inside it — and then the
    broad faint drop: the line is written here so --elev-edge stays re-pointable,
    the drops come from --elev-drop. why: docs/specification.md#elevation */
-.rx-modal { width: min(480px, 92vw); background: var(--bg-elevated); border: 1px solid var(--border-strong);
+.rx-modal { width: min(480px, 92vw); background: var(--bg-elevated); --ring-gap: var(--bg-elevated); border: 1px solid var(--border-strong);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   border-radius: var(--radius-xl); overflow: hidden;
   transform: translateY(8px); transition: transform var(--dur-med) var(--ease); }

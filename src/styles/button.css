@@ -20,7 +20,7 @@
   padding: var(--btn-pad-y) var(--btn-pad-x);
   cursor: pointer;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--text);
   white-space: nowrap;
   transition: background var(--dur-fast) var(--ease),
@@ -32,7 +32,7 @@
 
 .ui-btn:hover {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--strong);
 }
 .ui-btn:active { transform: translateY(1px); }
@@ -59,7 +59,7 @@
   color: var(--text);
 }
 .ui-btn--ghost:hover {
-  background: var(--surface-2);
+  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-color: transparent;
   color: var(--strong);
 }
@@ -68,7 +68,7 @@
 .ui-btn--danger:hover {
   color: var(--pink);
   border-color: var(--pink);
-  background: color-mix(in srgb, var(--pink) 10%, transparent);
+  background: color-mix(in srgb, var(--pink) 10%, transparent); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
 }
 
 /* -- Sizes -------------------------------------------------------------- */
@@ -93,7 +93,7 @@
    makes this read as inert; the quiet ink is the rest. #220 */
 .ui-btn:disabled,
 .ui-btn[aria-disabled="true"] {
-  background: var(--disabled-surface);
+  background: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-color: var(--disabled-border);
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: not-allowed;
@@ -137,7 +137,7 @@
   left: 10px; right: 10px; bottom: 5px;
   height: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent); /* ring-gap: inherit — decorative paint has no nested focus target. */
   overflow: hidden;
   /* Clean entrance: grow + fade in on state change, once. */
   transform-origin: center;
@@ -156,7 +156,7 @@
 /* On the filled primary the surface IS the accent, so shimmer in the contrast
    colour instead — otherwise the bars vanish into the button. */
 .ui-btn--primary .ui-btn__bars {
-  background: color-mix(in srgb, var(--accent-contrast) 26%, transparent);
+  background: color-mix(in srgb, var(--accent-contrast) 26%, transparent); /* ring-gap: inherit — decorative paint has no nested focus target. */
 }
 .ui-btn--primary .ui-btn__bars i {
   background: linear-gradient(90deg,

@@ -68,7 +68,7 @@
   display: flex;
   flex-direction: column;
   font-family: var(--font-sans);
-  background: var(--cmdk-surface);
+  background: var(--cmdk-surface); --ring-gap: var(--cmdk-surface);
   /* The two-step edge and the drop: --border-strong outside, --border one pixel
      inside it, then the broad faint drop. why: docs/specification.md#elevation */
   border: 1px solid var(--border-strong);
@@ -86,7 +86,7 @@
    box-shadow list replaces the whole list, so `box-shadow: var(--ring)` alone
    took the panel's edge and its drop off for as long as it held focus.
    why: docs/specification.md#elevation */
-.ui-cmdk__panel:focus-visible { outline: none; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); }
+.ui-cmdk__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); }
 
 /* -- The text box --------------------------------------------------------- */
 
@@ -178,7 +178,7 @@
   background: none;
 }
 .ui-cmdk__item[hidden] { display: none; } /* motion: still — a row the query no longer answers is gone on the next keystroke */
-.ui-cmdk__item.is-active { background: var(--surface-3); }
+.ui-cmdk__item.is-active { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-cmdk__item.is-active .ui-cmdk__label { color: var(--strong); }
 
 .ui-cmdk__ic {
@@ -258,7 +258,7 @@
   border-radius: var(--radius-xs);
   /* A key cap reads as raised, so it takes the step above the panel rather than
      the card step below it. why: docs/specification.md#elevation */
-  background: var(--surface-3);
+  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.5;
@@ -301,10 +301,10 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   border: 1px solid var(--border);
 }
-.ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface-2); }
+.ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface-2); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* -- Narrow --------------------------------------------------------------- */
 /* At the kit's narrowest step the palette is the page: full width, off the top

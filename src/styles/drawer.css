@@ -57,7 +57,7 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  background: var(--drawer-surface);
+  background: var(--drawer-surface); --ring-gap: var(--drawer-surface);
   /* A drawer is flush to a screen edge, so it has one edge rather than four and the
      two-step edge runs along that one: --border-strong on the edge rule below, the
      inner line one pixel inside it. This is the one floating surface that writes no
@@ -115,7 +115,7 @@
    box-shadow list replaces the whole list, so a bare `box-shadow: var(--ring)` would
    take the drawer's edge and its drop off for as long as it held focus.
    why: docs/specification.md#elevation */
-.ui-drawer__panel:focus-visible { outline: none; box-shadow: var(--ring), var(--drawer-line), var(--elev-drop); }
+.ui-drawer__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), var(--drawer-line), var(--elev-drop); }
 
 /* -- Sizes ----------------------------------------------------------------- */
 /* left|right → width; top|bottom → height. Same names, axis chosen by side. */
@@ -169,8 +169,8 @@
     background var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease);
 }
-.ui-drawer__close:hover { color: var(--strong); background: var(--surface-3); }
-.ui-drawer__close:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+.ui-drawer__close:hover { color: var(--strong); background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-drawer__close:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-color: var(--accent); }
 .ui-drawer__close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
 
 .ui-drawer__body {
@@ -191,7 +191,7 @@
   gap: 10px;
   padding: 16px 20px;
   border-top: 1px solid var(--border);
-  background: var(--surface-2);
+  background: var(--surface-2); --ring-gap: var(--surface-2);
   flex: none;
 }
 

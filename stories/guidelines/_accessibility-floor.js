@@ -135,6 +135,11 @@ export const AIMS = [
  */
 export const GATES = [
   {
+    file: 'stories/ring-surfaces.test.js',
+    does: 'Discovers raised backgrounds and their aliases in both workspaces, requiring a matching gap and the shared ring composition; form focus rules use focus-visible.',
+    blind: ['Rendered blur contrast, clipping and browser focus heuristics require the Chromium pixel and keyboard evidence.'],
+  },
+  {
     file: 'react/src/BackLink.test.tsx',
     does: 'Holds the React back link against the factory rule for rule: the arrow stays aria-hidden '
       + 'so the name is said in words, the name contains the visible text as WCAG 2.5.3 asks, and a '
@@ -667,12 +672,10 @@ export const RULES = [
   {
     id: 'ring-contrast',
     imperative: `Hold a focus indicator to ${RING_MIN}:1 against the ground it lands on.`,
-    why: 'WCAG 1.4.11, and the stroke-width rule’s rider does not let this one out: --ring is a 3px spread, '
-      + 'twice the 1.5 CSS px under which a stroke stops being a graphic and takes the text bar '
-      + 'instead. The ground is the outer neighbour, so it is the pair that decides. #218 made '
-      + `the ring opaque and it clears the bar everywhere now — ${RING_FLOOR}:1 at worst, in `
-      + 'dark Nebula. It was eight rgba() literals reaching 1.35:1 at worst, and every one of '
-      + 'them missed. A translucent focus ring is a glow; the bar wants a graphic.',
+    why: 'The solid band carries the contrast; its surface-coloured gap separates it from an accent-filled control. '
+      + 'The outer glow is decoration, not the indicator. The flat-ground gate still holds the band at '
+      + `${RING_FLOOR}:1; real browser pixels must also clear 3:1 against the gap and the adjacent halo. `
+      + 'Chosen as G2 in #343. A translucent glow alone did not reach 3:1 in the comparison.',
     kit: [{ ref: 'src/styles/base.css:146', pattern: 'box-shadow: var(--ring);' }],
   },
   {

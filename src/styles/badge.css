@@ -15,29 +15,29 @@
   padding: 3px 9px;
   border-radius: var(--radius-pill);
   color: var(--text);
-  background: var(--surface-2);
+  background: var(--surface-2); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   white-space: nowrap;
 }
 /* Status chips take the --chip-* pairs, so the light app's solid fills live in
    tokens.css rather than in a theme override down here: on white the glow-tints
    wash out and the ink has to deepen to clear AA, and that is a token decision. */
-.ui-badge--live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.ui-badge--soon { color: var(--purple-mid); background: var(--glow-purple); }
-.ui-badge--info { color: var(--chip-info-ink); background: var(--chip-info-fill); }
+.ui-badge--live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-badge--soon { color: var(--purple-mid); background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-badge--info { color: var(--chip-info-ink); background: var(--chip-info-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .ui-badge--warn { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
-.ui-badge--danger { color: var(--chip-danger-ink); background: var(--chip-danger-fill); }
-.ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); background: var(--surface); }
+.ui-badge--danger { color: var(--chip-danger-ink); background: var(--chip-danger-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Semantic status variants — for record/row status in data tables
    (paid / verified / pending / failed …). Same chip, mapped to meaning. */
-.ui-badge--success { color: var(--chip-success-ink); background: var(--chip-success-fill); }
+.ui-badge--success { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .ui-badge--pending { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
-.ui-badge--neutral { color: var(--text); background: var(--surface-2); }
+.ui-badge--neutral { color: var(--text); background: var(--surface-2); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* The two neutral chips are the exception: their light fill is already in the
    surface scale (--surface-3), and only archive uses muted state ink. */
-:root[data-theme="light"] .ui-badge--neutral { background: var(--surface-3); }
-:root[data-theme="light"] .ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); background: var(--surface-3); }
+:root[data-theme="light"] .ui-badge--neutral { background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+:root[data-theme="light"] .ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */
 .ui-pill {
@@ -47,7 +47,7 @@
   /* rank: chip */
   font-size: var(--text-xs);
   color: var(--text);
-  background: var(--surface-2);
+  background: var(--surface-2); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   border-radius: var(--radius-pill);
   padding: 4px 11px;
   font-weight: var(--weight-semibold);
@@ -55,8 +55,8 @@
 /* The live pill is the same status paint as the live badge, so it takes the
    same pair. On its own it was --green on --glow-green, which is 3.97:1 over
    white — under AA, while the badge beside it cleared at 4.64:1. See issue #131. */
-.ui-pill--live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.ui-pill--soon { color: var(--purple-mid); background: var(--glow-purple); }
+.ui-pill--live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-pill--soon { color: var(--purple-mid); background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 
 /* Status dot */
 .ui-dot {
