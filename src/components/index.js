@@ -6,7 +6,7 @@ const HTML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 const cx = (...a) => a.filter(Boolean).join(' ');
 export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => HTML_ENTITIES[c]);
 
-// why: docs/specification.md#extra-small-buttons
+// ---- Button --------------------------------------------------------------
 // `iconSvg` is a raw leading-icon SVG string (trusted markup, not escaped) for
 // branded glyphs the kit's icon set doesn't own — e.g. a Google "G". It takes
 // the leading slot; `icon` is the named-icon shorthand for kit glyphs. This is

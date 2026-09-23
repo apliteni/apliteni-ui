@@ -35,7 +35,6 @@ for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconO
 Its glyph is 13px and its icon-only target is 24×24px; labelled xs buttons use
 `--text-xs`. The other sizes keep 16px glyphs.
 
-
 `CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
 kit's ranking rather than repeating it — so a palette a server rendered and the same palette
 after a keystroke put the same row first. Three differences from the vanilla one. Two are

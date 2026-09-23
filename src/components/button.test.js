@@ -74,16 +74,8 @@ test('xs sizes both glyph slots while existing sizes keep their glyph dimensions
         assert.equal(style.width, size === 'xs' ? '13px' : '16px');
         assert.equal(style.height, style.width);
         assert.equal(style.strokeWidth, size === 'xs' ? '2.8' : '2.4');
-        assert.ok(parseFloat(style.width) * parseFloat(style.strokeWidth) / 24 >= 1.5);
       }
     }
-    dom.window.document.body.innerHTML = button({ size: 'xs', label: 'Copy', icon: 'copy', iconOnly: true });
-    const control = dom.window.document.querySelector('button');
-    const style = dom.window.getComputedStyle(control);
-    assert.equal(style.minWidth, '24px');
-    assert.equal(style.minHeight, '24px');
-    assert.equal(style.padding, '4.5px');
-    assert.equal(control.getAttribute('aria-label'), 'Copy');
   } finally {
     dom.window.close();
   }

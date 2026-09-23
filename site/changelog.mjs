@@ -13,7 +13,7 @@
 
 export const RELEASES = [
   {
-    v: '0.34.4', date: '2026-09-23',
+    v: '0.35.0', date: '2026-09-23',
     changes: [
       ['added', 'Button gains size="xs" in vanilla and React for inline controls beside a value. Its 13px glyph uses stroke-width 2.8 to keep the graphic stroke floor, with a 24px icon-only target and token-sized labels; all other sizes retain 16px glyphs. Chosen on #339.', ['Button']],
     ],
