@@ -60,11 +60,11 @@
   margin-bottom: 10px;
 }
 .ui-sx__title {
-  color: var(--strong); font-size: 22px; font-weight: var(--weight-semibold);
+  color: var(--strong); font-size: var(--text-xl); font-weight: var(--weight-semibold);
   letter-spacing: -.02em; line-height: 1.2; margin: 0;
 }
 .ui-sx__body {
-  color: var(--dim); font-size: 14.5px; line-height: 1.6; margin: 9px 0 0; max-width: var(--prose-caption);
+  color: var(--dim); font-size: var(--text-base); line-height: 1.6; margin: 9px 0 0; max-width: var(--prose-caption);
 }
 .ui-sx__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
 
@@ -93,8 +93,8 @@
 .ui-sx--compact .ui-sx__inner { display: flex; align-items: center; gap: 16px; }
 .ui-sx--compact .ui-sx__visual { flex: none; }
 .ui-sx--compact .ui-sx__check { width: 44px; height: 44px; }
-.ui-sx--compact .ui-sx__title { font-size: 16px; }
-.ui-sx--compact .ui-sx__body { font-size: 13px; margin-top: 3px; }
+.ui-sx--compact .ui-sx__title { font-size: calc(var(--text-md) + 0.5px); }
+.ui-sx--compact .ui-sx__body { font-size: var(--text-sm); margin-top: 3px; }
 .ui-sx--compact .ui-sx__actions { margin-top: 0; margin-left: auto; flex: none; }
 .ui-sx--compact .ui-sx__content { flex: 1; display: flex; align-items: center; gap: 16px; }
 .ui-sx--compact .ui-sx__content > div:first-child,
@@ -166,7 +166,7 @@
   animation: ui-sx-sweep var(--sx-secs, 5s) linear forwards; /* motion: ambient — the caller sets the countdown; the ring just spends it */
 }
 @keyframes ui-sx-sweep { from { --sx-a: 360deg; } to { --sx-a: 0deg; } }
-.ui-sx__count-text { color: var(--muted); font-size: 13px; }
+.ui-sx__count-text { color: var(--muted); font-size: var(--text-sm); }
 .ui-sx__count-text b { color: var(--dim); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
 
 /* ---- Reduced motion — static check, no burst / confetti / sweep ---------- */

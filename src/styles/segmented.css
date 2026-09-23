@@ -12,7 +12,7 @@
 }
 .ui-seg button {
   font-family: var(--font-sans);
-  font-size: 13.5px;
+  font-size: calc(var(--text-sm) + 0.5px);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.02em;
   color: var(--dim);
@@ -33,7 +33,7 @@
   background: var(--seg-active-bg);   /* the step is the lift; nothing casts. #295 */
 }
 
-.ui-seg--sm button { padding: 5px 13px; font-size: 12px; }
+.ui-seg--sm button { padding: 5px 13px; font-size: calc(var(--text-xs) + 1px); }
 .ui-seg--block { display: flex; }
 .ui-seg--block button { flex: 1; }
 

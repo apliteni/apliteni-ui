@@ -80,7 +80,7 @@
 }
 .ui-card__row + .ui-card__row { border-top: 1px solid var(--border); }
 .ui-card__row .lab { color: var(--strong); font-size: var(--text-md); font-weight: var(--weight-medium); }
-.ui-card__row .hint { color: var(--dim); font-size: 13.5px; margin-top: 3px; }
+.ui-card__row .hint { color: var(--dim); font-size: calc(var(--text-sm) + 0.5px); margin-top: 3px; }
 
 /* Icon chip that leads a card header */
 .ui-card__icon {
