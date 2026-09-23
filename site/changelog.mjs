@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.35.0', date: '2026-09-23',
+    changes: [
+      ['added', 'Button gains size="xs" in vanilla and React for inline controls beside a value. Its 13px glyph uses stroke-width 2.8 to keep the graphic stroke floor, with a 24px icon-only target and token-sized labels; all other sizes retain 16px glyphs. Chosen on #339.', ['Button']],
+    ],
+  },
+  {
     v: '0.34.3', date: '2026-09-23',
     changes: [
       ['fixed', "Component text follows the --text-* scale when an app overrides it. Nav, callout, dropdown, drawer, feedback, shell and other component sizes keep their exact defaults; sizes between scale steps retain a fixed offset from the nearest token. The 16px touch-field zoom protection is unchanged. Fixes #322.", ['Typography']],

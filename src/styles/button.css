@@ -1,6 +1,6 @@
 /* ============================================================================
  * Button — .ui-btn  (variants: primary / secondary / ghost / danger)
- *                   (sizes: sm / md / lg, [icon], [disabled], [aria-busy])
+ *                   (sizes: xs / sm / md / lg, [icon], [disabled], [aria-busy])
  * ========================================================================== */
 
 .ui-btn {
@@ -72,11 +72,15 @@
 }
 
 /* -- Sizes -------------------------------------------------------------- */
+/* why: docs/specification.md#extra-small-buttons */
+.ui-btn--xs { --btn-pad-y: 4.5px; --btn-pad-x: 8px; --btn-font: var(--text-xs); min-width: 24px; min-height: 24px; }
+.ui-btn--xs svg { width: 13px; height: 13px; stroke-width: 2.8; }
 .ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: calc(var(--text-sm) - 0.5px); }
 .ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); border-radius: var(--radius-md); }
 
 /* Icon-only */
 .ui-btn--icon { padding: 9px; border-radius: var(--radius-sm); }
+.ui-btn--icon.ui-btn--xs { padding: 4.5px; }
 .ui-btn--icon.ui-btn--sm { padding: 6px; }
 
 .ui-btn--block { width: 100%; }
@@ -139,6 +143,7 @@
   transform-origin: center;
   animation: ui-bars-in var(--dur-fast) var(--ease) both;
 }
+.ui-btn--xs .ui-btn__bars { left: 4px; right: 4px; bottom: 2px; height: 2px; }
 .ui-btn--sm .ui-btn__bars { left: 7px; right: 7px; bottom: 4px; }
 .ui-btn--lg .ui-btn__bars { left: 14px; right: 14px; bottom: 7px; }
 .ui-btn__bars i {

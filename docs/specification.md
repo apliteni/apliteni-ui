@@ -745,6 +745,22 @@ Decided in [#148](https://github.com/apliteni/apliteni-ui/issues/148),
 [#206](https://github.com/apliteni/apliteni-ui/issues/206) and
 [#217](https://github.com/apliteni/apliteni-ui/issues/217).
 
+### Extra-small buttons
+
+`button({ size: 'xs' })` and React `<Button size="xs">` draw a 13px glyph at
+stroke-width 2.8, with a minimum 24×24px target. An icon-only xs button is 24×24px;
+a labelled button grows to fit its label and uses `--text-xs`. Other sizes retain
+their 16px glyph at stroke-width 2.4. Busy bars fit inside the smaller target.
+
+The xs effective stroke is 13 × 2.8 ÷ 24 = 1.517 CSS px, above the 1.5px graphic
+floor, matching the toast's size/stroke pairing. On `--bg`, the ghost glyph's
+`--dim` measures 9.14:1 in light and 11.13:1 in dark, above the 3:1 graphic bar.
+The size changes neither the variant's colour nor its interaction states.
+
+Chosen by Artur on [#339](https://github.com/apliteni/apliteni-ui/issues/339).
+The Button Sizes story compares xs, sm, md and lg, including inline copy controls
+beside `--text-sm` body text. The glyph-stroke and contrast walks cover that story.
+
 ## Pending and denied states
 
 Two states every screen has: it is still fetching, and the reader is not allowed to see this.

@@ -30,6 +30,11 @@ import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 
 Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Button`, `Badge`, `Card`, `Icon`.
 
+`Button` accepts `size="xs" | "sm" | "md" | "lg"` (default `md`). Use `xs`
+for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconOnly>Copy</Button>`.
+Its glyph is 13px and its icon-only target is 24×24px; labelled xs buttons use
+`--text-xs`. The other sizes keep 16px glyphs.
+
 `CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
 kit's ranking rather than repeating it — so a palette a server rendered and the same palette
 after a keystroke put the same row first. Three differences from the vanilla one. Two are

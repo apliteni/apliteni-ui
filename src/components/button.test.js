@@ -60,3 +60,23 @@ test('without iconSvg the named-icon path is unchanged', () => {
   const named = button({ label: 'Connect', icon: 'plug' });
   assert.ok(named.includes('<svg'), 'named icon still emits a kit glyph');
 });
+
+test('xs sizes both glyph slots while existing sizes keep their glyph dimensions', async () => {
+  const { JSDOM } = await import('jsdom');
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync(new URL('../styles/button.css', import.meta.url), 'utf8');
+  const dom = new JSDOM(`<style>${css}</style>`);
+  try {
+    for (const size of ['xs', 'sm', 'md', 'lg']) {
+      dom.window.document.body.innerHTML = button({ size, label: 'Copy', icon: 'copy', iconRight: 'arrowRight' });
+      for (const svg of dom.window.document.querySelectorAll('svg')) {
+        const style = dom.window.getComputedStyle(svg);
+        assert.equal(style.width, size === 'xs' ? '13px' : '16px');
+        assert.equal(style.height, style.width);
+        assert.equal(style.strokeWidth, size === 'xs' ? '2.8' : '2.4');
+      }
+    }
+  } finally {
+    dom.window.close();
+  }
+});

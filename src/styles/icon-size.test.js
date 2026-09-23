@@ -48,8 +48,9 @@ const src = path.resolve(here, '..');
 // the rows, so a rail row's glyph is one rule at both widths); 70 (#308:
 // `.ui-app__search-ic svg` sizes the magnifier on the topbar layout's search
 // field, a width and a height — the palette's own box and stroke, so the trigger
-// and the thing it opens are not two search marks).
-const EXPECTED_SUBJECTS = 70;
+// and the thing it opens are not two search marks); 72 (#339: the xs Button
+// glyph adds a width and a height).
+const EXPECTED_SUBJECTS = 72;
 
 const SHEETS = kitSheetNames(src);
 

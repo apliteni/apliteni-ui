@@ -660,7 +660,7 @@ export const RULES = [
       + 'to a label that toggles the same input. Neither is measured — that is layout, and the '
       + 'gate says so about itself.',
     kit: [
-      { ref: 'src/styles/button.css:75', pattern: '.ui-btn--sm' },
+      { ref: 'src/styles/button.css:78', pattern: '.ui-btn--sm' },
       { ref: 'src/styles/input.css:134', pattern: '.ui-check input::before' },
     ],
   },
@@ -700,7 +700,7 @@ export const RULES = [
       + 'rule still fading with opacity is the switch track, which has no label inside it — its '
       + 'pair is 1.4.11’s, and no gate here measures it.',
     kit: [
-      { ref: 'src/styles/button.css:91', pattern: '.ui-btn[aria-disabled="true"]' },
+      { ref: 'src/styles/button.css:95', pattern: '.ui-btn[aria-disabled="true"]' },
       { ref: 'src/tokens/tokens.css:165', pattern: '--disabled-ink: var(--muted);' },
     ],
   },
