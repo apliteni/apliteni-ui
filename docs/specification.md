@@ -796,8 +796,9 @@ a labelled button grows to fit its label and uses `--text-xs`. Other sizes retai
 their 16px glyph at stroke-width 2.4. Busy bars fit inside the smaller target.
 
 The xs effective stroke is 13 × 2.8 ÷ 24 = 1.517 CSS px, above the 1.5px graphic
-floor, matching the toast's size/stroke pairing. On `--bg`, the ghost glyph's
-`--dim` measures 9.14:1 in light and 11.13:1 in dark, above the 3:1 graphic bar.
+floor, matching the toast's size/stroke pairing. The enabled ghost glyph inherits
+`--text` from its button; on `--bg` this measures 14.63:1 in light and 15.79:1
+in dark, above the 3:1 graphic bar.
 The size changes neither the variant's colour nor its interaction states.
 
 Chosen by Artur on [#339](https://github.com/apliteni/apliteni-ui/issues/339).
