@@ -3,7 +3,7 @@ import { badge, card } from '../../src/components/index.js';
 
 export const TITLE = 'Labels and titles';
 
-export const BLURB = 'Sentence case everywhere, and the rank a page title, a card title and a label each take.';
+export const BLURB = 'Body ink for words; hierarchy through size, weight and spacing, with a closed list of exceptions.';
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
@@ -31,7 +31,28 @@ export const eyebrowDo = () => stage(`<div class="ui-card"><div class="ui-eyebro
 export const eyebrowDont = () => stage(`<div class="ui-card"><div class="ui-eyebrow">Top contractors</div>
   <div class="ui-card__sub">Paid out, by counterparty.</div></div>`);
 
+const inkSample = (ink) => stage(card({ body: ['xs', 'sm', 'base'].map(size =>
+  `<p style="font-size:var(--text-${size});color:var(--${ink});margin-bottom:var(--space-3)">Updated 23 Sep · ready to export</p>`,
+).join('') }));
+
 export const RULES = [
+  {
+    id: 'text-ink',
+    imperative: 'Use body ink for words at every size; build hierarchy with size, weight and spacing.',
+    why: 'A description, timestamp or label still has to be read. Muted text can pass contrast checks and still look like decoration, especially at small sizes. Making a line secondary must not make its information harder to read.',
+    doHtml: () => inkSample('text'),
+    dontHtml: () => inkSample('muted'),
+    doCaption: 'The same sentence at xs, sm and base in body ink. Size separates the ranks.',
+    dontCaption: 'The same sizes in muted ink. Passing contrast does not make fading a hierarchy cue.',
+    kit: [{ ref: 'src/styles/base.css:123', pattern: 'color: var(--text);' }],
+  },
+  {
+    id: 'text-ink-exceptions',
+    imperative: 'Keep muted and dim ink only for the three named exception classes.',
+    why: 'A closed list lets a reviewer distinguish intended state or placeholder ink from words faded merely to rank them. Extend the list by opening an issue, never by treating “decorative” as a fourth class.',
+    except: 'Only: (1) glyphs that are not words, such as an arrow, chevron or dismiss mark; (2) colour reporting a state, such as off, unset, disabled or archived; (3) a slot with no value, such as an empty field or cell placeholder. A count, timestamp, keyboard shortcut, enabled action or empty-state instruction is still information, not an exception.',
+    kit: [{ ref: 'src/styles/muted-ink.test.js:1', pattern: 'Every muted/dim colour path' }],
+  },
   {
     id: 'sentence-case',
     imperative: 'Write every label in sentence case, and never set it in capitals by style.',

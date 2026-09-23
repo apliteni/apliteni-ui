@@ -41,7 +41,7 @@
   /* rank: label */
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
-  color: var(--muted);
+  color: var(--text);
   padding: 4px 12px 8px;
   /* Goes on the labels' clock — a section heading is words, and the fold takes
      every word on the rail together. */
@@ -107,14 +107,14 @@
 
 /* Destructive row (sign out, revoke). Quiet at rest, --pink once a pointer or
    the keyboard reaches it — as .ui-btn--danger and .ui-dropdown__item do. */
-.ui-nav__item.is-danger { color: var(--muted); }
+.ui-nav__item.is-danger { color: var(--text); }
 .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
 /* Tabbing onto it is the same "about to click this" the pointer means. The ring
    says where you are; only this says what the row does. */
 .ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); color: var(--pink); }
 /* A row that is off. No opacity: the label was already --muted and the fade
    only pulled it toward the rail behind it (#220). */
-.ui-nav__item.is-disabled { color: var(--disabled-ink); cursor: default; pointer-events: none; }
+.ui-nav__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; pointer-events: none; }
 
 /* The current row under the pointer. It rests on --surface-3, which is also what
    a resting row hovers to, so the one row with no hover response was the row the
@@ -141,7 +141,7 @@
   font-weight: 600;
   line-height: 1;
   background: var(--surface-3);
-  color: var(--dim);
+  color: var(--text);
   /* The count fades with the words. It is never lost: sidebarNav() spells it
      into the row's aria-label, so "Pending 3" is what a reader hears at either
      width. */
@@ -267,7 +267,7 @@
   align-items: center;
   gap: 8px;
   padding: 11px 14px;
-  color: var(--dim);
+  /* muted-ink: state — inactive tab; active tab overrides it */ color: var(--dim);
   text-decoration: none;
   font-size: calc(var(--text-base) - 0.5px);
   font-weight: 500;
@@ -300,7 +300,7 @@
   color: var(--accent);
 }
 
-.ui-nav__tab.is-disabled { color: var(--disabled-ink); cursor: default; }
+.ui-nav__tab.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; }
 .ui-nav__tab .ui-nav__badge { height: 18px; }
 
 /* -- Breadcrumbs --------------------------------------------------------- */
@@ -328,7 +328,7 @@
 /* Carries the block's class as well as its own, for the reason .ui-nav__item
    does above: a linked crumb is an <a>, and a host stylesheet's `a:link` is
    (0,1,1), which outranks a bare (0,1,0) class. */
-.ui-nav .ui-nav__crumb { color: var(--dim); }
+.ui-nav .ui-nav__crumb { color: var(--text); }
 a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); }
 a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }

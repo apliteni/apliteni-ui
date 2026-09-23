@@ -266,7 +266,7 @@ running text, labels, captions and chips, and each takes one rank:
 That is 30, 18, 14.5, 13, 13 and 11px on the kit's own scale. A rank is under the one above it by
 size, or — where two share a size — by weight: `label` and `caption` are both 13px, and the label's
 medium against the caption's normal is what separates them. A label sits one step under the body,
-and its `--muted` ink and medium weight now set it apart, which capitals used to do. A caption keeps
+and its medium weight and spacing set it apart. Words use body ink, including labels and captions. A caption keeps
 the body's weight because it is a sentence and not a label: at medium it reads as the bolder line of
 the two, which runs the hierarchy backwards under a figure. A chip is the smallest because its fill
 already sets it apart.
@@ -390,6 +390,45 @@ script that waits on `animationend` or `transitionend` to have a timer behind it
 
 Decided in [#200](https://github.com/apliteni/apliteni-ui/issues/200) and
 [#271](https://github.com/apliteni/apliteni-ui/issues/271).
+
+## Text ink
+
+Words use `--text` (or the full-strength foreground of their surface) at every size.
+Do not rank descriptions, labels, captions, timestamps, counts, code comments or enabled
+actions by fading them with `--muted`, `--dim` or opacity. A contrast pass is a floor:
+small muted text can clear it and still read as decoration. Hierarchy comes from the
+existing size ranks, weight and spacing; a secondary line still carries information.
+Signal colours continue to report status and errors, and links retain their link ink.
+
+Muted/dim ink has exactly three exception classes:
+
+- **glyph** — a mark that is not words, such as an arrow, chevron or dismiss icon.
+- **state** — colour reporting off, unset, disabled or archived state, rather than rank.
+- **placeholder** — a slot has no value, such as an empty field, cell or missing comparison.
+
+An empty-state explanation is not an empty slot; a keyboard shortcut is language the
+reader must recognise; a count is not a status merely because its class says so. Generic
+badges use body ink. Archive and disabled variants keep their state ink. Dropdown badges
+with neutral tone and the exact words off, unset, disabled, archive or archived (case-insensitive)
+keep state ink; other neutral badge content uses body ink. Tab and segmented
+controls retain the colour indicating an unselected state alongside their selected treatment.
+To extend this closed list, open an issue and agree the new class before using it.
+
+Every CSS `color` declaration that can reach muted or dim through a custom property carries
+an adjacent `/* muted-ink: glyph|state|placeholder — reason */` annotation, using one class.
+`src/styles/muted-ink.test.js` discovers all CSS under `src/` and `react/src/`, follows alias
+chains (including fallbacks and disabled tokens), and refuses an unannotated path. It checks
+containers as well as text selectors so inherited ink cannot evade it; no selector allowlist
+is maintained. The discovered subject count and annotation-removal mutations hold coverage.
+
+The gate cannot infer whether caller-supplied words actually report a state: annotations need
+semantic review. Inline styles, literal equivalent colours, opacity and consumer overrides are
+outside this declaration gate; the contrast walk still measures rendered pairs. Examples of the
+rejected treatment are confined to guideline specimens. Labels and titles shows identical words
+at xs, sm and base in body and muted ink, in either theme.
+
+Decided by Artur on [#340](https://github.com/apliteni/apliteni-ui/issues/340), with the closed
+exceptions from [#341](https://github.com/apliteni/apliteni-ui/issues/341), on 2026-09-23.
 
 ## Colour and contrast
 
@@ -617,8 +656,8 @@ takes an accent counter under the floor inside a panel. Two rules state it:
 `src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
 `src/styles/dropdown.css:190` `.ui-dropdown__badge.is-accent`.
 
-**The ladder is capped by ink, not by taste.** `--muted` carries a dropdown row's description and
-the readout's label, so it has to clear AA on every step the ladder raises — and it is re-picked
+**The ladder is capped by ink, not by taste.** `--muted` still carries state and placeholder
+information, so it has to clear AA on every step the ladder raises — and it is re-picked
 against the TOP of the ladder rather than against the page. That is the standing cost of the rule:
 a raised surface that gets lighter asks the ink to get lighter with it, and the next surface that
 wants to float spends what is left.
@@ -1194,7 +1233,7 @@ What the kit guarantees:
   caller marks `active` highlighted, and marks it `aria-current="true"` — the current section —
   rather than `"page"`, which would announce the list as the page on screen.
   `sidebarNav({ activeIs: 'section' })` does the same outside the shell.
-- **It stays quiet whatever the host does to links.** The link rests in `--dim` and takes no
+- **It stays quiet whatever the host does to links.** The link rests in `--text` and takes no
   accent. Its colour rule is (0,2,0), so a host stylesheet's `a:link` at (0,1,1) does not repaint
   it.
 
@@ -1203,9 +1242,9 @@ the kit: they are on the Guidelines / Going back page in Storybook.
 
 Decided in [#270][i270]. Four treatments were rendered side by side on the same page in
 [docs/reviews/270-back-control.html](reviews/270-back-control.html), and the owner chose the quiet
-link: a chevron and the destination's name in dim ink, in the slot the trail would take. That is
-the only one the kit builds; the other three stay on that page as the comparison it was chosen
-against.
+link: a chevron and the destination's name in dim ink, in the slot the trail would take.
+#340 subsequently moved its words to body ink while preserving that shape. The other three
+stay on the review page as the historical comparison.
 
 Held by `src/components/back.test.js` and `src/styles/back.test.js`. That every `__label`
 the kit emits has a rule at all — the omission [#303][i303] reported — is held kit-wide by

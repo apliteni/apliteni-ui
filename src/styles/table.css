@@ -13,14 +13,14 @@
   /* rank: label */
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
-  color: var(--muted);
+  color: var(--text);
   padding: 0 var(--space-4) var(--space-3) 0;
   border-bottom: 1px solid var(--border);
 }
 .ui-table td {
   padding: var(--space-4) var(--space-4) var(--space-4) 0;
   border-bottom: 1px solid var(--border);
-  color: var(--dim);
+  color: var(--text);
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -28,7 +28,7 @@
 .ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
 .ui-table th:last-child,
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
-.ui-table tr.is-dead td { color: var(--muted); }
+.ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
 .ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
 
@@ -79,7 +79,7 @@
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
 .ui-table th.ui-table__num { text-align: right; }
 .ui-table__num--strong { color: var(--strong); font-weight: var(--weight-semibold); }
-.ui-table__code { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--muted); }
+.ui-table__code { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text); }
 
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
    lives in styles/empty.css as a standalone component (illustration support). */

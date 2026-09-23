@@ -100,7 +100,7 @@ export const AIMS = [
     aim: 'Body text lands near 7:1, not near 4.5:1.',
     apply: 'AA is 4.5:1 and the kit’s ordinary --text on --bg is well past it in both themes. '
       + 'A new component that lands at 4.6 is passing and is still the worst text in the kit. '
-      + 'Take --text or --dim; reach for --muted only for something a reader may skip.',
+      + 'Use --text for words at every size. Hierarchy comes from size, weight and spacing; muted and dim ink are reserved for the closed glyph, state and empty-slot exceptions in Labels and titles.',
   },
   {
     aim: 'A status is carried by a mark and a word, never by a hue alone.',

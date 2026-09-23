@@ -9,10 +9,10 @@
 .ui-footer {
   --footer-surface: transparent;
   --footer-border: var(--border);
-  --footer-link: var(--muted);
+  --footer-link: var(--text);
   --footer-link-hover: var(--strong);
   --footer-title: var(--strong);
-  --footer-text: var(--dim);
+  --footer-text: var(--text);
 
   background: var(--footer-surface);
   border-top: 1px solid var(--footer-border);
@@ -54,7 +54,7 @@
   display: grid; place-items: center;
   border-radius: 10px;
   border: 1px solid var(--footer-border);
-  color: var(--footer-link);
+  /* muted-ink: glyph — social icon */ color: var(--muted);
   background: var(--surface);
   transition:
     color var(--dur-fast) var(--ease),

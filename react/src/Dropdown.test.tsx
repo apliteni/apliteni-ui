@@ -770,3 +770,13 @@ it('a search dropdown whose rows the caller draws is still filtered and still pi
   await user.keyboard('{Enter}');
   expect(picks).toEqual(['Payouts']);
 });
+
+test('state badge ink and generic metadata match the factory classification', () => {
+  const cases = [
+    ['Off', 'state'], ['UNSET', 'state'], ['Disabled', 'state'], ['Archive', 'state'], ['Archived', 'state'],
+    ['12 records', 'neutral'], ['Archive guide', 'neutral'], ['Live', 'live'],
+  ];
+  const { container } = render(<Dropdown items={cases.map(([badge], i) => ({ label: `Option ${i}`, badge }))} />);
+  expect([...container.querySelectorAll('.ui-dropdown__badge')].map(el => el.className))
+    .toEqual(cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
+});

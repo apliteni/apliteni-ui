@@ -60,7 +60,7 @@
   font-size: calc(var(--text-xs) + 1px);
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  /* muted-ink: state — unselected theme choice; current choice overrides it */ color: var(--muted);
   padding: 4px 13px;
   border-radius: 24px;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
@@ -107,7 +107,7 @@
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .vsw__btn:hover { border-color: var(--accent); }
-.vsw__btn .lbl { color: var(--muted); }
+.vsw__btn .lbl { color: var(--text); }
 .vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vsw__btn .car {
   width: 8px; height: 8px;
@@ -184,7 +184,7 @@
    why: docs/specification.md#elevation */
 .vopt:hover { background: var(--surface-3); }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
-.vopt .vmeta { font-size: var(--text-xs); color: var(--muted); margin-top: 2px; }
+.vopt .vmeta { font-size: var(--text-xs); color: var(--text); margin-top: 2px; }
 .vopt .vbadge {
   /* rank: chip */
   font-size: var(--text-xs);
@@ -196,7 +196,7 @@
   margin-top: 1px;
 }
 .vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.vbadge.arch { color: var(--muted); background: var(--surface-3); }
+.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface-3); }
 /* The switcher keeps its glyph and drops its label where the shell folds — the
    same step the rail folds at: docs/specification.md#breakpoints. */
 @media (max-width: 720px) { .vsw__btn .lbl { display: none; } }
@@ -256,11 +256,11 @@
 .amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.amenu .ahead .aem { color: var(--muted); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; }
 .amenu a:hover { background: var(--surface-3); }
 .amenu a.cur { color: var(--accent); }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
-.amenu a.aout { color: var(--muted); }
+.amenu a.aout { color: var(--text); }
 .amenu a.aout:hover { color: var(--pink); }

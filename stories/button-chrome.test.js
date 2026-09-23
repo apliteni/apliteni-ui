@@ -203,7 +203,7 @@ function serialize(out) {
  * — with `cursor: pointer` and no role, so it fell out of the measurement on a
  * technicality, and as a <button> it takes a 2px outset grey frame around a
  * gradient pill. Worse, the test was a property of the MARKUP: deleting
- * src/components/dropdown.js:46 `'tabindex="-1"',` dropped `.ui-dropdown__item` out of
+ * src/components/dropdown.js:47 `'tabindex="-1"',` dropped `.ui-dropdown__item` out of
  * the measured set with every count still adding up, and the whole of #251 passed at
  * exit 0. Reproduced before this was rewritten.
  *

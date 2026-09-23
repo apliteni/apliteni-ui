@@ -508,3 +508,14 @@ test('a portalled panel rendered open is adopted already open', () => {
   assert.ok(panel.classList.contains('is-open'));
   assert.equal(panel.style.top, '60px', 'and it was placed, not left at the top of the page');
 });
+
+test('neutral badges distinguish named states from metadata without changing supplied signal tones', () => {
+  const cases = [
+    ['Off', 'state'], ['UNSET', 'state'], ['Disabled', 'state'], ['Archive', 'state'], ['Archived', 'state'],
+    ['12 records', 'neutral'], ['Archive guide', 'neutral'], ['Live', 'live'],
+    [{ text: 'Off', tone: 'accent' }, 'accent'],
+  ];
+  const doc = JSDOM.fragment(dropdown({ items: cases.map(([badge], i) => ({ label: `Option ${i}`, badge })) }));
+  assert.deepEqual([...doc.querySelectorAll('.ui-dropdown__badge')].map(el => el.className),
+    cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
+});

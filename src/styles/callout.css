@@ -10,9 +10,9 @@
   background: var(--surface-2);
   font-size: calc(var(--text-sm) + 0.5px);
   line-height: 1.55;
-  color: var(--dim);
+  color: var(--text);
 }
-.ui-callout__icon { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--muted); }
+.ui-callout__icon { width: 18px; height: 18px; flex: none; margin-top: 1px; /* muted-ink: glyph — nonverbal callout icon */ color: var(--muted); }
 .ui-callout__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.1; } /* 2.1 of a 24 box drawn at 18px = 1.58 CSS px, which is what buys the 3:1 graphic bar rather than the 4.5:1 text one. docs/specification.md#icons-and-glyphs */
 .ui-callout b { color: var(--text); font-weight: var(--weight-semibold); }
 .ui-callout code { font-family: var(--font-mono); font-size: 0.92em; color: var(--text); }
@@ -61,7 +61,7 @@
 .ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); }
 .ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }
 .ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
-.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--muted);            --toast-glow: var(--surface-2); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
+.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface-2); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
 
 /* left status marker (soft + outline; solid is already a full fill) */
 .ui-toast--soft::before,
@@ -74,7 +74,7 @@
 .ui-toast__icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; } /* 2.8 of a 24 box drawn at 13px = 1.52 CSS px. The circle has no room for a bigger glyph, so the weight comes out of the stroke. docs/specification.md#icons-and-glyphs */
 .ui-toast__body { flex: 1; min-width: 0; }
 .ui-toast__title { font-weight: var(--weight-medium); color: var(--strong); }
-.ui-toast__text { color: var(--dim); }
+.ui-toast__text { color: var(--text); }
 
 /* trailing action ("Undo" / "Retry") — status-coloured TEXT, so it takes the
    text-grade ink rather than the accent.
@@ -87,7 +87,7 @@
 .ui-toast__action { flex: none; align-self: center; background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); }
 
-.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; font: inherit; }
+.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; font: inherit; }
 .ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 /* The target, not the ink. WCAG 2.5.8 measures what a pointer can land on, and
    the drawn button is 19x19 — a 15px glyph in 2px of padding. Growing the box
@@ -142,7 +142,7 @@
    (--chip-success-ink in light). The opacity: 0.82 this replaced measured 4.19
    there, and 2.25 on the dark danger fill — the pair was correct and the
    dilution then spent it. */
-.ui-toast--solid .ui-toast__text { color: color-mix(in srgb, var(--toast-ink) 90%, transparent); }
+.ui-toast--solid .ui-toast__text { color: var(--toast-ink); }
 .ui-toast--solid .ui-toast__icon { background: color-mix(in srgb, var(--toast-ink) 22%, transparent); color: var(--toast-ink); }
 .ui-toast--solid .ui-toast__action { color: var(--toast-ink); }
 /* Hover darkens the FILL rather than lightening the ink. Washing the ink over
@@ -191,4 +191,4 @@
 }
 .ui-success__check svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.4; }
 .ui-success__title { color: var(--strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 5px; }
-.ui-success__sub { color: var(--dim); font-size: var(--text-base); }
+.ui-success__sub { color: var(--text); font-size: var(--text-base); }

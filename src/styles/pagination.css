@@ -20,7 +20,7 @@
    target group in one place as the row count changes width. */
 .ui-pager__status {
   margin: 0 auto 0 0;
-  color: var(--muted);
+  color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -29,7 +29,7 @@
   align-items: center;
   gap: var(--space-2);
 }
-.ui-pager__size-label { color: var(--muted); }
+.ui-pager__size-label { color: var(--text); }
 
 /* .ui-select is a form field sized for a form — full width, 12px/15px padding.
    In a pager it sits in a row of sm buttons, so it takes their scale. Two things
@@ -77,14 +77,14 @@
 
 .ui-pager__gap {
   padding: 0 var(--space-1);
-  color: var(--muted);
+  /* muted-ink: glyph — ellipsis for omitted page controls */ color: var(--muted);
 }
 
 .ui-pager__jump {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--muted);
+  color: var(--text);
   padding: 0 var(--space-1);
 }
 /* Wide enough for four digits and the spinner a number input draws beside them;
@@ -120,6 +120,6 @@
    discovered.
    why: docs/specification.md#pagination */
 a.ui-pager__step,
-a.ui-pager__page { color: var(--dim); }
+a.ui-pager__page { color: var(--text); }
 a.ui-pager__step:hover,
 a.ui-pager__page:hover { color: var(--strong); }

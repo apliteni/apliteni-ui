@@ -216,14 +216,14 @@ for (const theme of ['dark', 'light']) {
 test('raising the resting colour does not flatten the states written after it', () => {
   const r = railUnderConsumerCss();
   const strong = colour(r.vars.get('--strong'));
-  const muted = colour(r.vars.get('--muted'));
+  const text = colour(r.vars.get('--text'));
   const pink = colour(r.vars.get('--pink'));
   assert.equal(r.css('.ui-nav__item.is-active', 'color'), strong, 'the current row lost its --strong ink');
   assert.equal(
     r.inState('.ui-nav__item:not(.is-active):not(.is-danger)', 'hover', 'color'), strong,
     'a hovered row lost its --strong ink — the raised resting rule now outranks :hover',
   );
-  assert.equal(r.css('.ui-nav__item.is-danger', 'color'), muted, 'the destructive row lost its quiet resting ink');
+  assert.equal(r.css('.ui-nav__item.is-danger', 'color'), text, 'the enabled destructive row lost its body ink');
   assert.equal(
     r.inState('.ui-nav__item.is-danger', 'hover', 'color'), pink,
     'the destructive row lost --pink on hover',

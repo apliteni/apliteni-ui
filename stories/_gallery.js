@@ -7,7 +7,7 @@ export const stack = (...items) =>
 
 export const specimen = (label, html) =>
   `<div style="display:flex;flex-direction:column;gap:10px">
-     <div style="font:600 11px/1 var(--font-sans);color:var(--muted)">${label}</div>
+     <div style="font:600 11px/1 var(--font-sans);color:var(--text)">${label}</div>
      ${html}
    </div>`;
 

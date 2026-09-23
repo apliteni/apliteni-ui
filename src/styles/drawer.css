@@ -159,7 +159,7 @@
   width: 30px; height: 30px;
   flex: none;
   cursor: pointer;
-  color: var(--muted);
+  /* muted-ink: glyph — dismiss icon */ color: var(--muted);
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -232,7 +232,7 @@
   padding-block: var(--space-1);
   overflow-wrap: anywhere;
 }
-.ui-drawer__row dt { color: var(--muted); }
+.ui-drawer__row dt { color: var(--text); }
 .ui-drawer__row dd { color: var(--text); font-variant-numeric: tabular-nums; }
 .ui-drawer__rows + * { margin-top: var(--space-3); }
 

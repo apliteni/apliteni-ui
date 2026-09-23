@@ -56,7 +56,7 @@
 .ui-btn--ghost {
   background: transparent;
   border-color: transparent;
-  color: var(--dim);
+  color: var(--text);
 }
 .ui-btn--ghost:hover {
   background: var(--surface-2);
@@ -64,7 +64,7 @@
   color: var(--strong);
 }
 
-.ui-btn--danger { color: var(--muted); }
+.ui-btn--danger { color: var(--text); }
 .ui-btn--danger:hover {
   color: var(--pink);
   border-color: var(--pink);
@@ -95,7 +95,7 @@
 .ui-btn[aria-disabled="true"] {
   background: var(--disabled-surface);
   border-color: var(--disabled-border);
-  color: var(--disabled-ink);
+  /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -104,12 +104,12 @@
 .ui-btn--ghost[aria-disabled="true"] {
   background: transparent;
   border-color: transparent;
-  color: var(--disabled-ink-bare);
+  /* muted-ink: state — unavailable control */ color: var(--disabled-ink-bare);
 }
 /* With no box, the ink is read on whatever is behind it, so the ghost takes an ink
    set for the dullest ground: in dark 7.49 / 6.31 / 7.00 / 5.44 on --bg / --surface /
-   --surface-2 / --surface-3, in light 5.70 / 6.17 / 5.20 / 5.39. The enabled ghost's
-   --dim reads about 1.5 times that in both themes. #273 cut this ink to rescue two
+   --surface-2 / --surface-3, in light 5.70 / 6.17 / 5.20 / 5.39. The enabled ghost now uses body
+   ink, keeping its words readable without changing the disabled pair. #273 cut this ink to rescue two
    dark pairs from under #220's floor; #295 re-picked --muted against the elevation
    ladder and lifted both clear, so it is the margin now rather than the rescue.
 

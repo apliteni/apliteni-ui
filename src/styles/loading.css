@@ -89,7 +89,7 @@
   text-align: center;
   gap: 8px;
   padding: 48px 24px;
-  color: var(--muted);
+  color: var(--text);
 }
 .ui-denied__seal {
   width: 44px;
@@ -98,7 +98,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: var(--dim);
+  /* muted-ink: glyph — permission seal */ color: var(--dim);
   background: color-mix(in srgb, var(--text) 7%, transparent);
 }
 .ui-denied__seal svg {
