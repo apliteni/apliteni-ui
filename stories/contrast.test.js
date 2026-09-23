@@ -459,7 +459,7 @@ test('the five toast statuses resolve to five different accents and five differe
     danger: '--chip-danger-ink',
     warn: '--chip-warn-ink',
     info: '--chip-info-ink',
-    neutral: '--muted',
+    neutral: '--text',
   };
   for (const theme of THEMES) {
     const { vars, css } = kitCssFor(theme, ACCENT);

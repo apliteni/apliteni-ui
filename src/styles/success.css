@@ -64,7 +64,7 @@
   letter-spacing: -.02em; line-height: 1.2; margin: 0;
 }
 .ui-sx__body {
-  color: var(--dim); font-size: var(--text-base); line-height: 1.6; margin: 9px 0 0; max-width: var(--prose-caption);
+  color: var(--text); font-size: var(--text-base); line-height: 1.6; margin: 9px 0 0; max-width: var(--prose-caption);
 }
 .ui-sx__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
 
@@ -166,8 +166,8 @@
   animation: ui-sx-sweep var(--sx-secs, 5s) linear forwards; /* motion: ambient — the caller sets the countdown; the ring just spends it */
 }
 @keyframes ui-sx-sweep { from { --sx-a: 360deg; } to { --sx-a: 0deg; } }
-.ui-sx__count-text { color: var(--muted); font-size: var(--text-sm); }
-.ui-sx__count-text b { color: var(--dim); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.ui-sx__count-text { color: var(--text); font-size: var(--text-sm); }
+.ui-sx__count-text b { color: var(--text); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
 
 /* ---- Reduced motion — static check, no burst / confetti / sweep ---------- */
 @media (prefers-reduced-motion: reduce) {

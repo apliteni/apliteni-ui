@@ -9,9 +9,11 @@ const VERSIONS = [
   { label: 'phoenix.2025.014', description: 'Phoenix, 2025-12-02', badge: 'Archive' },
 ];
 
+// Use tone: 'state' for off, unset, disabled or archived badges, including translated labels.
+// English state words are a fallback only when tone is omitted; explicit neutral uses body ink.
 const CHANNELS = [
   { label: 'In-app', description: 'Toasts inside the console', badge: { text: 'On', tone: 'live' }, selected: true },
-  { label: 'Email', description: 'Daily digest to your inbox', badge: 'Off' },
+  { label: 'Email', description: 'Daily digest to your inbox', badge: { text: 'Off', tone: 'state' } },
   { label: 'Webhook', description: 'POST to your endpoint', badge: { text: 'Beta', tone: 'accent' } },
 ];
 
@@ -77,7 +79,7 @@ export const DescriptionsAndBadges = {
   name: 'With descriptions + badges (open)',
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
-    'Two-line rows with a secondary description and a trailing status badge',
+    "Set badge tone: 'state' for off, unset, disabled or archived labels in any language. English state words are a fallback only when tone is omitted.",
     dropdown({ label: 'notify:', value: 'In-app', ariaLabel: 'Notification channel', items: CHANNELS, open: true }),
   ))),
 };

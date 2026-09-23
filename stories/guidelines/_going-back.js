@@ -126,14 +126,14 @@ export const RULES = [
       'Invoice INV-1001',
       button({ label: 'Send', variant: 'primary', size: 'sm' }),
     ),
-    doCaption: 'Dim ink, no box until the pointer is on it, and smaller than the title under it. The '
+    doCaption: 'Body ink, no box until the pointer is on it, and smaller than the title under it. The '
       + 'page\'s own action keeps the colour.',
     dontCaption: 'Two filled buttons, and the louder-placed one takes the reader away from the record '
       + 'they opened.',
     why: 'The back link is on every record page, and a reader looks at it once. Painted in the accent '
       + 'or in the host\'s link colour it competes with the title and the page\'s action on every screen, '
-      + 'which is the complaint that opened #270. .ui-back paints --dim, and its colour rule outranks a '
+      + 'which is the complaint that opened #270. .ui-back paints --text, and its colour rule outranks a '
       + 'host a:link, so a page that colours its links leaves this one alone.',
-    kit: [{ ref: 'src/styles/back.css:33', pattern: '.ui-back[href] { color: var(--dim); }' }],
+    kit: [{ ref: 'src/styles/back.css:33', pattern: '.ui-back[href] { color: var(--text); }' }],
   },
 ];

@@ -101,7 +101,7 @@ export const RULES = [
       + 'table() and right-align them there.',
     kit: [
       { ref: 'src/components/drawer.js:92', pattern: '<dl class="ui-drawer__rows">' },
-      { ref: 'src/styles/drawer.css:235', pattern: '.ui-drawer__row dt { color: var(--muted); }' },
+      { ref: 'src/styles/drawer.css:235', pattern: '.ui-drawer__row dt { color: var(--text); }' },
     ],
   },
 ];

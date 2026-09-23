@@ -15,4 +15,4 @@
    and 5.82 to 2.39 in dark — under half the floor. --muted is already the kit's
    quiet ink; diluting a quiet ink is how a colour stops being read. Found by
    react/src/contrast.test.tsx on its first run. See #131. */
-.rx-caret { margin-left: 2px; }
+.rx-caret { margin-left: 2px; /* muted-ink: glyph — sort direction */ color: var(--muted); }

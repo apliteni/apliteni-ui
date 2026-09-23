@@ -132,7 +132,8 @@ const Glyph = ({ name, className, hidden }: { name: string; className: string; h
 function RowBadge({ badge }: { badge: DropdownBadge }) {
   const text = typeof badge === 'string' ? badge : badge.text;
   const given = typeof badge === 'string' ? '' : (badge.tone || '');
-  const tone = given || (/^live$/i.test(String(text)) ? 'live' : 'neutral');
+  let tone = given || (/^live$/i.test(String(text)) ? 'live' : 'neutral');
+  if (!given && tone === 'neutral' && /^(?:off|unset|disabled|archive|archived)$/i.test(text)) tone = 'state';
   return <span className={`ui-dropdown__badge is-${tone}`}>{text}</span>;
 }
 

@@ -57,11 +57,11 @@
 
 .ui-tip.is-open { opacity: 1; visibility: visible; }
 
-.ui-tip__label { color: var(--muted); }
+.ui-tip__label { color: var(--text); }
 .ui-tip__value {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: var(--strong);
   font-variant-numeric: tabular-nums;
 }
-.ui-tip__detail { color: var(--dim); font-variant-numeric: tabular-nums; }
+.ui-tip__detail { color: var(--text); font-variant-numeric: tabular-nums; }

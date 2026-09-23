@@ -163,7 +163,7 @@
 .ui-app__who b { display: block; color: var(--strong); font-weight: var(--weight-semibold); }
 /* nowrap is what makes the ellipsis fire — without it the address wraps, and
    the rail column is max-content, so a long one widens the rail instead. */
-.ui-app__who span { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-app__who span { display: block; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* -- the reader's menu ---------------------------------------------------- */
 /* The account block is a dropdown() trigger, so it takes the rail's own row skin
@@ -198,7 +198,7 @@
    `text-overflow` would have nothing to fire against — the inert pair
    .ui-app__who's own comment warns about. `anywhere` keeps an address with no
    break in it from widening the panel instead. */
-.ui-app__user-panel .ui-dropdown__head span { display: block; color: var(--muted); font-size: var(--text-xs); overflow-wrap: anywhere; }
+.ui-app__user-panel .ui-dropdown__head span { display: block; color: var(--text); font-size: var(--text-xs); overflow-wrap: anywhere; }
 
 /* The toggle's cell, at the far end of the brand row: the auto margin puts it there
    with or without a wordmark beside it, and the offset below rides it back onto the
@@ -221,7 +221,7 @@
    row under it. The glyph box carries the line instead, in both states.
    why: docs/specification.md#the-page-shell */
 .ui-app__fold .ui-nav__ic { height: 1lh; }
-.ui-app .ui-app__fold { color: var(--dim); }
+.ui-app .ui-app__fold { color: var(--text); }
 .ui-app .ui-app__fold:hover,
 .ui-app .ui-app__fold:focus-visible { color: var(--strong); }
 /* The width's own clock, not the words', so the mark and the closing edge arrive
@@ -351,7 +351,7 @@
   font: inherit;
   font-size: var(--text-sm);
   text-align: start;
-  color: var(--muted);
+  color: var(--text);
   /* --surface, not the sunken --surface-2 every other field in the kit takes:
      those sit on a card and this one sits on the band, and the band IS --bg, the
      bottom of the ladder — so a sunken fill has nowhere to go but down into its
@@ -402,7 +402,7 @@
   letter-spacing: var(--tracking-tight);
   margin-bottom: 8px;
 }
-.ui-app__sub { color: var(--dim); font-size: calc(var(--text-base) + 0.5px); line-height: 1.6; max-width: var(--prose-body); margin-bottom: 32px; }
+.ui-app__sub { color: var(--text); font-size: calc(var(--text-base) + 0.5px); line-height: 1.6; max-width: var(--prose-body); margin-bottom: 32px; }
 .ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling
@@ -509,10 +509,10 @@
 .ui-auth__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; }
 .ui-auth__brand span { font-size: calc(var(--text-base) + 0.5px); font-weight: 600; color: var(--strong); }
 .ui-auth__title { color: var(--strong); font-size: calc(var(--text-xl) + 2px); font-weight: 600; letter-spacing: -0.01em; margin-bottom: 7px; }
-.ui-auth__sub { color: var(--dim); font-size: var(--text-base); line-height: 1.55; margin-bottom: 26px; }
-.ui-auth__foot { margin-top: 24px; text-align: center; font-size: var(--text-sm); color: var(--muted); }
+.ui-auth__sub { color: var(--text); font-size: var(--text-base); line-height: 1.55; margin-bottom: 26px; }
+.ui-auth__foot { margin-top: 24px; text-align: center; font-size: var(--text-sm); color: var(--text); }
 .ui-auth__foot a { color: var(--accent); }
-.ui-divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--muted); font-size: calc(var(--text-xs) + 1px); }
+.ui-divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--text); font-size: calc(var(--text-xs) + 1px); }
 .ui-divider::before, .ui-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 /* App scope grant list (OAuth consent) */
@@ -528,7 +528,7 @@
 }
 .ui-scope__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 .ui-scope__t { color: var(--strong); font-size: calc(var(--text-base) - 0.5px); font-weight: 500; }
-.ui-scope__d { color: var(--dim); font-size: var(--text-sm); margin-top: 2px; line-height: 1.5; }
+.ui-scope__d { color: var(--text); font-size: var(--text-sm); margin-top: 2px; line-height: 1.5; }
 
 /* -- Landing hero -------------------------------------------------------- */
 .ui-hero {
@@ -567,7 +567,7 @@
 }
 .ui-hero__sub {
   font-size: clamp(16px, 2.1vw, 20px);
-  color: var(--dim);
+  color: var(--text);
   max-width: var(--prose-lede);
   margin: 0 auto 34px;
   line-height: 1.6;
@@ -595,8 +595,8 @@
 }
 .ui-feature__icon svg { width: 25px; height: 25px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 .ui-feature h3 { color: var(--strong); font-size: calc(var(--text-lg) - 1px); font-weight: 600; margin-bottom: 7px; }
-.ui-feature p { color: var(--dim); font-size: var(--text-base); line-height: 1.6; }
+.ui-feature p { color: var(--text); font-size: var(--text-base); line-height: 1.6; }
 
 .ui-section-head { text-align: center; max-width: var(--panel-lg); margin: 0 auto clamp(40px, 6vh, 64px); }
 .ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
-.ui-section-head p { color: var(--dim); font-size: calc(var(--text-lg) - 1px); line-height: 1.6; }
+.ui-section-head p { color: var(--text); font-size: calc(var(--text-lg) - 1px); line-height: 1.6; }

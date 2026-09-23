@@ -272,8 +272,8 @@ test('the resolver reaches the real cascade', () => {
     + 'state selectors are not matching, so the focus gate is checking nothing',
   );
   assert.equal(
-    r.css('.ui-nav__item.is-danger', 'color'), colour(r.vars.get('--muted')),
-    'the destructive row is not --muted at rest — the resolver is not reading nav.css',
+    r.css('.ui-nav__item.is-danger', 'color'), colour(r.vars.get('--text')),
+    'the destructive row is not --text at rest — the resolver is not reading nav.css',
   );
 
   // The ::before stand-in resolves the marker's own declarations.

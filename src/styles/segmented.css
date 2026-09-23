@@ -15,7 +15,7 @@
   font-size: calc(var(--text-sm) + 0.5px);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.02em;
-  color: var(--dim);
+  color: var(--text);
   background: none;
   border: 0;
   padding: 7px 18px;
@@ -23,7 +23,7 @@
   cursor: pointer;
   transition: color var(--dur-med) var(--ease), background var(--dur-med) var(--ease);
 }
-.ui-seg button:hover { color: var(--text); }
+.ui-seg button:hover { color: var(--strong); }
 /* aria-pressed is what segmented() emits now; aria-selected is kept so markup
    copied from an older release keeps painting its active pill. */
 .ui-seg button.is-active,

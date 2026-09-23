@@ -99,7 +99,7 @@
 }
 .ui-cmdk__search-ic {
   display: inline-flex;
-  color: var(--muted);
+  /* muted-ink: glyph — search icon */ color: var(--muted);
   flex: none;
 }
 /* 2.2 of a 24 box drawn at 17px = 1.56 CSS px, which is what keeps the mark a
@@ -130,7 +130,7 @@
      already carries one, and the caret says where the typing goes. */
   outline: none;
 }
-.ui-cmdk__input::placeholder { color: var(--muted); }
+.ui-cmdk__input::placeholder { /* muted-ink: placeholder — empty command search */ color: var(--muted); }
 
 /* -- The list ------------------------------------------------------------- */
 
@@ -149,7 +149,7 @@
   padding: var(--space-2) var(--space-3) var(--space-1);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
-  color: var(--muted);
+  color: var(--text);
 }
 
 /* Row — [icon] [label + description] [badge] [keys]. A <div role="option">, so
@@ -183,7 +183,7 @@
 
 .ui-cmdk__ic {
   display: inline-flex;
-  color: var(--dim);
+  /* muted-ink: glyph — result icon */ color: var(--dim);
   flex: none;
 }
 /* 2.3 of a 24 box drawn at 16px = 1.53 CSS px. Same arithmetic as the dropdown's
@@ -208,10 +208,10 @@
 }
 .ui-cmdk__desc {
   font-size: var(--text-sm);
-  /* --dim and not --muted: a row's note is how two rows called INV-4812 and
+  /* Body ink: a row's note is how two rows called INV-4812 and
      INV-4809 are told apart, which is not something a reader may skip.
-     why: docs/specification.md#colour-and-contrast */
-  color: var(--dim);
+     why: docs/specification.md#text-ink */
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -224,7 +224,7 @@
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   font-size: var(--text-xs);
-  color: var(--dim);
+  color: var(--text);
 }
 
 /* Destructive rows take the kit's danger ink, never the accent, and stay quiet
@@ -232,8 +232,8 @@
    writes with :hover. A palette row is reached with an arrow key far more often
    than with a pointer, so `.is-active` carries the signal beside :hover: it is
    the same moment, and it is the row Enter would run.
-   why: docs/specification.md#colour-and-contrast */
-.ui-cmdk__item.is-danger .ui-cmdk__label { color: var(--muted); }
+   why: docs/specification.md#text-ink */
+.ui-cmdk__item.is-danger .ui-cmdk__label { color: var(--text); }
 .ui-cmdk__item.is-danger:hover .ui-cmdk__label,
 .ui-cmdk__item.is-danger.is-active .ui-cmdk__label { color: var(--pink); }
 .ui-cmdk__item.is-danger.is-active .ui-cmdk__ic { color: var(--pink); }
@@ -242,11 +242,11 @@
    for a control with no box of its own: --disabled-surface IS --surface-2,
    which is the panel behind it, so a disabled row paints no box a reader can
    see and its label is read on whatever the panel is.
-   why: docs/specification.md#colour-and-contrast */
-.ui-cmdk__item.is-disabled { cursor: default; color: var(--disabled-ink-bare); }
+   why: docs/specification.md#text-ink */
+.ui-cmdk__item.is-disabled { cursor: default; /* muted-ink: state — unavailable control */ color: var(--disabled-ink-bare); }
 .ui-cmdk__item.is-disabled .ui-cmdk__label,
 .ui-cmdk__item.is-disabled .ui-cmdk__desc,
-.ui-cmdk__item.is-disabled .ui-cmdk__ic { color: var(--disabled-ink-bare); }
+.ui-cmdk__item.is-disabled .ui-cmdk__ic { /* muted-ink: state — unavailable control */ color: var(--disabled-ink-bare); }
 
 /* -- Keys, empty state, legend -------------------------------------------- */
 
@@ -262,7 +262,7 @@
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.5;
-  color: var(--dim);
+  color: var(--text);
   text-align: center;
 }
 
@@ -271,7 +271,7 @@
   padding: var(--space-6) var(--space-4) var(--space-8);
   text-align: center;
   font-size: var(--text-base);
-  color: var(--dim);
+  color: var(--text);
 }
 
 .ui-cmdk__foot {
@@ -281,7 +281,7 @@
   padding: var(--space-2) var(--space-4);
   border-top: 1px solid var(--border);
   font-size: var(--text-xs);
-  color: var(--muted);
+  color: var(--text);
 }
 .ui-cmdk__foot span { display: inline-flex; align-items: center; gap: 5px; }
 

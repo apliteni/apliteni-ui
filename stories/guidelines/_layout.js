@@ -27,7 +27,7 @@ const SPEC_CSS = `
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
     .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
-      font: 500 11px/1 var(--font-sans); color: var(--muted); }
+      font: 500 11px/1 var(--font-sans); color:var(--text); }
     .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
       background: var(--muted); box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 22%, transparent); }
     /* A specimen confirm joins the flow; its scrim would else cover the page. */
@@ -51,21 +51,21 @@ const PAGE_CSS = `
       grid-template-columns: repeat(auto-fit, minmax(min(var(--gl-cell), 100%), 1fr));
       gap: var(--space-4); }
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-    .gc-cell__cap { font: 400 12px/1.55 var(--font-sans); color: var(--muted); }
+    .gc-cell__cap { font: 400 12px/1.55 var(--font-sans); color:var(--text); }
 
-    .gc-why { font: 400 13px/1.65 var(--font-sans); color: var(--dim); margin: 0; max-width: var(--prose-dense); }
+    .gc-why { font: 400 13px/1.65 var(--font-sans); color:var(--text); margin: 0; max-width: var(--prose-dense); }
 
     /* Label stays --muted: --amber as text misses AA on this page. */
     .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
       box-shadow: inset 2px 0 0 var(--amber);
       font: 400 12.5px/1.65 var(--font-sans); color: var(--text); max-width: var(--prose-dense); }
-    .gc-except__label { font: 600 10.5px/1.7 var(--font-sans); color: var(--muted);
+    .gc-except__label { font: 600 10.5px/1.7 var(--font-sans); color:var(--text);
       margin-right: var(--space-2); }
 
     /* The citations, stripped to addresses and set on one line. Three lines of
        "hovers to --pink" said the same thing three times. */
     .gc-refs { margin-top: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-2);
-      font: 400 12px/1.6 var(--font-sans); color: var(--muted); }
+      font: 400 12px/1.6 var(--font-sans); color:var(--text); }
 
     /* Legible and nothing more. What a rule the kit does not meet should look
        like is decided separately, and replaces this rule and unmetLine(). */

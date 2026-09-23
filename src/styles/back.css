@@ -30,7 +30,7 @@
    and outranks a bare class: it would paint this in the host's link colour.
    (0,2,0) wins without !important — the argument `.ui-nav .ui-nav__item` makes
    in nav.css. */
-.ui-back[href] { color: var(--dim); }
+.ui-back[href] { color: var(--text); }
 .ui-back[href]:hover { color: var(--strong); background: var(--surface-2); }
 .ui-back:focus-visible { outline: none; box-shadow: var(--ring); }
 

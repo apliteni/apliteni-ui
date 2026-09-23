@@ -13,7 +13,7 @@
 /* Required marker. Decoration only — the control carries `required`, which is
    what assistive technology reads, so this asterisk is aria-hidden. */
 .ui-field__req { color: var(--pink); margin-left: 4px; }
-.ui-field__hint { color: var(--muted); font-size: var(--text-sm); margin-top: 7px; line-height: 1.5; }
+.ui-field__hint { color: var(--text); font-size: var(--text-sm); margin-top: 7px; line-height: 1.5; }
 .ui-field__error { color: var(--pink); font-size: var(--text-sm); margin-top: 7px; display: flex; align-items: center; gap: 6px; }
 .ui-field__error svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 
@@ -45,7 +45,7 @@
 }
 
 .ui-input::placeholder,
-.ui-textarea::placeholder { color: var(--muted); opacity: 0.9; }
+.ui-textarea::placeholder { /* muted-ink: placeholder — empty form field */ color: var(--muted); opacity: 0.9; }
 
 /* The value a reader typed is still the value; it goes quiet, it does not fade
    into the field under it the way an opacity would take both down together. #220 */
@@ -59,7 +59,7 @@
 .ui-textarea:disabled {
   background: var(--disabled-surface);
   border-color: var(--disabled-border);
-  color: var(--disabled-ink);
+  /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: not-allowed;
 }
 
@@ -75,7 +75,7 @@
   left: 14px;
   width: 17px;
   height: 17px;
-  color: var(--muted);
+  /* muted-ink: glyph — field icon */ color: var(--muted);
   pointer-events: none;
 }
 .ui-input-group__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.2; }
