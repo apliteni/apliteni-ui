@@ -71,8 +71,8 @@ export const RULES = [
   {
     id: 'focus-visible',
     imperative: 'Give every focusable control the same --ring, and only on :focus-visible.',
-    why: 'One ring means a keyboard reader learns the shape once, and a mouse click never sees it.',
-    except: '--ring is part of the accent family and re-points per sub-theme, so the colour moves even though the shape does not.',
+    why: 'One separated band and halo identify focus consistently; the browser decides when focus needs to be visible.',
+    except: 'Text-entry controls can match :focus-visible on mouse focus. Surface backgrounds re-point the gap and recompose --ring; width and colour can be tuned at the root.',
     doCaption: 'Button and input wear one ring.',
     dontCaption: 'The input draws its own.',
     doHtml: focusDo,
@@ -80,7 +80,7 @@ export const RULES = [
     kit: [
       { ref: 'src/styles/base.css:140', pattern: '.ui-focusable:focus-visible,' },
       { ref: 'src/styles/base.css:146', pattern: 'box-shadow: var(--ring);' },
-      { ref: 'src/tokens/tokens.css:237', pattern: '--ring: 0 0 0 3px var(--accent);' },
+      { ref: 'src/tokens/tokens.css:237', pattern: '--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),' },
     ],
   },
   {

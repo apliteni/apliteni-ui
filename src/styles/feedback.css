@@ -66,7 +66,7 @@
 /* The composer panel (bottom-centre) */
 .ui-fbcomposer {
   position: fixed; z-index: 71; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(14px);
-  width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); border-radius: 18px;
+  width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); --ring-gap: var(--bg-elevated); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent); border-radius: 18px;
   /* The shadow was its only edge until #295; now it takes the hairline. */
   border: 1px solid var(--border); opacity: 0; pointer-events: none;
   transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease); overflow: hidden;
@@ -88,7 +88,7 @@
   color: var(--strong); background: var(--surface-2); border: 0; border-radius: 12px; padding: 13px 15px; transition: box-shadow var(--dur-fast) var(--ease);
 }
 .ui-fbcomposer textarea::placeholder { /* muted-ink: placeholder — empty feedback field */ color: var(--muted); }
-.ui-fbcomposer textarea:focus { outline: none; box-shadow: 0 0 0 2px var(--accent); }
+.ui-fbcomposer textarea:focus-visible { outline: none; box-shadow: var(--ring); }
 .ui-fbc__foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 20px 18px; }
 
 .ui-fbbtn { font-family: var(--font-sans); font-size: calc(var(--text-sm) + 0.5px); font-weight: var(--weight-semibold); border-radius: 10px; padding: 9px 17px; cursor: pointer; border: 0; transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }

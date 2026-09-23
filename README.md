@@ -151,6 +151,12 @@ Each accent re-points only the accent family (`--accent`, `--purple*`, `--glow-p
 stay put — so **every accent works in both themes** and every component follows with no
 component-level change.
 
+Focus uses a surface-coloured gap, a solid band and a decorative glow. Tune
+`--ring-width`, `--ring-color`, `--ring-gap-width` and `--ring-gap` at the root;
+`--ring` remains the composed shadow. Kit surfaces recompose it to match their
+background, so an ancestor's custom `--ring` must also be applied on those surfaces.
+See [the focus-ring contract](docs/specification.md#the-focus-ring).
+
 Both attributes are overrides, not requirements: with neither present the kit paints dark
 Nebula, and `data-accent` alone paints that accent on the dark theme. An absent `data-theme`
 is *not* "follow the system" — the kit ships no `prefers-color-scheme` rule, so a host that

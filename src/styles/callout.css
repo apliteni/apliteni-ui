@@ -154,7 +154,7 @@
 .ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-ink) 55%, transparent); }
 
 /* style: outline — elevated card with a status-tinted border */
-.ui-toast--outline { background: var(--bg-elevated); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); --elev-edge: color-mix(in srgb, var(--toast-accent) 20%, transparent); }
+.ui-toast--outline { background: var(--bg-elevated); --ring-gap: var(--bg-elevated); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent); border: 1px solid color-mix(in srgb, var(--toast-accent) 40%, transparent); --elev-edge: color-mix(in srgb, var(--toast-accent) 20%, transparent); }
 
 /* compact — single line, no body text */
 .ui-toast--compact { align-items: center; padding-top: 10px; padding-bottom: 10px; }

@@ -25,6 +25,7 @@ import {
 // because this file has a leafRules() of its own, on a different shape.
 import { leafRules as motionRules, inNet, ms } from '../lib/motion-css.js';
 import { appShell } from '../../src/components/shell.js';
+import { layersOf, geometryOf } from '../../scripts/lib/box-shadow.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1270,10 +1271,12 @@ test('the nav inside the rail keeps its own height, so the rail is what scrolls'
 
 // overflow clips at the padding box, so a spread-only box-shadow survives
 // exactly as far as the scroll container's own padding.
-test('the rail\'s scroll box has room for a focus ring at every edge', () => {
-  const spread = /0\s+0\s+0\s+(\d+(?:\.\d+)?)px/.exec(tokensFor('dark').get('--ring'));
-  assert.ok(spread, '--ring is no longer a spread-only shadow — re-derive what clips it');
-  const need = Number(spread[1]);
+test('the rail\'s scroll box has room for the solid focus band at every edge', () => {
+  const vars = tokensFor('dark');
+  const bands = layersOf(substitute(vars.get('--ring'), vars)).map(geometryOf).filter((g) => g.blur === 0);
+  assert.equal(bands.length, 2, 'the gap and solid band must both be measured');
+  const need = Math.max(...bands.map((g) => g.spread));
+  assert.ok(Number.isFinite(need) && need > 0, 'the solid footprint did not resolve');
   for (const [mode, html, narrow] of [['wide', SHELL, false], ['folded', SHELL, true], ['collapsed', PAIR(true), false]]) {
     const at = mount(html, { narrow });
     for (const side of ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft']) {

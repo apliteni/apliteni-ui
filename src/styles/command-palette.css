@@ -68,7 +68,7 @@
   display: flex;
   flex-direction: column;
   font-family: var(--font-sans);
-  background: var(--cmdk-surface);
+  background: var(--cmdk-surface); --ring-gap: var(--cmdk-surface); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
   /* The two-step edge and the drop: --border-strong outside, --border one pixel
      inside it, then the broad faint drop. why: docs/specification.md#elevation */
   border: 1px solid var(--border-strong);

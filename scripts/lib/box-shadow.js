@@ -32,6 +32,13 @@ export function layersOf(value) {
  * is what lets the same reader work on a substituted value and on a raw one. */
 const LENGTH = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:px|rem|em)?$/;
 
+// The ring adds its two independently tunable px lengths; unknown math stays unread.
+const lengthValue = (word) => {
+  if (LENGTH.test(word)) return Number.parseFloat(word);
+  const sum = /^calc\(\s*([+-]?[\d.]+)px\s*([+-])\s*([+-]?[\d.]+)px\s*\)$/.exec(word);
+  return sum ? Number(sum[1]) + (sum[2] === '+' ? 1 : -1) * Number(sum[3]) : Number.NaN;
+};
+
 /** The top-level words of a layer, with a function and its brackets kept whole. */
 function wordsOf(layer) {
   const out = [];
@@ -53,7 +60,7 @@ export function geometryOf(layer) {
   const words = wordsOf(layer).filter((w) => w !== 'inset');
   const nums = [];
   for (const [i, word] of words.entries()) {
-    if (LENGTH.test(word)) { nums.push(Number.parseFloat(word)); continue; }
+    if (!Number.isNaN(lengthValue(word))) { nums.push(lengthValue(word)); continue; }
     /* A var() standing where a length belongs — `0 var(--y) 10px black` — is a
      * length this reader cannot resolve, and reporting 0 for it would call an
      * offset layer flat and let a cast shadow through isCast(). NaN says "not
@@ -62,7 +69,7 @@ export function geometryOf(layer) {
      * substitute and read it again. A var() in the LAST slot is the colour —
      * `inset 1px 0 0 var(--border)` is how the drawer writes its line — and a
      * colour function is never a length. #314 nit 8. */
-    if (word.startsWith('var(') && i < words.length - 1 && nums.length < 4) { nums.push(Number.NaN); continue; }
+    if ((word.startsWith('var(') || word.startsWith('calc(')) && i < words.length - 1 && nums.length < 4) { nums.push(Number.NaN); continue; }
     break;
   }
   const [x = 0, y = 0, blur = 0, spread = 0] = nums;
@@ -74,6 +81,19 @@ export function isCast(layer) {
   if (/(^|\s)inset(\s|$)/.test(layer)) return false;
   const { x, y, blur } = geometryOf(layer);
   return x !== 0 || y !== 0 || blur !== 0;
+}
+
+/** Only the approved three-layer focus treatment may add a decorative halo.
+ * why: docs/specification.md#the-focus-ring */
+export function isFocusRing(value) {
+  const layers = layersOf(value);
+  if (layers.length !== 3 || layers.some((layer) => /\binset\b/.test(layer))) return false;
+  const geometry = layers.map(geometryOf);
+  if (geometry.some(({ x, y }) => x !== 0 || y !== 0)) return false;
+  if (geometry[0].blur !== 0 || geometry[0].spread !== 1
+    || geometry[1].blur !== 0 || geometry[1].spread !== 3
+    || geometry[2].blur !== 12 || geometry[2].spread !== 2) return false;
+  return inkOf(layers[2]) === `color-mix(in srgb, ${inkOf(layers[1])} 45%, transparent)`;
 }
 
 /* Every box-shadow declaration in a stylesheet, with the selector it sits under.
@@ -139,7 +159,7 @@ export function inkOf(layer) {
     if (c === '(') depth += 1;
     else if (c === ')') depth -= 1;
     if (depth === 0 && /\s/.test(c)) {
-      if (word && !LENGTH.test(word)) return rest.slice(at).trim();
+      if (word && Number.isNaN(lengthValue(word))) return rest.slice(at).trim();
       if (word) at = i + 1;
       word = '';
       continue;

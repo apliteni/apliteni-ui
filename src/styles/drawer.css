@@ -57,7 +57,7 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  background: var(--drawer-surface);
+  background: var(--drawer-surface); --ring-gap: var(--drawer-surface); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
   /* A drawer is flush to a screen edge, so it has one edge rather than four and the
      two-step edge runs along that one: --border-strong on the edge rule below, the
      inner line one pixel inside it. This is the one floating surface that writes no

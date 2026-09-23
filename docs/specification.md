@@ -674,25 +674,51 @@ Decided in [#295](https://github.com/apliteni/apliteni-ui/issues/295), after
 
 ## The focus ring
 
-`--ring` is the accent at full opacity, declared once:
+The shared indicator is G2: a 1px surface-coloured gap, a 2px solid accent band,
+and a soft outer halo. The band carries contrast; the halo is decorative.
+Artur chose it on [#343](https://github.com/apliteni/apliteni-ui/issues/343), after
+comparing the three glow treatments. Glow alone did not reach 3:1 in that evidence.
 
 ```css
---ring: 0 0 0 3px var(--accent);
+--ring-width: 2px;
+--ring-color: var(--accent);
+--ring-gap-width: 1px;
+--ring-gap: var(--bg);
+--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),
+        0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color),
+        0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
 ```
 
-**Opaque**, because alpha was the entire gap. No alpha under 0.75 clears 3:1 in dark and none
-under 0.63 clears it in light, and both sit on the bar with nothing to spare. At full opacity the
-worst of the eight cells measures 4.22:1 and the best 8.40:1. A focus ring is a graphic; a
-translucent one is a glow, and the kit's glow is `--glow-purple`.
+`--ring` remains a composed shadow for `box-shadow: var(--ring)` consumers.
+Tune the width, colour and gap at `:root`, or at a surface that composes the ring.
+A descendant-only change to one of those inputs cannot alter an already inherited
+shadow: CSS resolves custom-property references where the composition is declared.
 
-**Derived, not copied.** Re-pointing `--accent` re-points the ring. Light declares an accent and
-inherits the ring, and so does every sub-theme — there is no second declaration to keep in step.
+Every kit surface that paints `--bg-elevated`, including surfaces using a local
+alias and the React modal, sets `--ring-gap` to its background and recomposes
+`--ring`. Cards and the application rail do the same for their own surface colours.
+Custom surfaces must do both too; changing only the gap leaves the inherited shadow
+unchanged. The composition is repeated deliberately and a discovered-surface gate
+keeps each copy equal to the token recipe.
 
-The gate sweeps all eight theme × accent cells and carries two numbers: the 3:1 the standard asks
-for, and a 4.22 ratchet at what the kit actually reaches. The ratchet fires while the ring is
-still legal, which is the only warning anyone gets before it is not.
+**Compatibility boundary:** a direct `--ring` override still works. An ancestor's
+legacy `--ring` override does not cross a surface that recomposes it; apply the override
+on that surface as well, or tune the component tokens at the root. Focus rings compose
+in front of an existing floating panel's edge and drop, rather than replacing them.
 
-Decided in [#218](https://github.com/apliteni/apliteni-ui/issues/218).
+Controls use native `:focus-visible`, including inputs, textareas, selects and invalid
+fields. Text-entry controls can match it on mouse focus because the browser expects
+keyboard input there; this is not a promise of keyboard-only rings. Invalid borders
+keep their error colour while focus uses the shared band. No JavaScript modality
+tracker is required.
+
+The solid band's unchanged colour is still held at 4.22:1 against the story-derived
+flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
+measurements must additionally check both actual band neighbours across every shipped
+accent, both themes, and the page and elevated grounds. The glow brightens or darkens
+the outer neighbour and therefore reduces that edge's contrast relative to bare ground.
+The ring reserves no layout space; its 3px solid footprint and approximately 15px faint
+halo can be clipped by an ancestor's overflow boundary.
 
 ## A field is 16px on a touch screen
 

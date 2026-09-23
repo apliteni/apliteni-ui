@@ -16,7 +16,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, composite, ratio } from './lib/contrast.js';
-import { boxShadowsIn, customPropertiesIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, TREATMENT_DROP } from '../scripts/lib/box-shadow.js';
+import { boxShadowsIn, customPropertiesIn, layersOf, isCast, isFocusRing, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, TREATMENT_DROP } from '../scripts/lib/box-shadow.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -62,8 +62,8 @@ const sweep = STYLE_FILES.flatMap((file) =>
 // Asserted so coverage cannot shrink to zero and stay green. Moving it means
 // recording the change: CONTRIBUTING.md#the-elevation-gate-and-its-counts
 test('the sweep sees every box-shadow the kit ships', () => {
-  assert.equal(sweep.length, 41,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 41. `
+  assert.equal(sweep.length, 42,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 42. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -89,6 +89,7 @@ test('the only cast shadow under src/ is the floating treatment', () => {
     for (const d of sweep) {
       for (const raw of layersOf(d.value)) {
         if (raw === TREATMENT_DROP) { floating += 1; continue; }
+        if (raw === 'var(--ring)' && resolutionsOf(raw, cascade).every(isFocusRing)) continue;
         const casts = resolutionsOf(raw, cascade).some((v) => layersOf(v).some(isCast));
         if (!casts) continue;
         offences.push(`${d.file}:${d.line} (${theme})  ${d.selector} { box-shadow: … ${raw} … }`);

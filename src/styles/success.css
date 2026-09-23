@@ -19,7 +19,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 20px;
-  background: var(--bg-elevated);   /* the floating step carries it. #295 */
+  background: var(--bg-elevated); --ring-gap: var(--bg-elevated); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);   /* the floating step carries it. #295 */
   border: 1px solid var(--border);
   isolation: isolate;
 }

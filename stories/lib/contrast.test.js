@@ -469,3 +469,12 @@ test('effectiveBackground composites a translucent chain identically with and wi
   assert.equal(calls, 4, `two walks of a four-node chain must cost four lookups, cost ${calls}`);
   win.close();
 });
+
+// Surface ring copies must not manufacture a more specific state rule.
+test('identical contextual values do not outrank a later state', () => {
+  const css = '.surface.a { --ink: red } .surface.b { --ink: red } .item { color: var(--ink) } .item.selected { color: blue }';
+  const resolved = substitute(specialiseContextual(css), new Map([['--ink', 'red']]));
+  const dom = new JSDOM(`<style>${resolved}</style><div class="surface a"><span class="item selected">Selected</span></div>`);
+  assert.equal(dom.window.getComputedStyle(dom.window.document.querySelector('.item')).color, 'rgb(0, 0, 255)');
+  dom.window.close();
+});

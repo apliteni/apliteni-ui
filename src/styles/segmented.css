@@ -54,4 +54,4 @@
 .ui-accent-picker button.is-active {
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent));
 }
-.ui-accent-picker button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent)); }
+.ui-accent-picker button:focus-visible { outline: none; box-shadow: var(--ring); }

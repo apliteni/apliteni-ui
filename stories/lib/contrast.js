@@ -174,7 +174,7 @@ function substituteOnce(css, vars) {
 
 /**
  * Emit a variant-scoped copy of every declaration that consumes a custom
- * property declared more than once outside :root. See the header.
+ * property with distinct values outside :root. See the header.
  */
 export function specialiseContextual(css) {
   const decls = new Map(); // prop -> [[declaring selector, value], …]
@@ -194,7 +194,8 @@ export function specialiseContextual(css) {
       decls.get(n).push([s, d.slice(i + 1).trim()]);
     }
   }
-  const contextual = [...decls].filter(([, ds]) => ds.length > 1);
+  // Identical surface ring recipes are not variants; duplicating them adds specificity and work.
+  const contextual = [...decls].filter(([, ds]) => new Set(ds.map(([, value]) => value)).size > 1);
   if (!contextual.length) return css;
 
   // Each specialised copy is emitted IMMEDIATELY AFTER the rule it specialises,

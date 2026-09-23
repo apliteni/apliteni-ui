@@ -19,6 +19,7 @@ import path from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { layersOf, inkOf, isFocusRing } from '../../scripts/lib/box-shadow.js';
 import {
   STYLE_FILES, kitCssFor, substitute, desugar, parseColour, composite, ratio,
   effectiveBackground, makeStyleCache, installDomGlobals, storyFiles,
@@ -749,7 +750,9 @@ const ringRun = await (async () => {
     // --ring is a var() now, not a literal, so it is resolved through the same
     // token map the sheet is. Reading the raw declaration would find no colour.
     const ringValue = substitute(vars.get('--ring') || '', vars);
-    const ring = parseColour((/rgba?\([^)]*\)|#[0-9a-f]{3,8}/i.exec(ringValue) || [])[0]);
+    assert.ok(isFocusRing(ringValue), `${theme}/${accent}: the shared ring lost the G2 shape`);
+    const ring = parseColour(inkOf(layersOf(ringValue)[1]));
+    assert.ok(ring, `${theme}/${accent}: the solid band colour did not resolve`);
     const landings = new Map();
     const { stories } = await walk(win, styles, vars, () => {
       for (const sel of selectors) {
@@ -833,18 +836,22 @@ test('ring: the floor page claims no gap, because there is none', () => {
   assert.equal(ring.unmet, undefined, 'the ring clears the bar — retire the ledger rather than leaving it');
 });
 
-// Every ring in the kit is the same one declaration. A second --ring anywhere
-// is a copy that will drift, which is exactly what #218 found eight of.
-test('ring: --ring is declared once, and it is the accent', () => {
-  // Every stylesheet under src/, found rather than listed — a ninth --ring in a
-  // file nobody thought to name is the failure this is here to catch.
+// Surfaces recompose the same recipe so their gap colour reaches descendant rings.
+// The browser evidence measures blur edges; this walk measures the solid band against flat grounds.
+test('ring: surface compositions retain the same tunable G2 recipe', () => {
+  // Discover every composition so a new surface cannot introduce a different recipe.
   const declared = readdirSync(path.join(root, 'src'), { recursive: true })
     .map((f) => String(f).split(path.sep).join('/'))
     .filter((f) => f.endsWith('.css'))
     .sort()
     .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
       .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
-  assert.deepEqual(declared, ['src/tokens/tokens.css: 0 0 0 3px var(--accent)']);
+  const canonical = tokensFor('dark').get('--ring');
+  assert.equal(declared.length, 16, 'root plus 15 vanilla surface compositions; React owns its modal');
+  for (const entry of declared) assert.equal(entry.slice(entry.indexOf(': ') + 2), canonical, entry);
+  for (const token of ['--ring-width', '--ring-color', '--ring-gap-width', '--ring-gap']) {
+    assert.ok(canonical.includes(`var(${token})`), `${token} no longer tunes the composition`);
+  }
 });
 
 // ---- 3. the disabled legibility floor --------------------------------------

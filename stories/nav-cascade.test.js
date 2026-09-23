@@ -63,7 +63,8 @@ function substitute(css, vars) {
     out = out.replace(/var\(\s*(--[\w-]+)\s*(?:,([^()]*))?\)/g, (m, name, fallback) =>
       vars.has(name) ? vars.get(name) : (fallback != null ? fallback.trim() : m));
   }
-  return out;
+  // JSDOM drops calc() in a shadow length; Chromium coverage measures the real value.
+  return out.replace(/calc\(([-\d.]+)px \+ ([-\d.]+)px\)/g, (_, a, b) => `${Number(a) + Number(b)}px`);
 }
 
 // JSDOM hands colours back as rgb(); the token file writes them as hex.
@@ -198,15 +199,8 @@ test("the active nested row's marker paints inside the nav box", () => {
 for (const [theme, accent] of THEMES) {
   test(`every focusable row shows the ring on :focus-visible — ${theme} / ${accent}`, () => {
     const r = rail(theme, accent);
-    // --ring is `0 0 0 3px var(--accent)` since #218 — one declaration that
-    // every theme and accent re-points through --accent. vars holds raw
-    // declarations, so the reference is resolved here the way the cascade
-    // resolves it, before it is compared against a computed box-shadow.
-    const deref = (v) => String(v ?? '').replace(
-      /var\(\s*(--[\w-]+)\s*(?:,([^()]*))?\)/g,
-      (m, name, fallback) => (r.vars.has(name) ? r.vars.get(name) : (fallback ?? m).trim()),
-    ).trim();
-    const ring = deref(r.vars.get('--ring'));
+    // Resolve nested width, gap and colour tokens before comparing the composed shadow.
+    const ring = substitute(r.vars.get('--ring') || '', r.vars).trim();
     assert.ok(ring, `no --ring token resolved for ${theme}/${accent} — the harness is not reading the kit`);
     assert.ok(!ring.includes('var('), `--ring did not resolve for ${theme}/${accent}: ${ring}`);
 

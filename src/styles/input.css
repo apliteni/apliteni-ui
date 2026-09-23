@@ -36,9 +36,9 @@
 .ui-textarea:hover,
 .ui-select:hover { border-color: var(--border-strong); }
 
-.ui-input:focus,
-.ui-textarea:focus,
-.ui-select:focus {
+.ui-input:focus-visible,
+.ui-textarea:focus-visible,
+.ui-select:focus-visible {
   outline: none;
   border-color: var(--accent);
   box-shadow: var(--ring);
@@ -65,7 +65,7 @@
 
 .ui-input.is-invalid,
 .ui-textarea.is-invalid { border-color: var(--pink); }
-.ui-input.is-invalid:focus { box-shadow: 0 0 0 3px var(--glow-pink); }
+/* Invalid fields keep the shared focus indicator; their border carries the error. */
 
 /* Input with a leading icon / adornment */
 .ui-input-group { position: relative; display: flex; align-items: center; }
