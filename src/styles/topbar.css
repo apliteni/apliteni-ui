@@ -65,7 +65,7 @@
   border-radius: 24px;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
-.dtsw a:hover { color: var(--text); }
+.dtsw a:hover { color: var(--strong); }
 .dtsw a.cur { color: var(--strong); background: var(--surface); }
 
 /* Theme toggle — a single icon-only switch (no label). */
