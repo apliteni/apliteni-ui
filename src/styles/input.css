@@ -23,7 +23,7 @@
   font-family: var(--font-sans);
   font-size: var(--text-base);
   color: var(--strong);
-  background: var(--surface-2);
+  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px 15px;
@@ -39,7 +39,7 @@
 .ui-input:focus-visible,
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
-  outline: none;
+  outline: 2px solid transparent;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -57,7 +57,7 @@
 .ui-input:disabled,
 .ui-select:disabled,
 .ui-textarea:disabled {
-  background: var(--disabled-surface);
+  background: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-color: var(--disabled-border);
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: not-allowed;
@@ -117,7 +117,7 @@
   margin-top: 1px;
   border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-xs);
-  background: var(--surface-2);
+  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
@@ -159,7 +159,7 @@
   border-radius: 50%;
   background: var(--accent-contrast);
 }
-.ui-check input:focus-visible { outline: none; box-shadow: var(--ring); }
+.ui-check input:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 /* Toggle switch */
 .ui-switch {
@@ -175,7 +175,7 @@
 .ui-switch__track {
   position: absolute;
   inset: 0;
-  background: var(--surface-3);
+  background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: background var(--dur-med) var(--ease);
@@ -201,5 +201,5 @@
 .ui-switch input:checked + .ui-switch__track::before {
   transform: translateX(calc(var(--sw-w) - var(--sw-h)));
 }
-.ui-switch input:focus-visible + .ui-switch__track { box-shadow: var(--ring); }
+.ui-switch input:focus-visible + .ui-switch__track { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-switch input:disabled + .ui-switch__track { opacity: 0.5; cursor: not-allowed; }

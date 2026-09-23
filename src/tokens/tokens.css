@@ -405,3 +405,45 @@
   --prose-body: 62ch;
   --prose-dense: 72ch;
 }
+
+/* Recompose only at painted containers; controls inherit the outside gap.
+ * One recipe keeps surface propagation cheap and consistent.
+ * why: docs/specification.md#the-focus-ring */
+.amenu,
+.dtsw,
+.rx-modal,
+.ui-app__rail,
+.ui-auth__card,
+.ui-callout,
+.ui-card,
+.ui-card--accent,
+.ui-card--live,
+.ui-cmdk__panel,
+.ui-code,
+.ui-confirm__panel,
+.ui-drawer__footer,
+.ui-drawer__panel,
+.ui-dropdown__panel,
+.ui-fbcomposer,
+.ui-footer--app,
+.ui-seg,
+.ui-snippet,
+.ui-snippet--reveal,
+.ui-sx,
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
+.ui-table--zebra tbody tr:nth-child(even) td,
+.ui-table--zebra tbody tr:hover td,
+.ui-table--zebra.ui-table--hover tbody tr:hover td,
+.ui-toast--outline,
+.ui-toast--solid,
+.vsw__menu {
+  --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+}
+
+/* A container focused itself paints outside its own surface; descendants only
+ * inherit its inside gap again after focus moves to them. */
+.ui-card:focus-visible,
+.ui-cmdk__panel:focus-visible,
+.ui-confirm__panel:focus-visible,
+.ui-drawer__panel:focus-visible,
+.rx-modal:focus-visible { --ring-gap: inherit; }

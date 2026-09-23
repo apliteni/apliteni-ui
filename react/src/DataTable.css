@@ -9,7 +9,7 @@
   font: inherit;
   color: inherit;
 }
-.rx-sort:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 4px; }
+.rx-sort:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: 4px; }
 /* No opacity. The caret is a text glyph carrying the sort direction, so WCAG
    1.4.3 applies to it, and opacity: .5 took --muted from 6.11 to 2.16 in light
    and 5.82 to 2.39 in dark — under half the floor. --muted is already the kit's

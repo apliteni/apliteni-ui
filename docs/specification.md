@@ -698,8 +698,14 @@ Every kit surface that paints `--bg-elevated`, including surfaces using a local
 alias and the React modal, sets `--ring-gap` to its background and recomposes
 `--ring`. Cards and the application rail do the same for their own surface colours.
 Custom surfaces must do both too; changing only the gap leaves the inherited shadow
-unchanged. The composition is repeated deliberately and a discovered-surface gate
-keeps each copy equal to the token recipe.
+unchanged. One grouped rule composes the ring on painted containers. The app shell keeps
+the root composition because it uses the page background. A discovery gate follows
+background aliases, surface tokens and colour mixes through both workspaces; each
+subject either sets its gap or states locally why it inherits one. Controls keep the
+containing gap, not their own fill. Transparent washes keep the opaque containing
+gap rather than layering a translucent gap over the halo. Focusable cards and
+dialog/drawer panels inherit their outside gap while focused themselves; when focus
+moves inside, their children use the inside gap.
 
 **Compatibility boundary:** a direct `--ring` override still works. An ancestor's
 legacy `--ring` override does not cross a surface that recomposes it; apply the override
@@ -710,13 +716,15 @@ Controls use native `:focus-visible`, including inputs, textareas, selects and i
 fields. Text-entry controls can match it on mouse focus because the browser expects
 keyboard input there; this is not a promise of keyboard-only rings. Invalid borders
 keep their error colour while focus uses the shared band. No JavaScript modality
-tracker is required.
+tracker is required. Every shared-ring consumer retains a transparent 2px outline,
+which becomes a visible system outline when forced colours remove box shadows.
 
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
 measurements must additionally check both actual band neighbours across every shipped
-accent, both themes, and the page and elevated grounds. The glow brightens or darkens
-the outer neighbour and therefore reduces that edge's contrast relative to bare ground.
+accent, both themes, and the page and elevated grounds. Where the surface is itself near the accent, the band takes that surface's contrast ink:
+solid toasts use `--toast-ink` for `--ring-color`, retaining the same gap and glow geometry.
+The glow brightens or darkens the outer neighbour and therefore reduces that edge's contrast relative to bare ground.
 The ring reserves no layout space; its 3px solid footprint and approximately 15px faint
 halo can be clipped by an ancestor's overflow boundary.
 

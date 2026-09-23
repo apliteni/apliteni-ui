@@ -69,7 +69,7 @@
    rule about an ENABLED control out of the disabled-rule sweep in
    stories/guidelines/accessibility-floor.test.js, which reads selector text. */
 .ui-pager__page.is-current:not([disabled]) {
-  background: var(--surface-3);
+  background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-color: var(--border);
   color: var(--strong);
   font-weight: var(--weight-semibold);

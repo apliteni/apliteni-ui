@@ -15,7 +15,7 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background: var(--bg); /* ring-gap: inherit — page background inherits root overrides. */
   color: var(--text);
   font-family: var(--font-sans);
   font-weight: var(--weight-normal);
@@ -27,7 +27,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent); /* ring-gap: inherit — selection paint is not a focus container. */
   color: var(--strong);
 }
 
@@ -87,7 +87,7 @@ strong {
 
 /* Spotlight — a soft radial from the top-centre (auth cards, focused heroes). */
 .ui-bg-spotlight::before {
-  background: radial-gradient(620px 340px at 50% -12%, var(--glow-purple), transparent 70%);
+  background: radial-gradient(620px 340px at 50% -12%, var(--glow-purple), transparent 70%); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
 }
 /* Grid — a faint token-coloured grid, masked to fade at the edges. */
 .ui-bg-grid::before {
@@ -107,7 +107,7 @@ strong {
 }
 /* Accent wash — a gentle top-down tint in the current accent. */
 .ui-bg-wash::before {
-  background: linear-gradient(180deg, var(--glow-purple), transparent 45%);
+  background: linear-gradient(180deg, var(--glow-purple), transparent 45%); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
 }
 
 /* Layout helpers used by the example apps */
@@ -142,6 +142,6 @@ svg:where(:not([width]):not([height])) {
 .ui-input:focus-visible,
 .ui-seg button:focus-visible,
 .ui-switch:focus-visible {
-  outline: none;
+  outline: 2px solid transparent;
   box-shadow: var(--ring);
 }

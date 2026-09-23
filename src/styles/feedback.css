@@ -66,7 +66,7 @@
 /* The composer panel (bottom-centre) */
 .ui-fbcomposer {
   position: fixed; z-index: 71; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(14px);
-  width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); --ring-gap: var(--bg-elevated); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent); border-radius: 18px;
+  width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); --ring-gap: var(--bg-elevated); border-radius: 18px;
   /* The shadow was its only edge until #295; now it takes the hairline. */
   border: 1px solid var(--border); opacity: 0; pointer-events: none;
   transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease); overflow: hidden;
@@ -76,29 +76,29 @@
 .ui-fbc__head { display: flex; align-items: center; gap: 12px; padding: 17px 20px 0; }
 .ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ui-fbc__chip svg { width: 14px; height: 14px; flex: none; opacity: .85; stroke-width: 2.7; }
-.ui-fbc__x { margin-left: auto; background: var(--surface-2); /* muted-ink: glyph — dismiss icon */ color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; font: inherit; }
+.ui-fbc__x { margin-left: auto; background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ /* muted-ink: glyph — dismiss icon */ color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; font: inherit; }
 .ui-fbc__x:hover { color: var(--strong); }
 .ui-fbc__x svg { width: 14px; height: 14px; stroke-width: 2.7; }
-.ui-fbc__quote { margin: 14px 20px 0; background: var(--surface-2); border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }
+.ui-fbc__quote { margin: 14px 20px 0; background: var(--surface-2); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }
 .ui-fbc__qm { color: var(--accent); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
 .ui-fbc__quote q { quotes: none; color: var(--text); font-style: italic; font-size: calc(var(--text-sm) + 0.5px); line-height: 1.55; }
 .ui-fbc__body { padding: 14px 20px 0; }
 .ui-fbcomposer textarea {
   width: 100%; min-height: 96px; resize: vertical; font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.55;
-  color: var(--strong); background: var(--surface-2); border: 0; border-radius: 12px; padding: 13px 15px; transition: box-shadow var(--dur-fast) var(--ease);
+  color: var(--strong); background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ border: 0; border-radius: 12px; padding: 13px 15px; transition: box-shadow var(--dur-fast) var(--ease);
 }
 .ui-fbcomposer textarea::placeholder { /* muted-ink: placeholder — empty feedback field */ color: var(--muted); }
-.ui-fbcomposer textarea:focus-visible { outline: none; box-shadow: var(--ring); }
+.ui-fbcomposer textarea:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-fbc__foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 20px 18px; }
 
 .ui-fbbtn { font-family: var(--font-sans); font-size: calc(var(--text-sm) + 0.5px); font-weight: var(--weight-semibold); border-radius: 10px; padding: 9px 17px; cursor: pointer; border: 0; transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
 .ui-fbbtn.ghost { background: transparent; color: var(--text); }
-.ui-fbbtn.ghost:hover { color: var(--strong); background: var(--surface-2); }
+.ui-fbbtn.ghost:hover { color: var(--strong); background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-fbbtn.primary { background: var(--accent-strong); color: var(--accent-contrast); display: inline-flex; align-items: center; gap: 9px; }
 .ui-fbbtn.primary:hover { filter: brightness(1.08); }
 /* Same flat pair as .ui-btn:disabled, for the same reason (#220). */
 .ui-fbbtn.primary:disabled {
-  background: var(--disabled-surface);
+  background: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: default;
   filter: none;
@@ -108,7 +108,7 @@
 @keyframes uiFbSpin { to { transform: rotate(360deg); } }
 
 /* Success state */
-.ui-fbc__done { padding: 30px 26px 24px; text-align: center; background: radial-gradient(112% 60% at 50% 0%, var(--glow-green), transparent 62%); }
+.ui-fbc__done { padding: 30px 26px 24px; text-align: center; background: radial-gradient(112% 60% at 50% 0%, var(--glow-green), transparent 62%); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 .ui-fbc__ck { width: 88px; height: 88px; margin: 0 auto 13px; display: grid; place-items: center; }
 .ui-fbck { width: 88px; height: 88px; overflow: visible; display: block; transform-origin: center; animation: uiFbCkSpring 1s cubic-bezier(.22,1,.3,1) both; } /* motion: choreographed — the frame the mark and the comet are timed against */
 .ui-fbck-t { fill: none; stroke: var(--surface-2); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
@@ -123,7 +123,7 @@
 @keyframes uiFbCkSpring { 0% { transform: scale(1.32); } 62% { transform: scale(.965); } 82% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
 /* Error banner */
-.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); color: var(--pink); font-size: var(--text-sm); padding: 11px 15px; border-radius: 11px; display: none; }
+.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); /* ring-gap: inherit — text-only validation message has no nested focus target. */ color: var(--pink); font-size: var(--text-sm); padding: 11px 15px; border-radius: 11px; display: none; }
 .ui-fbc__err.show { display: block; }
 /* A failed send's line fades in; wireFeedback() adds the class as it shows it. */
 .ui-fbc__err.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }

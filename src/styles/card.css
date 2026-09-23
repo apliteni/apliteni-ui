@@ -6,7 +6,7 @@
 /* Flat since #284 and edged in both themes since #295: the surface is the step, the
    line is what makes it legible. why: docs/specification.md#elevation */
 .ui-card {
-  background: var(--surface); --ring-gap: var(--surface); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  background: var(--surface); --ring-gap: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: var(--space-6) 26px;
@@ -28,11 +28,11 @@
 /* An accent-tinted card, e.g. a highlighted plan / success surface. The accent edge is
    the card's own hairline re-coloured: an inset ring over it would draw two. #295 */
 .ui-card--accent {
-  background: color-mix(in srgb, var(--accent) 9%, var(--surface)); --ring-gap: color-mix(in srgb, var(--accent) 9%, var(--surface)); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface)); --ring-gap: color-mix(in srgb, var(--accent) 9%, var(--surface));
   border-color: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .ui-card--live {
-  background: color-mix(in srgb, var(--green) 10%, var(--surface)); --ring-gap: color-mix(in srgb, var(--green) 10%, var(--surface)); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  background: color-mix(in srgb, var(--green) 10%, var(--surface)); --ring-gap: color-mix(in srgb, var(--green) 10%, var(--surface));
 }
 
 /* Interactive card (link / button semantics) */
@@ -89,7 +89,7 @@
   border-radius: var(--radius-md);
   display: grid;
   place-items: center;
-  background: var(--glow-purple);
+  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
   color: var(--accent);
   flex: none;
 }

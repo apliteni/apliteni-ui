@@ -217,7 +217,11 @@ export function specialiseContextual(css) {
     if (sel.trimStart().startsWith('@')) continue;
     for (const [prop, ds] of contextual) {
       if (!body.includes(`var(${prop})`)) continue;
-      const keep = body.split(';').filter((d) => d.includes(`var(${prop})`)).join(';');
+      // Custom declarations are substituted before JSDOM sees them; only real
+      // properties can affect paint. Copying token recipes multiplies selectors
+      // for no measured effect (surface gap × ring consumers in #343).
+      const keep = body.split(';').filter((d) => !d.trim().startsWith('--') && d.includes(`var(${prop})`)).join(';');
+      if (!keep) continue;
       for (const [dsel, val] of ds) {
         const scoped = dsel.split(',').flatMap((d) => sel.split(',')
           .map((x) => `${d.trim()} ${x.trim()}, ${d.trim()}${x.trim()}`)).join(', ');

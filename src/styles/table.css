@@ -42,7 +42,7 @@
   border-spacing: 0;
   padding: 0 var(--space-2);
 }
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td { background: var(--surface-2); }
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td { background: var(--surface-2); --ring-gap: var(--surface-2); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:first-child {
   border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
@@ -63,7 +63,7 @@
 
 .ui-table--zebra th { border-bottom-width: 2px; }
 .ui-table--zebra td { border-bottom: 0; }
-.ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); }
+.ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); --ring-gap: var(--surface-2); }
 /* The stripe stays full-bleed (the #71 inset above is hover only), but it only reads right
  * if the end cells are inset from the tint's own edge, and `.ui-table td` sets
  * `padding-left: 0`. Only `--dense` supplied that inset, so `--zebra` without `--dense` —
@@ -74,7 +74,7 @@
 .ui-table--zebra th:last-child,
 .ui-table--zebra td:last-child { padding-right: var(--space-3); }
 .ui-table--zebra.ui-table--hover tbody tr:hover td,
-.ui-table--zebra tbody tr:hover td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.ui-table--zebra tbody tr:hover td { --ring-gap: inherit; background: color-mix(in srgb, var(--accent) 8%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
 .ui-table th.ui-table__num { text-align: right; }

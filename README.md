@@ -155,6 +155,7 @@ Focus uses a surface-coloured gap, a solid band and a decorative glow. Tune
 `--ring-width`, `--ring-color`, `--ring-gap-width` and `--ring-gap` at the root;
 `--ring` remains the composed shadow. Kit surfaces recompose it to match their
 background, so an ancestor's custom `--ring` must also be applied on those surfaces.
+The page shell inherits root overrides; it does not introduce another composition.
 See [the focus-ring contract](docs/specification.md#the-focus-ring).
 
 Both attributes are overrides, not requirements: with neither present the kit paints dark

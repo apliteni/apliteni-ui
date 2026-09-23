@@ -5,7 +5,7 @@
 
 .ui-seg {
   display: inline-flex;
-  background: var(--surface-2);
+  background: var(--surface-2); --ring-gap: var(--surface-2);
   border-radius: var(--radius-2xl);
   padding: 3px;
   gap: 2px;
@@ -54,4 +54,4 @@
 .ui-accent-picker button.is-active {
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent));
 }
-.ui-accent-picker button:focus-visible { outline: none; box-shadow: var(--ring); }
+.ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }

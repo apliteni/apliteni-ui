@@ -69,9 +69,9 @@
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/specification.md#the-page-shell */
-.ui-nav__item:hover { background: var(--surface-2); color: var(--strong); }
+.ui-nav__item:hover { background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ color: var(--strong); }
 .ui-nav__item.is-active {
-  background: var(--surface-3);
+  background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--strong);
   font-weight: 500;
 }
@@ -88,8 +88,8 @@
   background: var(--accent);
   transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */
 }
-.ui-nav__item:focus-visible { outline: none; box-shadow: var(--ring); }
-.ui-nav__item.is-active:focus-visible { box-shadow: var(--ring); }
+.ui-nav__item:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-nav__item.is-active:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 .ui-nav__ic { display: inline-flex; flex: none; }
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
@@ -108,10 +108,10 @@
 /* Destructive row (sign out, revoke). Body ink at rest, --pink once a pointer or
    the keyboard reaches it — as .ui-btn--danger and .ui-dropdown__item do. */
 .ui-nav__item.is-danger { color: var(--text); }
-.ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
+.ui-nav__item.is-danger:hover { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
 /* Tabbing onto it is the same "about to click this" the pointer means. The ring
    says where you are; only this says what the row does. */
-.ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); color: var(--pink); }
+.ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
 /* An unavailable row uses disabled ink directly; opacity would also fade its
    background and pull its label toward the rail behind it (#220). */
 .ui-nav__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; pointer-events: none; }
@@ -124,7 +124,7 @@
    rules so it cannot out-rank them — sign out is never the current row, but a
    rule that could take its wash would be one to argue with later. */
 .ui-nav__item.is-active:not(.is-danger):hover {
-  background: color-mix(in srgb, var(--text) 10%, var(--surface-3));
+  background: color-mix(in srgb, var(--text) 10%, var(--surface-3)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
 }
 
 /* Per-item badge / counter */
@@ -140,17 +140,17 @@
   font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1;
-  background: var(--surface-3);
+  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   color: var(--text);
   /* The count fades with the words. It is never lost: sidebarNav() spells it
      into the row's aria-label, so "Pending 3" is what a reader hears at either
      width. */
   transition: opacity var(--dur-fast) var(--ease);
 }
-.ui-nav__badge.is-accent { background: var(--glow-purple); color: var(--accent); }
-.ui-nav__badge.is-live { background: var(--chip-success-fill); color: var(--chip-success-ink); }
-.ui-nav__badge.is-danger { background: var(--glow-pink); color: var(--pink); }
-.ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface-3); color: var(--strong); }
+.ui-nav__badge.is-accent { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--accent); }
+.ui-nav__badge.is-live { background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--chip-success-ink); }
+.ui-nav__badge.is-danger { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
+.ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); }
 /* Same shape, one row up: on an active row the accent counter takes the row's
    OWN surface instead of laying its wash over it. An active row is already
    painted --surface-3, so --glow-purple there is two tints stacked. Every
@@ -160,7 +160,7 @@
    it, the largest that clears being 0.06 in dark Nebula and 0.02 in light
    Emerald. So the accent wash is painted on a base surface, never a raised one.
    See #157 and docs/specification.md#colour-and-contrast. */
-.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface-3); color: var(--accent); }
+.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--accent); }
 
 /* Collapsible group */
 .ui-nav__group { display: flex; flex-direction: column; }
@@ -275,7 +275,7 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .ui-nav__tab:hover { color: var(--strong); }
-.ui-nav__tab:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+.ui-nav__tab:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: 8px; }
 .ui-nav__tab.is-active { color: var(--strong); }
 
 /* underline variant */
@@ -294,9 +294,9 @@
 
 /* pill variant */
 .ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
-.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface-2); }
+.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
-  background: var(--glow-purple);
+  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
   color: var(--accent);
 }
 
@@ -329,7 +329,7 @@
    does above: a linked crumb is an <a>, and a host stylesheet's `a:link` is
    (0,1,1), which outranks a bare (0,1,0) class. */
 .ui-nav .ui-nav__crumb { color: var(--text); }
-a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); }
-a.ui-nav__crumb:focus-visible { outline: none; box-shadow: var(--ring); }
+a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+a.ui-nav__crumb:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
 .ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }

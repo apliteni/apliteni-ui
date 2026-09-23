@@ -13,7 +13,7 @@
   display: grid;
   grid-template-columns: max-content 1fr;
   min-height: calc(100vh - var(--ui-app-top, 0px));
-  background: var(--bg); --ring-gap: var(--bg); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  background: var(--bg); /* ring-gap: inherit — page background inherits root overrides. */
   color: var(--text);
   font-family: var(--font-sans);
   /* The rail's width, and the one property the fold moves: the nav's own column
@@ -39,7 +39,7 @@
   gap: var(--space-5);
   padding: var(--space-5) var(--space-4);
   border-right: var(--ui-rail-rule) solid var(--border);
-  background: var(--surface-2); --ring-gap: var(--surface-2); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  background: var(--surface-2); --ring-gap: var(--surface-2);
   position: sticky;
   top: var(--ui-app-top, 0px);
   height: calc(100vh - var(--ui-app-top, 0px));
@@ -63,7 +63,7 @@
    hovering a row do nothing. The danger row and the current row are left out by
    name, because this rule outranks the states nav.css writes for them.
    why: CONTRIBUTING.md#a-rule-that-outranks-another-cancels-every-state-that-other-one-writes */
-.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface-3); }
+.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-app__brand {
   display: flex;
   align-items: center;
@@ -153,7 +153,7 @@
   width: var(--ui-app-av); height: var(--ui-app-av); flex: none;
   margin-inline-start: calc((var(--ui-nav-strip) - var(--ui-app-av)) / 2);
   border-radius: var(--radius-pill);
-  background: var(--surface-3);
+  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   color: var(--strong);
   display: grid; place-items: center;
   font-size: calc(var(--text-xs) + 1px);
@@ -187,7 +187,7 @@
   font-weight: inherit;
   letter-spacing: normal;
 }
-.ui-app .ui-app__user-trigger:hover { background: var(--surface-3); }
+.ui-app .ui-app__user-trigger:hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
 /* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
    time it is open it is no longer inside the rail that drew it.
@@ -269,7 +269,7 @@
    why: docs/specification.md#elevation */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
-.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
+.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
   .ui-app.is-collapsed,
   .ui-app:has(.ui-app__fold) { anchor-scope: --ui-rail; }
@@ -318,7 +318,7 @@
   height: var(--ui-app-band);
   flex: none;
   padding-inline: clamp(24px, 4vw, 56px);
-  background: var(--bg);
+  background: var(--bg); /* ring-gap: inherit — page background inherits root overrides. */
   border-bottom: 1px solid var(--border);
   /* Sticky for the reason the rail beside it is: chrome that scrolls away is chrome
      you scroll back up for. */
@@ -362,7 +362,7 @@
      Artur chose this over three alternatives on #318; the survey of what seven
      other systems do is docs/reviews/318-search-field.md.
      why: docs/specification.md#elevation */
-  background: var(--surface);
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -373,7 +373,7 @@
    without `.ui-btn`, so base.css's shared rule never reached it and focus fell
    through to the browser's own square outline, drawn around a 12px radius.
    why: docs/specification.md#the-focus-ring */
-.ui-app__search:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+.ui-app__search:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-color: var(--accent); }
 /* The same glyph the palette draws in its own search box, at the same box and the
    same stroke: the trigger and the thing it opens are not two search marks.
    src/styles/command-palette.css:107 `.ui-cmdk__search-ic svg` */
@@ -467,7 +467,7 @@
   .ui-app__rail .ui-nav__item,
   .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); color: var(--strong); opacity: 1; pointer-events: none; }
+  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }
     .ui-app__rail { anchor-name: --ui-rail; }
@@ -501,7 +501,7 @@
   max-width: var(--panel-md);
   /* Floats over a spotlit page, so it takes the floating step and the hairline.
      why: docs/specification.md#elevation */
-  background: var(--bg-elevated); --ring-gap: var(--bg-elevated); --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 38px 36px 32px;
@@ -523,7 +523,7 @@
   width: 38px; height: 38px; flex: none;
   border-radius: 11px;
   display: grid; place-items: center;
-  background: var(--glow-purple);
+  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
   color: var(--accent);
 }
 .ui-scope__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
@@ -544,7 +544,7 @@
   font-size: calc(var(--text-xs) + 1px);
   letter-spacing: 0.06em;
   color: var(--purple-mid);
-  background: var(--glow-purple);
+  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
   border-radius: 999px;
   padding: 6px 14px;
   margin-bottom: 26px;
@@ -589,7 +589,7 @@
   width: 46px; height: 46px;
   border-radius: 13px;
   display: grid; place-items: center;
-  background: var(--glow-purple);
+  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
   color: var(--accent);
   margin-bottom: 16px;
 }

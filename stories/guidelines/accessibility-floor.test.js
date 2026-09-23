@@ -847,7 +847,7 @@ test('ring: surface compositions retain the same tunable G2 recipe', () => {
     .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
       .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
   const canonical = tokensFor('dark').get('--ring');
-  assert.equal(declared.length, 16, 'root plus 15 vanilla surface compositions; React owns its modal');
+  assert.equal(declared.length, 2, 'root and one shared container composition, including React surfaces');
   for (const entry of declared) assert.equal(entry.slice(entry.indexOf(': ') + 2), canonical, entry);
   for (const token of ['--ring-width', '--ring-color', '--ring-gap-width', '--ring-gap']) {
     assert.ok(canonical.includes(`var(${token})`), `${token} no longer tunes the composition`);

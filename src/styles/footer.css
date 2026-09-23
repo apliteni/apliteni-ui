@@ -14,7 +14,7 @@
   --footer-title: var(--strong);
   --footer-text: var(--text);
 
-  background: var(--footer-surface);
+  background: var(--footer-surface); /* ring-gap: inherit — transparent footer inherits; the app variant composes its opaque surface. */
   border-top: 1px solid var(--footer-border);
   color: var(--footer-text);
   font-family: var(--font-sans);
@@ -55,7 +55,7 @@
   border-radius: 10px;
   border: 1px solid var(--footer-border);
   color: var(--footer-link);
-  background: var(--surface);
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   transition:
     color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
@@ -110,7 +110,7 @@
 
 /* app — compact, in-product: surface background + tighter padding. */
 .ui-footer--app {
-  --footer-surface: var(--surface);
+  --footer-surface: var(--surface); --ring-gap: var(--footer-surface);
   border-top: 1px solid var(--footer-border);
 }
 .ui-footer--app .ui-footer__in { max-width: none; padding: 12px clamp(14px, 2.4vw, 22px); }

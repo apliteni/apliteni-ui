@@ -478,3 +478,12 @@ test('identical contextual values do not outrank a later state', () => {
   assert.equal(dom.window.getComputedStyle(dom.window.document.querySelector('.item')).color, 'rgb(0, 0, 255)');
   dom.window.close();
 });
+
+// Variable recipes are substituted before style resolution; they cannot paint a pixel.
+test('contextual token recipes do not manufacture selector cross-products', () => {
+  const css = '.page{--gap:white}.card{--gap:black}.panel,.dialog{--ring:0 0 0 1px var(--gap)}.label{color:var(--gap)}';
+  const out = specialiseContextual(css);
+  assert.doesNotMatch(out, /\.page \.panel/);
+  assert.match(out, /\.page \.label[^{}]*\{color:white\}/);
+  assert.match(out, /\.card \.label[^{}]*\{color:black\}/);
+});

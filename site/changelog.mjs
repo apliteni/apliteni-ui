@@ -16,7 +16,9 @@ export const RELEASES = [
     v: '0.37.0', date: '2026-09-23',
     changes: [
       ['changed', 'Focus uses a separated solid band with a soft glow. The 1px surface-coloured gap keeps the 2px accent band distinct from filled controls; the glow is decorative, as chosen in #343.'],
-      ['added', 'Focus-ring width, colour and gap can be tuned independently. The composed --ring remains available; kit surfaces recompose it for their background, so an ancestor custom --ring override must also be applied on those surfaces.'],
+      ['added', 'Focus-ring width, colour and gap can be tuned independently. The composed --ring remains available.'],
+      ['changed', 'Ancestor ring overrides stop at painted kit containers. Apply a custom --ring on the container as well; the app shell keeps root overrides because it adds no new surface.'],
+      ['fixed', 'Focus remains visible in forced-colors mode. Ring consumers keep a real outline when the browser suppresses box shadows; solid toasts use their contrast ink for the band.'],
       ['fixed', 'Inputs, textareas and selects use native focus-visible alongside the other controls. Text-entry fields can still show focus after a mouse click according to browser heuristics, and invalid fields retain the shared indicator.'],
     ],
   },
