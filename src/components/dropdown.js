@@ -22,8 +22,8 @@ function ddBadge(badge) {
   if (!badge) return '';
   const text = typeof badge === 'string' ? badge : badge.text;
   let tone = typeof badge === 'string' ? '' : (badge.tone || '');
-  if (!tone) tone = /^live$/i.test(text) ? 'live' : 'neutral';
-  if (tone === 'neutral' && /^(?:off|unset|disabled|archive|archived)$/i.test(text)) tone = 'state';
+  if (!tone) tone = /^live$/i.test(text) ? 'live'
+    : /^(?:off|unset|disabled|archive|archived)$/i.test(text) ? 'state' : 'neutral';
   return `<span class="${cx('ui-dropdown__badge', `is-${tone}`)}">${esc(text)}</span>`;
 }
 

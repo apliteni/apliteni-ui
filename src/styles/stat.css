@@ -55,7 +55,7 @@
   align-items: center;
   gap: 2px var(--space-1);
   margin-top: var(--space-2);
-  /* muted-ink: state — unset change tone; good and bad override it */ color: var(--dim);
+  color: var(--text);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);
@@ -63,7 +63,7 @@
 .ui-stat__delta svg { width: 14px; height: 14px; flex: none; stroke-width: 2.7; } /* 2.7 of a 24 box drawn at 14px = 1.58 CSS px. docs/specification.md#icons-and-glyphs */
 .ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ui-stat__basis { color: var(--text); font-weight: var(--weight-normal); }
-.ui-stat__delta--none { /* muted-ink: placeholder — missing comparison value */ color: var(--muted); font-weight: var(--weight-normal); }
+.ui-stat__delta--none { color: var(--text); font-weight: var(--weight-normal); }
 
 /* Tone is set by the caller and says good or bad news. Direction is the arrow's
    job, so an unset tone keeps the change neutral whichever way it points. */

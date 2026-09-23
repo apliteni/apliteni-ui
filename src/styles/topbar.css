@@ -60,7 +60,7 @@
   font-size: calc(var(--text-xs) + 1px);
   font-weight: 600;
   letter-spacing: 0.04em;
-  /* muted-ink: state — unselected theme choice; current choice overrides it */ color: var(--muted);
+  color: var(--text);
   padding: 4px 13px;
   border-radius: 24px;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);

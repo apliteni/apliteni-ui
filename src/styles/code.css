@@ -57,7 +57,7 @@
 .ui-snippet pre .f { color: var(--cyan); }
 .ui-snippet pre .s { color: var(--green); }
 .ui-snippet pre .u { color: var(--cyan); }
-.ui-snippet pre .c { color: var(--text); }
+.ui-snippet pre .c { color: var(--text); font-style: italic; }
 
 /* Reveal: a live secret/token, tinted green */
 .ui-snippet--reveal {

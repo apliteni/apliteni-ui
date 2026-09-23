@@ -50,7 +50,7 @@ export const RULES = [
     id: 'text-ink-exceptions',
     imperative: 'Keep muted and dim ink only for the three named exception classes.',
     why: 'A closed list lets a reviewer distinguish intended state or placeholder ink from words faded merely to rank them. Extend the list by opening an issue, never by treating “decorative” as a fourth class.',
-    except: 'Only: (1) glyphs that are not words, such as an arrow, chevron or dismiss mark; (2) colour reporting a state, such as off, unset, disabled or archived; (3) a slot with no value, such as an empty field or cell placeholder. A count, timestamp, keyboard shortcut, enabled action or empty-state instruction is still information, not an exception.',
+    except: 'Only: (1) glyphs that are not words, such as an arrow, chevron or dismiss mark; (2) colour reporting off, unset, disabled or archived state; (3) a slot with no value, such as an empty field or cell placeholder. An unselected option, “No earlier figure” sentence, count, timestamp, keyboard shortcut, enabled action or empty-state instruction is still information, not an exception.',
     kit: [{ ref: 'src/styles/muted-ink.test.js:1', pattern: 'Every muted/dim colour path' }],
   },
   {

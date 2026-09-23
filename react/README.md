@@ -101,6 +101,11 @@ each other on the same page.
 
 ## Dropdown
 
+Use `badge: { text: 'Archivado', tone: 'state' }` for off, unset, disabled or archived
+states, including translated labels. Explicit `tone: 'neutral'` uses body ink. When tone
+is omitted, exact English off/unset/disabled/archive/archived labels fall back to state
+ink and Live to live ink; other labels use body ink. This also applies to vanilla `dropdown()`.
+
 `Dropdown` renders the kit's `dropdown()` markup, class for class, and carries
 `wireDropdown()`'s keyboard: the arrows open it onto the first row or the selected one and
 then walk the ring, stepping over a disabled row and wrapping at both ends; Home and End go

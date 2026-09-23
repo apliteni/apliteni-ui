@@ -149,7 +149,7 @@
    itself was the one surface #149 did not reach, and it worked against the pair
    it was drawn from: it pulled the fill towards the ink it has to clear. */
 .ui-toast--solid .ui-toast__action:hover { background: color-mix(in srgb, var(--signal-contrast) 14%, transparent); }
-.ui-toast--solid .ui-toast__close { color: color-mix(in srgb, var(--toast-ink) 68%, transparent); }
+.ui-toast--solid .ui-toast__close { /* muted-ink: glyph — dismiss icon on solid toast */ color: color-mix(in srgb, var(--toast-ink) 68%, transparent); }
 .ui-toast--solid .ui-toast__close:hover { color: var(--toast-ink); }
 .ui-toast--solid .ui-toast__timer { background: color-mix(in srgb, var(--toast-ink) 55%, transparent); }
 

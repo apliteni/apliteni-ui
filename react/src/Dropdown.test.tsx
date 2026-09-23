@@ -772,9 +772,10 @@ it('a search dropdown whose rows the caller draws is still filtered and still pi
 });
 
 test('state badge ink and generic metadata match the factory classification', () => {
-  const cases = [
+  const cases: Array<[string | { text: string; tone: string }, string]> = [
     ['Off', 'state'], ['UNSET', 'state'], ['Disabled', 'state'], ['Archive', 'state'], ['Archived', 'state'],
-    ['12 records', 'neutral'], ['Archive guide', 'neutral'], ['Live', 'live'],
+    [{ text: 'Off', tone: 'neutral' }, 'neutral'], [{ text: 'Archivado', tone: 'state' }, 'state'],
+    [{ text: 'Off', tone: 'accent' }, 'accent'], ['12 records', 'neutral'], ['Archive guide', 'neutral'], ['Live', 'live'],
   ];
   const { container } = render(<Dropdown items={cases.map(([badge], i) => ({ label: `Option ${i}`, badge }))} />);
   expect([...container.querySelectorAll('.ui-dropdown__badge')].map(el => el.className))

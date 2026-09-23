@@ -14,7 +14,7 @@
   border: 0;
   cursor: pointer;
   font: 600 calc(var(--text-base) - 0.5px)/1 var(--font-sans);
-  /* muted-ink: state — inactive tab; active tab overrides it */ color: var(--dim);
+  color: var(--text);
   padding: 11px 14px;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;

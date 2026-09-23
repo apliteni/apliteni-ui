@@ -514,6 +514,7 @@ test('neutral badges distinguish named states from metadata without changing sup
     ['Off', 'state'], ['UNSET', 'state'], ['Disabled', 'state'], ['Archive', 'state'], ['Archived', 'state'],
     ['12 records', 'neutral'], ['Archive guide', 'neutral'], ['Live', 'live'],
     [{ text: 'Off', tone: 'accent' }, 'accent'],
+    [{ text: 'Off', tone: 'neutral' }, 'neutral'], [{ text: 'Archivado', tone: 'state' }, 'state'],
   ];
   const doc = JSDOM.fragment(dropdown({ items: cases.map(([badge], i) => ({ label: `Option ${i}`, badge })) }));
   assert.deepEqual([...doc.querySelectorAll('.ui-dropdown__badge')].map(el => el.className),

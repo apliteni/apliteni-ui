@@ -54,7 +54,7 @@
   display: grid; place-items: center;
   border-radius: 10px;
   border: 1px solid var(--footer-border);
-  /* muted-ink: glyph — social icon */ color: var(--muted);
+  /* muted-ink: glyph — social icon */ color: var(--footer-link);
   background: var(--surface);
   transition:
     color var(--dur-fast) var(--ease),

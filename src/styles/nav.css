@@ -105,15 +105,15 @@
   transition: opacity var(--dur-fast) var(--ease);
 }
 
-/* Destructive row (sign out, revoke). Quiet at rest, --pink once a pointer or
+/* Destructive row (sign out, revoke). Body ink at rest, --pink once a pointer or
    the keyboard reaches it — as .ui-btn--danger and .ui-dropdown__item do. */
 .ui-nav__item.is-danger { color: var(--text); }
 .ui-nav__item.is-danger:hover { background: var(--glow-pink); color: var(--pink); }
 /* Tabbing onto it is the same "about to click this" the pointer means. The ring
    says where you are; only this says what the row does. */
 .ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); color: var(--pink); }
-/* A row that is off. No opacity: the label was already --muted and the fade
-   only pulled it toward the rail behind it (#220). */
+/* An unavailable row uses disabled ink directly; opacity would also fade its
+   background and pull its label toward the rail behind it (#220). */
 .ui-nav__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; pointer-events: none; }
 
 /* The current row under the pointer. It rests on --surface-3, which is also what
@@ -267,7 +267,7 @@
   align-items: center;
   gap: 8px;
   padding: 11px 14px;
-  /* muted-ink: state — inactive tab; active tab overrides it */ color: var(--dim);
+  color: var(--text);
   text-decoration: none;
   font-size: calc(var(--text-base) - 0.5px);
   font-weight: 500;

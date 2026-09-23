@@ -404,26 +404,30 @@ Muted/dim ink has exactly three exception classes:
 
 - **glyph** — a mark that is not words, such as an arrow, chevron or dismiss icon.
 - **state** — colour reporting off, unset, disabled or archived state, rather than rank.
-- **placeholder** — a slot has no value, such as an empty field, cell or missing comparison.
+- **placeholder** — a slot has no value, such as an empty field or cell.
 
 An empty-state explanation is not an empty slot; a keyboard shortcut is language the
 reader must recognise; a count is not a status merely because its class says so. Generic
 badges use body ink. Archive and disabled variants keep their state ink. Dropdown badges
-with neutral tone and the exact words off, unset, disabled, archive or archived (case-insensitive)
-keep state ink; other neutral badge content uses body ink. Tab and segmented
-controls retain the colour indicating an unselected state alongside their selected treatment.
+use explicit `tone: 'state'` for these states, including translated labels. Only when tone is
+omitted do exact English off, unset, disabled, archive or archived labels fall back to state
+ink. Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
 To extend this closed list, open an issue and agree the new class before using it.
 
-Every CSS `color` declaration that can reach muted or dim through a custom property carries
+Every CSS `color` or `-webkit-text-fill-color` declaration that can reach muted or dim carries
 an adjacent `/* muted-ink: glyph|state|placeholder — reason */` annotation, using one class.
 `src/styles/muted-ink.test.js` discovers all CSS under `src/` and `react/src/`, follows alias
-chains (including fallbacks and disabled tokens), and refuses an unannotated path. It checks
+chains (including fallbacks), seeds every `--disabled-ink*` token and literal values equal to
+muted/dim in tokens.css, and refuses an unannotated path. It also catches colour mixes and
+explicit alpha syntax, directly or through aliases; even opaque alpha syntax needs review. It checks
 containers as well as text selectors so inherited ink cannot evade it; no selector allowlist
-is maintained. The discovered subject count and annotation-removal mutations hold coverage.
+is maintained. Annotation-removal mutations hold coverage.
 
 The gate cannot infer whether caller-supplied words actually report a state: annotations need
-semantic review. Inline styles, literal equivalent colours, opacity and consumer overrides are
-outside this declaration gate; the contrast walk still measures rendered pairs. Examples of the
+semantic review. Inline styles, other literal colours, element opacity/filter and consumer
+overrides are outside this declaration gate. Transparent text fill with background-clip: text
+is exempt from declaration checking because its visible ink comes from the background; the
+gate does not measure gradient opacity. The contrast walk still measures rendered pairs. Examples of the
 rejected treatment are confined to guideline specimens. Labels and titles shows identical words
 at xs, sm and base in body and muted ink, in either theme.
 
