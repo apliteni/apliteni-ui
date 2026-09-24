@@ -1,3 +1,4 @@
+import { setButtonBusy } from '../../src/components/button-busy.js';
 import { button } from '../../src/components/index.js';
 import { pad, row, specimen, stack } from '../_gallery.js';
 
@@ -103,4 +104,17 @@ export const BrandIcon = {
     specimen('Continue with Google — idle', button({ label: 'Continue with Google', variant: 'secondary', size: 'lg', iconSvg: googleG })),
     specimen('Signing in — busy:true', button({ label: 'Signing you in', variant: 'secondary', size: 'lg', iconSvg: googleG, busy: true })),
   )),
+};
+
+export const BusyTransition = {
+  render: () => {
+    const host = document.createElement('div');
+    host.innerHTML = button({ label: 'Save changes', variant: 'primary' });
+    const control = host.querySelector('button');
+    control.addEventListener('click', () => {
+      setButtonBusy(control, { busy: true, label: 'Saving…' });
+      setTimeout(() => setButtonBusy(control, { busy: false, label: 'Saved' }), 2400);
+    });
+    return host;
+  },
 };

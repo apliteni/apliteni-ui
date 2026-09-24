@@ -8,7 +8,7 @@ test('iconSvg renders as the raw leading glyph, before the label, unescaped', ()
   const html = button({ label: 'Continue with Google', iconSvg: SVG });
   assert.ok(html.includes(SVG), 'raw SVG passes through unescaped');
   assert.ok(
-    html.indexOf(SVG) < html.indexOf('<span>Continue with Google</span>'),
+    html.indexOf(SVG) < html.indexOf('>Continue with Google</span>'),
     'SVG sits in the leading slot, before the label',
   );
 });

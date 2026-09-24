@@ -79,9 +79,9 @@
 .ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); border-radius: var(--radius-md); }
 
 /* Icon-only */
-.ui-btn--icon { padding: 9px; border-radius: var(--radius-sm); }
-.ui-btn--icon.ui-btn--xs { padding: 4.5px; }
-.ui-btn--icon.ui-btn--sm { padding: 6px; }
+.ui-btn--icon { --btn-pad-y: 9px; padding: 9px; border-radius: var(--radius-sm); }
+.ui-btn--icon.ui-btn--xs { --btn-pad-y: 4.5px; padding: 4.5px; }
+.ui-btn--icon.ui-btn--sm { --btn-pad-y: 6px; padding: 6px; }
 
 .ui-btn--block { width: 100%; }
 
@@ -131,10 +131,12 @@
   pointer-events: none;
   position: relative;
   overflow: hidden;
+  padding-top: calc(var(--btn-pad-y) - 2px);
+  padding-bottom: calc(var(--btn-pad-y) + 2px);
 }
 .ui-btn__bars {
   position: absolute;
-  left: 10px; right: 10px; bottom: 5px;
+  left: 10px; right: 10px; bottom: 3px;
   height: 3px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 22%, transparent); /* ring-gap: inherit — decorative paint has no nested focus target. */
@@ -143,9 +145,9 @@
   transform-origin: center;
   animation: ui-bars-in var(--dur-fast) var(--ease) both;
 }
-.ui-btn--xs .ui-btn__bars { left: 4px; right: 4px; bottom: 2px; height: 2px; }
-.ui-btn--sm .ui-btn__bars { left: 7px; right: 7px; bottom: 4px; }
-.ui-btn--lg .ui-btn__bars { left: 14px; right: 14px; bottom: 7px; }
+.ui-btn--xs .ui-btn__bars { left: 4px; right: 4px; bottom: 1px; height: 2px; }
+.ui-btn--sm .ui-btn__bars { left: 7px; right: 7px; bottom: 2px; }
+.ui-btn--lg .ui-btn__bars { left: 14px; right: 14px; bottom: 5px; }
 .ui-btn__bars i {
   position: absolute;
   height: 100%;
@@ -163,8 +165,8 @@
     color-mix(in srgb, var(--accent-contrast) 35%, transparent),
     var(--accent-contrast));
 }
-.ui-btn__bars i:nth-child(1) { width: 38%; animation: ui-bars1 2s cubic-bezier(0.65, 0.05, 0.35, 1) infinite; } /* motion: ambient — an indeterminate loader loops until the work returns; its period is not a response time */
-.ui-btn__bars i:nth-child(2) { width: 22%; animation: ui-bars2 2s cubic-bezier(0.65, 0.05, 0.35, 1) 0.8s infinite; } /* motion: ambient — the second bar runs the same loop 0.8s out of phase */
+.ui-btn__bars i:nth-child(1) { width: 38%; animation: ui-bars1 4s cubic-bezier(0.65, 0.05, 0.35, 1) infinite; } /* motion: ambient — an indeterminate loader loops until the work returns; its period is not a response time */
+.ui-btn__bars i:nth-child(2) { width: 22%; animation: ui-bars2 4s cubic-bezier(0.65, 0.05, 0.35, 1) 1.6s infinite; } /* motion: ambient — the second bar runs the same loop 1.6s out of phase */
 @keyframes ui-bars1 { 0% { left: -45%; } 100% { left: 110%; } }
 @keyframes ui-bars2 { 0% { left: -28%; } 100% { left: 120%; } }
 @keyframes ui-bars-in { from { opacity: 0; transform: scaleX(0.72); } to { opacity: 1; transform: scaleX(1); } }
@@ -172,9 +174,25 @@
    fill so the busy state still reads clearly. */
 @media (prefers-reduced-motion: reduce) {
   .ui-btn__bars { animation: none; opacity: 1; transform: none; }
-  .ui-btn__bars i { animation: none; }
+  .ui-btn__bars i:nth-child(n) { animation: none; }
   .ui-btn__bars i:nth-child(1) { left: 0; width: 100%; }
   .ui-btn__bars i:nth-child(2) { display: none; }
 }
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }
+
+/* why: docs/specification.md#busy-button-labels */
+.ui-btn__label-slot { position: relative; display: inline-grid; overflow: hidden; }
+.ui-btn__label { grid-area: 1 / 1; }
+.ui-btn__label.is-changing { animation: ui-btn-label-in var(--dur-med) var(--ease) both; }
+.ui-btn__label-old {
+  grid-area: 1 / 1;
+  pointer-events: none;
+  animation: ui-btn-label-out var(--dur-med) var(--ease) both;
+}
+@keyframes ui-btn-label-out { from { transform: translateY(0); } 45%, to { transform: translateY(100%); } }
+@keyframes ui-btn-label-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .ui-btn__label.is-changing { animation: none; transform: none; }
+  .ui-btn__label-old { display: none; }
+}

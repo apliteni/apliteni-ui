@@ -827,6 +827,20 @@ Decided in [#148](https://github.com/apliteni/apliteni-ui/issues/148),
 [#206](https://github.com/apliteni/apliteni-ui/issues/206) and
 [#217](https://github.com/apliteni/apliteni-ui/issues/217).
 
+### Busy button labels
+
+Busy label changes slide down out of a clipped line, then the new label enters from
+below, without an opacity flash (#327). The sequence uses `--dur-med` (250ms).
+React runs it when children change while entering, leaving or remaining busy;
+vanilla callers use `setButtonBusy(element, { busy, label })` to retain the control
+and its icons. Initial labels stay still. Replacing a whole HTML string cannot
+retain the outgoing label and is outside this behavior.
+
+The indeterminate bars take 4 seconds per pass, with the second 1.6 seconds behind.
+The label sits 2px higher while busy and the bar sits nearer the bottom edge, keeping
+the button height unchanged. All variants and sizes share this behavior. Reduced
+motion replaces the label immediately and renders a static filled track.
+
 ### Extra-small buttons
 
 `button({ size: 'xs' })` and React `<Button size="xs">` draw a 13px glyph at

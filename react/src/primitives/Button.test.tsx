@@ -44,3 +44,18 @@ it('hides the decorative glyph wrapper from assistive tech', () => {
   const { container } = render(<Button icon="check">Save</Button>);
   expect(container.querySelector('span[aria-hidden="true"] svg')).not.toBeNull();
 });
+
+it('slides busy label changes and clears interrupted outgoing copies', () => {
+  const { container, rerender, getByRole, unmount } = render(<Button>Save</Button>);
+  expect(container.querySelector('.ui-btn__label-old')).toBeNull();
+  rerender(<Button busy>Saving…</Button>);
+  expect(getByRole('button', { name: 'Saving…' })).toBeDisabled();
+  expect(container.querySelector('.ui-btn__label-old')).toHaveTextContent('Save');
+  rerender(<Button busy>Almost done</Button>);
+  expect(container.querySelectorAll('.ui-btn__label-old')).toHaveLength(1);
+  expect(container.querySelector('.ui-btn__label-old')).toHaveTextContent('Saving…');
+  rerender(<Button>Saved</Button>);
+  expect(getByRole('button', { name: 'Saved' })).not.toBeDisabled();
+  expect(container.querySelector('.ui-btn__bars')).toBeNull();
+  unmount();
+});

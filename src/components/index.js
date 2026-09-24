@@ -31,9 +31,9 @@ export function button({
     block && 'ui-btn--block',
     iconOnly && 'ui-btn--icon',
   );
-  const bars = busy ? '<span class="ui-btn__bars"><i></i><i></i></span>' : '';
+  const bars = busy ? '<span class="ui-btn__bars" aria-hidden="true"><i></i><i></i></span>' : '';
   const lead = iconSvg || (ic ? icon(ic) : '');
-  const inner = `${lead}${iconOnly ? '' : `<span>${esc(label)}</span>`}${iconRight ? icon(iconRight) : ''}${bars}`;
+  const inner = `${lead}${iconOnly ? '' : `<span class="ui-btn__label-slot"><span class="ui-btn__label">${esc(label)}</span></span>`}${iconRight ? icon(iconRight) : ''}${bars}`;
   // busy ⇒ disabled (not clickable while it works)
   const name = String(label == null ? '' : label).trim() || ic || 'Button';
   const named = iconOnly ? ` aria-label="${esc(name)}" title="${esc(name)}"` : '';

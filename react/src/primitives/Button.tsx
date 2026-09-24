@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { slideButtonLabel } from '../../../src/lib/button-label.js';
 import { Icon } from './Icon';
 
 export type ButtonProps = {
@@ -19,6 +20,18 @@ export function Button({
   variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, busy, children,
   type = 'button', disabled, ...rest
 }: ButtonProps) {
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const previous = useRef<{ node: HTMLElement | null; children: ReactNode; busy: boolean | undefined }>(null);
+  useLayoutEffect(() => {
+    const label = labelRef.current;
+    const prior = previous.current;
+    const snapshot = label?.cloneNode(true) as HTMLElement | undefined;
+    const cleanup = label && prior && prior.children !== children && (busy || prior.busy)
+      ? slideButtonLabel(label, prior.node)
+      : undefined;
+    previous.current = { node: snapshot ?? null, children, busy };
+    return cleanup;
+  }, [children, busy, iconOnly]);
   const cls = cx(
     'ui-btn',
     variant && `ui-btn--${variant}`,
@@ -49,9 +62,9 @@ export function Button({
       {...named}
     >
       {icon && <Icon name={icon} />}
-      {!iconOnly && children != null && <span>{children}</span>}
+      {!iconOnly && children != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{children}</span></span>}
       {iconRight && <Icon name={iconRight} />}
-      {busy && <span className="ui-btn__bars"><i /><i /></span>}
+      {busy && <span className="ui-btn__bars" aria-hidden="true"><i /><i /></span>}
     </button>
   );
 }
