@@ -105,6 +105,10 @@ import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
 // …inline tokensCss + topbarCss into the <style> you serve.
 ```
 
+`cssText` includes every sheet. When selecting individual sheets from `styles`,
+`successPanel()` needs both `styles.callout` (panel layout) and `styles.success`
+(shared glowing check and reduced-motion styles), after `tokensCss` and `baseCss`.
+
 ## React components (stateful surfaces)
 
 `DataTable`, `Pagination`, `Modal`, `Button`, `Badge`, `Card` and `Icon` — same `.ui-*` classes,

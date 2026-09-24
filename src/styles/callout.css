@@ -182,8 +182,6 @@
 }
 .ui-success__check {
   --sx-green: var(--chip-success-ink);
-  --sx-tint: color-mix(in srgb, var(--green) 18%, transparent);
-  --sx-track: color-mix(in srgb, var(--green) 32%, transparent);
   width: 48px; height: 48px;
   margin: 0 auto 14px;
 }

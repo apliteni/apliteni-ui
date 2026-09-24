@@ -741,7 +741,7 @@ export const RULES = [
     why: 'Every number above is the least the kit accepts, not what it is trying to be. The '
       + 'four aims below the rules say what it reaches for, and a component that lands one '
       + 'thousandth over AA has passed the gate and is still the worst thing on the page.',
-    kit: [{ ref: 'stories/contrast.test.js:289', pattern: 'the AA floor is a floor, not a verdict.' }],
+    kit: [{ ref: 'stories/contrast.test.js:292', pattern: 'the AA floor is a floor, not a verdict.' }],
   },
   {
     id: 'name-the-gap',
@@ -749,6 +749,6 @@ export const RULES = [
     why: 'The gates in this repo state their own blind spots in a header comment, and the '
       + 'table below is that collection rather than a fresh audit. A gate that overstates itself '
       + 'is how contrast came to be "verified visually" in the first place.',
-    kit: [{ ref: 'stories/contrast.test.js:233', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
+    kit: [{ ref: 'stories/contrast.test.js:235', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
   },
 ];

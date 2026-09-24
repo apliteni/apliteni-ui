@@ -25,7 +25,7 @@ export const baseCss = read('styles/base.css');
 // Canonical topbar (same class names the portal already uses).
 export const topbarCss = read('styles/topbar.css');
 
-// Individual component stylesheets, addressable by name.
+// Individual sheets; successPanel() needs both styles.callout and styles.success.
 export const styles = {
   base: baseCss,
   reducedMotion: read('styles/reduced-motion.css'),
@@ -48,7 +48,7 @@ export const styles = {
   pagination: read('styles/pagination.css'),
   stat: read('styles/stat.css'),
   empty: read('styles/empty.css'),
-  callout: read('styles/callout.css') + '\n' + read('styles/success.css'),
+  callout: read('styles/callout.css'),
   code: read('styles/code.css'),
   topbar: topbarCss,
   footer: read('styles/footer.css'),
@@ -82,7 +82,7 @@ export const cssText = [
   styles.pagination,
   styles.stat,
   styles.empty,
-  read('styles/callout.css'), // The full bundle includes the shared check with styles.success below.
+  styles.callout,
   styles.code,
   styles.topbar,
   styles.footer,
