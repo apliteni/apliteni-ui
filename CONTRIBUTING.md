@@ -1416,8 +1416,8 @@ there, so a version nothing describes is a release that cannot be built.
 Without this gate the failure would arrive after the bump was already on
 `main`, and undoing that takes a second pull request.
 
-Before publishing a changelog entry, pass its text through the humanize skill
-and compare the result with the source. Write for someone who uses the kit and
+Before publishing a changelog entry, rewrite it in plain English, then check it
+against the original for every fact. Write for someone who uses the kit and
 reads English as a second language: use familiar words and connected sentences,
 and cut repetition. Start with a short sentence saying what changed; the site
 shows that summary. Keep every fact, number, name, link, condition, commitment
