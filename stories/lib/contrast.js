@@ -561,6 +561,21 @@ export const storyFiles = readdirSync(path.join(root, 'stories'), { recursive: t
  * `cache` is instrumentation about the RESOLVER and is deliberately not folded
  * into `stats`, which holds facts about the kit. See makeStyleCache's `seen`.
  */
+// Overlapping selectors describe one element-state reading, not extra coverage.
+export function stateTargets(root, bases) {
+  const targets = [];
+  for (const state of STATES) {
+    const elements = new Set();
+    for (const base of bases[state] || []) {
+      let hits;
+      try { hits = root.querySelectorAll(base); } catch { continue; }
+      for (const element of hits) elements.add(element);
+    }
+    for (const element of elements) targets.push([element, state]);
+  }
+  return targets;
+}
+
 export async function walkStories({ theme, accent = 'default', states = true } = {}) {
   const { vars, css } = kitCssFor(theme, accent);
   const kitBases = stateBases(css);
@@ -630,15 +645,7 @@ export async function walkStories({ theme, accent = 'default', states = true } =
 
       const els = [...win.document.body.querySelectorAll('*')];
       const targets = els.map((el) => [el, null]);
-      if (states) {
-        for (const s of STATES) {
-          for (const base of bases[s]) {
-            let hits;
-            try { hits = win.document.body.querySelectorAll(base); } catch { continue; }
-            for (const el of hits) targets.push([el, s]);
-          }
-        }
-      }
+      if (states) targets.push(...stateTargets(win.document.body, bases));
 
       const atRest = new Map();
       for (const [el, state] of targets) {

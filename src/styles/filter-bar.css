@@ -1,0 +1,10 @@
+.ui-filter-bar { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-width: 0; }
+.ui-filter-bar__legend { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+.ui-filter-bar__chip { display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: var(--space-1); margin: 0; min-width: 0; }
+.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
+.ui-filter-bar__remove { border: 0; background: transparent; color: var(--text); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
+.ui-filter-bar__remove:focus-visible,
+.ui-filter-bar:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
+
+.ui-filter-bar .ui-dropdown__pre, .ui-filter-bar .ui-dropdown__value { color: inherit; }

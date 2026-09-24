@@ -80,16 +80,16 @@ export function card({ title, sub, body = '', variant, pad, icon: ic, level = 2 
 // `ariaLabel` names the strip. `name` seeds data-seg and is deliberately
 // not an accessible name — it is an identifier, not prose, defaulting to
 // "Options" so a strip is never left unlabelled.
-export function segmented({ options = [], active = 0, size, block, name = 'seg', ariaLabel = 'Options' } = {}) {
-  const cls = cx('ui-seg', size && `ui-seg--${size}`, block && 'ui-seg--block');
+export function segmented({ options = [], active = 0, size, block, name = 'seg', ariaLabel = 'Options', appearance, disabled = false } = {}) {
+  const cls = cx('ui-seg', appearance === 'underline' && 'ui-seg--underline', size && `ui-seg--${size}`, block && 'ui-seg--block');
   // Exactly one option holds the Tab stop. If `active` points nowhere (nothing
   // selected yet) the first option holds it, so the strip is never unreachable.
-  const rove = active >= 0 && active < options.length ? active : 0;
+  const rove = active >= 0 && active < options.length && !options[active]?.disabled ? active : options.findIndex(o => !o.disabled);
   const btns = options.map((o, i) => {
     const label = typeof o === 'string' ? o : o.label;
     const val = typeof o === 'string' ? o : (o.value ?? o.label);
     const on = i === active;
-    return `<button type="button" aria-pressed="${on}" tabindex="${i === rove ? '0' : '-1'}"`
+    return `<button type="button"${disabled || o.disabled ? ' disabled' : ''} aria-pressed="${on}" tabindex="${i === rove ? '0' : '-1'}"`
       + ` data-value="${esc(val)}"${on ? ' class="is-active"' : ''}>${esc(label)}</button>`;
   }).join('');
   return `<div class="${cls}" role="toolbar" aria-label="${esc(ariaLabel)}" data-seg="${name}">${btns}</div>`;

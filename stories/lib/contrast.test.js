@@ -22,6 +22,7 @@ import {
   parseColour,
   ratio,
   specialiseContextual,
+  stateTargets,
   substitute,
   tokensFor,
 } from './contrast.js';
@@ -486,4 +487,16 @@ test('contextual token recipes do not manufacture selector cross-products', () =
   assert.doesNotMatch(out, /\.page \.panel/);
   assert.match(out, /\.page \.label[^{}]*\{color:white\}/);
   assert.match(out, /\.card \.label[^{}]*\{color:black\}/);
+});
+
+
+test('overlapping state selectors measure once while preserving each element and state', () => {
+  const dom = new JSDOM('<div class="a"><button class="a b">Read</button></div>');
+  const root = dom.window.document.body;
+  const targets = stateTargets(root, { hover: new Set(['.a', '.a.b', '.b']), 'focus-visible': new Set(['button', '.b']) });
+  assert.equal(targets.length, 3);
+  assert.equal(targets.filter(([el, state]) => el.tagName === 'BUTTON' && state === 'hover').length, 1);
+  assert.equal(targets.filter(([el, state]) => el.tagName === 'BUTTON' && state === 'focus-visible').length, 1);
+  assert.equal(targets.filter(([el]) => el.tagName === 'DIV').length, 1);
+  dom.window.close();
 });
