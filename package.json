@@ -1,6 +1,6 @@
 {
   "name": "@apliteni/apliteni-ui",
-  "version": "0.37.1",
+  "version": "0.40.0",
   "workspaces": [
     "react"
   ],
@@ -19,6 +19,7 @@
   },
   "exports": {
     ".": "./src/index.js",
+    "./guidelines/*": "./guidelines/*",
     "./motion": "./src/motion.js",
     "./inline": "./src/inline.js",
     "./css": "./src/index.css",
@@ -36,6 +37,7 @@
     "src",
     "!src/**/*.test.js",
     "react/dist",
+    "guidelines",
     "README.md"
   ],
   "sideEffects": [

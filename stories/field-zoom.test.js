@@ -6,7 +6,7 @@
 // it. Nothing is enumerated. No cascade is resolved and no stylesheet is on the
 // page: reach is asked of the element with matches(), and the contest is read off
 // declarations, because JSDOM does not rank !important between rules. What a
-// green run does not prove is on the floor page, beside this gate's name.
+// green run does not prove is on the Accessibility minimums page, beside this gate's name.
 //
 // why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen

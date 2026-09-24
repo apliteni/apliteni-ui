@@ -433,14 +433,19 @@ export function kitCssFor(theme, accent = 'default') {
 }
 
 /**
- * Base selectors of every rule that only applies in a state, so the walk
+ * Base selectors of state rules that can change a contrast input, so the walk
  * exercises the elements those rules can reach instead of every element × every
  * state. Derived from the kit stylesheet AND the story's own <style> blocks —
  * a story-local :hover rule is invisible to the former.
  */
 export function stateBases(css) {
   const out = Object.fromEntries(STATES.map((s) => [s, new Set()]));
-  for (const [, selector] of css.matchAll(RULE)) {
+  for (const [, selector, body] of css.matchAll(RULE)) {
+    // These declarations cannot change a captured colour, background, visibility or AA threshold.
+    // Custom properties and every property outside this list keep the state.
+    const decoration = /^(box-shadow|outline(?:-color|-offset|-style|-width)?|border-radius|text-decoration(?:-color|-line|-style|-thickness)?|text-underline-offset|cursor|transition(?:-delay|-duration|-property|-timing-function)?)$/;
+    const declarations = decomment(body).split(';').map(d => d.trim()).filter(Boolean);
+    if (declarations.every(d => decoration.test(d.split(':', 1)[0].trim()))) continue;
     if (selector.trimStart().startsWith('@')) continue;
     for (const sel of selector.split(',')) {
       for (const s of STATES) {
@@ -561,6 +566,21 @@ export const storyFiles = readdirSync(path.join(root, 'stories'), { recursive: t
  * `cache` is instrumentation about the RESOLVER and is deliberately not folded
  * into `stats`, which holds facts about the kit. See makeStyleCache's `seen`.
  */
+// Overlapping selectors describe one element-state reading, not extra coverage.
+export function stateTargets(root, bases) {
+  const targets = [];
+  for (const state of STATES) {
+    const elements = new Set();
+    for (const base of bases[state] || []) {
+      let hits;
+      try { hits = root.querySelectorAll(base); } catch { continue; }
+      for (const element of hits) elements.add(element);
+    }
+    for (const element of elements) targets.push([element, state]);
+  }
+  return targets;
+}
+
 export async function walkStories({ theme, accent = 'default', states = true } = {}) {
   const { vars, css } = kitCssFor(theme, accent);
   const kitBases = stateBases(css);
@@ -630,15 +650,7 @@ export async function walkStories({ theme, accent = 'default', states = true } =
 
       const els = [...win.document.body.querySelectorAll('*')];
       const targets = els.map((el) => [el, null]);
-      if (states) {
-        for (const s of STATES) {
-          for (const base of bases[s]) {
-            let hits;
-            try { hits = win.document.body.querySelectorAll(base); } catch { continue; }
-            for (const el of hits) targets.push([el, s]);
-          }
-        }
-      }
+      if (states) targets.push(...stateTargets(win.document.body, bases));
 
       const atRest = new Map();
       for (const [el, state] of targets) {

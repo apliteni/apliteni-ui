@@ -1,3 +1,7 @@
+import { loadGuideline, withSpecimens } from './_markdown.js';
+const content = await loadGuideline('command-palette.md', new URL('../../guidelines/command-palette.md', import.meta.url));
+export const TITLE = content.title;
+export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 //
 // Every specimen is a real commandPalette(), rendered as a `specimen` — a
@@ -5,10 +9,6 @@
 // one page would trap a reader in the first one. What is wrong in a don't is
 // the content, the order or the wording; never the markup.
 import { commandPalette } from '../../src/components/command-palette.js';
-
-export const TITLE = 'The command palette';
-
-export const BLURB = 'What goes in it, how the list is ordered, and the six keys it owes a reader.';
 
 /**
  * The keys the palette answers, and what each one does.
@@ -135,113 +135,11 @@ export const askDont = () => palette({
   }],
 });
 
-export const RULES = [
-  {
-    id: 'named-things',
-    imperative: 'Put a thing in the palette only when a reader can name it.',
-    doHtml: belongsDo,
-    dontHtml: belongsDont,
-    doCaption: 'Commands a reader would say out loud, and records they already know by number. '
-      + 'Every one of them can also be reached by clicking through the product — the palette is '
-      + 'the short way, never the only way.',
-    dontCaption: 'Four rows nobody would type. “Advanced…” and “More” name a menu rather than an '
-      + 'action; the frequency setting needs a form, so the palette can open its page but cannot '
-      + 'be it; and the third row goes where the reader already is.',
-    except: 'A setting the palette can flip in one move is a command — “Switch to the light '
-      + 'theme” is a thing somebody types. One that needs a choice made is a page: name the page.',
-    kit: [{ ref: 'src/components/command-palette.js:194', pattern: 'function paletteItem' }],
-  },
-  {
-    id: 'groups',
-    imperative: 'Group results by what they are, and name each group in the product’s own word.',
-    doHtml: groupsDo,
-    dontHtml: groupsDont,
-    doCaption: 'Three headings a reader scans instead of reading nine rows: what this does, where '
-      + 'this goes, what I had open. Sentence case at 13px, the kit’s label role — a group name is '
-      + 'a signpost and not a shout.',
-    dontCaption: 'The same nine rows, ungrouped. An invoice, a page and a command are three '
-      + 'different promises about what Enter is going to do, and nothing here says which is which.',
-    why: 'GitHub, VS Code and Slack all reach for a prefix instead — #, @, / and > narrow the '
-      + 'palette to one kind before it searches. That is a vocabulary each product owns, so the '
-      + 'kit ships the grouping and not the prefixes: a product that wants > can feed the palette '
-      + 'a different set of groups when it sees one.',
-    kit: [
-      { ref: 'src/components/command-palette.js:255', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:148', pattern: '.ui-cmdk__group-head' },
-    ],
-  },
-  {
-    id: 'ranking',
-    imperative: 'Rank on how the query meets the name, and let the caller break every tie.',
-    doHtml: rankDo,
-    dontHtml: rankDont,
-    doCaption: 'Typed “inv”. A whole word beats a fragment, a name beats a note, and the group '
-      + 'holding the best row comes first — so the row under Enter is the best answer on the page '
-      + 'rather than the best answer in the first group.',
-    dontCaption: 'The same query, sorted alphabetically. INV-4809 is first because of a digit; '
-      + '“New invoice”, the only row here that is actually named after what was typed, is last.',
-    why: 'Ties keep the order the caller passed, which is the whole of the kit’s ordering opinion '
-      + 'and the reason a product can put its four most-used commands at the top and have them '
-      + 'stay there. Nothing here is a use count: the kit has no memory of what a reader ran '
-      + 'yesterday, and a product that does should pass its recents as a group.',
-    except: 'A palette fed by a server ranks on the server — pass `rank: false`, answer the '
-      + '`ui-command-query` event, and the kit renders the order it is given rather than ranking '
-      + 'a page of results it cannot see the rest of.',
-    kit: [
-      { ref: 'src/components/command-palette.js:33', pattern: 'export const SCORE' },
-      { ref: 'src/components/command-palette.js:130', pattern: 'export function rankGroups' },
-    ],
-  },
-  {
-    id: 'keyboard',
-    imperative: 'Answer six keys, and leave every other key to the text box.',
-    why: 'Cmd+K opens it, the arrows move and wrap, Enter runs the active row, Escape closes the '
-      + 'top overlay, and Tab does not leave. Home and End stay with the caret, which is what the '
-      + 'ARIA combobox pattern says they are for — cmdk rebinds them to the first and last row, '
-      + 'along with Ctrl+N/P/J/K and Alt+Arrow, and that is a second keyboard nobody has '
-      + 'documented to a reader. The list above is the whole contract, and a key the code answers '
-      + 'that is not on it fails the build.',
-    except: 'Ctrl+K inside another text box is left alone: it is kill-to-end-of-line there, and a '
-      + 'palette that eats it breaks a keystroke the reader had first.',
-    kit: [
-      { ref: 'src/components/command-palette.js:515', pattern: 'function onKeydown' },
-      { ref: 'src/components/overlay.js:97', pattern: 'function ownKeys' },
-    ],
-  },
-  {
-    id: 'say-it',
-    imperative: 'Open focus in the text box, say how many results there are, and hand focus back.',
-    why: 'The caret never leaves the box: the row a reader is on is named by '
-      + 'aria-activedescendant, which is the combobox pattern’s answer and the only one that lets '
-      + 'the arrows move a selection while the letters keep arriving. The count goes in a polite '
-      + 'live region — the count and never the rows, because a region holding the list would read '
-      + 'all of it out again on every keystroke. On the way out the opener gets focus back, even '
-      + 'when the command that ran took the opener off the page.',
-    kit: [
-      { ref: 'src/components/command-palette.js:368', pattern: 'function setActive' },
-      { ref: 'src/components/command-palette.js:392', pattern: 'function announce' },
-      { ref: 'src/components/overlay.js:236', pattern: 'export function returnFocus' },
-    ],
-  },
-  {
-    id: 'ask-first',
-    imperative: 'Never let the palette run a delete on its own.',
-    doHtml: askDo,
-    dontHtml: askDont,
-    doCaption: 'The ellipsis says a question is coming, the ink is the kit’s danger colour and '
-      + 'never the accent, and Enter opens the confirm — which paints above the palette and '
-      + 'answers the first Escape.',
-    dontCaption: 'The same two commands, marked destructive and naming nothing to ask. The '
-      + 'component refuses them where they stand — aria-disabled, greyed, and stepped over by the '
-      + 'arrows — one row from “Export rows as CSV” in a list that reorders as the reader types. '
-      + 'The refusal is visible, which is the most the kit can do about a row written this way.',
-    why: 'The palette is the fastest surface in the product and the one where a reader is looking '
-      + 'at the box rather than the list. A destructive item that names no confirm cannot be run '
-      + 'from here at all: it renders aria-disabled, which is a visible refusal rather than a '
-      + 'silent one.',
-    kit: [
-      { ref: 'src/components/command-palette.js:229', pattern: 'const isRefused = (it) =>' },
-      { ref: 'src/styles/command-palette.css:236', pattern: '.ui-cmdk__item.is-danger' },
-    ],
-  },
-];
+export const RULES = withSpecimens(content.rules, [
+{ id: 'named-things', doHtml: belongsDo, dontHtml: belongsDont },
+{ id: 'groups', doHtml: groupsDo, dontHtml: groupsDont },
+{ id: 'ranking', doHtml: rankDo, dontHtml: rankDont },
+{ id: 'keyboard' },
+{ id: 'say-it' },
+{ id: 'ask-first', doHtml: askDo, dontHtml: askDont }
+]);

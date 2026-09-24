@@ -49,3 +49,7 @@ export type {
 } from './Dropdown';
 export { BackLink } from './BackLink';
 export type { BackLinkProps, BackLinkOwnProps } from './BackLink';
+
+export * from './TableValues';
+export * from './Segmented';
+export * from './FilterBar';

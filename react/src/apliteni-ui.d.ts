@@ -1,4 +1,9 @@
 declare module '@apliteni/apliteni-ui' {
+  export function numericValue(opts?: Record<string, unknown>): string;
+  export function deltaValue(opts?: Record<string, unknown>): string;
+  export function filterBar(opts?: Record<string, unknown>): string;
+  export function initFilterBar(host: Element, opts?: Record<string, unknown>): { update: (opts: Record<string, unknown>) => void; destroy: () => void };
+  export function segmentedNextIndex(key: string, index: number, length: number): number | null;
   export function icon(name: string): string;
   export function button(opts?: Record<string, unknown>): string;
   export function badge(label: string, variant?: string): string;

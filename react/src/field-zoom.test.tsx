@@ -4,7 +4,7 @@
 //
 // This workspace publishes its own stylesheet and react/src/index.ts imports the
 // net into it, so the question here is also whether a consumer who takes that
-// sheet alone gets a net at all. Blind spots are on the floor page, beside this
+// sheet alone gets a net at all. Blind spots are on the Accessibility minimums page, beside this
 // gate's name; the vanilla gate's apply here unchanged.
 //
 // why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation

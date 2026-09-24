@@ -245,9 +245,9 @@ test('the accent gate actually measures something', () => {
   // instead of it landing in nobody's list. Bumping this number IS that
   // decision, so it is deliberately not automatic.
   assert.equal(
-    CANDIDATE_GROUNDS.length, 6,
+    CANDIDATE_GROUNDS.length, 7,
     `the token-file sweep found ${CANDIDATE_GROUNDS.length} candidate ground(s) `
-    + `(${CANDIDATE_GROUNDS.join(', ')}), not 6. If a surface was added, decide whether the accent `
+    + `(${CANDIDATE_GROUNDS.join(', ')}), not 7. If a surface was added, decide whether the accent `
     + 'is ever read on it: leave it measured, or write it into EXEMPT_GROUNDS with a reason. Then '
     + 'move this number. If a surface left, move it too. If it went to zero, SURFACE_NAME or the '
     + ':root sweep is broken and this gate was about to measure nothing.',

@@ -1,6 +1,6 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { guidelinePage } from './_layout.js';
-import { TITLE, RULES, SPEC_CSS } from './_destructive-actions.js';
+import { TITLE, BLURB, RULES, SPEC_CSS } from './_destructive-actions.js';
 
 export default {
   title: 'Guidelines/Destructive actions',
@@ -9,5 +9,5 @@ export default {
 
 export const DestructiveActions = {
   name: 'Destructive actions',
-  render: () => guidelinePage({ title: TITLE, rules: RULES, css: SPEC_CSS }),
+  render: () => guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES, css: SPEC_CSS }),
 };
