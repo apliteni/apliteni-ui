@@ -3,7 +3,8 @@ import { footer } from '../../src/components/footer.js';
 import { button, icon, badge, segmented } from '../../src/components/index.js';
 
 export default {
-  title: 'Apps/Landing Page',
+  title: 'Showcases/Landing Page',
+  id: 'apps-landing-page',
   parameters: { layout: 'fullscreen' },
 };
 

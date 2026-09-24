@@ -1,4 +1,4 @@
-// The /account preset, drawn. Every other screen in Apps/ is built on
+// The /account preset, drawn. Every other screen in Showcases/ is built on
 // appShell() with no topbar; this one exists because accountShell() is a
 // published export whose composition nothing else in the workbench renders —
 // the sticky topbar, the rail offset beneath it by --ui-app-top, and the
@@ -10,7 +10,8 @@ import { accountShell } from '../../src/components/shell.js';
 import { card, switchToggle } from '../../src/components/index.js';
 
 export default {
-  title: 'Apps/Account preset',
+  title: 'Showcases/Account preset',
+  id: 'apps-account-preset',
   parameters: { layout: 'fullscreen' },
 };
 
@@ -41,7 +42,7 @@ export const Default = {
 };
 
 // The topbar's other two pieces. `versions` draws the switcher and `showSwitch`
-// the Deck/Text pair — both belong to the preset and to nothing else in Apps/.
+// the Deck/Text pair — both belong to the preset and to nothing else in Showcases/.
 export const WithVersionSwitcher = {
   render: () => accountShell({
     word: 'Strategy',

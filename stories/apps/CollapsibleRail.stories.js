@@ -8,7 +8,8 @@ import { appShell, ACCOUNT_NAV } from '../../src/components/shell.js';
 import { card } from '../../src/components/index.js';
 
 export default {
-  title: 'Apps/Collapsible rail',
+  title: 'Showcases/Collapsible rail',
+  id: 'apps-collapsible-rail',
   parameters: { layout: 'fullscreen' },
 };
 

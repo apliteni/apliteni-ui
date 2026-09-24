@@ -4,7 +4,11 @@ import { numericValue, deltaValue, rowIdentity, initRowIdentity } from '../../sr
 import { filterBar, initFilterBar } from '../../src/components/filter-bar.js';
 import { initSegmented } from '../../src/components/segmented.js';
 
-export default { title: 'Apps/Stock screener', parameters: { layout: 'fullscreen' } };
+export default {
+  title: 'Showcases/Stock screener',
+  id: 'apps-stock-screener',
+  parameters: { layout: 'fullscreen' },
+};
 const names = ['Aster Systems', 'Birch Semiconductor', 'Cobalt Energy', 'Dovetail Health', 'Elm Networks', 'Fable Robotics', 'Grove Financial', 'Harbor Software', 'Iris Materials', 'Juniper Devices', 'Kestrel Logistics', 'Linden Foods', 'Morrow Industries', 'Northstar Analytics', 'Opal Telecom', 'Pine Mobility', 'Quartz Medical', 'Reed Computing', 'Solstice Power', 'Tern Aerospace', 'Umber Retail', 'Vale Instruments', 'Willow Biotech', 'Xenon Storage', 'Yarrow Payments', 'Zephyr Motors', 'Alder Water', 'Bracken Research', 'Cedar Infrastructure', 'Drift Media'];
 const sectors = ['Technology', 'Energy', 'Health care', 'Financials', 'Industrials'];
 const rows = names.map((name, i) => ({ name, symbol: name.slice(0, 4).toUpperCase(), price: 340 - i * 8.37, cap: 980 - i * 27.31, sector: sectors[i % sectors.length], i }));

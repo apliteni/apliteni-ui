@@ -9,7 +9,8 @@ import { commandPalette } from '../../src/components/command-palette.js';
 import { card, badge } from '../../src/components/index.js';
 
 export default {
-  title: 'Apps/Shell layouts',
+  title: 'Showcases/Shell layouts',
+  id: 'apps-shell-layouts',
   parameters: { layout: 'fullscreen' },
 };
 

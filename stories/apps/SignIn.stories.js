@@ -2,7 +2,8 @@ import { brand } from '../../src/assets/brand.js';
 import { button, field, input, icon, callout } from '../../src/components/index.js';
 
 export default {
-  title: 'Apps/Sign In (OAuth2)',
+  title: 'Showcases/Sign In (OAuth2)',
+  id: 'apps-sign-in-oauth2',
   parameters: { layout: 'fullscreen' },
 };
 

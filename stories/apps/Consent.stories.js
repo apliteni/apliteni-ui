@@ -3,7 +3,8 @@ import { button, icon } from '../../src/components/index.js';
 import { successCheck } from '../../src/components/success.js';
 
 export default {
-  title: 'Apps/Consent',
+  title: 'Showcases/Consent',
+  id: 'apps-consent',
   parameters: { layout: 'fullscreen' },
 };
 
