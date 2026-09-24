@@ -200,6 +200,11 @@ const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: '
 
 const roots = rootNames(tracked);
 
+// Guideline implementation references are deliberately stored as structured
+// test-side data. refs.test.js resolves each `ref` with its paired pattern;
+// the prose citation sweep must not reinterpret those mapping values as prose.
+const DELEGATED_REFERENCE_MAP = 'stories/guidelines/references.json';
+
 /* Text only. A citation cannot be written in a file nobody can read as prose,
  * and decoding a PNG as utf8 to search it for colons is a waste of a build. */
 const READABLE = /\.(js|mjs|cjs|jsx|ts|tsx|css|md|html|json|yml|yaml|sh)$/;
@@ -212,7 +217,7 @@ const readFrom = (rel) => {
 
 const tally = { checked: 0, historical: 0, external: 0, unrooted: 0, delegated: 0 };
 
-for (const page of tracked.filter((f) => READABLE.test(f))) {
+for (const page of tracked.filter((f) => READABLE.test(f) && f !== DELEGATED_REFERENCE_MAP)) {
   const text = readFrom(page);
   if (text === null) continue;
   if (!CITATION.test(text)) { CITATION.lastIndex = 0; continue; }

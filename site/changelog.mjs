@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.39.0', date: '2026-09-24',
+    changes: [
+      ['changed', 'Guideline pages now use short, plain-English rules with a one-sentence reason, clear Do and Don’t examples, and body ink instead of muted text. Source-file references moved to test-side coverage, and the empty-state copy rule was removed. Closes #335, #329, #330 and #328.'],
+    ],
+  },
+  {
     v: '0.38.0', date: '2026-09-24',
     changes: [
       ['added', 'Dense financial tables now have value, signed-change and company-identity renderers in vanilla and React. Units use smaller body ink, and callers choose the meaning of change colours. A new compact density uses 33px minimum rows without shrinking the type. Chosen in #344.', ['Table']],

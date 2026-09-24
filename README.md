@@ -31,8 +31,11 @@ factories below. Yes → the [React components](#react-components-stateful-surfa
 Either layer follows the same UI rules — what one page may hold, which component to reach
 for, the states it owes, how colour and wording work. They live in the **Guidelines** section
 of Storybook, which opens on
-[an overview of every page](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview)
-and what the kit does and does not yet meet.
+[links to every guideline page](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview).
+The same guidance ships as plain Markdown in
+`node_modules/@apliteni/apliteni-ui/guidelines/`. Start with
+[guidelines/overview.md](guidelines/overview.md); Storybook reads these documents too.
+
 [The page](https://ui.apli.tech/storybook/?path=/story/guidelines-the-page--the-page) is the one
 to read before you design a screen: the limits one page keeps, whatever it is about.
 

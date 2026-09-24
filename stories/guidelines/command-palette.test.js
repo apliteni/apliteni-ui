@@ -73,7 +73,7 @@ test('a group heading is the kit\'s label role: 13px, medium, sentence case', ()
 
 test('every rule on the page points at code a reader can copy', () => {
   for (const rule of RULES) {
-    assert.ok(rule.kit && rule.kit.length, `${rule.id} states a rule with nothing in the kit behind it`);
+    assert.ok(JSON.parse(readFileSync(new URL('./references.json', import.meta.url), 'utf8'))['_command-palette.js'][rule.id]?.length, `${rule.id} states a rule with nothing in the kit behind it`);
   }
 });
 

@@ -1,17 +1,4 @@
-/* Rule: every file:line a guideline page cites still says what the page claims.
- *
- * A guideline card ends with "Copy from" — file, line, and a sentence about
- * what that line does. Those references rot silently: a refactor moves a rule
- * three lines down and the page starts pointing a reader at the wrong code.
- *
- * So every `kit` entry carries a `pattern`: a literal substring that has to be
- * on the cited line. This test resolves all of them — file exists, line exists,
- * line contains the pattern — for every guideline page in stories/guidelines/.
- *
- * It lives under stories/ on purpose: `npm test` only walks src, stories, site
- * and scripts, so a test outside those four trees is never executed and passes
- * by never running.
- */
+// Test-side mapping from guideline rules to their implementation.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -24,6 +11,7 @@ import * as thePage from './_the-page.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
+const references = JSON.parse(readFileSync(path.join(here, 'references.json'), 'utf8'));
 
 // Every content module beside this test that publishes RULES.
 const pages = readdirSync(here)
@@ -126,11 +114,11 @@ for (const page of pages) {
       assert.deepEqual(codeFreeProblems(mod), [], `${page}: code references belong only in the specification`);
       return;
     }
-    assert.ok(mod.RULES.some((rule) => rule.kit?.length), `${page}: no kit citations to resolve`);
+    assert.ok(mod.RULES.some((rule) => references[page]?.[rule.id]?.length), `${page}: no kit citations to resolve`);
     const problems = [];
 
     for (const rule of mod.RULES) {
-      for (const entry of rule.kit || []) {
+      for (const entry of references[page]?.[rule.id] || []) {
         const { ref, pattern } = entry;
         const at = parseRef(ref);
 
@@ -286,7 +274,105 @@ test('the guidelines pages cite at least one line of kit code', async () => {
   let refs = 0;
   for (const page of pages) {
     const mod = await import(path.join(here, page));
-    for (const rule of mod.RULES || []) refs += (rule.kit || []).length;
+    for (const rule of mod.RULES || []) refs += (references[page]?.[rule.id] || []).length;
   }
   assert.ok(refs > 0, 'no guideline page cites any kit code — the resolver is checking nothing');
+});
+
+// The shipping documents and rendered prose must stay together as the catalogue grows.
+import { parseGuideline, withSpecimens } from './_markdown.js';
+import { mono } from './_layout.js';
+const markdownDir = path.join(root, 'guidelines');
+const sourceReference = /(?:\b(?:src|stories|react|docs)\/|\b[\w-]+\.(?:css|[cm]?js|tsx?|md)(?::\d+)?\b)/;
+const plain = (text) => JSDOM.fragment(mono(text)).textContent;
+
+test('every guideline has packaged Markdown and renders its rule text from it', async () => {
+  const docs = readdirSync(markdownDir).filter(file => file.endsWith('.md')).sort();
+  const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
+  assert.equal(content.length, 18, 'update the collection count when adding a page');
+  assert.deepEqual(docs, [...content.map(file => `${file.slice(1, -3)}.md`), 'overview.md'].sort());
+  assert.ok(JSON.parse(readFileSync(path.join(root, 'package.json'))).files.includes('guidelines'));
+  let count = 0;
+  for (const file of content) {
+    const mod = await import(path.join(here, file));
+    const document = readFileSync(path.join(markdownDir, `${file.slice(1, -3)}.md`), 'utf8');
+    assert.doesNotMatch(document, sourceReference, file);
+    const parsed = parseGuideline(document);
+    assert.equal(mod.TITLE, parsed.title);
+    assert.equal(mod.BLURB, parsed.blurb);
+    const fragment = JSDOM.fragment(guidelinePage({ title: mod.TITLE, rules: mod.RULES }));
+    const rendered = [...fragment.querySelectorAll('.gc-rule')];
+    assert.equal(rendered.length, parsed.rules.length);
+    parsed.rules.forEach((rule, index) => {
+      for (const key of ['instruction', 'why', 'doCaption', 'dontCaption']) {
+        assert.ok(rule[key]?.trim(), `${file}: ${rule.id} needs ${key}`);
+      }
+      assert.notEqual(rule.doCaption, rule.dontCaption, `${file}: examples must differ`);
+
+      for (const key of ['id', 'imperative', 'instruction', 'why', 'except', 'doCaption', 'dontCaption', 'unmet']) {
+        assert.deepEqual(mod.RULES[index][key], rule[key], `${file}: ${rule.id} ${key}`);
+      }
+      for (const key of ['imperative', 'instruction', 'why', 'except', 'doCaption', 'dontCaption']) {
+        if (rule[key]) assert.ok(rendered[index].textContent.includes(plain(rule[key])), `${file}: missing ${rule.id} ${key}`);
+      }
+      count++;
+    });
+    assert.equal(fragment.querySelector('.gc-refs'), null);
+  }
+  assert.equal(count, 93, 'update the rule count when adding or removing a rule');
+});
+
+test('all Storybook guideline prose is free of source references, including appendices', async () => {
+  for (const file of pages.filter(file => file.endsWith('.stories.js'))) {
+    const mod = await import(path.join(here, file));
+    for (const [name, story] of Object.entries(mod)) {
+      if (name === 'default') continue;
+      const fragment = JSDOM.fragment(story.render());
+      fragment.querySelectorAll('style').forEach(el => el.remove());
+      assert.doesNotMatch(fragment.textContent, sourceReference, file);
+    }
+  }
+});
+
+test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
+  const source = '# Example\n\nA summary.\n\n## Keep <words> readable.\n\n<!-- rule: text -->\n\n**Why:** Use `--text`.\n';
+  const render = source => guidelinePage({ title: 'Example', rules: withSpecimens(parseGuideline(source).rules, [{ id: 'text' }]) });
+  assert.ok(JSDOM.fragment(render(source)).textContent.includes('Keep <words> readable.'));
+  assert.ok(JSDOM.fragment(render(source.replace('readable', 'clear'))).textContent.includes('Keep <words> clear.'));
+  assert.throws(() => withSpecimens(parseGuideline(source).rules, [{ id: 'other' }]), /ids must match/);
+  assert.throws(() => parseGuideline(source + '\n**Typo:** Missing field\n'), /Unsupported/);
+  for (const bad of ['Read src/example.js:12.', 'See example.css.', 'Open ' + ['docs', 'example.md'].join('/') + '.']) assert.match(bad, sourceReference);
+});
+
+test('Storybook renders each Markdown page title', async () => {
+  for (const file of pages.filter(file => file.endsWith('.stories.js') && file !== 'Overview.stories.js')) {
+    const mod = await import(path.join(here, file));
+    const story = Object.entries(mod).find(([name]) => name !== 'default')[1];
+    const fragment = JSDOM.fragment(story.render());
+    const title = fragment.querySelector('h1').textContent;
+    const document = readdirSync(markdownDir).filter(file => file.endsWith('.md'))
+      .map(file => parseGuideline(readFileSync(path.join(markdownDir, file), 'utf8')))
+      .find(document => document.title === title);
+    assert.ok(document, `no Markdown for ${title}`);
+
+
+  }
+});
+
+
+test('packaged guideline subpaths resolve and contain the shared document', () => {
+  for (const file of readdirSync(markdownDir).filter(file => file.endsWith('.md'))) {
+    const resolved = import.meta.resolve(`@apliteni/apliteni-ui/guidelines/${file}`);
+    assert.equal(readFileSync(new URL(resolved), 'utf8'), readFileSync(path.join(markdownDir, file), 'utf8'));
+  }
+});
+
+test('inline issue links render as links while code and HTML remain escaped', () => {
+  const html = mono('[#329](https://github.com/apliteni/apliteni-ui/issues/329) <unsafe> `--text`');
+  const doc = JSDOM.fragment(html);
+  assert.equal(doc.querySelector('a').href, 'https://github.com/apliteni/apliteni-ui/issues/329');
+  assert.equal(doc.querySelector('a').textContent, '#329');
+  assert.equal(doc.querySelector('unsafe'), null);
+  assert.equal(doc.querySelector('code').textContent, '--text');
+  assert.equal(JSDOM.fragment(mono('[bad](javascript:alert(1))')).querySelector('a'), null);
 });

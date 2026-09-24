@@ -1,5 +1,4 @@
-import * as denseContent from './_dense-tables.js';
-import * as denseStory from './DenseTables.stories.js';
+import { loadGuideline } from './_markdown.js';
 // The index data, read off the pages. What ENTRIES adds is the ORDER, which
 // mirrors the sidebar order in .storybook/preview.js.
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
@@ -11,6 +10,7 @@ import * as microcopyContent from './_microcopy.js';
 import * as labelsContent from './_labels-and-titles.js';
 import * as iconographyContent from './_iconography.js';
 import * as layoutContent from './_layout-and-density.js';
+import * as denseContent from './_dense-tables.js';
 import * as floorContent from './_accessibility-floor.js';
 import * as paginationContent from './_pagination.js';
 import * as statContent from './_stat-bands.js';
@@ -30,6 +30,7 @@ import * as microcopyStory from './Microcopy.stories.js';
 import * as labelsStory from './LabelsAndTitles.stories.js';
 import * as iconographyStory from './Iconography.stories.js';
 import * as layoutStory from './LayoutAndDensity.stories.js';
+import * as denseStory from './DenseTables.stories.js';
 import * as floorStory from './AccessibilityFloor.stories.js';
 import * as paginationStory from './Pagination.stories.js';
 import * as statStory from './StatBands.stories.js';
@@ -41,7 +42,6 @@ import * as backStory from './GoingBack.stories.js';
 import * as pageStory from './ThePage.stories.js';
 
 const ENTRIES = [
-  [denseContent, denseStory],
   [pageContent, pageStory],
   [destructiveContent, destructiveStory],
   [colourContent, colourStory],
@@ -51,6 +51,7 @@ const ENTRIES = [
   [labelsContent, labelsStory],
   [iconographyContent, iconographyStory],
   [layoutContent, layoutStory],
+  [denseContent, denseStory],
   [floorContent, floorStory],
   [paginationContent, paginationStory],
   [statContent, statStory],
@@ -67,7 +68,7 @@ const sanitize = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').repl
 const words = (key) => (String(key).match(/[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+/g) || []).join('-');
 export const storyId = (mod) => {
   const key = Object.keys(mod).find((k) => k !== 'default');
-  return `${sanitize(mod.default.title)}--${sanitize(words(key))}`;
+  return `${sanitize(mod.default.id || mod.default.title)}--${sanitize(words(key))}`;
 };
 
 // `./` resolves against /iframe.html, so this is the manager URL in dev and in
@@ -83,10 +84,7 @@ export const PAGES = ENTRIES.map(([content, story]) => ({
   gaps: content.RULES.filter((r) => r.unmet),
 }));
 
-const RULE_COUNT = PAGES.reduce((n, p) => n + p.rules.length, 0);
-const GAPS = PAGES.flatMap((p) => p.gaps);
-const ISSUES = GAPS.map((r) => `#${r.unmet.issue}`);
-
-export const INTRO = `${RULE_COUNT} rules for building a screen with this kit, `
-  + `on ${PAGES.length} pages. The kit does not meet ${GAPS.length} of them yet — `
-  + `${ISSUES.join(' and ')} — and the table marks the pages that hold them.`;
+const overview = await loadGuideline('overview.md', new URL('../../guidelines/overview.md', import.meta.url));
+export const INTRO = overview.blurb;
+export const TITLE = overview.title;
+export const LINKS = PAGES.map(({ title, href }) => ({ title, href }));

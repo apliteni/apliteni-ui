@@ -33,6 +33,11 @@ below names its issue. Read [README.md](README.md) for where to record decisions
 There is no runtime dependency and no build step between the source and the stylesheet a consumer
 reads: `src/index.css` is plain CSS with `@import`s, and a consumer may ship it as it stands.
 
+Every guideline page ships as plain Markdown under `guidelines/`. Storybook reads the
+same documents, with live specimens attached to their rule ids. Reader-facing guidance
+contains no source-file or line references. Decided in [#335](https://github.com/apliteni/apliteni-ui/issues/335)
+and [#329](https://github.com/apliteni/apliteni-ui/issues/329).
+
 A React wrapper is published under the `./react` subpath. It is a wrapper — the tokens and the CSS
 are the same file the HTML entry point serves.
 
@@ -1161,8 +1166,8 @@ What the shell guarantees:
 `layout: 'rail'` — the default, and what every page already on the shell gets — is the
 arrangement above. `accountShell()` passes the option through and settles nothing of its own.
 Every guarantee in this section holds in both: the fold, the cookie, `wireShell()`, the name
-chips, the 720px strip, the reader's menu and the accessibility floor are the same behaviour with
-the same wiring, and the gates that hold them were extended rather than duplicated.
+chips, the 720px strip and the reader's menu keep the same behaviour and wiring; both layouts meet
+the same accessibility minimums, and their existing gates were extended rather than duplicated.
 
 What moves, and what each move buys:
 
