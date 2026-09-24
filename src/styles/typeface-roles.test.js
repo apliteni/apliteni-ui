@@ -75,7 +75,7 @@ const familyDecls = () => {
 };
 
 // why: CONTRIBUTING.md#font-family-count-history
-const EXPECTED_SUBJECTS = 52;
+const EXPECTED_SUBJECTS = 54;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

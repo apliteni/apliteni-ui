@@ -58,24 +58,7 @@ const DOC_STORIES = {
  * count, and the count is asserted exactly.
  */
 const LEDGER = [
-  {
-    id: 'A',
-    fg: '--pink',
-    themes: ['dark'],
-    bg: 'the hovered danger row of a table, tinted by --glow-pink',
-    example: 'span.ui-badge.ui-badge--danger',
-    count: 1,
-    worst: 4.14,
-    why: 'The danger signal painted on its own tint is the kit\'s only danger cue at rest, '
-      + 'and #156 moved --pink in both themes so it clears the surfaces it is drawn on. What '
-      + 'survives is the hover state of a danger badge inside an already-tinted table row: two '
-      + 'washes stacked, which the token move was never going to reach. It is a '
-      + 'badge beside legible text, not the only carrier of the meaning, so it is debt rather '
-      + 'than a defect. Fixing it means deciding whether a tinted row may tint its badges again. '
-      + 'The floor moved once since: the wash under it is a color-mix of --accent '
-      + '(src/styles/table.css), so #157 lifting the dark accent lifted this ground with it and '
-      + 'took the pair down. Same row, same cause, a slightly deeper worst.',
-  },
+  // #344 removes tinted table rows, resolving former bucket A's stacked-wash failure.
   {
     id: 'B',
     fg: '--accent',

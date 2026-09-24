@@ -229,3 +229,51 @@ A control outside a `field()` needs its own `ariaLabel` — a placeholder is not
 
 Install, usage, and the publish flow live in the [top-level README](../README.md).
 `publishConfig` targets the **public npm registry** (`access: public`).
+
+### Dense financial tables
+
+Import the helpers from the main package and components from `/react`; all use the kit CSS.
+
+```js
+numericValue({ value: '228.87', unit: 'USD', missing: 'Not available' });
+deltaValue({ value: '+0.66%', tone: 'success', basisId: 'previous-close' });
+rowIdentity({ symbol: 'ASTR', name: 'Aster Systems', logo: '/aster.svg', href: '/companies/aster' });
+initRowIdentity(root); // failed images reveal their letter fallback
+segmented({ options: [{ label: 'Overview', value: 'overview' }], appearance: 'underline', ariaLabel: 'Dataset view' });
+initSegmented(root); // ui-segment-change: detail.value
+```
+
+`NumericValue`, `DeltaValue` and `RowIdentity` accept the same named props. `Segmented`
+accepts `options`, controlled `value`, `onChange`, `label`, `appearance` and `disabled`.
+`DataTable` adds `dense`, `density="default|dense|compact"` (takes precedence over `dense`),
+`stickyHeader`, `pinnedIdentity`, `scrollLabel`, and an `empty` React node. The first data
+column is the pinned identity even when selection is enabled. Wrap a vanilla table in
+`.ui-table-scroll` with a region role, accessible name and tabindex; apply
+`.ui-table--sticky`, `.ui-table--pinned` and mark identity header/cells `.ui-table__identity`.
+Use `--ui-table-height` on the scroll region to choose its maximum height. If selection precedes identity, mark its header/cells `.ui-table__selection`; both columns then pin, with identity offset by `--ui-table-selection-width` (defaults to `--space-12`). Override that property on the table to change the selection track and its offset together.
+
+```js
+const options = {
+  label: 'Stock filters', clearLabel: 'Clear all stock filters',
+  filters: [{ id: 'sector', label: 'Sector', value: 'Technology',
+    items: [{ label: 'Technology', value: 'tech' }, { label: 'Energy', value: 'energy' }] }],
+  disabled: false, busy: false,
+};
+host.innerHTML = filterBar(options);
+const bar = initFilterBar(host, options);
+// Listen for ui-filter-change ({id, value}), ui-filter-remove ({id}), ui-filter-clear ({}).
+// The consumer changes its own filters, then calls bar.update(nextOptions).
+// Keep host mounted for focus recovery; call bar.destroy() when unmounting.
+```
+
+Each filter also accepts `disabled` and `open` (initial/snapshot state); `items` follow
+Dropdown's entries. React `<FilterBar {...options} onChange={(id,value)=>…}
+onRemove={id=>…} onClear={()=>…} />` uses the same controller. IDs must be unique within
+a bar. Add-filter controls and domain-specific option validation belong to the consumer.
+
+`segmentedNextIndex(key, index, length)` is the shared arrow/Home/End index calculation used by both wrappers; unsupported keys return null.
+
+`numericValue` and `deltaValue` render inline values; `rowIdentity` renders a company identity.
+`initRowIdentity` handles failed logos. `filterBar` renders the controlled filter group and
+`initFilterBar` owns its mounted controller. `initSegmented` wires the vanilla view strip
+and returns a listener cleanup function.

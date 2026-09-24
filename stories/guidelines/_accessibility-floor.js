@@ -546,6 +546,11 @@ export const GATES = [
     blind: ['Whether the glyph is legible at its size. The stroke-width rule governs that, for two families.'],
   },
   {
+    file: 'react/src/Finance.test.tsx',
+    does: 'Controlled filter removal keeps focus, disabled views are skipped, and pinned identity cells remain data cells beside selection.',
+    blind: ['Browser geometry, touch, contrast and real screen-reader announcements.'],
+  },
+  {
     file: 'react/src/DataTable.test.tsx',
     does: 'Keyboard sorting keeps semantic column headers and the announced sort direction.',
     blind: ['Real browser focus and responsive layout; these mounted tests use jsdom.'],
@@ -704,7 +709,7 @@ export const RULES = [
       + 'pair is 1.4.11’s, and no gate here measures it.',
     kit: [
       { ref: 'src/styles/button.css:95', pattern: '.ui-btn[aria-disabled="true"]' },
-      { ref: 'src/tokens/tokens.css:165', pattern: '--disabled-ink: var(--muted);' },
+      { ref: 'src/tokens/tokens.css:166', pattern: '--disabled-ink: var(--muted);' },
     ],
   },
   {
@@ -741,7 +746,7 @@ export const RULES = [
     why: 'Every number above is the least the kit accepts, not what it is trying to be. The '
       + 'four aims below the rules say what it reaches for, and a component that lands one '
       + 'thousandth over AA has passed the gate and is still the worst thing on the page.',
-    kit: [{ ref: 'stories/contrast.test.js:292', pattern: 'the AA floor is a floor, not a verdict.' }],
+    kit: [{ ref: 'stories/contrast.test.js:275', pattern: 'the AA floor is a floor, not a verdict.' }],
   },
   {
     id: 'name-the-gap',
@@ -749,6 +754,6 @@ export const RULES = [
     why: 'The gates in this repo state their own blind spots in a header comment, and the '
       + 'table below is that collection rather than a fresh audit. A gate that overstates itself '
       + 'is how contrast came to be "verified visually" in the first place.',
-    kit: [{ ref: 'stories/contrast.test.js:235', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
+    kit: [{ ref: 'stories/contrast.test.js:218', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }],
   },
 ];

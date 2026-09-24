@@ -22,6 +22,8 @@ import {
   parseColour,
   ratio,
   specialiseContextual,
+  stateTargets,
+  stateBases,
   substitute,
   tokensFor,
 } from './contrast.js';
@@ -486,4 +488,32 @@ test('contextual token recipes do not manufacture selector cross-products', () =
   assert.doesNotMatch(out, /\.page \.panel/);
   assert.match(out, /\.page \.label[^{}]*\{color:white\}/);
   assert.match(out, /\.card \.label[^{}]*\{color:black\}/);
+});
+
+
+test('overlapping state selectors measure once while preserving each element and state', () => {
+  const dom = new JSDOM('<div class="a"><button class="a b">Read</button></div>');
+  const root = dom.window.document.body;
+  const targets = stateTargets(root, { hover: new Set(['.a', '.a.b', '.b']), 'focus-visible': new Set(['button', '.b']) });
+  assert.equal(targets.length, 3);
+  assert.equal(targets.filter(([el, state]) => el.tagName === 'BUTTON' && state === 'hover').length, 1);
+  assert.equal(targets.filter(([el, state]) => el.tagName === 'BUTTON' && state === 'focus-visible').length, 1);
+  assert.equal(targets.filter(([el]) => el.tagName === 'DIV').length, 1);
+  dom.window.close();
+});
+
+
+test('decoration-only states do not repeat unchanged contrast readings', () => {
+  const bases = stateBases(desugar('.link:hover { text-decoration: underline; } .link:focus-visible { outline:2px solid transparent; box-shadow:0 0 0 2px blue; }'));
+  assert.equal(bases.hover.size, 0);
+  assert.equal(bases['focus-visible'].size, 0);
+});
+
+test('colour, background, visibility, thresholds, custom and unknown declarations keep their states', () => {
+  for (const declaration of ['color:red', 'background:white', 'background-image:none', 'opacity:.5', 'display:none', 'visibility:hidden', 'font:bold 12px serif', 'font-size:12px', 'font-weight:700', '--ink:red', 'all:initial', 'future-property:unknown']) {
+    const bases = stateBases(desugar(`.parent:hover { outline:none; ${declaration}; }`));
+    assert.ok(bases.hover.has('.parent'), declaration);
+  }
+  const descendant = stateBases(desugar('.parent:hover { outline:none } .parent:hover .child {color:red}'));
+  assert.ok(descendant.hover.has('.parent'), 'a decorative parent still has a contrast-changing descendant rule');
 });

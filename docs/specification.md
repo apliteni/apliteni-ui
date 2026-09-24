@@ -1916,8 +1916,8 @@ Stated so nobody has to discover it by trying:
   consumer's, and the React subpath is a wrapper over the same CSS rather than a second kit.
 - **No build step.** No Sass, no PostCSS, no token compiler. The consequence is
   [breakpoints as literals](#breakpoints), and that is the trade taken deliberately.
-- **No density system.** `.ui-table--dense` and `.ui-cmdk--roomy` are the only density
-  modifiers and both are component-local, because a tighter rhythm in a ledger — or a looser one
+- **No density system.** `.ui-table--dense`, `.ui-table--compact` and `.ui-cmdk--roomy` are the only density
+  modifiers and all are component-local, because a tighter rhythm in a ledger — or a looser one
   in a list of invoices that need a sentence to tell apart — is a property of the data rather
   than of the page around it.
 - **No container scale.** There is one `--container`, not a narrow/wide set. Naming a
@@ -1934,3 +1934,28 @@ Stated so nobody has to discover it by trying:
 - **No support for a vertical writing mode.** The icon gate folds `inline-size` onto `width`,
   which is only correct horizontally, and asserts the assumption rather than taking it: a
   `writing-mode` declaration anywhere in these stylesheets stops the gate.
+
+## Dense financial tables
+
+Tables paint `--table-bg`: white in light mode and the base canvas in dark mode. Zebra no
+longer paints grey stripes; hover marks the row edge without tinting the data surface.
+`dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
+with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.
+
+`numericValue` preserves the caller's formatted value and distinguishes missing from zero.
+`deltaValue` prints the caller's sign, accepts an explicit success/danger/neutral judgement,
+and leaves zero and missing comparisons neutral. Colour never supplies the sign. The caller
+names the comparison through `basisId`. `rowIdentity` combines decorative logo, symbol and
+name; missing or failed images retain a letter fallback after initialization.
+
+A named scroll region holds the native table. Sticky headers and pinned identity cells have
+opaque table backgrounds and the shared G2 focus composition. Narrow pinned identities show
+the symbol, retain the full accessible name, and use a company link for disclosure. The
+consumer supplies a real destination for that link. Columns scroll rather than disappear.
+
+`FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
+and never mutate the supplied filters. Updating the mounted host preserves the focused chip
+control; after removal focus moves to the next chip, then the previous, then the bar when no
+filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
+keyboard selection, Escape and focus return. Segmented controls support an underline appearance
+for switching columns over one dataset; arrow keys, Home and End skip disabled choices.

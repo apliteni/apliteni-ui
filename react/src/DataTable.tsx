@@ -26,6 +26,7 @@ type PagerProps =
   | { page: number; onPageChange: (page: number) => void; total: null; hasMore: boolean };
 export type DataTableProps<T> = {
   columns: Column<T>[]; rows: T[];
+  dense?: boolean; density?: 'default' | 'dense' | 'compact'; stickyHeader?: boolean; pinnedIdentity?: boolean; scrollLabel?: string; empty?: ReactNode;
   pageSize?: number; pageSizes?: readonly number[] | null; onPageSizeChange?: (size: number) => void;
   /** `false` renders no pager at all — for a surface that supplies its own. */
   pager?: boolean;
@@ -54,7 +55,7 @@ export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
 }
 
 export function DataTable<T extends { name: string }>({
-  columns, rows, pageSize, pageSizes = null, onPageSizeChange, pager = true,
+  columns, rows, dense = false, density, stickyHeader = false, pinnedIdentity = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true,
   pagerLabel, loading = false,
   selectable = true, selected = new Set<string>(),
   onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
@@ -114,21 +115,23 @@ export function DataTable<T extends { name: string }>({
       {/* The rows stay on screen while the next page is fetched, and the table
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
-      <table className="ui-table ui-table--hover ui-table--zebra"
+      <div className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
+        aria-label={stickyHeader || pinnedIdentity ? scrollLabel : undefined} tabIndex={stickyHeader || pinnedIdentity ? 0 : undefined}>
+      <table className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         <thead>
           <tr>
-            {selectable ? <th scope="col">
+            {selectable ? <th scope="col" className="ui-table__selection">
               {/* No visible text: aria-label is this checkbox's whole name. */}
               <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
                 onChange={() => onTogglePage(slice.map((r) => r.name))} />
             </th> : null}
-            {columns.map((c) => (
+            {columns.map((c, columnIndex) => (
               // The sort control is a real <button> inside the header cell. It used to be
               // role="button" ON the <th>, which threw away the columnheader role and put
               // aria-sort on a role that forbids it.
               <th key={c.key} scope="col"
-                className={[c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
+                className={[pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
                 // External sorting can select a column without an interactive header.
                 // A table whose page is controlled and whose sort is not knows
                 // no order to report: "none" would be a claim of its own, and
@@ -148,12 +151,13 @@ export function DataTable<T extends { name: string }>({
           </tr>
         </thead>
         <tbody>
+          {!slice.length && <tr><td colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
           {slice.map((r) => (
             <tr key={r.name}>
-              {selectable ? <td><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
+              {selectable ? <td className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
                 onChange={() => onToggle(r.name)} /></td> : null}
-              {columns.map((c) => (
-                <td key={c.key} className={c.num ? 'ui-table__num' : undefined}>
+              {columns.map((c, columnIndex) => (
+                <td key={c.key} className={[c.num && 'ui-table__num', pinnedIdentity && columnIndex === 0 && 'ui-table__identity'].filter(Boolean).join(' ')}>
                   {c.render ? c.render(r) : String(r[c.key])}
                 </td>
               ))}
@@ -161,6 +165,7 @@ export function DataTable<T extends { name: string }>({
           ))}
         </tbody>
       </table>
+      </div>
       {/* One page and no size to choose renders nothing at all — the pager's own
           rule, not a second copy of it here. */}
       {pager ? (

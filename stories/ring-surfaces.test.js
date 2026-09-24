@@ -31,7 +31,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 129, 'surface discovery changed; light neutral/archive badges are separate rules');
+  assert.equal(surfaces.length, 133, 'surface discovery changed; light neutral/archive badges are separate rules');
   const shared = compositions.find((r) => !r.selector.includes(':root'));
   const covered = (rule) => rule.selector.split(',').every((selector) => shared.selector.split(',').map((s) => s.trim()).includes(selector.trim()));
   for (const rule of surfaces) {
@@ -53,7 +53,7 @@ test('every painted surface sets a matching gap or explains why the containing g
 });
 
 test('every ring consumer keeps a real outline for forced colors', () => {
-  assert.equal(consumers.length, 22, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 26, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

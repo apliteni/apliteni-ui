@@ -1,3 +1,5 @@
+import * as denseContent from './_dense-tables.js';
+import * as denseStory from './DenseTables.stories.js';
 // The index data, read off the pages. What ENTRIES adds is the ORDER, which
 // mirrors the sidebar order in .storybook/preview.js.
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
@@ -39,6 +41,7 @@ import * as backStory from './GoingBack.stories.js';
 import * as pageStory from './ThePage.stories.js';
 
 const ENTRIES = [
+  [denseContent, denseStory],
   [pageContent, pageStory],
   [destructiveContent, destructiveStory],
   [colourContent, colourStory],
