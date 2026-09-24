@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.37.1', date: '2026-09-24',
+    changes: [
+      ['fixed', "DataTable sort indicators are now drawn as SVG chevrons instead of text arrow characters, which iOS showed as colour emoji. The sorted column shows one chevron in the sort direction; other sortable columns show a neutral pair. Screen readers still get the state from aria-sort. Found in the design-review trial, #361."],
+    ],
+  },
+  {
     v: '0.37.0', date: '2026-09-23',
     changes: [
       ['changed', "Focus now uses a separated solid band with a soft glow. The 1px surface-coloured gap keeps the 2px accent band distinct from filled controls. The glow is decorative, as chosen in #343."],
