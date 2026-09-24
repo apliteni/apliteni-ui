@@ -24,7 +24,7 @@ import { button, checkbox } from '../../src/components/index.js';
 /** WCAG 2.5.8, AA. Not ours to choose; ours to hold and to measure against. */
 export const TARGET_MIN = 24;
 
-/** WCAG 1.4.11 for a focus indicator, and the stroke-width rule says a 3px band earns it. */
+/** WCAG 1.4.11 contrast minimum for the solid focus band. */
 export const RING_MIN = 3;
 
 /**
