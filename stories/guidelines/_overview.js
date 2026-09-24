@@ -65,7 +65,7 @@ const sanitize = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').repl
 const words = (key) => (String(key).match(/[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+/g) || []).join('-');
 export const storyId = (mod) => {
   const key = Object.keys(mod).find((k) => k !== 'default');
-  return `${sanitize(mod.default.title)}--${sanitize(words(key))}`;
+  return `${sanitize(mod.default.id || mod.default.title)}--${sanitize(words(key))}`;
 };
 
 // `./` resolves against /iframe.html, so this is the manager URL in dev and in

@@ -53,12 +53,14 @@ const ungatedRow = (u) => `
   </tr>`;
 
 export default {
-  title: 'Guidelines/The accessibility floor',
+  // Preserve published links while the visible title changes.
+  id: 'guidelines-the-accessibility-floor',
+  title: 'Guidelines/Accessibility minimums',
   parameters: { layout: 'fullscreen' },
 };
 
 export const AccessibilityFloor = {
-  name: 'The accessibility floor',
+  name: 'Accessibility minimums',
   render: () => `${CSS}${guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES, css: SPEC_CSS })}${pad(`
     <section class="af gl">
       <h2>${SECTIONS[0].title}</h2>

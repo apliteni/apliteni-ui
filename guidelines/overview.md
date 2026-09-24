@@ -20,7 +20,7 @@
 
 - [Layout and density](layout-and-density.md)
 
-- [The accessibility floor](accessibility-floor.md)
+- [Accessibility minimums](accessibility-floor.md)
 
 - [Pagination](pagination.md)
 

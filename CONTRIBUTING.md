@@ -279,7 +279,7 @@ they are reading the test, not this.
 What moves here is the argument under a hole, when the hole is not particular to one gate. No
 width for anything a line of text sizes is jsdom having no layout, described once in
 [Where jsdom stops being a browser](#where-jsdom-stops-being-a-browser) and named at the gate in
-a line. A hole that is a **decision** — the accessibility floor reads WCAG 2.5.8 without its
+a line. A hole that is a **decision** — the Accessibility minimums page reads WCAG 2.5.8 without its
 spacing exception, so 24×24 is absolute — belongs to the issue that decided it. What is left at
 the gate is one line per hole, saying what is not measured and what a reader should not conclude
 from the pass.
