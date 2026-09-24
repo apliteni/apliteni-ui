@@ -920,6 +920,13 @@ through `mutate`, and the cache refuses to answer if one did not.
 
 ### The two cost gates fail for different reasons, so they are kept apart
 
+State discovery in `stories/lib/contrast.js` omits a rule only when every declaration
+is in its tested list of decoration properties: outlines, shadows, corner radius,
+text decoration, cursor and transitions. These cannot change the colour, background,
+visibility, opacity or font threshold that this resolver reads. Custom properties,
+contrast properties and unknown declarations retain the state, including rules that
+change a descendant. Every story still renders fully; no table rows are sampled.
+
 The **wall-clock ceiling** is 120s. Measured on a 10-core laptop over two default cells:
 15.7–16.5s run alone, 16.4–18.3s inside `npm test` where it shares those cores with 21 other
 files, and 47.6s with all ten cores deliberately saturated by competing processes. The ceiling
