@@ -57,8 +57,8 @@ export const Sizes = {
     )),
     specimen('xs states', row(
       button({ label: 'Copy', size: 'xs', icon: 'copy', disabled: true }),
-      button({ label: 'Saving…', size: 'xs', busy: true }),
-      button({ label: 'Copying…', size: 'xs', icon: 'copy', iconOnly: true, busy: true }),
+      button({ label: 'Save changes', size: 'xs', busy: true }),
+      button({ label: 'Copy', size: 'xs', icon: 'copy', iconOnly: true, busy: true }),
     )),
   )),
 };
@@ -80,8 +80,8 @@ export const States = {
       button({ label: 'Ghost', variant: 'ghost', disabled: true }),
     )),
     specimen('Busy / loading', row(
-      button({ label: 'Saving…', variant: 'primary', busy: true }),
-      button({ label: 'Saving…', variant: 'secondary', busy: true }),
+      button({ label: 'Save changes', variant: 'primary', busy: true }),
+      button({ label: 'Save changes', variant: 'secondary', busy: true }),
     )),
     specimen('Icon-only', row(
       button({ label: 'More actions', variant: 'secondary', icon: 'moreHorizontal', iconOnly: true }),
@@ -102,7 +102,7 @@ export const BrandIcon = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(stack(
     specimen('Continue with Google — idle', button({ label: 'Continue with Google', variant: 'secondary', size: 'lg', iconSvg: googleG })),
-    specimen('Signing in — busy:true', button({ label: 'Signing you in', variant: 'secondary', size: 'lg', iconSvg: googleG, busy: true })),
+    specimen('Signing in — busy:true', button({ label: 'Continue with Google', variant: 'secondary', size: 'lg', iconSvg: googleG, busy: true })),
   )),
 };
 
@@ -112,8 +112,8 @@ export const BusyTransition = {
     host.innerHTML = button({ label: 'Save changes', variant: 'primary' });
     const control = host.querySelector('button');
     control.addEventListener('click', () => {
-      setButtonBusy(control, { busy: true, label: 'Saving…' });
-      setTimeout(() => setButtonBusy(control, { busy: false, label: 'Saved' }), 2400);
+      setButtonBusy(control, { busy: true });
+      setTimeout(() => setButtonBusy(control, { busy: false }), 2400);
     });
     return host;
   },

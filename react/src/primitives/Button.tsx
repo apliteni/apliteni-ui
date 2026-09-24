@@ -1,5 +1,4 @@
 import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type ReactNode, type SyntheticEvent, type KeyboardEvent } from 'react';
-import { slideButtonLabel } from '@apliteni/apliteni-ui';
 import { Icon } from './Icon';
 
 export type ButtonProps = {
@@ -9,7 +8,7 @@ export type ButtonProps = {
   iconRight?: string;
   iconOnly?: boolean;
   block?: boolean;
-  /** In flight: keeps focus, blocks activation, announces label changes, and shows bars. */
+  /** In flight: keeps focus, blocks activation, announces progress, and shows dots. */
   busy?: boolean;
   children?: ReactNode;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
@@ -55,24 +54,23 @@ export function Button({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const announcer = useRef<ReturnType<typeof acquireAnnouncer> | null>(null);
-  const cancelSlide = useRef<(() => void) | undefined>(undefined);
-  const previous = useRef<{ node: HTMLElement | null; text: string; busy: boolean | undefined }>(null);
+  const hasBeenBusy = useRef(false);
+  if (busy) hasBeenBusy.current = true;
+  const readyChildren = useRef(children);
+  if (!busy) readyChildren.current = children;
+  const renderedChildren = busy ? readyChildren.current : children;
+  const previous = useRef<{ text: string; busy: boolean | undefined }>(null);
   useLayoutEffect(() => {
     const label = labelRef.current;
     const text = label?.textContent ?? buttonRef.current?.getAttribute('aria-label') ?? '';
     const prior = previous.current;
-    if (prior && (busy || prior.busy) && prior.text !== text) {
-      cancelSlide.current?.();
-      if (label) cancelSlide.current = slideButtonLabel(label, prior.node);
-    }
     if ((busy || prior?.busy) && (!prior || prior.text !== text || prior.busy !== busy)) {
       announcer.current ??= acquireAnnouncer(buttonRef.current!.ownerDocument);
-      announcer.current.announce(text);
+      announcer.current.announce(`${text}: ${busy ? 'in progress' : 'complete'}`);
     }
-    previous.current = { node: (label?.cloneNode(true) as HTMLElement | undefined) ?? null, text, busy };
+    previous.current = { text, busy };
   });
   useLayoutEffect(() => () => {
-    cancelSlide.current?.();
     announcer.current?.release();
     announcer.current = null;
     previous.current = null;
@@ -105,6 +103,7 @@ export function Button({
     <button
       ref={buttonRef}
       data-btn-wired=""
+      data-btn-ready={!busy && hasBeenBusy.current ? '' : undefined}
       type={type}
       className={cls}
       disabled={disabled}
@@ -120,9 +119,9 @@ export function Button({
       onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
     >
       {icon && <Icon name={icon} />}
-      {!iconOnly && children != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{children}</span></span>}
+      {!iconOnly && renderedChildren != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{renderedChildren}</span></span>}
       {iconRight && <Icon name={iconRight} />}
-      {busy && <span className="ui-btn__bars" aria-hidden="true"><i /><i /></span>}
+      {busy && <span className="ui-btn__dots" aria-hidden="true"><i /><i /><i /></span>}
     </button>
   );
 }

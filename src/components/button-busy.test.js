@@ -9,44 +9,35 @@ function setup(options) {
   return new JSDOM(button({ label: 'Save', icon: 'check', ...options })).window.document.querySelector('.ui-btn');
 }
 
-test('busy updates preserve the control, icons and previous disabled state', () => {
+test('busy preserves labels, icons and disabled state and uses three decorative dots', () => {
   for (const disabled of [false, true]) {
     const el = setup({ disabled });
     const icon = el.querySelector('svg');
-    setButtonBusy(el, { busy: true, label: 'Saving…' });
-    assert.equal(el.disabled, disabled);
-    assert.equal(el.getAttribute('aria-busy'), 'true');
-    assert.equal(el.querySelector('.ui-btn__label-old').textContent, 'Save');
-    assert.equal(el.querySelector('.ui-btn__label-old').getAttribute('aria-hidden'), 'true');
-    setButtonBusy(el, { busy: true, label: 'Almost done' });
-    assert.equal(el.querySelectorAll('.ui-btn__label-old').length, 1);
-    assert.equal(el.querySelectorAll('.ui-btn__bars').length, 1);
-    setButtonBusy(el, { busy: false, label: 'Saved' });
-    assert.equal(el.disabled, disabled);
-    assert.equal(el.querySelector('svg'), icon);
-    assert.equal(el.querySelector('.ui-btn__bars'), null);
-    el.querySelector('.ui-btn__label').dispatchEvent(new el.ownerDocument.defaultView.Event('animationend'));
-    assert.equal(el.querySelector('.ui-btn__label-old'), null);
+    const label = el.querySelector('.ui-btn__label');
+    for (let cycle = 0; cycle < 2; cycle++) {
+      setButtonBusy(el, { busy: true });
+      setButtonBusy(el, { busy: true });
+      assert.equal(el.disabled, disabled);
+      assert.equal(el.getAttribute('aria-busy'), 'true');
+      assert.equal(el.querySelector('.ui-btn__label'), label);
+      assert.equal(label.textContent, 'Save');
+      assert.equal(el.querySelectorAll('.ui-btn__dots').length, 1);
+      assert.equal(el.querySelectorAll('.ui-btn__dots i').length, 3);
+      assert.equal(el.querySelector('.ui-btn__dots').getAttribute('aria-hidden'), 'true');
+      setButtonBusy(el, { busy: false });
+      assert.equal(el.disabled, disabled);
+      assert.equal(el.querySelector('svg'), icon);
+      assert.equal(el.querySelector('.ui-btn__dots'), null);
+    }
   }
 });
 
-test('reduced motion replaces text immediately without an outgoing copy', () => {
-  const previous = globalThis.matchMedia;
-  globalThis.matchMedia = () => ({ matches: true });
-  try {
-    const el = setup();
-    setButtonBusy(el, { busy: true, label: '<Saving>' });
-    assert.equal(el.querySelector('.ui-btn__label').textContent, '<Saving>');
-    assert.equal(el.querySelector('.ui-btn__label-old'), null);
-    assert.equal(el.querySelector('saving'), null);
-  } finally { globalThis.matchMedia = previous; }
-});
-
-test('icon-only updates the accessible name without adding visible text', () => {
+test('icon-only keeps its accessible name without adding visible text', () => {
   const el = setup({ iconOnly: true });
-  setButtonBusy(el, { busy: true, label: 'Saving' });
-  assert.equal(el.getAttribute('aria-label'), 'Saving');
+  setButtonBusy(el, { busy: true });
+  assert.equal(el.getAttribute('aria-label'), 'Save');
   assert.equal(el.querySelector('.ui-btn__label'), null);
+  assert.equal(el.querySelectorAll('.ui-btn__dots i').length, 3);
 });
 
 test('clearing busy twice preserves an originally disabled control', () => {
@@ -59,7 +50,7 @@ test('clearing busy twice preserves an originally disabled control', () => {
   assert.equal(el.disabled, true);
 });
 
-test('wired busy keeps focus, blocks activation, and announces new labels outside the button', async () => {
+test('wired busy keeps focus, blocks activation, and announces progress outside the button', async () => {
   const el = setup();
   const win = el.ownerDocument.defaultView;
   let clicks = 0;
@@ -68,14 +59,14 @@ test('wired busy keeps focus, blocks activation, and announces new labels outsid
   el.addEventListener('keydown', () => keys++);
   el.focus();
   assert.equal(el.nextElementSibling, null);
-  setButtonBusy(el, { busy: true, label: 'Saving' });
+  setButtonBusy(el, { busy: true });
   const status = el.nextElementSibling;
   assert.equal(status.getAttribute('aria-live'), 'polite');
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(el.ownerDocument.activeElement, el);
   assert.equal(el.disabled, false);
   assert.equal(el.getAttribute('aria-disabled'), 'true');
-  assert.equal(status.textContent, 'Saving');
+  assert.equal(status.textContent, 'Save: in progress');
   assert.equal(el.querySelector('[role="status"]'), null);
   el.click();
   for (const key of ['Enter', ' ']) {
@@ -86,8 +77,8 @@ test('wired busy keeps focus, blocks activation, and announces new labels outsid
   }
   assert.equal(clicks, 0);
   assert.equal(keys, 0);
-  setButtonBusy(el, { busy: false, label: 'Saved' });
-  assert.equal(status.textContent, 'Saved');
+  setButtonBusy(el, { busy: false });
+  assert.equal(status.textContent, 'Save: complete');
   assert.equal(el.ownerDocument.activeElement, el);
   el.click();
   assert.equal(clicks, 1);
@@ -109,7 +100,7 @@ test('idle factories omit status regions; busy wiring creates one even without a
   assert.equal(idle.ownerDocument.querySelectorAll('[role="status"]').length, 0);
   setButtonBusy(idle, { busy: true });
   await new Promise(resolve => setTimeout(resolve, 0));
-  assert.equal(idle.nextElementSibling.textContent, 'Save');
+  assert.equal(idle.nextElementSibling.textContent, 'Save: in progress');
   setButtonBusy(idle, { busy: true });
   assert.equal(idle.ownerDocument.querySelectorAll('[role="status"]').length, 1);
   const busy = setup({ busy: true });

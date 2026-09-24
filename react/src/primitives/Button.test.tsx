@@ -45,25 +45,17 @@ it('hides the decorative glyph wrapper from assistive tech', () => {
   expect(container.querySelector('span[aria-hidden="true"] svg')).not.toBeNull();
 });
 
-it('slides busy label changes and clears interrupted outgoing copies', () => {
-  const { container, rerender, getByRole, unmount } = render(<Button>Save</Button>);
-  expect(container.querySelector('.ui-btn__label-old')).toBeNull();
+it('retains the last action label while busy and restores the next label on completion', () => {
+  const { container, rerender, getByRole } = render(<Button><b>Save</b></Button>);
   rerender(<Button busy>Saving…</Button>);
-  expect(getByRole('button', { name: 'Saving…' })).toHaveAttribute('aria-disabled', 'true');
-  expect(container.querySelector('.ui-btn__label-old')).toHaveTextContent('Save');
+  expect(getByRole('button', { name: 'Save' })).toHaveAttribute('aria-busy', 'true');
+  expect(container.querySelectorAll('.ui-btn__dots i')).toHaveLength(3);
   rerender(<Button busy>Almost done</Button>);
-  expect(container.querySelectorAll('.ui-btn__label-old')).toHaveLength(1);
-  expect(container.querySelector('.ui-btn__label-old')).toHaveTextContent('Saving…');
+  expect(getByRole('button', { name: 'Save' })).toBeEnabled();
+  expect(container.querySelectorAll('.ui-btn__dots')).toHaveLength(1);
   rerender(<Button>Saved</Button>);
-  expect(getByRole('button', { name: 'Saved' })).not.toBeDisabled();
-  expect(container.querySelector('.ui-btn__bars')).toBeNull();
-  unmount();
-});
-
-it('does not animate an unchanged rendered label after a busy rerender', () => {
-  const { container, rerender } = render(<Button busy><b>Saving</b></Button>);
-  rerender(<Button busy><b>Saving</b></Button>);
-  expect(container.querySelector('.ui-btn__label-old')).toBeNull();
+  expect(getByRole('button', { name: 'Saved' })).not.toHaveAttribute('aria-busy');
+  expect(container.querySelector('.ui-btn__dots')).toBeNull();
 });
 
 it('keeps focus while busy, blocks clicks and activation keys, and announces label changes', async () => {
@@ -78,7 +70,7 @@ it('keeps focus while busy, blocks clicks and activation keys, and announces lab
   expect(button).toBeEnabled();
   expect(button).toHaveAttribute('aria-disabled', 'true');
   const status = getByRole('status');
-  await waitFor(() => expect(status).toHaveTextContent('Saving'));
+  await waitFor(() => expect(status).toHaveTextContent('Save: in progress'));
   expect(button.contains(status)).toBe(false);
   fireEvent.click(button);
   for (const activationKey of ['Enter', ' ']) {
@@ -109,7 +101,7 @@ it('keeps one root per button and shares the announcer only after busy is used',
   expect(second.container.children).toHaveLength(1);
   expect(document.querySelectorAll('.ui-btn__status')).toHaveLength(1);
   const status = document.querySelector('.ui-btn__status');
-  await waitFor(() => expect(status).toHaveTextContent('Sending'));
+  await waitFor(() => expect(status).toHaveTextContent('Send: in progress'));
   first.unmount();
   expect(status).toBeInTheDocument();
   second.rerender(<Button>Sent</Button>);

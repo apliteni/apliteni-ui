@@ -152,17 +152,20 @@ Keep the factory-created element in place to animate its label:
 import { button, setButtonBusy } from '@apliteni/apliteni-ui';
 host.innerHTML = button({ label: 'Save changes', variant: 'primary' });
 const control = host.querySelector('button');
-setButtonBusy(control, { busy: true, label: 'Saving…' });
+setButtonBusy(control, { busy: true });
 // When the request completes:
-setButtonBusy(control, { busy: false, label: 'Saved' });
+setButtonBusy(control, { busy: false });
 ```
 
 The helper keeps focus on the button, uses `aria-disabled` and blocks clicks,
-Enter and Space while busy. Its sibling polite live region announces label changes.
+Enter and Space while busy. Its sibling polite live region announces progress and completion.
 Explicit `disabled: true` stays natively disabled. Static `button({ busy: true })`
 markup uses native disabled until the helper wires it; call `setButtonBusy` to
-switch to the focus-preserving behavior. React `<Button busy={saving}>{saving ? 'Saving…' : 'Save changes'}</Button>`
-animates label changes automatically. Reduced motion keeps both label and bar static.
+switch to the focus-preserving behavior. React `<Button busy={saving}>Save changes</Button>` uses the same treatment.
+The action label slides down, three dots take its place, and the label returns from below
+when complete. Its hidden label preserves the width and accessible name. React retains
+the last ready children while busy; changed children appear on completion. Reduced
+motion switches immediately to static dots.
 See Storybook's **Button / Busy Transition** for the live vanilla example.
 
 ## Theming

@@ -829,23 +829,20 @@ Decided in [#148](https://github.com/apliteni/apliteni-ui/issues/148),
 
 ### Busy button labels
 
-Busy label changes slide down out of a clipped line, then the new label enters from
-below, without an opacity flash (#327). The sequence uses `--dur-med` (250ms).
-React runs it when rendered label text changes while entering, leaving or remaining busy;
-vanilla callers use `setButtonBusy(element, { busy, label })` to retain the control
-and its icons. Initial labels stay still. Replacing a whole HTML string cannot
-retain the outgoing label and is outside this behavior.
+Busy buttons replace the visible action label with three centered pulsing dots (#327).
+The label slides down out of its clipped line; the dots enter after it clears, using
+`--dur-med` (250ms). Completion removes the dots and returns the original or next
+React label from below. Text does not fade or blink. The retained label and icons keep
+the button's dimensions stable while busy; icons are hidden until completion.
+Vanilla callers use `setButtonBusy(element, { busy })` without a busy label.
+React callers use `<Button busy={saving}>Save changes</Button>`; children from the last
+ready render remain in the hidden slot until completion. A different completion label
+can change the width once it becomes the new action. No motion helper is public.
 
-The indeterminate bars take 4 seconds per pass, with the second 1.6 seconds behind.
-The label sits 2px higher while busy and the bar sits nearer the bottom edge, keeping
-the button height unchanged; padding transitions on `--dur-med` and `--ease`. All variants and sizes share this behavior. Reduced
-motion replaces the label and padding immediately and renders a static filled track.
-
-The incoming label waits below the clip until the outgoing label has left (45% of
-the sequence), so their painted text never overlaps. The outgoing copy is absolute:
-only the live label sizes the slot, so the width changes once.
-`slideButtonLabel(label, previousSnapshot)` is shared through the public motion
-module and returns a cleanup function.
+Dots pulse on a 1.4-second cycle, staggered by 0.2 seconds, matching Discord's web
+client loading indicator. The downward label exit follows Artur's requested direction.
+All variants and sizes share the treatment. Reduced motion switches immediately
+between label and static dots; no translation, padding change or pulse runs.
 
 Wired vanilla and React busy buttons keep focus: `aria-disabled` communicates the
 state, while click, Enter and Space activation are blocked, and hover/press styling
@@ -854,7 +851,7 @@ an empty sibling region, and `setButtonBusy` creates it lazily when entering bus
 React returns one button element and lazily shares one page-level announcer across
 busy buttons, removing it when its users unmount. Both use
 `role="status" aria-live="polite"` outside `aria-busy`, which would defer updates.
-Regions persist through completion so the final label can be announced. Explicitly disabled buttons remain natively
+Regions persist through completion so progress and completion can be announced. Explicitly disabled buttons remain natively
 disabled. Unwired static `button({ busy: true })` markup retains native disabled as
 a safe fallback; `setButtonBusy` replaces it with guards when wiring the control.
 
@@ -901,7 +898,7 @@ What it guarantees:
   region; rendered as a whole page it needs no announcement, because nothing changed — that *is*
   the page. Two live regions racing over one event is how a screen says things twice.
 - **No spinner factory.** The kit already spins in two places that own their context —
-  `.ui-btn__bars` inside a busy button, `.ui-fbspin` inside the feedback composer — and a third
+  `.ui-btn__dots` inside a busy button, `.ui-fbspin` inside the feedback composer — and a third
   would be a third thing to keep in sync. At screen scale a skeleton says more anyway: it says
   what shape is coming.
 

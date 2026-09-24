@@ -1,5 +1,3 @@
-import { slideButtonLabel } from '../motion.js';
-
 const disabledBeforeBusy = new WeakMap();
 const wired = new WeakSet();
 
@@ -17,7 +15,7 @@ function wireActivationGuard(element) {
 }
 
 /** Update a factory button in place, preserving its icons and prior disabled state. */
-export function setButtonBusy(element, { busy, label } = {}) {
+export function setButtonBusy(element, { busy } = {}) {
   wireActivationGuard(element);
   const wasBusy = element.getAttribute('aria-busy') === 'true';
   if ((busy || wasBusy) && !disabledBeforeBusy.has(element)) disabledBeforeBusy.set(element, {
@@ -25,33 +23,26 @@ export function setButtonBusy(element, { busy, label } = {}) {
     ariaDisabled: wasBusy && !element.hasAttribute('data-btn-disabled') ? null : element.getAttribute('aria-disabled'),
   });
   if (busy) {
+    element.removeAttribute('data-btn-ready');
     element.setAttribute('aria-busy', 'true');
     element.toggleAttribute('disabled', disabledBeforeBusy.get(element).disabled);
     element.setAttribute('aria-disabled', 'true');
-    if (!element.querySelector('.ui-btn__bars')) {
-      const bars = element.ownerDocument.createElement('span');
-      bars.className = 'ui-btn__bars';
-      bars.setAttribute('aria-hidden', 'true');
-      bars.innerHTML = '<i></i><i></i>';
-      element.append(bars);
+    if (!element.querySelector('.ui-btn__dots')) {
+      const dots = element.ownerDocument.createElement('span');
+      dots.className = 'ui-btn__dots';
+      dots.setAttribute('aria-hidden', 'true');
+      dots.innerHTML = '<i></i><i></i><i></i>';
+      element.append(dots);
     }
   } else if (wasBusy) {
+    element.setAttribute('data-btn-ready', '');
     element.removeAttribute('aria-busy');
-    element.querySelector('.ui-btn__bars')?.remove();
+    element.querySelector('.ui-btn__dots')?.remove();
     const prior = disabledBeforeBusy.get(element);
     element.toggleAttribute('disabled', prior?.disabled ?? false);
     if (prior?.ariaDisabled != null) element.setAttribute('aria-disabled', prior.ariaDisabled);
     else element.removeAttribute('aria-disabled');
     disabledBeforeBusy.delete(element);
-  }
-  const text = element.querySelector('.ui-btn__label');
-  if (label != null && text && text.textContent !== String(label)) {
-    const previous = text.cloneNode(true);
-    text.textContent = String(label);
-    slideButtonLabel(text, previous);
-  } else if (label != null && element.classList.contains('ui-btn--icon')) {
-    element.setAttribute('aria-label', String(label));
-    element.setAttribute('title', String(label));
   }
   if (busy || wasBusy) {
     let status = element.nextElementSibling;
@@ -63,11 +54,16 @@ export function setButtonBusy(element, { busy, label } = {}) {
       element.after(status);
       // Register the empty live region before its first text update.
       setTimeout(() => {
-        status.textContent = element.querySelector('.ui-btn__label')?.textContent ?? element.getAttribute('aria-label') ?? '';
+        status.textContent = messageFor(element);
       }, 0);
     } else {
-      const message = text?.textContent ?? element.getAttribute('aria-label') ?? '';
+      const message = messageFor(element);
       if (status.textContent !== message) status.textContent = message;
     }
   }
+}
+
+function messageFor(element) {
+  const name = element.querySelector('.ui-btn__label')?.textContent ?? element.getAttribute('aria-label') ?? 'Button';
+  return `${name}: ${element.getAttribute('aria-busy') === 'true' ? 'in progress' : 'complete'}`;
 }
