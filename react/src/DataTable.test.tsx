@@ -480,3 +480,58 @@ it('turns the shipped ServerPaged story to the size the reader picked, and leave
   expect(screen.getByText('1–5 of 5')).toBeInTheDocument();
   expect(screen.getAllByRole('row')).toHaveLength(6);
 });
+
+
+describe('opt-in sort animation', () => {
+  let reduce = false;
+  let changed: (() => void) | undefined;
+  const cancel = vi.fn();
+  const animate = vi.fn(() => ({ cancel }));
+  beforeEach(() => {
+    reduce = false;
+    vi.stubGlobal('matchMedia', vi.fn(() => ({
+      get matches() { return reduce; },
+      addEventListener: (_: string, listener: () => void) => { changed = listener; },
+      removeEventListener: vi.fn(),
+    })));
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      return { top: Array.from(this.parentElement?.children ?? []).indexOf(this) * 40 } as DOMRect;
+    });
+    vi.stubGlobal('Animation', class {});
+    Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: animate });
+    animate.mockClear(); cancel.mockClear();
+  });
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); delete (Element.prototype as Partial<Element>).animate; });
+
+  it('keeps the default instantaneous and sorts correctly', async () => {
+    render(<DataTable columns={columns} rows={rows} selectable={false} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Clicks' }));
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent('B');
+    expect(animate).not.toHaveBeenCalled();
+    expect(document.querySelector('.rx-caret[data-animated]')).toBeNull();
+  });
+
+  it.each(['chevron', 'rows'] as const)('sorts without row motion under reduced motion: %s', async sortAnimation => {
+    reduce = true;
+    render(<DataTable columns={columns} rows={rows} selectable={false} sortAnimation={sortAnimation} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Clicks' }));
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent('B');
+    expect(animate).not.toHaveBeenCalled();
+  });
+
+  it('plays transform-only row motion and cancels it when reduced motion is enabled', async () => {
+    render(<DataTable columns={columns} rows={rows} selectable={false} sortAnimation="rows" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Clicks' }));
+    expect(animate).toHaveBeenCalled();
+    expect(animate.mock.calls[0][0]).toEqual([{ transform: 'translateY(40px)' }, { transform: 'translateY(0)' }]);
+    reduce = true; changed?.();
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it('does not animate server-paged rows', async () => {
+    render(<DataTable columns={columns} rows={rows} selectable={false} sortAnimation="rows"
+      page={1} total={3} onPageChange={() => {}} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Clicks' }));
+    expect(animate).not.toHaveBeenCalled();
+  });
+});

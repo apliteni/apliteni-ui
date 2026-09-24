@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
@@ -37,6 +37,8 @@ export type DataTableProps<T> = {
    */
   pagerLabel?: string;
   loading?: boolean;
+  /** Opt-in prototype: row motion only applies to client-side sorting. */
+  sortAnimation?: 'none' | 'chevron' | 'rows';
 } & SelectionProps & PagerProps & (
   | { sort?: never; onSortChange?: (sort: TableSort<T>) => void }
   | { sort: TableSort<T>; onSortChange: (sort: TableSort<T>) => void }
@@ -55,7 +57,7 @@ export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
 
 export function DataTable<T extends { name: string }>({
   columns, rows, pageSize, pageSizes = null, onPageSizeChange, pager = true,
-  pagerLabel, loading = false,
+  pagerLabel, loading = false, sortAnimation = 'none',
   selectable = true, selected = new Set<string>(),
   onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
   page: controlledPage, onPageChange, total, hasMore = false,
@@ -98,19 +100,51 @@ export function DataTable<T extends { name: string }>({
   // A page the reader is no longer on has to be left, and in the controlled mode
   // only its owner can do that — so it is asked, exactly as a sort change is.
   const toFirstPage = () => { if (owned) setLocalPage(1); else if (page !== 1) onPageChange?.(1); };
+  const bodyRef = useRef<HTMLTableSectionElement>(null);
+  const beforeSort = useRef<Map<string, number> | null>(null);
+  const animations = useRef<Animation[]>([]);
+  const cancelRows = () => { animations.current.forEach(animation => animation.cancel()); animations.current = []; };
+  useLayoutEffect(() => {
+    const before = beforeSort.current;
+    beforeSort.current = null;
+    if (!before || sortAnimation !== 'rows' || !owned || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    // Rows entering this page have no old position and appear without movement.
+    const moves = Array.from(bodyRef.current?.rows ?? []).map(row => ({
+      row, delta: (before.get(row.dataset.rowName!) ?? row.getBoundingClientRect().top) - row.getBoundingClientRect().top,
+    }));
+    const easing = getComputedStyle(bodyRef.current!).getPropertyValue('--ease-out').trim() || 'cubic-bezier(0, 0, 0.2, 1)';
+    animations.current = moves.filter(({ delta }) => delta !== 0).map(({ row, delta }) =>
+      row.animate([{ transform: `translateY(${delta}px)` }, { transform: 'translateY(0)' }],
+        { duration: 200, easing }));
+  }, [sort.key, sort.dir, rows, sortAnimation, owned]);
+  useLayoutEffect(() => {
+    if (sortAnimation !== 'rows' || !window.matchMedia) return;
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const stop = () => { if (media.matches) { beforeSort.current = null; cancelRows(); } };
+    media.addEventListener('change', stop);
+    return () => { media.removeEventListener('change', stop); cancelRows(); };
+  }, [sortAnimation]);
   const onSort = (key: keyof T & string) => {
     const next: TableSort<T> = sort.key === key
       ? { key, dir: sort.dir === 1 ? -1 : 1 }
       : { key, dir: -1 };
+    if (sortAnimation === 'rows' && owned && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      beforeSort.current = new Map(Array.from(bodyRef.current?.rows ?? []).map(row =>
+        [row.dataset.rowName!, row.getBoundingClientRect().top]));
+    }
+    cancelRows();
     if (controlledSort === undefined) setLocalSort(next);
     onSortChange?.(next);
     toFirstPage();
   };
   const caret = (k: string) => (
-    <svg className="rx-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg className="rx-caret" data-animated={sortAnimation !== 'none' || undefined}
+      data-up={sortAnimation !== 'none' && sort.key === k && sort.dir === 1 || undefined} viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      {sortAnimation !== 'none' && sort.key === k ? <path d="m8 10 4 4 4-4" /> : <>
       {(sort.key !== k || sort.dir === 1) && <path d={sort.key === k ? 'm8 14 4-4 4 4' : 'm8 9 4-4 4 4'} />}
       {(sort.key !== k || sort.dir === -1) && <path d={sort.key === k ? 'm8 10 4 4 4-4' : 'm8 15 4 4 4-4'} />}
+      </>}
     </svg>
   );
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
@@ -153,9 +187,9 @@ export function DataTable<T extends { name: string }>({
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody ref={bodyRef}>
           {slice.map((r) => (
-            <tr key={r.name}>
+            <tr key={r.name} data-row-name={r.name}>
               {selectable ? <td><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
                 onChange={() => onToggle(r.name)} /></td> : null}
               {columns.map((c) => (
