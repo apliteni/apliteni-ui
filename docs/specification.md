@@ -829,7 +829,9 @@ Decided in [#148](https://github.com/apliteni/apliteni-ui/issues/148),
 
 ### Busy button labels
 
-Busy buttons replace the visible action label with three centered pulsing dots (#327).
+Busy buttons replace the visible action label with three centered pulsing dots in the
+variant's full label ink (#327). Dot size scales with xs, sm, md and lg buttons; the
+brightest dot clears 3:1 against every variant fill in both themes.
 The label slides down out of its clipped line; the dots enter after it clears, using
 `--dur-med` (250ms). Completion removes the dots and returns the original or next
 React label from below. Text does not fade or blink. The retained label and icons keep

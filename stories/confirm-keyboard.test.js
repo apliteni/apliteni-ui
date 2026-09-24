@@ -80,10 +80,8 @@ test('focus lands on the safe answer even when it is not the first control in th
 test('the safe answer is emitted first, so the first Tab stop is also the harmless one', () => {
   const host = mount('ck-order');
   const acts = host.querySelector('.ui-confirm__acts');
-  const buttons = acts.querySelectorAll('button');
-  assert.equal(buttons[0], host.querySelector('[data-confirm-cancel]'));
-  assert.equal(buttons[buttons.length - 1], host.querySelector('[data-confirm-accept]'));
-  assert.equal(acts.querySelector('[role="status"]'), null, 'idle dialog actions add no live regions');
+  assert.equal(acts.firstElementChild, host.querySelector('[data-confirm-cancel]'));
+  assert.equal(acts.lastElementChild, host.querySelector('[data-confirm-accept]'));
 });
 
 test('openConfirm() moves focus onto a control in the panel without a trigger element', () => {

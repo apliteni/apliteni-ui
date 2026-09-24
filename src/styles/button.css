@@ -129,6 +129,39 @@
   filter: none;
   transform: none;
 }
+/* Busy keeps the resting variant paint. The disabled selector above owns the
+   ordinary unavailable state; a wired busy control remains focused and must
+   not flatten its action identity while work is in flight. */
+.ui-btn[aria-busy="true"],
+.ui-btn[aria-busy="true"]:hover,
+.ui-btn[aria-busy="true"]:active {
+  background: var(--surface-2); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: var(--border);
+  color: var(--text);
+  filter: none;
+  transform: none;
+}
+.ui-btn[aria-busy="true"].ui-btn--primary,
+.ui-btn[aria-busy="true"].ui-btn--primary:hover,
+.ui-btn[aria-busy="true"].ui-btn--primary:active {
+  background: var(--accent-strong); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+.ui-btn[aria-busy="true"].ui-btn--ghost,
+.ui-btn[aria-busy="true"].ui-btn--ghost:hover,
+.ui-btn[aria-busy="true"].ui-btn--ghost:active {
+  background: transparent; /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: transparent;
+  color: var(--text);
+}
+.ui-btn[aria-busy="true"].ui-btn--danger,
+.ui-btn[aria-busy="true"].ui-btn--danger:hover,
+.ui-btn[aria-busy="true"].ui-btn--danger:active {
+  background: var(--surface-2); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: var(--border);
+  color: var(--text);
+}
 .ui-btn__label-slot { display: inline-grid; overflow: hidden; }
 .ui-btn__label {
   grid-area: 1 / 1;
@@ -148,17 +181,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   overflow: hidden;
   pointer-events: none;
 }
 .ui-btn__dots i {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: currentColor;
   animation: ui-btn-dot-in var(--dur-med) var(--ease-out) both, ui-btn-dot-pulse 1.4s ease-in-out infinite; /* motion: ambient — dots pulse until the request completes */
 }
+.ui-btn--xs .ui-btn__dots { gap: 2px; }
+.ui-btn--xs .ui-btn__dots i { width: 3px; height: 3px; }
+.ui-btn--sm .ui-btn__dots { gap: 3px; }
+.ui-btn--sm .ui-btn__dots i { width: 4px; height: 4px; }
+.ui-btn--lg .ui-btn__dots { gap: 5px; }
+.ui-btn--lg .ui-btn__dots i { width: 6px; height: 6px; }
 .ui-btn__dots i:nth-child(2) { animation-delay: 0s, 0.2s; } /* motion: ambient — stagger the second pulse */
 .ui-btn__dots i:nth-child(3) { animation-delay: 0s, 0.4s; } /* motion: ambient — stagger the third pulse */
 @keyframes ui-btn-label-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
