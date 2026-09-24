@@ -7,10 +7,6 @@ import { button } from '../../src/components/index.js';
 import { backLink } from '../../src/components/back.js';
 import { breadcrumbs, sidebarNav } from '../../src/components/nav.js';
 
-
-
-
-
 // The specimens are the top of a page — the link, and the title under it — so
 // the stage draws a title in the page's own face at a size that fits the
 // panel. A <p>, not an <h1>: one guideline page must not carry a dozen h1s.

@@ -5,10 +5,6 @@ export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { callout, field, input } from '../../src/components/index.js';
 
-
-
-
-
 // The frozen hexes below are the specimen's subject, not a slip: `.gl-literal`
 // writes out what the dark theme composites, so the pair is one picture in dark
 // and the flip to light is what separates them. stories/colour-tokens.test.js

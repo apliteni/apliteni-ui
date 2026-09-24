@@ -13,7 +13,7 @@
 
 export const RELEASES = [
   {
-    v: '0.37.1', date: '2026-09-24',
+    v: '0.38.0', date: '2026-09-24',
     changes: [
       ['added', 'Guidelines ship as plain Markdown in the npm package. Storybook reads the same concise rules, reasons, exceptions and captions, without source-file references. Closes #335 and #329.'],
     ],

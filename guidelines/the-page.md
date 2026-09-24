@@ -12,7 +12,7 @@ What belongs on one page: where readers begin, the first action, and when to spl
 
 <!-- rule: width -->
 
-**Why:** A table in the centred column may lose its last column off the side; a full-page paragraph may become too wide to follow back across.
+**Why:** A centred table loses its last column off the side; a full-width paragraph runs beyond a line readers can follow back.
 
 **Do:** Drawn to scale: the wide column shows every table column at once.
 
@@ -28,7 +28,7 @@ What belongs on one page: where readers begin, the first action, and when to spl
 
 <!-- rule: one-h1 -->
 
-**Why:** Without a page title, people navigating by headings have nowhere clear to land, as the access confirmation screen once showed.
+**Why:** Without a page title, readers navigating by headings have nowhere to land.
 
 ## Use headings in order without skipping levels, and stop at h3: page, section, then group.
 
@@ -54,7 +54,7 @@ What belongs on one page: where readers begin, the first action, and when to spl
 
 <!-- rule: stacking -->
 
-**Why:** With twelve cards, readers may scroll past eleven to find the one they need.
+**Why:** Twelve cards make readers scroll past eleven to reach their target.
 
 **Do:** Each block represents a card: six cards reach the limit.
 

@@ -5,10 +5,6 @@ export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { card } from '../../src/components/index.js';
 
-
-
-
-
 // The specimens here are rows in a card, because density is a rhythm and a
 // rhythm needs more than one row to be visible. `.gl-rows` is the do — every
 // gap and pad a step of the spacing scale. `.gl-rows--hand` is the don't, and

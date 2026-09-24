@@ -6,7 +6,7 @@ Use body ink for words. Use size, weight and spacing for hierarchy, except as li
 
 <!-- rule: text-ink -->
 
-**Why:** Descriptions, timestamps and labels must be readable. Muted text may pass contrast checks yet look decorative, especially when small. Secondary status must not reduce readability.
+**Why:** Descriptions, timestamps and labels need readable ink even when secondary. Muted text can pass contrast yet look decorative, especially at small sizes.
 
 **Do:** The same sentence at xs, sm and base in body ink; size shows hierarchy.
 
@@ -26,7 +26,7 @@ Use body ink for words. Use size, weight and spacing for hierarchy, except as li
 
 **Why:** Capital letters are slower to read (Carbon, USWDS), use more space per letter and make a label louder than its figure.
 
-**Except:** Words capitalized in themselves—an acronym, currency code or key name—keep that form: USD, API, Esc.
+**Except:** Type inherently capitalised words as they are: acronyms, currency codes and key names such as USD, API and Esc.
 
 **Do:** Written and shown in sentence case.
 

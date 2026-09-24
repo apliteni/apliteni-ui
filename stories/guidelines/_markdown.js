@@ -61,3 +61,13 @@ export function withSpecimens(rules, specimens) {
   }
   return rules.map((rule, i) => ({ ...specimens[i], ...rule }));
 }
+
+// Join by title so moving a Markdown entry cannot attach another gate's file.
+export function withNamedFiles(entries, files) {
+  const titles = new Set(entries.map(entry => entry.title));
+  if (titles.size !== entries.length || titles.size !== Object.keys(files).length
+      || entries.some(entry => !Object.hasOwn(files, entry.title))) {
+    throw new Error('Markdown entry titles and file keys must match exactly');
+  }
+  return entries.map(entry => ({ ...entry, file: files[entry.title] }));
+}

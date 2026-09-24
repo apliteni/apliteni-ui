@@ -6,10 +6,6 @@ export const BLURB = content.blurb;
 import { card } from '../../src/components/index.js';
 import { drawer, drawerSection } from '../../src/components/drawer.js';
 
-
-
-
-
 // A drawer is position: fixed, so each specimen is held inside a frame of its
 // own. The panel is narrowed so a strip of scrim shows beside it: a drawer with
 // no page behind it reads as a card.

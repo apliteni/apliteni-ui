@@ -5,10 +5,6 @@ export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { badge, card } from '../../src/components/index.js';
 
-
-
-
-
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
 const figure = (label, value, chip) => `<div>

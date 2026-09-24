@@ -292,7 +292,7 @@ test('the guidelines pages cite at least one line of kit code', async () => {
 });
 
 // The shipping documents and rendered prose must stay together as the catalogue grows.
-import { parseGuideline, withSpecimens } from './_markdown.js';
+import { parseGuideline, withSpecimens, withNamedFiles } from './_markdown.js';
 import { mono } from './_layout.js';
 const markdownDir = path.join(root, 'guidelines');
 const sourceReference = /(?:\b(?:src|stories|react|docs)\/|\b[\w-]+\.(?:css|[cm]?js|tsx?|md)(?::\d+)?\b)/;
@@ -369,4 +369,32 @@ test('Storybook renders each Markdown introduction and every appendix entry', as
       }
     }
   }
+});
+
+
+test('gate files follow entry titles and reject missing or duplicate entries', () => {
+  const files = { Alpha: 'alpha.test.js', Beta: 'beta.test.js' };
+  const entries = [{ title: 'Beta' }, { title: 'Alpha' }];
+  assert.deepEqual(withNamedFiles(entries, files).map(e => e.file), ['beta.test.js', 'alpha.test.js']);
+  for (const incomplete of [entries.slice(1), [...entries, { title: 'Gamma' }], [{ title: 'Alpha' }, { title: 'Alpha' }]]) {
+    assert.throws(() => withNamedFiles(incomplete, files), /must match exactly/);
+  }
+  assert.throws(() => withNamedFiles(entries, { Alpha: 'alpha.test.js' }), /must match exactly/);
+});
+
+test('packaged guideline subpaths resolve and contain the shared document', () => {
+  for (const file of readdirSync(markdownDir).filter(file => file.endsWith('.md'))) {
+    const resolved = import.meta.resolve(`@apliteni/apliteni-ui/guidelines/${file}`);
+    assert.equal(readFileSync(new URL(resolved), 'utf8'), readFileSync(path.join(markdownDir, file), 'utf8'));
+  }
+});
+
+test('inline issue links render as links while code and HTML remain escaped', () => {
+  const html = mono('[#329](https://github.com/apliteni/apliteni-ui/issues/329) <unsafe> `--text`');
+  const doc = JSDOM.fragment(html);
+  assert.equal(doc.querySelector('a').href, 'https://github.com/apliteni/apliteni-ui/issues/329');
+  assert.equal(doc.querySelector('a').textContent, '#329');
+  assert.equal(doc.querySelector('unsafe'), null);
+  assert.equal(doc.querySelector('code').textContent, '--text');
+  assert.equal(JSDOM.fragment(mono('[bad](javascript:alert(1))')).querySelector('a'), null);
 });

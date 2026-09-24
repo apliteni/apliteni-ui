@@ -5,10 +5,6 @@ export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { card, button, badge } from '../../src/components/index.js';
 
-
-
-
-
 export const REFERENCE_POLICY = 'specification-only';
 
 // The four limits the rules are stated in. They are here rather than in the

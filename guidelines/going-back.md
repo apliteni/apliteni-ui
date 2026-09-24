@@ -16,37 +16,37 @@ When a page has a way back up, where it goes, and what it says.
 
 <!-- rule: name-it -->
 
-**Why:** The arrow and its position above the title already mean “back”, so the words can name the destination. The UK government design system allows bare Back for a short, straight-line journey, but asks for “Go back to” plus a named page when the journey branches. A portal of lists and records branches.
+**Why:** The arrow and position already say “back”, leaving the words to name the page. The UK government design system allows bare Back for straight-line forms, but asks for “Go back to” a named destination on branching journeys such as portals.
 
 **Except:** A multi-screen form goes back one step, not up one level, and says “Back”. That is a form button, not this link.
 
-**Do:** The destination matches the sidebar spelling. A screen reader hears “Back to Invoices”; the arrow is decoration.
+**Do:** Match the sidebar’s spelling; a screen reader hears “Back to Invoices”, with the arrow hidden as decoration.
 
-**Don't:** A direction without a destination could lead anywhere. After a reload, nobody can check where it goes before pressing it.
+**Don't:** In a screen reader’s links list, “Back” could lead anywhere; after a reload nobody can check where before pressing it.
 
 ## Link to the parent’s address, including its state. Leave history to the browser.
 
 <!-- rule: address-not-history -->
 
-**Why:** A history link fails when a page opens in a new tab, from a bookmark, or from a shared address, and cannot itself open in a new tab. The browser’s Back button already handles history and remains the way back to wherever the reader was. This link goes to the record’s list, with its filters, sort, and page in the address, so going up costs nothing. The UK government design system asks for the same: “in the state they last saw it”. backLink() takes only an address and rejects a javascript: one. There is nothing to photograph here, so this rule has no pair.
+**Why:** History links fail on new tabs, bookmarks and shared addresses, and cannot open in a new tab themselves; leave history to the browser’s Back button. backLink() accepts only an address (never javascript:), pointing to the parent list with filters, sort and page preserved—the UK government design system’s “state they last saw it”.
 
-**Except:** If the reader came from a search or another record, the link still goes to the parent, where the page lives. The browser’s Back button still knows where the reader was.
+**Except:** Even after arriving from search or another record, the link goes to the parent; browser Back returns to the previous location.
 
 ## Put it above the title, in the trail’s place. Draw a trail or a back link, never both.
 
 <!-- rule: one-or-the-other -->
 
-**Why:** A trail helps when several levels are useful; a back link helps when only one step up matters. The UK government design system states: “Never use the back link component together with the Breadcrumbs component.” Given both, appShell() draws the link and omits the trail.
+**Why:** Use a trail for several useful levels, a back link for one step up. The UK government design system forbids combining them; given both, appShell() draws only the link.
 
-**Do:** One line above the title, aligned with its start. It is first on entry and last on exit.
+**Do:** One line aligned above the title, first on the way in and last on the way out.
 
-**Don't:** The trail and link answer the same question—what is this page under—so the space above the title answers it twice, and the current page is named three times.
+**Don't:** Both answer “what is this page under” twice and name the current page three times.
 
 ## Keep the section lit in the sidebar and use its name.
 
 <!-- rule: section-lit -->
 
-**Why:** A record opened from a list remains in that list’s section. Keeping the row lit keeps the rail accurate. Using aria-current="true" instead of "page" also keeps it accurate for screen readers; otherwise it announces the list as the page on screen. appShell() does both with a back link.
+**Why:** A record remains in its list’s section, so keep that row lit with aria-current="true", not "page", to avoid announcing the list as the displayed page. appShell() does both when given a back link.
 
 **Do:** The reader’s row stays lit, and the link uses the same word. Two signals name one place.
 
@@ -56,7 +56,7 @@ When a page has a way back up, where it goes, and what it says.
 
 <!-- rule: quiet -->
 
-**Why:** The back link appears on every record page and is viewed once. The accent or host link colour would compete with the title and page action on every screen, which led to this complaint. .ui-back uses --text, and its colour rule outranks a host a:link, so page link colours leave it unchanged. Decided in #270.
+**Why:** A back link is seen once on every record page; accent or host link colour competes with the title and main action—the complaint that opened [#270](https://github.com/apliteni/apliteni-ui/issues/270). .ui-back uses --text and outranks a host a:link, so page link colours leave it alone.
 
 **Do:** Body ink, no box until pointer hover, and smaller than the title. The page’s own action keeps the colour.
 

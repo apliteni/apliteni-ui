@@ -6,45 +6,45 @@ The four numbers under every control, the kit's higher aims, and the blind spots
 
 <!-- rule: target-size -->
 
-**Except:** WCAG 2.5.8 allows five cases: spacing, an equivalent control elsewhere, a target inline in a sentence, a user-agent-chosen size, and essential presentation. None covers a merely small control; none applied to the three kit controls shipped below the floor. An overlay must not reach a neighbouring target. The close has 12px flex gap from the toast action; stacked toasts have 12px between them against 2.5px of overhang. The checkbox has 11px to a label that toggles the same input. These distances are layout, not measured targets; the gate says so.
+**Except:** WCAG 2.5.8 allows spacing, an equivalent control, inline text targets, user-agent sizes and essential presentation; none covered the three undersized kit controls. Overlays must not reach neighbours: toast close/action and stacked-toast gaps are 12px against 2.5px overhang; the checkbox has 11px to its same-input label. The gate does not measure these layout distances.
 
-**Do:** 2.5.8 measures the TARGET, not the ink. The checkbox is drawn at 19x19 but has a 24x24 hit area. Its centred dashed ::before is the pointer target; the box does not move. Use an overlay when the drawn box IS the design; enlarge the box otherwise. The sm button beside it needs only 26.5px height; .ui-snippet__copy was 0.56px too short, so an invisible min-height worked better than an unmeasurable overlay.
+**Do:** 2.5.8 measures targets: the 19x19 checkbox has a centred 24x24 ::before hit area without moving its box. Overlay only when the drawn box is the design; otherwise grow it. The sm button already clears at 26.5px; .ui-snippet__copy’s 0.56px shortfall needed invisible min-height, not an unmeasurable overlay.
 
-**Don't:** Do not make target and ink the same 19x19 square: it is 5px too short on both axes. Three kit controls were like this until #219.
+**Don't:** A 19x19 target matches the ink but is 5px short on both axes, as three kit controls were before [#219](https://github.com/apliteni/apliteni-ui/issues/219).
 
 ## Hold a focus indicator to 3:1 against the ground it lands on.
 
 <!-- rule: ring-contrast -->
 
-**Why:** The solid band supplies contrast; its surface-coloured gap separates it from an accent-filled control. The outer glow is decoration, not the indicator. On flat ground, the band reaches 4.22:1, but real browser pixels must also reach 3:1 against the gap and nearby halo. G2 was chosen in #343. A translucent glow alone did not reach 3:1.
+**Why:** G2’s solid band supplies contrast, its surface-coloured gap separates accent-filled controls, and its halo decorates ([#343](https://github.com/apliteni/apliteni-ui/issues/343)). The band must hold 4.22:1 on flat ground and 3:1 against actual gap/halo pixels; glow alone failed 3:1.
 
 ## Paint a disabled control, never fade it: 3:1 for the label, and a pair it does not show when it is on.
 
 <!-- rule: disabled-legibility -->
 
-**Why:** No standard requires this: 1.4.3 fully exempts disabled controls, so nothing checks them. Issue #220 set this rule. `opacity` affects the whole group, moving label and box toward the ground together; the reader sees their combined contrast. A disabled primary button reached only 1.48:1, white on washed-out accent; no disabled light-theme control reached 3:1. The --disabled-ink / --disabled-surface / --disabled-border trio composites predictably: opaque ink is read against adjacent opaque surface. Each disabled label on its own box measures 6.91:1 in dark and 4.89:1 in light. A ghost button has no box, so its label is read against whatever is behind it. Its --disabled-ink-bare reaches 4.89:1 on the dullest ground and measures 5.20:1–7.49:1 by position (#273).
+**Why:** WCAG 1.4.3 exempts disabled controls, so [#220](https://github.com/apliteni/apliteni-ui/issues/220) sets 3:1: opacity faded label and box together to 1.48:1, with no light-theme control clearing 3:1. Opaque --disabled-ink / --disabled-surface / --disabled-border gives labels 6.91:1 dark and 4.89:1 light; boxless ghosts use --disabled-ink-bare, floored at 4.89:1 and measuring 5.20:1–7.49:1 by ground ([#273](https://github.com/apliteni/apliteni-ui/issues/273)).
 
-**Except:** A disabled control must look weaker than an enabled one, but that is not a contrast question. The disabled primary measures 6.91:1 in dark and 4.89:1 in light, versus 5.70:1 and 7.34:1 enabled. It has MORE contrast in dark and less in light, yet white on purple is not confused with grey on grey. Contrast provides legibility; paint provides state. The second imperative preserves that state: the pair changes and the accent disappears. The only opacity rule is the switch track, which has no label inside it. Its pair comes from 1.4.11, and no gate here measures it.
+**Except:** Disabled must still look weaker: change the pair and drop the accent. Its 6.91:1 dark / 4.89:1 light contrasts exceed or fall below enabled’s 5.70:1 / 7.34:1, yet grey on grey differs from white on purple. Paint carries state; contrast carries legibility. Only the label-free switch track still fades; its 1.4.11 pair is ungated.
 
 ## Set a field's text to 16px where the pointer is coarse.
 
 <!-- rule: touch-field-size -->
 
-**Why:** On iOS Safari, focusing text below 16px zooms the page and does not zoom it back out. A reader tapping search must pan while typing one-handed. Every kit field had this problem: form controls were 14.5px, the pager's two fields 13px, and the dropdown search field 12.5px. One net fixes these and host-page fields by targeting `input`, `select` and `textarea`, not kit classes. The size must be real: zoom uses computed size, so a 16px field scaled with a transform still zooms and also shrinks its border and focus ring.
+**Why:** iOS Safari zooms into fields below 16px and does not zoom out: kit forms were 14.5px, the pager’s two fields 13px, dropdown search 12.5px. The input/select/textarea rule covers kit and host fields; use real 16px, because scaling it down still zooms and shrinks borders and focus rings.
 
-**Except:** A host page may design a field above 16px. The same element-wide rule makes it smaller on touch than with a mouse because it sets a flat size, not a floor; CSS cannot set a floor on the element's own font size. The host keeps it with its own !important rule, using a selector more specific than the net's bare element selector, such as a field class or .hero-search input. It wins regardless of stylesheet order. Non-text controls—checkbox, radio, range, colour, file, and button types—do not zoom and keep their size. A viewport tag, `user-scalable=no` or `maximum-scale=1`, also stops zoom by removing pinch-zoom for every reader. That fails WCAG 1.4.4, Apple's guidance advises against it, and the kit cannot set it because the host page owns the viewport tag. Put the font size in the stylesheet that already supplies the fields.
+**Except:** This is a flat size, not a CSS font-size floor: host fields above 16px shrink too. Preserve them with !important on a more specific selector, such as a field class or .hero-search input, regardless of sheet order. Checkbox, radio, range, colour, file and button types do not zoom and keep their size. Do not use user-scalable=no or maximum-scale=1: removing pinch-zoom violates WCAG 1.4.4 and Apple’s guidance, and the host owns that viewport tag; field sizing belongs in CSS.
 
 ## Read a green gate as a floor, never as a verdict.
 
 <!-- rule: floor-not-verdict -->
 
-**Why:** Every number above is the kit's minimum, not its goal. The four aims below the rules describe what it seeks. A component passing AA by one thousandth has passed the gate but may still be the worst thing on the page.
+**Why:** These numbers are minimums; the four aims below describe the goal. A component one thousandth above AA passes and is still the worst thing on the page.
 
 ## Say what a gate cannot see, in the gate.
 
 <!-- rule: name-the-gap -->
 
-**Why:** The gates state their blind spots in a header comment. The table collects those statements; it is not a new audit. When a gate overstates its proof, contrast is described as "verified visually" in the first place.
+**Why:** The table collects each gate’s declared blind spots from its header, not a fresh audit. A gate that overstates itself is how contrast came to be “verified visually” in the first place.
 
 ## Above the floor
 

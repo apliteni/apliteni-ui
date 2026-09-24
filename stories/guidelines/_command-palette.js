@@ -10,10 +10,6 @@ export const BLURB = content.blurb;
 // the content, the order or the wording; never the markup.
 import { commandPalette } from '../../src/components/command-palette.js';
 
-
-
-
-
 /**
  * The keys the palette answers, and what each one does.
  *

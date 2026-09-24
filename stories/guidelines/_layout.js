@@ -4,8 +4,10 @@ import { pad } from '../_gallery.js';
 
 // Render inline code and token names without interpreting prose as HTML.
 const escape = (text) => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-export const mono = (text) => String(text).split(/(`[^`]+`)/g).map(part => {
+export const mono = (text) => String(text).split(/(`[^`]+`|\[[^\]]+\]\(https:\/\/[^\s"<>]+\))/g).map(part => {
   if (part.startsWith('`')) return `<code>${escape(part.slice(1, -1))}</code>`;
+  const link = /^\[([^\]]+)\]\((https:\/\/[^\s"<>]+)\)$/.exec(part);
+  if (link) return `<a href="${escape(link[2])}">${escape(link[1])}</a>`;
   return escape(part).replace(
     /var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?/g,
     (match) => `<code>${match}</code>`,

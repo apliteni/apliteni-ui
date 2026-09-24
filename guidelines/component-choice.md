@@ -20,7 +20,7 @@ Five choices between similar components and their boundaries.
 
 **Why:** A toast dismisses itself, so a current condition disappears while it still applies.
 
-**Except:** A toast with an action remains after its message: something happened and the reader can still respond.
+**Except:** A toast with an action outlives its message: something happened and can still be answered.
 
 **Do:** A standing warning stays on the page.
 
@@ -54,10 +54,10 @@ Five choices between similar components and their boundaries.
 
 <!-- rule: dropdown-search -->
 
-**Why:** Settled on #283: ten is the number and a rule, not a recommendation. The panel stops growing at 300px: five rows with descriptions, seven without. At ten, even the shortest rows no longer fit, so the reader must scroll for a word they could type. The US Veterans Affairs design system changes from a select to a combo box at 16 options, but a native select shows about twenty rows before scrolling, while this panel shows less than half. A query-filled list, such as merchants, accounts or people, gets the field whatever its current count because the author cannot know it. The field matches anywhere in the label, finding every start match plus rows remembered by a later word.
+**Why:** The 300px panel shows five described rows or seven plain rows, so ten requires scrolling; the US Veterans Affairs threshold of 16 suits a native select showing about twenty ([#283](https://github.com/apliteni/apliteni-ui/issues/283)). Data-fed lists need search at any count, and matching anywhere in a label also finds later words.
 
-**Except:** Under six options, a field adds one stop between the trigger and rows. From six to nine, it is the author’s choice: add one when rows have descriptions because they scroll from the sixth.
+**Except:** Below six, search adds an unnecessary stop; at six to nine, the author decides, adding search for described rows that scroll from the sixth.
 
-**Do:** Twenty-nine currencies, and the reader types “dollar” instead of scrolling for it.
+**Do:** Twenty-nine currencies: type “dollar” instead of scrolling.
 
-**Don't:** The same twenty-nine with no field. The panel shows seven at a time, and the dollars are spread across the whole list.
+**Don't:** Without search, only seven of twenty-nine currencies show at once; dollars are scattered through the list.

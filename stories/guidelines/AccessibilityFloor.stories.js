@@ -62,12 +62,12 @@ export const AccessibilityFloor = {
   render: () => `${CSS}${guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES, css: SPEC_CSS })}${pad(`
     <section class="af gl">
       <h2>${SECTIONS[0].title}</h2>
-      <p>${SECTIONS[0].intro}</p>
+      <p>${mono(SECTIONS[0].intro)}</p>
       ${AIMS.map(aim).join('')}
     </section>
     <section class="af gl">
       <h2>${SECTIONS[1].title}</h2>
-      <p>${SECTIONS[1].intro}</p>
+      <p>${mono(SECTIONS[1].intro)}</p>
       <table class="ui-table af-table">
         <colgroup><col style="width:24%"><col style="width:32%"><col style="width:44%"></colgroup>
         <thead><tr><th>Gate</th><th>What it checks</th><th>What it will not catch</th></tr></thead>
@@ -76,7 +76,7 @@ export const AccessibilityFloor = {
     </section>
     <section class="af gl">
       <h2>${SECTIONS[2].title}</h2>
-      <p>${SECTIONS[2].intro}</p>
+      <p>${mono(SECTIONS[2].intro)}</p>
       <table class="ui-table af-table">
         <colgroup><col style="width:14%"><col style="width:28%"><col style="width:58%"></colgroup>
         <thead><tr><th></th><th>Subject</th><th>Where it stands</th></tr></thead>
