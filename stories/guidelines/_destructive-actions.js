@@ -1,11 +1,15 @@
+import { loadGuideline, withSpecimens } from './_markdown.js';
+const content = await loadGuideline(new URL('../../guidelines/destructive-actions.md', import.meta.url));
+export const TITLE = content.title;
+export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { toast } from '../../src/components/index.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { confirm } from '../../src/components/confirm.js';
 
-export const TITLE = 'Destructive actions';
 
-export const BLURB = 'What a delete looks like, what its buttons say, and when undo lies.';
+
+
 
 // `.gl-hovering` pins the dropdown's danger row into its hover appearance,
 // because hover cannot be screenshotted.
@@ -68,54 +72,22 @@ export const undoDont = () => `
   })}
   </div>`;
 
-export const RULES = [
-  {
-    id: 'colour',
-    imperative: 'Keep destructive controls quiet at rest, and turn them --pink on hover.',
-    why: 'A destructive control that turns --accent on hover reads as an ordinary one.',
-    except: '--pink also marks an error the reader has already hit, not an action they are about to take.',
-    doCaption: 'Hover turns the danger row --pink.',
-    dontCaption: 'Hover repaints the row --accent.',
-    doHtml: menuDo,
-    dontHtml: menuDont,
-    kit: [
+export const RULES = withSpecimens(content.rules, [
+{ id: 'colour', doHtml: menuDo, dontHtml: menuDont, kit: [
       { ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' },
       { ref: 'src/styles/dropdown.css:200', pattern: '.ui-dropdown__item.is-danger:hover' },
       { ref: 'src/styles/nav.css:111', pattern: '.ui-nav__item.is-danger:hover' },
-    ],
-  },
-  {
-    id: 'wording',
-    imperative: 'Name what each button does — the one that destroys, and the one that doesn’t.',
-    why: '“OK” describes nothing; “Revoke access” names the cost.',
-    except: 'Cancel is right when nothing exists yet to keep, like a new form or upload.',
-    doCaption: 'Each label makes sense alone.',
-    dontCaption: '“Are you sure?” of what?',
-    doHtml: wordingDo,
-    dontHtml: wordingDont,
-    kit: [
+    ] },
+{ id: 'wording', doHtml: wordingDo, dontHtml: wordingDont, kit: [
       {
         ref: 'stories/components/Confirm.stories.js:45',
         pattern: "confirmLabel: 'Delete workspace', cancelLabel: 'Keep it'",
       },
       { ref: 'stories/apps/Access.stories.js:38', pattern: "label: 'Revoke access'" },
-    ],
-  },
-  {
-    id: 'undo',
-    imperative: 'Confirm or undo, never both — reversibility decides which.',
-    why: 'If the action can be undone, confirming only costs the reader a click; if it cannot, undo ' +
-      'is a promise you can’t keep.',
-    except: 'A reversible action still confirms when it fans out: one row is one click back, ' +
-      'a whole selection is not.',
-    doCaption: 'Nothing to restore, so it asks first.',
-    dontCaption: 'Undo on a workspace already gone.',
-    doHtml: undoDo,
-    dontHtml: undoDont,
-    kit: [
+    ] },
+{ id: 'undo', doHtml: undoDo, dontHtml: undoDont, kit: [
       { ref: 'src/components/confirm.js:61', pattern: 'role="alertdialog"' },
       { ref: 'src/components/index.js:246', pattern: 'class="ui-toast__action"' },
       { ref: 'src/styles/callout.css:87', pattern: '.ui-toast__action { flex: none;' },
-    ],
-  },
-];
+    ] }
+]);

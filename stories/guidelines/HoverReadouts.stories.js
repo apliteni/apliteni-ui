@@ -1,6 +1,6 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { guidelinePage } from './_layout.js';
-import { TITLE, RULES, SPEC_CSS } from './_hover-readouts.js';
+import { TITLE, BLURB, RULES, SPEC_CSS } from './_hover-readouts.js';
 
 export default {
   title: 'Guidelines/Hover readouts',
@@ -9,5 +9,5 @@ export default {
 
 export const HoverReadouts = {
   name: 'Hover readouts',
-  render: () => guidelinePage({ title: TITLE, rules: RULES, css: SPEC_CSS }),
+  render: () => guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES, css: SPEC_CSS }),
 };

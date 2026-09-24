@@ -1,9 +1,13 @@
+import { loadGuideline, withSpecimens } from './_markdown.js';
+const content = await loadGuideline(new URL('../../guidelines/microcopy.md', import.meta.url));
+export const TITLE = content.title;
+export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, emptyState, switchToggle } from '../../src/components/index.js';
 
-export const TITLE = 'Microcopy and tone';
 
-export const BLURB = 'What a control announces itself by, and what a screen says when empty.';
+
+
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
@@ -31,50 +35,20 @@ export const emptyDont = () => stage(emptyState({
   actions: button({ label: '+ Add invoice', variant: 'primary' }),
 }));
 
-export const RULES = [
-  {
-    id: 'state-not-destination',
-    imperative: 'Name the state a control is in, not the click, and rename it on every flip.',
-    why: 'A name that is right once and never again tells a reader nothing.',
-    except: 'An icon-only toggle may add the click after the state: “Theme: Dark. Switch to light.”',
-    doCaption: 'Named for the state it is in.',
-    dontCaption: 'Named for what the click would do.',
-    doHtml: stateDo,
-    dontHtml: stateDont,
-    kit: [
+export const RULES = withSpecimens(content.rules, [
+{ id: 'state-not-destination', doHtml: stateDo, dontHtml: stateDont, kit: [
       { ref: 'src/components/topbar.js:11', pattern: 'reports the state it is IN' },
       { ref: 'src/components/topbar.js:23', pattern: 'rewritten by applyTheme on every flip' },
       { ref: 'src/components/topbar.test.js:59', pattern: 'announces the theme it is in' },
-    ],
-  },
-  {
-    id: 'never-nameless',
-    imperative: 'Give every control a name, even one with no visible text.',
-    why: 'The glyph is aria-hidden, so the label is the control’s only accessible name.',
-    except: 'An identifier is not a name — segmented()’s name seeds a data hook and is never read out.',
-    doCaption: 'The name reads “Dismiss”.',
-    dontCaption: 'The same button reads “x”.',
-    doHtml: namedDo,
-    dontHtml: namedDont,
-    kit: [
+    ] },
+{ id: 'never-nameless', doHtml: namedDo, dontHtml: namedDont, kit: [
       { ref: 'src/components/index.js:15', pattern: 'kit glyphs are aria-hidden' },
       { ref: 'src/components/index.js:17', pattern: 'an empty label falls back to the icon' },
       { ref: 'src/components/index.js:81', pattern: 'not an accessible name' },
-    ],
-  },
-  {
-    id: 'empty-state-copy',
-    imperative: 'Match an empty state to why it is empty — a filter gets a nudge, no action.',
-    why: '“Add invoice” under “No invoices match the filters” answers a question the reader did not ask.',
-    except: 'A filtered list does get an action when the filter that emptied it is off screen.',
-    doCaption: 'A nudge, and nothing to add.',
-    dontCaption: 'An action for the wrong problem.',
-    doHtml: emptyDo,
-    dontHtml: emptyDont,
-    kit: [
+    ] },
+{ id: 'empty-state-copy', doHtml: emptyDo, dontHtml: emptyDont, kit: [
       { ref: 'stories/apps/EmptyStates.stories.js:14', pattern: 'illustration + nudge, no action' },
       { ref: 'stories/apps/EmptyStates.stories.js:36', pattern: 'illustration + guidance + a clear action' },
       { ref: 'src/components/index.js:273', pattern: 'export function emptyState(' },
-    ],
-  },
-];
+    ] }
+]);

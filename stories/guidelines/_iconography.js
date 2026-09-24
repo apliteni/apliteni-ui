@@ -1,10 +1,14 @@
+import { loadGuideline, withSpecimens } from './_markdown.js';
+const content = await loadGuideline(new URL('../../guidelines/iconography.md', import.meta.url));
+export const TITLE = content.title;
+export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, toast } from '../../src/components/index.js';
 import { icon, iconOnlyAllowed, iconMeanings } from '../../src/assets/icons.js';
 
-export const TITLE = 'Iconography';
 
-export const BLURB = 'When a control may go wordless, what a glyph means, and what adding one costs.';
+
+
 
 export const SPEC_CSS = `
   <style>
@@ -46,80 +50,26 @@ const meaningTable = () => `
 
 export const meaningsAll = () => `<div class="gl-stage">${meaningTable()}</div>`;
 
-export const RULES = [
-  {
-    id: 'icon-only',
-    imperative: 'Drop a control’s label only for an action on the closed list.',
-    why: 'Every other glyph is met one at a time, and a toolbar is not a legend.',
-    except: `The list itself grows by decision, not by argument in review — today it is ${
-      Object.entries(iconOnlyAllowed).map(([g, what]) => `${g} (${what})`).join(', ')}.`,
-    doCaption: 'An overflow menu goes wordless; settings keeps its word.',
-    dontCaption: 'A cog with a perfect aria-label is still a cog.',
-    doHtml: listDo,
-    dontHtml: listDont,
-    kit: [
+export const RULES = withSpecimens(content.rules, [
+{ id: 'icon-only', doHtml: listDo, dontHtml: listDont, kit: [
       { ref: 'src/assets/icons.js:153', pattern: 'export const iconOnlyAllowed' },
       { ref: 'stories/guidelines/iconography.test.js:95', pattern: 'every icon-only control is one the closed list allows' },
       { ref: 'src/components/index.js:39', pattern: 'const named = iconOnly' },
-    ],
-  },
-  {
-    id: 'meaning',
-    imperative: 'A circled glyph is a state; a bare glyph is an action.',
-    why: 'A shape that means two things makes the reader work out which one from context every time.',
-    except: 'Most of the set depicts a thing rather than a state or an action — `globe`, `database`, '
-      + '`layers`. The split governs the glyphs a component picks on the reader’s behalf, not the catalogue.',
-    doCaption: 'circleX reports the failure; the bare x closes the toast.',
-    dontCaption: 'The same x, twice, meaning two different things.',
-    doHtml: meaningDo,
-    dontHtml: meaningDont,
-    kit: [
+    ] },
+{ id: 'meaning', doHtml: meaningDo, dontHtml: meaningDont, kit: [
       { ref: 'src/assets/icons.js:174', pattern: 'export const iconMeanings' },
       { ref: 'src/components/index.js:232', pattern: 'const TOAST_ICON = {' },
-    ],
-  },
-  {
-    id: 'one-group',
-    imperative: 'Declare a glyph once, in the group that matches what it depicts.',
-    why: 'A name declared twice still resolves — the flat map takes the last one — so nothing breaks '
-      + 'loudly. What happens instead is that the catalogue files one glyph under two headings, and the '
-      + 'file grows lines no reader can tell from a real glyph. `card`, `chart` and `doc` sat like that '
-      + 'until #199.',
-    except: 'A glyph is grouped by what it draws, not by who calls it: `chart` is data even when a '
-      + 'comms panel renders it.',
-    kit: [
+    ] },
+{ id: 'one-group', kit: [
       { ref: 'src/assets/icons.test.js:39', pattern: "test('no glyph is declared in more than one group'" },
       { ref: 'src/assets/icons.test.js:55', pattern: "test('the groups declare exactly as many glyphs as the kit ships'" },
-    ],
-  },
-  {
-    id: 'provenance',
-    imperative: 'Take the path from Lucide unmodified, and say so when the names differ.',
-    why: 'The set looks like one hand because every path came from the same one. A traced glyph and a '
-      + 'copied one are indistinguishable by eye a year later, so the commit is the only place the '
-      + 'difference survives.',
-    except: 'A brand mark has no Lucide original — `github` and `linkedin` are the vendor’s own, and '
-      + 'live in BRAND for that reason.',
-    kit: [
+    ] },
+{ id: 'provenance', kit: [
       { ref: 'src/assets/icons.js:137', pattern: 'stroke-width="1.7"' },
       { ref: 'src/assets/icons.test.js:67', pattern: "test('the emitter ships the numbers its header argues for'" },
-    ],
-  },
-  {
-    id: 'stroke-earns-the-bar',
-    imperative: 'A glyph that carries a status is stroked at 1.5 CSS px or wider, or it is held to '
-      + 'the text bar rather than the graphic one.',
-    why: 'WCAG 1.4.11 asks 3:1 of a graphic, and that is the right bar for a graphic — but a '
-      + 'stroke-width is stated in the glyph’s 24-unit box, so what a reader sees is '
-      + '`stroke-width × box ÷ 24`. The toast check was 2 at 13px, which is 1.08 CSS px, and it '
-      + 'cleared 3:1 by a tenth and still read as a smudge. Under 1.5 CSS px the mark is optically a '
-      + 'text stem, so it takes 4.5:1 instead. #206, and '
-      + 'docs/specification.md#icons-and-glyphs.',
-    except: 'A glyph that carries no status — a close button, a chevron — is not measured by this: '
-      + 'there is no five-status pair to keep, and its own contrast is the control’s to answer for.',
-    kit: [
+    ] },
+{ id: 'stroke-earns-the-bar', kit: [
       { ref: 'src/styles/callout.css:16', pattern: 'stroke-width: 2.1;' },
       { ref: 'stories/signal-contrast.test.js:607', pattern: 'const barFor = (px) =>' },
-    ],
-  },
-];
+    ] }
+]);

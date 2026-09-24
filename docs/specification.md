@@ -33,6 +33,11 @@ below names its issue. Read [README.md](README.md) for where to record decisions
 There is no runtime dependency and no build step between the source and the stylesheet a consumer
 reads: `src/index.css` is plain CSS with `@import`s, and a consumer may ship it as it stands.
 
+Every guideline page ships as plain Markdown under `guidelines/`. Storybook reads the
+same documents, with live specimens attached to their rule ids. Reader-facing guidance
+contains no source-file or line references. Decided in [#335](https://github.com/apliteni/apliteni-ui/issues/335)
+and [#329](https://github.com/apliteni/apliteni-ui/issues/329).
+
 A React wrapper is published under the `./react` subpath. It is a wrapper — the tokens and the CSS
 are the same file the HTML entry point serves.
 

@@ -4,7 +4,7 @@
   "workspaces": [
     "react"
   ],
-  "description": "Apliteni shared design system & UI kit — tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
+  "description": "Apliteni shared design system & UI kit \u2014 tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
   "type": "module",
   "license": "MIT",
   "author": "Apliteni",
@@ -36,6 +36,7 @@
     "src",
     "!src/**/*.test.js",
     "react/dist",
+    "guidelines",
     "README.md"
   ],
   "sideEffects": [

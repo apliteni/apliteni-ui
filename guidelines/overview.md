@@ -1,0 +1,37 @@
+# Guidelines
+
+87 rules on 17 pages explain how to build a screen with this kit. None is currently marked as unmet.
+
+- [The page](the-page.md)
+
+- [Destructive actions](destructive-actions.md)
+
+- [Colour and theming](colour-and-theming.md)
+
+- [The full state set](state-set.md)
+
+- [Component choice](component-choice.md)
+
+- [Microcopy and tone](microcopy.md)
+
+- [Labels and titles](labels-and-titles.md)
+
+- [Iconography](iconography.md)
+
+- [Layout and density](layout-and-density.md)
+
+- [The accessibility floor](accessibility-floor.md)
+
+- [Pagination](pagination.md)
+
+- [Stat bands](stat-bands.md)
+
+- [Drawers](drawer.md)
+
+- [Motion](motion.md)
+
+- [The command palette](command-palette.md)
+
+- [Hover readouts](hover-readouts.md)
+
+- [Going back](going-back.md)
