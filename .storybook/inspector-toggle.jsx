@@ -28,6 +28,7 @@ export const InspectorToggle = () => {
   const ready = Boolean(globals) && 'inspect' in globals;
   const on = globals?.inspect === 'on';
 
+  // aria-pressed fits on/off states; unlike dark/light, they are not two equal choices.
   return (
     <Button
       variant="ghost"
