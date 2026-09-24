@@ -31,7 +31,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 133, 'surface discovery changed; light neutral/archive badges are separate rules');
+  assert.equal(surfaces.length, 131, 'surface discovery changed; the two busy progress-track surfaces were removed');
   const shared = compositions.find((r) => !r.selector.includes(':root'));
   const covered = (rule) => rule.selector.split(',').every((selector) => shared.selector.split(',').map((s) => s.trim()).includes(selector.trim()));
   for (const rule of surfaces) {
