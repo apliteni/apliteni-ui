@@ -87,4 +87,4 @@ export const PAGES = ENTRIES.map(([content, story]) => ({
 const overview = await loadGuideline('overview.md', new URL('../../guidelines/overview.md', import.meta.url));
 export const INTRO = overview.blurb;
 export const TITLE = overview.title;
-export const LINKS = overview.links.map(link => ({ ...link, href: PAGES.find(page => page.title === link.title)?.href }));
+export const LINKS = PAGES.map(({ title, href }) => ({ title, href }));

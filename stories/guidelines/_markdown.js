@@ -19,7 +19,6 @@ export async function loadGuideline(name, assetUrl) {
 export function parseGuideline(text) {
   const [header, ...blocks] = text.trim().split(/\n## /);
   const [title, ...intro] = header.replace(/^# /, '').split('\n');
-  const links = [...intro.join('\n').matchAll(/^- \[([^\]]+)\]\(([^)]+)\)$/gm)].map((m) => ({ title: m[1], href: m[2] }));
   const rules = blocks.map((block) => {
     const [imperative, ...lines] = block.split('\n');
     const rule = { imperative };
@@ -34,7 +33,7 @@ export function parseGuideline(text) {
     if (!rule.id) throw new Error(`Missing rule id: ${imperative}`);
     return rule;
   });
-  return { title, blurb: intro.filter(line => !line.startsWith('- [')).join('\n').trim(), rules, links };
+  return { title, blurb: intro.join('\n').trim(), rules };
 }
 
 export function withSpecimens(rules, specimens) {

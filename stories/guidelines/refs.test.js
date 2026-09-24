@@ -296,7 +296,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   for (const file of content) {
     const mod = await import(path.join(here, file));
     const document = readFileSync(path.join(markdownDir, `${file.slice(1, -3)}.md`), 'utf8');
-    assert.doesNotMatch(document.replace(/\]\([^)]*\.md\)/g, ']'), sourceReference, file);
+    assert.doesNotMatch(document, sourceReference, file);
     const parsed = parseGuideline(document);
     assert.equal(mod.TITLE, parsed.title);
     assert.equal(mod.BLURB, parsed.blurb);

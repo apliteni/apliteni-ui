@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { toId, storyNameFromExport } from 'storybook/internal/csf';
 
-import { PAGES, storyId } from './_overview.js';
+import { PAGES, LINKS, storyId } from './_overview.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -142,15 +142,14 @@ test('the built Storybook publishes the ids the index links', { skip: !existsSyn
 });
 
 import { parseGuideline } from './_markdown.js';
-import { INTRO, LINKS } from './_overview.js';
+import { INTRO } from './_overview.js';
 
 test('the packaged Overview links every Markdown page and Storybook reads that index', () => {
   const directory = path.join(root, 'guidelines');
   const index = parseGuideline(readFileSync(path.join(directory, 'overview.md'), 'utf8'));
   assert.equal(INTRO, index.blurb);
-  assert.deepEqual(index.links.map(link => link.href).sort(),
-    readdirSync(directory).filter(file => file.endsWith('.md') && file !== 'overview.md').sort());
-  assert.deepEqual(index.links.map(link => link.title), PAGES.map(page => page.title));
+  assert.equal(index.blurb, '');
+  assert.deepEqual(LINKS.map(link => link.title), PAGES.map(page => page.title));
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
   assert.equal(rules, 93);
