@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.40.1', date: '2026-09-24',
+    changes: [
+      ['added', 'The guidelines now say to give the committing action more weight than the dismissing action. The examples compare primary Save beside ghost Cancel with two primary buttons. Closes #350.'],
+    ],
+  },
+  {
     v: '0.40.0', date: '2026-09-24',
     changes: [
       ['changed', "The DataTable sort chevron now rotates between ascending and descending in 150 ms with the kit's ease-out; rows still reorder instantly. There is no motion under reduced motion. Chosen in #363 after measuring a row-animation alternative, which stuttered above about 100 rendered rows."],
