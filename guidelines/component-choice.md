@@ -1,5 +1,17 @@
 # Component choice
 
+## Make the committing action stand out
+
+<!-- rule: paired-actions -->
+
+**Rule:** In a pair of actions, give the committing action more visual weight than the dismissing action.
+
+**Why:** Equal weight makes it harder to see which button commits the change.
+
+**Do:** Use a primary Save button beside a ghost Cancel button.
+
+**Don't:** Give Save and Cancel the same primary style.
+
 ## Interrupt with a question
 
 <!-- rule: interrupt -->

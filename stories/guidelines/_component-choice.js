@@ -3,7 +3,7 @@ const content = await loadGuideline('component-choice.md', new URL('../../guidel
 export const TITLE = content.title;
 export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
-import { callout, card, segmented, successPanel, toast } from '../../src/components/index.js';
+import { button, callout, card, segmented, successPanel, toast } from '../../src/components/index.js';
 import { confirm } from '../../src/components/confirm.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { success } from '../../src/components/success.js';
@@ -11,6 +11,13 @@ import { tabs } from '../../src/components/tabs.js';
 import { currencyItems } from '../_currencies.js';
 
 const stage = (html, mod = '') => `<div class="gl-stage${mod ? ` ${mod}` : ''}">${html}</div>`;
+
+const pairedActions = (cancelVariant) => stage(`<div style="display:flex;gap:var(--space-3)">
+  ${button({ label: 'Cancel', variant: cancelVariant })}
+  ${button({ label: 'Save', variant: 'primary' })}
+</div>`);
+export const pairedActionsDo = () => pairedActions('ghost');
+export const pairedActionsDont = () => pairedActions('primary');
 
 // `specimen: true` keeps the dialog open and inert — no aria-modal, no hook, so
 // the page does not claim a modal owns it.
@@ -67,6 +74,7 @@ export const searchDo = () => room(dropdown({
 export const searchDont = () => room(dropdown({ ...CURRENCY, scroll: true }));
 
 export const RULES = withSpecimens(content.rules, [
+{ id: 'paired-actions', doHtml: pairedActionsDo, dontHtml: pairedActionsDont },
 { id: 'interrupt', doHtml: interruptDo, dontHtml: interruptDont },
 { id: 'transient', doHtml: transientDo, dontHtml: transientDont },
 { id: 'panels', doHtml: panelsDo, dontHtml: panelsDont },
