@@ -2,7 +2,30 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { topbar, footer, CHROME_JS } from './chrome.mjs';
+import { topbar, footer, CHROME_CSS, CHROME_JS } from './chrome.mjs';
+
+test('site crossfades use motion tokens and switch off under reduced motion', t => {
+  const dom = new JSDOM(`<style>${CHROME_CSS}</style>`);
+  t.after(() => dom.window.close());
+  const rules = [...dom.window.document.styleSheets[0].cssRules];
+  const reduced = rules.find(rule => rule.conditionText === '(prefers-reduced-motion: reduce)');
+  assert.ok(reduced, 'site chrome must provide a reduced-motion media block');
+  const matching = (list, selector) => [...list].filter(rule =>
+    rule.selectorText?.split(',').map(s => s.trim()).includes(selector));
+
+  for (const part of ['group', 'old', 'new']) {
+    const selector = `::view-transition-${part}(root)`;
+    const fades = matching(rules, selector);
+    assert.ok(fades.length, `${selector} needs token-based timing`);
+    for (const rule of fades) {
+      assert.equal(rule.style.getPropertyValue('animation-duration'), 'var(--dur-fast)', selector);
+      assert.equal(rule.style.getPropertyValue('animation-timing-function'), 'var(--ease)', selector);
+    }
+    const still = matching(reduced.cssRules, selector);
+    assert.ok(still.length, `${selector} must respect reduced motion`);
+    for (const rule of still) assert.equal(rule.style.getPropertyValue('animation'), 'none', selector);
+  }
+});
 
 // Snapshot interpolation needs a real browser; these tests hold the action boundary.
 function page(t, file, { reduced = false, supported = true, saved = false } = {}) {
