@@ -60,8 +60,8 @@ function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
 // For a confirmation that stays inside the page the user is already on, the kit
 // publishes successPanel() from components/index.js — a check, a title and one
 // line of sub, and nothing to configure. Pick by how much of the screen the
-// confirmation owns. The two share no CSS (.ui-sx here, .ui-success there), so
-// changing one never moves the other.
+// confirmation owns. The two share the glowing check, while their layout
+// and content remain independent.
 export function success({
   layout = 'hero',          // 'hero' | 'split' | 'compact'
   level,                    // heading level of the title; see the note below

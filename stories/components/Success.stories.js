@@ -9,7 +9,7 @@ export default {
 const wrap = (html, w = 620) => `<div style="max-width:${w}px;margin:0 auto">${html}</div>`;
 
 // 1 — Hero (upgraded default): self-drawing check on an aurora backdrop with
-// follow-up actions. This is the flat successPanel(), re-imagined with craft.
+// follow-up actions. It shares its glowing check with the block-sized successPanel().
 export const Hero = {
   render: () => pad(wrap(success({
     layout: 'hero',

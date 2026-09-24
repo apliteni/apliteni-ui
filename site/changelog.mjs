@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.37.1', date: '2026-09-24',
+    changes: [
+      ['changed', 'Block confirmations use the glowing green check from the full-page confirmation. The shared mark keeps its draw-in animation and reduced-motion treatment at the block’s existing size, as requested in #331.'],
+    ],
+  },
+  {
     v: '0.37.0', date: '2026-09-23',
     changes: [
       ['changed', "Focus now uses a separated solid band with a soft glow. The 1px surface-coloured gap keeps the 2px accent band distinct from filled controls. The glow is decorative, as chosen in #343."],

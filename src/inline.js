@@ -25,7 +25,7 @@ export const baseCss = read('styles/base.css');
 // Canonical topbar (same class names the portal already uses).
 export const topbarCss = read('styles/topbar.css');
 
-// Individual component stylesheets, addressable by name.
+// Individual sheets; successPanel() needs both styles.callout and styles.success.
 export const styles = {
   base: baseCss,
   reducedMotion: read('styles/reduced-motion.css'),
