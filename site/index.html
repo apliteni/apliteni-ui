@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>apliteni-ui — the Apliteni design system</title>
-<meta name="description" content="Agent-ready UI kit — a fresh design system for both vanilla pages and complex React apps. Tokens, components and screen prototypes, themeable dark & light with accent sub-themes.">
+<title>apliteni-ui — Apliteni's design system</title>
+<meta name="description" content="An agent-ready UI kit for vanilla pages and complex React apps. It includes tokens, components and screen prototypes, with dark and light themes and accent sub-themes.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?{{CSSHASH}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -156,7 +156,7 @@
   <span class="ui-glow ui-glow--cyan" style="top:60px;right:-40px;width:340px;height:340px"></span>
   <div class="wrap ui-hero" style="text-align:center">
     <h1 class="ui-hero__title">Agent-ready <span class="grad">UI Kit</span></h1>
-    <p class="ui-hero__sub">A fresh design system for both vanilla pages and complex React apps.</p>
+    <p class="ui-hero__sub">A design system for vanilla pages and complex React apps, ready for people and agents to use.</p>
     <div class="ui-hero__cta">
       <a class="ui-btn ui-btn--primary ui-btn--lg" href="#install" style="text-decoration:none">Install</a>
       <a class="ui-btn ui-btn--secondary ui-btn--lg" href="/storybook/" style="text-decoration:none">Open Storybook →</a>
@@ -171,7 +171,7 @@
 <section class="wrap" style="padding-block:70px" id="taste">
   <div class="ui-section-head" style="margin-bottom:40px">
     <h2>One kit, four identities</h2>
-    <p>Pick an accent — the whole page re-themes live. Same components, one <code class="ui-code">data-accent</code> attribute.</p>
+    <p>Choose an accent and the whole page updates at once. The components stay the same; one <code class="ui-code">data-accent</code> attribute controls the theme.</p>
   </div>
   <div class="play">
     <div class="play__picker">
@@ -181,14 +181,14 @@
         <button data-acc="ocean" title="Ocean"><span class="play-sw" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)"></span>Ocean</button>
         <button data-acc="emerald" title="Emerald"><span class="play-sw" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)"></span>Emerald</button>
       </div>
-      <p class="swap" style="margin:18px 0 0">Dark or light — the accent rides on top. Your pick follows you to the topbar, footer and the changelog.</p>
+      <p class="swap" style="margin:18px 0 0">The accent works with both dark and light themes. Your choice also appears in the topbar, footer and changelog.</p>
     </div>
     <div class="play__stage">
       <span class="ui-glow ui-glow--purple" style="top:-50px;right:-20px;width:300px;height:300px"></span>
       <div class="ui-card ui-card--accent" style="position:relative">
         <div class="ui-eyebrow">Live preview</div>
         <div class="play-grad" id="playName">Nebula</div>
-        <p class="ui-card__sub" style="margin:8px 0 20px">Buttons, tints, focus rings, gradients and glows — every accent-driven token recolours at once.</p>
+        <p class="ui-card__sub" style="margin:8px 0 20px">Buttons, tints, focus rings, gradients and glows all update together when the accent changes.</p>
         <div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap">
           <button class="ui-btn ui-btn--primary">Primary action</button>
           <span class="ui-badge ui-badge--soon">Soon</span>
@@ -202,15 +202,15 @@
 <section class="wrap" style="padding-block:70px" id="install">
   <div class="ui-section-head" style="margin-bottom:44px">
     <h2>Drop it in</h2>
-    <p>One package on the public npm registry — no token, no scope config. The same kit serves people and agents.</p>
+    <p>Install one package from the public npm registry. No token or scope configuration is needed, and the same kit works for people and agents.</p>
   </div>
   <div style="max-width:var(--measure);margin:0 auto">
     <!-- A real tablist, wired the way the kit's tabs() wires one: each tab carries
          id + aria-controls, each panel role="tabpanel" + aria-labelledby + tabindex="0",
          one roving Tab stop. Behaviour is in the script at the foot of this file. -->
     <div class="paths-sw" role="tablist" aria-label="Choose audience">
-      <button type="button" class="path-card is-active" role="tab" id="paths-tab-humans" aria-controls="paths-panel-humans" aria-selected="true" tabindex="0"><b>Humans</b><span>Install, then import the components you need</span></button>
-      <button type="button" class="path-card" role="tab" id="paths-tab-agents" aria-controls="paths-panel-agents" aria-selected="false" tabindex="-1"><b>Agents</b><span>Paste one prompt to re-skin your whole app</span></button>
+      <button type="button" class="path-card is-active" role="tab" id="paths-tab-humans" aria-controls="paths-panel-humans" aria-selected="true" tabindex="0"><b>Humans</b><span>Install the package, then import the components you need</span></button>
+      <button type="button" class="path-card" role="tab" id="paths-tab-agents" aria-controls="paths-panel-agents" aria-selected="false" tabindex="-1"><b>Agents</b><span>Use one prompt to reskin your whole app</span></button>
     </div>
     <div class="paths-panel" style="margin-top:16px">
       <div role="tabpanel" id="paths-panel-humans" aria-labelledby="paths-tab-humans" tabindex="0">
@@ -219,31 +219,31 @@
 <span class="k">import</span> { button, card, topbar } <span class="k">from</span> <span class="s">'@apliteni/apliteni-ui'</span></pre></div>
       </div>
       <div role="tabpanel" id="paths-panel-agents" aria-labelledby="paths-tab-agents" tabindex="0" hidden>
-        <div class="term"><button class="term__copy" type="button" data-copy aria-label="Copy"><svg class="ic ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></svg><svg class="ic ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></button><pre class="prompt">Adopt the apliteni-ui design system across this entire app, replacing the current styles.
+        <div class="term"><button class="term__copy" type="button" data-copy aria-label="Copy"><svg class="ic ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></svg><svg class="ic ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></button><pre class="prompt">Use the apliteni-ui design system throughout this app and replace its current styles.
 
-1. Load it: add &lt;link rel="stylesheet" href="https://ui.apli.tech/assets/kit.css"&gt;
-   (or: npm i @apliteni/apliteni-ui &amp;&amp; import '@apliteni/apliteni-ui/css').
-   Set &lt;html data-theme="dark"&gt; (or "light"); optional data-accent="phoenix|ocean|emerald".
+1. Load it by adding &lt;link rel="stylesheet" href="https://ui.apli.tech/assets/kit.css"&gt;.
+   Alternatively, run npm i @apliteni/apliteni-ui &amp;&amp; import '@apliteni/apliteni-ui/css'.
+   Set &lt;html data-theme="dark"&gt; (or "light"). You can also set data-accent="phoenix|ocean|emerald".
 
-2. Replace every hardcoded colour, spacing and radius with the kit's CSS variables —
+2. Replace all hardcoded colour, spacing and radius values with the kit's CSS variables:
    --bg, --surface-2, --surface, --bg-elevated, --surface-3 (the elevation ladder,
    bottom to top), --text, --dim, --border, --accent, --accent-strong,
    --radius-*, --dur-*, --ease. No raw hex or px for these.
-   Do not cast a shadow: a surface says how high it is with its step on that ladder
-   and with a 1px --border hairline. --shadow-* is deprecated and resolves to none.
+   Do not add shadows. A surface shows its elevation through its step on that ladder
+   and a 1px --border hairline. --shadow-* is deprecated and resolves to none.
 
-3. Re-skin with the kit's classes (not custom CSS):
+3. Use the kit's classes instead of custom CSS:
    buttons  → .ui-btn + .ui-btn--primary|--secondary|--ghost|--danger (+ --sm|--lg)
    inputs   → .ui-input / .ui-select inside .ui-field with .ui-field__label
    cards    → .ui-card    badges → .ui-badge--live|--soon|--info|--danger
    tables   → .ui-table--hover|--zebra|--dense    toggles → .ui-seg / .ui-switch
    nav / drawer / dropdown / callout / toast / code → the matching .ui-* classes
 
-4. Keep the markup framework-agnostic HTML — plain CSS, no component lib or build step.
+4. Keep the markup as framework-agnostic HTML: plain CSS, with no component library or build step.
 
-5. Change only the visual layer; preserve all content and behaviour. Verify dark AND light.
+5. Change only the visual layer. Preserve all content and behaviour, then verify both dark and light themes.
 
-<span class="c">Vocabulary: https://ui.apli.tech/assets/kit.css — examples: https://ui.apli.tech/storybook/</span></pre></div>
+<span class="c">Use this vocabulary: https://ui.apli.tech/assets/kit.css. See examples at https://ui.apli.tech/storybook/</span></pre></div>
       </div>
     </div>
   </div>
@@ -252,14 +252,14 @@
 <section class="wrap" style="padding-block:70px">
   <div class="ui-section-head" style="margin-bottom:44px">
     <h2>What's in the box</h2>
-    <p>Not a swatch sheet — the real components, live on this page. Everything an internal Apliteni service needs to render its UI.</p>
+    <p>This is more than a swatch sheet: the real components run on this page. It includes what an internal Apliteni service needs to render its UI.</p>
   </div>
   <div class="bento">
 
     <div class="bento__cell c-3">
       <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="3"/><path d="M8 12h8"/></svg></span>
       <h3>Buttons &amp; actions</h3>
-      <p>Four variants, three sizes, every state including busy.</p>
+      <p>Four variants and three sizes, including the busy state.</p>
       <div class="bento__demo">
         <button class="ui-btn ui-btn--primary" disabled aria-disabled="true" aria-busy="true">Saving<span class="ui-btn__bars"><i></i><i></i></span></button>
         <button class="ui-btn ui-btn--secondary">Cancel</button>
@@ -271,7 +271,7 @@
     <div class="bento__cell c-3">
       <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h10"/></svg></span>
       <h3>Forms &amp; inputs</h3>
-      <p>Labelled fields, selects, textareas and switches.</p>
+      <p>Fields with labels, selects, textareas and switches.</p>
       <div class="bento__demo bento__demo--stack">
         <div class="ui-field">
           <label class="ui-field__label">Workspace</label>
@@ -285,7 +285,7 @@
     <div class="bento__cell c-2">
       <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5 2 6H4c.5-1 2-2 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>
       <h3>Status &amp; feedback</h3>
-      <p>Badges, callouts and toasts in fixed signal colours.</p>
+      <p>Badges, callouts and toasts with consistent signal colours.</p>
       <div class="bento__demo bento__demo--stack">
         <div style="display:flex;gap:7px;flex-wrap:wrap">
           <span class="ui-badge ui-badge--live">Live</span>
@@ -302,7 +302,7 @@
     <div class="bento__cell c-2">
       <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2.3"/><circle cx="9" cy="16" r="2.3"/></svg></span>
       <h3>Controls</h3>
-      <p>Segmented pills, switches and toggles.</p>
+      <p>Segmented pills, switches and toggles for common controls.</p>
       <div class="bento__demo bento__demo--stack">
         <!-- A specimen, not a switcher: it shows what a segmented control looks like and
              chooses nothing. It is still a real focusable control, so it owes the kit's
@@ -317,7 +317,7 @@
     <div class="bento__cell c-2">
       <span class="bIcon"><svg viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg></span>
       <h3>Tokens &amp; theming</h3>
-      <p>Colour, type, spacing and radius as CSS variables.</p>
+      <p>CSS variables for colour, type, spacing and radius.</p>
       <div class="bento__demo">
         <span class="tchip"><span class="tdot" style="background:var(--accent)"></span><span class="tdot" style="background:var(--green)"></span><span class="tdot" style="background:var(--cyan)"></span><span class="tdot" style="background:var(--pink)"></span></span>
         <span class="tchip"><span class="tradius"></span>radius</span>
@@ -328,7 +328,7 @@
     <div class="bento__cell c-3">
       <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg></span>
       <h3>Icons</h3>
-      <p>One line set — 24&times;24, 1.7 stroke, currentColor. 69 glyphs in the Feather/Lucide house style, inline SVG with no runtime.</p>
+      <p>One consistent set: 24&times;24, 1.7 stroke and currentColor. It has 69 Feather/Lucide-style glyphs as inline SVG, with no runtime.</p>
       <div class="bento__demo">
         <div class="bico-grid">
           <span class="bico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
@@ -347,7 +347,7 @@
     <div class="bento__cell c-3">
       <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h8l-1 8 10-12h-8z"/></svg></span>
       <h3>Motion</h3>
-      <p>Token-driven effects — entrances, hover lifts, scroll reveals and skeleton loaders. Reads the brand motion vocabulary; reduced-motion safe.</p>
+      <p>Token-driven entrances, hover lifts, scroll reveals and skeleton loaders. It follows the brand motion vocabulary and respects reduced-motion settings.</p>
       <div class="bento__demo bento__demo--stack">
         <div class="m-skeleton bmo-line"></div>
         <div class="m-skeleton bmo-line" style="width:70%"></div>
@@ -361,7 +361,7 @@
     <div class="bento__cell c-6">
       <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M10 4v16"/></svg></span>
       <h3>Tables &amp; data</h3>
-      <p>Hoverable rows, status chips and right-aligned actions.</p>
+      <p>Rows that highlight on hover, status chips and actions aligned to the right.</p>
       <div class="bento__demo bento__demo--stack">
         <table class="ui-table ui-table--hover">
           <thead><tr><th>Service</th><th>Status</th><th></th></tr></thead>
