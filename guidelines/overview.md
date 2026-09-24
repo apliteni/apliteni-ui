@@ -1,6 +1,6 @@
 # Guidelines
 
-87 rules on 17 pages explain how to build a screen with this kit. None is currently marked as unmet.
+86 rules on 17 pages explain how to build a screen with this kit. None is currently marked as unmet.
 
 - [The page](the-page.md)
 

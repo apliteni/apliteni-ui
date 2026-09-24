@@ -3,7 +3,7 @@ const content = await loadGuideline('microcopy.md', new URL('../../guidelines/mi
 export const TITLE = content.title;
 export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
-import { button, emptyState, switchToggle } from '../../src/components/index.js';
+import { button, switchToggle } from '../../src/components/index.js';
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
@@ -19,18 +19,6 @@ export const stateDont = () => stage(switchToggle({
 export const namedDo = () => stage(button({ label: 'Dismiss', icon: 'x', iconOnly: true }));
 export const namedDont = () => stage(button({ label: '', icon: 'x', iconOnly: true }));
 
-const FILTERED = {
-  art: 'invoices',
-  title: 'No invoices match the current filters.',
-  sub: 'Try widening the date range or clearing a filter.',
-};
-
-export const emptyDo = () => stage(emptyState(FILTERED));
-export const emptyDont = () => stage(emptyState({
-  ...FILTERED,
-  actions: button({ label: '+ Add invoice', variant: 'primary' }),
-}));
-
 export const RULES = withSpecimens(content.rules, [
 { id: 'state-not-destination', doHtml: stateDo, dontHtml: stateDont, kit: [
       { ref: 'src/components/topbar.js:11', pattern: 'reports the state it is IN' },
@@ -42,9 +30,4 @@ export const RULES = withSpecimens(content.rules, [
       { ref: 'src/components/index.js:17', pattern: 'an empty label falls back to the icon' },
       { ref: 'src/components/index.js:81', pattern: 'not an accessible name' },
     ] },
-{ id: 'empty-state-copy', doHtml: emptyDo, dontHtml: emptyDont, kit: [
-      { ref: 'stories/apps/EmptyStates.stories.js:14', pattern: 'illustration + nudge, no action' },
-      { ref: 'stories/apps/EmptyStates.stories.js:36', pattern: 'illustration + guidance + a clear action' },
-      { ref: 'src/components/index.js:273', pattern: 'export function emptyState(' },
-    ] }
 ]);
