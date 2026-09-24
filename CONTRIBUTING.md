@@ -1416,6 +1416,14 @@ there, so a version nothing describes is a release that cannot be built.
 Without this gate the failure would arrive after the bump was already on
 `main`, and undoing that takes a second pull request.
 
+Before publishing a changelog entry, pass its text through the humanize skill
+and compare the result with the source. Write for someone who uses the kit and
+reads English as a second language: use familiar words and connected sentences,
+and cut repetition. Start with a short sentence saying what changed; the site
+shows that summary. Keep every fact, number, name, link, condition, commitment
+and breaking-change instruction in the full entry. Preserve versions, dates,
+change types, component chips and issue references.
+
 Which number to bump is still yours to choose. Patch or minor is a judgement
 about what the change costs the people who installed the package, and once a
 version is on npm it is there for good.
