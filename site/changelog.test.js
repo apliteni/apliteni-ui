@@ -151,8 +151,8 @@ const at = (c) => `v${c.v} ${c.type}`;
 // Every gate below reads CHANGES or PAGE, and an empty one passes all of them.
 // The count is what stops coverage shrinking to zero and staying green.
 test('#246 the sweep reaches every change on the page', () => {
-  assert.ok(RELEASES.length >= 41, `only ${RELEASES.length} releases swept — releases were removed, or this sweep stopped seeing them.`);
-  assert.ok(CHANGES.length >= 143, `only ${CHANGES.length} changes swept — a change with no subject cannot fail a check.`);
+  assert.ok(RELEASES.length >= 65, `only ${RELEASES.length} releases swept — releases were removed, or this sweep stopped seeing them.`);
+  assert.ok(CHANGES.length >= 247, `only ${CHANGES.length} changes swept — a change with no subject cannot fail a check.`);
   assert.equal((PAGE.match(/<section class="rel">/g) || []).length, RELEASES.length,
     'the page renders a different number of releases than RELEASES holds.');
 });
