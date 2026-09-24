@@ -79,9 +79,9 @@
 .ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); border-radius: var(--radius-md); }
 
 /* Icon-only */
-.ui-btn--icon { padding: 9px; border-radius: var(--radius-sm); }
-.ui-btn--icon.ui-btn--xs { padding: 4.5px; }
-.ui-btn--icon.ui-btn--sm { padding: 6px; }
+.ui-btn--icon { --btn-pad-y: 9px; padding: 9px; border-radius: var(--radius-sm); }
+.ui-btn--icon.ui-btn--xs { --btn-pad-y: 4.5px; padding: 4.5px; }
+.ui-btn--icon.ui-btn--sm { --btn-pad-y: 6px; padding: 6px; }
 
 .ui-btn--block { width: 100%; }
 
@@ -121,60 +121,108 @@
    contrast table shows that. The box was reverted and this ink shipped.
    Held by src/styles/button-disabled.test.js. */
 
-/* Busy: keep the label, run an indeterminate accent shimmer along the base, and
-   the button is disabled (not clickable). Pass busy + the .ui-btn__bars markup.
-   The track is inset into a rounded pill so it sits INSIDE the button — not
-   flush against the clipped corners — and tints from the live --accent so it
-   reads as an intentional progress element in every theme (and mutes uniformly
-   with the button in the disabled state). */
-.ui-btn[aria-busy="true"] {
+/* why: docs/specification.md#busy-button-labels */
+.ui-btn { position: relative; }
+.ui-btn[aria-busy="true"] { pointer-events: none; }
+.ui-btn[aria-busy="true"][data-btn-wired] {
+  pointer-events: auto;
+  filter: none;
+  transform: none;
+}
+/* Busy keeps the resting variant paint. The disabled selector above owns the
+   ordinary unavailable state; a wired busy control remains focused and must
+   not flatten its action identity while work is in flight. */
+.ui-btn[aria-busy="true"],
+.ui-btn[aria-busy="true"]:hover,
+.ui-btn[aria-busy="true"]:active {
+  background: var(--surface-2); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: var(--border);
+  color: var(--text);
+  filter: none;
+  transform: none;
+}
+.ui-btn[aria-busy="true"].ui-btn--primary,
+.ui-btn[aria-busy="true"].ui-btn--primary:hover,
+.ui-btn[aria-busy="true"].ui-btn--primary:active {
+  background: var(--accent-strong); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+.ui-btn[aria-busy="true"].ui-btn--ghost,
+.ui-btn[aria-busy="true"].ui-btn--ghost:hover,
+.ui-btn[aria-busy="true"].ui-btn--ghost:active {
+  background: transparent; /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: transparent;
+  color: var(--text);
+}
+.ui-btn[aria-busy="true"].ui-btn--danger,
+.ui-btn[aria-busy="true"].ui-btn--danger:hover,
+.ui-btn[aria-busy="true"].ui-btn--danger:active {
+  background: var(--surface-2); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  border-color: var(--border);
+  color: var(--text);
+}
+/* A caller can mark a control both busy and unavailable. The explicit marker
+   keeps that ordinary disabled state from inheriting the busy variant paint. */
+.ui-btn[aria-busy="true"][data-btn-disabled] {
+  background: var(--disabled-surface); /* ring-gap: inherit — busy+disabled keeps its containing gap. */
+  border-color: var(--disabled-border);
+  /* muted-ink: state — busy+disabled control */ color: var(--disabled-ink);
+  cursor: not-allowed;
   pointer-events: none;
-  position: relative;
-  overflow: hidden;
 }
-.ui-btn__bars {
+.ui-btn--ghost[aria-busy="true"][data-btn-disabled] {
+  background: transparent; /* ring-gap: inherit — busy+disabled keeps its containing gap. */
+  border-color: transparent;
+  /* muted-ink: state — busy+disabled ghost */ color: var(--disabled-ink-bare);
+}
+.ui-btn__label-slot { display: inline-grid; overflow: hidden; }
+.ui-btn__label {
+  grid-area: 1 / 1;
+  transform: translateY(0);
+
+}
+.ui-btn[data-btn-ready] .ui-btn__label { animation: ui-btn-label-in var(--dur-med) var(--ease-out) both; }
+.ui-btn[aria-busy="true"] .ui-btn__label {
+  transform: translateY(100%);
+  animation: ui-btn-label-out var(--dur-med) var(--ease-in) both;
+}
+.ui-btn[aria-busy="true"] > svg,
+.ui-btn[aria-busy="true"] > span[aria-hidden="true"]:not(.ui-btn__dots) { visibility: hidden; }
+.ui-btn__dots {
   position: absolute;
-  left: 10px; right: 10px; bottom: 5px;
-  height: 3px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 22%, transparent); /* ring-gap: inherit — decorative paint has no nested focus target. */
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   overflow: hidden;
-  /* Clean entrance: grow + fade in on state change, once. */
-  transform-origin: center;
-  animation: ui-bars-in var(--dur-fast) var(--ease) both;
+  pointer-events: none;
 }
-.ui-btn--xs .ui-btn__bars { left: 4px; right: 4px; bottom: 2px; height: 2px; }
-.ui-btn--sm .ui-btn__bars { left: 7px; right: 7px; bottom: 4px; }
-.ui-btn--lg .ui-btn__bars { left: 14px; right: 14px; bottom: 7px; }
-.ui-btn__bars i {
-  position: absolute;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg,
-    color-mix(in srgb, var(--accent) 30%, transparent), var(--accent));
+.ui-btn__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: ui-btn-dot-in var(--dur-med) var(--ease-out) both, ui-btn-dot-pulse 1.4s ease-in-out infinite; /* motion: ambient — dots pulse until the request completes */
 }
-/* On the filled primary the surface IS the accent, so shimmer in the contrast
-   colour instead — otherwise the bars vanish into the button. */
-.ui-btn--primary .ui-btn__bars {
-  background: color-mix(in srgb, var(--accent-contrast) 26%, transparent); /* ring-gap: inherit — decorative paint has no nested focus target. */
-}
-.ui-btn--primary .ui-btn__bars i {
-  background: linear-gradient(90deg,
-    color-mix(in srgb, var(--accent-contrast) 35%, transparent),
-    var(--accent-contrast));
-}
-.ui-btn__bars i:nth-child(1) { width: 38%; animation: ui-bars1 2s cubic-bezier(0.65, 0.05, 0.35, 1) infinite; } /* motion: ambient — an indeterminate loader loops until the work returns; its period is not a response time */
-.ui-btn__bars i:nth-child(2) { width: 22%; animation: ui-bars2 2s cubic-bezier(0.65, 0.05, 0.35, 1) 0.8s infinite; } /* motion: ambient — the second bar runs the same loop 0.8s out of phase */
-@keyframes ui-bars1 { 0% { left: -45%; } 100% { left: 110%; } }
-@keyframes ui-bars2 { 0% { left: -28%; } 100% { left: 120%; } }
-@keyframes ui-bars-in { from { opacity: 0; transform: scaleX(0.72); } to { opacity: 1; transform: scaleX(1); } }
-/* Reduced motion: no entrance, no sweep — just a static, intentional accent
-   fill so the busy state still reads clearly. */
+.ui-btn--xs .ui-btn__dots { gap: 2px; }
+.ui-btn--xs .ui-btn__dots i { width: 3px; height: 3px; }
+.ui-btn--sm .ui-btn__dots { gap: 3px; }
+.ui-btn--sm .ui-btn__dots i { width: 4px; height: 4px; }
+.ui-btn--lg .ui-btn__dots { gap: 5px; }
+.ui-btn--lg .ui-btn__dots i { width: 6px; height: 6px; }
+.ui-btn__dots i:nth-child(2) { animation-delay: 0s, 0.2s; } /* motion: ambient — stagger the second pulse */
+.ui-btn__dots i:nth-child(3) { animation-delay: 0s, 0.4s; } /* motion: ambient — stagger the third pulse */
+@keyframes ui-btn-label-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes ui-btn-label-out { from { transform: translateY(0); } 45%, to { transform: translateY(100%); } }
+@keyframes ui-btn-dot-in { from, 45% { translate: 0 24px; } to { translate: 0 0; } }
+@keyframes ui-btn-dot-pulse { 0%, 100% { opacity: 1; scale: 1; } 50% { opacity: 0.3; scale: 0.8; } }
 @media (prefers-reduced-motion: reduce) {
-  .ui-btn__bars { animation: none; opacity: 1; transform: none; }
-  .ui-btn__bars i { animation: none; }
-  .ui-btn__bars i:nth-child(1) { left: 0; width: 100%; }
-  .ui-btn__bars i:nth-child(2) { display: none; }
+  .ui-btn, .ui-btn__label { transition: none; }
+  .ui-btn[data-btn-ready] .ui-btn__label,
+  .ui-btn[aria-busy="true"] .ui-btn__label { animation: none; }
+  .ui-btn__dots i { animation: none; }
 }
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }

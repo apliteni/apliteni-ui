@@ -873,6 +873,10 @@ const disabledRun = await (async () => {
         let hits;
         try { hits = win.document.body.querySelectorAll(base); } catch { continue; }
         for (const hit of hits) {
+          // Busy buttons expose aria-disabled to block activation while work is
+          // in flight, but they intentionally retain their resting paint. They
+          // are covered by the busy-state gate, not this disabled repaint gate.
+          if (hit.getAttribute('aria-busy') === 'true') continue;
           const dimmed = wantsSibling ? hit.parentElement?.querySelector('.ui-switch__track') : hit;
           if (!dimmed) continue;
           // Everything inside the dimmed box is dimmed with it: `opacity` is a

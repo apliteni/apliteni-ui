@@ -172,7 +172,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:220",
+        "ref": "src/components/index.js:221",
         "pattern": "export function callout("
       },
       {
@@ -190,17 +190,17 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:246",
+        "ref": "src/components/index.js:247",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
     "panels": [
       {
-        "ref": "src/components/index.js:73",
+        "ref": "src/components/index.js:74",
         "pattern": "It is NOT a tablist: it controls no panel"
       },
       {
-        "ref": "src/components/index.js:78",
+        "ref": "src/components/index.js:79",
         "pattern": "that one owns panels and earns the tab announcement"
       },
       {
@@ -210,11 +210,11 @@
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:263",
+        "ref": "src/components/index.js:264",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:265",
+        "ref": "src/components/index.js:266",
         "pattern": "export function successPanel("
       },
       {
@@ -268,7 +268,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:246",
+        "ref": "src/components/index.js:247",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -412,7 +412,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:232",
+        "ref": "src/components/index.js:233",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -476,7 +476,7 @@
     ],
     "title-is-heading": [
       {
-        "ref": "src/components/index.js:63",
+        "ref": "src/components/index.js:64",
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
@@ -580,7 +580,7 @@
         "pattern": "an empty label falls back to the icon"
       },
       {
-        "ref": "src/components/index.js:81",
+        "ref": "src/components/index.js:82",
         "pattern": "not an accessible name"
       }
     ]
@@ -732,7 +732,7 @@
         "pattern": "busy \u21d2 disabled"
       },
       {
-        "ref": "src/styles/button.css:130",
+        "ref": "src/styles/button.css:126",
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
@@ -742,15 +742,15 @@
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:187",
+        "ref": "src/components/index.js:188",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:173",
+        "ref": "src/components/index.js:174",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:159",
+        "ref": "src/components/index.js:160",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -764,7 +764,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:252",
+        "ref": "src/components/index.js:253",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]

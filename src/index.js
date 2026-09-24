@@ -21,6 +21,7 @@ export * from './components/stat.js';
 export * from './assets/icons.js';
 export * from './assets/brand.js';
 export * from './motion.js';
+export { setButtonBusy } from './components/button-busy.js';
 
 export * from './components/table-values.js';
 export * from './components/segmented.js';

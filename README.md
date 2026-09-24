@@ -144,6 +144,30 @@ Storybook. A stranger on the port is never composed — the "React components"
 section is absent instead, and the terminal says why. Details in
 [`react/README.md`](./react/README.md).
 
+### Updating a busy button
+
+Keep the factory-created element in place to animate its label:
+
+```js
+import { button, setButtonBusy } from '@apliteni/apliteni-ui';
+host.innerHTML = button({ label: 'Save changes', variant: 'primary' });
+const control = host.querySelector('button');
+setButtonBusy(control, { busy: true });
+// When the request completes:
+setButtonBusy(control, { busy: false });
+```
+
+The helper keeps focus on the button, uses `aria-disabled` and blocks clicks,
+Enter and Space while busy. Its sibling polite live region announces progress and completion.
+Explicit `disabled: true` stays natively disabled. Static `button({ busy: true })`
+markup uses native disabled until the helper wires it; call `setButtonBusy` to
+switch to the focus-preserving behavior. React `<Button busy={saving}>Save changes</Button>` uses the same treatment.
+The action label slides down, three dots take its place, and the label returns from below
+when complete. Its hidden label preserves the width and accessible name. React retains
+the last ready children while busy; changed children appear on completion. Reduced
+motion switches immediately to static dots.
+See Storybook's **Button / Busy Transition** for the live vanilla example.
+
 ## Theming
 
 Theme is a `data-theme="dark|light"` attribute on `<html>`; accent is an orthogonal
