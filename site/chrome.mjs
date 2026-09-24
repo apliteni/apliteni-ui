@@ -47,6 +47,19 @@ export function footer() {
 
 // Chrome-only CSS (topbar + accents + footer). Page-specific styles stay in each page.
 export const CHROME_CSS = `
+  /* Crossfade the page snapshot without replacing any control's transitions. */
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-fast);
+    animation-timing-function: var(--ease);
+  }
+  ::view-transition { pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(root),
+    ::view-transition-old(root),
+    ::view-transition-new(root) { animation: none; }
+  }
   .site-topbar { position: sticky; top: 0; z-index: 20; height: 60px;
     background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(14px);
     border-bottom: 0; }
@@ -80,6 +93,11 @@ export const CHROME_CSS = `
 // on the landing carries over to the changelog and vice-versa.
 export const CHROME_JS = `
   var root = document.documentElement;
+  // Only user actions crossfade; restoring saved colours stays synchronous.
+  function changeColors(update){
+    if (!document.startViewTransition || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) { update(); return; }
+    document.startViewTransition(update);
+  }
   var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
   var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
   // Same convention as the kit's own toggle (src/components/topbar.js): the
@@ -90,12 +108,15 @@ export const CHROME_JS = `
   function applyTheme(t){ root.setAttribute('data-theme', t); document.getElementById('tglIc').innerHTML = t==='dark'?MOON:SUN; var b = document.getElementById('tgl'), n = themeName(t); b.setAttribute('aria-label', n); b.setAttribute('title', n); try{localStorage.setItem('apliteni-ui-theme',t);}catch(e){} }
   var savedT = null; try{ savedT = localStorage.getItem('apliteni-ui-theme'); }catch(e){}
   applyTheme(savedT || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
-  document.getElementById('tgl').addEventListener('click', function(){ applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); });
+  document.getElementById('tgl').addEventListener('click', function(){ changeColors(function(){ applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); }); });
 
   function applyAccent(a){ if(a==='default') root.removeAttribute('data-accent'); else root.setAttribute('data-accent', a); document.querySelectorAll('.accents button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-acc')===a); }); try{localStorage.setItem('apliteni-ui-accent',a);}catch(e){} }
   var savedA = null; try{ savedA = localStorage.getItem('apliteni-ui-accent'); }catch(e){}
   if (savedA) applyAccent(savedA);
-  document.querySelectorAll('.accents button').forEach(function(b){ b.addEventListener('click', function(){ applyAccent(b.getAttribute('data-acc')); }); });
+  document.querySelectorAll('.accents button').forEach(function(b){ b.addEventListener('click', function(){
+    var a = b.getAttribute('data-acc');
+    changeColors(function(){ applyAccent(a); });
+  }); });
 
   // Segmented controls (.ui-seg) — a toolbar of toggle buttons. This is the
   // site's copy of what wireTopbar() does for the kit (see the .ui-seg block in
