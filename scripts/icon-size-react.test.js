@@ -42,19 +42,15 @@ const reactSrc = path.join(root, 'react', 'src');
 const previewPath = path.join(root, 'react', '.storybook', 'preview.ts');
 const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
-// The same tripwire the other two gates carry, and the same deliberate
-// inconvenience: a rule that quietly leaves coverage looks exactly like a rule
-// that passes, so this is the real count with no slack in it. It is 0 because no
-// React stylesheet sizes an icon yet — which is what makes this the moment to
-// gate it rather than the commit after the first one lands. Raise it when you add
-// a rule; lower it in the same commit as the removal, and say why there.
-const EXPECTED_SUBJECTS = 0;
+// DataTable's sort SVG adds width and height. Keep the count exact so a rule
+// leaving coverage fails; change it with the sizing rules and explain removals.
+const EXPECTED_SUBJECTS = 2;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what
  * hand-written source does not: a react/src/public/ holding a stylesheet is
  * ordinary React, and pruning it drops every rule in it out of the sweep without
- * moving a count that sits at zero either way. */
+ * moving the subject count if that directory has no icon-sizing rules. */
 const SKIPPED_DIRS = [];
 const REACT_FILES = walk(reactSrc, [], SKIPPED_DIRS).sort();
 const isTest = (p) => /\.test\.[cm]?[jt]sx?$/.test(p);

@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.39.1', date: '2026-09-24',
+    changes: [
+      ['fixed', "DataTable sort indicators are now drawn as SVG chevrons instead of text arrow characters, which iOS showed as colour emoji. The sorted column shows one chevron in the sort direction; other sortable columns show a neutral pair. Screen readers still get the state from aria-sort. Found in the design-review trial, #361."],
+    ],
+  },
+  {
     v: '0.39.0', date: '2026-09-24',
     changes: [
       ['changed', 'Guideline pages now use short, plain-English rules with a one-sentence reason, clear Do and Don’t examples, and body ink instead of muted text. Source-file references moved to test-side coverage, and the empty-state copy rule was removed. Closes #335, #329, #330 and #328.'],

@@ -305,7 +305,7 @@ it('leaves a controlled page in the order it arrived, and claims no sort it is n
   for (const name of ['Name', 'Clicks']) {
     const th = screen.getByRole('columnheader', { name });
     expect(th).not.toHaveAttribute('aria-sort');
-    expect(th.textContent).not.toMatch(/[▲▼]/);
+    expect(th.querySelectorAll('.rx-caret path')).toHaveLength(2);
   }
 });
 
