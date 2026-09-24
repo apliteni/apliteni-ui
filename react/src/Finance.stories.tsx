@@ -19,7 +19,7 @@ export const Comparison = { render: () => <Example /> };
 function SelectableExample() {
   const rows = [{ name: 'Aster Systems', price: 228.87, sector: 'Technology' }, { name: 'Birch Energy', price: 84.12, sector: 'Energy' }];
   const [selected, setSelected] = useState(new Set<string>());
-  return <main className="pinned-selection" style={{ padding: 'var(--space-6)' }}>
+  return <main className="pinned-selection" style={{ maxWidth: '60rem', padding: 'var(--space-6)' }}>
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
     <h1>Select companies</h1><p>Fictional data. Scroll to compare values while keeping company selection in view.</p>
     <DataTable rows={rows} selected={selected} onToggle={name => setSelected(current => {
