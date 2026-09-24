@@ -9,6 +9,7 @@
 - [Labels and titles](labels-and-titles.md)
 - [Iconography](iconography.md)
 - [Layout and density](layout-and-density.md)
+- [Dense tables](dense-tables.md)
 - [Accessibility minimums](accessibility-floor.md)
 - [Pagination](pagination.md)
 - [Stat bands](stat-bands.md)

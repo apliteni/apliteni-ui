@@ -96,7 +96,7 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Signal contrast', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
-          'Guidelines', ['Overview', 'The page', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Labels and titles', 'Iconography', 'Layout and density', 'Accessibility minimums', 'Pagination', 'Stat bands', 'Drawers', 'Motion', 'The command palette', 'Hover readouts', 'Going back'],
+          'Guidelines', ['Overview', 'The page', 'Destructive actions', 'Colour and theming', 'The full state set', 'Component choice', 'Microcopy and tone', 'Labels and titles', 'Iconography', 'Layout and density', 'Dense tables', 'Accessibility minimums', 'Pagination', 'Stat bands', 'Drawers', 'Motion', 'The command palette', 'Hover readouts', 'Going back'],
           'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Tooltip', 'Navigation', 'Back link', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Stat band', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Apps', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents', 'Account preset'],
         ],

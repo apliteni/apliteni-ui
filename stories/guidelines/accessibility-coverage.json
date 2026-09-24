@@ -335,6 +335,14 @@
       ]
     },
     {
+      "file": "react/src/Finance.test.tsx",
+      "name": "React: Finance",
+      "does": "Checks the mounted finance stories and their table states.",
+      "blind": [
+        "Real browser focus and responsive layout; mounted tests use jsdom."
+      ]
+    },
+    {
       "file": "react/src/CommandPalette.test.tsx",
       "name": "React: CommandPalette",
       "does": "Compares the React palette with the vanilla factory shape by shape: panel, roles, groups and every row. It then presses keys on the mounted version, checking opening focus, return focus, arrows, Enter and refusal to run the destructive row.",

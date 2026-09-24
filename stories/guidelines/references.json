@@ -1,4 +1,12 @@
 {
+  "_dense-tables.js": {
+    "surface": [
+      {
+        "ref": "src/styles/table.css:88",
+        "pattern": ".ui-table { background: var(--table-bg);"
+      }
+    ]
+  },
   "_accessibility-floor.js": {
     "target-size": [
       {
@@ -22,7 +30,7 @@
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
-        "ref": "src/tokens/tokens.css:165",
+        "ref": "src/tokens/tokens.css:166",
         "pattern": "--disabled-ink: var(--muted);"
       }
     ],
@@ -68,7 +76,7 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:179",
+        "ref": "src/tokens/tokens.css:180",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
@@ -714,7 +722,7 @@
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:237",
+        "ref": "src/tokens/tokens.css:238",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],
@@ -728,7 +736,7 @@
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast.test.js:241",
+        "ref": "stories/contrast.test.js:224",
         "pattern": "inactive components and their whole subtree"
       }
     ],

@@ -10,6 +10,7 @@ import * as microcopyContent from './_microcopy.js';
 import * as labelsContent from './_labels-and-titles.js';
 import * as iconographyContent from './_iconography.js';
 import * as layoutContent from './_layout-and-density.js';
+import * as denseContent from './_dense-tables.js';
 import * as floorContent from './_accessibility-floor.js';
 import * as paginationContent from './_pagination.js';
 import * as statContent from './_stat-bands.js';
@@ -29,6 +30,7 @@ import * as microcopyStory from './Microcopy.stories.js';
 import * as labelsStory from './LabelsAndTitles.stories.js';
 import * as iconographyStory from './Iconography.stories.js';
 import * as layoutStory from './LayoutAndDensity.stories.js';
+import * as denseStory from './DenseTables.stories.js';
 import * as floorStory from './AccessibilityFloor.stories.js';
 import * as paginationStory from './Pagination.stories.js';
 import * as statStory from './StatBands.stories.js';
@@ -49,6 +51,7 @@ const ENTRIES = [
   [labelsContent, labelsStory],
   [iconographyContent, iconographyStory],
   [layoutContent, layoutStory],
+  [denseContent, denseStory],
   [floorContent, floorStory],
   [paginationContent, paginationStory],
   [statContent, statStory],
