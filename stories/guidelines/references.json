@@ -258,7 +258,7 @@
         "pattern": "confirmLabel: 'Delete workspace', cancelLabel: 'Keep it'"
       },
       {
-        "ref": "stories/apps/Access.stories.js:38",
+        "ref": "stories/apps/Access.stories.js:39",
         "pattern": "label: 'Revoke access'"
       }
     ],
