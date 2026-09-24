@@ -48,7 +48,7 @@ const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 // React stylesheet sizes an icon yet — which is what makes this the moment to
 // gate it rather than the commit after the first one lands. Raise it when you add
 // a rule; lower it in the same commit as the removal, and say why there.
-const EXPECTED_SUBJECTS = 0;
+const EXPECTED_SUBJECTS = 2;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what
