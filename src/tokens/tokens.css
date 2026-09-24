@@ -434,7 +434,7 @@
 .ui-sx,
 .ui-table,
 .ui-table--sticky thead th,
-.ui-table--pinned .ui-table__identity,
+.ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
 .ui-table--zebra tbody tr:nth-child(even) td,
 .ui-table--zebra tbody tr:hover td,

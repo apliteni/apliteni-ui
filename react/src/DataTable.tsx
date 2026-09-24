@@ -121,7 +121,7 @@ export function DataTable<T extends { name: string }>({
         aria-busy={loading || undefined}>
         <thead>
           <tr>
-            {selectable ? <th scope="col">
+            {selectable ? <th scope="col" className="ui-table__selection">
               {/* No visible text: aria-label is this checkbox's whole name. */}
               <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
                 onChange={() => onTogglePage(slice.map((r) => r.name))} />
@@ -154,7 +154,7 @@ export function DataTable<T extends { name: string }>({
           {!slice.length && <tr><td colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
           {slice.map((r) => (
             <tr key={r.name}>
-              {selectable ? <td><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
+              {selectable ? <td className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
                 onChange={() => onToggle(r.name)} /></td> : null}
               {columns.map((c, columnIndex) => (
                 <td key={c.key} className={[c.num && 'ui-table__num', pinnedIdentity && columnIndex === 0 && 'ui-table__identity'].filter(Boolean).join(' ')}>

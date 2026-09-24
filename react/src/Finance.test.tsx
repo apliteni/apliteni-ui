@@ -10,7 +10,8 @@ describe('finance composition', () => {
     const { container } = render(<DataTable rows={[{ name: 'Aster', price: 0 }]} columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol="ASTR" name={r.name} /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }]} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}} density="compact" pinnedIdentity stickyHeader scrollLabel="Stocks" />);
     expect(screen.getByRole('region', { name: 'Stocks' })).toHaveAttribute('tabindex', '0');
     expect(container.querySelector('tbody .ui-table__identity')).toHaveTextContent('ASTR');
-    expect(container.querySelector('tbody td')).not.toHaveClass('ui-table__identity');
+    expect(container.querySelector('tbody td')).toHaveClass('ui-table__selection');
+    expect(container.querySelector('thead th')).toHaveClass('ui-table__selection');
     expect(screen.getByText('USD')).toBeInTheDocument();
   });
   it('removes and clears controlled filters while recovering keyboard focus', () => {

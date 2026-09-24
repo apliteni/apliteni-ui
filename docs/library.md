@@ -250,7 +250,7 @@ accepts `options`, controlled `value`, `onChange`, `label`, `appearance` and `di
 column is the pinned identity even when selection is enabled. Wrap a vanilla table in
 `.ui-table-scroll` with a region role, accessible name and tabindex; apply
 `.ui-table--sticky`, `.ui-table--pinned` and mark identity header/cells `.ui-table__identity`.
-Use `--ui-table-height` on the scroll region to choose its maximum height.
+Use `--ui-table-height` on the scroll region to choose its maximum height. If selection precedes identity, mark its header/cells `.ui-table__selection`; both columns then pin, with identity offset by `--ui-table-selection-width` (defaults to `--space-12`). Override that property on the table to change the selection track and its offset together.
 
 ```js
 const options = {
