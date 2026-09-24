@@ -25,12 +25,13 @@ per-story code.
 
 ## Stories (`stories/`)
 
-Grouped by `title` into three sections, ordered in `preview.js` (`storySort`):
+Grouped by `title` into four sections, ordered in `preview.js` (`storySort`):
 
 - **Foundations** — Colors, Typography, Spacing & Radius, Elevation, Backgrounds,
   Iconography, Brand, Sub-themes.
+- **Guidelines** — rules for composing screens and choosing components.
 - **Components** — one kit factory each (Button, Card, Table, Topbar, …).
-- **Apps** — full-page compositions that dogfood the components (Landing, Sign In,
+- **Showcases** — full-page compositions that dogfood the components (Landing, Sign In,
   Consent, Preferences, Access & Agents). Shared scaffolding in `stories/apps/_*.js`.
 
 A story is a plain object whose `render` returns the factory's HTML string:
@@ -40,9 +41,10 @@ export default { title: 'Components/Button' };
 export const Playground = { render: () => button({ label: 'Save', variant: 'primary' }) };
 ```
 
-The `title` + first export name set the story id the [changelog](changelog.md) deep-links
-to — renaming either changes its URL. Don't hand-wire theming or `wireTopbar`; the
-decorator does both.
+The `id` (or `title` when no id is set) and export name set the story id the
+[changelog](changelog.md) deep-links to. Showcases keep explicit `apps-…` ids so
+existing story links keep working after the section rename. Don't hand-wire theming or
+`wireTopbar`; the decorator does both.
 
 ## Run & build
 

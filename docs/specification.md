@@ -988,7 +988,7 @@ belong only here, and rejects citations, file paths and selectors in the rendere
 | `density` | `.ui-table--dense` and the cell padding it overrides, in `src/styles/table.css` |
 | `lede` | `.ui-app__sub`, written by `appShell()` in `src/components/shell.js` |
 
-`stories/guidelines/the-page.test.js` renders every example screen under `stories/apps/` and
+`stories/guidelines/the-page.test.js` renders every Showcases example screen under `stories/apps/` and
 checks all twelve rules. It matches checks to rule ids: ten from the guideline page and two
 from `GATED_ELSEWHERE`. A missing rule or check fails the build. The success screen component
 has no example in that collection, so `src/components/success.test.js` checks its title level

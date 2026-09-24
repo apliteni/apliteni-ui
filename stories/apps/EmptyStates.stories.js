@@ -2,7 +2,8 @@ import { card, emptyState, button, input, segmented } from '../../src/components
 import { financeShell } from './_finance-nav.js';
 
 export default {
-  title: 'Apps/Empty states',
+  title: 'Showcases/Empty states',
+  id: 'apps-empty-states',
   parameters: { layout: 'fullscreen' },
 };
 

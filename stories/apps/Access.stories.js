@@ -3,7 +3,8 @@ import { card, button, badge, input, snippet, hlShell, callout, icon } from '../
 import { busyRegion, skeletonTable, deniedState } from '../../src/components/loading.js';
 
 export default {
-  title: 'Apps/Access & Agents',
+  title: 'Showcases/Access & Agents',
+  id: 'apps-access-agents',
   parameters: { layout: 'fullscreen' },
 };
 

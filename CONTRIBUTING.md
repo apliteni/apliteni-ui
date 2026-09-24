@@ -42,6 +42,9 @@ proof they passed. CI stops the run rather than skipping them.
 
 ## Rules
 
+Full-page examples appear under **Showcases** in Storybook. Their source stays in
+`stories/apps/`; preserve existing explicit story ids when changing displayed titles.
+
 The rules for designing a screen are in the **Guidelines** section of Storybook —
 [ui.apli.tech/storybook](https://ui.apli.tech/storybook/). They cover tokens and colour,
 component states, component choice, and wording. Read them before you start.

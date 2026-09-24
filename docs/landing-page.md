@@ -4,7 +4,7 @@
 hosted Storybook — served by one zero-dependency Node server.
 
 > This page covers the live homepage (`site/index.html`). The Storybook
-> `Apps/Landing Page` story is a separate component demo.
+> `Showcases/Landing Page` story is a separate component demo.
 
 ```
 site/

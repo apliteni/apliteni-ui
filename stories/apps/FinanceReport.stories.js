@@ -4,7 +4,8 @@ import { statBand } from '../../src/components/stat.js';
 import { financeShell } from './_finance-nav.js';
 
 export default {
-  title: 'Apps/Finance report',
+  title: 'Showcases/Finance report',
+  id: 'apps-finance-report',
   parameters: { layout: 'fullscreen' },
 };
 

@@ -211,7 +211,7 @@ src/
   inline.js              # CSS as strings for server-render consumers (…/inline)
   assets/                # brand mark (seedling) + line-icon set
   components/            # HTML-string factories: button(), card(), badge(), topbar()…
-stories/                 # Storybook: Foundations, Components, Apps
+stories/                 # Storybook: Foundations, Components, Showcases
 site/                    # ui.apli.tech landing page (static site build)
 react/                   # React components — private workspace, built to react/dist/
   dist/                  #   tsup output; shipped as …/react and …/react/css

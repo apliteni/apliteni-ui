@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.41.1', date: '2026-09-24',
+    changes: [
+      ['changed', 'Storybook’s Apps section is now called Showcases. Existing story links still work, and the README and contributor docs use the new name. Requested in #366.'],
+    ],
+  },
+  {
     v: '0.41.0', date: '2026-09-24',
     changes: [
       ['changed', 'Busy buttons keep each variant’s resting fill, border and ink while replacing the label with larger, brighter dots. Dots scale with the button size and remain readable in both themes. Resolves #327.', ['Button']],
