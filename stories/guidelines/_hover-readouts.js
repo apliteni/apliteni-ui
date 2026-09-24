@@ -18,7 +18,7 @@ export const SPEC_CSS = `${CHART_CSS}
       color: var(--strong); font-variant-numeric: tabular-nums; }
     /* The don't's readout is a line of ordinary card text, styled as the one it
        replaces would be — what is wrong with it is where it is. */
-    .gh-inline { margin: var(--space-2) 0 0; font-size: var(--text-sm); color: var(--muted);
+    .gh-inline { margin: var(--space-2) 0 0; font-size: var(--text-sm); color: var(--text);
       font-variant-numeric: tabular-nums; }
     .gh-room { padding-top: var(--space-16); }
     .gh-room--tall { padding-top: calc(var(--space-16) * 2); }
@@ -76,14 +76,8 @@ const clipped = (placement) => {
 };
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'overlay', doHtml: overlayDo, dontHtml: overlayDont, kit: [
-      { ref: 'src/styles/tooltip.css:18', pattern: 'position: absolute;' },
-      { ref: 'src/styles/tooltip.css:58', pattern: '.ui-tip.is-open { opacity: 1; visibility: visible; }' },
-    ] },
-{ id: 'above-the-mark', doHtml: () => clipped('bottom'), dontHtml: () => clipped('top'), kit: [
-      { ref: 'src/components/tooltip.js:112', pattern: 'const flip = prefersBelow' },
-      { ref: 'src/components/tooltip.js:118', pattern: 'const left = Math.max(clip.left' },
-    ] },
+{ id: 'overlay', doHtml: overlayDo, dontHtml: overlayDont },
+{ id: 'above-the-mark', doHtml: () => clipped('bottom'), dontHtml: () => clipped('top') },
 { id: 'contents', doHtml: () => barsOpen('top', { room: 'gh-room gh-room--tall' }), dontHtml: () => barsOpen('top', {
       room: 'gh-room gh-room--tall',
       text: {
@@ -92,10 +86,7 @@ export const RULES = withSpecimens(content.rules, [
         detail: '+5.3% on September and +12.1% on October 2024, with 3 invoices pending. '
           + 'Click the bar to open the transactions.',
       },
-    }), kit: [{ ref: 'src/components/tooltip.js:132', pattern: 'el.textContent = t;' }] },
-{ id: 'on-touch', kit: [
-      { ref: 'src/components/tooltip.js:216', pattern: 'function touching(doc, e)' },
-      { ref: 'src/components/tooltip.js:333', pattern: "host.addEventListener('click'" },
-    ] },
-{ id: 'not-only-hover', kit: [{ ref: 'src/components/tooltip.js:316', pattern: "host.addEventListener('focusin'" }] }
+    }) },
+{ id: 'on-touch' },
+{ id: 'not-only-hover' }
 ]);

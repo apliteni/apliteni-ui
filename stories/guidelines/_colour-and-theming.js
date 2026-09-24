@@ -33,24 +33,8 @@ export const signalsDo = () => stage(bouncedEmail());
 export const signalsDont = () => stage(bouncedEmail(), 'gl-drift');
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'tokens', doHtml: tokensDo, dontHtml: tokensDont, kit: [
-      { ref: 'stories/colour-tokens.test.js:1', pattern: 'Rule: colour comes from a semantic token, never a literal.' },
-      { ref: 'stories/colour-tokens.test.js:9', pattern: 'Literals belong in src/tokens/*.css' },
-      { ref: 'stories/colour-tokens.test.js:4', pattern: 'mask stencils out on their own merit' },
-    ] },
-{ id: 'signals', doHtml: signalsDo, dontHtml: signalsDont, kit: [
-      { ref: 'src/tokens/accents.css:7', pattern: 'Each sub-theme only re-points the accent family' },
-      { ref: 'src/tokens/accents.css:8', pattern: 'live, pink = danger) stay put' },
-      { ref: 'stories/danger-colour.test.js:5', pattern: 'Under Phoenix the accent is ember and under Nebula' },
-    ] },
-{ id: 'accent-strong', kit: [
-      { ref: 'src/tokens/tokens.css:179', pattern: '--accent-strong: #7c3aed;' },
-      { ref: 'src/styles/button.css:44', pattern: 'background: var(--accent-strong);' },
-      { ref: 'src/tokens/accents.css:37', pattern: '--accent-strong: var(--accent);' },
-    ] },
-{ id: 'both-themes', kit: [
-      { ref: 'stories/accent-contrast.test.js:1', pattern: '--accent clears WCAG AA as text on every ground the kit paints under it' },
-      { ref: 'stories/accent-contrast.test.js:2', pattern: 'theme × accent cells' },
-      { ref: 'react/src/a11y.test.tsx:23', pattern: "'color-contrast': { enabled: false }" },
-    ] }
+{ id: 'tokens', doHtml: tokensDo, dontHtml: tokensDont },
+{ id: 'signals', doHtml: signalsDo, dontHtml: signalsDont },
+{ id: 'accent-strong' },
+{ id: 'both-themes' }
 ]);

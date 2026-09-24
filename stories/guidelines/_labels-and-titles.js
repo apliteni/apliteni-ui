@@ -31,27 +31,11 @@ export const eyebrowDo = () => stage(`<div class="ui-card"><div class="ui-eyebro
 export const eyebrowDont = () => stage(`<div class="ui-card"><div class="ui-eyebrow">Top contractors</div>
   <div class="ui-card__sub">Paid out, by counterparty.</div></div>`);
 
-const inkSample = (ink) => stage(card({ body: ['xs', 'sm', 'base'].map(size =>
-  `<p style="font-size:var(--text-${size});color:var(--${ink});margin-bottom:var(--space-3)">Updated 23 Sep · ready to export</p>`,
-).join('') }));
-
 export const RULES = withSpecimens(content.rules, [
-{ id: 'text-ink', doHtml: () => inkSample('text'), dontHtml: () => inkSample('muted'), kit: [{ ref: 'src/styles/base.css:123', pattern: 'color: var(--text);' }] },
-{ id: 'text-ink-exceptions', kit: [{ ref: 'src/styles/muted-ink.test.js:1', pattern: 'Every muted/dim colour path' }] },
-{ id: 'sentence-case', doHtml: caseDo, dontHtml: caseDont, kit: [
-      { ref: 'src/styles/base.css:117', pattern: 'in sentence case like every' },
-      { ref: 'src/components/topbar.js:44', pattern: 'the kit writes the word for it' },
-      { ref: 'stories/guidelines/letter-case.test.js:1', pattern: 'text is never set in capitals by style' },
-    ] },
-{ id: 'title-rank', doHtml: rankDo, dontHtml: rankDont, kit: [
-      { ref: 'src/styles/layout.css:398', pattern: 'rank: page-title' },
-      { ref: 'src/styles/card.css:57', pattern: 'rank: card-title' },
-    ] },
-{ id: 'title-is-heading', kit: [
-      { ref: 'src/components/index.js:63', pattern: 'const h = [2, 3, 4, 5, 6]' },
-      { ref: 'react/src/primitives/Card.tsx:9', pattern: 'const Heading' },
-    ] },
-{ id: 'eyebrow-names-the-kind', doHtml: eyebrowDo, dontHtml: eyebrowDont, kit: [
-      { ref: 'src/styles/base.css:120', pattern: 'rank: label' },
-    ] }
+{ id: 'text-ink' },
+{ id: 'text-ink-exceptions' },
+{ id: 'sentence-case', doHtml: caseDo, dontHtml: caseDont },
+{ id: 'title-rank', doHtml: rankDo, dontHtml: rankDont },
+{ id: 'title-is-heading' },
+{ id: 'eyebrow-names-the-kind', doHtml: eyebrowDo, dontHtml: eyebrowDont }
 ]);

@@ -1,0 +1,765 @@
+{
+  "_accessibility-floor.js": {
+    "target-size": [
+      {
+        "ref": "src/styles/button.css:78",
+        "pattern": ".ui-btn--sm"
+      },
+      {
+        "ref": "src/styles/input.css:134",
+        "pattern": ".ui-check input::before"
+      }
+    ],
+    "ring-contrast": [
+      {
+        "ref": "src/styles/base.css:146",
+        "pattern": "box-shadow: var(--ring);"
+      }
+    ],
+    "disabled-legibility": [
+      {
+        "ref": "src/styles/button.css:95",
+        "pattern": ".ui-btn[aria-disabled=\"true\"]"
+      },
+      {
+        "ref": "src/tokens/tokens.css:165",
+        "pattern": "--disabled-ink: var(--muted);"
+      }
+    ],
+    "touch-field-size": [
+      {
+        "ref": "src/styles/field-zoom.css:19",
+        "pattern": "font-size: 16px !important;"
+      },
+      {
+        "ref": "react/src/index.ts:9",
+        "pattern": "import '../../src/styles/field-zoom.css';"
+      }
+    ]
+  },
+  "_colour-and-theming.js": {
+    "tokens": [
+      {
+        "ref": "stories/colour-tokens.test.js:1",
+        "pattern": "Rule: colour comes from a semantic token, never a literal."
+      },
+      {
+        "ref": "stories/colour-tokens.test.js:9",
+        "pattern": "Literals belong in src/tokens/*.css"
+      },
+      {
+        "ref": "stories/colour-tokens.test.js:4",
+        "pattern": "mask stencils out on their own merit"
+      }
+    ],
+    "signals": [
+      {
+        "ref": "src/tokens/accents.css:7",
+        "pattern": "Each sub-theme only re-points the accent family"
+      },
+      {
+        "ref": "src/tokens/accents.css:8",
+        "pattern": "live, pink = danger) stay put"
+      },
+      {
+        "ref": "stories/danger-colour.test.js:5",
+        "pattern": "Under Phoenix the accent is ember and under Nebula"
+      }
+    ],
+    "accent-strong": [
+      {
+        "ref": "src/tokens/tokens.css:179",
+        "pattern": "--accent-strong: #7c3aed;"
+      },
+      {
+        "ref": "src/styles/button.css:44",
+        "pattern": "background: var(--accent-strong);"
+      },
+      {
+        "ref": "src/tokens/accents.css:37",
+        "pattern": "--accent-strong: var(--accent);"
+      }
+    ],
+    "both-themes": [
+      {
+        "ref": "stories/accent-contrast.test.js:1",
+        "pattern": "--accent clears WCAG AA as text on every ground the kit paints under it"
+      },
+      {
+        "ref": "stories/accent-contrast.test.js:2",
+        "pattern": "theme \u00d7 accent cells"
+      },
+      {
+        "ref": "react/src/a11y.test.tsx:23",
+        "pattern": "'color-contrast': { enabled: false }"
+      }
+    ]
+  },
+  "_command-palette.js": {
+    "named-things": [
+      {
+        "ref": "src/components/command-palette.js:194",
+        "pattern": "function paletteItem"
+      }
+    ],
+    "groups": [
+      {
+        "ref": "src/components/command-palette.js:255",
+        "pattern": "export function commandPaletteList"
+      },
+      {
+        "ref": "src/styles/command-palette.css:148",
+        "pattern": ".ui-cmdk__group-head"
+      }
+    ],
+    "ranking": [
+      {
+        "ref": "src/components/command-palette.js:33",
+        "pattern": "export const SCORE"
+      },
+      {
+        "ref": "src/components/command-palette.js:130",
+        "pattern": "export function rankGroups"
+      }
+    ],
+    "keyboard": [
+      {
+        "ref": "src/components/command-palette.js:515",
+        "pattern": "function onKeydown"
+      },
+      {
+        "ref": "src/components/overlay.js:97",
+        "pattern": "function ownKeys"
+      }
+    ],
+    "say-it": [
+      {
+        "ref": "src/components/command-palette.js:368",
+        "pattern": "function setActive"
+      },
+      {
+        "ref": "src/components/command-palette.js:392",
+        "pattern": "function announce"
+      },
+      {
+        "ref": "src/components/overlay.js:236",
+        "pattern": "export function returnFocus"
+      }
+    ],
+    "ask-first": [
+      {
+        "ref": "src/components/command-palette.js:229",
+        "pattern": "const isRefused = (it) =>"
+      },
+      {
+        "ref": "src/styles/command-palette.css:236",
+        "pattern": ".ui-cmdk__item.is-danger"
+      }
+    ]
+  },
+  "_component-choice.js": {
+    "interrupt": [
+      {
+        "ref": "src/components/confirm.js:1",
+        "pattern": "a question the page stops for"
+      },
+      {
+        "ref": "src/components/index.js:220",
+        "pattern": "export function callout("
+      },
+      {
+        "ref": "src/components/drawer.js:10",
+        "pattern": "content over a scrim, focus-trapped, Esc-dismissable"
+      }
+    ],
+    "transient": [
+      {
+        "ref": "src/styles/callout.css:2",
+        "pattern": "inline messages & transient notifications"
+      },
+      {
+        "ref": "src/styles/callout.css:30",
+        "pattern": "a floating, dismissible notification"
+      },
+      {
+        "ref": "src/components/index.js:246",
+        "pattern": "class=\"ui-toast__action\""
+      }
+    ],
+    "panels": [
+      {
+        "ref": "src/components/index.js:73",
+        "pattern": "It is NOT a tablist: it controls no panel"
+      },
+      {
+        "ref": "src/components/index.js:78",
+        "pattern": "that one owns panels and earns the tab announcement"
+      },
+      {
+        "ref": "src/components/nav.js:7",
+        "pattern": "not role=\"tablist\""
+      }
+    ],
+    "scale": [
+      {
+        "ref": "src/components/index.js:263",
+        "pattern": "Pick by how much of the screen the confirmation owns"
+      },
+      {
+        "ref": "src/components/index.js:265",
+        "pattern": "export function successPanel("
+      },
+      {
+        "ref": "src/components/success.js:55",
+        "pattern": "The page-sized confirmation"
+      }
+    ],
+    "dropdown-search": [
+      {
+        "ref": "src/components/dropdown.js:97",
+        "pattern": "export const dropdownMatch"
+      },
+      {
+        "ref": "src/styles/dropdown.css:240",
+        "pattern": ".ui-dropdown__panel--search"
+      },
+      {
+        "ref": "src/styles/dropdown.css:291",
+        "pattern": ".ui-dropdown__none {"
+      }
+    ]
+  },
+  "_destructive-actions.js": {
+    "colour": [
+      {
+        "ref": "src/styles/button.css:68",
+        "pattern": ".ui-btn--danger:hover"
+      },
+      {
+        "ref": "src/styles/dropdown.css:200",
+        "pattern": ".ui-dropdown__item.is-danger:hover"
+      },
+      {
+        "ref": "src/styles/nav.css:111",
+        "pattern": ".ui-nav__item.is-danger:hover"
+      }
+    ],
+    "wording": [
+      {
+        "ref": "stories/components/Confirm.stories.js:45",
+        "pattern": "confirmLabel: 'Delete workspace', cancelLabel: 'Keep it'"
+      },
+      {
+        "ref": "stories/apps/Access.stories.js:38",
+        "pattern": "label: 'Revoke access'"
+      }
+    ],
+    "undo": [
+      {
+        "ref": "src/components/confirm.js:61",
+        "pattern": "role=\"alertdialog\""
+      },
+      {
+        "ref": "src/components/index.js:246",
+        "pattern": "class=\"ui-toast__action\""
+      },
+      {
+        "ref": "src/styles/callout.css:87",
+        "pattern": ".ui-toast__action { flex: none;"
+      }
+    ]
+  },
+  "_drawer.js": {
+    "one-record": [
+      {
+        "ref": "src/components/drawer.js:10",
+        "pattern": "content over a scrim, focus-trapped, Esc-dismissable"
+      }
+    ],
+    "no-cards": [
+      {
+        "ref": "src/components/drawer.js:88",
+        "pattern": "export function drawerSection("
+      },
+      {
+        "ref": "src/styles/drawer.css:205",
+        "pattern": ".ui-drawer__section + .ui-drawer__section"
+      }
+    ],
+    "three-lines": [
+      {
+        "ref": "src/styles/drawer.css:134",
+        "pattern": ".ui-drawer__header {"
+      },
+      {
+        "ref": "src/styles/drawer.css:205",
+        "pattern": ".ui-drawer__section + .ui-drawer__section {"
+      }
+    ],
+    "rows": [
+      {
+        "ref": "src/components/drawer.js:92",
+        "pattern": "<dl class=\"ui-drawer__rows\">"
+      },
+      {
+        "ref": "src/styles/drawer.css:235",
+        "pattern": ".ui-drawer__row dt { color: var(--text); }"
+      }
+    ]
+  },
+  "_going-back.js": {
+    "name-it": [
+      {
+        "ref": "src/components/back.js:54",
+        "pattern": "BARE} to ${name}"
+      }
+    ],
+    "address-not-history": [
+      {
+        "ref": "src/components/back.js:26",
+        "pattern": "const SCRIPTED = /^javascript:/i"
+      }
+    ],
+    "one-or-the-other": [
+      {
+        "ref": "src/components/shell.js:322",
+        "pattern": "${up || (crumbs.length"
+      }
+    ],
+    "section-lit": [
+      {
+        "ref": "src/components/nav.js:109",
+        "pattern": "const current = activeIs === 'section'"
+      }
+    ],
+    "quiet": [
+      {
+        "ref": "src/styles/back.css:33",
+        "pattern": ".ui-back[href] { color: var(--text); }"
+      }
+    ]
+  },
+  "_hover-readouts.js": {
+    "overlay": [
+      {
+        "ref": "src/styles/tooltip.css:18",
+        "pattern": "position: absolute;"
+      },
+      {
+        "ref": "src/styles/tooltip.css:58",
+        "pattern": ".ui-tip.is-open { opacity: 1; visibility: visible; }"
+      }
+    ],
+    "above-the-mark": [
+      {
+        "ref": "src/components/tooltip.js:112",
+        "pattern": "const flip = prefersBelow"
+      },
+      {
+        "ref": "src/components/tooltip.js:118",
+        "pattern": "const left = Math.max(clip.left"
+      }
+    ],
+    "contents": [
+      {
+        "ref": "src/components/tooltip.js:132",
+        "pattern": "el.textContent = t;"
+      }
+    ],
+    "on-touch": [
+      {
+        "ref": "src/components/tooltip.js:216",
+        "pattern": "function touching(doc, e)"
+      },
+      {
+        "ref": "src/components/tooltip.js:333",
+        "pattern": "host.addEventListener('click'"
+      }
+    ],
+    "not-only-hover": [
+      {
+        "ref": "src/components/tooltip.js:316",
+        "pattern": "host.addEventListener('focusin'"
+      }
+    ]
+  },
+  "_iconography.js": {
+    "icon-only": [
+      {
+        "ref": "src/assets/icons.js:153",
+        "pattern": "export const iconOnlyAllowed"
+      },
+      {
+        "ref": "stories/guidelines/iconography.test.js:95",
+        "pattern": "every icon-only control is one the closed list allows"
+      },
+      {
+        "ref": "src/components/index.js:39",
+        "pattern": "const named = iconOnly"
+      }
+    ],
+    "meaning": [
+      {
+        "ref": "src/assets/icons.js:174",
+        "pattern": "export const iconMeanings"
+      },
+      {
+        "ref": "src/components/index.js:232",
+        "pattern": "const TOAST_ICON = {"
+      }
+    ],
+    "provenance": [
+      {
+        "ref": "src/assets/icons.js:137",
+        "pattern": "stroke-width=\"1.7\""
+      },
+      {
+        "ref": "src/assets/icons.test.js:67",
+        "pattern": "test('the emitter ships the numbers its header argues for'"
+      }
+    ],
+    "stroke-earns-the-bar": [
+      {
+        "ref": "src/styles/callout.css:16",
+        "pattern": "stroke-width: 2.1;"
+      },
+      {
+        "ref": "stories/signal-contrast.test.js:607",
+        "pattern": "const barFor = (px) =>"
+      }
+    ]
+  },
+  "_labels-and-titles.js": {
+    "text-ink": [
+      {
+        "ref": "src/styles/base.css:123",
+        "pattern": "color: var(--text);"
+      }
+    ],
+    "text-ink-exceptions": [
+      {
+        "ref": "src/styles/muted-ink.test.js:1",
+        "pattern": "Every muted/dim colour path"
+      }
+    ],
+    "sentence-case": [
+      {
+        "ref": "src/styles/base.css:117",
+        "pattern": "in sentence case like every"
+      },
+      {
+        "ref": "src/components/topbar.js:44",
+        "pattern": "the kit writes the word for it"
+      },
+      {
+        "ref": "stories/guidelines/letter-case.test.js:1",
+        "pattern": "text is never set in capitals by style"
+      }
+    ],
+    "title-rank": [
+      {
+        "ref": "src/styles/layout.css:398",
+        "pattern": "rank: page-title"
+      },
+      {
+        "ref": "src/styles/card.css:57",
+        "pattern": "rank: card-title"
+      }
+    ],
+    "title-is-heading": [
+      {
+        "ref": "src/components/index.js:63",
+        "pattern": "const h = [2, 3, 4, 5, 6]"
+      },
+      {
+        "ref": "react/src/primitives/Card.tsx:9",
+        "pattern": "const Heading"
+      }
+    ],
+    "eyebrow-names-the-kind": [
+      {
+        "ref": "src/styles/base.css:120",
+        "pattern": "rank: label"
+      }
+    ]
+  },
+  "_layout-and-density.js": {
+    "container": [
+      {
+        "ref": "src/styles/base.css:114",
+        "pattern": "max-width: var(--container)"
+      },
+      {
+        "ref": "src/styles/topbar.css:17",
+        "pattern": "max-width: var(--container)"
+      },
+      {
+        "ref": "src/tokens/tokens.css:42",
+        "pattern": "--container: 1120px"
+      }
+    ],
+    "measure": [
+      {
+        "ref": "src/styles/layout.css:298",
+        "pattern": "var(--ui-app-main, var(--measure))"
+      },
+      {
+        "ref": "src/tokens/tokens.css:43",
+        "pattern": "--measure: 860px"
+      }
+    ],
+    "density": [
+      {
+        "ref": "src/tokens/tokens.css:29",
+        "pattern": "--space-3: 12px"
+      },
+      {
+        "ref": "src/styles/table.css:58",
+        "pattern": "padding: var(--space-2) var(--space-3)"
+      },
+      {
+        "ref": "stories/table-rhythm.test.js:85",
+        "pattern": "writes no row rhythm as a literal"
+      }
+    ],
+    "below-the-page": [
+      {
+        "ref": "stories/measure-tokens.test.js:147",
+        "pattern": "no literal box width outside src/tokens"
+      },
+      {
+        "ref": "stories/measure-tokens.test.js:166",
+        "pattern": "no literal prose measure outside src/tokens"
+      }
+    ],
+    "breakpoints": [
+      {
+        "ref": "src/styles/layout.css:433",
+        "pattern": "@media (max-width: 720px)"
+      },
+      {
+        "ref": "stories/breakpoints.test.js:117",
+        "pattern": "every breakpoint is one of the documented steps"
+      },
+      {
+        "ref": "stories/breakpoints.test.js:139",
+        "pattern": "every documented step is a step something queries"
+      }
+    ]
+  },
+  "_microcopy.js": {
+    "state-not-destination": [
+      {
+        "ref": "src/components/topbar.js:11",
+        "pattern": "reports the state it is IN"
+      },
+      {
+        "ref": "src/components/topbar.js:23",
+        "pattern": "rewritten by applyTheme on every flip"
+      },
+      {
+        "ref": "src/components/topbar.test.js:59",
+        "pattern": "announces the theme it is in"
+      }
+    ],
+    "never-nameless": [
+      {
+        "ref": "src/components/index.js:15",
+        "pattern": "kit glyphs are aria-hidden"
+      },
+      {
+        "ref": "src/components/index.js:17",
+        "pattern": "an empty label falls back to the icon"
+      },
+      {
+        "ref": "src/components/index.js:81",
+        "pattern": "not an accessible name"
+      }
+    ]
+  },
+  "_motion.js": {
+    "after-load": [
+      {
+        "ref": "src/styles/drawer.css:72",
+        "pattern": "transition: transform var(--dur-med) var(--ease);"
+      },
+      {
+        "ref": "src/styles/callout.css:51",
+        "pattern": "animation: ui-toast-in var(--dur-med) var(--ease-out) both;"
+      }
+    ],
+    "durations": [
+      {
+        "ref": "src/tokens/tokens.css:96",
+        "pattern": "--dur-instant: var(--duration-instant, 0.08s);"
+      },
+      {
+        "ref": "src/tokens/tokens.css:97",
+        "pattern": "--dur-fast: var(--duration-fast, 0.15s);"
+      },
+      {
+        "ref": "src/tokens/tokens.css:98",
+        "pattern": "--dur-med: var(--duration-normal, 0.25s);"
+      },
+      {
+        "ref": "src/tokens/tokens.css:99",
+        "pattern": "--dur-slow: var(--duration-slow, 0.4s);"
+      }
+    ],
+    "easing": [
+      {
+        "ref": "src/tokens/tokens.css:90",
+        "pattern": "--ease: var(--easing-ease-in-out"
+      },
+      {
+        "ref": "src/tokens/tokens.css:91",
+        "pattern": "--ease-out: var(--easing-ease-out"
+      },
+      {
+        "ref": "src/styles/drawer.css:34",
+        "pattern": "transition: visibility var(--dur-med) linear;"
+      }
+    ],
+    "reduced": [
+      {
+        "ref": "src/styles/reduced-motion.css:15",
+        "pattern": "animation-duration: 0.01ms !important;"
+      },
+      {
+        "ref": "src/styles/reduced-motion.css:17",
+        "pattern": "transition-duration: 0.01ms !important;"
+      },
+      {
+        "ref": "src/styles/drawer.css:247",
+        "pattern": ".ui-drawer.is-open * { transition: none !important; }"
+      }
+    ]
+  },
+  "_pagination.js": {
+    "counted-total": [
+      {
+        "ref": "src/components/pagination.js:137",
+        "pattern": "const counted = total"
+      }
+    ],
+    "the-jump": [
+      {
+        "ref": "src/components/pagination.js:90",
+        "pattern": "function slotsFor"
+      }
+    ],
+    "ends-disable": [
+      {
+        "ref": "src/components/pagination.js:78",
+        "pattern": "disabled aria-disabled"
+      }
+    ],
+    "one-page": [
+      {
+        "ref": "src/components/pagination.js:162",
+        "pattern": "if (single && !sizes.length)"
+      }
+    ],
+    "page-turn": [
+      {
+        "ref": "src/components/pagination.js:231",
+        "pattern": "loading ? ' aria-busy"
+      }
+    ],
+    "announce-range": [
+      {
+        "ref": "src/components/pagination.js:232",
+        "pattern": "aria-live=\"polite\""
+      }
+    ],
+    "page-size": [
+      {
+        "ref": "src/components/pagination.js:18",
+        "pattern": "export const PAGE_SIZES"
+      },
+      {
+        "ref": "src/components/pagination.js:19",
+        "pattern": "export const DEFAULT_PAGE_SIZE"
+      }
+    ]
+  },
+  "_stat-bands.js": {
+    "a-band-not-a-card": [
+      {
+        "ref": "src/styles/stat.css:44",
+        "pattern": "font-size: var(--text-2xl);"
+      }
+    ],
+    "tone-not-direction": [
+      {
+        "ref": "src/components/stat.js:43",
+        "pattern": "delta.tone !== 'neutral'"
+      }
+    ],
+    "say-the-basis": [
+      {
+        "ref": "src/components/stat.js:34",
+        "pattern": "aria-describedby"
+      }
+    ]
+  },
+  "_state-set.js": {
+    "focus-visible": [
+      {
+        "ref": "src/styles/base.css:140",
+        "pattern": ".ui-focusable:focus-visible,"
+      },
+      {
+        "ref": "src/styles/base.css:146",
+        "pattern": "box-shadow: var(--ring);"
+      },
+      {
+        "ref": "src/tokens/tokens.css:237",
+        "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
+      }
+    ],
+    "busy": [
+      {
+        "ref": "src/components/index.js:37",
+        "pattern": "busy \u21d2 disabled"
+      },
+      {
+        "ref": "src/styles/button.css:130",
+        "pattern": ".ui-btn[aria-busy=\"true\"] {"
+      },
+      {
+        "ref": "stories/contrast.test.js:241",
+        "pattern": "inactive components and their whole subtree"
+      }
+    ],
+    "error-in-markup": [
+      {
+        "ref": "src/components/index.js:187",
+        "pattern": "`invalid` paints the control red AND says so in aria-invalid"
+      },
+      {
+        "ref": "src/components/index.js:173",
+        "pattern": "'aria-describedby': msgId,"
+      },
+      {
+        "ref": "src/components/index.js:159",
+        "pattern": "markup rather than in the label's wording"
+      }
+    ],
+    "loading": [
+      {
+        "ref": "src/components/loading.js:54",
+        "pattern": "export function busyRegion({"
+      },
+      {
+        "ref": "src/components/loading.js:74",
+        "pattern": "export function setBusy(root,"
+      },
+      {
+        "ref": "src/components/index.js:252",
+        "pattern": "role=\"status\" aria-live=\"polite\""
+      }
+    ]
+  },
+  "_the-page.js": {}
+}

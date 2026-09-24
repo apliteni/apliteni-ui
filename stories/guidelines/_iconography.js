@@ -14,7 +14,7 @@ export const SPEC_CSS = `
     .gl-mean td { padding: var(--space-2) var(--space-3); vertical-align: middle; }
     .gl-mean td:first-child { line-height: 0; }
     .gl-mean code { font-family: var(--font-mono); font-size: .9em; }
-    .gl-mean .gl-mean__what { color: var(--muted); }
+    .gl-mean .gl-mean__what { color: var(--text); }
   </style>`;
 
 const row = (...html) => `<div class="gl-stage gl-stage--row">${html.join('')}</div>`;
@@ -47,25 +47,8 @@ const meaningTable = () => `
 export const meaningsAll = () => `<div class="gl-stage">${meaningTable()}</div>`;
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'icon-only', doHtml: listDo, dontHtml: listDont, kit: [
-      { ref: 'src/assets/icons.js:153', pattern: 'export const iconOnlyAllowed' },
-      { ref: 'stories/guidelines/iconography.test.js:95', pattern: 'every icon-only control is one the closed list allows' },
-      { ref: 'src/components/index.js:39', pattern: 'const named = iconOnly' },
-    ] },
-{ id: 'meaning', doHtml: meaningDo, dontHtml: meaningDont, kit: [
-      { ref: 'src/assets/icons.js:174', pattern: 'export const iconMeanings' },
-      { ref: 'src/components/index.js:232', pattern: 'const TOAST_ICON = {' },
-    ] },
-{ id: 'one-group', kit: [
-      { ref: 'src/assets/icons.test.js:39', pattern: "test('no glyph is declared in more than one group'" },
-      { ref: 'src/assets/icons.test.js:55', pattern: "test('the groups declare exactly as many glyphs as the kit ships'" },
-    ] },
-{ id: 'provenance', kit: [
-      { ref: 'src/assets/icons.js:137', pattern: 'stroke-width="1.7"' },
-      { ref: 'src/assets/icons.test.js:67', pattern: "test('the emitter ships the numbers its header argues for'" },
-    ] },
-{ id: 'stroke-earns-the-bar', kit: [
-      { ref: 'src/styles/callout.css:16', pattern: 'stroke-width: 2.1;' },
-      { ref: 'stories/signal-contrast.test.js:607', pattern: 'const barFor = (px) =>' },
-    ] }
+{ id: 'icon-only', doHtml: listDo, dontHtml: listDont },
+{ id: 'meaning', doHtml: meaningDo, dontHtml: meaningDont },
+{ id: 'provenance' },
+{ id: 'stroke-earns-the-bar' }
 ]);

@@ -1,57 +1,68 @@
 # Layout and density
 
-A page has two widths. Without a density mode, spacing scale sets density.
-
-## Take page width from --container. Do not write the number.
+## Use the container token
 
 <!-- rule: container -->
 
-**Why:** A literal width cannot follow a shared decision: the kit’s 1180px in three files and the site’s 1120px in three others disagreed, forcing a topbar override.
+**Rule:** Read page width from `--container`; do not write the number.
 
-**Except:** The token definitions declare the scale, so they are not scanned.
+**Why:** Shared tokens prevent conflicting page widths and topbar overrides.
 
-**Do:** One token, read by both kit and site.
+**Do:** Use one token for both kit and site.
 
-**Don't:** Four page-scale numbers; no two files agree. Drawn to scale, not size.
+**Don't:** Put four page-width numbers in different files.
 
-## A reading column takes --measure, never --container.
+
+## Use the measure token
 
 <!-- rule: measure -->
 
-**Why:** --container spans the page gutter to gutter; --measure bounds a reading column beside a sidebar. They serve different axes: a --container main column leaves no sidebar, and treating the two as rivals made nine widths look like one disagreement.
+**Rule:** Use `--measure`, never `--container`, for a reading column.
 
-## Keep each width in one place; a test holding copies together signals duplication.
+**Why:** `--container` spans the page, while `--measure` limits text beside a sidebar.
 
-<!-- rule: one-source -->
+**Do:** Use `--measure` for a reading column with a sidebar.
 
-**Why:** Duplicating 860px in the shell needed a string-comparison test. With no caller width, the shell now leaves CSS to read the token.
+**Don't:** Treat `--container` and `--measure` as competing page widths.
 
-**Except:** An explicit maxWidth remains a caller’s override, not a copy.
-
-## Set density with the spacing scale. There is no kit-wide density mode.
+## Use the spacing scale
 
 <!-- rule: density -->
 
-**Why:** Use the ten-step spacing scale: --space-2 for tight rows, --space-5 for roomy ones. A compact/comfortable mode, data-density attribute or row-height scale would need a surface switching densities at runtime for a reader’s preference; none exists here.
+**Rule:** Set density with the spacing scale; there is no kit-wide density mode.
 
-**Except:** .ui-table--dense is component-local because a many-column ledger needs tighter rows: --space-3 across and --space-2 down, inside the base --space-4. It still uses the scale; an old value halfway between steps rounded down to fit more rows.
+**Why:** The ten-step scale aligns gaps and padding without runtime density switching.
 
-**Do:** Every gap and pad is a step: --space-3 rows inside a card.
+**Do:** Use `--space-3` for rows inside a card.
 
-**Don't:** 13px, 9px, 14px, 6px, 17px — each row settled separately, none aligned.
+**Don't:** Set separate values such as `13px`, `9px`, `14px`, `6px`, and `17px`.
 
-## Below the reading column, use --panel-* in px for a component box, and --prose-* in ch for a line of text.
+**Except:** `.ui-table--dense` is component-local: use `--space-3` across and `--space-2` down inside base `--space-4`. It still uses the scale. Do not add a compact/comfortable mode, `data-density` attribute, or row-height scale.
+
+## Use panel and prose units
 
 <!-- rule: below-the-page -->
 
-**Why:** The content chooses the unit: panel sm/md/lg use the drawer’s 320/420/560 widths, also repeated by confirm, the auth card and toast (the reported two 420s were three). Prose steps name text types—caption, lede, body, dense—rather than t-shirt sizes.
+**Rule:** Below the reading column, use `--panel-*` in `px` for component boxes and `--prose-*` in `ch` for text lines.
 
-**Except:** ch uses its element’s font-size: put it on the paragraph, not a wrapper with two type sizes. The centred .ui-section-head combines a 40px heading and 17px copy, so uses --panel-lg; .ui-footer__brand keeps 300px because its flex track controls footer wrapping.
+**Why:** Panel tokens match component widths; prose tokens match text types.
 
-## Keep breakpoints literal and use one of the specification’s three steps; the gate rejects others.
+**Do:** Use panel `sm/md/lg` for 320/420/560px boxes and prose tokens for caption, lede, body, and dense text.
+
+**Don't:** Use t-shirt sizes for prose or put `ch` on a wrapper with two font sizes.
+
+**Except:** Put `ch` on the element using its font size. The centred `.ui-section-head` uses `--panel-lg` for its 40px heading and 17px copy. Keep `.ui-footer__brand` at 300px because its flex track controls wrapping.
+
+## Use the three breakpoints
 
 <!-- rule: breakpoints -->
 
-**Why:** Media queries cannot read custom properties, so @media (max-width: var(--panel-lg)) is invalid; @custom-media is not shipping, and adding a compiler would sacrifice readable published CSS. The gate reads the specification’s three steps directly, replacing six values in ten files; three surfaces moved to the next step up to give reflow more room.
+**Rule:** Use literal breakpoints of 860px, 720px or 560px.
 
-**Except:** 560 also equals --panel-lg and 860 equals --measure, but viewport breakpoints and box widths vary independently. Do not imply a link at the query.
+**Why:** Media queries cannot read custom properties, and adding a compiler would make published CSS less readable.
+
+**Do:** Use `@media (max-width: 860px)`.
+
+**Don't:** Use `@media (max-width: var(--panel-lg))` or add other breakpoint values.
+
+**Except:** `560` also equals `--panel-lg`, and `860` equals `--measure`, but viewport breakpoints and box widths are independent. Do not imply a link between them.

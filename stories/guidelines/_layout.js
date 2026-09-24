@@ -27,7 +27,7 @@ const SPEC_CSS = `
     .gl { --gl-specimen: var(--panel-md);
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
-    .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
+    .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--text);
       background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 2px 6px; }
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
@@ -59,7 +59,7 @@ const PAGE_CSS = `
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .gc-cell__cap { font: 400 12px/1.55 var(--font-sans); color:var(--text); }
 
-    .gc-why { font: 400 13px/1.65 var(--font-sans); color:var(--text); margin: 0; max-width: var(--prose-dense); }
+    .gc-why { font: 400 13px/1.65 var(--font-sans); color:var(--text); margin: 0 0 var(--space-3); max-width: var(--prose-dense); }
 
     /* Keep the exception label in body ink; amber marks the boundary. */
     .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
@@ -94,12 +94,12 @@ const cell = (kind, badgeHtml, caption, html) => `
 const whyLine = (rule) => (rule.why ? `
   <p class="gc-why">${mono(rule.why)}</p>` : '');
 
-const figure = (rule) => (rule.doHtml ? `
+const figure = (rule) => (rule.doCaption ? `
   <div class="gc-pair">
-    ${cell('do', doBadge(), rule.doCaption, rule.doHtml())}
-    ${cell('dont', dontBadge(), rule.dontCaption, rule.dontHtml())}
+    ${cell('do', doBadge(), rule.doCaption, rule.doHtml?.() || '')}
+    ${cell('dont', dontBadge(), rule.dontCaption, rule.dontHtml?.() || '')}
   </div>
-  ${whyLine(rule)}` : whyLine(rule));
+  ` : '');
 
 // Guarded because an unguarded version rendered "Except undefined", and two
 // page authors met that and invented a boundary to get rid of it.
@@ -112,6 +112,8 @@ const unmetLine = (rule) => (rule.unmet ? `
 const ruleBlock = (rule) => `
   <section class="gc-rule">
     <h2 class="gc-imperative">${mono(rule.imperative)}</h2>
+    ${rule.instruction ? `<p class="gc-why">${mono(rule.instruction)}</p>` : ''}
+    ${whyLine(rule)}
     ${figure(rule)}
     ${unmetLine(rule)}
     ${exceptLine(rule)}
@@ -119,6 +121,5 @@ const ruleBlock = (rule) => `
 
 export const guidelinePage = ({ title, blurb, rules, css = '' }) => `${SPEC_CSS}${PAGE_CSS}${css}${pad(`<div class="gl gc">
     <h1>${mono(title)}</h1>
-    ${blurb ? `<p class="gc-why gc-intro">${mono(blurb)}</p>` : ''}
     ${rules.map(ruleBlock).join('')}
   </div>`)}`;

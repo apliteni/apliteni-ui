@@ -1,27 +1,39 @@
 # Stat bands
 
-How a screen shows key figures and explains changes beside them.
-
-## Put key figures in a stat band, not a card of parts.
+## Use a stat band
 
 <!-- rule: a-band-not-a-card -->
 
-**Do:** One card per figure by default: the figure is largest on its card, with an arrow, signed change and one comparison caption above the row.
+**Rule:** Put key figures in a stat band, not in a card of parts.
 
-**Don't:** The card from [#267](https://github.com/apliteni/apliteni-ui/issues/267): heading-sized figures and a capitalised 10px status chip with no comparison basis.
+**Why:** Each figure stays easy to compare and understand.
 
-## Colour a change by whether it is good news, not by which way it points.
+**Do:** Use one card per figure by default, with the figure largest, an arrow, a signed change, and one comparison caption above the row.
+
+**Don't:** Use heading-sized figures with a capitalised 10px status chip and no comparison basis.
+
+## Colour by meaning
 
 <!-- rule: tone-not-direction -->
 
-**Why:** Omitted tone and explicit "neutral" both keep the arrow and comparison but withhold colour. Use this when no verdict applies: unscored volume, reader-dependent meaning, or net cashflow already explained by income less cost.
+**Rule:** Colour a change by whether it is good news, not by whether it rises or falls.
 
-**Do:** Four verdicts: rising Income and Cost get opposite colours; falling Unclassified is green; undeclared Net cashflow stays grey.
+**Why:** Direction alone does not show whether a change is beneficial.
 
-**Don't:** Colouring four figures by sign makes three rises green, praises cost growth and paints the year’s cleanup red.
+**Except:** Omitted tone and explicit “neutral” keep the arrow and comparison but use no colour for unscored volume, reader-dependent meaning, or net cashflow already explained by income less cost.
 
-## Say what a change is measured against, in text the reader can reach.
+**Do:** Use four verdicts: rising Income and Cost use opposite colours; falling Unclassified is green; undeclared Net cashflow stays grey.
+
+**Don't:** Colour four figures by sign, making three rises green, praising cost growth, and showing the year’s cleanup as red.
+
+## State the comparison basis
 
 <!-- rule: say-the-basis -->
 
-**Why:** A percentage needs a reachable basis: title attributes fail phones and most screen readers, so put it once in a caption each change references, or beside an individual exception. Keep the caption before and outside every figure—a note below tiles looks tied to the last, and one inside the first looks local; missing bases or nested captions fail the gate.
+**Rule:** State in reachable text what each change is measured against.
+
+**Why:** Percentages need a basis that readers can find.
+
+**Do:** Put the basis once in a caption referenced by each change, or beside an individual exception; keep the caption before and outside every figure.
+
+**Don't:** Use a title attribute, put the note below the tiles, place it inside the first figure, omit the basis, or nest captions.

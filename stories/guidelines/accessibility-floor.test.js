@@ -27,8 +27,10 @@ import {
 } from '../lib/contrast.js';
 import {
   TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
-  GATES, RULES,
+  RULES,
 } from './_accessibility-floor.js';
+
+const { GATES } = JSON.parse(readFileSync(new URL('./accessibility-coverage.json', import.meta.url), 'utf8'));
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const THEMES = ['dark', 'light'];
@@ -956,15 +958,9 @@ test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst the kit
   }
 });
 
-// The ratio the rule ARGUES from, pinned to the tokens it is a ratio of. The page
-// quoted 5.56:1 for the disabled primary long after #295 moved every ground under
-// it, and nothing here noticed: the ratchet above holds the floor, not the prose.
-// Both themes, because one theme's number is the cherry-pick that hid the drift.
-// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
-test('disabled: the ratio the rule argues from is the ratio the trio makes', () => {
-  const rule = RULES.find((r) => r.id === 'disabled-legibility');
-  assert.ok(rule, 'the disabled-legibility rule is gone from the Accessibility minimums page');
-  const prose = [rule.imperative, rule.why, rule.except].join(' ');
+// Keep measured ratios in the test, not in reader-facing guideline history.
+test('disabled: the opaque token pair retains its measured contrast in both themes', () => {
+  const expected = { dark: '6.91', light: '4.89' };
   for (const theme of THEMES) {
     const vars = tokensFor(theme);
     const chain = (name) => {
@@ -974,13 +970,7 @@ test('disabled: the ratio the rule argues from is the ratio the trio makes', () 
       }
       return parseColour(value);
     };
-    const measured = ratio(chain('--disabled-ink'), chain('--disabled-surface')).toFixed(2);
-    assert.ok(
-      prose.includes(`${measured}:1`),
-      `${theme}: --disabled-ink on --disabled-surface measures ${measured}:1 and the rule's own `
-        + 'prose never says so. Write the measured pair for BOTH themes into the rule — a single '
-        + 'number there is a cherry-pick, and it goes stale the next time the ladder moves.',
-    );
+    assert.equal(ratio(chain('--disabled-ink'), chain('--disabled-surface')).toFixed(2), expected[theme]);
   }
 });
 

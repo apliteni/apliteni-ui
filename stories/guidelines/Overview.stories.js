@@ -10,7 +10,7 @@ const CSS = `<style>
   .gi-intro, .gi-list { font: 400 15px/1.7 var(--font-sans); color: var(--text); }
   .gi-list { padding-left: var(--space-5); }
   .gi-list li + li { margin-top: var(--space-2); }
-  .gi-list a { color: var(--accent); }
+  .gi-list a { color: var(--text); }
 </style>`;
 
 export default {
@@ -22,7 +22,6 @@ export const Overview = {
   name: 'Overview',
   render: () => `${CSS}${pad(`<div class="gi">
       <h1>${TITLE}</h1>
-      <p class="gi-intro">${INTRO}</p>
       <ul class="gi-list">${LINKS.map(link => `<li><a href="${link.href}" target="_top">${link.title}</a></li>`).join('')}</ul>
     </div>`)}`,
 };

@@ -23,7 +23,7 @@ export const SPEC_CSS = `
        from its do would read as a styling argument. */
     .gp-hand { display: flex; flex-wrap: wrap; align-items: center;
       gap: var(--space-3) var(--space-4); font-size: var(--text-sm); }
-    .gp-hand__status { margin: 0 auto 0 0; color: var(--muted);
+    .gp-hand__status { margin: 0 auto 0 0; color: var(--text);
       font-variant-numeric: tabular-nums; }
     .gp-hand__steps { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
   </style>`;
@@ -59,14 +59,14 @@ const hand = (status, steps) => stage(
 const ghost = (label, opts = {}) => button({ label, variant: 'ghost', size: 'sm', ...opts });
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'counted-total', doHtml: () => pager('counted-do'), dontHtml: () => pager('counted-dont', { total: null, hasMore: true }), kit: [{ ref: 'src/components/pagination.js:137', pattern: 'const counted = total' }] },
-{ id: 'the-jump', doHtml: () => pager('jump-do'), dontHtml: () => pager('jump-dont', { variant: 'numbered' }), kit: [{ ref: 'src/components/pagination.js:90', pattern: 'function slotsFor' }] },
+{ id: 'counted-total', doHtml: () => pager('counted-do'), dontHtml: () => pager('counted-dont', { total: null, hasMore: true }) },
+{ id: 'the-jump', doHtml: () => pager('jump-do'), dontHtml: () => pager('jump-dont', { variant: 'numbered' }) },
 { id: 'ends-disable', doHtml: () => pager('ends-do', { page: 1 }), dontHtml: () => hand(
       '1–100 of 4,812',
       ghost('First')
       + ghost('Next', { iconRight: 'chevronRight' })
       + ghost('Last'),
-    ), kit: [{ ref: 'src/components/pagination.js:78', pattern: 'disabled aria-disabled' }] },
+    ) },
 { id: 'one-page', doHtml: () => stage(pagination({
       id: 'single-do', label: 'Rows per page', page: 1, pageSize: DEFAULT_PAGE_SIZE,
       total: 12, pageSizes: PAGE_SIZES,
@@ -74,11 +74,8 @@ export const RULES = withSpecimens(content.rules, [
       'Page 1 of 1 · 12 rows',
       ghost('Prev', { icon: 'chevronLeft', disabled: true })
       + ghost('Next', { iconRight: 'chevronRight', disabled: true }),
-    ), kit: [{ ref: 'src/components/pagination.js:162', pattern: 'if (single && !sizes.length)' }] },
-{ id: 'page-turn', doHtml: () => pager('loading-do', { pageSizes: PAGE_SIZES, loading: true }), dontHtml: () => stage(skeleton({ lines: 1, width: '38%' })), kit: [{ ref: 'src/components/pagination.js:231', pattern: "loading ? ' aria-busy" }] },
-{ id: 'announce-range', kit: [{ ref: 'src/components/pagination.js:232', pattern: 'aria-live="polite"' }] },
-{ id: 'page-size', doHtml: () => pager('size-do', { pageSizes: PAGE_SIZES }), dontHtml: () => pager('size-dont'), kit: [
-      { ref: 'src/components/pagination.js:18', pattern: 'export const PAGE_SIZES' },
-      { ref: 'src/components/pagination.js:19', pattern: 'export const DEFAULT_PAGE_SIZE' },
-    ] }
+    ) },
+{ id: 'page-turn', doHtml: () => pager('loading-do', { pageSizes: PAGE_SIZES, loading: true }), dontHtml: () => stage(skeleton({ lines: 1, width: '38%' })) },
+{ id: 'announce-range' },
+{ id: 'page-size', doHtml: () => pager('size-do', { pageSizes: PAGE_SIZES }), dontHtml: () => pager('size-dont') }
 ]);

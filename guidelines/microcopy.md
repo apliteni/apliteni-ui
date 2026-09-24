@@ -1,27 +1,29 @@
 # Microcopy and tone
 
-What a control says about itself and what an empty screen says.
-
-## Name a control for its current state, not the click’s result; rename it when the state changes.
+## Name the current state
 
 <!-- rule: state-not-destination -->
 
-**Why:** A name correct only once gives the reader no useful information later.
+**Rule:** Name a control for its current state, and rename it when the state changes.
 
-**Except:** An icon-only toggle may add the click’s result after its state: “Theme: Dark. Switch to light.”
+**Why:** A name that is correct only once becomes unhelpful later.
 
-**Do:** Named for its current state.
+**Do:** Name the checked switch “In-app notifications, on.”
 
-**Don't:** Named for what the click would do.
+**Don't:** Name the checked switch “Turn off in-app notifications.”
 
-## Give every control a name, even without visible text.
+**Except:** An icon-only toggle may add the result: “Theme: Dark. Switch to light.”
+
+## Name every control
 
 <!-- rule: never-nameless -->
 
-**Why:** The glyph is aria-hidden; the label is the control’s only accessible name.
+**Rule:** Give every control a name, including controls without visible text.
 
-**Except:** An identifier is not a name — segmented()’s name seeds a data hook and is never read aloud.
+**Why:** The glyph is aria-hidden, so the label is the control’s only accessible name.
 
-**Do:** The name reads “Dismiss”.
+**Do:** Name the button “Dismiss.”
 
-**Don't:** The same button reads “x”.
+**Don't:** Leave the icon button unnamed.
+
+**Except:** An identifier is not a name: the `name` option of `segmented()` seeds a data hook and is never read aloud.

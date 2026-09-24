@@ -67,29 +67,9 @@ export const searchDo = () => room(dropdown({
 export const searchDont = () => room(dropdown({ ...CURRENCY, scroll: true }));
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'interrupt', doHtml: interruptDo, dontHtml: interruptDont, kit: [
-      { ref: 'src/components/confirm.js:1', pattern: 'a question the page stops for' },
-      { ref: 'src/components/index.js:220', pattern: 'export function callout(' },
-      { ref: 'src/components/drawer.js:10', pattern: 'content over a scrim, focus-trapped, Esc-dismissable' },
-    ] },
-{ id: 'transient', doHtml: transientDo, dontHtml: transientDont, kit: [
-      { ref: 'src/styles/callout.css:2', pattern: 'inline messages & transient notifications' },
-      { ref: 'src/styles/callout.css:30', pattern: 'a floating, dismissible notification' },
-      { ref: 'src/components/index.js:246', pattern: 'class="ui-toast__action"' },
-    ] },
-{ id: 'panels', doHtml: panelsDo, dontHtml: panelsDont, kit: [
-      { ref: 'src/components/index.js:73', pattern: 'It is NOT a tablist: it controls no panel' },
-      { ref: 'src/components/index.js:78', pattern: 'that one owns panels and earns the tab announcement' },
-      { ref: 'src/components/nav.js:7', pattern: 'not role="tablist"' },
-    ] },
-{ id: 'scale', doHtml: scaleDo, dontHtml: scaleDont, kit: [
-      { ref: 'src/components/index.js:263', pattern: 'Pick by how much of the screen the confirmation owns' },
-      { ref: 'src/components/index.js:265', pattern: 'export function successPanel(' },
-      { ref: 'src/components/success.js:55', pattern: 'The page-sized confirmation' },
-    ] },
-{ id: 'dropdown-search', doHtml: searchDo, dontHtml: searchDont, kit: [
-      { ref: 'src/components/dropdown.js:97', pattern: 'export const dropdownMatch' },
-      { ref: 'src/styles/dropdown.css:240', pattern: '.ui-dropdown__panel--search' },
-      { ref: 'src/styles/dropdown.css:291', pattern: '.ui-dropdown__none {' },
-    ] }
+{ id: 'interrupt', doHtml: interruptDo, dontHtml: interruptDont },
+{ id: 'transient', doHtml: transientDo, dontHtml: transientDont },
+{ id: 'panels', doHtml: panelsDo, dontHtml: panelsDont },
+{ id: 'scale', doHtml: scaleDo, dontHtml: scaleDont },
+{ id: 'dropdown-search', doHtml: searchDo, dontHtml: searchDont }
 ]);

@@ -30,7 +30,7 @@ export const RULES = withSpecimens(content.rules, [
       body: '<div class="ui-eyebrow">Income</div>'
         + '<div class="ui-card__title">€ 6,459,401</div>'
         + badge('+47.1%'),
-    })), kit: [{ ref: 'src/styles/stat.css:44', pattern: 'font-size: var(--text-2xl);' }] },
+    })) },
 { id: 'tone-not-direction', doHtml: () => stage(statBand({
       id: 'gs-tone-do',
       basis: BASIS,
@@ -49,6 +49,6 @@ export const RULES = withSpecimens(content.rules, [
         { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%', tone: 'good' } },
         { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'bad' } },
       ],
-    })), kit: [{ ref: 'src/components/stat.js:43', pattern: "delta.tone !== 'neutral'" }] },
-{ id: 'say-the-basis', kit: [{ ref: 'src/components/stat.js:34', pattern: 'aria-describedby' }] }
+    })) },
+{ id: 'say-the-basis' }
 ]);

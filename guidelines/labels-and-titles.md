@@ -1,61 +1,79 @@
 # Labels and titles
 
-Use body ink for words. Use size, weight and spacing for hierarchy, except as listed.
-
-## Use body ink for words at every size. Use size, weight and spacing for hierarchy.
+## Use body ink
 
 <!-- rule: text-ink -->
 
-**Why:** Descriptions, timestamps and labels need readable ink even when secondary. Muted text can pass contrast yet look decorative, especially at small sizes.
+**Rule:** Use body ink for all words; use size, weight and spacing for hierarchy.
 
-**Do:** The same sentence at xs, sm and base in body ink; size shows hierarchy.
+**Why:** Muted text can look decorative, especially at small sizes, even when contrast passes.
 
-**Don't:** The same sizes in muted ink; passing contrast does not make fading a hierarchy cue.
+**Do:** Use body ink at xs, sm and base; let size show hierarchy.
 
-## Use muted or dim ink only for the three named exception classes.
+**Don't:** Use muted ink at different sizes to show rank.
+
+## Limit muted ink
 
 <!-- rule: text-ink-exceptions -->
 
-**Why:** A closed list distinguishes intended state or placeholder ink from words faded only to show rank. To add an exception, open an issue; never treat “decorative” as a fourth class.
+**Rule:** Use muted or dim ink only for the three named exception classes.
 
-**Except:** Only: (1) non-word glyphs, such as an arrow, chevron or dismiss mark; (2) colour reporting off, unset, disabled or archived state; (3) a valueless slot, such as an empty field or cell placeholder. An unselected option, “No earlier figure” sentence, count, timestamp, keyboard shortcut, enabled action or empty-state instruction is information, not an exception.
+**Why:** A closed list prevents fading from becoming a hierarchy cue.
 
-## Write every label in sentence case. Never use capitals as style.
+**Do:** Use muted ink for a disabled control or empty field placeholder.
+
+**Don't:** Fade timestamps, counts or enabled actions.
+
+**Except:** Only: (1) non-word glyphs, such as arrows, chevrons or dismiss marks; (2) colour reporting off, unset, disabled or archived state; (3) a valueless slot, such as an empty field or cell placeholder. Unselected options, “No earlier figure” sentences, counts, timestamps, keyboard shortcuts, enabled actions and empty-state instructions are information, not exceptions.
+
+## Use sentence case
 
 <!-- rule: sentence-case -->
 
-**Why:** Capital letters are slower to read (Carbon, USWDS), use more space per letter and make a label louder than its figure.
+**Rule:** Write every label in sentence case; never use capitals as style.
 
-**Except:** Type inherently capitalised words as they are: acronyms, currency codes and key names such as USD, API and Esc.
+**Why:** Capitals are slower to read, take more space and make labels louder than their figures.
+
+**Except:** Keep inherently capitalised words as written, including acronyms, currency codes and key names such as USD, API and Esc.
 
 **Do:** Written and shown in sentence case.
 
-**Don't:** The same labels in capitals: the figures lose attention to their captions.
+**Don't:** Use all capitals, which pulls attention from the figures.
 
-## Set a card title one rank below the page title and one above the body.
+## Rank card titles
 
 <!-- rule: title-rank -->
 
-**Why:** A card title as large as the page title divides the page in two. Body-sized text no longer reads as a title.
+**Rule:** Set a card title one rank below the page title and one above the body.
 
-**Do:** The page title at --text-2xl and card title at --text-lg.
+**Why:** A page-sized card title divides the page, while body-sized text does not read as a title.
 
-**Don't:** The card uses a second h1: there are two page titles, and the main one is unclear.
+**Do:** Use --text-2xl for the page title and --text-lg for the card title.
 
-## Make a card title a heading one level below the page title; let the class control its appearance.
+**Don't:** Use a second h1 for the card; it creates two page titles.
+
+## Use heading levels
 
 <!-- rule: title-is-heading -->
 
-**Why:** A title in a div is absent from the page outline, so readers moving through headings skip every card.
+**Rule:** Make a card title a heading one level below the page title, and let the class control its appearance.
+
+**Why:** A div title is missing from the page outline.
+
+**Do:** Use the next heading level for each card.
+
+**Don't:** Put the card title in a div and make it look like a heading.
 
 **Except:** A card inside a section with its own h2 uses level 3.
 
-## Place an eyebrow above a title to say what kind of thing it is. Never use it instead of the title.
+## Name the kind above
 
 <!-- rule: eyebrow-names-the-kind -->
 
-**Why:** An eyebrow alone is a caption with nothing below it to describe, and readers cannot find the card’s title.
+**Rule:** Place an eyebrow above a title to identify what kind of thing it is, never as a replacement for the title.
 
-**Do:** The eyebrow says which period; the title says what is shown.
+**Why:** An eyebrow alone cannot describe the card’s content.
 
-**Don't:** The eyebrow is the only title: it is set at label size, with no heading behind it.
+**Do:** Use the eyebrow for the period and the title for what is shown.
+
+**Don't:** Use a label-sized eyebrow as the only title.

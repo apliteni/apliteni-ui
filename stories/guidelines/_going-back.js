@@ -38,19 +38,19 @@ const withRail = (id, active, above) => stage(`<div class="gb-page">`
 
 export const RULES = withSpecimens(content.rules, [
 { id: 'below-a-list', doHtml: () => head(back('Invoices'), 'Invoice INV-1001'), dontHtml: () => head(back('Dashboard'), 'Invoices') },
-{ id: 'name-it', doHtml: () => head(back('Invoices'), 'Invoice INV-1001'), dontHtml: () => head(back('Back'), 'Invoice INV-1001'), kit: [{ ref: 'src/components/back.js:54', pattern: 'BARE} to ${name}' }] },
-{ id: 'address-not-history', kit: [{ ref: 'src/components/back.js:26', pattern: 'const SCRIPTED = /^javascript:/i' }] },
+{ id: 'name-it', doHtml: () => head(back('Invoices'), 'Invoice INV-1001'), dontHtml: () => head(back('Back'), 'Invoice INV-1001') },
+{ id: 'address-not-history' },
 { id: 'one-or-the-other', doHtml: () => head(back('Invoices'), 'Invoice INV-1001'), dontHtml: () => head(
       breadcrumbs({
         items: [{ label: 'Finance', href: '#' }, { label: 'Invoices', href: '#' }, { label: 'INV-1001' }],
         ariaLabel: 'Trail beside a back link',
       }) + back('Invoices'),
       'Invoice INV-1001',
-    ), kit: [{ ref: 'src/components/shell.js:322', pattern: '${up || (crumbs.length' }] },
-{ id: 'section-lit', doHtml: () => withRail('lit', 'invoices', back('Invoices')), dontHtml: () => withRail('unlit', null, back('Invoice list')), kit: [{ ref: 'src/components/nav.js:109', pattern: "const current = activeIs === 'section'" }] },
+    ) },
+{ id: 'section-lit', doHtml: () => withRail('lit', 'invoices', back('Invoices')), dontHtml: () => withRail('unlit', null, back('Invoice list')) },
 { id: 'quiet', doHtml: () => head(back('Invoices'), 'Invoice INV-1001', button({ label: 'Send', variant: 'primary', size: 'sm' })), dontHtml: () => head(
       button({ label: 'Back to invoices', variant: 'primary', size: 'sm', icon: 'arrowLeft' }),
       'Invoice INV-1001',
       button({ label: 'Send', variant: 'primary', size: 'sm' }),
-    ), kit: [{ ref: 'src/styles/back.css:33', pattern: '.ui-back[href] { color: var(--text); }' }] }
+    ) }
 ]);

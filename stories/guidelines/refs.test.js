@@ -1,17 +1,4 @@
-/* Rule: every file:line a guideline page cites still says what the page claims.
- *
- * A guideline card ends with "Copy from" — file, line, and a sentence about
- * what that line does. Those references rot silently: a refactor moves a rule
- * three lines down and the page starts pointing a reader at the wrong code.
- *
- * So every `kit` entry carries a `pattern`: a literal substring that has to be
- * on the cited line. This test resolves all of them — file exists, line exists,
- * line contains the pattern — for every guideline page in stories/guidelines/.
- *
- * It lives under stories/ on purpose: `npm test` only walks src, stories, site
- * and scripts, so a test outside those four trees is never executed and passes
- * by never running.
- */
+// Test-side mapping from guideline rules to their implementation.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -24,6 +11,7 @@ import * as thePage from './_the-page.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
+const references = JSON.parse(readFileSync(path.join(here, 'references.json'), 'utf8'));
 
 // Every content module beside this test that publishes RULES.
 const pages = readdirSync(here)
@@ -126,11 +114,11 @@ for (const page of pages) {
       assert.deepEqual(codeFreeProblems(mod), [], `${page}: code references belong only in the specification`);
       return;
     }
-    assert.ok(mod.RULES.some((rule) => rule.kit?.length), `${page}: no kit citations to resolve`);
+    assert.ok(mod.RULES.some((rule) => references[page]?.[rule.id]?.length), `${page}: no kit citations to resolve`);
     const problems = [];
 
     for (const rule of mod.RULES) {
-      for (const entry of rule.kit || []) {
+      for (const entry of references[page]?.[rule.id] || []) {
         const { ref, pattern } = entry;
         const at = parseRef(ref);
 
@@ -286,13 +274,13 @@ test('the guidelines pages cite at least one line of kit code', async () => {
   let refs = 0;
   for (const page of pages) {
     const mod = await import(path.join(here, page));
-    for (const rule of mod.RULES || []) refs += (rule.kit || []).length;
+    for (const rule of mod.RULES || []) refs += (references[page]?.[rule.id] || []).length;
   }
   assert.ok(refs > 0, 'no guideline page cites any kit code — the resolver is checking nothing');
 });
 
 // The shipping documents and rendered prose must stay together as the catalogue grows.
-import { parseGuideline, withSpecimens, withNamedFiles } from './_markdown.js';
+import { parseGuideline, withSpecimens } from './_markdown.js';
 import { mono } from './_layout.js';
 const markdownDir = path.join(root, 'guidelines');
 const sourceReference = /(?:\b(?:src|stories|react|docs)\/|\b[\w-]+\.(?:css|[cm]?js|tsx?|md)(?::\d+)?\b)/;
@@ -316,10 +304,15 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     const rendered = [...fragment.querySelectorAll('.gc-rule')];
     assert.equal(rendered.length, parsed.rules.length);
     parsed.rules.forEach((rule, index) => {
-      for (const key of ['id', 'imperative', 'why', 'except', 'doCaption', 'dontCaption', 'unmet']) {
+      for (const key of ['instruction', 'why', 'doCaption', 'dontCaption']) {
+        assert.ok(rule[key]?.trim(), `${file}: ${rule.id} needs ${key}`);
+      }
+      assert.notEqual(rule.doCaption, rule.dontCaption, `${file}: examples must differ`);
+
+      for (const key of ['id', 'imperative', 'instruction', 'why', 'except', 'doCaption', 'dontCaption', 'unmet']) {
         assert.deepEqual(mod.RULES[index][key], rule[key], `${file}: ${rule.id} ${key}`);
       }
-      for (const key of ['imperative', 'why', 'except', 'doCaption', 'dontCaption']) {
+      for (const key of ['imperative', 'instruction', 'why', 'except', 'doCaption', 'dontCaption']) {
         if (rule[key]) assert.ok(rendered[index].textContent.includes(plain(rule[key])), `${file}: missing ${rule.id} ${key}`);
       }
       count++;
@@ -351,7 +344,7 @@ test('Markdown changes reach the renderer, and mismatched specimen ids fail', ()
   for (const bad of ['Read src/example.js:12.', 'See example.css.', 'Open ' + ['docs', 'example.md'].join('/') + '.']) assert.match(bad, sourceReference);
 });
 
-test('Storybook renders each Markdown introduction and every appendix entry', async () => {
+test('Storybook renders each Markdown page title', async () => {
   for (const file of pages.filter(file => file.endsWith('.stories.js') && file !== 'Overview.stories.js')) {
     const mod = await import(path.join(here, file));
     const story = Object.entries(mod).find(([name]) => name !== 'default')[1];
@@ -361,26 +354,11 @@ test('Storybook renders each Markdown introduction and every appendix entry', as
       .map(file => parseGuideline(readFileSync(path.join(markdownDir, file), 'utf8')))
       .find(document => document.title === title);
     assert.ok(document, `no Markdown for ${title}`);
-    assert.ok(fragment.textContent.includes(plain(document.blurb)), `${title}: missing introduction`);
-    for (const section of document.sections) {
-      for (const text of [section.title, section.intro, ...section.entries.flatMap(entry =>
-        [entry.title, entry.Apply, entry.Checks, entry.Note, ...entry.Limit].filter(Boolean))]) {
-        assert.ok(fragment.textContent.includes(plain(text)), `${title}: missing appendix text ${text}`);
-      }
-    }
+
+
   }
 });
 
-
-test('gate files follow entry titles and reject missing or duplicate entries', () => {
-  const files = { Alpha: 'alpha.test.js', Beta: 'beta.test.js' };
-  const entries = [{ title: 'Beta' }, { title: 'Alpha' }];
-  assert.deepEqual(withNamedFiles(entries, files).map(e => e.file), ['beta.test.js', 'alpha.test.js']);
-  for (const incomplete of [entries.slice(1), [...entries, { title: 'Gamma' }], [{ title: 'Alpha' }, { title: 'Alpha' }]]) {
-    assert.throws(() => withNamedFiles(incomplete, files), /must match exactly/);
-  }
-  assert.throws(() => withNamedFiles(entries, { Alpha: 'alpha.test.js' }), /must match exactly/);
-});
 
 test('packaged guideline subpaths resolve and contain the shared document', () => {
   for (const file of readdirSync(markdownDir).filter(file => file.endsWith('.md'))) {

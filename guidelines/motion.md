@@ -1,31 +1,53 @@
 # Motion
 
-What moves after page load, how long it takes, and what happens when a reader asks for less.
-
-## Move anything that appears or leaves after page load.
+## Move after load
 
 <!-- rule: after-load -->
 
-**Why:** Sliding a panel from its edge shows where it comes from and returns to; appearing in one frame reads as a jump. Content present at load stays still so readers need not wait.
+**Rule:** Animate anything that appears or leaves after page load.
 
-**Except:** Text that changes in place, such as a count, range, or status line, changes immediately. A moving number is not yet readable.
+**Why:** Motion shows where content comes from; content present at load stays still.
 
-## Set timing by what moves: 150ms for a control, 250ms for a surface, and 400ms for an entrance.
+**Do:** Slide a panel in from its edge.
+
+**Don't:** Make new content appear in one frame.
+
+**Except:** Update counts, ranges, and status lines immediately.
+
+## Match duration to motion
 
 <!-- rule: durations -->
 
-**Why:** Use --dur-fast, --dur-med and --dur-slow, plus --dur-instant at 80ms for a press. Every transition uses these four tokens; 300ms fails the build, keeping one tempo within Atlassian’s 150–400ms panel range.
+**Rule:** Use 150ms for controls, 250ms for surfaces, 400ms for entrances, and 80ms (`--dur-instant`) for presses.
 
-## Use the kit's curves: --ease for a surface that comes and goes, --ease-out for one that arrives and stays, and linear for visibility.
+**Why:** Use only `--dur-fast`, `--dur-med`, `--dur-slow`, and `--dur-instant` to keep one tempo.
+
+**Do:** Use the matching duration token.
+
+**Don't:** Use an unrelated duration such as 300ms.
+
+## Use the kit curves
 
 <!-- rule: easing -->
 
-**Why:** CSS ease differs from --ease despite their similar spelling. visibility holds its old value during transition, so easing adds nothing and overshoot can flip it mid-fade.
+**Rule:** Use `--ease` for surfaces that come and go, `--ease-out` for content that arrives and stays, and `linear` for visibility.
 
-## When a reader asks for less motion, change immediately.
+**Why:** Visibility keeps its old value during a transition, so easing adds no benefit.
+
+**Do:** Transition visibility with `linear`.
+
+**Don't:** Use CSS `ease` instead of `--ease`.
+
+## Honor reduced motion
 
 <!-- rule: reduced -->
 
-**Why:** Every published bundle caps animations and transitions at 0.01ms under prefers-reduced-motion; opening drawers and confirms cancel internal transitions so focus lands on a visible control. WCAG 2.3.3 permits fades and Apple uses them, but the kit follows Atlassian, Primer and Fluent’s instant change so new components cannot forget.
+**Rule:** When a reader asks for less motion, change immediately.
 
-**Except:** Spinners and skeletons stop too; the surrounding region announces the wait.
+**Why:** Published bundles cap animations and transitions at 0.01ms under `prefers-reduced-motion`, so focus reaches a visible control without delay.
+
+**Do:** Open drawers and confirmations without internal transitions.
+
+**Don't:** Keep a transition running after reduced motion is requested.
+
+**Except:** Spinners and skeletons also stop; the surrounding region announces the wait.

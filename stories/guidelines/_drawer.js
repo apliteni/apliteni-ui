@@ -37,17 +37,8 @@ const frame = (body) => `<div class="gd-frame">${drawer({ title: 'Northwind Paym
 const ruled = (rows) => rows.map(([k, v]) => `<div class="gd-ruled__row"><span>${k}</span><span>${v}</span></div>`).join('');
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'one-record', kit: [{ ref: 'src/components/drawer.js:10', pattern: 'content over a scrim, focus-trapped, Esc-dismissable' }] },
-{ id: 'no-cards', doHtml: () => frame(GROUPS.map((g) => drawerSection(g)).join('')), dontHtml: () => frame(GROUPS.map((g) => card({ body: drawerSection(g) })).join('')), kit: [
-      { ref: 'src/components/drawer.js:88', pattern: 'export function drawerSection(' },
-      { ref: 'src/styles/drawer.css:205', pattern: '.ui-drawer__section + .ui-drawer__section' },
-    ] },
-{ id: 'three-lines', kit: [
-      { ref: 'src/styles/drawer.css:134', pattern: '.ui-drawer__header {' },
-      { ref: 'src/styles/drawer.css:205', pattern: '.ui-drawer__section + .ui-drawer__section {' },
-    ] },
-{ id: 'rows', doHtml: () => frame(drawerSection({ rows: DETAIL })), dontHtml: () => frame(ruled(DETAIL)), kit: [
-      { ref: 'src/components/drawer.js:92', pattern: '<dl class="ui-drawer__rows">' },
-      { ref: 'src/styles/drawer.css:235', pattern: '.ui-drawer__row dt { color: var(--text); }' },
-    ] }
+{ id: 'one-record' },
+{ id: 'no-cards', doHtml: () => frame(GROUPS.map((g) => drawerSection(g)).join('')), dontHtml: () => frame(GROUPS.map((g) => card({ body: drawerSection(g) })).join('')) },
+{ id: 'three-lines' },
+{ id: 'rows', doHtml: () => frame(drawerSection({ rows: DETAIL })), dontHtml: () => frame(ruled(DETAIL)) }
 ]);

@@ -1,43 +1,56 @@
 # Colour and theming
 
-Where colours come from and which may change with the accent.
+## Semantic tokens
 
-## Use a semantic colour token; add one before writing a literal.
-
-<!-- rule: tokens -->
+**Rule:** Add and use a semantic colour token before writing a literal.
 
 **Why:** Literals cannot follow the theme or accent.
 
-**Except:** The token ramp is not scanned; #000 inside mask is an alpha channel, not a colour.
-
 **Do:** Use tokens for ground and ink.
 
-**Don't:** Freeze them at dark-theme values.
+**Don't:** Freeze colours at dark-theme values.
 
-## Let the accent change with a sub-theme; keep --pink and --green unchanged.
+**Except:** Token definitions set the colours; `#000` inside a mask controls alpha, not colour.
 
-<!-- rule: signals -->
+<!-- rule: tokens -->
+
+## Stable signals
+
+**Rule:** Let the accent change with a sub-theme, but keep `--pink` and `--green` unchanged.
 
 **Why:** If danger followed the accent, revoke and go would look identical.
 
-**Except:** Signals change across data-theme: light deepens --pink from #e97ca5 to #b63361 so it reads as ink on white.
+**Do:** Keep error as `--pink` under every accent.
 
-**Do:** Error keeps --pink under every accent.
+**Don't:** Point `--pink` at the accent.
 
-**Don't:** Point --pink at the accent.
+**Except:** Across `data-theme`, signals change: light deepens `--pink` from `#e97ca5` to `#b63361` so it reads as ink on white.
 
-## Use --accent-strong for an accent ground and --accent for accent ink.
+<!-- rule: signals -->
+
+## Accent contrast
+
+**Rule:** Use `--accent-strong` for an accent ground and `--accent` for accent ink.
+
+**Why:** `--accent` is text on the canvas; its darker sibling, `--accent-strong`, lets white clear AA.
+
+**Do:** Use `--accent-strong` behind white text.
+
+**Don't:** Use `--accent` as that ground.
+
+**Except:** In Phoenix, Ocean and Emerald, both are one token; the difference matters only in Nebula.
 
 <!-- rule: accent-strong -->
 
-**Why:** --accent reads as text on the canvas; --accent-strong is its darker sibling, which white clears AA on.
+## Theme checks
 
-**Except:** Under Phoenix, Ocean and Emerald, both are one token; the difference matters only on Nebula.
+**Rule:** Check dark and light themes and at least two accents before opening a PR.
 
-## Check dark and light themes and at least two accents before opening a PR.
+**Why:** A pair that clears AA in dark can fail in light over a card’s wash.
+
+**Do:** Test both themes and two accents.
+
+**Don't:** Check only dark mode and one accent.
+
 
 <!-- rule: both-themes -->
-
-**Why:** A pair that clears AA in dark can fail in light over a card's wash.
-
-**Except:** --surface-3 is not measured: nothing paints the accent wash on a raised surface anymore.

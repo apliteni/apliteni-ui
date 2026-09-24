@@ -1,63 +1,71 @@
 # Component choice
 
-Five choices between similar components and their boundaries.
-
-## Stop the page for a question; leave a statement on the page.
+## Interrupt with a question
 
 <!-- rule: interrupt -->
 
-**Why:** A confirm keeps the keyboard until answered; a callout does not interrupt.
+**Rule:** Stop the page for a question; leave a statement on the page.
 
-**Except:** A drawer also stops the page when the answer needs a form instead of two buttons.
+**Why:** A confirm keeps keyboard focus until answered; a callout does not interrupt.
+
+**Except:** Use a drawer when the answer needs a form instead of two buttons.
 
 **Do:** The question stops the page.
 
-**Don't:** The same question, with nothing to answer.
+**Don't:** Show the same question with nothing to answer.
 
-## Use a toast for what happened and a callout for what is still true.
+## Show lasting conditions
 
 <!-- rule: transient -->
 
-**Why:** A toast dismisses itself, so a current condition disappears while it still applies.
+**Rule:** Use a toast for what happened and a callout for what is still true.
 
-**Except:** A toast with an action outlives its message: something happened and can still be answered.
+**Why:** A toast dismisses itself, so an active condition disappears too soon.
 
-**Do:** A standing warning stays on the page.
+**Except:** A toast with an action may remain because something happened and can still be answered.
 
-**Don't:** The same warning dismisses itself.
+**Do:** Keep a standing warning on the page.
 
-## Reach for tabs() when the control owns a panel and segmented() when it owns nothing.
+**Don't:** Let the same warning dismiss itself.
+
+## Match controls to panels
 
 <!-- rule: panels -->
 
-**Why:** A tablist promises a panel and arrow-key support; a strip with neither passes axe but fails the reader.
+**Rule:** Use tabs() when the control owns a panel and segmented() when it owns nothing.
 
-**Except:** Links between locations are neither: the kit’s nav renders aria-current, not a tablist.
+**Why:** A tablist promises a panel and arrow-key support; a strip without either fails the reader.
 
-**Do:** A filter strip that owns no panel.
+**Except:** Links between locations are neither; the kit’s nav uses aria-current, not a tablist.
 
-**Don't:** A tablist over panels that holds nothing.
+**Do:** Use a filter strip that owns no panel.
 
-## Choose the confirmation by how much of the screen it owns.
+**Don't:** Use a tablist that owns no panels.
+
+## Match confirmation scale
 
 <!-- rule: scale -->
 
-**Why:** successPanel() is a block inside a page; success() is the page and tells the reader where to go next.
+**Rule:** Choose the confirmation by how much of the screen it owns.
 
-**Except:** A block that needs somewhere to go next still uses success(): successPanel() takes two strings.
+**Why:** successPanel() is a page block; success() is the page and tells the reader where to go next.
 
-**Do:** A block confirmation inside the page.
+**Except:** A block that needs somewhere to go next still uses success(); successPanel() takes two strings.
 
-**Don't:** The page-sized one, forced into a card.
+**Do:** Use a block confirmation inside the page.
 
-## Give a dropdown a search field at ten options, or whenever its options come from data.
+**Don't:** Force a page-sized confirmation into a card.
+
+## Add dropdown search
 
 <!-- rule: dropdown-search -->
 
-**Why:** The 300px panel shows five described rows or seven plain rows, so ten requires scrolling; the US Veterans Affairs threshold of 16 suits a native select showing about twenty ([#283](https://github.com/apliteni/apliteni-ui/issues/283)). Data-fed lists need search at any count, and matching anywhere in a label also finds later words.
+**Rule:** Give a dropdown a search field at ten options, or whenever its options come from data.
 
-**Except:** Below six, search adds an unnecessary stop; at six to nine, the author decides, adding search for described rows that scroll from the sixth.
+**Why:** Ten options require scrolling, and data-fed lists need search at any count; matching anywhere in a label also finds later words.
 
-**Do:** Twenty-nine currencies: type “dollar” instead of scrolling.
+**Except:** Below six options, search adds an unnecessary stop; at six to nine, the author decides, adding search for described rows that scroll from the sixth.
 
-**Don't:** Without search, only seven of twenty-nine currencies show at once; dollars are scattered through the list.
+**Do:** For twenty-nine currencies, type “dollar” instead of scrolling.
+
+**Don't:** Show only seven of twenty-nine currencies without search when dollars are scattered through the list.

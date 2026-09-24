@@ -1,4 +1,4 @@
-import { loadGuideline, withSpecimens, withNamedFiles } from './_markdown.js';
+import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('accessibility-floor.md', new URL('../../guidelines/accessibility-floor.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
@@ -87,79 +87,6 @@ export const TARGET_EXEMPT = [
   },
 ];
 
-// ---- what the kit aims at above the floor ----------------------------------
-
-/**
- * stories/contrast.test.js says the AA floor is a floor and not a verdict.
- * These are the four things the kit aims at above it, each stated so it can be
- * applied to a component nobody has written yet.
- */
-export const AIMS = content.sections[0].entries.map(e => ({ aim: e.title, apply: e.Apply }));
-
-// ---- what the gates already admit ------------------------------------------
-
-/**
- * The gates, and the blind spot each one states about itself.
- *
- * This list is DECLARED here and held in step by the gate: accessibility-floor
- * .test.js discovers every test file that touches accessibility and fails when
- * one of them is not named below. Same contract as overview.test.js against
- * ENTRIES — a new gate fails the build until this page knows about it. What it
- * cannot check is whether the prose below still matches the gate's own header
- * after somebody edits one. That is the seam, and it is stated rather than
- * papered over: a gate cannot go missing here, but it can go stale.
- */
-const gateFiles = {
-  "Ring surfaces": "stories/ring-surfaces.test.js",
-  "React: BackLink": "react/src/BackLink.test.tsx",
-  "React: Dropdown": "react/src/Dropdown.test.tsx",
-  "React: Pagination": "react/src/Pagination.test.tsx",
-  "Palette keyboard": "stories/palette-keyboard.test.js",
-  "Command palette": "stories/guidelines/command-palette.test.js",
-  "The page": "stories/guidelines/the-page.test.js",
-  "Contrast": "stories/contrast.test.js",
-  "A11y": "stories/a11y.test.js",
-  "Keyboard": "stories/keyboard.test.js",
-  "Drawer focus": "stories/drawer-focus.test.js",
-  "Accent contrast": "stories/accent-contrast.test.js",
-  "Elevation": "stories/elevation.test.js",
-  "Signal contrast": "stories/signal-contrast.test.js",
-  "Stat basis": "stories/stat-basis.test.js",
-  "Glyph stroke": "stories/glyph-stroke.test.js",
-  "Accessibility minimums": "stories/guidelines/accessibility-floor.test.js",
-  "Confirm keyboard": "stories/confirm-keyboard.test.js",
-  "Overlay stack": "stories/overlay-stack.test.js",
-  "Overlay css": "stories/overlay-css.test.js",
-  "Dropdown field ground": "stories/dropdown-field-ground.test.js",
-  "Dropdown foot role": "stories/dropdown-foot-role.test.js",
-  "Field zoom": "stories/field-zoom.test.js",
-  "Reduced motion": "stories/reduced-motion.test.js",
-  "Motion coverage": "stories/motion-coverage.test.js",
-  "Tooltip specimens": "stories/tooltip-specimens.test.js",
-  "Nav cascade": "stories/nav-cascade.test.js",
-  "Button chrome": "stories/button-chrome.test.js",
-  "Shell": "stories/apps/shell.test.js",
-  "Shell states": "stories/apps/shell-states.test.js",
-  "Shell rail": "stories/apps/shell-rail.test.js",
-  "Danger colour": "stories/danger-colour.test.js",
-  "Accent swatch": "stories/accent-swatch.test.js",
-  "Accent without theme": "stories/accent-without-theme.test.js",
-  "Iconography": "stories/guidelines/iconography.test.js",
-  "React: DataTable": "react/src/DataTable.test.tsx",
-  "React: CommandPalette": "react/src/CommandPalette.test.tsx",
-  "React: Modal": "react/src/Modal.test.tsx",
-  "React: Drawer": "react/src/Drawer.test.tsx",
-  "React: A11y": "react/src/a11y.test.tsx",
-  "React: Field zoom": "react/src/field-zoom.test.tsx",
-  "React: Contrast": "react/src/contrast.test.tsx"
-};
-export const GATES = withNamedFiles(content.sections[1].entries, gateFiles)
-  .map(e => ({ file: e.file, name: e.title, does: e.Checks, blind: e.Limit }));
-export const SECTIONS = content.sections;
-
-/** Gaps with nothing measuring them at all. Named so they do not look covered. */
-export const UNGATED = content.sections[2].entries.map(e => ({ what: e.title, note: e.Note }));
-
 // ---- the rules -------------------------------------------------------------
 
 export const SPEC_CSS = `
@@ -192,19 +119,12 @@ export const targetDont = () => row(
 );
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'target-size', doHtml: targetDo, dontHtml: targetDont, kit: [
-      { ref: 'src/styles/button.css:78', pattern: '.ui-btn--sm' },
-      { ref: 'src/styles/input.css:134', pattern: '.ui-check input::before' },
-    ] },
-{ id: 'ring-contrast', kit: [{ ref: 'src/styles/base.css:146', pattern: 'box-shadow: var(--ring);' }] },
-{ id: 'disabled-legibility', kit: [
-      { ref: 'src/styles/button.css:95', pattern: '.ui-btn[aria-disabled="true"]' },
-      { ref: 'src/tokens/tokens.css:165', pattern: '--disabled-ink: var(--muted);' },
-    ] },
-{ id: 'touch-field-size', kit: [
-      { ref: 'src/styles/field-zoom.css:19', pattern: 'font-size: 16px !important;' },
-      { ref: 'react/src/index.ts:9', pattern: "import '../../src/styles/field-zoom.css';" },
-    ] },
-{ id: 'floor-not-verdict', kit: [{ ref: 'stories/contrast.test.js:289', pattern: 'the AA floor is a floor, not a verdict.' }] },
-{ id: 'name-the-gap', kit: [{ ref: 'stories/contrast.test.js:233', pattern: 'What the walk never puts in front of the resolver, so the gate cannot see it' }] }
+{ id: 'target-size', doHtml: targetDo, dontHtml: targetDont },
+{ id: 'ring-contrast' },
+{ id: 'disabled-legibility' },
+{ id: 'touch-field-size' },
+{ id: 'body-contrast' },
+{ id: 'status-label' },
+{ id: 'measurable-pair' },
+{ id: 'keyboard-first' },
 ]);

@@ -1,51 +1,57 @@
 # The full state set
 
-States beyond rest: focus, busy, error, pending.
-
-## Give every focusable control the same --ring; show it only on :focus-visible.
+## Focus rings
 
 <!-- rule: focus-visible -->
 
-**Why:** One separated solid band and halo show focus consistently; the browser decides when focus is visible.
+**Rule:** Give every focusable control the same `--ring`, and show it only on `:focus-visible`.
 
-**Except:** Text-entry controls may match :focus-visible on mouse focus. Surface backgrounds set the gap colour and recompose --ring; adjust width and colour at the root.
+**Why:** One solid band and halo keep focus consistent while the browser decides when to show it.
 
 **Do:** Button and input share one ring.
 
-**Don't:** The input draws its own.
+**Don't:** The input draws its own ring.
 
-## Make busy mean disabled: use aria-busy and a real disabled state from one flag.
+**Except:** Text-entry controls may match `:focus-visible` on mouse focus. Surface backgrounds set the gap colour and recompose `--ring`; adjust width and colour at the root.
+
+## Busy controls
 
 <!-- rule: busy -->
 
-**Why:** A working control that still accepts clicks can submit twice.
+**Rule:** Make busy controls disabled: use `aria-busy` and a real disabled state from one flag.
 
-**Except:** A disabled control is excluded from the WCAG 1.4.3 contrast gate, so a busy control must remain visually legible.
+**Why:** A control that still accepts clicks can submit twice.
 
-**Do:** Disabled and aria-busy together.
+**Do:** Set `disabled` and `aria-busy` together.
 
-**Don't:** Says “Saving…”, still takes clicks.
+**Don't:** Show “Saving…” while still accepting clicks.
 
-## State errors in markup, not only paint, and connect the message.
+**Except:** Disabled controls are excluded from the WCAG 1.4.3 contrast gate, so busy controls must remain visually legible.
+
+## Marked errors
 
 <!-- rule: error-in-markup -->
 
-**Why:** Red alone shows the state only to sighted readers.
+**Rule:** Put errors in markup, not only in paint, and connect each message to its field.
 
-**Except:** Put required in the attribute, not the label’s wording: the asterisk is decoration and hidden from assistive tech.
+**Why:** Red alone communicates the state only to sighted readers.
 
-**Do:** The reason is read with the field.
+**Do:** The field reads its reason with it.
 
-**Don't:** Same red, reason attached to nothing.
+**Don't:** Use the same red with no connected reason.
 
-## Design pending for the whole screen, not only its button, and announce it.
+**Except:** Put `required` in the attribute, not the label wording; the asterisk is decoration and hidden from assistive technology.
+
+## Screen loading
 
 <!-- rule: loading -->
 
+**Rule:** Design pending state for the whole screen, not only its button, and announce it.
+
 **Why:** Silent loading gives screen-reader users no event.
 
+**Do:** Announce the coming shape in a status region.
+
+**Don't:** Let only the button know while the page reads as finished.
+
 **Except:** A toast has its own live region, so a screen reporting through the toast stack needs no second one.
-
-**Do:** The coming shape is announced in a status region.
-
-**Don't:** Only the button knows; the page reads as finished.

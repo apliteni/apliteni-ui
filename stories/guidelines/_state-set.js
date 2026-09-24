@@ -63,29 +63,13 @@ export const pendingDo = () => stage(pendingScreen(
 ));
 
 export const pendingDont = () => stage(pendingScreen(
-  '<p style="color:var(--muted);margin:0">Nothing here.</p>'
+  '<p style="color: var(--text);margin:0">Nothing here.</p>'
   + `<div class="gl-row" style="margin-top:var(--space-3)">${button({ label: 'Refresh', busy: true })}</div>`,
 ));
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'focus-visible', doHtml: focusDo, dontHtml: focusDont, kit: [
-      { ref: 'src/styles/base.css:140', pattern: '.ui-focusable:focus-visible,' },
-      { ref: 'src/styles/base.css:146', pattern: 'box-shadow: var(--ring);' },
-      { ref: 'src/tokens/tokens.css:237', pattern: '--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),' },
-    ] },
-{ id: 'busy', doHtml: busyDo, dontHtml: busyDont, kit: [
-      { ref: 'src/components/index.js:37', pattern: 'busy ⇒ disabled' },
-      { ref: 'src/styles/button.css:130', pattern: '.ui-btn[aria-busy="true"] {' },
-      { ref: 'stories/contrast.test.js:239', pattern: 'inactive components and their whole subtree' },
-    ] },
-{ id: 'error-in-markup', doHtml: errorDo, dontHtml: errorDont, kit: [
-      { ref: 'src/components/index.js:187', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
-      { ref: 'src/components/index.js:173', pattern: "'aria-describedby': msgId," },
-      { ref: 'src/components/index.js:159', pattern: "markup rather than in the label's wording" },
-    ] },
-{ id: 'loading', doHtml: pendingDo, dontHtml: pendingDont, kit: [
-      { ref: 'src/components/loading.js:54', pattern: 'export function busyRegion({' },
-      { ref: 'src/components/loading.js:74', pattern: 'export function setBusy(root,' },
-      { ref: 'src/components/index.js:252', pattern: 'role="status" aria-live="polite"' },
-    ] }
+{ id: 'focus-visible', doHtml: focusDo, dontHtml: focusDont },
+{ id: 'busy', doHtml: busyDo, dontHtml: busyDont },
+{ id: 'error-in-markup', doHtml: errorDo, dontHtml: errorDont },
+{ id: 'loading', doHtml: pendingDo, dontHtml: pendingDont }
 ]);

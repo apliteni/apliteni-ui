@@ -136,26 +136,10 @@ export const askDont = () => palette({
 });
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'named-things', doHtml: belongsDo, dontHtml: belongsDont, kit: [{ ref: 'src/components/command-palette.js:194', pattern: 'function paletteItem' }] },
-{ id: 'groups', doHtml: groupsDo, dontHtml: groupsDont, kit: [
-      { ref: 'src/components/command-palette.js:255', pattern: 'export function commandPaletteList' },
-      { ref: 'src/styles/command-palette.css:148', pattern: '.ui-cmdk__group-head' },
-    ] },
-{ id: 'ranking', doHtml: rankDo, dontHtml: rankDont, kit: [
-      { ref: 'src/components/command-palette.js:33', pattern: 'export const SCORE' },
-      { ref: 'src/components/command-palette.js:130', pattern: 'export function rankGroups' },
-    ] },
-{ id: 'keyboard', kit: [
-      { ref: 'src/components/command-palette.js:515', pattern: 'function onKeydown' },
-      { ref: 'src/components/overlay.js:97', pattern: 'function ownKeys' },
-    ] },
-{ id: 'say-it', kit: [
-      { ref: 'src/components/command-palette.js:368', pattern: 'function setActive' },
-      { ref: 'src/components/command-palette.js:392', pattern: 'function announce' },
-      { ref: 'src/components/overlay.js:236', pattern: 'export function returnFocus' },
-    ] },
-{ id: 'ask-first', doHtml: askDo, dontHtml: askDont, kit: [
-      { ref: 'src/components/command-palette.js:229', pattern: 'const isRefused = (it) =>' },
-      { ref: 'src/styles/command-palette.css:236', pattern: '.ui-cmdk__item.is-danger' },
-    ] }
+{ id: 'named-things', doHtml: belongsDo, dontHtml: belongsDont },
+{ id: 'groups', doHtml: groupsDo, dontHtml: groupsDont },
+{ id: 'ranking', doHtml: rankDo, dontHtml: rankDont },
+{ id: 'keyboard' },
+{ id: 'say-it' },
+{ id: 'ask-first', doHtml: askDo, dontHtml: askDont }
 ]);

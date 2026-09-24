@@ -18,7 +18,7 @@ export const SPEC_CSS = `
     .gl-row { display: flex; align-items: center; justify-content: space-between;
       gap: var(--space-4); padding: var(--space-3) 0; }
     .gl-row + .gl-row { border-top: 1px solid var(--border); }
-    .gl-row__k { color: var(--dim); font-size: var(--text-sm); }
+    .gl-row__k { color: var(--text); font-size: var(--text-sm); }
     .gl-row__v { color: var(--strong); font-size: var(--text-sm); font-weight: var(--weight-medium);
       font-variant-numeric: tabular-nums; }
 
@@ -37,7 +37,7 @@ export const SPEC_CSS = `
     .gl-bar__fill { height: 22px; border-radius: var(--radius-xs); flex: none;
       background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--border); }
     .gl-bar__fill--tok { background: var(--glow-purple); box-shadow: inset 0 0 0 1px var(--accent); }
-    .gl-bar__t { font: 500 11px/1 var(--font-mono); color: var(--muted); white-space: nowrap; }
+    .gl-bar__t { font: 500 11px/1 var(--font-mono); color: var(--text); white-space: nowrap; }
   </style>`;
 
 const ROWS = [
@@ -79,31 +79,9 @@ export const measureDont = () => stage(
 );
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'container', doHtml: measureDo, dontHtml: measureDont, kit: [
-      { ref: 'src/styles/base.css:114', pattern: 'max-width: var(--container)' },
-      { ref: 'src/styles/topbar.css:17', pattern: 'max-width: var(--container)' },
-      { ref: 'src/tokens/tokens.css:42', pattern: '--container: 1120px' },
-    ] },
-{ id: 'measure', kit: [
-      { ref: 'src/styles/layout.css:298', pattern: 'var(--ui-app-main, var(--measure))' },
-      { ref: 'src/tokens/tokens.css:43', pattern: '--measure: 860px' },
-    ] },
-{ id: 'one-source', kit: [
-      { ref: 'src/components/shell.js:111', pattern: "s === 'none' || LENGTH.test(s) ? s : ''" },
-      { ref: 'stories/apps/shell.test.js:919', pattern: 'the reading column has one source' },
-    ] },
-{ id: 'density', doHtml: densityDo, dontHtml: densityDont, kit: [
-      { ref: 'src/tokens/tokens.css:29', pattern: '--space-3: 12px' },
-      { ref: 'src/styles/table.css:58', pattern: 'padding: var(--space-2) var(--space-3)' },
-      { ref: 'stories/table-rhythm.test.js:85', pattern: 'writes no row rhythm as a literal' },
-    ] },
-{ id: 'below-the-page', kit: [
-      { ref: 'stories/measure-tokens.test.js:147', pattern: 'no literal box width outside src/tokens' },
-      { ref: 'stories/measure-tokens.test.js:166', pattern: 'no literal prose measure outside src/tokens' },
-    ] },
-{ id: 'breakpoints', kit: [
-      { ref: 'src/styles/layout.css:433', pattern: '@media (max-width: 720px)' },
-      { ref: 'stories/breakpoints.test.js:117', pattern: 'every breakpoint is one of the documented steps' },
-      { ref: 'stories/breakpoints.test.js:139', pattern: 'every documented step is a step something queries' },
-    ] }
+{ id: 'container', doHtml: measureDo, dontHtml: measureDont },
+{ id: 'measure' },
+{ id: 'density', doHtml: densityDo, dontHtml: densityDont },
+{ id: 'below-the-page' },
+{ id: 'breakpoints' }
 ]);

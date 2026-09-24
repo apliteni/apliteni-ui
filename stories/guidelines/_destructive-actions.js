@@ -69,21 +69,7 @@ export const undoDont = () => `
   </div>`;
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'colour', doHtml: menuDo, dontHtml: menuDont, kit: [
-      { ref: 'src/styles/button.css:68', pattern: '.ui-btn--danger:hover' },
-      { ref: 'src/styles/dropdown.css:200', pattern: '.ui-dropdown__item.is-danger:hover' },
-      { ref: 'src/styles/nav.css:111', pattern: '.ui-nav__item.is-danger:hover' },
-    ] },
-{ id: 'wording', doHtml: wordingDo, dontHtml: wordingDont, kit: [
-      {
-        ref: 'stories/components/Confirm.stories.js:45',
-        pattern: "confirmLabel: 'Delete workspace', cancelLabel: 'Keep it'",
-      },
-      { ref: 'stories/apps/Access.stories.js:38', pattern: "label: 'Revoke access'" },
-    ] },
-{ id: 'undo', doHtml: undoDo, dontHtml: undoDont, kit: [
-      { ref: 'src/components/confirm.js:61', pattern: 'role="alertdialog"' },
-      { ref: 'src/components/index.js:246', pattern: 'class="ui-toast__action"' },
-      { ref: 'src/styles/callout.css:87', pattern: '.ui-toast__action { flex: none;' },
-    ] }
+{ id: 'colour', doHtml: menuDo, dontHtml: menuDont },
+{ id: 'wording', doHtml: wordingDo, dontHtml: wordingDont },
+{ id: 'undo', doHtml: undoDo, dontHtml: undoDont }
 ]);

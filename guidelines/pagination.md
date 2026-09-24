@@ -1,73 +1,89 @@
 # Pagination
 
-What a pager owes a reader when a table is too long to show at once.
-
-## Give the pager the number counted by the server.
+## Use the server count
 
 <!-- rule: counted-total -->
 
-**Why:** A pager knows only what it receives: the transactions drill counts matching rows to show “1–100 of 4,812” and reach the end, while invoices fetch one extra row to infer has-more. Keep both choices; a shared default would add a count to one or remove the other’s total.
+**Rule:** Use the total row count returned by the server when it is available.
 
-**Do:** Row range and total: rows are the reader’s concern, pages describe fetching.
+**Why:** Readers need accurate ranges and totals, while some APIs can only report whether more rows exist.
 
-**Don't:** No total is right for an API that cannot count; here COUNT(*) ran and its answer was discarded.
+**Do:** Show the current row range and the server’s total.
 
-## Choose the jump your readers make.
+**Don't:** Discard a completed `COUNT(*)` result.
+
+## Choose the main jump
 
 <!-- rule: the-jump -->
 
-**Why:** Steps suits filtering and sorting: forty-nine numbered links add forty-nine unwanted tab stops. Numbered and jump also ship; jump alone reaches page 30 in one move.
+**Rule:** Use steps for filtering and sorting, numbers for short lists, or jump for a specific page.
 
-**Except:** Numbered pages suit short browsable lists such as changelogs and galleries, where the small count keeps width stable.
+**Why:** Filtering and sorting usually need quick jumps, while short lists can use numbered pages.
 
-**Do:** Four fixed controls; a ledger’s start and end are each one press away.
+**Except:** Use numbered pages for short browsable lists such as changelogs and galleries.
 
-**Don't:** On page 25 of 49, numbers reach only 1, 24, 26 and 49 in one press; changing strip width also moves Next.
+**Do:** Use four fixed controls so a ledger’s first and last pages are one press away.
 
-## Disable a control at an end. Never remove it.
+**Don't:** On page 25 of 49, show only 1, 24, 26, and 49 as direct choices.
+
+## Disable ends in place
 
 <!-- rule: ends-disable -->
 
-**Why:** Disabling, as Polaris prescribes, keeps nearby controls still and tells screen-reader users they reached an end. Four of six portal pagers removed controls; a fifth substituted an inert muted span.
+**Rule:** Disable controls at each end without removing them.
 
-**Do:** First and Prev stay put and screen readers report them unavailable; native disabled removes them from Tab order.
+**Why:** Fixed controls prevent layout shifts and tell screen-reader users when they reached an end.
 
-**Don't:** Removing Prev on page one slides Next and Last left under the approaching pointer.
+**Do:** Keep First and Prev in place and mark them unavailable; native `disabled` removes them from Tab order.
 
-## Draw no steps for a table that has one page.
+**Don't:** Remove Prev on page one and move the other controls left.
+
+## Hide one-page steps
 
 <!-- rule: one-page -->
 
-**Why:** With one page, steps offer no action—the UK government design system says to omit pagination. The kit previously offered two dead buttons on admin and My Space tables; two surfaces hid the misleading strip in CSS.
+**Rule:** Do not show pagination steps when a table has one page.
 
-**Do:** Twelve rows: keep only page size; without size choices, render nothing.
+**Why:** One-page controls provide no action.
 
-**Don't:** An uninformative sentence above two permanently useless buttons, formerly the kit’s output.
+**Do:** For 12 rows, show only the page-size control, or render nothing if no size choices exist.
 
-## Keep the numbers legible while the next page loads.
+**Don't:** Show two permanently useless buttons.
+
+## Keep page turns stable
 
 <!-- rule: page-turn -->
 
-**Why:** Readers may press the same control twice during a page turn, so controls and rows must hold their positions and height. None of thirteen surveyed systems addressed this beyond a spinner over rows.
+**Rule:** Keep controls, rows, positions, and heights stable while the next page loads.
 
-**Do:** Controls disabled, strip busy, range readable.
+**Why:** Readers may press the same control twice during loading.
 
-**Don't:** A placeholder collapses the strip and moves content and the next click target.
+**Do:** Disable the controls, mark the pager busy, and keep the range readable.
 
-## Announce the range. Announce nothing else.
+**Don't:** Use a placeholder that collapses the pager or moves the next click target.
+
+## Announce only the range
 
 <!-- rule: announce-range -->
 
-**Why:** Rows change without moving focus: WCAG 2.2 treats “1–100 of 4,812”, not new rows, as the status, so announce the range whole and politely rather than repeating one change four times through the pager, size control and four buttons. Only two of thirteen surveyed systems use a live region, one requiring caller text.
+**Rule:** Politely announce the complete result range, such as “1–100 of 4,812,” and nothing else.
 
-**Except:** Primer instead documents moving focus into rows. The kit keeps the pressed control focused for reuse; at an end, native disabled drops focus to the body, then React focuses the remaining step. HTML callers replace the strip and must restore focus themselves.
+**Why:** Rows can change without moving focus, so repeating each change creates unnecessary announcements.
 
-## Offer the page size. Leave remembering it to the consumer.
+**Except:** HTML callers that replace the pager must restore focus themselves; at an end, React restores focus to the remaining step after native `disabled` moves it to the body.
+
+**Do:** Keep focus on the pressed control and announce the new range once.
+
+**Don't:** Announce the same page change through the live region, page-size control, and every button.
+
+## Offer consumer page sizes
 
 <!-- rule: page-size -->
 
-**Why:** The kit defines 25, 50 and 100 once, starting at 100; consumers choose which to offer and persist the choice in a URL or profile that survives reload. Nielsen Norman called persistence the key pager detail in 2013, but no surveyed design system ships it.
+**Rule:** Offer page sizes from 25, 50, and 100, starting at 100, and let consumers choose and persist the selection.
 
-**Do:** Rows per page sits between count and steps, keeping steps still.
+**Why:** Consumers may need different choices and can save them in a URL or profile across reloads.
 
-**Don't:** A fixed size leaves readers of 4,812 rows only scrolling or paging.
+**Do:** Place rows per page between the count and pagination steps.
+
+**Don't:** Force one size when readers must work through 4,812 rows.

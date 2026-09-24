@@ -1,59 +1,79 @@
 # The command palette
 
-What belongs in it, how its list is ordered, and the six keys it owes the reader.
-
-## Put something in the palette only if a reader can name it.
+## Named things
 
 <!-- rule: named-things -->
 
+**Rule:** Put something in the palette only if a reader can name it.
+
+**Why:** Named items are easier to find and understand.
+
+**Do:** Include recognisable commands and numbered records that readers can also reach by clicking through the product.
+
+**Don't:** Include “Advanced…”, “More”, a frequency option, or a row that opens the current page.
+
 **Except:** One-step settings are commands, such as “Switch to the light theme”; settings needing a choice open a named page.
 
-**Do:** Recognisable commands and numbered records, also reachable by clicking through the product.
-
-**Don't:** Four unsearchable rows: “Advanced…” and “More” name menus, frequency needs a form, and the third row opens the current page.
-
-## Group results by what they are, using the product’s own word for each group.
+## Product-owned groups
 
 <!-- rule: groups -->
 
-**Why:** GitHub, VS Code and Slack use product-owned prefixes (#, @, /, >) to narrow search. The kit supplies groups instead; a product can change those groups when it sees its prefix.
+**Rule:** Group results by what they are, using the product’s own word for each group.
 
-**Do:** Three sentence-case headings at the 13px label rank organise nine rows: actions, destinations and recent items.
+**Why:** Groups tell readers whether a result opens a record, changes location or runs a command.
 
-**Don't:** Nine ungrouped rows hide whether Enter opens an invoice, goes to a page or runs a command.
+**Do:** Use three sentence-case headings at the 13px label rank for actions, destinations and recent items.
 
-## Rank by how the query matches the name, and let the caller break every tie.
+**Don't:** Show nine ungrouped rows that hide whether Enter runs a command, opens an invoice or goes to a page.
+
+## Query-based ranking
 
 <!-- rule: ranking -->
 
-**Why:** Ties keep caller order, so a product’s four preferred commands stay first. The kit tracks no usage; pass recents as a group.
+**Rule:** Rank results by how the query matches the name, and let the caller break every tie.
 
-**Except:** For server results, pass `rank: false` and answer `ui-command-query`; the server ranks the whole result, and the kit keeps its order.
+**Why:** Caller order keeps preferred commands first, and the kit stores no usage history.
 
-**Do:** For “inv”, whole words beat fragments and names beat notes; the best row’s group comes first, making Enter the best answer overall.
+**Do:** For “inv”, rank whole-word matches above fragments and names above notes; put the best row’s group first.
 
-**Don't:** Alphabetical order puts INV-4809 first for its digit and “New invoice”, the matching name, last.
+**Don't:** Put INV-4809 first because of its digits while leaving the matching name “New invoice” last.
 
-## Answer six keys, and leave every other key to the text box.
+**Except:** For server results, pass `rank: false` and answer `ui-command-query`; the server ranks the full result, and the kit keeps that order.
+
+## Six keyboard keys
 
 <!-- rule: keyboard -->
 
-**Why:** Cmd+K opens, arrows move and wrap, Enter runs the active row, Escape closes the top overlay, and Tab stays inside; other handled keys fail the build. Home and End belong to the caret under ARIA’s combobox pattern, unlike cmdk’s row navigation and extra Ctrl+N/P/J/K and Alt+Arrow bindings.
+**Rule:** Handle Cmd/Ctrl+K, Up, Down, Enter, Escape and Tab, and leave every other key to the text box.
 
-**Except:** Ctrl+K inside another text box is left alone: there it means kill-to-end-of-line, and capturing it breaks a keystroke the reader had first.
+**Why:** These keys open, navigate, run, close and contain the palette without changing text-box behavior.
 
-## Put focus in the text box, announce the result count, and return focus afterward.
+**Do:** Wrap arrow navigation, run the active row with Enter, close the top overlay with Escape, and keep focus inside with Tab.
+
+**Don't:** Handle Home, End, Ctrl+N/P/J/K or Alt+Arrow; Home and End belong to the caret under ARIA’s combobox pattern.
+
+**Except:** Leave Ctrl+K alone inside another text box, where it means kill-to-end-of-line.
+
+## Focus and announcements
 
 <!-- rule: say-it -->
 
-**Why:** aria-activedescendant names the active row while focus stays in the text box, letting arrows select and letters arrive together. Announce only the count in a polite live region to avoid rereading every row on each keystroke, and restore focus on close, including when the command removed the opener.
+**Rule:** Focus the text box, announce the result count, and return focus afterward.
 
-## Never let the palette run a delete by itself.
+**Why:** `aria-activedescendant` identifies the active row while letters and arrows stay in the text box.
+
+**Do:** Announce only the count in a polite live region and restore focus on close, even if the command removed the opener.
+
+**Don't:** Move focus to each row or reread every row after each keystroke.
+
+## Confirm destructive actions
 
 <!-- rule: ask-first -->
 
-**Why:** Readers watch the text box on this fast surface, so a destructive row without a confirm cannot run. It renders aria-disabled, visibly refusing the action.
+**Rule:** Never let the palette run a delete by itself.
 
-**Do:** An ellipsis promises a question; danger ink marks it, and Enter opens a confirm above the palette that answers the first Escape.
+**Why:** A destructive row must be confirmed because readers watch the text box on this fast surface.
 
-**Don't:** Two destructive commands name no confirm: grey, aria-disabled and skipped by arrows, one row from “Export rows as CSV” in a reordering list.
+**Do:** Show an ellipsis and danger ink, and let Enter open a confirm above the palette that answers the first Escape.
+
+**Don't:** Omit confirmation; the row becomes disabled and arrow navigation skips it.
