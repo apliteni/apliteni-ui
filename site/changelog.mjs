@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.41.0', date: '2026-09-24',
+    changes: [
+      ['changed', 'Busy buttons keep each variant’s resting fill, border and ink while replacing the label with larger, brighter dots. Dots scale with the button size and remain readable in both themes. Resolves #327.', ['Button']],
+    ],
+  },
+  {
     v: '0.40.1', date: '2026-09-24',
     changes: [
       ['added', 'The guidelines now say to give the committing action more weight than the dismissing action. The examples compare primary Save beside ghost Cancel with two primary buttons. Closes #350.'],
