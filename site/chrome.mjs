@@ -10,13 +10,21 @@ const BRAND = `<a class="brand" href="/" aria-label="apliteni ui" style="text-de
     </a>`;
 
 // active: '' on the landing, 'changelog' on the changelog page (marks the nav link).
+//
+// Guidelines points into Storybook, in the deeplink form site/changelog.mjs uses
+// for every story it cites. It is a nav item rather than a hero button because the
+// rules are a place you go back to, and the hero is read once.
+//
+// The version chip carries hide-sm: with two nav links beside it the row is 45px
+// wider than a 375px phone, and the chip is the one item there nobody came for.
 export function topbar(active = '') {
   const on = (k) => (active === k ? ' on' : '');
   return `<header class="topbar site-topbar">
   <div class="topbar__in">
     ${BRAND}
-    <span class="ver">{{VERSION}}</span>
+    <span class="ver hide-sm">{{VERSION}}</span>
     <span class="spacer"></span>
+    <a class="lk" href="/storybook/?path=/story/guidelines-overview--overview">Guidelines</a>
     <a class="lk${on('changelog')}" href="/changelog/">Changelog</a>
     <a class="lk hide-sm" href="https://github.com/apliteni/apliteni-ui">GitHub</a>
     <button class="toggle" id="tgl" aria-label="Theme: Dark. Switch to light." title="Theme: Dark. Switch to light."><span class="ic" id="tglIc"></span></button>
@@ -86,7 +94,12 @@ export const CHROME_CSS = `
     color: var(--muted); font-size: 13px; }
   .site-footer a { color: var(--muted); text-decoration: none; transition: color .15s ease; }
   .site-footer a:hover { color: var(--strong); text-decoration: underline; text-underline-offset: 3px; }
-  @media (max-width: 560px) { .site-topbar .hide-sm { display: none; } }
+  @media (max-width: 560px) {
+    .site-topbar .hide-sm { display: none; }
+    /* The bar keeps four items on a phone — brand, two nav links, theme — and
+       none of them wraps, so the row's own gap is the last thing left to give. */
+    .site-topbar .topbar__in { gap: 10px; }
+  }
 `;
 
 // Theme + accent behaviour. One localStorage namespace (apliteni-ui-*) so a choice
