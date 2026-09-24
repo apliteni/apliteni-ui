@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.40.0', date: '2026-09-24',
+    changes: [
+      ['changed', "The DataTable sort chevron now rotates between ascending and descending in 150 ms with the kit's ease-out; rows still reorder instantly. There is no motion under reduced motion. Chosen in #363 after measuring a row-animation alternative, which stuttered above about 100 rendered rows."],
+    ],
+  },
+  {
     v: '0.39.1', date: '2026-09-24',
     changes: [
       ['fixed', "DataTable sort indicators are now drawn as SVG chevrons instead of text arrow characters, which iOS showed as colour emoji. The sorted column shows one chevron in the sort direction; other sortable columns show a neutral pair. Screen readers still get the state from aria-sort. Found in the design-review trial, #361."],

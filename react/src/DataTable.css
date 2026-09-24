@@ -19,4 +19,10 @@
   stroke-width: 2.4;
   /* muted-ink: glyph — sort direction */
   color: var(--muted);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.rx-caret[data-up] { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .rx-caret { transition: none; }
 }

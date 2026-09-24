@@ -1,6 +1,8 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { ServerPaged } from './DataTable.stories';
@@ -479,4 +481,43 @@ it('turns the shipped ServerPaged story to the size the reader picked, and leave
   expect(screen.getByLabelText('Rows')).toHaveValue('5');
   expect(screen.getByText('1–5 of 5')).toBeInTheDocument();
   expect(screen.getAllByRole('row')).toHaveLength(6);
+});
+
+
+it('rotates the same chevron for ascending sort by default while rows reorder immediately', async () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} />);
+  const button = screen.getByRole('button', { name: 'Clicks' });
+  const caret = button.querySelector('svg')!;
+  expect(caret.querySelectorAll('path')).toHaveLength(2);
+  await userEvent.click(button);
+  const path = caret.querySelector('path')!;
+  expect(caret.querySelectorAll('path')).toHaveLength(1);
+  expect(caret).not.toHaveAttribute('data-up');
+  expect(screen.getAllByRole('row')[1]).toHaveTextContent('B');
+  await userEvent.click(button);
+  expect(button.querySelector('svg')).toBe(caret);
+  expect(caret.querySelector('path')).toBe(path);
+  expect(caret).toHaveAttribute('data-up', 'true');
+  expect(screen.getAllByRole('row')[1]).toHaveTextContent('A');
+  expect(screen.getByRole('columnheader', { name: 'Clicks' })).toHaveAttribute('aria-sort', 'ascending');
+  await userEvent.click(button);
+  expect(caret).not.toHaveAttribute('data-up');
+});
+
+it('disables the chevron transition under reduced motion', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} />);
+  const caret = screen.getByRole('button', { name: 'Clicks' }).querySelector('svg')!;
+  const style = document.createElement('style');
+  style.textContent = readFileSync(join(dirname(expect.getState().testPath!), 'DataTable.css'), 'utf8');
+  document.head.append(style);
+  try {
+    const rules = Array.from(style.sheet!.cssRules);
+    const normal = rules.find(rule => 'selectorText' in rule && caret.matches((rule as CSSStyleRule).selectorText)) as CSSStyleRule;
+    expect(normal.style.getPropertyValue('transition')).toBe('transform var(--dur-fast) var(--ease-out)');
+    const reduced = rules.find(rule => 'conditionText' in rule &&
+      (rule as CSSMediaRule).conditionText === '(prefers-reduced-motion: reduce)') as CSSMediaRule;
+    const override = Array.from(reduced.cssRules).find(rule =>
+      'selectorText' in rule && caret.matches((rule as CSSStyleRule).selectorText)) as CSSStyleRule;
+    expect(override.style.getPropertyValue('transition')).toBe('none');
+  } finally { style.remove(); }
 });

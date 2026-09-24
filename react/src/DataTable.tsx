@@ -108,10 +108,13 @@ export function DataTable<T extends { name: string }>({
     toFirstPage();
   };
   const caret = (k: string) => (
-    <svg className="rx-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg className="rx-caret" data-up={sort.key === k && sort.dir === 1 || undefined}
+      viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      {(sort.key !== k || sort.dir === 1) && <path d={sort.key === k ? 'm8 14 4-4 4 4' : 'm8 9 4-4 4 4'} />}
-      {(sort.key !== k || sort.dir === -1) && <path d={sort.key === k ? 'm8 10 4 4 4-4' : 'm8 15 4 4 4-4'} />}
+      {sort.key === k ? <path d="m8 10 4 4 4-4" /> : <>
+        <path d="m8 9 4-4 4 4" />
+        <path d="m8 15 4 4 4-4" />
+      </>}
     </svg>
   );
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
