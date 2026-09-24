@@ -138,6 +138,7 @@
      below the floating step; the floating step itself adds --elev-drop under its inner
      line and nothing else in the kit does. why: docs/specification.md#elevation */
   --bg: #0e0d14;
+  --table-bg: var(--bg);
   --surface-2: #161520;     /* SUNKEN — fields, tracks, disabled, code */
   --surface: #211e2d;       /* the card */
   --bg-elevated: #2a2639;   /* FLOATING — menus, panels, drawer, modal, toasts */
@@ -284,6 +285,7 @@
      white a card already was, so light moves DOWN and keeps white for the top step.
      why: docs/specification.md#elevation */
   --bg: #eef0f5;
+  --table-bg: #ffffff;
   --surface-2: #e3e6ee;     /* SUNKEN — fields, tracks, disabled, code */
   --surface: #f8f9fc;       /* the card */
   --bg-elevated: #ffffff;   /* FLOATING — menus, panels, drawer, modal, toasts */
@@ -430,6 +432,9 @@
 .ui-snippet,
 .ui-snippet--reveal,
 .ui-sx,
+.ui-table,
+.ui-table--sticky thead th,
+.ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
 .ui-table--zebra tbody tr:nth-child(even) td,
 .ui-table--zebra tbody tr:hover td,

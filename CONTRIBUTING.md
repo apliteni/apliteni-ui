@@ -279,7 +279,7 @@ they are reading the test, not this.
 What moves here is the argument under a hole, when the hole is not particular to one gate. No
 width for anything a line of text sizes is jsdom having no layout, described once in
 [Where jsdom stops being a browser](#where-jsdom-stops-being-a-browser) and named at the gate in
-a line. A hole that is a **decision** — the accessibility floor reads WCAG 2.5.8 without its
+a line. A hole that is a **decision** — the Accessibility minimums page reads WCAG 2.5.8 without its
 spacing exception, so 24×24 is absolute — belongs to the issue that decided it. What is left at
 the gate is one line per hole, saying what is not measured and what a reader should not conclude
 from the pass.
@@ -919,6 +919,13 @@ the anti-vacuity counter for the invariant that keeps the cache honest — every
 through `mutate`, and the cache refuses to answer if one did not.
 
 ### The two cost gates fail for different reasons, so they are kept apart
+
+State discovery in `stories/lib/contrast.js` omits a rule only when every declaration
+is in its tested list of decoration properties: outlines, shadows, corner radius,
+text decoration, cursor and transitions. These cannot change the colour, background,
+visibility, opacity or font threshold that this resolver reads. Custom properties,
+contrast properties and unknown declarations retain the state, including rules that
+change a descendant. Every story still renders fully; no table rows are sampled.
 
 The **wall-clock ceiling** is 120s. Measured on a 10-core laptop over two default cells:
 15.7–16.5s run alone, 16.4–18.3s inside `npm test` where it shares those cores with 21 other

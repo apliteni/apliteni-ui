@@ -18,9 +18,11 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
+import { card, successPanel } from '../src/components/index.js';
 import {
   AA_TEXT,
   composite,
+  effectiveBackground,
   groupFindings,
   kitCssFor,
   parseColour,
@@ -56,24 +58,7 @@ const DOC_STORIES = {
  * count, and the count is asserted exactly.
  */
 const LEDGER = [
-  {
-    id: 'A',
-    fg: '--pink',
-    themes: ['dark'],
-    bg: 'the hovered danger row of a table, tinted by --glow-pink',
-    example: 'span.ui-badge.ui-badge--danger',
-    count: 1,
-    worst: 4.14,
-    why: 'The danger signal painted on its own tint is the kit\'s only danger cue at rest, '
-      + 'and #156 moved --pink in both themes so it clears the surfaces it is drawn on. What '
-      + 'survives is the hover state of a danger badge inside an already-tinted table row: two '
-      + 'washes stacked, which the token move was never going to reach. It is a '
-      + 'badge beside legible text, not the only carrier of the meaning, so it is debt rather '
-      + 'than a defect. Fixing it means deciding whether a tinted row may tint its badges again. '
-      + 'The floor moved once since: the wash under it is a color-mix of --accent '
-      + '(src/styles/table.css), so #157 lifting the dark accent lifted this ground with it and '
-      + 'took the pair down. Same row, same cause, a slightly deeper worst.',
-  },
+  // #344 removes tinted table rows, resolving former bucket A's stacked-wash failure.
   {
     id: 'B',
     fg: '--accent',
@@ -285,7 +270,8 @@ const show = (f) => `${f.ratio.toFixed(2)} (needs ${f.need}) ${f.key}\n      ${[
 // pairs are rated against the wrong ground, not that any verdict flips. Gradients and images an
 // element owns or inherits are reported unjudgeable rather than passed; filter is not applied,
 // so .ui-btn--primary:hover reads pre-filter. Never measured at all: non-text contrast (WCAG
-// 1.4.11), text that is not a text node, more than one accent, and whether the colour is
+// 1.4.11) except the explicit success-panel tick probe below, text that is not a text node,
+// more than one accent, and whether the colour is
 // readable — the AA floor is a floor, not a verdict.
 
 // ---- the gate -------------------------------------------------------------
@@ -496,6 +482,35 @@ test('the five toast statuses resolve to five different accents and five differe
       );
     }
     win.close();
+  }
+});
+
+// The disc is a sibling of the tick, so composite its fill explicitly over the panel wash.
+// This measures solid paint; browser pixel evidence covers the decorative blur and animation.
+test('the success-panel tick clears 3:1 against its disc and panel wash in both themes', () => {
+  for (const theme of THEMES) {
+    const { css } = kitCssFor(theme, ACCENT);
+    const win = new JSDOM(
+      `<!doctype html><html data-theme="${theme}"><head><style>${css}</style></head>`
+      + `<body>${card({ body: successPanel() })}</body></html>`,
+      { pretendToBeVisual: true },
+    ).window;
+    try {
+      const tick = win.document.querySelector('.ui-success__check .ui-sx__tick');
+      const disc = win.document.querySelector('.ui-success__check .ui-sx__disc');
+      assert.ok(tick && disc, `${theme}: the panel must render its tick and disc`);
+      const ink = parseColour(win.getComputedStyle(tick).stroke);
+      const fill = parseColour(win.getComputedStyle(disc).fill);
+      const wash = effectiveBackground(tick, win);
+      assert.ok(ink && fill && Array.isArray(wash), `${theme}: check paint must resolve`);
+      assert.ok(ink[3] === 1 && fill[3] > 0, `${theme}: tick is opaque and disc is tinted`);
+      for (const [surface, ground] of [['panel wash', wash], ['disc', composite(fill, wash)]]) {
+        const measured = ratio(ink, ground);
+        assert.ok(measured >= 3, `${theme}: success-panel tick on ${surface} is ${measured.toFixed(2)}:1`);
+      }
+    } finally {
+      win.close();
+    }
   }
 });
 

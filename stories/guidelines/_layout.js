@@ -2,12 +2,17 @@
 import { badge } from '../../src/components/index.js';
 import { pad } from '../_gallery.js';
 
-// Rule text is stored as plain prose; this is what wraps its file references,
-// token names and selectors in <code> at render time.
-export const mono = (s) => String(s).replace(
-  /(?:[\w/-]+(?:\.[\w-]+)*\.(?:css|js|tsx?)(?::\d+)?|var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?)/g,
-  (m) => `<code>${m}</code>`,
-);
+// Render inline code and token names without interpreting prose as HTML.
+const escape = (text) => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+export const mono = (text) => String(text).split(/(`[^`]+`|\[[^\]]+\]\(https:\/\/[^\s"<>]+\))/g).map(part => {
+  if (part.startsWith('`')) return `<code>${escape(part.slice(1, -1))}</code>`;
+  const link = /^\[([^\]]+)\]\((https:\/\/[^\s"<>]+)\)$/.exec(part);
+  if (link) return `<a href="${escape(link[2])}">${escape(link[1])}</a>`;
+  return escape(part).replace(
+    /var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?/g,
+    (match) => `<code>${match}</code>`,
+  );
+}).join('');
 
 // The specimen width is not this page's number and no longer the confirm's
 // private one either: both read --panel-md now, so the copy #198 recorded here
@@ -22,7 +27,7 @@ const SPEC_CSS = `
     .gl { --gl-specimen: var(--panel-md);
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
-    .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--accent);
+    .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--text);
       background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 2px 6px; }
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
@@ -43,6 +48,7 @@ const PAGE_CSS = `
     /* By name, not ".gc h2": that also matched .ui-confirm__title and outranked it. */
     .gc-imperative { font: 600 16px/1.45 var(--font-display); color: var(--strong); margin: 0 0 var(--space-3); }
 
+    .gc .gc-intro { margin-bottom: var(--space-6); }
     .gc-rule + .gc-rule { margin-top: var(--space-8); padding-top: var(--space-8);
       border-top: 1px solid var(--border); }
 
@@ -53,19 +59,14 @@ const PAGE_CSS = `
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .gc-cell__cap { font: 400 12px/1.55 var(--font-sans); color:var(--text); }
 
-    .gc-why { font: 400 13px/1.65 var(--font-sans); color:var(--text); margin: 0; max-width: var(--prose-dense); }
+    .gc-why { font: 400 13px/1.65 var(--font-sans); color:var(--text); margin: 0 0 var(--space-3); max-width: var(--prose-dense); }
 
-    /* Label stays --muted: --amber as text misses AA on this page. */
+    /* Keep the exception label in body ink; amber marks the boundary. */
     .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
       box-shadow: inset 2px 0 0 var(--amber);
       font: 400 12.5px/1.65 var(--font-sans); color: var(--text); max-width: var(--prose-dense); }
     .gc-except__label { font: 600 10.5px/1.7 var(--font-sans); color:var(--text);
       margin-right: var(--space-2); }
-
-    /* The citations, stripped to addresses and set on one line. Three lines of
-       "hovers to --pink" said the same thing three times. */
-    .gc-refs { margin-top: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-2);
-      font: 400 12px/1.6 var(--font-sans); color:var(--text); }
 
     /* Legible and nothing more. What a rule the kit does not meet should look
        like is decided separately, and replaces this rule and unmetLine(). */
@@ -93,12 +94,12 @@ const cell = (kind, badgeHtml, caption, html) => `
 const whyLine = (rule) => (rule.why ? `
   <p class="gc-why">${mono(rule.why)}</p>` : '');
 
-const figure = (rule) => (rule.doHtml ? `
+const figure = (rule) => (rule.doCaption ? `
   <div class="gc-pair">
-    ${cell('do', doBadge(), rule.doCaption, rule.doHtml())}
-    ${cell('dont', dontBadge(), rule.dontCaption, rule.dontHtml())}
+    ${cell('do', doBadge(), rule.doCaption, rule.doHtml?.() || '')}
+    ${cell('dont', dontBadge(), rule.dontCaption, rule.dontHtml?.() || '')}
   </div>
-  ${whyLine(rule)}` : whyLine(rule));
+  ` : '');
 
 // Guarded because an unguarded version rendered "Except undefined", and two
 // page authors met that and invented a boundary to get rid of it.
@@ -108,19 +109,17 @@ const exceptLine = (rule) => (rule.except ? `
 const unmetLine = (rule) => (rule.unmet ? `
   <p class="gc-unmet">${mono(rule.unmet.note)} #${rule.unmet.issue}</p>` : '');
 
-const refs = (rule) => (rule.kit?.length ? `
-  <div class="gc-refs">${rule.kit.map((k) => mono(k.ref)).join(' ')}</div>` : '');
-
 const ruleBlock = (rule) => `
   <section class="gc-rule">
     <h2 class="gc-imperative">${mono(rule.imperative)}</h2>
+    ${rule.instruction ? `<p class="gc-why">${mono(rule.instruction)}</p>` : ''}
+    ${whyLine(rule)}
     ${figure(rule)}
     ${unmetLine(rule)}
     ${exceptLine(rule)}
-    ${refs(rule)}
   </section>`;
 
-export const guidelinePage = ({ title, rules, css = '' }) => `${SPEC_CSS}${PAGE_CSS}${css}${pad(`<div class="gl gc">
-    <h1>${title}</h1>
+export const guidelinePage = ({ title, blurb, rules, css = '' }) => `${SPEC_CSS}${PAGE_CSS}${css}${pad(`<div class="gl gc">
+    <h1>${mono(title)}</h1>
     ${rules.map(ruleBlock).join('')}
   </div>`)}`;

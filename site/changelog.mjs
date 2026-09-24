@@ -13,9 +13,30 @@
 
 export const RELEASES = [
   {
-    v: '0.37.1', date: '2026-09-24',
+    v: '0.39.1', date: '2026-09-24',
     changes: [
       ['fixed', "DataTable sort indicators are now drawn as SVG chevrons instead of text arrow characters, which iOS showed as colour emoji. The sorted column shows one chevron in the sort direction; other sortable columns show a neutral pair. Screen readers still get the state from aria-sort. Found in the design-review trial, #361."],
+    ],
+  },
+  {
+    v: '0.39.0', date: '2026-09-24',
+    changes: [
+      ['changed', 'Guideline pages now use short, plain-English rules with a one-sentence reason, clear Do and Don’t examples, and body ink instead of muted text. Source-file references moved to test-side coverage, and the empty-state copy rule was removed. Closes #335, #329, #330 and #328.'],
+    ],
+  },
+  {
+    v: '0.38.0', date: '2026-09-24',
+    changes: [
+      ['added', 'Dense financial tables now have value, signed-change and company-identity renderers in vanilla and React. Units use smaller body ink, and callers choose the meaning of change colours. A new compact density uses 33px minimum rows without shrinking the type. Chosen in #344.', ['Table']],
+      ['added', 'Tables can keep their header and company column visible while scrolling. Narrow company cells show the symbol and retain the full accessible name. FilterBar supports controlled selection, removal, clear-all and disabled or busy states with focus recovery. Segmented has an underline appearance and shared keyboard behavior in vanilla and React.', ['Table']],
+      ['changed', 'Tables use white backgrounds in light mode and the base canvas in dark mode. Zebra no longer adds grey stripes, and hover marks the row edge instead of tinting the surface. This follows the table-surface decision in #344.', ['Table']],
+      ['added', 'Dense-table guidelines and a fictional stock screener demonstrate 15 columns, both densities, scrolling and loading, empty and refresh-error states.', ['Table']],
+    ],
+  },
+  {
+    v: '0.37.1', date: '2026-09-24',
+    changes: [
+      ['changed', 'Block confirmations use the glowing green check from the full-page confirmation. The shared mark keeps its draw-in animation and reduced-motion treatment at the block’s existing size, as requested in #331.'],
     ],
   },
   {

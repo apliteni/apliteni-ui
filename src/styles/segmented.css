@@ -55,3 +55,10 @@
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent));
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+
+.ui-seg--underline { background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
+.ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
+.ui-seg--underline button.is-active,
+.ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }
+.ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }

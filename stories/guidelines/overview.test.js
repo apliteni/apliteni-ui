@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { toId, storyNameFromExport } from 'storybook/internal/csf';
 
-import { PAGES, storyId } from './_overview.js';
+import { PAGES, LINKS, storyId } from './_overview.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -33,7 +33,7 @@ for (const file of files.filter((f) => f.endsWith('.stories.js'))) {
   const mod = await import(path.join(here, file));
   if (!String(mod.default?.title || '').startsWith('Guidelines/')) continue;
   const exportName = Object.keys(mod).find((k) => k !== 'default');
-  storyPages.push({ file, mod, exportName, id: toId(mod.default.title, storyNameFromExport(exportName)) });
+  storyPages.push({ file, mod, exportName, id: toId(mod.default.id || mod.default.title, storyNameFromExport(exportName)) });
 }
 
 // The index does not list itself, and nothing else in this directory is exempt.
@@ -55,10 +55,7 @@ test('the pages discovered on disk are the pages the Overview lists', () => {
       continue;
     }
     listed.delete(mod.TITLE);
-    if (typeof mod.BLURB !== 'string' || mod.BLURB.trim() === '') {
-      problems.push(`stories/guidelines/${file} → BLURB is what the index says the page covers, `
-        + `so it must be a non-empty string — got ${JSON.stringify(mod.BLURB)}.`);
-    }
+
   }
 
   for (const title of listed.keys()) {
@@ -142,4 +139,20 @@ test('the built Storybook publishes the ids the index links', { skip: !existsSyn
       + '`npm run build-storybook` and look again.');
 
   assert.deepStrictEqual(problems, [], `an index link is missing from the built Storybook:\n  ${problems.join('\n  ')}`);
+});
+
+import { parseGuideline } from './_markdown.js';
+import { INTRO } from './_overview.js';
+
+test('the packaged Overview links every Markdown page and Storybook reads that index', () => {
+  const directory = path.join(root, 'guidelines');
+  const index = parseGuideline(readFileSync(path.join(directory, 'overview.md'), 'utf8'));
+  assert.equal(INTRO, index.blurb);
+  assert.equal(index.blurb, '');
+  assert.deepEqual(LINKS.map(link => link.title), PAGES.map(page => page.title));
+  assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
+  const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
+  assert.equal(rules, 93);
+  assert.equal(INTRO, '');
+  assert.equal(PAGES.flatMap(page => page.gaps).length, 0, 'update the Overview when a rule is unmet');
 });

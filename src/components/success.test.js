@@ -14,7 +14,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { success } from './success.js';
+import { success, successCheck } from './success.js';
+import { successPanel } from './index.js';
 
 /** The tag and text of the title success() drew, refusing anything else. */
 const title = (opts) => {
@@ -93,4 +94,13 @@ test('only the tag moves: the title keeps its class and its text at every rank',
       + 'the class is the look, and moving one must not move the other',
     );
   }
+});
+
+test('block confirmation shares the full-page check and keeps text escaped', () => {
+  const html = successPanel({ title: '<Done>', sub: 'Saved & sent' });
+  assert.ok(html.includes(successCheck()));
+  assert.ok(success().includes(successCheck()));
+  assert.ok(html.includes('&lt;Done&gt;'));
+  assert.ok(html.includes('Saved &amp; sent'));
+  assert.ok(!successPanel().includes('ui-success__sub'));
 });

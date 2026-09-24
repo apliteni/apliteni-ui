@@ -16,7 +16,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { cssText } from '../src/inline.js';
+import { cssText, styles } from '../src/inline.js';
 
 const src = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'src');
 const readSrc = (rel) => readFileSync(path.join(src, rel), 'utf8');
@@ -151,5 +151,12 @@ test("cssText carries every stylesheet, in index.css's order", () => {
     );
     previousEnd = at;
     previous = rel;
+  }
+});
+
+test('selecting the panel and check sheets includes each stylesheet once', () => {
+  const selected = [styles.callout, styles.success].join('\n');
+  for (const file of ['styles/callout.css', 'styles/success.css']) {
+    assert.equal(selected.split(readSrc(file).trim()).length - 1, 1, `${file} must appear once`);
   }
 });

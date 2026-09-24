@@ -32,6 +32,7 @@
 @import "./styles/confirm.css";
 @import "./styles/command-palette.css";
 @import "./styles/table.css";
+@import "./styles/filter-bar.css";
 @import "./styles/pagination.css";
 @import "./styles/stat.css";
 @import "./styles/empty.css";

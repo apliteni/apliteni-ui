@@ -64,6 +64,7 @@ const squash = (s) => s.trim().replace(/\s+/g, ' ');
  * you point at it" has nothing to be quiet for. Anything added here has to be
  * something you read, not something you click. */
 const AT_REST_EXEMPT = [
+  { selector: '.ui-delta--danger', why: 'a financial change reports a caller-judged outcome, not a destructive action' },
   {
     selector: '.ui-badge--danger',
     why: 'a status badge reports a state that already exists; there is nothing to press',

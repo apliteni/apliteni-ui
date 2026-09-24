@@ -6,7 +6,7 @@
  * first test holds the lists in step.
  *
  * The outline and the landmark names are accessibility questions, so this is
- * one of the accessibility gates the floor page lists — and what it cannot
+ * one of the accessibility gates the Accessibility minimums page lists — and what it cannot
  * see is stated there with the rest.
  *
  * why: docs/specification.md#the-page

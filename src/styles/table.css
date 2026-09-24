@@ -1,5 +1,5 @@
 /* ============================================================================
- * Table — .ui-table  (borderless-body, hairline rows, muted head)
+ * Table — .ui-table  (hairline rows, opaque base surface)
  * Row modifiers: .is-dead (revoked/struck), right-aligned .ui-table__act
  * ========================================================================== */
 
@@ -26,7 +26,7 @@
 }
 .ui-table tr:last-child td { border-bottom: 0; }
 .ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
-.ui-table th:last-child,
+.ui-table th:last-child { padding-right: 0; }
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
 .ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
@@ -50,7 +50,7 @@
 
 /* Data-table modifiers, composable: .ui-table--dense --zebra --hover.
  *   --dense  --space-3 across, --space-2 down — one step in from the base table
- *   --zebra  row striping; 2px header rule; the hover tint out-ranks the stripe
+ *   --zebra  legacy spacing and 2px header rule; the base-surface rule below removes stripes
  * Cell helpers: .ui-table__num (right, tabular), .ui-table__code.
  * why: docs/specification.md#spacing-and-rhythm
  * held by: stories/table-rhythm.test.js */
@@ -83,3 +83,45 @@
 
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
    lives in styles/empty.css as a standalone component (illustration support). */
+
+/* White in light, base canvas in dark; never a grey or tinted data surface. */
+.ui-table { background: var(--table-bg); --ring-gap: var(--table-bg); }
+.ui-table--zebra tbody tr:nth-child(even) td,
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
+.ui-table--zebra tbody tr:hover td,
+.ui-table--zebra.ui-table--hover tbody tr:hover td {
+  background: var(--table-bg); --ring-gap: var(--table-bg);
+}
+.ui-table tbody tr:hover { outline: 1px solid var(--border-strong); outline-offset: -1px; }
+.ui-table td.ui-table__num { text-align: right; }
+.ui-table--compact td { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
+.ui-table--compact th { padding: var(--space-2) var(--space-3); }
+.ui-table-scroll { overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1); }
+.ui-table-scroll:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-table--sticky { border-collapse: separate; border-spacing: 0; }
+.ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); --ring-gap: var(--table-bg); padding-top: var(--space-2); }
+.ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); --ring-gap: var(--table-bg); border-right: 1px solid var(--border); }
+.ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
+.ui-value, .ui-delta { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ui-value__unit { margin-left: var(--space-1); font-size: var(--text-xs); color: var(--text); }
+.ui-delta--success { color: var(--chip-success-ink); }
+.ui-delta--danger { color: var(--chip-danger-ink); }
+.ui-identity { min-height: 24px; display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text); text-decoration: none; }
+.ui-identity__symbol { font-family: var(--font-mono); font-weight: var(--weight-semibold); }
+.ui-identity__name { white-space: normal; max-width: var(--panel-sm); }
+.ui-identity__logo { width: 24px; height: 24px; flex: 0 0 24px; position: relative; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-xs); font-size: var(--text-xs); }
+.ui-identity__logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
+a.ui-identity:hover { text-decoration: underline; }
+.ui-identity:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+@media (max-width: 720px) {
+  .ui-table--pinned .ui-table__identity { width: 1%; }
+  .ui-table--pinned .ui-identity__logo { display: none; }
+  .ui-table--pinned .ui-identity__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .ui-table--pinned .ui-identity { max-width: var(--panel-sm); }
+}
+
+/* One width reserves the selection track and offsets the adjacent identity. */
+.ui-table--pinned { --ui-table-selection-width: var(--space-12); }
+.ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }
+.ui-table--pinned .ui-table__selection + .ui-table__identity { left: var(--ui-table-selection-width); }

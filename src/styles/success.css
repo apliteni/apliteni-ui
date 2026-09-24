@@ -11,11 +11,13 @@
  *   the foot. Markup comes from success() in components/index (re-exported).
  * ========================================================================== */
 
-.ui-sx {
-  --sx-green: var(--green);
+.ui-sx, .ui-success__check {
   --sx-tint: color-mix(in srgb, var(--green) 18%, transparent);
   --sx-track: color-mix(in srgb, var(--green) 32%, transparent);
+}
 
+.ui-sx {
+  --sx-green: var(--green);
   position: relative;
   overflow: hidden;
   border-radius: 20px;
