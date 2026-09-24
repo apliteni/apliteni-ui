@@ -6,7 +6,7 @@ How a screen shows key figures and explains changes beside them.
 
 <!-- rule: a-band-not-a-card -->
 
-**Do:** One card per figure by default: a large value, arrow and signed change, with one comparison caption above the row.
+**Do:** One card per figure by default: the figure is largest on its card, with an arrow, signed change and one comparison caption above the row.
 
 **Don't:** The card from [#267](https://github.com/apliteni/apliteni-ui/issues/267): heading-sized figures and a capitalised 10px status chip with no comparison basis.
 
