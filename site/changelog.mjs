@@ -13,15 +13,9 @@
 
 export const RELEASES = [
   {
-    v: '0.38.2', date: '2026-09-24',
+    v: '0.39.0', date: '2026-09-24',
     changes: [
-      ['removed', 'The empty-state copy rule was removed from Microcopy and tone. Its examples and exception are also removed, as requested in #328.'],
-    ],
-  },
-  {
-    v: '0.38.1', date: '2026-09-24',
-    changes: [
-      ['changed', 'The guideline page is now titled Accessibility minimums. Existing Storybook and Markdown links keep working. Closes #330.'],
+      ['changed', 'Guideline pages now use short, plain-English rules with a one-sentence reason, clear Do and Don’t examples, and body ink instead of muted text. Source-file references moved to test-side coverage, and the empty-state copy rule was removed. Closes #335, #329, #330 and #328.'],
     ],
   },
   {
