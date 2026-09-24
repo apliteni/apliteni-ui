@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.38.1', date: '2026-09-24',
+    changes: [
+      ['changed', 'The guideline page is now titled Accessibility minimums. Existing Storybook and Markdown links keep working. Closes #330.'],
+    ],
+  },
+  {
     v: '0.38.0', date: '2026-09-24',
     changes: [
       ['added', 'Dense financial tables now have value, signed-change and company-identity renderers in vanilla and React. Units use smaller body ink, and callers choose the meaning of change colours. A new compact density uses 33px minimum rows without shrinking the type. Chosen in #344.', ['Table']],

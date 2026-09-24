@@ -33,7 +33,7 @@ for (const file of files.filter((f) => f.endsWith('.stories.js'))) {
   const mod = await import(path.join(here, file));
   if (!String(mod.default?.title || '').startsWith('Guidelines/')) continue;
   const exportName = Object.keys(mod).find((k) => k !== 'default');
-  storyPages.push({ file, mod, exportName, id: toId(mod.default.title, storyNameFromExport(exportName)) });
+  storyPages.push({ file, mod, exportName, id: toId(mod.default.id || mod.default.title, storyNameFromExport(exportName)) });
 }
 
 // The index does not list itself, and nothing else in this directory is exempt.

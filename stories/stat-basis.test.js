@@ -2,7 +2,7 @@
 // text a reader can reach — beside the change, or in the band's caption that
 // the change points at. A hover `title` is not that: it is the rejected shape
 // in #267, and nobody on a phone or a screen reader ever meets it. That makes
-// this an accessibility gate, and the floor page names it as one: a comparison
+// this an accessibility gate, and the Accessibility minimums page names it as one: a comparison
 // only a hovering pointer reaches is one a keyboard never reaches at all.
 //
 // And the caption is read BEFORE the figures it explains, the way a table's

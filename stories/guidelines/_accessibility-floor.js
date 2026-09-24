@@ -126,7 +126,7 @@ const gateFiles = {
   "Signal contrast": "stories/signal-contrast.test.js",
   "Stat basis": "stories/stat-basis.test.js",
   "Glyph stroke": "stories/glyph-stroke.test.js",
-  "Accessibility floor": "stories/guidelines/accessibility-floor.test.js",
+  "Accessibility minimums": "stories/guidelines/accessibility-floor.test.js",
   "Confirm keyboard": "stories/confirm-keyboard.test.js",
   "Overlay stack": "stories/overlay-stack.test.js",
   "Overlay css": "stories/overlay-css.test.js",

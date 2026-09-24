@@ -1,4 +1,4 @@
-# The accessibility floor
+# Accessibility minimums
 
 The four numbers under every control, the kit's higher aims, and the blind spots its gates admit.
 
@@ -206,7 +206,7 @@ These are the checks’ declared limits, not a new audit. Every accessibility ch
 
 **Limit:** State. Stories render at rest, so a stroke declared only in :hover is unseen.
 
-### Accessibility floor
+### Accessibility minimums
 
 **Checks:** Pins three page numbers: target size for every rendered control, using its box UNION generated pseudo-elements; ring contrast against every ground; and the composite left by a disabled control. Each disabled control is measured as rendered and again without its disabled attribute, so the pair must change. Every control in a folded rail is measured separately, with its name read while the label is off-screen.
 

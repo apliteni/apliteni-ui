@@ -1166,8 +1166,8 @@ What the shell guarantees:
 `layout: 'rail'` — the default, and what every page already on the shell gets — is the
 arrangement above. `accountShell()` passes the option through and settles nothing of its own.
 Every guarantee in this section holds in both: the fold, the cookie, `wireShell()`, the name
-chips, the 720px strip, the reader's menu and the accessibility floor are the same behaviour with
-the same wiring, and the gates that hold them were extended rather than duplicated.
+chips, the 720px strip and the reader's menu keep the same behaviour and wiring; both layouts meet
+the same accessibility minimums, and their existing gates were extended rather than duplicated.
 
 What moves, and what each move buys:
 

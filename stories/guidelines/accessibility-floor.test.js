@@ -1,6 +1,6 @@
-// The three numbers the accessibility floor stands on, each measured.
+// The numbers stated on Accessibility minimums, each measured.
 //
-// The floor page (stories/guidelines/_accessibility-floor.js) states a minimum target
+// The Accessibility minimums page (stories/guidelines/_accessibility-floor.js) states a minimum target
 // size, a contrast for `--ring` and a legibility floor for a disabled control, none of
 // which existed in this tree before #201. This file measures all three against what the
 // kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md.
@@ -643,7 +643,7 @@ test('target size: no control carries an overlay this gate cannot measure', () =
 // than asserted, so retiring the last one retires the badge with it.
 test('target size: the page badges a gap exactly when an exemption is still holding one open', () => {
   const rule = RULES.find((r) => r.id === 'target-size');
-  assert.ok(rule, 'the target-size rule is gone from the floor page');
+  assert.ok(rule, 'the target-size rule is gone from the Accessibility minimums page');
   const open = TARGET_EXEMPT.filter((e) => e.issue).map((e) => e.control);
   assert.equal(
     Boolean(rule.unmet), open.length > 0,
@@ -828,11 +828,11 @@ test(`ring: nothing has drifted below ${RING_FLOOR}:1, the worst the kit measure
 });
 
 // #218 retired the ledger this gate used to carry. The ring clears the bar in
-// all eight cells now, so there is no gap to hold open — and the floor page
+// all eight cells now, so there is no gap to hold open — and the Accessibility minimums page
 // must not still badge one.
-test('ring: the floor page claims no gap, because there is none', () => {
+test('ring: the Accessibility minimums page claims no gap, because there is none', () => {
   const ring = RULES.find((r) => r.id === 'ring-contrast');
-  assert.ok(ring, 'the ring-contrast rule is gone from the floor page');
+  assert.ok(ring, 'the ring-contrast rule is gone from the Accessibility minimums page');
   assert.equal(ring.unmet, undefined, 'the ring clears the bar — retire the ledger rather than leaving it');
 });
 
@@ -963,7 +963,7 @@ test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst the kit
 // why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
 test('disabled: the ratio the rule argues from is the ratio the trio makes', () => {
   const rule = RULES.find((r) => r.id === 'disabled-legibility');
-  assert.ok(rule, 'the disabled-legibility rule is gone from the floor page');
+  assert.ok(rule, 'the disabled-legibility rule is gone from the Accessibility minimums page');
   const prose = [rule.imperative, rule.why, rule.except].join(' ');
   for (const theme of THEMES) {
     const vars = tokensFor(theme);
@@ -1015,7 +1015,7 @@ test('disabled: a rule that fades with opacity has no label under it', () => {
 // is discovered from disk, and a gate the page has never heard of fails the
 // build (the discovery rule).
 
-test('the floor page names every accessibility gate in the tree, and no gate it does not', () => {
+test('the Accessibility minimums page names every accessibility gate in the tree, and no gate it does not', () => {
   const files = [
     ...readdirSync(path.join(root, 'stories'), { recursive: true }).map((f) => `stories/${f}`),
     ...readdirSync(path.join(root, 'react/src'), { recursive: true }).map((f) => `react/src/${f}`),
