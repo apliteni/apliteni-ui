@@ -48,5 +48,7 @@ test('segmented arrows wrap, skip disabled options and emit once after repeated 
 test('broken identity logo exposes a fallback without losing the full company name', () => {
   const { dom, host } = setup(rowIdentity({ symbol: 'ASTR', name: 'Aster Systems', logo: '/missing.png', href: '/aster' }));
   initRowIdentity(host); host.querySelector('img').dispatchEvent(new dom.window.Event('error'));
-  assert.equal(host.querySelector('img').hidden, true); assert.match(host.textContent, /Aster Systems/); dom.window.close();
+  assert.equal(host.querySelector('img').hidden, true); assert.match(host.textContent, /Aster Systems/);
+  host.querySelector('img').dispatchEvent(new dom.window.Event('load')); assert.equal(host.querySelector('img').hidden, false);
+  host.querySelector('img').dispatchEvent(new dom.window.Event('error')); assert.equal(host.querySelector('img').hidden, true); dom.window.close();
 });

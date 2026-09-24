@@ -18,10 +18,15 @@ export function rowIdentity({ symbol = '', name = '', logo, href } = {}) {
     + `<span class="ui-identity__symbol">${esc(symbol)}</span><span class="ui-identity__name">${esc(name)}</span></${tag}>`;
 }
 
+const initializedImages = new WeakSet();
+
 // Images keep their fallback underneath; no inline handlers in server-rendered markup.
 export function initRowIdentity(root = document) {
   root.querySelectorAll('.ui-identity__logo img').forEach(img => {
     if (img.complete && !img.naturalWidth) img.hidden = true;
-    img.addEventListener('error', () => { img.hidden = true; }, { once: true });
+    if (initializedImages.has(img)) return;
+    initializedImages.add(img);
+    img.addEventListener('error', () => { img.hidden = true; });
+    img.addEventListener('load', () => { img.hidden = false; });
   });
 }

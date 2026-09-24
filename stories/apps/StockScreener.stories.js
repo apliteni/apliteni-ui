@@ -10,7 +10,7 @@ const sectors = ['Technology', 'Energy', 'Health care', 'Financials', 'Industria
 const rows = names.map((name, i) => ({ name, symbol: name.slice(0, 4).toUpperCase(), price: 340 - i * 8.37, cap: 980 - i * 27.31, sector: sectors[i % sectors.length], i }));
 const signed = n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(2)}%`;
 const change = n => deltaValue({ value: signed(n), tone: n > 0 ? 'success' : n < 0 ? 'danger' : 'neutral', basisId: 'screener-basis' });
-const filters = [{ id: 'sector', label: 'Sector', value: 'Technology', items: sectors.map(label => ({ label, value: label })) }];
+const filters = [{ id: 'sector', label: 'Sector', value: 'Technology', items: [...sectors, 'Utilities'].map(label => ({ label, value: label })) }];
 const views = ['Overview', 'Performance', 'Valuation'];
 const headers = ['Company', 'Price', 'Change %', 'Volume', 'Rel. volume', 'Market cap', 'P/E', 'EPS', 'EPS growth', 'Div. yield', 'Revenue', 'Rev. growth', 'Beta', 'Sector', 'Rating'];
 const css = `<style>
@@ -34,7 +34,7 @@ const table = (data, density, view = 'Overview', sort = 'desc', emptyMessage = '
   }).join('') || `<tr><td colspan="15">${emptyMessage}</td></tr>`}</tbody></table>`;
 };
 function render({ density = 'compact', applied = false, state = 'ready', limit = 30 } = {}) {
-  const data = applied ? rows.filter(r => r.sector === 'Technology') : state === 'ready' ? rows.slice(0, limit) : rows.slice(0, 3);
+  const data = applied ? rows.filter(r => r.sector === 'Technology').slice(0, limit) : state === 'ready' ? rows.slice(0, limit) : rows.slice(0, 1);
   const body = `${css}<section class="screener"><div class="screener__filters"><div data-screener-filters>${filterBar({ filters: applied ? filters : [], busy: state === 'refreshing' })}</div>${button({ label: 'Filter by technology', size: 'sm' })}</div>${segmented({ options: views, appearance: 'underline', ariaLabel: 'Dataset view', name: 'screener' })}<div class="ui-table-scroll" role="region" aria-label="Stock screener, scroll for more columns and rows" tabindex="0"${state === 'refreshing' || state === 'loading' ? ' aria-busy="true"' : ''}>${table(state === 'empty' || state === 'loading' ? [] : data, density, 'Overview', 'desc', state === 'loading' ? 'Loading companies…' : 'No companies available.')}</div>${state === 'error' ? `<p role="alert">Could not refresh prices. Existing rows are still shown. ${button({ label: 'Retry refresh', size: 'sm' })}</p>` : state === 'loading' ? '<p role="status">Loading companies…</p>' : state === 'refreshing' ? '<p role="status">Refreshing prices…</p>' : ''}<p class="screener__foot">${state === 'empty' || state === 'loading' ? 0 : data.length} fictional companies. USD = US dollars; M = million; B = billion.</p><p class="screener__foot" id="company-detail" tabindex="-1" aria-live="polite">Company links are demonstration links; no live prices or company detail service is connected.</p></section>`;
   return appShell({ word: 'Finance', title: 'Stock screener', sub: '<span id="screener-basis">Fictional demonstration data. Changes versus previous close.</span>', nav: [{ id: 'screener', icon: 'chart', label: 'Stock screener', href: '#screener' }], active: 'screener', width: 'wide', collapsible: true, collapsed: true, body });
 }
@@ -55,8 +55,8 @@ export const Screener = { render, play: ({ canvasElement }) => {
   canvasElement.addEventListener('ui-segment-change', e => { view = e.detail.value; repaint(); });
   canvasElement.addEventListener('click', e => { const identity = e.target.closest('.ui-identity'); if (identity) { e.preventDefault(); const detail = canvasElement.querySelector('#company-detail'); detail.textContent = `${identity.querySelector('.ui-identity__name').textContent}. Fictional company; no live prices are connected.`; detail.focus(); } if (e.target.closest('.screener__filters > .ui-btn')) { active = filters; bar.update({ filters: active }); repaint(); } if (e.target.closest('.screener__sort')) { sort = sort === 'desc' ? 'asc' : 'desc'; repaint(); canvasElement.querySelector('.screener__sort').focus(); } });
 } };
-export const Dense = { render: () => render({ density: 'dense', limit: 6 }) };
-export const AppliedFilters = { render: () => render({ applied: true }) };
+export const Dense = { render: () => render({ density: 'dense', limit: 3 }) };
+export const AppliedFilters = { render: () => render({ applied: true, limit: 1 }) };
 export const Refreshing = { render: () => render({ state: 'refreshing' }) };
 export const Loading = { render: () => render({ state: 'loading' }) };
 export const Empty = { render: () => render({ state: 'empty' }) };

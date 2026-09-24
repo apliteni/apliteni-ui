@@ -7,7 +7,7 @@ export type RowIdentityProps = { symbol: string; name: string; logo?: string; hr
 export function RowIdentity({ symbol, name, logo, href }: RowIdentityProps) {
   const Tag = href ? 'a' : 'span';
   return <Tag className="ui-identity" href={href}>
-    <span className="ui-identity__logo" aria-hidden="true"><span>{symbol.slice(0, 1)}</span>{logo && <img src={logo} alt="" onError={e => { e.currentTarget.hidden = true; }} />}</span>
+    <span className="ui-identity__logo" aria-hidden="true"><span>{symbol.slice(0, 1)}</span>{logo && <img src={logo} alt="" onLoad={e => { e.currentTarget.hidden = false; }} onError={e => { e.currentTarget.hidden = true; }} />}</span>
     <span className="ui-identity__symbol">{symbol}</span><span className="ui-identity__name">{name}</span>
   </Tag>;
 }
