@@ -1,6 +1,7 @@
 import { addons, types } from 'storybook/manager-api';
 import { create } from 'storybook/theming';
 import { SET_GLOBALS, GLOBALS_UPDATED } from 'storybook/internal/core-events';
+import { INSPECTOR_TOOL_ID, INSPECTOR_TOOL_TITLE, renderInspectorToggle } from './inspector-toggle.jsx';
 import { THEME_TOOL_ID, THEME_TOOL_TITLE, renderThemeToggle } from './theme-toggle.jsx';
 
 // The prism mark + wordmark as the sidebar logo (kit tokens). The wordmark is a
@@ -147,5 +148,14 @@ addons.register(THEME_TOOL_ID, () => {
     title: THEME_TOOL_TITLE,
     match: ({ tabId }) => !tabId,
     render: renderThemeToggle,
+  });
+});
+
+addons.register(INSPECTOR_TOOL_ID, () => {
+  addons.add(INSPECTOR_TOOL_ID, {
+    type: types.TOOL,
+    title: INSPECTOR_TOOL_TITLE,
+    match: ({ tabId }) => !tabId,
+    render: renderInspectorToggle,
   });
 });

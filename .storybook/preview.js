@@ -129,15 +129,6 @@ const preview = {
     inspect: {
       description: 'Component inspector',
       defaultValue: 'off',
-      toolbar: {
-        title: 'Inspect',
-        icon: 'search',
-        items: [
-          { value: 'off', title: 'Inspector off' },
-          { value: 'on', title: 'Show components' },
-        ],
-        dynamicTitle: true,
-      },
     },
     accent: {
       description: 'Accent sub-theme',

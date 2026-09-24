@@ -1,5 +1,5 @@
 /**
- * Registration of the theme toggle in `.storybook/manager.js`.
+ * Registration of the theme and Inspector toggles in `.storybook/manager.js`.
  *
  * This imports the real manager entry and lets it run against a fake `addons`, so
  * what is checked is the code Storybook executes, not a grep for a string. It
@@ -30,27 +30,28 @@ vi.mock('storybook/manager-api', async (importOriginal) => {
   return { ...actual, addons };
 });
 
-const TOOL_ID = 'apliteni/theme-toggle';
-
 beforeAll(async () => {
   await import('../../.storybook/manager.js');
 });
 
-describe('the theme toggle', () => {
+describe.each([
+  ['apliteni/theme-toggle', 'Theme'],
+  ['apliteni/inspector-toggle', 'Inspector'],
+])('%s', (TOOL_ID, title) => {
   it('is registered as a toolbar tool with a render function', () => {
     expect(addons.register).toHaveBeenCalledWith(TOOL_ID, expect.any(Function));
-    expect(addons.add).toHaveBeenCalledTimes(1);
+    expect(addons.add).toHaveBeenCalledTimes(2);
 
-    const [id, config] = addons.add.mock.calls[0];
+    const [id, config] = addons.add.mock.calls.find(([id]) => id === TOOL_ID);
     expect(id).toBe(TOOL_ID);
     expect(config.type).toBe('tool');
-    expect(config.title).toBe('Theme');
+    expect(config.title).toBe(title);
     expect(typeof config.render).toBe('function');
     expect(React.isValidElement(config.render())).toBe(true);
   });
 
-  it('matches the story view only, which is what puts it beside Inspect and Accent', () => {
-    const { match } = addons.add.mock.calls[0][1];
+  it('matches the story view only, which is what puts it beside the other global tools', () => {
+    const { match } = addons.add.mock.calls.find(([id]) => id === TOOL_ID)[1];
 
     expect(match({ viewMode: 'story', tabId: undefined })).toBeTruthy();
     expect(match({ viewMode: 'story', tabId: 'addon-someTab' })).toBeFalsy();
