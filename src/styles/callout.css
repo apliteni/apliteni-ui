@@ -181,14 +181,12 @@
   background: var(--glow-green); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
 }
 .ui-success__check {
+  --sx-green: var(--chip-success-ink);
+  --sx-tint: color-mix(in srgb, var(--green) 18%, transparent);
+  --sx-track: color-mix(in srgb, var(--green) 32%, transparent);
   width: 48px; height: 48px;
-  border-radius: 50%;
-  background: var(--green);
-  color: var(--signal-contrast);
-  display: grid;
-  place-items: center;
   margin: 0 auto 14px;
 }
-.ui-success__check svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+.ui-success__check .ui-sx__check { width: 100%; height: 100%; }
 .ui-success__title { color: var(--strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 5px; }
 .ui-success__sub { color: var(--text); font-size: var(--text-base); }

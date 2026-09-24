@@ -48,7 +48,7 @@ export const styles = {
   pagination: read('styles/pagination.css'),
   stat: read('styles/stat.css'),
   empty: read('styles/empty.css'),
-  callout: read('styles/callout.css'),
+  callout: read('styles/callout.css') + '\n' + read('styles/success.css'),
   code: read('styles/code.css'),
   topbar: topbarCss,
   footer: read('styles/footer.css'),
@@ -82,7 +82,7 @@ export const cssText = [
   styles.pagination,
   styles.stat,
   styles.empty,
-  styles.callout,
+  read('styles/callout.css'), // The full bundle includes the shared check with styles.success below.
   styles.code,
   styles.topbar,
   styles.footer,

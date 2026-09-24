@@ -2,10 +2,10 @@
 // viz/ server-render idiom so the portal can adopt them with no framework.
 import { icon } from '../assets/icons.js';
 import { illo } from '../assets/illustrations.js';
+import { successCheck } from './success.js';
 const HTML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 const cx = (...a) => a.filter(Boolean).join(' ');
 export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => HTML_ENTITIES[c]);
-
 // ---- Button --------------------------------------------------------------
 // `iconSvg` is a raw leading-icon SVG string (trusted markup, not escaped) for
 // branded glyphs the kit's icon set doesn't own — e.g. a Google "G". It takes
@@ -261,9 +261,9 @@ export function toast({
 // The kit also publishes success() from components/success.js, which is the same
 // idea at page size: layouts, a backdrop, follow-up buttons and an auto-redirect
 // countdown. Pick by how much of the screen the confirmation owns. The two share
-// no CSS, so changing one never moves the other.
+// the glowing check; their layout and content remain independent.
 export function successPanel({ title = 'Done', sub = '' } = {}) {
-  return `<div class="ui-success"><div class="ui-success__check">${icon('check')}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
+  return `<div class="ui-success"><div class="ui-success__check">${successCheck()}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
 }
 
 // ---- Empty state ---------------------------------------------------------
