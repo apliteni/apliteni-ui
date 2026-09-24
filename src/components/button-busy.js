@@ -1,17 +1,32 @@
-import { slideButtonLabel } from '../lib/button-label.js';
+import { slideButtonLabel } from '../motion.js';
 
 const disabledBeforeBusy = new WeakMap();
+const wired = new WeakSet();
+
+function wireActivationGuard(element) {
+  if (wired.has(element)) return;
+  const block = event => {
+    if (element.getAttribute('aria-busy') !== 'true') return;
+    if (event.type !== 'click' && event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  for (const type of ['click', 'keydown', 'keyup']) element.addEventListener(type, block, true);
+  element.setAttribute('data-btn-wired', '');
+  wired.add(element);
+}
 
 /** Update a factory button in place, preserving its icons and prior disabled state. */
 export function setButtonBusy(element, { busy, label } = {}) {
+  wireActivationGuard(element);
   const wasBusy = element.getAttribute('aria-busy') === 'true';
-  if (busy && !wasBusy) disabledBeforeBusy.set(element, {
-    disabled: element.hasAttribute('disabled'),
-    ariaDisabled: element.getAttribute('aria-disabled'),
+  if ((busy || wasBusy) && !disabledBeforeBusy.has(element)) disabledBeforeBusy.set(element, {
+    disabled: wasBusy ? element.hasAttribute('data-btn-disabled') : element.hasAttribute('disabled'),
+    ariaDisabled: wasBusy && !element.hasAttribute('data-btn-disabled') ? null : element.getAttribute('aria-disabled'),
   });
   if (busy) {
     element.setAttribute('aria-busy', 'true');
-    element.setAttribute('disabled', '');
+    element.toggleAttribute('disabled', disabledBeforeBusy.get(element).disabled);
     element.setAttribute('aria-disabled', 'true');
     if (!element.querySelector('.ui-btn__bars')) {
       const bars = element.ownerDocument.createElement('span');
@@ -37,5 +52,19 @@ export function setButtonBusy(element, { busy, label } = {}) {
   } else if (label != null && element.classList.contains('ui-btn--icon')) {
     element.setAttribute('aria-label', String(label));
     element.setAttribute('title', String(label));
+  }
+  if (label != null && (busy || wasBusy)) {
+    let status = element.nextElementSibling;
+    if (!status?.classList.contains('ui-btn__status')) {
+      status = element.ownerDocument.createElement('span');
+      status.className = 'ui-sr ui-btn__status';
+      status.setAttribute('role', 'status');
+      status.setAttribute('aria-live', 'polite');
+      element.after(status);
+      // A caller retaining only the button discarded the factory's empty region.
+      setTimeout(() => {
+        status.textContent = element.querySelector('.ui-btn__label')?.textContent ?? element.getAttribute('aria-label') ?? '';
+      }, 0);
+    } else if (status.textContent !== String(label)) status.textContent = String(label);
   }
 }

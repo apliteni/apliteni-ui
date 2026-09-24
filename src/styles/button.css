@@ -27,7 +27,9 @@
     border-color var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease),
-    filter var(--dur-fast) var(--ease);
+    filter var(--dur-fast) var(--ease),
+    padding-top var(--dur-med) var(--ease),
+    padding-bottom var(--dur-med) var(--ease);
 }
 
 .ui-btn:hover {
@@ -134,6 +136,7 @@
   padding-top: calc(var(--btn-pad-y) - 2px);
   padding-bottom: calc(var(--btn-pad-y) + 2px);
 }
+.ui-btn[aria-busy="true"][data-btn-wired] { pointer-events: auto; }
 .ui-btn__bars {
   position: absolute;
   left: 10px; right: 10px; bottom: 3px;
@@ -184,14 +187,15 @@
 /* why: docs/specification.md#busy-button-labels */
 .ui-btn__label-slot { position: relative; display: inline-grid; overflow: hidden; }
 .ui-btn__label { grid-area: 1 / 1; }
-.ui-btn__label.is-changing { animation: ui-btn-label-in var(--dur-med) var(--ease) both; }
+.ui-btn__label.is-changing { animation: ui-btn-label-in var(--dur-med) var(--ease-out) both; }
 .ui-btn__label-old {
-  grid-area: 1 / 1;
+  position: absolute;
+  inset: 0 auto auto 0;
   pointer-events: none;
-  animation: ui-btn-label-out var(--dur-med) var(--ease) both;
+  animation: ui-btn-label-out var(--dur-med) var(--ease-in) both;
 }
 @keyframes ui-btn-label-out { from { transform: translateY(0); } 45%, to { transform: translateY(100%); } }
-@keyframes ui-btn-label-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes ui-btn-label-in { from, 45% { transform: translateY(100%); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
   .ui-btn__label.is-changing { animation: none; transform: none; }
   .ui-btn__label-old { display: none; }

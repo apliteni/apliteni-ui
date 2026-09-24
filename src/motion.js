@@ -107,3 +107,34 @@ export function replay(el) {
   void el.offsetWidth; // force reflow so the next frame re-triggers
   el.style.animation = '';
 }
+
+const buttonLabelTransitions = new WeakMap();
+
+/** Slide a button label from a saved DOM snapshot; returns cancellation cleanup. */
+export function slideButtonLabel(label, previous) {
+  buttonLabelTransitions.get(label)?.();
+  if (!previous || prefersReducedMotion()) return () => {};
+  const slot = label.parentElement;
+  const old = previous.cloneNode(true);
+  old.className = 'ui-btn__label-old';
+  old.setAttribute('aria-hidden', 'true');
+  old.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+  old.removeAttribute('id');
+  slot.append(old);
+  label.classList.remove('is-changing');
+  void label.offsetWidth;
+  label.classList.add('is-changing');
+  let timer;
+  const cleanup = (event) => {
+    if (event && event.target !== label) return;
+    clearTimeout(timer);
+    old.remove();
+    label.classList.remove('is-changing');
+    label.removeEventListener('animationend', cleanup);
+    buttonLabelTransitions.delete(label);
+  };
+  label.addEventListener('animationend', cleanup);
+  timer = setTimeout(cleanup, ENTRANCE_FALLBACK_MS);
+  buttonLabelTransitions.set(label, cleanup);
+  return cleanup;
+}

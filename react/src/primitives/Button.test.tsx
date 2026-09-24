@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { button } from '@apliteni/apliteni-ui';
 import { Button } from './Button';
 import { classesOf, classesOfEl } from '../test/classlist';
@@ -49,7 +49,7 @@ it('slides busy label changes and clears interrupted outgoing copies', () => {
   const { container, rerender, getByRole, unmount } = render(<Button>Save</Button>);
   expect(container.querySelector('.ui-btn__label-old')).toBeNull();
   rerender(<Button busy>Saving…</Button>);
-  expect(getByRole('button', { name: 'Saving…' })).toBeDisabled();
+  expect(getByRole('button', { name: 'Saving…' })).toHaveAttribute('aria-disabled', 'true');
   expect(container.querySelector('.ui-btn__label-old')).toHaveTextContent('Save');
   rerender(<Button busy>Almost done</Button>);
   expect(container.querySelectorAll('.ui-btn__label-old')).toHaveLength(1);
@@ -58,4 +58,43 @@ it('slides busy label changes and clears interrupted outgoing copies', () => {
   expect(getByRole('button', { name: 'Saved' })).not.toBeDisabled();
   expect(container.querySelector('.ui-btn__bars')).toBeNull();
   unmount();
+});
+
+it('does not animate an unchanged rendered label after a busy rerender', () => {
+  const { container, rerender } = render(<Button busy><b>Saving</b></Button>);
+  rerender(<Button busy><b>Saving</b></Button>);
+  expect(container.querySelector('.ui-btn__label-old')).toBeNull();
+});
+
+it('keeps focus while busy, blocks clicks and activation keys, and announces label changes', () => {
+  const click = vi.fn();
+  const key = vi.fn();
+  const { getByRole, rerender } = render(<Button onClick={click} onKeyDown={key}>Save</Button>);
+  const button = getByRole('button');
+  const status = getByRole('status');
+  expect(status).toHaveTextContent('');
+  button.focus();
+  rerender(<Button busy onClick={click} onKeyDown={key}>Saving</Button>);
+  expect(button).toHaveFocus();
+  expect(button).toBeEnabled();
+  expect(button).toHaveAttribute('aria-disabled', 'true');
+  expect(status).toHaveTextContent('Saving');
+  expect(button.contains(status)).toBe(false);
+  fireEvent.click(button);
+  for (const activationKey of ['Enter', ' ']) {
+    expect(fireEvent.keyDown(button, { key: activationKey })).toBe(false);
+    expect(fireEvent.keyUp(button, { key: activationKey })).toBe(false);
+  }
+  expect(click).not.toHaveBeenCalled();
+  expect(key).not.toHaveBeenCalled();
+  rerender(<Button onClick={click}>Saved</Button>);
+  expect(status).toHaveTextContent('Saved');
+  expect(button).toHaveFocus();
+  fireEvent.click(button);
+  expect(click).toHaveBeenCalledTimes(1);
+});
+
+it('keeps an explicitly disabled busy button natively disabled', () => {
+  const { getByRole } = render(<Button disabled busy>Saving</Button>);
+  expect(getByRole('button')).toBeDisabled();
 });

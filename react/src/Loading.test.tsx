@@ -56,13 +56,13 @@ it('Denied carries no live region, and names the scope verbatim', () => {
   expect(screen.getByText('reports.read').tagName).toBe('CODE');
 });
 
-// busy ⇒ disabled, the same ruling button() makes in components/index.js. The
-// two implementations of this button must not disagree about it.
-it('Button busy sets aria-busy, disables, and draws the kit bars', () => {
+// Busy keeps focus while the component blocks activation.
+it('Button busy sets aria-busy and aria-disabled, keeps focusability, and draws the kit bars', () => {
   render(<Button variant="primary" busy>Saving…</Button>);
   const btn = screen.getByRole('button', { name: 'Saving…' });
   expect(btn).toHaveAttribute('aria-busy', 'true');
-  expect(btn).toBeDisabled();
+  expect(btn).toBeEnabled();
+  expect(btn).toHaveAttribute('aria-disabled', 'true');
   expect(btn.querySelector('.ui-btn__bars')).toBeInTheDocument();
 });
 

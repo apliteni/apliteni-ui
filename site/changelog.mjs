@@ -40,7 +40,7 @@ export const RELEASES = [
     v: '0.38.0', date: '2026-09-24',
     changes: [
       ['changed', 'Busy buttons slide their labels vertically and give the slower progress bar more space. Every size and variant uses a four-second sweep, while reduced motion stays static. Resolves #327.', ['Button']],
-      ['added', 'setButtonBusy updates vanilla buttons in place and preserves their icons and prior disabled state. React busy label changes use the same slide automatically.', ['Button']],
+      ['added', 'setButtonBusy updates vanilla buttons in place, retaining focus and icons while blocking activation and announcing label changes. React uses the same focus behavior and the public slideButtonLabel motion helper; explicit disabled state is preserved.', ['Button']],
     ],
   },
   {

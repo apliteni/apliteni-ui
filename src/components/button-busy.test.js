@@ -13,7 +13,7 @@ test('busy updates preserve the control, icons and previous disabled state', () 
     const el = setup({ disabled });
     const icon = el.querySelector('svg');
     setButtonBusy(el, { busy: true, label: 'Saving…' });
-    assert.equal(el.disabled, true);
+    assert.equal(el.disabled, disabled);
     assert.equal(el.getAttribute('aria-busy'), 'true');
     assert.equal(el.querySelector('.ui-btn__label-old').textContent, 'Save');
     assert.equal(el.querySelector('.ui-btn__label-old').getAttribute('aria-hidden'), 'true');
@@ -56,4 +56,48 @@ test('clearing busy twice preserves an originally disabled control', () => {
   setButtonBusy(el, { busy: false });
   setButtonBusy(el, { busy: false });
   assert.equal(el.disabled, true);
+});
+
+test('wired busy keeps focus, blocks activation, and announces new labels outside the button', () => {
+  const el = setup();
+  const win = el.ownerDocument.defaultView;
+  let clicks = 0;
+  let keys = 0;
+  el.addEventListener('click', () => clicks++);
+  el.addEventListener('keydown', () => keys++);
+  el.focus();
+  const status = el.nextElementSibling;
+  assert.equal(status.getAttribute('aria-live'), 'polite');
+  assert.equal(status.textContent, '');
+  setButtonBusy(el, { busy: true, label: 'Saving' });
+  assert.equal(el.ownerDocument.activeElement, el);
+  assert.equal(el.disabled, false);
+  assert.equal(el.getAttribute('aria-disabled'), 'true');
+  assert.equal(status.textContent, 'Saving');
+  assert.equal(el.querySelector('[role="status"]'), null);
+  el.click();
+  for (const key of ['Enter', ' ']) {
+    for (const type of ['keydown', 'keyup']) {
+      const event = new win.KeyboardEvent(type, { key, bubbles: true, cancelable: true });
+      assert.equal(el.dispatchEvent(event), false);
+    }
+  }
+  assert.equal(clicks, 0);
+  assert.equal(keys, 0);
+  setButtonBusy(el, { busy: false, label: 'Saved' });
+  assert.equal(status.textContent, 'Saved');
+  assert.equal(el.ownerDocument.activeElement, el);
+  el.click();
+  assert.equal(clicks, 1);
+});
+
+test('wiring static busy removes only the native busy fallback', () => {
+  for (const disabled of [false, true]) {
+    const el = setup({ busy: true, disabled });
+    assert.equal(el.disabled, true);
+    setButtonBusy(el, { busy: true });
+    assert.equal(el.disabled, disabled);
+    setButtonBusy(el, { busy: false });
+    assert.equal(el.disabled, disabled);
+  }
 });

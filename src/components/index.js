@@ -34,13 +34,14 @@ export function button({
   const bars = busy ? '<span class="ui-btn__bars" aria-hidden="true"><i></i><i></i></span>' : '';
   const lead = iconSvg || (ic ? icon(ic) : '');
   const inner = `${lead}${iconOnly ? '' : `<span class="ui-btn__label-slot"><span class="ui-btn__label">${esc(label)}</span></span>`}${iconRight ? icon(iconRight) : ''}${bars}`;
-  // busy ⇒ disabled (not clickable while it works)
+  // Static busy ⇒ disabled; setButtonBusy wires focus-preserving activation guards.
   const name = String(label == null ? '' : label).trim() || ic || 'Button';
   const named = iconOnly ? ` aria-label="${esc(name)}" title="${esc(name)}"` : '';
-  const attrs = `class="${cls}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${named}`;
-  return href
+  const attrs = `class="${cls}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${disabled && busy ? ' data-btn-disabled' : ''}${named}`;
+  const control = href
     ? `<a href="${href}" ${attrs}>${inner}</a>`
     : `<button type="${type}" ${attrs}>${inner}</button>`;
+  return `${control}<span class="ui-sr ui-btn__status" role="status" aria-live="polite"></span>`;
 }
 
 // ---- Badge / Pill --------------------------------------------------------
