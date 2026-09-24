@@ -81,7 +81,7 @@ export const PAGES = ENTRIES.map(([content, story]) => ({
   gaps: content.RULES.filter((r) => r.unmet),
 }));
 
-const overview = await loadGuideline(new URL('../../guidelines/overview.md', import.meta.url));
+const overview = await loadGuideline('overview.md', new URL('../../guidelines/overview.md', import.meta.url));
 export const INTRO = overview.blurb;
 export const TITLE = overview.title;
 export const LINKS = overview.links.map(link => ({ ...link, href: PAGES.find(page => page.title === link.title)?.href }));

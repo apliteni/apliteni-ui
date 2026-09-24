@@ -1,8 +1,12 @@
 // Markdown is the only source of guideline prose; specimens stay executable.
-export async function loadGuideline(url) {
-  const text = url.protocol === 'file:'
-    ? await (await import(/* @vite-ignore */ 'node:fs/promises')).readFile(url, 'utf8')
-    : await fetch(url).then((response) => {
+export async function loadGuideline(name, assetUrl) {
+  // Vitest rewrites asset URLs even in Node; read the source there, without HTTP.
+  const inNode = import.meta.url.startsWith('file:');
+  const text = inNode
+    ? await (await import(/* @vite-ignore */ 'node:fs/promises')).readFile(
+      new URL(/* @vite-ignore */ `../../guidelines/${name}`, import.meta.url), 'utf8',
+    )
+    : await fetch(assetUrl).then((response) => {
       if (!response.ok) throw new Error(`Cannot load guideline: ${response.status}`);
       return response.text();
     });
