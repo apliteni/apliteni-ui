@@ -1,6 +1,6 @@
 import { brand } from '../../src/assets/brand.js';
 import { button, icon } from '../../src/components/index.js';
-
+import { successCheck } from '../../src/components/success.js';
 export default {
   title: 'Apps/Consent',
   parameters: { layout: 'fullscreen' },
@@ -63,7 +63,7 @@ export const Grant = {
 export const Granted = {
   render: () => shell(`
     <div class="ui-success" style="background:transparent;padding:16px 0 6px">
-      <div class="ui-success__check">${icon('check')}</div>
+      <div class="ui-success__check">${successCheck()}</div>
       <h1 class="ui-success__title">Access granted</h1>
       <div class="ui-success__sub" style="max-width:34ch;margin:0 auto">Research bot can now read your account. You can revoke it anytime.</div>
     </div>
