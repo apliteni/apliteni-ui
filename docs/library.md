@@ -109,7 +109,7 @@ documented as “markup” (e.g. a card `title` carrying a badge) are inserted v
 | Factory | Notes |
 |---------|-------|
 | `button({ label, variant, size, icon, iconRight, block, disabled, busy, href, iconOnly })` | `<button>`, or `<a>` with `href`. `busy` disables + shows the loader. |
-| `setButtonBusy(element, { busy, label })` | Update a factory button in place, sliding its label while keeping its icons and restoring the prior disabled state after busy. Reduced motion changes the label immediately. |
+| `setButtonBusy(element, { busy })` | Update a factory button in place, replacing the visible label with dots while keeping its size and focus, blocking busy activation, and announcing progress. Explicit disabled state is preserved. Reduced motion uses static dots. |
 | `badge(label, variant)` | Status chip. |
 | `pill(label, variant)` | Status chip, fully rounded. |
 | `statusDot(live)` | Live dot. |
