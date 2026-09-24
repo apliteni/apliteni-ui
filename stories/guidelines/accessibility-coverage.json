@@ -343,6 +343,22 @@
       ]
     },
     {
+      "file": "react/src/Loading.test.tsx",
+      "name": "React: Loading",
+      "does": "Checks the mounted React loading indicators and their busy announcements.",
+      "blind": [
+        "Real browser layout and animation timing; mounted tests use jsdom."
+      ]
+    },
+    {
+      "file": "react/src/primitives/Button.test.tsx",
+      "name": "React: Button",
+      "does": "Checks the mounted React button states, busy announcement and disabled interaction contract.",
+      "blind": [
+        "Real browser focus, paint and animation; mounted tests use jsdom."
+      ]
+    },
+    {
       "file": "react/src/CommandPalette.test.tsx",
       "name": "React: CommandPalette",
       "does": "Compares the React palette with the vanilla factory shape by shape: panel, roles, groups and every row. It then presses keys on the mounted version, checking opening focus, return focus, arrows, Enter and refusal to run the destructive row.",

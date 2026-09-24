@@ -162,6 +162,20 @@
   border-color: var(--border);
   color: var(--text);
 }
+/* A caller can mark a control both busy and unavailable. The explicit marker
+   keeps that ordinary disabled state from inheriting the busy variant paint. */
+.ui-btn[aria-busy="true"][data-btn-disabled] {
+  background: var(--disabled-surface);
+  border-color: var(--disabled-border);
+  color: var(--disabled-ink);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.ui-btn--ghost[aria-busy="true"][data-btn-disabled] {
+  background: transparent;
+  border-color: transparent;
+  color: var(--disabled-ink-bare);
+}
 .ui-btn__label-slot { display: inline-grid; overflow: hidden; }
 .ui-btn__label {
   grid-area: 1 / 1;
