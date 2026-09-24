@@ -83,7 +83,7 @@ test('the safe answer is emitted first, so the first Tab stop is also the harmle
   const buttons = acts.querySelectorAll('button');
   assert.equal(buttons[0], host.querySelector('[data-confirm-cancel]'));
   assert.equal(buttons[buttons.length - 1], host.querySelector('[data-confirm-accept]'));
-  assert.equal(acts.querySelector('[role="status"]')?.hasAttribute('tabindex'), false);
+  assert.equal(acts.querySelector('[role="status"]'), null, 'idle dialog actions add no live regions');
 });
 
 test('openConfirm() moves focus onto a control in the panel without a trigger element', () => {

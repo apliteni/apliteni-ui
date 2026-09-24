@@ -1,10 +1,10 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
-const content = await loadGuideline('state-set.md', new URL('../../guidelines/state-set.md', import.meta.url));
-export const TITLE = content.title;
-export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, callout, field, input, card } from '../../src/components/index.js';
 import { busyRegion, skeletonTable } from '../../src/components/loading.js';
+
+export const TITLE = 'The full state set';
+
+export const BLURB = 'The states a control owes beyond rest — focus, busy, error, pending.';
 
 // `.gl-ring` pins what :focus-visible paints (src/styles/base.css), because a
 // focus ring exists only under a live keyboard and cannot be screenshotted.
@@ -63,13 +63,69 @@ export const pendingDo = () => stage(pendingScreen(
 ));
 
 export const pendingDont = () => stage(pendingScreen(
-  '<p style="color: var(--text);margin:0">Nothing here.</p>'
+  '<p style="color:var(--muted);margin:0">Nothing here.</p>'
   + `<div class="gl-row" style="margin-top:var(--space-3)">${button({ label: 'Refresh', busy: true })}</div>`,
 ));
 
-export const RULES = withSpecimens(content.rules, [
-{ id: 'focus-visible', doHtml: focusDo, dontHtml: focusDont },
-{ id: 'busy', doHtml: busyDo, dontHtml: busyDont },
-{ id: 'error-in-markup', doHtml: errorDo, dontHtml: errorDont },
-{ id: 'loading', doHtml: pendingDo, dontHtml: pendingDont }
-]);
+export const RULES = [
+  {
+    id: 'focus-visible',
+    imperative: 'Give every focusable control the same --ring, and only on :focus-visible.',
+    why: 'One separated band and halo identify focus consistently; the browser decides when focus needs to be visible.',
+    except: 'Text-entry controls can match :focus-visible on mouse focus. Surface backgrounds re-point the gap and recompose --ring; width and colour can be tuned at the root.',
+    doCaption: 'Button and input wear one ring.',
+    dontCaption: 'The input draws its own.',
+    doHtml: focusDo,
+    dontHtml: focusDont,
+    kit: [
+      { ref: 'src/styles/base.css:140', pattern: '.ui-focusable:focus-visible,' },
+      { ref: 'src/styles/base.css:146', pattern: 'box-shadow: var(--ring);' },
+      { ref: 'src/tokens/tokens.css:237', pattern: '--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),' },
+    ],
+  },
+  {
+    id: 'busy',
+    imperative: 'Make busy block activation and keep focus once wired.',
+    why: 'A control that still takes clicks while it works submits twice.',
+    except: 'Static busy markup uses native disabled until setButtonBusy wires it. Wired buttons and React keep focus, block clicks and activation keys, and announce changed labels through a polite status region outside the busy control. React shares one page-level region; vanilla creates a sibling when needed.',
+    doCaption: 'Static fallback: disabled and aria-busy; wire it to retain focus.',
+    dontCaption: 'Says “Saving…”, still takes clicks.',
+    doHtml: busyDo,
+    dontHtml: busyDont,
+    kit: [
+      { ref: 'src/components/index.js:37', pattern: 'busy ⇒ disabled' },
+      { ref: 'src/styles/button.css:132', pattern: '.ui-btn[aria-busy="true"] {' },
+      { ref: 'stories/contrast.test.js:239', pattern: 'inactive components and their whole subtree' },
+    ],
+  },
+  {
+    id: 'error-in-markup',
+    imperative: 'Say an error in the markup, not only the paint, and tie the message on.',
+    why: 'Red on its own is a state only a sighted reader can read.',
+    except: 'required goes in the attribute, not the label’s wording — the asterisk is decoration, hidden from assistive tech.',
+    doCaption: 'The reason is read with the field.',
+    dontCaption: 'Same red, reason attached to nothing.',
+    doHtml: errorDo,
+    dontHtml: errorDont,
+    kit: [
+      { ref: 'src/components/index.js:188', pattern: '`invalid` paints the control red AND says so in aria-invalid' },
+      { ref: 'src/components/index.js:174', pattern: "'aria-describedby': msgId," },
+      { ref: 'src/components/index.js:160', pattern: "markup rather than in the label's wording" },
+    ],
+  },
+  {
+    id: 'loading',
+    imperative: 'Design the pending state of a screen, not only of its button — and announce it.',
+    why: 'A screen that changes silently in flight leaves a screen-reader user with no event at all.',
+    except: 'A toast carries its own live region, so a screen that reports through the toast stack needs no second one.',
+    doCaption: 'The shape that is coming, in a region that says so.',
+    dontCaption: 'Only the button knows. The page reads as finished.',
+    doHtml: pendingDo,
+    dontHtml: pendingDont,
+    kit: [
+      { ref: 'src/components/loading.js:54', pattern: 'export function busyRegion({' },
+      { ref: 'src/components/loading.js:74', pattern: 'export function setBusy(root,' },
+      { ref: 'src/components/index.js:253', pattern: 'role="status" aria-live="polite"' },
+    ],
+  },
+];

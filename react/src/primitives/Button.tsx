@@ -14,6 +14,37 @@ export type ButtonProps = {
   children?: ReactNode;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
+// One announcer per document keeps status updates outside aria-busy and the React root.
+const announcers = new WeakMap<Document, { node: HTMLSpanElement; users: number; timer?: ReturnType<typeof setTimeout> }>();
+function acquireAnnouncer(doc: Document) {
+  let entry = announcers.get(doc);
+  if (!entry) {
+    const node = doc.createElement('span');
+    node.className = 'ui-sr ui-btn__status';
+    node.setAttribute('role', 'status');
+    node.setAttribute('aria-live', 'polite');
+    doc.body.append(node);
+    entry = { node, users: 0 };
+    announcers.set(doc, entry);
+  }
+  const current = entry;
+  current.users++;
+  return {
+    announce(text: string) {
+      clearTimeout(current.timer);
+      // Register the empty live region before its first text update.
+      current.timer = setTimeout(() => { current.node.textContent = text; }, 0);
+    },
+    release() {
+      if (--current.users === 0) {
+        clearTimeout(current.timer);
+        current.node.remove();
+        announcers.delete(doc);
+      }
+    },
+  };
+}
+
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 export function Button({
@@ -23,7 +54,7 @@ export function Button({
 }: ButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
-  const statusRef = useRef<HTMLSpanElement>(null);
+  const announcer = useRef<ReturnType<typeof acquireAnnouncer> | null>(null);
   const cancelSlide = useRef<(() => void) | undefined>(undefined);
   const previous = useRef<{ node: HTMLElement | null; text: string; busy: boolean | undefined }>(null);
   useLayoutEffect(() => {
@@ -34,12 +65,18 @@ export function Button({
       cancelSlide.current?.();
       if (label) cancelSlide.current = slideButtonLabel(label, prior.node);
     }
-    if (prior && (busy || prior.busy) && statusRef.current && statusRef.current.textContent !== text) {
-      statusRef.current.textContent = text;
+    if ((busy || prior?.busy) && (!prior || prior.text !== text || prior.busy !== busy)) {
+      announcer.current ??= acquireAnnouncer(buttonRef.current!.ownerDocument);
+      announcer.current.announce(text);
     }
     previous.current = { node: (label?.cloneNode(true) as HTMLElement | undefined) ?? null, text, busy };
   });
-  useLayoutEffect(() => () => cancelSlide.current?.(), []);
+  useLayoutEffect(() => () => {
+    cancelSlide.current?.();
+    announcer.current?.release();
+    announcer.current = null;
+    previous.current = null;
+  }, []);
   const blockActivation = (event: SyntheticEvent) => {
     if (!busy) return false;
     event.preventDefault();
@@ -65,30 +102,27 @@ export function Button({
     ? { 'aria-label': fallback, title: rest.title ?? fallback }
     : {};
   return (
-    <>
-      <button
-        ref={buttonRef}
-        data-btn-wired=""
-        type={type}
-        className={cls}
-        disabled={disabled}
-        aria-disabled={disabled || busy ? true : undefined}
-        aria-busy={busy ? true : undefined}
-        {...rest}
-        {...named}
-        onClickCapture={event => { if (!blockActivation(event)) onClickCapture?.(event); }}
-        onClick={event => { if (!blockActivation(event)) onClick?.(event); }}
-        onKeyDownCapture={event => { if (!blockKey(event)) onKeyDownCapture?.(event); }}
-        onKeyDown={event => { if (!blockKey(event)) onKeyDown?.(event); }}
-        onKeyUpCapture={event => { if (!blockKey(event)) onKeyUpCapture?.(event); }}
-        onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
-      >
-        {icon && <Icon name={icon} />}
-        {!iconOnly && children != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{children}</span></span>}
-        {iconRight && <Icon name={iconRight} />}
-        {busy && <span className="ui-btn__bars" aria-hidden="true"><i /><i /></span>}
-      </button>
-      <span ref={statusRef} className="ui-sr ui-btn__status" role="status" aria-live="polite" />
-    </>
+    <button
+      ref={buttonRef}
+      data-btn-wired=""
+      type={type}
+      className={cls}
+      disabled={disabled}
+      aria-disabled={disabled || busy ? true : undefined}
+      aria-busy={busy ? true : undefined}
+      {...rest}
+      {...named}
+      onClickCapture={event => { if (!blockActivation(event)) onClickCapture?.(event); }}
+      onClick={event => { if (!blockActivation(event)) onClick?.(event); }}
+      onKeyDownCapture={event => { if (!blockKey(event)) onKeyDownCapture?.(event); }}
+      onKeyDown={event => { if (!blockKey(event)) onKeyDown?.(event); }}
+      onKeyUpCapture={event => { if (!blockKey(event)) onKeyUpCapture?.(event); }}
+      onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
+    >
+      {icon && <Icon name={icon} />}
+      {!iconOnly && children != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{children}</span></span>}
+      {iconRight && <Icon name={iconRight} />}
+      {busy && <span className="ui-btn__bars" aria-hidden="true"><i /><i /></span>}
+    </button>
   );
 }

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { button } from './index.js';
+import { success } from './success.js';
 import { setButtonBusy } from './button-busy.js';
 
 function setup(options) {
@@ -58,7 +59,7 @@ test('clearing busy twice preserves an originally disabled control', () => {
   assert.equal(el.disabled, true);
 });
 
-test('wired busy keeps focus, blocks activation, and announces new labels outside the button', () => {
+test('wired busy keeps focus, blocks activation, and announces new labels outside the button', async () => {
   const el = setup();
   const win = el.ownerDocument.defaultView;
   let clicks = 0;
@@ -66,10 +67,11 @@ test('wired busy keeps focus, blocks activation, and announces new labels outsid
   el.addEventListener('click', () => clicks++);
   el.addEventListener('keydown', () => keys++);
   el.focus();
+  assert.equal(el.nextElementSibling, null);
+  setButtonBusy(el, { busy: true, label: 'Saving' });
   const status = el.nextElementSibling;
   assert.equal(status.getAttribute('aria-live'), 'polite');
-  assert.equal(status.textContent, '');
-  setButtonBusy(el, { busy: true, label: 'Saving' });
+  await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(el.ownerDocument.activeElement, el);
   assert.equal(el.disabled, false);
   assert.equal(el.getAttribute('aria-disabled'), 'true');
@@ -100,4 +102,22 @@ test('wiring static busy removes only the native busy fallback', () => {
     setButtonBusy(el, { busy: false });
     assert.equal(el.disabled, disabled);
   }
+});
+
+test('idle factories omit status regions; busy wiring creates one even without a new label', async () => {
+  const idle = setup();
+  assert.equal(idle.ownerDocument.querySelectorAll('[role="status"]').length, 0);
+  setButtonBusy(idle, { busy: true });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(idle.nextElementSibling.textContent, 'Save');
+  setButtonBusy(idle, { busy: true });
+  assert.equal(idle.ownerDocument.querySelectorAll('[role="status"]').length, 1);
+  const busy = setup({ busy: true });
+  assert.equal(busy.ownerDocument.querySelectorAll('[role="status"]').length, 1);
+});
+
+test('success action buttons do not nest status regions inside the success announcement', () => {
+  const doc = new JSDOM(success({ actions: [{ label: 'Continue' }, { label: 'Back' }] })).window.document;
+  assert.equal(doc.querySelectorAll('[role="status"]').length, 1);
+  assert.equal(doc.querySelector('[role="status"] [role="status"]'), null);
 });

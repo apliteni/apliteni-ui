@@ -839,7 +839,7 @@ retain the outgoing label and is outside this behavior.
 The indeterminate bars take 4 seconds per pass, with the second 1.6 seconds behind.
 The label sits 2px higher while busy and the bar sits nearer the bottom edge, keeping
 the button height unchanged; padding transitions on `--dur-med` and `--ease`. All variants and sizes share this behavior. Reduced
-motion replaces the label immediately and renders a static filled track.
+motion replaces the label and padding immediately and renders a static filled track.
 
 The incoming label waits below the clip until the outgoing label has left (45% of
 the sequence), so their painted text never overlaps. The outgoing copy is absolute:
@@ -848,9 +848,13 @@ only the live label sizes the slot, so the width changes once.
 module and returns a cleanup function.
 
 Wired vanilla and React busy buttons keep focus: `aria-disabled` communicates the
-state, while click, Enter and Space activation are blocked. A pre-rendered sibling
-`role="status" aria-live="polite"` region announces label changes outside
-`aria-busy`, which would defer them. Explicitly disabled buttons remain natively
+state, while click, Enter and Space activation are blocked, and hover/press styling
+stays inert. Ordinary factory buttons have no status region; static busy markup has
+an empty sibling region, and `setButtonBusy` creates it lazily when entering busy.
+React returns one button element and lazily shares one page-level announcer across
+busy buttons, removing it when its users unmount. Both use
+`role="status" aria-live="polite"` outside `aria-busy`, which would defer updates.
+Regions persist through completion so the final label can be announced. Explicitly disabled buttons remain natively
 disabled. Unwired static `button({ busy: true })` markup retains native disabled as
 a safe fallback; `setButtonBusy` replaces it with guards when wiring the control.
 

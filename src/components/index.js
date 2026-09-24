@@ -41,7 +41,7 @@ export function button({
   const control = href
     ? `<a href="${href}" ${attrs}>${inner}</a>`
     : `<button type="${type}" ${attrs}>${inner}</button>`;
-  return `${control}<span class="ui-sr ui-btn__status" role="status" aria-live="polite"></span>`;
+  return busy ? `${control}<span class="ui-sr ui-btn__status" role="status" aria-live="polite"></span>` : control;
 }
 
 // ---- Badge / Pill --------------------------------------------------------

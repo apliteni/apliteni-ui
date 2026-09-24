@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import { button } from '@apliteni/apliteni-ui';
 import { Button } from './Button';
 import { classesOf, classesOfEl } from '../test/classlist';
@@ -66,19 +66,19 @@ it('does not animate an unchanged rendered label after a busy rerender', () => {
   expect(container.querySelector('.ui-btn__label-old')).toBeNull();
 });
 
-it('keeps focus while busy, blocks clicks and activation keys, and announces label changes', () => {
+it('keeps focus while busy, blocks clicks and activation keys, and announces label changes', async () => {
   const click = vi.fn();
   const key = vi.fn();
   const { getByRole, rerender } = render(<Button onClick={click} onKeyDown={key}>Save</Button>);
   const button = getByRole('button');
-  const status = getByRole('status');
-  expect(status).toHaveTextContent('');
+  expect(document.querySelector('.ui-btn__status')).toBeNull();
   button.focus();
   rerender(<Button busy onClick={click} onKeyDown={key}>Saving</Button>);
   expect(button).toHaveFocus();
   expect(button).toBeEnabled();
   expect(button).toHaveAttribute('aria-disabled', 'true');
-  expect(status).toHaveTextContent('Saving');
+  const status = getByRole('status');
+  await waitFor(() => expect(status).toHaveTextContent('Saving'));
   expect(button.contains(status)).toBe(false);
   fireEvent.click(button);
   for (const activationKey of ['Enter', ' ']) {
@@ -88,7 +88,7 @@ it('keeps focus while busy, blocks clicks and activation keys, and announces lab
   expect(click).not.toHaveBeenCalled();
   expect(key).not.toHaveBeenCalled();
   rerender(<Button onClick={click}>Saved</Button>);
-  expect(status).toHaveTextContent('Saved');
+  await waitFor(() => expect(status).toHaveTextContent('Saved'));
   expect(button).toHaveFocus();
   fireEvent.click(button);
   expect(click).toHaveBeenCalledTimes(1);
@@ -97,4 +97,23 @@ it('keeps focus while busy, blocks clicks and activation keys, and announces lab
 it('keeps an explicitly disabled busy button natively disabled', () => {
   const { getByRole } = render(<Button disabled busy>Saving</Button>);
   expect(getByRole('button')).toBeDisabled();
+});
+
+it('keeps one root per button and shares the announcer only after busy is used', async () => {
+  const first = render(<Button>Save</Button>);
+  const second = render(<Button>Send</Button>);
+  expect(document.querySelectorAll('.ui-btn__status')).toHaveLength(0);
+  first.rerender(<Button busy>Saving</Button>);
+  second.rerender(<Button busy>Sending</Button>);
+  expect(first.container.children).toHaveLength(1);
+  expect(second.container.children).toHaveLength(1);
+  expect(document.querySelectorAll('.ui-btn__status')).toHaveLength(1);
+  const status = document.querySelector('.ui-btn__status');
+  await waitFor(() => expect(status).toHaveTextContent('Sending'));
+  first.unmount();
+  expect(status).toBeInTheDocument();
+  second.rerender(<Button>Sent</Button>);
+  await waitFor(() => expect(status).toHaveTextContent('Sent'));
+  second.unmount();
+  expect(document.querySelector('.ui-btn__status')).toBeNull();
 });

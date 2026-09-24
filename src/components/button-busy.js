@@ -53,7 +53,7 @@ export function setButtonBusy(element, { busy, label } = {}) {
     element.setAttribute('aria-label', String(label));
     element.setAttribute('title', String(label));
   }
-  if (label != null && (busy || wasBusy)) {
+  if (busy || wasBusy) {
     let status = element.nextElementSibling;
     if (!status?.classList.contains('ui-btn__status')) {
       status = element.ownerDocument.createElement('span');
@@ -61,10 +61,13 @@ export function setButtonBusy(element, { busy, label } = {}) {
       status.setAttribute('role', 'status');
       status.setAttribute('aria-live', 'polite');
       element.after(status);
-      // A caller retaining only the button discarded the factory's empty region.
+      // Register the empty live region before its first text update.
       setTimeout(() => {
         status.textContent = element.querySelector('.ui-btn__label')?.textContent ?? element.getAttribute('aria-label') ?? '';
       }, 0);
-    } else if (status.textContent !== String(label)) status.textContent = String(label);
+    } else {
+      const message = text?.textContent ?? element.getAttribute('aria-label') ?? '';
+      if (status.textContent !== message) status.textContent = message;
+    }
   }
 }
