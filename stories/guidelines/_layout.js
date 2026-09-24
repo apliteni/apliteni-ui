@@ -59,7 +59,7 @@ const PAGE_CSS = `
 
     .gc-why { font: 400 13px/1.65 var(--font-sans); color:var(--text); margin: 0; max-width: var(--prose-dense); }
 
-    /* Label stays --muted: --amber as text misses AA on this page. */
+    /* Keep the exception label in body ink; amber marks the boundary. */
     .gc-except { margin: var(--space-2) 0 0; padding-left: var(--space-3);
       box-shadow: inset 2px 0 0 var(--amber);
       font: 400 12.5px/1.65 var(--font-sans); color: var(--text); max-width: var(--prose-dense); }
