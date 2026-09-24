@@ -25,15 +25,3 @@ What a control says about itself and what an empty screen says.
 **Do:** The name reads “Dismiss”.
 
 **Don't:** The same button reads “x”.
-
-## Match empty-state copy to why it is empty: give a filtered list a nudge, not an action.
-
-<!-- rule: empty-state-copy -->
-
-**Why:** “Add invoice” under “No invoices match the filters” answers a question the reader did not ask.
-
-**Except:** A filtered list gets an action when the filter that emptied it is off screen.
-
-**Do:** A nudge, with nothing to add.
-
-**Don't:** An action for the wrong problem.
