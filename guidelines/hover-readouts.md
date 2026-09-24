@@ -6,40 +6,40 @@ Where a hover value appears, what it says, what a tap does, and why it never mov
 
 <!-- rule: overlay -->
 
-**Why:** A readout may last only a fraction of a second, so the page must not change shape as the pointer moves. The finance portal shows both patterns: its bar chart floats the readout without moving anything, but each KPI sparkline inserts one and pushes the page down. Put the value beside its mark—not below the chart or in the card headline. The headline explains the card and must not change for a passing pointer. This applies to charts, sparklines, heatmaps, and truncated cells.
+**Why:** A readout lasts only while the pointer rests on a mark, so inserting it makes the page jump at pointer speed. For charts, sparklines, heatmaps and truncated cells, keep the value beside its mark—not below the chart or in its headline, which describes the card.
 
-**Do:** The readout floats over its mark. The card keeps its height, so content below stays in place.
+**Do:** The readout floats beside its point; the card and content below keep their positions.
 
-**Don't:** Adding the value as a card line makes the card grow, moves the card below, and shifts the next target.
+**Don't:** An extra value line grows the card, pushes the next card down and moves the next target.
 
 ## Open the readout above the mark, and below it only when the space above is clipped.
 
 <!-- rule: above-the-mark -->
 
-**Why:** Above is the default: the pointer approaches from below, so the readout covers neither mark nor pointer. The kit positions it by measuring the viewport and every clipping ancestor, switching sides only when the preferred side is too tight and the other has more room, and moving it along the mark's edge rather than off-screen.
+**Why:** Above keeps the readout clear of the mark and a pointer approaching from below. The kit measures the viewport and clipping ancestors, flips only when above is too tight and below roomier, and slides along the mark’s edge to stay on-screen.
 
-**Do:** If a tall bar is near a region's overflow edge and there is not enough room above, open the readout below its top edge with all content visible.
+**Do:** Near a clipping region’s top, a tall bar has too little room above: the whole readout opens below its top edge.
 
-**Don't:** Keeping it above lets the edge cut off the month and value, leaving only a comparison that means nothing alone.
+**Don't:** Forced above, the readout loses its month and value to clipping; only the meaningless comparison remains.
 
 ## Name the point, give its value, and stop after one comparison.
 
 <!-- rule: contents -->
 
-**Why:** A readout cannot receive the pointer and disappears when it leaves the mark, so nothing inside can be pressed. Put needed controls on the page. Format the value as elsewhere, using the same currency and precision, so it agrees with the figure beside the chart.
+**Why:** A readout takes no pointer and closes when it leaves the mark, so put controls on the page. Match the page’s currency and precision so the readout agrees with the figure beside the chart.
 
-**Do:** Use three short lines—the point, its value, and one comparison—readable while the pointer rests on the bar.
+**Do:** Three short lines: point, value, one comparison.
 
-**Don't:** Showing everything known about the point wraps text, covers nearby bars, and asks the reader to click a control that disappears when the pointer moves toward it.
+**Don't:** Too much text wraps and covers nearby bars; a control disappears as the pointer approaches it.
 
 ## On a touch screen, open the readout with a tap and close it with the next tap.
 
 <!-- rule: on-touch -->
 
-**Why:** A finger arrives pressing and leaves when it lifts; hover would flash under the tap and never be read. One tap on a mark opens its readout, a tap on another moves it, and a tap on the same mark or anywhere else closes it. Closing on the mark and on chart ground beside it behave identically, regardless of touch location. The opening tap opens the readout but does not trigger the mark's click, so a drill-down chart does not drill down on that tap. The closing tap does trigger the mark, putting drill-down one tap later; this is the one behavior the reader must learn. The page also receives that tap wherever it listens, so an open dropdown or menu closes as after any other tap. The kit detects the active pointer, not the device: a laptop touch screen hovers with its mouse and taps with a finger; a pen taps like a finger rather than hovering with the mouse; a key returns the readout to focus.
+**Why:** Hover flashes unread under a finger: tap a mark to open, another to move, or the same mark or elsewhere to close; closing on the mark and on chart ground works alike. The opening tap blocks the mark’s click but reaches page listeners to close menus; the closing tap allows drill-down one tap later, while pointer detection lets a laptop’s mouse hover, finger or pen tap, and a key restore focus behaviour.
 
 ## Never make hover the only way to reach a value.
 
 <!-- rule: not-only-hover -->
 
-**Why:** A pointer is one of three ways to reach a chart, but only hover builds the readout around it. The kit also opens it on focus or tap and lets Escape dismiss it. Focus works on touch screens: without a tap, it can mean a screen-reader user arrived rather than a finger approaching a click. The wiring adds no tab stop—a year of daily points would create 365. The card's leading figure, plus a table or labelled series summary, must provide key information without pointing. Whether marks should take focus remains open on #282.
+**Why:** A pointer is one of three ways to reach a chart and the one the readout is built around; focus or tap also opens it, Escape dismisses it, and touch-screen focus without a tap supports screen-reader arrival. Wiring adds no tab stops (daily points would add 365): the leading figure and a table or labelled series summary carry what matters without pointing, while mark focus remains open on [#282](https://github.com/apliteni/apliteni-ui/issues/282).

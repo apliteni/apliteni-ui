@@ -6,7 +6,7 @@ A page has two widths. Without a density mode, spacing scale sets density.
 
 <!-- rule: container -->
 
-**Why:** The kit declared 1180px in three files; the site declared 1120px in three others. Each could not see the other, so the site overrode the kit topbar and disagreed with it. A literal width cannot follow a shared decision.
+**Why:** A literal width cannot follow a shared decision: the kit’s 1180px in three files and the site’s 1120px in three others disagreed, forcing a topbar override.
 
 **Except:** The token definitions declare the scale, so they are not scanned.
 
@@ -18,40 +18,40 @@ A page has two widths. Without a density mode, spacing scale sets density.
 
 <!-- rule: measure -->
 
-**Why:** These are different axes, not competing opinions about one number. --container runs gutter to gutter. --measure is the column inside a track with a sidebar. A shell whose main column is --container has no sidebar. Treating them as competing widths made nine widths seem like one disagreement.
+**Why:** --container spans the page gutter to gutter; --measure bounds a reading column beside a sidebar. They serve different axes: a --container main column leaves no sidebar, and treating the two as rivals made nine widths look like one disagreement.
 
-## One width, one place. If a second copy needs a test to stay true, the test is the smell.
+## Keep each width in one place; a test holding copies together signals duplication.
 
 <!-- rule: one-source -->
 
-**Why:** The shell had its own 860px beside the value in the layout styles, and a test compared the strings. That is two sources with a guard, not one. The shell now writes no width when the caller gives none, so CSS falls through to the token and nothing must stay in step.
+**Why:** Duplicating 860px in the shell needed a string-comparison test. With no caller width, the shell now leaves CSS to read the token.
 
-**Except:** A caller may still pass an explicit maxWidth — an override is a decision, not a copy.
+**Except:** An explicit maxWidth remains a caller’s override, not a copy.
 
 ## Set density with the spacing scale. There is no kit-wide density mode.
 
 <!-- rule: density -->
 
-**Why:** There is no compact mode, comfortable mode, data-density attribute, or row-height scale. That is intended, not an omission. The ten-step spacing scale is already the control: a tight row takes --space-2; a roomy one, --space-5. Both remain legible as steps in one system. A mode would be justified by a surface needing both densities at once and switching at runtime — a reader preference, not a designer's per-screen choice. No such surface exists here; building the mechanism first would mean guessing its values.
+**Why:** Use the ten-step spacing scale: --space-2 for tight rows, --space-5 for roomy ones. A compact/comfortable mode, data-density attribute or row-height scale would need a surface switching densities at runtime for a reader’s preference; none exists here.
 
-**Except:** .ui-table--dense is the kit's one modifier. It is intentionally component-local: a many-column ledger is the one place where tighter rhythm belongs to the data, not the surrounding page. It is an exception to the mode, not the scale: --space-3 across and --space-2 down, one step tighter than the base table's --space-4. When an old number fell exactly between steps, the job decided the tie: a modifier made to fit more rows rounds down.
+**Except:** .ui-table--dense is component-local because a many-column ledger needs tighter rows: --space-3 across and --space-2 down, inside the base --space-4. It still uses the scale; an old value halfway between steps rounded down to fit more rows.
 
 **Do:** Every gap and pad is a step: --space-3 rows inside a card.
 
 **Don't:** 13px, 9px, 14px, 6px, 17px — each row settled separately, none aligned.
 
-## Below the reading column, the unit chooses the scale: a box holding a component takes --panel-* in px; a box holding a line takes --prose-* in ch.
+## Below the reading column, use --panel-* in px for a component box, and --prose-* in ch for a line of text.
 
 <!-- rule: below-the-page -->
 
-**Why:** The bounded thing chooses the unit, and the unit chooses the scale. Neither scale was invented for this purpose. Since it was written, the drawer used sm/md/lg at 320/420/560, and confirm, the auth card, and the toast each repeated one number. The two 420s the kit was asked about were actually three. Prose steps are named for what is read — caption, lede, body, dense — because a writer knows the text type, not its t-shirt size.
+**Why:** The content chooses the unit: panel sm/md/lg use the drawer’s 320/420/560 widths, also repeated by confirm, the auth card and toast (the reported two 420s were three). Prose steps name text types—caption, lede, body, dense—rather than t-shirt sizes.
 
-**Except:** ch resolves against the font-size of the element carrying it, so put a prose step on the paragraph, never on a wrapper containing two type sizes. .ui-section-head is a centred block with a 40px heading above 17px copy, so it takes --panel-lg instead. .ui-footer__brand keeps literal 300px: it is a flex track whose width controls when the footer wraps, so it follows the row, not a scale.
+**Except:** ch uses its element’s font-size: put it on the paragraph, not a wrapper with two type sizes. The centred .ui-section-head combines a 40px heading and 17px copy, so uses --panel-lg; .ui-footer__brand keeps 300px because its flex track controls footer wrapping.
 
-## A breakpoint stays literal and must be one of the three steps listed in the specification. If you break elsewhere, the gate says so.
+## Keep breakpoints literal and use one of the specification’s three steps; the gate rejects others.
 
 <!-- rule: breakpoints -->
 
-**Why:** A media query cannot read a custom property: @media (max-width: var(--panel-lg)) is invalid, and token discipline does not change that. Alternatives are a build step that inlines the value, or a convention keeping the literal under a documented legal-value list, with a gate checking it. The kit ships a plain stylesheet that consumers link or import. A compiler between source and published file would make shipped output harder to read. @custom-media would solve this properly, but is not shipping. Therefore the discipline is the list: three steps describing each change, plus a gate reading them from the specification instead of repeating them. A second list copy would repeat the defect of six values in ten files. Three surfaces each had their own value; each moved to the step above because wider viewports give reflow more room, never less.
+**Why:** Media queries cannot read custom properties, so @media (max-width: var(--panel-lg)) is invalid; @custom-media is not shipping, and adding a compiler would sacrifice readable published CSS. The gate reads the specification’s three steps directly, replacing six values in ten files; three surfaces moved to the next step up to give reflow more room.
 
-**Except:** Two steps coincide with tokens: 560 is also --panel-lg, and 860 is also --measure. Nothing marks that at the query. A breakpoint asks about the viewport; a token bounds a box. The numbers match today, but neither follows the other, so a comment claiming a nonexistent link would confuse readers more than silence.
+**Except:** 560 also equals --panel-lg and 860 equals --measure, but viewport breakpoints and box widths vary independently. Do not imply a link at the query.

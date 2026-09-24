@@ -4,7 +4,7 @@
   "workspaces": [
     "react"
   ],
-  "description": "Apliteni shared design system & UI kit \u2014 tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
+  "description": "Apliteni shared design system & UI kit — tokens, components and the deck theme, framework-agnostic (HTML + CSS).",
   "type": "module",
   "license": "MIT",
   "author": "Apliteni",
@@ -19,6 +19,7 @@
   },
   "exports": {
     ".": "./src/index.js",
+    "./guidelines/*": "./guidelines/*",
     "./motion": "./src/motion.js",
     "./inline": "./src/inline.js",
     "./css": "./src/index.css",

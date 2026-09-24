@@ -7,10 +7,6 @@ import { toast } from '../../src/components/index.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { confirm } from '../../src/components/confirm.js';
 
-
-
-
-
 // `.gl-hovering` pins the dropdown's danger row into its hover appearance,
 // because hover cannot be screenshotted.
 export const SPEC_CSS = `

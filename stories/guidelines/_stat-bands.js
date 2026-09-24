@@ -7,10 +7,6 @@ import { badge, card } from '../../src/components/index.js';
 import { statBand } from '../../src/components/stat.js';
 import { sparkline } from '../lib/sparkline.js';
 
-
-
-
-
 // Every specimen is figures from the finance portal's Company Overview, so the
 // halves of a pair differ in one decision and not in their data.
 export const SPEC_CSS = `

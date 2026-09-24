@@ -1,4 +1,4 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline, withSpecimens, withNamedFiles } from './_markdown.js';
 const content = await loadGuideline('accessibility-floor.md', new URL('../../guidelines/accessibility-floor.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
@@ -14,10 +14,6 @@ export const BLURB = content.blurb;
 //
 // why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
 import { button, checkbox } from '../../src/components/index.js';
-
-
-
-
 
 // ---- the three numbers -----------------------------------------------------
 
@@ -113,51 +109,52 @@ export const AIMS = content.sections[0].entries.map(e => ({ aim: e.title, apply:
  * after somebody edits one. That is the seam, and it is stated rather than
  * papered over: a gate cannot go missing here, but it can go stale.
  */
-const gateFiles = [
-  "stories/ring-surfaces.test.js",
-  "react/src/BackLink.test.tsx",
-  "react/src/Dropdown.test.tsx",
-  "react/src/Pagination.test.tsx",
-  "stories/palette-keyboard.test.js",
-  "stories/guidelines/command-palette.test.js",
-  "stories/guidelines/the-page.test.js",
-  "stories/contrast.test.js",
-  "stories/a11y.test.js",
-  "stories/keyboard.test.js",
-  "stories/drawer-focus.test.js",
-  "stories/accent-contrast.test.js",
-  "stories/elevation.test.js",
-  "stories/signal-contrast.test.js",
-  "stories/stat-basis.test.js",
-  "stories/glyph-stroke.test.js",
-  "stories/guidelines/accessibility-floor.test.js",
-  "stories/confirm-keyboard.test.js",
-  "stories/overlay-stack.test.js",
-  "stories/overlay-css.test.js",
-  "stories/dropdown-field-ground.test.js",
-  "stories/dropdown-foot-role.test.js",
-  "stories/field-zoom.test.js",
-  "stories/reduced-motion.test.js",
-  "stories/motion-coverage.test.js",
-  "stories/tooltip-specimens.test.js",
-  "stories/nav-cascade.test.js",
-  "stories/button-chrome.test.js",
-  "stories/apps/shell.test.js",
-  "stories/apps/shell-states.test.js",
-  "stories/apps/shell-rail.test.js",
-  "stories/danger-colour.test.js",
-  "stories/accent-swatch.test.js",
-  "stories/accent-without-theme.test.js",
-  "stories/guidelines/iconography.test.js",
-  "react/src/DataTable.test.tsx",
-  "react/src/CommandPalette.test.tsx",
-  "react/src/Modal.test.tsx",
-  "react/src/Drawer.test.tsx",
-  "react/src/a11y.test.tsx",
-  "react/src/field-zoom.test.tsx",
-  "react/src/contrast.test.tsx"
-];
-export const GATES = content.sections[1].entries.map((e, i) => ({ file: gateFiles[i], name: e.title, does: e.Checks, blind: e.Limit }));
+const gateFiles = {
+  "Ring surfaces": "stories/ring-surfaces.test.js",
+  "React: BackLink": "react/src/BackLink.test.tsx",
+  "React: Dropdown": "react/src/Dropdown.test.tsx",
+  "React: Pagination": "react/src/Pagination.test.tsx",
+  "Palette keyboard": "stories/palette-keyboard.test.js",
+  "Command palette": "stories/guidelines/command-palette.test.js",
+  "The page": "stories/guidelines/the-page.test.js",
+  "Contrast": "stories/contrast.test.js",
+  "A11y": "stories/a11y.test.js",
+  "Keyboard": "stories/keyboard.test.js",
+  "Drawer focus": "stories/drawer-focus.test.js",
+  "Accent contrast": "stories/accent-contrast.test.js",
+  "Elevation": "stories/elevation.test.js",
+  "Signal contrast": "stories/signal-contrast.test.js",
+  "Stat basis": "stories/stat-basis.test.js",
+  "Glyph stroke": "stories/glyph-stroke.test.js",
+  "Accessibility floor": "stories/guidelines/accessibility-floor.test.js",
+  "Confirm keyboard": "stories/confirm-keyboard.test.js",
+  "Overlay stack": "stories/overlay-stack.test.js",
+  "Overlay css": "stories/overlay-css.test.js",
+  "Dropdown field ground": "stories/dropdown-field-ground.test.js",
+  "Dropdown foot role": "stories/dropdown-foot-role.test.js",
+  "Field zoom": "stories/field-zoom.test.js",
+  "Reduced motion": "stories/reduced-motion.test.js",
+  "Motion coverage": "stories/motion-coverage.test.js",
+  "Tooltip specimens": "stories/tooltip-specimens.test.js",
+  "Nav cascade": "stories/nav-cascade.test.js",
+  "Button chrome": "stories/button-chrome.test.js",
+  "Shell": "stories/apps/shell.test.js",
+  "Shell states": "stories/apps/shell-states.test.js",
+  "Shell rail": "stories/apps/shell-rail.test.js",
+  "Danger colour": "stories/danger-colour.test.js",
+  "Accent swatch": "stories/accent-swatch.test.js",
+  "Accent without theme": "stories/accent-without-theme.test.js",
+  "Iconography": "stories/guidelines/iconography.test.js",
+  "React: DataTable": "react/src/DataTable.test.tsx",
+  "React: CommandPalette": "react/src/CommandPalette.test.tsx",
+  "React: Modal": "react/src/Modal.test.tsx",
+  "React: Drawer": "react/src/Drawer.test.tsx",
+  "React: A11y": "react/src/a11y.test.tsx",
+  "React: Field zoom": "react/src/field-zoom.test.tsx",
+  "React: Contrast": "react/src/contrast.test.tsx"
+};
+export const GATES = withNamedFiles(content.sections[1].entries, gateFiles)
+  .map(e => ({ file: e.file, name: e.title, does: e.Checks, blind: e.Limit }));
 export const SECTIONS = content.sections;
 
 /** Gaps with nothing measuring them at all. Named so they do not look covered. */

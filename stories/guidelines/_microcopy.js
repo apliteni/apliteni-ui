@@ -5,10 +5,6 @@ export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, emptyState, switchToggle } from '../../src/components/index.js';
 
-
-
-
-
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
 // This pair renders identical pixels on purpose — `label` is the accessible

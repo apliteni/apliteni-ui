@@ -6,10 +6,6 @@ export const BLURB = content.blurb;
 import { button, toast } from '../../src/components/index.js';
 import { icon, iconOnlyAllowed, iconMeanings } from '../../src/assets/icons.js';
 
-
-
-
-
 export const SPEC_CSS = `
   <style>
     .gl-stage--row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }

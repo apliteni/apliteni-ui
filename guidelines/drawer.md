@@ -6,34 +6,34 @@ When to open a panel over a list and how few lines it needs to separate its part
 
 <!-- rule: one-record -->
 
-**Why:** The list stays behind the scrim, so closing the drawer returns the reader to the opened row. A question with two answers is a confirm. Work needing its own address, more than one screen, or several steps is a page. Polaris deprecated its sheet, and Atlassian's drawer page says "Please use Modal instead". A kit that keeps a drawer must define its purpose: viewing or changing one record in place.
+**Why:** The list stays behind the scrim, so closing returns to the opened row; two-answer questions use confirm, while work needing an address, multiple screens or steps uses a page. Polaris deprecated its sheet and Atlassian says “Please use Modal instead”; this kit keeps drawers for one record in place ([#272](https://github.com/apliteni/apliteni-ui/issues/272)).
 
-**Except:** A short form is fine in a drawer, as Component choice says: filters, a new key, or a reclassification. A form requiring steps or more than one screen is a page.
+**Except:** Short forms fit: filters, a new key or reclassification (see Component choice). Forms needing steps or more than one screen use a page.
 
 ## Group drawer content under headings. Never put a card inside it.
 
 <!-- rule: no-cards -->
 
-**Why:** The panel already has an edge and a surface one step above the page, providing everything a card adds. None of the design systems read for #272 nests cards in a drawer. The Finance portal's transaction drawer shows the result of a page pattern: three bordered cards stacked inside a bordered panel.
+**Why:** The panel already supplies the edge and raised surface a card would add. None of the systems studied for [#272](https://github.com/apliteni/apliteni-ui/issues/272) nests cards; the reported transaction drawer had three bordered cards inside a bordered panel.
 
-**Do:** Three groups, each with a heading above its rows and one line between groups. The panel is the container; a heading provides all needed structure.
+**Do:** Three groups, each a heading over rows, separated by one line.
 
-**Don't:** The same groups, each inside a card: a box inside the panel's box, with every card edge adding another line to read past.
+**Don't:** Each group has a card, adding boxes and edges inside the panel.
 
 ## Draw three lines: under the header, over the footer, and between each group and the next. Draw no others.
 
 <!-- rule: three-lines -->
 
-**Why:** A drawer normally contains a long, scrolling record. Header and footer lines show where scrolling starts and stops. Without them, the first row slides under the title with nothing to meet. In the body, the line only separates one group from the group above. A rule under every row is a common fault. Ant and Primer keep header and footer rules; Primer adds its body rule once the body scrolls. Material draws a divider between unrelated sections and none within one. Decided in #272.
+**Why:** Header and footer rules mark the ends of scrolling; body rules separate groups, never rows ([#272](https://github.com/apliteni/apliteni-ui/issues/272)). Ant and Primer use header/footer rules (Primer once scrolling); Material separates unrelated sections, not rows within them.
 
 ## Set each value beside its label, and separate rows with space.
 
 <!-- rule: rows -->
 
-**Why:** The UK government design system keeps a rule under every summary-list row and warns against removing them: when people zoom in, they can lose the label on one side from the value on the other. That list spans a page. A drawer is at most 560px wide; placing each value beside its label keeps the pair together at any zoom, so the rule has no remaining purpose.
+**Why:** The UK government design system keeps summary-list row rules because zoom can separate labels and values across a page. In a drawer at most 560px wide, adjacent labels and values stay together at any zoom without rules.
 
 **Except:** Figures a reader compares down the panel, such as a list of amounts, are a table. Use table() and right-align them there.
 
-**Do:** Each value sits beside its label. The eye moves a short way along one line, so nothing must guide it.
+**Do:** Adjacent label and value: a short eye movement needs no guide.
 
-**Don't:** Values pushed to the far edge, with a rule under every row guiding the eye back across. The rules compensate for the alignment.
+**Don't:** Far-edge values need row rules to guide the eye back.

@@ -7,10 +7,6 @@ import { card } from '../../src/components/index.js';
 import { tooltip } from '../../src/components/tooltip.js';
 import { CHART_CSS, EXPENSES, REVENUE, bars, eur, pointOf, sparkline } from '../_chart.js';
 
-
-
-
-
 // Every readout below is rendered open, at the anchor the wiring would have
 // measured, so the gates can read it. The charts are fixed-size for the same
 // reason: a readout placed in pixels has to sit on a chart drawn in pixels. The

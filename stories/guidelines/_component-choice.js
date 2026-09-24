@@ -10,10 +10,6 @@ import { success } from '../../src/components/success.js';
 import { tabs } from '../../src/components/tabs.js';
 import { currencyItems } from '../_currencies.js';
 
-
-
-
-
 const stage = (html, mod = '') => `<div class="gl-stage${mod ? ` ${mod}` : ''}">${html}</div>`;
 
 // `specimen: true` keeps the dialog open and inert — no aria-modal, no hook, so

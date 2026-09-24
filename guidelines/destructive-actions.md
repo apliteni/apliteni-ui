@@ -2,7 +2,7 @@
 
 Deletion, button labels, and when undo cannot be trusted.
 
-## Keep destructive controls quiet; turn them --pink on hover.
+## Keep destructive controls quiet at rest; turn them --pink on hover.
 
 <!-- rule: colour -->
 
@@ -14,7 +14,7 @@ Deletion, button labels, and when undo cannot be trusted.
 
 **Don't:** Hover repaints the row --accent.
 
-## Name what each button does: destroy or not.
+## Name what both buttons do: the one that destroys and the one that does not.
 
 <!-- rule: wording -->
 

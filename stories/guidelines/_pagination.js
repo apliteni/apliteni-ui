@@ -7,10 +7,6 @@ import { button } from '../../src/components/index.js';
 import { skeleton } from '../../src/components/loading.js';
 import { pagination, PAGE_SIZES, DEFAULT_PAGE_SIZE } from '../../src/components/pagination.js';
 
-
-
-
-
 // The specimens are pagers, and a pager is a strip rather than a box — so the
 // stage here is only a surface to sit them on. Two things it does have to do:
 // hold the two halves of a pair at the same width, so a difference in control

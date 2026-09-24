@@ -6,10 +6,6 @@ export const BLURB = content.blurb;
 import { button, callout, field, input, card } from '../../src/components/index.js';
 import { busyRegion, skeletonTable } from '../../src/components/loading.js';
 
-
-
-
-
 // `.gl-ring` pins what :focus-visible paints (src/styles/base.css), because a
 // focus ring exists only under a live keyboard and cannot be screenshotted.
 export const SPEC_CSS = `

@@ -8,10 +8,6 @@ export const BLURB = content.blurb;
 // cannot show, so each rule stands on its why and on the gate named in
 // docs/specification.md#motion.
 
-
-
-
-
 export const RULES = withSpecimens(content.rules, [
 { id: 'after-load', kit: [
       { ref: 'src/styles/drawer.css:72', pattern: 'transition: transform var(--dur-med) var(--ease);' },

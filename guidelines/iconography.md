@@ -6,7 +6,7 @@ When controls may have no words, what glyphs mean, and what adding one costs.
 
 <!-- rule: icon-only -->
 
-**Why:** Judge every other glyph individually; a toolbar is not a legend.
+**Why:** Readers meet other glyphs without a legend, so they need labels.
 
 **Except:** The list grows by decision, not review debate. Today: x (close or dismiss), copy (copy to clipboard), moreHorizontal (overflow menu), moreVertical (overflow menu), chevronDown (expand or collapse), and chevronUp (expand or collapse).
 
@@ -14,7 +14,7 @@ When controls may have no words, what glyphs mean, and what adding one costs.
 
 **Don't:** A cog with a perfect aria-label is still a cog.
 
-## A circled glyph shows a state; a bare glyph performs an action.
+## A circled glyph is a state; a bare glyph is an action.
 
 <!-- rule: meaning -->
 
@@ -30,9 +30,9 @@ When controls may have no words, what glyphs mean, and what adding one costs.
 
 <!-- rule: one-group -->
 
-**Why:** A duplicate still resolves because the flat map uses the last one, so nothing fails loudly. The catalogue then lists one glyph under two headings, adding lines readers cannot distinguish from a real glyph. `card`, `chart`, and `doc` were listed that way until #199.
+**Why:** The flat map silently keeps the last duplicate, while the catalogue lists one glyph under two headings. See [#199](https://github.com/apliteni/apliteni-ui/issues/199) for `card`, `chart` and `doc`.
 
-**Except:** Group a glyph by what it depicts, not by who uses it: `chart` is data even when a comms panel renders it.
+**Except:** Group by what the glyph depicts: `chart` belongs to data even in a comms panel.
 
 ## Use the Lucide path unchanged, and say so when names differ.
 
@@ -46,6 +46,6 @@ When controls may have no words, what glyphs mean, and what adding one costs.
 
 <!-- rule: stroke-earns-the-bar -->
 
-**Why:** WCAG 1.4.11 requires graphics to reach 3:1, the right bar for a graphic. Because stroke-width is stated in the glyph’s 24-unit box, visible width is `stroke-width × box ÷ 24`. The toast check used 2 at 13px, or 1.08 CSS px; it passed 3:1 by a tenth but looked like a smudge. Below 1.5 CSS px, the mark looks optically like a text stem, so it must reach 4.5:1 instead. This is covered by #206 and the specification’s icons-and-glyphs section.
+**Why:** Visible width is `stroke-width × box ÷ 24`: below 1.5 CSS px, a stroke reads as a text stem and needs 4.5:1, above WCAG 1.4.11’s 3:1 graphic bar. The toast’s 2 at 13px yielded 1.08 CSS px and passed 3:1 by a tenth but looked smudged ([#206](https://github.com/apliteni/apliteni-ui/issues/206)).
 
-**Except:** A glyph without status — such as a close button or chevron — is outside this measurement: there is no five-status pair to preserve, and the control is responsible for its own contrast.
+**Except:** Non-status glyphs, such as close buttons and chevrons, have no five-status pair to measure; their control owns their contrast.
