@@ -106,7 +106,13 @@ export function DataTable<T extends { name: string }>({
     onSortChange?.(next);
     toFirstPage();
   };
-  const caret = (k: string) => (sort.key === k ? (sort.dir === 1 ? ' ▲' : ' ▼') : ' ↕');
+  const caret = (k: string) => (
+    <svg className="rx-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      {(sort.key !== k || sort.dir === 1) && <path d="m8 9 4-4 4 4" />}
+      {(sort.key !== k || sort.dir === -1) && <path d="m8 15 4 4 4-4" />}
+    </svg>
+  );
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
 
   return (
@@ -139,7 +145,7 @@ export function DataTable<T extends { name: string }>({
                 {c.sortable
                   ? (
                     <button type="button" className="rx-sort" onClick={() => onSort(c.key)}>
-                      {c.label}<span className="rx-caret" aria-hidden="true">{caret(c.key)}</span>
+                      {c.label}{caret(c.key)}
                     </button>
                   )
                   : c.label}
