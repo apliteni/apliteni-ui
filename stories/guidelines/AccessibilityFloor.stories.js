@@ -7,7 +7,7 @@
 import { guidelinePage, mono } from './_layout.js';
 import { pad } from '../_gallery.js';
 import { badge } from '../../src/components/index.js';
-import { TITLE, RULES, SPEC_CSS, AIMS, GATES, UNGATED } from './_accessibility-floor.js';
+import { TITLE, BLURB, RULES, SPEC_CSS, AIMS, GATES, UNGATED, SECTIONS } from './_accessibility-floor.js';
 
 const CSS = `
   <style>
@@ -40,7 +40,7 @@ const aim = (a) => `
 
 const gateRow = (g) => `
   <tr>
-    <td><span class="af-file">${g.file}</span></td>
+    <td><span class="af-file">${g.name}</span></td>
     <td><span class="af-does">${mono(g.does)}</span></td>
     <td><ul class="af-blind">${g.blind.map((b) => `<li>${mono(b)}</li>`).join('')}</ul></td>
   </tr>`;
@@ -59,17 +59,15 @@ export default {
 
 export const AccessibilityFloor = {
   name: 'The accessibility floor',
-  render: () => `${CSS}${guidelinePage({ title: TITLE, rules: RULES, css: SPEC_CSS })}${pad(`
+  render: () => `${CSS}${guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES, css: SPEC_CSS })}${pad(`
     <section class="af gl">
-      <h2>What the kit aims at, above the floor</h2>
-      <p>Every number above is the least this kit accepts. These four are what it reaches for,
-         written so they can be applied to a component nobody has built yet.</p>
+      <h2>${SECTIONS[0].title}</h2>
+      <p>${SECTIONS[0].intro}</p>
       ${AIMS.map(aim).join('')}
     </section>
     <section class="af gl">
-      <h2>What the gates admit they cannot see</h2>
-      <p>Not a fresh audit — this is what each gate already states about itself in its own
-         header. A gate that is not on this list fails the build until it is.</p>
+      <h2>${SECTIONS[1].title}</h2>
+      <p>${SECTIONS[1].intro}</p>
       <table class="ui-table af-table">
         <colgroup><col style="width:24%"><col style="width:32%"><col style="width:44%"></colgroup>
         <thead><tr><th>Gate</th><th>What it checks</th><th>What it will not catch</th></tr></thead>
@@ -77,8 +75,8 @@ export const AccessibilityFloor = {
       </table>
     </section>
     <section class="af gl">
-      <h2>What nothing measures at all</h2>
-      <p>Named here so it does not read as covered.</p>
+      <h2>${SECTIONS[2].title}</h2>
+      <p>${SECTIONS[2].intro}</p>
       <table class="ui-table af-table">
         <colgroup><col style="width:14%"><col style="width:28%"><col style="width:58%"></colgroup>
         <thead><tr><th></th><th>Subject</th><th>Where it stands</th></tr></thead>

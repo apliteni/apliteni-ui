@@ -290,3 +290,83 @@ test('the guidelines pages cite at least one line of kit code', async () => {
   }
   assert.ok(refs > 0, 'no guideline page cites any kit code — the resolver is checking nothing');
 });
+
+// The shipping documents and rendered prose must stay together as the catalogue grows.
+import { parseGuideline, withSpecimens } from './_markdown.js';
+import { mono } from './_layout.js';
+const markdownDir = path.join(root, 'guidelines');
+const sourceReference = /(?:\b(?:src|stories|react|docs)\/|\b[\w-]+\.(?:css|[cm]?js|tsx?|md)(?::\d+)?\b)/;
+const plain = (text) => JSDOM.fragment(mono(text)).textContent;
+
+test('every guideline has packaged Markdown and renders its rule text from it', async () => {
+  const docs = readdirSync(markdownDir).filter(file => file.endsWith('.md')).sort();
+  const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
+  assert.equal(content.length, 17, 'update the collection count when adding a page');
+  assert.deepEqual(docs, [...content.map(file => `${file.slice(1, -3)}.md`), 'overview.md'].sort());
+  assert.ok(JSON.parse(readFileSync(path.join(root, 'package.json'))).files.includes('guidelines'));
+  let count = 0;
+  for (const file of content) {
+    const mod = await import(path.join(here, file));
+    const document = readFileSync(path.join(markdownDir, `${file.slice(1, -3)}.md`), 'utf8');
+    assert.doesNotMatch(document.replace(/\]\([^)]*\.md\)/g, ']'), sourceReference, file);
+    const parsed = parseGuideline(document);
+    assert.equal(mod.TITLE, parsed.title);
+    assert.equal(mod.BLURB, parsed.blurb);
+    const fragment = JSDOM.fragment(guidelinePage({ title: mod.TITLE, rules: mod.RULES }));
+    const rendered = [...fragment.querySelectorAll('.gc-rule')];
+    assert.equal(rendered.length, parsed.rules.length);
+    parsed.rules.forEach((rule, index) => {
+      for (const key of ['id', 'imperative', 'why', 'except', 'doCaption', 'dontCaption', 'unmet']) {
+        assert.deepEqual(mod.RULES[index][key], rule[key], `${file}: ${rule.id} ${key}`);
+      }
+      for (const key of ['imperative', 'why', 'except', 'doCaption', 'dontCaption']) {
+        if (rule[key]) assert.ok(rendered[index].textContent.includes(plain(rule[key])), `${file}: missing ${rule.id} ${key}`);
+      }
+      count++;
+    });
+    assert.equal(fragment.querySelector('.gc-refs'), null);
+  }
+  assert.equal(count, 87, 'update the rule count when adding or removing a rule');
+});
+
+test('all Storybook guideline prose is free of source references, including appendices', async () => {
+  for (const file of pages.filter(file => file.endsWith('.stories.js'))) {
+    const mod = await import(path.join(here, file));
+    for (const [name, story] of Object.entries(mod)) {
+      if (name === 'default') continue;
+      const fragment = JSDOM.fragment(story.render());
+      fragment.querySelectorAll('style').forEach(el => el.remove());
+      assert.doesNotMatch(fragment.textContent, sourceReference, file);
+    }
+  }
+});
+
+test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
+  const source = '# Example\n\nA summary.\n\n## Keep <words> readable.\n\n<!-- rule: text -->\n\n**Why:** Use `--text`.\n';
+  const render = source => guidelinePage({ title: 'Example', rules: withSpecimens(parseGuideline(source).rules, [{ id: 'text' }]) });
+  assert.ok(JSDOM.fragment(render(source)).textContent.includes('Keep <words> readable.'));
+  assert.ok(JSDOM.fragment(render(source.replace('readable', 'clear'))).textContent.includes('Keep <words> clear.'));
+  assert.throws(() => withSpecimens(parseGuideline(source).rules, [{ id: 'other' }]), /ids must match/);
+  assert.throws(() => parseGuideline(source + '\n**Typo:** Missing field\n'), /Unsupported/);
+  for (const bad of ['Read src/example.js:12.', 'See example.css.', 'Open ' + ['docs', 'example.md'].join('/') + '.']) assert.match(bad, sourceReference);
+});
+
+test('Storybook renders each Markdown introduction and every appendix entry', async () => {
+  for (const file of pages.filter(file => file.endsWith('.stories.js') && file !== 'Overview.stories.js')) {
+    const mod = await import(path.join(here, file));
+    const story = Object.entries(mod).find(([name]) => name !== 'default')[1];
+    const fragment = JSDOM.fragment(story.render());
+    const title = fragment.querySelector('h1').textContent;
+    const document = readdirSync(markdownDir).filter(file => file.endsWith('.md'))
+      .map(file => parseGuideline(readFileSync(path.join(markdownDir, file), 'utf8')))
+      .find(document => document.title === title);
+    assert.ok(document, `no Markdown for ${title}`);
+    assert.ok(fragment.textContent.includes(plain(document.blurb)), `${title}: missing introduction`);
+    for (const section of document.sections) {
+      for (const text of [section.title, section.intro, ...section.entries.flatMap(entry =>
+        [entry.title, entry.Apply, entry.Checks, entry.Note, ...entry.Limit].filter(Boolean))]) {
+        assert.ok(fragment.textContent.includes(plain(text)), `${title}: missing appendix text ${text}`);
+      }
+    }
+  }
+});

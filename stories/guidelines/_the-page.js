@@ -1,9 +1,13 @@
+import { loadGuideline, withSpecimens } from './_markdown.js';
+const content = await loadGuideline(new URL('../../guidelines/the-page.md', import.meta.url));
+export const TITLE = content.title;
+export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { card, button, badge } from '../../src/components/index.js';
 
-export const TITLE = 'The page';
 
-export const BLURB = 'What fits on one page: where readers start, which action leads, and when to split the content.';
+
+
 
 export const REFERENCE_POLICY = 'specification-only';
 
@@ -196,78 +200,18 @@ export const widthDont = () => frame(true, true);
 // The rules a designer decides, in the order a page is read. Each is one
 // sentence, a picture where a picture says it better, and one line of why.
 // Which line of the kit holds each of them is docs/specification.md#the-page.
-export const RULES = [
-  {
-    id: 'layout',
-    imperative: 'Choose one shell layout for a product and keep every screen on it: the rail alone, or the rail with a bar over the page carrying search and the reader’s menu.',
-    why: 'A reader learns once where search and their own account live; moving either between screens spends that again on every page.',
-  },
-  {
-    id: 'width',
-    imperative: 'Give a page the wide content column when it is mostly tables and boards, and the centred one when it is mostly reading and forms.',
-    why: 'A table in the centred column loses its last column off the side, and a paragraph across the whole page runs past the length a reader can follow back.',
-    doCaption: 'Drawn to scale: the wide column gives the table every column at once.',
-    dontCaption: 'The same table in the centred column, at the same scale: the last column is off the side.',
-    doHtml: widthDo,
-    dontHtml: widthDont,
-  },
-  {
-    id: 'head',
-    imperative: 'Put the way back first, then the page title and a short introduction, with all other content below.',
-    why: 'Filters above the title ask readers to make choices before they know which page they are on.',
-  },
-  {
-    id: 'one-h1',
-    imperative: 'Give each page exactly one page title.',
-    why: 'A missing page title leaves people navigating by headings nowhere to land, as the access confirmation screen once did.',
-  },
-  {
-    id: 'outline',
-    imperative: `Use headings in order, without skipping a level, and stop at h${LIMITS.outline}: page, section, then group.`,
-    why: 'Skipping a level makes content seem missing; needing a fourth level is a reason to split the page.',
-    doCaption: 'These are labels for heading levels, not headings on this page; each level belongs to the one above it.',
-    dontCaption: 'A broken heading order leaves readers to guess which content belongs together.',
-    doHtml: outlineDo,
-    dontHtml: outlineDont,
-  },
-  {
-    id: 'one-primary',
-    imperative: `Use ${said(LIMITS.primary)} filled button for the main action and give other actions less emphasis.`,
-    why: 'When several buttons stand out equally, readers have to work out which action matters most.',
-    doCaption: 'Readers can start with Create token without first weighing it against Import agents and Export.',
-    dontCaption: 'All three actions have equal emphasis, so the main action is unclear.',
-    doHtml: primaryDo,
-    dontHtml: primaryDont,
-  },
-  {
-    id: 'stacking',
-    imperative: `Stack no more than ${said(LIMITS.cards)} cards and keep cards out of other cards.`,
-    why: 'A page of twelve cards makes readers scroll past eleven to reach the one they came for.',
-    doCaption: `Each block represents a card: ${said(LIMITS.cards)} cards reach the limit.`,
-    dontCaption: 'Twelve cards exceed the limit; the blocks use the same scale in both examples.',
-    doHtml: stackDo,
-    dontHtml: stackDont,
-  },
-  {
-    id: 'at-rest',
-    imperative: 'Show the page with nothing covering it until the reader chooses to open something.',
-    why: 'Opening something over the page on arrival interrupts reading and can move keyboard focus.',
-  },
-  {
-    id: 'density',
-    imperative: 'Use compact rows in every table on the page, or in none of them.',
-    why: 'Consistent row heights make the tables feel part of the same page; choose the spacing the busiest table needs.',
-    doCaption: 'Both tables use compact rows, keeping the spacing consistent.',
-    dontCaption: 'The tables have the same four columns, but compact rows above and roomy rows below.',
-    doHtml: densityDo,
-    dontHtml: densityDont,
-  },
-  {
-    id: 'lede',
-    imperative: `Keep the introduction to ${said(LIMITS.lede)} sentence${LIMITS.lede === 1 ? '' : 's'} at most and add something the title does not say.`,
-    why: 'An introduction such as “This is the payouts page” under “Payouts” spends the reader’s time telling them nothing new.',
-  },
-];
+export const RULES = withSpecimens(content.rules, [
+{ id: 'layout' },
+{ id: 'width', doHtml: widthDo, dontHtml: widthDont },
+{ id: 'head' },
+{ id: 'one-h1' },
+{ id: 'outline', doHtml: outlineDo, dontHtml: outlineDont },
+{ id: 'one-primary', doHtml: primaryDo, dontHtml: primaryDont },
+{ id: 'stacking', doHtml: stackDo, dontHtml: stackDont },
+{ id: 'at-rest' },
+{ id: 'density', doHtml: densityDo, dontHtml: densityDont },
+{ id: 'lede' }
+]);
 
 // Two limits the same gate walks that this page does not draw. They are not
 // decisions anybody takes per screen — the kit has already taken them, and a

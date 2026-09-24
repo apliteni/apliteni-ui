@@ -1,3 +1,4 @@
+import { loadGuideline } from './_markdown.js';
 // The index data, read off the pages. What ENTRIES adds is the ORDER, which
 // mirrors the sidebar order in .storybook/preview.js.
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
@@ -80,10 +81,7 @@ export const PAGES = ENTRIES.map(([content, story]) => ({
   gaps: content.RULES.filter((r) => r.unmet),
 }));
 
-const RULE_COUNT = PAGES.reduce((n, p) => n + p.rules.length, 0);
-const GAPS = PAGES.flatMap((p) => p.gaps);
-const ISSUES = GAPS.map((r) => `#${r.unmet.issue}`);
-
-export const INTRO = `${RULE_COUNT} rules for building a screen with this kit, `
-  + `on ${PAGES.length} pages. The kit does not meet ${GAPS.length} of them yet — `
-  + `${ISSUES.join(' and ')} — and the table marks the pages that hold them.`;
+const overview = await loadGuideline(new URL('../../guidelines/overview.md', import.meta.url));
+export const INTRO = overview.blurb;
+export const TITLE = overview.title;
+export const LINKS = overview.links.map(link => ({ ...link, href: PAGES.find(page => page.title === link.title)?.href }));

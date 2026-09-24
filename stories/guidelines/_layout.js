@@ -2,12 +2,15 @@
 import { badge } from '../../src/components/index.js';
 import { pad } from '../_gallery.js';
 
-// Rule text is stored as plain prose; this is what wraps its file references,
-// token names and selectors in <code> at render time.
-export const mono = (s) => String(s).replace(
-  /(?:[\w/-]+(?:\.[\w-]+)*\.(?:css|js|tsx?)(?::\d+)?|var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?)/g,
-  (m) => `<code>${m}</code>`,
-);
+// Render inline code and token names without interpreting prose as HTML.
+const escape = (text) => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+export const mono = (text) => String(text).split(/(`[^`]+`)/g).map(part => {
+  if (part.startsWith('`')) return `<code>${escape(part.slice(1, -1))}</code>`;
+  return escape(part).replace(
+    /var\(--[a-z0-9-]+\)|--[a-z0-9-]+|\.[A-Za-z][\w-]*(?:__[\w-]+)?(?:\.[\w-]+)*(?::[a-z-]+)?/g,
+    (match) => `<code>${match}</code>`,
+  );
+}).join('');
 
 // The specimen width is not this page's number and no longer the confirm's
 // private one either: both read --panel-md now, so the copy #198 recorded here
@@ -43,6 +46,7 @@ const PAGE_CSS = `
     /* By name, not ".gc h2": that also matched .ui-confirm__title and outranked it. */
     .gc-imperative { font: 600 16px/1.45 var(--font-display); color: var(--strong); margin: 0 0 var(--space-3); }
 
+    .gc .gc-intro { margin-bottom: var(--space-6); }
     .gc-rule + .gc-rule { margin-top: var(--space-8); padding-top: var(--space-8);
       border-top: 1px solid var(--border); }
 
@@ -61,11 +65,6 @@ const PAGE_CSS = `
       font: 400 12.5px/1.65 var(--font-sans); color: var(--text); max-width: var(--prose-dense); }
     .gc-except__label { font: 600 10.5px/1.7 var(--font-sans); color:var(--text);
       margin-right: var(--space-2); }
-
-    /* The citations, stripped to addresses and set on one line. Three lines of
-       "hovers to --pink" said the same thing three times. */
-    .gc-refs { margin-top: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-2);
-      font: 400 12px/1.6 var(--font-sans); color:var(--text); }
 
     /* Legible and nothing more. What a rule the kit does not meet should look
        like is decided separately, and replaces this rule and unmetLine(). */
@@ -108,19 +107,16 @@ const exceptLine = (rule) => (rule.except ? `
 const unmetLine = (rule) => (rule.unmet ? `
   <p class="gc-unmet">${mono(rule.unmet.note)} #${rule.unmet.issue}</p>` : '');
 
-const refs = (rule) => (rule.kit?.length ? `
-  <div class="gc-refs">${rule.kit.map((k) => mono(k.ref)).join(' ')}</div>` : '');
-
 const ruleBlock = (rule) => `
   <section class="gc-rule">
     <h2 class="gc-imperative">${mono(rule.imperative)}</h2>
     ${figure(rule)}
     ${unmetLine(rule)}
     ${exceptLine(rule)}
-    ${refs(rule)}
   </section>`;
 
-export const guidelinePage = ({ title, rules, css = '' }) => `${SPEC_CSS}${PAGE_CSS}${css}${pad(`<div class="gl gc">
-    <h1>${title}</h1>
+export const guidelinePage = ({ title, blurb, rules, css = '' }) => `${SPEC_CSS}${PAGE_CSS}${css}${pad(`<div class="gl gc">
+    <h1>${mono(title)}</h1>
+    ${blurb ? `<p class="gc-why gc-intro">${mono(blurb)}</p>` : ''}
     ${rules.map(ruleBlock).join('')}
   </div>`)}`;

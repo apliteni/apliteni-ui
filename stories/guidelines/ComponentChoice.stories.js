@@ -1,6 +1,6 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { guidelinePage } from './_layout.js';
-import { TITLE, RULES } from './_component-choice.js';
+import { TITLE, BLURB, RULES } from './_component-choice.js';
 
 export default {
   title: 'Guidelines/Component choice',
@@ -9,5 +9,5 @@ export default {
 
 export const ComponentChoice = {
   name: 'Component choice',
-  render: () => guidelinePage({ title: TITLE, rules: RULES }),
+  render: () => guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES }),
 };
