@@ -92,19 +92,3 @@ export const NoPager: StoryObj = {
     <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />
   ),
 };
-
-const animationStory = (sortAnimation: 'none' | 'chevron' | 'rows'): StoryObj => ({
-  args: { rowCount: 20, paged: false },
-  argTypes: { rowCount: { control: 'select', options: [20, 100, 500, 1000] }, paged: { control: 'boolean' } },
-  render: function Render({ rowCount, paged }) {
-    const sample = Array.from({ length: rowCount }, (_, index) => ({
-      name: `Campaign ${String(index + 1).padStart(4, '0')}`,
-      status: index % 3 ? 'live' : 'paused', clicks: (index * 7919) % 100003,
-    }));
-    return <DataTable columns={columns} rows={sample} pageSize={paged ? undefined : rowCount}
-      selectable={false} pager={paged} sortAnimation={sortAnimation} />;
-  },
-});
-export const SortAnimationNone = { ...animationStory('none'), name: 'Sort animation: none (baseline)' };
-export const SortAnimationChevron = { ...animationStory('chevron'), name: 'Sort animation: chevron only' };
-export const SortAnimationRows = { ...animationStory('rows'), name: 'Sort animation: chevron and rows' };

@@ -19,11 +19,10 @@
   stroke-width: 2.4;
   /* muted-ink: glyph — sort direction */
   color: var(--muted);
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 
-/* Prototype requested in #363: both variants use the kit ease-out token. */
-.rx-caret[data-animated] { transition: transform var(--dur-fast) var(--ease-out); }
 .rx-caret[data-up] { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
-  .rx-caret[data-animated] { transition: none; }
+  .rx-caret { transition: none; }
 }
