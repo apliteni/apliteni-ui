@@ -540,23 +540,27 @@ test('the style cache is still serving four reads in five from memory', () => {
   );
 });
 
-test('the walk has not run away with the clock', () => {
-  // 120s is ~2.5x the worst measurement on a fully contended 10-core laptop. It
-  // catches a runaway, and no wall-clock number can catch a 2x regression — that
-  // is the miss-rate test's job, immediately above.
-  //
-  // why: CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart
+test('the contrast walk stays within its style-read budget', () => {
   console.log(
     `contrast walk: ${(walk.elapsed / 1000).toFixed(1)}s for ${THEMES.length} theme×accent cell(s), `
     + `${walk.stats.judged} pairs judged, ${walk.findings.length} distinct failures`,
   );
+  // Use 800,000 style reads to allow catalogue growth beyond the repeated
+  // 522,760-read baseline and catch doubled traversal. The CI-only 150s limit
+  // is based on #374 (72.2s), #377 (80.2s), #375 (80.3s), and #373 (105.9s).
+  // It is about 1.9x typical time, but misses smaller slowdowns per read.
   assert.ok(
-    walk.elapsed < 120000,
-    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s, against a 120s ceiling set from `
-    + 'a measured worst case of 47.6s on a fully contended 10-core laptop. It is the critical '
-    + 'path in `npm test` and sets the whole suite\'s wall clock. At this margin the cause is not '
-    + 'a slow machine: either the walk stopped terminating, or theme×accent cells were added '
-    + 'without anyone costing them.',
+    walk.cache.queries < 800000,
+    `the contrast walk made ${walk.cache.queries} style reads. `
+    + 'Check for repeated work or profile catalogue growth before raising the limit.',
+  );
+});
+
+test('the contrast walk stays within the CI time budget', { skip: !process.env.CI }, () => {
+  assert.ok(
+    walk.elapsed < 150000,
+    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s. `
+    + 'Check runner load and style reads before blaming the code.',
   );
 });
 
