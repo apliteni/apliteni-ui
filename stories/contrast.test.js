@@ -627,6 +627,9 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 
 // Counts and floors are measured per cell so an improvement in one accent cannot
 // hide a regression in another. Each cause is explained in LEDGER above.
+// Reproduce: CONTRAST_LEDGER_REPORT=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
+// Last run: 2026-09-25, baseline 502f53d plus the reporting-only change.
+// Record `git rev-parse HEAD` with the output; review measurements before changing debt.
 const ACCENT_LEDGER = {
   'dark/phoenix': { B: [2, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [2, 4.20], P: [65, 1.06], S: [21, 2.66] },
@@ -664,6 +667,17 @@ for (const accent of ACCENTS.filter((a) => a !== ACCENT)) {
       const started = Date.now();
       const result = await walkStories({ theme, accent, states: true });
       const findings = groupFindings(result.records);
+      if (process.env.CONTRAST_LEDGER_REPORT === '1') {
+        const measured = Object.fromEntries(ALTERNATE_CAUSES.flatMap((entry) => {
+          const rows = findings.filter((f) => bucketsFor(f, ALTERNATE_CAUSES).includes(entry));
+          return rows.length ? [[entry.id, [rows.length,
+            Number(Math.min(...rows.map((f) => f.ratio)).toFixed(2))]]] : [];
+        }));
+        console.log(`CONTRAST_LEDGER ${JSON.stringify({
+          cell: `${theme}/${accent}`, measured,
+          unassigned: findings.filter((f) => bucketsFor(f, ALTERNATE_CAUSES).length !== 1).map(show),
+        })}`);
+      }
       console.log(`contrast alternate: ${theme}/${accent}, ${((Date.now() - started) / 1000).toFixed(2)} added seconds, ${result.stats.judged} pairs, ${findings.length} findings`);
       assert.deepEqual(result.problems, [], 'every alternate-accent story must render');
       assert.deepEqual(result.stats.storyIds, walk.storyIds, 'each cell must reach the default catalogue');

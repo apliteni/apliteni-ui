@@ -949,10 +949,22 @@ ratio and not on the clock.
 
 ### A ledger that keys on a measurement is written by hand, on purpose
 
-Do not build a script that regenerates the contrast ledger. The mandatory `why` on every entry
-is the anti-automation device: a regenerator would have to invent the sentence explaining why a
-bucket's four dark accent rows are acceptable debt, and it cannot, so the entries stay attached
-to a person who decided.
+Do not automatically rewrite the accepted contrast ledger or invent its `why` explanations.
+Measurements can be reproduced; accepting debt still requires review of the cause and owner.
+The alternate-cell measurement report prints actual per-cause `[count, worst]` values, rounded
+to two decimals, plus any findings that do not belong to exactly one cause:
+
+```bash
+git rev-parse HEAD
+CONTRAST_LEDGER_REPORT=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
+```
+
+Last run: 2026-09-25, against baseline `502f53d` plus the reporting-only change. Keep the commit
+and output together when reproducing a baseline. Lines starting `CONTRAST_LEDGER` contain one
+JSON report per cell, computed from the walk rather than copied from the ledger literals.
+The report prints before ledger assertions, so changed measurements remain visible when a gate
+fails. It does not edit the ledger, waive any exact count/floor assertion, or accept new debt.
+Review each changed pair and its hand-written explanation before updating the accepted values.
 
 Contrast this with `stories/danger-colour.test.js`, whose `AT_REST_EXEMPT` keys on a CSS
 **selector parsed out of the source** and whose test fails when an exemption stops naming a live
