@@ -540,31 +540,27 @@ test('the style cache is still serving four reads in five from memory', () => {
   );
 });
 
-test('the walk has not run away with style reads', () => {
-  // 522,760 reads over two default-accent cells, reproduced by the implementer,
-  // independent reviewer and CI. The 800,000 budget deliberately allows ~1.53x
-  // for catalogue growth while catching doubled traversal, including cache hits.
-  // why: CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart
+test('the contrast walk stays within its style-read budget', () => {
   console.log(
     `contrast walk: ${(walk.elapsed / 1000).toFixed(1)}s for ${THEMES.length} theme×accent cell(s), `
     + `${walk.stats.judged} pairs judged, ${walk.findings.length} distinct failures`,
   );
+  // Use 800,000 style reads to allow catalogue growth beyond the repeated
+  // 522,760-read baseline and catch doubled traversal. The CI-only 150s limit
+  // is based on #374 (72.2s), #377 (80.2s), #375 (80.3s), and #373 (105.9s).
+  // It is about 1.9x typical time, but misses smaller slowdowns per read.
   assert.ok(
     walk.cache.queries < 800000,
-    `the contrast walk made ${walk.cache.queries} style reads, against an 800000-read ceiling `
-    + 'set from 522760 measured reads. Check for repeated traversal or extra cells; if the '
-    + 'catalogue intentionally grew, profile it before changing this budget.',
+    `the contrast walk made ${walk.cache.queries} style reads. `
+    + 'Check for repeated work or profile catalogue growth before raising the limit.',
   );
 });
 
 test('the contrast walk stays within the CI time budget', { skip: !process.env.CI }, () => {
-  // CI walks: #374 72.2s, #377 80.2s, #375 80.3s, #373 105.9s.
-  // 150s is ~1.9x the typical 80s and ~1.4x the slowest observed CI run.
-  // A per-read slowdown under ~1.9x typical is not caught, even with unchanged reads.
   assert.ok(
     walk.elapsed < 150000,
-    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s, against a 150s CI ceiling. `
-    + 'Check runner load and the deterministic work counters before diagnosing a regression.',
+    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s. `
+    + 'Check runner load and style reads before blaming the code.',
   );
 });
 
