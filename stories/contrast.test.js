@@ -540,23 +540,27 @@ test('the style cache is still serving four reads in five from memory', () => {
   );
 });
 
-test('the walk has not run away with the clock', () => {
-  // 120s is ~2.5x the worst measurement on a fully contended 10-core laptop. It
-  // catches a runaway, and no wall-clock number can catch a 2x regression — that
-  // is the miss-rate test's job, immediately above.
-  //
+test('the walk has not run away with style reads', () => {
+  // 522,760 reads over two default-accent cells; 800,000 leaves catalogue growth
+  // room but catches doubled work, including cache hits the miss rate cannot see.
   // why: CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart
   console.log(
     `contrast walk: ${(walk.elapsed / 1000).toFixed(1)}s for ${THEMES.length} theme×accent cell(s), `
     + `${walk.stats.judged} pairs judged, ${walk.findings.length} distinct failures`,
   );
   assert.ok(
-    walk.elapsed < 120000,
-    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s, against a 120s ceiling set from `
-    + 'a measured worst case of 47.6s on a fully contended 10-core laptop. It is the critical '
-    + 'path in `npm test` and sets the whole suite\'s wall clock. At this margin the cause is not '
-    + 'a slow machine: either the walk stopped terminating, or theme×accent cells were added '
-    + 'without anyone costing them.',
+    walk.cache.queries < 800000,
+    `the contrast walk made ${walk.cache.queries} style reads, against an 800000-read ceiling `
+    + 'set from 522760 measured reads. Check for repeated traversal or extra cells; if the '
+    + 'catalogue intentionally grew, profile it before changing this budget.',
+  );
+});
+
+test('the contrast walk stays within the CI time budget', { skip: !process.env.CI }, () => {
+  assert.ok(
+    walk.elapsed < 300000,
+    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s, against a 300s CI ceiling. `
+    + 'Check runner load and the deterministic work counters before diagnosing a regression.',
   );
 });
 
