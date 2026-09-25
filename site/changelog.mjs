@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.41.2', date: '2026-09-25',
+    changes: [
+      ['fixed', 'Publishing an older release no longer moves npm’s latest tag backwards. The release workflow compares versions and publishes older releases under a separate tag. Resolves #370.'],
+    ],
+  },
+  {
     v: '0.41.1', date: '2026-09-24',
     changes: [
       ['changed', 'Storybook’s Apps section is now called Showcases. Existing story links still work, and the README and contributor docs use the new name. Requested in #366.'],
