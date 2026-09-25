@@ -645,9 +645,9 @@ jobs:
           # tag, and dispatching alongside it would be the duplicate this is
           # here to avoid.
           gh_capture run list --workflow release.yml --limit 50 \
-            --json databaseId,headBranch,status \
+            --json databaseId,headBranch,displayTitle,status \
             --jq '[.[]
-                   | select(.headBranch == env.TAG)
+                   | select(.headBranch == env.TAG or (.headBranch == "main" and .displayTitle == ("Release " + env.TAG)))
                    | select(.status != "completed")]
                   | max_by(.databaseId) | .databaseId // empty'
           if [ "$gh_status" -ne 0 ]; then
@@ -693,7 +693,7 @@ jobs:
             # workflow that lost its workflow_dispatch trigger, a 422 on the ref
             # — stopped the job with gh's stderr somewhere up the log and
             # nothing at the bottom saying that nothing had been published.
-            gh_capture workflow run release.yml --ref "$TAG"
+            gh_capture workflow run release.yml --ref main --field "tag=$TAG"
             if [ "$gh_status" -ne 0 ]; then
               echo "::error::Dispatching release.yml on $TAG was refused (gh exited $gh_status), so no publish was started and $VERSION is not on npm. The tag and the Release are correct and have been left alone; fix the cause and re-run this job, or push to main again. gh said: $(oneline "$(cat "$err")")"
               exit 1
@@ -712,9 +712,9 @@ jobs:
             while :; do
               sleep 5
               gh_capture run list --workflow release.yml --event workflow_dispatch \
-                --limit 50 --json databaseId,headBranch \
+                --limit 50 --json databaseId,headBranch,displayTitle \
                 --jq '[.[]
-                       | select(.headBranch == env.TAG)
+                       | select(.headBranch == env.TAG or (.headBranch == "main" and .displayTitle == ("Release " + env.TAG)))
                        | select(.databaseId > (env.BEFORE_ID | tonumber))]
                       | max_by(.databaseId) | .databaseId // empty'
               if [ "$gh_status" -ne 0 ]; then

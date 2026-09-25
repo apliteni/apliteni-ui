@@ -79,11 +79,12 @@ test('the workflow publishes a file path, not a git shorthand', () => {
 
 // Run the real selection and publish bodies with the artifact layout used by
 // download-artifact. Only npm's network boundary is stubbed; nothing is published.
-for (const [latest, version, expected] of [
+for (const [latest, version, expected, approvedVersion = version] of [
   ['0.40.1', '0.41.1', 'latest'],
   ['0.41.1', '0.41.0', 'backport'],
   ['0.41.1', '0.41.1', 'backport'],
   ['', '0.1.0', 'latest'],
+  ['0.1.0', '1.0.0', null, '0.9.0'],
   ['invalid', '1.0.0', null],
   ['unavailable', '1.0.0', null],
 ]) {
@@ -118,7 +119,7 @@ fi
         cwd: scratch,
         encoding: 'utf8',
         env: { ...process.env, PATH: `${scratch}/bin:${process.env.PATH}`, LATEST: latest,
-          TGZ: 'dist-pack/package.tgz', GITHUB_OUTPUT: path.join(scratch, 'output'),
+          TGZ: 'dist-pack/package.tgz', EXPECTED_VERSION: approvedVersion, GITHUB_OUTPUT: path.join(scratch, 'output'),
           PUBLISH_ARGS: path.join(scratch, 'publish-args') },
       });
       if (expected === null) {

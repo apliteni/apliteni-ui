@@ -5,10 +5,10 @@ Rules for an agent working in this repo. Contributor-facing rules are in
 
 ## After a merge, surface a release waiting for approval
 
-Publishing to npm is gated. `release.yml` runs on `release: published` and stops at the
-`npm-publish` environment, which needs a human to approve it — merging a version bump tags and
-releases, but **does not publish**. A release nobody approves sits in the queue silently, and
-this repo has had three stacked up at once while npm served a version two behind `main`.
+After [owner setup](docs/release-approval.md), ordinary releases approve by rule.
+Exceptions wait at `npm-publish-review`; rollout may also leave runs at the old
+`npm-publish` reviewer gate. A merge does not prove npm has published. Check the
+actual run and registry, and surface a waiting approval rather than approving it.
 
 After merging anything into `main`, check for a run waiting on approval:
 
@@ -20,8 +20,8 @@ gh run list --repo apliteni/apliteni-ui --workflow release.yml --status waiting 
 When a run is waiting, the coordinator asks Artur through the decisions flow on
 Amberstone, or the visual companion when Amberstone is down. Include the run URL,
 version and current npm `latest`. Only after Artur explicitly confirms that run,
-the coordinator reads its pending deployments and approves the `npm-publish`
-environment through the API:
+the coordinator reads its pending deployments and approves the `npm-publish-review`
+environment (or the legacy `npm-publish` gate during rollout) through the API:
 
 ```bash
 gh api repos/apliteni/apliteni-ui/actions/runs/<run-id>/pending_deployments
@@ -39,4 +39,6 @@ Publish jobs are serialized so overlapping runs cannot use the same stale read.
 GitHub keeps only one pending job per concurrency group and cancels older pending
 jobs. This cannot move `latest` backwards: any job that runs checks the registry.
 Rerun a canceled release if that version is still needed.
-Old tagged workflows do not gain this guard, so ordering still matters.
+Old tagged workflows do not gain this guard. After owner setup blocks tag refs,
+cancel obsolete tag runs and dispatch their tags through the Release workflow
+on `main` instead. Do not weaken the main-only environment restriction to retry.

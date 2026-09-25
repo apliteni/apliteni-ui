@@ -1357,32 +1357,31 @@ company*. The kit's own `prism` mark stays hand-authored in `src/assets/brand.js
 
 A release is a version bump. Merge one to `main` and the rest happens on its
 own: `tag-on-bump.yml` tags the commit, cuts a GitHub Release whose notes are
-the changelog entry for that version, and dispatches the publish workflow on
-the tag. The old ritual of `npm version`, a pushed tag and `gh release create`
+the changelog entry for that version, and dispatches the publish workflow from
+main with the tag as input. The old ritual of `npm version`, a pushed tag and `gh release create`
 is gone.
 
-One step still needs a person. The publish job runs in the `npm-publish`
-environment, which asks one of four reviewers to approve it and will not let you
-approve your own, so expect to be waiting for somebody else. `tag-on-bump.yml`
-watches the publish for ten minutes and then stops watching. A run that finishes
-inside that window is reported as it finished, red if the publish failed. It also
-goes red when the publish succeeded and npm's last answer, once the two and a half
-minutes are up, is that it does not have the version — and the message sends you
-to npm first, because a version is published before every edge can read it. Any
-other last answer leaves the job green with a warning on it, because a registry
-that was not answering when the window closed has said nothing either way, and
-`version-drift.yml` is what catches that one.
+After the owner completes [release setup](docs/release-approval.md), releases approve
+by rule: the version tag resolves to a commit on `main`, the latest main push runs
+of CI and Security for that exact commit succeeded, and the version is above npm
+`latest`. Unknown evidence or a failed condition waits for a required reviewer on
+`npm-publish-review`. CI may take up to ten minutes before the policy decides to
+wait for a person. Missing environment setup or an invalid/unresolvable tag fails
+without building or publishing.
 
-A run still waiting on a reviewer when the ten minutes are up leaves the job
-green, with a warning naming what it is waiting for and, where it can, the run.
-Somebody who has not clicked yet is not a broken pipeline.
+The workflow runs from `main` with a `tag` input, and builds the resolved tag SHA.
+Publishing a GitHub Release alone no longer triggers npm publishing. To retry or
+release an older tag, use Actions → Release → Run workflow, select `main`, and
+enter the version tag. The `npm-publish` environment allows only the main branch;
+its name remains bound in npm's trusted publisher. Do not restore the old `v*`
+allowance or remove npm's environment binding: either would weaken that boundary.
 
-So that green does not mean the version shipped. It means the release was
-started: the tag, the Release and the dispatch are all done, and npm has nothing
-new on it until the approval lands. If the approval never comes, what notices
-is `version-drift.yml` — it compares npm against `main` once a day and only
-reports a gap older than twenty-four hours, so expect the issue in one to two
-days rather than overnight.
+`tag-on-bump.yml` watches for ten minutes. A run still checking policy, building,
+or waiting for review leaves a warning; green means the release was started,
+not necessarily published. `version-drift.yml` checks npm against main daily and
+reports gaps older than twenty-four hours. The publish job re-reads latest under
+concurrency: a release overtaken while it was building uses `backport`, so latest
+never moves backwards. Human approval does not bypass that final guard.
 
 A red job does not undo itself. The publish it started can still finish, since a
 run that was building when the watch ran out may publish minutes later, but the
