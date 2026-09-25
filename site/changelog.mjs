@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.51.0', date: '2026-09-27',
+    changes: [
+      ['added', 'React now includes EmptyState with the vanilla layout, four text presets, and illustration and action slots. Resolves #386.'],
+    ],
+  },
+  {
     v: '0.50.0', date: '2026-09-26',
     changes: [
       ['added', 'React AppShell adds router links to the kit’s rail and top band, with saved folding and a phone navigation sheet. Closes #381.'],

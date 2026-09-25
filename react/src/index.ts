@@ -73,3 +73,5 @@ export type { ToastNotice, ToastProps } from './Toast';
 
 export { AppShell } from './AppShell';
 export type { AppShellProps, AppShellSection } from './AppShell';
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps, EmptyStateVariant, EmptyStateAction } from './EmptyState';

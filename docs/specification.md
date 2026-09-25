@@ -2157,3 +2157,13 @@ The fold glyph copies the vanilla shell’s frame and moving seam.
 `react/src/AppShell.test.tsx` checks route matching, persistence, search, account
 actions and sheet dismissal. Story accessibility and contrast gates cover both
 themes; browser evidence covers responsive layout, which JSDOM cannot measure.
+## React empty states
+
+`EmptyState` replaces a page or list body with a decorative glyph or illustration,
+a heading, guidance, and optional actions. Its four variants are `first-run`,
+`no-matches`, `not-found`, and `not-yet-built`. Callers can override the preset copy.
+The icon tile is 56px with an accent tint; title and guidance use full-strength
+text. Artwork is hidden from assistive technology. The not-found variant defaults
+to h1 inside the host shell; other variants default to h2. Callers set the heading
+level to fit the page. There is at most one primary action and one ghost action,
+rendered as native buttons or links with the kit's focus ring.

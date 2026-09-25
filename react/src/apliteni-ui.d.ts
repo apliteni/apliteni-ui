@@ -22,6 +22,7 @@ declare module '@apliteni/apliteni-ui' {
   export const calloutIcons: Record<'neutral' | 'info' | 'success' | 'warn' | 'danger', string>;
   export function callout(opts?: Record<string, unknown>): string;
   export function card(opts?: Record<string, unknown>): string;
+  export function emptyState(opts?: Record<string, unknown>): string;
   export function pagination(opts?: Record<string, unknown>): string;
   export function drawerSection(opts?: Record<string, unknown>): string;
   export function drawer(opts?: Record<string, unknown>): string;
