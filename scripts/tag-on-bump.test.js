@@ -669,7 +669,8 @@ if (cmd === 'run' && sub === 'list') {
       return {
         databaseId: r.id,
         createdAt: iso(r.createdAt),
-        headBranch: r.tag,
+        headBranch: r.ref || r.tag,
+        displayTitle: r.title || ('Release ' + r.tag),
         status: s.status,
         conclusion: s.conclusion === undefined ? null : s.conclusion,
         event: r.event,
@@ -713,7 +714,8 @@ if (cmd === 'workflow' && sub === 'run') {
     const id = state.runs.reduce((max, r) => Math.max(max, r.id), 0) + 1;
     state.runs.push({
       id,
-      tag: flag('--ref'),
+      ref: flag('--ref'),
+      tag: (flag('--field') || '').replace(/^tag=/, ''),
       event: 'workflow_dispatch',
       createdAt: t,
       visibleAt: t + (spec.appearAfter || 0),
@@ -1945,4 +1947,23 @@ test('a tag with no Release behind it is simply removed', () => {
 
   assert.equal(result.status, 0, result.log);
   assert.deepEqual(result.gitCalls, [`push origin :refs/tags/${TAG}`]);
+});
+
+test('dispatches trusted main with the release tag as input', needsJq, () => {
+  const result = runPublishStep({});
+  assert.equal(result.status, 0, result.log);
+  const call = result.calls.find(c => c[0] === 'workflow' && c[1] === 'run');
+  assert.equal(call[call.indexOf('--ref') + 1], 'main');
+  assert.equal(call[call.indexOf('--field') + 1], `tag=${TAG}`);
+});
+
+test('follows the matching main dispatch and ignores another tag title', needsJq, () => {
+  const result = runPublishStep({ runs: [
+    { id: 90, ref: 'main', title: `Release ${TAG}`, timeline: [{ at: 0, status: 'waiting' }] },
+    { id: 91, ref: 'main', title: 'Release v999.0.0', timeline: [{ at: 0, status: 'waiting' }] },
+  ] });
+  assert.equal(result.status, 0, result.log);
+  assert.equal(dispatched(result), false);
+  assert.ok(result.calls.some(c => c[0] === 'run' && c[1] === 'view' && c[2] === '90'));
+  assert.equal(result.calls.some(c => c[0] === 'run' && c[1] === 'view' && c[2] === '91'), false);
 });

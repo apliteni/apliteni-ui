@@ -1,14 +1,14 @@
 name: Release
+run-name: Release ${{ inputs.tag }}
 
-# Publish @apliteni/apliteni-ui to the PUBLIC npm registry when a GitHub Release
-# is published. Bump the version + tag first (npm version <patch|minor|major>),
-# push the tag, then cut a Release for it.
+# Publish a version tag using the policy and workflow from main.
+# tag-on-bump dispatches this workflow; exceptions wait for a person.
 #
 # Auth is npm Trusted Publishing (OIDC): the job exchanges a short-lived GitHub
 # OIDC token for publish rights — there is no long-lived NPM_TOKEN to steal.
 # The counterpart config lives on npmjs.com (package → Settings → Trusted
 # Publisher): repository apliteni/apliteni-ui, workflow release.yml. It matches
-# on the workflow file, not on a job name, so the two jobs below need no change
+# on the workflow file, not on a job name, so the jobs below need no change
 # there.
 #
 # The work is split in two on purpose. A job with `id-token: write` gets
@@ -28,32 +28,73 @@ name: Release
 #             only the dependency-free tag selector accompanies the tarball; no .npmrc
 #             or dependency tree is on disk.
 #
-# Provenance is unaffected: npm auto-enables it during the OIDC exchange for a
-# public repo + public package, and the attestation subject is the digest of the
-# tarball bytes plus GITHUB_* env, neither of which depends on how the tarball
-# got there. Do NOT "fix" this with `npm publish --ignore-scripts` — that skips
+# Provenance records this main workflow revision; the release source SHA is
+# recorded separately in the policy summary and used by the build checkout. Do NOT "fix" this with `npm publish --ignore-scripts` — that skips
 # `prepare` silently and ships a stale or missing react/dist with exit 0.
 on:
-  release:
-    types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Version tag to publish (for example v1.2.3)
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  policy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.policy.outputs.sha }}
+      version: ${{ steps.policy.outputs.version }}
+      automatic: ${{ steps.policy.outputs.automatic }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Snapshot the first-party selector before npm pack runs dependency code,
-      # so a build tool cannot replace code later run beside the OIDC token.
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Evaluate release policy
+        id: policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: node scripts/release-policy.mjs
+      # Take the selector from trusted main, never from the release's build.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: npm-tag-selector
           path: scripts/release-tag.mjs
           if-no-files-found: error
           retention-days: 7
+
+  review:
+    needs: policy
+    if: needs.policy.outputs.automatic != 'true'
+    runs-on: ubuntu-latest
+    environment: npm-publish-review
+    steps:
+      - run: echo 'A required reviewer approved this release exception.'
+
+  build:
+    needs: [policy, review]
+    if: >-
+      ${{ !cancelled() && needs.policy.result == 'success' &&
+          (needs.policy.outputs.automatic == 'true' || needs.review.result == 'success') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.policy.outputs.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24 # trusted publishing needs npm >= 11.5.1
@@ -75,7 +116,8 @@ jobs:
           retention-days: 7
 
   publish:
-    needs: build
+    needs: [policy, build]
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     # Serialize the registry read + publish across release refs. GitHub keeps
     # only one pending job and replaces it when another arrives. The tag guard
     # makes ordering irrelevant to latest; rerun a canceled release if that
@@ -84,14 +126,9 @@ jobs:
       group: npm-publish
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    # npm's trusted publisher matches on org + repo + this filename, and on the
-    # environment name when one is set. It does not match on the ref. Without an
-    # environment, a dispatch of this workflow from any branch publishes — and
-    # branch protection covers refs/heads/main only, so creating a branch is
-    # unrestricted. The `npm-publish` environment carries a deployment rule
-    # allowing tags matching v* and nothing else, so GitHub refuses to start this
-    # job on any other ref. Bind the same environment name in the publisher
-    # config on npmjs.com and the rule is enforced from both ends.
+    # Owner setup restricts this environment to the main BRANCH, with no tags.
+    # npm's trusted publisher must remain bound to this environment. Both gates
+    # are needed: an arbitrary branch/tag workflow must not mint a publish token.
     environment: npm-publish
     permissions:
       contents: read
@@ -145,9 +182,14 @@ jobs:
         id: tag
         env:
           TGZ: ${{ steps.tarball.outputs.tgz }}
+          EXPECTED_VERSION: ${{ needs.policy.outputs.version }}
         run: |
           set -euo pipefail
           version="$(tar -xOf "$TGZ" package/package.json | node -p 'JSON.parse(require("node:fs").readFileSync(0, "utf8")).version')"
+          if [ "$version" != "$EXPECTED_VERSION" ]; then
+            echo "::error::Packed version differs from the reviewed release version"
+            exit 1
+          fi
           tag="$(node dist-pack/release-tag.mjs "$version")"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
       # Publishing a file, not a directory: no `prepare`, no third-party code.
