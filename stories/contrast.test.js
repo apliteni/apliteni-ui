@@ -108,12 +108,13 @@ const LEDGER = [
     themes: ['light'],
     bg: 'the success wash and plain white in the light theme',
     example: 'div.ui-sx__eyebrow',
-    count: 4,
+    count: 2,
     worst: 3.56,
     why: 'Light --green has to stay recognisably green while carrying text, and green is the '
       + 'hue that darkens worst without turning into a colour nobody reads as success. #155 '
       + 'took the live pill and the badge over the line; what is left is the eyebrow on the '
-      + 'success screen and the shell glyphs in a revealed snippet. Each of these repeats a '
+      + 'success screen and shell syntax highlighting. #393 removed the reveal label and value '
+      + 'from this bucket by using text-grade success ink. Each remaining row repeats a '
       + 'meaning that is already carried by an icon or by '
       + 'wording next to it, which is why they were allowed to lag the components that carry '
       + 'meaning alone. The toast action used to be here too, on its own soft wash and again on '

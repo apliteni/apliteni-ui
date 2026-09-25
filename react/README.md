@@ -28,7 +28,19 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Button`, `Badge`, `Card`, `Icon`.
+
+`Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
+as plain text and copies it exactly as provided. After a successful clipboard write,
+it shows “Copied” for 1.4 seconds. If copying fails, it shows “Copy failed” so readers
+can try again or select the text manually.
+
+```tsx
+<Snippet label="Terminal" code="npm install @apliteni/apliteni-ui" />
+```
+
+Before a reveal snippet, explain that the secret is stored hashed and will not be
+shown again, and ask the reader to copy it now. The page decides when to remove it.
 
 `Button` accepts `size="xs" | "sm" | "md" | "lg"` (default `md`). Use `xs`
 for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconOnly>Copy</Button>`.

@@ -5,6 +5,7 @@ declare module '@apliteni/apliteni-ui' {
   export function initFilterBar(host: Element, opts?: Record<string, unknown>): { update: (opts: Record<string, unknown>) => void; destroy: () => void };
   export function segmentedNextIndex(key: string, index: number, length: number): number | null;
   export function icon(name: string): string;
+  export function snippet(opts?: Record<string, unknown>): string;
   export function button(opts?: Record<string, unknown>): string;
   export function badge(label: string, variant?: string): string;
   export function card(opts?: Record<string, unknown>): string;

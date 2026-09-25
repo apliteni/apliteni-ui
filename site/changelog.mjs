@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.43.0', date: '2026-09-25',
+    changes: [
+      ['added', 'React now includes Snippet for copying commands and one-time secrets. It uses the kit’s plain and reveal styles and announces the copy result. Reveal text uses the existing success ink to meet contrast requirements in light mode. Resolves #393.', ['Snippet']],
+    ],
+  },
+  {
     v: '0.42.0', date: '2026-09-25',
     changes: [
       ['added', 'React now includes KeyValueList and DrawerSection for displaying a record’s details. Lists support two columns, React values, em dashes for missing values, and redacted markers. They stack into one column on narrow screens. Resolves #391.'],

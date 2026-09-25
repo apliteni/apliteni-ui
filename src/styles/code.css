@@ -14,7 +14,7 @@
   align-items: center;
   padding: 10px 15px;
 }
-.ui-snippet__bar span {
+.ui-snippet__bar > span {
   /* rank: label */
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
@@ -63,8 +63,8 @@
 .ui-snippet--reveal {
   background: color-mix(in srgb, var(--green) 10%, var(--surface)); --ring-gap: color-mix(in srgb, var(--green) 10%, var(--surface));
 }
-.ui-snippet--reveal .ui-snippet__bar span { color: var(--green); }
-.ui-snippet--reveal pre { color: var(--green); word-break: break-all; white-space: pre-wrap; }
+.ui-snippet--reveal .ui-snippet__bar > span { color: var(--chip-success-ink); }
+.ui-snippet--reveal pre { color: var(--chip-success-ink); word-break: break-all; white-space: pre-wrap; }
 
 /* Inline code */
 .ui-code {
