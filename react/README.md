@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Callout`, `Icon`.
 
 `Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
@@ -41,6 +41,17 @@ can try again or select the text manually.
 
 Before a reveal snippet, explain that the secret is stored hashed and will not be
 shown again, and ask the reader to copy it now. The page decides when to remove it.
+
+`Callout` keeps a statement on the page until its condition ends. Pass the message as
+`children` and optional buttons as `actions`. The `variant` can be `neutral`, `info`,
+`success`, `warn`, or `danger`. Use `icon` to override the kit glyph by name. Only
+`danger` uses `role="alert"`. Links and buttons keep their normal keyboard behavior.
+
+```tsx
+<Callout variant="warn" icon="alert" actions={<Button size="sm">Review period</Button>}>
+  <b>Incomplete.</b> This period is still open.
+</Callout>
+```
 
 `Button` accepts `size="xs" | "sm" | "md" | "lg"` (default `md`). Use `xs`
 for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconOnly>Copy</Button>`.

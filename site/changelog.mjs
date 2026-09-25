@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.49.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React now includes Callout with five tones, an icon override, and optional actions. Resolves #382.', ['Callout']],
+    ],
+  },
+  {
     v: '0.48.0', date: '2026-09-26',
     changes: [
       ['added', 'React now includes Toast and useToast for notifications in the kit’s five tones. Notices close after five seconds, while notices with an action remain until selected or dismissed. Closes #397.'],
