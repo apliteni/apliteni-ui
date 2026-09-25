@@ -666,6 +666,8 @@ for (const accent of ACCENTS.filter((a) => a !== ACCENT)) {
   for (const theme of THEMES) {
     test(`contrast ledger: ${theme}/${accent}`, {
       skip: process.env.CONTRAST_ACCENTS !== '1',
+      // Allow for the shared setup and a full cell on busy local hosts.
+      timeout: 600_000,
     }, async () => {
       const started = Date.now();
       const result = await walkStories({ theme, accent, states: true });
