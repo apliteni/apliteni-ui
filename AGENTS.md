@@ -35,6 +35,8 @@ against `npm view @apliteni/apliteni-ui dist-tags.latest` and approve only those
 than what is published. Report stale runs rather than approving them. The workflow
 now guards `latest`: it compares semver immediately before publishing, uses `latest`
 only for a higher version (or when no latest exists), and otherwise uses `backport`.
-Publish jobs are serialized with a queue so overlapping runs cannot use the same
-stale read.
+Publish jobs are serialized so overlapping runs cannot use the same stale read.
+GitHub keeps only one pending job per concurrency group and cancels older pending
+jobs. This cannot move `latest` backwards: any job that runs checks the registry.
+Rerun a canceled release if that version is still needed.
 Old tagged workflows do not gain this guard, so ordering still matters.

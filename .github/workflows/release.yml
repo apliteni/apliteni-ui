@@ -76,12 +76,13 @@ jobs:
 
   publish:
     needs: build
-    # Serialize the registry read + publish across release refs, retaining
-    # pending releases instead of replacing them when another run arrives.
+    # Serialize the registry read + publish across release refs. GitHub keeps
+    # only one pending job and replaces it when another arrives. The tag guard
+    # makes ordering irrelevant to latest; rerun a canceled release if that
+    # version is still needed, and it will recheck the registry before publishing.
     concurrency:
       group: npm-publish
       cancel-in-progress: false
-      queue: max
     runs-on: ubuntu-latest
     # npm's trusted publisher matches on org + repo + this filename, and on the
     # environment name when one is set. It does not match on the ref. Without an
