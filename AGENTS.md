@@ -3,6 +3,12 @@
 Rules for an agent working in this repo. Contributor-facing rules are in
 `CONTRIBUTING.md`; this file holds only what an agent has to do differently.
 
+## Check accents locally
+
+Before opening a PR that changes colours, tokens, or theme/accent CSS, run:
+`CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js`
+State the result in the PR. Keep these checks out of routine CI to avoid using Actions minutes.
+
 ## After a merge, surface a release waiting for approval
 
 After [owner setup](docs/release-approval.md), ordinary releases approve by rule.

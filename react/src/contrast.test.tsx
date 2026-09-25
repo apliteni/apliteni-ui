@@ -11,12 +11,12 @@
 // foot of this file.
 
 // WHAT THIS GATE WILL NOT CATCH. The vanilla ledger (stories/contrast.test.js,
-// header) applies here unchanged. Three differences of its own:
+// header) applies here too. Differences of its own:
 //
-//  - No state pass. Nothing under react/ paints text in a state, so desugaring
-//    :hover/:focus-visible would measure zero new pairs. Add it when a state rule
-//    paints text.
-//  - One accent — `default`, as there. The accent matrix is behind CONTRAST_ACCENTS=1.
+//  - React uses the default accent. The vanilla accent matrix runs with CONTRAST_ACCENTS=1.
+//  - State targets come from both the kit and React stylesheets. Scripts,
+//    simultaneous states, and state rules inside story-local <style> blocks
+//    are not covered.
 //  - Wider here: this walks a real React tree, so Modal's portal is measured. It
 //    lands in document.body outside the render container, which is why the walk
 //    scans document.body.
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import type { ReactElement } from 'react';
 import {
   AA_LARGE, AA_TEXT, composite, desugar, effectiveBackground, groupFindings,
-  hasOwnText, kitCssFor, parseColour, ratio, selectorPath, substitute, tokensFor,
+  hasOwnText, kitCssFor, parseColour, ratio, selectorPath, stateBases, stateTargets, substitute, tokensFor,
   // stories/lib/contrast.js is plain JS outside this workspace's tsconfig. It is
   // imported for its arithmetic, which is unit-tested in stories/lib/contrast.test.js.
   // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
@@ -61,7 +61,7 @@ type Finding = {
   paths: Set<string>; stories: Set<string>;
 };
 type Record_ = {
-  story: string; theme: string; accent: string; state: null; path: string;
+  story: string; theme: string; accent: string; state: string | null; path: string;
   fg: string; bg: string | null; ratio: number | null; need: number | null;
   unjudgeable: string | null;
 };
@@ -87,6 +87,8 @@ function sheetFor(theme: Theme): { kit: string; local: string } {
 const SHEETS = Object.fromEntries(THEMES.map((t) => [t, sheetFor(t)])) as Record<
   Theme, { kit: string; local: string }>;
 const sheetText = (t: Theme) => `${SHEETS[t].kit}\n/* --- react/src --- */\n${SHEETS[t].local}`;
+
+const STATE_BASES = Object.fromEntries(THEMES.map((theme) => [theme, stateBases(sheetText(theme))]));
 
 const styleEl = document.createElement('style');
 document.head.appendChild(styleEl);
@@ -122,12 +124,14 @@ afterEach(cleanup);
 /** One entry per (story × theme) cell: how many pairs that cell actually judged. */
 const cells: { id: string; judged: number; walked: number }[] = [];
 const records: Record_[] = [];
+const stateCounts = { targets: 0, judged: 0, elapsed: 0 };
 const stats = { walked: 0, judged: 0, unjudgeable: 0, hiddenSkipped: 0, disabledSkipped: 0, unresolvedFg: 0 };
 
 /** Measure every text-owning element now in document.body. Returns pairs judged. */
-function measure(story: string, theme: Theme): number {
+function measure(story: string, theme: Theme, state: string | null = null,
+  elements: Iterable<Element> = document.body.querySelectorAll('*')): number {
   let judged = 0;
-  for (const el of document.body.querySelectorAll('*')) {
+  for (const el of elements) {
     if (el.tagName === 'STYLE' || el.tagName === 'SCRIPT') continue;
     if (!hasOwnText(el)) continue;
 
@@ -152,7 +156,7 @@ function measure(story: string, theme: Theme): number {
     if (bg === 'IMAGE') {
       stats.unjudgeable += 1;
       records.push({
-        story, theme, accent: 'default', state: null, path: selectorPath(el),
+        story, theme, accent: 'default', state, path: selectorPath(el),
         fg: cs.color, bg: null, ratio: null, need: null,
         unjudgeable: 'background is an image or gradient — JSDOM cannot sample it',
       });
@@ -186,7 +190,7 @@ function measure(story: string, theme: Theme): number {
     if (r >= need) continue;
 
     records.push({
-      story, theme, accent: 'default', state: null, path: selectorPath(el),
+      story, theme, accent: 'default', state, path: selectorPath(el),
       fg: cs.color, bg: `rgb(${bg.slice(0, 3).map(Math.round).join(',')})`,
       ratio: r, need, unjudgeable: null,
     });
@@ -212,7 +216,23 @@ describe('contrast: React stories', () => {
         const Story = () => story.render!(args, { globals: { theme, accent: 'default' }, args });
         const before = stats.walked;
         render(<Story />);
-        const judged = measure(id, theme);
+        let judged = measure(id, theme);
+        const started = performance.now();
+        const bases = STATE_BASES[theme];
+        for (const [element, state] of stateTargets(document.body, bases)) {
+          const previous = element.getAttribute('data-ui-state');
+          element.setAttribute('data-ui-state', state);
+          try {
+            const count = measure(id, theme, state, [element, ...element.querySelectorAll('*')]);
+            judged += count;
+            stateCounts.judged += count;
+            stateCounts.targets += 1;
+          } finally {
+            if (previous === null) element.removeAttribute('data-ui-state');
+            else element.setAttribute('data-ui-state', previous);
+          }
+        }
+        stateCounts.elapsed += performance.now() - started;
         cells.push({ id: `${id} [${theme}]`, judged, walked: stats.walked - before });
 
         const failed = records.filter((r) => r.story === id && r.theme === theme && r.unjudgeable == null);
@@ -254,6 +274,12 @@ describe('contrast: React coverage', () => {
     expect(found.length, 'stories discovered').toBeGreaterThan(0);
     expect(cells.length, `${found.length} stories × ${THEMES.length} themes`)
       .toBe(found.length * THEMES.length);
+  });
+
+  it('measured interaction states from the rendered catalogue', () => {
+    process.stdout.write(`contrast[react] states: ${stateCounts.targets} targets, ${stateCounts.judged} pairs, ${(stateCounts.elapsed / 1000).toFixed(2)} added seconds\n`);
+    expect(stateCounts.targets).toBeGreaterThan(0);
+    expect(stateCounts.judged).toBeGreaterThan(0);
   });
 
   it('judged real pairs, not zero, in every cell', () => {

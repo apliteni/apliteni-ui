@@ -3,9 +3,9 @@
  *
  * Stated weakly on purpose, because a gate that overstates itself is how contrast
  * came to be "verified visually": not "the pairs the kit renders" but the pairs a
- * STORY renders, resolved without layout, for text only, in two themes at one
- * accent. Nothing is enumerated — every file ending .stories.js under stories/ is
- * mounted in JSDOM against the kit's real stylesheets per theme, and every
+ * STORY renders, without layout, for text only. Both themes run at the default
+ * accent. Set CONTRAST_ACCENTS=1 to check the other accents. Every .stories.js file
+ * under stories/ is mounted in JSDOM against the kit's stylesheets per theme. Every
  * text-owning element is measured against the background chain composited above
  * it. The resolver is stories/lib/contrast.js; its two rewrites are pinned by the
  * self-checks below.
@@ -37,7 +37,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const THEMES = ['dark', 'light'];
 const ACCENT = 'default';
-const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'];
+const accentCss = readFileSync(path.join(root, 'src/tokens/accents.css'), 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, '');
+const ACCENTS = ['default', ...new Set([...accentCss.matchAll(/\[data-accent="([^"]+)"\]/g)]
+  .map((match) => match[1]))];
 
 // Two stories whose SUBJECT is colour itself. They render raw brand primitives
 // and superseded token values on purpose, so they are cited by story rather than
@@ -154,7 +157,7 @@ const LEDGER = [
     id: 'F',
     fg: '--purple-mid',
     themes: ['light'],
-    bg: 'the accent-tinted card, under the "soon" badge',
+    bg: 'accent-tinted grounds and the snippet bar under middle-ramp ink',
     example: 'span.ui-badge.ui-badge--soon',
     count: 1,
     worst: 4.27,
@@ -170,7 +173,12 @@ const LEDGER = [
       + 'later should be looked at by a person, which is what leaving it out makes happen. Nobody '
       + 'owns it: the decision to '
       + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
-      + 'not, whether it stops being purple or stops being washed.',
+      + 'not, whether it stops being purple or stops being washed. Alternate accents expose '
+      + 'more uses of the same middle-ramp ink. Phoenix and Emerald fail on the hero eyebrow, '
+      + 'the unstacked soon badge and pill, and the snippet keyword. Emerald also fails on '
+      + 'the lighter soon badge and pill backgrounds. These failures remain recorded under #376 '
+      + 'instead of being recoloured in the coverage change. Component owners must choose a '
+      + 'text-grade ink or a quieter background.',
   },
   /* H — --muted on the snippet's shell bar, which is lighter than the card it sits
      in — is closed. The entry said the cheap fix was to darken the bar rather than
@@ -225,7 +233,7 @@ const walk = {
 //    CONTAINER drops everything in it. #220's floor covers that; it is still a hole here.
 //  - anything a script would do: the body is a static string, so no preview.js wiring runs.
 //  - custom properties a story pins INLINE. Every var() is flattened against one theme-wide map,
-//    so the sub-theme panels are every one of them measured as the DEFAULT accent.
+//    so every sub-theme panel is measured using the current cell's accent.
 before(async () => {
   const started = Date.now();
   const records = [];
@@ -248,13 +256,13 @@ before(async () => {
 /** The buckets a finding belongs to. Doc buckets and token buckets are disjoint
  *  by construction: a finding produced only by a documentation story can match
  *  nothing but that story's entry. */
-function bucketsFor(finding) {
+function bucketsFor(finding, ledger = LEDGER) {
   const docOnly = [...finding.stories].every((s) => Object.values(DOC_STORIES).includes(s));
-  return LEDGER.filter((e) => {
+  return ledger.filter((e) => {
     if (e.story) return docOnly && [...finding.stories].every((s) => s === e.story);
     if (docOnly) return false;
     if (!e.themes.includes(finding.theme)) return false;
-    const token = tokensFor(finding.theme, ACCENT).get(e.fg);
+    const token = tokensFor(finding.theme, finding.accent).get(e.fg);
     return token != null && finding.fg === rgbOf(token);
   });
 }
@@ -271,8 +279,7 @@ const show = (f) => `${f.ratio.toFixed(2)} (needs ${f.need}) ${f.key}\n      ${[
 // element owns or inherits are reported unjudgeable rather than passed; filter is not applied,
 // so .ui-btn--primary:hover reads pre-filter. Never measured at all: non-text contrast (WCAG
 // 1.4.11) except the explicit success-panel tick probe below, text that is not a text node,
-// more than one accent, and whether the colour is
-// readable — the AA floor is a floor, not a verdict.
+// whether the colour is readable — the AA floor is a floor, not a verdict.
 
 // ---- the gate -------------------------------------------------------------
 
@@ -616,21 +623,84 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
   );
 });
 
-// ---- the accent matrix, off by default -----------------------------------
+// ---- alternate accents: the same ledger causes, separately pinned cells ---
 
-test('every theme × accent cell, behind CONTRAST_ACCENTS=1', { skip: !process.env.CONTRAST_ACCENTS }, async () => {
-  const records = [];
-  for (const theme of THEMES) {
-    for (const accent of ACCENTS) {
-      const r = await walkStories({ theme, accent, states: true });
-      records.push(...r.records);
-    }
+// Measure counts and floors for each cell. An improvement in one accent must not
+// hide a regression in another. LEDGER above explains each cause.
+// Run locally: CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
+// Add CONTRAST_LEDGER_REPORT=1 to print measured values. It does not change the gates.
+// Last full report: 2026-09-25, source 0877848.
+// Record `git rev-parse HEAD` with the output. Review measurements before changing debt.
+const ACCENT_LEDGER = {
+  'dark/phoenix': { B: [2, 4.24], P: [65, 1.06], S: [21, 2.66] },
+  'dark/ocean': { B: [2, 4.20], P: [65, 1.06], S: [21, 2.66] },
+  'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [4, 3.56], E: [2, 3.05], F: [5, 4.02], L: [1, 4.21], P: [65, 1.06], S: [21, 2.66] },
+  'light/ocean': { C: [4, 3.56], E: [2, 3.05], F: [1, 4.32], L: [1, 4.35], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [4, 3.56], E: [2, 3.05], F: [7, 3.12], L: [1, 4.23], P: [65, 1.06], S: [21, 2.66] },
+};
+
+const ALTERNATE_CAUSES = [...LEDGER, {
+  id: 'L',
+  fg: '--accent',
+  themes: ['light'],
+  bg: 'the motion replay control, under its hover wash',
+  why: 'The motion documentation mixes the replay hover background from the accent ink. '
+    + 'The light alternate-accent inks work on the plain page but fail on this darker background. '
+    + 'This is existing story-local debt found by the expanded gate. It remains under #376 '
+    + 'because this change is authorised to measure colours, not to choose replacements. '
+    + 'The motion story owner must change the hover background or choose another text ink.',
+}];
+
+test('the accent gate discovers every shipped accent', () => {
+  assert.ok(ACCENTS.length >= 4, 'accent discovery lost a shipped accent');
+  assert.deepEqual(Object.keys(ACCENT_LEDGER).sort(), ACCENTS.filter((a) => a !== ACCENT)
+    .flatMap((accent) => THEMES.map((theme) => `${theme}/${accent}`)).sort(),
+  'each shipped alternate cell needs a live ledger');
+  for (const entry of ALTERNATE_CAUSES) {
+    assert.ok(entry.why.length > 200, `ledger ${entry.id} needs a hand-written cause and owner`);
   }
-  const found = groupFindings(records);
-  // The accent families carry different literals under Phoenix, Ocean and
-  // Emerald, so the default ledger cannot account for these. This asserts only
-  // that the matrix runs and still measures something — per-accent entries are
-  // an undecided question, recorded in the plan, not smuggled in here.
-  assert.ok(found.length >= walk.findings.length, 'the matrix found fewer pairs than the two default cells');
-  console.log(`CONTRAST_ACCENTS: ${THEMES.length * ACCENTS.length} cells, ${found.length} distinct failing pairs`);
 });
+
+for (const accent of ACCENTS.filter((a) => a !== ACCENT)) {
+  for (const theme of THEMES) {
+    test(`contrast ledger: ${theme}/${accent}`, {
+      skip: process.env.CONTRAST_ACCENTS !== '1',
+      // Allow for the shared setup and a full cell on busy local hosts.
+      timeout: 600_000,
+    }, async () => {
+      const started = Date.now();
+      const result = await walkStories({ theme, accent, states: true });
+      const findings = groupFindings(result.records);
+      if (process.env.CONTRAST_LEDGER_REPORT === '1') {
+        const measured = Object.fromEntries(ALTERNATE_CAUSES.flatMap((entry) => {
+          const rows = findings.filter((f) => bucketsFor(f, ALTERNATE_CAUSES).includes(entry));
+          return rows.length ? [[entry.id, [rows.length,
+            Number(Math.min(...rows.map((f) => f.ratio)).toFixed(2))]]] : [];
+        }));
+        console.log(`CONTRAST_LEDGER ${JSON.stringify({
+          cell: `${theme}/${accent}`, measured,
+          unassigned: findings.filter((f) => bucketsFor(f, ALTERNATE_CAUSES).length !== 1).map(show),
+        })}`);
+      }
+      console.log(`contrast alternate: ${theme}/${accent}, ${((Date.now() - started) / 1000).toFixed(2)} added seconds, ${result.stats.judged} pairs, ${findings.length} findings`);
+      assert.deepEqual(result.problems, [], 'every alternate-accent story must render');
+      assert.deepEqual(result.stats.storyIds, walk.storyIds, 'each cell must reach the default catalogue');
+      assert.ok(result.stats.judged > 2500, 'each cell must judge real pairs');
+      assert.deepEqual(result.stats.uaBlue, [], 'alternate styles must resolve link colours');
+      const expected = ACCENT_LEDGER[`${theme}/${accent}`] || {};
+      for (const finding of findings) {
+        const hits = bucketsFor(finding, ALTERNATE_CAUSES);
+        assert.equal(hits.length, 1, `unledgered or ambiguous ${show(finding)}`);
+        assert.ok(expected[hits[0].id], `new cause in ${theme}/${accent}: ${show(finding)}`);
+      }
+      for (const [id, [count, worst]] of Object.entries(expected)) {
+        const rows = findings.filter((f) => bucketsFor(f, ALTERNATE_CAUSES).some((e) => e.id === id));
+        assert.equal(rows.length, count, `${theme}/${accent} bucket ${id}:\n${rows.map(show).join('\n')}`);
+        assert.ok(Math.min(...rows.map((f) => f.ratio)) >= worst - 0.005,
+          `${theme}/${accent} bucket ${id} deepened below ${worst}:\n${rows.map(show).join('\n')}`);
+      }
+      assert.equal(findings.length, Object.values(expected).reduce((n, [count]) => n + count, 0));
+    });
+  }
+}
