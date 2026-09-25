@@ -1,0 +1,26 @@
+.ui-drawer__rows.ui-kv {
+  grid-template-columns: calc(var(--space-6) * 5) minmax(0, 1fr);
+}
+.ui-drawer__rows.ui-kv--two-columns {
+  grid-template-columns: repeat(2, calc(var(--space-6) * 5) minmax(0, 1fr));
+}
+.ui-kv__hidden {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text);
+}
+.ui-kv__hidden svg {
+  width: var(--space-4);
+  height: var(--space-4);
+  stroke-width: 2.25;
+}
+@media (max-width: 560px) {
+  .ui-drawer__rows.ui-kv {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-3);
+  }
+  .ui-kv > .ui-drawer__row {
+    display: block;
+  }
+}

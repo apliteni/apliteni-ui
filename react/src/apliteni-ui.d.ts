@@ -9,6 +9,7 @@ declare module '@apliteni/apliteni-ui' {
   export function badge(label: string, variant?: string): string;
   export function card(opts?: Record<string, unknown>): string;
   export function pagination(opts?: Record<string, unknown>): string;
+  export function drawerSection(opts?: Record<string, unknown>): string;
   export function drawer(opts?: Record<string, unknown>): string;
   export function dropdown(opts?: Record<string, unknown>): string;
   export function wireDropdown(root?: Document | Element): void;
