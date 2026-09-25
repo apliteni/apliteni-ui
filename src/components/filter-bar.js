@@ -1,3 +1,4 @@
+import { lifecycle } from './lifecycle.js';
 import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
 
@@ -13,6 +14,8 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
 
 // The host stays mounted; update() restores the action's focus after controlled removal.
 export function initFilterBar(host, options = {}) {
+  const life = lifecycle(host, 'filter-bar');
+  if (!life.fresh) return life.api;
   let current = options;
   const focusKey = () => {
     const active = host.ownerDocument.activeElement;
@@ -21,9 +24,13 @@ export function initFilterBar(host, options = {}) {
     return { id: chip?.dataset.filterId, remove: active.hasAttribute('data-filter-remove'),
       index: [...host.querySelectorAll('[data-filter-id]')].indexOf(chip) };
   };
-  const wire = () => wireDropdown(host);
+  let unwire = () => {};
+  const wire = () => { unwire = wireDropdown(host); };
+  life.add(() => unwire());
   const update = next => {
+    if (!life.active) return;
     const focus = focusKey();
+    unwire();
     current = next;
     host.innerHTML = filterBar(next); wire();
     if (!focus) return;
@@ -46,11 +53,12 @@ export function initFilterBar(host, options = {}) {
       if (item.getAttribute('aria-disabled') !== 'true') {
         const id = chip?.dataset.filterId, value = item.dataset.value;
         // Dropdown completes its own close/focus before the consumer replaces the markup.
-        queueMicrotask(() => emit('ui-filter-change', { id, value }));
+        queueMicrotask(() => { if (life.active) emit('ui-filter-change', { id, value }); });
       }
     }
   };
   if (!host.querySelector('[data-filter-bar]')) host.innerHTML = filterBar(current);
-  host.addEventListener('click', click, true); wire();
-  return { update, destroy: () => host.removeEventListener('click', click, true) };
+  life.on(host, 'click', click, true); wire();
+  life.api = { update, destroy: life.destroy };
+  return life.api;
 }

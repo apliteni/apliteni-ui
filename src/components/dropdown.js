@@ -1,3 +1,4 @@
+import { wireElements, retainListeners } from './lifecycle.js';
 // Dropdown — the kit's one popover-list primitive. A trigger opens a panel of
 // item rows; two flavours share the same panel and the same open/close JS:
 //
@@ -241,9 +242,7 @@ export function dropdown({
 // [data-dropdown] > [data-dropdown-trigger] + [data-dropdown-panel], toggling
 // `.open` on the container so each keeps its own visual CSS).
 //
-// Per-instance trigger + keyboard handlers are attached once (guarded by a flag
-// on the element). Document-level click-outside + Esc are attached once per
-// document. Safe to call repeatedly (e.g. Storybook re-renders).
+// Listener ownership and teardown: docs/specification.md#initializer-lifecycle
 
 // Every wired container, so the close handlers can reach a dropdown wherever it
 // was drawn: `document.querySelectorAll` enters no shadow root and sees no other
@@ -252,7 +251,6 @@ export function dropdown({
 const _ddAll = new Set();
 // One pair of close handlers per document that holds a dropdown, the same way
 // wireShell() listens once per document it is handed.
-const _ddWiredDocs = new WeakSet();
 
 /** Where a portalled panel goes: the top of the tree its trigger lives in. A
  *  shadow root is its own top — moving the panel out to the page's <body> would
@@ -450,37 +448,45 @@ function selectOption(dd, item) {
 // same reason: a frame is its own document and a listener on the page's never
 // fires there. why: docs/specification.md#the-dropdown-panel
 function ddListen(doc) {
-  if (!doc || _ddWiredDocs.has(doc)) return;
-  _ddWiredDocs.add(doc);
-  doc.addEventListener('click', () => closeAllDropdowns());
-  doc.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || ddComposing(e)) return;
-    const open = ddLive().find((dd) => dd.classList.contains('open') && dd.ownerDocument === doc);
-    if (open) { closeDropdown(open); open.querySelector('[data-dropdown-trigger]')?.focus(); }
+  return retainListeners(doc, 'dropdown-document', life => {
+    life.on(doc, 'click', () => closeAllDropdowns());
+    life.on(doc, 'keydown', (e) => {
+      if (e.key !== 'Escape' || ddComposing(e)) return;
+      const open = ddLive().find((dd) => dd.classList.contains('open') && dd.ownerDocument === doc);
+      if (open) { closeDropdown(open); open.querySelector('[data-dropdown-trigger]')?.focus(); }
+    });
+    // Viewport coordinates go stale the moment anything scrolls. Capture, so a
+    // scroll inside the rail the panel was lifted out of counts too.
+    const reposition = () => {
+      for (const dd of ddLive()) {
+        if (dd.classList.contains('open') && dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
+      }
+    };
+    const view = doc.defaultView;
+    if (!view) return;
+    life.on(view, 'scroll', reposition, true);
+    life.on(view, 'resize', reposition);
   });
-  // Viewport coordinates go stale the moment anything scrolls. Capture, so a
-  // scroll inside the rail the panel was lifted out of counts too.
-  const reposition = () => {
-    for (const dd of ddLive()) {
-      if (dd.classList.contains('open') && dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
-    }
-  };
-  const view = doc.defaultView;
-  if (!view) return;
-  view.addEventListener('scroll', reposition, true);
-  view.addEventListener('resize', reposition);
 }
 
 export function wireDropdown(root = document) {
   const scope = root === document ? document : root;
-  scope.querySelectorAll('[data-dropdown]').forEach((dd) => {
-    if (dd.__ddWired) return;
-    dd.__ddWired = true;
+  return wireElements(scope, '[data-dropdown]', 'dropdown', (dd, life) => {
     _ddAll.add(dd);
-    ddListen(dd.ownerDocument);
+    life.add(ddListen(dd.ownerDocument));
     const trigger = dd.querySelector('[data-dropdown-trigger]');
     const panel = dd.querySelector('[data-dropdown-panel]');
-    if (!trigger) return;
+    if (!trigger) { life.destroy(); return; }
+    life.add(() => {
+      closeDropdown(dd);
+      _ddAll.delete(dd);
+      if (dd.__ddPanel) {
+        dd.appendChild(dd.__ddPanel);
+        dd.__ddPanel.removeAttribute('data-dropdown-portal');
+        delete dd.__ddPanel.__ddOwner;
+        delete dd.__ddPanel;
+      }
+    });
 
     // Portal: lift the panel onto <body>. An ancestor whose overflow is not
     // `visible` clips it on both axes, and one that is `position: sticky` opens
@@ -503,7 +509,7 @@ export function wireDropdown(root = document) {
       }
     }
 
-    trigger.addEventListener('click', (e) => {
+    life.on(trigger, 'click', (e) => {
       e.stopPropagation();
       if (dd.classList.contains('open')) closeDropdown(dd);
       else openDropdown(dd);
@@ -512,7 +518,7 @@ export function wireDropdown(root = document) {
     if (panel) {
       // Clicks inside the panel shouldn't reach the document close handler;
       // activating an item selects (single-select) + closes.
-      panel.addEventListener('click', (e) => {
+      life.on(panel, 'click', (e) => {
         e.stopPropagation();
         const item = e.target.closest('[data-dd-item]');
         if (!item || item.getAttribute('aria-disabled') === 'true') return;
@@ -522,12 +528,12 @@ export function wireDropdown(root = document) {
       });
       const field = panel.querySelector('[data-dd-search]');
       if (field) {
-        field.addEventListener('input', () => ddFilter(dd));
+        life.on(field, 'input', () => ddFilter(dd));
         // The pointer moves the pick too, so Enter takes the row under it. A
         // move to the same point is the browser's own after a scroll, not the
         // reader's, and would snatch the pick from the arrows.
         let at = '';
-        panel.addEventListener('mousemove', (e) => {
+        life.on(panel, 'mousemove', (e) => {
           const here = `${e.clientX},${e.clientY}`;
           if (here === at) return;
           at = here;
@@ -579,18 +585,20 @@ export function wireDropdown(root = document) {
       }
     };
 
-    dd.addEventListener('keydown', onKeydown);
+    life.on(dd, 'keydown', onKeydown);
     if (dd.__ddPanel) {
       // A portalled panel is no longer inside the container, so a keystroke on
       // an item never bubbles to it. Bound here only, or it would fire twice.
-      dd.__ddPanel.addEventListener('keydown', onKeydown);
+      life.on(dd.__ddPanel, 'keydown', onKeydown);
       // It is also placed once, on open, and a trigger whose box changes after
       // that — a webfont arriving, a longer label — leaves it adrift. Scroll
       // and resize do not see a reflow; this does.
       if (typeof ResizeObserver === 'function') {
-        new ResizeObserver(() => {
+        const observer = new ResizeObserver(() => {
           if (dd.classList.contains('open')) positionPortalPanel(dd, dd.__ddPanel);
-        }).observe(trigger);
+        });
+        observer.observe(trigger);
+        life.add(() => observer.disconnect());
       }
     }
   });

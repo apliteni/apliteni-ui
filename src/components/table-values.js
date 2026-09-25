@@ -1,3 +1,4 @@
+import { wireElements } from './lifecycle.js';
 import { esc } from './index.js';
 
 export function numericValue({ value, unit = '', missing = 'Not available' } = {}) {
@@ -18,15 +19,12 @@ export function rowIdentity({ symbol = '', name = '', logo, href } = {}) {
     + `<span class="ui-identity__symbol">${esc(symbol)}</span><span class="ui-identity__name">${esc(name)}</span></${tag}>`;
 }
 
-const initializedImages = new WeakSet();
 
 // Images keep their fallback underneath; no inline handlers in server-rendered markup.
 export function initRowIdentity(root = document) {
-  root.querySelectorAll('.ui-identity__logo img').forEach(img => {
+  return wireElements(root, '.ui-identity__logo img', 'row-identity', (img, life) => {
     if (img.complete && !img.naturalWidth) img.hidden = true;
-    if (initializedImages.has(img)) return;
-    initializedImages.add(img);
-    img.addEventListener('error', () => { img.hidden = true; });
-    img.addEventListener('load', () => { img.hidden = false; });
+    life.on(img, 'error', () => { img.hidden = true; });
+    life.on(img, 'load', () => { img.hidden = false; });
   });
 }

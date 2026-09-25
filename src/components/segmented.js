@@ -1,3 +1,4 @@
+import { wireElements } from './lifecycle.js';
 export function segmentedNextIndex(key, index, length) {
   if (!length) return null;
   if (key === 'ArrowRight' || key === 'ArrowDown') return (index + 1) % length;
@@ -8,10 +9,7 @@ export function segmentedNextIndex(key, index, length) {
 }
 
 export function initSegmented(root = document) {
-  const cleanups = [];
-  root.querySelectorAll('[data-seg]').forEach(group => {
-    if (group.__segWired) return;
-    group.__segWired = true;
+  return wireElements(root, '[data-seg]', 'segmented', (group, life) => {
     const buttons = () => [...group.querySelectorAll('button')].filter(b => !b.disabled);
     const pick = button => {
       group.querySelectorAll('button').forEach(b => {
@@ -33,8 +31,6 @@ export function initSegmented(root = document) {
       if (next == null) return;
       e.preventDefault(); list[next].focus(); pick(list[next]);
     };
-    group.addEventListener('click', click); group.addEventListener('keydown', keydown);
-    cleanups.push(() => { group.removeEventListener('click', click); group.removeEventListener('keydown', keydown); delete group.__segWired; });
+    life.on(group, 'click', click); life.on(group, 'keydown', keydown);
   });
-  return () => cleanups.forEach(fn => fn());
 }

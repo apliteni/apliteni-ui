@@ -1,3 +1,4 @@
+import { wireElements, combine } from './lifecycle.js';
 // Topbar factory + client behaviours. Composes the canonical strategy topbar
 // (brand, Deck/Text, theme toggle, version switcher, account menu).
 import { brand } from '../assets/brand.js';
@@ -111,7 +112,7 @@ export function topbar({
     `</div></header>`;
 }
 
-// ---- Behaviours (call once after markup mounts) --------------------------
+// ---- Behaviours (wire after markup mounts) --------------------------
 export function applyTheme(t, root = document.documentElement) {
   root.setAttribute('data-theme', t);
   const name = themeName(t);
@@ -136,16 +137,17 @@ export function applyAccent(name, root = document.documentElement) {
 }
 
 export function wireTopbar(root = document) {
+  const cleanups = [];
   // Theme toggle
-  root.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
-    const html = document.documentElement;
+  cleanups.push(wireElements(root, '[data-theme-toggle]', 'topbar', (btn, life) => {
+    const html = btn.ownerDocument.documentElement;
     const cur = html.getAttribute('data-theme') || 'dark';
     applyTheme(cur, html);
-    btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', html));
-  });
+    life.on(btn, 'click', () => applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', html));
+  }));
   // Deck/Text view switch (.dtsw) — switch the active pill on click
-  root.querySelectorAll('.dtsw').forEach((sw) => {
-    sw.addEventListener('click', (e) => {
+  cleanups.push(wireElements(root, '.dtsw', 'topbar', (sw, life) => {
+    life.on(sw, 'click', (e) => {
       const a = e.target.closest('a');
       if (!a || !sw.contains(a)) return;
       e.preventDefault();
@@ -153,13 +155,13 @@ export function wireTopbar(root = document) {
       a.classList.add('cur');
       a.setAttribute('aria-current', 'page');
     });
-  });
+  }));
   // Segmented controls (.ui-seg) — a toolbar of toggle buttons (see segmented()
   // in components/index.js). Click selects; ArrowLeft/ArrowRight move and wrap,
   // Home/End jump to the ends. The strip keeps ONE Tab stop: selecting an option
   // hands it the tabindex and takes it off the rest, so a page with three of
   // these costs three Tab presses, not nine.
-  root.querySelectorAll('.ui-seg').forEach((seg) => {
+  cleanups.push(wireElements(root, '.ui-seg', 'topbar', (seg, life) => {
     const btns = () => Array.prototype.slice.call(seg.querySelectorAll('button'));
     const select = (b, focus) => {
       btns().forEach((x) => {
@@ -174,12 +176,12 @@ export function wireTopbar(root = document) {
       });
       if (focus) b.focus();
     };
-    seg.addEventListener('click', (e) => {
+    life.on(seg, 'click', (e) => {
       const b = e.target.closest('button');
       if (!b || !seg.contains(b)) return;
       select(b);
     });
-    seg.addEventListener('keydown', (e) => {
+    life.on(seg, 'keydown', (e) => {
       const b = e.target.closest('button');
       if (!b || !seg.contains(b)) return;
       const all = btns();
@@ -193,14 +195,14 @@ export function wireTopbar(root = document) {
       e.preventDefault();
       select(all[n], true);
     });
-  });
+  }));
   // Version switcher + account menu — the shared dropdown wiring (open/close +
   // click-outside + Esc + keyboard nav). One implementation for the whole kit.
-  wireDropdown(root);
+  cleanups.push(wireDropdown(root));
   // Accent pickers
-  root.querySelectorAll('[data-accent-pick]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      applyAccent(chip.getAttribute('data-accent-pick'), document.documentElement);
+  cleanups.push(wireElements(root, '[data-accent-pick]', 'topbar', (chip, life) => {
+    life.on(chip, 'click', () => {
+      applyAccent(chip.getAttribute('data-accent-pick'), chip.ownerDocument.documentElement);
       const group = chip.closest('[data-accent-group]') || root;
       group.querySelectorAll('[data-accent-pick]').forEach((c) => {
         c.classList.toggle('is-active', c === chip);
@@ -208,12 +210,13 @@ export function wireTopbar(root = document) {
         if (c.hasAttribute('aria-pressed')) c.setAttribute('aria-pressed', c === chip ? 'true' : 'false');
       });
     });
-  });
+  }));
   // Copy buttons
-  root.querySelectorAll('.ui-snippet__copy').forEach((btn) => {
-    btn.addEventListener('click', () => {
+  cleanups.push(wireElements(root, '.ui-snippet__copy', 'topbar', (btn, life) => {
+    life.on(btn, 'click', () => {
       const pre = btn.closest('.ui-snippet')?.querySelector('pre');
-      if (pre) { navigator.clipboard?.writeText(pre.innerText); btn.innerHTML = '✓ Copied'; setTimeout(() => { btn.innerHTML = btn.dataset.orig || 'Copy'; }, 1400); }
+      if (pre) { navigator.clipboard?.writeText(pre.innerText); btn.innerHTML = '✓ Copied'; life.timeout(() => { btn.innerHTML = btn.dataset.orig || 'Copy'; }, 1400); }
     });
-  });
+  }));
+  return combine(cleanups);
 }

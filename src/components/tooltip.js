@@ -1,3 +1,4 @@
+import { wireElements, retainListeners } from './lifecycle.js';
 // Tooltip — the readout that shows a value while a pointer rests on the mark
 // holding it. An overlay in every state: one element, rendered once inside its
 // host and absolutely placed there, so showing it moves nothing on the page.
@@ -227,38 +228,39 @@ function touching(doc, e) {
 // The same document is where the kind of pointer in play is tracked, and where
 // a tap that lands outside a readout's host takes that readout down.
 function wireDocument(doc) {
-  if (doc.__tipDocWired) return;
-  doc.__tipDocWired = true;
-  doc.addEventListener('keydown', (e) => {
-    doc.__tipTouch = false;
-    doc.__tipTapping = false;
-    if (e.key !== 'Escape') return;
-    doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
-      const host = tip.__tipHost;
-      if (!host) return;
-      const mark = host.__tipMark;
-      close(host);
-      host.__tipDismissed = mark;
+  return retainListeners(doc, 'tooltip-document', life => {
+    life.add(() => { delete doc.__tipTouch; delete doc.__tipTapping; });
+    life.on(doc, 'keydown', (e) => {
+      doc.__tipTouch = false;
+      doc.__tipTapping = false;
+      if (e.key !== 'Escape') return;
+      doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
+        const host = tip.__tipHost;
+        if (!host) return;
+        const mark = host.__tipMark;
+        close(host);
+        host.__tipDismissed = mark;
+      });
     });
+    // A tap lands focus on the mark on its way to the click that decides, so the
+    // focus between a pointerdown and its click is the tap's own. Focus that no
+    // tap brought is not, and opens the readout under a coarse pointer as it
+    // always did — a reader swiping through the marks with a screen reader gets
+    // the value and the `aria-describedby` that announces it.
+    life.on(doc, 'pointerdown', (e) => { touching(doc, e); doc.__tipTapping = true; }, true);
+    life.on(doc, 'pointercancel', () => { doc.__tipTapping = false; }, true);
+    // Captured, so a host the tap lands in has already lost every other host's
+    // readout by the time it opens its own.
+    life.on(doc, 'click', (e) => {
+      if (e.__tipDismissal) return;
+      doc.__tipTapping = false;
+      if (!touching(doc)) return;
+      doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
+        const host = tip.__tipHost;
+        if (host && !host.contains(e.target)) hideTooltip(host);
+      });
+    }, true);
   });
-  // A tap lands focus on the mark on its way to the click that decides, so the
-  // focus between a pointerdown and its click is the tap's own. Focus that no
-  // tap brought is not, and opens the readout under a coarse pointer as it
-  // always did — a reader swiping through the marks with a screen reader gets
-  // the value and the `aria-describedby` that announces it.
-  doc.addEventListener('pointerdown', (e) => { touching(doc, e); doc.__tipTapping = true; }, true);
-  doc.addEventListener('pointercancel', () => { doc.__tipTapping = false; }, true);
-  // Captured, so a host the tap lands in has already lost every other host's
-  // readout by the time it opens its own.
-  doc.addEventListener('click', (e) => {
-    if (e.__tipDismissal) return;
-    doc.__tipTapping = false;
-    if (!touching(doc)) return;
-    doc.querySelectorAll('[data-tip].is-open').forEach((tip) => {
-      const host = tip.__tipHost;
-      if (host && !host.contains(e.target)) hideTooltip(host);
-    });
-  }, true);
 }
 
 // An opening tap is stopped on its way to the mark, and stopping it takes it
@@ -292,28 +294,25 @@ function anchorHost(host) {
  * one here, once, never on hover. Safe to call again.
  */
 export function wireTooltip(root = document) {
-  const hosts = [...root.querySelectorAll('[data-tip-host]')];
-  if (root.matches?.('[data-tip-host]')) hosts.unshift(root);
-  hosts.forEach((host) => {
-    if (host.__tipWired) return;
-    host.__tipWired = true;
+  return wireElements(root, '[data-tip-host]', 'tooltip', (host, life) => {
     const doc = host.ownerDocument;
-    wireDocument(doc);
+    life.add(wireDocument(doc));
+    life.add(() => { hideTooltip(host); delete host.__tipDismissed; });
     anchorHost(host);
     if (!tipOf(host)) host.insertAdjacentHTML('beforeend', tooltip());
     const markOf = (t) => {
       const mark = t?.closest?.('[data-tip-value]');
       return mark && holds(host, mark) ? mark : null;
     };
-    host.addEventListener('pointerover', (e) => {
+    life.on(host, 'pointerover', (e) => {
       anchorHost(host);
       if (touching(doc, e)) return;
       const mark = markOf(e.target);
       if (!mark) close(host);
       else if (mark !== host.__tipMark) showTooltip(host, mark);
     });
-    host.addEventListener('pointerleave', (e) => { if (!touching(doc, e)) hideTooltip(host); });
-    host.addEventListener('focusin', (e) => {
+    life.on(host, 'pointerleave', (e) => { if (!touching(doc, e)) hideTooltip(host); });
+    life.on(host, 'focusin', (e) => {
       anchorHost(host);
       // A tap lands focus on its way to the click that decides, so under a
       // finger the readout waits for that tap rather than opening twice. Focus
@@ -323,14 +322,14 @@ export function wireTooltip(root = document) {
       const mark = markOf(e.target);
       if (mark) showTooltip(host, mark);
     });
-    host.addEventListener('focusout', (e) => { if (!markOf(e.relatedTarget)) hideTooltip(host); });
+    life.on(host, 'focusout', (e) => { if (!markOf(e.relatedTarget)) hideTooltip(host); });
     // The tap. Captured, so the tap that opens the readout is spent opening it
     // and never reaches the mark's own click — a chart drilling down on a bar
     // does not drill down on the tap that asked what the bar says. The tap that
     // closes the readout is let through, so the drill-down is one tap further.
     // What the opening tap is stopped from reaching, it is handed to: see
     // dismissOverlays(), so an open overlay closes under it as under any tap.
-    host.addEventListener('click', (e) => {
+    life.on(host, 'click', (e) => {
       if (!touching(doc)) return;
       anchorHost(host);
       const mark = markOf(e.target);

@@ -1,3 +1,4 @@
+import { lifecycle, wireElements, retainListeners } from './lifecycle.js';
 // Confirm — the kit's confirmation dialog: a question the page stops for.
 //
 //   container.innerHTML = confirm({ title, body, confirmLabel, cancelLabel });
@@ -99,33 +100,33 @@ export function closeConfirm(root) {
 }
 
 export function wireConfirm(scope = document) {
+  const owner = lifecycle(scope, 'confirm-root');
   const root = scope === document ? document : scope;
-  root.querySelectorAll('[data-confirm]').forEach((cf) => {
-    if (cf.__confirmWired) return;
-    cf.__confirmWired = true;
+  owner.add(wireElements(root, '[data-confirm]', 'confirm', (cf, life) => {
+    life.add(() => closeConfirm(cf));
 
-    cf.querySelector('[data-confirm-scrim]')?.addEventListener('click', () => closeConfirm(cf));
+    life.on(cf.querySelector('[data-confirm-scrim]'), 'click', () => closeConfirm(cf));
     cf.querySelectorAll('[data-confirm-cancel],[data-confirm-accept]').forEach((btn) =>
-      btn.addEventListener('click', () => closeConfirm(cf)));
+      life.on(btn, 'click', () => closeConfirm(cf)));
 
     // Rendered with `open: true`, so nothing called openConfirm() and nothing
     // put it on the stack. Adopting it here is what makes its aria-modal true.
     adoptOverlay(cf, cf.querySelector('[data-confirm-panel]'), () => closeConfirm(cf), OVERLAY_LAYER.confirm);
-  });
+  }));
 
   const doc = scope === document ? document : (scope.ownerDocument || document);
-  if (!doc.__confirmGlobalWired) {
-    doc.__confirmGlobalWired = true;
+  if (owner.fresh) owner.add(retainListeners(doc, 'confirm-document', life => {
     // Any [data-confirm-open="ID"] trigger opens the matching dialog.
-    doc.addEventListener('click', (e) => {
+    life.on(doc, 'click', (e) => {
       const opener = e.target.closest?.('[data-confirm-open]');
       if (!opener) return;
       e.preventDefault();
       const target = doc.getElementById(opener.getAttribute('data-confirm-open'));
       if (target) openConfirm(target, opener);
     });
-  }
+  }));
   // This runs on every re-render, which is the moment to notice that an overlay
   // was destroyed while it was open and hand the page back.
   syncOverlays(doc);
+  return owner.destroy;
 }

@@ -1,3 +1,4 @@
+import { lifecycle } from './lifecycle.js';
 // Inline feedback widget. Select a passage inside a content area, a "Give
 // feedback" pill appears, click it to open a composer (quoted excerpt + note),
 // Send calls your onSend() and shows a success / error state.
@@ -93,6 +94,8 @@ export function wireFeedback(opts = {}) {
   const composer = document.querySelector('[data-fb-composer]');
   if (!container || !pill || !scrim || !composer) return; // widget not mounted
 
+  const life = lifecycle(composer, 'feedback');
+  if (!life.fresh) return life.destroy;
   const q = (sel) => composer.querySelector(sel);
   const chip = q('[data-fb-chip]'), quoteEl = q('[data-fb-quote]'), note = q('[data-fb-note]');
   const form = q('[data-fb-form]'), done = q('[data-fb-done]');
@@ -122,9 +125,9 @@ export function wireFeedback(opts = {}) {
     pending = { text, anchor: s.anchor || '', label: s.label || '', title: s.title || '', range: range.cloneRange() };
     showPill(range);
   }
-  container.addEventListener('mouseup', () => setTimeout(onSelect, 0));
-  container.addEventListener('keyup', (e) => { if (e.shiftKey || e.key === 'Shift') setTimeout(onSelect, 0); });
-  window.addEventListener('scroll', hidePill, { passive: true });
+  life.on(container, 'mouseup', () => life.timeout(onSelect, 0));
+  life.on(container, 'keyup', (e) => { if (e.shiftKey || e.key === 'Shift') life.timeout(onSelect, 0); });
+  life.on(window, 'scroll', hidePill, { passive: true });
 
   function highlight(range) {
     try { markSpan = document.createElement('span'); markSpan.className = 'ui-fbmark'; range.surroundContents(markSpan); }
@@ -149,31 +152,34 @@ export function wireFeedback(opts = {}) {
     highlight(pending.range);
     window.getSelection().removeAllRanges();
     scrim.classList.add('show'); composer.classList.add('show');
-    setTimeout(() => note.focus(), 60);
+    life.timeout(() => note.focus(), 60);
   }
-  pill.addEventListener('mousedown', (e) => e.preventDefault());
-  pill.addEventListener('click', open);
+  life.on(pill, 'mousedown', (e) => e.preventDefault());
+  life.on(pill, 'click', open);
 
   function close() { composer.classList.remove('show'); scrim.classList.remove('show'); clearHighlight(); pending = null; }
-  q('[data-fb-close]').addEventListener('click', close);
-  q('[data-fb-cancel]').addEventListener('click', close);
-  q('[data-fb-done-close]').addEventListener('click', close);
-  scrim.addEventListener('click', close);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && composer.classList.contains('show')) close(); });
-  note.addEventListener('input', () => { sendBtn.disabled = note.value.trim().length === 0; });
+  life.on(q('[data-fb-close]'), 'click', close);
+  life.on(q('[data-fb-cancel]'), 'click', close);
+  life.on(q('[data-fb-done-close]'), 'click', close);
+  life.on(scrim, 'click', close);
+  life.on(document, 'keydown', (e) => { if (e.key === 'Escape' && composer.classList.contains('show')) close(); });
+  life.on(note, 'input', () => { sendBtn.disabled = note.value.trim().length === 0; });
 
   function fail(msg) {
     errEl.textContent = msg || 'Could not send just now — try again in a moment.';
     errEl.classList.add('show'); playEntrance(errEl); sendLb.textContent = 'Send feedback'; sendBtn.disabled = false;
   }
-  sendBtn.addEventListener('click', async () => {
+  life.on(sendBtn, 'click', async () => {
     if (sendBtn.disabled || !pending) return;
     errEl.classList.remove('show'); sendBtn.disabled = true; sendLb.innerHTML = '<span class="ui-fbspin"></span>Sending';
     const payload = { note: note.value.trim(), excerpt: pending.text, anchor: pending.anchor, sectionLabel: pending.label, sectionTitle: pending.title };
     try {
       const res = await onSend(payload);
+      if (!life.active) return;
       if (!res || !res.ok) { fail(res && res.error); return; }
       form.style.display = 'none'; done.style.display = ''; clearHighlight();
-    } catch (e) { fail(); }
+    } catch (e) { if (life.active) fail(); }
   });
+  life.add(() => { hidePill(); close(); });
+  return life.destroy;
 }

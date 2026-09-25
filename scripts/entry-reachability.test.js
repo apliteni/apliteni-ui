@@ -25,12 +25,17 @@ const entryFile = path.join(src, 'index.js');
  * stops naming a live, genuinely-unreachable module, so a rename cannot leave
  * a lie behind.
  *
- * Two entries today. Every other module under src/components/ is a component
+ * Three entries today. Every other module under src/components/ is a component
  * factory meant for consumers, and the only other private helper is `esc`,
  * which lives in src/components/index.js and rides along on a public module.
  * Note the corollary: a short list gives the staleness test below little to
  * check, so the gate's real floor is the anti-vacuity test, not this list. */
 const NOT_PUBLIC = [
+  {
+    module: 'components/lifecycle.js',
+    why: 'it owns listener registrations shared by vanilla initializers; consumers use '
+      + 'their returned teardown handles, not the internal binding registry.',
+  },
   {
     module: 'components/overlay.js',
     why: 'it holds the scrim and focus-trap internals drawer.js and confirm.js share, and '
