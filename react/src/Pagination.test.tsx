@@ -1,8 +1,8 @@
 // Class-name parity gate for <Pagination>.
-// why: CONTRIBUTING.md#react-components-react
+// React components must match the vanilla class names.
 //
 // The vanilla pagination() is the source of truth. Every case below renders both
-// and compares the nav's class list — the rule CONTRIBUTING states — plus the
+// and compares the nav's class list plus the
 // shape read back off each DOM: the status sentence, every control's classes,
 // target page, label and disabled state, the size options and the jump box. A
 // React rule that disagrees with the factory fails here, and the fix is this
@@ -71,7 +71,7 @@ function parity(name: string, opts: PaginationProps): Element | null {
     return null;
   }
   expect(react, `${name}: the factory rendered a nav and the component did not`).not.toBeNull();
-  // The rule CONTRIBUTING states, asserted on its own so a failure says so first.
+  // Check class parity separately so failures name the mismatch.
   expect(classesOfEl(react!), `${name}: nav class list`).toEqual(classesOf(pagination(opts as Record<string, unknown>)));
   expect(shape(react!), `${name}: rendered shape`).toEqual(shape(vanilla));
   return react;

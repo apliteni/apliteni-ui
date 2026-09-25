@@ -8,7 +8,7 @@
 // declarations, because JSDOM does not rank !important between rules. What a
 // green run does not prove is on the Accessibility minimums page, beside this gate's name.
 //
-// why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
+// Resolve the winning declarations before measuring the result.
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen
 
 import test from 'node:test';
@@ -94,7 +94,7 @@ async function walk() {
         if (!typeable(el)) continue;
         // A selector this DOM cannot parse answers neither yes nor no, and
         // dropping it would take the rule out of the contest in silence.
-        // why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+        // Report unmeasured subjects as failures.
         const sized = [];
         for (const rule of [...kitRules, ...local]) {
           const hit = reaches(el, rule.selector);
@@ -134,7 +134,7 @@ test('the walk finds fields of all three kinds, from more than one component', (
 // A rule whose selector this DOM cannot parse is a rule the contest never heard
 // from: it is neither in `sized` nor reported, so a component sizing a field
 // through a selector nwsapi rejects would leave the floor unguarded in silence.
-// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+// Report unmeasured subjects as failures.
 test('every rule that sizes a field has a selector this gate can match', () => {
   assert.deepEqual(
     run.unmatchable, [],
@@ -204,7 +204,7 @@ test('no field is sized above the floor, where the net would shrink it', () => {
 // The mutation that proves the case. Without the net these are the sizes a
 // reader gets, and every one of them zooms the page — so a gate that stayed
 // green with the net deleted would be measuring nothing but its own constant.
-// why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
+// Weaken the rule and confirm that its test fails.
 test('without the net, the kit sizes fields under the floor', () => {
   const under = distinct(run.fields.flatMap((f) => f.sized)
     .filter((r) => r.px != null && r.px < FIELD_MIN)

@@ -9,7 +9,7 @@
  * real kit stylesheets and reading getComputedStyle back. It lives under
  * scripts/ because `files` in package.json would ship a plain .js helper under
  * src/ to consumers, and scripts/ is outside the tarball.
- * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ * Share the calculation but check each workspace separately.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -36,7 +36,7 @@ export const CLAMP_PROPS = [
  * declaration whose value it cannot parse. Anchored on `;` or `{` so that
  * `min-width` cannot be read as `width`, and fresh each call because the `g`
  * flag makes lastIndex state a shared regex would carry between callers.
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 export const declRe = (props) => new RegExp(
   `(?:^|[;{])\\s*(${props.join('|')})\\s*:\\s*([^;}]*)`, 'gi');
 
@@ -81,7 +81,7 @@ export function walk(dir, acc = [], skipped = null) {
 /* The kit's stylesheets, in the order src/index.css imports them. Both quotes
  * are read, since a sheet written with the other one would leave this list with
  * the suite still green. The keyword folds case and the path must not:
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 export function kitSheetNames(src) {
   return [...readFileSync(path.join(src, 'index.css'), 'utf8')
     .matchAll(/^\s*@import\s+["']\.\/([^"']+)["']/gmi)].map((m) => m[1]);
@@ -99,14 +99,14 @@ export function kitStyleHtml(src, names) {
 /* An svg carrying a class, in the two languages this repo writes markup in.
  * HTML folds case and JSX does not, so they are two patterns; neither flag
  * reaches the captured text, a class name being case-sensitive.
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 const svgClassRes = () => [/<svg[^>]*\sclass="([^"${]+)"/gi, /<svg[^>]*\sclassName="([^"${]+)"/g];
 
 /* The classes the kit puts on an <svg>, read out of the source rather than
  * listed here, so a new one joins coverage by existing — written into the tag,
  * or passed as icon()'s second argument. Test files are always skipped: a class
  * only a test writes onto an svg is not a class the kit renders.
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 export function svgClassSet(dirs, exts = ['.js']) {
   const found = new Set();
   for (const dir of dirs) {
@@ -202,7 +202,7 @@ const withoutArgs = (compound) => {
  * `:has()` and `:not()` are excluded, and only the TOP level of the compound is
  * collected, so an `:is()` nested inside either stays that pseudo's argument.
  * The name folds case; what is inside the parentheses is sliced out by offset.
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 function alternativesIn(compound) {
   const top = new Set();
   scanTop(compound, (_ch, isTop, i) => { if (isTop) top.add(i); });
@@ -355,7 +355,7 @@ function topLevelBlocks(css) {
 /* A top-level block the CSSOM stops describing — two shapes, both wrong numbers
  * rather than errors, neither recoverable from the CSSOM, so this refuses rather
  * than guessing. Neither check asks whether the rule sizes an icon.
- * why: CONTRIBUTING.md#the-cssom-stops-describing-a-block-that-repeats-a-property */
+ * Read repeated declarations without losing order or importance. */
 function refuseMisreadRepeats(css, name) {
   for (const [selector, body, holdsBlock] of topLevelBlocks(css)) {
     // Not a style rule, or a rule with a rule inside it — the fold skips both,
@@ -417,7 +417,7 @@ export function foldLogicalDims(sheet, name) {
    * unprefixed one does. Every declaration is checked rather than the first —
    * `horizontal-tb` on <html> is allowed and would otherwise answer for every
    * later declaration in the file.
-   * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+   * Match CSS and HTML case rules without changing class names. */
   const raw = rawTextOf(sheet, name);
   const prefixed = [...blankStrings(raw)
     .matchAll(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/gi)]
@@ -523,7 +523,7 @@ export function* rulesOf(sheet, name, classes) {
 /* The selector the reset is written under, found by what makes it the reset: it
  * sizes an icon with no class on it, no attribute and nothing around it. Exactly
  * one, and the count is the point.
- * why: CONTRIBUTING.md#the-reset-is-found-by-what-only-the-reset-does */
+ * Identify the reset by its effect on an otherwise unstyled icon. */
 export function resetSelectorOf(sheet, name, classes) {
   const bare = sheet.ownerNode.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const found = new Set();
@@ -559,7 +559,7 @@ export function resetSelectorOf(sheet, name, classes) {
  * text with strings blanked, so `content: "@import zz"` is not an import, and
  * read back at the same offsets out of the unblanked text, a real specifier
  * being itself a string. The keyword folds case, as jsdom's parser does:
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 export const importsIn = (css) => {
   const text = stripComments(css);
   return [...blankStrings(text).matchAll(/@import\s+([^;]*)/dgi)]
@@ -576,7 +576,7 @@ const STYLE_EXTS = ['css', 'pcss', 'postcss', 'scss', 'sass', 'less', 'styl', 's
  * resolves through tsconfig or the bundler's config, neither of which this
  * reads, so it is not reported and the gate's header says so. Case-SENSITIVE,
  * unlike the two CSS scans above — the keyword is JavaScript's:
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 export const styleImportsIn = (source) => [...source.matchAll(
   new RegExp(String.raw`^\s*import\s+(?:[^'"]*\bfrom\s+)?['"](\.[^'"]+\.(?:${STYLE_EXTS.join('|')})(?:\?[^'"]*)?)['"]`,
     'gm'))].map((m) => m[1]);
@@ -633,7 +633,7 @@ function unwrapExpression(body) {
  * read first and blanked out of the source that pattern then scans. The
  * expression is found by balancing brackets, the CSS being full of braces. The
  * tag folds case exactly as it does below, which keeps the blanking aligned:
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 function dangerousStyles(source) {
   const found = [];
   const open = /<style\b[^<]*?dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*/gi;
@@ -691,7 +691,7 @@ export function styleBlocksOf(source) {
  * which scans the sizing and clamp properties by name. The text arrives with
  * comments out and strings blanked, so every brace left in it is one a CSS
  * parser sees.
- * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
+ * Reject declarations that jsdom cannot measure. */
 function standsWhereCssWouldBe(text) {
   for (let i = text.indexOf(UNRESOLVED); i !== -1; i = text.indexOf(UNRESOLVED, i + 1)) {
     const before = text.slice(0, i);
@@ -818,7 +818,7 @@ function survivesParsing(prop, value) {
  * the rules that decide an icon rather than every rule in the sheet; a
  * conditional group is descended into, and a logical declaration is asked under
  * its PHYSICAL name and reported as written.
- * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
+ * Reject declarations that jsdom cannot measure. */
 export function droppedDecls(from, css, classes) {
   const out = [];
   const scan = (text) => {

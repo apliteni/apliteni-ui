@@ -144,7 +144,7 @@ test('a loader asks for the same weights of every family it loads', () => {
  * them at all. This is the test that says the surface was read: the chrome takes
  * the text face because a sidebar of story names is dense UI text, and the
  * wordmark keeps the display face because a wordmark is a mark.
- * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach */
+ * State what this test cannot measure. */
 test('the Storybook manager names the same two families the tokens do', () => {
   const manager = read('.storybook/manager.js');
   const roles = Object.fromEntries(webfonts());

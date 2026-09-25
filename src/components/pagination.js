@@ -241,7 +241,7 @@ export function pagination({
  *
  * @returns {() => void} a function that removes the listeners.
  *
- * why: CONTRIBUTING.md#pagination-event-wiring
+ * Delegate pager events from the root so handlers survive rerenders.
  */
 export function wirePagination(root = document, { onPage, onPageSize } = {}) {
   const scope = typeof root === 'string' ? document.querySelector(root) : root;
@@ -310,7 +310,7 @@ export function wirePagination(root = document, { onPage, onPageSize } = {}) {
  * @returns {Element|null} the status element, or null when there is nothing to
  * update — safe against a torn-down view.
  *
- * why: CONTRIBUTING.md#pagination-status-updates
+ * Update the existing live region so screen readers can announce it.
  */
 export function setPagerStatus(root, text) {
   const el = typeof root === 'string' ? document.querySelector(root) : root;

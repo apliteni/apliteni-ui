@@ -1,8 +1,8 @@
 // Release automation — a failed publish must not become permanently green, and
 // every number tag-on-bump.yml argues for is pinned by a measured test.
 //
-// why: CONTRIBUTING.md#release
-// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+// Verify publication against npm, not just the release tag.
+// Measure behavior instead of matching the source text.
 //
 // The long comments below sit on the test they belong to, and each says what
 // that scenario proves and which shipped defect it exists for — a release the
@@ -769,7 +769,7 @@ exit 0
 /**
  * What a missing jq means, which differs by where it happens — and the ledger
  * of what this suite does not reach.
- * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+ * State what this test cannot measure.
  *
  * Every test carrying `needsJq` runs the publish step, which hands the
  * workflow's own `--jq` programs to the real jq through the gh stub. Without
@@ -1108,7 +1108,7 @@ test('a publish still waiting at the follow deadline says so and goes green', ne
   // cost: approved 35 minutes later, published, and the job that started it red
   // for ever over a human who took longer than a minute to click. What the job
   // owes is that a release is started and not silently lost, and by here it has
-  // paid all of it — see CONTRIBUTING.md#release.
+  // paid all of it; verify the registry result.
   //
   // THE GREEN IS EARNED BY THE FULL DEADLINE, NOT BY THE FIRST SIGHT OF
   // `waiting`. Breaking the follow loop there is how this was first written and

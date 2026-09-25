@@ -3,15 +3,15 @@
 // The Accessibility minimums page (stories/guidelines/_accessibility-floor.js) states a minimum target
 // size, a contrast for `--ring` and a legibility floor for a disabled control, none of
 // which existed in this tree before #201. This file measures all three against what the
-// kit ships, under the measured-pin and discovery rules in CONTRIBUTING.md.
+// kit ships, with measured results and discovered subjects.
 //
 // Every subject is discovered: controls from the rendered stories, interactive BY ROLE;
 // the ring's landings and the disabled rules read off the stylesheet declarations rather
 // than assumed (#157, #220); and a control's OVERLAYS probed onto their host, because
 // WCAG 2.5.8 measures the target and not the ink (#219).
 //
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
-// why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green
+// Discover subjects from source and check the coverage count.
+// Fail if a custom property cannot be resolved.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -179,8 +179,8 @@ const PSEUDO_GEOMETRY = [
 /**
  * Copy every geometry declaration into a probe custom property beside itself, and every
  * `sel::before { … }` rule onto `sel` under `--tsz-before-*`. Why that reads the cascade
- * JSDOM will not resolve, and the one specificity approximation it makes, are in
- * CONTRIBUTING.md, "An unresolved var() measures nothing and reports green".
+ * JSDOM will not resolve: custom properties retain the values for the probe.
+ * The probe approximates pseudo-element specificity.
  */
 function probeGeometry(css) {
   const reset = `*{${[

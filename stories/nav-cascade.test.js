@@ -7,7 +7,7 @@
  * markup mounted in a JSDOM, getComputedStyle read back. The marker's position
  * is derived arithmetically, because JSDOM models no layout.
  *
- * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
+ * Resolve the winning declarations before measuring the result.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

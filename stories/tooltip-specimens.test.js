@@ -10,7 +10,7 @@
 // has to be open at the end.
 //
 // why: docs/specification.md#the-hover-readout
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// Discover subjects from source and check the coverage count.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

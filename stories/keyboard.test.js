@@ -10,7 +10,7 @@
 // wiring, real KeyboardEvents, then document.activeElement and the announced
 // state.
 //
-// why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
+// Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

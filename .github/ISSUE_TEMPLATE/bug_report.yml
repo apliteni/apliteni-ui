@@ -54,5 +54,5 @@ body:
     attributes:
       label: Before you post
       options:
-        - label: No protected data in this issue — no real customer/financial data, personal emails or phone numbers, or internal infra IDs (Lessly UUIDs, `*.lessly.run`, ttl.sh tags, deploy tokens). See CONTRIBUTING → Data handling.
+        - label: No protected data in this issue — no real customer/financial data, personal emails or phone numbers, or internal infra IDs (Lessly UUIDs, `*.lessly.run`, ttl.sh tags, deploy tokens). See AGENTS.md → Data handling.
           required: true

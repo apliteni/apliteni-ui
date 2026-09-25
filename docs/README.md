@@ -36,9 +36,9 @@ Three places: choose the home by the kind of statement:
 know that every stroked glyph clears 1.5 CSS px; they do not need the sub-pixel argument that
 settled on 1.5. State the guarantee, name the gate holding it, link the issue.
 
-**How this repo works** goes in [CONTRIBUTING.md](../CONTRIBUTING.md) — how a gate finds its
-subjects, how a number gets pinned, how a rule is proven. That reasoning is for whoever writes the
-next gate, and it never reaches a consumer at all.
+**How to contribute** goes in the [README](../README.md#contribute).
+[AGENTS.md](../AGENTS.md) holds rules that need agent judgment. Tests explain
+what they check, what they miss and how to fix a failure.
 
 **Why a design was chosen** goes in the issue. Keep measurements, alternatives and discussion
 in that thread, and link to them instead of maintaining a second copy.

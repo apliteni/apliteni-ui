@@ -17,7 +17,7 @@ import { esc } from './index.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 /* classes: ui-tip__label ui-tip__value ui-tip__detail — built from `k` below, so
    a sweep reading class names off the source cannot see them.
-   why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+   */
 const PARTS = ['label', 'value', 'detail'];
 const px = (n) => (typeof n === 'number' && Number.isFinite(n) ? `${n}px` : null);
 let seq = 0;

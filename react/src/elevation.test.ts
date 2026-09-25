@@ -1,8 +1,8 @@
 // The elevation rule, for the React workspace.
 //
 // why: docs/specification.md#elevation
-// why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
-// why: CONTRIBUTING.md#the-elevation-gate-and-its-counts
+// Share the calculation but check each workspace separately.
+// Check every shadow layer, including resolved custom properties.
 //
 // Same rule as stories/elevation.test.js, over the same reader and the same
 // resolver (scripts/lib/box-shadow.js), and its ledger applies here unchanged.

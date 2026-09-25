@@ -128,7 +128,7 @@ strong {
    so this weighs (0,0,1) and any component rule that sizes an icon outranks it.
    The count of those rules is deliberately not written here — it moved once
    already, and two gates hold it over the ground each actually sweeps.
-   why: CONTRIBUTING.md#the-reset-is-a-floor-and-its-specificity-is-the-whole-of-that */
+   */
 svg:where(:not([width]):not([height])) {
   width: 1.1em;
   height: 1.1em;

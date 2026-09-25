@@ -4,7 +4,7 @@
  *   --single  one page of content: the size control alone, no steps
  * The controls are .ui-btn ghost/sm and the size control is a .ui-select, so
  * everything here is layout and the two states those sheets do not own.
- * why: CONTRIBUTING.md#pagination-layout
+ * Keep the status at the start and controls together at the far end.
  * ========================================================================== */
 
 .ui-pager {

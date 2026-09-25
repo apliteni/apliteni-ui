@@ -10,7 +10,7 @@
  * see is stated there with the rest.
  *
  * why: docs/specification.md#the-page
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Discover subjects from source and check the coverage count.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -350,7 +350,7 @@ const CHECKS = {
 
 // The floors are what the tree holds today, not a round number underneath it:
 // a floor with slack in it is a floor that a deleted story walks under.
-// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+// Report unmeasured subjects as failures.
 const FOUND = { files: 8, screens: 18, apps: 12 };
 
 test('the gate found the kit’s own screens', () => {

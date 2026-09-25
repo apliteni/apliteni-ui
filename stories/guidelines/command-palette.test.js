@@ -4,8 +4,8 @@
 // that neither goes anywhere, runs anything, asks anything nor says it is
 // unavailable.
 //
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
-// why: CONTRIBUTING.md#a-prose-citation-carries-an-anchor
+// Discover subjects from source and check the coverage count.
+// Include the cited code beside its file and line number.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';

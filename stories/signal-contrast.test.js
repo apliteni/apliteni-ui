@@ -9,7 +9,7 @@
  * Each rule names the surface it lands on, because they differ. Both themes are
  * read; accents are not, since they redefine only the purple family.
  *
- * why: CONTRIBUTING.md#what-the-signal-colour-gate-models-and-the-edits-it-exists-to-refuse
+ * Measure signal ink against the surface beneath it.
  */
 import { test } from 'node:test';
 import assert from 'node:assert';
@@ -223,7 +223,7 @@ for (const theme of ['dark', 'light']) {
  * both themes; --glow-purple is gated separately below, because the accent
  * family's display hue is a different token in each theme.
  *
- * why: CONTRIBUTING.md#what-the-signal-colour-gate-models-and-the-edits-it-exists-to-refuse */
+ * Measure signal ink against the surface beneath it. */
 const GLOW_PAIRS = {
   '--glow-green': '--green',
   '--glow-cyan': '--cyan',
@@ -259,7 +259,7 @@ for (const theme of ['dark', 'light']) {
  *
  * Do NOT "fix" the light glows onto --accent to make the two themes agree; that
  * edit is the mutation this gate was written against.
- * why: CONTRIBUTING.md#what-the-signal-colour-gate-models-and-the-edits-it-exists-to-refuse
+ * Measure signal ink against the surface beneath it.
  *
  * Read across BOTH token files. tokens.css carries the default accent (nebula);
  * accents.css carries Phoenix, Ocean and Emerald as :root[data-theme][data-accent]

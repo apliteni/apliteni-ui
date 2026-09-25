@@ -11,7 +11,7 @@
 // started" one click away in the menu — resolve through the real preset chain,
 // which is what the manager builder serialises into `window.FEATURES`.
 //
-// why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
+// Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

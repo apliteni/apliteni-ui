@@ -10,7 +10,7 @@
  *          --accent's. Two steps tied there leave the rule no answer and the gate says so,
  *          rather than letting the order an array happens to be written in pick a hue.
  *
- * why: CONTRIBUTING.md#add-an-accent-sub-theme
+ * Check accent swatches against their dark-theme tokens.
  */
 
 /* Both sides are derived — the colours out of src/tokens/, the painted ones out of each picker's

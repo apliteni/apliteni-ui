@@ -7,7 +7,7 @@
 // sheet alone gets a net at all. Blind spots are on the Accessibility minimums page, beside this
 // gate's name; the vanilla gate's apply here unchanged.
 //
-// why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+// Share the calculation but check each workspace separately.
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen
 
 import { describe, it, expect, afterEach } from 'vitest';

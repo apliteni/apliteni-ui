@@ -12,7 +12,7 @@ export const BLURB = content.blurb;
 // added in #294, is a browser's behaviour rather than a standard, and it is
 // pinned next door in stories/field-zoom.test.js, where the fields are.
 //
-// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+// Measure behavior instead of matching the source text.
 import { button, checkbox } from '../../src/components/index.js';
 
 // ---- the three numbers -----------------------------------------------------

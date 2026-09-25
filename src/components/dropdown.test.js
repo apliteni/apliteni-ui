@@ -45,7 +45,7 @@ const decl = (rule, prop) => {
 // ---- The stylesheet ------------------------------------------------------
 // The subjects are discovered from the sheet, so a second upward variant joins
 // the sweep by being written.
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// Discover subjects from source and check the coverage count.
 
 test('a panel rule that pins `bottom` releases `top` in the same rule', () => {
   const subjects = RULES.filter((r) => /\.ui-dropdown__panel/.test(r.selector) && decl(r, 'bottom'));
@@ -114,7 +114,7 @@ test('the panel names its padding and pads itself with it', () => {
 test('a block bleeding through the panel reads the padding, never a number of its own', () => {
   // Discovered from the sheet: any margin that pulls a block back out through
   // the padding is a subject, whether it is the head, the foot or the next one.
-  // why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+  // Discover subjects from source and check the coverage count.
   const bleeds = MARGINS.filter((d) => NEG_LEN.test(d.value) || d.value.includes('--ui-dropdown-pad'));
   assert.ok(
     bleeds.length >= 2,

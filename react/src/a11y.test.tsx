@@ -1,7 +1,7 @@
 // Accessibility gate for the React workspace.
 //
-// why: CONTRIBUTING.md#the-react-workspace-gets-its-own-walk-over-the-same-arithmetic
-// why: CONTRIBUTING.md#a-gate-that-skips-is-worse-than-a-gate-that-is-absent
+// Mount React stories separately while sharing the contrast calculation.
+// Fail when a story cannot be rendered or checked.
 //
 // The vanilla gate discovers `*.stories.js` and React's stories are `*.stories.tsx`,
 // so this workspace shipped with no axe gate at all. It cannot share the vanilla

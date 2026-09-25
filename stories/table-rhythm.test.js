@@ -10,8 +10,8 @@
  * The steps are read out of tokens.css, never repeated here.
  *
  * why: docs/specification.md#spacing-and-rhythm
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
- * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
+ * Discover subjects from source and check the coverage count.
+ * Weaken the rule and confirm that its test fails.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

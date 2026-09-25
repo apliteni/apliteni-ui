@@ -217,42 +217,26 @@ react/                   # React components — private workspace, built to reac
   dist/                  #   tsup output; shipped as …/react and …/react/css
 ```
 
-## Develop
+## Contribute
 
-```bash
-npm install
-npm run storybook          # http://localhost:6006, or the next free port
-npm run build-storybook    # -> storybook-static/
-node site/build.mjs        # -> site/public/ (landing + kit.css + /storybook)
-```
+Use Node 20 or newer. Install [jq](https://jqlang.github.io/jq/), then run `npm ci` at
+the repository root. Start Storybook with `npm run storybook`. For React, use `npm run
+storybook -w react`. Before opening a PR, run `npm test`, `npm test -w react`, `npm run
+build-storybook`, and `node site/build.mjs`.
 
-The React components build and test through the workspace (`npm install` at the repo
-root covers them — there is no second install):
+To add a component, put its token-based CSS in `src/styles/`. Include it in
+`src/index.css` and in both the `styles` map and `cssText` in `src/inline.js`. Add the
+HTML factory under `src/components/`, export it from `src/index.js`, and add a
+playground and state examples under `stories/components/`. Put React components in
+`react/src/`, with a test and story that use the shared classes and tokens. Read the
+[guidelines](guidelines/overview.md) for the design rules.
 
-```bash
-npm run storybook -w react   # http://localhost:6007, or the next free port
-npm test -w react            # vitest
-npm run build                # tsup -> react/dist/ (also runs on prepare)
-```
+Open an issue, branch from `main`, and link the issue in your PR. Changes to published
+files, including this README, require a version bump in `package.json` and
+`package-lock.json`, plus an entry in `site/changelog.mjs`. Merging the bump starts the
+release workflow. Do not push a tag or publish by hand.
 
-## Publish (public npm)
-
-Versioned publish runs from CI on a GitHub Release:
-
-```bash
-npm version patch          # or minor / major — bumps package.json + tags
-git push --follow-tags
-gh release create v$(node -p "require('./package.json').version") --generate-notes
-```
-
-The **Release** workflow (`.github/workflows/release.yml`) then publishes to the public
-npm registry over npm Trusted Publishing (OIDC) — there is no long-lived token. No
-manual `npm publish` needed. It runs in two jobs: `build` installs and runs `npm pack`,
-whose `prepare` rebuilds `react/dist` from the tagged commit, and `publish` — the only
-job that can mint an OIDC credential — just publishes that tarball, so no dependency
-or build script ever runs beside the credential. The packaging guard
-(`scripts/packaging.test.js`) fails CI if the React subpath isn't in the tarball, and
-the release itself re-checks the tarball before publishing it.
+[Agent rules](AGENTS.md) cover review, data handling, and release checks.
 
 ## Deploy (ui.apli.tech)
 

@@ -10,7 +10,7 @@
 // exactly `thresholdHours` old is not yet drift, because an inclusive boundary
 // would make the verdict depend on which side of a second the runner started on.
 //
-// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+// Check the packed files, release notes and registry result.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';

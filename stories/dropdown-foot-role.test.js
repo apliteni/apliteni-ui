@@ -8,7 +8,7 @@
 // sentence quietly false.
 //
 // why: docs/specification.md#the-dropdown-panel
-// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+// Measure behavior instead of matching the source text.
 
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';

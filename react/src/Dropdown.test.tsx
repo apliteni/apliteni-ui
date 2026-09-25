@@ -1,5 +1,5 @@
 // Shape parity gate for <Dropdown>, and the keyboard model under real key presses.
-// why: CONTRIBUTING.md#react-components-react
+// React components must match the vanilla class names.
 //
 // dropdown() is the source of truth: every case renders both and compares the
 // container's class list plus the shape read off each DOM. The one thing not
@@ -130,7 +130,7 @@ function parity(name: string, opts: DropdownProps) {
   const factory = vanilla(opts);
   const { container } = render(<Dropdown {...opts} />);
   const react = container.querySelector('.ui-dropdown')!;
-  // The rule CONTRIBUTING states, asserted on its own so a failure says so first.
+  // Check class parity separately so failures name the mismatch.
   expect(classesOfEl(react), `${name}: container class list`)
     .toEqual(classesOf(dropdown(opts as Record<string, unknown>)));
   expect(shape(react), `${name}: rendered shape`).toEqual(shape(factory));

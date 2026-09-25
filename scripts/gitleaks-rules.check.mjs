@@ -12,9 +12,9 @@
  * The mutation pass writes each mutated config to the run's temp directory and
  * passes it as that argument; nothing ever writes to .gitleaks.toml.
  *
- * why: CONTRIBUTING.md#the-two-security-checks
- * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Test scanner rules and commit ranges with temporary fixtures.
+ * Weaken the rule and confirm that its test fails.
+ * Discover subjects from source and check the coverage count.
  */
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -116,7 +116,7 @@ const note = (value) =>
 
 /**
  * One planted file per case, carrying three separate claims, each EXACT rather
- * than "at least" — see CONTRIBUTING.md#the-two-security-checks.
+ * than "at least", so removing a fixture fails the check.
  *
  * `ours` — the exact set of rules defined in this config that may name the file:
  * {ours} when set, {} when null. A control case is `ours: null`, the same claim.
@@ -1034,7 +1034,7 @@ function planMutations(text, upstream) {
  * The individual mutations nothing here can kill, and why — this gate's ledger,
  * beside the code that generates them, because that is where the next person
  * edits an axis.
- * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+ * State what this test cannot measure.
  *
  * A survivor under a rule that IS proven is still a hole, so it carries a
  * written reason here, and that reason is checked two ways every run: a
@@ -1276,7 +1276,7 @@ function judge(byFile, ruleIds) {
  * before a mutation is generated, since on a red baseline every mutation reads as
  * detected by the case already failing. Measured: point this at a copy of
  * .gitleaks.toml with a rule deleted and it exits 2, not 1.
- * why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+ * Measure behavior instead of matching the source text.
  */
 function fail(message) {
   console.error(message);

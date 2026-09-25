@@ -5,7 +5,7 @@
 // publish command read out of the workflow — grepping for the string under
 // suspicion would pin nothing — against a real tarball in a subdirectory.
 //
-// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+// Check the packed files, release notes and registry result.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';

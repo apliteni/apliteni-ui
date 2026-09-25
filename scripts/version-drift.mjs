@@ -10,7 +10,7 @@
  * stdout, one human line on stderr, and exit 0 always: a non-zero exit would make
  * a red run out of a report.
  *
- * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+ * Check the packed files, release notes and registry result.
  */
 
 import { readFile } from 'node:fs/promises';

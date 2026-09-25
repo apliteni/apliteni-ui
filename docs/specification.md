@@ -6,7 +6,7 @@ a broken guarantee fails the build.
 This document states outcomes, not arguments. Where a number came from, what else was
 considered and who chose between them belongs in the issue that settled it, and each section
 below names its issue. Read [README.md](README.md) for where to record decisions, and
-[CONTRIBUTING.md](../CONTRIBUTING.md) for how the gates work.
+[AGENTS.md](../AGENTS.md#verification) for agent verification rules.
 
 - **[The package](#the-package)** — what installing it gets you
 - **[Widths](#widths)** — the page and the reading column

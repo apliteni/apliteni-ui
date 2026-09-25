@@ -10,7 +10,7 @@
  * a box, and the declaration regex never matches inside `@media (…)`.
  *
  * why: docs/specification.md#boxes-below-the-page
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

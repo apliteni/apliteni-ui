@@ -86,7 +86,7 @@
    * vocabulary; the fallbacks keep tokens.css self-sufficient when imported
    * without brand.generated.css. Delays are the kit's own, and the reusable
    * effect layer lives in styles/motion.css.
-   * why: CONTRIBUTING.md#brand-tokens-synced-from-design-system */
+   * Change generated brand tokens upstream in apliteni/design-system. */
   --ease: var(--easing-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
   --ease-out: var(--easing-ease-out, cubic-bezier(0, 0, 0.2, 1));
   --ease-in: var(--easing-ease-in, cubic-bezier(0.4, 0, 1, 1));

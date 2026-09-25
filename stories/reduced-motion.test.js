@@ -1,4 +1,4 @@
-// why: CONTRIBUTING.md#reduced-motion-measurements
+// Check reduced-motion rules and timer fallbacks for missing end events.
 
 /* WCAG 2.3.3 coverage limits:
  * - Delays and script-written inline styles are not checked.

@@ -1,6 +1,6 @@
 // Discover painted surfaces and ring consumers in both workspaces.
 // Local inherit annotations explain controls, transparent washes and noninteractive paint.
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// Discover subjects from source and check the coverage count.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';

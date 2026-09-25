@@ -440,8 +440,8 @@ test('an icon named inside :is() or :where() is the subject those select', () =>
 
 test('an icon named inside a pseudo spelled in capitals is the same subject', () => {
   /* CSS folds a pseudo-class name, so `:WHERE(svg)` decides an icon's size exactly as
-   * `:where(svg)` does, and jsdom is worse than blind about it. Both halves are in
-   * CONTRIBUTING.md, "A spelling the sweep cannot see costs coverage in silence". */
+   * `:where(svg)` does, but jsdom does not resolve both forms correctly.
+   * Collect either spelling before checking its size. */
   const classes = new Set(['ic']);
   for (const sel of ['.a :WHERE(svg)', '.a :IS(svg)', '.a :Matches(svg)', '.a :Where(.ic)',
     '.a :IS(div, svg)']) {
@@ -844,8 +844,8 @@ test('the kit sheet list reads the at-rule in any case and the file name in one'
 test('a <style> block is read whatever case the markup spells the tag in', () => {
   /* The surfaces gate hands this the story files, where `<STYLE>` is the HTML element
    * every browser and jsdom folds — and missing it costs a block, a subject and no
-   * movement in the count. CONTRIBUTING.md, "A spelling the sweep cannot see costs
-   * coverage in silence", holds the fold and the measurement behind it. The self-closing
+   * movement in the count. Match the tag without regard to case.
+   * The self-closing
    * case is asserted too: unblanked, the paired scan reads the source between it and the
    * next closing tag as CSS. */
   assert.deepEqual(styleBlocksOf('<STYLE>.a svg { width: 33px }</STYLE>'),
@@ -951,7 +951,7 @@ test('this one is read case-sensitively, because JavaScript and esbuild are', ()
   /* The CSS scans beside it fold case and this one must not: `import` is a JavaScript
    * keyword and the extension is an esbuild loader match, so `IMPORT` and `.CSS` are a
    * syntax error and a build failure rather than sheets the workspace loads.
-   * CONTRIBUTING.md, "A spelling the sweep cannot see costs coverage in silence". */
+   * Match names with the case rules of their language. */
   assert.deepEqual(styleImportsIn("IMPORT './DataTable.css';"), []);
   assert.deepEqual(styleImportsIn("import './DataTable.CSS';"), []);
 });

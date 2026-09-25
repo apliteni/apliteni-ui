@@ -1,7 +1,7 @@
 /* Rule: an icon-sizing rule is measured wherever the kit renders one — not only
  * in the stylesheets the package ships.
  *
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Discover subjects from source and check the coverage count.
  * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -47,7 +47,7 @@ const rel = (p) => path.relative(root, p);
 // Same tripwire as EXPECTED_SUBJECTS in src/styles/icon-size.test.js: the number
 // is the real count with no slack in it, because a rule that quietly leaves
 // coverage looks exactly like a rule that passes.
-// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+// Report unmeasured subjects as failures.
 //
 // Six rules across four files, width and height apiece. Raise it when you add
 // one; lower it in the same commit as the removal, and say why there. Was seven

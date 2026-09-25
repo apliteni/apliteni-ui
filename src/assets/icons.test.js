@@ -3,7 +3,7 @@
 // If this file ever goes green with the attributes removed, that contract is
 // broken and every icon-only button in the kit quietly loses its name.
 //
-// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+// Measure behavior instead of matching the source text.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { icon, iconNames, iconCategories, iconOnlyAllowed, sun, moon } from './icons.js';
@@ -63,7 +63,7 @@ test('the groups declare exactly as many glyphs as the kit ships', () => {
 // The header at the top of icons.js promises 24×24, a 1.7 stroke, currentColor and no
 // fill, and every glyph is drawn against those. They lived only in the template literal,
 // so a stray edit could change every glyph at once and no test would notice.
-// why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+// Measure behavior instead of matching the source text.
 test('the emitter ships the numbers its header argues for', () => {
   for (const [attr, value] of Object.entries({
     viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7',

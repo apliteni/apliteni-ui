@@ -10,7 +10,7 @@
 // because a pure function that never meets the shape of the actual data proves
 // nothing.
 //
-// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+// Check the packed files, release notes and registry result.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

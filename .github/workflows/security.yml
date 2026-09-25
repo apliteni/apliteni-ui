@@ -198,7 +198,7 @@ jobs:
       # carrying no written justification, and so does a justification that some
       # case has since started killing. The mutated configs are written to a temp
       # directory and never to .gitleaks.toml.
-      # See CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case.
+      # Weaken the rule and confirm that its test fails.
       #
       # GITLEAKS_BIN points at the binary the step above extracted, rather than
       # prepending its directory to PATH — that would let a file named `node`
@@ -286,9 +286,8 @@ jobs:
                ':(exclude)package-lock.json' \
                ':(exclude).github/' \
                ':(exclude).gitleaks.toml' \
-               ':(exclude).pre-commit-config.yaml' \
-               ':(exclude)CONTRIBUTING.md'; then
-            echo "::error::Internal-only identifier found in tracked files. Redact before merge (see CONTRIBUTING -> Data handling)."
+               ':(exclude).pre-commit-config.yaml'; then
+            echo "::error::Internal-only identifier found in tracked files. Redact before merge (see AGENTS.md -> Data handling)."
             exit 1
           fi
           echo "No internal-only identifiers found."

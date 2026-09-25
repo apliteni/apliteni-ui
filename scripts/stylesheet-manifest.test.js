@@ -9,7 +9,7 @@
 // omission for the aurora CSS. Both lists are read from the files themselves — a
 // hard-coded list here would be a third thing to drift.
 //
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// Discover subjects from source and check the coverage count.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';

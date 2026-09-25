@@ -24,6 +24,6 @@ repos:
     hooks:
       - id: internal-terms-denylist
         name: internal-terms denylist
-        entry: bash -c 'git diff --cached -U0 | grep -nEI "[a-z0-9-]+\.lessly\.run|ttl\.sh/[a-z0-9]|LESSLY_DEPLOY_TOKEN[[:space:]]*[:=]|\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b" && { echo "Internal identifier in staged diff — redact (see CONTRIBUTING -> Data handling)."; exit 1; } || true'
+        entry: bash -c 'git diff --cached -U0 | grep -nEI "[a-z0-9-]+\.lessly\.run|ttl\.sh/[a-z0-9]|LESSLY_DEPLOY_TOKEN[[:space:]]*[:=]|\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b" && { echo "Internal identifier in staged diff — redact (see AGENTS.md -> Data handling)."; exit 1; } || true'
         language: system
         pass_filenames: false

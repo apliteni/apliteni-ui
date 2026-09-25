@@ -1,6 +1,6 @@
 // <Drawer>: class-name parity with the vanilla drawer(), and the dialog behaviour it
 // shares with Modal through ./dialog.
-// why: CONTRIBUTING.md#react-components-react
+// React components must match the vanilla class names.
 import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
