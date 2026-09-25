@@ -10,34 +10,33 @@ Publishing to npm is gated. `release.yml` runs on `release: published` and stops
 releases, but **does not publish**. A release nobody approves sits in the queue silently, and
 this repo has had three stacked up at once while npm served a version two behind `main`.
 
-So: after merging anything into `main`, check for a run waiting on approval, and open the
-approval page when there is one.
+After merging anything into `main`, check for a run waiting on approval:
 
 ```bash
-gh run list --workflow release.yml --status waiting \
+gh run list --repo apliteni/apliteni-ui --workflow release.yml --status waiting \
   --json databaseId,displayTitle,headBranch,createdAt,url
 ```
 
-**Open a window only when that returns a run.** Most merges do not produce one — only a merge
-carrying a version bump does — and a tab opened for nothing is worse than no tab. This is the
-standing ask that satisfies the "never open a browser unless I asked" rule; it is not a licence
-to open anything else.
-
-The approval lives on the run's own page: open the `url` the query returns.
-
-**Check the order before approving more than one.** Approvals are independent, and `npm publish`
-sets the `latest` dist-tag by default, so approving an older waiting run after a newer version
-has already published moves `latest` backwards. When several are waiting, compare each against
-`npm view @apliteni/apliteni-ui version` and approve only those newer than what is published.
-Say so rather than approving a stale one.
-
-Open it. The owner asked for the window itself, not for a link he has to click — that is the
-whole point of this rule, and it is the one place in this repo where an agent opens a browser
-without being asked in the moment:
+When a run is waiting, the coordinator asks Artur through the decisions flow on
+Amberstone, or the visual companion when Amberstone is down. Include the run URL,
+version and current npm `latest`. Only after Artur explicitly confirms that run,
+the coordinator reads its pending deployments and approves the `npm-publish`
+environment through the API:
 
 ```bash
-open -a Comet "<url>"
+gh api repos/apliteni/apliteni-ui/actions/runs/<run-id>/pending_deployments
+gh api --method POST repos/apliteni/apliteni-ui/actions/runs/<run-id>/pending_deployments \
+  -F 'environment_ids[]=<environment-id>' -f state=approved \
+  -f comment='Approved after Artur confirmed this release in the decisions flow.'
 ```
 
-Hand over the URL as text as well, so the run is still findable if the window is lost. You
-cannot approve on his behalf; opening the window is where your part ends.
+**Check the order before approving more than one.** Compare each waiting version
+against `npm view @apliteni/apliteni-ui dist-tags.latest` and approve only those newer
+than what is published. Report stale runs rather than approving them. The workflow
+now guards `latest`: it compares semver immediately before publishing, uses `latest`
+only for a higher version (or when no latest exists), and otherwise uses `backport`.
+Publish jobs are serialized so overlapping runs cannot use the same stale read.
+GitHub keeps only one pending job per concurrency group and cancels older pending
+jobs. This cannot move `latest` backwards: any job that runs checks the registry.
+Rerun a canceled release if that version is still needed.
+Old tagged workflows do not gain this guard, so ordering still matters.

@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, realpathSync, rmSync, mkdirSync, readdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, realpathSync, rmSync, mkdirSync, readdirSync, writeFileSync, copyFileSync, existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,7 +55,7 @@ test('the workflow publishes a file path, not a git shorthand', () => {
     const run = spawnSync('bash', ['-c', command], {
       cwd: scratch,
       encoding: 'utf8',
-      env: { ...process.env, TGZ: path.join('dist-pack', tgz) },
+      env: { ...process.env, TGZ: path.join('dist-pack', tgz), DIST_TAG: 'backport' },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     const text = `${run.stdout ?? ''}${run.stderr ?? ''}`;
@@ -76,3 +76,61 @@ test('the workflow publishes a file path, not a git shorthand', () => {
     rmSync(scratch, { recursive: true, force: true });
   }
 });
+
+// Run the real selection and publish bodies with the artifact layout used by
+// download-artifact. Only npm's network boundary is stubbed; nothing is published.
+for (const [latest, version, expected] of [
+  ['0.40.1', '0.41.1', 'latest'],
+  ['0.41.1', '0.41.0', 'backport'],
+  ['0.41.1', '0.41.1', 'backport'],
+  ['', '0.1.0', 'latest'],
+  ['invalid', '1.0.0', null],
+  ['unavailable', '1.0.0', null],
+]) {
+  test(`workflow selects ${expected} for ${version} against ${latest || 'no latest'}`, () => {
+    const scratch = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'release-tag-'));
+    try {
+      mkdirSync(path.join(scratch, 'dist-pack'));
+      mkdirSync(path.join(scratch, 'package'));
+      mkdirSync(path.join(scratch, 'bin'));
+      writeFileSync(path.join(scratch, 'package/package.json'), JSON.stringify({ version }));
+      execFileSync('tar', ['-czf', 'dist-pack/package.tgz', 'package/package.json'], { cwd: scratch });
+      copyFileSync(path.join(root, 'scripts/release-tag.mjs'), path.join(scratch, 'dist-pack/release-tag.mjs'));
+      writeFileSync(path.join(scratch, 'bin/npm'), `#!/bin/bash
+set -eu
+if [ "$1" = view ]; then
+  [ "$2" = '@apliteni/apliteni-ui' ]
+  [ "$3" = 'dist-tags.latest' ]
+  [ "$4" = '--json' ]
+  [ "$5" = '--registry=https://registry.npmjs.org' ]
+  if [ "$LATEST" = unavailable ]; then
+    printf '%s\\n' '{"error":{"code":"E503"}}'
+    exit 1
+  fi
+  if [ -n "$LATEST" ]; then printf '"%s"\\n' "$LATEST"; fi
+else
+  printf '%s\\n' "$@" > "$PUBLISH_ARGS"
+fi
+`, { mode: 0o755 });
+      const selection = workflow.match(/      - name: Choose the dist-tag\n[\s\S]*?        run: \|\n((?:          .*\n)+)/)?.[1];
+      assert.ok(selection, 'workflow must select the tag immediately before publish');
+      const run = spawnSync('bash', ['-euo', 'pipefail', '-c', `${selection}\nsource "$GITHUB_OUTPUT"\nexport DIST_TAG="$tag"\n${publishCommand()}`], {
+        cwd: scratch,
+        encoding: 'utf8',
+        env: { ...process.env, PATH: `${scratch}/bin:${process.env.PATH}`, LATEST: latest,
+          TGZ: 'dist-pack/package.tgz', GITHUB_OUTPUT: path.join(scratch, 'output'),
+          PUBLISH_ARGS: path.join(scratch, 'publish-args') },
+      });
+      if (expected === null) {
+        assert.notEqual(run.status, 0, 'an unknown latest must stop publishing');
+        assert.equal(existsSync(path.join(scratch, 'publish-args')), false);
+        return;
+      }
+      assert.equal(run.status, 0, run.stderr);
+      assert.deepEqual(readFileSync(path.join(scratch, 'publish-args'), 'utf8').trim().split('\n'),
+        ['publish', './dist-pack/package.tgz', '--tag', expected]);
+    } finally {
+      rmSync(scratch, { recursive: true, force: true });
+    }
+  });
+}
