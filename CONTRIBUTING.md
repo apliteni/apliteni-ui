@@ -871,11 +871,10 @@ Discovery is still Vite's: `import.meta.glob('./**/*.css')` is evaluated for its
 not eager, nothing is imported — so a new component stylesheet is in the gate the moment it
 exists, and the count is asserted.
 
-Two differences from the vanilla walk, both narrowing. There is **no state pass**: nothing under
-`react/` declares a colour in a state, and `.rx-sort:focus-visible` sets an outline, which is
-non-text contrast the gate does not judge either way — so the pass would cost two more renders
-to measure zero new pairs. Add it when a state rule paints text. And **one accent**, like the
-vanilla default cell.
+The React walk forces hover, focus-visible, focus and active on targets discovered from both
+its own stylesheets and the shared kit stylesheet. It measures the target and its descendants,
+including inherited text colour and changed backgrounds, and reports the added state-pass time.
+React still uses the default accent; the vanilla catalogue gates all four accents in both themes.
 
 ### What the walk costs, and why the gate on it is a ratio
 
@@ -884,8 +883,10 @@ suite's critical path: `node --test` runs files as parallel child processes and 
 outlasts all the others put together. Measured on a 10-core laptop, the suite runs in ~18s with
 it and ~8s without, so the gate still roughly doubles it. Cost grows close to linearly with
 theme × accent cells — 16.3s for the default 2 and 63.4s for all 8, so about 8s a cell. The
-eight-cell matrix is behind `CONTRAST_ACCENTS=1` and off by default; anyone adding a cell should
-know they are buying ~8s of every `npm test`, forever.
+eight-cell matrix now runs on every `npm test`. Each alternate cell reports its added seconds
+separately, so CI logs show the cost alongside the default walk. Each cell checks its own ledger
+counts and floors; a passing accent cannot offset a failure in another. The figures above are
+historical measurements, not an estimate for the current catalogue or CI host.
 
 It used to be worse. The walk asked JSDOM for a computed style 138,534 times across the two
 cells, because every text element was walked up its ancestor chain three separate times —
