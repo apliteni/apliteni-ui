@@ -44,7 +44,7 @@
 
 <!-- rule: panels -->
 
-**Rule:** Use `tabs()` to switch panels and `segmented()` to change a value or filter without switching panels.
+**Rule:** Use `tabs()` to switch panels and `segmented()` for a choice that owns no panel, such as a value, filter or sort order.
 
 **Why:** A tablist promises a panel and arrow-key support; a strip without either fails the reader.
 
