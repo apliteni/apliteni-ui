@@ -53,3 +53,5 @@ export type { BackLinkProps, BackLinkOwnProps } from './BackLink';
 export * from './TableValues';
 export * from './Segmented';
 export * from './FilterBar';
+export { KeyValueList, DrawerSection } from './KeyValueList';
+export type { KeyValueRow, KeyValueListProps, DrawerSectionProps } from './KeyValueList';

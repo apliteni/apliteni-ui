@@ -73,8 +73,7 @@ focus is already back on the opener and the dialog takes no clicks.
 A panel that slides in from an edge of the screen over a scrim. It renders the vanilla
 `drawer()` markup, class for class, so it looks and moves like the kit's drawer, and like
 `Pagination` its styles come from `@apliteni/apliteni-ui/css` rather than from this bundle.
-Group what goes inside it the way `drawerSection()` does — a heading over a `<dl>` of label
-and value rows — rather than in cards; the rules are on Guidelines / Drawers.
+Group its contents with `DrawerSection` and `KeyValueList`; see Guidelines / Drawers.
 
 ```tsx
 <Drawer open={open} title="Transaction" onClose={() => setOpen(false)}
@@ -292,3 +291,31 @@ Clearing the page-jump box, or typing into it and then pressing a step, does not
 page.
 
 `pageSize` defaults to `DEFAULT_PAGE_SIZE` (100). **Breaking:** it used to default to 4.
+
+## KeyValueList and DrawerSection
+
+KeyValueList displays one record’s facts with labels beside their values. Pass rows
+with a label and a React value. Set `columns={2}` to show two label-value pairs on
+each line. Missing, blank, and boolean values display an em dash; zero remains
+visible. Set `redacted` on a row to display “Hidden” with an eye-off icon without
+rendering the value. Below 560px, each label appears above its value, and the layout
+changes to one column.
+
+DrawerSection groups content under a heading and adds a hairline between adjacent
+sections. Its `headingLevel` defaults to 3. Import both the kit CSS and the React
+CSS. Use a table for figures that readers need to compare down a column.
+
+```tsx
+import { DrawerSection, KeyValueList } from '@apliteni/apliteni-ui/react';
+import '@apliteni/apliteni-ui/css';
+import '@apliteni/apliteni-ui/react/css';
+
+<DrawerSection title="Transaction">
+  <KeyValueList rows={[
+    { label: 'Reference', value: <a href="/invoices/1001">INV-1001</a> },
+    { label: 'Amount', value: '€ 1,240.00' },
+    { label: 'Account', redacted: true },
+    { label: 'Note' },
+  ]} />
+</DrawerSection>
+```

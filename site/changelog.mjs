@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.42.0', date: '2026-09-25',
+    changes: [
+      ['added', 'React now includes KeyValueList and DrawerSection for displaying a record’s details. Lists support two columns, React values, em dashes for missing values, and redacted markers. They stack into one column on narrow screens. Resolves #391.'],
+    ],
+  },
+  {
     v: '0.41.5', date: '2026-09-25',
     changes: [
       ['fixed', 'Vanilla factories now keep quoted values inside their attributes. Text and enum attributes are escaped, while trusted HTML slots keep their existing behavior. Links and image sources reject javascript:, data: and vbscript: URLs; rejected links use #, rejected image sources are empty, and backLink renders nothing. This includes data: image URLs. Part of #376.'],

@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/KeyValueList.test.tsx",
+      "name": "React: KeyValueList",
+      "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",
+      "blind": [
+        "It does not measure browser wrapping, responsive layout, or contrast in the rendered page."
+      ]
+    },
+    {
       "file": "stories/ring-surfaces.test.js",
       "name": "Ring surfaces",
       "does": "Finds raised backgrounds and their aliases in both workspaces. It requires a matching gap and the shared ring composition. Form focus rules use focus-visible.",

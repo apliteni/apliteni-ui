@@ -42,9 +42,9 @@ const reactSrc = path.join(root, 'react', 'src');
 const previewPath = path.join(root, 'react', '.storybook', 'preview.ts');
 const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
-// DataTable's sort SVG adds width and height. Keep the count exact so a rule
+// DataTable and KeyValueList each size an SVG on both axes. A rule
 // leaving coverage fails; change it with the sizing rules and explain removals.
-const EXPECTED_SUBJECTS = 2;
+const EXPECTED_SUBJECTS = 4;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what
