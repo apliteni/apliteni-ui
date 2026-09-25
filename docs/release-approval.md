@@ -2,8 +2,9 @@
 
 The policy in `release.yml` runs from main and approves a release when its tag
 commit is on main, CI and Security passed for that commit, and its version is
-above npm latest. Other valid releases wait for a required reviewer. An invalid
-tag or missing environment setup stops before build. The final publish guard
+above npm latest. Prerelease tags or package versions always require manual
+review, even above latest. Other valid releases wait for a required reviewer.
+An invalid tag or missing environment setup stops before build. The final publish guard
 still prevents an older version from moving latest backwards.
 
 ## Owner setup, in this order

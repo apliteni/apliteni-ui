@@ -17,6 +17,19 @@ const decide = async (overrides = {}) => {
 test('approves a main tag with successful exact-commit CI and a newer version', async () => {
   assert.equal((await decide()).automatic, true);
 });
+for (const [tag, version] of [
+  ['v2.0.0-beta.1', '2.0.0-beta.1'],
+  ['v2.0.0-beta.1+build.2', '2.0.0-beta.1+build.2'],
+  ['v2.0.0-beta.1', '2.0.0'],
+  ['v2.0.0', '2.0.0-beta.1'],
+]) test(`requires review for prerelease tag ${tag} or input ${version}`, async () => {
+  const result = await decide({ tag, version, getLatest: async () => '1.0.0' });
+  assert.equal(result.automatic, false);
+  assert.match(result.reason, /prerelease.*manual review/i);
+});
+test('a hyphen in build metadata does not make a stable version a prerelease', async () => {
+  assert.equal((await decide({ tag: 'v2.0.0+build-2', version: '2.0.0+build-2' })).automatic, true);
+});
 for (const [name, override] of [
   ['tag outside main', { onMain: false }],
   ['tag and manifest disagree', { tag: 'v1.3.0' }],
@@ -62,7 +75,7 @@ import { mkdtempSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-test('resolves annotated tags, proves main ancestry, and rejects output injection', () => {
+test('resolves annotated tags, proves main ancestry, and rejects output injection', async () => {
   assert.equal(typeof module.readRelease, 'function');
   const cwd = mkdtempSync(join(tmpdir(), 'release-policy-'));
   const git = (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -76,6 +89,14 @@ test('resolves annotated tags, proves main ancestry, and rejects output injectio
     git('update-ref', 'refs/remotes/origin/main', sha);
     git('tag', '-a', 'v1.2.0', '-m', 'annotated');
     assert.deepEqual(module.readRelease('v1.2.0', cwd), { sha, version: '1.2.0', onMain: true });
+    writeFileSync(join(cwd, 'package.json'), JSON.stringify({ name: '@apliteni/apliteni-ui', version: '2.0.0-beta.1' }));
+    git('add', '.'); git('commit', '-m', 'prerelease'); git('tag', 'v2.0.0-beta.1');
+    git('update-ref', 'refs/remotes/origin/main', git('rev-parse', 'HEAD'));
+    const prerelease = module.readRelease('v2.0.0-beta.1', cwd);
+    assert.equal(prerelease.version, '2.0.0-beta.1', 'valid prereleases must resolve for the manual path');
+    const decision = await decide({ ...prerelease, tag: 'v2.0.0-beta.1', getLatest: async () => '1.0.0' });
+    assert.equal(decision.automatic, false);
+    assert.match(decision.reason, /prerelease.*manual review/i);
     git('switch', '-c', 'other');
     writeFileSync(join(cwd, 'package.json'), JSON.stringify({ name: '@apliteni/apliteni-ui', version: '1.3.0' }));
     git('add', '.'); git('commit', '-m', 'outside main'); git('tag', 'v1.3.0');

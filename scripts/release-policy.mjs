@@ -5,8 +5,13 @@ import { appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { chooseTag, registryLatest } from './release-tag.mjs';
 
+function isPrerelease(tag, version) {
+  return /^v\d+\.\d+\.\d+-/.test(tag) || /^\d+\.\d+\.\d+-/.test(version);
+}
+
 export async function releasePolicy({ tag, version, sha, onMain, getRuns, getLatest }) {
   const manual = reason => ({ automatic: false, reason });
+  if (isPrerelease(tag, version)) return manual('Prerelease tags and versions require manual review.');
   if (!/^v\d+\.\d+\.\d+(?:[-+][\da-zA-Z.+-]+)?$/.test(tag) || tag !== `v${version}`) {
     return manual('Tag must match the package version.');
   }
@@ -45,6 +50,7 @@ export function requireReviewEnvironment(environment) {
 }
 
 export function readRelease(tag, cwd = process.cwd()) {
+  // Resolve valid prereleases too: the policy routes them to review, not a failed job.
   if (!/^v\d+\.\d+\.\d+(?:[-+][\da-zA-Z.+-]+)?$/.test(tag ?? '')) throw new Error('Supply a version tag.');
   const git = (...args) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
   const sha = git('rev-parse', '--verify', `refs/tags/${tag}^{commit}`);
@@ -84,7 +90,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   ], { encoding: 'utf8', timeout: 60_000 }));
   // A version bump and its CI start together. Give CI ten minutes to finish;
   // errors and failed runs go straight to the manual path.
-  if (onMain && tag === `v${version}`) {
+  if (onMain && tag === `v${version}` && !isPrerelease(tag, version)) {
     await waitForCI(getRuns);
   }
   const result = await releasePolicy({ tag, version, sha, onMain, getRuns, getLatest });
