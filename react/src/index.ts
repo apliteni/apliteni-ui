@@ -78,3 +78,5 @@ export type { EmptyStateProps, EmptyStateVariant } from './EmptyState';
 
 export { ThemeToggle, THEME_INIT_SCRIPT } from './ThemeToggle';
 export type { ThemeToggleProps } from './ThemeToggle';
+export { Tooltip } from './Tooltip';
+export type { TooltipProps } from './Tooltip';

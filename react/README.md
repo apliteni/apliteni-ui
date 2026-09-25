@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Callout`, `Icon`.
+Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Callout`, `Icon`.
 
 `Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
@@ -500,4 +500,13 @@ AppShell includes the kit’s rail and top band. Pass the current router pathnam
 >
   <Reports />
 </AppShell>
+```
+
+
+## Tooltip
+
+Tooltip accepts text and inline children, without nested controls. Hovering or focusing opens it; pressing Escape, moving focus away, or moving the mouse away closes it. On touch devices, tapping toggles it. It uses the kit’s tooltip styles and moves below the trigger when there is not enough space above. Keep the same information elsewhere on the page.
+
+```tsx
+<Tooltip text="Updated daily">Balance</Tooltip>
 ```

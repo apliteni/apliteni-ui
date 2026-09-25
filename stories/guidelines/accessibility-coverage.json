@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/Tooltip.test.tsx",
+      "name": "React: Tooltip",
+      "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",
+      "blind": [
+        "Geometry is mocked; browser layout, focus rings and reduced motion need browser checks."
+      ]
+    },
+    {
       "file": "react/src/FeedbackShowcase.test.tsx",
       "name": "React: Feedback showcase",
       "does": "Checks blank-note prevention, sending and success, cancellation, and the failed note's invalid state, alert and linked error message beside the surviving consent hint, without a false completion announcement.",
