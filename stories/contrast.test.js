@@ -233,7 +233,7 @@ const walk = {
 //    CONTAINER drops everything in it. #220's floor covers that; it is still a hole here.
 //  - anything a script would do: the body is a static string, so no preview.js wiring runs.
 //  - custom properties a story pins INLINE. Every var() is flattened against one theme-wide map,
-//    so the sub-theme panels are every one of them measured as the DEFAULT accent.
+//    so every sub-theme panel is measured using the current cell's accent.
 before(async () => {
   const started = Date.now();
   const records = [];
