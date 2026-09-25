@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Button`, `Badge`, `Card`, `Icon`.
 
 `Button` accepts `size="xs" | "sm" | "md" | "lg"` (default `md`). Use `xs`
 for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconOnly>Copy</Button>`.
@@ -55,6 +55,13 @@ vanilla factory where the steps have to be real links. `PAGE_SIZES` and
 `DEFAULT_PAGE_SIZE` are exported here too — the scale is the kit's, so no call site writes
 either number. They are declared in this package's own types, and `PAGE_SIZES` is a
 `readonly number[]`: pass it to `pageSizes`, but do not add sizes to it.
+
+## EmptyState
+
+`EmptyState` uses the vanilla layout. `variant` selects `first-run`, `no-matches`,
+`not-found`, or `not-yet-built` copy; `title`, `sub`, and `icon` override it.
+`art` and `actions` accept React nodes. Use at most one primary action and one ghost
+action. The not-found title is an h1 styled like the vanilla title.
 
 ## What the Modal does with focus
 
