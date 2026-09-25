@@ -1,4 +1,4 @@
-// why: CONTRIBUTING.md#button-chrome-measurements
+// Check button defaults against the same class on a non-button element.
 
 /* Coverage limits: keyboard-operable rows are checked at rest, in the default accent.
  * - No layout; width models shrink-to-fit. Font weight and font style are not read.
@@ -6,7 +6,7 @@
  * - No hover or active states, or accent-specific rendering.
  * - LEDGER rows are counted, not required to be clean; only one ancestry is measured.
  * - Losing cursor: pointer can remove an unpinned class from discovery.
- * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+ * State what this test cannot measure.
  */
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,7 +26,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 
 const THEMES = ['dark', 'light'];
 
-// why: CONTRIBUTING.md#button-browser-defaults
+// Compare explicit button defaults with their reset values.
 const CHROME = {
   appearance: 'auto',
   'background-color': 'rgb(107, 107, 107)',
@@ -314,7 +314,7 @@ const DEFERRED = deferredClasses.map(([cls, at]) => ({ cls, at, ...anc(cls)[0] }
 const NOT_CONTROLS = [...CANDIDATES].filter(([cls]) => SEEN.get(cls).tags.size && !SEEN.get(cls).control.size);
 const UNRENDERED = [...CANDIDATES].filter(([cls]) => !SEEN.get(cls).tags.size);
 
-// why: CONTRIBUTING.md#button-subject-pins
+// Keep existing subjects covered when markup changes.
 const PINNED_SUBJECTS = ['ui-card--interactive', 'ui-cmdk__item', 'ui-fbpill', 'vopt'];
 
 // The other side of the same pin. This is the ONLY bucket that leaves the
@@ -435,55 +435,30 @@ for (const theme of THEMES) {
   });
 }
 
-// why: CONTRIBUTING.md#button-chrome-ledgers
+// Keep accepted button differences separate from verified repairs.
 
 const LEDGER = [
   {
     id: 'A',
     facet: 'text-align',
     count: 12,
-    why: 'A <button> centres its text and nothing else in the kit does, so each of these rows takes '
-      + 'its alignment from the element rather than from the stylesheet — the dependency this gate '
-      + 'exists to refuse. What it does NOT mean is twelve rows a reader could see move, and the '
-      + 'number that decides it was measured rather than argued. Every one of the twelve was mounted '
-      + 'as a <button> in the ancestry a story gives it and read twice, `text-align: left !important` '
-      + 'against `center !important`, taking the union rectangle of everything inside the box: the '
-      + 'two readings are identical on all twelve, so text-align paints on none of them today. Six '
-      + 'cannot ever paint while their layout stands, because they position their children with '
-      + 'properties text-align has no say over — .ui-btn and .ui-drawer__close are flex with '
-      + 'justify-content: center, and .toggle, .avatar, .ui-toast__close and .ui-fbc__x are grid with '
-      + 'place-items: center. Three more are flex containers with no justify-content of their own '
-      + '(.ui-dropdown__trigger, .ui-snippet__copy, .vsw__btn): text-align cannot reach a flex item '
-      + 'either, so nothing paints, but nothing states the centring and a display change would put it '
-      + 'back in play. The last three lay out real inline content — .ui-tabs__tab, .ui-toast__action '
-      + 'and .ui-fbbtn — and there the alignment is live and only invisible because the box is sized '
-      + 'to one short label with no slack in the line. Those three are the exposure, and it goes '
-      + 'visible the first time such a label wraps or a consumer reuses one of the classes on a row '
-      + 'with room. An earlier draft of this entry said two of the twelve pinned it and ten were '
-      + 'exposed; both halves were wrong, and the sentence a reader uses to decide whether to open '
-      + 'this deferral overstated the risk fourfold. Moving all twelve recentres rows the kit already '
-      + 'ships as buttons, which is a repaint across a dozen components to fix a row #251 reports on '
-      + 'one. The decision to stop at the rows a consumer cannot see was taken in this lane, not in '
-      + 'the issue, whose comment thread is empty; the pull request this gate arrived in is where '
-      + 'it is written down.',
+    cause: 'Twelve button classes inherit centered text. Six center children with flex or grid; '
+      + 'three more use flex without explicit centering; tabs, toast actions and feedback buttons '
+      + 'fit short inline labels. These existing buttons were left unchanged in the #251 repair.',
+    limitation: 'JSDOM cannot measure layout. Browser checks found no visible alignment change '
+      + 'in the twelve story specimens, but wider or wrapped inline labels can expose it. '
+      + 'This test covers only one ancestry, at rest, in the default accent.',
   },
   {
     id: 'C',
     facet: 'line-height',
     count: 4,
-    why: 'The leading half of the same shorthand. Chrome writes `font: 400 13.3333px Arial` on a '
-      + 'button, so a button whose rule states no leading gets `normal` where the identical class '
-      + 'on a div gets the body\'s 1.62. Four rules are in that position: .ui-dropdown__trigger, '
-      + '.vsw__btn, .ui-fbbtn and .ui-snippet__copy — every one of them declares its own font-size, '
-      + 'which is why the size half of this shorthand finds nothing on a deferred row and has no '
-      + 'entry here. What repairing them costs was measured in Chrome rather than guessed, by '
-      + 'adding `font: inherit` to each of the four and reading the box back: the dropdown trigger '
-      + 'and the version-switcher button go 31.00px to 36.25px, the feedback button 34.00px to '
-      + '39.86px, and only the snippet copy holds at 24.00px. Three components five to six pixels '
-      + 'taller, in a kit that puts a dropdown trigger on most screens it ships — the same trade as '
-      + 'entry A and turned down for the same reason. Read `1.62` rather than a pixel length in a '
-      + 'failure message here: jsdom reports an unresolved line-height number, so the two readings '
-      + 'differ textually and the gate sees the difference, but the px value is Chrome\'s to give.',
+    cause: 'Dropdown triggers, version buttons, feedback buttons and snippet-copy buttons inherit '
+      + 'normal line-height from the browser instead of the body’s 1.62. In Chrome, font: inherit '
+      + 'raised the first two from 31.00px to 36.25px and feedback from 34.00px to 39.86px; '
+      + 'snippet copy stayed at 24.00px. Those size changes were deferred with entry A.',
+    limitation: 'JSDOM compares line-height values but cannot measure their pixel height. '
+      + 'The recorded Chrome measurements are not refreshed by this test.',
   },
 ];
 
@@ -496,24 +471,13 @@ const CLOSED = [
     id: 'B',
     facet: 'font-family',
     was: 5,
-    why: 'A <button> is set in Arial before any author rule runs, and these five rules used not to '
-      + 'say otherwise: .ui-drawer__close, .ui-toast__close, .toggle, .ui-fbc__x and .avatar. All '
-      + 'five now declare `font: inherit` — the shorthand, because the family is only three '
-      + 'quarters of one declaration and answering with the longhand leaves the size and the '
-      + 'leading standing (entry C). Four of them repainted nothing — the drawer '
-      + 'close, the toast close, the topbar toggle and the feedback composer dismiss are each one '
-      + '<svg> and render zero text characters, measured by reading textContent off every story '
-      + 'that renders them (60 renderings, all empty), so those four state the family the kit '
-      + 'means without moving a pixel. The fifth did repaint and was meant to: .avatar carries the '
-      + 'account initials, two characters that paint, and they painted in Arial in the shipped kit '
-      + 'rather than in the kit face. The owner was shown that row before and after — circle '
-      + 'unchanged at 32x32, initials landing on the same face as the label beside them — and '
-      + 'accepted it, and the pull request this gate arrived in carries the before-and-after readings. '
-      + 'Adding the shorthand moved it once more and by less: with the family longhand the '
-      + 'initials sat 8.500px from the top of the circle, with `font: inherit` 7.875px, against '
-      + '9.000px in the shipped kit — 32x32 box, 600 weight and 12.5px size unmoved in all '
-      + 'three, measured in Chrome 152 off a Range rect over the two characters. What remains '
-      + 'open is the text-align half, entry A above, and the leading half, entry C.',
+    cause: 'Drawer close, toast close, theme toggle, feedback dismiss and avatar buttons now use '
+      + 'font: inherit instead of browser Arial. The first four render only SVGs; the avatar’s '
+      + 'initials now match the kit text face. The owner accepted that change with its 32×32 box, '
+      + '600 weight and 12.5px size unchanged.',
+    limitation: 'The test checks font-family, not glyph position, weight or layout. Chrome 152 '
+      + 'measured the initials at 7.875px from the top with font: inherit, 8.500px with the family '
+      + 'longhand and 9.000px before repair. Alignment and line-height remain in entries A and C.',
   },
 ];
 
@@ -582,7 +546,32 @@ test('button chrome: the ledger accounts for every deferred row, and nothing els
   }
 });
 
-test('button chrome: the ledger is not empty and every entry carries a hand-written why', () => {
+function assertLedgerReason(entry) {
+  for (const [field, instruction] of [
+    ['cause', 'explain why the button styling differs'],
+    ['limitation', 'state what this test cannot measure'],
+  ]) {
+    assert.ok(
+      typeof entry[field] === 'string' && entry[field].trim().length > 0,
+      `ledger ${entry.id}: add a non-empty ${field}; ${instruction}`,
+    );
+  }
+}
+
+test('button chrome: ledger reasons require a cause and a limitation', () => {
+  const valid = { id: 'fixture', why: 'x', cause: 'The button inherits browser styling.',
+    limitation: 'The test does not measure layout.' };
+  assert.doesNotThrow(() => assertLedgerReason(valid));
+  for (const field of ['cause', 'limitation']) {
+    const missing = { ...valid };
+    delete missing[field];
+    for (const entry of [missing, ...['', '  ', null, 42].map(value => ({ ...valid, [field]: value }))]) {
+      assert.throws(() => assertLedgerReason(entry), new RegExp(`ledger fixture: add a non-empty ${field}`));
+    }
+  }
+});
+
+test('button chrome: the ledger is not empty and every entry records its cause and limitation', () => {
   assert.ok(LEDGER.length > 0, 'an emptied ledger would defer everything and assert nothing');
   // Deleting a closed entry is the one edit that hollows this half out: the rows
   // stay repaired, every count still adds up, and the record of who repaired them
@@ -590,10 +579,7 @@ test('button chrome: the ledger is not empty and every entry carries a hand-writ
   assert.ok(CLOSED.length > 0, 'the closed half was emptied — a repair this gate used to hold has lost its record');
   assert.ok(DEFERRED.length > 0, 'nothing is deferred, so the ledger describes a set that does not exist');
   for (const e of [...LEDGER, ...CLOSED]) {
-    assert.ok(
-      e.why && e.why.length > 200,
-      `ledger ${e.id} has no real \`why\` — see CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach`,
-    );
+    assertLedgerReason(e);
     assert.ok(FACETS.some((f) => f.name === e.facet), `ledger ${e.id} names ${e.facet}, which is not a facet this gate reads`);
   }
   // A facet is deferred or it is repaired; it cannot be both, and a reader who

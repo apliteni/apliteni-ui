@@ -9,7 +9,7 @@
  * reader is documented as working "on a substituted value and on a raw one".
  *
  * why: docs/specification.md#elevation
- * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ * Share the calculation but check each workspace separately.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

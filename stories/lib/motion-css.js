@@ -1,7 +1,7 @@
 // The stylesheet reading the motion gates share: motion-tokens, motion-coverage and
 // reduced-motion ask different questions of the same sheets, so they read them one way.
 //
-// why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+// Share the calculation but check each workspace separately.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

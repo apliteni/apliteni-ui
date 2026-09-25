@@ -48,5 +48,5 @@ jobs:
               body: "⚠️ **Possible internal identifier detected** (a UUID, `*.lessly.run` "
                 + "host, ttl.sh image tag, deploy-token name, or private IP). This repo is "
                 + "public — please redact internal infra identifiers from this thread. "
-                + "See CONTRIBUTING → Data handling.",
+                + "See AGENTS.md → Data handling.",
             });

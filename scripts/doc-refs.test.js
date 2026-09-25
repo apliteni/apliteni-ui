@@ -10,7 +10,7 @@
  * The subject set is every file git tracks, so a new citation joins by being
  * written. It lives under scripts/ because `npm test` only walks four trees.
  *
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -35,7 +35,7 @@ const URL_BEFORE = /:\/\/[^\s)'"`]*$/;
  * form test, never a list of filenames:
  *
  *   docs/specification.md      it names a page in the documentation tree
- *   CONTRIBUTING.md#the-rule   it carries an anchor, so it points inside a page
+ *   AGENTS.md#verification   it carries an anchor, so it points inside a page
  *   [library.md](library.md)   it is a markdown link, so a reader can click it
  *
  * A path with none of the three is a string that happens to end in `.md`. The
@@ -158,7 +158,7 @@ test('the sweep found citations to resolve, with anchors among them', () => {
 });
 
 /* The tree is green, so the checks themselves are exercised against references
- * that are not — the mutation that kills the case, per CONTRIBUTING.md. Each
+ * that are not — a mutation that must fail. Each
  * of these is a way a real citation has broken or could break. */
 test('a reference that stops landing fails with a line a reader can act on', () => {
   const page = ['# Top heading', '', '## Where a decision gets recorded', '', '```', '# not a heading', '```'].join('\n');

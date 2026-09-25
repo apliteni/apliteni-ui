@@ -10,7 +10,7 @@
  * field on a card, per theme, so the bar moves when the ladder does.
  *
  * why: docs/specification.md#elevation
- * why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test
+ * Measure behavior instead of matching the source text.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -72,7 +72,7 @@ const well = (field, surround) => ({
  * other field in the kit takes and this ratchet refuses a change that makes it
  * WORSE. Bringing dark in line later lowers the number, which passes; the entry
  * retires when it does.
- * why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+ * State what this test cannot measure.
  */
 const DARK_WELL = 1.234;
 

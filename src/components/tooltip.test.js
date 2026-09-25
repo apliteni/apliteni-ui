@@ -48,7 +48,7 @@ const base = RULES.find((r) => r.selector.trim() === '.ui-tip');
 // ---- The stylesheet ------------------------------------------------------
 // The subjects are discovered from the sheet, so a new state joins the sweep by
 // being written.
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// Discover subjects from source and check the coverage count.
 
 test('the readout is out of flow in every state the sheet gives it', () => {
   const subjects = RULES.filter((r) => isReadout(r.selector));

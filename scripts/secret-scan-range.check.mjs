@@ -14,7 +14,7 @@
  *
  * Usage: node scripts/secret-scan-range.check.mjs [path-to-workflow.yml]
  *
- * why: CONTRIBUTING.md#the-two-security-checks
+ * Test scanner rules and commit ranges with temporary fixtures.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -39,7 +39,7 @@ const GITLEAKS = process.env.GITLEAKS_BIN ? resolve(process.env.GITLEAKS_BIN) : 
 // file would refuse every commit in the repo, for everyone, until it was put
 // back. gitleaks-rules.check.mjs holds the same warning over its own fixtures —
 // the trick there is a template literal, here it is a join.
-// why: CONTRIBUTING.md#the-two-security-checks
+// Test scanner rules and commit ranges with temporary fixtures.
 //
 // An RFC1918 address, caught by the `pii-private-ip` rule in .gitleaks.toml. A
 // token shape would do as well, but tokens carry entropy floors and character
@@ -178,7 +178,7 @@ function buildRepo(dir, { leakOn, head, evilMerge }) {
  * `git log -p` over the range already shows the payload, the fixture is not the
  * thing it claims to be and the scenario built on it would prove nothing.
  *
- * why: CONTRIBUTING.md#the-two-security-checks
+ * Test scanner rules and commit ranges with temporary fixtures.
  */
 function buildEvilMerge(dir, main) {
   const contested = 'the deploy target for staging is still being decided\n';

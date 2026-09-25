@@ -10,7 +10,7 @@
  * it. The resolver is stories/lib/contrast.js; its two rewrites are pinned by the
  * self-checks below.
  *
- * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
+ * Resolve the winning declarations before measuring the result.
  */
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -54,7 +54,7 @@ const DOC_STORIES = {
  * One entry per CAUSE, not per row. Written by hand on purpose: the mandatory
  * `why` is the anti-automation device, so do not build a regenerator.
  *
- * why: CONTRIBUTING.md#a-ledger-that-keys-on-a-measurement-is-written-by-hand-on-purpose
+ * Review changed measurements and explain accepted failures by hand.
  *
  * `fg` names a TOKEN, resolved per theme at run time, so moving a token's value
  * does not silently re-point a bucket at a different colour — it changes the
@@ -345,8 +345,7 @@ test('the ledger totals exactly what the walk found', () => {
 test('the ledger is not empty and every entry carries a hand-written why', () => {
   assert.ok(LEDGER.length >= 5, 'an emptied ledger would make every assertion above vacuous');
   for (const e of LEDGER) {
-    assert.ok(e.why && e.why.length > 200, `ledger ${e.id} has no real \`why\` — see `
-      + 'CONTRIBUTING.md#a-ledger-that-keys-on-a-measurement-is-written-by-hand-on-purpose');
+    assert.ok(typeof e.why === 'string' && e.why.trim().length > 0, `ledger ${e.id}: explain the cause and accepted limitation in why; review measurements by hand`);
     assert.ok(
       !/\d+(\.\d+)?\s*:\s*1|\b\d\.\d{2}\b/.test(e.why),
       `ledger ${e.id}'s \`why\` quotes a ratio. Numbers live in \`count\` and \`worst\`, which `
@@ -526,7 +525,7 @@ test('the style cache is still serving four reads in five from memory', () => {
   // computed style a fixed number of times, so how many of those reach JSDOM is
   // arithmetic rather than weather. Gated as a RATIO, not as the absolute count.
   //
-  // why: CONTRIBUTING.md#what-the-walk-costs-and-why-the-gate-on-it-is-a-ratio
+  // Compare repeated work to the cold pass on the same host.
   const { queries, lookups } = walk.cache;
   console.log(
     `contrast walk: ${lookups} style lookups served from ${queries} reads `

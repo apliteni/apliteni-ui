@@ -1,7 +1,7 @@
 // Contrast gate for the React workspace.
 //
-// why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
-// why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green
+// Share the calculation but check each workspace separately.
+// Fail if a custom property cannot be resolved.
 //
 // Same rule as stories/contrast.test.js: a foreground/background pair this
 // workspace renders as text clears WCAG AA, or is named in the ledger below by a

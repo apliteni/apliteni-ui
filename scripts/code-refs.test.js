@@ -1,13 +1,13 @@
 /* Rule: every file:line a comment or a story cites still says what the prose claims.
  *
- * why: CONTRIBUTING.md#a-prose-citation-carries-an-anchor
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Include the cited code beside its file and line number.
+ * Discover subjects from source and check the coverage count.
  *
  * The subject set is every file git tracks, so a new citation joins by being
  * written; it lives under scripts/ because `npm test` walks only four trees.
  */
 
-/* why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+/* State what this test cannot measure.
  *
  * WHAT THIS GATE DOES NOT REACH:
  *   - A citation with no anchor AND no directory — `nav.css:113` on its own. It
@@ -231,7 +231,7 @@ for (const page of tracked.filter((f) => READABLE.test(f) && f !== DELEGATED_REF
   });
 }
 
-/* why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+/* Discover subjects from source and check the coverage count.
  * A file that stops carrying a citation leaves the count, so coverage cannot
  * quietly shrink to zero and stay green. */
 test('the sweep resolved a citation in more than one file', () => {

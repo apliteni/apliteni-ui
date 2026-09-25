@@ -10,7 +10,7 @@
       phone numbers, no internal infra IDs (Lessly service/org/product UUIDs,
       `*.lessly.run` hosts, ttl.sh image tags, deploy tokens) in code, fixtures,
       issues, or PR text. Demo data uses obvious placeholders (e.g. `Ada Lovelace /
-      ada@apliteni.com`). See CONTRIBUTING → Data handling.
+      ada@apliteni.com`). See AGENTS.md → Data handling.
 
 ## Linked issue
 

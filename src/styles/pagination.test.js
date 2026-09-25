@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
  * as its artifact — there is no build step between this file and what a consumer
  * installs — and because both subjects are `var()` values, which jsdom resolves
  * to nothing at all.
- * why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green
+ * Fail if a custom property cannot be resolved.
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');

@@ -8,8 +8,8 @@
  * cannot prove the button should have been wordless — a `gear` with a perfect aria-label
  * is still a reader meeting an unlabelled cog one at a time. That is this gate.
  *
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
- * why: CONTRIBUTING.md#a-rule-is-proven-by-the-mutation-that-kills-its-case
+ * Discover subjects from source and check the coverage count.
+ * Weaken the rule and confirm that its test fails.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

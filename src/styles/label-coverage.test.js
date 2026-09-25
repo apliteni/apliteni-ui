@@ -28,7 +28,7 @@ const decomment = (js) => stripComments(js).replace(/(^|[^:])\/\/[^\n]*/g, '$1')
  * is invisible to a sweep that reads names, and invisible is silent: the class
  * leaves coverage and no count moves. So the site is refused unless it carries a
  * note spelling the classes out, and the note is what puts them in the set.
- * why: CONTRIBUTING.md#a-spelling-the-sweep-cannot-see-costs-coverage-in-silence */
+ * Match CSS and HTML case rules without changing class names. */
 const ASSEMBLED = /[\w-]+__(?=\$\{)/g;
 const NOTE = /(?:\/\*|\/\/)[^\n]*?classes:([^*\n]+)/g;
 
@@ -83,7 +83,7 @@ const files = (dir, keep) => readdirSync(path.join(root, dir), { withFileTypes: 
 
 /* The two workspaces: the source a consumer's markup comes out of, and the CSS
  * that ships with it. One gate each, because a shared count cancels.
- * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation */
+ * Share the calculation but check each workspace separately. */
 const WORKSPACES = [
   {
     name: 'the kit',
@@ -110,7 +110,7 @@ for (const ws of WORKSPACES) {
   test(`${ws.name}: the sweep is reading source and finding labels in it`, () => {
     // Without this, "every subject has a rule" is a claim about an empty set, and a
     // renamed directory or a regex that stops matching reads as a pass.
-    // why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+    // Discover subjects from source and check the coverage count.
     assert.ok(
       named.size >= ws.floor,
       `found ${named.size} __label classes in ${ws.name}'s source, under a floor of ${ws.floor} — `

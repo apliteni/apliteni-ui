@@ -9,7 +9,7 @@
  * reaches JSDOM, each closing a place where a naive resolver would report a
  * colour the browser never paints.
  *
- * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
+ * Resolve the winning declarations before measuring the result.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -46,7 +46,7 @@ export const TOKEN_FILES = ['src/tokens/brand.generated.css', 'src/tokens/tokens
  *
  * ALL of a name's declarations, because one value is a guess about the cascade
  * and a guess can be walked past: #314 planted a cast in a SECOND --drawer-line.
- * why: CONTRIBUTING.md#resolving-the-cascade-rather-than-reading-the-stylesheet
+ * Resolve the winning declarations before measuring the result.
  */
 const declCache = new Map();
 export function declarationsFor(theme, accent = 'default') {
@@ -99,7 +99,7 @@ export function declarationsFor(theme, accent = 'default') {
  *
  * Taken as an argument rather than read, so a gate that adds its own workspace's
  * declarations to the map picks its winners by the same rule —
- * react/src/elevation.test.ts does. why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ * react/src/elevation.test.ts does. Share the calculation but check each workspace separately.
  */
 export function winnersOf(decls) {
   const vars = new Map();
@@ -325,7 +325,7 @@ function capture(cs) {
  * throws; so does a read after a DOM write that did not go through `mutate`,
  * which a MutationObserver detects rather than the convention promising it.
  *
- * why: CONTRIBUTING.md#the-style-cache-holds-values-and-refuses-to-answer-for-a-stale-document
+ * Reject cached styles after the document or stylesheets change.
  */
 export function makeStyleCache(win) {
   let memo = new WeakMap();
@@ -559,7 +559,7 @@ export const storyFiles = readdirSync(path.join(root, 'stories'), { recursive: t
  *
  * Returns { records, stats, problems, cache }. A story that will not render is a
  * problem, never a skip, the same rule stories/a11y.test.js walks under:
- * why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+ * Report unmeasured subjects as failures.
  * One shared JSDOM per theme, body replaced per story: measured
  * identical output to a fresh window per story, and much cheaper.
  *

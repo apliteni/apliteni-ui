@@ -1,4 +1,4 @@
-// why: CONTRIBUTING.md#motion-coverage-measurements
+// Check that each discovered state change has motion or a stated exception.
 
 /* Accessibility coverage limits:
  * - Script-swapped content and React mounts without state classes have no state rule.

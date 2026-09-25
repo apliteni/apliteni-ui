@@ -1,7 +1,7 @@
 /* Reading a box-shadow the way the elevation rule reads one.
  *
  * One implementation, imported by the gate in each workspace —
- * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ * Share the calculation but check each workspace separately.
  *
  * The rule in docs/specification.md#elevation turns on one distinction: a CAST
  * shadow is an offset layer of ink under a surface, and a ring or a glow is a
@@ -187,7 +187,7 @@ export function namesRead(value, vars, seen = new Set()) {
  * over-approximation on purpose: it can call a cast no element paints, and cannot
  * miss one some element does. The cascade is an argument rather than an import, so
  * each workspace's gate hands over its own declarations as well as the kit's.
- * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
+ * Check every shadow layer, including resolved custom properties. */
 export function resolutionsOf(raw, { vars, decls, substitute }) {
   const out = new Set([substitute(raw, vars)]);
   for (const name of namesRead(raw, vars)) {
@@ -206,7 +206,7 @@ export function resolutionsOf(raw, { vars, decls, substitute }) {
  * shadow on all thirteen floating surfaces — and #314's third review re-pointed
  * `--elev-drop` from a component sheet and stayed green on a tight dark cast. So
  * the layer is resolved like every other, against the two rules below.
- * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
+ * Check every shadow layer, including resolved custom properties. */
 export const TREATMENT_DROP = 'var(--elev-drop)';
 const DROP = '--elev-drop';
 
@@ -240,7 +240,7 @@ export function dropShapeOffence(value) {
  *  may come from — each gate hands over the ones it reads. The first rule cannot
  *  be left to the resolver: a cascade marks what it did not read from a token
  *  file `root: false`, so the palette wins where a browser would let a later
- *  `:root` declaration win. why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
+ *  `:root` declaration win. Check every shadow layer, including resolved custom properties. */
 export function dropOffences(cascade, palette) {
   const out = [];
   for (const entry of cascade.decls.get(DROP) ?? []) {

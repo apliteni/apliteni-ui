@@ -1,5 +1,5 @@
 // Class-name parity and behaviour gate for <CommandPalette>.
-// why: CONTRIBUTING.md#react-components-react
+// React components must match the vanilla class names.
 //
 // The vanilla commandPalette() is the source of truth. The first half below
 // renders both and compares the shape read off each DOM — the panel's classes,

@@ -7,7 +7,7 @@
  * version. Exit 0 and markdown on stdout, or exit 1 and a sentence naming the
  * version that has no entry.
  *
- * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+ * Check the packed files, release notes and registry result.
  */
 
 import { readFile } from 'node:fs/promises';

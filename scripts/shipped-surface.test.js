@@ -7,9 +7,9 @@
 // the one field excluded from package.json's fingerprint, because a bump is
 // itself a change to the shipped surface. Why each is that shape, and the two
 // releases that sat on main unpublished behind it:
-// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+// Check the packed files, release notes and registry result.
 //
-// why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+// State what this test cannot measure.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';

@@ -10,7 +10,7 @@
  * the footer's social icons drop out by their own paint rather than by name.
  *
  * why: docs/specification.md#icons-and-glyphs
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
+ * Discover subjects from source and check the coverage count. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';

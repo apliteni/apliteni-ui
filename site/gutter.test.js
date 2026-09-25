@@ -11,7 +11,7 @@
 // elements that have one, which is a gate that fails on healthy pages. The
 // defect has an exact source form, so the source is what this reads.
 //
-// why: CONTRIBUTING.md#a-shorthand-resets-the-axis-it-does-not-mention
+// Use padding-block when horizontal padding must stay unchanged.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';

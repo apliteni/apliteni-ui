@@ -4,7 +4,7 @@
 // Both ask the same two questions of a field: does the net's own selector reach
 // it, and what sizes it. Only the mounting differs, which is why the walks are
 // per workspace and this arithmetic is not.
-// why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+// Share the calculation but check each workspace separately.
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -39,7 +39,7 @@ export const typeable = (el) => el.tagName !== 'INPUT'
  * `inherit`, and anything a future rule writes in em or rem — comes back with
  * `px: null` rather than being dropped, so the gate can fail on a size it cannot
  * read instead of passing over it.
- * why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+ * Report unmeasured subjects as failures.
  */
 export function sizingRules(css, where) {
   const out = [];

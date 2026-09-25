@@ -62,7 +62,7 @@
 /* The rail's hover WAS --surface-2, so moving the rail onto it would have made
    hovering a row do nothing. The danger row and the current row are left out by
    name, because this rule outranks the states nav.css writes for them.
-   why: CONTRIBUTING.md#a-rule-that-outranks-another-cancels-every-state-that-other-one-writes */
+   */
 .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-app__brand {
   display: flex;
@@ -118,7 +118,7 @@
 /* A destructive row of the rail is a navigation row and rests like one; the danger
    intent is the step nav.css writes for it. Both of nav.css's danger states are
    named, not hover alone.
-   why: CONTRIBUTING.md#a-rule-that-outranks-another-cancels-every-state-that-other-one-writes */
+   */
 .ui-app__rail .ui-nav__item.is-danger:not(:hover):not(:focus-visible) { color: var(--text); }
 
 /* One rule closes the rail, and it is this one: the nav's footer slot is empty now
@@ -176,7 +176,7 @@
   /* As tall as the mark inside it plus its own padding — 30 + 4 + 4, written out
      rather than as the calc() it comes from, and held to that arithmetic by
      stories/apps/shell-states.test.js.
-     why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green */
+     */
   min-height: 38px;
   padding: var(--space-1) 0;
   border: 0;
@@ -347,7 +347,7 @@
   min-width: 0;
   padding: 7px 10px;
   /* A family alone leaves the browser's leading behind: `font: inherit` first, then
-     the one step this row takes. why: CONTRIBUTING.md#button-chrome-ledgers */
+     the one step this row takes. */
   font: inherit;
   font-size: var(--text-sm);
   text-align: start;

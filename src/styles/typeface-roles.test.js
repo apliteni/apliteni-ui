@@ -74,7 +74,7 @@ const familyDecls = () => {
   return found;
 };
 
-// why: CONTRIBUTING.md#font-family-count-history
+// Update the family declaration count with a reason for each change.
 const EXPECTED_SUBJECTS = 54;
 
 test('every family in the kit is a role, never a family name', () => {

@@ -1,4 +1,4 @@
-// why: CONTRIBUTING.md#drawer-border-measurements
+// Check drawer separators without adding borders around content.
 
 /* Coverage limits:
  * - Consumer content outside this repository is not rendered here.

@@ -1,6 +1,6 @@
 /* Rule: an icon-sizing rule in the React workspace is measured too.
  *
- * why: CONTRIBUTING.md#one-gate-per-workspace-over-one-shared-implementation
+ * Share the calculation but check each workspace separately.
  * why: docs/specification.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -245,7 +245,7 @@ test('no sizing declaration in the React CSS is one this gate cannot read', () =
    * which moves the subject count: a declaration jsdom drops, and an `@import`
    * this gate never opens while esbuild inlines it for consumers.
    *
-   * why: CONTRIBUTING.md#a-declaration-jsdom-drops-leaves-no-subject-to-count */
+   * Reject declarations that jsdom cannot measure. */
   const dropped = [];
   const unfollowed = [];
   const blind = [];

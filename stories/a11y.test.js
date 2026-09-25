@@ -6,7 +6,7 @@
 //
 // A story that will not render is a failure rather than a skip, and the count is
 // asserted so a story cannot fall out of the set unnoticed:
-// why: CONTRIBUTING.md#a-subject-a-gate-cannot-check-is-a-failure-never-a-skip
+// Report unmeasured subjects as failures.
 //
 // `region` and `color-contrast` stay deliberately quiet — the first flags story
 // content outside a landmark inside the Storybook iframe, the second reads the

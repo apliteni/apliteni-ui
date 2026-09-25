@@ -38,7 +38,7 @@ const TOKENS = read('../tokens/tokens.css');
 /* The grounds a button can land on. Every one is a background the kit itself
  * paints, so a disabled label can end up over any of them — discovered from the
  * token file rather than listed, so a fifth surface joins this gate by existing.
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
+ * Discover subjects from source and check the coverage count. */
 const GROUNDS = [...new Set(
   [...TOKENS.matchAll(/^\s*(--(?:bg|surface(?:-\d)?))\s*:/gm)].map((m) => m[1]),
 )].sort();
@@ -123,7 +123,7 @@ test(`disabled ink clears ${DISABLED_FLOOR}:1 on the surface a disabled button p
  *
  * The first table is why a box-less disabled control cannot use --disabled-ink:
  * three grounds are under the floor. The second is the ink it uses instead.
- * why: CONTRIBUTING.md#a-number-a-comment-argues-for-is-pinned-by-a-measured-test */
+ * Measure behavior instead of matching the source text. */
 test('the ink a box-less disabled button is read in is pinned on every ground', () => {
   const plain = onEveryGround('--disabled-ink');
   assert.deepEqual(plain, {

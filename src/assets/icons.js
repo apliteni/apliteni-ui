@@ -7,7 +7,7 @@
 // iconCategories drives the Storybook grid.
 //
 // Naming, grouping and provenance, and the gates that hold them:
-// why: CONTRIBUTING.md#add-a-glyph
+// Use Lucide paths and name each glyph for what it depicts.
 import { esc } from '../html.js';
 const NAV = {
   chevronDown: '<path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>',

@@ -31,7 +31,7 @@ const TOKENS = readFileSync(path.join(src, 'tokens/tokens.css'), 'utf8');
  * are subjects of scripts/font-loading.test.js for that reason. A gate's own
  * file is skipped: the notes in the mutations below are strings, not rules
  * anybody renders.
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them */
+ * Discover subjects from source and check the coverage count. */
 const DRAWN_IN = ['stories', 'site', 'docs', 'react/src', '.storybook'];
 const READ = /\.(?:css|m?js|jsx|tsx?|html)$/;
 const SHEETS = [

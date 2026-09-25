@@ -9,7 +9,7 @@
  *   takes everything up to the next `*​/` with it.
  *
  * why: docs/specification.md#labels-and-titles
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -211,7 +211,7 @@ test('putting the badge’s capitals back is caught at its line', () => {
  *   `phoenix.2026.002` — is spelled, not written, and is left as it is.
  *
  * why: docs/specification.md#labels-and-titles
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Discover subjects from source and check the coverage count.
  */
 // Storybook's HTML renderer hands back a string or a node; stories/a11y.test.js
 // reads the same two shapes and is the gate that fails on anything else.

@@ -888,7 +888,7 @@ test('the fold toggle is drawn wherever there is a fold to choose, and only ther
 // ---- A1d. the fold is on a clock ------------------------------------------
 // Why the travel is read as text and not through the cascade, and why
 // motion-coverage.test.js cannot see it:
-// why: CONTRIBUTING.md#the-rails-fold-is-read-off-the-declaration-not-through-the-cascade
+// Read transition declarations because jsdom does not expand the shorthand.
 
 const TRAVELS = [
   { file: 'src/styles/layout.css', selector: '.ui-app__rail', which: 'the rail the shell draws' },
@@ -1115,7 +1115,7 @@ test('the seam arrives with the rail\'s own edge, and stops when the rail does',
 // mark inside it is what gives it one. A floor JSDOM cannot resolve measures nothing
 // and reports green, so the height is a literal in the sheet — and it is held to the
 // two declarations it is made of here rather than left as a number somebody liked.
-// why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green
+// Fail if a custom property cannot be resolved.
 
 /** The avatar's own size, read off the one place layout.css writes it. */
 function avatarSize() {

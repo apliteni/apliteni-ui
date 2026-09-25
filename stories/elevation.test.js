@@ -8,8 +8,8 @@
  * `box-shadow`, and only a layer's geometry says which it is.
  *
  * why: docs/specification.md#elevation
- * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts
- * why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+ * Check every shadow layer, including resolved custom properties.
+ * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';
 import assert from 'node:assert';
@@ -30,7 +30,7 @@ const THEMES = ['dark', 'light'];
 const TREATMENT_LINE = 'inset 0 0 0 1px var(--elev-edge, var(--border))';
 /* TREATMENT_DROP — `var(--elev-drop)` — comes from the reader, which also holds
  * the two rules that read the layer rather than counting its spelling. */
-/* why: CONTRIBUTING.md#a-gate-carries-a-ledger-of-what-it-does-not-reach
+/* State what this test cannot measure.
  *
  * WHAT THIS GATE DOES NOT REACH:
  *  - `filter: drop-shadow()`. Two ship, both zero-offset glows of a signal
@@ -60,7 +60,7 @@ const sweep = STYLE_FILES.flatMap((file) =>
   boxShadowsIn(read(file)).map((d) => ({ ...d, file })));
 
 // Asserted so coverage cannot shrink to zero and stay green. Moving it means
-// recording the change: CONTRIBUTING.md#the-elevation-gate-and-its-counts
+// reviewing each added or removed declaration.
 test('the sweep sees every box-shadow the kit ships', () => {
   assert.equal(sweep.length, 46,
     `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 46. `
@@ -74,7 +74,7 @@ test('the sweep sees every box-shadow the kit ships', () => {
  * every name, so a cast written behind a redeclared custom property cannot walk
  * past the sweep. The resolver itself lives beside the reader in
  * scripts/lib/box-shadow.js, where react/src/elevation.test.ts reads it too.
- * why: CONTRIBUTING.md#the-elevation-gate-and-its-counts */
+ * Check every shadow layer, including resolved custom properties. */
 const cascadeFor = (theme) =>
   ({ vars: tokensFor(theme), decls: declarationsFor(theme), substitute });
 

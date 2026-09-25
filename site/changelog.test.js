@@ -134,7 +134,7 @@ test('contributorChips escapes a quote in the avatar URL attribute', () => {
 //
 // Subjects are every change in RELEASES and the whole rendered page, swept
 // rather than listed: a release joins the sweep by being written.
-// why: CONTRIBUTING.md#a-gate-discovers-its-subjects-and-never-enumerates-them
+// Discover subjects from source and check the coverage count.
 //
 // These read the data and the emitted HTML, never a rendered box. jsdom
 // resolves no layout and all three defects have an exact source form, so the

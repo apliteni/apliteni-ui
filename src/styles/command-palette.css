@@ -114,7 +114,7 @@
   /* Literal px, and a line-height it does not inherit: the target-size gate
      reads declarations rather than a laid-out box, and `var()` inside a padding
      shorthand measures as nothing there.
-     why: CONTRIBUTING.md#an-unresolved-var-measures-nothing-and-reports-green */
+     */
   padding: 16px 0;
   line-height: 1.5;
   font-family: inherit;

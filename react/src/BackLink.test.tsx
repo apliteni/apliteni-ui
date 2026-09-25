@@ -1,5 +1,5 @@
 // Shape parity gate for <BackLink>.
-// why: CONTRIBUTING.md#react-components-react
+// React components must match the vanilla class names.
 //
 // backLink() is the source of truth, over the cases src/components/back.test.js
 // pins. One difference is deliberate and is asserted by name at the foot of this

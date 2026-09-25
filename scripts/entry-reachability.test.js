@@ -6,9 +6,9 @@
 //
 // Both directions are silent without this: shipped-but-unexported is bytes nobody can
 // import (footer() and success(), through 0.8.1), exported-but-absent throws
-// ERR_MODULE_NOT_FOUND at load. Why a rendering story is evidence of neither, and why
-// both sides are read off the files rather than a list: CONTRIBUTING.md, "Add a
-// component". docs/library.md states the contract.
+// ERR_MODULE_NOT_FOUND at load. Read both sides from source files.
+// Story rendering alone does not check package exports.
+// docs/library.md states the contract.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';

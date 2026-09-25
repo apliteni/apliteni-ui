@@ -8,7 +8,7 @@
 // stubs `npm` on PATH, because the three exit codes are the contract the
 // workflow reads.
 //
-// why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+// Check the packed files, release notes and registry result.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';

@@ -10,7 +10,7 @@
  * Usage: node scripts/registry-status.mjs <version>
  * Exits 0 published / 2 unpublished / 1 unknown.
  *
- * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+ * Check the packed files, release notes and registry result.
  */
 
 import { readFile } from 'node:fs/promises';

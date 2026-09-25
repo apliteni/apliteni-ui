@@ -12,7 +12,7 @@
  * Exit 0 and a sentence when the pull request is consistent, exit 1 and the list
  * of what would and would not ship when it is not.
  *
- * why: CONTRIBUTING.md#what-the-release-gates-are-shaped-by
+ * Check the packed files, release notes and registry result.
  */
 
 import { createHash } from 'node:crypto';

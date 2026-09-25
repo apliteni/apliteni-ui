@@ -1,50 +1,70 @@
-# AGENTS.md
+# Agent rules
 
-Rules for an agent working in this repo. Contributor-facing rules are in
-`CONTRIBUTING.md`; this file holds only what an agent has to do differently.
+Human setup is described in [README.md](README.md#contribute). Before changing
+components, read the [specification](docs/specification.md) and
+[guidelines](guidelines/overview.md).
+
+## Data handling
+
+This repository is public, so use fabricated demo data. Never include real customer or
+financial data, personal contact details, credentials, or internal infrastructure
+identifiers in files, issues, PRs, or evidence. Automated scans cannot find everything.
+
+Run security checks on the branch's commits before pushing. Removing a secret later does
+not remove it from the history. Create scanner fixtures in temporary folders and always
+remove them. If you change security checkers, workflows, or pre-commit configuration,
+flag this in the PR so a reviewer checks the protection itself.
+
+## Verification
+
+Before handoff, run `npm test` with `jq` installed, `npm test -w react`, `npm run
+build-storybook`, and `node site/build.mjs`. Stage new files first so git-based tests
+can find them. Add new test directories to both the guard and the glob in `npm test`.
+
+New gates must discover their subjects, fail when cases are not measured, check coverage
+counts, and prove rejection with a failing mutation. Share calculations across
+workspaces, but keep their coverage checks separate. Read the source unless you are
+testing the built package. State each test's limits beside it and keep those statements
+current.
+
+Review changed contrast measurements by hand. Never regenerate accepted-failure ledgers
+automatically. Explain the cause and limitation of each accepted failure.
 
 ## Check accents locally
 
-Before opening a PR that changes colours, tokens, or theme/accent CSS, run:
+Before opening a PR that changes colours, tokens or theme/accent CSS, run:
 `CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js`
-State the result in the PR. Keep these checks out of routine CI to avoid using Actions minutes.
+Report the result in the PR. Keep this check out of routine CI to save Actions minutes.
 
-## After a merge, surface a release waiting for approval
+## Changes
 
-After [owner setup](docs/release-approval.md), ordinary releases approve by rule.
-Exceptions wait at `npm-publish-review`; rollout may also leave runs at the old
-`npm-publish` reviewer gate. A merge does not prove npm has published. Check the
-actual run and registry, and surface a waiting approval rather than approving it.
+Keep explicit Storybook IDs stable. Give every React component a test and a story. Run
+the slop detector on new example pages. When overriding styles, check every existing
+state. Remove obsolete guideline `unmet` markers when closing an issue.
 
-After merging anything into `main`, check for a run waiting on approval:
+Change generated brand tokens and marks in `apliteni/design-system`, then sync them
+here. Use unmodified Lucide paths for glyphs. Record the Lucide source name when it
+differs from the kit name, and explain any hand-drawn path. Name and group glyphs by
+what they depict. Use the vendor's artwork for brand marks.
 
-```bash
-gh run list --repo apliteni/apliteni-ui --workflow release.yml --status waiting \
-  --json databaseId,displayTitle,headBranch,createdAt,url
-```
+Keep comments short. Record consumer guarantees in the specification. Record design
+decisions in the issue, including rejected choices and who made the decision.
 
-When a run is waiting, the coordinator asks Artur through the decisions flow on
-Amberstone, or the visual companion when Amberstone is down. Include the run URL,
-version and current npm `latest`. Only after Artur explicitly confirms that run,
-the coordinator reads its pending deployments and approves the `npm-publish-review`
-environment (or the legacy `npm-publish` gate during rollout) through the API:
+## Releases
 
-```bash
-gh api repos/apliteni/apliteni-ui/actions/runs/<run-id>/pending_deployments
-gh api --method POST repos/apliteni/apliteni-ui/actions/runs/<run-id>/pending_deployments \
-  -F 'environment_ids[]=<environment-id>' -f state=approved \
-  -f comment='Approved after Artur confirmed this release in the decisions flow.'
-```
+Check `Shipped surface vs version` even when branch protection does not require it.
+Choose the version based on its impact on consumers. Fetch `origin/main` before pushing,
+and use the next unused version. Do not create release tags or publish manually. Merging
+a version bump starts the release workflow.
 
-**Check the order before approving more than one.** Compare each waiting version
-against `npm view @apliteni/apliteni-ui dist-tags.latest` and approve only those newer
-than what is published. Report stale runs rather than approving them. The workflow
-now guards `latest`: it compares semver immediately before publishing, uses `latest`
-only for a higher version (or when no latest exists), and otherwise uses `backport`.
-Publish jobs are serialized so overlapping runs cannot use the same stale read.
-GitHub keeps only one pending job per concurrency group and cancels older pending
-jobs. This cannot move `latest` backwards: any job that runs checks the registry.
-Rerun a canceled release if that version is still needed.
-Old tagged workflows do not gain this guard. After owner setup blocks tag refs,
-cancel obsolete tag runs and dispatch their tags through the Release workflow
-on `main` instead. Do not weaken the main-only environment restriction to retry.
+A merge or tag does not prove publication. After any merge to `main`, check the
+Release workflow and npm's `latest`. For waiting runs, the coordinator gives Artur
+the run URL, version and current `latest` through Amberstone, or the visual companion
+if Amberstone is down. Only the coordinator approves the exact run Artur confirms,
+after reading its pending deployments.
+
+Compare every waiting version with `latest`, and report stale runs instead of approving
+them. The publish job checks again and sends older versions to `backport`. Retry a
+canceled release only when it is still needed. Run retries on `main` with the version
+tag as input. Never weaken the main-only environment restriction or remove npm's
+environment binding. See [release setup](docs/release-approval.md).

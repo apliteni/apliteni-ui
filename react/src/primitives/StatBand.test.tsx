@@ -1,5 +1,5 @@
 // Parity gate for <StatBand>: the vanilla statBand() is the source of truth.
-// why: CONTRIBUTING.md#react-components-react
+// React components must match the vanilla class names.
 import { render, cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 import { statBand } from '@apliteni/apliteni-ui';

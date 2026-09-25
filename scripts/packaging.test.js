@@ -1,8 +1,8 @@
 // Packaging guard — every subpath a consumer can import must ship, resolve and yield
 // something, proven from a scratch install outside the repository rather than from the
 // working tree, which is the only vantage point where the published resolution semantics
-// apply. What it checks, why the install is what makes it honest, and what to do when you
-// add an export: CONTRIBUTING.md, "Packaging guard".
+// apply. When adding an export, include its target in the packed files.
+// The consumer install checks that it resolves outside this checkout.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
