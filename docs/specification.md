@@ -2079,3 +2079,14 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React empty states
+
+`EmptyState` replaces a page or list body with a decorative glyph or illustration,
+a heading, guidance, and optional actions. Its four variants are `first-run`,
+`no-matches`, `not-found`, and `not-yet-built`. Callers can override the preset copy.
+The icon tile is 56px with an accent tint; title and guidance use full-strength
+text. Artwork is hidden from assistive technology. The not-found variant defaults
+to h1 inside the host shell; other variants default to h2. Callers set the heading
+level to fit the page. There is at most one primary action and one ghost action,
+rendered as native buttons or links with the kit's focus ring.

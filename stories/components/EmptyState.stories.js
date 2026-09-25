@@ -1,4 +1,4 @@
-import { emptyState, button, illoNames } from '../../src/components/index.js';
+import { emptyState, button, illoNames, icon } from '../../src/components/index.js';
 import { pad, grid, specimen } from '../_gallery.js';
 
 export default {
@@ -43,4 +43,13 @@ export const LegacyIcon = {
     title: 'Nothing here yet',
     sub: 'The line-icon slot is kept for back-compat.',
   }))}</div>`),
+};
+
+// Shared CSS used by the React EmptyState component.
+export const IconTile = {
+  render: () => pad(`<div class="ui-empty">
+    <div class="ui-empty__icon ui-empty__icon--tile" aria-hidden="true">${icon('check')}</div>
+    <h2 class="ui-empty__title">Nothing needs you yet</h2>
+    <p class="ui-empty__sub">New items will appear here when they need your attention.</p>
+  </div>`),
 };

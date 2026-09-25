@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.45.0', date: '2026-09-25',
+    changes: [
+      ['added', 'React now includes EmptyState with the vanilla layout, four text presets, and React illustration and action slots. Resolves #386.'],
+    ],
+  },
+  {
     v: '0.42.0', date: '2026-09-25',
     changes: [
       ['added', 'React now includes KeyValueList and DrawerSection for displaying a record’s details. Lists support two columns, React values, em dashes for missing values, and redacted markers. They stack into one column on narrow screens. Resolves #391.'],

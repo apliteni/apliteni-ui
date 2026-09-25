@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Button`, `Badge`, `Card`, `Icon`.
 
 `Button` accepts `size="xs" | "sm" | "md" | "lg"` (default `md`). Use `xs`
 for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconOnly>Copy</Button>`.
@@ -55,6 +55,23 @@ vanilla factory where the steps have to be real links. `PAGE_SIZES` and
 `DEFAULT_PAGE_SIZE` are exported here too — the scale is the kit's, so no call site writes
 either number. They are declared in this package's own types, and `PAGE_SIZES` is a
 `readonly number[]`: pass it to `pageSizes`, but do not add sizes to it.
+
+## EmptyState
+
+`EmptyState` supports `first-run`, `no-matches`, `not-found`, and `not-yet-built`
+screens. Override `title`, `sub`, and `icon` for your screen, or pass a decorative
+React node to `illustration`. Place it directly in the page or list body.
+The `not-found` variant uses h1 by default; all other variants use h2. Set `level`
+to match the surrounding headings. `primaryAction` and `secondaryAction` accept a
+`label` and either `href` or `onClick`; `secondaryAction` is a ghost button or link.
+Import the kit CSS.
+
+```tsx
+<EmptyState
+  variant="no-matches"
+  primaryAction={{ label: 'Clear filters', onClick: clearFilters }}
+/>
+```
 
 ## What the Modal does with focus
 
