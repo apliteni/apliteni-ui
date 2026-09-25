@@ -2079,3 +2079,7 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React tooltip
+
+React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.

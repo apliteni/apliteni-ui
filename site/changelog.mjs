@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.50.0', date: '2026-09-25',
+    changes: [
+      ['added', "React Tooltip adds short explanations on hover, keyboard focus, or touch, using the existing tooltip styling. Resolves #398."],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],
