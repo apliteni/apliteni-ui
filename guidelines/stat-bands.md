@@ -6,7 +6,7 @@
 
 **Rule:** Put key figures in a stat band, not in a card of parts.
 
-**Why:** Each figure stays easy to compare and understand.
+**Why:** A shared layout keeps values, changes and their comparison basis in the same place for each figure.
 
 **Do:** Use one card per figure by default, with the figure largest, an arrow, a signed change, and one comparison caption above the row.
 

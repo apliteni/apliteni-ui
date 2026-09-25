@@ -20,9 +20,9 @@
 
 **Rule:** Use 150ms for controls, 250ms for surfaces, 400ms for entrances, and 80ms (`--dur-instant`) for presses.
 
-**Why:** Use only `--dur-fast`, `--dur-med`, `--dur-slow`, and `--dur-instant` to keep one tempo.
+**Why:** Shared durations keep the same interaction from taking different amounts of time across the product.
 
-**Do:** Use the matching duration token.
+**Do:** Use `--dur-fast`, `--dur-med`, `--dur-slow`, and `--dur-instant` for controls, surfaces, entrances, and presses respectively.
 
 **Don't:** Use an unrelated duration such as 300ms.
 
@@ -34,9 +34,9 @@
 
 **Why:** Visibility keeps its old value during a transition, so easing adds no benefit.
 
-**Do:** Transition visibility with `linear`.
+**Do:** Use `--ease` for a drawer transition and `linear` for its visibility.
 
-**Don't:** Use CSS `ease` instead of `--ease`.
+**Don't:** Use CSS `ease` for both the drawer transition and its visibility.
 
 ## Honor reduced motion
 

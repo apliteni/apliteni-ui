@@ -24,9 +24,9 @@
 
 **Except:** Use “Cancel” when there is nothing to keep yet, such as a new form or upload.
 
-**Do:** Each label makes sense alone.
+**Do:** Pair “Revoke access” with “Keep access”.
 
-**Don't:** Use “Are you sure?” without saying what will happen.
+**Don't:** Pair “OK” with “Cancel” under “Are you sure?” without naming the action.
 
 ## Choose confirmation or undo
 

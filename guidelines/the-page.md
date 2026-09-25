@@ -56,9 +56,9 @@
 
 **Why:** Skipped levels hide structure, and a fourth level usually means the page should be split.
 
-**Do:** Keep each heading level under the one above it.
+**Do:** Use a page heading, then section headings, then group headings.
 
-**Don't:** Make readers guess which content belongs together.
+**Don't:** Skip from the page heading to a group heading, or add a fourth heading level.
 
 ## Emphasize one action
 
@@ -118,6 +118,6 @@
 
 **Why:** Repeating the title wastes the reader’s time.
 
-**Do:** Add useful context below “Payouts.”
+**Do:** Below “Payouts”, say “Payouts arrive within three business days.”
 
 **Don't:** Write “This is the payouts page” below “Payouts.”

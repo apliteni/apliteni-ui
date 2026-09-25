@@ -16,11 +16,9 @@
 
 <!-- rule: the-jump -->
 
-**Rule:** Use steps for filtering and sorting, numbers for short lists, or jump for a specific page.
+**Rule:** Use steps for filtering and sorting, numbers for short browsable lists such as changelogs and galleries, or jump for a specific page.
 
 **Why:** Filtering and sorting usually need quick jumps, while short lists can use numbered pages.
-
-**Except:** Use numbered pages for short browsable lists such as changelogs and galleries.
 
 **Do:** Use four fixed controls so a ledger’s first and last pages are one press away.
 

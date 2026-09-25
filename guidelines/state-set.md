@@ -8,9 +8,9 @@
 
 **Why:** One solid band and halo keep focus consistent while the browser decides when to show it.
 
-**Do:** Button and input share one ring.
+**Do:** Apply `--ring` to both the button and input on keyboard focus.
 
-**Don't:** The input draws its own ring.
+**Don't:** Give the input a separate muted outline while the button uses `--ring`.
 
 **Except:** Text-entry controls may match `:focus-visible` on mouse focus. Surface backgrounds set the gap colour and recompose `--ring`; adjust width and colour at the root.
 
@@ -36,9 +36,9 @@
 
 **Why:** Red alone communicates the state only to sighted readers.
 
-**Do:** The field reads its reason with it.
+**Do:** Mark the field `aria-invalid="true"` and connect its error message with `aria-describedby`.
 
-**Don't:** Use the same red with no connected reason.
+**Don't:** Paint the field red and show an error elsewhere without connecting the message to the field.
 
 **Except:** Put `required` in the attribute, not the label wording; the asterisk is decoration and hidden from assistive technology.
 
@@ -50,8 +50,8 @@
 
 **Why:** Silent loading gives screen-reader users no event.
 
-**Do:** Announce the coming shape in a status region.
+**Do:** Mark the loading region busy and announce “Loading…” in its status region.
 
-**Don't:** Let only the button know while the page reads as finished.
+**Don't:** Show a spinner only in the button while the loading region has no busy state or announcement.
 
 **Except:** A toast has its own live region, so a screen reporting through the toast stack needs no second one.

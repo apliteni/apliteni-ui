@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.41.3', date: '2026-09-25',
+    changes: [
+      ['changed', 'Guideline examples now name concrete choices. The audit covered every guideline, clarified vague wording, and removed two repeated passages while keeping every rule and its exceptions. Resolves #365.'],
+    ],
+  },
+  {
     v: '0.41.2', date: '2026-09-25',
     changes: [
       ['fixed', 'Publishing an older release no longer moves npm’s latest tag backwards. The release workflow compares versions and publishes older releases under a separate tag. Resolves #370.'],
