@@ -932,13 +932,17 @@ change a descendant. Every story still renders fully; no table rows are sampled.
 
 The **style-read ceiling** is 800,000 across the default-accent walk's two themes. A profile
 for #376 measured 522,760 reads, 73,440 cache misses (0.1405), 10,708 DOM writes and 21,808
-judged pairs in 89.2s. The ceiling leaves about 53% room for catalogue growth but catches a
-doubling of reads. It counts cache hits too: repeated ancestor traversal can increase work
-while making the miss rate look better. Intentional catalogue or cell growth that reaches
+judged pairs in 89.2s. The implementer, independent reviewer and CI reproduced exactly
+522,760 reads. The 800,000 budget is a deliberate allowance of about 1.53× for catalogue
+growth while still catching doubled traversal. It counts cache hits too: repeated ancestor
+traversal can increase work while making the miss rate look better. Intentional catalogue or cell growth that reaches
 this ceiling needs a new profile before the budget changes.
 
-The **wall-clock ceiling** is 300s and applies only when `CI` is set. Elapsed time is still
-logged locally, but host contention cannot fail a local run. The old 120s ceiling failed at
+The **wall-clock ceiling** is 150s and applies only when `CI` is set. CI build logs measured
+72.2s for #374, 80.2s for #377, 80.3s for #375 and 105.9s for #373. The ceiling is about
+1.9× the typical 80s and 1.4× the slowest observed CI run. It catches a doubled typical run
+even with unchanged read counts; a per-read slowdown under about 1.9× typical is not caught.
+Elapsed time is still logged locally, but host contention cannot fail a local run. The old 120s ceiling failed at
 151–185s on loaded hosts even with a healthy cache miss rate. The CI guard flags unusually
 slow completed walks; check runner load and the deterministic counters before calling it a
 regression. Neither assertion can interrupt a nonterminating synchronous walk; CI's job

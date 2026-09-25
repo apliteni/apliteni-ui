@@ -541,8 +541,9 @@ test('the style cache is still serving four reads in five from memory', () => {
 });
 
 test('the walk has not run away with style reads', () => {
-  // 522,760 reads over two default-accent cells; 800,000 leaves catalogue growth
-  // room but catches doubled work, including cache hits the miss rate cannot see.
+  // 522,760 reads over two default-accent cells, reproduced by the implementer,
+  // independent reviewer and CI. The 800,000 budget deliberately allows ~1.53x
+  // for catalogue growth while catching doubled traversal, including cache hits.
   // why: CONTRIBUTING.md#the-two-cost-gates-fail-for-different-reasons-so-they-are-kept-apart
   console.log(
     `contrast walk: ${(walk.elapsed / 1000).toFixed(1)}s for ${THEMES.length} theme×accent cell(s), `
@@ -557,9 +558,12 @@ test('the walk has not run away with style reads', () => {
 });
 
 test('the contrast walk stays within the CI time budget', { skip: !process.env.CI }, () => {
+  // CI walks: #374 72.2s, #377 80.2s, #375 80.3s, #373 105.9s.
+  // 150s is ~1.9x the typical 80s and ~1.4x the slowest observed CI run.
+  // A per-read slowdown under ~1.9x typical is not caught, even with unchanged reads.
   assert.ok(
-    walk.elapsed < 300000,
-    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s, against a 300s CI ceiling. `
+    walk.elapsed < 150000,
+    `the contrast walk took ${(walk.elapsed / 1000).toFixed(1)}s, against a 150s CI ceiling. `
     + 'Check runner load and the deterministic work counters before diagnosing a regression.',
   );
 });
