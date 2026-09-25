@@ -15,8 +15,8 @@ export type KeyValueListProps = Omit<ComponentPropsWithoutRef<'dl'>, 'children'>
 
 function detail({ value, redacted }: KeyValueRow) {
   if (redacted) return <span className="ui-kv__hidden"><Icon name="eyeOff" />Hidden</span>;
-  if (value == null || typeof value === 'boolean' || (typeof value === 'string' && !value.trim())) return '—';
-  return value;
+  if (value == null) return '—';
+  return typeof value === 'boolean' ? String(value) : value;
 }
 
 export function KeyValueList({ rows, columns = 1, className, ...rest }: KeyValueListProps) {

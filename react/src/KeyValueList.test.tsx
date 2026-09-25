@@ -16,12 +16,19 @@ it('groups each term and definition using the drawer classes', () => {
   expect([...container.querySelectorAll('dt, dd')].map(el => el.textContent)).toEqual(['Reference', 'INV-1001', 'Amount', '€ 120']);
 });
 
-it('shows a dash for missing values and preserves zero', () => {
+it('shows a dash only for null and undefined values', () => {
   const { container } = render(<KeyValueList rows={[
-    { label: 'Null', value: null }, { label: 'Absent' }, { label: 'Empty', value: '' },
-    { label: 'Spaces', value: '  ' }, { label: 'Boolean', value: false }, { label: 'Zero', value: 0 },
+    { label: 'Null', value: null }, { label: 'Absent' }, { label: 'Undefined', value: undefined },
+    { label: 'Empty', value: '' }, { label: 'Spaces', value: '  ' },
   ]} />);
-  expect([...container.querySelectorAll('dd')].map(el => el.textContent)).toEqual(['—', '—', '—', '—', '—', '0']);
+  expect([...container.querySelectorAll('dd')].map(el => el.textContent)).toEqual(['—', '—', '—', '', '  ']);
+});
+
+it('renders false, true and zero as plain text', () => {
+  const { container } = render(<KeyValueList rows={[
+    { label: 'Inactive', value: false }, { label: 'Active', value: true }, { label: 'Zero', value: 0 },
+  ]} />);
+  expect([...container.querySelectorAll('dd')].map(el => el.textContent)).toEqual(['false', 'true', '0']);
 });
 
 it('redacts the value without putting it in the DOM', () => {

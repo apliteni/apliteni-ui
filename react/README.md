@@ -296,9 +296,10 @@ page.
 
 KeyValueList displays one record’s facts with labels beside their values. Pass rows
 with a label and a React value. Set `columns={2}` to show two label-value pairs on
-each line. Missing, blank, and boolean values display an em dash; zero remains
-visible. Set `redacted` on a row to display “Hidden” with an eye-off icon without
-rendering the value. Below 560px, each label appears above its value, and the layout
+each line. Null and undefined values are displayed as an em dash. Boolean values
+are displayed as `false` or `true`, zero remains visible, and strings are preserved.
+Set `redacted` on a row to display “Hidden” with an eye-off icon without rendering
+the value. Below 560px, each label appears above its value, and the layout
 changes to one column.
 
 DrawerSection groups content under a heading and adds a hairline between adjacent
