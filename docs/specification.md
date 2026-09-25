@@ -1929,9 +1929,9 @@ seen, so it goes over a drawer that was already open; a confirm a row opens is a
 what is under it, so it goes over both, answers the first Escape, and leaves the palette
 standing underneath.
 
-That last sentence is the vanilla half. The React palette and the React `Modal` each register
-their own document listener rather than sharing a stack, so one Escape closes the modal and the
-palette under it; the React half joins the shared dialog stack when the drawer branch lands.
+The React palette, Modal and Drawer also share one dialog stack: Escape closes only the top
+one and leaves the palette beneath it open. The React and vanilla stacks are separate, so
+mixing their overlays on one page is not supported.
 
 It opens empty. A palette that comes back holding the last query shows a list answering a
 question the reader has already finished asking, and the next keystroke appends to it.

@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.41.4', date: '2026-09-25',
+    changes: [
+      ['fixed', 'The React documentation now describes the shared dialog stack. Escape closes only the top React dialog and leaves the palette beneath it open; React and vanilla overlays still use separate stacks. This corrects outdated guidance without changing runtime behavior. Found in #367.'],
+    ],
+  },
+  {
     v: '0.41.3', date: '2026-09-25',
     changes: [
       ['changed', 'Guideline examples now name concrete choices. The audit covered every guideline, clarified vague wording, and removed two repeated passages while keeping every rule and its exceptions. Resolves #365.'],
