@@ -28,7 +28,7 @@ export function skeleton({ lines = 3, width, height, radius, className = '' } = 
   };
   const bars = Array.from({ length: n }, (_, i) =>
     `<span class="ui-skel__bar m-skeleton"${styleFor(i)}></span>`).join('');
-  return `<div class="${cx('ui-skel', className)}" aria-hidden="true">${bars}</div>`;
+  return `<div class="${esc(cx('ui-skel', className))}" aria-hidden="true">${bars}</div>`;
 }
 
 // A table's worth of skeleton — `rows` × `cols` of bar, laid out on a grid so
@@ -36,7 +36,7 @@ export function skeleton({ lines = 3, width, height, radius, className = '' } = 
 // load a table are the common case, and hand-rolling this per screen is how
 // four slightly different loading tables get shipped.
 export function skeletonTable({ rows = 5, cols = 4, head = true } = {}) {
-  const row = (cls) => `<div class="${cls}">`
+  const row = (cls) => `<div class="${esc(cls)}">`
     + Array.from({ length: Math.max(1, cols | 0) }, () => '<span class="ui-skel__bar m-skeleton"></span>').join('')
     + '</div>';
   const body = Array.from({ length: Math.max(1, rows | 0) }, () => row('ui-skel__row')).join('');
@@ -56,7 +56,7 @@ export function busyRegion({
   body, lines = 3, className = '',
 } = {}) {
   const inner = body != null ? body : skeleton({ lines });
-  return `<div class="${cx('ui-busy', className)}" data-busy`
+  return `<div class="${esc(cx('ui-busy', className))}" data-busy`
     + ` data-busy-label="${esc(label)}" data-busy-ready="${esc(readyLabel)}"`
     + ` role="status" aria-live="polite" aria-busy="${busy ? 'true' : 'false'}">`
     + `<span class="ui-sr" data-busy-msg>${esc(busy ? label : readyLabel)}</span>`
@@ -119,7 +119,7 @@ export function deniedState({
   const actionsEl = actions.length
     ? `<div class="ui-denied__actions">${actions.map((a) => button({ size: 'md', ...a })).join('')}</div>`
     : '';
-  return `<div class="${cx('ui-denied', className)}">`
+  return `<div class="${esc(cx('ui-denied', className))}">`
     + `<div class="ui-denied__seal" aria-hidden="true">${icon(ic)}</div>`
     + `<div class="ui-denied__title">${esc(title)}</div>`
     + `${sub ? `<div class="ui-denied__sub">${esc(sub)}</div>` : ''}`

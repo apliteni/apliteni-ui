@@ -10,7 +10,7 @@ import { backLink } from './back.js';
 import { prism } from '../assets/brand.js';
 import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
 import { paletteHotkey } from './command-palette.js';
-
+import { safeUrl } from '../html.js';
 // The one account navigation definition lives in account-nav.js because topbar.js needs
 // it too; re-exported here so the name docs/library.md publishes keeps working.
 export { ACCOUNT_NAV };
@@ -294,7 +294,7 @@ export function appShell(options = {}) {
   // the name is written out — the mark itself is aria-hidden. The banded layout's own
   // bar says no word, so there the rail keeps the lockup: that layout's head band IS
   // the product's mark. why: docs/specification.md#the-page-shell
-  const brand = compat ? '' : `<a class="ui-app__brand" href="${esc(brandHref)}" aria-label="${esc(word)}">`
+  const brand = compat ? '' : `<a class="ui-app__brand" href="${esc(safeUrl(brandHref))}" aria-label="${esc(word)}">`
     + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
   // A <div>, not an <aside>: <aside> is the `complementary` landmark, and this holds the
   // page's primary navigation and the signed-in reader. The <nav> inside it is already

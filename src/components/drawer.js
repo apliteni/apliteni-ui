@@ -60,7 +60,7 @@ export function drawer({
   const footEl = footer ? `<footer class="ui-drawer__footer">${footer}</footer>` : '';
 
   const rootCls = cx('ui-drawer', `ui-drawer--${side}`, `ui-drawer--${size}`, (open || specimen) && 'is-open');
-  return `<div class="${rootCls}"${specimen ? '' : ' data-drawer'} data-drawer-side="${esc(side)}"`
+  return `<div class="${esc(rootCls)}"${specimen ? '' : ' data-drawer'} data-drawer-side="${esc(side)}"`
     + `${dismissible ? '' : ' data-drawer-static'}${id ? ` id="${esc(id)}"` : ''}>`
     + `<div class="ui-drawer__scrim" data-drawer-scrim></div>`
     + `<aside class="ui-drawer__panel" role="dialog"${specimen ? '' : ' aria-modal="true"'} ${nameAttr} tabindex="-1" data-drawer-panel>`

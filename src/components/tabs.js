@@ -15,14 +15,14 @@
 // aria-selected, and aria-controls / aria-labelledby wiring. `name` must be unique
 // per tabs instance on a page (it seeds the tab/panel ids).
 import { playEntrance } from '../motion.js';
-
+import { esc } from '../html.js';
 export function tabs({ items = [], active = 0, name = 'tabs', ariaLabel = 'Tabs', className = '' } = {}) {
   const cls = ['ui-tabs', className].filter(Boolean).join(' ');
   const list = items
     .map((it, i) => {
       const on = i === active;
       return `<button type="button" class="ui-tabs__tab${on ? ' is-active' : ''}" role="tab"`
-        + ` id="${name}-tab-${i}" aria-controls="${name}-panel-${i}"`
+        + ` id="${esc(name)}-tab-${i}" aria-controls="${esc(name)}-panel-${i}"`
         + ` aria-selected="${on ? 'true' : 'false'}" tabindex="${on ? '0' : '-1'}">${it.label}</button>`;
     })
     .join('');
@@ -33,12 +33,12 @@ export function tabs({ items = [], active = 0, name = 'tabs', ariaLabel = 'Tabs'
       // focusable content of its own, and most panels here are plain text. Without
       // it a keyboard user reaches the tab strip and then cannot reach what it
       // switched to — Tab jumps straight past the panel to whatever follows.
-      return `<div class="ui-tabs__panel" role="tabpanel" id="${name}-panel-${i}"`
-        + ` aria-labelledby="${name}-tab-${i}" tabindex="0"${on ? '' : ' hidden'}>${it.panel || ''}</div>`;
+      return `<div class="ui-tabs__panel" role="tabpanel" id="${esc(name)}-panel-${i}"`
+        + ` aria-labelledby="${esc(name)}-tab-${i}" tabindex="0"${on ? '' : ' hidden'}>${it.panel || ''}</div>`;
     })
     .join('');
-  return `<div class="${cls}" data-tabs>`
-    + `<div class="ui-tabs__list" role="tablist" aria-label="${ariaLabel}">${list}</div>`
+  return `<div class="${esc(cls)}" data-tabs>`
+    + `<div class="ui-tabs__list" role="tablist" aria-label="${esc(ariaLabel)}">${list}</div>`
     + `<div class="ui-tabs__panels">${panels}</div>`
     + `</div>`;
 }

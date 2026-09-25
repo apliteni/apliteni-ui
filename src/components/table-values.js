@@ -1,5 +1,5 @@
 import { esc } from './index.js';
-
+import { safeUrl } from '../html.js';
 export function numericValue({ value, unit = '', missing = 'Not available' } = {}) {
   if (value == null || value === '') return `<span class="ui-value" aria-label="${esc(missing)}">—</span>`;
   return `<span class="ui-value">${esc(value)}${unit ? `<span class="ui-value__unit">${esc(unit)}</span>` : ''}</span>`;
@@ -13,8 +13,8 @@ export function deltaValue({ value, tone = 'neutral', basisId, missing = 'No ear
 
 export function rowIdentity({ symbol = '', name = '', logo, href } = {}) {
   const tag = href ? 'a' : 'span';
-  return `<${tag} class="ui-identity"${href ? ` href="${esc(href)}"` : ''}>`
-    + `<span class="ui-identity__logo" aria-hidden="true"><span>${esc(symbol.slice(0, 1))}</span>${logo ? `<img src="${esc(logo)}" alt="">` : ''}</span>`
+  return `<${tag} class="ui-identity"${href ? ` href="${esc(safeUrl(href))}"` : ''}>`
+    + `<span class="ui-identity__logo" aria-hidden="true"><span>${esc(symbol.slice(0, 1))}</span>${logo ? `<img src="${esc(safeUrl(logo, ''))}" alt="">` : ''}</span>`
     + `<span class="ui-identity__symbol">${esc(symbol)}</span><span class="ui-identity__name">${esc(name)}</span></${tag}>`;
 }
 

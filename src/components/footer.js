@@ -7,7 +7,7 @@
 //   app  — compact, in-product (tight padding, surface background)
 import { brand as brandLockup } from '../assets/brand.js';
 import { esc } from './index.js';
-
+import { safeUrl } from '../html.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // Minimal brand-glyph set for the optional social row. Feather-ish where generic,
@@ -23,13 +23,13 @@ const SOCIAL = {
 function socialLink({ label, href = '#', icon: ic = 'github' } = {}) {
   const glyph = SOCIAL[ic] || SOCIAL.github;
   const fill = ic === 'github' || ic === 'x' ? 'currentColor' : 'none';
-  return `<a class="ui-footer__social" href="${href}" aria-label="${esc(label || ic)}">` +
+  return `<a class="ui-footer__social" href="${esc(safeUrl(href))}" aria-label="${esc(label || ic)}">` +
     `<svg viewBox="0 0 24 24" fill="${fill}" aria-hidden="true">${glyph}</svg></a>`;
 }
 
 function linkList(links = []) {
   return `<ul class="ui-footer__links">${links.map(({ label, href = '#', target }) =>
-    `<li><a href="${href}"${target ? ` target="${target}" rel="noreferrer"` : ''}>${esc(label)}</a></li>`).join('')}</ul>`;
+    `<li><a href="${esc(safeUrl(href))}"${target ? ` target="${esc(target)}" rel="noreferrer"` : ''}>${esc(label)}</a></li>`).join('')}</ul>`;
 }
 
 // The column title is an h2: it names a top-level section of the page's end
@@ -47,7 +47,7 @@ function column({ title, links = [] } = {}) {
 function legalBar({ legal, legalLinks = [], switcher = '' } = {}) {
   const links = legalLinks.length
     ? `<nav class="ui-footer__legal-links" aria-label="Legal">` +
-      legalLinks.map(({ label, href = '#' }) => `<a href="${href}">${esc(label)}</a>`).join('') + `</nav>`
+      legalLinks.map(({ label, href = '#' }) => `<a href="${esc(safeUrl(href))}">${esc(label)}</a>`).join('') + `</nav>`
     : '';
   const sw = switcher ? `<div class="ui-footer__switcher">${switcher}</div>` : '';
   return `<div class="ui-footer__bar">` +
@@ -77,7 +77,7 @@ export function footer({
 
   // slim + app: a single legal row, no brand block or columns.
   if (variant === 'slim' || variant === 'app') {
-    return `<footer class="${cls}" role="contentinfo"><div class="ui-footer__in">` +
+    return `<footer class="${esc(cls)}" role="contentinfo"><div class="ui-footer__in">` +
       legalBar({ legal, legalLinks, switcher }) +
       `</div></footer>`;
   }
@@ -93,7 +93,7 @@ export function footer({
   const nav = columns.length
     ? `<nav class="ui-footer__nav" aria-label="Footer">${columns.map(column).join('')}</nav>` : '';
 
-  return `<footer class="${cls}" role="contentinfo"><div class="ui-footer__in">` +
+  return `<footer class="${esc(cls)}" role="contentinfo"><div class="ui-footer__in">` +
     `<div class="ui-footer__top">${brandBlock}${nav}</div>` +
     legalBar({ legal, legalLinks, switcher }) +
     `</div></footer>`;

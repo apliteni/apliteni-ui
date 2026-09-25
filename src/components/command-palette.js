@@ -10,7 +10,7 @@
 // why: docs/specification.md#the-command-palette
 import { esc, icon } from './index.js';
 import { OVERLAY_LAYER, adoptOverlay, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
-
+import { safeUrl } from '../html.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 let _uid = 0;
@@ -204,12 +204,12 @@ function paletteItem(it, uid, index, active) {
     `class="${cx('ui-cmdk__item', it.danger && !disabled && 'is-danger', disabled && 'is-disabled', active && 'is-active')}"`,
     'role="option"',
     'tabindex="-1"',
-    `id="${uid}-o${index}"`,
+    `id="${esc(uid)}-o${esc(index)}"`,
     'data-cmdk-item',
-    `data-i="${index}"`,
+    `data-i="${esc(index)}"`,
     searchAttrs(it),
     it.id != null ? `data-id="${esc(it.id)}"` : '',
-    it.href && !disabled ? `data-href="${esc(it.href)}"` : '',
+    it.href && !disabled ? `data-href="${esc(safeUrl(it.href))}"` : '',
     it.confirm && !disabled ? `data-confirm-open="${esc(it.confirm)}"` : '',
     it.confirm && !disabled ? 'aria-haspopup="dialog"' : '',
     disabled ? 'aria-disabled="true"' : '',
@@ -260,10 +260,10 @@ export function commandPaletteList(groups = [], { uid = nextId(), from = 0 } = {
     if (!items.length) return '';
     const headId = g.label ? `${uid}-g${gi}` : null;
     const head = headId
-      ? `<div class="ui-cmdk__group-head" id="${headId}">${esc(g.label)}</div>` : '';
+      ? `<div class="ui-cmdk__group-head" id="${esc(headId)}">${esc(g.label)}</div>` : '';
     const rows = items.map((it) => paletteItem(it, uid, n, n++ === activeAt)).join('');
     return `<div class="ui-cmdk__group" role="group" data-cmdk-group data-i="${gi}"`
-      + `${headId ? ` aria-labelledby="${headId}"` : ''}>${head}${rows}</div>`;
+      + `${headId ? ` aria-labelledby="${esc(headId)}"` : ''}>${head}${rows}</div>`;
   }).join('');
 }
 

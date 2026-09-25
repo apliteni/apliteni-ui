@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.41.5', date: '2026-09-25',
+    changes: [
+      ['fixed', 'Vanilla factories now keep quoted values inside their attributes. Text and enum attributes are escaped, while trusted HTML slots keep their existing behavior. Links and image sources reject javascript:, data: and vbscript: URLs; rejected links use #, rejected image sources are empty, and backLink renders nothing. This includes data: image URLs. Part of #376.'],
+    ],
+  },
+  {
     v: '0.41.4', date: '2026-09-25',
     changes: [
       ['fixed', 'The React documentation now describes the shared dialog stack. Escape closes only the top React dialog and leaves the palette beneath it open; React and vanilla overlays still use separate stacks. This corrects outdated guidance without changing runtime behavior. Found in #367.'],

@@ -8,7 +8,7 @@
 //
 // Naming, grouping and provenance, and the gates that hold them:
 // why: CONTRIBUTING.md#add-a-glyph
-
+import { esc } from '../html.js';
 const NAV = {
   chevronDown: '<path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>',
   chevronUp: '<polyline points="18 15 12 9 6 15"/>',
@@ -134,7 +134,7 @@ export const iconCategories = [
 // purpose; a named graphic would let a caller hang a control's only accessible
 // name off a decorative glyph, which is what we just fixed.
 export const icon = (name, cls = '') =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"${cls ? ` class="${cls}"` : ''}>${ICONS[name] || ''}</svg>`;
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"${cls ? ` class="${esc(cls)}"` : ''}>${ICONS[name] || ''}</svg>`;
 
 export const iconNames = Object.keys(ICONS);
 

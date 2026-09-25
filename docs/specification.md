@@ -1994,3 +1994,88 @@ control; after removal focus moves to the next chip, then the previous, then the
 filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
 keyboard selection, Escape and focus return. Segmented controls support an underline appearance
 for switching columns over one dataset; arrow keys, Home and End skip disabled choices.
+
+## Vanilla HTML boundaries
+
+Factories return HTML strings. Text and attribute values are escaped where written;
+quotes and angle brackets in a name, identifier, class modifier or label cannot add
+an attribute or element. Enum options still select the same variants and retain
+existing fallbacks. Escaping an attribute is not CSS validation: caller-supplied CSS
+lengths and class names remain the caller's presentation choices.
+
+URL slots reject `javascript:`, `data:` and `vbscript:` case-insensitively, including
+leading ASCII controls and embedded tabs or newlines. Relative paths, fragments,
+HTTP(S), mail, telephone and other non-script schemes keep their original values.
+All `data:` image URLs, including raster images, are rejected by this rule.
+Rejected navigation URLs render as `#`; rejected image sources render as an empty
+`src`, retaining the identity's letter fallback. `backLink` keeps its existing
+refusal shape (no markup) for rejected URLs. This rule applies only to URL slots,
+not ordinary text or identifiers. Trusted HTML is not sanitized; its author must
+supply safe markup, including any URLs inside it.
+
+The public string-slot inventory is below. **Text** includes identifiers, attribute
+values and CSS lengths. **Enum** includes keys used only to select markup, icons or
+classes; numeric and boolean controls are not string slots. Nested options inherit
+the contract of the factory they invoke (for example, success actions use `button`).
+
+| Factory | Text | URL | Enum | Trusted HTML (unchanged) |
+| --- | --- | --- | --- | --- |
+| `button` | label | href | variant, size, type, icon, iconRight | iconSvg |
+| `badge`, `pill` | label | — | variant | — |
+| `statusDot` | — | — | — | — |
+| `card` | — | — | variant, pad, icon, level | title, sub, body |
+| `segmented` | name, ariaLabel, options strings / label / value | — | size, appearance | — |
+| `accentPicker` | — | — | active, options | — |
+| `field` | label, hint, error, id | — | — | control |
+| `input` | placeholder, value, name, id, ariaLabel | — | type, icon | — |
+| `textarea` | placeholder, value, name, id, ariaLabel, rows | — | — | — |
+| `select` | name, id, ariaLabel, value, options strings / label / value | — | — | — |
+| `checkbox` | name | — | type | label |
+| `switchToggle` | name, label | — | — | — |
+| `callout` | — | — | variant, icon | body |
+| `toast` | title, body, action string / label | — | variant, style, icon | — |
+| `successPanel` | title, sub | — | — | — |
+| `emptyState` | title, sub | — | icon, named art | SVG art, actions |
+| `snippet`, `hlShell` | label, copyLabel; hlShell raw | — | — | snippet code (use hlShell for raw source) |
+| `tabs` | name, ariaLabel, className | — | — | items.label, items.panel |
+| `dropdown` | label, value, placeholder, ariaLabel, id, triggerClass, panelClass, scroll; item label / value / description / target / badge text; section label; search placeholder / label / empty / hint / query | item href | variant, align, direction, item icon / badge tone | triggerContent, header, footer, foot |
+| `sidebarNav` | id, ariaLabel, active; item id / label / target / badge text; section label | item href | activeIs, item icon / badge tone | footer |
+| `navTabs` | id, ariaLabel, active; item id / label / target / badge text | item href | variant, item badge tone | — |
+| `breadcrumbs` | id, ariaLabel; item label / target | item href | item icon | — |
+| `nav` | inherits selected navigation factory | inherits | variant | inherits |
+| `backLink` | label | href | — | — |
+| `drawer` | title, id, ariaLabel, closeLabel | — | side, size | body, footer |
+| `drawerSection` | title, row label / scalar value | — | — | body, row value.html |
+| `confirm` | title, body, id, confirmLabel, cancelLabel | — | variant | — |
+| `tooltip` | id, label, value, detail | — | placement | — |
+| `commandPalette`, `commandPaletteList` | label, placeholder, query, empty, id; list uid; group label; item id / label / description / keywords / shortcut / badge / confirm | item href (data-href navigation) | density, item icon | — |
+| `footer` | tagline, legal; column title; link label / target; social label | column / social / legal href; brand href | variant, social icon | switcher; nested brand word |
+| `themeToggle`, `themeIcon`, `themeName`, `deckTextSwitch` | — | — | theme, active | — |
+| `versionSwitcher` | — | — | badge live/archive mapping | version label, meta, custom badge |
+| `accountMenu` | object nav fields are escaped by its adapter | tuple href (already encoded), object href | active, nav icon | name, email, initials, tuple label; tuple id/target are already encoded attribute text |
+| `topbar` | inherits nested factories | inherits | view | word, nested account/version slots |
+| `appShell`, `accountShell` | word, navLabel/cap, crumb, active, account name/email, search palette/placeholder, maxWidth; nested nav/crumb/back/topbar text inputs | brandHref, signOutHref, nested navigation | layout, width | title, sub, body; topbar version label/meta/custom badge |
+| `skeleton`, `skeletonTable` | lines array entries, width (scalar/array), height, radius, className | — | — | — |
+| `busyRegion` | label, readyLabel, className, lines array entries | — | — | body |
+| `deniedState` | title, sub, need, className | action href | icon, action enums | — |
+| `success`, `successCheck` | eyebrow, title, body, className, countdown label/seconds; action label | action href | layout, backdrop, level, action enums | — |
+| `feedbackWidget` | label, placeholder, doneTitle, doneBody | — | — | — |
+| `pagination` | label, id | href(page) result | variant | — |
+| `statBand` | basis, label, id; stat label/value; delta value/basis/none | — | variant, delta tone/direction | stat trend |
+| `numericValue`, `deltaValue` | value, unit, missing, basisId | — | tone | — |
+| `rowIdentity` | symbol, name | logo, href | — | — |
+| `filterBar` | label, clearLabel; filter id/label/value; nested dropdown fields | nested dropdown href | nested dropdown enums | — |
+| `icon`, `illo` | icon class | — | name | — |
+| `brand`, `prism`, `seedling` | p, size | brand href | — | brand word |
+
+The legacy topbar and brand text slots still accept pre-escaped HTML. Their shared
+attribute copies preserve existing entities while encoding literal quotes and angle
+brackets; account-menu tuple URLs are scheme-checked after decoding character
+references. Pass raw text to `appShell` and `accountShell`: their compatibility
+adapters already prepare the legacy topbar's HTML. Do not escape ordinary text or
+URL slots before passing them to a factory.
+
+Held by `src/components/attribute-boundaries.test.js`, which parses the emitted HTML
+and checks quote/angle-bracket probes across the factories, URL schemes, attribute
+round-trips and retained trusted markup. It does not promise that arbitrary trusted
+HTML or caller-supplied CSS is safe.

@@ -325,7 +325,7 @@
     "address-not-history": [
       {
         "ref": "src/components/back.js:26",
-        "pattern": "const SCRIPTED = /^javascript:/i"
+        "pattern": "const SCRIPTED = /^(?:javascript|data|vbscript):/i"
       }
     ],
     "one-or-the-other": [

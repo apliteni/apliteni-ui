@@ -3,9 +3,9 @@
 import { icon } from '../assets/icons.js';
 import { illo } from '../assets/illustrations.js';
 import { successCheck } from './success.js';
-const HTML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+import { esc, safeUrl } from '../html.js';
+export { esc } from '../html.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
-export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => HTML_ENTITIES[c]);
 // ---- Button --------------------------------------------------------------
 // `iconSvg` is a raw leading-icon SVG string (trusted markup, not escaped) for
 // branded glyphs the kit's icon set doesn't own — e.g. a Google "G". It takes
@@ -37,20 +37,20 @@ export function button({
   // Static busy ⇒ disabled; setButtonBusy wires focus-preserving activation guards.
   const name = String(label == null ? '' : label).trim() || ic || 'Button';
   const named = iconOnly ? ` aria-label="${esc(name)}" title="${esc(name)}"` : '';
-  const attrs = `class="${cls}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${disabled && busy ? ' data-btn-disabled' : ''}${named}`;
+  const attrs = `class="${esc(cls)}"${disabled || busy ? ' disabled aria-disabled="true"' : ''}${busy ? ' aria-busy="true"' : ''}${disabled && busy ? ' data-btn-disabled' : ''}${named}`;
   const control = href
-    ? `<a href="${href}" ${attrs}>${inner}</a>`
-    : `<button type="${type}" ${attrs}>${inner}</button>`;
+    ? `<a href="${esc(safeUrl(href))}" ${attrs}>${inner}</a>`
+    : `<button type="${esc(type)}" ${attrs}>${inner}</button>`;
   return busy ? `${control}<span class="ui-sr ui-btn__status" role="status" aria-live="polite"></span>` : control;
 }
 
 // ---- Badge / Pill --------------------------------------------------------
 export function badge(label, variant = 'neutral') {
   const v = variant === 'neutral' ? '' : `ui-badge--${variant}`;
-  return `<span class="${cx('ui-badge', v)}">${esc(label)}</span>`;
+  return `<span class="${esc(cx('ui-badge', v))}">${esc(label)}</span>`;
 }
 export function pill(label, variant) {
-  return `<span class="${cx('ui-pill', variant && `ui-pill--${variant}`)}">${esc(label)}</span>`;
+  return `<span class="${esc(cx('ui-pill', variant && `ui-pill--${variant}`))}">${esc(label)}</span>`;
 }
 export function statusDot(live = false) {
   return `<span class="${cx('ui-dot', live && 'is-live')}"></span>`;
@@ -66,7 +66,7 @@ export function card({ title, sub, body = '', variant, pad, icon: ic, level = 2 
   const head = title
     ? `<${h} class="ui-card__title">${ic ? `<span class="ui-card__icon">${icon(ic)}</span>` : ''}${title}</${h}>${sub ? `<div class="ui-card__sub">${sub}</div>` : ''}`
     : '';
-  return `<div class="${cls}">${head}${body}</div>`;
+  return `<div class="${esc(cls)}">${head}${body}</div>`;
 }
 
 // ---- Segmented control ---------------------------------------------------
@@ -93,7 +93,7 @@ export function segmented({ options = [], active = 0, size, block, name = 'seg',
     return `<button type="button"${disabled || o.disabled ? ' disabled' : ''} aria-pressed="${on}" tabindex="${i === rove ? '0' : '-1'}"`
       + ` data-value="${esc(val)}"${on ? ' class="is-active"' : ''}>${esc(label)}</button>`;
   }).join('');
-  return `<div class="${cls}" role="toolbar" aria-label="${esc(ariaLabel)}" data-seg="${name}">${btns}</div>`;
+  return `<div class="${esc(cls)}" role="toolbar" aria-label="${esc(ariaLabel)}" data-seg="${esc(name)}">${btns}</div>`;
 }
 
 // ---- Accent picker -------------------------------------------------------
@@ -176,7 +176,7 @@ export function field({ label, hint, error, control = '', id, required = false }
     required: required || null,
   });
   const lab = label
-    ? `<label class="ui-field__label"${forId ? ` for="${forId}"` : ''}>${esc(label)}`
+    ? `<label class="ui-field__label"${forId ? ` for="${id ? esc(id) : forId}"` : ''}>${esc(label)}`
       + `${required ? '<span class="ui-field__req" aria-hidden="true">*</span>' : ''}</label>`
     : '';
   const foot = error
@@ -188,14 +188,14 @@ export function field({ label, hint, error, control = '', id, required = false }
 // `invalid` paints the control red AND says so in aria-invalid — the red on its
 // own is a state only a sighted user can read.
 export function input({ type = 'text', placeholder = '', value = '', icon: ic, invalid, disabled, required, name, id, ariaLabel } = {}) {
-  const attrs = `${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}`
+  const attrs = `${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${esc(name)}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}`
     + `${invalid ? ' aria-invalid="true"' : ''}${required ? ' required' : ''}${disabled ? ' disabled' : ''}`;
-  const el = `<input class="${cx('ui-input', invalid && 'is-invalid')}" type="${type}" placeholder="${esc(placeholder)}" value="${esc(value)}"${attrs}>`;
+  const el = `<input class="${cx('ui-input', invalid && 'is-invalid')}" type="${esc(type)}" placeholder="${esc(placeholder)}" value="${esc(value)}"${attrs}>`;
   if (!ic) return el;
   return `<div class="ui-input-group"><span class="ui-input-group__icon">${icon(ic)}</span>${el}</div>`;
 }
 export function textarea({ placeholder = '', value = '', rows = 4, name, id, ariaLabel } = {}) {
-  return `<textarea class="ui-textarea" rows="${rows}" placeholder="${esc(placeholder)}"${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}>${esc(value)}</textarea>`;
+  return `<textarea class="ui-textarea" rows="${esc(rows)}" placeholder="${esc(placeholder)}"${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${esc(name)}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}>${esc(value)}</textarea>`;
 }
 // Native <select>. Pass a `label` via field() or an `ariaLabel` for a bare one —
 // a select with neither has no accessible name.
@@ -206,20 +206,20 @@ export function select({ options = [], value, name, id, ariaLabel, disabled } = 
     const sel = value != null && String(val) === String(value);
     return `<option value="${esc(val)}"${sel ? ' selected' : ''}>${esc(label)}</option>`;
   }).join('');
-  return `<select class="ui-select"${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${name}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}${disabled ? ' disabled' : ''}>${opts}</select>`;
+  return `<select class="ui-select"${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${esc(name)}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}${disabled ? ' disabled' : ''}>${opts}</select>`;
 }
 export function checkbox({ label, checked, type = 'checkbox', name } = {}) {
-  return `<label class="ui-check"><input type="${type}"${name ? ` name="${name}"` : ''}${checked ? ' checked' : ''}><span>${label}</span></label>`;
+  return `<label class="ui-check"><input type="${esc(type)}"${name ? ` name="${esc(name)}"` : ''}${checked ? ' checked' : ''}><span>${label}</span></label>`;
 }
 // `label` becomes the input's accessible name (a bare switch has no visible text,
 // so it needs one). Defaults to "Toggle" so a control is never left unlabelled.
 export function switchToggle({ checked = false, disabled = false, name, label = 'Toggle' } = {}) {
-  return `<label class="ui-switch"><input type="checkbox"${name ? ` name="${name}"` : ''}${checked ? ' checked' : ''}${disabled ? ' disabled' : ''} aria-label="${esc(label)}"><span class="ui-switch__track"></span></label>`;
+  return `<label class="ui-switch"><input type="checkbox"${name ? ` name="${esc(name)}"` : ''}${checked ? ' checked' : ''}${disabled ? ' disabled' : ''} aria-label="${esc(label)}"><span class="ui-switch__track"></span></label>`;
 }
 
 // ---- Callout / toast / success ------------------------------------------
 export function callout({ variant, icon: ic = 'info', body } = {}) {
-  return `<div class="${cx('ui-callout', variant && `ui-callout--${variant}`)}"><span class="ui-callout__icon">${icon(ic)}</span><div>${body}</div></div>`;
+  return `<div class="${esc(cx('ui-callout', variant && `ui-callout--${variant}`))}"><span class="ui-callout__icon">${icon(ic)}</span><div>${body}</div></div>`;
 }
 // Default icon per status — overridable with `icon`. The circle family is not
 // decoration: a circled glyph is a STATE the system reports, a bare one is an
@@ -250,7 +250,7 @@ export function toast({
   const bodyHtml = compact || !body ? '' : `<div class="ui-toast__text">${esc(body)}</div>`;
   const dur = typeof timer === 'number' ? ` style="--toast-dur:${timer}s"` : '';
   const timerBar = timer ? '<span class="ui-toast__timer" data-toast-timer></span>' : '';
-  return `<div class="${cls}" role="status" aria-live="polite"${dur}>`
+  return `<div class="${esc(cls)}" role="status" aria-live="polite"${dur}>`
     + `<span class="ui-toast__icon">${icon(ic || TOAST_ICON[variant] || 'info')}</span>`
     + `<div class="ui-toast__body">${title ? `<div class="ui-toast__title">${esc(title)}</div>` : ''}${bodyHtml}</div>`
     + `${actBtn}${closeBtn}${timerBar}</div>`;

@@ -46,9 +46,9 @@ function confettiField() {
 // Optional auto-redirect countdown. Markup-only here (a conic ring sweeps and a
 // static number shows); wireSuccess() turns it into a live ticking counter.
 function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
-  return `<div class="ui-sx__count" data-sx-count style="--sx-secs:${seconds}s">
+  return `<div class="ui-sx__count" data-sx-count style="--sx-secs:${esc(seconds)}s">
   <span class="ui-sx__count-ring" aria-hidden="true"></span>
-  <span class="ui-sx__count-text">${esc(label)} in <b data-sx-num>${seconds}</b>s</span>
+  <span class="ui-sx__count-text">${esc(label)} in <b data-sx-num>${esc(seconds)}</b>s</span>
 </div>`;
 }
 
@@ -103,7 +103,7 @@ export function success({
     : '';
   const countEl = countdown ? countdownEl(countdown) : '';
 
-  return `<div class="${cls}" role="status" aria-live="polite">
+  return `<div class="${esc(cls)}" role="status" aria-live="polite">
   ${bd}
   ${confetti ? confettiField() : ''}
   <div class="ui-sx__inner">
