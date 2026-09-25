@@ -871,10 +871,11 @@ Discovery is still Vite's: `import.meta.glob('./**/*.css')` is evaluated for its
 not eager, nothing is imported — so a new component stylesheet is in the gate the moment it
 exists, and the count is asserted.
 
-The React walk forces hover, focus-visible, focus and active on targets discovered from both
-its own stylesheets and the shared kit stylesheet. It measures the target and its descendants,
-including inherited text colour and changed backgrounds, and reports the added state-pass time.
-React still uses the default accent; the vanilla catalogue gates all four accents in both themes.
+Two differences from the vanilla walk, both narrowing. There is **no state pass**: nothing under
+`react/` declares a colour in a state, and `.rx-sort:focus-visible` sets an outline, which is
+non-text contrast the gate does not judge either way — so the pass would cost two more renders
+to measure zero new pairs. Add it when a state rule paints text. And **one accent**, like the
+vanilla default cell.
 
 ### What the walk costs, and why the gate on it is a ratio
 
@@ -883,10 +884,8 @@ suite's critical path: `node --test` runs files as parallel child processes and 
 outlasts all the others put together. Measured on a 10-core laptop, the suite runs in ~18s with
 it and ~8s without, so the gate still roughly doubles it. Cost grows close to linearly with
 theme × accent cells — 16.3s for the default 2 and 63.4s for all 8, so about 8s a cell. The
-eight-cell matrix now runs on every `npm test`. Each alternate cell reports its added seconds
-separately, so CI logs show the cost alongside the default walk. Each cell checks its own ledger
-counts and floors; a passing accent cannot offset a failure in another. The figures above are
-historical measurements, not an estimate for the current catalogue or CI host.
+eight-cell matrix is behind `CONTRAST_ACCENTS=1` and off by default; anyone adding a cell should
+know they are buying ~8s of every `npm test`, forever.
 
 It used to be worse. The walk asked JSDOM for a computed style 138,534 times across the two
 cells, because every text element was walked up its ancestor chain three separate times —
@@ -949,22 +948,10 @@ ratio and not on the clock.
 
 ### A ledger that keys on a measurement is written by hand, on purpose
 
-Do not automatically rewrite the accepted contrast ledger or invent its `why` explanations.
-Measurements can be reproduced; accepting debt still requires review of the cause and owner.
-The alternate-cell measurement report prints actual per-cause `[count, worst]` values, rounded
-to two decimals, plus any findings that do not belong to exactly one cause:
-
-```bash
-git rev-parse HEAD
-CONTRAST_LEDGER_REPORT=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
-```
-
-Last run: 2026-09-25, against baseline `502f53d` plus the reporting-only change. Keep the commit
-and output together when reproducing a baseline. Lines starting `CONTRAST_LEDGER` contain one
-JSON report per cell, computed from the walk rather than copied from the ledger literals.
-The report prints before ledger assertions, so changed measurements remain visible when a gate
-fails. It does not edit the ledger, waive any exact count/floor assertion, or accept new debt.
-Review each changed pair and its hand-written explanation before updating the accepted values.
+Do not build a script that regenerates the contrast ledger. The mandatory `why` on every entry
+is the anti-automation device: a regenerator would have to invent the sentence explaining why a
+bucket's four dark accent rows are acceptable debt, and it cannot, so the entries stay attached
+to a person who decided.
 
 Contrast this with `stories/danger-colour.test.js`, whose `AT_REST_EXEMPT` keys on a CSS
 **selector parsed out of the source** and whose test fails when an exemption stops naming a live

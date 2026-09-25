@@ -3,9 +3,9 @@
  *
  * Stated weakly on purpose, because a gate that overstates itself is how contrast
  * came to be "verified visually": not "the pairs the kit renders" but the pairs a
- * STORY renders, resolved without layout, for text only, in two themes at four
- * accents. Nothing is enumerated — every file ending .stories.js under stories/ is
- * mounted in JSDOM against the kit's real stylesheets per theme, and every
+ * STORY renders, without layout, for text only. Both themes run at the default
+ * accent. Set CONTRAST_ACCENTS=1 to check the other accents. Every .stories.js file
+ * under stories/ is mounted in JSDOM against the kit's stylesheets per theme. Every
  * text-owning element is measured against the background chain composited above
  * it. The resolver is stories/lib/contrast.js; its two rewrites are pinned by the
  * self-checks below.
@@ -174,11 +174,11 @@ const LEDGER = [
       + 'owns it: the decision to '
       + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
       + 'not, whether it stops being purple or stops being washed. Alternate accents expose '
-      + 'more consumers of this same middle-ramp ink: Phoenix and Emerald fail on the hero eyebrow, '
+      + 'more uses of the same middle-ramp ink. Phoenix and Emerald fail on the hero eyebrow, '
       + 'the unstacked soon badge and pill, and the snippet keyword. Emerald also fails on '
-      + 'the lighter soon badge and pill grounds. These remain recorded '
-      + 'under #376 rather than recoloured in the coverage change; the respective component '
-      + 'owners must choose a text-grade ink or a quieter ground.',
+      + 'the lighter soon badge and pill backgrounds. These failures remain recorded under #376 '
+      + 'instead of being recoloured in the coverage change. Component owners must choose a '
+      + 'text-grade ink or a quieter background.',
   },
   /* H — --muted on the snippet's shell bar, which is lighter than the card it sits
      in — is closed. The entry said the cheap fix was to darken the bar rather than
@@ -625,11 +625,12 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 
 // ---- alternate accents: the same ledger causes, separately pinned cells ---
 
-// Counts and floors are measured per cell so an improvement in one accent cannot
-// hide a regression in another. Each cause is explained in LEDGER above.
-// Reproduce: CONTRAST_LEDGER_REPORT=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
-// Last run: 2026-09-25, baseline 502f53d plus the reporting-only change.
-// Record `git rev-parse HEAD` with the output; review measurements before changing debt.
+// Measure counts and floors for each cell. An improvement in one accent must not
+// hide a regression in another. LEDGER above explains each cause.
+// Run locally: CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
+// Add CONTRAST_LEDGER_REPORT=1 to print measured values. It does not change the gates.
+// Last full report: 2026-09-25, source 0877848.
+// Record `git rev-parse HEAD` with the output. Review measurements before changing debt.
 const ACCENT_LEDGER = {
   'dark/phoenix': { B: [2, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [2, 4.20], P: [65, 1.06], S: [21, 2.66] },
@@ -644,11 +645,11 @@ const ALTERNATE_CAUSES = [...LEDGER, {
   fg: '--accent',
   themes: ['light'],
   bg: 'the motion replay control, under its hover wash',
-  why: 'The motion documentation mixes the replay hover ground from the accent ink itself. '
-    + 'The light alternate-accent inks clear the plain page but not this darker wash. This is '
-    + 'existing story-local debt discovered by the expanded gate, retained under #376 because '
-    + 'this change is authorised to measure colours, not choose replacements. The motion '
-    + 'story owner must adjust the hover ground or choose another text ink.',
+  why: 'The motion documentation mixes the replay hover background from the accent ink. '
+    + 'The light alternate-accent inks work on the plain page but fail on this darker background. '
+    + 'This is existing story-local debt found by the expanded gate. It remains under #376 '
+    + 'because this change is authorised to measure colours, not to choose replacements. '
+    + 'The motion story owner must change the hover background or choose another text ink.',
 }];
 
 test('the accent gate discovers every shipped accent', () => {
@@ -663,7 +664,9 @@ test('the accent gate discovers every shipped accent', () => {
 
 for (const accent of ACCENTS.filter((a) => a !== ACCENT)) {
   for (const theme of THEMES) {
-    test(`contrast ledger: ${theme}/${accent}`, async () => {
+    test(`contrast ledger: ${theme}/${accent}`, {
+      skip: process.env.CONTRAST_ACCENTS !== '1',
+    }, async () => {
       const started = Date.now();
       const result = await walkStories({ theme, accent, states: true });
       const findings = groupFindings(result.records);

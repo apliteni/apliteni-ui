@@ -13,10 +13,10 @@
 // WHAT THIS GATE WILL NOT CATCH. The vanilla ledger (stories/contrast.test.js,
 // header) applies here too. Differences of its own:
 //
-//  - One accent: default. The vanilla gate covers the full accent matrix.
-//  - State targets come from both the kit and React stylesheets; scripts and
-//    combinations of simultaneous states are not simulated. State rules inside
-//    story-local <style> blocks are not discovered.
+//  - React uses the default accent. The vanilla accent matrix runs with CONTRAST_ACCENTS=1.
+//  - State targets come from both the kit and React stylesheets. Scripts,
+//    simultaneous states, and state rules inside story-local <style> blocks
+//    are not covered.
 //  - Wider here: this walks a real React tree, so Modal's portal is measured. It
 //    lands in document.body outside the render container, which is why the walk
 //    scans document.body.
