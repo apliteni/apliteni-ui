@@ -87,22 +87,3 @@
   fill: none;
   stroke-width: 1.5;
 }
-
-.ui-empty__icon--tile {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--accent) 12%, transparent); /* ring-gap: inherit — decorative tile has no focusable content. */
-  color: var(--accent);
-  opacity: 1;
-}
-.ui-empty__icon--tile svg {
-  width: 24px;
-  height: 24px;
-  stroke-width: 2;
-}
-.ui-empty__actions a.ui-btn--primary { color: var(--accent-contrast); }
-.ui-empty__actions a.ui-btn--ghost { color: var(--text); }
-.ui-empty__actions a.ui-btn--ghost:hover { color: var(--strong); }

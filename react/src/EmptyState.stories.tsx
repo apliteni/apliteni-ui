@@ -1,38 +1,31 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { illo } from '@apliteni/apliteni-ui';
 import { EmptyState } from './EmptyState';
+import { Button } from './primitives/Button';
 
-const meta: Meta<typeof EmptyState> = { title: 'React/EmptyState', component: EmptyState };
+const meta: Meta<typeof EmptyState> = {
+  title: 'React/EmptyState', component: EmptyState, parameters: { layout: 'fullscreen' },
+};
 export default meta;
 type Story = StoryObj<typeof EmptyState>;
 
 export const FirstRun: Story = {
-  render: () => <EmptyState primaryAction={{ label: 'Create item', href: '#create' }} />,
+  render: () => <EmptyState actions={<Button variant="primary">Create item</Button>} />,
 };
 export const NoMatches: Story = {
-  render: () => <EmptyState variant="no-matches" primaryAction={{ label: 'Clear filters', onClick: () => {} }} secondaryAction={{ label: 'Search help', href: '#help' }} />,
+  render: () => <EmptyState variant="no-matches" actions={<>
+    <Button variant="primary">Clear filters</Button>
+    <Button variant="ghost">Search help</Button>
+  </>} />,
 };
 export const NotFound: Story = {
-  render: () => (
-    <div className="ui-app">
-      <aside className="ui-app__rail">
-        <nav className="ui-nav ui-nav--side" aria-label="Main">
-          <a className="ui-nav__item" href="/">Home</a>
-        </nav>
-      </aside>
-      <main className="ui-app__main">
-        <EmptyState variant="not-found" primaryAction={{ label: 'Go home', href: '/' }} />
-      </main>
-    </div>
-  ),
+  render: () => <EmptyState variant="not-found" actions={<a className="ui-btn ui-btn--ghost" href="/">Go home</a>} />,
 };
 export const NotYetBuilt: Story = {
   render: () => <EmptyState variant="not-yet-built" />,
 };
 export const Illustration: Story = {
-  render: () => <EmptyState title="No folders yet" sub="Folders you create appear here." illustration={
-    <svg className="ui-illo" width="96" height="72" viewBox="0 0 96 72">
-      <path className="ui-illo__fill" d="M12 18h28l8 8h36v34H12z" />
-      <path className="ui-illo__stroke" d="M12 18h28l8 8h36v34H12z" />
-    </svg>
-  } />,
+  render: () => <EmptyState title="No people yet" sub="Contractors and staff you add show up here for attribution."
+    art={<span dangerouslySetInnerHTML={{ __html: illo('people') }} />}
+    actions={<Button variant="primary">+ Add person</Button>} />,
 };

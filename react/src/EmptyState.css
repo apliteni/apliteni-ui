@@ -1,0 +1,9 @@
+/* Keep the not-found h1 visually identical to vanilla's div title, including in a shell. */
+.ui-empty > h1.ui-empty__title {
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: inherit;
+  margin: 2px 0 0;
+}

@@ -77,6 +77,13 @@ vanilla factory where the steps have to be real links. `PAGE_SIZES` and
 either number. They are declared in this package's own types, and `PAGE_SIZES` is a
 `readonly number[]`: pass it to `pageSizes`, but do not add sizes to it.
 
+## EmptyState
+
+`EmptyState` uses the vanilla layout. `variant` selects `first-run`, `no-matches`,
+`not-found`, or `not-yet-built` copy; `title`, `sub`, and `icon` override it.
+`art` and `actions` accept React nodes. Use at most one primary action and one ghost
+action. The not-found title is an h1 styled like the vanilla title.
+
 ## What the Modal does with focus
 
 Opening moves focus to the first eligible control in the body, in DOM order, or to
