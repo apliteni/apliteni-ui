@@ -22,9 +22,9 @@
 
 **Except:** Use a drawer when the answer needs a form instead of two buttons.
 
-**Do:** The question stops the page.
+**Do:** Ask “Rotate this token?” in a confirm with “Keep token” and “Rotate token” buttons.
 
-**Don't:** Show the same question with nothing to answer.
+**Don't:** Put “Rotate this token?” in a callout with no answer buttons.
 
 ## Show lasting conditions
 
@@ -44,29 +44,29 @@
 
 <!-- rule: panels -->
 
-**Rule:** Use tabs() when the control owns a panel and segmented() when it owns nothing.
+**Rule:** Use `tabs()` to switch panels and `segmented()` to change a value or filter without switching panels.
 
 **Why:** A tablist promises a panel and arrow-key support; a strip without either fails the reader.
 
 **Except:** Links between locations are neither; the kit’s nav uses aria-current, not a tablist.
 
-**Do:** Use a filter strip that owns no panel.
+**Do:** Use a segmented control to filter one list by Any, Verified or Pending.
 
-**Don't:** Use a tablist that owns no panels.
+**Don't:** Give those same list filters tab roles when they have no separate panels.
 
 ## Match confirmation scale
 
 <!-- rule: scale -->
 
-**Rule:** Choose the confirmation by how much of the screen it owns.
+**Rule:** Use `successPanel()` for a confirmation inside a page and `success()` for a full-page confirmation or a next action.
 
 **Why:** successPanel() is a page block; success() is the page and tells the reader where to go next.
 
 **Except:** A block that needs somewhere to go next still uses success(); successPanel() takes two strings.
 
-**Do:** Use a block confirmation inside the page.
+**Do:** Use `successPanel()` to confirm sent feedback inside a card.
 
-**Don't:** Force a page-sized confirmation into a card.
+**Don't:** Put the full-page `success()` layout inside that card.
 
 ## Add dropdown search
 

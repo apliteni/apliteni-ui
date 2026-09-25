@@ -40,7 +40,7 @@
 
 **Do:** Keep the Lucide path unchanged and document a different name.
 
-**Don't:** Trace or copy a path without recording the difference.
+**Don't:** Redraw a Lucide path or rename the glyph without recording its original name.
 
 ## Status stroke width
 

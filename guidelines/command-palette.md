@@ -6,7 +6,7 @@
 
 **Rule:** Put something in the palette only if a reader can name it.
 
-**Why:** Named items are easier to find and understand.
+**Why:** Readers can search for “New invoice”; “More” gives them no name to search for.
 
 **Do:** Include recognisable commands and numbered records that readers can also reach by clicking through the product.
 
@@ -22,7 +22,7 @@
 
 **Why:** Groups tell readers whether a result opens a record, changes location or runs a command.
 
-**Do:** Use three sentence-case headings at the 13px label rank for actions, destinations and recent items.
+**Do:** Use sentence-case headings at the 13px label rank, such as Actions, Destinations and Recent items.
 
 **Don't:** Show nine ungrouped rows that hide whether Enter runs a command, opens an invoice or goes to a page.
 

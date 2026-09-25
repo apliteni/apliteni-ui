@@ -36,9 +36,9 @@
 
 **Except:** Keep inherently capitalised words as written, including acronyms, currency codes and key names such as USD, API and Esc.
 
-**Do:** Written and shown in sentence case.
+**Do:** Write “Total revenue” and display it without a text-transform override.
 
-**Don't:** Use all capitals, which pulls attention from the figures.
+**Don't:** Display “TOTAL REVENUE” above the figure.
 
 ## Rank card titles
 
@@ -50,7 +50,7 @@
 
 **Do:** Use --text-2xl for the page title and --text-lg for the card title.
 
-**Don't:** Use a second h1 for the card; it creates two page titles.
+**Don't:** Give the card title the same `--text-2xl` size as the page title.
 
 ## Use heading levels
 

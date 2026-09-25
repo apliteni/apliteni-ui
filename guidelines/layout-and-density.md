@@ -8,7 +8,7 @@
 
 **Why:** Shared tokens prevent conflicting page widths and topbar overrides.
 
-**Do:** Use one token for both kit and site.
+**Do:** Use `--container` for the page and topbar widths.
 
 **Don't:** Put four page-width numbers in different files.
 
@@ -45,7 +45,7 @@
 
 **Rule:** Below the reading column, use `--panel-*` in `px` for component boxes and `--prose-*` in `ch` for text lines.
 
-**Why:** Panel tokens match component widths; prose tokens match text types.
+**Why:** Pixel widths keep mixed-size content in one box; `ch` limits a text line using its own font size.
 
 **Do:** Use panel `sm/md/lg` for 320/420/560px boxes and prose tokens for caption, lede, body, and dense text.
 

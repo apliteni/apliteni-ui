@@ -1,7 +1,5 @@
 # Dense tables
 
-Keep numbers comparable when the dataset needs many rows and columns.
-
 ## Use the right surface
 
 <!-- rule: surface -->
@@ -54,7 +52,7 @@ Keep numbers comparable when the dataset needs many rows and columns.
 
 <!-- rule: units -->
 
-**Why:** Units carry information even when they are secondary to the value.
+**Why:** A value without a readable unit leaves readers guessing whether it means euros, percent or a count.
 
 **Rule:** Keep units smaller and in body ink.
 

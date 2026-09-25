@@ -6,7 +6,7 @@
 
 **Rule:** Name a control for its current state, and rename it when the state changes.
 
-**Why:** A name that is correct only once becomes unhelpful later.
+**Why:** A checked switch named “Turn off” describes the next action instead of its current state.
 
 **Do:** Name the checked switch “In-app notifications, on.”
 
