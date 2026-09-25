@@ -56,4 +56,4 @@ export * from './FilterBar';
 export { KeyValueList, DrawerSection } from './KeyValueList';
 export type { KeyValueRow, KeyValueListProps, DrawerSectionProps } from './KeyValueList';
 export { EmptyState } from './EmptyState';
-export type { EmptyStateProps, EmptyStateVariant, EmptyStateAction } from './EmptyState';
+export type { EmptyStateProps, EmptyStateVariant } from './EmptyState';

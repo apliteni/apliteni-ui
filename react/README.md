@@ -58,20 +58,10 @@ either number. They are declared in this package's own types, and `PAGE_SIZES` i
 
 ## EmptyState
 
-`EmptyState` supports `first-run`, `no-matches`, `not-found`, and `not-yet-built`
-screens. Override `title`, `sub`, and `icon` for your screen, or pass a decorative
-React node to `illustration`. Place it directly in the page or list body.
-The `not-found` variant uses h1 by default; all other variants use h2. Set `level`
-to match the surrounding headings. `primaryAction` and `secondaryAction` accept a
-`label` and either `href` or `onClick`; `secondaryAction` is a ghost button or link.
-Import the kit CSS.
-
-```tsx
-<EmptyState
-  variant="no-matches"
-  primaryAction={{ label: 'Clear filters', onClick: clearFilters }}
-/>
-```
+`EmptyState` uses the vanilla layout. `variant` selects `first-run`, `no-matches`,
+`not-found`, or `not-yet-built` copy; `title`, `sub`, and `icon` override it.
+`art` and `actions` accept React nodes. Use at most one primary action and one ghost
+action. The not-found title is an h1 styled like the vanilla title.
 
 ## What the Modal does with focus
 

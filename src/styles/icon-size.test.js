@@ -50,8 +50,7 @@ const src = path.resolve(here, '..');
 // field, a width and a height — the palette's own box and stroke, so the trigger
 // and the thing it opens are not two search marks); 72 (#339: the xs Button
 // glyph adds a width and a height).
-// #386 adds width and height for the empty-state tile glyph.
-const EXPECTED_SUBJECTS = 74;
+const EXPECTED_SUBJECTS = 72;
 
 const SHEETS = kitSheetNames(src);
 

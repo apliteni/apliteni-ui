@@ -2,63 +2,55 @@ import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { emptyState } from '@apliteni/apliteni-ui';
 import { EmptyState } from './EmptyState';
+import { Button } from './primitives/Button';
 
 afterEach(cleanup);
 
+function vanilla(props?: Record<string, unknown>) {
+  const host = document.createElement('div');
+  host.innerHTML = emptyState(props);
+  return host.innerHTML;
+}
+
 it.each([
-  ['first-run', 'Nothing needs you yet', 2],
-  ['no-matches', 'No results in this view', 2],
-  ['not-found', "We can't find that page", 1],
-  ['not-yet-built', 'This ships later', 2],
-] as const)('provides the %s case', (variant, title, level) => {
-  const { getByRole, container } = render(<EmptyState variant={variant} />);
-  expect(getByRole('heading', { name: title, level })).toBeVisible();
-  expect(container.querySelector('.ui-empty__sub')?.textContent).toBeTruthy();
-  expect(container.querySelector('.ui-empty__icon')).toHaveAttribute('aria-hidden', 'true');
-  expect(container.querySelector('.ui-empty__actions')).toBeNull();
+  ['first-run', 'Nothing needs you yet', 'New items will appear here when they need your attention.', 'check'],
+  ['no-matches', 'No results in this view', 'Try another search or clear your filters.', 'search'],
+  ['not-found', "We can't find that page", 'Check the address or return to the home page.', 'folder'],
+  ['not-yet-built', 'This ships later', 'This screen is not available yet. Check back later.', 'clock'],
+] as const)('matches vanilla markup for %s', (variant, title, sub, icon) => {
+  const { container } = render(<EmptyState variant={variant} />);
+  const html = variant === 'not-found'
+    ? container.innerHTML.replace('<h1 ', '<div ').replace('</h1>', '</div>')
+    : container.innerHTML;
+  expect(html).toBe(vanilla({ title, sub, icon }));
+  if (variant === 'not-found') expect(container.querySelectorAll('h1')).toHaveLength(1);
 });
 
-it('defaults to first run and lets callers describe their own data', () => {
-  const { getByRole, getByText, container } = render(
-    <EmptyState title="No invoices yet" sub="Invoices you create appear here." level={3} className="example" />,
-  );
-  expect(getByRole('heading', { level: 3, name: 'No invoices yet' })).toBeVisible();
-  expect(getByText('Invoices you create appear here.')).toBeVisible();
-  expect(container.firstChild).toHaveClass('ui-empty', 'example');
+it('matches vanilla custom copy and omits empty text', () => {
+  const { container, rerender } = render(<EmptyState title="Nothing here" sub="Add a row." icon="folder" />);
+  expect(container.innerHTML).toBe(vanilla({ title: 'Nothing here', sub: 'Add a row.', icon: 'folder' }));
+  rerender(<EmptyState title="" sub="" icon="" />);
+  expect(container.innerHTML).toBe(vanilla());
 });
 
-it('reuses the vanilla layout classes with a tile modifier', () => {
-  const { container } = render(<EmptyState title="Nothing here" sub="Add a row." icon="folder" />);
-  const vanilla = document.createElement('div');
-  vanilla.innerHTML = emptyState({ title: 'Nothing here', sub: 'Add a row.', icon: 'folder' });
-  for (const element of vanilla.querySelectorAll('[class]')) {
-    for (const cls of element.classList) expect(container.querySelector(`.${cls}`)).not.toBeNull();
-  }
-});
-
-it('hides a custom illustration and replaces the icon tile', () => {
-  const { container, queryByRole } = render(<EmptyState illustration={<svg role="img" aria-label="Folder" />} />);
+it('uses the vanilla illustration slot and hides its artwork', () => {
+  const { container, queryByRole } = render(<EmptyState art={<svg role="img" aria-label="Folder" />} />);
   expect(container.querySelector('.ui-empty__art')).toHaveAttribute('aria-hidden', 'true');
   expect(container.querySelector('.ui-empty__icon')).toBeNull();
   expect(queryByRole('img')).toBeNull();
 });
 
-it('renders working primary and ghost buttons without submitting a form', () => {
+it('keeps React actions in the vanilla action row', () => {
   const onClick = vi.fn();
-  const { getByRole } = render(<EmptyState primaryAction={{ label: 'Create invoice', onClick }} secondaryAction={{ label: 'Help', onClick }} />);
-  const primary = getByRole('button', { name: 'Create invoice' });
-  expect(primary).toHaveClass('ui-btn--primary');
-  expect(primary).toHaveAttribute('type', 'button');
-  expect(getByRole('button', { name: 'Help' })).toHaveClass('ui-btn--ghost');
-  fireEvent.click(primary);
+  const { container, getByRole } = render(<EmptyState actions={<>
+    <Button variant="primary" onClick={onClick}>Create item</Button>
+    <a className="ui-btn ui-btn--ghost" href="/help">Help</a>
+  </>} />);
+  expect(container.querySelector('.ui-empty__actions')?.children).toHaveLength(2);
+  fireEvent.click(getByRole('button', { name: 'Create item' }));
   expect(onClick).toHaveBeenCalledOnce();
-});
-
-it('renders navigation actions as links and supports a secondary action alone', () => {
-  const { getByRole, queryByRole } = render(<EmptyState variant="not-found" secondaryAction={{ label: 'Go home', href: '/' }} />);
-  expect(getByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/');
-  expect(getByRole('link')).toHaveClass('ui-btn', 'ui-btn--ghost');
-  expect(queryByRole('button')).toBeNull();
+  expect(getByRole('button')).toHaveAttribute('type', 'button');
+  expect(getByRole('link')).toHaveAttribute('href', '/help');
 });
 
 it('keeps caller text as text', () => {
