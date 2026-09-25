@@ -89,6 +89,10 @@ function sync(doc) {
   unmark(page);
   const top = page.stack[page.stack.length - 1];
   if (top) mark(page, doc, top.root);
+  else if (page.keys) {
+    doc.removeEventListener('keydown', page.keys);
+    page.keys = null;
+  }
 }
 
 // One keydown owner per document. Escape closes the single topmost overlay and
@@ -96,8 +100,7 @@ function sync(doc) {
 // component registered a listener first or on where focus happens to be.
 function ownKeys(page, doc) {
   if (page.keys) return;
-  page.keys = true;
-  doc.addEventListener('keydown', (e) => {
+  page.keys = (e) => {
     const top = page.stack[page.stack.length - 1];
     if (!top) return;
     if (e.key === 'Escape') {
@@ -105,7 +108,8 @@ function ownKeys(page, doc) {
     } else if (e.key === 'Tab') {
       trapTab(top.panel, e);
     }
-  });
+  };
+  doc.addEventListener('keydown', page.keys);
 }
 
 // Node.DOCUMENT_POSITION_PRECEDING, without reaching for a global Node that a

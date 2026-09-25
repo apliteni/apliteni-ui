@@ -1,3 +1,4 @@
+import { lifecycle, retainListeners } from './lifecycle.js';
 // The kit's one page shell: a full-height rail beside one <main>, in two layouts.
 // accountShell() is a thin preset over it that keeps the topbar. wireShell() once
 // after mounting wires the fold, the nav's groups and the reader's menu.
@@ -344,7 +345,6 @@ export function appShell(options = {}) {
 // and a frame is wired in its own document. wireShell(root, { persist: false })
 // keeps every shell under root out of the cookie, shells drawn there later
 // included; only `persist: true` on that root turns it back on.
-const _wiredDocs = new WeakSet();
 const _unpersisted = new WeakSet();
 
 // The toggle, addressed from the rail that owns it: a fold row of a shell's own rail
@@ -375,38 +375,39 @@ function setRail(app, collapsed) {
 }
 
 function listen(doc) {
-  if (_wiredDocs.has(doc)) return;
-  _wiredDocs.add(doc);
-  doc.addEventListener('click', (e) => {
-    // A shell's own toggle only, in the head of its own rail: a stray
-    // [data-rail-toggle] in the page body folds nothing. composedPath() rather
-    // than target, so a shell inside an open shadow root is found. closest()
-    // rather than a chain of parents, which the head band made one link longer
-    // and which said nothing about what it was walking through.
-    const btn = e.composedPath().find((n) => n.nodeType === 1 && n.matches(RAIL_FOLD));
-    const app = btn && btn.closest('.ui-app');
-    if (!app) return;
-    const next = !app.classList.contains('is-collapsed');
-    setRail(app, next);
-    if (!optedOut(app)) {
-      try {
-        doc.cookie = `${RAIL_COOKIE}=${next ? 'collapsed' : 'expanded'}; path=/; `
-          + `max-age=${RAIL_MAX_AGE}; SameSite=Lax`;
-      } catch (err) { /* a sandboxed frame: the fold works, nothing is kept */ }
-    }
-    // A document with no window (DOMParser, createHTMLDocument) has no CustomEvent to send.
-    const view = doc.defaultView;
-    if (view) {
-      app.dispatchEvent(new view.CustomEvent('ui-rail', { bubbles: true, composed: true, detail: { collapsed: next } }));
-    }
+  return retainListeners(doc, 'shell-document', life => {
+    life.on(doc, 'click', (e) => {
+      // A shell's own toggle only, in the head of its own rail: a stray
+      // [data-rail-toggle] in the page body folds nothing. composedPath() rather
+      // than target, so a shell inside an open shadow root is found. closest()
+      // rather than a chain of parents, which the head band made one link longer
+      // and which said nothing about what it was walking through.
+      const btn = e.composedPath().find((n) => n.nodeType === 1 && n.matches(RAIL_FOLD));
+      const app = btn && btn.closest('.ui-app');
+      if (!app) return;
+      const next = !app.classList.contains('is-collapsed');
+      setRail(app, next);
+      if (!optedOut(app)) {
+        try {
+          doc.cookie = `${RAIL_COOKIE}=${next ? 'collapsed' : 'expanded'}; path=/; `
+            + `max-age=${RAIL_MAX_AGE}; SameSite=Lax`;
+        } catch (err) { /* a sandboxed frame: the fold works, nothing is kept */ }
+      }
+      // A document with no window (DOMParser, createHTMLDocument) has no CustomEvent to send.
+      const view = doc.defaultView;
+      if (view) {
+        app.dispatchEvent(new view.CustomEvent('ui-rail', { bubbles: true, composed: true, detail: { collapsed: next } }));
+      }
+    });
   });
 }
 
 export function wireShell(root = document, { persist } = {}) {
-  wireNav(root);
+  const life = lifecycle(root, 'shell');
+  life.add(wireNav(root));
   // The reader's menu is a dropdown() like any other, so it is wired like any
   // other. Idempotent, and a shell with no account draws none to find.
-  wireDropdown(root);
+  life.add(wireDropdown(root));
   // A server cannot know which key the reader holds, so the browser corrects it here —
   // off the ROOT's window, not the global one. why: docs/specification.md#the-page-shell
   const here = root.nodeType === 9 ? root : root.ownerDocument;
@@ -414,7 +415,10 @@ export function wireShell(root = document, { persist } = {}) {
   const key = paletteHotkey(view && view.navigator ? view.navigator.platform : '');
   for (const kbd of root.querySelectorAll('[data-palette-hotkey]')) kbd.textContent = key;
   const doc = root.nodeType === 9 ? root : root.ownerDocument;
-  listen(doc);
+  if (life.fresh) {
+    life.add(listen(doc));
+    life.add(() => _unpersisted.delete(root));
+  }
   if (persist === false) _unpersisted.add(root);
   else if (persist === true) _unpersisted.delete(root);
   const saved = railCollapsed(cookieOf(doc));
@@ -428,6 +432,7 @@ export function wireShell(root = document, { persist } = {}) {
     const auto = saved != null && !optedOut(app) && app.getAttribute('data-rail') === 'auto';
     setRail(app, auto ? saved : app.classList.contains('is-collapsed'));
   }
+  return life.destroy;
 }
 
 // The /account preset: appShell() with the topbar switched on, and the old

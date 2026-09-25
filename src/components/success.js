@@ -1,3 +1,4 @@
+import { lifecycle } from './lifecycle.js';
 // Success / confirmation surface. One factory, three layouts and three
 // backdrops, an SVG check that draws itself in, optional confetti and an
 // optional auto-redirect countdown. Every motion path is reduced-motion safe.
@@ -127,6 +128,8 @@ export function success({
 export function wireSuccess(root, { onDone } = {}) {
   const box = root && root.querySelector('[data-sx-count]');
   if (!box) return () => {};
+  const life = lifecycle(box, 'success');
+  if (!life.fresh) return life.destroy;
   const numEl = box.querySelector('[data-sx-num]');
   let n = parseInt(box.style.getPropertyValue('--sx-secs'), 10) || parseInt(numEl?.textContent, 10) || 5;
   const id = setInterval(() => {
@@ -134,5 +137,6 @@ export function wireSuccess(root, { onDone } = {}) {
     if (numEl) numEl.textContent = String(Math.max(0, n));
     if (n <= 0) { clearInterval(id); if (typeof onDone === 'function') onDone(); }
   }, 1000);
-  return () => clearInterval(id);
+  life.add(() => clearInterval(id));
+  return life.destroy;
 }

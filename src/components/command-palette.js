@@ -1,3 +1,4 @@
+import { lifecycle, wireElements, retainListeners } from './lifecycle.js';
 // Command palette — one overlay, a text box and a ranked list of things to run
 // or go to.
 //
@@ -534,14 +535,14 @@ function onKeydown(root, e) {
 }
 
 export function wireCommandPalette(scope = document) {
+  const owner = lifecycle(scope, 'cmdk-root');
   const root = scope === document ? document : scope;
-  root.querySelectorAll('[data-cmdk]').forEach((cmdk) => {
-    if (cmdk.__cmdkWired) return;
-    cmdk.__cmdkWired = true;
+  owner.add(wireElements(root, '[data-cmdk]', 'cmdk', (cmdk, life) => {
+    life.add(() => closeCommandPalette(cmdk));
 
-    cmdk.querySelector('[data-cmdk-scrim]')?.addEventListener('click', () => closeCommandPalette(cmdk));
+    life.on(cmdk.querySelector('[data-cmdk-scrim]'), 'click', () => closeCommandPalette(cmdk));
     const input = inputOf(cmdk);
-    input?.addEventListener('input', () => {
+    life.on(input, 'input', () => {
       applyQuery(cmdk);
       if (cmdk.getAttribute('data-cmdk-rank') === 'off') {
         const view = cmdk.ownerDocument.defaultView;
@@ -550,26 +551,25 @@ export function wireCommandPalette(scope = document) {
         }));
       }
     });
-    cmdk.addEventListener('keydown', (e) => onKeydown(cmdk, e));
+    life.on(cmdk, 'keydown', (e) => onKeydown(cmdk, e));
     // Pointer: hovering moves the active row the way every palette does, and the
     // click lands on mouseup like a menu item rather than on mousedown.
-    listOf(cmdk)?.addEventListener('mousemove', (e) => {
+    life.on(listOf(cmdk), 'mousemove', (e) => {
       const row = e.target.closest?.('[data-cmdk-item]');
       if (row && !row.hidden && row !== activeOf(cmdk)) setActive(cmdk, row);
     });
-    listOf(cmdk)?.addEventListener('click', (e) => {
+    life.on(listOf(cmdk), 'click', (e) => {
       const row = e.target.closest?.('[data-cmdk-item]');
       if (row) activate(cmdk, row, e);
     });
 
     applyQuery(cmdk);
     adoptOverlay(cmdk, cmdk.querySelector('[data-cmdk-panel]'), () => closeCommandPalette(cmdk), OVERLAY_LAYER.palette);
-  });
+  }));
 
   const doc = scope === document ? document : (scope.ownerDocument || document);
-  if (!doc.__cmdkGlobalWired) {
-    doc.__cmdkGlobalWired = true;
-    doc.addEventListener('click', (e) => {
+  if (owner.fresh) owner.add(retainListeners(doc, 'cmdk-document', life => {
+    life.on(doc, 'click', (e) => {
       const opener = e.target.closest?.('[data-cmdk-open]');
       if (!opener) return;
       e.preventDefault();
@@ -580,7 +580,7 @@ export function wireCommandPalette(scope = document) {
     // Ctrl+K alone is left to a text box the reader is typing in — it is
     // kill-to-end-of-line there on every platform — while Cmd+K is answered
     // wherever focus is, because it is nothing else's key.
-    doc.addEventListener('keydown', (e) => {
+    life.on(doc, 'keydown', (e) => {
       if (e.key !== 'k' && e.key !== 'K') return;
       if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
       const cmdk = doc.querySelector('[data-cmdk][data-cmdk-hotkey]');
@@ -592,6 +592,7 @@ export function wireCommandPalette(scope = document) {
       if (cmdk.classList.contains('is-open')) closeCommandPalette(cmdk);
       else openCommandPalette(cmdk, typing instanceof HTMLElement ? typing : null);
     });
-  }
+  }));
   syncOverlays(doc);
+  return owner.destroy;
 }

@@ -9,6 +9,7 @@ below names its issue. Read [README.md](README.md) for where to record decisions
 [CONTRIBUTING.md](../CONTRIBUTING.md) for how the gates work.
 
 - **[The package](#the-package)** — what installing it gets you
+- **[Initializer lifecycle](#initializer-lifecycle)** — repeated wiring and cleanup
 - **[Widths](#widths)** — the page and the reading column
 - **[Boxes below the page](#boxes-below-the-page)** — panels in px, prose in ch
 - **[Breakpoints](#breakpoints)** — six literals, on purpose
@@ -43,6 +44,43 @@ are the same file the HTML entry point serves.
 
 `docs/library.md` is the catalogue: the `src/` layout, the theming model, and every component the
 kit exports. This page states what those components guarantee; that one states what they are.
+
+## Initializer lifecycle
+
+Part of [#376](https://github.com/apliteni/apliteni-ui/issues/376).
+
+Vanilla listener initializers keep one live binding per component element. Calling the
+same initializer again on the same DOM does not add listeners or restart timers. A scope
+initializer also discovers newly mounted children on later calls. Overlapping component-scanning scopes share
+bindings: these are aliases, not independent subscriptions. Pagination retains delegation
+from the supplied root so replacing its children needs no rewiring; use one owning root
+per pager, since different roots have independent callbacks. Either teardown removes the
+shared binding, so one component owner should retain and call the handle before unmounting.
+Teardown is safe to repeat, and a stale handle cannot tear down a later initialization.
+
+`wireTopbar`, `wireDropdown`, `wireNav`, `wireShell`, `wireDrawer`, `wireConfirm`,
+`wireCommandPalette`, `wireTooltip`, `wireFeedback`, `wirePagination`, `wireSuccess`,
+`initTabs`, `initSegmented` and `initRowIdentity` return a teardown function when mounted.
+`initFilterBar` keeps its `{ update, destroy }` return; repeat initialization returns that
+controller. `wireToastStack` keeps returning the stack element and adds its `destroy()`
+method, which also cleans up toasts added with `pushToast`.
+
+Teardown removes owned listeners and cancels owned timers. Dropdown teardown closes the
+menu, returns its portalled panel to the component and disconnects its resize observer.
+Overlay teardown closes the component and releases its focus/inert state; the vanilla
+stack releases its keyboard listener when empty. Shared document listeners remain until
+the last owner releases them. Nav, shell and overlay opener delegation continues to cover
+the document while a scope still owns those listeners.
+
+Use `initFilterBar(...).update(next)` for controlled markup updates. For other callback or
+configuration changes, tear down and initialize again; repeat calls keep the original
+callbacks. `wireShell(root, { persist })` still applies an explicit persistence preference
+on each call. Teardown does not undo selected values, theme or other application state.
+`initReveal` retains its observer return and `disconnect()` cleanup; it is a motion observer,
+not a listener initializer.
+
+Proof: `src/components/lifecycle.test.js` checks one action after two initializations,
+listener removal, repeat teardown, reinitialization, timers and portalled dropdown cleanup.
 
 ## Widths
 

@@ -199,11 +199,11 @@ function serialize(out) {
  * This used to be written the other way round, as three shapes that COUNT as a
  * control: a <button>, an <a href>, or an element carrying both a role and a
  * tabindex. That test excluded far more than the browser owns. `.ui-fbpill`
- * is a bare div — src/components/feedback.js:35 `<div class="ui-fbpill" data-fb-pill>`
+ * is a bare div — src/components/feedback.js:36 `<div class="ui-fbpill" data-fb-pill>`
  * — with `cursor: pointer` and no role, so it fell out of the measurement on a
  * technicality, and as a <button> it takes a 2px outset grey frame around a
  * gradient pill. Worse, the test was a property of the MARKUP: deleting
- * src/components/dropdown.js:47 `'tabindex="-1"',` dropped `.ui-dropdown__item` out of
+ * src/components/dropdown.js:48 `'tabindex="-1"',` dropped `.ui-dropdown__item` out of
  * the measured set with every count still adding up, and the whole of #251 passed at
  * exit 0. Reproduced before this was rewritten.
  *

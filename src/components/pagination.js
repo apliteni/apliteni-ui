@@ -1,3 +1,4 @@
+import { lifecycle } from './lifecycle.js';
 // Pagination — the strip under a table or a list, as an HTML string.
 //
 // It renders a page the CALLER computed. Rows never come in here: `page`,
@@ -247,6 +248,9 @@ export function wirePagination(root = document, { onPage, onPageSize } = {}) {
   const scope = typeof root === 'string' ? document.querySelector(root) : root;
   if (!scope || typeof scope.addEventListener !== 'function') return () => {};
 
+  const life = lifecycle(scope, 'pagination');
+  if (!life.fresh) return life.destroy;
+
   const pageOf = (el) => int(el.getAttribute('data-page'), null);
   const inPager = (el) => el && el.closest && el.closest('.ui-pager');
 
@@ -291,16 +295,11 @@ export function wirePagination(root = document, { onPage, onPageSize } = {}) {
     if (box && inPager(box)) commit(box);
   };
 
-  scope.addEventListener('click', onClick);
-  scope.addEventListener('change', onChange);
-  scope.addEventListener('keydown', onKeydown);
-  scope.addEventListener('focusout', onBlur);
-  return () => {
-    scope.removeEventListener('click', onClick);
-    scope.removeEventListener('change', onChange);
-    scope.removeEventListener('keydown', onKeydown);
-    scope.removeEventListener('focusout', onBlur);
-  };
+  life.on(scope, 'click', onClick);
+  life.on(scope, 'change', onChange);
+  life.on(scope, 'keydown', onKeydown);
+  life.on(scope, 'focusout', onBlur);
+  return life.destroy;
 }
 
 /**

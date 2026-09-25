@@ -1,3 +1,4 @@
+import { lifecycle, retainListeners } from './lifecycle.js';
 // Navigation — the kit's primary wayfinding primitives. `nav({ variant })`
 // dispatches to sidebarNav(), navTabs() and breadcrumbs(), each also exported
 // directly: the three share tokens and classes but almost no markup, so a single
@@ -180,11 +181,10 @@ export function nav({ variant = 'sidebar', ...opts } = {}) {
 // Only the collapsible sidebar groups need JS: toggle a group's `.is-open` +
 // its button's aria-expanded, and show/hide the nested list. Idempotent and
 // event-delegated, so it's safe to call repeatedly (Storybook re-renders).
-let _navGlobalWired = false;
 
 function toggleGroup(btn) {
   const li = btn.closest('.ui-nav__group');
-  const list = document.getElementById(btn.getAttribute('aria-controls'));
+  const list = btn.ownerDocument.getElementById(btn.getAttribute('aria-controls'));
   const open = btn.getAttribute('aria-expanded') === 'true';
   btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   if (li) li.classList.toggle('is-open', !open);
@@ -195,11 +195,14 @@ function toggleGroup(btn) {
 }
 
 export function wireNav(root = document) {
-  // Per-collapsed-rail behaviour would go here; groups use one delegated handler.
-  if (_navGlobalWired) return;
-  _navGlobalWired = true;
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest && e.target.closest('[data-nav-toggle]');
-    if (btn) { e.preventDefault(); toggleGroup(btn); }
-  });
+  const life = lifecycle(root, 'nav');
+  if (!life.fresh) return life.destroy;
+  const doc = root.nodeType === 9 ? root : root.ownerDocument;
+  life.add(retainListeners(doc, 'nav-document', shared => {
+    shared.on(doc, 'click', (e) => {
+      const btn = e.target.closest?.('[data-nav-toggle]');
+      if (btn) { e.preventDefault(); toggleGroup(btn); }
+    });
+  }));
+  return life.destroy;
 }

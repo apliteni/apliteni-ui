@@ -95,7 +95,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme \u00d7 accent cells"
+        "pattern": "theme × accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -106,13 +106,13 @@
   "_command-palette.js": {
     "named-things": [
       {
-        "ref": "src/components/command-palette.js:194",
+        "ref": "src/components/command-palette.js:195",
         "pattern": "function paletteItem"
       }
     ],
     "groups": [
       {
-        "ref": "src/components/command-palette.js:255",
+        "ref": "src/components/command-palette.js:256",
         "pattern": "export function commandPaletteList"
       },
       {
@@ -122,41 +122,41 @@
     ],
     "ranking": [
       {
-        "ref": "src/components/command-palette.js:33",
+        "ref": "src/components/command-palette.js:34",
         "pattern": "export const SCORE"
       },
       {
-        "ref": "src/components/command-palette.js:130",
+        "ref": "src/components/command-palette.js:131",
         "pattern": "export function rankGroups"
       }
     ],
     "keyboard": [
       {
-        "ref": "src/components/command-palette.js:515",
+        "ref": "src/components/command-palette.js:516",
         "pattern": "function onKeydown"
       },
       {
-        "ref": "src/components/overlay.js:97",
+        "ref": "src/components/overlay.js:101",
         "pattern": "function ownKeys"
       }
     ],
     "say-it": [
       {
-        "ref": "src/components/command-palette.js:368",
+        "ref": "src/components/command-palette.js:369",
         "pattern": "function setActive"
       },
       {
-        "ref": "src/components/command-palette.js:392",
+        "ref": "src/components/command-palette.js:393",
         "pattern": "function announce"
       },
       {
-        "ref": "src/components/overlay.js:236",
+        "ref": "src/components/overlay.js:240",
         "pattern": "export function returnFocus"
       }
     ],
     "ask-first": [
       {
-        "ref": "src/components/command-palette.js:229",
+        "ref": "src/components/command-palette.js:230",
         "pattern": "const isRefused = (it) =>"
       },
       {
@@ -168,7 +168,7 @@
   "_component-choice.js": {
     "interrupt": [
       {
-        "ref": "src/components/confirm.js:1",
+        "ref": "src/components/confirm.js:2",
         "pattern": "a question the page stops for"
       },
       {
@@ -176,7 +176,7 @@
         "pattern": "export function callout("
       },
       {
-        "ref": "src/components/drawer.js:10",
+        "ref": "src/components/drawer.js:11",
         "pattern": "content over a scrim, focus-trapped, Esc-dismissable"
       }
     ],
@@ -204,7 +204,7 @@
         "pattern": "that one owns panels and earns the tab announcement"
       },
       {
-        "ref": "src/components/nav.js:7",
+        "ref": "src/components/nav.js:8",
         "pattern": "not role=\"tablist\""
       }
     ],
@@ -218,13 +218,13 @@
         "pattern": "export function successPanel("
       },
       {
-        "ref": "src/components/success.js:55",
+        "ref": "src/components/success.js:56",
         "pattern": "The page-sized confirmation"
       }
     ],
     "dropdown-search": [
       {
-        "ref": "src/components/dropdown.js:97",
+        "ref": "src/components/dropdown.js:98",
         "pattern": "export const dropdownMatch"
       },
       {
@@ -264,7 +264,7 @@
     ],
     "undo": [
       {
-        "ref": "src/components/confirm.js:61",
+        "ref": "src/components/confirm.js:62",
         "pattern": "role=\"alertdialog\""
       },
       {
@@ -280,13 +280,13 @@
   "_drawer.js": {
     "one-record": [
       {
-        "ref": "src/components/drawer.js:10",
+        "ref": "src/components/drawer.js:11",
         "pattern": "content over a scrim, focus-trapped, Esc-dismissable"
       }
     ],
     "no-cards": [
       {
-        "ref": "src/components/drawer.js:88",
+        "ref": "src/components/drawer.js:89",
         "pattern": "export function drawerSection("
       },
       {
@@ -306,7 +306,7 @@
     ],
     "rows": [
       {
-        "ref": "src/components/drawer.js:92",
+        "ref": "src/components/drawer.js:93",
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
@@ -330,13 +330,13 @@
     ],
     "one-or-the-other": [
       {
-        "ref": "src/components/shell.js:322",
+        "ref": "src/components/shell.js:323",
         "pattern": "${up || (crumbs.length"
       }
     ],
     "section-lit": [
       {
-        "ref": "src/components/nav.js:109",
+        "ref": "src/components/nav.js:110",
         "pattern": "const current = activeIs === 'section'"
       }
     ],
@@ -360,34 +360,34 @@
     ],
     "above-the-mark": [
       {
-        "ref": "src/components/tooltip.js:112",
+        "ref": "src/components/tooltip.js:113",
         "pattern": "const flip = prefersBelow"
       },
       {
-        "ref": "src/components/tooltip.js:118",
+        "ref": "src/components/tooltip.js:119",
         "pattern": "const left = Math.max(clip.left"
       }
     ],
     "contents": [
       {
-        "ref": "src/components/tooltip.js:132",
+        "ref": "src/components/tooltip.js:133",
         "pattern": "el.textContent = t;"
       }
     ],
     "on-touch": [
       {
-        "ref": "src/components/tooltip.js:216",
+        "ref": "src/components/tooltip.js:217",
         "pattern": "function touching(doc, e)"
       },
       {
-        "ref": "src/components/tooltip.js:333",
-        "pattern": "host.addEventListener('click'"
+        "ref": "src/components/tooltip.js:332",
+        "pattern": "life.on(host, 'click'"
       }
     ],
     "not-only-hover": [
       {
-        "ref": "src/components/tooltip.js:316",
-        "pattern": "host.addEventListener('focusin'"
+        "ref": "src/components/tooltip.js:315",
+        "pattern": "life.on(host, 'focusin'"
       }
     ]
   },
@@ -456,7 +456,7 @@
         "pattern": "in sentence case like every"
       },
       {
-        "ref": "src/components/topbar.js:44",
+        "ref": "src/components/topbar.js:45",
         "pattern": "the kit writes the word for it"
       },
       {
@@ -558,11 +558,11 @@
   "_microcopy.js": {
     "state-not-destination": [
       {
-        "ref": "src/components/topbar.js:11",
+        "ref": "src/components/topbar.js:12",
         "pattern": "reports the state it is IN"
       },
       {
-        "ref": "src/components/topbar.js:23",
+        "ref": "src/components/topbar.js:24",
         "pattern": "rewritten by applyTheme on every flip"
       },
       {
@@ -646,47 +646,47 @@
   "_pagination.js": {
     "counted-total": [
       {
-        "ref": "src/components/pagination.js:137",
+        "ref": "src/components/pagination.js:138",
         "pattern": "const counted = total"
       }
     ],
     "the-jump": [
       {
-        "ref": "src/components/pagination.js:90",
+        "ref": "src/components/pagination.js:91",
         "pattern": "function slotsFor"
       }
     ],
     "ends-disable": [
       {
-        "ref": "src/components/pagination.js:78",
+        "ref": "src/components/pagination.js:79",
         "pattern": "disabled aria-disabled"
       }
     ],
     "one-page": [
       {
-        "ref": "src/components/pagination.js:162",
+        "ref": "src/components/pagination.js:163",
         "pattern": "if (single && !sizes.length)"
       }
     ],
     "page-turn": [
       {
-        "ref": "src/components/pagination.js:231",
+        "ref": "src/components/pagination.js:232",
         "pattern": "loading ? ' aria-busy"
       }
     ],
     "announce-range": [
       {
-        "ref": "src/components/pagination.js:232",
+        "ref": "src/components/pagination.js:233",
         "pattern": "aria-live=\"polite\""
       }
     ],
     "page-size": [
       {
-        "ref": "src/components/pagination.js:18",
+        "ref": "src/components/pagination.js:19",
         "pattern": "export const PAGE_SIZES"
       },
       {
-        "ref": "src/components/pagination.js:19",
+        "ref": "src/components/pagination.js:20",
         "pattern": "export const DEFAULT_PAGE_SIZE"
       }
     ]
@@ -729,7 +729,7 @@
     "busy": [
       {
         "ref": "src/components/index.js:37",
-        "pattern": "busy \u21d2 disabled"
+        "pattern": "busy ⇒ disabled"
       },
       {
         "ref": "src/styles/button.css:126",

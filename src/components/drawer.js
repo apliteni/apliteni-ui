@@ -1,3 +1,4 @@
+import { lifecycle, wireElements, retainListeners } from './lifecycle.js';
 // Drawer — the kit's edge-anchored overlay panel: a panel that slides in from
 // any screen edge over a scrim. Header / scrollable body / footer actions, sizes
 // sm|md|lg along the slide axis.
@@ -97,11 +98,8 @@ export function drawerSection({ title, rows = [], body = '' } = {}) {
 
 // ---- Shared behaviour ----------------------------------------------------
 // One open/close/scrim/close-button implementation for every drawer in the kit;
-// inertness, Escape and Tab belong to the overlay stack. Per-instance handlers
-// are attached once (guarded by a flag on the node); the [data-drawer-open]
-// delegation is attached once per document (guarded by a flag on the document
-// node, so multiple documents each get their own). Safe to call repeatedly
-// (Storybook re-renders).
+// inertness, Escape and Tab belong to the overlay stack.
+// Listener ownership and teardown: docs/specification.md#initializer-lifecycle
 
 export function openDrawer(root, returnFocusTo) {
   if (!root || root.classList.contains('is-open')) return;
@@ -130,37 +128,37 @@ export function closeDrawer(root) {
 }
 
 export function wireDrawer(root = document) {
+  const owner = lifecycle(root, 'drawer-root');
   const scope = root === document ? document : root;
-  scope.querySelectorAll('[data-drawer]').forEach((dr) => {
-    if (dr.__drawerWired) return;
-    dr.__drawerWired = true;
+  owner.add(wireElements(scope, '[data-drawer]', 'drawer', (dr, life) => {
+    life.add(() => closeDrawer(dr));
     const dismissible = !dr.hasAttribute('data-drawer-static');
 
-    dr.querySelector('[data-drawer-scrim]')?.addEventListener('click', () => {
+    life.on(dr.querySelector('[data-drawer-scrim]'), 'click', () => {
       if (dismissible) closeDrawer(dr);
     });
     dr.querySelectorAll('[data-drawer-close]').forEach((btn) =>
-      btn.addEventListener('click', () => closeDrawer(dr)));
+      life.on(btn, 'click', () => closeDrawer(dr)));
 
     // Rendered with `open: true`, so nothing called openDrawer() and nothing put
     // it on the stack. Adopting it here is what makes its aria-modal true.
     adoptOverlay(dr, dr.querySelector('[data-drawer-panel]'), dismissible ? () => closeDrawer(dr) : null,
       OVERLAY_LAYER.drawer);
-  });
+  }));
 
   const doc = root === document ? document : (root.ownerDocument || document);
-  if (!doc.__drawerGlobalWired) {
-    doc.__drawerGlobalWired = true;
+  if (owner.fresh) owner.add(retainListeners(doc, 'drawer-document', life => {
     // Any [data-drawer-open="ID"] trigger opens the matching drawer.
-    doc.addEventListener('click', (e) => {
+    life.on(doc, 'click', (e) => {
       const opener = e.target.closest?.('[data-drawer-open]');
       if (!opener) return;
       e.preventDefault();
       const target = doc.getElementById(opener.getAttribute('data-drawer-open'));
       if (target) openDrawer(target, opener);
     });
-  }
+  }));
   // This runs on every re-render, which is the moment to notice that an overlay
   // was destroyed while it was open and hand the page back.
   syncOverlays(doc);
+  return owner.destroy;
 }

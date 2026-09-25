@@ -1,3 +1,4 @@
+import { lifecycle } from './lifecycle.js';
 // Toast stack controller — entrance/exit, auto-dismiss timers, swipe-to-dismiss.
 //
 // The visual markup comes from toast() in index.js; this wires behaviour onto a
@@ -20,45 +21,55 @@ const reduceMotion = () =>
 export function dismissToast(el) {
   if (!el || el.dataset.leaving) return;
   el.dataset.leaving = '1';
-  const remove = () => el.remove();
+  const life = lifecycle(el, 'toast');
+  const remove = () => { life.destroy(); el.remove(); };
   if (reduceMotion()) return remove();
   el.classList.add('is-leaving');
   el.addEventListener('animationend', remove, { once: true });
-  setTimeout(remove, 260); // fallback if animationend never fires
+  life.add(() => el.removeEventListener('animationend', remove));
+  const timer = setTimeout(remove, 260);
+  life.add(() => clearTimeout(timer)); // fallback if animationend never fires
 }
 
 // Wire one toast: close button, auto-dismiss timer (pauses on hover),
 // swipe-to-dismiss via pointer drag.
 function wireToast(el) {
-  if (el.dataset.wired) return;
+  const life = lifecycle(el, 'toast');
+  if (!life.fresh) return life;
   el.dataset.wired = '1';
+  life.add(() => {
+    delete el.dataset.wired;
+    delete el.dataset.leaving;
+    el.classList.remove('is-leaving');
+  });
 
-  el.querySelector('.ui-toast__close')?.addEventListener('click', () => dismissToast(el));
+  life.on(el.querySelector('.ui-toast__close'), 'click', () => dismissToast(el));
 
   const bar = el.querySelector('[data-toast-timer]');
+  if (bar) life.add(() => { bar.classList.remove('is-running'); bar.style.animationPlayState = ''; });
   if (bar && !reduceMotion()) {
     bar.classList.add('is-running');
     const dur = parseFloat(getComputedStyle(el).getPropertyValue('--toast-dur')) || 5;
-    let timer = setTimeout(() => dismissToast(el), dur * 1000);
-    el.addEventListener('mouseenter', () => { clearTimeout(timer); bar.style.animationPlayState = 'paused'; });
-    el.addEventListener('mouseleave', () => {
+    let timer = life.timeout(() => dismissToast(el), dur * 1000);
+    life.on(el, 'mouseenter', () => { timer(); bar.style.animationPlayState = 'paused'; });
+    life.on(el, 'mouseleave', () => {
       bar.style.animationPlayState = 'running';
       const left = (parseFloat(getComputedStyle(bar).transform.split(',')[0].slice(7)) || 1);
-      timer = setTimeout(() => dismissToast(el), dur * 1000 * left);
+      timer = life.timeout(() => dismissToast(el), dur * 1000 * left);
     });
   } else if (bar && reduceMotion()) {
     // No animated bar under reduced motion, but still auto-dismiss on time.
     const dur = parseFloat(getComputedStyle(el).getPropertyValue('--toast-dur')) || 5;
-    setTimeout(() => dismissToast(el), dur * 1000);
+    life.timeout(() => dismissToast(el), dur * 1000);
   }
 
   // Swipe-to-dismiss (ignore drags that start on a button).
   let x0 = null;
-  el.addEventListener('pointerdown', (e) => {
+  life.on(el, 'pointerdown', (e) => {
     if (e.target.closest('button')) return;
     x0 = e.clientX; el.setPointerCapture(e.pointerId); el.style.transition = 'none';
   });
-  el.addEventListener('pointermove', (e) => {
+  life.on(el, 'pointermove', (e) => {
     if (x0 == null) return;
     const dx = e.clientX - x0;
     el.style.transform = `translateX(${dx}px)`;
@@ -71,15 +82,18 @@ function wireToast(el) {
     el.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
     el.style.transform = ''; el.style.opacity = '';
   };
-  el.addEventListener('pointerup', settle);
-  el.addEventListener('pointercancel', settle);
+  life.on(el, 'pointerup', settle);
+  life.on(el, 'pointercancel', settle);
+  return life;
 }
 
 // Wire every toast currently inside a container (string selector or element).
 export function wireToastStack(container) {
   const root = typeof container === 'string' ? document.querySelector(container) : container;
   if (!root) return null;
-  root.querySelectorAll('.ui-toast').forEach(wireToast);
+  const life = lifecycle(root, 'toast-stack');
+  root.querySelectorAll('.ui-toast').forEach(el => life.own(wireToast(el)));
+  root.destroy = life.destroy;
   return root;
 }
 
@@ -89,6 +103,6 @@ export function pushToast(container, opts = {}) {
   if (!root) return null;
   root.insertAdjacentHTML('afterbegin', toast(opts));
   const el = root.firstElementChild;
-  wireToast(el);
+  wireToastStack(root);
   return el;
 }

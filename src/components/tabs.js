@@ -1,3 +1,4 @@
+import { wireElements } from './lifecycle.js';
 // Tabs — an accessible tablist + panels, as a framework-agnostic HTML string.
 // Render with tabs(), then wire behaviour once after mount with initTabs().
 //
@@ -48,7 +49,7 @@ export function tabs({ items = [], active = 0, name = 'tabs', ariaLabel = 'Tabs'
 export function initTabs(root) {
   if (typeof document === 'undefined') return;
   const scope = root || document;
-  scope.querySelectorAll('[data-tabs]').forEach((el) => {
+  return wireElements(scope, '[data-tabs]', 'tabs', (el, life) => {
     const tabEls = Array.prototype.slice.call(el.querySelectorAll('[role="tab"]'));
     const panelFor = (t) => el.querySelector('[id="' + t.getAttribute('aria-controls') + '"]');
     const select = (i, focus) => {
@@ -68,8 +69,8 @@ export function initTabs(root) {
       if (focus && tabEls[i]) tabEls[i].focus();
     };
     tabEls.forEach((t, i) => {
-      t.addEventListener('click', () => select(i));
-      t.addEventListener('keydown', (e) => {
+      life.on(t, 'click', () => select(i));
+      life.on(t, 'keydown', (e) => {
         let n = null;
         if (e.key === 'ArrowRight') n = (i + 1) % tabEls.length;
         else if (e.key === 'ArrowLeft') n = (i - 1 + tabEls.length) % tabEls.length;

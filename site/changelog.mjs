@@ -13,6 +13,12 @@
 
 export const RELEASES = [
   {
+    v: '0.41.6', date: '2026-09-25',
+    changes: [
+      ['fixed', 'Vanilla controls can be initialized twice without handling an action twice. Initializers now provide cleanup for listeners and timers, including dropdown portals and observers; existing return values remain compatible. The lifecycle contract is documented in the specification. Part of #376.'],
+    ],
+  },
+  {
     v: '0.41.4', date: '2026-09-25',
     changes: [
       ['fixed', 'The React documentation now describes the shared dialog stack. Escape closes only the top React dialog and leaves the palette beneath it open; React and vanilla overlays still use separate stacks. This corrects outdated guidance without changing runtime behavior. Found in #367.'],
