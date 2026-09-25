@@ -14,10 +14,10 @@ export function Callout({ variant, icon = 'info', children, actions }: CalloutPr
   return (
     <div className={`ui-callout${variant ? ` ui-callout--${variant}` : ''}`} role={variant === 'danger' ? 'alert' : undefined}>
       <span className="ui-callout__icon" aria-hidden="true"><Icon name={icon} /></span>
-      <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+      <div className="ui-callout__body">
         {children}
         {actions != null && (
-          <div className="ui-toolbar" style={{ marginTop: 'var(--space-3)' }}>{actions}</div>
+          <div className="ui-toolbar ui-callout__actions">{actions}</div>
         )}
       </div>
     </div>
