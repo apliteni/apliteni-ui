@@ -8,7 +8,7 @@
 // fetched. The component then knows no last page, so it draws Prev and Next and
 // nothing else — see `ui-pager--open` below.
 import { esc } from './index.js';
-
+import { safeUrl } from '../html.js';
 // The sizes a table offers, and the one it starts on. Named here so no call site
 // writes either number: both moved once already and would have moved in thirteen
 // files. MUI's DataGrid ships exactly this pair (default 100, options 25/50/100),
@@ -74,7 +74,7 @@ const fmt = (n) => n.toLocaleString('en-US');
 function control({ cls, page, label, href, disabled = false, current = false }) {
   const attrs = `class="${cls}" data-page="${page}"${current ? ' aria-current="page"' : ''}`;
   return href && !disabled
-    ? `<a href="${esc(href(page))}" ${attrs}>${esc(label)}</a>`
+    ? `<a href="${esc(safeUrl(href(page)))}" ${attrs}>${esc(label)}</a>`
     : `<button type="button" ${attrs}${disabled ? ' disabled aria-disabled="true"' : ''}>${esc(label)}</button>`;
 }
 

@@ -5,7 +5,7 @@ import { icon, sun, moon } from '../assets/icons.js';
 import { esc } from './index.js';
 import { wireDropdown } from './dropdown.js';
 import { accountMenuNav, initials, toMenuTuple } from './account-nav.js';
-
+import { trustedAttr, trustedUrl } from '../html.js';
 const THEME_KEY = 'apliteni-strategy-theme';
 
 // A stateful control in this kit reports the state it is IN, never the state a
@@ -60,7 +60,7 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
 // `nav` mirrors the account sidebar, DERIVED from the one ACCOUNT_NAV definition
 // rather than restated: a second literal agreed with it by hand about the icon
 // and disagreed about the encoding, which is the drift #127 was filed about.
-// Every field below is interpolated raw, so what arrives has to arrive escaped.
+// Body slots below are trusted HTML; attribute copies retain encoded entities.
 //
 // `initials` is the avatar. A derived value has to be derived BEFORE the
 // escaping — `<Ada>` and `&lt;Ada&gt;` do not begin with the same character — so
@@ -84,13 +84,13 @@ export function accountMenu({
   const items = (Array.isArray(nav) ? nav : accountMenuNav())
     .map((n) => (Array.isArray(n) ? n : toMenuTuple(n)));
   const it = ([id, ic, label, href, target]) =>
-    `<a href="${href || '#' + id}"${target ? ` target="${target}"` : ''} data-dd-item tabindex="-1"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
+    `<a href="${trustedUrl(href || '#' + id)}"${target ? ` target="${trustedAttr(target)}"` : ''} data-dd-item tabindex="-1"${active === id ? ' class="cur"' : ''} role="menuitem">${icon(ic)}${label}</a>`;
   // `on` so the menu is visible in Storybook / standalone use (no /auth/me gate).
   // Consumes the shared dropdown wiring via the generic [data-dropdown] hooks.
   return `<div class="acct on" data-dropdown>` +
     `<button class="avatar" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
     `<div class="amenu" data-dropdown-panel role="menu">` +
-    `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${email}">${email}</span></span></div>` +
+    `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${trustedAttr(email)}">${email}</span></span></div>` +
     items.map(it).join('') +
     `<div class="asep"></div><a class="aout" href="#logout" data-dd-item tabindex="-1" role="menuitem">${icon('logout')}Sign out</a>` +
     `</div></div>`;

@@ -23,7 +23,7 @@ const BARE = 'Back';
 // C0 controls and spaces from the front and removes every tab, LF and CR wherever
 // they sit, so "java\tscript:" is still javascript:. The check reads the address the
 // same way (WHATWG URL Standard, basic URL parser).
-const SCRIPTED = /^javascript:/i;
+const SCRIPTED = /^(?:javascript|data|vbscript):/i;
 const LEADING = /^[\u0000-\u0020]+/;
 const TAB_OR_NEWLINE = /[\t\n\r]/g;
 

@@ -8,7 +8,7 @@
 // is for). Only the collapsible sidebar groups need JS; wire with wireNav().
 import { esc, icon } from './index.js';
 import { playEntrance } from '../motion.js';
-
+import { safeUrl } from '../html.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // Unique-per-render ids so a section heading can label its own list. Module
@@ -28,7 +28,7 @@ function navBadge(badge) {
   const text = badgeText(badge);
   if (!text) return '';
   const tone = typeof badge === 'object' && badge.tone ? badge.tone : 'neutral';
-  return `<span class="${cx('ui-nav__badge', `is-${tone}`)}">${esc(text)}</span>`;
+  return `<span class="${esc(cx('ui-nav__badge', `is-${tone}`))}">${esc(text)}</span>`;
 }
 
 // An item's accessible name. It is emitted at every width, not only when
@@ -59,7 +59,7 @@ function sideLeaf(it, active, { collapsed, sub, current = 'page' } = {}) {
   }
   const attrs = [
     `class="${cls}"`,
-    `href="${esc(it.href || '#' + (it.id ?? ''))}"`,
+    `href="${esc(safeUrl(it.href || '#' + (it.id ?? '')))}"`,
     it.target ? `target="${esc(it.target)}"` : '',
     on ? `aria-current="${current}"` : '',
     name.trim(),
@@ -140,13 +140,13 @@ export function navTabs({
     }
     const attrs = [
       `class="${cx('ui-nav__tab', on && 'is-active')}"`,
-      `href="${esc(it.href || '#' + (it.id ?? ''))}"`,
+      `href="${esc(safeUrl(it.href || '#' + (it.id ?? '')))}"`,
       it.target ? `target="${esc(it.target)}"` : '',
       on ? 'aria-current="page"' : '',
     ].filter(Boolean).join(' ');
     return `<a ${attrs}>${inner}</a>`;
   }).join('');
-  return `<nav class="${cx('ui-nav', 'ui-nav--tabs', `is-${variant}`)}"` +
+  return `<nav class="${esc(cx('ui-nav', 'ui-nav--tabs', `is-${variant}`))}"` +
     ` aria-label="${esc(ariaLabel)}"${id ? ` id="${esc(id)}"` : ''}>${tabs}</nav>`;
 }
 
@@ -161,7 +161,7 @@ export function breadcrumbs({ items = [], ariaLabel = 'Breadcrumb', id } = {}) {
     const inner = `${lead}${label}`;
     const isLast = i === last;
     const cell = (!isLast && it.href)
-      ? `<a class="ui-nav__crumb" href="${esc(it.href)}"${it.target ? ` target="${esc(it.target)}"` : ''}>${inner}</a>`
+      ? `<a class="ui-nav__crumb" href="${esc(safeUrl(it.href))}"${it.target ? ` target="${esc(it.target)}"` : ''}>${inner}</a>`
       : `<span class="${cx('ui-nav__crumb', isLast && 'is-current')}"${isLast ? ' aria-current="page"' : ''}>${inner}</span>`;
     return `<li class="ui-nav__crumb-item">${cell}</li>`;
   }).join('');

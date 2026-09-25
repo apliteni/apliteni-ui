@@ -13,7 +13,7 @@
 //   container.innerHTML = dropdown({ label: 'version:', value: '…', items });
 //   wireDropdown(container);   // or let wireTopbar() do it
 import { esc, icon } from './index.js';
-
+import { safeUrl } from '../html.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // A trailing status badge. `badge` is the text shown, in the case it is written
@@ -24,7 +24,7 @@ function ddBadge(badge) {
   let tone = typeof badge === 'string' ? '' : (badge.tone || '');
   if (!tone) tone = /^live$/i.test(text) ? 'live'
     : /^(?:off|unset|disabled|archive|archived)$/i.test(text) ? 'state' : 'neutral';
-  return `<span class="${cx('ui-dropdown__badge', `is-${tone}`)}">${esc(text)}</span>`;
+  return `<span class="${esc(cx('ui-dropdown__badge', `is-${tone}`))}">${esc(text)}</span>`;
 }
 
 // One item row. `listbox` picks role=option (selectable) vs role=menuitem (action).
@@ -41,14 +41,14 @@ function ddItem(it, listbox, ext) {
   const badge = ddBadge(it.badge);
   const tick = listbox ? `<span class="ui-dropdown__tick" aria-hidden="true">${icon('check')}</span>` : '';
   const attrs = [
-    `class="${cx('ui-dropdown__item', selected && 'is-selected', disabled && 'is-disabled', it.danger && 'is-danger')}"`,
+    `class="${esc(cx('ui-dropdown__item', selected && 'is-selected', disabled && 'is-disabled', it.danger && 'is-danger'))}"`,
     'data-dd-item',
     `role="${role}"`,
     'tabindex="-1"',
     it.value != null ? `data-value="${esc(it.value)}"` : '',
     listbox ? `aria-selected="${selected ? 'true' : 'false'}"` : '',
     disabled ? 'aria-disabled="true"' : '',
-    asLink ? `href="${esc(it.href)}"` : '',
+    asLink ? `href="${esc(safeUrl(it.href))}"` : '',
     asLink && it.target ? `target="${esc(it.target)}"` : '',
     ext?.id ? `id="${esc(ext.id)}"` : '',
     ext?.hidden ? 'hidden' : '',
@@ -189,7 +189,7 @@ export function dropdown({
     : `${label ? `<span class="ui-dropdown__pre">${esc(label)}</span>` : ''}` +
       `<span class="ui-dropdown__value">${esc(cur != null ? cur : placeholder)}</span>`;
   const triggerAttrs = [
-    `class="${cx('ui-dropdown__trigger', triggerClass)}"`,
+    `class="${esc(cx('ui-dropdown__trigger', triggerClass))}"`,
     'type="button"',
     'data-dropdown-trigger',
     `aria-haspopup="${sx ? 'dialog' : listRole}"`,
@@ -200,7 +200,7 @@ export function dropdown({
   // `is-open` beside `open` because the descendant selector the panel normally
   // takes its open state from stops matching once wireDropdown() portals it.
   const panelAttrs = [
-    `class="${cx(
+    `class="${esc(cx(
       'ui-dropdown__panel',
       align === 'end' && 'is-end',
       direction === 'up' && 'is-up',
@@ -209,7 +209,7 @@ export function dropdown({
       portal && 'ui-dropdown__panel--portal',
       portal && open && 'is-open',
       panelClass,
-    )}"`,
+    ))}"`,
     'data-dropdown-panel',
     // With search the panel holds a field and a list, which a listbox may not.
     `role="${sx ? 'dialog' : listRole}"`,
@@ -227,7 +227,7 @@ export function dropdown({
     + (direction === 'auto' ? ' data-dropdown-direction="auto"' : '')
     + (portal ? ' data-dropdown-portal' : '');
 
-  return `<div class="${cx('ui-dropdown', open && 'open')}" ${ddAttrs}${id ? ` id="${esc(id)}"` : ''}>` +
+  return `<div class="${esc(cx('ui-dropdown', open && 'open'))}" ${ddAttrs}${id ? ` id="${esc(id)}"` : ''}>` +
     `<button ${triggerAttrs}>${trig}${chevron ? '<span class="ui-dropdown__chevron" aria-hidden="true"></span>' : ''}</button>` +
     `<div ${panelAttrs}>${header}`
       + `${sx ? ddSearchBody({ items, sections }, sx, name, scroll) : ddBody({ items, sections }, isSelect)}`
