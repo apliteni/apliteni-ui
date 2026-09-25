@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Icon`.
 
 `Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
@@ -332,3 +332,9 @@ import '@apliteni/apliteni-ui/react/css';
   ]} />
 </DrawerSection>
 ```
+
+## Tabs
+
+Tabs is controlled through `value` and `onChange`. Pass items with unique values, labels, optional counts, and React panel content. Provide a label for the tablist and a value that matches one item. Inactive panel content is unmounted.
+
+Arrow keys move between tabs and wrap from the last tab to the first. They also activate the selected tab. Home and End select the first and last tabs. Tab moves to the selected panel. New panels use the kit’s fade animation, which is shortened when reduced motion is enabled.
