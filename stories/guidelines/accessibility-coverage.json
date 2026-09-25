@@ -392,6 +392,14 @@
       ]
     },
     {
+      "file": "react/src/Snippet.test.tsx",
+      "name": "React: Snippet",
+      "does": "Checks keyboard copying, copy-result announcements and axe results before and after copying.",
+      "blind": [
+        "Screen-reader speech, browser clipboard permissions and touch-target dimensions."
+      ]
+    },
+    {
       "file": "react/src/a11y.test.tsx",
       "name": "React: A11y",
       "does": "Applies the same axe contract to the React workspace through vitest and Testing Library.",

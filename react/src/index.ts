@@ -55,3 +55,5 @@ export * from './Segmented';
 export * from './FilterBar';
 export { KeyValueList, DrawerSection } from './KeyValueList';
 export type { KeyValueRow, KeyValueListProps, DrawerSectionProps } from './KeyValueList';
+export { Snippet } from './Snippet';
+export type { SnippetProps } from './Snippet';

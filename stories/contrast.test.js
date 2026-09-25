@@ -67,8 +67,8 @@ const LEDGER = [
     fg: '--accent',
     themes: ['dark'],
     bg: 'grounds mixed from the accent itself, in the dark theme',
-    example: 'button.ui-snippet__copy',
-    count: 2,
+    example: 'button.mz-replay',
+    count: 1,
     worst: 3.97,
     why: 'This was the largest bucket in the ledger until #157 lifted the dark accent onto '
       + '--purple-mid and thinned its wash. That closed every row whose ground was --glow-purple — '
@@ -80,8 +80,8 @@ const LEDGER = [
       + 'the honest statement and it is weaker than the one this entry used to make. What keeps '
       + 'these rows here is not arithmetic but the brand: the accent that closes them is well past '
       + 'the point where it is still this violet, and #96 and #157 both chose the hue before the '
-      + 'ratio. So they are debt with a known price, not an impossibility. Two rules remain, '
-      + 'over two rows. The dropdown badge (src/styles/dropdown.css) was two of them until #295: '
+      + 'ratio. These are historical findings: #393 cleared the snippet hover with --strong. '
+      + 'Only the replay control remains. The dropdown badge (src/styles/dropdown.css) left at #295: '
       + 'its ground was the mix over whatever the row beneath it is, and the row lightens to '
       + '--surface when hovered or focused, which is exactly where it failed. It takes the shape '
       + 'the nav badge already had — --glow-purple on a base surface, and on a raised one that '
@@ -108,14 +108,14 @@ const LEDGER = [
     themes: ['light'],
     bg: 'the success wash and plain white in the light theme',
     example: 'div.ui-sx__eyebrow',
-    count: 4,
+    count: 2,
     worst: 3.56,
     why: 'Light --green has to stay recognisably green while carrying text, and green is the '
       + 'hue that darkens worst without turning into a colour nobody reads as success. #155 '
       + 'took the live pill and the badge over the line; what is left is the eyebrow on the '
-      + 'success screen and the shell glyphs in a revealed snippet. Each of these repeats a '
-      + 'meaning that is already carried by an icon or by '
-      + 'wording next to it, which is why they were allowed to lag the components that carry '
+      + 'success screen and shell syntax highlighting. #393 removed the reveal label and value '
+      + 'from this bucket by using text-grade success ink. Each remaining row repeats a '
+      + 'meaning already carried by an icon or nearby wording, so they were allowed to lag components that carry '
       + 'meaning alone. The toast action used to be here too, on its own soft wash and again on '
       + 'the outline card, and #131 closed those rows: the action is the one part of a toast '
       + 'that is both the status colour and a piece of text, so it stopped taking the accent and '
@@ -632,12 +632,12 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 // Last full report: 2026-09-25, source 0877848.
 // Record `git rev-parse HEAD` with the output. Review measurements before changing debt.
 const ACCENT_LEDGER = {
-  'dark/phoenix': { B: [2, 4.24], P: [65, 1.06], S: [21, 2.66] },
-  'dark/ocean': { B: [2, 4.20], P: [65, 1.06], S: [21, 2.66] },
+  'dark/phoenix': { B: [1, 4.24], P: [65, 1.06], S: [21, 2.66] },
+  'dark/ocean': { B: [1, 4.20], P: [65, 1.06], S: [21, 2.66] },
   'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
-  'light/phoenix': { C: [4, 3.56], E: [2, 3.05], F: [5, 4.02], L: [1, 4.21], P: [65, 1.06], S: [21, 2.66] },
-  'light/ocean': { C: [4, 3.56], E: [2, 3.05], F: [1, 4.32], L: [1, 4.35], P: [65, 1.06], S: [21, 2.66] },
-  'light/emerald': { C: [4, 3.56], E: [2, 3.05], F: [7, 3.12], L: [1, 4.23], P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [2, 3.56], E: [2, 3.05], F: [5, 4.02], L: [1, 4.21], P: [65, 1.06], S: [21, 2.66] },
+  'light/ocean': { C: [2, 3.56], E: [2, 3.05], F: [1, 4.32], L: [1, 4.35], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [2, 3.56], E: [2, 3.05], F: [7, 3.12], L: [1, 4.23], P: [65, 1.06], S: [21, 2.66] },
 };
 
 const ALTERNATE_CAUSES = [...LEDGER, {
