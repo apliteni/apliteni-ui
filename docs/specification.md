@@ -2085,3 +2085,25 @@ HTML or caller-supplied CSS is safe.
 Tabs is controlled through `value` and `onChange`. Pass items with unique values, labels, optional counts, and React panel content. Provide a label for the tablist and a value that matches one item. Inactive panel content is unmounted.
 
 Arrow keys move between tabs and wrap from the last tab to the first. They also activate the selected tab. Home and End select the first and last tabs. Tab moves to the selected panel. New panels use the kit’s fade animation, which is shortened when reduced motion is enabled.
+
+## React confirmation
+
+`Confirm` builds on `Modal` and uses the kit's ghost, primary, danger, and busy buttons.
+The consumer provides both action labels and controls the open and busy states. The safe
+action appears before the committing action. Danger buttons keep the shared quiet
+resting state and use the shared danger hover and focus styles.
+
+`Confirm` renders an `alertdialog`, named by its title and described by its body.
+When it opens, focus goes to the safe action. Modal
+keeps focus inside the dialog, returns focus when the dialog closes, and controls enter
+and exit motion, including reduced motion. Escape, the scrim, and both safe controls
+call `onCancel`, including while busy. Closing the dialog does not cancel a pending
+write.
+
+`onConfirm` only reports that the user pressed the button. The consumer handles saving,
+errors, and closing. A busy action keeps focus, prevents repeated activation, and
+announces progress. Use a toast with Undo when the action can be undone.
+
+The behavior is covered by `react/src/Confirm.test.tsx`, the existing Modal and Button
+tests, and the React story accessibility gate. DOM tests do not measure visual
+transitions. Modal's timing tests and browser evidence cover those separately.

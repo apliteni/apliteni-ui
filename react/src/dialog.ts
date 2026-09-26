@@ -94,6 +94,7 @@ type Entry = {
   root: HTMLElement;
   panel: HTMLElement;
   body: HTMLElement | null;
+  initialFocus: HTMLElement | null;
   close: () => void;
   opener: Element | null; // had focus when this one opened, and gets it back when it closes
   resume: Element | null; // had focus in this one when another opened over it
@@ -105,7 +106,8 @@ let marked: [HTMLElement, boolean][] = []; // what the top made inert, and wheth
 let listening = false;
 
 const firstIn = (entry: Entry) =>
-  (entry.body ? tabbablesIn(entry.body) : [])[0] || entry.panel;
+  (entry.initialFocus && entry.panel.contains(entry.initialFocus) ? entry.initialFocus : null)
+  || (entry.body ? tabbablesIn(entry.body) : [])[0] || entry.panel;
 
 function trapTab(panel: HTMLElement, e: KeyboardEvent) {
   const items = tabbablesIn(panel);
@@ -135,7 +137,8 @@ function sync() {
   const top = stack[stack.length - 1];
   for (let node = top?.root; node?.parentElement && node !== document.body; node = node.parentElement) {
     for (const sib of Array.from(node.parentElement.children) as HTMLElement[]) {
-      if (sib === node || leaving.has(sib)) continue;
+      // Button progress must remain audible outside the inert page.
+      if (sib === node || leaving.has(sib) || sib.matches('.ui-btn__status[role="status"]')) continue;
       marked.push([sib, sib.hasAttribute('inert')]);
       sib.setAttribute('inert', '');
     }
@@ -273,10 +276,10 @@ export function usePresence(open: boolean, root: Ref, panel: Ref) {
 /**
  * While `active` the dialog is on the page's stack. On top, it takes Escape and Tab, the
  * rest of the page is inert, and focus starts on the first control in the body Tab can
- * reach. When it stops being active, focus goes back the way `exit` above sends it.
+ * reach unless the caller supplies initialFocus. On close, `exit` returns focus.
  * Returns the dialog's scope, which Modal and Drawer provide to what they render.
  */
-export function useDialog(active: boolean, { root, panel, body }: { root: Ref; panel: Ref; body: Ref },
+export function useDialog(active: boolean, { root, panel, body, initialFocus }: { root: Ref; panel: Ref; body: Ref; initialFocus?: Ref },
   onClose: () => void): Scope {
   const parent = useContext(DialogScope);
   const [scope] = useState<Scope>(() => ({ parent }));
@@ -290,6 +293,7 @@ export function useDialog(active: boolean, { root, panel, body }: { root: Ref; p
     if (!active || !root.current || !panel.current) return;
     const entry: Entry = {
       scope, root: root.current, panel: panel.current, body: body.current,
+      initialFocus: initialFocus?.current ?? null,
       close: () => close.current(), opener: document.activeElement, resume: null,
     };
     enter(entry);

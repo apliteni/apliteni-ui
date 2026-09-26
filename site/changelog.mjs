@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.45.0', date: '2026-09-26',
+    changes: [
+      ['added', 'Added React Confirm, which asks users to approve actions that have a cost. It supports plain and danger actions, safe dismissal, and a busy button that prevents repeated presses. Closes #383.', ['React Confirm']],
+    ],
+  },
+  {
     v: '0.44.0', date: '2026-09-26',
     changes: [
       ['added', 'React now includes Tabs with controlled selection, optional counts, and keyboard navigation. It uses the existing underline tab styles. This resolves #394.'],
@@ -687,6 +693,7 @@ const COMPONENTS = {
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',
   Confirm:   'components-confirm--playground',
+  'React Confirm': 'react-confirm--danger',
   CommandPalette: 'components-command-palette--playground',
   Drawer:    'components-drawer--playground',
   Inputs:    'components-inputs--text-fields',

@@ -15,6 +15,8 @@ export { Badge } from './primitives/Badge';
 export { Card } from './primitives/Card';
 export { StatBand } from './primitives/StatBand';
 export type { StatBandProps, StatFigure, StatDelta, StatTone, StatVariant } from './primitives/StatBand';
+export { Confirm } from './Confirm';
+export type { ConfirmProps } from './Confirm';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { Drawer } from './Drawer';

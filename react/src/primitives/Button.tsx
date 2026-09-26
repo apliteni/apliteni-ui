@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type ReactNode, type SyntheticEvent, type KeyboardEvent } from 'react';
+import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, type ButtonHTMLAttributes, type ReactNode, type SyntheticEvent, type KeyboardEvent } from 'react';
 import { Icon } from './Icon';
 
 export type ButtonProps = {
@@ -46,12 +46,13 @@ function acquireAnnouncer(doc: Document) {
 
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
-export function Button({
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, busy, children,
   type = 'button', disabled, onClick, onClickCapture, onKeyDown, onKeyDownCapture,
   onKeyUp, onKeyUpCapture, ...rest
-}: ButtonProps) {
+}, forwardedRef) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  useImperativeHandle(forwardedRef, () => buttonRef.current!, []);
   const labelRef = useRef<HTMLSpanElement>(null);
   const announcer = useRef<ReturnType<typeof acquireAnnouncer> | null>(null);
   const hasBeenBusy = useRef(false);
@@ -124,4 +125,4 @@ export function Button({
       {busy && <span className="ui-btn__dots" aria-hidden="true"><i /><i /><i /></span>}
     </button>
   );
-}
+});
