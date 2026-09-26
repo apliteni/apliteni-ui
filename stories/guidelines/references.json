@@ -769,5 +769,19 @@
       }
     ]
   },
-  "_the-page.js": {}
+  "_the-page.js": {},
+  "_text-length.js": {
+    "short-controls": [
+      {
+        "ref": "src/components/index.js:23",
+        "pattern": "export function button("
+      }
+    ],
+    "useful-callouts": [
+      {
+        "ref": "src/components/index.js:221",
+        "pattern": "export function callout("
+      }
+    ]
+  }
 }

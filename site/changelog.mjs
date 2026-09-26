@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.43.2', date: '2026-09-26',
+    changes: [
+      ['added', 'The text length guideline explains where UI copy should stay short, when explanations help, and how to remove filler. Closes #399.'],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],
