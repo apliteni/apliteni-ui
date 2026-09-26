@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.53.2', date: '2026-09-28',
+    changes: [
+      ['added', 'Empty-state guidelines explain how to name missing content and offer an action using the kit. See #430.'],
+    ],
+  },
+  {
     v: '0.53.1', date: '2026-09-28',
     changes: [
       ['added', 'Density and accent guidelines now show paired examples of narrow stat bands, payout previews and primary actions. See #400.'],

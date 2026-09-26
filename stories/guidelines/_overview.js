@@ -4,6 +4,7 @@ import { loadGuideline } from './_markdown.js';
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import * as destructiveContent from './_destructive-actions.js';
 import * as colourContent from './_colour-and-theming.js';
+import * as emptyContent from './_empty-states.js';
 import * as stateContent from './_state-set.js';
 import * as componentContent from './_component-choice.js';
 import * as textContent from './_text-length.js';
@@ -25,6 +26,7 @@ import * as pageContent from './_the-page.js';
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
 import * as destructiveStory from './DestructiveActions.stories.js';
 import * as colourStory from './ColourAndTheming.stories.js';
+import * as emptyStory from './EmptyStates.stories.js';
 import * as stateStory from './StateSet.stories.js';
 import * as componentStory from './ComponentChoice.stories.js';
 import * as textStory from './TextLength.stories.js';
@@ -51,6 +53,7 @@ const ENTRIES = [
   [destructiveContent, destructiveStory],
   [colourContent, colourStory],
   [stateContent, stateStory],
+  [emptyContent, emptyStory],
   [componentContent, componentStory],
   [microcopyContent, microcopyStory],
   [textContent, textStory],
