@@ -422,6 +422,14 @@
       "blind": [
         "No state pass. All blind spots of the vanilla contrast gate also apply here."
       ]
+    },
+    {
+      "file": "react/src/FreshnessChip.test.tsx",
+      "name": "React: FreshnessChip",
+      "does": "Checks tone names, detail references, keyboard focus, Escape dismissal, links and source list order.",
+      "blind": [
+        "Browser placement, pointer travel across the tooltip gap, and screen-reader speech."
+      ]
     }
   ],
   "UNGATED": [

@@ -1,3 +1,4 @@
+// Browser placement, pointer travel across the tooltip gap, and screen-reader speech need browser checks.
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
