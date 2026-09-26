@@ -19,11 +19,8 @@ it.each([
   ['not-yet-built', 'This ships later', 'This screen is not available yet. Check back later.', 'clock'],
 ] as const)('matches vanilla markup for %s', (variant, title, sub, icon) => {
   const { container } = render(<EmptyState variant={variant} />);
-  const html = variant === 'not-found'
-    ? container.innerHTML.replace('<h1 ', '<div ').replace('</h1>', '</div>')
-    : container.innerHTML;
+  const html = container.innerHTML;
   expect(html).toBe(vanilla({ title, sub, icon }));
-  if (variant === 'not-found') expect(container.querySelectorAll('h1')).toHaveLength(1);
 });
 
 it('matches vanilla custom copy and omits empty text', () => {
@@ -57,4 +54,16 @@ it('keeps caller text as text', () => {
   const { container, getByText } = render(<EmptyState title={'<img src=x>'} sub={'<script>bad()</script>'} />);
   expect(getByText('<img src=x>')).toBeVisible();
   expect(container.querySelector('img, script')).toBeNull();
+});
+
+// DOM parity covers structure; matching browser captures cover CSS and fonts.
+it.each(['people', 'invoices', 'inbox'])('matches vanilla named artwork: %s', art => {
+  const { container } = render(<EmptyState art={art} title="Nothing here" sub="Add an item." />);
+  expect(container.innerHTML).toBe(vanilla({ art, title: 'Nothing here', sub: 'Add an item.' }));
+});
+
+it('matches vanilla trusted SVG markup', () => {
+  const art = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4"></circle></svg>';
+  const { container } = render(<EmptyState art={art} title="Nothing here" sub="" />);
+  expect(container.innerHTML).toBe(vanilla({ art, title: 'Nothing here' }));
 });

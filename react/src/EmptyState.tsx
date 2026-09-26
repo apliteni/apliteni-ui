@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-import { icon as kitIcon } from '@apliteni/apliteni-ui';
-import './EmptyState.css';
+import { icon as kitIcon, illo } from '@apliteni/apliteni-ui';
 
 export type EmptyStateVariant = 'first-run' | 'no-matches' | 'not-found' | 'not-yet-built';
 export type EmptyStateProps = {
@@ -24,12 +23,13 @@ export function EmptyState({ variant = 'first-run', title, sub, icon, art, actio
   const heading = title ?? preset.title;
   const guidance = sub ?? preset.sub;
   const glyph = icon ?? preset.icon;
-  const Title = variant === 'not-found' ? 'h1' : 'div';
   return (
     <div className="ui-empty">
-      {art ? <div className="ui-empty__art" aria-hidden="true">{art}</div>
+      {art ? typeof art === 'string'
+        ? <div className="ui-empty__art" dangerouslySetInnerHTML={{ __html: /<svg/.test(art) ? art : illo(art) }} />
+        : <div className="ui-empty__art" aria-hidden="true">{art}</div>
         : glyph ? <div className="ui-empty__icon" dangerouslySetInnerHTML={{ __html: kitIcon(glyph) }} /> : null}
-      {heading && <Title className="ui-empty__title">{heading}</Title>}
+      {heading && <div className="ui-empty__title">{heading}</div>}
       {guidance && <div className="ui-empty__sub">{guidance}</div>}
       {actions && <div className="ui-empty__actions">{actions}</div>}
     </div>

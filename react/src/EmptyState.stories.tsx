@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { illo } from '@apliteni/apliteni-ui';
 import { EmptyState } from './EmptyState';
 import { Button } from './primitives/Button';
 
@@ -26,6 +25,19 @@ export const NotYetBuilt: Story = {
 };
 export const Illustration: Story = {
   render: () => <EmptyState title="No people yet" sub="Contractors and staff you add show up here for attribution."
-    art={<span dangerouslySetInnerHTML={{ __html: illo('people') }} />}
+    art="people"
     actions={<Button variant="primary">+ Add person</Button>} />,
+};
+
+const canvas = (content: React.ReactNode) => <div style={{ padding: 40, minHeight: '100vh' }}><div style={{ maxWidth: 520 }}><div className="ui-card">{content}</div></div></div>;
+
+export const Default: Story = {
+  render: () => canvas(<EmptyState art="people" title="No people yet" sub="Contractors and staff you add show up here for attribution." actions={<Button variant="primary">+ Add person</Button>} />),
+};
+export const MessageOnly: Story = {
+  render: () => canvas(<EmptyState art="invoices" title="No invoices match the current filters." sub="Try widening the date range or clearing a filter." />),
+};
+export const WithAction: Story = { ...Default };
+export const WithIllustration: Story = {
+  render: () => canvas(<EmptyState art="people" title="No people yet" sub="Contractors and staff you add show up here for attribution." />),
 };

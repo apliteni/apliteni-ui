@@ -81,8 +81,8 @@ either number. They are declared in this package's own types, and `PAGE_SIZES` i
 
 `EmptyState` uses the vanilla layout. `variant` selects `first-run`, `no-matches`,
 `not-found`, or `not-yet-built` copy; `title`, `sub`, and `icon` override it.
-`art` and `actions` accept React nodes. Use at most one primary action and one ghost
-action. The not-found title is an h1 styled like the vanilla title.
+`art` accepts a vanilla illustration name, trusted SVG string, or React node; `actions` accepts React nodes. Use at most one primary action and one ghost
+action. The page supplies its own h1; EmptyState uses vanilla’s div title.
 
 ## What the Modal does with focus
 
