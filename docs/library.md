@@ -281,3 +281,14 @@ a bar. Add-filter controls and domain-specific option validation belong to the c
 `initRowIdentity` handles failed logos. `filterBar` renders the controlled filter group and
 `initFilterBar` owns its mounted controller. `initSegmented` wires the vanilla view strip
 and returns a listener cleanup function.
+
+### DocumentViewer (React)
+
+`DocumentViewer` places a document beside its fields. Pass editable fields as `children`
+and review actions as `footer`, or use `KeyValueList` for read-only details. `file` supplies
+`name`, a formatted `size`, and the download `href`. `kind="image"` hides page controls.
+
+`renderDocument({ page, zoom })` renders the current page at the requested size. The host
+fetches once with `cache: 'no-store'` and owns the renderer, including image sizing and
+iframe titles. Use `state="loading"` or `state="error"` while preparing the document or
+when preview fails. Fields stay usable in both states.

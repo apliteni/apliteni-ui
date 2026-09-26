@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/DocumentViewer.test.tsx",
+      "name": "React: DocumentViewer",
+      "does": "Checks page and zoom controls, page keys, image mode, loading and failure states, field persistence, and axe violations.",
+      "blind": [
+        "JSDOM does not measure scrolling, stacking, or rendered focus and contrast. Browser evidence covers the layout."
+      ]
+    },
+    {
       "file": "react/src/KeyValueList.test.tsx",
       "name": "React: KeyValueList",
       "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",

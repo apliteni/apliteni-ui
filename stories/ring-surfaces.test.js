@@ -53,7 +53,7 @@ test('every painted surface sets a matching gap or explains why the containing g
 });
 
 test('every ring consumer keeps a real outline for forced colors', () => {
-  assert.equal(consumers.length, 26, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 27, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }
