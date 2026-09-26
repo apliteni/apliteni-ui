@@ -57,3 +57,5 @@ export { KeyValueList, DrawerSection } from './KeyValueList';
 export type { KeyValueRow, KeyValueListProps, DrawerSectionProps } from './KeyValueList';
 export { Snippet } from './Snippet';
 export type { SnippetProps } from './Snippet';
+export { Tabs } from './Tabs';
+export type { TabsProps, TabItem } from './Tabs';

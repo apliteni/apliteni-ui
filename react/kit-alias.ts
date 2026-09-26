@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 const src = (file: string) => fileURLToPath(new URL(`../src/${file}`, import.meta.url));
 
 export const kitAlias = [
+  { find: '@apliteni/apliteni-ui/motion', replacement: src('motion.js') },
   { find: '@apliteni/apliteni-ui/css', replacement: src('index.css') },
   { find: /^@apliteni\/apliteni-ui$/, replacement: src('index.js') },
 ];

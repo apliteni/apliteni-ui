@@ -27,3 +27,7 @@ declare module '@apliteni/apliteni-ui' {
   export const PAGE_SIZES: number[];
   export const DEFAULT_PAGE_SIZE: number;
 }
+
+declare module '@apliteni/apliteni-ui/motion' {
+  export function playEntrance(element: Element | null): void;
+}

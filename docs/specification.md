@@ -2079,3 +2079,9 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React tabs
+
+Tabs is controlled through `value` and `onChange`. Pass items with unique values, labels, optional counts, and React panel content. Provide a label for the tablist and a value that matches one item. Inactive panel content is unmounted.
+
+Arrow keys move between tabs and wrap from the last tab to the first. They also activate the selected tab. Home and End select the first and last tabs. Tab moves to the selected panel. New panels use the kit’s fade animation, which is shortened when reduced motion is enabled.
