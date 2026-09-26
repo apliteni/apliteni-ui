@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/EntitySwitcher.test.tsx",
+      "name": "React: EntitySwitcher",
+      "does": "Checks entity names, archived state, selection, arrow keys, Enter, Escape, Tab and focus return through Dropdown.",
+      "blind": [
+        "JSDOM does not measure visible focus, layout or contrast; browser evidence and the story gates cover those."
+      ]
+    },
+    {
       "file": "react/src/KeyValueList.test.tsx",
       "name": "React: KeyValueList",
       "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",

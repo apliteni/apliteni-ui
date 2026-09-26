@@ -2079,3 +2079,13 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React entity switcher
+
+`EntitySwitcher` composes the select Dropdown with entity names, descriptions and
+an Archived state badge. It uses the same CSS, keyboard behavior and one-open-dropdown
+rule. The panel aligns to the trigger's end and has no search field.
+
+The consumer renders it only for users allowed to switch entities, updates `value`
+from `onChange`, stores the choice in the URL and scopes requests to it. The consumer
+also makes archived periods read-only; the switcher does not enforce permissions.
