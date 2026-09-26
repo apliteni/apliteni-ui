@@ -57,3 +57,5 @@ export { KeyValueList, DrawerSection } from './KeyValueList';
 export type { KeyValueRow, KeyValueListProps, DrawerSectionProps } from './KeyValueList';
 export { Snippet } from './Snippet';
 export type { SnippetProps } from './Snippet';
+export { PeriodPicker } from './PeriodPicker';
+export type { PeriodPickerProps, PeriodMonth, PeriodState } from './PeriodPicker';

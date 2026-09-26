@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `PeriodPicker`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Button`, `Badge`, `Card`, `Icon`.
 
 `Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
@@ -332,3 +332,14 @@ import '@apliteni/apliteni-ui/react/css';
   ]} />
 </DrawerSection>
 ```
+
+## PeriodPicker
+
+Pass the months, selected value, and `onChange`. Each month needs a unique value,
+full month-and-year label, `shortLabel`, and one of these states: `closed`,
+`restated`, `complete-not-closed`, or `incomplete`.
+
+Provide up to 12 months in display order. If viewers cannot see open periods,
+include only closed months. The caller calculates each state, marks the current
+month as incomplete, and updates the route in `onChange`. Storybook examples
+demonstrate query-string updates and browser Back/Forward handling.

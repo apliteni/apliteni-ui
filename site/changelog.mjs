@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.59.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React PeriodPicker adds month navigation with four period states and keyboard controls. Resolves #392.'],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],

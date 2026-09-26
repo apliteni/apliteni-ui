@@ -1,0 +1,44 @@
+.ui-period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+.ui-period__navigation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  max-width: 100%;
+}
+.ui-period__navigation > .ui-btn { flex: none; }
+.ui-period__strip {
+  min-width: 0;
+  overflow-x: auto;
+  padding: var(--space-1);
+}
+.ui-period__strip button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  white-space: nowrap;
+}
+.ui-period__dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  flex: none;
+}
+.ui-period__dot--closed { background: currentColor; }
+.ui-period__dot--restated { border: 3px double currentColor; }
+.ui-period__dot--incomplete { border-style: dashed; }
+.ui-period__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
