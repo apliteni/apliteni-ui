@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './primitives/Button';
 import { DialogScope, dismissOnScrim, useDialog, usePresence } from './dialog';
@@ -6,18 +6,19 @@ import './Modal.css';
 
 export type ModalProps = {
   open: boolean; title: string; onClose: () => void; footer?: ReactNode; children?: ReactNode;
+  initialFocusRef?: RefObject<HTMLElement | null>;
 };
 
 // Focus, Escape, the Tab trap, the inert page, the stack of open dialogs and the
 // enter/exit motion live in ./dialog, shared with Drawer. The scope tells a dialog
 // rendered inside this one that it sits above it. `is-open` on the scrim is what
 // Modal.css transitions on.
-export function Modal({ open, title, onClose, footer, children }: ModalProps) {
+export function Modal({ open, title, onClose, footer, children, initialFocusRef }: ModalProps) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const { mounted, shown } = usePresence(open, root, panel);
-  const scope = useDialog(shown, { root, panel, body }, onClose);
+  const scope = useDialog(shown, { root, panel, body, initialFocus: initialFocusRef }, onClose);
 
   if (!mounted) return null;
   return createPortal(

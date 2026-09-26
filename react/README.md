@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Icon`.
+Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Icon`.
 
 `Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
@@ -338,3 +338,28 @@ import '@apliteni/apliteni-ui/react/css';
 Tabs is controlled through `value` and `onChange`. Pass items with unique values, labels, optional counts, and React panel content. Provide a label for the tablist and a value that matches one item. Inactive panel content is unmounted.
 
 Arrow keys move between tabs and wrap from the last tab to the first. They also activate the selected tab. Home and End select the first and last tabs. Tab moves to the selected panel. New panels use the kit’s fade animation, which is shortened when reduced motion is enabled.
+
+## Confirm
+
+Use `Confirm` before an action that has a cost. Put the object name in `title`. In
+`body`, explain what will change and whether the change can be reversed. Give both
+buttons clear, specific labels. For an undoable action, use a toast with Undo instead.
+
+```tsx
+<Confirm open={open} title="Revoke demo token?"
+  body="This token will stop working immediately. You cannot restore it."
+  confirmLabel="Revoke token" cancelLabel="Keep the token" danger busy={saving}
+  onConfirm={revokeToken} onCancel={() => setOpen(false)} />
+```
+
+The consumer controls `open` and `busy`. `Confirm` does not wait for `onConfirm` or
+close itself. Set `busy` while saving. This keeps focus, prevents repeated presses, and
+announces progress. Without `danger`, the committing button uses the primary tone.
+
+Escape, the scrim, the close button, and the safe action call `onCancel`, even while
+busy. Closing the dialog does not cancel a write that has already started.
+
+`Confirm` uses Modal's focus trap, focus return, and reduced-motion transitions. When it
+opens, focus goes to the explanation, which is outside the tab order. Modal also accepts
+`initialFocusRef` for a mounted, focusable element inside its panel. Without it, Modal
+uses its normal opening focus.

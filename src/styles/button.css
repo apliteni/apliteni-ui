@@ -65,7 +65,7 @@
 }
 
 .ui-btn--danger { color: var(--text); }
-.ui-btn--danger:hover {
+.ui-btn--danger:hover, .ui-btn--danger:focus-visible {
   color: var(--pink);
   border-color: var(--pink);
   background: color-mix(in srgb, var(--pink) 10%, transparent); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */

@@ -384,6 +384,14 @@
       ]
     },
     {
+      "file": "react/src/Confirm.test.tsx",
+      "name": "React: Confirm",
+      "does": "Checks explanation focus, safe dismissal, focus return, Tab wrapping, action order and busy activation blocking.",
+      "blind": [
+        "Real screen-reader speech and visual transitions; the tests run in JSDOM."
+      ]
+    },
+    {
       "file": "react/src/Modal.test.tsx",
       "name": "React: Modal",
       "does": "Checks the mounted React modal\u2019s focus and dismissal behaviour.",
