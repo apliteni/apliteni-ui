@@ -1,39 +1,39 @@
 # Density and accents
 
-## Check the block at its narrowest width
+## Check a narrow stat band
 
 <!-- rule: check-density -->
 
-**Rule:** A preview is too dense when unrelated facts share one row, or wrapping makes it unclear which label belongs to which value at the narrowest supported width.
+**Rule:** At block widths of 28rem or less, a stat band must show one figure per row; placing two figures side by side fails this check.
 
-**Why:** Even a compact block must make clear which facts belong together.
+**Why:** Stacking gives each label and value the full width of the block.
 
-**Do:** Place an invoice amount beside its label, and put the due date on a separate row.
+**Do:** Let the [Stat band tiles](https://ui.apli.tech/storybook/?path=/story/components-stat-band--gallery) stack at 28rem.
 
-**Don't:** Put the amount, due date, owner and history on one line that wraps.
+**Don't:** Override the same tiles to keep four figures across at 28rem.
 
-## Keep what the reader needs next
+## Keep the summary short
 
 <!-- rule: reduce-density -->
 
-**Rule:** Keep the identity, current status, decision-making facts and next action visible; remove repeated labels, group related facts, and hide history or secondary details until needed.
+**Rule:** Keep the identity, status, key facts and next action visible; remove repeated labels, group related facts, and move history or secondary details out of the preview.
 
-**Why:** A preview helps the reader decide whether to act or open the full record.
+**Why:** The preview helps the reader decide whether to act or open the full record.
 
-**Do:** Show the invoice name, amount, due date and payment action; put past payments under History.
+**Do:** Use the [Stat band “Figures only” state](https://ui.apli.tech/storybook/?path=/story/components-stat-band--states) for the summary, and group full-record details as [Drawer Record](https://ui.apli.tech/storybook/?path=/story/components-drawer--record) does.
 
-**Don't:** Make all text and spacing smaller just to fit every payment in the preview.
+**Don't:** Add every history entry and a trend to each figure in the summary.
 
 ## Give accents a job
 
 <!-- rule: purposeful-accent -->
 
-**Rule:** Use accent colour for the next action or selected item, text weight for the key fact, and neutral styling for supporting details.
+**Rule:** Use at most one primary button per preview, use secondary or ghost buttons for other actions, and keep labels and values in neutral ink.
 
-**Why:** When everything is coloured or bold, nothing stands out.
+**Why:** One accented action is easier to find than several competing actions.
 
-**Do:** Emphasize the amount, use an accent for Pay invoice, and leave the owner and date in normal text.
+**Do:** Use [Button primary for Continue and ghost for Cancel](https://ui.apli.tech/storybook/?path=/story/components-button--variants).
 
-**Don't:** Colour the title, amount, owner, date and every action just to make the block more lively.
+**Don't:** Make both Continue and Cancel primary, or colour every stat value with the accent.
 
-**Except:** Keep status colours tied to their meaning, and name each status in words; colour alone must not communicate the status.
+**Except:** Keep [Badge success, pending and danger](https://ui.apli.tech/storybook/?path=/story/components-badge-status--badges) for their named statuses; do not replace those signals with the accent.
