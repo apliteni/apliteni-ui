@@ -332,3 +332,11 @@ import '@apliteni/apliteni-ui/react/css';
   ]} />
 </DrawerSection>
 ```
+
+## DiffPreview
+
+`DiffPreview` shows a batch change before it is applied. Pass `rows` with `id`,
+`label`, `period`, `from`, `to`, and a formatted `amount`; use `from: null` for an
+unclassified row. Pass server-computed `totals` as `{ period, amount }` entries,
+including signs. `context` explains a category or ownership change, and `note`
+explains adjustments from closed periods. The consumer owns Apply and the Undo toast.

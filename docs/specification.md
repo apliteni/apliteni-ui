@@ -2079,3 +2079,13 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React change previews
+
+`DiffPreview` renders supplied rows and signed totals by period without calculating
+or committing changes. A context line explains category or ownership changes; a note
+explains adjustments booked into the next open period. The consumer supplies both.
+The summary precedes a native dense table. From and To use warning and success fills,
+with column headers as text cues. A null From value reads as “Unclassified” and shows
+an em dash. Empty previews say “No rows would move” and omit the table and totals.
+The named scroll region is keyboard focusable. Apply and Undo belong to the consumer.

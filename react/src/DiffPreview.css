@@ -1,0 +1,3 @@
+.ui-diff-preview > p { margin: 0 0 var(--space-3); }
+.ui-diff-preview .ui-table td.ui-diff-preview__from { background: var(--chip-warn-fill); }
+.ui-diff-preview .ui-table td.ui-diff-preview__to { background: var(--chip-success-fill); }
