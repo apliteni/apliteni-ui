@@ -2082,9 +2082,12 @@ HTML or caller-supplied CSS is safe.
 
 ## React theme control
 
-`ThemeToggle` uses the topbar's theme button and accessible naming convention.
-It owns `data-theme` on the document root and remembers explicit choices under
-`apliteni-strategy-theme`. Without a valid saved choice, it follows the operating
-system preference. Mounted controls stay synchronized. Storage failures leave the
-button usable. `THEME_INIT_SCRIPT` applies the same preference before first paint
-when the consumer includes it before styles in the document head.
+`ThemeToggle` uses the topbar’s theme button and accessible naming convention.
+It manages `data-theme` on the document root and saves explicit choices under
+`apliteni-strategy-theme`. The button cycles through dark, light, and auto.
+Auto, along with missing or invalid saved choices, follows the operating system,
+including changes that happen while the page is open. The saved value remains
+`auto`, while `data-theme` contains the resolved dark or light theme. The vanilla
+topbar uses the same choices and storage key. Mounted controls stay synchronized.
+If storage fails, the button remains usable. When included before the styles in
+the document head, `THEME_INIT_SCRIPT` applies the same preference before the first paint.

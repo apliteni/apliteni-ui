@@ -347,8 +347,9 @@ import { ThemeToggle, THEME_INIT_SCRIPT } from '@apliteni/apliteni-ui/react';
 ```
 
 The component sets `data-theme` on `html` and saves explicit choices in localStorage
-under `apliteni-strategy-theme`. Missing or invalid saved choices follow the operating
-system preference, including preference changes while the page is open. Storage
+under `apliteni-strategy-theme`. The button cycles through dark, light, and auto, using the same choices as the
+vanilla topbar. Auto, missing, and invalid saved choices follow the operating system
+while the page is open. Auto stays saved as `auto` when the OS theme changes. Storage
 failures do not disable the button. Multiple mounted toggles stay synchronized.
 
 Place `THEME_INIT_SCRIPT` in an inline `<head>` script before styles load so the theme

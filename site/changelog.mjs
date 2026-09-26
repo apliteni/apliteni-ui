@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.46.0', date: '2026-09-26',
     changes: [
-      ['added', 'React ThemeToggle switches between dark and light themes, remembers the selected theme, and follows the operating system preference until the user saves a choice. Resolves #395.'],
+      ['added', 'React ThemeToggle and the vanilla topbar now cycle through dark, light, and auto themes. Auto follows operating system changes while the page is open, and all three choices are saved. Resolves #395.'],
     ],
   },
   {
