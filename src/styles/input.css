@@ -63,9 +63,8 @@
   cursor: not-allowed;
 }
 
-.ui-input.is-invalid,
-.ui-textarea.is-invalid,
-.ui-select.is-invalid { border-color: var(--pink); }
+.ui-input.is-invalid, .ui-select.is-invalid,
+.ui-textarea.is-invalid { border-color: var(--pink); }
 /* Invalid fields keep the shared focus indicator; their border carries the error. */
 
 /* Input with a leading icon / adornment */
