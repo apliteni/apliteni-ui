@@ -502,7 +502,6 @@ AppShell includes the kit’s rail and top band. Pass the current router pathnam
 </AppShell>
 ```
 
-
 ## Tooltip
 
 Tooltip accepts text and inline children, without nested controls. Hovering or focusing opens it; pressing Escape, moving focus away, or moving the mouse away closes it. On touch devices, tapping toggles it. It uses the kit’s tooltip styles and moves below the trigger when there is not enough space above. Keep the same information elsewhere on the page.

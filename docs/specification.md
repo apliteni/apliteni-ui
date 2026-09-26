@@ -2257,7 +2257,6 @@ Decided in [#448](https://github.com/apliteni/apliteni-ui/issues/448).
 mutations that remove each. Browser captures check their actual viewport geometry; the
 source test does not render layout. Existing Modal tests cover focus, dismissal and motion.
 
-
 ## React tooltip
 
 React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
