@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.58.0', date: '2026-09-26',
+    changes: [
+      ['added', 'Added React DocumentViewer, which displays a document beside editable or read-only fields. It includes page and zoom controls, loading states, and download fallbacks. The host application fetches and renders the document. Closes #385.'],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],

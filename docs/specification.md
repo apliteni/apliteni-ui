@@ -2079,3 +2079,22 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React document viewer
+
+`DocumentViewer` holds a document and its fields in separate scroll panes. Below 860px,
+they stack with the document first. The toolbar stays outside the document's scroll area.
+Review fields and actions come from `children` and `footer`; read-only fields can use
+`KeyValueList`. Loading and failed previews never disable the fields or review actions.
+
+The host fetches the document once with `cache: 'no-store'` and renders it through
+`renderDocument({ page, zoom })`. The frame does not fetch or retain document bytes.
+The host applies the requested sizing and supplies image descriptions or iframe titles.
+Use a React `key` when switching files to reset page and zoom.
+
+Pages start at one. Page Up and Page Down change pages only when the named document
+scroll region itself has focus. Page controls remain present at the bounds and disappear
+for images. Zoom starts at fit width; fit page and fixed 50%, 75%, 100%, 125%, 150%, and
+200% steps are available. From either fit mode, plus selects 125% and minus selects 75%.
+The host controls loading and failure states; failed previews show the filename, size,
+and download link. The frame passes file URLs through; callers supply trusted URLs.
