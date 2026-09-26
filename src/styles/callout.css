@@ -12,6 +12,8 @@
   line-height: 1.55;
   color: var(--text);
 }
+.ui-callout__body { min-width: 0; overflow-wrap: break-word; }
+.ui-callout__actions { margin-top: 15px; }
 .ui-callout__icon { width: 18px; height: 18px; flex: none; margin-top: 1px; /* muted-ink: glyph — nonverbal callout icon */ color: var(--muted); }
 .ui-callout__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.1; } /* 2.1 of a 24 box drawn at 18px = 1.58 CSS px, which is what buys the 3:1 graphic bar rather than the 4.5:1 text one. docs/specification.md#icons-and-glyphs */
 .ui-callout b { color: var(--text); font-weight: var(--weight-semibold); }
@@ -188,6 +190,3 @@
 .ui-success__check .ui-sx__check { width: 100%; height: 100%; }
 .ui-success__title { color: var(--strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 5px; }
 .ui-success__sub { color: var(--text); font-size: var(--text-base); }
-
-.ui-callout__body { min-width: 0; overflow-wrap: anywhere; }
-.ui-callout__actions { margin-top: var(--space-3); }

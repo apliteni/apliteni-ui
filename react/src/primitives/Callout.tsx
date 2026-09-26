@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Icon } from './Icon';
+import { calloutIcons, icon as kitIcon } from '@apliteni/apliteni-ui';
 
 export type CalloutVariant = 'neutral' | 'info' | 'success' | 'warn' | 'danger';
 
@@ -10,10 +10,10 @@ export interface CalloutProps {
   actions?: ReactNode;
 }
 
-export function Callout({ variant, icon = 'info', children, actions }: CalloutProps) {
+export function Callout({ variant, icon = calloutIcons[variant ?? 'neutral'], children, actions }: CalloutProps) {
   return (
-    <div className={`ui-callout${variant ? ` ui-callout--${variant}` : ''}`} role={variant === 'danger' ? 'alert' : undefined}>
-      <span className="ui-callout__icon" aria-hidden="true"><Icon name={icon} /></span>
+    <div className={`ui-callout${variant && variant !== 'neutral' ? ` ui-callout--${variant}` : ''}`} role={variant === 'danger' ? 'alert' : undefined}>
+      <span className="ui-callout__icon" dangerouslySetInnerHTML={{ __html: kitIcon(icon) }} />
       <div className="ui-callout__body">
         {children}
         {actions != null && (

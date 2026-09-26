@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.49.0', date: '2026-09-26',
     changes: [
-      ['added', 'React now includes Callout with five tones, an icon override, and optional actions. Resolves #382.', ['Callout']],
+      ['added', 'React now includes Callout with four status tones, a neutral default, an icon override, and optional actions. Vanilla callouts now support the same actions and tone glyphs. Resolves #382.', ['Callout']],
     ],
   },
   {

@@ -9,10 +9,20 @@ export default {
 
 export const Callouts = {
   render: () => pad(`<div style="max-width:560px;display:flex;flex-direction:column;gap:14px">
-    ${callout({ variant: 'info', icon: 'info', body: 'MCP access is <b>live now</b>. The per-agent token registry lands with the Postgres store.' })}
-    ${callout({ variant: 'success', icon: 'check', body: 'Your agent <b>Research bot</b> is connected and can read the strategy.' })}
-    ${callout({ variant: 'warn', icon: 'alert', body: "This token is shown once. Copy it now — you won't see it again." })}
-    ${callout({ variant: 'danger', icon: 'alert', body: 'Revoking removes access immediately for any agent using this token.' })}
+    ${callout({ variant: 'info', body: '<b>Adjusted.</b> Amounts use the exchange rate at the close of each day.' })}
+    ${callout({ variant: 'success', body: '<b>Complete.</b> All rows have been reconciled.' })}
+    ${callout({ variant: 'warn', body: "<b>Incomplete.</b> This period is still open." })}
+    ${callout({ variant: 'danger', body: '<b>Conversion failed.</b> The original amounts remain in the table.' })}
+  </div>`),
+};
+
+export const CalloutActions = {
+  render: () => pad(`<div style="max-width:560px;display:flex;flex-direction:column;gap:14px">
+    ${['neutral', 'info', 'success', 'warn', 'danger'].map(variant => callout({
+      variant,
+      body: 'Read the <a href="#period">period notes</a> before closing this period.',
+      actions: button({ label: 'Review period', size: 'sm' }) + button({ label: 'View unconverted rows', size: 'sm' }),
+    })).join('')}
   </div>`),
 };
 
