@@ -38,14 +38,14 @@ Report the result in the PR. Keep this check out of routine CI to save Actions m
 
 ## Changes
 
-Add only general, composable components that are reused across products. Build
-domain-specific UI from existing components and show it as a Storybook showcase.
-Keep the vanilla kit’s existing look. Before adding a component, check:
+Add a general, composable kit component only when all three checks are true:
 
-- Is it general, with concrete uses across products?
-- Can existing components create it through composition? If yes, make a showcase.
-- Does it require domain-specific data or rules? If yes, compose it in the product
-  and demonstrate it in a showcase.
+- The issue names at least two products that use it or have requested it.
+- Existing components cannot provide it without copying their markup or logic.
+- It contains no domain-specific data or rules.
+
+Otherwise, build the UI by composition and add a Storybook showcase.
+Keep the vanilla kit’s existing look.
 
 Keep explicit Storybook IDs stable. Give every React component a test and a story. Run
 the slop detector on new example pages. When overriding styles, check every existing

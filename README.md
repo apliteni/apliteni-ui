@@ -224,12 +224,11 @@ the repository root. Start Storybook with `npm run storybook`. For React, use `n
 storybook -w react`. Before opening a PR, run `npm test`, `npm test -w react`, `npm run
 build-storybook`, and `node site/build.mjs`.
 
-Add only general, composable components that are reused across products. Before
-adding a component, identify where it will be used across products, check whether
-existing components can create it through composition, and check whether it
-requires domain-specific data or rules. If composition is enough or the UI is
-domain-specific, build it from existing components and show it as a Storybook
-showcase instead. Keep the vanilla kit’s existing look.
+Add a general, composable kit component only when all three checks are true:
+(1) the issue names at least two products that use it or have requested it;
+(2) existing components cannot provide it without copying their markup or logic;
+(3) it contains no domain-specific data or rules. Otherwise, build the UI by
+composition and add a Storybook showcase. Keep the vanilla kit’s existing look.
 
 To add a component, put its token-based CSS in `src/styles/`. Include it in
 `src/index.css` and in both the `styles` map and `cssText` in `src/inline.js`. Add the
