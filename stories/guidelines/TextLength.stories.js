@@ -8,5 +8,5 @@ export default {
 
 export const TextLength = {
   name: 'Text length',
-  render: () => guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES }),
+  render: () => guidelinePage({ title: TITLE, blurb: BLURB, rules: RULES, css: '<style>.gc-except { box-shadow: none; padding-left: 0; }</style>' }),
 };

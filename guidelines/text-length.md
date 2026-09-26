@@ -4,60 +4,50 @@
 
 <!-- rule: short-controls -->
 
-**Rule:** Keep labels, buttons, badges and status text to a few words. Name the field, action or state.
+**Rule:** Labels, buttons, badges and status text name the field, action or state in a few words.
 
-**Why:** People scan these words to decide what to do next.
+**Do:** “Save invoice.”
 
-**Do:** Label a field “Invoice date”, a button “Save invoice” and a badge “Overdue”.
+**Don't:** “Click here to save your invoice.”
 
-**Don't:** Label the button “Click here to save the invoice you have just edited”.
-
-## Explain the data in captions
+## Explain data in captions
 
 <!-- rule: useful-captions -->
 
-**Rule:** Use one-sentence captions to explain the period, units or limits readers need to understand the data.
+**Rule:** Use one sentence for needed units, dates or limits.
 
-**Why:** The figures may not provide this context themselves.
+**Do:** “March revenue in EUR, excluding refunds.”
 
-**Do:** Write “Revenue in EUR, excluding refunds, for March.”
+**Don't:** “An overview of your revenue.”
 
-**Don't:** Write “This chart gives you a clear overview of your revenue data.”
-
-## Give introductions a job
+## Use introductions only when needed
 
 <!-- rule: useful-introductions -->
 
-**Rule:** Add a short introduction only when the title and controls do not explain the page’s purpose or a required step.
+**Rule:** Add a short introduction only for a purpose or step the title and controls leave unclear.
 
-**Why:** Repeating a clear title adds text readers must read before they begin.
+**Do:** “Upload a CSV with invoice numbers, dates and amounts.”
 
-**Do:** Under “Import invoices”, write “Upload a CSV with an invoice number, date and amount in each row.”
-
-**Don't:** Under “Invoices”, write “This page lets you view and manage your invoices in one convenient place.”
+**Don't:** “Manage your invoices here.”
 
 ## Explain consequences in callouts
 
 <!-- rule: useful-callouts -->
 
-**Rule:** Use a callout for a consequence or next step the reader needs now. Keep it to one or two sentences.
+**Rule:** Explain a consequence or next step in one or two sentences.
 
-**Why:** A warning must give enough information to act safely.
+**Do:** “Deleting this workspace deletes its reports. Export them first.”
 
-**Do:** Write “Deleting this workspace also deletes its saved reports. Export any reports you need before continuing.”
+**Don't:** “Think carefully before proceeding.”
 
-**Don't:** Write “Please be aware that it is important to carefully consider your options before proceeding.”
+**Except:** Keep needed safety, consent and legal details visible, however long. Link to optional background.
 
-**Except:** Keep important safety, consent or legal details visible, even when they need more space. Put optional background information in linked help.
-
-## Remove sentences that change nothing
+## Cut filler
 
 <!-- rule: remove-filler -->
 
-**Rule:** Remove text when the reader can make the same decision and complete the task without it.
+**Rule:** Cut text readers can decide and finish without.
 
-**Why:** Text is useful only when it provides needed information.
+**Do:** “Exports include only filtered rows.”
 
-**Do:** Keep “Exports contain only the filtered rows” beside an export action.
-
-**Don't:** Add “Export your data quickly and easily” beside “Export CSV”.
+**Don't:** “Export quickly and easily.”

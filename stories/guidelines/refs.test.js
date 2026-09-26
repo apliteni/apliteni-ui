@@ -32,7 +32,7 @@ const fail = (page, rule, ref, said) =>
 // invented a boundary to get rid of it, which is the opposite of what the form
 // is for. `except` and the pair are optional now and the renderer omits what a
 // rule does not have; what is checked here is that a field which IS there says
-// something, and that a rule without a pair still says why.
+// something, and that a rule without a pair still gives an instruction or says why.
 const shapeProblems = (page, rule) => {
   const said = (s) => `${page} → rule "${rule.id}" → ${s}`;
   const filled = (v) => typeof v === 'string' && v.trim() !== '';
@@ -56,8 +56,8 @@ const shapeProblems = (page, rule) => {
     if (rule.why !== undefined && !filled(rule.why)) {
       problems.push(said('`why` is present but empty — leave it out instead'));
     }
-  } else if (!filled(rule.why)) {
-    problems.push(said('has no specimen pair, so it needs a `why` to stand on'));
+  } else if (!filled(rule.why) && !filled(rule.instruction)) {
+    problems.push(said('has no specimen pair, so it needs a `why` to stand on or an instruction'));
   }
 
   return problems;
@@ -249,6 +249,9 @@ test('a rule missing what the page renders fails with a line a reader can act on
 
   assert.deepStrictEqual(of({ imperative: 'Do the thing', why: 'because' }), [],
     'an imperative and a why is a whole rule');
+  assert.deepStrictEqual(of({ imperative: 'Do the thing', instruction: 'Use one sentence.' }), [],
+    'an instruction can stand without a repeated explanation');
+  assert.match(of({ imperative: 'i', instruction: ' ' })[0], /needs a `why` to stand on/);
   assert.deepStrictEqual(of({ imperative: 'Do the thing', ...pair }), [],
     'an imperative and a pair is a whole rule');
   assert.deepStrictEqual(of({ imperative: 'Do the thing', why: 'because', except: 'here' }), [],
@@ -304,7 +307,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     const rendered = [...fragment.querySelectorAll('.gc-rule')];
     assert.equal(rendered.length, parsed.rules.length);
     parsed.rules.forEach((rule, index) => {
-      for (const key of ['instruction', 'why', 'doCaption', 'dontCaption']) {
+      for (const key of ['instruction', 'doCaption', 'dontCaption']) {
         assert.ok(rule[key]?.trim(), `${file}: ${rule.id} needs ${key}`);
       }
       assert.notEqual(rule.doCaption, rule.dontCaption, `${file}: examples must differ`);
