@@ -483,6 +483,17 @@ test('the React subpath ships built JS, types and CSS', () => {
   assert.match(dts, /\bexport\b/, 'react/dist/index.d.ts declares no exports');
 });
 
+// Reads the installed tarball; browser rendering is covered by Tooltip's stories.
+test('the packed React CSS includes the tooltip panel and its states', () => {
+  const css = readFileSync(path.join(installed, installedPkg.exports['./react/css']), 'utf8');
+  const panels = [...css.matchAll(/\.ui-tip\s*\{([^}]+)\}/g)];
+  assert.equal(panels.length, 1, 'react/css must contain one .ui-tip rule');
+  assert.match(panels[0][1], /visibility:\s*hidden/, 'closed tooltips must be hidden');
+  assert.match(panels[0][1], /position:\s*absolute/, 'tooltips must not change layout');
+  assert.match(css, /\.ui-tip\.is-open\s*\{[^}]*visibility:\s*visible/);
+  assert.match(css, /\.ui-tip\.is-below\s*\{/);
+});
+
 // The lockfile states the version twice, and a hand-written bump had missed both
 // before — `main` shipped 0.32.0 with a lockfile still saying 0.31.0, because
 // nothing read it. `npm version` writes all three; this is what says so when a
