@@ -389,3 +389,21 @@ entire batch, and adds a new event. Timeline only calls `onUndo`; it does not
 modify history.
 Import both the kit CSS and React CSS. The Privileged story shows confirmation
 and a reversing event.
+
+## Fields
+
+`TextField`, `TextArea`, `SelectField`, and `FileField` pair a label with a native
+control. Each creates its own IDs and links hints or errors automatically. Use
+native control props. `SelectField` accepts option children.
+
+```tsx
+<TextField label="Weight" type="number" unit="kg" required />
+<TextArea label="Notes" hint="Optional" />
+<SelectField label="Currency"><option>EUR</option><option>USD</option></SelectField>
+<FileField label="Attachment" accept=".pdf" hint="PDF, up to 5 MB."
+  onFileChange={file => setAttachment(file)} />
+```
+
+`FileField` accepts one file from a picker or a drop and reports it through
+`onFileChange`. Use `accept` and `hint` to describe allowed file types and size.
+Your application must validate files before upload.

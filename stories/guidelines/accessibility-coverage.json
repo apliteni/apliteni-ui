@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/Field.test.tsx",
+      "name": "React: Fields",
+      "does": "Checks generated label and message links, required and invalid controls, file selection and replacement, drop handling, disabled fields, form reset and axe violations.",
+      "blind": [
+        "JSDOM does not open the system picker or supply a native DataTransfer. Browser captures cover appearance; the React contrast gate measures text colours."
+      ]
+    },
+    {
       "file": "react/src/Timeline.test.tsx",
       "name": "React: Timeline",
       "does": "Checks ordered-list semantics, timestamps, event order, keyboard undo and axe violations.",

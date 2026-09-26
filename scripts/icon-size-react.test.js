@@ -44,7 +44,7 @@ const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
 // DataTable and KeyValueList each size an SVG on both axes. A rule
 // leaving coverage fails; change it with the sizing rules and explain removals.
-const EXPECTED_SUBJECTS = 4;
+const EXPECTED_SUBJECTS = 6;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what
