@@ -783,5 +783,13 @@
         "pattern": "export function callout("
       }
     ]
+  },
+  "_density-and-accents.js": {
+    "purposeful-accent": [
+      {
+        "ref": "src/styles/button.css:44",
+        "pattern": "background: var(--accent-strong)"
+      }
+    ]
   }
 }
