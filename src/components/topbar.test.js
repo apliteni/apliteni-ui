@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
-import { themeToggle, applyTheme, versionSwitcher } from './topbar.js';
+import { themeToggle, applyTheme, wireTopbar, versionSwitcher } from './topbar.js';
 
 const require = createRequire(import.meta.url);
 const axeSrc = readFileSync(path.join(path.dirname(require.resolve('axe-core')), 'axe.min.js'), 'utf8');
@@ -54,7 +54,7 @@ const mount = (html, theme) => {
 };
 
 const DARK_NAME = 'Theme: Dark. Switch to light.';
-const LIGHT_NAME = 'Theme: Light. Switch to dark.';
+const LIGHT_NAME = 'Theme: Light. Switch to auto.';
 
 test('the toggle announces the theme it is in, not the one a click would bring', () => {
   assert.equal(nameOf(mount(themeToggle('dark'), 'dark')), DARK_NAME);
@@ -133,4 +133,40 @@ test('a version badge shows the word for its tone, not the key', () => {
     ['live', 'Live'], ['arch', 'Archive'], ['arch', 'Archive'],
     ['live', 'Live'], ['arch', 'Preview'], ['arch', 'constructor'],
   ]);
+});
+
+// Synthetic OS events verify state and persistence, not native OS settings UI.
+test('auto stays saved while OS changes and the vanilla button cycles all choices', () => {
+  const view = dom.window;
+  const media = Object.assign(new view.EventTarget(), { matches: true });
+  view.matchMedia = () => media;
+  const previousDocument = globalThis.document;
+  const previousStorage = globalThis.localStorage;
+  const values = new Map([["apliteni-strategy-theme", "auto"]]);
+  globalThis.document = doc;
+  globalThis.localStorage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
+  try {
+    const btn = mount(themeToggle('auto'), 'dark');
+    wireTopbar(doc);
+    assert.equal(nameOf(btn), 'Theme: Auto. Switch to dark.');
+    assert.equal(doc.documentElement.getAttribute('data-theme'), 'light');
+    assert.ok(btn.querySelector('rect'), 'auto uses the monitor glyph');
+    media.matches = false;
+    media.dispatchEvent(new view.Event('change'));
+    assert.equal(doc.documentElement.getAttribute('data-theme'), 'dark');
+    assert.equal(values.get('apliteni-strategy-theme'), 'auto');
+    btn.click();
+    assert.equal(values.get('apliteni-strategy-theme'), 'dark');
+    media.matches = true;
+    media.dispatchEvent(new view.Event('change'));
+    assert.equal(doc.documentElement.getAttribute('data-theme'), 'dark');
+    btn.click();
+    assert.equal(values.get('apliteni-strategy-theme'), 'light');
+    btn.click();
+    assert.equal(values.get('apliteni-strategy-theme'), 'auto');
+    assert.equal(doc.documentElement.getAttribute('data-theme'), 'light');
+  } finally {
+    globalThis.document = previousDocument;
+    globalThis.localStorage = previousStorage;
+  }
 });
