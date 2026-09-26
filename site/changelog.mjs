@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.51.0', date: '2026-09-25',
+    v: '0.44.0', date: '2026-09-26',
     changes: [
       ['added', 'React now includes Tabs with controlled selection, optional counts, and keyboard navigation. It uses the existing underline tab styles. This resolves #394.'],
     ],
