@@ -360,6 +360,7 @@ Escape, the scrim, the close button, and the safe action call `onCancel`, even w
 busy. Closing the dialog does not cancel a write that has already started.
 
 `Confirm` uses Modal's focus trap, focus return, and reduced-motion transitions. When it
-opens, focus goes to the explanation, which is outside the tab order. Modal also accepts
+opens, focus goes to the safe action. It renders an `alertdialog`, named by its title
+and described by its body. Modal also accepts
 `initialFocusRef` for a mounted, focusable element inside its panel. Without it, Modal
 uses its normal opening focus.

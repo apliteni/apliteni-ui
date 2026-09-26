@@ -16,18 +16,22 @@ const props = {
 // JSDOM checks behavior; Modal tests own motion timing and browser captures check appearance.
 it('renders nothing while closed', () => {
   render(<Confirm {...props} open={false} />);
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
 });
 
 it.each([false, true])('names the dialog and renders safe then committing actions (danger=%s)', danger => {
   render(<Confirm {...props} open danger={danger} />);
-  expect(screen.getByRole('dialog', { name: props.title })).toHaveAttribute('aria-modal', 'true');
+  const dialog = screen.getByRole('alertdialog', { name: props.title });
+  expect(dialog).toHaveAttribute('aria-modal', 'true');
+  expect(document.getElementById(dialog.getAttribute('aria-labelledby')!)).toHaveTextContent(props.title);
+  expect(document.getElementById(dialog.getAttribute('aria-describedby')!)).toHaveTextContent(props.body);
+  expect(dialog).toHaveAccessibleDescription(props.body);
   const safe = screen.getByRole('button', { name: props.cancelLabel });
   const commit = screen.getByRole('button', { name: props.confirmLabel });
   expect(safe).toHaveClass('ui-btn--ghost');
   expect(commit).toHaveClass(danger ? 'ui-btn--danger' : 'ui-btn--primary');
   expect(screen.getAllByRole('button').slice(-2)).toEqual([safe, commit]);
-  expect(screen.getByText(props.body)).toHaveFocus();
+  expect(safe).toHaveFocus();
 });
 
 it('calls only onConfirm and leaves open state with the consumer', async () => {
@@ -37,7 +41,7 @@ it('calls only onConfirm and leaves open state with the consumer', async () => {
   await userEvent.click(screen.getByRole('button', { name: props.confirmLabel }));
   expect(onConfirm).toHaveBeenCalledTimes(1);
   expect(onCancel).not.toHaveBeenCalled();
-  expect(screen.getByRole('dialog')).toBeInTheDocument();
+  expect(screen.getByRole('alertdialog')).toBeInTheDocument();
 });
 
 it.each(['safe', 'Escape', 'scrim', 'close'])('dismisses through %s and restores the opener', async how => {
@@ -55,12 +59,13 @@ it.each(['safe', 'Escape', 'scrim', 'close'])('dismisses through %s and restores
   const opener = screen.getByRole('button', { name: 'Review action' });
   await userEvent.click(opener);
   expect(container).toHaveAttribute('inert');
+  expect(screen.getByRole('button', { name: props.cancelLabel })).toHaveFocus();
   if (how === 'Escape') await userEvent.keyboard('{Escape}');
   else if (how === 'scrim') await userEvent.click(document.querySelector('.rx-scrim')!);
   else await userEvent.click(screen.getByRole('button', { name: how === 'safe' ? props.cancelLabel : 'Close' }));
   expect(onCancel).toHaveBeenCalledTimes(1);
   expect(onConfirm).not.toHaveBeenCalled();
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   expect(opener).toHaveFocus();
   expect(container).not.toHaveAttribute('inert');
 });
@@ -70,8 +75,7 @@ it('keeps body clicks inside and wraps Tab in both directions', async () => {
   render(<Confirm {...props} open onCancel={onCancel} />);
   await userEvent.click(screen.getByText(props.body));
   expect(onCancel).not.toHaveBeenCalled();
-  await userEvent.tab();
-  expect(screen.getByRole('button', { name: props.cancelLabel })).toHaveFocus();
+  screen.getByRole('button', { name: props.cancelLabel }).focus();
   await userEvent.tab();
   const commit = screen.getByRole('button', { name: props.confirmLabel });
   expect(commit).toHaveFocus();
@@ -108,4 +112,16 @@ it('keeps the busy announcement available when opened during a write', async () 
   await waitFor(() => expect(document.querySelector('[role="status"]')).toHaveTextContent('Revoke token: in progress'));
   expect(document.querySelector('[role="status"]')!.closest('[inert]')).toBeNull();
   expect(container).toHaveAttribute('inert');
+});
+
+it('gives each mounted confirmation its own title and description', () => {
+  render(<><Confirm {...props} open /><Confirm {...props} open title="Change role?" body="Editing will stop." /></>);
+  const dialogs = [...document.querySelectorAll('[role="alertdialog"]')];
+  expect(dialogs).toHaveLength(2);
+  const ids = dialogs.flatMap(dialog => ['aria-labelledby', 'aria-describedby'].map(attribute => {
+    const id = dialog.getAttribute(attribute)!;
+    expect(dialog.contains(document.getElementById(id))).toBe(true);
+    return id;
+  }));
+  expect(new Set(ids).size).toBe(4);
 });

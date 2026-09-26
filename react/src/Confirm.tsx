@@ -18,16 +18,16 @@ export function Confirm({
   open, title, body, confirmLabel, cancelLabel, danger = false, busy = false,
   onConfirm, onCancel,
 }: ConfirmProps) {
-  const explanation = useRef<HTMLDivElement>(null);
+  const safeAction = useRef<HTMLButtonElement>(null);
   return (
-    <Modal open={open} title={title} onClose={onCancel} initialFocusRef={explanation}
+    <Modal open={open} title={title} onClose={onCancel} role="alertdialog" initialFocusRef={safeAction}
       footer={<>
-        <Button variant="ghost" onClick={onCancel}>{cancelLabel}</Button>
+        <Button ref={safeAction} variant="ghost" onClick={onCancel}>{cancelLabel}</Button>
         <Button variant={danger ? 'danger' : 'primary'} busy={busy} onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </>}>
-      <div ref={explanation} tabIndex={-1}>{body}</div>
+      {body}
     </Modal>
   );
 }

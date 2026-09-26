@@ -386,7 +386,7 @@
     {
       "file": "react/src/Confirm.test.tsx",
       "name": "React: Confirm",
-      "does": "Checks explanation focus, safe dismissal, focus return, Tab wrapping, action order and busy activation blocking.",
+      "does": "Checks alert-dialog naming and description, safe-action focus, safe dismissal, focus return, Tab wrapping, action order and busy activation blocking.",
       "blind": [
         "Real screen-reader speech and visual transitions; the tests run in JSDOM."
       ]

@@ -2093,7 +2093,8 @@ The consumer provides both action labels and controls the open and busy states. 
 action appears before the committing action. Danger buttons keep the shared quiet
 resting state and use the shared danger hover and focus styles.
 
-When it opens, focus goes to the explanation, which is outside the tab order. Modal
+`Confirm` renders an `alertdialog`, named by its title and described by its body.
+When it opens, focus goes to the safe action. Modal
 keeps focus inside the dialog, returns focus when the dialog closes, and controls enter
 and exit motion, including reduced motion. Escape, the scrim, and both safe controls
 call `onCancel`, including while busy. Closing the dialog does not cancel a pending
