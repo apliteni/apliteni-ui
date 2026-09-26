@@ -2167,12 +2167,30 @@ buttons or links. The page supplies its own h1, including on a not-found page.
 
 ## React theme control
 
-`ThemeToggle` uses the topbar’s theme button and accessible naming convention.
-It manages `data-theme` on the document root and saves explicit choices under
-`apliteni-strategy-theme`. The button cycles through dark, light, and auto.
-Auto, along with missing or invalid saved choices, follows the operating system,
-including changes that happen while the page is open. The saved value remains
-`auto`, while `data-theme` contains the resolved dark or light theme. The vanilla
-topbar uses the same choices and storage key. Mounted controls stay synchronized.
-If storage fails, the button remains usable. When included before the styles in
-the document head, `THEME_INIT_SCRIPT` applies the same preference before the first paint.
+`ThemeToggle` preserves the existing topbar button styles and accessible naming.
+Its only prop is `labelled?: boolean` (default `false`); it has no controlled value
+or callback props. Pressing it cycles dark, light, auto, then dark.
+
+Explicit choices are stored under `apliteni-strategy-theme`. Existing dark and
+light values keep their meaning without migration. Auto, missing and invalid
+values follow the OS. Mounting does not rewrite storage. Auto remains stored as
+`auto` when the OS changes.
+
+On mount, React sets `data-theme-choice` on `html` to the choice and `data-theme`
+to the resolved dark or light theme. An existing `data-theme-choice` takes
+precedence; unknown attribute values become auto.
+Auto resolves to light when `(prefers-color-scheme: light)` matches, otherwise dark.
+Mounted controls follow live OS changes in auto mode and storage changes from other
+tabs. Storage failures leave the control usable with a page-local choice.
+
+A press dispatches a plain `apliteni-theme-choice` event on `window`, with no
+payload. Read the root attributes for the choice and resolved theme. OS and storage
+updates do not dispatch that event. There is no React callback.
+
+`THEME_INIT_SCRIPT` is an exported string for a head script before styles load.
+It reads the same stored values and sets only `data-theme`, without writing storage
+or listening for OS changes. React handles later updates after mounting. Server
+rendering starts with the Auto label and does not set root attributes.
+
+The contract is checked by `react/src/ThemeToggle.test.tsx`; JSDOM checks state and
+events, not first-paint timing or appearance.

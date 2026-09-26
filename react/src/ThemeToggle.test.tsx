@@ -154,3 +154,15 @@ it('retains auto across mounts and OS changes when only storage writes fail', as
   expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
   expect(screen.getByText('Auto theme')).toBeVisible();
 });
+
+it('isolates the story choice and restores the previous page choice', async () => {
+  const { Light } = await import('./ThemeToggle.stories');
+  document.documentElement.setAttribute('data-theme-choice', 'dark');
+  document.documentElement.setAttribute('data-theme', 'dark');
+  const { unmount } = render(Light.render!({}, {} as never));
+  expect(screen.getByRole('button')).toHaveAccessibleName('Theme: Light. Switch to auto.');
+  unmount();
+  expect(document.documentElement).toHaveAttribute('data-theme-choice', 'dark');
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+  expect(localStorage.getItem(key)).toBeNull();
+});

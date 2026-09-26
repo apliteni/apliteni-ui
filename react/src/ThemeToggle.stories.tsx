@@ -7,13 +7,17 @@ function Preview({ theme, labelled = false }: { theme: 'dark' | 'light' | 'auto'
   useLayoutEffect(() => {
     const key = 'apliteni-strategy-theme';
     const previous = localStorage.getItem(key);
+    const previousChoice = document.documentElement.getAttribute('data-theme-choice');
     const previousTheme = document.documentElement.getAttribute('data-theme');
     localStorage.setItem(key, theme);
+    document.documentElement.setAttribute('data-theme-choice', theme);
     document.documentElement.setAttribute('data-theme', theme === 'auto' ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : theme);
     window.dispatchEvent(new StorageEvent('storage', { key }));
     return () => {
       if (previous === null) localStorage.removeItem(key);
       else localStorage.setItem(key, previous);
+      if (previousChoice === null) document.documentElement.removeAttribute('data-theme-choice');
+      else document.documentElement.setAttribute('data-theme-choice', previousChoice);
       if (previousTheme === null) document.documentElement.removeAttribute('data-theme');
       else document.documentElement.setAttribute('data-theme', previousTheme);
     };
