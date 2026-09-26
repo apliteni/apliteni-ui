@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { fireEvent, userEvent, within } from 'storybook/test';
+import { expect, fireEvent, userEvent, within } from 'storybook/test';
 import { FeedbackWidget } from './FeedbackWidget';
 
 const meta: Meta<typeof FeedbackWidget> = {
@@ -34,3 +34,15 @@ export const Sending: Story = {
   },
 };
 export const Sent: Story = { play: Sending.play };
+
+export const Error: Story = {
+  args: { onSend: async () => { throw new globalThis.Error('Demo failure'); } },
+  play: async context => {
+    await Sending.play!(context);
+    const drawer = within(document.body);
+    await expect(drawer.getByRole('alert')).toHaveTextContent('Could not send feedback. Try again.');
+    await expect(drawer.getByLabelText('Your note')).toHaveValue('Please explain the activity totals.');
+    await userEvent.click(drawer.getByRole('button', { name: 'Send feedback' }));
+    await expect(drawer.getByRole('alert')).toHaveTextContent('Could not send feedback. Try again.');
+  },
+};
