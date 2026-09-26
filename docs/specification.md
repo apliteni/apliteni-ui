@@ -2079,3 +2079,16 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React feedback
+
+`FeedbackWidget` captures the pathname, the nearest heading above the pill, and up
+to 1,000 selected characters when opened. Query strings and fragments are excluded.
+Its callback receives only `page`, `section`, `excerpt`, and the trimmed `note`
+(up to 6,000 characters). The consumer supplies transport; rejection keeps the note
+for retry. Closing discards the draft and ignores a pending result.
+
+The persistent pill moves above overlapping fixed or sticky navigation and focused
+controls on focus, scroll, resize, and navigation size changes. The shared Drawer
+owns focus, Escape and motion. Context precedes the labelled field, Send is the last
+control, and successful submission stays in the drawer.

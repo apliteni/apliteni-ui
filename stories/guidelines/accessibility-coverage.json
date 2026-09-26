@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/FeedbackWidget.test.tsx",
+      "name": "React: FeedbackWidget",
+      "does": "Checks the feedback payload, excerpt limit, retry, drawer focus, tab order, placement with mocked bounds, and WCAG axe rules.",
+      "blind": [
+        "It does not measure browser layout, animation, colour contrast, or screen-reader announcements."
+      ]
+    },
+    {
       "file": "react/src/KeyValueList.test.tsx",
       "name": "React: KeyValueList",
       "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",
