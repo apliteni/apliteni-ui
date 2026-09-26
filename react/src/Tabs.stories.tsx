@@ -21,8 +21,3 @@ export const Hover: StoryObj<typeof Tabs> = {
   render: () => <Example />,
   parameters: { docs: { description: { story: 'Hover a tab to see its hover state.' } } },
 };
-export const Keyboard: StoryObj<typeof Tabs> = {
-  render: () => <Example counts />,
-  play: async ({ canvasElement }) => { canvasElement.querySelector('button')?.focus(); },
-};
-export const ReducedMotion: StoryObj<typeof Tabs> = { render: () => <Example /> };
