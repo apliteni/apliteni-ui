@@ -38,6 +38,15 @@ Report the result in the PR. Keep this check out of routine CI to save Actions m
 
 ## Changes
 
+Add a general, composable kit component only when all three checks are true:
+
+- The issue names at least two products that use it or have requested it.
+- Existing components cannot provide it without copying their markup or logic.
+- It contains no domain-specific data or rules.
+
+Otherwise, build the UI by composition and add a Storybook showcase.
+Keep the vanilla kit’s existing look.
+
 Keep explicit Storybook IDs stable. Give every React component a test and a story. Run
 the slop detector on new example pages. When overriding styles, check every existing
 state. Remove obsolete guideline `unmet` markers when closing an issue.
