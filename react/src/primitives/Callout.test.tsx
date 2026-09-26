@@ -3,12 +3,15 @@ import userEvent from '@testing-library/user-event';
 import { callout, icon } from '@apliteni/apliteni-ui';
 import { Callout, type CalloutVariant } from './Callout';
 import { Button } from './Button';
-function expectSameSubtree(root: Element, html: string) {
+
+function expectSameSubtree(root: Element, html: string, variant?: CalloutVariant) {
   const template = document.createElement('template');
   template.innerHTML = html;
+  const expected = template.content.firstElementChild!;
+  expect(expected.hasAttribute('role')).toBe(false);
+  // The only allowed difference is React's documented danger-root announcement.
+  if (variant === 'danger') expected.setAttribute('role', 'alert');
   root = root.cloneNode(true) as Element;
-  // React announces danger; vanilla factories leave announcements to their caller.
-  root.removeAttribute('role');
   root.normalize();
   template.content.normalize();
   expect(root.isEqualNode(template.content.firstElementChild)).toBe(true);
@@ -17,7 +20,7 @@ function expectSameSubtree(root: Element, html: string) {
 it.each<CalloutVariant>(['neutral', 'info', 'success', 'warn', 'danger'])('matches the whole vanilla subtree for %s and announces only danger', variant => {
   const { container } = render(<Callout variant={variant}><b>Incomplete.</b> Check the period.</Callout>);
   const root = container.firstElementChild!;
-  expectSameSubtree(root, callout({ variant, body: '<b>Incomplete.</b> Check the period.' }));
+  expectSameSubtree(root, callout({ variant, body: '<b>Incomplete.</b> Check the period.' }), variant);
   expect(root.getAttribute('role')).toBe(variant === 'danger' ? 'alert' : null);
   expect(root.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   expect(root.querySelector('b')).toHaveTextContent('Incomplete.');
@@ -60,6 +63,20 @@ it.each<[CalloutVariant, string]>([
     variant,
     body: 'Read the <a href="#period">period notes</a>.',
     actions: '<button type="button">Review period</button>',
-  }));
+  }), variant);
   expectSameSubtree(container.querySelector('svg')!, icon(glyph));
+});
+
+it.each([
+  ['unexpected root role', 'info', '.ui-callout', 'role', 'alert'],
+  ['wrong danger role', 'danger', '.ui-callout', 'role', 'status'],
+  ['missing danger role', 'danger', '.ui-callout', 'role', null],
+  ['unexpected root attribute', 'danger', '.ui-callout', 'aria-live', 'polite'],
+  ['unexpected descendant role', 'danger', '.ui-callout__body', 'role', 'alert'],
+] as const)('rejects %s in the parity comparison', (_name, variant, selector, attribute, value) => {
+  const { container } = render(<Callout variant={variant}>Saved.</Callout>);
+  const element = container.querySelector(selector)!;
+  if (value === null) element.removeAttribute(attribute);
+  else element.setAttribute(attribute, value);
+  expect(() => expectSameSubtree(container.firstElementChild!, callout({ variant, body: 'Saved.' }), variant)).toThrow();
 });
