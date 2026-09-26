@@ -221,7 +221,7 @@ export function switchToggle({ checked = false, disabled = false, name, label = 
 export const calloutIcons = { info: 'info', success: 'check', warn: 'alert', danger: 'alert', neutral: 'info' };
 
 export function callout({ variant, icon: ic = calloutIcons[variant] || 'info', body, actions } = {}) {
-  return `<div class="${esc(cx('ui-callout', variant && variant !== 'neutral' && `ui-callout--${variant}`))}"${variant === 'danger' ? ' role="alert"' : ''}><span class="ui-callout__icon">${icon(ic)}</span><div class="ui-callout__body">${body}${actions != null ? `<div class="ui-toolbar ui-callout__actions">${actions}</div>` : ''}</div></div>`;
+  return `<div class="${esc(cx('ui-callout', variant && variant !== 'neutral' && `ui-callout--${variant}`))}"><span class="ui-callout__icon">${icon(ic)}</span><div class="ui-callout__body">${body}${actions != null ? `<div class="ui-toolbar ui-callout__actions">${actions}</div>` : ''}</div></div>`;
 }
 // Default icon per status — overridable with `icon`. The circle family is not
 // decoration: a circled glyph is a STATE the system reports, a bare one is an

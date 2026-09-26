@@ -6,6 +6,9 @@ import { Button } from './Button';
 function expectSameSubtree(root: Element, html: string) {
   const template = document.createElement('template');
   template.innerHTML = html;
+  root = root.cloneNode(true) as Element;
+  // React announces danger; vanilla factories leave announcements to their caller.
+  root.removeAttribute('role');
   root.normalize();
   template.content.normalize();
   expect(root.isEqualNode(template.content.firstElementChild)).toBe(true);

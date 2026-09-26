@@ -23,7 +23,7 @@
 .ui-callout--info .ui-callout__icon { color: var(--chip-info-ink); } /* the chip inks, not the raw signals: in light the raw signal cleared the graphic bar by a tenth on its own wash and read as a smudge, and a stroke is read the way text is. The two are the same value in dark by construction, so only light moves. #206 */
 .ui-callout--success { --ring-gap: inherit; background: var(--glow-green); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 .ui-callout--success .ui-callout__icon { color: var(--chip-success-ink); }
-.ui-callout--success a { color: color-mix(in srgb, var(--accent) 95%, var(--text)); }
+.ui-callout--success a { /* muted-ink: state — opaque accent/text blend keeps links above 4.5:1 on the success wash. */ color: color-mix(in srgb, var(--accent) 95%, var(--text)); }
 .ui-callout--warn { --ring-gap: inherit; background: color-mix(in srgb, var(--amber) 13%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 .ui-callout--warn .ui-callout__icon { color: var(--chip-warn-ink); }
 .ui-callout--danger { --ring-gap: inherit; background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
