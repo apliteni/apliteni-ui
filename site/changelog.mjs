@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.56.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React AppShell adds router links to the kit’s rail and top band, with saved folding and a phone navigation sheet. Closes #381.'],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],
