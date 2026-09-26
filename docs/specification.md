@@ -2032,7 +2032,7 @@ the contract of the factory they invoke (for example, success actions use `butto
 | `select` | name, id, ariaLabel, value, options strings / label / value | — | — | — |
 | `checkbox` | name | — | type | label |
 | `switchToggle` | name, label | — | — | — |
-| `callout` | — | — | variant, icon | body |
+| `callout` | — | — | variant, icon | body, actions |
 | `toast` | title, body, action string / label | — | variant, style, icon | — |
 | `successPanel` | title, sub | — | — | — |
 | `emptyState` | title, sub | — | icon, named art | SVG art, actions |

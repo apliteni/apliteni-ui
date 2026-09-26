@@ -172,7 +172,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:221",
+        "ref": "src/components/index.js:223",
         "pattern": "export function callout("
       },
       {
@@ -186,11 +186,11 @@
         "pattern": "inline messages & transient notifications"
       },
       {
-        "ref": "src/styles/callout.css:30",
+        "ref": "src/styles/callout.css:33",
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:247",
+        "ref": "src/components/index.js:249",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
@@ -210,11 +210,11 @@
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:264",
+        "ref": "src/components/index.js:266",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:266",
+        "ref": "src/components/index.js:268",
         "pattern": "export function successPanel("
       },
       {
@@ -268,11 +268,11 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:247",
+        "ref": "src/components/index.js:249",
         "pattern": "class=\"ui-toast__action\""
       },
       {
-        "ref": "src/styles/callout.css:87",
+        "ref": "src/styles/callout.css:90",
         "pattern": ".ui-toast__action { flex: none;"
       }
     ]
@@ -412,7 +412,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:233",
+        "ref": "src/components/index.js:235",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -428,7 +428,7 @@
     ],
     "stroke-earns-the-bar": [
       {
-        "ref": "src/styles/callout.css:16",
+        "ref": "src/styles/callout.css:18",
         "pattern": "stroke-width: 2.1;"
       },
       {
@@ -592,7 +592,7 @@
         "pattern": "transition: transform var(--dur-med) var(--ease);"
       },
       {
-        "ref": "src/styles/callout.css:51",
+        "ref": "src/styles/callout.css:54",
         "pattern": "animation: ui-toast-in var(--dur-med) var(--ease-out) both;"
       }
     ],
@@ -764,7 +764,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:253",
+        "ref": "src/components/index.js:255",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
