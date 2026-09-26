@@ -1,0 +1,14 @@
+.ui-fbpill.rx-feedback-pill {
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: var(--space-4);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: none;
+}
+.ui-fbpill.rx-feedback-pill:hover { transform: translateY(-3px); }
+.ui-fbpill.rx-feedback-pill:active { transform: translateY(1px); }
+.rx-feedback-form { display: grid; gap: var(--space-4); }
+.rx-feedback-form dd { overflow-wrap: anywhere; }
+.rx-feedback-form .ui-fbc__quote { margin: 0; }
+.rx-feedback-form .ui-fbc__err { margin: 0; }
