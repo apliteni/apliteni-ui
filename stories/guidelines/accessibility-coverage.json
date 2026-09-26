@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/AppShell.test.tsx",
+      "name": "React: AppShell",
+      "does": "Checks route-derived link names and counts, fold persistence, search focus and shortcut, account actions, and sheet dismissal.",
+      "blind": [
+        "JSDOM does not measure responsive layout, hover labels, target sizes or rendered contrast."
+      ]
+    },
+    {
       "file": "react/src/KeyValueList.test.tsx",
       "name": "React: KeyValueList",
       "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",
