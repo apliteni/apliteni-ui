@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.48.1', date: '2026-09-26',
+    changes: [
+      ['changed', 'Contributor rules now require general, composable components reused across products. Domain-specific UI belongs in a Storybook showcase built from existing components. See #424.'],
+    ],
+  },
+  {
     v: '0.44.0', date: '2026-09-26',
     changes: [
       ['added', 'React now includes Tabs with controlled selection, optional counts, and keyboard navigation. It uses the existing underline tab styles. This resolves #394.'],
