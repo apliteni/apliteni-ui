@@ -6,6 +6,7 @@ import * as destructiveContent from './_destructive-actions.js';
 import * as colourContent from './_colour-and-theming.js';
 import * as stateContent from './_state-set.js';
 import * as componentContent from './_component-choice.js';
+import * as textContent from './_text-length.js';
 import * as microcopyContent from './_microcopy.js';
 import * as labelsContent from './_labels-and-titles.js';
 import * as iconographyContent from './_iconography.js';
@@ -26,6 +27,7 @@ import * as destructiveStory from './DestructiveActions.stories.js';
 import * as colourStory from './ColourAndTheming.stories.js';
 import * as stateStory from './StateSet.stories.js';
 import * as componentStory from './ComponentChoice.stories.js';
+import * as textStory from './TextLength.stories.js';
 import * as microcopyStory from './Microcopy.stories.js';
 import * as labelsStory from './LabelsAndTitles.stories.js';
 import * as iconographyStory from './Iconography.stories.js';
@@ -48,6 +50,7 @@ const ENTRIES = [
   [stateContent, stateStory],
   [componentContent, componentStory],
   [microcopyContent, microcopyStory],
+  [textContent, textStory],
   [labelsContent, labelsStory],
   [iconographyContent, iconographyStory],
   [layoutContent, layoutStory],
