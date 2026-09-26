@@ -801,5 +801,13 @@
         "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
       }
     ]
+  },
+  "_empty-states.js": {
+    "next-action": [
+      {
+        "ref": "src/components/index.js:276",
+        "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
+      }
+    ]
   }
 }

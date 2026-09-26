@@ -322,7 +322,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 102, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 103, 'update the rule count when adding or removing a rule');
 });
 
 test('all Storybook guideline prose is free of source references, including appendices', async () => {
