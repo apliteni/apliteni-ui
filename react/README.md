@@ -364,3 +364,28 @@ opens, focus goes to the safe action. It renders an `alertdialog`, named by its 
 and described by its body. Modal also accepts
 `initialFocusRef` for a mounted, focusable element inside its panel. Without it, Modal
 uses its normal opening focus.
+
+## Timeline
+
+`Timeline` displays a record’s events in the order provided. Pass events from oldest
+to newest, with stable IDs, machine-readable `dateTime` values, and formatted
+`timestamp` text.
+Descriptions should say what changed and to where.
+
+```tsx
+<Timeline aria-label="Record history" events={[
+  {
+    id: 'created', actor: 'Demo operator', dateTime: '2026-09-01T09:00:00Z',
+    timestamp: '1 Sep, 09:00 UTC', description: 'Created the record in Unassigned.',
+    meta: 'Batch DEMO-12',
+  },
+]} />
+```
+
+Omit `undo` for read-only events. For a reversible batch, pass
+`undo: { label: 'Undo batch DEMO-12', onUndo }`. The app checks permissions,
+asks for confirmation when the batch affects finalized records, reverses the
+entire batch, and adds a new event. Timeline only calls `onUndo`; it does not
+modify history.
+Import both the kit CSS and React CSS. The Privileged story shows confirmation
+and a reversing event.

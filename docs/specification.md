@@ -2107,3 +2107,14 @@ announces progress. Use a toast with Undo when the action can be undone.
 The behavior is covered by `react/src/Confirm.test.tsx`, the existing Modal and Button
 tests, and the React story accessibility gate. DOM tests do not measure visual
 transitions. Modal's timing tests and browser evidence cover those separately.
+
+## React timeline
+
+`Timeline` renders an ordered list in the caller's event order, oldest first.
+Each event shows an actor, a `time` element, a change description and optional
+metadata. All text uses body ink; the line and accent dots are decorative.
+
+Undo is an optional named button for a reversible batch. The app owns permission,
+confirmation for finalized records, batch reversal and the new reversing event.
+The component calls the supplied handler without changing or sorting history.
+Events do not collapse or paginate.

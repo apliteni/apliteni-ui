@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.46.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React now includes Timeline for ordered record histories, with timestamps, metadata and optional undo buttons. The app handles confirmation and batch reversal. Closes #396.', ['Timeline']],
+    ],
+  },
+  {
     v: '0.45.0', date: '2026-09-26',
     changes: [
       ['added', 'Added React Confirm, which asks users to approve actions that have a cost. It supports plain and danger actions, safe dismissal, and a busy button that prevents repeated presses. Closes #383.', ['React Confirm']],
