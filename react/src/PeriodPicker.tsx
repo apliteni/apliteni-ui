@@ -49,9 +49,9 @@ export function PeriodPicker({ months, value, onChange, label = 'Choose a month'
 
   return <div className="ui-period">
     <div className="ui-period__navigation">
-      <Button variant="ghost" size="sm" icon="chevronLeft" iconOnly disabled={!previous}
+      <Button variant="ghost" size="sm" icon="chevronLeft" disabled={!previous}
         aria-label={previous ? `Previous month: ${previous.label}` : 'No earlier month'}
-        onClick={() => choose(selected - 1, true)} />
+        onClick={() => choose(selected - 1, true)}>Prev</Button>
       <div className="ui-seg ui-period__strip" role="listbox" aria-label={label} aria-orientation="horizontal">
         {months.map((month, index) => <button type="button" role="option" key={month.value}
           ref={element => { options.current[index] = element; }}
@@ -71,9 +71,9 @@ export function PeriodPicker({ months, value, onChange, label = 'Choose a month'
           {month.shortLabel}
         </button>)}
       </div>
-      <Button variant="ghost" size="sm" icon="chevronRight" iconOnly disabled={!next}
+      <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={!next}
         aria-label={next ? `Next month: ${next.label}` : 'No later month'}
-        onClick={() => choose(selected + 1, true)} />
+        onClick={() => choose(selected + 1, true)}>Next</Button>
     </div>
     {current && <div className="ui-period__summary" role="status" aria-atomic="true">
       <span>{current.label}</span><Badge variant={states[current.state].badge}>{states[current.state].label}</Badge>

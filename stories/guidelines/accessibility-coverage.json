@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/PeriodPicker.test.tsx",
+      "name": "React: PeriodPicker",
+      "does": "Checks named month states, controlled selection, roving focus, arrow and Home/End keys, and disabled boundary buttons.",
+      "blind": [
+        "JSDOM does not measure scrolling, focus clipping, or visual contrast."
+      ]
+    },
+    {
       "file": "react/src/KeyValueList.test.tsx",
       "name": "React: KeyValueList",
       "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",
