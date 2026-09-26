@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.57.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React DiffPreview shows batch changes with From and To columns, signed period totals, and notes for closed-period adjustments. Closes #384.'],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],
