@@ -42,8 +42,8 @@ can try again or select the text manually.
 Before a reveal snippet, explain that the secret is stored hashed and will not be
 shown again, and ask the reader to copy it now. The page decides when to remove it.
 
-`Callout` accepts `children`, optional `actions`, and an `icon` override; `neutral` is the unmodified default.
-The other variants are `info`, `success`, `warn`, and `danger`; only `danger` uses `role="alert"`.
+`Callout` accepts `children`, optional `actions`, and an `icon` override. `neutral` is the default.
+The other variants are `info`, `success`, `warn`, and `danger`. Only `danger` uses `role="alert"`.
 
 ```tsx
 <Callout variant="warn" actions={<Button size="sm">Review period</Button>}>
