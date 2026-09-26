@@ -332,3 +332,17 @@ import '@apliteni/apliteni-ui/react/css';
   ]} />
 </DrawerSection>
 ```
+
+## EntitySwitcher
+
+EntitySwitcher wraps the select Dropdown with entity names, descriptions, and an Archived badge.
+
+Pass unique entity IDs, the selected ID as `value`, and `onChange` to update the selection. Render it only when the user can switch entities.
+
+The consumer stores the selection in the URL, limits requests to that entity, and makes archived periods read-only. The application handles permission checks and routing.
+
+```tsx
+{canSwitchEntity && (
+  <EntitySwitcher entities={entities} value={entityId} onChange={setEntityId} />
+)}
+```
