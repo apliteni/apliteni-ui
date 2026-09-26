@@ -17,7 +17,7 @@ export const Info: Story = {
   args: { variant: 'info', children: <><b>Adjusted.</b> Amounts use the exchange rate at the close of each day.</> },
 };
 export const Success: Story = {
-  args: { variant: 'success', children: <><b>Complete.</b> All rows have been reconciled.</> },
+  args: { variant: 'success', children: <><b>Complete.</b> All rows have been reconciled. Read the <a href="#period">period notes</a>.</> },
 };
 export const Warn: Story = {
   args: { variant: 'warn', children: <><b>Incomplete.</b> This period is still open.</> },
