@@ -2079,3 +2079,16 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## Source freshness
+
+`FreshnessChip` displays a source and its last successful delivery date using the
+existing badge ink/fill pairs: fresh uses success, late uses warn, and failing uses
+danger. The date keeps the same ink as the source. Each chip is a tab stop whose
+accessible name includes the tone and whose `aria-describedby` names its detail.
+Hover or focus opens the detail; Escape dismisses it. An optional `href` makes
+the chip a link. `FreshnessRow` is a named, wrapping list that preserves caller
+order. The caller supplies the tone, formatted date, and scope-filtered sources.
+
+Held by `react/src/FreshnessChip.test.tsx` and the React story accessibility and
+contrast gates. Decided in [#390](https://github.com/apliteni/apliteni-ui/issues/390).

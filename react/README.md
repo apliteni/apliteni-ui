@@ -332,3 +332,17 @@ import '@apliteni/apliteni-ui/react/css';
   ]} />
 </DrawerSection>
 ```
+
+## FreshnessChip and FreshnessRow
+
+FreshnessChip shows a source, its last successful delivery date, and whether it is fresh, late, or failing. Hover over it or move focus to it to see details. Press Escape to close the details. Pass `href` to link to the source details.
+
+FreshnessRow is a named list that can wrap onto multiple lines. Pass it a `label` and `sources` with stable `id`s. The caller calculates each tone, formats the dates, and provides the sources in a meaningful order after filtering them for the current scope.
+
+```tsx
+<FreshnessRow label="Report sources" sources={[{
+  id: 'ledger', source: 'Ledger', tone: 'fresh',
+  date: '26 Sep 2026', dateTime: '2026-09-26',
+  detail: 'Daily delivery. Last run succeeded.',
+}]} />
+```

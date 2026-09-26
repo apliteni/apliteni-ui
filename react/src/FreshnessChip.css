@@ -1,0 +1,30 @@
+.ui-freshness { display: inline-flex; }
+.ui-freshness__chip { text-decoration: none; }
+.ui-freshness__chip > span:last-child { font-weight: var(--weight-normal); }
+.ui-freshness__chip svg { width: var(--space-3); height: var(--space-3); }
+.ui-freshness__detail {
+  position: fixed;
+  translate: none;
+  max-width: min(var(--prose-caption), calc(100vw - var(--space-4)));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+/* Keep the pointer over the detail while it crosses the gap. */
+.ui-freshness__detail::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--ui-tip-gap)) 0;
+  z-index: -1;
+}
+.ui-freshness-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.ui-freshness__chip.ui-badge--success { color: var(--chip-success-ink); }
+.ui-freshness__chip.ui-badge--warn { color: var(--chip-warn-ink); }
+.ui-freshness__chip.ui-badge--danger { color: var(--chip-danger-ink); }

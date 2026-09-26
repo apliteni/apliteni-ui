@@ -281,3 +281,8 @@ a bar. Add-filter controls and domain-specific option validation belong to the c
 `initRowIdentity` handles failed logos. `filterBar` renders the controlled filter group and
 `initFilterBar` owns its mounted controller. `initSegmented` wires the vanilla view strip
 and returns a listener cleanup function.
+
+### React source freshness
+
+`FreshnessChip` and `FreshnessRow` show source delivery dates and fresh, late, or
+failing tones. Details open on hover or focus. See the [React usage guide](../react/README.md#freshnesschip-and-freshnessrow).
