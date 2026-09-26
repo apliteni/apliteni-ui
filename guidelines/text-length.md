@@ -4,9 +4,9 @@
 
 <!-- rule: short-controls -->
 
-**Rule:** Keep labels, buttons, badges and status text to a few words that name the field, action or state.
+**Rule:** Keep labels, buttons, badges and status text to a few words. Name the field, action or state.
 
-**Why:** People scan these words when they decide what to do.
+**Why:** People scan these words to decide what to do next.
 
 **Do:** Label a field “Invoice date”, a button “Save invoice” and a badge “Overdue”.
 
@@ -16,9 +16,9 @@
 
 <!-- rule: useful-captions -->
 
-**Rule:** Use a caption to explain the period, units or limits needed to read the data in one sentence.
+**Rule:** Use one-sentence captions to explain the period, units or limits readers need to understand the data.
 
-**Why:** A caption should answer a question that the figures alone cannot answer.
+**Why:** The figures may not provide this context themselves.
 
 **Do:** Write “Revenue in EUR, excluding refunds, for March.”
 
@@ -28,9 +28,9 @@
 
 <!-- rule: useful-introductions -->
 
-**Rule:** Add a short introduction only when the title and controls do not make the page’s purpose or a required step clear.
+**Rule:** Add a short introduction only when the title and controls do not explain the page’s purpose or a required step.
 
-**Why:** Repeating the title makes readers read extra text before they can start their work.
+**Why:** Repeating a clear title adds text readers must read before they begin.
 
 **Do:** Under “Import invoices”, write “Upload a CSV with an invoice number, date and amount in each row.”
 
@@ -40,9 +40,9 @@
 
 <!-- rule: useful-callouts -->
 
-**Rule:** Use a callout for a consequence or next step the reader needs now, in one or two sentences.
+**Rule:** Use a callout for a consequence or next step the reader needs now. Keep it to one or two sentences.
 
-**Why:** A warning needs enough detail for the reader to act safely.
+**Why:** A warning must give enough information to act safely.
 
 **Do:** Write “Deleting this workspace also deletes its saved reports. Export any reports you need before continuing.”
 
@@ -54,9 +54,9 @@
 
 <!-- rule: remove-filler -->
 
-**Rule:** Remove text if the reader can make the same decision and complete the task without it.
+**Rule:** Remove text when the reader can make the same decision and complete the task without it.
 
-**Why:** Text is useful only when it gives the reader information they need.
+**Why:** Text is useful only when it provides needed information.
 
 **Do:** Keep “Exports contain only the filtered rows” beside an export action.
 
