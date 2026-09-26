@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/Toast.test.tsx",
+      "name": "React: Toast",
+      "does": "Checks the polite region, unchanged focus, dismissal timing, action buttons, reduced motion and axe rules with a notice present.",
+      "blind": [
+        "JSDOM does not measure layout, CSS animation or screen reader announcements."
+      ]
+    },
+    {
       "file": "react/src/Field.test.tsx",
       "name": "React: Fields",
       "does": "Checks generated label and message links, required and invalid controls, file selection and replacement, drop handling, disabled fields, form reset and axe violations.",

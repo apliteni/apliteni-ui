@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.48.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React now includes Toast and useToast for notifications in the kit’s five tones. Notices close after five seconds, while notices with an action remain until selected or dismissed. Closes #397.'],
+    ],
+  },
+  {
     v: '0.47.0', date: '2026-09-26',
     changes: [
       ['added', 'Added TextField, TextArea, SelectField, and FileField to React. Labels and help or error messages are linked automatically. Files can be picked or dropped. Resolves #389.'],
