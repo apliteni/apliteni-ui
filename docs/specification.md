@@ -2079,3 +2079,16 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React month navigation
+
+`PeriodPicker` displays the months and states its caller supplies, without computing
+period status or changing the URL itself. The caller updates its route in `onChange`
+and passes the selected value back. Restrict visibility by supplying a shorter list.
+The listbox names each month, year and state. Left/Right select adjacent months;
+Home/End select the ends, without wrapping. One option is in the tab order.
+Chevrons stay in place and disable at the ends. The chosen month scrolls into view
+and its full label and state appear beside the strip. A missing value selects nothing.
+
+Held by `react/src/PeriodPicker.test.tsx` (controlled selection, keyboard and boundaries)
+and the React story accessibility and contrast gates; JSDOM does not measure scrolling.
