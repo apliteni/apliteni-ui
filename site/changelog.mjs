@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.59.0', date: '2026-09-29',
+    changes: [
+      ['added', 'The main entry now ships TypeScript declarations and shared numeric and delta formatting helpers. Existing vanilla factories remain available. Part of #429.'],
+      ['changed', 'React FilterBar now uses React Dropdown and table values render native JSX while retaining their classes and controlled behavior.', ['FilterBar', 'Table']],
+    ],
+  },
+  {
     v: '0.58.2', date: '2026-09-29',
     changes: [
       ['fixed', 'Dropdown state and neutral badges use soft fills with similar visibility in both themes and match the standard badge size, without outlines. Selected titles use body ink, leaving the checkmark to indicate selection; non-status badges such as Beta use neutral ink. Vanilla and React share the styling. Resolves #445.'],

@@ -1,14 +1,14 @@
+import { formatNumericValue, formatDeltaValue } from '../logic/table-values.js';
 import { esc } from './index.js';
 import { safeUrl } from '../html.js';
-export function numericValue({ value, unit = '', missing = 'Not available' } = {}) {
-  if (value == null || value === '') return `<span class="ui-value" aria-label="${esc(missing)}">—</span>`;
-  return `<span class="ui-value">${esc(value)}${unit ? `<span class="ui-value__unit">${esc(unit)}</span>` : ''}</span>`;
+export function numericValue(options = {}) {
+  const value = formatNumericValue(options);
+  return `<span class="ui-value"${value.missing !== undefined ? ` aria-label="${esc(value.missing)}"` : ''}>${esc(value.text)}${value.unit ? `<span class="ui-value__unit">${esc(value.unit)}</span>` : ''}</span>`;
 }
 
-export function deltaValue({ value, tone = 'neutral', basisId, missing = 'No earlier figure' } = {}) {
-  const present = value != null && value !== '';
-  const judged = present && ['success', 'danger'].includes(tone) && !/^[+−-]?0+(?:[.,]0+)?(?:[^\d.,].*)?$/.test(String(value).replace(/\s/g, ''));
-  return `<span class="ui-delta${judged ? ` ui-delta--${tone}` : ''}"${basisId ? ` aria-describedby="${esc(basisId)}"` : ''}>${esc(present ? value : missing)}</span>`;
+export function deltaValue(options = {}) {
+  const value = formatDeltaValue(options);
+  return `<span class="${value.className}"${value.basisId ? ` aria-describedby="${esc(value.basisId)}"` : ''}>${esc(value.text)}</span>`;
 }
 
 export function rowIdentity({ symbol = '', name = '', logo, href } = {}) {

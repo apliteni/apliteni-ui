@@ -395,11 +395,11 @@ it('accepts a controlled table that says what its pager can say, and rejects one
   // started in rather than the one the sources are in.
   const src = path.dirname(expect.getState().testPath!);
   const probe = path.join(src, 'page-arms.probe.tsx');   // virtual, never written
-  const ambient = path.join(src, 'apliteni-ui.d.ts');
+  const declarations = path.join(src, '../../src/index.d.ts');
   const config = path.join(src, '..', 'tsconfig.json');
   // A path that has moved would type an empty program and report no errors at
   // all, which is the answer two of the four cases are watching for.
-  for (const real of [path.join(src, 'DataTable.tsx'), ambient, config]) {
+  for (const real of [path.join(src, 'DataTable.tsx'), declarations, config]) {
     expect(existsSync(real), `${real} is not on disk`).toBe(true);
   }
 
@@ -440,7 +440,7 @@ it('accepts a controlled table that says what its pager can say, and rejects one
   host.fileExists = (name) => name === probe || ts.sys.fileExists(name);
   host.readFile = (name) => (name === probe ? source : ts.sys.readFile(name));
 
-  const program = ts.createProgram([probe, ambient], options, host);
+  const program = ts.createProgram([probe, declarations], options, host);
   const lines = ts.getPreEmitDiagnostics(program)
     .filter((d) => d.file?.fileName === probe && d.start !== undefined)
     .map((d) => ({

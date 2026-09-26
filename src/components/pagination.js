@@ -1,3 +1,5 @@
+import { PAGE_SIZES, DEFAULT_PAGE_SIZE } from '../logic/pagination.js';
+export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from '../logic/pagination.js';
 // Pagination — the strip under a table or a list, as an HTML string.
 //
 // It renders a page the CALLER computed. Rows never come in here: `page`,
@@ -15,8 +17,7 @@ import { safeUrl } from '../html.js';
 // AG Grid defaults to 100, and the finance portal's two data-heavy surfaces
 // already page at 100. A 250 step was in the first draft of this component and
 // no surveyed kit offers one, so it went rather than being invented.
-export const PAGE_SIZES = [25, 50, 100];
-export const DEFAULT_PAGE_SIZE = 100;
+
 
 // The classes button({ variant: 'ghost', size: 'sm' }) emits, written out because
 // button() takes no extra class and every control here needs one of its own for

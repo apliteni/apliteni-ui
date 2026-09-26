@@ -282,3 +282,12 @@ a bar. Add-filter controls and domain-specific option validation belong to the c
 `initRowIdentity` handles failed logos. `filterBar` renders the controlled filter group and
 `initFilterBar` owns its mounted controller. `initSegmented` wires the vanilla view strip
 and returns a listener cleanup function.
+
+### Shared value formatting
+
+`formatNumericValue({ value, unit, missing })` returns `{ text, unit, missing }` for
+rendering numeric text and an optional unit; missing values use an em dash and an
+accessible label. `formatDeltaValue({ value, tone, basisId, missing })` returns
+`{ text, className, basisId }`, retaining signed text and neutral zero/missing values.
+Both return plain text, not HTML. React and the vanilla value factories share them.
+The main entry ships TypeScript declarations through its `types` export condition.

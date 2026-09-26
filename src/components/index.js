@@ -1,3 +1,5 @@
+import { calloutIcons } from '../logic/callout.js';
+export { calloutIcons } from '../logic/callout.js';
 // apliteni-ui component factories — each returns an HTML string, matching the
 // viz/ server-render idiom so the portal can adopt them with no framework.
 import { icon } from '../assets/icons.js';
@@ -218,7 +220,7 @@ export function switchToggle({ checked = false, disabled = false, name, label = 
 }
 
 // ---- Callout / toast / success ------------------------------------------
-export const calloutIcons = { info: 'info', success: 'check', warn: 'alert', danger: 'alert', neutral: 'info' };
+
 
 export function callout({ variant, icon: ic = calloutIcons[variant] || 'info', body, actions } = {}) {
   return `<div class="${esc(cx('ui-callout', variant && variant !== 'neutral' && `ui-callout--${variant}`))}"><span class="ui-callout__icon">${icon(ic)}</span><div class="ui-callout__body">${body}${actions != null ? `<div class="ui-toolbar ui-callout__actions">${actions}</div>` : ''}</div></div>`;
