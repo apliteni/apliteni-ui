@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
+import { esc, icon } from '@apliteni/apliteni-ui';
+import '../../src/styles/input.css';
 import { Icon } from './primitives/Icon';
 import './Field.css';
 
@@ -9,9 +11,8 @@ function Frame({ id, label, hint, error, required, children }: FieldMessage & { 
   return <div className="ui-field">
     <label className="ui-field__label" htmlFor={id}>{label}{required && <span className="ui-field__req" aria-hidden="true">*</span>}</label>
     {children}
-    {(error || hint) && <div id={`${id}-message`} className={error ? 'ui-field__error' : 'ui-field__hint'}>
-      {error && <Icon name="alert" />}{error || hint}
-    </div>}
+    {(error || hint) && <div id={`${id}-message`} className={error ? 'ui-field__error' : 'ui-field__hint'}
+      dangerouslySetInnerHTML={{ __html: (error ? icon('alert') : '') + esc(error || hint) }} />}
   </div>;
 }
 

@@ -7,16 +7,37 @@ import { TextField, TextArea, SelectField, FileField } from './Field';
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
-it('keeps the vanilla field and control classes', () => {
+// IDs differ by renderer; option selection is a DOM property in React.
+function structure(root: Element) {
+  const control = root.querySelector('input, textarea, select')!;
+  const ids = new Map([[control.id, 'control'], [control.getAttribute('aria-describedby'), 'message']]);
+  function node(el: Element): unknown {
+    return {
+      tag: el.tagName,
+      attrs: Object.fromEntries(Array.from(el.attributes)
+        .filter(attr => attr.name !== 'selected')
+        .map(attr => [attr.name, ids.get(attr.value) ?? attr.value.trim()]).sort()),
+      ...(el instanceof HTMLOptionElement ? { selected: el.selected } : {}),
+      children: Array.from(el.childNodes).map(child => child instanceof Element ? node(child) : child.textContent),
+    };
+  }
+  return node(root.firstElementChild!);
+}
+
+it('matches the complete vanilla field structure and native attributes', () => {
   for (const [react, vanilla] of [
-    [<TextField label="Name" hint="Help" />, field({ label: 'Name', hint: 'Help', control: input() })],
-    [<TextArea label="Notes" />, field({ label: 'Notes', control: textarea() })],
-    [<SelectField label="Currency"><option>EUR</option></SelectField>, field({ label: 'Currency', control: select({ options: ['EUR'] }) })],
+    [<TextField label="Name" hint="Help" required name="name" placeholder="Name" defaultValue="Demo" />,
+      field({ label: 'Name', hint: 'Help', required: true, control: input({ name: 'name', placeholder: 'Name', value: 'Demo' }) })],
+    [<TextArea label="Notes" hint="Help" required name="notes" placeholder="Notes" defaultValue="Draft" />,
+      field({ label: 'Notes', hint: 'Help', required: true, control: textarea({ name: 'notes', placeholder: 'Notes', value: 'Draft' }) })],
+    [<SelectField label="Currency" hint="Help" required name="currency" defaultValue="USD"><option value="EUR">EUR</option><option value="USD">USD</option></SelectField>,
+      field({ label: 'Currency', hint: 'Help', required: true, control: select({ name: 'currency', options: ['EUR', 'USD'], value: 'USD' }) })],
+    [<TextField label="Name" hint="Hidden" error={'Use <plain> text & "quotes".'} placeholder="Name" defaultValue="Demo" disabled />,
+      field({ label: 'Name', hint: 'Hidden', error: 'Use <plain> text & "quotes".', control: input({ placeholder: 'Name', value: 'Demo', invalid: true, disabled: true }) })],
   ] as const) {
     const { container, unmount } = render(react);
     const reference = document.createElement('div'); reference.innerHTML = vanilla;
-    const classes = (root: Element) => Array.from(root.querySelectorAll('[class]'), el => el.className.trim());
-    expect(classes(container)).toEqual(classes(reference));
+    expect(structure(container)).toEqual(structure(reference));
     unmount();
   }
 });
