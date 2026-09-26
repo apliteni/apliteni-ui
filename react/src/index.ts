@@ -61,3 +61,5 @@ export { Snippet } from './Snippet';
 export type { SnippetProps } from './Snippet';
 export { Tabs } from './Tabs';
 export type { TabsProps, TabItem } from './Tabs';
+export { Timeline } from './Timeline';
+export type { TimelineProps, TimelineEvent } from './Timeline';

@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/Timeline.test.tsx",
+      "name": "React: Timeline",
+      "does": "Checks ordered-list semantics, timestamps, event order, keyboard undo and axe violations.",
+      "blind": [
+        "It does not measure browser layout, colour contrast or screen-reader speech."
+      ]
+    },
+    {
       "file": "react/src/Tabs.test.tsx",
       "name": "React: Tabs",
       "does": "Checks controlled selection, tab and panel links, counts, unique IDs, arrow-key wrapping, Home and End, and keyboard focus into the selected panel.",
