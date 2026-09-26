@@ -1,4 +1,9 @@
 declare module '@apliteni/apliteni-ui' {
+  export function esc(value: unknown): string;
+  export function field(opts?: Record<string, unknown>): string;
+  export function input(opts?: Record<string, unknown>): string;
+  export function textarea(opts?: Record<string, unknown>): string;
+  export function select(opts?: Record<string, unknown>): string;
   export function numericValue(opts?: Record<string, unknown>): string;
   export function deltaValue(opts?: Record<string, unknown>): string;
   export function filterBar(opts?: Record<string, unknown>): string;

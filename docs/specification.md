@@ -2118,3 +2118,17 @@ Undo is an optional named button for a reversible batch. The app owns permission
 confirmation for finalized records, batch reversal and the new reversing event.
 The component calls the supplied handler without changing or sorting history.
 Events do not collapse or paginate.
+
+## React fields
+
+`TextField`, `TextArea`, `SelectField` and `FileField` generate their control and
+message IDs. Labels name the controls; an error replaces the hint and marks the
+control invalid. Required markers are decorative; native controls carry `required`.
+Text, textarea and select reuse the vanilla field classes. Number inputs request a
+decimal keyboard and may show a unit.
+
+`FileField` accepts one file by picker or drop. A new file replaces the previous
+one, updates the native input and calls `onFileChange`. The native file input stays
+focusable over the visible button. Disabled fields reject drops. The consumer
+supplies file type and size guidance and validates files before upload; `accept`
+only filters the system picker.

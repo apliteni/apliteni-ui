@@ -69,7 +69,7 @@ function walk(sheets: Sheet[], theme: string) {
 
 describe('elevation', () => {
   it('sweeps every stylesheet this workspace ships', () => {
-    expect(SHEETS).toEqual(['./DataTable.css', './KeyValueList.css', './Modal.css', './Timeline.css']);
+    expect(SHEETS).toEqual(['./DataTable.css', './Field.css', './KeyValueList.css', './Modal.css', './Timeline.css']);
   });
 
   it('casts nothing but the floating treatment', () => {

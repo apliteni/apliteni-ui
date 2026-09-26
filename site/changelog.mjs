@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.47.0', date: '2026-09-26',
+    changes: [
+      ['added', 'Added TextField, TextArea, SelectField, and FileField to React. Labels and help or error messages are linked automatically. Files can be picked or dropped. Resolves #389.'],
+    ],
+  },
+  {
     v: '0.46.0', date: '2026-09-26',
     changes: [
       ['added', 'React now includes Timeline for ordered record histories, with timestamps, metadata and optional undo buttons. The app handles confirmation and batch reversal. Closes #396.', ['Timeline']],
