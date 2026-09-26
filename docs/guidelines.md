@@ -9,7 +9,7 @@ Each page has a `#` title and rules, without an introduction or appendix.
 Each rule has a short `##` title, a stable `<!-- rule: id -->`, and these fields:
 
 - `**Rule:**` — one sentence stating what to do.
-- `**Why:**` — one sentence explaining why.
+- Optional `**Why:**` — explain only what the rule leaves unclear.
 - `**Do:**` and `**Don't:**` — concrete, meaningfully different examples.
 - Optional `**Except:**` — necessary boundaries, not history.
 - Optional `**Gap #123:**` — a known unmet requirement.
