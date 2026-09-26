@@ -16,7 +16,7 @@
 
 <!-- rule: useful-captions -->
 
-**Rule:** Use a caption to explain the period, units or limits needed to read the data, usually in one sentence.
+**Rule:** Use a caption to explain the period, units or limits needed to read the data in one sentence.
 
 **Why:** A caption should answer a question that the figures alone cannot answer.
 
@@ -40,7 +40,7 @@
 
 <!-- rule: useful-callouts -->
 
-**Rule:** Use a callout for a consequence or next step the reader needs now, usually in one or two sentences.
+**Rule:** Use a callout for a consequence or next step the reader needs now, in one or two sentences.
 
 **Why:** A warning needs enough detail for the reader to act safely.
 
