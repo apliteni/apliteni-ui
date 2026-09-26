@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.53.1', date: '2026-09-28',
     changes: [
-      ['added', 'The Density and accents guideline explains how to spot crowded previews, decide what stays visible, and use accents for actions or selection. Closes #400.'],
+      ['added', 'Density and accent guidelines now show paired examples of narrow stat bands, payout previews and primary actions. See #400.'],
     ],
   },
   {

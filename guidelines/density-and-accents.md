@@ -8,9 +8,9 @@
 
 **Why:** Stacking gives each label and value the full width of the block.
 
-**Do:** Let the [Stat band tiles](https://ui.apli.tech/storybook/?path=/story/components-stat-band--gallery) stack at 28rem.
+**Do:** Stack Paid and In transit, as [Stat band tiles](https://ui.apli.tech/storybook/?path=/story/components-stat-band--gallery) do in a narrow panel.
 
-**Don't:** Override the same tiles to keep four figures across at 28rem.
+**Don't:** Force the same figures side by side in that panel.
 
 ## Keep the summary short
 
@@ -20,9 +20,9 @@
 
 **Why:** The preview helps the reader decide whether to act or open the full record.
 
-**Do:** Use the [Stat band “Figures only” state](https://ui.apli.tech/storybook/?path=/story/components-stat-band--states) for the summary, and group full-record details as [Drawer Record](https://ui.apli.tech/storybook/?path=/story/components-drawer--record) does.
+**Do:** Keep the payout table compact. Show the selected payout with grouped facts and Open payout. [Linear Peek](https://linear.app) uses this list-and-preview pattern.
 
-**Don't:** Add every history entry and a trend to each figure in the summary.
+**Don't:** Repeat the payout reference, status and amount, then show its history before Open payout.
 
 ## Give accents a job
 
@@ -32,8 +32,8 @@
 
 **Why:** One accented action is easier to find than several competing actions.
 
-**Do:** Use [Button primary for Continue and ghost for Cancel](https://ui.apli.tech/storybook/?path=/story/components-button--variants).
+**Do:** Make Open payout the primary action and Copy reference the secondary action. Keep the amount and date neutral.
 
-**Don't:** Make both Continue and Cancel primary, or colour every stat value with the accent.
+**Don't:** Make both actions primary or colour every label and value with the accent.
 
 **Except:** Keep [Badge success, pending and danger](https://ui.apli.tech/storybook/?path=/story/components-badge-status--badges) for their named statuses; do not replace those signals with the accent.
