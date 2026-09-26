@@ -2136,7 +2136,9 @@ only filters the system picker.
 ## React toasts
 
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest
-at the bottom. Notices without actions dismiss after five seconds. Notices with
-an action stay until it is selected or the reader dismisses them. The stack is
-one polite live region; adding a notice does not move focus. Dismissal uses the
-kit's leave animation, or removes the notice immediately under reduced motion.
+at the bottom. Notices without actions dismiss after five seconds. Their countdown
+and timer bar pause while hovered or focused, then resume with the remaining time.
+Notices with an action stay until it is selected or the reader dismisses them.
+Ordinary notices are polite; danger notices are assertive. Adding a notice does
+not move focus. Dismissal uses the kit's leave animation, or removes the notice
+immediately under reduced motion.

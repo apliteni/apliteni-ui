@@ -412,7 +412,8 @@ Your application must validate files before upload.
 
 Wrap your app in `Toast`, then call `useToast()` inside it to add a notice.
 Pass `title`, optional `text`, and a `tone`: success (default), danger, warn, info,
-or neutral. Notices disappear after five seconds. An `action` with a `label` and
+or neutral. Notices disappear after five seconds, pausing while hovered or focused.
+Danger notices are announced assertively; other tones are polite. An `action` with a `label` and
 `onClick` stays until selected or dismissed. New notices appear at the bottom.
 
 ```tsx

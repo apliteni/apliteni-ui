@@ -12,13 +12,13 @@ function Trigger({ notice }: { notice: ToastNotice }) {
 function setup(notice: ToastNotice = { title: 'Saved', text: 'Your changes were saved.' }) {
   return render(<Toast><Trigger notice={notice} /></Toast>);
 }
-it('appends notices to one polite region without moving focus', () => {
+it('appends polite notices without moving focus', () => {
   setup();
   const trigger = screen.getByText('Notify');
   trigger.focus();
   fireEvent.click(trigger); fireEvent.click(trigger);
   expect(screen.getAllByText('Saved')).toHaveLength(2);
-  expect(screen.getByRole('status')).toHaveAttribute('aria-atomic', 'false');
+  expect(screen.getAllByRole('status')).toHaveLength(2);
   expect(trigger).toHaveFocus();
 });
 it('leaves after five seconds and removes only after its own animation', () => {
@@ -64,4 +64,57 @@ it('has no axe violations with an action present', async () => {
   fireEvent.click(screen.getByText('Notify'));
   const result = await axe.run(document.body, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
   expect(result.violations).toEqual([]);
+});
+it.each([false, true])('pauses on hover and resumes the remaining time (reduced motion: %s)', reduced => {
+  vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: reduced }));
+  setup(); fireEvent.click(screen.getByText('Notify'));
+  const notice = screen.getByText('Saved').closest('.ui-toast')!;
+  act(() => vi.advanceTimersByTime(2000));
+  fireEvent.mouseEnter(notice);
+  expect(notice.querySelector('.ui-toast__timer')).toHaveStyle({ animationPlayState: 'paused' });
+  act(() => vi.advanceTimersByTime(10000));
+  expect(notice).toBeInTheDocument();
+  expect(notice).not.toHaveClass('is-leaving');
+  fireEvent.mouseLeave(notice);
+  expect(notice.querySelector('.ui-toast__timer')).toHaveStyle({ animationPlayState: 'running' });
+  act(() => vi.advanceTimersByTime(2999));
+  expect(notice).toBeInTheDocument();
+  expect(notice).not.toHaveClass('is-leaving');
+  act(() => vi.advanceTimersByTime(1));
+  if (reduced) expect(notice).not.toBeInTheDocument();
+  else expect(notice).toHaveClass('is-leaving');
+});
+it('stays paused until both hover and focus leave, including repeated pauses', () => {
+  vi.useFakeTimers(); setup(); fireEvent.click(screen.getByText('Notify'));
+  const notice = screen.getByText('Saved').closest('.ui-toast')!;
+  const close = screen.getByRole('button', { name: 'Dismiss' });
+  act(() => vi.advanceTimersByTime(1000));
+  act(() => close.focus());
+  act(() => vi.advanceTimersByTime(10000));
+  expect(notice).not.toHaveClass('is-leaving');
+  fireEvent.mouseEnter(notice);
+  act(() => screen.getByText('Notify').focus());
+  act(() => vi.advanceTimersByTime(10000));
+  expect(notice).not.toHaveClass('is-leaving');
+  fireEvent.mouseLeave(notice);
+  act(() => vi.advanceTimersByTime(1000));
+  fireEvent.mouseEnter(notice);
+  act(() => close.focus());
+  fireEvent.mouseLeave(notice);
+  act(() => vi.advanceTimersByTime(10000));
+  expect(notice).not.toHaveClass('is-leaving');
+  act(() => screen.getByText('Notify').focus());
+  act(() => vi.advanceTimersByTime(2999));
+  expect(notice).not.toHaveClass('is-leaving');
+  act(() => vi.advanceTimersByTime(1));
+  expect(notice).toHaveClass('is-leaving');
+});
+it.each(['success', 'danger', 'warn', 'info', 'neutral'] as const)('announces %s with the correct urgency', tone => {
+  setup({ tone, title: 'Notice', text: 'Details' });
+  const trigger = screen.getByText('Notify'); trigger.focus(); fireEvent.click(trigger);
+  const notice = screen.getByText('Notice').closest('.ui-toast');
+  expect(notice).toHaveAttribute('role', tone === 'danger' ? 'alert' : 'status');
+  expect(notice).toHaveAttribute('aria-live', tone === 'danger' ? 'assertive' : 'polite');
+  expect(notice?.parentElement).not.toHaveAttribute('aria-live');
+  expect(trigger).toHaveFocus();
 });
