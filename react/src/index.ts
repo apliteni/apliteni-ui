@@ -13,6 +13,8 @@ export { Button } from './primitives/Button';
 export type { ButtonProps } from './primitives/Button';
 export { Badge } from './primitives/Badge';
 export { Card } from './primitives/Card';
+export { Callout } from './primitives/Callout';
+export type { CalloutProps, CalloutVariant } from './primitives/Callout';
 export { StatBand } from './primitives/StatBand';
 export type { StatBandProps, StatFigure, StatDelta, StatTone, StatVariant } from './primitives/StatBand';
 export { Confirm } from './Confirm';
