@@ -278,3 +278,10 @@ test('#246 a summary is never empty, and never the whole essay', () => {
   const empty = CHANGES.filter((c) => !splitChange(c.text).headline.trim()).map(at);
   assert.deepEqual(empty, [], 'these render a change with no visible line at all.');
 });
+
+// Checks the notice label and badge only, not its visual styling.
+test('release labels deprecations without a Breaking badge', () => {
+  const html = release({ v: '9.9.9', date: '2026-01-01', changes: [['deprecated', 'Factory removal notice.']] });
+  assert.match(html, />Deprecated<\/span>/);
+  assert.doesNotMatch(html, /ui-badge--breaking/);
+});

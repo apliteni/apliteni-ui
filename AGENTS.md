@@ -38,6 +38,8 @@ Report the result in the PR. Keep this check out of routine CI to save Actions m
 
 ## Changes
 
+No new factories, no parity tests for new React work. See #429.
+
 Add a general, composable kit component only when all three checks are true:
 
 - The issue names at least two products that use it or have requested it.

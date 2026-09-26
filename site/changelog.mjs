@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.53.0', date: '2026-09-28',
+    changes: [
+      ['deprecated', 'Vanilla HTML factories, initializers, and the vanilla overlay are scheduled for removal in the next release (#429); this release changes no runtime behavior. React and shared logic, all CSS and tokens, inline strings, motion helpers, guidelines, esc, icon and its name tables, sun, moon, prism, seedling, brand, and illo stay supported.'],
+    ],
+  },
+  {
     v: '0.52.0', date: '2026-09-27',
     changes: [
       ['fixed', 'Theme toggle icons use the control text color for clearer contrast in React and vanilla.'],
