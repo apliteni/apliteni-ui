@@ -41,6 +41,9 @@ import * as hoverStory from './HoverReadouts.stories.js';
 import * as backStory from './GoingBack.stories.js';
 import * as pageStory from './ThePage.stories.js';
 
+import * as densityAccentContent from './_density-and-accents.js';
+import * as densityAccentStory from './DensityAndAccents.stories.js';
+
 const ENTRIES = [
   [pageContent, pageStory],
   [destructiveContent, destructiveStory],
@@ -51,6 +54,7 @@ const ENTRIES = [
   [labelsContent, labelsStory],
   [iconographyContent, iconographyStory],
   [layoutContent, layoutStory],
+  [densityAccentContent, densityAccentStory],
   [denseContent, denseStory],
   [floorContent, floorStory],
   [paginationContent, paginationStory],

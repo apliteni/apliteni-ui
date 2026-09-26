@@ -95,7 +95,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme \u00d7 accent cells"
+        "pattern": "theme × accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -729,7 +729,7 @@
     "busy": [
       {
         "ref": "src/components/index.js:37",
-        "pattern": "busy \u21d2 disabled"
+        "pattern": "busy ⇒ disabled"
       },
       {
         "ref": "src/styles/button.css:126",
@@ -769,5 +769,13 @@
       }
     ]
   },
-  "_the-page.js": {}
+  "_the-page.js": {},
+  "_density-and-accents.js": {
+    "purposeful-accent": [
+      {
+        "ref": "src/styles/button.css:44",
+        "pattern": "background: var(--accent-strong)"
+      }
+    ]
+  }
 }
