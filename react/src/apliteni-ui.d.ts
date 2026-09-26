@@ -4,6 +4,12 @@ declare module '@apliteni/apliteni-ui' {
   export function input(opts?: Record<string, unknown>): string;
   export function textarea(opts?: Record<string, unknown>): string;
   export function select(opts?: Record<string, unknown>): string;
+
+  export function prism(id: string, size: number): string;
+  export function railCollapsed(cookies?: string): boolean | null;
+  export function applyTheme(theme: string): void;
+  export function themeName(theme: string): string;
+  export function themeIcon(theme: string): string;
   export function numericValue(opts?: Record<string, unknown>): string;
   export function deltaValue(opts?: Record<string, unknown>): string;
   export function filterBar(opts?: Record<string, unknown>): string;

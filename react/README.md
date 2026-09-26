@@ -433,3 +433,20 @@ function SaveButton() {
 
 <Toast><SaveButton /></Toast>
 ```
+
+## AppShell
+
+AppShell includes the kit’s rail and top band. Pass the current router pathname so the longest matching section path becomes active. Spread the props from `renderLink` onto your router link. The rail’s folded state is saved in a shared cookie. On phones, the bar shows up to four sections. If there are more, it shows three sections and a More sheet. Provide no more than one primary page action. The palette defaults to section links; pass `palette` to add custom commands. Import both the kit CSS and React CSS.
+
+```tsx
+<AppShell
+  pathname={location.pathname}
+  sections={[{ href: '/reports', label: 'Reports', icon: 'chart' }]}
+  title="Reports"
+  account={{ name: 'Demo User', email: 'demo@example.com' }}
+  onSignOut={signOut}
+  renderLink={(section, { href, ...props }) => <Link to={section.href} {...props} />}
+>
+  <Reports />
+</AppShell>
+```
