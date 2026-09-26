@@ -57,3 +57,6 @@ export { KeyValueList, DrawerSection } from './KeyValueList';
 export type { KeyValueRow, KeyValueListProps, DrawerSectionProps } from './KeyValueList';
 export { Snippet } from './Snippet';
 export type { SnippetProps } from './Snippet';
+
+export { ThemeToggle, THEME_INIT_SCRIPT } from './ThemeToggle';
+export type { ThemeToggleProps } from './ThemeToggle';
