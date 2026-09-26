@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.52.0', date: '2026-09-27',
+    changes: [
+      ['added', 'React ThemeToggle cycles through dark, light and auto, saves the choice, and follows the operating system in auto mode. Resolves #395.'],
+    ],
+  },
+  {
     v: '0.51.0', date: '2026-09-27',
     changes: [
       ['added', 'React now includes EmptyState with the vanilla layout, four text presets, and illustration and action slots. Resolves #386.'],

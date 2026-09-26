@@ -2164,3 +2164,12 @@ themes; browser evidence covers responsive layout, which JSDOM cannot measure.
 overridden with `title`, `sub` and `icon`. `art` accepts a vanilla illustration
 name, trusted SVG string, or a decorative React node; `actions` accepts React
 buttons or links. The page supplies its own h1, including on a not-found page.
+
+## React theme control
+
+`ThemeToggle` uses the topbar's theme button and accessible naming convention.
+It owns `data-theme` on the document root and remembers explicit choices under
+`apliteni-strategy-theme`. Without a valid saved choice, it follows the operating
+system preference. Mounted controls stay synchronized. Storage failures leave the
+button usable. `THEME_INIT_SCRIPT` applies the same preference before first paint
+when the consumer includes it before styles in the document head.
