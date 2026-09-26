@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/Tabs.test.tsx",
+      "name": "React: Tabs",
+      "does": "Checks controlled selection, tab and panel links, counts, unique IDs, arrow-key wrapping, Home and End, and keyboard focus into the selected panel.",
+      "blind": [
+        "It does not measure rendered styles or reduced-motion timing in a browser."
+      ]
+    },
+    {
       "file": "react/src/KeyValueList.test.tsx",
       "name": "React: KeyValueList",
       "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",
