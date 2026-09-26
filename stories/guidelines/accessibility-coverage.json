@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/Tooltip.test.tsx",
+      "name": "React: Tooltip",
+      "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",
+      "blind": [
+        "Geometry is mocked; browser layout, focus rings and reduced motion need browser checks."
+      ]
+    },
+    {
       "file": "react/src/KeyValueList.test.tsx",
       "name": "React: KeyValueList",
       "does": "Checks definition-list markup, missing or redacted values, native link focus, heading levels, and axe violations.",
