@@ -8,6 +8,7 @@ export const RELEASES = [
   {
     v: '0.52.0', date: '2026-09-27',
     changes: [
+      ['fixed', 'Theme toggle icons use the control text color for clearer contrast in React and vanilla.'],
       ['added', 'React ThemeToggle cycles through dark, light and auto, saves the choice, and follows the operating system in auto mode. Resolves #395.'],
     ],
   },

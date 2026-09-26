@@ -170,3 +170,36 @@ test('auto stays saved while OS changes and the vanilla button cycles all choice
     globalThis.localStorage = previousStorage;
   }
 });
+
+// Source CSS only: JSDOM does not measure antialiased pixels or host overrides.
+for (const theme of ['dark', 'light']) {
+  test(`theme glyph contrast: all vanilla choices in ${theme}`, async () => {
+    const { kitCssFor, effectiveBackground, parseColour, composite, ratio } = await import('../../stories/lib/contrast.js');
+    const view = new JSDOM(`<style>${kitCssFor(theme).css}</style><body>${['dark', 'light', 'auto'].map(themeToggle).join('')}</body>`).window;
+    try {
+      const buttons = [...view.document.querySelectorAll('[data-theme-toggle]')];
+      assert.equal(buttons.length, 3, 'every theme choice rendered');
+      let measured = 0;
+      for (const button of buttons) {
+        const svg = button.querySelector('svg');
+        assert.ok(svg, 'each choice contains a glyph');
+        assert.equal(svg.getAttribute('stroke'), 'currentColor');
+        for (const state of ['', 'hover', 'focus-visible', 'active']) {
+          button.setAttribute('data-ui-state', state);
+          const cs = view.getComputedStyle(svg);
+          const ink = parseColour(cs.color);
+          assert.ok(ink, 'glyph ink resolves');
+          const bg = effectiveBackground(svg, view);
+          assert.notEqual(bg, 'IMAGE', 'solid background resolves');
+          let opacity = 1;
+          for (let el = svg; el; el = el.parentElement) opacity *= Number.parseFloat(view.getComputedStyle(el).opacity || '1');
+          const contrast = ratio(composite([ink[0], ink[1], ink[2], ink[3] * opacity], bg), bg);
+          assert.ok(contrast >= 3, `${button.title}/${state || 'rest'}: ${contrast.toFixed(2)}:1`);
+          assert.equal(cs.color, view.getComputedStyle(button).color, 'glyph uses the control ink');
+          measured++;
+        }
+      }
+      assert.equal(measured, 12, 'all choices × interaction states measured');
+    } finally { view.close(); }
+  });
+}

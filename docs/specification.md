@@ -2168,6 +2168,9 @@ buttons or links. The page supplies its own h1, including on a not-found page.
 ## React theme control
 
 `ThemeToggle` preserves the existing topbar button styles and accessible naming.
+React and vanilla theme glyphs use the control text color and clear 3:1 against
+the button surface in both themes, checked by `react/src/ThemeToggle.contrast.test.tsx`
+and `src/components/topbar.test.js`.
 Its only prop is `labelled?: boolean` (default `false`); it has no controlled value
 or callback props. Pressing it cycles dark, light, auto, then dark.
 
