@@ -407,3 +407,19 @@ native control props. `SelectField` accepts option children.
 `FileField` accepts one file from a picker or a drop and reports it through
 `onFileChange`. Use `accept` and `hint` to describe allowed file types and size.
 Your application must validate files before upload.
+
+## Toast
+
+Wrap your app in `Toast`, then call `useToast()` inside it to add a notice.
+Pass `title`, optional `text`, and a `tone`: success (default), danger, warn, info,
+or neutral. Notices disappear after five seconds. An `action` with a `label` and
+`onClick` stays until selected or dismissed. New notices appear at the bottom.
+
+```tsx
+function SaveButton() {
+  const push = useToast();
+  return <Button onClick={() => push({ title: 'Saved', text: 'Your changes were saved.' })}>Save</Button>;
+}
+
+<Toast><SaveButton /></Toast>
+```
