@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.43.3', date: '2026-09-26',
+    changes: [
+      ['added', 'The Density and accents guideline explains how to spot crowded previews, decide what stays visible, and use accents for actions or selection. Closes #400.'],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],
