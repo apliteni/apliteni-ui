@@ -2079,3 +2079,12 @@ Held by `src/components/attribute-boundaries.test.js`, which parses the emitted 
 and checks quote/angle-bracket probes across the factories, URL schemes, attribute
 round-trips and retained trusted markup. It does not promise that arbitrary trusted
 HTML or caller-supplied CSS is safe.
+
+## React theme control
+
+`ThemeToggle` uses the topbar's theme button and accessible naming convention.
+It owns `data-theme` on the document root and remembers explicit choices under
+`apliteni-strategy-theme`. Without a valid saved choice, it follows the operating
+system preference. Mounted controls stay synchronized. Storage failures leave the
+button usable. `THEME_INIT_SCRIPT` applies the same preference before first paint
+when the consumer includes it before styles in the document head.

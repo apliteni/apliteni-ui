@@ -422,6 +422,14 @@
       "blind": [
         "No state pass. All blind spots of the vanilla contrast gate also apply here."
       ]
+    },
+    {
+      "file": "react/src/ThemeToggle.test.tsx",
+      "name": "React: Theme toggle",
+      "does": "Checks keyboard activation, accessible names, persistence, OS preference and synchronization.",
+      "blind": [
+        "JSDOM does not measure layout, contrast or screen-reader speech."
+      ]
     }
   ],
   "UNGATED": [

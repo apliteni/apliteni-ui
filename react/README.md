@@ -332,3 +332,30 @@ import '@apliteni/apliteni-ui/react/css';
   ]} />
 </DrawerSection>
 ```
+
+## ThemeToggle
+
+ThemeToggle uses the existing topbar button. It shows the current theme and the
+action that will happen next. Add `labelled` to display the current theme beside
+the button.
+
+```tsx
+import { ThemeToggle, THEME_INIT_SCRIPT } from '@apliteni/apliteni-ui/react';
+
+<ThemeToggle />
+<ThemeToggle labelled />
+```
+
+The component sets `data-theme` on `html` and saves explicit choices in localStorage
+under `apliteni-strategy-theme`. Missing or invalid saved choices follow the operating
+system preference, including preference changes while the page is open. Storage
+failures do not disable the button. Multiple mounted toggles stay synchronized.
+
+Place `THEME_INIT_SCRIPT` in an inline `<head>` script before styles load so the theme
+is set before the first paint. Allow this script through your Content Security Policy
+with a nonce or hash. The component applies the preference when React mounts, but it
+cannot change an earlier paint.
+
+```tsx
+<script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+```

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.46.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React ThemeToggle switches between dark and light themes, remembers the selected theme, and follows the operating system preference until the user saves a choice. Resolves #395.'],
+    ],
+  },
+  {
     v: "0.43.1", date: "2026-09-25",
     changes: [
       ["changed", "Contributor setup and component steps now live in README, with short agent rules and plain release notes. The long contributor guide was removed; runtime behavior is unchanged. Closes #402."],
