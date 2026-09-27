@@ -1,3 +1,4 @@
+import { fn } from 'storybook/test';
 import { Badge } from './primitives/Badge';
 import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
@@ -5,32 +6,37 @@ import { Icon } from './primitives/Icon';
 export default {
   title: 'Showcases/Source freshness',
   id: 'showcases-source-freshness',
+  parameters: { layout: 'fullscreen' },
+};
+
+const tones = {
+  fresh: { variant: 'success', icon: 'circleCheck' },
+  late: { variant: 'warn', icon: 'circleAlert' },
+  failing: { variant: 'danger', icon: 'circleX' },
 };
 
 // The product supplies the source order, delivery dates and freshness judgement.
 const sources = [
-  { name: 'Bank feed', status: 'Fresh', variant: 'success', icon: 'check', date: '2026-09-26', label: '26 Sep 2026', detail: 'Daily. Last delivery: 08:00 UTC.' },
-  { name: 'Invoices', status: 'Late', variant: 'warn', icon: 'clock', date: '2026-09-24', label: '24 Sep 2026', detail: 'Daily. Two deliveries are overdue.' },
-  { name: 'Payroll', status: 'Failing', variant: 'danger', icon: 'alert', date: '2026-08-31', label: '31 Aug 2026', detail: 'Monthly. Access has expired; reconnect the source.' },
-];
+  { name: 'Bank feed', tone: 'fresh', date: '2026-09-26', label: '26 Sep 2026' },
+  { name: 'Invoices', tone: 'late', date: '2026-09-24', label: '24 Sep 2026' },
+  { name: 'Payroll', tone: 'failing', date: '2026-08-31', label: '31 Aug 2026' },
+] as const;
 
 export const Sources = {
-  render: () => (
-    <main>
-      <h1>Data freshness</h1>
-      <p>Demo data as of 26 Sep 2026, 09:00 UTC.</p>
-      <Button size="sm" onClick={() => {
-        const root = document.documentElement;
-        root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light';
-      }}>Change theme</Button>
-      <ul aria-label="Data sources" role="list" style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-6)', padding: 0, listStyle: 'none' }}>
+  args: { onReconnect: fn() },
+  render: ({ onReconnect }: { onReconnect: () => void }) => (
+    <main style={{ padding: 'var(--space-6)', display: 'grid', gap: 'var(--space-4)', justifyItems: 'start' }}>
+      <p>Fictional data. Current at 26 Sep 2026, 09:00 UTC.</p>
+      <ul aria-label="Data sources" role="list" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'start', gap: 'var(--space-6)', margin: 0, padding: 0, listStyle: 'none' }}>
         {sources.map(source => (
-          <li key={source.name}>
-            <Badge variant={source.variant}>
-              <Icon name={source.icon} />
-              <span>{source.name}: {source.status}, as of <time dateTime={source.date}>{source.label}</time></span>
+          <li key={source.name} style={{ display: 'grid', gap: 'var(--space-3)', justifyItems: 'start' }}>
+            <Badge variant={tones[source.tone].variant}>
+              <Icon name={tones[source.tone].icon} />
+              <span>{source.name} — {source.tone}, last delivered <time dateTime={source.date}>{source.label}</time></span>
             </Badge>
-            <p>{source.detail}</p>
+            {source.tone === 'failing' && <Button size="sm" onClick={onReconnect}>
+              Reconnect Payroll
+            </Button>}
           </li>
         ))}
       </ul>
