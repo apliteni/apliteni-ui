@@ -60,15 +60,15 @@ function Example() {
       <h1>Reporting period</h1>
       <p>Demo periods · April–September 2026</p>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-        <Button icon="chevronLeft" iconOnly disabled={index === 0}
+        <Button icon="chevronLeft" disabled={index === 0}
           aria-label={index === 0 ? 'No earlier month' : `Previous month: ${months[index - 1].name} 2026`}
-          onClick={() => choose(months[index - 1].value)} />
+          onClick={() => choose(months[index - 1].value)}>Previous</Button>
         <div style={{ minWidth: 0, overflowX: 'auto', whiteSpace: 'nowrap', padding: 'var(--space-1)' }}>
           <Segmented label="Choose a month" options={options} value={value} onChange={choose} />
         </div>
-        <Button icon="chevronRight" iconOnly disabled={index === months.length - 1}
+        <Button icon="chevronRight" disabled={index === months.length - 1}
           aria-label={index === months.length - 1 ? 'No later month' : `Next month: ${months[index + 1].name} 2026`}
-          onClick={() => choose(months[index + 1].value)} />
+          onClick={() => choose(months[index + 1].value)}>Next</Button>
       </div>
       <p role="status">{selected.name} 2026 <Badge variant={selected.tone}>{selected.status}</Badge></p>
   </main>;
