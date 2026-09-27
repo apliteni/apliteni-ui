@@ -40,7 +40,7 @@ export const EntitySwitcher: StoryObj<typeof meta> = {
       <div
         style={{ minHeight: 300, padding: 24, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start' }}
       >
-        {canSwitchEntity && (
+        {canSwitchEntity ? (
           <Dropdown
             label="Entity:"
             ariaLabel="Entity"
@@ -49,6 +49,8 @@ export const EntitySwitcher: StoryObj<typeof meta> = {
             items={entities.map((item) => ({ ...item, selected: item.value === entity }))}
             onSelect={(value) => setEntity(String(value))}
           />
+        ) : (
+          <span>Entity: {entities.find((item) => item.value === entity)?.label}</span>
         )}
       </div>
     );
