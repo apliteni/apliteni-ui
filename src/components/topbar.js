@@ -8,22 +8,10 @@ import { accountMenuNav, initials, toMenuTuple } from './account-nav.js';
 import { trustedAttr, trustedUrl } from '../html.js';
 const THEME_KEY = 'apliteni-strategy-theme';
 
-// A stateful control in this kit reports the state it is IN, never the state a
-// click would produce — the same reading as segmented()'s aria-pressed, the
-// Deck/Text switch's aria-current, and the accent chips. So: moon while dark,
-// sun while light. Storybook's own toolbar toggle (.storybook/theme-toggle.jsx)
-// reads the same way, and topbar stories render directly beneath it.
-export const themeIcon = (t) => (t === 'light' ? sun : moon);
-
-// The name carries both the state and what the click does, which is why there
-// is no aria-pressed and no role="switch": dark and light are peers, not on and
-// off, and an ARIA state on top of this name would announce the theme twice.
-// The button is icon-only, so `title` is the only sighted reading of the same
-// fact and carries the identical string — nothing for WCAG 2.5.3 to disagree
-// with. Both are rewritten by applyTheme on every flip; a name that is right
-// once and never again tells a screen-reader user nothing.
-export const themeName = (t) =>
-  (t === 'light' ? 'Theme: Light. Switch to dark.' : 'Theme: Dark. Switch to light.');
+// The icon and name show the saved choice, including automatic mode.
+export const themeIcon = (t) => t === 'auto' ? icon('monitor') : t === 'light' ? sun : moon;
+export const themeName = (t) => t === 'auto' ? 'Theme: Auto. Switch to dark.' :
+  t === 'light' ? 'Theme: Light. Switch to auto.' : 'Theme: Dark. Switch to light.';
 
 export function themeToggle(theme = 'dark') {
   // Single icon-only switch. Icon and name are pre-filled for `theme` so the
@@ -113,7 +101,9 @@ export function topbar({
 
 // ---- Behaviours (call once after markup mounts) --------------------------
 export function applyTheme(t, root = document.documentElement) {
-  root.setAttribute('data-theme', t);
+  const media = root.ownerDocument.defaultView.matchMedia?.('(prefers-color-scheme: light)');
+  root.setAttribute('data-theme-choice', t);
+  root.setAttribute('data-theme', t === 'auto' ? (media?.matches ? 'light' : 'dark') : t);
   const name = themeName(t);
   root.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
     const ic = btn.querySelector('[data-theme-icon]');
@@ -124,6 +114,8 @@ export function applyTheme(t, root = document.documentElement) {
     btn.setAttribute('title', name);
   });
   try { localStorage.setItem(THEME_KEY, t); } catch (e) { /* no-op */ }
+  const view = root.ownerDocument.defaultView;
+  view.dispatchEvent(new view.Event('apliteni-theme-choice'));
 }
 
 const ACCENT_KEY = 'apliteni-strategy-accent';
@@ -135,14 +127,55 @@ export function applyAccent(name, root = document.documentElement) {
   try { localStorage.setItem(ACCENT_KEY, name || 'default'); } catch (e) { /* no-op */ }
 }
 
+const themeListeners = new WeakMap();
+
 export function wireTopbar(root = document) {
-  // Theme toggle
-  root.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
-    const html = document.documentElement;
-    const cur = html.getAttribute('data-theme') || 'dark';
-    applyTheme(cur, html);
-    btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', html));
-  });
+  const html = document.documentElement;
+  const buttons = root.querySelectorAll('[data-theme-toggle]');
+  if (buttons.length) {
+    let choice = html.getAttribute('data-theme-choice') || 'auto';
+    try { choice = localStorage.getItem(THEME_KEY) || choice; } catch { /* Use the page choice. */ }
+    if (!['dark', 'light', 'auto'].includes(choice)) choice = 'auto';
+    applyTheme(choice, html);
+    const media = html.ownerDocument.defaultView.matchMedia?.('(prefers-color-scheme: light)');
+    themeListeners.get(html)?.();
+    const onSystem = () => {
+      if (html.getAttribute('data-theme-choice') === 'auto') {
+        html.setAttribute('data-theme', media?.matches ? 'light' : 'dark');
+      }
+    };
+    media?.addEventListener('change', onSystem);
+    const updateButtons = () => {
+      const choice = html.getAttribute('data-theme-choice') || 'auto';
+      html.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
+        btn.setAttribute('aria-label', themeName(choice));
+        btn.setAttribute('title', themeName(choice));
+        const glyph = btn.querySelector('[data-theme-icon]');
+        if (glyph) glyph.innerHTML = themeIcon(choice);
+      });
+    };
+    const observer = new html.ownerDocument.defaultView.MutationObserver(updateButtons);
+    observer.observe(html, { attributes: true, attributeFilter: ['data-theme-choice'] });
+    const view = html.ownerDocument.defaultView;
+    const onStorage = (event) => {
+      if (event.key !== null && event.key !== THEME_KEY) return;
+      let saved;
+      try { saved = localStorage.getItem(THEME_KEY); } catch { return; }
+      applyTheme(saved === 'dark' || saved === 'light' ? saved : 'auto', html);
+    };
+    view.addEventListener('storage', onStorage);
+    themeListeners.set(html, () => {
+      media?.removeEventListener('change', onSystem);
+      view.removeEventListener('storage', onStorage);
+      observer.disconnect();
+    });
+    buttons.forEach((btn) => {
+      btn.onclick = () => {
+        const current = html.getAttribute('data-theme-choice');
+        applyTheme(current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark', html);
+      };
+    });
+  }
   // Deck/Text view switch (.dtsw) — switch the active pill on click
   root.querySelectorAll('.dtsw').forEach((sw) => {
     sw.addEventListener('click', (e) => {

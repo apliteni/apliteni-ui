@@ -441,6 +441,40 @@ function SaveButton() {
 <Toast><SaveButton /></Toast>
 ```
 
+## ThemeToggle
+
+ThemeToggle uses the existing topbar button. It shows the current theme and the
+action that will happen next. Add `labelled` to display the current theme beside
+the button.
+
+```tsx
+import { ThemeToggle, THEME_INIT_SCRIPT } from '@apliteni/apliteni-ui/react';
+
+<ThemeToggle />
+<ThemeToggle labelled />
+```
+
+### Contract
+
+| Surface | Contract |
+| --- | --- |
+| Props | `ThemeToggleProps` has one optional prop: `labelled?: boolean`, default `false`. There are no controlled-value or callback props. |
+| Choices | Each press cycles `dark` → `light` → `auto` → `dark`. Auto shows a monitor icon and keeps its own label even when the resolved theme changes. |
+| Storage | Explicit choices use localStorage key `apliteni-strategy-theme`. Existing `dark` and `light` values work without migration. `auto`, missing values and unknown values follow the OS; mounting does not rewrite storage. |
+| DOM | On mount, the control sets `data-theme-choice` to dark, light or auto and `data-theme` to dark or light on `html`. Auto resolves to light when `(prefers-color-scheme: light)` matches, otherwise dark. An existing `data-theme-choice` takes precedence on mount; unknown attribute values become auto. |
+| Updates | Mounted controls follow OS changes in auto mode and storage changes from other tabs. A press dispatches a plain `apliteni-theme-choice` event on `window`, with no payload; read the root attributes for the choice and resolved theme. OS and storage updates do not dispatch that event. |
+| Storage failure | The button still works and retains its choice on the current page. Persistence across reloads requires working storage. |
+| Before paint | `THEME_INIT_SCRIPT: string` reads the same stored values and sets only `data-theme`. It neither writes storage nor subscribes to OS changes; mounted controls handle later updates. Server rendering starts with the Auto label and does not set root attributes. |
+
+Place `THEME_INIT_SCRIPT` in an inline `<head>` script before styles load so the theme
+is set before the first paint. Allow this script through your Content Security Policy
+with a nonce or hash. The component applies the preference when React mounts, but it
+cannot change an earlier paint.
+
+```tsx
+<script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+```
+
 ## AppShell
 
 AppShell includes the kit’s rail and top band. Pass the current router pathname so the longest matching section path becomes active. Spread the props from `renderLink` onto your router link. The rail’s folded state is saved in a shared cookie. On phones, the bar shows up to four sections. If there are more, it shows three sections and a More sheet. Provide no more than one primary page action. The palette defaults to section links; pass `palette` to add custom commands. Import both the kit CSS and React CSS.

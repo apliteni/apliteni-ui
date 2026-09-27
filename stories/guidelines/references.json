@@ -456,7 +456,7 @@
         "pattern": "in sentence case like every"
       },
       {
-        "ref": "src/components/topbar.js:44",
+        "ref": "src/components/topbar.js:32",
         "pattern": "the kit writes the word for it"
       },
       {
@@ -559,11 +559,11 @@
     "state-not-destination": [
       {
         "ref": "src/components/topbar.js:11",
-        "pattern": "reports the state it is IN"
+        "pattern": "show the saved choice"
       },
       {
-        "ref": "src/components/topbar.js:23",
-        "pattern": "rewritten by applyTheme on every flip"
+        "ref": "src/components/topbar.js:113",
+        "pattern": "btn.setAttribute('aria-label', name)"
       },
       {
         "ref": "src/components/topbar.test.js:59",

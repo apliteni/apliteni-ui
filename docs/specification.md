@@ -2164,3 +2164,36 @@ themes; browser evidence covers responsive layout, which JSDOM cannot measure.
 overridden with `title`, `sub` and `icon`. `art` accepts a vanilla illustration
 name, trusted SVG string, or a decorative React node; `actions` accepts React
 buttons or links. The page supplies its own h1, including on a not-found page.
+
+## React theme control
+
+`ThemeToggle` preserves the existing topbar button styles and accessible naming.
+React and vanilla theme glyphs use the control text color and clear 3:1 against
+the button surface in both themes, checked by `react/src/ThemeToggle.contrast.test.tsx`
+and `src/components/topbar.test.js`.
+Its only prop is `labelled?: boolean` (default `false`); it has no controlled value
+or callback props. Pressing it cycles dark, light, auto, then dark.
+
+Explicit choices are stored under `apliteni-strategy-theme`. Existing dark and
+light values keep their meaning without migration. Auto, missing and invalid
+values follow the OS. Mounting does not rewrite storage. Auto remains stored as
+`auto` when the OS changes.
+
+On mount, React sets `data-theme-choice` on `html` to the choice and `data-theme`
+to the resolved dark or light theme. An existing `data-theme-choice` takes
+precedence; unknown attribute values become auto.
+Auto resolves to light when `(prefers-color-scheme: light)` matches, otherwise dark.
+Mounted controls follow live OS changes in auto mode and storage changes from other
+tabs. Storage failures leave the control usable with a page-local choice.
+
+A press dispatches a plain `apliteni-theme-choice` event on `window`, with no
+payload. Read the root attributes for the choice and resolved theme. OS and storage
+updates do not dispatch that event. There is no React callback.
+
+`THEME_INIT_SCRIPT` is an exported string for a head script before styles load.
+It reads the same stored values and sets only `data-theme`, without writing storage
+or listening for OS changes. React handles later updates after mounting. Server
+rendering starts with the Auto label and does not set root attributes.
+
+The contract is checked by `react/src/ThemeToggle.test.tsx`; JSDOM checks state and
+events, not first-paint timing or appearance.

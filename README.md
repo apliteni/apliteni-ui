@@ -170,6 +170,9 @@ See Storybook's **Button / Busy Transition** for the live vanilla example.
 
 ## Theming
 
+React pages can use [ThemeToggle and its pre-paint script](react/README.md#themetoggle)
+to save dark, light or auto choices. Auto resolves to dark or light on the root.
+
 Theme is a `data-theme="dark|light"` attribute on `<html>`; accent is an orthogonal
 `data-accent` on top:
 
