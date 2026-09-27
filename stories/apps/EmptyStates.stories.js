@@ -12,7 +12,7 @@ export default {
 // screens and the finance report cannot end up on different columns or with
 // different trails.
 
-// A filtered list that returned nothing — illustration + nudge, no action.
+// A filtered list with an action to clear the filters.
 export const FilteredList = {
   render: () => financeShell({
     active: 'invoices',
@@ -28,7 +28,8 @@ export const FilteredList = {
       ${card({ body: emptyState({
         art: 'invoices',
         title: 'No invoices match the current filters.',
-        sub: 'Try widening the date range or clearing a filter.',
+        sub: 'Clear the filters to see all invoices.',
+        actions: button({ label: 'Clear filters', variant: 'primary' }),
       }) })}
     `,
   }),
