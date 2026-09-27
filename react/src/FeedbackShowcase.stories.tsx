@@ -2,9 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Drawer } from './Drawer';
 import { KeyValueList } from './KeyValueList';
+import { TextArea } from './Field';
+import { Toast, useToast } from './Toast';
 import { Button } from './primitives/Button';
 
-type Args = { theme: 'light' | 'dark'; withExcerpt: boolean };
+type Args = { withExcerpt?: boolean; fail?: boolean };
 
 const meta = {
   title: 'Showcases/Feedback',
@@ -13,31 +15,17 @@ const meta = {
     layout: 'fullscreen',
     docs: { description: { component: 'A feedback form composed from kit controls. Page context is sample data; sending is simulated. The application owns capture, positioning and delivery.' } },
   },
-  args: { theme: 'light', withExcerpt: true },
-  argTypes: {
-    theme: { control: 'inline-radio', options: ['light', 'dark'] },
-    withExcerpt: { control: 'boolean' },
-  },
 } satisfies Meta<Args>;
 export default meta;
 
-function FeedbackExample({ theme, withExcerpt }: Args) {
+function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
   const [open, setOpen] = useState(false);
-  const [note, setNote] = useState('Could you show the expected delivery date here?');
-  const [state, setState] = useState<'ready' | 'sending' | 'sent'>('ready');
+  const [note, setNote] = useState('');
+  const [state, setState] = useState<'ready' | 'sending' | 'failed'>('ready');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const fieldId = useId();
-  const helpId = useId();
+  const pushToast = useToast();
   const formId = useId();
 
-  useEffect(() => {
-    const previous = document.documentElement.getAttribute('data-theme');
-    document.documentElement.setAttribute('data-theme', theme);
-    return () => {
-      if (previous === null) document.documentElement.removeAttribute('data-theme');
-      else document.documentElement.setAttribute('data-theme', previous);
-    };
-  }, [theme]);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   function close() {
@@ -48,48 +36,61 @@ function FeedbackExample({ theme, withExcerpt }: Args) {
 
   return (
     <>
-      <main className="container" style={{ padding: 'var(--space-6)', paddingBottom: 'var(--space-16)' }}>
+      <main className="ui-container ui-stack" style={{ padding: 'var(--space-6)', paddingBottom: 'var(--space-16)' }}>
         <h1>Orders</h1>
+        <p>Review the order status before arranging delivery.</p>
+        <h2>Order DEMO-1042</h2>
+        <p>This sample order contains a desk lamp and a notebook. Both items were checked and packed together.</p>
         <h2>Delivery</h2>
         <p>Order DEMO-1042 is packed and ready to ship.</p>
+        <p>The carrier has not collected the parcel yet. A tracking link will appear here after collection.</p>
+        <h2>Before it leaves</h2>
+        <p>Check the items and delivery instructions. If anything is missing or unclear, use Feedback to leave a note about this section.</p>
       </main>
       <div style={{ position: 'fixed', right: 'var(--space-4)', bottom: 'var(--space-4)' }}>
         <Button icon="chat" aria-haspopup="dialog" onClick={() => setOpen(true)}>
           Feedback
         </Button>
       </div>
-      <Drawer open={open} title="Report a problem or share an idea" onClose={close}
-        footer={state === 'sent' ? <Button onClick={close}>Done</Button> : <>
+      <Drawer size="sm" open={open} title="Report a problem or share an idea" onClose={close}
+        footer={<>
           <Button variant="ghost" onClick={close}>Cancel</Button>
           <Button variant="primary" type="submit" form={formId} busy={state === 'sending'}
             disabled={!note.trim()}>Send feedback</Button>
         </>}>
-        {state === 'sent' ? <p role="status">Feedback sent. Thank you.</p> : <>
-          <KeyValueList rows={[
-            { label: 'Page', value: 'Orders / DEMO-1042' },
-            { label: 'Section', value: 'Delivery' },
-            ...(withExcerpt ? [{ label: 'Selected text', value: <q>packed and ready to ship</q> }] : []),
-          ]} />
-          <form id={formId} onSubmit={event => {
-            event.preventDefault();
-            if (!note.trim() || state !== 'ready') return;
-            setState('sending');
-            timer.current = setTimeout(() => setState('sent'), 800);
-          }}>
-            <div className="ui-field">
-              <label className="ui-field__label" htmlFor={fieldId}>What went wrong, or what would help?</label>
-              <textarea className="ui-textarea" id={fieldId} rows={4} value={note}
-                readOnly={state === 'sending'} aria-describedby={helpId}
-                onChange={event => setNote(event.target.value)} />
-              <p className="ui-field__hint" id={helpId}>Only the context above and your note are included.</p>
-            </div>
-          </form>
-        </>}
+        <KeyValueList rows={[
+          { label: 'Page', value: 'Orders / DEMO-1042' },
+          { label: 'Section', value: 'Delivery' },
+          ...(withExcerpt ? [{ label: 'Selected text', value: <q>packed and ready to ship</q> }] : []),
+        ]} />
+        <form id={formId} onSubmit={event => {
+          event.preventDefault();
+          if (!note.trim() || state === 'sending') return;
+          setState('sending');
+          timer.current = setTimeout(() => {
+            if (fail) { setState('failed'); return; }
+            close();
+            setNote('');
+            pushToast({ tone: 'success', title: 'Feedback sent', text: 'Thank you for your note.' });
+          }, 800);
+        }}>
+          <TextArea label="What went wrong, or what would help?"
+            hint="Only the context above and your note are included."
+            placeholder="What's off, missing, or worth adding here?" rows={4} value={note}
+            error={state === 'failed' ? "Couldn't send your feedback. Your note is still here. Try again." : undefined}
+            readOnly={state === 'sending'} onChange={event => setNote(event.target.value)} />
+        </form>
       </Drawer>
     </>
   );
 }
 
-export const Playground: StoryObj<Args> = {
-  render: args => <FeedbackExample {...args} />,
+export const WithExcerpt: StoryObj = {
+  render: () => <Toast><FeedbackExample /></Toast>,
+};
+export const WithoutExcerpt: StoryObj = {
+  render: () => <Toast><FeedbackExample withExcerpt={false} /></Toast>,
+};
+export const Failed: StoryObj = {
+  render: () => <Toast><FeedbackExample fail /></Toast>,
 };
