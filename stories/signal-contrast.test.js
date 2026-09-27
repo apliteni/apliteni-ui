@@ -589,7 +589,7 @@ for (const theme of ['dark', 'light']) {
  * under 1.5 CSS px a mark is optically a text stem, so it takes the text bar instead. Why 1.5,
  * and what GLYPH_FLOOR is doing here: docs/specification.md#icons-and-glyphs.
  *
- * The circle's fill is not free to move — --toast-accent also paints the 3px left marker and the
+ * The circle's fill is not free to move — --toast-accent also paints the
  * outline border — so the INK is what moves, to the pole that clears this accent. */
 const GRAPHIC_AA = 3;      // WCAG 1.4.11, for a graphical object
 /* A ratchet on where the twenty pairs landed, not a bar; the closest is still well
@@ -755,7 +755,7 @@ for (const theme of ['dark', 'light']) {
             + (bar === AA
               ? `A stroke under ${SOLID_STROKE} CSS px is read the way a text stem is, so it is\n`
                 + `held at ${AA}:1. Widen the stroke back to a graphic's width, or move the ink.`
-              : 'The accent cannot move — the left marker and the outline border are the same\n'
+              : 'The accent cannot move — the icon circle and the outline border are the same\n'
                 + 'value — so the ink is what moves, to the pole that clears THIS accent.'),
           );
           assert.ok(

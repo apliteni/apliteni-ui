@@ -46,7 +46,7 @@
   font-size: var(--text-base);
   width: 100%;
   max-width: var(--panel-md);
-  overflow: hidden; /* clips the timer bar + left marker to the rounded corners */
+  overflow: hidden; /* clips the timer bar to the rounded corners */
   /* A toast floats. It carries a status rather than the neutral hairline, so each
      style below re-points --elev-edge at its own tint and leaves the outer line
      where it already drew it. why: docs/specification.md#elevation */
@@ -55,7 +55,7 @@
 }
 
 /* status → the paint tokens every style below consumes.
-   --toast-accent is the status as a line or a small mark, --toast-glow its wash,
+   --toast-accent colours the status icon and timer, --toast-glow its wash,
    --toast-on the glyph ink on the accent circle. --toast-solid and
    --toast-action-ink are separate from the accent on purpose: a fill and a piece
    of text are different jobs from a 22px circle.
@@ -65,13 +65,6 @@
 .ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }
 .ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
 .ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface-2); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
-
-/* left status marker (soft + outline; solid is already a full fill) */
-.ui-toast--soft::before,
-.ui-toast--outline::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; background: var(--toast-accent);
-}
 
 .ui-toast__icon { width: 22px; height: 22px; flex: none; margin-top: 1px; display: grid; place-items: center; border-radius: 50%; background: var(--toast-accent); color: var(--toast-on); }
 .ui-toast__icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; } /* 2.8 of a 24 box drawn at 13px = 1.52 CSS px. The circle has no room for a bigger glyph, so the weight comes out of the stroke. docs/specification.md#icons-and-glyphs */

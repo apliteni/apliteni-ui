@@ -2150,6 +2150,9 @@ only filters the system picker.
 
 ## React toasts
 
+Toast tone uses the existing status icon without a left-edge accent stripe.
+Vanilla and React share this styling.
+
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest
 at the bottom. Notices without actions dismiss after five seconds. Their countdown
 and timer bar pause while hovered or focused, then resume with the remaining time.
