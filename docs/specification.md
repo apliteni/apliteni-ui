@@ -2157,3 +2157,10 @@ The fold glyph copies the vanilla shell’s frame and moving seam.
 `react/src/AppShell.test.tsx` checks route matching, persistence, search, account
 actions and sheet dismissal. Story accessibility and contrast gates cover both
 themes; browser evidence covers responsive layout, which JSDOM cannot measure.
+
+## React empty states
+
+`EmptyState` uses vanilla's markup and CSS. Its optional copy presets can be
+overridden with `title`, `sub` and `icon`. `art` accepts a vanilla illustration
+name, trusted SVG string, or a decorative React node; `actions` accepts React
+buttons or links. The page supplies its own h1, including on a not-found page.

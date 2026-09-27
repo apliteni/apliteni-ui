@@ -28,7 +28,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Callout`, `Icon`.
+Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Callout`, `Icon`.
 
 `Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
@@ -76,6 +76,13 @@ vanilla factory where the steps have to be real links. `PAGE_SIZES` and
 `DEFAULT_PAGE_SIZE` are exported here too — the scale is the kit's, so no call site writes
 either number. They are declared in this package's own types, and `PAGE_SIZES` is a
 `readonly number[]`: pass it to `pageSizes`, but do not add sizes to it.
+
+## EmptyState
+
+`EmptyState` uses the vanilla layout. `variant` selects `first-run`, `no-matches`,
+`not-found`, or `not-yet-built` copy; `title`, `sub`, and `icon` override it.
+`art` accepts a vanilla illustration name, trusted SVG string, or React node; `actions` accepts React nodes. Use at most one primary action and one ghost
+action. The page supplies its own h1; EmptyState uses vanilla’s div title.
 
 ## What the Modal does with focus
 

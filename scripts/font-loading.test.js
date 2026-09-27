@@ -25,7 +25,7 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 /* Built output is not a subject: CI runs this before `build-storybook` and never
  * runs site/build.mjs, so a gate reading them would fail in CI — and one that
  * skipped when they were absent would drop coverage in silence. */
-const SKIP = new Set(['node_modules', '.git', 'site/public', 'storybook-static', 'react/dist']);
+const SKIP = new Set(['node_modules', '.git', 'site/public', 'storybook-static', 'react/storybook-static', 'react/dist']);
 
 const filesUnder = (dir = '.') => {
   const out = [];
@@ -77,7 +77,7 @@ const loaders = () => {
 const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*))?/g)]
   .map((m) => [decodeURIComponent(m[1]).replace(/\+/g, ' '), m[2] ?? '']);
 
-/* Twelve files load fonts today: the Storybook preview iframe, the Storybook
+/* Thirteen files load fonts today: the Storybook preview iframe, the Storybook
  * manager chrome, the two site pages, the snippet in README.md that tells a
  * consumer what to put in their own <head>, the two review prototypes —
  * docs/reviews/270-back-control/variants.html (#270) and
@@ -94,7 +94,8 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
  * that installed the package, and it was the one nothing watched. The count is
  * asserted because a loader that stops being found stops being checked, and an
  * empty sweep passes as loudly as a full one. */
-const EXPECTED_LOADERS = 12;
+// The React preview now loads the same faces as the vanilla preview.
+const EXPECTED_LOADERS = 13;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();
