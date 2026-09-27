@@ -1,0 +1,26 @@
+.ui-react-app__bottom { display: none; }
+.ui-react-app__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-5); }
+.ui-react-app .ui-app__brand .ui-react-app__mark { display: inline-flex; opacity: 1; }
+.ui-react-app__bottom .ui-nav__item { min-height: 48px; }
+@media (max-width: 560px) {
+  .ui-react-app { display: block; }
+  .ui-react-app > .ui-app__rail { display: none; }
+  .ui-react-app .ui-app__main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .ui-react-app .ui-app__bar { padding-inline: var(--space-4); }
+  .ui-react-app .ui-app__search { min-width: 0; }
+  .ui-react-app .ui-app__search kbd { display: none; }
+  .ui-react-app__bottom {
+    display: block;
+    position: fixed;
+    inset: auto 0 0;
+    z-index: var(--z-sticky);
+    padding: var(--space-2) var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom));
+    background: var(--bg); /* ring-gap: inherit — matches the page background and its root focus gap. */
+    border-top: 1px solid var(--border);
+  }
+  .ui-react-app__bottom .ui-nav__list { display: flex; flex-direction: row; }
+  .ui-react-app__bottom li { flex: 1; min-width: 0; }
+  .ui-react-app__bottom .ui-nav__item { justify-content: center; flex-direction: column; gap: var(--space-1); padding-inline: var(--space-1); }
+  .ui-react-app__bottom .ui-nav__label { flex: none; font-size: var(--text-xs); }
+  .ui-react-app__bottom .ui-nav__badge { display: none; }
+}

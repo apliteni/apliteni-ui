@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/AppShell.test.tsx",
+      "name": "React: AppShell",
+      "does": "Checks route-derived link names and counts, fold persistence, search focus and shortcut, account actions, and sheet dismissal.",
+      "blind": [
+        "JSDOM does not measure responsive layout, hover labels, target sizes or rendered contrast."
+      ]
+    },
+    {
       "file": "react/src/Toast.test.tsx",
       "name": "React: Toast",
       "does": "Checks the polite region, unchanged focus, dismissal timing, action buttons, reduced motion and axe rules with a notice present.",

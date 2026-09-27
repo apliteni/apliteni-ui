@@ -2142,3 +2142,18 @@ Notices with an action stay until it is selected or the reader dismisses them.
 Ordinary notices are polite; danger notices are assertive. Adding a notice does
 not move focus. Dismissal uses the kit's leave animation, or removes the notice
 immediately under reduced motion.
+
+## React AppShell
+
+`AppShell` reuses the topbar shell’s classes. The caller supplies the router pathname;
+the longest matching section path wins, with matches ending at a path boundary.
+Router links receive the same classes, accessible name, count and navigation handler
+as native links. The rail shares the vanilla fold cookie and 720px fold breakpoint.
+Below 560px, a bottom bar replaces it: up to four sections, or three plus More.
+More opens the React Drawer and closes on navigation. Search uses the React
+CommandPalette; page actions should include no more than one primary action.
+The fold glyph copies the vanilla shell’s frame and moving seam.
+
+`react/src/AppShell.test.tsx` checks route matching, persistence, search, account
+actions and sheet dismissal. Story accessibility and contrast gates cover both
+themes; browser evidence covers responsive layout, which JSDOM cannot measure.

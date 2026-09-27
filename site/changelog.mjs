@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.50.0', date: '2026-09-26',
+    changes: [
+      ['added', 'React AppShell adds router links to the kit’s rail and top band, with saved folding and a phone navigation sheet. Closes #381.'],
+    ],
+  },
+  {
     v: '0.49.2', date: '2026-09-26',
     changes: [
       ['added', 'The text length guideline explains where UI copy should stay short, when explanations help, and how to remove filler. Closes #399.'],
