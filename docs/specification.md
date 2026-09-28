@@ -187,6 +187,22 @@ not by rounding half up, and not by whichever step is closer to the number that 
 
 Each value's job is stated where the value is written, and the job decides the direction.
 
+**A padding modifier moves the vertical rhythm and keeps the horizontal inset**, so cards of
+different padding stacked in one column line their text up. `.ui-card` pads `var(--space-6)` and
+`.ui-card--pad-sm` pads `var(--space-5) var(--space-6)`. `.ui-card` used to pad
+`var(--space-6) 26px`; 26 is off the scale this section is about, and against `--pad-sm`'s 20 it
+put a stat tile's text 6px out from the card under it. `.ui-card--pad-lg` keeps its own roomier
+inset — it is the centred landing card and is never stacked with plain ones.
+
+**A `dense` or `zebra` table inside a card starts its first column on the card's own text edge.**
+Both recipes inset their end cells by `--space-3` so a row's highlight has room at its ends (see
+Dense financial tables), and that inset was being paid for by the grid: a ledger's first column
+sat 12px inside the card's title. The table's own box hangs out by the same `--space-3`, into the
+card's 20–24px padding and never past it, so the inset stays and the columns line up. The card's
+scroll region is empty at rest at 1280; a ledger too wide for its column still scrolls.
+
+Both decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451).
+
 Held by `stories/table-rhythm.test.js`. Decided in
 [#211](https://github.com/apliteni/apliteni-ui/issues/211).
 
@@ -607,6 +623,41 @@ drop and its two-step edge are what say *raised* in light, where its fill cannot
 This is the value the picked prototype carried and the one the approved frames were drawn
 with; it is stated here rather than described as a ladder light does not run. Open on
 [#295](https://github.com/apliteni/apliteni-ui/issues/295).
+
+**A field is drawn by its well in dark and by its edge in light, and both come from
+`--field-bg` and `--field-edge`.** Dark keeps the sunken step: `--surface-2` under a card on a
+near-black page reads as a well, and `--border` is legible on it. Light cannot run the same
+arrangement, because #448 gave the card and the floating panel the same white — so the sunken
+step falls **two** rungs under everything a field sits on, and `--border` measures **1.047:1** on
+`--surface-2`, a hairline that is there and cannot be seen. What a reader was handed was a grey
+block with no edge: a hole rather than a well, and the larger the field the worse it read, which
+is why a textarea showed it first. Light takes `--bg` for the fill, the one rung it has left
+below white, and `--border-strong` for the line — **1.516:1** on a white card against the old
+**1.238:1**, and **1.367:1** on the field's own fill against the old **1.047:1**. Hover moves to
+`--field-edge-hover`: `--border-strong` in dark, `--muted` in light, because light's resting line
+already spends `--border-strong`.
+
+This is the third time the kit has reached for the same answer and the first time it is written
+once. The topbar band's search field took `--surface` at #318 because the band is `--bg` and a
+sunken fill on the bottom rung has nowhere to go; the dropdown's panel field carried a light-only
+`background: var(--bg)` for the two-rung drop described above. That override is deleted —
+`--field-bg` says what it said, for every field. The topbar's field keeps `--surface`, which is
+its own chosen exception and stays one.
+
+`--control-edge` carries the same line to a button's resting border, for the same measurement:
+`--border` on `.ui-btn`'s own `--surface-2` fill is the same 1.047:1, and on the page ground a
+secondary button read as a smudge rather than a control. No fill moves with it. Decided on
+[#451](https://github.com/apliteni/apliteni-ui/issues/451).
+
+**A tinted card stays above the page, and `--card-tint` is what buys that.** `.ui-card--accent`
+and `.ui-card--live` mix their colour into `--surface`. Dark mixes upward off a mid-grey card and
+can spend 9%. Light mixes **down from white**, so every point of tint is a point of lightness the
+card loses: at 9% a light accent card landed at **1.043:1 below** the page and a live card at
+1.026:1 below it — two sunken slabs between two white cards, which is the ladder upside down.
+Light spends **5%**, the most a tinted card can pay and still sit above the page (1.022:1 for the
+accent, 1.041:1 for live), and each variant edges itself in its own colour rather than one of the
+two keeping the neutral line. The rule this states is the section's own: **a card is a step above
+the page, whatever it is tinted with.**
 
 **Every floating surface keeps the hairline as well, and the card takes one in both themes.**
 A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
@@ -1998,6 +2049,11 @@ Stated so nobody has to discover it by trying:
 
 Tables paint `--table-bg`: white in light mode and the base canvas in dark mode. Zebra no
 longer paints grey stripes; hover marks the row edge without tinting the data surface.
+**A link inside a cell takes the row's ink and underlines on hover**, which is what `.ui-identity`
+has always done: a link in a ledger is a value that happens to open something, and colouring every
+one of them spends the accent on the column that needs it least. `.ui-btn` and `.ui-identity`
+inside a table keep their own paint. Decided on
+[#451](https://github.com/apliteni/apliteni-ui/issues/451).
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.
 Dense, compact and zebra recipes give headers and values matching horizontal insets in

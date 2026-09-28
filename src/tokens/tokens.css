@@ -150,6 +150,17 @@
   --border: #332f45;
   --border-strong: #453f5c;
 
+  /* A field's ground and edge, and the line every control draws at rest. Dark keeps the
+     sunken step. why: docs/specification.md#elevation */
+  --field-bg: var(--surface-2);
+  --field-edge: var(--border);
+  --field-edge-hover: var(--border-strong);
+  --control-edge: var(--border);
+
+  /* How much of its own colour a tinted card mixes in. Dark mixes upward off a mid-grey
+     card, so it can afford this much. why: docs/specification.md#elevation */
+  --card-tint: 9%;
+
   --text: #e9e7f0;
   --strong: #ffffff;
   --dim: #c6c2d6;
@@ -301,6 +312,18 @@
   --control-knob: #ffffff;
   --border: #e4e7ee;
   --border-strong: #cdd2dc;
+
+  /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
+     with: a card and a panel are both white, the sunken step falls two rungs under either,
+     and --border on it measures 1.047:1. why: docs/specification.md#elevation */
+  --field-bg: var(--bg);
+  --field-edge: var(--border-strong);
+  --field-edge-hover: var(--muted);
+  --control-edge: var(--border-strong);
+
+  /* Light mixes DOWN from white, so tint costs lightness: 5% is the most a card can spend
+     and stay above the page. why: docs/specification.md#elevation */
+  --card-tint: 5%;
 
   --text: #1a1e27;
   --strong: #0c0e13;

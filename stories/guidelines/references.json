@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:88",
+        "ref": "src/styles/table.css:102",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -10,11 +10,11 @@
   "_accessibility-floor.js": {
     "target-size": [
       {
-        "ref": "src/styles/button.css:78",
+        "ref": "src/styles/button.css:80",
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:134",
+        "ref": "src/styles/input.css:136",
         "pattern": ".ui-check input::before"
       }
     ],
@@ -26,11 +26,11 @@
     ],
     "disabled-legibility": [
       {
-        "ref": "src/styles/button.css:95",
+        "ref": "src/styles/button.css:97",
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
-        "ref": "src/tokens/tokens.css:166",
+        "ref": "src/tokens/tokens.css:177",
         "pattern": "--disabled-ink: var(--muted);"
       }
     ],
@@ -76,11 +76,11 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:180",
+        "ref": "src/tokens/tokens.css:191",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
-        "ref": "src/styles/button.css:44",
+        "ref": "src/styles/button.css:46",
         "pattern": "background: var(--accent-strong);"
       },
       {
@@ -95,7 +95,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme \u00d7 accent cells"
+        "pattern": "theme × accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -232,7 +232,7 @@
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:291",
+        "ref": "src/styles/dropdown.css:289",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -240,7 +240,7 @@
   "_destructive-actions.js": {
     "colour": [
       {
-        "ref": "src/styles/button.css:68",
+        "ref": "src/styles/button.css:70",
         "pattern": ".ui-btn--danger:hover"
       },
       {
@@ -470,7 +470,7 @@
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:57",
+        "ref": "src/styles/card.css:67",
         "pattern": "rank: card-title"
       }
     ],
@@ -722,21 +722,21 @@
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:238",
+        "ref": "src/tokens/tokens.css:249",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],
     "busy": [
       {
         "ref": "src/components/index.js:37",
-        "pattern": "busy \u21d2 disabled"
+        "pattern": "busy ⇒ disabled"
       },
       {
-        "ref": "src/styles/button.css:126",
+        "ref": "src/styles/button.css:128",
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast.test.js:232",
+        "ref": "stories/contrast.test.js:212",
         "pattern": "inactive components and their whole subtree"
       }
     ],
@@ -787,7 +787,7 @@
   "_density-and-accents.js": {
     "purposeful-accent": [
       {
-        "ref": "src/styles/button.css:44",
+        "ref": "src/styles/button.css:46",
         "pattern": "background: var(--accent-strong)"
       }
     ],

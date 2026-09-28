@@ -244,10 +244,15 @@ test('the accent gate actually measures something', () => {
   // discovering candidates is that a person then decides which kind it is
   // instead of it landing in nobody's list. Bumping this number IS that
   // decision, so it is deliberately not automatic.
+  // 8 since #451 added --field-bg: a field's ground, which is an ALIAS — --surface-2 in
+  // dark, --bg in light, both of them already on this list. It is left measured rather
+  // than excused because the accent IS read on a field: the focus border and the caret
+  // take --accent on exactly this ground, and an alias that is re-pointed one theme at a
+  // time is the kind that should be measured rather than trusted to its target.
   assert.equal(
-    CANDIDATE_GROUNDS.length, 7,
+    CANDIDATE_GROUNDS.length, 8,
     `the token-file sweep found ${CANDIDATE_GROUNDS.length} candidate ground(s) `
-    + `(${CANDIDATE_GROUNDS.join(', ')}), not 7. If a surface was added, decide whether the accent `
+    + `(${CANDIDATE_GROUNDS.join(', ')}), not 8. If a surface was added, decide whether the accent `
     + 'is ever read on it: leave it measured, or write it into EXEMPT_GROUNDS with a reason. Then '
     + 'move this number. If a surface left, move it too. If it went to zero, SURFACE_NAME or the '
     + ':root sweep is broken and this gate was about to measure nothing.',

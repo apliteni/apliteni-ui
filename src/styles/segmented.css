@@ -5,6 +5,10 @@
 
 .ui-seg {
   display: inline-flex;
+  /* `inline-flex` sizes the track to its pills, but a flex or grid parent stretches a
+     child whatever its display says — and .ui-app__body is a flex column. The control
+     states its own alignment; --block and --underline ask for the width back. */
+  align-self: start;
   background: var(--surface-2); --ring-gap: var(--surface-2);
   border-radius: var(--radius-2xl);
   padding: 3px;
@@ -34,7 +38,7 @@
 }
 
 .ui-seg--sm button { padding: 5px 13px; font-size: calc(var(--text-xs) + 1px); }
-.ui-seg--block { display: flex; }
+.ui-seg--block { display: flex; align-self: stretch; }
 .ui-seg--block button { flex: 1; }
 
 /* Accent picker — round colour swatches, active gets a ring */
@@ -56,7 +60,7 @@
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
-.ui-seg--underline { background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
+.ui-seg--underline { align-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
 .ui-seg--underline button.is-active,
 .ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }

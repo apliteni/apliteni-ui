@@ -257,9 +257,9 @@
   font: inherit;
   font-size: calc(var(--text-sm) - 0.5px);
   color: var(--strong);
-  /* A field is the sunken step, the same one .ui-input takes. why: docs/specification.md#elevation */
-  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
-  border: 1px solid var(--border);
+  /* The ground and line .ui-input takes. why: docs/specification.md#elevation */
+  background: var(--field-bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  border: 1px solid var(--field-edge);
   border-radius: var(--radius-sm);
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
@@ -267,14 +267,12 @@
   min-height: 38px;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
-/* Light sinks the field one rung less far: its panel is the only pure white the
-   kit paints, so --surface-2 falls two rungs under it rather than one. The
-   numbers are in the spec and the gate is stories/dropdown-field-ground.test.js.
-   why: docs/specification.md#elevation */
-:root[data-theme="light"] .ui-dropdown__search-input { background: var(--bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* The light-only `background: var(--bg)` override this field used to carry is gone:
+   --field-bg says the same thing for every field. Gated by
+   stories/dropdown-field-ground.test.js. why: docs/specification.md#elevation */
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
-.ui-dropdown__search-input:hover { border-color: var(--border-strong); }
+.ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
 .ui-dropdown__search-input:focus-visible { outline: 2px solid transparent; border-color: var(--accent); box-shadow: var(--ring); }
 
 .ui-dropdown__list { max-height: 300px; overflow-y: auto; }

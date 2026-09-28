@@ -153,33 +153,13 @@ const LEDGER = [
       + 'a toast action is read as text, a syntax fragment is read as a hint over text that is '
       + 'already legible, and that difference is why one moved and the other stays.',
   },
-  {
-    id: 'F',
-    fg: '--purple-mid',
-    themes: ['light'],
-    bg: 'accent-tinted grounds and the snippet bar under middle-ramp ink',
-    example: 'span.ui-badge.ui-badge--soon',
-    count: 1,
-    worst: 4.27,
-    why: 'The "soon" status is deliberately the quietest thing the kit can render — it marks '
-      + 'something that does not exist yet and must not compete with what does. It is set in '
-      + 'the mid purple on a purple wash, which is the same ink-on-its-own-hue problem as the '
-      + 'accent bucket, chosen here on purpose. This was a two-theme entry until #157, which moved '
-      + 'the dark accent up onto --purple-mid and then moved the ramp up a step behind it, so dark '
-      + '--purple-mid is a lighter colour than it was and its "soon" row clears. The dark row is '
-      + 'therefore gone from the ledger, not relocated: the two tokens tell each other apart in '
-      + 'both themes again, and there is no dark row left for this entry to hold. `themes` is a '
-      + 'matcher, so it names only light, where the pair still fails — a dark row appearing here '
-      + 'later should be looked at by a person, which is what leaving it out makes happen. Nobody '
-      + 'owns it: the decision to '
-      + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
-      + 'not, whether it stops being purple or stops being washed. Alternate accents expose '
-      + 'more uses of the same middle-ramp ink. Phoenix and Emerald fail on the hero eyebrow, '
-      + 'the unstacked soon badge and pill, and the snippet keyword. Emerald also fails on '
-      + 'the lighter soon badge and pill backgrounds. These failures remain recorded under #376 '
-      + 'instead of being recoloured in the coverage change. Component owners must choose a '
-      + 'text-grade ink or a quieter background.',
-  },
+  /* F — --purple-mid on accent-tinted grounds — has left LEDGER for ALTERNATE_CAUSES
+     below, beside L, because the default accent no longer owes it a row. Its one row was
+     the landing page's "For agents" badge: a 9% accent wash on a card that was itself a
+     9% accent wash. #451 took the light tint to 5%, the ground under the badge lightened
+     with it, and the pair cleared the floor. Phoenix and emerald still owe rows against
+     the same cause, so the entry moved rather than being deleted — a cause the expanded
+     gate still finds is what ALTERNATE_CAUSES is for. */
   /* H — --muted on the snippet's shell bar, which is lighter than the card it sits
      in — is closed. The entry said the cheap fix was to darken the bar rather than
      the ink; #295 did neither and closed it anyway, by re-picking --muted against the
@@ -628,7 +608,7 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 // hide a regression in another. LEDGER above explains each cause.
 // Run locally: CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
 // Add CONTRAST_LEDGER_REPORT=1 to print measured values. It does not change the gates.
-// Last full report: 2026-09-28, source 68c3674.
+// Last full report: 2026-09-28, source 9b24b1f, re-run at #451's rework — see below.
 // Record `git rev-parse HEAD` with the output. Review measurements before changing debt.
 //
 // EVERY LIGHT CELL MOVED AT #448, AND ALL OF IT IN ONE DIRECTION: debt paid, none added.
@@ -660,18 +640,49 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 // Both dark cells are byte-identical to the previous report, which is the control: #448
 // touched no dark token, and if it had, these two rows would say so.
 // `unassigned` was empty for all six cells, so no new cause appeared behind the movement.
+//
+// #451's REWORK moved F once more, and again in one direction. It took the light card tint
+// from 9% to 5%, because at 9% a tinted card sat below the page and read as a sunken slab;
+// every F row sits on that card or on a wash over it, so every one of them lightened:
+//
+//   F  default accent   the last row cleared AA — the entry LEFT the LEDGER for
+//                       ALTERNATE_CAUSES, where phoenix and emerald still owe theirs
+//      phoenix          4 rows, worst 4.21 -> 4.35
+//      emerald          7 rows, worst 3.26 -> 3.36
+//      ocean            still no row
+//
+// No count moved, so nothing in phoenix or emerald crossed the floor; the depth did. Both
+// dark cells and C, E, L, P and S are unchanged in every cell, which is the control for a
+// change that only touched a light tint. `unassigned` stayed empty for all six.
 const ACCENT_LEDGER = {
   'dark/phoenix': { B: [1, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [1, 4.20], P: [65, 1.06], S: [21, 2.66] },
   'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
-  'light/phoenix': { C: [2, 3.76], E: [2, 3.22], F: [4, 4.21], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [2, 3.76], E: [2, 3.22], F: [4, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
   // No F: #448 lifted this cell's one "soon" row (4.32) over AA. The bucket keeps its entry
   // because phoenix and emerald still owe rows against it.
   'light/ocean': { C: [2, 3.76], E: [2, 3.22], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
-  'light/emerald': { C: [2, 3.76], E: [2, 3.22], F: [7, 3.26], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [2, 3.76], E: [2, 3.22], F: [7, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
 };
 
 const ALTERNATE_CAUSES = [...LEDGER, {
+  id: 'F',
+  fg: '--purple-mid',
+  themes: ['light'],
+  bg: 'accent-tinted grounds and the snippet bar under middle-ramp ink',
+  why: 'The middle-ramp ink read on a wash of its own hue: the "soon" status, the hero eyebrow, '
+    + 'the unstacked soon pill and the snippet keyword. It is deliberately the quietest thing the '
+    + 'kit can render — it marks something that does not exist yet and must not compete with what '
+    + 'does — and that is the same ink-on-its-own-hue problem as the accent bucket, chosen here on '
+    + 'purpose. This entry sat in LEDGER until #451, which took the light card tint from 9% to 5% '
+    + 'so a tinted card would stop sitting below the page; the ground under the default accent\'s '
+    + 'one remaining row lightened with it and that row cleared AA. Phoenix and emerald inks are '
+    + 'lighter than the default purple, so their rows are still short and still owed, which is why '
+    + 'the cause moved here rather than being deleted. Nobody owns it: the decision to make is '
+    + 'whether a status that means "not yet" is allowed to sit below the floor, and if not, whether '
+    + 'it stops being purple or stops being washed. Recorded under #376; a component owner must '
+    + 'choose a text-grade ink or a quieter background.',
+}, {
   id: 'L',
   fg: '--accent',
   themes: ['light'],

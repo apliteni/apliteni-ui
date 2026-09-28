@@ -19,7 +19,9 @@
   border-radius: var(--radius-sm);
   padding: var(--btn-pad-y) var(--btn-pad-x);
   cursor: pointer;
-  border: 1px solid var(--border);
+  /* Light needs a stronger line here: --border on this fill measures 1.047:1.
+     why: docs/specification.md#elevation */
+  border: 1px solid var(--control-edge);
   background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--text);
   white-space: nowrap;
