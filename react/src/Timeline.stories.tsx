@@ -48,16 +48,28 @@ const withKinds: readonly TimelineEvent[] = events.map(event => ({
   ...event, kind: event.id === 'rule' ? 'rule' : 'person',
 }));
 export const WithKinds: StoryObj = {
-  render: () => <Timeline aria-label="Record history" events={[...withKinds, { ...reversal, kind: 'reversal' }]} />,
+  render: () => <Timeline aria-label="Record history" events={[...withKinds, { ...reversal, kind: 'reversal', relativeTimestamp: 'just now' }]} />,
 };
 export const Mixed: StoryObj = {
   render: () => <Timeline aria-label="Record history" events={[events[0], ...withKinds.slice(1)]} />,
+};
+const mixedReversal: readonly TimelineEvent[] = [
+  events[0], withKinds[1], { ...reversal, kind: 'reversal' },
+  { ...events[2], id: 'reviewed', dateTime: '2026-09-01T11:05:00Z', timestamp: '1 Sep, 11:05 UTC',
+    description: 'Reviewed the corrected category.', relativeTimestamp: 'just now' },
+];
+export const MixedReversal: StoryObj = {
+  render: () => <Timeline aria-label="Record history" events={mixedReversal.map((event, index) =>
+    index === mixedReversal.length - 1 ? { ...event, kind: 'person' } : event)} />,
+};
+export const NewestUntyped: StoryObj = {
+  render: () => <Timeline aria-label="Record history" events={mixedReversal} />,
 };
 export const NewEvent: StoryObj = {
   render: function NewEventStory() {
     const [arrived, setArrived] = useState(false);
     return <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
-      <Timeline aria-label="Record history" events={arrived ? [...withKinds, { ...reversal, kind: 'reversal' }] : withKinds} />
+      <Timeline aria-label="Record history" events={arrived ? [...withKinds, { ...reversal, kind: 'reversal', relativeTimestamp: 'just now' }] : withKinds} />
       <div><Button disabled={arrived} onClick={() => setArrived(true)}>Add reversal event</Button></div>
     </div>;
   },

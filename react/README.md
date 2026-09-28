@@ -390,12 +390,14 @@ Descriptions should say what changed and to where. Optional `kind` accepts
 `person`, `rule`, or `reversal` (`TimelineEventKind`); these show the kit’s user,
 bolt, or refresh glyph in a 20px ring. The last event is newest and its ring is
 filled, using the danger colour for a reversal. Events without a kind keep their
-dot, including in mixed histories.
+dot. Mixed histories mute older dots; older reversal glyphs keep danger ink.
 
-New IDs added after the first render enter with the kit’s slide-up motion (400ms)
+Initial history stays still, including history loaded into an empty list.
+New IDs added to a non-empty history enter with the kit’s slide-up motion (400ms)
 and marker scale-in (250ms, delayed 60ms). Existing IDs stay still when reordered
-or edited. Reduced motion disables the entrance. Supply relative time, when
-needed, as part of your formatted `timestamp`; Timeline does not run a clock.
+or edited. Reduced motion disables the entrance. Optional `relativeTimestamp`
+(such as "just now") appears beside the absolute stamp only on the newest row,
+in accent ink. The caller updates this text; Timeline does not run a clock.
 
 ```tsx
 <Timeline aria-label="Record history" events={[

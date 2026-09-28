@@ -43,6 +43,7 @@
 .ui-timeline__actor { font-weight: var(--weight-semibold); }
 .ui-timeline__head time,
 .ui-timeline__meta { font-size: var(--text-xs); }
+.ui-timeline__relative { color: var(--accent); font-size: var(--text-xs); }
 .ui-timeline__description { margin: var(--space-1) 0; }
 .ui-timeline__undo { white-space: normal; }
 .ui-timeline__undo:hover,
@@ -50,7 +51,11 @@
 
 .ui-timeline--kinds .ui-timeline__event { padding-inline-start: var(--space-8); }
 .ui-timeline--kinds .ui-timeline__event::before { inset-inline-start: calc(var(--space-5) / 2); }
-.ui-timeline--kinds .ui-timeline__marker { inset-inline-start: calc((var(--space-5) - var(--space-2)) / 2); }
+.ui-timeline--kinds .ui-timeline__marker {
+  inset-inline-start: calc((var(--space-5) - var(--space-2)) / 2);
+  background: var(--muted);
+}
+.ui-timeline--kinds .ui-timeline__event:last-child .ui-timeline__marker { background: var(--accent); }
 .ui-timeline--kinds .ui-timeline__marker--kind {
   display: flex;
   align-items: center;
@@ -62,16 +67,17 @@
   border: 1px solid var(--muted);
   /* ring-gap: inherit — decorative marker contains no focus target. */
   background: var(--surface);
-  /* muted-ink: glyph — event kind, repeated in the actor and description */
+  /* muted-ink: glyph — non-word event-kind symbol */
   color: var(--muted);
 }
+.ui-timeline--kinds .ui-timeline__marker--reversal { color: var(--pink); }
 .ui-timeline__marker--kind svg { width: var(--space-3); height: var(--space-3); }
-.ui-timeline__event:last-child .ui-timeline__marker--kind {
+.ui-timeline--kinds .ui-timeline__event:last-child .ui-timeline__marker--kind {
   border-color: var(--accent-strong);
   background: var(--accent-strong);
   color: var(--accent-contrast);
 }
-.ui-timeline__event:last-child .ui-timeline__marker--reversal {
+.ui-timeline--kinds .ui-timeline__event:last-child .ui-timeline__marker--reversal {
   border-color: var(--pink);
   background: var(--pink);
   color: var(--danger-contrast);

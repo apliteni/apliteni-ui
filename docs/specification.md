@@ -2114,20 +2114,25 @@ transitions. Modal's timing tests and browser evidence cover those separately.
 
 `Timeline` renders an ordered list in the caller's event order, oldest first.
 Each event shows an actor, a `time` element, a change description and optional
-metadata. All text uses body ink; the rail and markers are decorative.
+metadata. Event text uses body ink; the rail and markers are decorative.
 
 Optional `kind` is `person`, `rule`, or `reversal`, using the existing `user`,
 `bolt`, or `refresh` glyph in a 20px (`--space-5`) ring. Only the last event’s
 kind marker is filled: `--accent-strong` with `--accent-contrast`, or `--pink`
-with `--danger-contrast` for a reversal. Other rings and glyphs use `--muted`
-on `--surface`. Missing kinds keep the existing dot; dot-only histories keep
-the original indent. Mixed histories align dots and rings on the same rail.
+with `--danger-contrast` for a reversal. Other rings use `--muted` on `--surface`;
+older reversal glyphs retain `--pink` and other glyphs use `--muted`. Missing kinds keep the existing dot; dot-only
+histories keep the original indent and colour. Mixed histories align dots and
+rings on the same rail and mute older dots; only the newest marker has an accent
+or danger fill.
 
-Initial history is still. New IDs after mount call `playEntrance()` on the row
-and marker: `m-slide-up`, `--dur-slow` (400ms), `--ease-out`, `--space-2` travel;
+Initial history is still, including the first non-empty history after loading or
+clearing the list. New IDs added to a non-empty history call `playEntrance()` on
+the row and marker: `m-slide-up`, `--dur-slow` (400ms), `--ease-out`, `--space-2` travel;
 then `m-scale-in`, `--dur-med` (250ms), `--ease-out`, `--delay-1` (60ms).
 Editing or reordering existing IDs does not replay them. Reduced motion skips
-the entrance. The caller owns formatted and relative timestamps.
+the entrance. Optional `relativeTimestamp` renders beside the absolute timestamp
+only on the newest row, with `--accent` ink at `--text-xs`. The caller supplies
+and updates both formatted timestamps; the component does not run a clock.
 Decided in [#425](https://github.com/apliteni/apliteni-ui/issues/425).
 
 Undo is an optional named button for a reversible batch. The app owns permission,

@@ -14,6 +14,7 @@ export type TimelineEvent = {
   actor: string;
   dateTime: string;
   timestamp: string;
+  relativeTimestamp?: string;
   description: string;
   meta?: ReactNode;
   undo?: {
@@ -30,7 +31,7 @@ export function Timeline({ events, className, ...rest }: TimelineProps) {
   const previousIds = useRef(new Set(events.map(event => event.id)));
   const rows = useRef(new Map<string, HTMLLIElement>());
   useEffect(() => {
-    if (!prefersReducedMotion()) {
+    if (previousIds.current.size > 0 && !prefersReducedMotion()) {
       for (const event of events) {
         if (previousIds.current.has(event.id)) continue;
         const row = rows.current.get(event.id);
@@ -44,7 +45,7 @@ export function Timeline({ events, className, ...rest }: TimelineProps) {
 
   return (
     <ol {...rest} role="list" className={['ui-timeline', events.some(event => event.kind) && 'ui-timeline--kinds', className].filter(Boolean).join(' ')}>
-      {events.map(event => (
+      {events.map((event, index) => (
         <li className="ui-timeline__event" key={event.id}
           ref={row => { if (row) rows.current.set(event.id, row); else rows.current.delete(event.id); }}>
           <span aria-hidden="true" className={['ui-timeline__marker', event.kind && 'ui-timeline__marker--kind',
@@ -54,6 +55,8 @@ export function Timeline({ events, className, ...rest }: TimelineProps) {
           <div className="ui-timeline__head">
             <span className="ui-timeline__actor">{event.actor}</span>
             <time dateTime={event.dateTime}>{event.timestamp}</time>
+            {index === events.length - 1 && event.relativeTimestamp &&
+              <span className="ui-timeline__relative">{event.relativeTimestamp}</span>}
           </div>
           <p className="ui-timeline__description">{event.description}</p>
           {(event.meta != null || event.undo) && <div className="ui-timeline__meta">
