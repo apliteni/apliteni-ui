@@ -27,6 +27,7 @@ export const Sources = {
   argTypes: { onReconnect: { table: { disable: true } } },
   render: ({ onReconnect }: { onReconnect: () => void }) => (
     <main style={{ padding: 'var(--space-6)', display: 'grid', gap: 'var(--space-4)', justifyItems: 'start' }}>
+      <h1 style={{ color: 'var(--strong)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', lineHeight: 1.1, letterSpacing: 'var(--tracking-tight)', margin: 0 }}>Data sources</h1>
       <p>Fictional data. Current at 26 Sep 2026, 09:00 UTC.</p>
       <ul aria-label="Data sources" role="list" style={{ display: 'grid', gap: 'var(--space-4)', margin: 0, padding: 0, listStyle: 'none' }}>
         {sources.map(source => (

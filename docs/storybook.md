@@ -31,9 +31,11 @@ Grouped by `title` into four sections, ordered in `preview.js` (`storySort`):
   Iconography, Brand, Sub-themes.
 - **Guidelines** — rules for composing screens and choosing components.
 - **Components** — one kit factory each (Button, Card, Table, Topbar, …).
-- **Showcases** — full-page or domain compositions built only from kit components
-  (Landing, Sign In, Consent, Preferences, Access & Agents, Source freshness).
-  Shared scaffolding in `stories/apps/_*.js`.
+- **Showcases** — full-page compositions that dogfood the components (Landing, Sign In,
+  Consent, Preferences, Access & Agents). Shared scaffolding in `stories/apps/_*.js`.
+
+React domain compositions, including **Showcases / Source freshness**, appear in the
+separate composed **React components** ref and live in `react/src/`.
 
 A story is a plain object whose `render` returns the factory's HTML string:
 
@@ -43,7 +45,7 @@ export const Playground = { render: () => button({ label: 'Save', variant: 'prim
 ```
 
 The `id` (or `title` when no id is set) and export name set the story id the
-[changelog](changelog.md) deep-links to. Showcases keep explicit `apps-…` ids so
+[changelog](changelog.md) deep-links to. Root Storybook showcases keep explicit `apps-…` ids so
 existing story links keep working after the section rename. Don't hand-wire theming or
 `wireTopbar`; the decorator does both.
 
