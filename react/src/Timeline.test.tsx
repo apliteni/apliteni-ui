@@ -1,10 +1,12 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { Timeline, type TimelineEvent } from './Timeline';
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 const events: readonly TimelineEvent[] = [
   { id: 'created', actor: 'Demo operator', dateTime: '2026-09-01T09:00:00Z', timestamp: '1 Sep, 09:00 UTC', description: 'Created the record.' },
@@ -61,4 +63,66 @@ it('has no axe violations in read-only and privileged histories', async () => {
     ...events, { ...events[1], id: 'undoable', undo: { label: 'Undo batch DEMO-13', onUndo() {} } },
   ]} /></main>);
   expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+});
+
+// JSDOM verifies glyph markup and entrance lifecycle; browser evidence checks paint and timing.
+it('renders decorative kit glyphs for kinds and keeps a dot for an untyped event', () => {
+  const { container } = render(<Timeline events={[
+    events[0], ...(['person', 'rule', 'reversal'] as const).map(kind => ({ ...events[1], id: kind, kind })),
+  ]} />);
+  const markers = container.querySelectorAll('.ui-timeline__marker');
+  expect(markers).toHaveLength(4);
+  expect(markers[0].querySelector('svg')).toBeNull();
+  for (const marker of markers) expect(marker).toHaveAttribute('aria-hidden', 'true');
+  for (const marker of [...markers].slice(1)) expect(marker.querySelector('svg')).not.toBeNull();
+  expect(new Set([...markers].slice(1).map(marker => marker.innerHTML)).size).toBe(3);
+  expect(container.querySelector('.ui-timeline')).toHaveClass('ui-timeline--kinds');
+});
+
+it('keeps initial, edited and reordered events still, entering only newly added IDs', () => {
+  const initial = events.map(event => ({ ...event, kind: 'person' as const }));
+  const { container, rerender } = render(<Timeline events={initial} />);
+  expect(container.querySelector('.is-entering')).toBeNull();
+  rerender(<Timeline events={[{ ...initial[1], description: 'Updated text.' }, initial[0]]} />);
+  expect(container.querySelector('.is-entering')).toBeNull();
+  rerender(<Timeline events={[...initial, { ...initial[0], id: 'new' }]} />);
+  const row = screen.getAllByRole('listitem')[2];
+  const marker = row.querySelector('.ui-timeline__marker')!;
+  expect(row).toHaveClass('is-entering');
+  expect(marker).toHaveClass('is-entering');
+  expect(container.querySelectorAll('.is-entering')).toHaveLength(2);
+  fireEvent.animationEnd(marker);
+  expect(marker).not.toHaveClass('is-entering');
+  expect(row).toHaveClass('is-entering');
+  fireEvent.animationEnd(row);
+  expect(row).not.toHaveClass('is-entering');
+});
+
+it('adds events without any entrance under reduced motion', () => {
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+  const { container, rerender } = render(<Timeline events={[]} />);
+  rerender(<Timeline events={[{ ...events[0], kind: 'rule' }]} />);
+  expect(screen.getByRole('listitem')).toBeVisible();
+  expect(container.querySelector('.is-entering')).toBeNull();
+  expect(matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
+});
+
+// JSDOM uses stand-in colours to resolve selectors; browser evidence checks the actual tokens.
+it('fills only the newest kind marker and moves that treatment when an event arrives', () => {
+  const timelineCss = readFileSync(join(dirname(expect.getState().testPath!), 'Timeline.css'), 'utf8');
+  const style = document.createElement('style');
+  const palette = { surface: 'rgb(1, 2, 3)', 'accent-strong': 'rgb(4, 5, 6)', pink: 'rgb(7, 8, 9)', accent: 'rgb(10, 11, 12)' };
+  style.textContent = Object.entries(palette).reduce((css, [token, colour]) => css.replaceAll(`var(--${token})`, colour), timelineCss);
+  document.head.append(style);
+  try {
+    const initial = events.map(event => ({ ...event, kind: 'person' as const }));
+    const { container, rerender } = render(<Timeline events={initial} />);
+    const backgrounds = () => [...container.querySelectorAll('.ui-timeline__marker')]
+      .map(marker => getComputedStyle(marker).backgroundColor);
+    expect(backgrounds()).toEqual([palette.surface, palette['accent-strong']]);
+    rerender(<Timeline events={[...initial, { ...events[0], id: 'reversed', kind: 'reversal' }]} />);
+    expect(backgrounds()).toEqual([palette.surface, palette.surface, palette.pink]);
+    rerender(<Timeline events={[...initial, { ...events[0], id: 'untyped' }]} />);
+    expect(backgrounds()).toEqual([palette.surface, palette.surface, palette.accent]);
+  } finally { style.remove(); }
 });

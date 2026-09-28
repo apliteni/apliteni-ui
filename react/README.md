@@ -386,7 +386,16 @@ uses its normal opening focus.
 `Timeline` displays a record’s events in the order provided. Pass events from oldest
 to newest, with stable IDs, machine-readable `dateTime` values, and formatted
 `timestamp` text.
-Descriptions should say what changed and to where.
+Descriptions should say what changed and to where. Optional `kind` accepts
+`person`, `rule`, or `reversal` (`TimelineEventKind`); these show the kit’s user,
+bolt, or refresh glyph in a 20px ring. The last event is newest and its ring is
+filled, using the danger colour for a reversal. Events without a kind keep their
+dot, including in mixed histories.
+
+New IDs added after the first render enter with the kit’s slide-up motion (400ms)
+and marker scale-in (250ms, delayed 60ms). Existing IDs stay still when reordered
+or edited. Reduced motion disables the entrance. Supply relative time, when
+needed, as part of your formatted `timestamp`; Timeline does not run a clock.
 
 ```tsx
 <Timeline aria-label="Record history" events={[

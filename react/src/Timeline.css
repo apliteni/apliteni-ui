@@ -23,8 +23,7 @@
   background: var(--border);
 }
 .ui-timeline__event:last-child::before { display: none; }
-.ui-timeline__event::after {
-  content: '';
+.ui-timeline__marker {
   position: absolute;
   inset-inline-start: 0;
   inset-block-start: calc(0.75em - var(--space-2) / 2);
@@ -48,3 +47,39 @@
 .ui-timeline__undo { white-space: normal; }
 .ui-timeline__undo:hover,
 .ui-timeline__undo:focus-visible { color: var(--pink); }
+
+.ui-timeline--kinds .ui-timeline__event { padding-inline-start: var(--space-8); }
+.ui-timeline--kinds .ui-timeline__event::before { inset-inline-start: calc(var(--space-5) / 2); }
+.ui-timeline--kinds .ui-timeline__marker { inset-inline-start: calc((var(--space-5) - var(--space-2)) / 2); }
+.ui-timeline--kinds .ui-timeline__marker--kind {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inset-inline-start: 0;
+  inset-block-start: calc(0.75em - var(--space-5) / 2);
+  width: var(--space-5);
+  height: var(--space-5);
+  border: 1px solid var(--muted);
+  /* ring-gap: inherit — decorative marker contains no focus target. */
+  background: var(--surface);
+  /* muted-ink: glyph — event kind, repeated in the actor and description */
+  color: var(--muted);
+}
+.ui-timeline__marker--kind svg { width: var(--space-3); height: var(--space-3); }
+.ui-timeline__event:last-child .ui-timeline__marker--kind {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+.ui-timeline__event:last-child .ui-timeline__marker--reversal {
+  border-color: var(--pink);
+  background: var(--pink);
+  color: var(--danger-contrast);
+}
+.ui-timeline__event.is-entering {
+  --m-dist: var(--space-2);
+  animation: m-slide-up var(--dur-slow) var(--ease-out) both;
+}
+.ui-timeline__marker.is-entering {
+  animation: m-scale-in var(--dur-med) var(--ease-out) var(--delay-1) both;
+}

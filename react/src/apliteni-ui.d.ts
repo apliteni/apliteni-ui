@@ -44,5 +44,6 @@ declare module '@apliteni/apliteni-ui' {
 }
 
 declare module '@apliteni/apliteni-ui/motion' {
+  export function prefersReducedMotion(): boolean;
   export function playEntrance(element: Element | null): void;
 }

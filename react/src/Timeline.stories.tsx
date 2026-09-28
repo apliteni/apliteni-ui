@@ -43,3 +43,22 @@ export const Reversed: StoryObj = {
 export const Narrow: StoryObj = {
   render: () => <div style={{ maxWidth: 280 }}><Timeline aria-label="Record history" events={events} /></div>,
 };
+
+const withKinds: readonly TimelineEvent[] = events.map(event => ({
+  ...event, kind: event.id === 'rule' ? 'rule' : 'person',
+}));
+export const WithKinds: StoryObj = {
+  render: () => <Timeline aria-label="Record history" events={[...withKinds, { ...reversal, kind: 'reversal' }]} />,
+};
+export const Mixed: StoryObj = {
+  render: () => <Timeline aria-label="Record history" events={[events[0], ...withKinds.slice(1)]} />,
+};
+export const NewEvent: StoryObj = {
+  render: function NewEventStory() {
+    const [arrived, setArrived] = useState(false);
+    return <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
+      <Timeline aria-label="Record history" events={arrived ? [...withKinds, { ...reversal, kind: 'reversal' }] : withKinds} />
+      <div><Button disabled={arrived} onClick={() => setArrived(true)}>Add reversal event</Button></div>
+    </div>;
+  },
+};

@@ -2114,7 +2114,21 @@ transitions. Modal's timing tests and browser evidence cover those separately.
 
 `Timeline` renders an ordered list in the caller's event order, oldest first.
 Each event shows an actor, a `time` element, a change description and optional
-metadata. All text uses body ink; the line and accent dots are decorative.
+metadata. All text uses body ink; the rail and markers are decorative.
+
+Optional `kind` is `person`, `rule`, or `reversal`, using the existing `user`,
+`bolt`, or `refresh` glyph in a 20px (`--space-5`) ring. Only the last event’s
+kind marker is filled: `--accent-strong` with `--accent-contrast`, or `--pink`
+with `--danger-contrast` for a reversal. Other rings and glyphs use `--muted`
+on `--surface`. Missing kinds keep the existing dot; dot-only histories keep
+the original indent. Mixed histories align dots and rings on the same rail.
+
+Initial history is still. New IDs after mount call `playEntrance()` on the row
+and marker: `m-slide-up`, `--dur-slow` (400ms), `--ease-out`, `--space-2` travel;
+then `m-scale-in`, `--dur-med` (250ms), `--ease-out`, `--delay-1` (60ms).
+Editing or reordering existing IDs does not replay them. Reduced motion skips
+the entrance. The caller owns formatted and relative timestamps.
+Decided in [#425](https://github.com/apliteni/apliteni-ui/issues/425).
 
 Undo is an optional named button for a reversible batch. The app owns permission,
 confirmation for finalized records, batch reversal and the new reversing event.
