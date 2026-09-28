@@ -41,7 +41,7 @@
 
 /* A lighter tint keeps pink text legible on the modal's elevated surface. */
 .fbs-error {
-  background: color-mix(in srgb, var(--pink) 10%, transparent);
+  background: color-mix(in srgb, var(--pink) 10%, transparent); /* ring-gap: inherit — text-only send failure has no focus target. */
   color: var(--pink);
   font-size: var(--text-sm);
   padding: var(--space-3) var(--space-4);
