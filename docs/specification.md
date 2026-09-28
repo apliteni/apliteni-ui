@@ -593,13 +593,13 @@ before, on a page that is *lighter* and less blue than the one it replaces. Thos
 the card is already white, so every point the page gains in lightness it loses in separation, and
 `#f2f3f6` is where a 1.11 step runs out. **A floating panel and a card now share white**, and the
 panel is told apart by the two devices only it has — its two-step edge and its drop, which measure
-1.52 and 1.44 on that white, both up from 1.44 and 1.44 on the old tinted card. That is the rule this section already states: what floats is decided by
-the surface's job, not by its rung.
+1.52 and 1.44 on that white, both up from 1.44 and 1.44 on the old tinted card. That is the rule
+this section already states: what floats is decided by the surface's job, not by its rung.
 
 **In light the ladder is not monotonic, and the top step is the exception.** `--surface-3` is
 `#eef0f5` — the colour the page itself carried before #448: below the page, and 1.04:1 above the
-sunken step. It cannot be above `--bg-elevated`,
-because `--bg-elevated` is white and light has nothing brighter to give it. So in light the top
+sunken step. It cannot be above `--bg-elevated`, because `--bg-elevated` is white and light has
+nothing brighter to give it. So in light the top
 step means the **quiet fill** rather than the highest surface — a chip, a hovered row, the hover
 readout's panel — and on its fill alone a light readout would read as a recessed surface rather
 than a raised one. That is the case for deciding this by role rather than by rung: the readout's
