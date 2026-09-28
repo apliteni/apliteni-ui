@@ -628,15 +628,47 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 // hide a regression in another. LEDGER above explains each cause.
 // Run locally: CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
 // Add CONTRAST_LEDGER_REPORT=1 to print measured values. It does not change the gates.
-// Last full report: 2026-09-25, source 0877848.
+// Last full report: 2026-09-28, source 68c3674.
 // Record `git rev-parse HEAD` with the output. Review measurements before changing debt.
+//
+// EVERY LIGHT CELL MOVED AT #448, AND ALL OF IT IN ONE DIRECTION: debt paid, none added.
+// Read row by row against the previous report (2026-09-25, 0877848) rather than accepted
+// as a re-run, because a ledger that only ever gets regenerated stops being evidence.
+//
+// One cause covers the whole table. Each of these buckets is an ink read either on a light
+// surface or on a translucent wash over one, and #448 lightened the four light surfaces the
+// washes composite against — the card to #ffffff, the page to #f2f3f6, the sunken step to
+// #e9ecf3, the quiet fill to #eef0f5. A lighter ground under the same ink is a higher ratio,
+// so every light row rose and the rows that sat just under AA crossed it:
+//
+//   C  --green on the success wash and white     3.56 -> 3.76   same 2 rows, all three cells
+//   E  --cyan on the info wash and white         3.05 -> 3.22   same 2 rows, all three cells
+//   L  --accent on the motion replay hover       phoenix 4.21 -> 4.31, ocean 4.35 -> 4.46,
+//                                                emerald 4.23 -> 4.34; still 1 row each
+//   F  --purple-mid on accent-tinted grounds     ocean's single row CLEARED AA and is gone
+//                                                from the table; phoenix 5 -> 4 rows, worst
+//                                                4.02 -> 4.21; emerald keeps 7, worst
+//                                                3.12 -> 3.26
+//
+// The F rows that cleared are the "soon" badge (--purple-mid on --glow-purple, a 0.09-0.10
+// alpha wash). Its ground used to be the tinted card, and the wash over a near-white card is
+// lighter than the same wash over #f8f9fc. Ocean's light --purple-mid #1560c8 is the deepest
+// of the three, so ocean is the cell where that one row had least distance to make up. What
+// is LEFT in F is unchanged in kind: emerald and phoenix inks are lighter, so their rows are
+// still short of AA and still owed. Nothing here fixes bucket F as a cause — see its entry.
+//
+// Both dark cells are byte-identical to the previous report, which is the control: #448
+// touched no dark token, and if it had, these two rows would say so.
+// `unassigned` was empty for all six cells, so no new cause appeared behind the movement.
 const ACCENT_LEDGER = {
   'dark/phoenix': { B: [1, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [1, 4.20], P: [65, 1.06], S: [21, 2.66] },
   'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
-  'light/phoenix': { C: [2, 3.56], E: [2, 3.05], F: [5, 4.02], L: [1, 4.21], P: [65, 1.06], S: [21, 2.66] },
-  'light/ocean': { C: [2, 3.56], E: [2, 3.05], F: [1, 4.32], L: [1, 4.35], P: [65, 1.06], S: [21, 2.66] },
-  'light/emerald': { C: [2, 3.56], E: [2, 3.05], F: [7, 3.12], L: [1, 4.23], P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [2, 3.76], E: [2, 3.22], F: [4, 4.21], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
+  // No F: #448 lifted this cell's one "soon" row (4.32) over AA. The bucket keeps its entry
+  // because phoenix and emerald still owe rows against it.
+  'light/ocean': { C: [2, 3.76], E: [2, 3.22], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [2, 3.76], E: [2, 3.22], F: [7, 3.26], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
 };
 
 const ALTERNATE_CAUSES = [...LEDGER, {
