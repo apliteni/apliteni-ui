@@ -415,6 +415,14 @@
       ]
     },
     {
+      "file": "react/src/PeriodPicker.test.tsx",
+      "name": "React: Period picker showcase",
+      "does": "Checks report and URL selection, keyboard movement to the last month, and disabled steppers named with their visible labels.",
+      "blind": [
+        "Real browser layout and focus rings; mounted tests use jsdom."
+      ]
+    },
+    {
       "file": "react/src/Loading.test.tsx",
       "name": "React: Loading",
       "does": "Checks the mounted React loading indicators and their busy announcements.",
