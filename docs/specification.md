@@ -2264,3 +2264,15 @@ React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusabl
 
 Segmented options may supply `ariaLabel` to give a short visible label a fuller
 accessible name. Without it, the visible label names the button.
+
+## Segmented strips that outgrow their column
+
+A pill strip lays its choices out in one row while they fit, and wraps onto further
+rows when they do not. It never widens past its container: a twelve-month picker in
+a phone column becomes three rows of pills rather than a track that pushes the page
+sideways and drags every other block with it. Below 560px the pills also tighten
+their side padding, which is what keeps six three-letter months on one row in a
+390px column; the type rank is unchanged at every width.
+
+The underline appearance scrolls instead of wrapping, which is the right answer for
+column switches over one dataset, where the order is the reader's map.

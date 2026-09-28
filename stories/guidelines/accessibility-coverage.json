@@ -417,7 +417,7 @@
     {
       "file": "react/src/PeriodPicker.test.tsx",
       "name": "React: Period picker showcase",
-      "does": "Checks report and URL selection, keyboard movement to the last month, and disabled steppers named with their visible labels.",
+      "does": "Checks report, comparison and URL selection, keyboard movement to the last month, that the month pills are the only route to a month, and that both pending regions announce.",
       "blind": [
         "Real browser layout and focus rings; mounted tests use jsdom."
       ]

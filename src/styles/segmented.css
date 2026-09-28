@@ -3,6 +3,10 @@
  * The selected button keeps the reading surface and gains an accent edge.
  * ========================================================================== */
 
+/* The strip wraps rather than overflows: a track wider than its column used to
+   push the page's scrollWidth past the viewport, which drags every sibling with
+   it. Wrapping keeps the focus ring's glow unclipped, which `overflow: auto`
+   here would not. #435 */
 .ui-seg {
   display: inline-flex;
   /* `inline-flex` sizes the track to its pills, but a flex or grid parent stretches a
@@ -10,6 +14,8 @@
      states its own alignment; --block and --underline ask for the width back. */
   align-self: start;
   background: var(--surface); --ring-gap: var(--surface);
+  flex-wrap: wrap;
+  max-width: 100%;
   border-radius: var(--radius-2xl);
   padding: 3px;
   gap: 2px;
@@ -36,6 +42,13 @@
   color: var(--strong);
   background: var(--surface); /* ring-gap: inherit — the button ring meets its containing track. */
   outline: 1px solid var(--accent);
+}
+
+/* On a phone the strip tightens its pills rather than wrapping or shrinking its
+   type: six three-letter months fit a 390px column at 12px of side padding and
+   do not at 18px. The type rank is unchanged. #435 */
+@media (max-width: 560px) {
+  .ui-seg button { padding: 7px var(--space-3); }
 }
 
 .ui-seg--sm button { padding: 5px 13px; font-size: calc(var(--text-xs) + 1px); }
