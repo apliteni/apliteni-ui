@@ -95,10 +95,10 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
         }}>
           <TextArea label="What went wrong, or what would help?"
             hint="Only this section and your note are sent."
-            placeholder="e.g. The collection time is not shown anywhere on this page." rows={4} value={note}
-            error={state === 'failed' ? "Couldn't send. Your note is saved." : undefined}
+            placeholder="e.g. There is no way to change the delivery address from here." rows={4} value={note}
             readOnly={state === 'sending'} onChange={event => setNote(event.target.value)} />
         </form>
+        {state === 'failed' && <div className="fbs-error" role="alert">Couldn't send. Your note is saved.</div>}
       </Modal>
     </>
   );

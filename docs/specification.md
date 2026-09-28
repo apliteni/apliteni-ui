@@ -2180,6 +2180,7 @@ at the bottom, anchored to the bottom-right corner. The provider measures the st
 and publishes how far it reaches up the viewport as `--rx-toast-stack` on the
 document root — `0px` while it is empty — so a fixed page action can sit clear of
 any number of notices instead of an offset tuned to the height of one (#388).
+Use one `Toast` provider per document, because `--rx-toast-stack` is a document-root global.
 The property is removed when the provider unmounts. Notices without actions
 dismiss after five seconds. Their countdown
 and timer bar pause while hovered or focused, then resume with the remaining time.

@@ -38,3 +38,12 @@
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
 }
+
+/* A lighter tint keeps pink text legible on the modal's elevated surface. */
+.fbs-error {
+  background: color-mix(in srgb, var(--pink) 10%, transparent);
+  color: var(--pink);
+  font-size: var(--text-sm);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+}
