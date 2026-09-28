@@ -11,7 +11,7 @@ function Frame({ id, label, hint, error, required, children }: FieldMessage & { 
   return <div className="ui-field">
     <label className="ui-field__label" htmlFor={id}>{label}{required && <span className="ui-field__req" aria-hidden="true">*</span>}</label>
     {children}
-    {(error || hint) && <div id={`${id}-message`} className={error ? 'ui-field__error' : 'ui-field__hint'}
+    {(error || hint) && <div id={`${id}-message`} className={error ? 'ui-field__error' : 'ui-field__hint'} role={error ? 'alert' : undefined}
       dangerouslySetInnerHTML={{ __html: (error ? icon('alert') : '') + esc(error || hint) }} />}
   </div>;
 }

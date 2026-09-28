@@ -846,7 +846,11 @@ an empty sibling region, and `setButtonBusy` creates it lazily when entering bus
 React returns one button element and lazily shares one page-level announcer across
 busy buttons, removing it when its users unmount. Both use
 `role="status" aria-live="polite"` outside `aria-busy`, which would defer updates.
-Regions persist through completion so progress and completion can be announced. Explicitly disabled buttons remain natively
+Regions persist through completion so progress and completion can be announced.
+React callers can set `completionMessage` to describe the outcome, or to an empty
+string when a form error or another live region announces it (#388).
+React field errors use `role="alert"` as well as a linked description, so a new
+error is announced without moving focus back to the field. Explicitly disabled buttons remain natively
 disabled. Unwired static `button({ busy: true })` markup retains native disabled as
 a safe fallback; `setButtonBusy` replaces it with guards when wiring the control.
 
@@ -2167,7 +2171,8 @@ compact markup remain supported; no SVG paths or interaction contracts change.
 Vanilla and React share this styling.
 
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest
-at the bottom. Notices without actions dismiss after five seconds. Their countdown
+at the bottom, anchored to the bottom-right corner. Fixed page actions must leave
+room for that stack (#388). Notices without actions dismiss after five seconds. Their countdown
 and timer bar pause while hovered or focused, then resume with the remaining time.
 Notices with an action stay until it is selected or the reader dismisses them.
 Ordinary notices are polite; danger notices are assertive. Adding a notice does

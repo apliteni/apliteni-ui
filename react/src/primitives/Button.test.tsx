@@ -109,3 +109,14 @@ it('keeps one root per button and shares the announcer only after busy is used',
   second.unmount();
   expect(document.querySelector('.ui-btn__status')).toBeNull();
 });
+
+// Checks live-region text in JSDOM, not speech output from a screen reader.
+it('can suppress completion when an error is announced by the form', async () => {
+  const { rerender, getByRole } = render(<Button>Send</Button>);
+  rerender(<Button busy>Send</Button>);
+  const status = getByRole('status');
+  await waitFor(() => expect(status).toHaveTextContent('Send: in progress'));
+  rerender(<Button completionMessage="">Send</Button>);
+  await waitFor(() => expect(status).toHaveTextContent(/^$/));
+  expect(getByRole('button')).not.toHaveAttribute('aria-busy');
+});

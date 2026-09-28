@@ -32,8 +32,7 @@ it('matches the complete vanilla field structure and native attributes', () => {
       field({ label: 'Notes', hint: 'Help', required: true, control: textarea({ name: 'notes', placeholder: 'Notes', value: 'Draft' }) })],
     [<SelectField label="Currency" hint="Help" required name="currency" defaultValue="USD"><option value="EUR">EUR</option><option value="USD">USD</option></SelectField>,
       field({ label: 'Currency', hint: 'Help', required: true, control: select({ name: 'currency', options: ['EUR', 'USD'], value: 'USD' }) })],
-    [<TextField label="Name" hint="Hidden" error={'Use <plain> text & "quotes".'} placeholder="Name" defaultValue="Demo" disabled />,
-      field({ label: 'Name', hint: 'Hidden', error: 'Use <plain> text & "quotes".', control: input({ placeholder: 'Name', value: 'Demo', invalid: true, disabled: true }) })],
+
   ] as const) {
     const { container, unmount } = render(react);
     const reference = document.createElement('div'); reference.innerHTML = vanilla;
@@ -54,6 +53,7 @@ it('generates unique stable ids and replaces help with a linked error', () => {
   expect(control.id).toBe(id);
   expect(control).toHaveAttribute('aria-invalid', 'true');
   expect(control).toHaveAccessibleDescription('Enter a name.');
+  expect(screen.getByRole('alert')).toHaveTextContent('Enter a name.');
   expect(screen.queryByText('Help')).toBeNull();
   expect(document.querySelector('.ui-field__error svg')).not.toBeNull();
 });
@@ -126,4 +126,14 @@ it('clears the selected-file display when its native form resets', async () => {
   await user.click(screen.getByRole('button', { name: 'Reset' }));
   expect(screen.getByText('Choose file')).toBeInTheDocument();
   expect(container.querySelector('.ui-file')).not.toHaveClass('has-file');
+});
+
+it('keeps error text escaped and preserves disabled field attributes', () => {
+  render(<TextField label="Name" hint="Hidden" error={'Use <plain> text & "quotes".'} placeholder="Name" defaultValue="Demo" disabled />);
+  expect(screen.getByRole('textbox')).toBeDisabled();
+  expect(screen.getByRole('textbox')).toHaveValue('Demo');
+  expect(screen.getByRole('textbox')).toHaveAccessibleDescription('Use <plain> text & "quotes".');
+  expect(screen.getByRole('alert')).toHaveTextContent('Use <plain> text & "quotes".');
+  expect(screen.getByRole('alert').querySelector('plain')).toBeNull();
+  expect(screen.queryByText('Hidden')).toBeNull();
 });

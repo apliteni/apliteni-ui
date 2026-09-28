@@ -25,11 +25,13 @@ describe('feedback showcase', () => {
 
   it('shows context without an excerpt and cancels without sending', async () => {
     render(<WithoutExcerpt />);
+    screen.getByRole('button', { name: 'Feedback' }).focus();
     fireEvent.click(screen.getByRole('button', { name: 'Feedback' }));
     await screen.findByRole('dialog');
-    expect(screen.queryByText('Selected text')).not.toBeInTheDocument();
+    expect(document.querySelector('.ui-fbc__quote')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Feedback' })).toHaveFocus();
     expect(screen.queryByText('Feedback sent')).not.toBeInTheDocument();
   });
   it('keeps a failed note and connects the error for retry', async () => {
@@ -40,6 +42,8 @@ describe('feedback showcase', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
     await waitFor(() => expect(note).toHaveAttribute('aria-invalid', 'true'));
     expect(note).toHaveAccessibleDescription("Couldn't send your feedback. Your note is still here. Try again.");
+    expect(screen.getByRole('alert')).toHaveTextContent("Couldn't send your feedback.");
+    await waitFor(() => expect(document.querySelector('.ui-btn__status')).toHaveTextContent(/^$/));
     expect(note).toHaveValue('Please add a delivery date.');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));

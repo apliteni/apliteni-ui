@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useEffect, useId, useRef, useState } from 'react';
-import { Drawer } from './Drawer';
+import { Modal } from './Modal';
 import { KeyValueList } from './KeyValueList';
 import { TextArea } from './Field';
 import { Toast, useToast } from './Toast';
@@ -47,21 +47,24 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
         <h2>Before it leaves</h2>
         <p>Check the items and delivery instructions. If anything is missing or unclear, use Feedback to leave a note about this section.</p>
       </main>
-      <div style={{ position: 'fixed', right: 'var(--space-4)', bottom: 'var(--space-4)' }}>
+      <div style={{ position: 'fixed', right: 'var(--space-4)', bottom: 'calc(var(--space-16) + var(--space-12))' }}>
         <Button icon="chat" aria-haspopup="dialog" onClick={() => setOpen(true)}>
           Feedback
         </Button>
       </div>
-      <Drawer size="sm" open={open} title="Report a problem or share an idea" onClose={close}
+      <Modal open={open} title="Report a problem or share an idea" onClose={close}
         footer={<>
           <Button variant="ghost" onClick={close}>Cancel</Button>
           <Button variant="primary" type="submit" form={formId} busy={state === 'sending'}
-            disabled={!note.trim()}>Send feedback</Button>
+            completionMessage={state === 'failed' ? '' : undefined} disabled={!note.trim()}>Send feedback</Button>
         </>}>
+        {withExcerpt && <div className="ui-fbc__quote">
+          <span className="ui-fbc__qm" aria-hidden="true">“</span>
+          <q>packed and ready to ship</q>
+        </div>}
         <KeyValueList rows={[
           { label: 'Page', value: 'Orders / DEMO-1042' },
           { label: 'Section', value: 'Delivery' },
-          ...(withExcerpt ? [{ label: 'Selected text', value: <q>packed and ready to ship</q> }] : []),
         ]} />
         <form id={formId} onSubmit={event => {
           event.preventDefault();
@@ -80,7 +83,7 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
             error={state === 'failed' ? "Couldn't send your feedback. Your note is still here. Try again." : undefined}
             readOnly={state === 'sending'} onChange={event => setNote(event.target.value)} />
         </form>
-      </Drawer>
+      </Modal>
     </>
   );
 }
