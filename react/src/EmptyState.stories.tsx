@@ -21,7 +21,7 @@ export const NotFound: Story = {
   render: () => <EmptyState variant="not-found" actions={<a className="ui-btn ui-btn--ghost" href="/">Go home</a>} />,
 };
 export const NotYetBuilt: Story = {
-  render: () => <EmptyState variant="not-yet-built" />,
+  render: () => <EmptyState variant="not-yet-built" actions={<Button variant="primary">Go home</Button>} />,
 };
 export const Illustration: Story = {
   render: () => <EmptyState title="No people yet" sub="Contractors and staff you add show up here for attribution."
@@ -35,9 +35,10 @@ export const Default: Story = {
   render: () => canvas(<EmptyState art="people" title="No people yet" sub="Contractors and staff you add show up here for attribution." actions={<Button variant="primary">+ Add person</Button>} />),
 };
 export const MessageOnly: Story = {
-  render: () => canvas(<EmptyState art="invoices" title="No invoices match the current filters." sub="Try widening the date range or clearing a filter." />),
+  name: 'No matches',
+  render: () => canvas(<EmptyState art="invoices" title="No invoices match the current filters." sub="Clear the filters to see all invoices." actions={<Button variant="primary">Clear filters</Button>} />),
 };
 export const WithAction: Story = { ...Default };
 export const WithIllustration: Story = {
-  render: () => canvas(<EmptyState art="people" title="No people yet" sub="Contractors and staff you add show up here for attribution." />),
+  render: () => canvas(<EmptyState art="people" title="No people yet" sub="Contractors and staff you add show up here for attribution." actions={<Button variant="primary">+ Add person</Button>} />),
 };

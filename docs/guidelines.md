@@ -1,7 +1,7 @@
 # The guidelines collection
 
 `guidelines/*.md` ships in npm and supplies the text Storybook renders.
-The Overview links to the twenty rule pages.
+The Overview links to every rule page.
 
 ## Editing a page
 

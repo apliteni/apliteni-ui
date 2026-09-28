@@ -18,12 +18,14 @@ export const Default = {
   }))}</div>`),
 };
 
-// Filtered list with no matches: no action, just a nudge to loosen the filter.
+// Keep the export stable for existing Storybook links.
 export const MessageOnly = {
+  name: 'No matches',
   render: () => pad(`<div style="max-width:520px">${inCard(emptyState({
     art: 'invoices',
     title: 'No invoices match the current filters.',
-    sub: 'Try widening the date range or clearing a filter.',
+    sub: 'Clear the filters to see all invoices.',
+    actions: button({ label: 'Clear filters', variant: 'primary' }),
   }))}</div>`),
 };
 
@@ -31,8 +33,8 @@ export const MessageOnly = {
 export const Illustrations = {
   render: () => pad(grid(3, ...illoNames.map((name) => specimen(name, inCard(emptyState({
     art: name,
-    title: `No ${name} yet`,
-    sub: 'This is what an empty state looks like for this context.',
+    title: ({ search: 'No results match your search', inbox: 'Your inbox is empty' })[name] || `No ${name} yet`,
+    actions: button({ label: ({ people: 'Add person', invoices: 'Upload invoice', transactions: 'Add transaction', search: 'Clear search', agents: 'Add agent', inbox: 'Compose message' })[name], variant: 'primary' }),
   })))))),
 };
 
@@ -40,7 +42,7 @@ export const Illustrations = {
 export const LegacyIcon = {
   render: () => pad(`<div style="max-width:520px">${inCard(emptyState({
     icon: 'doc',
-    title: 'Nothing here yet',
-    sub: 'The line-icon slot is kept for back-compat.',
+    title: 'No documents yet',
+    actions: button({ label: 'Upload document', variant: 'primary' }),
   }))}</div>`),
 };
