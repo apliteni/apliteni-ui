@@ -7,7 +7,7 @@ export function numericValue({ value, unit = '', missing = 'Not available' } = {
 
 export function deltaValue({ value, tone = 'neutral', basisId, missing = 'No earlier figure' } = {}) {
   const present = value != null && value !== '';
-  const judged = present && ['success', 'danger'].includes(tone) && !/^[+−-]?0(?:[.,]0+)?%?$/.test(String(value).replace(/\s/g, ''));
+  const judged = present && ['success', 'danger'].includes(tone) && !/^[+−-]?0+(?:[.,]0+)?(?:[^\d.,].*)?$/.test(String(value).replace(/\s/g, ''));
   return `<span class="ui-delta${judged ? ` ui-delta--${tone}` : ''}"${basisId ? ` aria-describedby="${esc(basisId)}"` : ''}>${esc(present ? value : missing)}</span>`;
 }
 

@@ -1985,7 +1985,8 @@ every column. Numeric headers and values stay right-aligned. Held by
 
 `numericValue` preserves the caller's formatted value and distinguishes missing from zero.
 `deltaValue` prints the caller's sign, accepts an explicit success/danger/neutral judgement,
-and leaves zero and missing comparisons neutral. Colour never supplies the sign. The caller
+and leaves zero and missing comparisons neutral, including signed zero with a unit suffix
+such as `+0 EUR` or `−0.00 %`. Colour never supplies the sign. The caller
 names the comparison through `basisId`. `rowIdentity` combines decorative logo, symbol and
 name; missing or failed images retain a letter fallback after initialization.
 
