@@ -1927,7 +1927,9 @@ standing underneath.
 
 The React palette, Modal and Drawer also share one dialog stack: Escape closes only the top
 one and leaves the palette beneath it open. The React and vanilla stacks are separate, so
-mixing their overlays on one page is not supported.
+mixing their overlays on one page is not supported. `Modal` names itself with an `h2`, as the
+vanilla drawer and confirm do, so heading navigation reaches the title the dialog is labelled
+by; its head keeps a gap, so a long title does not meet the close button.
 
 It opens empty. A palette that comes back holding the last query shows a list answering a
 question the reader has already finished asking, and the next keystroke appends to it.
