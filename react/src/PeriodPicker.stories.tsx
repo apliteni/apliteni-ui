@@ -60,20 +60,20 @@ function Example() {
   return <AppShell sections={[{ href: '#report', label: 'Finance report', icon: 'chart' }]}
     pathname="#report" title="Finance report" word="Demo"
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
-    <div id="report" style={{ display: 'grid', gap: 'var(--space-4)' }}>
-      <div>
+    <div id="report" style={{ display: 'grid', gap: 'var(--space-4)', paddingTop: 'var(--space-2)' }}>
+      <div style={{ display: 'grid', justifyItems: 'start', gap: 'var(--space-4)' }}>
         <div className="ui-seg--sm">
           <Segmented label="Period" options={options} value={value} onChange={choose} />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
+        <p role="status">{selected.name} 2026 <Badge variant={selected.tone}>{selected.status}</Badge></p>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <Button variant="ghost" size="sm" icon="chevronLeft" disabled={index === 0}
-            aria-label={index === 0 ? 'No earlier month' : `Previous month: ${months[index - 1].name} 2026`}
+            aria-label={index === 0 ? 'Previous month: none earlier' : `Previous month: ${months[index - 1].name} 2026`}
             onClick={() => choose(months[index - 1].value)}>Previous</Button>
           <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={index === months.length - 1}
-            aria-label={index === months.length - 1 ? 'No later month' : `Next month: ${months[index + 1].name} 2026`}
+            aria-label={index === months.length - 1 ? 'Next month: none later' : `Next month: ${months[index + 1].name} 2026`}
             onClick={() => choose(months[index + 1].value)}>Next</Button>
         </div>
-        <p role="status">{selected.name} 2026 <Badge variant={selected.tone}>{selected.status}</Badge></p>
       </div>
       <StatBand variant="band" stats={[
         { label: 'Income', value: money(income) },
