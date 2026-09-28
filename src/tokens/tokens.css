@@ -281,15 +281,22 @@
   --pink: #a92d59;
   --amber: #b5730a;
 
-  /* The same ladder, run the only way light can run it: nothing is brighter than the
-     white a card already was, so light moves DOWN and keeps white for the top step.
+  /* The same ladder, run the only way light can run it: nothing is brighter than
+     white, so light moves DOWN from it. #307 ran it downwards from the CARD, which
+     put the page at #eef0f5 and left the card at #f8f9fc — a grey canvas under a
+     surface only 1.08:1 above it, so the grey was what the screen read as and the
+     card never arrived. The card takes the white instead, and the page is the
+     lightest ground that still leaves it a step: 1.11:1, on a page lighter and less
+     blue than the one it replaces. Light spends its white on the surface you read
+     ON, and separates the panel that floats over it by role — its two-step edge and
+     its drop — rather than by a rung it has nothing left to pay for. See issue #448.
      why: docs/specification.md#elevation */
-  --bg: #eef0f5;
+  --bg: #f2f3f6;
   --table-bg: #ffffff;
-  --surface-2: #e3e6ee;     /* SUNKEN — fields, tracks, disabled, code */
-  --surface: #f8f9fc;       /* the card */
+  --surface-2: #e9ecf3;     /* SUNKEN — fields, tracks, disabled, code */
+  --surface: #ffffff;       /* the card */
   --bg-elevated: #ffffff;   /* FLOATING — menus, panels, drawer, modal, toasts */
-  --surface-3: #e7eaf1;     /* the hover readout, chips, the nav rail */
+  --surface-3: #eef0f5;     /* the quiet fill — chips, hovered rows, the readout */
   --seg-active-bg: #ffffff; /* white pill raised above the grey track in light */
   --control-knob: #ffffff;
   --border: #e4e7ee;
@@ -361,8 +368,8 @@
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
 
-  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card at
-     #f8f9fc, and 18% is what puts the drop core at #d1d2d8 — 1.44, the strongest
+  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card that is
+     now #ffffff, and 18% is what puts the drop core at #d7d7da — 1.44, the strongest
      separation either theme gets. why: docs/specification.md#elevation */
   --elev-drop:
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 18%, transparent),

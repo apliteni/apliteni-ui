@@ -964,7 +964,7 @@ test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst the kit
 
 // Keep measured ratios in the test, not in reader-facing guideline history.
 test('disabled: the opaque token pair retains its measured contrast in both themes', () => {
-  const expected = { dark: '6.91', light: '4.89' };
+  const expected = { dark: '6.91', light: '5.17' };
   for (const theme of THEMES) {
     const vars = tokensFor(theme);
     const chain = (name) => {

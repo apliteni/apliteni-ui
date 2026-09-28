@@ -130,7 +130,7 @@ test('tokensFor picks the requested theme, not the first declaration it meets', 
   const dark = tokensFor('dark', 'default');
   const light = tokensFor('light', 'default');
   assert.equal(dark.get('--bg'), '#0e0d14', 'the dark page background');
-  assert.equal(light.get('--bg'), '#eef0f5', 'the light page background');
+  assert.equal(light.get('--bg'), '#f2f3f6', 'the light page background');
   assert.notEqual(dark.get('--pink'), light.get('--pink'), 'the two themes disagree about --pink');
 });
 
@@ -142,7 +142,7 @@ test('tokensFor also harvests custom properties declared outside the token files
 
 test('tokensFor lets the token files win over a component declaration', () => {
   const vars = tokensFor('light', 'default');
-  assert.equal(vars.get('--bg'), '#eef0f5', 'a component file cannot shadow a semantic token');
+  assert.equal(vars.get('--bg'), '#f2f3f6', 'a component file cannot shadow a semantic token');
 });
 
 test('substitute resolves a chain of var() references', () => {
