@@ -1,7 +1,7 @@
 # The changelog
 
 `ui.apli.tech/changelog` is a hand-authored release timeline. Per release it shows typed
-changes (Added / Changed / Fixed / Removed / **Breaking**), **component chips** that
+changes (Added / Changed / Fixed / Deprecated / Removed / **Breaking**), **component chips** that
 deep-link to Storybook, a **Breaking** header badge, and a **contributor** row derived
 from git.
 
@@ -17,7 +17,7 @@ An array, newest first:
 {
   v: '0.3.0', date: '2026-07-22', tag: 'latest',   // tag: 'latest' | 'first' | undefined
   changes: [
-    // [type, text, components?]   type: added | changed | fixed | removed | breaking
+    // [type, text, components?]   type: added | changed | fixed | deprecated | removed | breaking
     ['breaking', '`accountShell()` renamed `cap` → `maxWidth`.', ['Shell']],
     ['added',    'Finance data-table treatment.',                ['Table']],
     ['fixed',    'Enlarged the consent scope icons.'],           // components optional

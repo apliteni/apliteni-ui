@@ -44,6 +44,19 @@ are the same file the HTML entry point serves.
 `docs/library.md` is the catalogue: the `src/` layout, the theming model, and every component the
 kit exports. This page states what those components guarantee; that one states what they are.
 
+### Supported surface after vanilla removal
+
+The following stay supported under [#429](https://github.com/apliteni/apliteni-ui/issues/429):
+
+- React components and their shared logic.
+- All CSS and tokens, inline strings (`/inline`), and motion helpers (`/motion`).
+- `esc`, `icon` and its name tables, `sun`, `moon`, `prism`, `seedling`, `brand`, and `illo`.
+- The Markdown guidelines.
+
+**Removal-bound:** all vanilla HTML factories, initializers, and the vanilla overlay
+stack described below will be removed. Their contracts still apply in this release;
+React, CSS, token, and helper guarantees continue after removal.
+
 ## Widths
 
 A page has two widths, and they are separate tokens because they answer different questions.
@@ -1996,6 +2009,8 @@ keyboard selection, Escape and focus return. Segmented controls support an under
 for switching columns over one dataset; arrow keys, Home and End skip disabled choices.
 
 ## Vanilla HTML boundaries
+
+**Removal-bound under #429.** These factory contracts apply until the factories are removed.
 
 Factories return HTML strings. Text and attribute values are escaped where written;
 quotes and angle brackets in a name, identifier, class modifier or label cannot add
