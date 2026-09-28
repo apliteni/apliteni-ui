@@ -58,7 +58,7 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
           <Button variant="primary" type="submit" form={formId} busy={state === 'sending'}
             completionMessage={state === 'failed' ? '' : undefined} disabled={!note.trim()}>Send feedback</Button>
         </>}>
-        {withExcerpt && <div className="ui-fbc__quote">
+        {withExcerpt && <div className="ui-fbc__quote" style={{ margin: 0 }}>
           <span className="ui-fbc__qm" aria-hidden="true">“</span>
           <q>packed and ready to ship</q>
         </div>}
