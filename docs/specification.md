@@ -2150,8 +2150,11 @@ Events do not collapse or paginate.
 ## React fields
 
 `TextField`, `TextArea`, `SelectField` and `FileField` generate their control and
-message IDs. Labels name the controls; an error replaces the hint and marks the
-control invalid. Required markers are decorative; native controls carry `required`.
+message IDs. Labels name the controls; an error marks the control invalid and is
+described before the hint rather than in its place, so a hint carrying a consent,
+safety or legal detail stays on screen while the reader decides whether to retry.
+The vanilla `field()` factory still swaps the two; React is the side that keeps
+both (#388). Required markers are decorative; native controls carry `required`.
 Text, textarea and select reuse the vanilla field classes. Number inputs request a
 decimal keyboard and may show a unit.
 
@@ -2171,8 +2174,12 @@ compact markup remain supported; no SVG paths or interaction contracts change.
 Vanilla and React share this styling.
 
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest
-at the bottom, anchored to the bottom-right corner. Fixed page actions must leave
-room for that stack (#388). Notices without actions dismiss after five seconds. Their countdown
+at the bottom, anchored to the bottom-right corner. The provider measures the stack
+and publishes how far it reaches up the viewport as `--rx-toast-stack` on the
+document root — `0px` while it is empty — so a fixed page action can sit clear of
+any number of notices instead of an offset tuned to the height of one (#388).
+The property is removed when the provider unmounts. Notices without actions
+dismiss after five seconds. Their countdown
 and timer bar pause while hovered or focused, then resume with the remaining time.
 Notices with an action stay until it is selected or the reader dismisses them.
 Ordinary notices are polite; danger notices are assertive. Adding a notice does

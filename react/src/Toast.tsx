@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './primitives/Icon';
 import './Toast.css';
@@ -80,18 +80,47 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
 }
 
 type Entry = { id: number; notice: ToastNotice; remove: () => void };
+
+/* How far up from the bottom of the viewport the stack reaches, published on the
+ * document root so a fixed page action can sit clear of any number of notices
+ * rather than guess at the height of one. 0px while the stack is empty, so the
+ * action rests in its own corner until a notice needs the space (#388).
+ * why: docs/specification.md#react-toasts */
+const REACH = '--rx-toast-stack';
+
+function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: number) {
+  useLayoutEffect(() => {
+    const element = stack.current;
+    const view = element?.ownerDocument.defaultView;
+    const root = element?.ownerDocument.documentElement;
+    if (!element || !view || !root) return;
+    const publish = () => {
+      const box = element.getBoundingClientRect();
+      root.style.setProperty(REACH, `${box.height ? Math.round(view.innerHeight - box.top) : 0}px`);
+    };
+    publish();
+    // A notice grows when its text wraps and the stack grows with every notice
+    // added, so the height is watched rather than read once.
+    const observer = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(publish) : undefined;
+    observer?.observe(element);
+    return () => { observer?.disconnect(); root.style.removeProperty(REACH); };
+  }, [stack, count]);
+}
+
 export function Toast({ children }: ToastProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const nextId = useRef(0);
+  const stack = useRef<HTMLDivElement>(null);
   const push = useCallback((notice: ToastNotice) => {
     const id = nextId.current++;
     const remove = () => setEntries(current => current.filter(entry => entry.id !== id));
     setEntries(current => [...current, { id, notice, remove }]);
   }, []);
+  usePublishedReach(stack, entries.length);
   return <Context.Provider value={push}>
     {children}
     {typeof document !== 'undefined' && createPortal(
-      <div className="ui-toast-stack rx-toast-stack">
+      <div className="ui-toast-stack rx-toast-stack" ref={stack}>
         {entries.map(entry => <Notice key={entry.id} notice={entry.notice} remove={entry.remove} />)}
       </div>, document.body)}
   </Context.Provider>;

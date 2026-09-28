@@ -1,12 +1,28 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Modal } from './Modal';
-import { KeyValueList } from './KeyValueList';
 import { TextArea } from './Field';
 import { Toast, useToast } from './Toast';
 import { Button } from './primitives/Button';
+import './FeedbackShowcase.css';
 
 type Args = { withExcerpt?: boolean; fail?: boolean };
+
+// The composer quotes one sentence of the page, so that sentence is written once.
+const QUOTED = 'A tracking link appears here once the carrier scans the parcel.';
+
+// Where the trigger sits. `--rx-toast-stack` is how far the toast stack reaches,
+// published by the kit; one gap above it clears two notices as readily as one,
+// where the fixed offset this replaces was tuned to the height of exactly one.
+// It stays inline because the gap is the page's choice, and because a var() the
+// token file does not declare must not enter a react/src stylesheet. The pill
+// fades out while its dialog is open: two filled accent pills in one view is the
+// competition `the-page: one-primary` warns about.
+const trigger = {
+  position: 'fixed', right: 'var(--space-4)',
+  bottom: 'calc(var(--rx-toast-stack, 0px) + var(--space-4))',
+  transition: 'bottom var(--dur-med) var(--ease), opacity var(--dur-med) var(--ease)',
+} as const;
 
 const meta = {
   title: 'Showcases/Feedback',
@@ -36,36 +52,36 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
 
   return (
     <>
-      <main className="ui-container ui-stack" style={{ padding: 'var(--space-6)', paddingBottom: 'var(--space-16)' }}>
-        <h1>Orders</h1>
-        <p>Review the order status before arranging delivery.</p>
-        <h2>Order DEMO-1042</h2>
-        <p>This sample order contains a desk lamp and a notebook. Both items were checked and packed together.</p>
-        <h2>Delivery</h2>
-        <p>Order DEMO-1042 is packed and ready to ship.</p>
-        <p>The carrier has not collected the parcel yet. A tracking link will appear here after collection.</p>
-        <h2>Before it leaves</h2>
-        <p>Check the items and delivery instructions. If anything is missing or unclear, use Feedback to leave a note about this section.</p>
+      <main className="fbs-page">
+        <h1>Order DEMO-1042</h1>
+        <p className="fbs-lede">Packed on 27 September. The carrier has not collected it yet.</p>
+        <section>
+          <h2>Contents</h2>
+          <p>A desk lamp and a notebook, in one box.</p>
+        </section>
+        <section>
+          <h2>Delivery</h2>
+          <p>The parcel goes out on the next collection round, weekdays at 16:00.</p>
+          <p>{QUOTED}</p>
+        </section>
+        <section>
+          <h2>Payment</h2>
+          <p>Paid in full on 26 September. The invoice went out with the order confirmation.</p>
+        </section>
       </main>
-      <div style={{ position: 'fixed', right: 'var(--space-4)', bottom: 'calc(var(--space-16) + var(--space-12))' }}>
-        <Button icon="chat" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+      <div style={{ ...trigger, opacity: open ? 0 : 1 }}>
+        <Button variant="primary" icon="chat" aria-haspopup="dialog" onClick={() => setOpen(true)}>
           Feedback
         </Button>
       </div>
-      <Modal open={open} title="Report a problem or share an idea" onClose={close}
+      <Modal open={open} title="Leave a note" onClose={close}
         footer={<>
           <Button variant="ghost" onClick={close}>Cancel</Button>
           <Button variant="primary" type="submit" form={formId} busy={state === 'sending'}
             completionMessage={state === 'failed' ? '' : undefined} disabled={!note.trim()}>Send feedback</Button>
         </>}>
-        {withExcerpt && <div className="ui-fbc__quote" style={{ margin: 0 }}>
-          <span className="ui-fbc__qm" aria-hidden="true">“</span>
-          <q>packed and ready to ship</q>
-        </div>}
-        <KeyValueList rows={[
-          { label: 'Page', value: 'Orders / DEMO-1042' },
-          { label: 'Section', value: 'Delivery' },
-        ]} />
+        <div className="fbs-chip">Delivery, on order DEMO-1042</div>
+        {withExcerpt && <blockquote className="fbs-quote">{QUOTED}</blockquote>}
         <form id={formId} onSubmit={event => {
           event.preventDefault();
           if (!note.trim() || state === 'sending') return;
@@ -74,13 +90,13 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
             if (fail) { setState('failed'); return; }
             close();
             setNote('');
-            pushToast({ tone: 'success', title: 'Feedback sent', text: 'Thank you for your note.' });
+            pushToast({ tone: 'success', title: 'Feedback sent' });
           }, 800);
         }}>
           <TextArea label="What went wrong, or what would help?"
-            hint="Only the context above and your note are included."
-            placeholder="What's off, missing, or worth adding here?" rows={4} value={note}
-            error={state === 'failed' ? "Couldn't send your feedback. Your note is still here. Try again." : undefined}
+            hint="Only this section and your note are sent."
+            placeholder="e.g. The collection time is not shown anywhere on this page." rows={4} value={note}
+            error={state === 'failed' ? "Couldn't send. Your note is saved." : undefined}
             readOnly={state === 'sending'} onChange={event => setNote(event.target.value)} />
         </form>
       </Modal>

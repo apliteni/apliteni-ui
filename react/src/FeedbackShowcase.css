@@ -1,0 +1,40 @@
+/* The #388 showcase's own styling. Named for this page so nothing else depends
+   on it; the earlier draft borrowed the vanilla composer's private classes.
+   why: guidelines/the-page.md, guidelines/layout-and-density.md */
+
+/* A reading column: --measure bounds it, each line takes its own --prose-* step
+   (ch resolves against the size it is written on), and a heading groups with the
+   text under it — --space-8 above, --space-2 below.
+   fit-content shrinks the column to its longest line so the block sits centred
+   rather than left-biased inside an 860px box its lines never fill. */
+.fbs-page {
+  width: fit-content;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-16);
+}
+.fbs-page h1 { font-size: var(--text-2xl); line-height: var(--leading-tight); color: var(--strong); }
+.fbs-page h2 { font-size: var(--text-xl); line-height: var(--leading-snug); color: var(--strong); }
+.fbs-page > .fbs-lede { max-width: var(--prose-lede); margin-top: var(--space-3); }
+.fbs-page > section { margin-top: var(--space-8); }
+.fbs-page > section > h2 { margin-bottom: var(--space-2); }
+.fbs-page p { max-width: var(--prose-body); }
+.fbs-page p + p { margin-top: var(--space-4); }
+
+/* One accent line naming where the note comes from, in place of a two-row
+   definition list whose label column was sized for a drawer. */
+.fbs-chip {
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+/* Read-only prose, so it takes open ground and a rule. Only the note keeps
+   --surface-2, which is what that token is for. */
+.fbs-quote {
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--accent);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}

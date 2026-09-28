@@ -3,9 +3,9 @@
     {
       "file": "react/src/FeedbackShowcase.test.tsx",
       "name": "React: Feedback showcase",
-      "does": "Checks blank-note prevention, sending and success, cancellation, and the failed note's invalid state, alert and linked error message without a false completion announcement.",
+      "does": "Checks blank-note prevention, sending and success, cancellation, and the failed note's invalid state, alert and linked error message beside the surviving consent hint, without a false completion announcement.",
       "blind": [
-        "The send is simulated. JSDOM checks live-region markup and text, not spoken screen-reader output. It does not measure browser layout, capture page context or deliver feedback."
+        "The send is simulated. JSDOM checks live-region markup and text, not spoken screen-reader output. It does not measure browser layout, so the trigger's clearance over the toast stack is checked in a browser instead. It does not capture page context or deliver feedback."
       ]
     },
     {
