@@ -2260,3 +2260,7 @@ source test does not render layout. Existing Modal tests cover focus, dismissal 
 ## React tooltip
 
 React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
+## React segmented labels
+
+Segmented options may supply `ariaLabel` to give a short visible label a fuller
+accessible name. Without it, the visible label names the button.

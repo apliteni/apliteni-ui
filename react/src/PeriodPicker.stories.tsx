@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { AppShell } from './AppShell';
+import { StatBand } from './primitives/StatBand';
+import { DataTable, type Column } from './DataTable';
 import { Segmented } from './Segmented';
 import { Button } from './primitives/Button';
 import { Badge } from './primitives/Badge';
@@ -18,23 +21,30 @@ const months = [
   { value: '2026-08', short: 'Aug', name: 'August', status: 'Complete but not closed', tone: 'success' },
   { value: '2026-09', short: 'Sep', name: 'September', status: 'Incomplete', tone: 'warn' },
 ];
-const options = months.map(month => ({ value: month.value, label: `${month.short} 2026 · ${month.status}` }));
+const options = months.map(month => ({
+  value: month.value, label: month.short,
+  ariaLabel: `${month.name} 2026, ${month.status}`,
+}));
+type Entry = { name: string; amount: number };
+const money = (amount: number) => new Intl.NumberFormat('en-GB', {
+  style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
+}).format(amount);
+const columns: Column<Entry>[] = [
+  { key: 'name', label: 'Category' },
+  { key: 'amount', label: 'Amount', num: true, render: row => money(row.amount) },
+];
+const reports: Entry[][] = months.map((_, index) => [
+  { name: 'Subscriptions', amount: 24000 + index * 1800 },
+  { name: 'Services', amount: 6000 + index * 400 },
+  { name: 'Payroll', amount: -14000 - index * 600 },
+  { name: 'Software', amount: -2200 - index * 100 },
+]);
 
 function Example() {
   const [value, setValue] = useState(() => {
     const query = new URLSearchParams(window.location.search).get('period');
     return months.some(month => month.value === query) ? query! : '2026-09';
   });
-  const root = useRef<HTMLElement>(null);
-  const [theme, setTheme] = useState(document.documentElement.dataset.theme || 'dark');
-  useEffect(() => {
-    const previous = document.documentElement.dataset.theme;
-    document.documentElement.dataset.theme = theme;
-    return () => {
-      if (previous) document.documentElement.dataset.theme = previous;
-      else delete document.documentElement.dataset.theme;
-    };
-  }, [theme]);
   const index = months.findIndex(month => month.value === value);
   const selected = months[index];
   const choose = (next: string) => {
@@ -43,35 +53,37 @@ function Example() {
     url.searchParams.set('period', next);
     window.history.replaceState(null, '', url);
   };
-  useEffect(() => {
-    root.current?.querySelectorAll('[aria-label="Choose a month"] .is-active').forEach(button => {
-      const strip = button.parentElement?.parentElement;
-      if (!strip) return;
-      const box = button.getBoundingClientRect();
-      const viewport = strip.getBoundingClientRect();
-      if (box.left < viewport.left) strip.scrollLeft -= viewport.left - box.left;
-      if (box.right > viewport.right) strip.scrollLeft += box.right - viewport.right;
-    });
-  }, [value]);
+  const rows = reports[index];
+  const income = rows.reduce((total, row) => total + Math.max(0, row.amount), 0);
+  const expenses = rows.reduce((total, row) => total - Math.min(0, row.amount), 0);
 
-  return <main ref={root} style={{ padding: 'var(--space-6)' }}>
-      <Segmented label="Theme" value={theme} onChange={setTheme}
-        options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]} />
-      <h1>Reporting period</h1>
-      <p>Demo periods · April–September 2026</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-        <Button icon="chevronLeft" disabled={index === 0}
-          aria-label={index === 0 ? 'No earlier month' : `Previous month: ${months[index - 1].name} 2026`}
-          onClick={() => choose(months[index - 1].value)}>Previous</Button>
-        <div style={{ minWidth: 0, overflowX: 'auto', whiteSpace: 'nowrap', padding: 'var(--space-1)' }}>
-          <Segmented label="Choose a month" options={options} value={value} onChange={choose} />
+  return <AppShell sections={[{ href: '#report', label: 'Finance report', icon: 'chart' }]}
+    pathname="#report" title="Finance report" word="Demo"
+    account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
+    <div id="report" style={{ display: 'grid', gap: 'var(--space-4)' }}>
+      <div>
+        <div className="ui-seg--sm">
+          <Segmented label="Period" options={options} value={value} onChange={choose} />
         </div>
-        <Button icon="chevronRight" disabled={index === months.length - 1}
-          aria-label={index === months.length - 1 ? 'No later month' : `Next month: ${months[index + 1].name} 2026`}
-          onClick={() => choose(months[index + 1].value)}>Next</Button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
+          <Button variant="ghost" size="sm" icon="chevronLeft" disabled={index === 0}
+            aria-label={index === 0 ? 'No earlier month' : `Previous month: ${months[index - 1].name} 2026`}
+            onClick={() => choose(months[index - 1].value)}>Previous</Button>
+          <Button variant="ghost" size="sm" iconRight="chevronRight" disabled={index === months.length - 1}
+            aria-label={index === months.length - 1 ? 'No later month' : `Next month: ${months[index + 1].name} 2026`}
+            onClick={() => choose(months[index + 1].value)}>Next</Button>
+        </div>
+        <p role="status">{selected.name} 2026 <Badge variant={selected.tone}>{selected.status}</Badge></p>
       </div>
-      <p role="status">{selected.name} 2026 <Badge variant={selected.tone}>{selected.status}</Badge></p>
-  </main>;
+      <StatBand variant="band" stats={[
+        { label: 'Income', value: money(income) },
+        { label: 'Expenses', value: money(expenses) },
+        { label: 'Net cashflow', value: money(income - expenses) },
+      ]} />
+      <DataTable columns={columns} rows={rows} selectable={false} pager={false}
+        scrollLabel={`${selected.name} transactions`} />
+    </div>
+  </AppShell>;
 }
 
 export const Default = { render: () => <Example /> };

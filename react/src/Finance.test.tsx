@@ -6,6 +6,14 @@ import { Segmented } from './Segmented';
 import { DataTable } from './DataTable';
 import { RowIdentity, NumericValue, DeltaValue } from './TableValues';
 describe('finance composition', () => {
+  it('keeps short option text while exposing the supplied full accessible name', () => {
+    render(<Segmented label="Period" value="apr" onChange={() => {}} options={[
+      { label: 'Apr', value: 'apr', ariaLabel: 'April 2026, Closed' },
+      { label: 'May', value: 'may' },
+    ]} />);
+    expect(screen.getByRole('button', { name: 'April 2026, Closed' })).toHaveTextContent('Apr');
+    expect(screen.getByRole('button', { name: 'May' })).toBeInTheDocument();
+  });
   it('keeps the first data column pinned with selection enabled and exposes scroll semantics', () => {
     const { container } = render(<DataTable rows={[{ name: 'Aster', price: 0 }]} columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol="ASTR" name={r.name} /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }]} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}} density="compact" pinnedIdentity stickyHeader scrollLabel="Stocks" />);
     expect(screen.getByRole('region', { name: 'Stocks' })).toHaveAttribute('tabindex', '0');
