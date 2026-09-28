@@ -636,9 +636,7 @@ Three things follow from writing it as one list.
   over it.
 - **A tinted surface re-points the inner line.** `--elev-edge` is the hook, and because the layer
   reading it is written on the surface's own rule, the surface can set it: unset it is `--border`,
-  which is what a neutral panel wants, and a status toast sets it to its own accent so the inner
-  line does not come out violet-grey over a coloured surface. A solid toast sets it to
-  `transparent` — the status at full fill strength is its own edge, and it keeps only the drop.
+  which is what a neutral panel wants. Toasts use the neutral border and drop across all styles.
 - **A flush panel draws the line in one direction.** The drawer sits against a screen edge, so it
   has one edge rather than four; a full inset ring would draw lines across the top and bottom of a
   full-height panel, where there is no edge. It is the one floating surface that writes no ring at
@@ -740,8 +738,8 @@ which becomes a visible system outline when forced colours remove box shadows.
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
 measurements must additionally check both actual band neighbours across every shipped
-accent, both themes, and the page and elevated grounds. Where the surface is itself near the accent, the band takes that surface's contrast ink:
-solid toasts use `--toast-ink` for `--ring-color`, retaining the same gap and glow geometry.
+accent, both themes, and the page and elevated grounds. The gap follows the containing surface:
+toasts retain the shared focus ring, with `--surface` as the gap colour.
 The glow brightens or darkens the outer neighbour and therefore reduces that edge's contrast relative to bare ground.
 The ring reserves no layout space; its 3px solid footprint and approximately 15px faint
 halo can be clipped by an ancestor's overflow boundary.
@@ -2150,7 +2148,11 @@ only filters the system picker.
 
 ## React toasts
 
-Toast tone uses the existing status icon without a left-edge accent stripe.
+Toast tone uses the existing unfilled status glyph without a left-edge accent stripe.
+All legacy styles share a neutral `--surface` card with `--border`, `--elev-drop`,
+`--radius-sm` and `--space-3` padding. Glyphs use `--space-4` and the existing
+`--toast-action-ink` tone mapping. Actions retain that tone ink. Body content and
+compact markup remain supported; no SVG paths or interaction contracts change.
 Vanilla and React share this styling.
 
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest

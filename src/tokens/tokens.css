@@ -439,6 +439,8 @@
 .ui-table--zebra tbody tr:nth-child(even) td,
 .ui-table--zebra tbody tr:hover td,
 .ui-table--zebra.ui-table--hover tbody tr:hover td,
+.ui-toast,
+.ui-toast--soft,
 .ui-toast--outline,
 .ui-toast--solid,
 .vsw__menu {

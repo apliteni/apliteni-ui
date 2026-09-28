@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.53.3', date: '2026-09-28',
+    changes: [
+      ['fixed', 'Toasts use a compact neutral card with an unfilled tone icon in vanilla and React. Existing actions, dismissal and timers are unchanged. Resolves #426.'],
+    ],
+  },
+  {
     v: '0.53.2', date: '2026-09-28',
     changes: [
       ['added', 'Empty-state guidelines explain how to name missing content and offer an action using the kit. See #430.'],

@@ -306,7 +306,8 @@ test('the widest thing this gate can say about the kit is still true', () => {
    * 1.50 has to say so rather than slip under a bar it technically clears.
    * Raise it when a glyph is deliberately widened; lower it in the commit that
    * decides to, and say why there. */
-  assert.ok(worst.px >= 1.51,
+  // Option C (#426): 16px × 2.25 / 24 deliberately lands at 1.5px.
+  assert.ok(worst.px >= 1.5,
     `the narrowest stroked glyph in the kit renders at ${worst.px.toFixed(3)} CSS px — ${worst.where}. `
     + 'That is above the stroke-width rule\'s line and below where this kit was left, which means something got '
     + 'thinner without anyone deciding it.');
