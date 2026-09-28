@@ -773,6 +773,7 @@ const TAG = {
   fixed: { label: 'Fixed', cls: 'fixed' },
   changed: { label: 'Changed', cls: 'changed' },
   removed: { label: 'Removed', cls: 'removed' },
+  deprecated: { label: 'Deprecated', cls: 'changed' },
   breaking: { label: 'Breaking', cls: 'breaking' },
 };
 
