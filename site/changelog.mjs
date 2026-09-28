@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.53.1', date: '2026-09-28',
+    changes: [
+      ['added', 'Density and accent guidelines now show paired examples of narrow stat bands, payout previews and primary actions. See #400.'],
+    ],
+  },
+  {
     v: '0.53.0', date: '2026-09-28',
     changes: [
       ['deprecated', 'Vanilla HTML factories, initializers, and the vanilla overlay are scheduled for removal in the next release (#429); this release changes no runtime behavior. React and shared logic, all CSS and tokens, inline strings, motion helpers, guidelines, esc, icon and its name tables, sun, moon, prism, seedling, brand, and illo stay supported.'],
