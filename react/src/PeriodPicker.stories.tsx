@@ -46,12 +46,12 @@ const rowTone = (delta: number) => (delta >= 0 ? 'success' : 'danger');
 
 type Entry = { name: string; amount: number; earlier: number | null; delta: number | null };
 const categories = [
-  { name: 'Subscriptions', base: 24000, step: 1800 },
-  { name: 'Services', base: 6000, step: 400 },
-  { name: 'Payroll', base: -14000, step: -600 },
-  { name: 'Software', base: -2200, step: -100 },
+  { name: 'Subscriptions', amounts: [24000, 25900, 25400, 28900, 31200, 33000] },
+  { name: 'Services', amounts: [6000, 7200, 5400, 8100, 6900, 8000] },
+  { name: 'Payroll', amounts: [-14000, -14000, -15200, -15200, -16900, -17000] },
+  { name: 'Software', amounts: [-2200, -2650, -2300, -2450, -2850, -2700] },
 ];
-const amountsIn = (index: number) => categories.map(category => category.base + category.step * index);
+const amountsIn = (index: number) => categories.map(category => category.amounts[index]);
 const rowsIn = (index: number): Entry[] => {
   const now = amountsIn(index);
   const before = index > 0 ? amountsIn(index - 1) : null;
@@ -99,28 +99,25 @@ function Example({ busy = false }: { busy?: boolean }) {
 
   const columns: Column<Entry>[] = [
     { key: 'name', label: 'Category' },
-    {
-      key: 'earlier', label: earlier ? `${earlier.short} 2026` : 'Earlier month', num: true,
-      render: row => (row.earlier == null
-        ? <NumericValue value={null} missing="No earlier month" />
-        : <>{money(row.earlier)}</>),
-    },
+    { key: 'amount', label: `${selected.short} 2026 (EUR)`, num: true, render: row => <>{money(row.amount)}</> },
     {
       key: 'delta', label: 'Change', num: true,
-      render: row => <DeltaValue basisId={basisId} missing="No earlier month"
-        value={row.delta == null ? null : change(row.delta)}
-        tone={row.delta == null ? 'neutral' : rowTone(row.delta)} />,
+      render: row => row.delta == null
+        ? <NumericValue value={null} />
+        : <DeltaValue basisId={basisId} value={change(row.delta)} tone={rowTone(row.delta)} />,
     },
-    { key: 'amount', label: `${selected.short} 2026 (EUR)`, num: true, render: row => <>{money(row.amount)}</> },
+    {
+      key: 'earlier', label: earlier ? `${earlier.short} 2026` : 'Earlier month', num: true,
+      render: row => row.earlier == null ? <NumericValue value={null} /> : <>{money(row.earlier)}</>,
+    },
   ];
 
-  // A figure with no earlier month says so in words rather than printing +0 €.
+  // The basis explains missing comparisons once for the whole report.
   // Net cashflow takes no tone: income less cost already says which way it ran.
-  const none = { value: null, none: 'No earlier month' };
   const figures: StatFigure[] = [
-    { label: 'Money in', value: money(here.income), delta: before ? { value: change(here.income - before.income), tone: here.income >= before.income ? 'good' : 'bad' } : none },
-    { label: 'Money out', value: money(here.spend), delta: before ? { value: change(here.spend - before.spend), tone: here.spend > before.spend ? 'bad' : 'good' } : none },
-    { label: 'Net cashflow', value: money(here.net), delta: before ? { value: change(here.net - before.net) } : none },
+    { label: 'Money in', value: money(here.income), delta: before ? { value: change(here.income - before.income), tone: here.income >= before.income ? 'good' : 'bad' } : undefined },
+    { label: 'Money out', value: money(here.spend), delta: before ? { value: change(here.spend - before.spend), tone: here.spend > before.spend ? 'bad' : 'good' } : undefined },
+    { label: 'Net cashflow', value: money(here.net), delta: before ? { value: change(here.net - before.net) } : undefined },
   ];
 
   // A live region only while one is needed: a loaded page already has the period
@@ -158,7 +155,7 @@ function Example({ busy = false }: { busy?: boolean }) {
             ))}</div>
           </>,
             <StatBand label="Cashflow" stats={figures}
-              basis={earlier ? `Change against ${earlier.name} 2026` : 'April 2026 is the first month in this demo'} />)}
+              basis={earlier ? `Change against ${earlier.name} 2026` : 'No earlier month: April 2026 is the first month in this demo.'} />)}
         </div>
         <Card title={`${selected.name} 2026 ledger`}
           sub={<span id={basisId}>Every amount is in EUR. Money out is negative here and counted positive in the figures above.</span>}>

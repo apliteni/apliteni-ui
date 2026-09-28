@@ -17,7 +17,11 @@ it('changes the report, its comparison and the URL with the period', () => {
   expect(screen.getByRole('status')).toHaveTextContent('April 2026');
   expect(screen.getByRole('heading', { level: 2, name: 'April 2026 ledger' })).toBeInTheDocument();
   // The first month has nothing to compare against, and says so rather than 0 €.
-  expect(screen.getAllByText('No earlier month').length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/No earlier month/)).toHaveLength(1);
+  expect(screen.getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(['Category', 'Apr 2026 (EUR)', 'Change', 'Earlier month']);
+  const missing = screen.getAllByText('—');
+  expect(missing).toHaveLength(8);
+  expect(new Set(missing.map(cell => cell.getAttribute('aria-label'))).size).toBe(1);
   expect(screen.getByText('30,000 €')).toBeInTheDocument();
   expect(window.location.search).toContain('period=2026-04');
 

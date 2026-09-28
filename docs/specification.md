@@ -2270,7 +2270,7 @@ accessible name. Without it, the visible label names the button.
 A pill strip lays its choices out in one row while they fit, and wraps onto further
 rows when they do not. It never widens past its container: a twelve-month picker in
 a phone column becomes three rows of pills rather than a track that pushes the page
-sideways and drags every other block with it. Below 560px the pills also tighten
+sideways and drags every other block with it. Below 560px the standard-size pills also tighten
 their side padding, which is what keeps six three-letter months on one row in a
 390px column; the type rank is unchanged at every width.
 
