@@ -65,6 +65,7 @@ const MIX = /^color-mix\(\s*in srgb\s*,\s*([\s\S]+?)\s+([\d.]+)%\s*,\s*transpare
  *  so an unmodelled colour form fails loudly instead of passing quietly. */
 function resolve(value, vars, seen = new Set()) {
   const v = value.trim();
+  if (v === 'transparent') return { rgb: [0, 0, 0], alpha: 0 };
 
   const varMatch = VAR.exec(v);
   if (varMatch) {
@@ -434,20 +435,7 @@ test('the --glow-purple gate actually measures something', () => {
   );
 });
 
-/* ---- the solid toast: a signal that has become the fill --------------------
- * Every rule above paints a signal AS INK. The solid toast inverts that: the signal becomes the
- * background and something else has to read on top of it.
- *
- * The defect this gates is structural, not three bad numbers. callout.css set the fill from the
- * status and the ink from one of two globals, on independent axes, so nothing made a status's
- * fill and its ink clear each other; four of the ten status x theme combinations did not, and
- * light success proved no ink could rescue it — that fill sits mid-range, so the FILL had to move.
- *
- * So a solid fill is the status at its theme's extreme and the ink is the pole opposite it, which
- * one ink per theme clears. A new status adds one token, --signal-solid-<status>, on the correct
- * side of its theme's midline, and inherits the ink. Both inks are gated: .ui-toast__text is the
- * message copy and is where the pair used to leak away, so its declared `opacity` is folded into
- * the ink's alpha here. */
+/* Toast source measurements cover both themes; browser captures verify layout. */
 
 const CALLOUT = cssOf('../src/styles/callout.css');
 
@@ -481,7 +469,7 @@ test('every toast status declares the whole set of paint tokens', () => {
     assert.deepStrictEqual(
       missing, [],
       `.ui-toast--${status} declares no ${missing.join(', ')}.\n`
-      + 'Every style below reads all five, so the ones missing here resolve to whatever\n'
+      + 'The tone mapping must remain complete; missing fields resolve to whatever\n'
       + 'is in scope instead of to this status — and every gate over them measures that.',
     );
   }
@@ -540,7 +528,7 @@ function measureSolid(status, theme) {
   const ground = composite(fill, resolve('var(--bg)', vars).rgb);
 
   const inkOf = (suffix) => {
-    const decl = { ...base, ...solidDecl(suffix) };
+    const decl = { ...base, ...declOf(suffix), ...solidDecl(suffix) };
     const paint = resolve(decl.color, vars);
     const alpha = paint.alpha * (decl.opacity === undefined ? 1 : Number(decl.opacity));
     return { rgb: composite({ rgb: paint.rgb, alpha }, ground), source: decl.color, opacity: decl.opacity };
@@ -568,9 +556,7 @@ for (const theme of ['dark', 'light']) {
           + `It paints color: ${ink.source}`
           + (ink.opacity === undefined ? '' : ` at opacity ${ink.opacity}`)
           + ` on background: ${m.fill}, which resolves to ${hex(m.ground)}.\n`
-          + 'A solid fill and its ink are ONE choice: the fill is the status at its\n'
-          + "theme's extreme, the ink is the pole opposite it. Moving one without the\n"
-          + 'other is what this gate exists to stop.',
+          + 'Text must clear the neutral card in every tone and theme.',
         );
       }
     });
@@ -581,7 +567,7 @@ for (const theme of ['dark', 'light']) {
  * Two families in callout.css paint a status as a mark instead of as text, both stroked outlines
  * drawn in a 24-unit box:
  *
- *   .ui-toast__icon    a 13px glyph on an opaque 22px --toast-accent circle
+ *   .ui-toast__icon    a 16px glyph on the neutral toast surface
  *   .ui-callout__icon  an 18px glyph straight on the callout's own wash
  *
  * WCAG 1.4.11 asks 3:1 of a graphical object; #206 ruled that 3:1 is the bar for a GRAPHIC and a
@@ -589,8 +575,7 @@ for (const theme of ['dark', 'light']) {
  * under 1.5 CSS px a mark is optically a text stem, so it takes the text bar instead. Why 1.5,
  * and what GLYPH_FLOOR is doing here: docs/specification.md#icons-and-glyphs.
  *
- * The circle's fill is not free to move — --toast-accent also paints the 3px left marker and the
- * outline border — so the INK is what moves, to the pole that clears this accent. */
+ */
 const GRAPHIC_AA = 3;      // WCAG 1.4.11, for a graphical object
 /* A ratchet on where the twenty pairs landed, not a bar; the closest is still well
  * over GRAPHIC_AA. It came down at #295 with the four callout glyphs, which are
@@ -627,7 +612,10 @@ test('every kit glyph is drawn in the box these stroke widths are read against',
  *  hands the box to the slot, so the slot's own width is read instead. */
 function strokePx(family) {
   const svg = declOf(`${family} svg`, 'stroke-width|width');
-  const px = (v) => Number(/^([\d.]+)px$/.exec(v ?? '')?.[1] ?? NaN);
+  const px = (v) => {
+    const token = /^var\((--[\w-]+)\)$/.exec(v ?? '');
+    return Number(/^([\d.]+)px$/.exec(token ? tokensFor('light').get(token[1]) : v ?? '')?.[1] ?? NaN);
+  };
   const box = svg.width === '100%' ? px(declOf(family, 'width').width) : px(svg.width);
   const width = Number(svg['stroke-width']);
   assert.ok(box > 0, `${family} gives its glyph no px box to be drawn in`);
@@ -671,10 +659,7 @@ function calloutStatuses() {
  * rather than on a guess about where callouts get used. */
 const CALLOUT_ON = ['var(--bg)', 'var(--surface)', 'var(--surface-2)'];
 
-/** The glyph on its own circle, for one status. The circle is opaque, so the
- *  card under it cannot change this — which is why one measurement stands for
- *  both soft and outline, and why the assertion below that no style rule
- *  re-paints the icon is the thing keeping that true. */
+/** Unfilled glyph measured on the opaque card; style overrides are rejected below. */
 function toastGlyph(theme, status) {
   const status_ = `.ui-toast--${status}`;
   const { vars, seen } = toastVars(theme, [status_]);
@@ -683,8 +668,9 @@ function toastGlyph(theme, status) {
   assert.ok(decl.background, '.ui-toast__icon declares no background');
   assert.ok(decl.color, '.ui-toast__icon declares no color');
 
-  const fill = resolve(decl.background, vars);
-  assert.strictEqual(fill.alpha, 1, `the icon circle must be opaque, got ${decl.background}`);
+  const card = resolve(declOf('.ui-toast').background, vars);
+  assert.strictEqual(card.alpha, 1, 'toast surface must be opaque');
+  const fill = { rgb: composite(resolve(decl.background, vars), card.rgb), alpha: 1 };
   const glyph = composite(resolve(decl.color, vars), fill.rgb);
   return [{
     on: decl.background, ink: decl.color, ground: fill.rgb, glyph,
@@ -755,7 +741,7 @@ for (const theme of ['dark', 'light']) {
             + (bar === AA
               ? `A stroke under ${SOLID_STROKE} CSS px is read the way a text stem is, so it is\n`
                 + `held at ${AA}:1. Widen the stroke back to a graphic's width, or move the ink.`
-              : 'The accent cannot move — the left marker and the outline border are the same\n'
+              : 'The accent cannot move — the icon circle and the outline border are the same\n'
                 + 'value — so the ink is what moves, to the pole that clears THIS accent.'),
           );
           assert.ok(
@@ -773,28 +759,16 @@ for (const theme of ['dark', 'light']) {
   }
 }
 
-/* One circle, two styles. Soft and outline share .ui-toast__icon untouched, and
- * the measurement above is only good for both while that stays true — a style
- * rule that re-painted the circle or the glyph would make ten of the twenty
- * combinations unmeasured. Solid is excluded on purpose: it re-paints the icon
- * from --toast-ink, and the block above already gates that pair. */
-test('soft and outline leave the status icon alone', () => {
-  for (const style of ['soft', 'outline']) {
-    const decl = declOf(`.ui-toast--${style} .ui-toast__icon`);
-    assert.deepStrictEqual(
-      decl, {},
-      `.ui-toast--${style} .ui-toast__icon re-paints the circle (${JSON.stringify(decl)}).\n`
-      + 'The icon gate measures the base rule once and reads it as covering both\n'
-      + 'styles. Gate this override too, or drop it.',
-    );
+/* All legacy styles share the glyph measured above. */
+test('every toast style leaves the status glyph unfilled', () => {
+  const styles = [...CALLOUT.matchAll(RULE)].flatMap(([, sel]) => selectorsOf(sel))
+    .filter(sel => /^\.ui-toast--/.test(sel) && !sel.includes(' ') && !toastStatuses().has(sel.slice(11)) && sel !== '.ui-toast--compact');
+  assert.deepStrictEqual([...new Set(styles)].sort(), ['.ui-toast--outline', '.ui-toast--soft', '.ui-toast--solid']);
+  for (const style of styles) {
+    assert.deepStrictEqual(declOf(`${style} .ui-toast__icon`), {});
+    assert.equal(declOf(style).background, declOf('.ui-toast').background);
   }
-  // and the solid override, which is the one that DOES exist, still does.
-  const solid = declOf('.ui-toast--solid .ui-toast__icon');
-  assert.ok(
-    solid.background && solid.color,
-    '.ui-toast--solid .ui-toast__icon stopped re-painting the circle — it is now the\n'
-    + 'accent circle on a solid fill, which this gate does not measure.',
-  );
+  assert.equal(declOf('.ui-toast__icon').background, 'transparent');
 });
 
 /* ---- anti-vacuity --------------------------------------------------------
@@ -889,12 +863,11 @@ test('the solid-toast gate actually measures something', () => {
         assert.ok(Number.isFinite(ink.ratio) && ink.ratio > 1, `solid ${status} (${theme}) produced no real ratio`);
         assert.notDeepStrictEqual(ink.rgb, m.ground, `solid ${status} (${theme}) resolved ink and fill to the same colour`);
       }
-      // the body copy is diluted, so it can only ever be the weaker of the two;
-      // if it measured better, the dilution is not being modelled at all.
-      assert.ok(m.text.ratio <= m.title.ratio + 0.01, `solid ${status} (${theme}): the body ink is not being diluted`);
+      // Body ink must be no stronger than the title ink.
+      assert.ok(m.text.ratio <= m.title.ratio + 0.01, `solid ${status} (${theme}): the body ink exceeds title contrast`);
       grounds.add(hex(m.ground));
     }
-    assert.strictEqual(grounds.size, 5, `${theme}: the five solid statuses do not paint five distinct fills`);
+    assert.strictEqual(grounds.size, 1, `${theme}: toast tones must share one neutral surface`);
   }
 
   // Light and dark must resolve genuinely different fills, or one theme is

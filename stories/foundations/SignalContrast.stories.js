@@ -652,7 +652,7 @@ const sectionFills = () => {
       <div class="sc-note"><strong>The status circle takes the ink half of that rule and not
         the fill half.</strong> A soft or outline toast draws its glyph on a 22px
         ${code('--toast-accent')} circle, and that circle cannot move to the theme's extreme:
-        the 3px left marker and the outline border are the same token, so a circle that left
+        the outline border uses the same token, so a circle that left
         the accent would put two pinks in one toast. Only the ink is free, and the bar for a
         glyph is ${GRAPHIC}:1 rather than ${AA}:1. In dark one ink still does it, because the
         five dark accents are the same five bright hues the solid fills take. In light it

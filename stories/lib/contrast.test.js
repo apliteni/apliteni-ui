@@ -211,12 +211,7 @@ test('specialiseContextual never emits a bare :root into a selector list', () =>
 });
 
 test('a specialised copy never out-ranks a later override of the same property', () => {
-  // The copy gains a class of specificity. Emitted at the end of the sheet it
-  // beats a later, equally specific override written for the same element —
-  // which is how src/styles/callout.css:150 `.ui-toast--solid .ui-toast__action`
-  // lost to `.ui-toast--danger .ui-toast__action` and the solid danger toast's
-  // action was reported as pink on pink, a fabricated 1.00:1. The copy must
-  // therefore sit immediately after the rule it specialises, not at the end.
+  // Later overrides must retain their precedence after specialisation.
   const css = '.t--ok{--x:green}.t--bad{--x:red}.t__a{color:var(--x)}.t--solid .t__a{color:white}';
   const out = specialiseContextual(css);
   const lastCopy = Math.max(out.lastIndexOf('.t--ok .t__a'), out.lastIndexOf('.t--bad .t__a'));
