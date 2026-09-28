@@ -31,8 +31,9 @@ Grouped by `title` into four sections, ordered in `preview.js` (`storySort`):
   Iconography, Brand, Sub-themes.
 - **Guidelines** — rules for composing screens and choosing components.
 - **Components** — one kit factory each (Button, Card, Table, Topbar, …).
-- **Showcases** — full-page compositions that dogfood the components (Landing, Sign In,
-  Consent, Preferences, Access & Agents). Shared scaffolding in `stories/apps/_*.js`.
+- **Showcases** — full-page or domain compositions built only from kit components
+  (Landing, Sign In, Consent, Preferences, Access & Agents, Source freshness).
+  Shared scaffolding in `stories/apps/_*.js`.
 
 A story is a plain object whose `render` returns the factory's HTML string:
 

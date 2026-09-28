@@ -10,9 +10,9 @@ export default {
 };
 
 const tones = {
-  fresh: { variant: 'success', icon: 'circleCheck' },
-  late: { variant: 'warn', icon: 'circleAlert' },
-  failing: { variant: 'danger', icon: 'circleX' },
+  fresh: { label: 'Fresh', variant: 'success', icon: 'circleCheck' },
+  late: { label: 'Late', variant: 'warn', icon: 'circleAlert' },
+  failing: { label: 'Failing', variant: 'danger', icon: 'circleX' },
 };
 
 // The product supplies the source order, delivery dates and freshness judgement.
@@ -24,18 +24,22 @@ const sources = [
 
 export const Sources = {
   args: { onReconnect: fn() },
+  argTypes: { onReconnect: { table: { disable: true } } },
   render: ({ onReconnect }: { onReconnect: () => void }) => (
     <main style={{ padding: 'var(--space-6)', display: 'grid', gap: 'var(--space-4)', justifyItems: 'start' }}>
       <p>Fictional data. Current at 26 Sep 2026, 09:00 UTC.</p>
-      <ul aria-label="Data sources" role="list" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'start', gap: 'var(--space-6)', margin: 0, padding: 0, listStyle: 'none' }}>
+      <ul aria-label="Data sources" role="list" style={{ display: 'grid', gap: 'var(--space-4)', margin: 0, padding: 0, listStyle: 'none' }}>
         {sources.map(source => (
           <li key={source.name} style={{ display: 'grid', gap: 'var(--space-3)', justifyItems: 'start' }}>
-            <Badge variant={tones[source.tone].variant}>
-              <Icon name={tones[source.tone].icon} />
-              <span>{source.name} — {source.tone}, last delivered <time dateTime={source.date}>{source.label}</time></span>
-            </Badge>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>
+              <Badge variant={tones[source.tone].variant}>
+                <Icon name={tones[source.tone].icon} />
+                {tones[source.tone].label}
+              </Badge>
+              <span>{source.name} — last delivered <time dateTime={source.date}>{source.label}</time></span>
+            </div>
             {source.tone === 'failing' && <Button size="sm" onClick={onReconnect}>
-              Reconnect Payroll
+              Reconnect {source.name}
             </Button>}
           </li>
         ))}
