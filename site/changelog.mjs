@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.104.0', date: '2026-10-11',
+    changes: [
+      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices. block composes with the underline appearance; size="sm" does not. Part of #429.', ['Segmented']],
+    ],
+  },
+  {
     v: '0.103.0', date: '2026-10-10',
     changes: [
       ['added', 'The app shell’s band search takes a short label for phone widths — `shortLabel` inside the vanilla `search` option, and `searchShortLabel` beside a new `searchLabel` on React `AppShell`. With nothing named the short word is “Search”, and the long form is the sentence the band already drew. Resolves #486.', ['Shell']],
