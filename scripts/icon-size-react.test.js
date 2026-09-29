@@ -42,9 +42,10 @@ const reactSrc = path.join(root, 'react', 'src');
 const previewPath = path.join(root, 'react', '.storybook', 'preview.ts');
 const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
-// DataTable, Field, KeyValueList and Timeline size glyphs on both axes.
-// Change the count with the sizing rules and explain removals.
-const EXPECTED_SUBJECTS = 8;
+// DataTable, Field, KeyValueList and Timeline size glyphs on both axes, and the
+// invoice showcase sizes its status and error glyphs the same way. A rule leaving
+// coverage fails; change the count with the sizing rules and explain removals.
+const EXPECTED_SUBJECTS = 12;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what
