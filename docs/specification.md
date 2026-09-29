@@ -451,7 +451,16 @@ reader must recognise; a count is not a status merely because its class says so.
 badges use body ink. Archive and disabled variants keep their state ink. Dropdown badges
 use explicit `tone: 'state'` for these states, including translated labels. Only when tone is
 omitted do exact English off, unset, disabled, archive or archived labels fall back to state
-ink. Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
+ink. Dropdown state and neutral chips share the standard badge's size, weight,
+pill shape and padding, with no edge. Their neutral tint mixes muted ink at 15%
+in light and 12% in dark over the panel, giving roughly the same fill separation
+in both themes while keeping text at least 4.5:1. This soft badge fill is an
+explicit exception to the text-surface rule, requested in the r18 review of
+[#445](https://github.com/apliteni/apliteni-ui/issues/445).
+Held by `stories/dropdown-state-contrast.test.js`.
+Dropdown selection uses an accent checkmark and a body-ink title. Non-status badges,
+including the legacy accent tone, use body ink; live badges retain status colour.
+Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
 To extend this closed list, open an issue and agree the new class before using it.
 
 Every CSS `color` or `-webkit-text-fill-color` declaration that can reach muted or dim carries
@@ -1358,7 +1367,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:220-223 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:219 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the
