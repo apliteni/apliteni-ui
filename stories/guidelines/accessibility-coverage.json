@@ -142,6 +142,14 @@
       ]
     },
     {
+      "file": "stories/drawer-rules.test.js",
+      "name": "Drawer separators and footer",
+      "does": "Discovers drawer panels in every story in both themes, checks header and group separators and an unfilled footer without a rule, and rejects deliberately broken specimens.",
+      "blind": [
+        "Footer fill is compared with the panel surface; text contrast, rendered spacing, shadows and pseudo-elements are not measured."
+      ]
+    },
+    {
       "file": "stories/drawer-focus.test.js",
       "name": "Drawer focus",
       "does": "Checks that opening the drawer requests focus inside its panel.",
