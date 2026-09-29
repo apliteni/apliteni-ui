@@ -20,8 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: main
           fetch-depth: 1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe502c # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
       - name: Assess deployed site
@@ -66,11 +67,6 @@ jobs:
               labels: MARKER,
               per_page: 1,
             });
-            if (open.data.length > 0) {
-              core.info(`#${open.data[0].number} is already open — nothing to do.`);
-              return;
-            }
-
             const body = [
               'The deployed site does not match the repository.',
               '',
@@ -78,6 +74,16 @@ jobs:
               '',
               'Filed by `.github/workflows/site-drift.yml`.',
             ].join('\n');
+            if (open.data.length > 0) {
+              await github.rest.issues.update({
+                ...context.repo,
+                issue_number: open.data[0].number,
+                body,
+              });
+              core.notice(`Updated #${open.data[0].number}: ${verdict.summary}`);
+              return;
+            }
+
             const created = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,

@@ -8,11 +8,17 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
+// Read the site's plain version spans; class order and responsive classes may vary.
+function versionsIn(html, className) {
+  return [...(html?.matchAll(/<span\b[^>]*\bclass\s*=\s*(["'])(.*?)\1[^>]*>\s*v([^<]+)</g) || [])]
+    .filter((match) => match[2].split(/\s+/).includes(className))
+    .map((match) => match[3].trim());
+}
+
 export function assessSite({ expectedVersion, expectedReleases, topbarHtml, changelogHtml }) {
   const expected = expectedReleases.map(String);
-  const topbarVersion = topbarHtml?.match(/class="ver">v([^<]+)</)?.[1] || null;
-  const changelogVersions = [...(changelogHtml?.matchAll(/class="rel__v">v([^<]+)</g) || [])]
-    .map((match) => match[1]);
+  const topbarVersion = versionsIn(topbarHtml, 'ver')[0] || null;
+  const changelogVersions = versionsIn(changelogHtml, 'rel__v');
   const verdict = {
     drift: false,
     reason: 'in-sync',
