@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.73.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React Snippet accepts highlighted token children and can omit its copy button with copy={false}. Copying still uses the original code string. The new shellTokens helper returns the same tokens the vanilla highlighter uses, so displayed tokens and copied text come from one source. Part of #429.'],
+    ],
+  },
+  {
     v: '0.72.0', date: '2026-10-02',
     changes: [
       ['added', 'Below the phone step a coarse pointer gets a transparent 44px tap zone outside each small control, so a finger reaches the floor and no control is drawn any bigger. `--tap-min` names the floor. Closes #488.', ['Button', 'Segmented', 'Tabs', 'Dropdown', 'Pagination']],

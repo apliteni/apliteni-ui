@@ -43,13 +43,25 @@ Both forward a span ref and native span attributes, including `className`.
 <span><StatusDot live /> API online</span>
 ```
 
-`Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
+`Snippet` accepts `label`, `code`, `reveal`, `copy`, `copyLabel`, and `children` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
 it shows “Copied” for 1.4 seconds. If copying fails, it shows “Copy failed” so readers
 can try again or select the text manually.
 
 ```tsx
 <Snippet label="Terminal" code="npm install @apliteni/apliteni-ui" />
+```
+
+Set `copy={false}` to omit the copy button. Supply React children for highlighted
+text using the existing `.k` (command), `.f` (flag), `.s` (string), `.u` (URL), and
+`.c` (comment) classes. Keep `code` as the original source: copying always uses it,
+regardless of the displayed children. Neither strings nor children are parsed as HTML.
+
+```tsx
+<Snippet label="Shell" code="curl -s https://example.com">
+  <span className="k">curl</span>{' '}<span className="f">-s</span>{' '}
+  <span className="u">https://example.com</span>
+</Snippet>
 ```
 
 Before a reveal snippet, explain that the secret is stored hashed and will not be

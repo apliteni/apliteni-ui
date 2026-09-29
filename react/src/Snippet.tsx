@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './primitives/Icon';
 
 export type SnippetProps = {
   label?: string;
-  /** Plain text, displayed and copied without HTML parsing. */
+  /** Original text to copy; displayed when children are absent. */
   code?: string;
+  /** Token markup for display only. Strings are never parsed as HTML. */
+  children?: ReactNode;
+  copy?: boolean;
   reveal?: boolean;
   copyLabel?: string;
 };
 
-export function Snippet({ label = 'shell', code = '', reveal = false, copyLabel = 'Copy' }: SnippetProps) {
+export function Snippet({ label = 'shell', code = '', children, copy = true, reveal = false, copyLabel = 'Copy' }: SnippetProps) {
   const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const request = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -20,9 +23,9 @@ export function Snippet({ label = 'shell', code = '', reveal = false, copyLabel 
       request.current++;
       clearTimeout(timer.current);
     };
-  }, [code]);
+  }, [code, copy]);
 
-  async function copy() {
+  async function handleCopy() {
     const current = ++request.current;
     clearTimeout(timer.current);
     setStatus('idle');
@@ -40,12 +43,12 @@ export function Snippet({ label = 'shell', code = '', reveal = false, copyLabel 
     <div className={reveal ? 'ui-snippet ui-snippet--reveal' : 'ui-snippet'}>
       <div className="ui-snippet__bar">
         <span>{label}</span>
-        <button type="button" className="ui-snippet__copy" aria-live="polite" aria-atomic="true" onClick={copy}>
+        {copy && <button type="button" className="ui-snippet__copy" aria-live="polite" aria-atomic="true" onClick={handleCopy}>
           <Icon name={status === 'copied' ? 'check' : 'copy'} />
           {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : copyLabel}
-        </button>
+        </button>}
       </div>
-      <pre>{code}</pre>
+      <pre>{children ?? code}</pre>
     </div>
   );
 }

@@ -2933,3 +2933,14 @@ up the narrowest thing on it, with its own placeholder cut off. At that step the
 field takes `flex-basis: 100%`, so it has the line and the rest of the row wraps
 under it — the shape a row with one wider control already fell into at this
 width. Decided in [#517](https://github.com/apliteni/apliteni-ui/issues/517).
+
+## React Snippet
+
+`Snippet` displays `code` as plain text by default. Optional React `children` replace
+only the displayed content; copying always writes the original `code` string.
+Token spans use the existing `.k`, `.f`, `.s`, `.u`, and `.c` styles without parsing
+HTML strings. Callers keep displayed tokens consistent with their source text.
+`copy={false}` removes the copy button and its tab stop, leaving the label and
+selectable content. Changing `code` or `copy`, or unmounting, invalidates pending
+copy feedback. Held by `react/src/Snippet.test.tsx`; this checks DOM behavior and
+accessibility semantics, not browser layout or colour contrast. Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).

@@ -2,7 +2,6 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
-import { snippet } from '@apliteni/apliteni-ui';
 import { Snippet } from './Snippet';
 
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); });
@@ -12,18 +11,59 @@ function clipboard(writeText = vi.fn().mockResolvedValue(undefined)) {
   return writeText;
 }
 
+// jsdom checks behavior and semantics; browser evidence covers layout and contrast.
 for (const reveal of [false, true]) {
-  it(`keeps the factory classes and selectable text (reveal=${reveal})`, () => {
-    const props = { reveal, label: 'Terminal', code: 'npm install example', copyLabel: 'Copy command' };
-    const vanilla = document.createElement('div');
-    vanilla.innerHTML = snippet(props);
-    const { container } = render(<Snippet {...props} />);
-    const classes = (root: Element) => Array.from(root.querySelectorAll('[class]'), el => el.className);
-    expect(classes(container)).toEqual(classes(vanilla));
-    expect(container.querySelector('pre')).toHaveTextContent(props.code);
-    expect(screen.getByRole('button', { name: props.copyLabel })).toHaveAttribute('type', 'button');
+  it(`keeps selectable plain text (reveal=${reveal})`, () => {
+    const { container } = render(<Snippet reveal={reveal} label="Terminal" code="npm install example" copyLabel="Copy command" />);
+    expect(container.firstChild).toHaveClass('ui-snippet');
+    expect(container.firstChild).toHaveClass(reveal ? 'ui-snippet--reveal' : 'ui-snippet');
+    expect(container.querySelector('pre')).toHaveTextContent('npm install example');
+    expect(screen.getByRole('button', { name: 'Copy command' })).toHaveAttribute('type', 'button');
   });
 }
+
+it('renders token children and copies the original code, not the rendered text', async () => {
+  const write = clipboard();
+  const code = 'original <text> & "quotes"\nsecond line';
+  const { container } = render(<Snippet code={code}>
+    <span className="k">curl</span>{' '}<span className="f">-s</span>{' '}
+    <span className="u">https://example.com</span>{' '}
+    <span className="s">{'"<value>"'}</span>{'\n'}<span className="c"># comment</span>
+  </Snippet>);
+  expect(container.querySelectorAll('pre span')).toHaveLength(5);
+  expect(container.querySelector('pre value')).toBeNull();
+  await act(async () => { fireEvent.click(screen.getByRole('button')); });
+  expect(write).toHaveBeenCalledWith(code);
+});
+
+it('treats string children as text and preserves empty display content', () => {
+  const { container, rerender } = render(<Snippet code="original">{'<b>text</b>'}</Snippet>);
+  expect(container.querySelector('pre')?.textContent).toBe('<b>text</b>');
+  expect(container.querySelector('pre b')).toBeNull();
+  rerender(<Snippet code="original">{''}</Snippet>);
+  expect(container.querySelector('pre')?.textContent).toBe('');
+});
+
+it('omits the copy control and tab stop while keeping highlighted content accessible', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<><Snippet copy={false} code="curl"><span className="k">curl</span></Snippet><button>Next</button></>);
+  expect(container.querySelector('.ui-snippet button')).toBeNull();
+  expect(container.querySelector('pre')?.textContent).toBe('curl');
+  await user.tab();
+  expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+  expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+});
+
+it('discards a pending copy when copying is turned off', async () => {
+  let resolve!: () => void;
+  clipboard(vi.fn(() => new Promise<void>(done => { resolve = done; })));
+  const { rerender } = render(<Snippet code="example" />);
+  fireEvent.click(screen.getByRole('button'));
+  rerender(<Snippet code="example" copy={false} />);
+  await act(async () => { resolve(); });
+  rerender(<Snippet code="example" />);
+  expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
+});
 
 it('copies raw text and announces success briefly without hiding the value', async () => {
   vi.useFakeTimers();

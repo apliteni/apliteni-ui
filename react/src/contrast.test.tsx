@@ -49,19 +49,35 @@ type Theme = (typeof THEMES)[number];
  * ────────────────────────────────────────────────────────────────────────── */
 type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string };
 
-// EMPTY, and that is the claim: this workspace accepts no contrast failure.
-//
-// It held exactly one entry — the Success eyebrow, carried by hand from vanilla
-// ledger C, whose light green ink sat below AA. #429 removed that eyebrow from
-// the markup and the stylesheet, because a confirmation carries one title and at
-// most one line and has no label tier to paint. The debt went with the element,
-// so the entry was deleted rather than left to rot.
-//
-// An empty ledger is only safe because the walk above proves it ran: every cell
-// judges a non-zero number of pairs, every foreground resolves, and both
-// stylesheets are asserted to have reached the document. A failure appearing
-// here now has nowhere to land and turns the per-story assertion red.
-const LEDGER: LedgerEntry[] = [];
+// #429 PR 3.8 carries the existing vanilla C/E debt into the React migration.
+// stories/contrast.test.js records the original rationale and #455 measurements:
+// syntax colour repeats meaning present in the source; these light pairs still
+// miss AA. No other surface, state, story, or changed colour inherits this debt.
+const snippetStories = new Set([
+  './Snippet.stories.tsx:Shell',
+  './Snippet.stories.tsx:Variants',
+  './Snippet.stories.tsx:Comparison',
+]);
+const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default'
+  && f.state === null && f.bg === 'rgb(255,255,255)'
+  && [...f.stories].every(story => snippetStories.has(story))
+  && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
+const LEDGER: LedgerEntry[] = [
+  {
+    match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
+      && [...f.paths].every(path => /span\.[fu]$/.test(path)),
+    count: 2,
+    why: 'Vanilla E: light cyan flags and URLs retain the existing 3.81:1 pair. '
+      + 'Syntax colour is a second signal; preserving it does not claim AA compliance.',
+  },
+  {
+    match: f => snippetDebt(f) && f.fg === 'rgb(28, 138, 44)'
+      && [...f.paths].every(path => path.endsWith('span.s')),
+    count: 1,
+    why: 'Vanilla C: light green strings retain the existing 4.45:1 pair. '
+      + 'The source conveys the meaning; this remains below the 4.5:1 text floor.',
+  },
+];
 
 type Finding = {
   key: string; theme: string; accent: string; state: string | null;

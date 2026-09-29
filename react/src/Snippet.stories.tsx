@@ -1,3 +1,4 @@
+import { snippet, hlShell } from '@apliteni/apliteni-ui';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, within } from 'storybook/test';
 import { Snippet, type SnippetProps } from './Snippet';
@@ -43,4 +44,49 @@ export const Copied: Story = {
       else Reflect.deleteProperty(navigator, 'clipboard');
     }
   },
+};
+
+const shellCode = 'curl -s https://example.com/api/version \\\n  -H "Accept: application/json"';
+const shellTokens = <><span className="k">curl</span>{' '}<span className="f">-s</span>{' '}
+  <span className="u">https://example.com/api/version</span>{' \\\n  '}
+  <span className="f">-H</span>{' '}<span className="s">{'"Accept: application/json"'}</span></>;
+const configCode = '{\n  "url": "https://example.com/mcp",\n  "transport": "http"\n}';
+const configTokens = <>{'{\n  '}<span className="s">{'"url"'}</span>{': '}
+  <span className="s">{'"https://example.com/mcp"'}</span>{',\n  '}
+  <span className="s">{'"transport"'}</span>{': '}<span className="s">{'"http"'}</span>{'\n}'}</>;
+
+export const Shell: Story = {
+  args: { label: 'Terminal', code: shellCode, children: shellTokens },
+};
+
+export const Variants: Story = {
+  render: () => <div style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: 'var(--panel-lg)' }}>
+    <Snippet label="mcp.json" code={configCode} copy={false}>{configTokens}</Snippet>
+    <Snippet label="Shell" code={'# read the current version\n' + shellCode}>
+      <span className="c"># read the current version</span>{'\n'}{shellTokens}
+    </Snippet>
+  </div>,
+};
+
+export const Comparison: Story = {
+  render: () => <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
+    <section aria-label="Vanilla" style={{ minWidth: 0 }}>
+      <h2>Vanilla</h2>
+      <div style={{ display: 'grid', gap: 'var(--space-6)' }} dangerouslySetInnerHTML={{ __html:
+        snippet({ label: 'Terminal', code: hlShell(shellCode) }) +
+        snippet({ label: 'mcp.json', code: hlShell(configCode), copy: false }) +
+        snippet({ label: 'Shell', code: hlShell('# read the current version\n' + shellCode) }),
+      }} />
+    </section>
+    <section aria-label="React" style={{ minWidth: 0 }}>
+      <h2>React</h2>
+      <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
+        <Snippet label="Terminal" code={shellCode}>{shellTokens}</Snippet>
+        <Snippet label="mcp.json" code={configCode} copy={false}>{configTokens}</Snippet>
+        <Snippet label="Shell" code={'# read the current version\n' + shellCode}>
+          <span className="c"># read the current version</span>{'\n'}{shellTokens}
+        </Snippet>
+      </div>
+    </section>
+  </div>,
 };
