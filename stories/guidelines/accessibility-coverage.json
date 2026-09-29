@@ -9,6 +9,14 @@
       ]
     },
     {
+      "file": "stories/snippet-focus.test.js",
+      "name": "Snippet focus",
+      "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, plus a rejected selector-removal mutation.",
+      "blind": [
+        "JSDOM forces focus state and cannot prove real Tab reachability, clipping or pixels; Chromium evidence covers vanilla and React at 390px."
+      ]
+    },
+    {
       "file": "react/src/Checkbox.test.tsx",
       "name": "React: Checkbox and radio",
       "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results.",

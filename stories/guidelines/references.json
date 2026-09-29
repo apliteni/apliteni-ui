@@ -44,7 +44,7 @@
     ],
     "ring-contrast": [
       {
-        "ref": "src/styles/base.css:146",
+        "ref": "src/styles/base.css:147",
         "pattern": "box-shadow: var(--ring);"
       }
     ],
@@ -742,7 +742,7 @@
         "pattern": ".ui-focusable:focus-visible,"
       },
       {
-        "ref": "src/styles/base.css:146",
+        "ref": "src/styles/base.css:147",
         "pattern": "box-shadow: var(--ring);"
       },
       {

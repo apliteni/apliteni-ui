@@ -2944,3 +2944,8 @@ HTML strings. Callers keep displayed tokens consistent with their source text.
 selectable content. Changing `code` or `copy`, or unmounting, invalidates pending
 copy feedback. Held by `react/src/Snippet.test.tsx`; this checks DOM behavior and
 accessibility semantics, not browser layout or colour contrast. Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+Snippet descendants use the shared `--ring` on `:focus-visible`, including copy
+buttons and browser-focusable scroll regions in vanilla and React. The container
+does not clip that ring. Held by `stories/snippet-focus.test.js`; keyboard and
+clipping evidence is checked in Chromium because JSDOM cannot prove either.

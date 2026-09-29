@@ -6,7 +6,9 @@
 .ui-snippet {
   background: var(--surface); --ring-gap: var(--surface);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  /* Scrollable code can receive keyboard focus; leave room for its ring. */
+  overflow: visible;
+  min-width: 0;
 }
 .ui-snippet__bar {
   display: flex;

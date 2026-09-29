@@ -90,3 +90,24 @@ export const Comparison: Story = {
     </section>
   </div>,
 };
+
+export const KeyboardFocus: Story = {
+  render: () => <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
+    <section aria-label="Vanilla" style={{ minWidth: 0 }}>
+      <h2>Vanilla</h2>
+      <div style={{ display: 'grid', gap: 'var(--space-6)' }} dangerouslySetInnerHTML={{ __html:
+        snippet({ label: 'Terminal', code: shellCode }) +
+        snippet({ label: 'Example token', code: 'example-only-token-value', reveal: true }) +
+        snippet({ label: 'Read only', code: shellCode, copy: false }),
+      }} />
+    </section>
+    <section aria-label="React" style={{ minWidth: 0 }}>
+      <h2>React</h2>
+      <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
+        <Snippet label="Terminal" code={shellCode} />
+        <Snippet label="Example token" code="example-only-token-value" reveal />
+        <Snippet label="Read only" code={shellCode} copy={false} />
+      </div>
+    </section>
+  </div>,
+};
