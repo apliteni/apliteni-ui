@@ -638,7 +638,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:242",
+        "ref": "src/styles/drawer.css:243",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]

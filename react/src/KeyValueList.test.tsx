@@ -2,17 +2,25 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it } from 'vitest';
 import axe from 'axe-core';
-import { drawerSection } from '@apliteni/apliteni-ui';
+import { readFileSync } from 'node:fs';
+import { Drawer } from './Drawer';
+import { Modal } from './Modal';
+// @ts-expect-error -- shared CSS token resolver is JavaScript.
+import { tokensFor, substitute } from '../../stories/lib/contrast.js';
 import { KeyValueList, DrawerSection } from './KeyValueList';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  document.head.querySelectorAll('style[data-kv-test]').forEach(style => style.remove());
+});
 
-it('groups each term and definition using the drawer classes', () => {
+it('groups each term and definition without a drawer list class', () => {
   const { container } = render(<DrawerSection title="Details"><KeyValueList rows={[
     { label: 'Reference', value: 'INV-1001' }, { label: 'Amount', value: '€ 120' },
   ]} /></DrawerSection>);
   expect(container.querySelector('section.ui-drawer__section > h3.ui-drawer__section-title')).toHaveTextContent('Details');
-  expect(container.querySelectorAll('dl.ui-drawer__rows > div.ui-drawer__row')).toHaveLength(2);
+  expect(container.querySelectorAll('dl.ui-kv > div.ui-drawer__row')).toHaveLength(2);
+  expect(container.querySelector('dl')).not.toHaveClass('ui-drawer__rows');
   expect([...container.querySelectorAll('dt, dd')].map(el => el.textContent)).toEqual(['Reference', 'INV-1001', 'Amount', '€ 120']);
 });
 
@@ -68,10 +76,35 @@ it('has no axe violations for sections, missing and redacted values', async () =
   expect(result.violations).toEqual([]);
 });
 
-it('matches the vanilla section markup apart from the responsive list class', () => {
-  const { container } = render(<DrawerSection title="Details"><KeyValueList rows={[
-    { label: 'Reference', value: 'INV-1001' }, { label: 'Amount', value: '€ 120' },
-  ]} /><p>Saved</p></DrawerSection>);
-  container.querySelector('dl')!.classList.remove('ui-kv');
-  expect(container.innerHTML).toBe(drawerSection({ title: 'Details', rows: [['Reference', 'INV-1001'], ['Amount', '€ 120']], body: '<p>Saved</p>' }));
+// jsdom checks the resolved margins and grid declarations, not pixel layout.
+// The InDrawer/InModal stories provide browser gap and alignment measurements.
+it.each(['light', 'dark'])('keeps drawer spacing local in %s', theme => {
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  style.textContent = substitute([
+    '../../src/styles/drawer.css', './KeyValueList.css', './Modal.css',
+  ].map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n'), tokensFor(theme));
+  document.head.appendChild(style);
+  const rows = [{ label: 'Reference', value: 'INV-1001' }];
+  render(<>
+    <Drawer open title="Drawer" onClose={() => {}}>
+      <DrawerSection title="Details"><KeyValueList rows={rows} /><div data-testid="drawer-next">Saved</div></DrawerSection>
+    </Drawer>
+    <Modal open title="Modal" onClose={() => {}}>
+      <KeyValueList rows={rows} /><div data-testid="modal-next">Saved</div>
+    </Modal>
+    <main><KeyValueList rows={rows} /><div data-testid="plain-next">Saved</div></main>
+  </>);
+  expect(getComputedStyle(screen.getByTestId('drawer-next')).marginTop).toBe('12px');
+  for (const name of ['modal-next', 'plain-next']) {
+    expect(parseFloat(getComputedStyle(screen.getByTestId(name)).marginTop) || 0).toBe(0);
+  }
+  expect(getComputedStyle(document.querySelector('.rx-modal__body')!).gap).toBe('16px');
+  const lists = document.querySelectorAll('dl.ui-kv');
+  expect(lists).toHaveLength(3);
+  for (const list of lists) {
+    expect(getComputedStyle(list).display).toBe('grid');
+    expect(getComputedStyle(list).marginTop).toBe('0px');
+    expect(getComputedStyle(list).columnGap).toBe('16px');
+  }
 });

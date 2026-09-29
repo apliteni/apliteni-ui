@@ -1654,6 +1654,14 @@ every fault at all.
 Decided in [#272](https://github.com/apliteni/apliteni-ui/issues/272) and
 [#271](https://github.com/apliteni/apliteni-ui/issues/271).
 
+React `KeyValueList` owns its grid and resets its outer margin. Its root now uses
+`.ui-kv` instead of `.ui-drawer__rows`; update custom selectors targeting the old
+class on React lists. Vanilla drawer lists retain `.ui-drawer__rows`. Only a list inside
+`.ui-drawer` adds `--space-3` before its following sibling; elsewhere the container
+owns that gap, including the Modal's `--space-4`. The vanilla drawer retains the
+same spacing. Held by `react/src/KeyValueList.test.tsx` and browser measurements of
+its InDrawer and InModal stories. Decided in [#449](https://github.com/apliteni/apliteni-ui/issues/449).
+
 ## The hover readout
 
 `tooltip()` is the readout a surface shows while a pointer rests on one of its marks: a bar, a

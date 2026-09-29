@@ -1,7 +1,10 @@
-.ui-drawer__rows.ui-kv {
+.ui-kv {
+  display: grid;
+  column-gap: var(--space-4);
+  margin: 0;
   grid-template-columns: calc(var(--space-6) * 5) minmax(0, 1fr);
 }
-.ui-drawer__rows.ui-kv--two-columns {
+.ui-kv--two-columns {
   grid-template-columns: repeat(2, calc(var(--space-6) * 5) minmax(0, 1fr));
 }
 .ui-kv__hidden {
@@ -16,7 +19,7 @@
   stroke-width: 2.25;
 }
 @media (max-width: 560px) {
-  .ui-drawer__rows.ui-kv {
+  .ui-kv {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--space-3);
   }
