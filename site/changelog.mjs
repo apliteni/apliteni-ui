@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.55.1', date: '2026-09-29',
     changes: [
-      ['fixed', 'Segmented controls accept full accessible labels, wrap long pill strips, and keep their content width in grid layouts. Underline tabs continue to scroll. See #392 and #435.'],
+      ['fixed', 'Segmented controls accept full accessible labels, wrap long pill strips, and keep their content width in grid layouts. Spacing follows the token scale and control transitions use 150ms; underline tabs continue to scroll. See #392 and #435.'],
       ['fixed', 'Dense tables inside a card scroll wrapper align their first column with the card title. Zero deltas with currency or other unit suffixes stay neutral.'],
       ['added', 'A period-selection showcase with six months, loading states, labelled status marks, and signed cashflow comparisons.'],
     ],

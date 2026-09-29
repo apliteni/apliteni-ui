@@ -146,16 +146,15 @@ function Example({ busy = false }: { busy?: boolean }) {
       <div key={value} className={changed ? 'm-fade-in' : undefined} style={layout.page}>
         <div className="ui-stats ui-stats--tiles">
           {pending(`Loading ${selected.name} cashflow…`, <>
-            {/* The skeleton wears the band's own classes, so the tiles fold the
-                way the figures will and nothing snaps shape when they land. */}
-            <Skeleton lines={['24%']} className="ui-stats__basis" />
+            {/* One line box at each stat rank keeps pending and loaded geometry equal. */}
+            <Skeleton lines={['24%']} className="ui-stats__basis" height="1lh" />
             <div className="ui-stats__list">{figures.map(figure => (
               <div className="ui-stat ui-card ui-card--pad-sm" key={figure.label}>
-                {/* Label, figure and change, at their own heights, so the tile
-                    keeps roughly its loaded size while the numbers are in flight. */}
-                <Skeleton lines={['46%']} height="18px" />
-                <Skeleton lines={['76%']} height="38px" />
-                <Skeleton lines={['34%']} height="18px" />
+                <Skeleton lines={['46%']} className="ui-stat__label" height="1lh" />
+                <Skeleton lines={['76%']} className="ui-stat__value" height="1lh" />
+                {figure.delta && <div className="ui-stat__delta" aria-hidden="true">
+                  <span className="ui-skel__bar m-skeleton" style={{ width: '34%', height: '1lh' }} />
+                </div>}
               </div>
             ))}</div>
           </>,
