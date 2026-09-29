@@ -3,7 +3,8 @@
 /* Coverage limits:
  * - Consumer content outside this repository is not rendered here.
  * - Border presence is checked; group spacing, line weight and colour are not.
- * - Shadows, outlines, backgrounds and pseudo-elements are not read as lines.
+ * - Shadows, outlines and pseudo-elements are not read as lines.
+ * - Footer fills are checked against the panel, not for their contrast.
  * - Logical borders assume horizontal, left-to-right writing.
  * - React classes are checked by the React parity test.
  */
@@ -92,6 +93,10 @@ function measure(win, panel, where) {
   const separator = (el) => follows(el) && drawn(style(el), 'top') && !drawn(style(el), 'bottom');
   return {
     where,
+    footerCount: panel.querySelectorAll('.ui-drawer__footer').length,
+    footerFills: [...panel.querySelectorAll('.ui-drawer__footer')]
+      .filter((el) => !['transparent', 'rgba(0, 0, 0, 0)', style(panel).backgroundColor].includes(style(el).backgroundColor))
+      .map((el) => selectorPath(el)),
     cards: inside
       .filter((el) => el.classList.contains('ui-card') || (!hr(el) && !el.closest(CONTROL) && fourSided(style(el))))
       .map((el) => selectorPath(el)),
@@ -100,11 +105,11 @@ function measure(win, panel, where) {
       .map((el) => selectorPath(el)),
     strayEdges: [
       ...edge('.ui-drawer__body', 'top', 'a line on the body\'s top edge, under the header\'s own'),
-      ...edge('.ui-drawer__body', 'bottom', 'a line on the body\'s bottom edge, under the footer\'s own'),
+      ...edge('.ui-drawer__body', 'bottom', 'a line on the body\'s bottom edge, before the unruled footer'),
     ],
     unframed: [
       ...lacks('.ui-drawer__header', 'bottom', 'a header with no line under it'),
-      ...lacks('.ui-drawer__footer', 'top', 'a footer with no line over it'),
+      ...edge('.ui-drawer__footer', 'top', 'a rule above the footer'),
     ],
     unparted: inside.filter((el) => follows(el) && !drawn(style(el), 'top')).map((el) => selectorPath(el)),
   };
@@ -117,10 +122,10 @@ const GROUPS = '<section class="ui-drawer__section"><h3 class="ui-drawer__sectio
   + '<dl class="ui-drawer__rows"><div class="ui-drawer__row"><dt>Source</dt><dd>Bank feed</dd></div></dl></section>';
 
 // Each fault written on purpose, so a pass reads "looked, and found none" rather than
-// "could not see". Drawn the way a page would draw it by hand, one per panel. The last
-// three take a line away instead of adding one: the header's, the footer's and the one
-// between the groups are the three this drawer is supposed to have.
+// "could not see". Drawn the way a page would draw it by hand, one per panel. The
+// faults include removing required header and group lines and adding a footer rule.
 const FAULTS = [
+  { fault: 'a different footer fill', kind: 'footerFills', css: '.zz-fault .ui-drawer__footer { background: red; }' },
   { fault: 'a line on the body\'s top edge', kind: 'strayEdges', css: '.zz-fault .ui-drawer__body { border-top: 1px solid var(--border); }' },
   { fault: 'a rule under every row', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__row dt, .zz-fault .ui-drawer__row dd { border-bottom: 1px solid var(--border); }' },
   { fault: 'a logical rule under a group', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__section { border-block-end: 1px solid var(--border); }' },
@@ -129,7 +134,7 @@ const FAULTS = [
   { fault: 'an <hr> in the body', kind: 'ruledRows', body: '<p>Above</p><hr><p>Below</p>' },
   { fault: 'a box drawn by hand', kind: 'cards', body: '<div style="border: 1px solid var(--border); padding: 12px">Boxed</div>' },
   { fault: 'the header\'s line taken away', kind: 'unframed', css: '.zz-fault .ui-drawer__header { border-bottom: 0; }' },
-  { fault: 'the footer\'s line taken away', kind: 'unframed', css: '.zz-fault .ui-drawer__footer { border-top: 0; }' },
+  { fault: 'a rule above the footer', kind: 'unframed', css: '.zz-fault .ui-drawer__footer { border-top: 1px solid var(--border); }' },
   { fault: 'the line between the groups taken away', kind: 'unparted', body: GROUPS, css: '.zz-fault .ui-drawer__section + .ui-drawer__section { border-top: 0; }' },
 ];
 
@@ -226,13 +231,16 @@ for (const theme of THEMES) {
     );
   });
 
-  test(`[${theme}] every drawer is framed: a line under the header, one over the footer, none the body draws`, () => {
+  test(`[${theme}] drawer footers share the panel surface`, () => {
+    assert.ok(subjects.reduce((n, s) => n + s.footerCount, 0) > 0, 'measured at least one footer');
+    assert.deepEqual(subjects.flatMap((s) => s.footerFills.map((p) => `${s.where} ${p}`)), []);
+  });
+
+  test(`[${theme}] every drawer is framed: a header line, no footer or body rules`, () => {
     const offences = subjects.flatMap((s) => [...s.unframed, ...s.strayEdges].map((e) => `${s.where}  ${e}`));
     assert.deepStrictEqual(
       offences, [],
-      'a drawer has lost the line under its header or over its footer, or the body has drawn an edge of '
-      + 'its own. Those two lines are what say where a scrolling body ends, and they belong to the '
-      + 'header and the footer:\n  ' + offences.join('\n  '),
+      'a drawer must keep its header line and leave the body and footer edges clear:\n  ' + offences.join('\n  '),
     );
   });
 

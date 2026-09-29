@@ -8,22 +8,28 @@
  * It paints on the confirm's layer, one above the drawer's, because a modal opened
  * from a drawer is a question about the drawer.
  * why: docs/specification.md#motion */
-.rx-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px);
+.rx-scrim { /* ring-gap: inherit — The dialog supplies the ground for every focusable control. */
+  position: fixed; inset: 0; background: color-mix(in srgb, var(--shadow-ink) 82%, transparent);
   display: grid; place-items: center; z-index: calc(var(--z-overlay) + 1);
   opacity: 0; transition: opacity var(--dur-med) var(--ease); }
 .rx-scrim.is-open { opacity: 1; }
-/* The floating step of the elevation ladder, with the treatment that step takes: the
-   two-step edge — --border-strong outside, --border one pixel inside it — and then the
-   broad faint drop: the line is written here so --elev-edge stays re-pointable,
-   the drops come from --elev-drop. why: docs/specification.md#elevation */
-.rx-modal { width: min(480px, 92vw); background: var(--bg-elevated); --ring-gap: var(--bg-elevated); border: 1px solid var(--border-strong);
-  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
-  border-radius: var(--radius-xl); overflow: hidden;
-  transform: translateY(8px); transition: transform var(--dur-med) var(--ease); }
+/* The deep scrim separates the dialog; the shared drop needs no edge here. */
+.rx-modal { width: min(calc(var(--panel-lg) - var(--space-10) * 2), 96vw);
+  max-height: 96vh; max-height: 96dvh; display: flex; flex-direction: column;
+  background: var(--bg-elevated); --ring-gap: var(--bg-elevated); border: 0;
+  box-shadow: var(--elev-drop);
+  border-radius: var(--radius-md); overflow: hidden;
+  transform: translateY(var(--space-2)); transition: transform var(--dur-med) var(--ease); }
 .rx-scrim.is-open .rx-modal { transform: none; }
 .rx-modal__head { display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; border-bottom: 1px solid var(--border); }
-.rx-modal__title { font-weight: 600; font-size: var(--text-lg); }
-.rx-modal__body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-.rx-modal__foot { display: flex; justify-content: flex-end; gap: 12px;
-  padding: 16px 20px; border-top: 1px solid var(--border); }
+  gap: var(--space-3); flex: none;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border); }
+.rx-modal__title { font-weight: var(--weight-normal); font-size: var(--text-base); color: var(--text); }
+.rx-modal__body { padding: var(--space-4); display: flex; flex-direction: column;
+  gap: var(--space-4); min-height: 0; overflow: auto; }
+.rx-modal__body > * { flex-shrink: 0; }
+.rx-modal__foot { display: flex; justify-content: flex-end; gap: var(--space-3); flex: none;
+  padding: var(--space-4); }
+.rx-modal__head > .ui-btn { width: calc(var(--space-10) + var(--space-1));
+  height: calc(var(--space-10) + var(--space-1)); flex: none; }

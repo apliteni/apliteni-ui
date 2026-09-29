@@ -1017,10 +1017,9 @@ test('the Accessibility minimums page names every accessibility gate in the tree
   // An accessibility gate is one that says so in its own text — the same
   // discovery the page's claim rests on, and not a list anybody maintains.
   // An import path is not the file saying so: stories/guidelines/letter-case.test.js
-  // is a gate on letter case and stories/drawer-rules.test.js measures borders;
-  // both borrow this file's DOM helpers, and reading `from './lib/contrast.js'`
-  // as a claim put them on a list they have no business on. One strip takes the
-  // whole import — braces across lines included — and leaves the real gates.
+  // is a gate on letter case, even though it borrows the contrast DOM helpers.
+  // Strip whole imports, including multiline braces, before reading the claims.
+  // Coverage limits count too: drawer-rules names contrast as a blind spot.
   const ownText = (f) => readFileSync(path.join(root, f), 'utf8')
     .replace(/^\s*import\s[\s\S]*?(?:from\s+['"][^'"]*['"]|['"][^'"]*['"])\s*;?/gm, '');
   const gates = files.filter((f) => /\.test\.(js|tsx)$/.test(f) && !f.includes('/lib/'))

@@ -20,7 +20,7 @@
 
 **Why:** A confirm keeps keyboard focus until answered; a callout does not interrupt.
 
-**Except:** Use a drawer when the answer needs a form instead of two buttons.
+**Except:** Use a content-sized modal for a short form and a drawer for a long form.
 
 **Do:** Ask “Rotate this token?” in a confirm with “Keep token” and “Rotate token” buttons.
 

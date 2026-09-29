@@ -127,16 +127,13 @@
 .ui-drawer--top.ui-drawer--lg, .ui-drawer--bottom.ui-drawer--lg { --drawer-h: 72vh; }
 
 /* -- Slots ----------------------------------------------------------------- */
-/* The header keeps its rule, and the footer keeps its. A drawer's normal state is a
-   long record scrolling, and those two lines are what say where the scrolling body
-   ends: the one place inside the panel a line still earns.
-   why: docs/specification.md#the-drawer */
+/* The header marks the scroll boundary; actions share the panel surface. */
 .ui-drawer__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 18px 20px;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border);
   flex: none;
 }
@@ -188,10 +185,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 20px;
-  border-top: 1px solid var(--border);
-  background: var(--surface-2); --ring-gap: var(--surface-2);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
   flex: none;
 }
 
