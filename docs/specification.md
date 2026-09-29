@@ -2372,3 +2372,17 @@ Held by `react/src/primitives/Pill.test.tsx` and
 `react/src/primitives/StatusDot.test.tsx`; these check DOM behavior and semantics,
 not visual rendering or assistive-technology announcements. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+## React sidebar navigation
+
+`SidebarNav` renders the shared sidebar classes without a vanilla initializer.
+It accepts flat items or captioned sections, nested groups, counts, optional artwork,
+a footer slot and router-link rendering. Each row retains its accessible name and
+count when collapsed; disclosures remain keyboard operable and use unique controlled
+list IDs. Current links use `aria-current="page"`, or `"true"` for `activeIs="section"`.
+Disabled leaves render non-interactive spans. Groups containing the current item
+open unless `defaultOpen` or a user toggle sets their state. Folding does not reset it.
+AppShell composes this navigation in its desktop rail and More drawer.
+
+Held by `react/src/SidebarNav.test.tsx`; browser captures verify presentation separately.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).

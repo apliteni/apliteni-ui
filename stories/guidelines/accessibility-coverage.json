@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/SidebarNav.test.tsx",
+      "name": "React: Sidebar navigation",
+      "does": "Checks named links and counts, current-page semantics, nested keyboard disclosures, disabled rows, router rendering, slots and unique IDs.",
+      "blind": [
+        "JSDOM does not measure CSS, grid alignment, target sizes or spoken screen-reader output. Browser captures check presentation separately."
+      ]
+    },
+    {
       "file": "react/src/Tooltip.test.tsx",
       "name": "React: Tooltip",
       "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",
