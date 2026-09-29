@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.53.4', date: '2026-09-29',
+    changes: [
+      ['fixed', 'Dense table headers align with their column values. Compact tables also keep the final numeric header aligned with its values. Resolves #452.'],
+    ],
+  },
+  {
     v: '0.53.3', date: '2026-09-28',
     changes: [
       ['fixed', 'Toasts use a compact neutral card with an unfilled tone icon in vanilla and React. Existing actions, dismissal and timers are unchanged. Resolves #426.'],

@@ -1,4 +1,6 @@
 import { test } from "node:test";
+import { JSDOM } from "jsdom";
+import { substitute, tokensFor } from "../../stories/lib/contrast.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -84,4 +86,61 @@ test("the zebra recipe insets its own end cells, without needing --dense", () =>
       `zebra end-cell padding must be greater than zero — 0 is the defect: ${d}`,
     );
   }
+});
+
+// JSDOM checks source order but not selector specificity, layout or nested content.
+// The trailing-inset check below covers the higher-specificity base override.
+// Storybook captures separately check text edges and scrolling in Chromium.
+
+function columnInsets(css) {
+  const modifiers = [...new Set(css.match(/ui-table--[\w-]+/g))];
+  assert.ok(modifiers.includes('ui-table--dense') && modifiers.includes('ui-table--compact')
+    && modifiers.includes('ui-table--zebra'), 'density subjects must exist');
+  const recipes = Array.from({ length: 2 ** modifiers.length }, (_, mask) =>
+    modifiers.filter((_, i) => mask & (2 ** i)))
+    .filter(classes => classes.some(c => /--(dense|compact|zebra)$/.test(c)));
+  const html = recipes.flatMap(classes => [false, true].map(numeric =>
+    `<table class="ui-table ${classes.join(' ')}"><thead><tr>${[0, 1, 2].map(() =>
+      `<th class="${numeric ? 'ui-table__num' : ''}">Heading</th>`).join('')}</tr></thead>`
+    + `<tbody><tr>${[0, 1, 2].map(() => `<td class="${numeric ? 'ui-table__num' : ''}">Value</td>`).join('')}</tr></tbody></table>`)).join('');
+  const win = new JSDOM(`<style>${substitute(css, tokensFor('dark', 'default'))}</style>${html}`).window;
+  const failures = [];
+  let measured = 0;
+  for (const table of win.document.querySelectorAll('table')) {
+    const headers = table.querySelectorAll('th');
+    const cells = table.querySelectorAll('td');
+    assert.equal(headers.length, 3);
+    assert.equal(cells.length, 3);
+    headers.forEach((header, i) => {
+      const h = win.getComputedStyle(header), c = win.getComputedStyle(cells[i]);
+      for (const prop of ['paddingLeft', 'paddingRight']) {
+        if (h[prop] !== c[prop]) failures.push(`${table.className}, column ${i + 1}, ${prop}: ${h[prop]} / ${c[prop]}`);
+      }
+      if (header.classList.contains('ui-table__num') && (h.textAlign !== 'right' || c.textAlign !== 'right')) failures.push('numeric header lost right alignment');
+      measured++;
+    });
+  }
+  assert.equal(measured, recipes.length * 2 * 3, 'every recipe and column must be measured');
+  assert.ok(measured >= 42, 'all density combinations must be covered');
+  win.close();
+  return failures;
+}
+
+test('table headers and cells have matching horizontal insets in every density recipe', () => {
+  assert.deepEqual(columnInsets(CSS), []);
+});
+
+test('the inset gate rejects a middle-column header regression', () => {
+  assert.ok(columnInsets(`${CSS}\n.ui-table--dense th:nth-child(2) { padding-left: 0; }`).length > 0);
+});
+
+function compactTrailingInset(css) {
+  const rule = css.match(/^\.ui-table--compact th:last-child,\s*\.ui-table--compact td:last-child\s*\{([^}]+)\}/m);
+  return rule ? insetOf(rule[1]) : null;
+}
+
+test('compact end cells override the base last-header inset together', () => {
+  assert.equal(compactTrailingInset(CSS), SPACE['--space-3']);
+  assert.equal(compactTrailingInset(CSS.replace('.ui-table--compact th:last-child,', '')), null,
+    'removing the header override must be rejected');
 });

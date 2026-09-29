@@ -1,6 +1,6 @@
 {
   "name": "@apliteni/apliteni-ui",
-  "version": "0.53.3",
+  "version": "0.53.4",
   "workspaces": [
     "react"
   ],
