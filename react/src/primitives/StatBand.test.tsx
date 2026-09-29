@@ -99,3 +99,16 @@ it('a figure can be a link, and two unnamed bands never share a caption id', () 
   const ids = [...container.querySelectorAll('.ui-stats__basis')].map((p) => p.id);
   expect(new Set(ids).size).toBe(2);
 });
+
+// React-only composition: several views can share one caption without duplicating it.
+it('references a shared caption, with a local basis taking precedence', () => {
+  const { container } = render(<>
+    <p id="shared-basis">Compared with August 2026</p>
+    <StatBand stats={FOUR} basisId="shared-basis" />
+    <StatBand stats={FOUR} basisId="shared-basis" basis="Compared with last year" id="local-band" />
+  </>);
+  const bands = container.querySelectorAll('.ui-stats');
+  expect(bands[0].querySelector('.ui-stats__basis')).toBeNull();
+  expect([...bands[0].querySelectorAll('.ui-stat__delta')].every(delta => delta.getAttribute('aria-describedby') === 'shared-basis')).toBe(true);
+  expect([...bands[1].querySelectorAll('.ui-stat__delta')].every(delta => delta.getAttribute('aria-describedby') === 'local-band-basis')).toBe(true);
+});
