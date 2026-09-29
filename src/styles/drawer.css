@@ -229,7 +229,8 @@
 }
 .ui-drawer__row dt { color: var(--text); }
 .ui-drawer__row dd { color: var(--text); font-variant-numeric: tabular-nums; }
-.ui-drawer__rows + * { margin-top: var(--space-3); }
+.ui-drawer .ui-drawer__rows + *,
+.ui-drawer .ui-kv + * { margin-top: var(--space-3); }
 
 /* Under reduced motion the net gives every element a 0.01ms transition, so a
    child inherits `visible` one tick after the root: the control openDrawer()

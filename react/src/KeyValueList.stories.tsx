@@ -1,5 +1,9 @@
+import { useState } from 'react';
+import { Button } from './primitives/Button';
 import type { Meta, StoryObj } from '@storybook/react';
 import { KeyValueList, DrawerSection } from './KeyValueList';
+import { Drawer } from './Drawer';
+import { Modal } from './Modal';
 import { Badge } from './primitives/Badge';
 
 const meta: Meta<typeof KeyValueList> = { title: 'React/KeyValueList', component: KeyValueList };
@@ -35,4 +39,34 @@ export const Sections: StoryObj = {
     <DrawerSection title="Transaction"><KeyValueList rows={rows} /></DrawerSection>
     <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} /></DrawerSection>
   </div>,
+};
+
+const facts = <>
+  <KeyValueList rows={[
+    { label: 'Reference', value: 'INV-1001' },
+    { label: 'Amount', value: '€ 1,240.00' },
+  ]} />
+  <div>Amounts include tax.</div>
+  <div>Payment is due within 30 days.</div>
+</>;
+
+export const InDrawer: StoryObj = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return <>
+      <Button onClick={() => setOpen(true)}>Open drawer</Button>
+      <Drawer open={open} title="Invoice details" onClose={() => setOpen(false)}>
+        <DrawerSection title="Invoice">{facts}</DrawerSection>
+      </Drawer>
+    </>;
+  },
+};
+export const InModal: StoryObj = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return <>
+      <Button onClick={() => setOpen(true)}>Open modal</Button>
+      <Modal open={open} title="Invoice details" onClose={() => setOpen(false)}>{facts}</Modal>
+    </>;
+  },
 };

@@ -21,7 +21,7 @@ function detail({ value, redacted }: KeyValueRow) {
 
 export function KeyValueList({ rows, columns = 1, className, ...rest }: KeyValueListProps) {
   return (
-    <dl {...rest} className={['ui-drawer__rows', 'ui-kv', columns === 2 && 'ui-kv--two-columns', className].filter(Boolean).join(' ')}>
+    <dl {...rest} className={['ui-kv', columns === 2 && 'ui-kv--two-columns', className].filter(Boolean).join(' ')}>
       {rows.map((row, index) => (
         <div className="ui-drawer__row" key={index}>
           <dt>{row.label}</dt>
