@@ -385,7 +385,8 @@ uses its normal opening focus.
 
 `Timeline` displays a record’s events in the order provided. Pass events from oldest
 to newest, with stable IDs, machine-readable `dateTime` values, and formatted
-`timestamp` text.
+`timestamp` text. Place Timeline on a page or card reading surface, never a grey
+fill; the standalone stories compose it inside `Card`.
 Descriptions should say what changed and to where. Optional `kind` accepts
 `person`, `rule`, or `reversal` (`TimelineEventKind`); these show the kit’s user,
 bolt, or refresh glyph in a 20px ring. The last event is newest and its ring is
@@ -411,11 +412,9 @@ in accent ink. The caller updates this text; Timeline does not run a clock.
 
 Omit `undo` for read-only events. For a reversible batch, pass
 `undo: { label: 'Undo batch DEMO-12', onUndo }`. The app checks permissions,
-asks for confirmation when the batch affects finalized records, reverses the
-entire batch, and adds a new event. Timeline only calls `onUndo`; it does not
+reverses the entire batch, and adds a new event without a confirmation dialog. Timeline only calls `onUndo`; it does not
 modify history.
-Import both the kit CSS and React CSS. The Privileged story shows confirmation
-and a reversing event.
+Import both the kit CSS and React CSS. The Privileged story shows Undo adding a reversing event.
 
 ## Fields
 

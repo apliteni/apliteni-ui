@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Timeline, type TimelineEvent } from './Timeline';
-import { Modal } from './Modal';
+import { Card } from './primitives/Card';
 import { Button } from './primitives/Button';
 
-const meta: Meta<typeof Timeline> = { title: 'React/Timeline', component: Timeline, id: 'react-timeline' };
+const meta: Meta<typeof Timeline> = {
+  title: 'React/Timeline', component: Timeline, id: 'react-timeline',
+  decorators: [Story => <Card><Story /></Card>],
+};
 export default meta;
 
 const events: readonly TimelineEvent[] = [
@@ -22,26 +25,17 @@ export const ReadOnly: StoryObj = {
 };
 export const Privileged: StoryObj = {
   render: function PrivilegedStory() {
-    const [confirm, setConfirm] = useState(false);
     const [undone, setUndone] = useState(false);
     const history = undone ? [...events, reversal] : events.map(event => event.id === 'manual'
-      ? { ...event, undo: { label: 'Undo batch DEMO-13', onUndo: () => setConfirm(true) } } : event);
-    return <>
-      <Timeline aria-label="Record history" events={history} />
-      <Modal open={confirm} title="Undo batch DEMO-13?" onClose={() => setConfirm(false)} footer={<>
-        <Button variant="ghost" onClick={() => setConfirm(false)}>Cancel</Button>
-        <Button variant="danger" onClick={() => { setUndone(true); setConfirm(false); }}>Undo batch DEMO-13</Button>
-      </>}>
-        <p>This batch changed a finalized record. Undo reverses the whole batch and adds a new history event.</p>
-      </Modal>
-    </>;
+      ? { ...event, undo: { label: 'Undo batch DEMO-13', onUndo: () => setUndone(true) } } : event);
+    return <Timeline aria-label="Record history" events={history} />;
   },
 };
 export const Reversed: StoryObj = {
   render: () => <Timeline aria-label="Record history" events={[...events, reversal]} />,
 };
 export const Narrow: StoryObj = {
-  render: () => <div style={{ maxWidth: 280 }}><Timeline aria-label="Record history" events={events} /></div>,
+  render: () => <div style={{ maxWidth: 'var(--panel-sm)' }}><Timeline aria-label="Record history" events={events} /></div>,
 };
 
 const withKinds: readonly TimelineEvent[] = events.map(event => ({
@@ -70,7 +64,7 @@ export const NewEvent: StoryObj = {
     const [arrived, setArrived] = useState(false);
     return <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
       <Timeline aria-label="Record history" events={arrived ? [...withKinds, { ...reversal, kind: 'reversal', relativeTimestamp: 'just now' }] : withKinds} />
-      <div><Button disabled={arrived} onClick={() => setArrived(true)}>Add reversal event</Button></div>
+      <div><Button variant="ghost" disabled={arrived} onClick={() => setArrived(true)}>Add reversal event</Button></div>
     </div>;
   },
 };

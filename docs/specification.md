@@ -2115,6 +2115,8 @@ transitions. Modal's timing tests and browser evidence cover those separately.
 `Timeline` renders an ordered list in the caller's event order, oldest first.
 Each event shows an actor, a `time` element, a change description and optional
 metadata. Event text uses body ink; the rail and markers are decorative.
+Timeline leaves its reading surface to the caller; compose it on a page or card
+surface, never a grey fill. The standalone stories use the shared Card.
 
 Optional `kind` is `person`, `rule`, or `reversal`, using the existing `user`,
 `bolt`, or `refresh` glyph in a 20px (`--space-5`) ring. Only the last event’s
@@ -2136,7 +2138,8 @@ and updates both formatted timestamps; the component does not run a clock.
 Decided in [#425](https://github.com/apliteni/apliteni-ui/issues/425).
 
 Undo is an optional named button for a reversible batch. The app owns permission,
-confirmation for finalized records, batch reversal and the new reversing event.
+batch reversal and the new reversing event. A reversible action runs without a
+confirmation dialog, as shown in the privileged story.
 The component calls the supplied handler without changing or sorting history.
 Events do not collapse or paginate.
 
