@@ -522,3 +522,23 @@ Tooltip accepts text and inline children, without nested controls. Hovering or f
 ```tsx
 <Tooltip text="Updated daily">Balance</Tooltip>
 ```
+
+### Composed fields
+
+`TextField` supports text, number, email, password and search. Pass decorative
+artwork in `leadingIcon`; native attributes such as `autoComplete`, `name` and
+`disabled` go to the input, and its ref points to that input. Number fields can
+combine artwork with a `unit`.
+
+Use `Field` when an existing labelled control needs the kit frame. Spread its
+render-prop attributes onto one labelable control, and apply the existing control
+class and invalid styling as appropriate:
+
+```tsx
+<Field label="Due date" hint="Use the delivery date." required>
+  {control => <input {...control} className="ui-input" type="date" />}
+</Field>
+```
+
+The frame supplies a stable ID, required state, and linked hint/error messages.
+An optional `id` lets the caller choose the control ID; it must be unique.

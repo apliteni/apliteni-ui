@@ -69,8 +69,8 @@ export { Tabs } from './Tabs';
 export type { TabsProps, TabItem } from './Tabs';
 export { Timeline } from './Timeline';
 export type { TimelineProps, TimelineEvent, TimelineEventKind } from './Timeline';
-export { TextField, TextArea, SelectField, FileField } from './Field';
-export type { TextFieldProps, TextAreaProps, SelectFieldProps, FileFieldProps } from './Field';
+export { Field, TextField, TextArea, SelectField, FileField } from './Field';
+export type { FieldProps, FieldControlProps, TextFieldProps, TextAreaProps, SelectFieldProps, FileFieldProps } from './Field';
 export { Toast, useToast } from './Toast';
 export type { ToastNotice, ToastProps } from './Toast';
 

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useEffect, useId, useRef, useState, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
 import { esc, icon } from '@apliteni/apliteni-ui';
 import '../../src/styles/input.css';
 import { Icon } from './primitives/Icon';
@@ -30,20 +30,41 @@ function wiring(id: string, hint?: string, error?: string) {
   return { id, 'aria-describedby': messages(id, hint, error), 'aria-invalid': error ? true as const : undefined };
 }
 
-export type TextFieldProps = FieldMessage & Omit<InputHTMLAttributes<HTMLInputElement>, Wiring | 'type'> & {
-  type?: 'text' | 'number' | 'email'; unit?: string;
+export type FieldControlProps = ReturnType<typeof wiring> & { required?: boolean };
+export type FieldProps = FieldMessage & {
+  id?: string;
+  required?: boolean;
+  children: (control: FieldControlProps) => ReactNode;
 };
-export function TextField({ label, hint, error, required, type = 'text', unit, className = '', ...props }: TextFieldProps) {
+
+/** Spread the supplied attributes onto one labelable control. */
+export function Field({ id: suppliedId, label, hint, error, required, children }: FieldProps) {
+  const generatedId = useId();
+  const id = suppliedId ?? generatedId;
+  return <Frame {...{ id, label, hint, error, required }}>
+    {children({ ...wiring(id, hint, error), required })}
+  </Frame>;
+}
+
+export type TextFieldProps = FieldMessage & Omit<InputHTMLAttributes<HTMLInputElement>, Wiring | 'type'> & {
+  type?: 'text' | 'number' | 'email' | 'password' | 'search'; unit?: string;
+  /** Decorative artwork; the label supplies the control's name. */
+  leadingIcon?: ReactNode;
+};
+export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField({ label, hint, error, required, type = 'text', unit, leadingIcon, className = '', ...props }, ref) {
   const id = useId();
   const hasUnit = type === 'number' && !!unit;
   const describedBy = [messages(id, hint, error), hasUnit ? `${id}-unit` : ''].filter(Boolean).join(' ') || undefined;
-  const control = <input {...props} {...wiring(id, hint, error)} required={required} type={type} aria-describedby={describedBy}
+  const control = <input ref={ref} {...props} {...wiring(id, hint, error)} required={required} type={type} aria-describedby={describedBy}
     inputMode={type === 'number' ? 'decimal' : props.inputMode}
     className={`ui-input${error ? ' is-invalid' : ''} ${className}`} />;
+  const adorned = leadingIcon != null ? <div className={`ui-input-group${hasUnit ? ' ui-field-number' : ''}`}>
+    <span className="ui-input-group__icon" aria-hidden="true">{leadingIcon}</span>{control}{hasUnit && <span id={`${id}-unit`} className="ui-field-number__unit">{unit}</span>}
+  </div> : control;
   return <Frame {...{ id, label, hint, error, required }}>
-    {hasUnit ? <div className="ui-field-number">{control}<span id={`${id}-unit`} className="ui-field-number__unit">{unit}</span></div> : control}
+    {leadingIcon != null ? adorned : hasUnit ? <div className="ui-field-number">{control}<span id={`${id}-unit`} className="ui-field-number__unit">{unit}</span></div> : control}
   </Frame>;
-}
+});
 
 export type TextAreaProps = FieldMessage & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, Wiring>;
 export function TextArea({ label, hint, error, required, className = '', ...props }: TextAreaProps) {

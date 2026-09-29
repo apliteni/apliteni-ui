@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
 import { field, input, textarea, select } from '@apliteni/apliteni-ui';
-import { TextField, TextArea, SelectField, FileField } from './Field';
+import { Field, TextField, TextArea, SelectField, FileField } from './Field';
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
@@ -144,4 +144,51 @@ it('keeps error text escaped and preserves disabled field attributes', () => {
   expect(screen.getByRole('alert')).toHaveTextContent('Use <plain> text & "quotes".');
   expect(screen.getByRole('alert').querySelector('plain')).toBeNull();
   expect(screen.getByText('Hidden')).toBeVisible();
+});
+
+// Native events and associations in JSDOM; browser paint and password managers are not covered.
+it('supports password and search with decorative artwork, refs and native submission', async () => {
+  const ref = { current: null as HTMLInputElement | null };
+  const change = vi.fn();
+  const { container } = render(<form><TextField ref={ref} label="Password" type="password" name="password" autoComplete="current-password" leadingIcon={<svg aria-label="Lock" />} required hint="Use your password." />
+    <TextField label="Search" type="search" name="q" onChange={change} leadingIcon={<svg />} />
+  </form>);
+  const password = screen.getByLabelText(/^Password/);
+  expect(ref.current).toBe(password);
+  expect(password).toHaveAttribute('type', 'password');
+  expect(password).toHaveAttribute('autocomplete', 'current-password');
+  expect(password).toHaveAccessibleDescription('Use your password.');
+  expect(container.querySelector('.ui-input-group__icon')).toHaveAttribute('aria-hidden', 'true');
+  await userEvent.type(password, 'demo-password');
+  await userEvent.type(screen.getByRole('searchbox'), 'invoice');
+  expect(change).toHaveBeenCalled();
+  expect(new FormData(container.querySelector('form')!).get('q')).toBe('invoice');
+  expect(new FormData(container.querySelector('form')!).get('password')).toBe('demo-password');
+  expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+});
+
+it('keeps adorned controls disabled and preserves errors, hints and numeric units', () => {
+  const { container } = render(<TextField label="Weight" type="number" unit="kg" leadingIcon={<svg />} hint="Packed weight." error="Enter a positive weight." disabled />);
+  expect(screen.getByLabelText('Weight')).toBeDisabled();
+  expect(screen.getByLabelText('Weight')).toHaveAccessibleDescription('Enter a positive weight. Packed weight. kg');
+  expect(screen.getByLabelText('Weight')).toHaveAttribute('aria-invalid', 'true');
+  expect(container.querySelector('.ui-input-group__icon')).toHaveAttribute('aria-hidden', 'true');
+});
+
+it('wires composed controls with stable unique ids and clears resolved errors', async () => {
+  const compose = (error?: string) => <><Field label="Due date" required hint="Use the delivery date." error={error}>{props => <input {...props} type="date" className="ui-input" />}</Field>
+    <Field label="Other date" id="other-date">{props => <input {...props} type="date" />}</Field></>;
+  const { rerender, container } = render(compose('Choose a date.'));
+  const control = screen.getByLabelText(/^Due date/);
+  const id = control.id;
+  expect(id).not.toBe('other-date');
+  expect(control).toBeRequired();
+  expect(control).toHaveAccessibleDescription('Choose a date. Use the delivery date.');
+  expect(control).toHaveAttribute('aria-invalid', 'true');
+  rerender(compose());
+  expect(control.id).toBe(id);
+  expect(control).not.toHaveAttribute('aria-invalid');
+  expect(control).toHaveAccessibleDescription('Use the delivery date.');
+  expect(screen.queryByRole('alert')).toBeNull();
+  expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
 });
