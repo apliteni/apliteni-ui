@@ -543,6 +543,13 @@ it('offers column navigation only for overflow and disables each reached edge', 
   expect(previous).toBeDisabled();
   expect(more).toBeEnabled();
   expect(more).toHaveAttribute('aria-controls', region.id);
+  // Glyphs must be flex siblings of the label slot, never inline in its text.
+  for (const button of [previous, more]) {
+    expect(button.querySelector('.ui-btn__label svg')).toBeNull();
+    expect(button.querySelector(':scope > span[aria-hidden="true"] > svg')).not.toBeNull();
+  }
+  expect(previous.firstElementChild).toHaveAttribute('aria-hidden', 'true');
+  expect(more.lastElementChild).toHaveAttribute('aria-hidden', 'true');
   await user.click(more);
   expect(region.scrollLeft).toBe(150);
   expect(more).toBeDisabled();

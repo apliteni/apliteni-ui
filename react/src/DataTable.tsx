@@ -3,7 +3,6 @@ import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
 import { Button } from './primitives/Button';
-import { Icon } from './primitives/Icon';
 
 export type Column<T> = {
   key: keyof T & string; label: ReactNode; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
@@ -150,8 +149,8 @@ export function DataTable<T extends { name: string }>({
   return (
     <>
       {scrollable && columnScroll.overflow && <div className="ui-card__row" role="group" aria-label={`${scrollLabel} columns`}>
-        <Button size="sm" aria-controls={scrollId} disabled={columnScroll.start} onClick={() => scrollColumns(-1)}><Icon name="arrowLeft" />Previous columns</Button>
-        <Button size="sm" aria-controls={scrollId} disabled={columnScroll.end} onClick={() => scrollColumns(1)}>More columns<Icon name="arrowRight" /></Button>
+        <Button size="sm" icon="arrowLeft" aria-controls={scrollId} disabled={columnScroll.start} onClick={() => scrollColumns(-1)}>Previous columns</Button>
+        <Button size="sm" iconRight="arrowRight" aria-controls={scrollId} disabled={columnScroll.end} onClick={() => scrollColumns(1)}>More columns</Button>
       </div>}
       {/* The rows stay on screen while the next page is fetched, and the table
           says so. A reader who cannot see it otherwise meets a table that is
