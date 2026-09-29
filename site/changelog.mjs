@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.57.0', date: '2026-09-29',
+    changes: [
+      ['added', "React Tooltip adds short explanations on hover, keyboard focus, or touch, using the existing tooltip styling. Resolves #398."],
+    ],
+  },
+  {
     v: '0.56.1', date: '2026-09-29',
     changes: [
       ['fixed', 'React fields retain their hint beside validation errors. Buttons accept a completionMessage override so a failed send does not announce completion. See #388.'],
