@@ -105,7 +105,7 @@ function measure(win, panel, where) {
       .map((el) => selectorPath(el)),
     strayEdges: [
       ...edge('.ui-drawer__body', 'top', 'a line on the body\'s top edge, under the header\'s own'),
-      ...edge('.ui-drawer__body', 'bottom', 'a line on the body\'s bottom edge, under the footer\'s own'),
+      ...edge('.ui-drawer__body', 'bottom', 'a line on the body\'s bottom edge, before the unruled footer'),
     ],
     unframed: [
       ...lacks('.ui-drawer__header', 'bottom', 'a header with no line under it'),
