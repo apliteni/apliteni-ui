@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.94.0', date: '2026-10-06',
+    changes: [
+      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices, using the kit\u2019s existing classes. block composes with the underline appearance; size="sm" does not. Part of #429.', ['Segmented']],
+    ],
+  },
+  {
     v: '0.93.0', date: '2026-10-05',
     changes: [
       ['changed', 'The kit\u2019s documentation is two reader pages instead of one specification: `docs/foundations.md` holds the tokens and the floors, and `docs/components.md` keeps the catalogue and says what each component guarantees. The specification is retired \u2014 a guarantee you rely on is now on one of those two pages, the per-prop React reference stays in `react/README.md`, and a heading you cited in the specification has moved to whichever page carries it. Nothing the kit draws changed: no CSS, no markup, no component behaviour, and no published name moved. Closes #559.'],
