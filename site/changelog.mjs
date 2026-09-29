@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.58.2', date: '2026-09-29',
     changes: [
-      ['fixed', 'Dropdown state and neutral badges have visible outlines in both themes. Selected titles use body ink, leaving the checkmark to indicate selection; non-status badges such as Beta use neutral ink. Vanilla and React share the styling. Resolves #445.'],
+      ['fixed', 'Dropdown state and neutral badges use soft fills with similar visibility in both themes and match the standard badge size, without outlines. Selected titles use body ink, leaving the checkmark to indicate selection; non-status badges such as Beta use neutral ink. Vanilla and React share the styling. Resolves #445.'],
     ],
   },
   {
