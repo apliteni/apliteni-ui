@@ -78,3 +78,12 @@ it('shares one comparison across stat and ledger changes without repeating the m
     expect(document.getElementById(change.getAttribute('aria-describedby')!)).toHaveTextContent('Compared with August 2026');
   }
 });
+
+it('puts the ledger heading outside its card and keeps comparison copy off the reading surface', () => {
+  window.history.replaceState(null, '', '?period=2026-09');
+  render(Default.render());
+  const heading = screen.getByRole('heading', { name: 'Ledger' });
+  expect(heading.closest('.ui-card')).toBeNull();
+  expect(heading.nextElementSibling).toHaveClass('ui-card');
+  expect(screen.getByText('Compared with August 2026')).toHaveClass('ui-sr');
+});

@@ -71,9 +71,8 @@ const totalsIn = (index: number) => {
 // ledger would widen the column instead of scrolling inside its card.
 const layout = {
   report: { marginTop: 'var(--space-6)' },
-  caption: { margin: 0 },
   page: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 'var(--space-6)' },
-  control: { display: 'grid', gap: 'var(--space-2)' },
+  control: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 'var(--space-2)' },
   now: { margin: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' },
 } satisfies Record<string, CSSProperties>;
 
@@ -145,7 +144,7 @@ function Example({ busy = false }: { busy?: boolean }) {
             <Badge><Icon name={selected.icon} />{selected.status}</Badge>
             {selected.note && <Badge><Icon name="info" />{selected.note}</Badge>}
           </p>
-          <p id={basisId} className="ui-stats__basis" style={layout.caption}>{basis}</p>
+          <p id={basisId} className="ui-sr">{basis}</p>
         </div>
         <div key={value} className={changed ? 'm-fade-in' : undefined} style={layout.page}>
           <div className="ui-stats ui-stats--tiles">
@@ -163,12 +162,15 @@ function Example({ busy = false }: { busy?: boolean }) {
             </>,
               <StatBand label="Cashflow" stats={figures} basisId={basisId} />)}
           </div>
-          <Card title="Ledger">
-            {/* The kit keeps categories pinned and offers column controls on overflow. */}
-            {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
-              <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
-                stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}
-          </Card>
+          <section aria-labelledby="ledger-heading" style={layout.control}>
+            <h2 id="ledger-heading" className="ui-card__title" style={{ margin: 0 }}>Ledger</h2>
+            <Card>
+              {/* The kit keeps categories pinned and offers column controls on overflow. */}
+              {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
+                <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
+                  stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}
+            </Card>
+          </section>
         </div>
       </div>
     </div>
