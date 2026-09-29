@@ -30,7 +30,7 @@ export const RING_MIN = 3;
  * word it is or a reader cannot tell which control is unavailable.
  *
  * It is 3 and not 4.5 because contrast is not the axis the state travels on: the
- * kit's disabled primary button measures 6.91:1 in dark and 5.17:1 in light,
+ * kit's disabled primary button measures 6.24:1 in dark and 6.11:1 in light,
  * against 5.70:1 and 7.34:1 enabled — more contrast than the enabled button in
  * one theme and less in the other, and nobody would mistake the two either way
  * in either theme. The paint carries the state, this

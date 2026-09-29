@@ -27,8 +27,8 @@
 .ui-app-page { --ui-app-top: 52px; }
 .ui-app-page .topbar { position: sticky; top: 0; z-index: var(--z-sticky); }
 
-/* --surface-2, not --bg-elevated: elevated resolves to --bg itself in the light
-   theme, an exact no-op that left the border as the whole of the rail.
+/* The rail uses the card surface so its labels stay on a reading ground.
+   Its border separates navigation from the page in both themes.
    overflow-y, because the box is pinned at the viewport's height for the whole
    scroll of .ui-app — without it a row past that height paints below the fold
    and no amount of document scrolling brings it back. The rail's own padding is
@@ -39,7 +39,7 @@
   gap: var(--space-5);
   padding: var(--space-5) var(--space-4);
   border-right: var(--ui-rail-rule) solid var(--border);
-  background: var(--surface-2); --ring-gap: var(--surface-2);
+  background: var(--surface); --ring-gap: var(--surface);
   position: sticky;
   top: var(--ui-app-top, 0px);
   height: calc(100vh - var(--ui-app-top, 0px));
@@ -59,11 +59,11 @@
 .ui-app__rail > .ui-app__head,
 .ui-app__rail > .ui-app__user,
 .ui-app__rail > .ui-app__foot { width: var(--ui-nav-col); flex: none; }
-/* The rail's hover WAS --surface-2, so moving the rail onto it would have made
-   hovering a row do nothing. The danger row and the current row are left out by
-   name, because this rule outranks the states nav.css writes for them.
+/* Hover keeps the reading surface and uses the edge declared in nav.css.
+   The danger row and the current row are left out by name because this
+   rule outranks the states nav.css writes for them.
    */
-.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-app__brand {
   display: flex;
   align-items: center;
@@ -109,7 +109,7 @@
    smallest of three weak signals doing the most work, so it grows with the row. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1403 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1377 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 .ui-app__rail .ui-nav__item.is-active .ui-nav__ic svg,
 .ui-app__rail .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
@@ -153,7 +153,7 @@
   width: var(--ui-app-av); height: var(--ui-app-av); flex: none;
   margin-inline-start: calc((var(--ui-nav-strip) - var(--ui-app-av)) / 2);
   border-radius: var(--radius-pill);
-  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   color: var(--strong);
   display: grid; place-items: center;
   font-size: calc(var(--text-xs) + 1px);
@@ -187,7 +187,7 @@
   font-weight: inherit;
   letter-spacing: normal;
 }
-.ui-app .ui-app__user-trigger:hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-app .ui-app__user-trigger:hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
 /* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
    time it is open it is no longer inside the rail that drew it.
@@ -269,7 +269,7 @@
    why: docs/specification.md#elevation */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
-.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
+.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
   .ui-app.is-collapsed,
   .ui-app:has(.ui-app__fold) { anchor-scope: --ui-rail; }
@@ -352,15 +352,7 @@
   font-size: var(--text-sm);
   text-align: start;
   color: var(--text);
-  /* --surface, not the sunken --surface-2 every other field in the kit takes:
-     those sit on a card and this one sits on the band, and the band IS --bg, the
-     bottom of the ladder — so a sunken fill has nowhere to go but down into its
-     own ground. Measured in light, the field was 1.10:1 BELOW the band and its
-     key cap 1.04:1 against the field it sits in; they are 1.11 above and 1.14 now.
-     Dark trades the other way and is stated rather than hidden: the cap goes
-     1.29 -> 1.16, because --surface-3 and --surface are adjacent rungs there.
-     Artur chose this over three alternatives on #318; the survey of what seven
-     other systems do is docs/reviews/318-search-field.md.
+  /* The band search uses the same reading surface as other text controls.
      why: docs/specification.md#elevation */
   background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border: 1px solid var(--border);
@@ -467,7 +459,7 @@
   .ui-app__rail .ui-nav__item,
   .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
+  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }
     .ui-app__rail { anchor-name: --ui-rail; }

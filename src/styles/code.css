@@ -4,7 +4,7 @@
  * ========================================================================== */
 
 .ui-snippet {
-  background: var(--surface-2); --ring-gap: var(--surface-2);
+  background: var(--surface); --ring-gap: var(--surface);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -71,7 +71,7 @@
 .ui-code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: var(--surface-2); --ring-gap: var(--surface-2);
+  background: var(--surface); --ring-gap: var(--surface);
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   color: var(--text);

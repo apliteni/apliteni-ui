@@ -27,7 +27,7 @@ export const SPEC_CSS = `
        one; the ink is the body's, like everything else on this page. */
     .tp-out__rank { font-family: var(--font-mono); font-size: var(--text-xs);
       font-weight: var(--weight-semibold); color: var(--text);
-      background: var(--surface-3); border-radius: var(--radius-xs); padding: 1px 6px; flex: none; }
+      border-radius: var(--radius-xs); padding: 1px 6px; flex: none; }
     .tp-out__row--2 { padding-left: var(--space-4); }
     .tp-out__row--3 { padding-left: var(--space-8); }
     .tp-out__row--4 { padding-left: var(--space-10); }
@@ -109,7 +109,7 @@ const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
 const outRow = (rank, text, bad) =>
   `<div class="tp-out__row tp-out__row--${rank}${bad ? ' tp-out__row--bad' : ''}">`
-  + `<span class="tp-out__rank">h${rank}</span><span>${text}</span></div>`;
+  + `<span class="ui-badge tp-out__rank">h${rank}</span><span>${text}</span></div>`;
 
 export const outlineDo = () => stage(`<div class="tp-out">
   ${outRow(1, 'Payouts')}

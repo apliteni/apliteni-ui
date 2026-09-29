@@ -10,10 +10,10 @@ export default {
 // why: docs/specification.md#elevation
 const LADDER = [
   ['--bg', 'Page', 'The base canvas. Nothing is below it.', null],
-  ['--surface-2', 'Sunken', 'A field, a track, a disabled box, a code block.', '--bg'],
+  ['--surface-2', 'Sunken', 'Non-text marks and tracks.', '--bg'],
   ['--surface', 'Card', 'A card, a panel that does not float.', '--bg'],
   ['--bg-elevated', 'Floating', 'A menu, a dropdown panel, the drawer, a modal, a toast.', '--surface'],
-  ['--surface-3', 'Top', 'The hover readout, a chip, the rail’s hover row.', '--bg-elevated'],
+  ['--surface-3', 'Top', 'Non-text quiet fills.', '--bg-elevated'],
 ];
 
 const step = ([token, name, note, on]) => `
@@ -34,27 +34,12 @@ const h3 = (t) => `<h3 style="font:600 13px/1 var(--font-display);color:var(--mu
 export const Ladder = {
   render: () => pad(`
     <h1 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:6px">Elevation</h1>
-    ${p('Nothing in the kit casts a shadow except a surface that floats. A card, a field, a chip and a row say how high they are with two things — their step on a ladder of lightness, and the hairline around them. A surface that floats keeps both, draws the hairline twice, and adds one soft drop. What floats is decided by the surface’s job rather than by its rung on the ladder: a menu, a panel, the drawer, a modal, a toast, the command palette, the hover readout and the collapsed rail’s flyout are each temporarily above something else, and the last two paint the step <em>above</em> a floating panel rather than the panel’s own.')}
-    ${p('Dark runs the ladder upwards: the page is the darkest thing on screen, and every step above it is lighter than the one under it. Light cannot, because nothing is brighter than white — so it spends the white on the card, the surface you read on, and the page is the lightest ground that still leaves the card a step: 1.11:1. A floating panel shares that white, and is told apart by the two devices only it has, its two-step edge and its drop. Re-picked on <a href="https://github.com/apliteni/apliteni-ui/issues/448" style="color:var(--accent)">#448</a>, after the old grey canvas left the card only 1.08:1 above it.')}
+    ${p('Only floating surfaces cast a shadow. Menus, dialogs and readouts use a panel surface with an edge and a soft drop. Cards and text controls use the page or card surface.')}
+    ${p('Light mode gives cards a white surface on a lighter page. The card and a floating panel share white; the floating panel keeps its edge and shadow.')}
 
-    ${h3('The ladder, bottom to top')}
+    ${h3('Surface tokens')}
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px">${LADDER.map(step).join('')}</div>
-    ${p('<strong style="color:var(--strong)">The ladder measures lightness, not elevation.</strong> Two surfaces on its top step — the hover readout and the collapsed rail’s flyout label — float by role and take the treatment; the rest of that step, a chip and a hovered row, does not.')}
-
-    ${p('<strong style="color:var(--strong)">In light the top step is the exception.</strong> Switch the theme on this page and the last swatch goes the other way: <code style="font-family:var(--font-mono);color:var(--accent)">--surface-3</code> is <code style="font-family:var(--font-mono);color:var(--accent)">#eef0f5</code> — the colour the page itself carried before #448 — below the page and a hair above the sunken step, because it cannot be above a card and a panel that are already white. In light it means the quiet fill — a chip, a hovered row, the readout’s panel — and on its fill alone a light readout would read as recessed rather than raised. The readout’s drop and its two-step edge are what say <em>raised</em> in light, where its fill cannot. Open on <a href="https://github.com/apliteni/apliteni-ui/issues/295" style="color:var(--accent)">#295</a>.')}
-
-    ${h3('A row inside a raised panel lifts')}
-    ${p('A hovered row, an active row, a chip and a key cap inside a floating panel take the step above the panel, never <code style="font-family:var(--font-mono);color:var(--accent)">--surface</code> — which is the card step and sits below <code style="font-family:var(--font-mono);color:var(--accent)">--bg-elevated</code> in dark, so a hover drawn with it sank while the panel floated. A field inside a panel goes the other way: it is the sunken step.')}
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;max-width:820px">
-      <div style="padding:14px;border-radius:14px;background:var(--bg-elevated);border:1px solid var(--border)">
-        <div style="padding:9px 11px;border-radius:8px;background:var(--surface-3);font:500 12.5px/1.4 var(--font-sans);color:var(--text)">A hovered row — the step above</div>
-        <div style="padding:9px 11px;border-radius:8px;font:500 12.5px/1.4 var(--font-sans);color:var(--muted)">A resting row</div>
-      </div>
-      <div style="padding:14px;border-radius:14px;background:var(--bg-elevated);border:1px solid var(--border)">
-        <div style="padding:9px 11px;border-radius:8px;background:var(--surface);font:500 12.5px/1.4 var(--font-sans);color:var(--text)">The card step, as it was — it sinks</div>
-        <div style="padding:9px 11px;border-radius:8px;font:500 12.5px/1.4 var(--font-sans);color:var(--muted)">A resting row</div>
-      </div>
-    </div>
+    ${p('Grey inset and quiet fills are for non-text marks. Fields, chips and rows keep text on a reading surface; their edges and meaningful accents show state.')}
 
     ${h3('The line and the step do different jobs')}
     ${p('A step of lightness is a contrast of about 1.1: enough to read as a change of surface, not enough to draw an edge. The line draws the edge; the step says which way is up. So every floating surface keeps the kit hairline, and the card carries one in both themes — not only in light, as it did before.')}

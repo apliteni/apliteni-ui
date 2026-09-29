@@ -30,7 +30,7 @@
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
-        "ref": "src/tokens/tokens.css:177",
+        "ref": "src/tokens/tokens.css:176",
         "pattern": "--disabled-ink: var(--muted);"
       }
     ],
@@ -76,7 +76,7 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:191",
+        "ref": "src/tokens/tokens.css:190",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
@@ -466,7 +466,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:398",
+        "ref": "src/styles/layout.css:390",
         "pattern": "rank: page-title"
       },
       {
@@ -542,7 +542,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:433",
+        "ref": "src/styles/layout.css:425",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -722,7 +722,7 @@
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:249",
+        "ref": "src/tokens/tokens.css:248",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],

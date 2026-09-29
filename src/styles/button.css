@@ -22,7 +22,7 @@
   /* Light needs a stronger line here: --border on this fill measures 1.047:1.
      why: docs/specification.md#elevation */
   border: 1px solid var(--control-edge);
-  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--text);
   white-space: nowrap;
   transition: background var(--dur-fast) var(--ease),
@@ -34,7 +34,7 @@
 
 .ui-btn:hover {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--strong);
 }
 .ui-btn:active { transform: translateY(1px); }
@@ -61,7 +61,7 @@
   color: var(--text);
 }
 .ui-btn--ghost:hover {
-  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-color: transparent;
   color: var(--strong);
 }
@@ -137,7 +137,7 @@
 .ui-btn[aria-busy="true"],
 .ui-btn[aria-busy="true"]:hover,
 .ui-btn[aria-busy="true"]:active {
-  background: var(--surface-2); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  background: var(--surface); /* ring-gap: inherit — busy paint retains the button's containing gap. */
   border-color: var(--border);
   color: var(--text);
   filter: none;
@@ -160,7 +160,7 @@
 .ui-btn[aria-busy="true"].ui-btn--danger,
 .ui-btn[aria-busy="true"].ui-btn--danger:hover,
 .ui-btn[aria-busy="true"].ui-btn--danger:active {
-  background: var(--surface-2); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  background: var(--surface); /* ring-gap: inherit — busy paint retains the button's containing gap. */
   border-color: var(--border);
   color: var(--text);
 }

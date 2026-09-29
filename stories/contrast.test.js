@@ -658,30 +658,29 @@ const ACCENT_LEDGER = {
   'dark/phoenix': { B: [1, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [1, 4.20], P: [65, 1.06], S: [21, 2.66] },
   'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
-  'light/phoenix': { C: [2, 3.76], E: [2, 3.22], F: [4, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [2, 4.45], E: [2, 3.81], F: [1, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
   // No F: #448 lifted this cell's one "soon" row (4.32) over AA. The bucket keeps its entry
   // because phoenix and emerald still owe rows against it.
-  'light/ocean': { C: [2, 3.76], E: [2, 3.22], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
-  'light/emerald': { C: [2, 3.76], E: [2, 3.22], F: [7, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
+  'light/ocean': { C: [2, 4.45], E: [2, 3.81], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [2, 4.45], E: [2, 3.81], F: [2, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
 };
 
+// #455, reviewed by hand: card-ground snippets raise C/E to 4.45/3.81.
+// Soon badges and pills use accent ink on the card and leave F; the remaining
+// rows are the hero eyebrow (Phoenix/Emerald) and snippet keyword (Emerald).
+// No new failure is accepted; dark cells and the existing P/S/L causes stay put.
 const ALTERNATE_CAUSES = [...LEDGER, {
   id: 'F',
   fg: '--purple-mid',
   themes: ['light'],
-  bg: 'accent-tinted grounds and the snippet bar under middle-ramp ink',
-  why: 'The middle-ramp ink read on a wash of its own hue: the "soon" status, the hero eyebrow, '
-    + 'the unstacked soon pill and the snippet keyword. It is deliberately the quietest thing the '
-    + 'kit can render — it marks something that does not exist yet and must not compete with what '
-    + 'does — and that is the same ink-on-its-own-hue problem as the accent bucket, chosen here on '
-    + 'purpose. This entry sat in LEDGER until #451, which took the light card tint from 9% to 5% '
-    + 'so a tinted card would stop sitting below the page; the ground under the default accent\'s '
-    + 'one remaining row lightened with it and that row cleared AA. Phoenix and emerald inks are '
-    + 'lighter than the default purple, so their rows are still short and still owed, which is why '
-    + 'the cause moved here rather than being deleted. Nobody owns it: the decision to make is '
-    + 'whether a status that means "not yet" is allowed to sit below the floor, and if not, whether '
-    + 'it stops being purple or stops being washed. Recorded under #376; a component owner must '
-    + 'choose a text-grade ink or a quieter background.',
+  bg: 'the hero eyebrow wash and snippet keywords under middle-ramp ink',
+  why: 'The remaining middle-ramp failures are the hero eyebrow in two light accents and '
+    + 'the snippet keyword in Emerald. Their existing limitation is recorded under #376. '
+    + 'The eyebrow keeps a wash of its own hue and the keyword keeps the middle-ramp ink; '
+    + 'neither is badge text. #455 moves Soon badges and pills to accent ink on the card '
+    + 'surface, so those rows are removed. The snippet reading surface also improves '
+    + 'contrast, but does not bring its Emerald keyword to the text floor.',
+
 }, {
   id: 'L',
   fg: '--accent',

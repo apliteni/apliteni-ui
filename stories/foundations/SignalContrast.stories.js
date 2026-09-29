@@ -173,7 +173,7 @@ const CSS = `
        to sections by it — so it stays; the eyebrow treatment does not. */
     .sc-kicker { font: 600 11.5px/1.6 var(--font-sans); color: var(--muted); }
     .sc-code { font: 400 .92em/1.4 var(--font-mono); color: var(--text);
-      background: var(--surface-2); border-radius: var(--radius-xs); padding: 1px 5px; }
+      border-radius: var(--radius-xs); padding: 1px 5px; }
 
     /* --- the measured cell: swatch, name, ratio, bar ---------------------- */
     .sc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
@@ -230,7 +230,7 @@ const CSS = `
        label rows under it line up across all four columns. */
     .sc-live__cell { display: grid; grid-template-rows: 1fr auto auto auto; gap: var(--space-2);
       min-width: 0; }
-    .sc-live__stage { background: var(--surface-2); border-radius: var(--radius-md);
+    .sc-live__stage { border-radius: var(--radius-md);
       padding: var(--space-4); display: flex; align-items: center; gap: var(--space-3);
       min-height: 96px; }
     /* Three lines reserved, so every stage gets the same 1fr and the four
@@ -283,7 +283,7 @@ const CSS = `
     }
   </style>`;
 
-const code = (s) => `<span class="sc-code">${s}</span>`;
+const code = (s) => `<span class="ui-code sc-code">${s}</span>`;
 
 // One measured cell. `bg` is painted, `ink` is set on it, and the ratio shown
 // is contrast(ink, bg) — the same two values, never a stored number.
@@ -306,7 +306,7 @@ const cell = (name, ink, bg, fam) => {
 // ===========================================================================
 const liveSpecimen = (title, stage, caption, pairs) => `
   <div class="sc-live__cell">
-    <div class="sc-live__stage">${stage}</div>
+    <div class="ui-card sc-live__stage">${stage}</div>
     <h3>${title}</h3>
     <div class="sc-live__cap">${caption}</div>
     <div class="sc-live__nums">${pairs
@@ -358,7 +358,7 @@ const sectionLive = () => {
       ${liveSpecimen(
         'Live pill',
         pill('Live', 'live'),
-        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:58')} ${code('.ui-pill--live')}`,
+        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:53')} ${code('.ui-pill--live')}`,
         chip('success', byKey.green),
       )}
       ${liveSpecimen(
@@ -571,7 +571,7 @@ const sectionPink = () => {
     </div>
     <div class="sc-notes">
       <div class="sc-note"><strong>The wash moved with the token.</strong>
-        ${code('--glow-pink')} holds a literal <code class="sc-code">rgba()</code>, so moving
+        ${code('--glow-pink')} holds a literal <code class="ui-code sc-code">rgba()</code>, so moving
         ${code('--pink')} would have left the wash behind. It was re-tinted by hand for a
         second reason as well: ${code('.ui-btn--danger:hover')} mixes ${code('--pink')} at 10%
         itself, so a frozen ${code('--glow-pink')} would have put two different pink washes
@@ -691,11 +691,11 @@ const sectionOpen = () => {
       <div class="sc-kicker">6 — Re-tinted</div>
       <h2>${code('--glow-green')} is a tint of ${code('--green')} now</h2>
       <p>A wash is its own colour at low alpha and nothing else. Green's was not: it read
-      <code class="sc-code">rgba(30, 150, 50, 0.1)</code> while ${code('--green')} is ${g.light} —
+      <code class="ui-code sc-code">rgba(30, 150, 50, 0.1)</code> while ${code('--green')} is ${g.light} —
       rgb(${rgb(g.light).join(', ')}) — and the two had been apart since the initial commit.
       rgb(30, 150, 50) was not a token, not a step in any ramp and not the dark green, so it
       was a leftover from a hand-authored palette rather than a decision anyone made. It is
-      now <code class="sc-code">rgba(${g.glow.rgb.join(', ')}, 0.1)</code>, which is
+      now <code class="ui-code sc-code">rgba(${g.glow.rgb.join(', ')}, 0.1)</code>, which is
       ${code('--green')} at the alpha the other three light glows already use.</p>
     </div>
     <div class="sc-panel">

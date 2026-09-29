@@ -151,9 +151,9 @@
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
-/* A row in a raised panel lifts: the step above it, never the card step below. why: docs/specification.md#elevation */
-.ui-dropdown__item:hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
-.ui-dropdown__item:focus-visible { outline: 2px solid transparent; background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: var(--ring); }
+/* Rows keep a reading surface; hover adds an edge. why: docs/specification.md#elevation */
+.ui-dropdown__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-dropdown__item:focus-visible { outline: 2px solid transparent; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: var(--ring); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ui-dropdown__label { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
@@ -180,14 +180,14 @@
   flex: none;
   color: var(--text);
   /* A chip is the top step. why: docs/specification.md#elevation */
-  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 /* The accent counter keeps the badge's flat surface and changes only the ink — the shape
-   src/styles/nav.css:163 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
+   src/styles/nav.css:158 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
    The accent wash goes on a base surface, never a raised one, and #295 made this panel a
    raised one. why: docs/specification.md#elevation */
-.ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
@@ -282,7 +282,7 @@
 
 /* The row Enter would pick. Focus stays in the field, which carries the ring,
    so this row takes the hover fill and a bar rather than a second ring. */
-.ui-dropdown__item.is-active { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: inset 2px 0 0 var(--accent); }
+.ui-dropdown__item.is-active { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: inset 2px 0 0 var(--accent); }
 
 /* No match — a nudge and no action, per Guidelines / Microcopy. Empty while
    anything matches, so it takes no room. */

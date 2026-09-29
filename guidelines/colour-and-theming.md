@@ -54,3 +54,15 @@
 
 
 <!-- rule: both-themes -->
+
+## Keep text off grey fills
+
+<!-- rule: text-surface -->
+
+**Rule:** Put text on the page or card surface, never on a grey fill.
+
+**Why:** Grey blocks make reading areas look disabled.
+
+**Do:** Draw inputs with an edge. Keep grey fills for non-text states, such as disabled tracks and dividers.
+
+**Don't:** Put text on grey fields, chips, headers or footers.

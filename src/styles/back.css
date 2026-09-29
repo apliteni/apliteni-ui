@@ -31,7 +31,7 @@
    (0,2,0) wins without !important — the argument `.ui-nav .ui-nav__item` makes
    in nav.css. */
 .ui-back[href] { color: var(--text); }
-.ui-back[href]:hover { color: var(--strong); background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-back[href]:hover { color: var(--strong); background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-back:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 /* 16px, with the stroke raised to match: the glyph set draws at 1.7 on a 24-unit

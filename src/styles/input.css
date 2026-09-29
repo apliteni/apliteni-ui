@@ -23,7 +23,7 @@
   font-family: var(--font-sans);
   font-size: var(--text-base);
   color: var(--strong);
-  /* Light draws a field with its edge, dark with its well.
+  /* Fields use the card surface and an edge in both themes.
      why: docs/specification.md#elevation */
   background: var(--field-bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border: 1px solid var(--field-edge);

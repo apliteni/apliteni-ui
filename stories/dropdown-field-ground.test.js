@@ -113,16 +113,12 @@ test('dark holds the well it already had, and cannot be sunk further', () => {
   );
 });
 
-test('the field is still a well, rather than the panel with a line round it', () => {
+// This checks resolved fill colours, not browser borders or interactive states.
+test('fields use the card surface in both themes', () => {
   for (const theme of THEMES) {
-    const vars = tokensFor(theme);
-    const panel = parseColour(substitute('var(--bg-elevated)', vars));
-    const deep = well(ground(SHEET, '.ui-dropdown__search-input', theme), panel);
-    assert.ok(
-      deep.ratio >= 1.05,
-      `[${theme}] the search field reads ${deep.ratio} against its panel — at that distance the `
-      + 'well has been flattened into the surface rather than lightened, and the border is doing '
-      + 'all the work',
-    );
+    const card = parseColour(substitute('var(--surface)', tokensFor(theme)));
+    for (const [sheet, selector] of [[SHEET, '.ui-dropdown__search-input'], [INPUTS, '.ui-input']]) {
+      assert.deepEqual(ground(sheet, selector, theme), card, `${theme} ${selector}: text needs the card surface`);
+    }
   }
 });

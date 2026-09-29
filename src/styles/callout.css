@@ -7,7 +7,7 @@
   gap: 12px;
   padding: 15px 17px;
   border-radius: var(--radius-md);
-  background: var(--surface-2); --ring-gap: var(--surface-2);
+  background: var(--surface); --ring-gap: var(--surface);
   font-size: calc(var(--text-sm) + 0.5px);
   line-height: 1.55;
   color: var(--text);
@@ -56,7 +56,7 @@
 .ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); }
 .ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }
 .ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
-.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface-2); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
+.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
 
 .ui-toast__icon { width: 22px; height: 22px; flex: none; display: grid; place-items: center; background: transparent; color: var(--toast-action-ink); }
 .ui-toast__icon svg { width: var(--space-4); height: var(--space-4); stroke: currentColor; fill: none; stroke-width: 2.25; } /* 16px × 2.25 / 24 = 1.5 CSS px. */
