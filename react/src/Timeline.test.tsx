@@ -5,6 +5,7 @@ import axe from 'axe-core';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { Timeline, type TimelineEvent } from './Timeline';
+import { Mixed, MixedReversal, NewEvent, NewestUntyped } from './Timeline.stories';
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
@@ -174,3 +175,42 @@ it('reserves accent or danger fill for the newest marker across every mix of kin
     }
   } finally { style.remove(); }
 });
+
+// Render the real fixtures; these checks cover story content, not browser paint.
+it.each([['Mixed', Mixed], ['NewEvent', NewEvent]] as const)(
+  '%s shows just now on the newest event before and after adding an event', async (_name, story) => {
+    const Story = story.render as unknown as () => React.ReactElement;
+    render(<Story />);
+    const assertNewestStamp = () => {
+      const rows = screen.getAllByRole('listitem');
+      expect(screen.getAllByText('just now')).toHaveLength(1);
+      expect(within(rows.at(-1)!).getByText('just now')).toBeVisible();
+    };
+    assertNewestStamp();
+    if (story === NewEvent) {
+      await userEvent.click(screen.getByRole('button', { name: 'Add reversal event' }));
+      expect(screen.getAllByRole('listitem')).toHaveLength(4);
+      assertNewestStamp();
+    }
+  },
+);
+
+it.each([['MixedReversal', MixedReversal], ['NewestUntyped', NewestUntyped]] as const)(
+  '%s includes the change it reverses and leaves the later review outside the batch', (_name, story) => {
+    const Story = story.render as unknown as () => React.ReactElement;
+    render(<Story />);
+    const rows = screen.getAllByRole('listitem');
+    expect(rows).toHaveLength(5);
+    expect(rows[1]).toHaveTextContent('Moved the record from Unassigned to Software.');
+    expect(rows[2]).toHaveTextContent('Corrected the category from Software to Services.');
+    expect(rows[2]).toHaveTextContent('Batch DEMO-13');
+    expect(rows[3]).toHaveTextContent('Reversed batch DEMO-13; moved the record from Services back to Software.');
+    expect(rows[4]).toHaveTextContent('Reviewed the corrected category.');
+    expect(rows[4]).not.toHaveTextContent('Batch');
+    const times = rows.map(row => row.querySelector('time')!.dateTime);
+    expect(times).toEqual([...times].sort());
+    expect(rows[0].querySelector('.ui-timeline__marker svg')).toBeNull();
+    expect(rows[3].querySelector('.ui-timeline__marker')).toHaveClass('ui-timeline__marker--reversal');
+    expect(Boolean(rows[4].querySelector('.ui-timeline__marker svg'))).toBe(story === MixedReversal);
+  },
+);

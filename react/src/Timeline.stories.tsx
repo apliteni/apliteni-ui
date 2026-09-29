@@ -38,8 +38,8 @@ export const Narrow: StoryObj = {
   render: () => <div style={{ maxWidth: 'var(--panel-sm)' }}><Timeline aria-label="Record history" events={events} /></div>,
 };
 
-const withKinds: readonly TimelineEvent[] = events.map(event => ({
-  ...event, kind: event.id === 'rule' ? 'rule' : 'person',
+const withKinds: readonly TimelineEvent[] = events.map((event, index) => ({
+  ...event, relativeTimestamp: index === events.length - 1 ? 'just now' : undefined, kind: event.id === 'rule' ? 'rule' : 'person',
 }));
 export const WithKinds: StoryObj = {
   render: () => <Timeline aria-label="Record history" events={[...withKinds, { ...reversal, kind: 'reversal', relativeTimestamp: 'just now' }]} />,
@@ -48,9 +48,9 @@ export const Mixed: StoryObj = {
   render: () => <Timeline aria-label="Record history" events={[events[0], ...withKinds.slice(1)]} />,
 };
 const mixedReversal: readonly TimelineEvent[] = [
-  events[0], withKinds[1], { ...reversal, kind: 'reversal' },
+  events[0], withKinds[1], withKinds[2], { ...reversal, kind: 'reversal' },
   { ...events[2], id: 'reviewed', dateTime: '2026-09-01T11:05:00Z', timestamp: '1 Sep, 11:05 UTC',
-    description: 'Reviewed the corrected category.', relativeTimestamp: 'just now' },
+    description: 'Reviewed the corrected category.', meta: undefined, relativeTimestamp: 'just now' },
 ];
 export const MixedReversal: StoryObj = {
   render: () => <Timeline aria-label="Record history" events={mixedReversal.map((event, index) =>
