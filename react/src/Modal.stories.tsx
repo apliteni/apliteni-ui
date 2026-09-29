@@ -43,9 +43,9 @@ export const CollapsedForm: StoryObj<typeof Modal> = {
         <Button variant="primary" onClick={() => setOpen(true)}>Open</Button>
         <Modal open={open} title="Item settings" onClose={() => setOpen(false)}
           footer={<Button variant="primary" onClick={() => setOpen(false)}>Save</Button>}>
-          <a href="#full">Open full page</a>
+          <a className="ui-focusable" href="#full">Open full page</a>
           <details>
-            <summary>Advanced options</summary>
+            <summary className="ui-focusable">Advanced options</summary>
             <div className="ui-field">
               <label className="ui-field__label" htmlFor="rx-modal-demo-channel">Channel</label>
               <select id="rx-modal-demo-channel" className="ui-select">

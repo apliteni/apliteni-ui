@@ -20,7 +20,7 @@ const behind = (inner = '') => `
   <div style="min-height:100vh;padding:40px">
     <div style="max-width:560px">
       <h1 style="font:600 22px/1.2 var(--font-display);color:var(--strong);margin:0 0 10px">Workspace</h1>
-      <p style="font:400 13px/1.6 var(--font-sans);color:var(--muted);margin:0 0 24px">
+      <p style="font:400 13px/1.6 var(--font-sans);color:var(--text);margin:0 0 24px">
         The page behind a drawer stays put and gets a scrim. Focus is trapped in the
         panel; Esc or a scrim click closes it and returns focus to the trigger.
       </p>
@@ -111,11 +111,11 @@ export const FormInDrawer = {
   render: () => behind() + drawer({
     side: 'right', size: 'md', title: 'New API key', specimen: true,
     body:
-      `<p style="margin:0 0 var(--space-5);color:var(--muted)">Give the key a name and pick what it may reach.</p>`
+      `<p style="margin:0 0 var(--space-5);color:var(--text)">Give the key a name and pick what it may reach.</p>`
       + field({ label: 'Key name', control: input({ placeholder: 'e.g. CI deploy bot' }) })
       + field({ label: 'Scope', control: select({ options: ['Read only', 'Read + write', 'Admin'] }) })
       + field({ label: 'Expires', control: select({ options: ['30 days', '90 days', 'No expiry'] }) })
-      + `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+      + `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-2)">
            <span style="font:500 12.5px/1 var(--font-sans);color:var(--text)">Notify on first use</span>
            ${switchToggle({ checked: true, label: 'Notify on first use' })}
          </div>`,
