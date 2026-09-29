@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.54.0', date: '2026-09-28',
+    v: '0.54.0', date: '2026-09-29',
     changes: [
       ['changed', "The light theme re-picks its surface colours: the card is now white (`--surface` #ffffff), the page is lighter and less blue (`--bg` #f2f3f6), the sunken step lifts off the border (`--surface-2` #e9ecf3) and the quiet fill takes the page's old colour (`--surface-3` #eef0f5). A card reads 1.11:1 against the page where it read 1.083:1, and every light ink gained contrast. A light floating panel is no longer the only white surface: a card shares it, and the panel is separated by its two-step edge and its drop, which now measure 1.52 and 1.44. Dark is unchanged. Consumers who hard-coded any of the four light values should read them from the tokens instead. See #455."],
       ['changed', 'Text controls, neutral badges, code blocks and navigation use reading surfaces in both themes instead of grey fills. Inputs are drawn by their edges; disabled labels keep their disabled ink. The Soon badge uses accent ink on the card surface. See #455.'],
