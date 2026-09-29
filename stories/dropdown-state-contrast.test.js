@@ -1,10 +1,10 @@
-// Measures source CSS and every state chip in the Dropdown stories in both themes.
+// Measures source CSS and every non-live chip in the Dropdown stories in both themes.
 // JSDOM resolves paint, not layout, browser hover, focus or anti-aliased pixels.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import * as stories from './components/Dropdown.stories.js';
-import { kitCssFor, effectiveBackground, parseColour, ratio } from './lib/contrast.js';
+import { kitCssFor, effectiveBackground, parseColour, ratio, rgbOf, substitute } from './lib/contrast.js';
 
 function assertEdge(style, panel, name) {
   for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
@@ -16,13 +16,13 @@ function assertEdge(style, panel, name) {
 
 for (const theme of ['light', 'dark']) {
   test(`dropdown state chips: ${theme} text and edge contrast`, () => {
-    const { css } = kitCssFor(theme);
+    const { css, vars } = kitCssFor(theme);
     const rendered = Object.entries(stories).filter(([, story]) => typeof story.render === 'function');
     assert.ok(rendered.length > 0, 'Dropdown stories must be discovered');
     let measured = 0;
     for (const [name, story] of rendered) {
       const win = new JSDOM(`<style>${css}</style>${story.render()}`).window;
-      const chips = win.document.querySelectorAll('.ui-dropdown__badge.is-state');
+      const chips = win.document.querySelectorAll('.ui-dropdown__badge:not(.is-live)');
       for (const chip of chips) {
         const style = win.getComputedStyle(chip);
         const ground = effectiveBackground(chip, win);
@@ -30,6 +30,13 @@ for (const theme of ['light', 'dark']) {
         assert.ok(ratio(parseColour(style.color), ground) >= 4.5, `${name}: chip text >= 4.5:1`);
         assertEdge(style, panel, name);
         measured++;
+      }
+      const bodyInk = rgbOf(substitute(vars.get('--text'), vars));
+      for (const label of win.document.querySelectorAll('.ui-dropdown__item.is-selected .ui-dropdown__label')) {
+        assert.equal(win.getComputedStyle(label).color, bodyInk, `${name}: selection uses the tick, not coloured text`);
+      }
+      for (const badge of win.document.querySelectorAll('.ui-dropdown__badge.is-accent, .ui-dropdown__badge.is-neutral')) {
+        assert.equal(win.getComputedStyle(badge).color, bodyInk, `${name}: non-status badges use body ink`);
       }
       win.close();
     }

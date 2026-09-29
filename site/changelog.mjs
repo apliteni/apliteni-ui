@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.58.2', date: '2026-09-29',
+    changes: [
+      ['fixed', 'Dropdown state and neutral badges have visible outlines in both themes. Selected titles use body ink, leaving the checkmark to indicate selection; non-status badges such as Beta use neutral ink. Vanilla and React share the styling. Resolves #445.'],
+    ],
+  },
+  {
     v: '0.58.1', date: '2026-09-29',
     changes: [
       ['fixed', 'React KeyValueList uses its container’s spacing in modals and other layouts. Lists inside drawers keep their existing spacing. If your custom CSS targets ui-drawer__rows on React KeyValueList, change that selector to ui-kv; vanilla drawer lists still use ui-drawer__rows. See #449.'],

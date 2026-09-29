@@ -258,7 +258,7 @@
     {
       "file": "stories/dropdown-state-contrast.test.js",
       "name": "Dropdown state chip contrast",
-      "does": "Discovers state chips in Dropdown stories and measures source CSS text at 4.5:1 and every edge at 3:1 against the panel in both themes. Removing the edge proves rejection.",
+      "does": "Discovers non-live chips in Dropdown stories and measures source CSS text at 4.5:1 and every edge at 3:1 against the panel in both themes. Selected labels and non-status badges must use body ink. Removing the edge proves rejection.",
       "blind": [
         "Browser layout, hover and focus paint, anti-aliasing, and consumer overrides. JSDOM resolves the resting story cascade only."
       ]

@@ -455,7 +455,10 @@ ink. State chips retain the badge reading surface and use the archived-badge ink
 a visible edge: at least 3:1 against the dropdown panel in both themes, with text
 at least 4.5:1. Held by `stories/dropdown-state-contrast.test.js`; decided in
 [#445](https://github.com/apliteni/apliteni-ui/issues/445).
-Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
+Dropdown selection uses an accent checkmark and a body-ink title. Non-status badges,
+including the legacy accent tone, use body ink and a neutral outline; live badges
+retain their status colour. Explicit neutral tone, unselected options and
+missing-comparison sentences use body ink.
 To extend this closed list, open an issue and agree the new class before using it.
 
 Every CSS `color` or `-webkit-text-fill-color` declaration that can reach muted or dim carries
@@ -1362,7 +1365,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:220-223 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:217-220 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the

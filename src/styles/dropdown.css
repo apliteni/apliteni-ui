@@ -164,7 +164,7 @@
 .ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--accent); }
 .ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
 .ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; } /* motion: still — a mark inside a row whose highlight already transitions; picking it closes the panel, which fades out over --dur-med */
-.ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--accent); }
+.ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--text); }
 
 /* When a row has both a badge and a tick, keep the badge from eating the margin */
 .ui-dropdown__badge + .ui-dropdown__tick { margin-left: 8px; }
@@ -183,11 +183,8 @@
   background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-/* The accent counter keeps the badge's flat surface and changes only the ink — the shape
-   src/styles/nav.css:158 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
-   The accent wash goes on a base surface, never a raised one, and #295 made this panel a
-   raised one. why: docs/specification.md#elevation */
-.ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-dropdown__badge.is-accent,
+.ui-dropdown__badge.is-neutral { border: 1px solid var(--muted); }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
