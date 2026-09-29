@@ -98,6 +98,9 @@
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
    lives in styles/empty.css as a standalone component (illustration support). */
 
+/* Tables share their containing card’s reading surface, including pinned cells. */
+.ui-card { --table-bg: var(--surface); }
+
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
 .ui-table { background: var(--table-bg); --ring-gap: var(--table-bg); }
 .ui-table--zebra tbody tr:nth-child(even) td,
@@ -115,6 +118,14 @@
 .ui-card > :where(.ui-table--dense, .ui-table--zebra) {
   width: calc(100% + 2 * var(--space-3));
   margin-inline: calc(-1 * var(--space-3));
+}
+/* A scroll wrapper owns the bleed for a nested dense table: 4px of focus
+   clearance plus the 12px end-cell inset. */
+.ui-card > .ui-table-scroll:has(> .ui-table--dense) {
+  margin-inline: calc(-1 * var(--space-4));
+}
+.ui-card > .ui-table-scroll > .ui-table--dense {
+  padding-inline: 0;
 }
 .ui-table td.ui-table__num { text-align: right; }
 .ui-table--compact td { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }

@@ -415,6 +415,14 @@
       ]
     },
     {
+      "file": "react/src/PeriodPicker.test.tsx",
+      "name": "React: Period picker showcase",
+      "does": "Checks report, comparison and URL selection, keyboard movement to the last month, that the month pills are the only route to a month, and that both pending regions announce.",
+      "blind": [
+        "Real browser layout and focus rings; mounted tests use jsdom."
+      ]
+    },
+    {
       "file": "react/src/Loading.test.tsx",
       "name": "React: Loading",
       "does": "Checks the mounted React loading indicators and their busy announcements.",

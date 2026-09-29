@@ -201,6 +201,12 @@ sat 12px inside the card's title. The table's own box hangs out by the same `--s
 card's 20–24px padding and never past it, so the inset stays and the columns line up. The card's
 scroll region is empty at rest at 1280; a ledger too wide for its column still scrolls.
 
+For a dense table in a direct scroll wrapper, the wrapper offsets its 4px focus
+clearance and the 12px cell inset; the nested table adds no further padding.
+Segmented strips also keep their content width inside grid parents; block and
+underline variants stretch. These extensions are covered by browser measurements on
+[#435](https://github.com/apliteni/apliteni-ui/pull/435).
+
 Both decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451).
 
 Held by `stories/table-rhythm.test.js`. Decided in
@@ -1780,6 +1786,8 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 
 ## Stat bands
 
+React StatBand deltas accept `tooltip` text, rendered by the kit Tooltip on the change value.
+
 `statBand()` renders a row of key figures. Each figure is a label and a value, and may carry a
 change and a trend. A figure is only ever rendered inside its band, because its label and values
 are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
@@ -1812,6 +1820,11 @@ the band's caption, which every change points at, or beside the change when one 
 something else. A hover `title` does not count, because a phone never shows one. On a band with
 no changes, the caption says what the figures cover instead, such as the period.
 
+React `StatBand` can reference a caption shared with another view through `basisId`.
+The caller places that caption before the figures. Passing `basis` instead renders
+the band's own caption and takes precedence over `basisId`. The period showcase
+uses this to share one comparison with its ledger; React tests check the references.
+
 The caption comes **before** the figures, in every layout, the way a table's `<caption>` does. It is
 one statement about all of them, so it is read before the numbers it explains and it sits outside
 every figure. Under a row of tiles it would read as a note on the last card, and inside the first
@@ -1833,6 +1846,10 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 [i267]: https://github.com/apliteni/apliteni-ui/issues/267
 
 ## React tables
+
+Column labels accept React content, including a kit Tooltip for a header explanation.
+
+Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
 
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.
@@ -1985,7 +2002,8 @@ every column. Numeric headers and values stay right-aligned. Held by
 
 `numericValue` preserves the caller's formatted value and distinguishes missing from zero.
 `deltaValue` prints the caller's sign, accepts an explicit success/danger/neutral judgement,
-and leaves zero and missing comparisons neutral. Colour never supplies the sign. The caller
+and leaves zero and missing comparisons neutral, including signed zero with a unit suffix
+such as `+0 EUR` or `−0.00 %`. Colour never supplies the sign. The caller
 names the comparison through `basisId`. `rowIdentity` combines decorative logo, symbol and
 name; missing or failed images retain a letter fallback after initialization.
 
@@ -2260,3 +2278,19 @@ source test does not render layout. Existing Modal tests cover focus, dismissal 
 ## React tooltip
 
 React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
+## React segmented labels
+
+Segmented options may supply `ariaLabel` to give a short visible label a fuller
+accessible name. Without it, the visible label names the button.
+
+## Segmented strips that outgrow their column
+
+A pill strip lays its choices out in one row while they fit, and wraps onto further
+rows when they do not. It never widens past its container: a twelve-month picker in
+a phone column becomes three rows of pills rather than a track that pushes the page
+sideways and drags every other block with it. Below 560px the standard-size pills also tighten
+their side padding, which is what keeps six three-letter months on one row in a
+390px column; the type rank is unchanged at every width.
+
+The underline appearance scrolls instead of wrapping, which is the right answer for
+column switches over one dataset, where the order is the reader's map.

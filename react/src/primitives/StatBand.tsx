@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { Icon } from './Icon';
+import { Tooltip } from '../Tooltip';
 
 // The React face of statBand(). Same classes, same <dl>, same rules; the one
 // difference is that `value` and `trend` take React nodes, so a figure can be a
@@ -13,6 +14,7 @@ export interface StatDelta {
   value: string | null;
   tone?: StatTone;
   basis?: string;
+  tooltip?: string;
   direction?: 'up' | 'down' | 'flat';
   none?: string;
 }
@@ -28,6 +30,8 @@ export interface StatBandProps {
   stats: StatFigure[];
   variant?: StatVariant;
   basis?: string;
+  /** Existing caption before the figures; used when basis is omitted. */
+  basisId?: string;
   label?: string;
   id?: string;
 }
@@ -48,16 +52,18 @@ function Delta({ delta, basisId }: { delta: StatDelta; basisId?: string }) {
   return (
     <dd className="ui-stat__delta" aria-describedby={!delta.basis && basisId ? basisId : undefined}>
       <Icon name={GLYPH[dir]} />
-      <span className="ui-stat__change">{delta.value}</span>
+      {delta.tooltip
+        ? <Tooltip text={delta.tooltip}><span className="ui-stat__change">{delta.value}</span></Tooltip>
+        : <span className="ui-stat__change">{delta.value}</span>}
       {delta.basis ? <>{' '}<span className="ui-stat__basis">{delta.basis}</span></> : null}
     </dd>
   );
 }
 
-export function StatBand({ stats, variant = 'tiles', basis, label, id }: StatBandProps) {
+export function StatBand({ stats, variant = 'tiles', basis, basisId: sharedBasisId, label, id }: StatBandProps) {
   const auto = useId();
   const v: StatVariant = ['band', 'tiles', 'open'].includes(variant) ? variant : 'tiles';
-  const basisId = basis ? `${id || auto}-basis` : undefined;
+  const basisId = basis ? `${id || auto}-basis` : sharedBasisId;
   const root = ['ui-stats', `ui-stats--${v}`, v === 'band' && 'ui-card'].filter(Boolean).join(' ');
   return (
     <div className={root} role={label ? 'group' : undefined} aria-label={label || undefined}>

@@ -17,6 +17,23 @@ test('values preserve zero, escape data, and never judge missing or flat changes
   assert.match(deltaValue({ value: '−2%', tone: 'success' }), /--success/);
   assert.doesNotMatch(deltaValue({ value: '+2%' }), /--success/);
 });
+// These assertions check emitted classes and text, not browser colour or layout.
+test('zero deltas stay neutral with currency and other unit suffixes', () => {
+  for (const value of ['+0 EUR', '+0 €', '−0.00 %', '0', 0, '-0', '0.00%', '0,00 %', '+00.000 kg', '  +0\u00a0USD  ', '0ms', '0 m2']) {
+    for (const tone of ['success', 'danger']) {
+      const html = deltaValue({ value, tone });
+      assert.doesNotMatch(html, /ui-delta--/, `${value}: ${tone}`);
+      assert.ok(html.includes(`>${value}</span>`), 'preserves caller formatting');
+    }
+  }
+});
+test('non-zero deltas keep their caller-supplied judgement with unit suffixes', () => {
+  for (const value of ['+0.5 EUR', '+10 EUR', '−0.01 %', '-0,5 €', '+00.001 kg', '0.0001', '10', '+0.5']) {
+    for (const tone of ['success', 'danger']) {
+      assert.match(deltaValue({ value, tone }), new RegExp(`ui-delta--${tone}`), String(value));
+    }
+  }
+});
 test('filter removal is controlled and update recovers focus through the last chip', () => {
   const { dom, host } = setup(filterBar({ filters })); const bar = initFilterBar(host, { filters });
   let requested; host.addEventListener('ui-filter-remove', e => { requested = e.detail.id; });
