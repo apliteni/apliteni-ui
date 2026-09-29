@@ -2354,3 +2354,20 @@ Held by `react/src/primitives/Pill.test.tsx` and
 `react/src/primitives/StatusDot.test.tsx`; these check DOM behavior and semantics,
 not visual rendering or assistive-technology announcements. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+## React success confirmations
+
+Under [#429](https://github.com/apliteni/apliteni-ui/issues/429), React `SuccessPanel`
+provides the inline title/subtitle confirmation and `SuccessCheck` provides its
+shared decorative mark and sizing wrapper. `Success` keeps the existing hero,
+split and compact layouts, aurora/glow/flat backdrops, and optional confetti.
+They use the existing CSS and reduced-motion behavior, without vanilla factories.
+Actions are React nodes; routing remains with the consumer. The page confirmation
+has a polite status region and defaults to h1 for hero/split, h2 for compact;
+`level` allows an explicit rank. The inline panel keeps its existing div title.
+
+An optional countdown calls `onCountdownEnd` once when it reaches zero. Removal or
+unmount cancels it. Changing duration restarts it; changing label or callback keeps
+elapsed time. Durations round down to whole seconds; missing, non-finite, or
+sub-one values use five seconds. `react/src/Success.test.tsx` checks semantics,
+action access and timer ownership; it does not measure browser paint or prove
+screen-reader announcements.

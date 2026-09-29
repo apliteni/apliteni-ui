@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -538,3 +538,27 @@ Tooltip accepts text and inline children, without nested controls. Hovering or f
 ```tsx
 <Tooltip text="Updated daily">Balance</Tooltip>
 ```
+
+## Success
+
+`SuccessPanel` confirms an outcome inside the current page with `title` and optional
+`sub`. `SuccessCheck` is the same decorative animated mark with its sizing wrapper;
+place outcome text beside it. Both forward a ref to their root div.
+
+`Success` provides `hero`, `split`, and `compact` layouts with `aurora`, `glow`, or
+`flat` backdrops. Pass `eyebrow`, `title`, `body`, and React `actions` (such as Button
+or a router link). Hero and split default to h1; compact defaults to h2. `level`
+overrides the heading rank. `confetti` enables the existing decorative animation.
+All three components use the kit CSS and its reduced-motion rules.
+
+```tsx
+<Success title="Changes saved" backdrop="flat"
+  countdown={waiting ? { seconds: 5, label: 'Continuing' } : null}
+  onCountdownEnd={continueToNextPage}
+  actions={<Button onClick={() => setWaiting(false)}>Stay here</Button>} />
+```
+
+Removing `countdown` or unmounting cancels the timer. Changing its duration restarts
+it; changing its label or callback does not. Durations are whole seconds rounded
+down, with five seconds used for omitted, non-finite, or sub-one values. Completion
+fires once per countdown, including in StrictMode. Navigation belongs to the caller.

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.62.0', date: '2026-09-30',
+    changes: [
+      ['added', 'React Success, SuccessPanel and SuccessCheck retain the existing confirmation layouts and animation. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
+    ],
+  },
+  {
     v: '0.61.0', date: '2026-09-30',
     changes: [
       ['added', 'React TextField supports password and search, takes a decorative glyph by name in `icon`, and forwards its ref to the input. Field exposes the existing label, hint and error frame for composed controls. Part of #429.'],
