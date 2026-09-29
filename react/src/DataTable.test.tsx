@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { readFileSync } from 'node:fs';
@@ -520,4 +520,37 @@ it('disables the chevron transition under reduced motion', () => {
       'selectorText' in rule && caret.matches((rule as CSSStyleRule).selectorText)) as CSSStyleRule;
     expect(override.style.getPropertyValue('transition')).toBe('none');
   } finally { style.remove(); }
+});
+
+// JSDOM supplies no layout; browser captures check real widths and pinned cells.
+it('offers column navigation only for overflow and disables each reached edge', async () => {
+  const user = userEvent.setup();
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity scrollLabel="Ledger" />);
+  const region = screen.getByRole('region', { name: 'Ledger' });
+  expect(screen.queryByRole('button', { name: 'More columns' })).toBeNull();
+  Object.defineProperties(region, {
+    clientWidth: { configurable: true, value: 300 },
+    scrollWidth: { configurable: true, value: 450 },
+    scrollBy: { value: ({ left }: { left: number }) => {
+      region.scrollLeft += left;
+      fireEvent.scroll(region);
+    } },
+  });
+  fireEvent.scroll(region);
+  const previous = screen.getByRole('button', { name: 'Previous columns' });
+  const more = screen.getByRole('button', { name: 'More columns' });
+  expect(previous).toBeDisabled();
+  expect(more).toBeEnabled();
+  expect(more).toHaveAttribute('aria-controls', region.id);
+  await user.click(more);
+  expect(region.scrollLeft).toBe(150);
+  expect(more).toBeDisabled();
+  expect(previous).toBeEnabled();
+  await user.click(previous);
+  expect(region.scrollLeft).toBe(0);
+  expect(previous).toBeDisabled();
+  Object.defineProperty(region, 'clientWidth', { value: 450 });
+  fireEvent.scroll(region);
+  expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
 });

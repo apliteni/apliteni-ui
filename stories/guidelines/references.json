@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:102",
+        "ref": "src/styles/table.css:105",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]

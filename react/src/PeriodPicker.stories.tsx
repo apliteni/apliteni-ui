@@ -164,9 +164,7 @@ function Example({ busy = false }: { busy?: boolean }) {
               <StatBand label="Cashflow" stats={figures} basisId={basisId} />)}
           </div>
           <Card title="Ledger">
-            {/* pinnedIdentity gives the table the kit's named scroll region: a
-                phone scrolls the money columns with the category held beside
-                them, and the region is reachable from the keyboard. */}
+            {/* The kit keeps categories pinned and offers column controls on overflow. */}
             {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
               <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
                 stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}

@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.55.1', date: '2026-09-29',
     changes: [
       ['fixed', 'Segmented controls accept full accessible labels, wrap long pill strips, and keep their content width in grid layouts. Spacing follows the token scale and control transitions use 150ms; underline tabs continue to scroll. See #392 and #435.'],
+      ['fixed', 'React tables offer column navigation when they overflow, and tables inside cards share the card surface.'],
       ['fixed', 'Dense tables inside a card scroll wrapper align their first column with the card title. Zero deltas with currency or other unit suffixes stay neutral.'],
       ['fixed', 'React StatBand can reference an existing comparison caption through basisId, so summary figures and ledger changes can share one caption.'],
       ['added', 'A period-selection showcase with six months, loading states, labelled status marks, and signed cashflow comparisons.'],

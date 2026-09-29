@@ -98,6 +98,9 @@
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
    lives in styles/empty.css as a standalone component (illustration support). */
 
+/* Tables share their containing card’s reading surface, including pinned cells. */
+.ui-card { --table-bg: var(--surface); }
+
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
 .ui-table { background: var(--table-bg); --ring-gap: var(--table-bg); }
 .ui-table--zebra tbody tr:nth-child(even) td,

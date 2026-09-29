@@ -1845,6 +1845,8 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 
 ## React tables
 
+Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
+
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.
 
