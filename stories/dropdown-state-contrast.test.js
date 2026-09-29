@@ -1,4 +1,4 @@
-// Source cascade only: no layout, browser pseudo-classes or anti-aliased pixels.
+// Measures contrast and badge geometry through the source cascade: no layout, browser pseudo-classes or anti-aliased pixels.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
