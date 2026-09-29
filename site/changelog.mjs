@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.104.0', date: '2026-10-11',
+    changes: [
+      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices. block composes with the underline appearance; size="sm" does not. Part of #429.', ['Segmented']],
+    ],
+  },
+  {
     v: '0.100.0', date: '2026-10-10',
     changes: [
       ['added', 'While the React AppShell draws its phone bottom bar \u2014 below 560px, for a section list with somewhere to go \u2014 it publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. The page\u2019s bottom padding, root scroll padding and the React toast stack read it, each with `0px` as the fallback, and root scroll padding adds the focus ring\u2019s own room on top \u2014 so a changed action scrolled into view lands above the bar with its whole ring on screen. A phone page whose shell draws no bar keeps the ordinary end space the kit gives every phone page. The token is declared nowhere else, so read it as `var(--ui-app-bottom-clearance, 0px)`.'],
