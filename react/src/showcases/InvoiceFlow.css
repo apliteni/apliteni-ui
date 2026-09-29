@@ -61,3 +61,5 @@
 
 .invoice-flow__data[data-live] form { animation: invoice-arrive var(--dur-slow) var(--ease-out); }
 @media (prefers-reduced-motion: reduce) { .invoice-flow__data[data-live] form { animation: none; } }
+/* Keep focused controls clear of the shell's fixed mobile navigation. */
+.invoice-flow :is(button, input, a) { scroll-margin-block: calc(var(--space-16) + var(--space-16)); }
