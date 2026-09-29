@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { Icon } from './Icon';
+import { Tooltip } from '../Tooltip';
 
 // The React face of statBand(). Same classes, same <dl>, same rules; the one
 // difference is that `value` and `trend` take React nodes, so a figure can be a
@@ -13,6 +14,7 @@ export interface StatDelta {
   value: string | null;
   tone?: StatTone;
   basis?: string;
+  tooltip?: string;
   direction?: 'up' | 'down' | 'flat';
   none?: string;
 }
@@ -50,7 +52,9 @@ function Delta({ delta, basisId }: { delta: StatDelta; basisId?: string }) {
   return (
     <dd className="ui-stat__delta" aria-describedby={!delta.basis && basisId ? basisId : undefined}>
       <Icon name={GLYPH[dir]} />
-      <span className="ui-stat__change">{delta.value}</span>
+      {delta.tooltip
+        ? <Tooltip text={delta.tooltip}><span className="ui-stat__change">{delta.value}</span></Tooltip>
+        : <span className="ui-stat__change">{delta.value}</span>}
       {delta.basis ? <>{' '}<span className="ui-stat__basis">{delta.basis}</span></> : null}
     </dd>
   );

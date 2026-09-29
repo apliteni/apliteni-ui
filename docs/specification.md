@@ -1786,6 +1786,8 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 
 ## Stat bands
 
+React StatBand deltas accept `tooltip` text, rendered by the kit Tooltip on the change value.
+
 `statBand()` renders a row of key figures. Each figure is a label and a value, and may carry a
 change and a trend. A figure is only ever rendered inside its band, because its label and values
 are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
@@ -1844,6 +1846,8 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 [i267]: https://github.com/apliteni/apliteni-ui/issues/267
 
 ## React tables
+
+Column labels accept React content, including a kit Tooltip for a header explanation.
 
 Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
 

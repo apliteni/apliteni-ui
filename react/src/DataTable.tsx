@@ -6,7 +6,7 @@ import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 
 export type Column<T> = {
-  key: keyof T & string; label: string; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
+  key: keyof T & string; label: ReactNode; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
 };
 export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
 type SelectionProps =

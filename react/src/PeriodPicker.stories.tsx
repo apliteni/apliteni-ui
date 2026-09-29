@@ -6,6 +6,7 @@ import { DataTable, type Column } from './DataTable';
 import { NumericValue, DeltaValue } from './TableValues';
 import { BusyRegion, Skeleton, SkeletonTable } from './Loading';
 import { Segmented } from './Segmented';
+import { Tooltip } from './Tooltip';
 import { Badge } from './primitives/Badge';
 import { Icon } from './primitives/Icon';
 
@@ -103,7 +104,7 @@ function Example({ busy = false }: { busy?: boolean }) {
     { key: 'name', label: 'Category' },
     { key: 'amount', label: `${selected.short} 2026`, num: true, render: row => <NumericValue value={amountText(row.amount)} unit=" €" /> },
     {
-      key: 'delta', label: 'Change', num: true,
+      key: 'delta', label: <Tooltip text={basis}>Change</Tooltip>, num: true,
       render: row => row.delta == null
         ? <NumericValue value={null} />
         : <span className="ui-value"><DeltaValue basisId={basisId} value={change(row.delta).replace(' €', '')} tone={rowTone(row.delta)} /><span className="ui-value__unit"> €</span></span>,
@@ -117,9 +118,9 @@ function Example({ busy = false }: { busy?: boolean }) {
   // The basis explains missing comparisons once for the whole report.
   // Net cashflow takes no tone: income less cost already says which way it ran.
   const figures: StatFigure[] = [
-    { label: 'Money in', value: money(here.income), delta: before ? { value: change(here.income - before.income), tone: here.income >= before.income ? 'good' : 'bad' } : undefined },
-    { label: 'Money out', value: money(here.spend), delta: before ? { value: change(here.spend - before.spend), tone: here.spend > before.spend ? 'bad' : 'good' } : undefined },
-    { label: 'Net cashflow', value: money(here.net), delta: before ? { value: change(here.net - before.net) } : undefined },
+    { label: 'Money in', value: money(here.income), delta: before ? { tooltip: basis, value: change(here.income - before.income), tone: here.income >= before.income ? 'good' : 'bad' } : undefined },
+    { label: 'Money out', value: money(here.spend), delta: before ? { tooltip: basis, value: change(here.spend - before.spend), tone: here.spend > before.spend ? 'bad' : 'good' } : undefined },
+    { label: 'Net cashflow', value: money(here.net), delta: before ? { tooltip: basis, value: change(here.net - before.net) } : undefined },
   ];
 
   // A live region only while one is needed: a loaded page already has the period

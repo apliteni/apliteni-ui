@@ -17,8 +17,8 @@ it('changes the report, its comparison and the URL with the period', () => {
   expect(screen.getByRole('status')).toHaveTextContent('Closed');
   expect(screen.getByRole('heading', { level: 2, name: 'Ledger' })).toBeInTheDocument();
   // The first month has nothing to compare against, and says so rather than 0 €.
-  expect(screen.getAllByText('No earlier month to compare.')).toHaveLength(1);
-  expect(screen.getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(['Category', 'Apr 2026', 'Change', 'Previous']);
+  expect(document.querySelector('[id^=period-basis]')).toHaveTextContent('No earlier month to compare.');
+  expect(screen.getAllByRole('columnheader').map(cell => cell.querySelector('.ui-focusable')?.textContent ?? cell.textContent)).toEqual(['Category', 'Apr 2026', 'Change', 'Previous']);
   const missing = screen.getAllByText('—');
   expect(missing).toHaveLength(8);
   expect(new Set(missing.map(cell => cell.getAttribute('aria-label'))).size).toBe(1);
@@ -30,7 +30,7 @@ it('changes the report, its comparison and the URL with the period', () => {
   expect(screen.getByText('41,000 €')).toBeInTheDocument();
   // Negative money uses U+2212, not the hyphen the plain formatter emits.
   expect(screen.getByText('−17,000')).toBeInTheDocument();
-  expect(screen.getByText('Compared with August 2026')).toBeInTheDocument();
+  expect(document.querySelector('[id^=period-basis]')).toHaveTextContent('Compared with August 2026');
   expect(window.location.search).toContain('period=2026-09');
 });
 
@@ -71,7 +71,7 @@ it('shares one comparison across stat and ledger changes without repeating the m
   window.history.replaceState(null, '', '?period=2026-09');
   const { container } = render(Default.render());
   expect(screen.queryByText('September 2026')).toBeNull();
-  expect(screen.getAllByText('Compared with August 2026')).toHaveLength(1);
+  expect(document.querySelectorAll('[id^=period-basis]')).toHaveLength(1);
   const changes = [...container.querySelectorAll('.ui-stat__delta, .ui-delta')];
   expect(changes).toHaveLength(7);
   for (const change of changes) {
@@ -85,5 +85,30 @@ it('puts the ledger heading outside its card and keeps comparison copy off the r
   const heading = screen.getByRole('heading', { name: 'Ledger' });
   expect(heading.closest('.ui-card')).toBeNull();
   expect(heading.nextElementSibling).toHaveClass('ui-card');
-  expect(screen.getByText('Compared with August 2026')).toHaveClass('ui-sr');
+  expect(document.querySelector('[id^=period-basis]')).toHaveClass('ui-sr');
+});
+
+// Component events verify wiring; real browser touch captures verify placement.
+it('explains the Change header and all summary deltas on hover, focus and tap', () => {
+  window.history.replaceState(null, '', '?period=2026-09');
+  const { container } = render(Default.render());
+  const triggers = [...container.querySelectorAll<HTMLElement>('.ui-tip-host > .ui-focusable')];
+  expect(triggers).toHaveLength(4);
+  for (const trigger of triggers) {
+    const tip = document.getElementById(trigger.getAttribute('aria-describedby')!)!;
+    expect(tip).toHaveTextContent('Compared with August 2026');
+    fireEvent.mouseEnter(trigger);
+    expect(tip).toHaveClass('is-open');
+    fireEvent.mouseLeave(trigger);
+    fireEvent.focus(trigger);
+    expect(tip).toHaveClass('is-open');
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(tip).not.toHaveClass('is-open');
+    fireEvent.touchStart(trigger);
+    fireEvent.touchEnd(trigger);
+    expect(tip).toHaveClass('is-open');
+    fireEvent.touchStart(trigger);
+    fireEvent.touchEnd(trigger);
+    expect(tip).not.toHaveClass('is-open');
+  }
 });
