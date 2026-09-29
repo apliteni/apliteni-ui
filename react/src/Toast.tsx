@@ -5,6 +5,8 @@ import './Toast.css';
 
 export type ToastNotice = {
   tone?: 'success' | 'danger' | 'warn' | 'info' | 'neutral';
+  compact?: boolean;
+  dismissible?: boolean;
   title: string;
   text?: string;
   action?: { label: string; onClick: () => void };
@@ -56,7 +58,7 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
   }, [dismiss, leaving, notice.action, paused]);
 
   return (
-    <div ref={root} className={`ui-toast ui-toast--${tone} ui-toast--soft${leaving ? ' is-leaving' : ''}`}
+    <div ref={root} className={`ui-toast ui-toast--${tone} ui-toast--soft${notice.compact ? ' ui-toast--compact' : ''}${leaving ? ' is-leaving' : ''}`}
       role={tone === 'danger' ? 'alert' : 'status'} aria-live={tone === 'danger' ? 'assertive' : 'polite'}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
@@ -64,15 +66,15 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
       <span className="ui-toast__icon"><Icon name={glyphs[tone]} /></span>
       <div className="ui-toast__body">
         <div className="ui-toast__title">{notice.title}</div>
-        {notice.text && <div className="ui-toast__text">{notice.text}</div>}
+        {!notice.compact && notice.text && <div className="ui-toast__text">{notice.text}</div>}
       </div>
       {notice.action && <button type="button" className="ui-toast__action" disabled={leaving}
         onClick={() => { if (!dismissed.current) { dismiss(); notice.action!.onClick(); } }}>
         {notice.action.label}
       </button>}
-      <button type="button" className="ui-toast__close" aria-label="Dismiss" disabled={leaving} onClick={dismiss}>
+      {notice.dismissible !== false && <button type="button" className="ui-toast__close" aria-label="Dismiss" disabled={leaving} onClick={dismiss}>
         <Icon name="x" />
-      </button>
+      </button>}
       {!notice.action && <span className="ui-toast__timer is-running" aria-hidden="true"
         style={{ animationPlayState: paused ? 'paused' : 'running' }} />}
     </div>

@@ -145,3 +145,47 @@ it('publishes how far the stack reaches so a fixed page action can clear it', ()
     HTMLElement.prototype.getBoundingClientRect = real;
   }
 });
+
+it('omits compact body text from both the screen and announcement', () => {
+  setup({ title: 'Copied to clipboard', text: 'Hidden details', compact: true });
+  fireEvent.click(screen.getByText('Notify'));
+  expect(screen.getByRole('status')).toHaveClass('ui-toast--compact');
+  expect(screen.getByRole('status')).toHaveTextContent('Copied to clipboard');
+  expect(screen.queryByText('Hidden details')).not.toBeInTheDocument();
+});
+it('expires a notice without a close button, including hover pause', () => {
+  vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: true }));
+  setup({ title: 'Saved', dismissible: false });
+  fireEvent.click(screen.getByText('Notify'));
+  expect(screen.queryByRole('button', { name: 'Dismiss' })).not.toBeInTheDocument();
+  const notice = screen.getByRole('status');
+  act(() => vi.advanceTimersByTime(2000));
+  fireEvent.mouseEnter(notice);
+  act(() => vi.advanceTimersByTime(10000));
+  expect(notice).toBeInTheDocument();
+  fireEvent.mouseLeave(notice);
+  act(() => vi.advanceTimersByTime(3000));
+  expect(notice).not.toBeInTheDocument();
+});
+it('keeps a compact, non-dismissible action notice until its action is selected', () => {
+  vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: true }));
+  const onClick = vi.fn();
+  setup({ title: 'Draft removed', text: 'Hidden details', compact: true, dismissible: false,
+    action: { label: 'Undo', onClick } });
+  fireEvent.click(screen.getByText('Notify'));
+  act(() => vi.advanceTimersByTime(20000));
+  expect(screen.queryByRole('button', { name: 'Dismiss' })).not.toBeInTheDocument();
+  expect(screen.getByRole('status').querySelector('.ui-toast__timer')).toBeNull();
+  const action = screen.getByRole('button', { name: 'Undo' });
+  action.focus();
+  expect(action).toHaveFocus();
+  fireEvent.click(action);
+  expect(onClick).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+});
+it('has no axe violations in compact non-dismissible presentation', async () => {
+  setup({ title: 'Copied to clipboard', compact: true, dismissible: false });
+  fireEvent.click(screen.getByText('Notify'));
+  const result = await axe.run(document.body, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+  expect(result.violations).toEqual([]);
+});

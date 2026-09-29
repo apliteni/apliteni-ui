@@ -2302,6 +2302,12 @@ All legacy styles share a neutral `--surface` card with `--border`, `--elev-drop
 compact markup remain supported; no SVG paths or interaction contracts change.
 Vanilla and React share this styling.
 
+React notices accept `compact` (false by default; when true the body text is
+omitted) and `dismissible` (true by default; set it false to hide the close
+button). Hiding the close button does not change timing or action behavior.
+React notices always carry the `soft` style class. These presentation options are
+checked in `react/src/Toast.test.tsx`.
+
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest
 at the bottom, anchored to the bottom-right corner. The provider measures the stack
 and publishes how far it reaches up the viewport as `--rx-toast-stack` on the
