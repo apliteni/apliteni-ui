@@ -2410,4 +2410,20 @@ open unless `defaultOpen` or a user toggle sets their state. Folding does not re
 AppShell composes this navigation in its desktop rail and More drawer.
 
 Held by `react/src/SidebarNav.test.tsx`; browser captures verify presentation separately.
+
+## React checkbox, radio and switch
+
+`Checkbox` and `Switch` render native inputs inside the existing `ui-check` and
+`ui-switch` labels and use the shared `input.css` without overrides. `Checkbox`
+accepts `type="radio"`; same-name radios retain native exclusive selection and
+arrow navigation. Its `label` is visible text. `Switch` requires a text `label`
+for its accessible name and retains native checkbox semantics.
+
+Both forward refs and native input attributes, including controlled `checked`
+with `onChange`, uncontrolled `defaultChecked`, form names and values, and
+`disabled`. Disabled controls do not activate, submit, or enter the Tab order.
+Uncontrolled inputs reset with their form. The shared checkbox/radio stylesheet
+has no disabled visual treatment; this addition preserves it. Tests in
+`react/src/Checkbox.test.tsx` and `react/src/Switch.test.tsx` check semantics,
+events and forms in JSDOM, not browser paint or screen-reader speech.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.60.0', date: '2026-09-29',
+    changes: [
+      ['added', 'React Checkbox supports checkboxes and grouped radios, and Switch renders a native checkbox with the existing switch track. Both accept native input props and refs, including controlled state and disabled inputs. Part of #429.'],
+    ],
+  },
+  {
     v: '0.62.0', date: '2026-10-01',
     changes: [
       ['added', 'React SidebarNav supports sections, one level of nested disclosure, counts, disabled and danger rows, collapsed presentation, artwork and footer slots, and router links. AppShell uses it in the desktop rail and More drawer with the existing sidebar styling, and a page under a back link keeps its section active in both navs. Part of #429.'],

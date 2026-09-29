@@ -1,6 +1,22 @@
 {
   "GATES": [
     {
+      "file": "react/src/Checkbox.test.tsx",
+      "name": "React: Checkbox and radio",
+      "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results.",
+      "blind": [
+        "JSDOM and user-event simulate keyboard behavior; browser paint, target sizes and screen-reader speech need separate checks."
+      ]
+    },
+    {
+      "file": "react/src/Switch.test.tsx",
+      "name": "React: Switch",
+      "does": "Checks the accessible name and native checkbox semantics, controlled pointer and keyboard updates, disabled activation, refs, form submission, reset and axe results.",
+      "blind": [
+        "JSDOM does not render the switch track or focus ring, measure contrast, or verify screen-reader speech."
+      ]
+    },
+    {
       "file": "react/src/SidebarNav.test.tsx",
       "name": "React: Sidebar navigation",
       "does": "Checks named links and counts, current-page semantics, nested keyboard disclosures, disabled rows, router rendering, slots and unique IDs.",
