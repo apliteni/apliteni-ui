@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.56.0', date: '2026-09-29',
+    changes: [
+      ['added', 'React Timeline now supports person, rule, and reversal kinds, plus relative timestamps for the newest event. Only the newest marker is filled, while older reversals keep danger ink; new events use kit motion and respect reduced-motion settings. Resolves #425.'],
+      ['fixed', 'Timeline examples now use the shared card reading surface instead of the grey canvas. The privileged example reverses its batch directly with Undo.'],
+    ],
+  },
+  {
     v: '0.55.0', date: '2026-09-29',
     changes: [
       ['changed', 'Modal now uses a borderless dialog with a deeper backdrop, a compact header, and a scrolling body so the title and actions stay reachable on short screens. Modal and Drawer actions share the panel surface without a divider. Resolves #448.'],

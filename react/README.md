@@ -385,8 +385,20 @@ uses its normal opening focus.
 
 `Timeline` displays a record’s events in the order provided. Pass events from oldest
 to newest, with stable IDs, machine-readable `dateTime` values, and formatted
-`timestamp` text.
-Descriptions should say what changed and to where.
+`timestamp` text. Place Timeline on a page or card reading surface, never a grey
+fill; the standalone stories compose it inside `Card`.
+Descriptions should say what changed and to where. Optional `kind` accepts
+`person`, `rule`, or `reversal` (`TimelineEventKind`); these show the kit’s user,
+bolt, or refresh glyph in a 20px ring. The last event is newest and its ring is
+filled, using the danger colour for a reversal. Events without a kind keep their
+dot. Mixed histories mute older dots; older reversal glyphs keep danger ink.
+
+Initial history stays still, including history loaded into an empty list.
+New IDs added to a non-empty history enter with the kit’s slide-up motion (400ms)
+and marker scale-in (250ms, delayed 60ms). Existing IDs stay still when reordered
+or edited. Reduced motion disables the entrance. Optional `relativeTimestamp`
+(such as "just now") appears beside the absolute stamp only on the newest row,
+in accent ink. The caller updates this text; Timeline does not run a clock.
 
 ```tsx
 <Timeline aria-label="Record history" events={[
@@ -400,11 +412,9 @@ Descriptions should say what changed and to where.
 
 Omit `undo` for read-only events. For a reversible batch, pass
 `undo: { label: 'Undo batch DEMO-12', onUndo }`. The app checks permissions,
-asks for confirmation when the batch affects finalized records, reverses the
-entire batch, and adds a new event. Timeline only calls `onUndo`; it does not
+reverses the entire batch, and adds a new event without a confirmation dialog. Timeline only calls `onUndo`; it does not
 modify history.
-Import both the kit CSS and React CSS. The Privileged story shows confirmation
-and a reversing event.
+Import both the kit CSS and React CSS. The Privileged story shows Undo adding a reversing event.
 
 ## Fields
 
