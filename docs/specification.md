@@ -2387,10 +2387,19 @@ source test does not render layout. Existing Modal tests cover focus, dismissal 
 ## React tooltip
 
 React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
-## React segmented labels
+## React segmented control
 
 Segmented options may supply `ariaLabel` to give a short visible label a fuller
 accessible name. Without it, the visible label names the button.
+
+`size="sm"` adds `ui-seg--sm`; `block` adds `ui-seg--block` so the strip fills
+its container and its buttons share the width. Both compose with the pill and
+underline appearances. Omitting them keeps the existing size and width.
+Selection remains controlled through `value` and `onChange`, with a named toolbar,
+pressed buttons, and one enabled tab stop. Arrow keys wrap past disabled options;
+Home and End select the first and last enabled choice. These contracts are covered
+by `react/src/Segmented.test.tsx`; browser evidence checks the shared CSS sizing.
+Decided in [#429](https://github.com/apliteni/apliteni-ui/issues/429).
 
 ## Segmented strips that outgrow their column
 

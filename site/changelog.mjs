@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices, using the existing kit styles. block composes with the underline appearance; size="sm" does not. Part of #429.'],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

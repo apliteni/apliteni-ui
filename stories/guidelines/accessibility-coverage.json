@@ -447,6 +447,14 @@
       ]
     },
     {
+      "file": "react/src/Segmented.test.tsx",
+      "name": "React: Segmented",
+      "does": "Checks named toolbar and pressed-button semantics, controlled selection, keyboard wrapping, disabled choices and axe results for small and block presentations.",
+      "blind": [
+        "Real browser layout, focus rings and colour contrast; mounted tests use jsdom."
+      ]
+    },
+    {
       "file": "react/src/PeriodPicker.test.tsx",
       "name": "React: Period picker showcase",
       "does": "Checks report, comparison and URL selection, keyboard movement to the last month, that the month pills are the only route to a month, and that both pending regions announce.",
