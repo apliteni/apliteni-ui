@@ -2386,7 +2386,20 @@ source test does not render layout. Existing Modal tests cover focus, dismissal 
 
 ## React tooltip
 
-React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
+React Tooltip renders `ui-tip-host`, `ui-tip`, and label/value/detail spans using the existing tooltip CSS. `text` remains a shorthand for `label`; empty parts are hidden. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
+React `TooltipHost` renders one readout for consumer-owned chart marks carrying
+`data-tip-value`, optional `data-tip-label` and `data-tip-detail`. A nested
+`data-tip-anchor` determines placement. The host adds no tab stops or chart logic.
+Hover and focus move the readout across marks; taps open, move, and close it, and
+outside taps close it. The opening tap blocks the mark action while notifying page
+click listeners; the closing tap may activate it. Escape preserves focus and keeps
+the dismissed mark closed until another mark opens or the host is left. Existing
+mark descriptions are preserved; host-owned descriptions are removed on dismissal
+and unmount. Both Tooltip forms support preferred top/bottom placement, clipping
+ancestor and viewport bounds, and repositioning on scroll and resize. The readout
+remains absolutely positioned in its host. Covered by `react/src/Tooltip.test.tsx`;
+real layout and no-reflow evidence are captured in the Tooltip readout showcase.
+
 ## React segmented labels
 
 Segmented options may supply `ariaLabel` to give a short visible label a fuller
