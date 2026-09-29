@@ -5,6 +5,7 @@ import { TextArea } from './Field';
 import { Toast, useToast } from './Toast';
 import { Button } from './primitives/Button';
 import { Callout } from './primitives/Callout';
+import { Card } from './primitives/Card';
 import './FeedbackShowcase.css';
 
 type Args = { withExcerpt?: boolean; fail?: boolean };
@@ -53,22 +54,24 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
 
   return (
     <>
-      <main className="fbs-page">
-        <h1>Order DEMO-1042</h1>
-        <p className="fbs-lede">Packed on 27 September. The carrier has not collected it yet.</p>
-        <section>
-          <h2>Contents</h2>
-          <p>A desk lamp and a notebook, in one box.</p>
-        </section>
-        <section>
-          <h2>Delivery</h2>
-          <p>The parcel will leave on the next weekday collection at 16:00.</p>
-          <p>{QUOTED}</p>
-        </section>
-        <section>
-          <h2>Payment</h2>
-          <p>Paid in full on 26 September. The invoice was sent with the order confirmation.</p>
-        </section>
+      <main className="ui-app__main fbs-page">
+        <Card>
+          <h1>Order DEMO-1042</h1>
+          <p className="fbs-lede">Packed on 27 September. The carrier has not collected it yet.</p>
+          <section>
+            <h2>Contents</h2>
+            <p>A desk lamp and a notebook, in one box.</p>
+          </section>
+          <section>
+            <h2>Delivery</h2>
+            <p>The parcel will leave on the next weekday collection at 16:00.</p>
+            <p>{QUOTED}</p>
+          </section>
+          <section>
+            <h2>Payment</h2>
+            <p>Paid in full on 26 September. The invoice was sent with the order confirmation.</p>
+          </section>
+        </Card>
       </main>
       <div style={{ ...trigger, opacity: open ? 0 : 1 }}>
         <Button variant="primary" icon="chat" aria-haspopup="dialog" onClick={() => setOpen(true)}>
