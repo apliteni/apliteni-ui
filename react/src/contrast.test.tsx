@@ -5,7 +5,8 @@
 //
 // Same rule as stories/contrast.test.js: a foreground/background pair this
 // workspace renders as text clears WCAG AA, or is named in the ledger below by a
-// person who decided it is acceptable. Nothing is listed — every `*.stories.tsx`
+// person who decided it is acceptable. The migrated Success eyebrow retains its
+// existing vanilla exception below. Every `*.stories.tsx`
 // under react/src is mounted in both themes, every text-owning element measured
 // against the background chain composited above it, and the count asserted at the
 // foot of this file.
@@ -48,12 +49,19 @@ type Theme = (typeof THEMES)[number];
  * ────────────────────────────────────────────────────────────────────────── */
 type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string };
 
-// Empty, and that is the current truth rather than an aspiration. This gate
-// found one cause on its first run — the sort caret, which painted --muted at
-// opacity .5 and measured 2.39:1 dark and 2.16:1 light against a 4.5 floor. #131
-// removed the opacity rather than ledgering it. An entry belongs here only when a
-// person has decided a failure is debt and written down why.
-const LEDGER: LedgerEntry[] = [];
+// Carried by hand from vanilla ledger C: the migration preserves this eyebrow.
+// The status also has a check and outcome wording; its light green ink remains
+// below AA. This is the same existing debt, not permission for other green text.
+const LEDGER: LedgerEntry[] = [{
+  match: f => f.key === 'light/default div.ui-sx__eyebrow | rgb(28, 138, 44) on rgb(255,255,255)'
+    && [...f.stories].every(story => [
+      './Success.stories.tsx:Hero', './Success.stories.tsx:Split', './Success.stories.tsx:Celebrate',
+    ].includes(story)),
+  count: 1,
+  why: 'Existing vanilla ledger C, preserved under #429: Success eyebrow is 4.45:1 in light mode '
+    + 'against a 4.5:1 floor. The adjacent check and outcome wording repeat its meaning. '
+    + 'This match covers only the three migrated Success stories and this measured colour pair.',
+}];
 
 type Finding = {
   key: string; theme: string; accent: string; state: string | null;

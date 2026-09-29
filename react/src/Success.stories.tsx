@@ -13,7 +13,7 @@ type Story = StoryObj<typeof Success>;
 const wrap = (content: ReactNode, width = 620) => <div style={{ padding: 40, minHeight: '100vh' }}><div style={{ maxWidth: width, margin: '0 auto' }}>{content}</div></div>;
 const stack = (content: ReactNode) => <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 640 }}>{content}</div>;
 const specimen = (label: string, content: ReactNode) => <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-  <div style={{ font: '600 11px/1 var(--font-sans)', color: 'var(--text)' }}>{label}</div>{content}
+  <div style={{ font: '600 11px/1 var(--font-sans)' }}>{label}</div>{content}
 </div>;
 
 export const Hero: Story = {
