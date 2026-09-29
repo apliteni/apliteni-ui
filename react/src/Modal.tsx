@@ -31,7 +31,7 @@ export function Modal({ open, title, onClose, footer, children, initialFocusRef,
         <div className="rx-modal" role={role} aria-modal="true" aria-labelledby={titleId}
           aria-describedby={role === 'alertdialog' ? bodyId : undefined} tabIndex={-1} ref={panel}>
           <div className="rx-modal__head">
-            <div className="rx-modal__title" id={titleId}>{title}</div>
+            <h2 className="rx-modal__title" id={titleId}>{title}</h2>
             <Button variant="ghost" size="sm" iconOnly icon="x" aria-label="Close" onClick={onClose} />
           </div>
           <div className="rx-modal__body" id={bodyId} ref={body}>{children}</div>

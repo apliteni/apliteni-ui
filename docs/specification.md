@@ -846,7 +846,11 @@ an empty sibling region, and `setButtonBusy` creates it lazily when entering bus
 React returns one button element and lazily shares one page-level announcer across
 busy buttons, removing it when its users unmount. Both use
 `role="status" aria-live="polite"` outside `aria-busy`, which would defer updates.
-Regions persist through completion so progress and completion can be announced. Explicitly disabled buttons remain natively
+Regions persist through completion so progress and completion can be announced.
+React callers can set `completionMessage` to describe the outcome, or to an empty
+string when a form error or another live region announces it (#388).
+React field errors use `role="alert"` as well as a linked description, so a new
+error is announced without moving focus back to the field. Explicitly disabled buttons remain natively
 disabled. Unwired static `button({ busy: true })` markup retains native disabled as
 a safe fallback; `setButtonBusy` replaces it with guards when wiring the control.
 
@@ -1923,7 +1927,9 @@ standing underneath.
 
 The React palette, Modal and Drawer also share one dialog stack: Escape closes only the top
 one and leaves the palette beneath it open. The React and vanilla stacks are separate, so
-mixing their overlays on one page is not supported.
+mixing their overlays on one page is not supported. `Modal` names itself with an `h2`, as the
+vanilla drawer and confirm do, so heading navigation reaches the title the dialog is labelled
+by; its head keeps a gap, so a long title does not meet the close button.
 
 It opens empty. A palette that comes back holding the last query shows a list answering a
 question the reader has already finished asking, and the next keystroke appends to it.
@@ -2146,8 +2152,11 @@ Events do not collapse or paginate.
 ## React fields
 
 `TextField`, `TextArea`, `SelectField` and `FileField` generate their control and
-message IDs. Labels name the controls; an error replaces the hint and marks the
-control invalid. Required markers are decorative; native controls carry `required`.
+message IDs. Labels name the controls; an error marks the control invalid and is
+described before the hint rather than in its place, so a hint carrying a consent,
+safety or legal detail stays on screen while the reader decides whether to retry.
+The vanilla `field()` factory still swaps the two; React is the side that keeps
+both (#388). Required markers are decorative; native controls carry `required`.
 Text, textarea and select reuse the vanilla field classes. Number inputs request a
 decimal keyboard and may show a unit.
 
@@ -2167,7 +2176,13 @@ compact markup remain supported; no SVG paths or interaction contracts change.
 Vanilla and React share this styling.
 
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest
-at the bottom. Notices without actions dismiss after five seconds. Their countdown
+at the bottom, anchored to the bottom-right corner. The provider measures the stack
+and publishes how far it reaches up the viewport as `--rx-toast-stack` on the
+document root — `0px` while it is empty — so a fixed page action can sit clear of
+any number of notices instead of an offset tuned to the height of one (#388).
+Use one `Toast` provider per document, because `--rx-toast-stack` is a document-root global.
+The property is removed when the provider unmounts. Notices without actions
+dismiss after five seconds. Their countdown
 and timer bar pause while hovered or focused, then resume with the remaining time.
 Notices with an action stay until it is selected or the reader dismisses them.
 Ordinary notices are polite; danger notices are assertive. Adding a notice does

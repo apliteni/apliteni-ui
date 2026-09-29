@@ -323,3 +323,13 @@ it('never wraps onto a control only a script can focus', async () => {
   await userEvent.tab();
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }));
 });
+
+// labels-and-titles: title-is-heading — the dialog's title is a real heading, as
+// the kit's own drawer and confirm titles are, not a div styled to look like one.
+// The tag is checked here; the typeface it opts into is a stylesheet rule.
+it('names the dialog with a heading, not a styled div', () => {
+  render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  const heading = screen.getByRole('heading', { name: 'New campaign' });
+  expect(heading.tagName).toBe('H2');
+  expect(screen.getByRole('dialog')).toHaveAttribute('aria-labelledby', heading.id);
+});

@@ -7,17 +7,27 @@ import './Field.css';
 type FieldMessage = { label: string; hint?: string; error?: string };
 type Wiring = 'id' | 'aria-describedby' | 'aria-invalid';
 
+// The error and the hint are siblings, not alternatives: a hint that carries a
+// consent, safety or legal detail is exactly what a reader needs while deciding
+// whether to retry, and the vanilla field's swap took it away at that moment.
+// The error comes first — it is the new thing and the closest to the control —
+// and both ids are described, in that order (#388).
+function messages(id: string, hint?: string, error?: string) {
+  return [error && `${id}-error`, hint && `${id}-hint`].filter(Boolean).join(' ') || undefined;
+}
+
 function Frame({ id, label, hint, error, required, children }: FieldMessage & { id: string; required?: boolean; children: ReactNode }) {
   return <div className="ui-field">
     <label className="ui-field__label" htmlFor={id}>{label}{required && <span className="ui-field__req" aria-hidden="true">*</span>}</label>
     {children}
-    {(error || hint) && <div id={`${id}-message`} className={error ? 'ui-field__error' : 'ui-field__hint'}
-      dangerouslySetInnerHTML={{ __html: (error ? icon('alert') : '') + esc(error || hint) }} />}
+    {error && <div id={`${id}-error`} className="ui-field__error" role="alert"
+      dangerouslySetInnerHTML={{ __html: icon('alert') + esc(error) }} />}
+    {hint && <div id={`${id}-hint`} className="ui-field__hint">{hint}</div>}
   </div>;
 }
 
 function wiring(id: string, hint?: string, error?: string) {
-  return { id, 'aria-describedby': error || hint ? `${id}-message` : undefined, 'aria-invalid': error ? true as const : undefined };
+  return { id, 'aria-describedby': messages(id, hint, error), 'aria-invalid': error ? true as const : undefined };
 }
 
 export type TextFieldProps = FieldMessage & Omit<InputHTMLAttributes<HTMLInputElement>, Wiring | 'type'> & {
@@ -26,7 +36,7 @@ export type TextFieldProps = FieldMessage & Omit<InputHTMLAttributes<HTMLInputEl
 export function TextField({ label, hint, error, required, type = 'text', unit, className = '', ...props }: TextFieldProps) {
   const id = useId();
   const hasUnit = type === 'number' && !!unit;
-  const describedBy = [error || hint ? `${id}-message` : '', hasUnit ? `${id}-unit` : ''].filter(Boolean).join(' ') || undefined;
+  const describedBy = [messages(id, hint, error), hasUnit ? `${id}-unit` : ''].filter(Boolean).join(' ') || undefined;
   const control = <input {...props} {...wiring(id, hint, error)} required={required} type={type} aria-describedby={describedBy}
     inputMode={type === 'number' ? 'decimal' : props.inputMode}
     className={`ui-input${error ? ' is-invalid' : ''} ${className}`} />;

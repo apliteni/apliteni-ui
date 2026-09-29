@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.56.1', date: '2026-09-29',
+    changes: [
+      ['fixed', 'React fields retain their hint beside validation errors. Buttons accept a completionMessage override so a failed send does not announce completion. See #388.'],
+      ['fixed', 'React toast stacks publish their occupied height so floating feedback controls can stay above every notice. Modal titles are headings.'],
+      ['changed', 'The feedback showcase uses the shared field surface and a neutral callout for failed sends.'],
+    ],
+  },
+  {
     v: '0.56.0', date: '2026-09-29',
     changes: [
       ['added', 'React Timeline now supports person, rule, and reversal kinds, plus relative timestamps for the newest event. Only the newest marker is filled, while older reversals keep danger ink; new events use kit motion and respect reduced-motion settings. Resolves #425.'],

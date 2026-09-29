@@ -10,6 +10,8 @@ export type ButtonProps = {
   block?: boolean;
   /** In flight: keeps focus, blocks activation, announces progress, and shows dots. */
   busy?: boolean;
+  /** Message after busy ends; an empty string leaves outcome announcements to the caller. */
+  completionMessage?: string;
   children?: ReactNode;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -47,7 +49,7 @@ function acquireAnnouncer(doc: Document) {
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
-  variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, busy, children,
+  variant = 'secondary', size = 'md', icon, iconRight, iconOnly, block, busy, completionMessage, children,
   type = 'button', disabled, onClick, onClickCapture, onKeyDown, onKeyDownCapture,
   onKeyUp, onKeyUpCapture, ...rest
 }, forwardedRef) {
@@ -67,7 +69,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     const prior = previous.current;
     if ((busy || prior?.busy) && (!prior || prior.text !== text || prior.busy !== busy)) {
       announcer.current ??= acquireAnnouncer(buttonRef.current!.ownerDocument);
-      announcer.current.announce(`${text}: ${busy ? 'in progress' : 'complete'}`);
+      announcer.current.announce(busy ? `${text}: in progress` : completionMessage ?? `${text}: complete`);
     }
     previous.current = { text, busy };
   });

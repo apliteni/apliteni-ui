@@ -32,8 +32,7 @@ it('matches the complete vanilla field structure and native attributes', () => {
       field({ label: 'Notes', hint: 'Help', required: true, control: textarea({ name: 'notes', placeholder: 'Notes', value: 'Draft' }) })],
     [<SelectField label="Currency" hint="Help" required name="currency" defaultValue="USD"><option value="EUR">EUR</option><option value="USD">USD</option></SelectField>,
       field({ label: 'Currency', hint: 'Help', required: true, control: select({ name: 'currency', options: ['EUR', 'USD'], value: 'USD' }) })],
-    [<TextField label="Name" hint="Hidden" error={'Use <plain> text & "quotes".'} placeholder="Name" defaultValue="Demo" disabled />,
-      field({ label: 'Name', hint: 'Hidden', error: 'Use <plain> text & "quotes".', control: input({ placeholder: 'Name', value: 'Demo', invalid: true, disabled: true }) })],
+
   ] as const) {
     const { container, unmount } = render(react);
     const reference = document.createElement('div'); reference.innerHTML = vanilla;
@@ -42,7 +41,10 @@ it('matches the complete vanilla field structure and native attributes', () => {
   }
 });
 
-it('generates unique stable ids and replaces help with a linked error', () => {
+// An error joins the hint rather than replacing it: a hint often carries the
+// consent or safety detail a reader needs precisely while deciding to retry.
+// This checks markup and the computed description, not spoken output.
+it('generates unique stable ids and adds a linked error beside the hint', () => {
   const { rerender } = render(<><TextField label="Name" hint="Help" required /><TextField label="Other" /></>);
   const control = screen.getByRole('textbox', { name: 'Name' });
   const id = control.id;
@@ -53,9 +55,15 @@ it('generates unique stable ids and replaces help with a linked error', () => {
   rerender(<><TextField label="Name" hint="Help" error="Enter a name." required /><TextField label="Other" /></>);
   expect(control.id).toBe(id);
   expect(control).toHaveAttribute('aria-invalid', 'true');
-  expect(control).toHaveAccessibleDescription('Enter a name.');
-  expect(screen.queryByText('Help')).toBeNull();
+  expect(control).toHaveAccessibleDescription('Enter a name. Help');
+  expect(control.getAttribute('aria-describedby')).toBe(`${id}-error ${id}-hint`);
+  expect(screen.getByRole('alert')).toHaveTextContent('Enter a name.');
+  expect(screen.getByText('Help')).toBeVisible();
   expect(document.querySelector('.ui-field__error svg')).not.toBeNull();
+  // The error is the new thing, so it sits closest to the control.
+  const field = control.closest('.ui-field');
+  expect([...field!.children].map(node => node.className))
+    .toEqual(['ui-field__label', 'ui-input is-invalid ', 'ui-field__error', 'ui-field__hint']);
 });
 
 it('forwards native values, change events and number keyboard hints', async () => {
@@ -126,4 +134,14 @@ it('clears the selected-file display when its native form resets', async () => {
   await user.click(screen.getByRole('button', { name: 'Reset' }));
   expect(screen.getByText('Choose file')).toBeInTheDocument();
   expect(container.querySelector('.ui-file')).not.toHaveClass('has-file');
+});
+
+it('keeps error text escaped and preserves disabled field attributes', () => {
+  render(<TextField label="Name" hint="Hidden" error={'Use <plain> text & "quotes".'} placeholder="Name" defaultValue="Demo" disabled />);
+  expect(screen.getByRole('textbox')).toBeDisabled();
+  expect(screen.getByRole('textbox')).toHaveValue('Demo');
+  expect(screen.getByRole('textbox')).toHaveAccessibleDescription('Use <plain> text & "quotes". Hidden');
+  expect(screen.getByRole('alert')).toHaveTextContent('Use <plain> text & "quotes".');
+  expect(screen.getByRole('alert').querySelector('plain')).toBeNull();
+  expect(screen.getByText('Hidden')).toBeVisible();
 });

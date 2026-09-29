@@ -118,3 +118,30 @@ it.each(['success', 'danger', 'warn', 'info', 'neutral'] as const)('announces %s
   expect(notice?.parentElement).not.toHaveAttribute('aria-live');
   expect(trigger).toHaveFocus();
 });
+
+// The published reach is what lets a fixed page action clear ANY number of
+// notices, instead of an offset tuned to one (#388). JSDOM lays nothing out, so
+// the stack's box is stubbed here; the real clearance is measured in a browser.
+it('publishes how far the stack reaches so a fixed page action can clear it', () => {
+  const reach = () => document.documentElement.style.getPropertyValue('--rx-toast-stack');
+  const real = HTMLElement.prototype.getBoundingClientRect;
+  let height = 0;
+  HTMLElement.prototype.getBoundingClientRect = function () {
+    if (!this.classList.contains('rx-toast-stack')) return real.call(this);
+    return { height, top: window.innerHeight - 16 - height } as DOMRect;
+  };
+  try {
+    const { unmount } = setup();
+    expect(reach()).toBe('0px');
+    height = 85;
+    fireEvent.click(screen.getByText('Notify'));
+    expect(reach()).toBe('101px');
+    height = 182;
+    fireEvent.click(screen.getByText('Notify'));
+    expect(reach()).toBe('198px');
+    unmount();
+    expect(reach()).toBe('');
+  } finally {
+    HTMLElement.prototype.getBoundingClientRect = real;
+  }
+});
