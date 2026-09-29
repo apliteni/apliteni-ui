@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.58.1', date: '2026-09-29',
+    changes: [
+      ['fixed', 'React KeyValueList uses its container’s spacing in modals and other layouts. Lists inside drawers keep their existing spacing. If your custom CSS targets ui-drawer__rows on React KeyValueList, change that selector to ui-kv; vanilla drawer lists still use ui-drawer__rows. See #449.'],
+    ],
+  },
+  {
     v: '0.58.0', date: '2026-09-29',
     changes: [
       ['fixed', 'Segmented controls accept full accessible labels, wrap long pill strips, and keep their content width in grid layouts. Spacing follows the token scale and control transitions use 150ms; underline tabs continue to scroll. See #392 and #435.'],
