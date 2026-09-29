@@ -54,7 +54,7 @@
  * Cell helpers: .ui-table__num (right, tabular), .ui-table__code.
  * why: docs/specification.md#spacing-and-rhythm
  * held by: stories/table-rhythm.test.js */
-.ui-table--dense th { padding: 0 var(--space-3) var(--space-2) 0; }
+.ui-table--dense th { padding: 0 var(--space-3) var(--space-2); }
 .ui-table--dense td { padding: var(--space-2) var(--space-3); font-size: var(--text-sm); white-space: nowrap; }
 .ui-table--dense th:first-child,
 .ui-table--dense td:first-child { padding-left: var(--space-3); }
@@ -96,6 +96,8 @@
 .ui-table td.ui-table__num { text-align: right; }
 .ui-table--compact td { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }
+.ui-table--compact th:last-child,
+.ui-table--compact td:last-child { padding-right: var(--space-3); }
 .ui-table-scroll { overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1); }
 .ui-table-scroll:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }

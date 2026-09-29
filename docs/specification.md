@@ -1987,6 +1987,9 @@ Tables paint `--table-bg`: white in light mode and the base canvas in dark mode.
 longer paints grey stripes; hover marks the row edge without tinting the data surface.
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.
+Dense, compact and zebra recipes give headers and values matching horizontal insets in
+every column. Numeric headers and values stay right-aligned. Held by
+`src/styles/table.test.js`; decided in [#452](https://github.com/apliteni/apliteni-ui/issues/452).
 
 `numericValue` preserves the caller's formatted value and distinguishes missing from zero.
 `deltaValue` prints the caller's sign, accepts an explicit success/danger/neutral judgement,
