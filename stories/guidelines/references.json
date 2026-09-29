@@ -106,13 +106,13 @@
   "_command-palette.js": {
     "named-things": [
       {
-        "ref": "src/components/command-palette.js:194",
+        "ref": "src/components/command-palette.js:68",
         "pattern": "function paletteItem"
       }
     ],
     "groups": [
       {
-        "ref": "src/components/command-palette.js:255",
+        "ref": "src/components/command-palette.js:129",
         "pattern": "export function commandPaletteList"
       },
       {
@@ -122,17 +122,17 @@
     ],
     "ranking": [
       {
-        "ref": "src/components/command-palette.js:33",
+        "ref": "src/logic/command-palette.js:15",
         "pattern": "export const SCORE"
       },
       {
-        "ref": "src/components/command-palette.js:130",
+        "ref": "src/logic/command-palette.js:112",
         "pattern": "export function rankGroups"
       }
     ],
     "keyboard": [
       {
-        "ref": "src/components/command-palette.js:515",
+        "ref": "src/components/command-palette.js:389",
         "pattern": "function onKeydown"
       },
       {
@@ -142,11 +142,11 @@
     ],
     "say-it": [
       {
-        "ref": "src/components/command-palette.js:368",
+        "ref": "src/components/command-palette.js:242",
         "pattern": "function setActive"
       },
       {
-        "ref": "src/components/command-palette.js:392",
+        "ref": "src/components/command-palette.js:266",
         "pattern": "function announce"
       },
       {
@@ -156,7 +156,7 @@
     ],
     "ask-first": [
       {
-        "ref": "src/components/command-palette.js:229",
+        "ref": "src/components/command-palette.js:103",
         "pattern": "const isRefused = (it) =>"
       },
       {
@@ -172,7 +172,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:223",
+        "ref": "src/components/index.js:225",
         "pattern": "export function callout("
       },
       {
@@ -190,17 +190,17 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:249",
+        "ref": "src/components/index.js:251",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
     "panels": [
       {
-        "ref": "src/components/index.js:74",
+        "ref": "src/components/index.js:76",
         "pattern": "It is NOT a tablist: it controls no panel"
       },
       {
-        "ref": "src/components/index.js:79",
+        "ref": "src/components/index.js:81",
         "pattern": "that one owns panels and earns the tab announcement"
       },
       {
@@ -210,11 +210,11 @@
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:266",
+        "ref": "src/components/index.js:268",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:268",
+        "ref": "src/components/index.js:270",
         "pattern": "export function successPanel("
       },
       {
@@ -224,7 +224,7 @@
     ],
     "dropdown-search": [
       {
-        "ref": "src/components/dropdown.js:97",
+        "ref": "src/logic/dropdown.js:16",
         "pattern": "export const dropdownMatch"
       },
       {
@@ -268,7 +268,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:249",
+        "ref": "src/components/index.js:251",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -402,7 +402,7 @@
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
-        "ref": "src/components/index.js:39",
+        "ref": "src/components/index.js:41",
         "pattern": "const named = iconOnly"
       }
     ],
@@ -412,7 +412,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:235",
+        "ref": "src/components/index.js:237",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -476,7 +476,7 @@
     ],
     "title-is-heading": [
       {
-        "ref": "src/components/index.js:64",
+        "ref": "src/components/index.js:66",
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
@@ -572,15 +572,15 @@
     ],
     "never-nameless": [
       {
-        "ref": "src/components/index.js:15",
+        "ref": "src/components/index.js:17",
         "pattern": "kit glyphs are aria-hidden"
       },
       {
-        "ref": "src/components/index.js:17",
+        "ref": "src/components/index.js:19",
         "pattern": "an empty label falls back to the icon"
       },
       {
-        "ref": "src/components/index.js:82",
+        "ref": "src/components/index.js:84",
         "pattern": "not an accessible name"
       }
     ]
@@ -646,47 +646,47 @@
   "_pagination.js": {
     "counted-total": [
       {
-        "ref": "src/components/pagination.js:137",
+        "ref": "src/components/pagination.js:138",
         "pattern": "const counted = total"
       }
     ],
     "the-jump": [
       {
-        "ref": "src/components/pagination.js:90",
+        "ref": "src/components/pagination.js:91",
         "pattern": "function slotsFor"
       }
     ],
     "ends-disable": [
       {
-        "ref": "src/components/pagination.js:78",
+        "ref": "src/components/pagination.js:79",
         "pattern": "disabled aria-disabled"
       }
     ],
     "one-page": [
       {
-        "ref": "src/components/pagination.js:162",
+        "ref": "src/components/pagination.js:163",
         "pattern": "if (single && !sizes.length)"
       }
     ],
     "page-turn": [
       {
-        "ref": "src/components/pagination.js:231",
+        "ref": "src/components/pagination.js:232",
         "pattern": "loading ? ' aria-busy"
       }
     ],
     "announce-range": [
       {
-        "ref": "src/components/pagination.js:232",
+        "ref": "src/components/pagination.js:233",
         "pattern": "aria-live=\"polite\""
       }
     ],
     "page-size": [
       {
-        "ref": "src/components/pagination.js:18",
+        "ref": "src/logic/pagination.js:1",
         "pattern": "export const PAGE_SIZES"
       },
       {
-        "ref": "src/components/pagination.js:19",
+        "ref": "src/logic/pagination.js:2",
         "pattern": "export const DEFAULT_PAGE_SIZE"
       }
     ]
@@ -728,7 +728,7 @@
     ],
     "busy": [
       {
-        "ref": "src/components/index.js:37",
+        "ref": "src/components/index.js:39",
         "pattern": "busy ⇒ disabled"
       },
       {
@@ -742,15 +742,15 @@
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:188",
+        "ref": "src/components/index.js:190",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:174",
+        "ref": "src/components/index.js:176",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:160",
+        "ref": "src/components/index.js:162",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -764,7 +764,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:255",
+        "ref": "src/components/index.js:257",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
@@ -805,7 +805,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:276",
+        "ref": "src/components/index.js:278",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]

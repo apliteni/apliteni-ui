@@ -9,7 +9,7 @@ it('distinguishes zero from missing and renders caller text safely', () => {
   expect(screen.getByText('<em>12</em>')).toBeInTheDocument();
   expect(container.querySelector('em')).toBeNull();
 });
-it.each(['0', '+0.00%', '−0,0%', '- 0 %'])('keeps %s neutral', value => {
+it.each(['0', '+0.00%', '−0,0%', '- 0 %', '+0 USD', '−00,00 EUR', '0 units'])('keeps %s neutral', value => {
   const { container } = render(<DeltaValue value={value} tone="danger" />);
   expect(container.querySelector('.ui-delta')).not.toHaveClass('ui-delta--danger');
 });

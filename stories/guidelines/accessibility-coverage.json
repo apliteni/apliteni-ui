@@ -534,6 +534,22 @@
       "blind": [
         "JSDOM does not measure layout, contrast or screen-reader speech."
       ]
+    },
+    {
+      "file": "react/src/FilterBar.test.tsx",
+      "name": "React: FilterBar",
+      "does": "Checks controlled filter changes, disabled controls, keyboard selection, and focus after removal.",
+      "blind": [
+        "JSDOM does not measure browser focus styling, layout, or contrast."
+      ]
+    },
+    {
+      "file": "react/src/TableValues.test.tsx",
+      "name": "React: Table values",
+      "does": "Checks missing-value names, comparison descriptions, neutral zero values, and escaped caller text.",
+      "blind": [
+        "Does not measure table layout, colour contrast, or image loading in browsers."
+      ]
     }
   ],
   "UNGATED": [
