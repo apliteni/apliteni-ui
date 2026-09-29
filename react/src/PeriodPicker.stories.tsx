@@ -70,6 +70,8 @@ const totalsIn = (index: number) => {
 // `minmax(0, 1fr)`: a grid track sizes to its widest child by default, so the
 // ledger would widen the column instead of scrolling inside its card.
 const layout = {
+  report: { marginTop: 'var(--space-6)' },
+  caption: { margin: 0 },
   page: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 'var(--space-6)' },
   control: { display: 'grid', gap: 'var(--space-2)' },
   now: { margin: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' },
@@ -94,12 +96,13 @@ function Example({ busy = false }: { busy?: boolean }) {
   const rows = rowsIn(index);
   const here = totalsIn(index);
   const before = earlier ? totalsIn(index - 1) : null;
-  // Every change in the table points at the card's caption for its comparison.
-  const basisId = `period-ledger-basis-${value}`;
+  // Stat and ledger changes reference one comparison caption.
+  const basisId = `period-basis-${value}`;
+  const basis = earlier ? `Compared with ${earlier.name} 2026` : 'No earlier month to compare.';
 
   const columns: Column<Entry>[] = [
     { key: 'name', label: 'Category' },
-    { key: 'amount', label: `${selected.short} 2026 (EUR)`, num: true, render: row => <NumericValue value={amountText(row.amount)} unit=" €" /> },
+    { key: 'amount', label: `${selected.short} 2026`, num: true, render: row => <NumericValue value={amountText(row.amount)} unit=" €" /> },
     {
       key: 'delta', label: 'Change', num: true,
       render: row => row.delta == null
@@ -107,7 +110,7 @@ function Example({ busy = false }: { busy?: boolean }) {
         : <span className="ui-value"><DeltaValue basisId={basisId} value={change(row.delta).replace(' €', '')} tone={rowTone(row.delta)} /><span className="ui-value__unit"> €</span></span>,
     },
     {
-      key: 'earlier', label: earlier ? `${earlier.short} 2026` : 'Earlier month', num: true,
+      key: 'earlier', label: earlier ? `${earlier.short} 2026` : 'Previous', num: true,
       render: row => row.earlier == null ? <NumericValue value={null} /> : <NumericValue value={amountText(row.earlier)} unit=" €" />,
     },
   ];
@@ -134,42 +137,41 @@ function Example({ busy = false }: { busy?: boolean }) {
       onSelect: item => choose(item.id),
     }}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
-    <div id="report" style={layout.page}>
+    <div id="report" style={layout.report}>
       <div style={layout.control}>
-        <Segmented label="Period" options={options} value={value} onChange={choose} />
-        <p role="status" style={layout.now}>
-          {selected.name} 2026 <Badge><Icon name={selected.icon} />{selected.status}</Badge>
-          {selected.note && <Badge><Icon name="info" />{selected.note}</Badge>}
-        </p>
-      </div>
-      {/* Keyed on the period, so the replaced report arrives rather than cuts. */}
-      <div key={value} className={changed ? 'm-fade-in' : undefined} style={layout.page}>
-        <div className="ui-stats ui-stats--tiles">
-          {pending(`Loading ${selected.name} cashflow…`, <>
-            {/* One line box at each stat rank keeps pending and loaded geometry equal. */}
-            <Skeleton lines={['24%']} className="ui-stats__basis" height="1lh" />
-            <div className="ui-stats__list">{figures.map(figure => (
-              <div className="ui-stat ui-card ui-card--pad-sm" key={figure.label}>
-                <Skeleton lines={['46%']} className="ui-stat__label" height="1lh" />
-                <Skeleton lines={['76%']} className="ui-stat__value" height="1lh" />
-                {figure.delta && <div className="ui-stat__delta" aria-hidden="true">
-                  <span className="ui-skel__bar m-skeleton" style={{ width: '34%', height: '1lh' }} />
-                </div>}
-              </div>
-            ))}</div>
-          </>,
-            <StatBand label="Cashflow" stats={figures}
-              basis={earlier ? `Change against ${earlier.name} 2026` : 'No earlier month: this demo starts in April 2026.'} />)}
+        <div style={layout.now}>
+          <Segmented label="Period" options={options} value={value} onChange={choose} />
+          <p role="status" style={layout.now}>
+            <Badge><Icon name={selected.icon} />{selected.status}</Badge>
+            {selected.note && <Badge><Icon name="info" />{selected.note}</Badge>}
+          </p>
+          <p id={basisId} className="ui-stats__basis" style={layout.caption}>{basis}</p>
         </div>
-        <Card title={`${selected.name} 2026 ledger`}
-          sub={<span id={basisId}>Amounts in EUR; money out is negative{earlier ? ` and changes are against ${earlier.name} 2026.` : ', with no earlier month to compare.'}</span>}>
-          {/* pinnedIdentity gives the table the kit's named scroll region: a
-              phone scrolls the money columns with the category held beside
-              them, and the region is reachable from the keyboard. */}
-          {pending(`Loading the ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
-            <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
-              stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}
-        </Card>
+        <div key={value} className={changed ? 'm-fade-in' : undefined} style={layout.page}>
+          <div className="ui-stats ui-stats--tiles">
+            {pending(`Loading ${selected.name} cash flow…`, <>
+              {/* One line box at each stat rank keeps pending and loaded geometry equal. */}
+              <div className="ui-stats__list">{figures.map(figure => (
+                <div className="ui-stat ui-card ui-card--pad-sm" key={figure.label}>
+                  <Skeleton lines={['46%']} className="ui-stat__label" height="1lh" />
+                  <Skeleton lines={['76%']} className="ui-stat__value" height="1lh" />
+                  {figure.delta && <div className="ui-stat__delta" aria-hidden="true">
+                    <span className="ui-skel__bar m-skeleton" style={{ width: '34%', height: '1lh' }} />
+                  </div>}
+                </div>
+              ))}</div>
+            </>,
+              <StatBand label="Cashflow" stats={figures} basisId={basisId} />)}
+          </div>
+          <Card title="Ledger">
+            {/* pinnedIdentity gives the table the kit's named scroll region: a
+                phone scrolls the money columns with the category held beside
+                them, and the region is reachable from the keyboard. */}
+            {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
+              <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
+                stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}
+          </Card>
+        </div>
       </div>
     </div>
   </AppShell>;
@@ -177,7 +179,5 @@ function Example({ busy = false }: { busy?: boolean }) {
 
 export const Default = { render: () => <Example /> };
 
-// Changing the period fetches: two regions, because the figures and the rows
-// arrive from different queries and finish at different times. The period
-// control stays live, since it is the one useful thing to do while waiting.
+// Initial loading leaves the period control usable.
 export const Loading = { render: () => <Example busy /> };

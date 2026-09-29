@@ -1818,6 +1818,11 @@ the band's caption, which every change points at, or beside the change when one 
 something else. A hover `title` does not count, because a phone never shows one. On a band with
 no changes, the caption says what the figures cover instead, such as the period.
 
+React `StatBand` can reference a caption shared with another view through `basisId`.
+The caller places that caption before the figures. Passing `basis` instead renders
+the band's own caption and takes precedence over `basisId`. The period showcase
+uses this to share one comparison with its ledger; React tests check the references.
+
 The caption comes **before** the figures, in every layout, the way a table's `<caption>` does. It is
 one statement about all of them, so it is read before the numbers it explains and it sits outside
 every figure. Under a row of tiles it would read as a note on the last card, and inside the first
