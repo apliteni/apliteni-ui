@@ -178,7 +178,7 @@
   background: none;
 }
 .ui-cmdk__item[hidden] { display: none; } /* motion: still — a row the query no longer answers is gone on the next keystroke */
-.ui-cmdk__item.is-active { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-cmdk__item.is-active { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-cmdk__item.is-active .ui-cmdk__label { color: var(--strong); }
 
 .ui-cmdk__ic {
@@ -239,9 +239,9 @@
 .ui-cmdk__item.is-danger.is-active .ui-cmdk__ic { color: var(--pink); }
 
 /* A disabled row is painted, never faded. It takes --disabled-ink-bare, the ink
-   for a control with no box of its own: --disabled-surface IS --surface-2,
-   which is the panel behind it, so a disabled row paints no box a reader can
-   see and its label is read on whatever the panel is.
+   for a control with no box of its own. Disabled rows keep the panel's
+   surface and their labels remain readable on that ground without
+   adding a grey box behind the text.
    why: docs/specification.md#text-ink */
 .ui-cmdk__item.is-disabled { cursor: default; /* muted-ink: state — unavailable control */ color: var(--disabled-ink-bare); }
 .ui-cmdk__item.is-disabled .ui-cmdk__label,
@@ -256,9 +256,9 @@
   padding: 2px 5px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  /* A key cap reads as raised, so it takes the step above the panel rather than
-     the card step below it. why: docs/specification.md#elevation */
-  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  /* Key caps use an edge on the card surface, keeping the shortcut readable.
+     why: docs/specification.md#elevation */
+  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.5;
@@ -304,7 +304,7 @@
   background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   border: 1px solid var(--border);
 }
-.ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface-2); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* -- Narrow --------------------------------------------------------------- */
 /* At the kit's narrowest step the palette is the page: full width, off the top

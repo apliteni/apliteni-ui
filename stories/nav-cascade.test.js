@@ -223,11 +223,11 @@ for (const [theme, accent] of THEMES) {
 // ---- 4. the row you are on is never quieter than the row under the pointer
 
 for (const [theme, accent] of THEMES) {
-  test(`the current row has a fill of its own — ${theme} / ${accent}`, () => {
+  test(`the current row keeps its reading surface and stronger type — ${theme} / ${accent}`, () => {
     const r = rail(theme, accent);
     const bg = colour(r.vars.get('--bg'));
     const active = r.css('.ui-nav__item.is-active', 'backgroundColor');
-    const hover = r.inState('.ui-nav__item:not(.is-active)', 'hover', 'backgroundColor');
+    const hoverWeight = r.inState('.ui-nav__item:not(.is-active)', 'hover', 'fontWeight');
 
     assert.notEqual(
       active, bg,
@@ -236,10 +236,9 @@ for (const [theme, accent] of THEMES) {
       + '--surface and --bg are the same value in the light theme; pick a surface that '
       + 'exists in both.',
     );
-    assert.notEqual(
-      active, hover,
-      `the current row and a hovered row both fill with ${active} in ${theme}/${accent} — `
-      + 'hovering anything erases where you are',
+    assert.ok(
+      Number(r.css('.ui-nav__item.is-active', 'fontWeight')) > Number(hoverWeight),
+      `the current row loses its type distinction in ${theme}/${accent}`,
     );
   });
 }

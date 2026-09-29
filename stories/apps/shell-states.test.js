@@ -1305,59 +1305,33 @@ test('the rail reads as its own surface against the page, in both themes', () =>
   }
 });
 
-test('a hovered rail row is still a step above the rail it sits in', () => {
+// These checks resolve CSS states in JSDOM; browser captures verify their appearance.
+test('hovered rail rows use an edge on the reading surface', () => {
   for (const theme of ['dark', 'light']) {
     const at = mount(SHELL, { theme });
-    const hover = parseColour(at.inState('.ui-app__rail .ui-nav__item:not(.is-active)', 'hover', 'backgroundColor'));
-    const rail = at.bg('.ui-app__rail');
-    assert.ok(hover && hover[3] > 0, `a hovered rail row paints no background in ${theme}`);
-    const got = ratio(composite(hover, rail), rail);
-    assert.ok(
-      got > 1.02,
-      `hover is ${r2(got)}:1 against the rail in ${theme} — the rail took the surface its own `
-      + 'hover was using, so hovering a row now does nothing visible',
-    );
+    const row = '.ui-app__rail .ui-nav__item:not(.is-active)';
+    assert.deepEqual(parseColour(at.inState(row, 'hover', 'backgroundColor')), at.bg('.ui-app__rail'));
+    assert.match(at.inState(row, 'hover', 'outline'), /1px solid/);
   }
 });
 
-// The one row with no hover response was the row the reader is standing on:
-// .is-active rests on --surface-3 and the rail's hover rule painted --surface-3
-// over it, an exact no-op. Every state in this kit is designed, and "the pointer
-// is on the current page" is a state.
-test('hovering the row the reader is standing on is a response, in both themes', () => {
+test('hovering the current row adds an edge in both themes', () => {
   for (const theme of ['dark', 'light']) {
     const at = mount(SHELL, { theme });
-    const rail = at.bg('.ui-app__rail');
-    const rest = parseColour(at.css('.ui-app__rail .ui-nav__item.is-active', 'backgroundColor'));
-    const hover = parseColour(at.inState('.ui-app__rail .ui-nav__item.is-active', 'hover', 'backgroundColor'));
-    assert.ok(rest && rest[3] > 0, `the current row paints no resting background in ${theme}`);
-    assert.ok(hover && hover[3] > 0, `the current row paints no hovered background in ${theme}`);
-    const moved = ratio(composite(hover, rail), composite(rest, rail));
-    assert.ok(
-      moved > 1.02,
-      `the current row is ${r2(moved)}:1 against its own resting state in ${theme} — hovering `
-      + 'the row you are on does nothing, and it is the only row in the rail that does nothing',
-    );
-    assert.ok(
-      ratio(composite(hover, rail), rail) > ratio(composite(rest, rail), rail),
-      `hovering the current row in ${theme} moves it back towards the rail. Every other row `
-      + 'steps away from the rail under the pointer; the current one must not recede.',
-    );
+    const row = '.ui-app__rail .ui-nav__item.is-active';
+    const rest = at.css(row, 'outline');
+    const hover = at.inState(row, 'hover', 'outline');
+    assert.notEqual(hover, rest);
+    assert.match(hover, /1px solid/);
   }
 });
 
-// The rail's other rows keep the step they had — an active-row rule that also
-// caught them would flatten the difference between "here" and "under the pointer".
-test('a resting row still hovers to the step below the current row', () => {
+test('the current row keeps stronger type when both rows are hovered', () => {
   for (const theme of ['dark', 'light']) {
     const at = mount(SHELL, { theme });
-    const rail = at.bg('.ui-app__rail');
-    const plain = parseColour(at.inState('.ui-app__rail .ui-nav__item:not(.is-active)', 'hover', 'backgroundColor'));
-    const active = parseColour(at.inState('.ui-app__rail .ui-nav__item.is-active', 'hover', 'backgroundColor'));
-    assert.ok(
-      ratio(composite(active, rail), rail) > ratio(composite(plain, rail), rail),
-      `a hovered resting row and the hovered current row read the same in ${theme}`,
-    );
+    const plain = at.inState('.ui-app__rail .ui-nav__item:not(.is-active)', 'hover', 'fontWeight');
+    const active = at.inState('.ui-app__rail .ui-nav__item.is-active', 'hover', 'fontWeight');
+    assert.ok(Number(active) > Number(plain), `${theme}: current row loses its type distinction`);
   }
 });
 

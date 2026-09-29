@@ -62,7 +62,7 @@ export const Scale = {
 
     <div style="margin-top:36px;max-width:820px">
       <h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin-bottom:16px">Monospace — <code style="font-family:var(--font-mono)">--font-mono</code></h3>
-      <pre style="font-family:var(--font-mono);font-size:14px;color:var(--text);background:var(--surface-2);padding:16px;border-radius:12px;margin:0">claude mcp add strategy --url https://strategy.apli.tech/mcp</pre>
+      <pre class="ui-code" style="font-family:var(--font-mono);font-size:14px;color:var(--text);padding:16px;border-radius:12px;margin:0">claude mcp add strategy --url https://strategy.apli.tech/mcp</pre>
     </div>
   `),
 };

@@ -30,7 +30,7 @@ export const RING_MIN = 3;
  * word it is or a reader cannot tell which control is unavailable.
  *
  * It is 3 and not 4.5 because contrast is not the axis the state travels on: the
- * kit's disabled primary button measures 6.91:1 in dark and 4.89:1 in light,
+ * kit's disabled primary button measures 6.24:1 in dark and 6.11:1 in light,
  * against 5.70:1 and 7.34:1 enabled — more contrast than the enabled button in
  * one theme and less in the other, and nobody would mistake the two either way
  * in either theme. The paint carries the state, this
@@ -65,6 +65,9 @@ export const RING_FLOOR = 4.22;
 // read on the surface beside it, and neither is dragged toward the ground.
 // It moved DOWN at #295, which is a decision written rather than a number edited:
 // the band was a property of a white light app, and the light page came off white.
+// #448 gave the card back its white and lifted light's pair to 5.17, so this is the
+// bar that decision set rather than what the kit measures today — a floor a theme
+// clears by 0.28 is still the floor, and lowering it later is a decision too.
 // why: docs/specification.md#elevation
 export const DISABLED_FLOOR = 4.89;
 

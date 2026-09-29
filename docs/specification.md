@@ -187,6 +187,22 @@ not by rounding half up, and not by whichever step is closer to the number that 
 
 Each value's job is stated where the value is written, and the job decides the direction.
 
+**A padding modifier moves the vertical rhythm and keeps the horizontal inset**, so cards of
+different padding stacked in one column line their text up. `.ui-card` pads `var(--space-6)` and
+`.ui-card--pad-sm` pads `var(--space-5) var(--space-6)`. `.ui-card` used to pad
+`var(--space-6) 26px`; 26 is off the scale this section is about, and against `--pad-sm`'s 20 it
+put a stat tile's text 6px out from the card under it. `.ui-card--pad-lg` keeps its own roomier
+inset — it is the centred landing card and is never stacked with plain ones.
+
+**A `dense` or `zebra` table inside a card starts its first column on the card's own text edge.**
+Both recipes inset their end cells by `--space-3` so a row's highlight has room at its ends (see
+Dense financial tables), and that inset was being paid for by the grid: a ledger's first column
+sat 12px inside the card's title. The table's own box hangs out by the same `--space-3`, into the
+card's 20–24px padding and never past it, so the inset stays and the columns line up. The card's
+scroll region is empty at rest at 1280; a ledger too wide for its column still scrolls.
+
+Both decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451).
+
 Held by `stories/table-rhythm.test.js`. Decided in
 [#211](https://github.com/apliteni/apliteni-ui/issues/211).
 
@@ -473,10 +489,10 @@ and the box under it toward the ground together, so what a reader is left with i
 composite lands. A disabled primary button measured 1.48:1 that way — white on a washed-out accent
 — and no disabled control in the light theme reached 3:1. Every disabled rule with a label under
 it now takes `--disabled-ink` on `--disabled-surface` at full opacity, which composites
-predictably, and every disabled label on a box of its own measures between 4.89:1 and 6.91:1.
+predictably, and every disabled label on a box of its own measures between 6.11:1 and 6.24:1.
 A ghost button paints no box, on or off, so its label is read on whatever is behind it. It takes
 `--disabled-ink-bare` instead, set for the dullest ground the kit paints, and reads between
-5.20:1 and 7.49:1 depending on where it is put. That is still well under the enabled ghost beside
+5.44:1 and 7.49:1 depending on where it is put. That is still well under the enabled ghost beside
 it. Settled in [#273][i273], and re-measured at
 [#295](https://github.com/apliteni/apliteni-ui/issues/295), which moved every ground under both
 inks — see Elevation above.
@@ -484,7 +500,7 @@ inks — see Elevation above.
 The floor is **3:1**, the bar WCAG uses for large text and for a graphic — a disabled label has to
 stay identifiable as the word it is, and no standard sets this because 1.4.3 exempts the control
 outright. It is not higher, because the other pressure turns out not to live on this axis: the
-disabled primary reads 6.91:1 in dark and 4.89:1 in light, against 5.70:1 and 7.34:1 for the
+disabled primary reads 6.24:1 in dark and 6.11:1 in light, against 5.70:1 and 7.34:1 for the
 enabled one — more contrast than the enabled button in dark and less in light — and nobody
 confuses white on purple with grey on grey in either direction. Contrast carries legibility; the
 paint carries the state. So the guarantee has a second half — **a disabled control never shows the
@@ -514,11 +530,9 @@ transparent and unread; `--elev-drop`, under that second line, is the one shadow
 surface is one whose whole purpose is to be temporarily above something else: a dropdown menu,
 the account and workspace menus, the small-form popover, `confirm()`, the drawer, the React
 modal, the three toast styles, the command palette, the hover readout, and the collapsed rail's
-flyout label. Most of them paint the `--bg-elevated` step, and nothing *below* that step floats
-— but the hover readout and the rail's flyout paint `--surface-3`, the rung above it, and they
-float for the same reason the rest do. Reading the rule off the ladder instead would have
-excluded the two surfaces that are most plainly temporary, and in light it would have excluded
-them for being the *quiet fill* — see the note under the table.
+flyout label. They paint a reading surface and float because of their role. Hover readouts
+use `--bg-elevated`; collapsed rail labels use the card surface with the same
+floating edge and shadow treatment.
 
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
 published so a consumer reading one does not break, and all five are the transparent shadow
@@ -545,56 +559,34 @@ The ladder, bottom to top:
 
 | Token | The step | Dark | Light |
 | --- | --- | --- | --- |
-| `--bg` | the page | `#0e0d14` | `#eef0f5` |
-| `--surface-2` | sunken — a field, a track, a disabled box, a code block | `#161520` | `#e3e6ee` |
-| `--surface` | a card | `#211e2d` | `#f8f9fc` |
+| `--bg` | the page | `#0e0d14` | `#f2f3f6` |
+| `--surface-2` | non-text sunken marks and tracks | `#161520` | `#e9ecf3` |
+| `--surface` | a card | `#211e2d` | `#ffffff` |
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
-| `--surface-3` | the top step — the hover readout, a chip, the nav rail's hover | `#2d293c` | `#e7eaf1` |
+| `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
-**One field in the kit is not on the sunken step**: the topbar band's search field takes `--surface`,
-because the band is `--bg` and a sunken fill on the bottom rung has nowhere to go but down into its
-own ground — measured at 1.10:1 below the band in light before the change, and 1.08:1 above it after
-(#318, chosen by the owner from four rendered alternatives;
-src/styles/layout.css:365 `background: var(--surface);`).
+**Text sits on the page, card or floating panel surface, never on a grey inset.**
+Fields, code blocks, neutral badges, navigation labels and segmented controls use
+these reading surfaces in both themes. Grey fills remain for non-text marks and
+tracks. Inputs use `--field-bg: var(--surface)` and their field edge tokens;
+disabled text controls use the same reading surface with disabled ink. Status
+colours keep their meaning, and badge text must clear 4.5:1 in both themes.
 
-**A sunken box is read against the surface it sits in, and a floating panel is a rung above a
-card.** `--surface-2` is one rung under `--surface`, which is what makes a field on a card read as a
-well. Inside a panel it is two rungs under `--bg-elevated`, and in light that panel is the only pure
-white the kit paints, so the same token reads as a hole: the dropdown's search field measured
-**1.249 against its panel and a 20.9-point drop in lightness**, where a kit field on a card measures
-**1.186 and 15.6**. Reported on [#306](https://github.com/apliteni/apliteni-ui/issues/306)'s round 10
-as the search box looking too dark, and the field was innocent — it paints exactly what `.ui-input`
-paints. What moved was underneath it, when #314 took a light panel to white.
+`--surface-2` and `--surface-3` remain available for non-text fills. A control's
+hover or selected state uses its edge, text weight or a meaningful accent instead
+of a grey text background. Floating readouts use `--bg-elevated` and keep their
+existing edge and shadow treatment. Decided in
+[#455](https://github.com/apliteni/apliteni-ui/issues/455).
 
-In light the field takes `--bg`, which puts it at **1.140 and 12.9** against the panel: a shallower
-well than a card's, on a surface a step brighter than a card. Light needs its own value because its
-top rungs are compressed — `--surface` inside the panel is only 1.053, a field flattened into the
-surface with its border doing all the work. **Dark is unchanged and is an open question.** Its panel
-is a middle step rather than white, so the same two-rung drop reads as a well and not a hole, and
-nobody has been asked about it; `stories/dropdown-field-ground.test.js` holds light against the card
-measurement and holds dark at the **1.234** this tree measures, so deepening dark is a decision
-somebody writes rather than a drift, and bringing it in line lowers the number and passes.
-
-The ladder measures lightness, not elevation. Two surfaces on its top step — the hover readout
-and the collapsed rail's flyout label — float by role and take the treatment; the rest of that
-step, a chip and a hovered row, does not.
-
-Dark runs it upwards: the page is the darkest thing on screen, every step above it is lighter than
-the one under it, and the order in the table is the order on screen. Light cannot, because nothing
-is brighter than the white a card already was — so the page comes off white, the card comes off
-white behind it, and white is kept for the top: **a floating panel is the only pure white on a
-light screen.**
-
-**In light the ladder is not monotonic, and the top step is the exception.** `--surface-3` is
-`#e7eaf1`: below the page, and 1.04:1 above the sunken step. It cannot be above `--bg-elevated`,
-because `--bg-elevated` is white and light has nothing brighter to give it. So in light the top
-step means the **quiet fill** rather than the highest surface — a chip, a hovered row, the hover
-readout's panel — and on its fill alone a light readout would read as a recessed surface rather
-than a raised one. That is the case for deciding this by role rather than by rung: the readout's
-drop and its two-step edge are what say *raised* in light, where its fill cannot.
-This is the value the picked prototype carried and the one the approved frames were drawn
-with; it is stated here rather than described as a ladder light does not run. Open on
-[#295](https://github.com/apliteni/apliteni-ui/issues/295).
+**A tinted card stays above the page, and `--card-tint` is what buys that.** `.ui-card--accent`
+and `.ui-card--live` mix their colour into `--surface`. Dark mixes upward off a mid-grey card and
+can spend 9%. Light mixes **down from white**, so every point of tint is a point of lightness the
+card loses: at 9% a light accent card landed at **1.043:1 below** the page and a live card at
+1.026:1 below it — two sunken slabs between two white cards, which is the ladder upside down.
+Light spends **5%**, the most a tinted card can pay and still sit above the page (1.022:1 for the
+accent, 1.041:1 for live), and each variant edges itself in its own colour rather than one of the
+two keeping the neutral line. The rule this states is the section's own: **a card is a step above
+the page, whatever it is tinted with.**
 
 **Every floating surface keeps the hairline as well, and the card takes one in both themes.**
 A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
@@ -622,7 +614,7 @@ token resolves once, at `:root`, always to the fallback — and every component 
 re-points it writes a declaration the browser ignores. The alphas are per theme because the
 device is not worth the same in each. Dark spends 62% / 50% of `--shadow-ink` and still only reaches **1.20** at the
 drop's core, because near-black ink on a near-black page has nowhere to go — dark is carried by
-the edge. Light spends 18% / 10%, lands the core at `#d1d2d8`, and reads **1.44** on the card,
+the edge. Light spends 18% / 10%, lands the core at `#d7d7da`, and reads **1.44** on the card,
 which is the strongest separation either theme gets from any device measured for #295. The page
 measured 1.43 for the same drop, because its prototype wrote the ink as a literal `#101626` at 17%
 rather than reading `--shadow-ink`, which is `#1e1e32` here; the kit's own token is what ships, and
@@ -660,21 +652,10 @@ is declared at `:root` in the palette and nowhere else, because a sheet re-point
 changes what every floating surface casts. The numbers
 above are floored there, so a treatment can get better and cannot quietly get worse.
 
-**Inside a raised surface, a row or a chip that lifts takes the step above the panel.** A hovered
-row, an active row, a chip and a key cap inside a floating panel paint `--surface-3`, never
-`--surface`: `--surface` is the card step and sits *below* `--bg-elevated` in dark, so a hover
-drawn with it sank while the panel it was in floated. In light that step is drawn downwards —
-`--surface-3` is darker than the white panel — which is how a light theme has always shown a
-hover. A field inside a panel goes the other way: it is the sunken step, `--surface-2`, the same
-one `.ui-input` takes. The one field that takes neither is the topbar band's search field, which is
-on `--surface` because its own ground is the bottom of the ladder — the exception stated under the
-ladder above, and settled on #318.
-
-**The accent wash is painted on a base surface, never a raised one.** A translucent wash over a
-raised surface sits closer to the ink read on it than the same wash over the page, which is what
-takes an accent counter under the floor inside a panel. Two rules state it:
-`src/styles/nav.css:163` `.ui-nav__item.is-active .ui-nav__badge.is-accent`, and
-`src/styles/dropdown.css:190` `.ui-dropdown__badge.is-accent`.
+**Inside a floating panel, text retains a reading surface.** Neutral rows and
+chips use the card surface; fields use the same field tokens as elsewhere.
+Accent counters use accent ink on that surface, without stacking translucent
+washes on a selected row.
 
 **The ladder is capped by ink, not by taste.** `--muted` still carries state and placeholder
 information, so it has to clear AA on every step the ladder raises — and it is re-picked
@@ -1230,9 +1211,10 @@ What moves, and what each move buys:
   **What that is not, measured at 1280 in Chrome:** the two rules land level — both boxes end at
   `52` — but they are **not one continuous stroke**. The rail insets its rule by the rail's own
   `--space-4`, so the rail's half runs `x 16→232` and the band's starts at `249`, a 17px break.
-  And in the light theme the rail's half is effectively invisible: `--border` `#e4e7ee` on the
-  rail's `--surface-2` `#e3e6ee` is 1.009:1, against 1.086:1 for the same rule on the band's
-  `--bg`. Both are inherited — the ladder is [#295](https://github.com/apliteni/apliteni-ui/issues/295)
+  And in the light theme the rail's half is the fainter of the two: `--border` `#e4e7ee` on the
+  rail's `--surface-2` `#e9ecf3` is 1.047:1, against 1.116:1 for the same rule on the band's
+  `--bg`. It was 1.009:1 — a rule that was there and could not be seen — until
+  [#448](https://github.com/apliteni/apliteni-ui/issues/448) lifted the sunken step off the border. Both are inherited — the ladder is [#295](https://github.com/apliteni/apliteni-ui/issues/295)
   and the inset is the rail's — and neither is repainted here: the rail's head, its foot and the
   reader block all take one hairline, so repainting the head alone would leave the rail's own two
   rules disagreeing, and bleeding the head's rule to the rail's edges would cost it the open
@@ -1985,6 +1967,11 @@ Stated so nobody has to discover it by trying:
 
 Tables paint `--table-bg`: white in light mode and the base canvas in dark mode. Zebra no
 longer paints grey stripes; hover marks the row edge without tinting the data surface.
+**A link inside a cell takes the row's ink and underlines on hover**, which is what `.ui-identity`
+has always done: a link in a ledger is a value that happens to open something, and colouring every
+one of them spends the accent on the column that needs it least. `.ui-btn` and `.ui-identity`
+inside a table keep their own paint. Decided on
+[#451](https://github.com/apliteni/apliteni-ui/issues/451).
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.
 Dense, compact and zebra recipes give headers and values matching horizontal insets in

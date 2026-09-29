@@ -139,16 +139,26 @@
      line and nothing else in the kit does. why: docs/specification.md#elevation */
   --bg: #0e0d14;
   --table-bg: var(--bg);
-  --surface-2: #161520;     /* SUNKEN — fields, tracks, disabled, code */
+  --surface-2: #161520;     /* non-text sunken marks and tracks */
   --surface: #211e2d;       /* the card */
   --bg-elevated: #2a2639;   /* FLOATING — menus, panels, drawer, modal, toasts */
-  --surface-3: #2d293c;     /* the top step — the hover readout, chips, the nav rail */
+  --surface-3: #2d293c;     /* non-text quiet fills */
   --seg-active-bg: #383350; /* raised pill — clearly above the inset track in dark */
   /* The raised handle on a control track (switch knob). White in both themes and under
      every accent: it reads on the plain track AND on the accent fill of an on control. */
   --control-knob: #ffffff;
   --border: #332f45;
   --border-strong: #453f5c;
+
+  /* Fields use the card surface and an edge in both themes. why: docs/specification.md#elevation */
+  --field-bg: var(--surface);
+  --field-edge: var(--border);
+  --field-edge-hover: var(--border-strong);
+  --control-edge: var(--border);
+
+  /* How much of its own colour a tinted card mixes in. Dark mixes upward off a mid-grey
+     card, so it can afford this much. why: docs/specification.md#elevation */
+  --card-tint: 9%;
 
   --text: #e9e7f0;
   --strong: #ffffff;
@@ -164,7 +174,7 @@
      ink read on the surface beside it. Held by guidelines/accessibility-floor.test.js.
      why: docs/specification.md#colour-and-contrast */
   --disabled-ink: var(--muted);
-  --disabled-surface: var(--surface-2);
+  --disabled-surface: var(--surface);
   --disabled-border: var(--border);
   /* The ink of a disabled control that paints no box of its own — a ghost button. With
      no surface beside it, it is read on whatever is behind it, so it is set to clear the
@@ -281,29 +291,47 @@
   --pink: #a92d59;
   --amber: #b5730a;
 
-  /* The same ladder, run the only way light can run it: nothing is brighter than the
-     white a card already was, so light moves DOWN and keeps white for the top step.
+  /* The same ladder, run the only way light can run it: nothing is brighter than
+     white, so light moves DOWN from it. #307 ran it downwards from the CARD, which
+     put the page at #eef0f5 and left the card at #f8f9fc — a grey canvas under a
+     surface only 1.08:1 above it, so the grey was what the screen read as and the
+     card never arrived. The card takes the white instead, and the page is the
+     lightest ground that still leaves it a step: 1.11:1, on a page lighter and less
+     blue than the one it replaces. Light spends its white on the surface you read
+     ON, and separates the panel that floats over it by role — its two-step edge and
+     its drop — rather than by a rung it has nothing left to pay for. See issue #448.
      why: docs/specification.md#elevation */
-  --bg: #eef0f5;
+  --bg: #f2f3f6;
   --table-bg: #ffffff;
-  --surface-2: #e3e6ee;     /* SUNKEN — fields, tracks, disabled, code */
-  --surface: #f8f9fc;       /* the card */
+  --surface-2: #e9ecf3;     /* non-text sunken marks and tracks */
+  --surface: #ffffff;       /* the card */
   --bg-elevated: #ffffff;   /* FLOATING — menus, panels, drawer, modal, toasts */
-  --surface-3: #e7eaf1;     /* the hover readout, chips, the nav rail */
+  --surface-3: #eef0f5;     /* non-text quiet fills */
   --seg-active-bg: #ffffff; /* white pill raised above the grey track in light */
   --control-knob: #ffffff;
   --border: #e4e7ee;
   --border-strong: #cdd2dc;
+
+  /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
+     with: a card and a panel are both white, the sunken step falls two rungs under either,
+     and --border on it measures 1.047:1. why: docs/specification.md#elevation */
+  --field-bg: var(--surface);
+  --field-edge: var(--border-strong);
+  --field-edge-hover: var(--muted);
+  --control-edge: var(--border-strong);
+
+  /* Light mixes DOWN from white, so tint costs lightness: 5% is the most a card can spend
+     and stay above the page. why: docs/specification.md#elevation */
+  --card-tint: 5%;
 
   --text: #1a1e27;
   --strong: #0c0e13;
   --dim: #3a404b;
   --muted: #5c6270;
 
-  /* Same three aliases as dark. Light moves the disabled surface AWAY from white for the
-     same reason dark moves it away from the card: a control that is off should sink. */
+  /* Disabled text stays on the card surface; its ink marks the unavailable state. */
   --disabled-ink: var(--muted);
-  --disabled-surface: var(--surface-2);
+  --disabled-surface: var(--surface);
   --disabled-border: var(--border);
   --disabled-ink-bare: #585e6c;
 
@@ -361,8 +389,8 @@
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
 
-  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card at
-     #f8f9fc, and 18% is what puts the drop core at #d1d2d8 — 1.44, the strongest
+  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card that is
+     now #ffffff, and 18% is what puts the drop core at #d7d7da — 1.44, the strongest
      separation either theme gets. why: docs/specification.md#elevation */
   --elev-drop:
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 18%, transparent),

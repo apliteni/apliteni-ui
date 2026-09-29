@@ -65,16 +65,30 @@
 .ui-table--zebra td { border-bottom: 0; }
 .ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); --ring-gap: var(--surface-2); }
 /* The stripe stays full-bleed (the #71 inset above is hover only), but it only reads right
- * if the end cells are inset from the tint's own edge, and `.ui-table td` sets
+ * if the end cells are inset from the row's own edge, and `.ui-table td` sets
  * `padding-left: 0`. Only `--dense` supplied that inset, so `--zebra` without `--dense` —
- * `DataTable`'s composition — sat its checkboxes at x=0 of the stripe. Head and body are
- * inset together, or the columns stop lining up. */
+ * `DataTable`'s composition — sat its checkboxes at x=0 of the row. Head and body are
+ * inset together, or the columns stop lining up. Held by src/styles/table.test.js, and
+ * kept off the card's text edge by the bleed rule at the end of this file. */
 .ui-table--zebra th:first-child,
 .ui-table--zebra td:first-child { padding-left: var(--space-3); }
 .ui-table--zebra th:last-child,
 .ui-table--zebra td:last-child { padding-right: var(--space-3); }
 .ui-table--zebra.ui-table--hover tbody tr:hover td,
 .ui-table--zebra tbody tr:hover td { --ring-gap: inherit; background: color-mix(in srgb, var(--accent) 8%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+
+/* A link in a cell is a value that happens to open something: the row's ink, underlined
+   on hover — what .ui-identity below has always done. Without it, base.css's bare
+   `a { color: var(--accent) }` reached the ledger's IDs.
+   why: guidelines/density-and-accents.md#give-accents-a-job */
+.ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {
+  color: inherit;
+  text-decoration: none;
+}
+.ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity):hover {
+  color: var(--strong);
+  text-decoration: underline;
+}
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
 .ui-table th.ui-table__num { text-align: right; }
@@ -93,6 +107,15 @@
   background: var(--table-bg); --ring-gap: var(--table-bg);
 }
 .ui-table tbody tr:hover { outline: 1px solid var(--border-strong); outline-offset: -1px; }
+
+/* The end-cell inset above gives a row's highlight room; the bleed is what stops the grid
+   paying for it. The table hangs out by the same --space-3, into the card's 20-24px
+   padding and never past it, so the columns start on the card's own text edge and the
+   scroll region stays empty at rest. why: docs/specification.md#spacing-and-rhythm */
+.ui-card > :where(.ui-table--dense, .ui-table--zebra) {
+  width: calc(100% + 2 * var(--space-3));
+  margin-inline: calc(-1 * var(--space-3));
+}
 .ui-table td.ui-table__num { text-align: right; }
 .ui-table--compact td { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }

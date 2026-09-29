@@ -153,33 +153,13 @@ const LEDGER = [
       + 'a toast action is read as text, a syntax fragment is read as a hint over text that is '
       + 'already legible, and that difference is why one moved and the other stays.',
   },
-  {
-    id: 'F',
-    fg: '--purple-mid',
-    themes: ['light'],
-    bg: 'accent-tinted grounds and the snippet bar under middle-ramp ink',
-    example: 'span.ui-badge.ui-badge--soon',
-    count: 1,
-    worst: 4.27,
-    why: 'The "soon" status is deliberately the quietest thing the kit can render — it marks '
-      + 'something that does not exist yet and must not compete with what does. It is set in '
-      + 'the mid purple on a purple wash, which is the same ink-on-its-own-hue problem as the '
-      + 'accent bucket, chosen here on purpose. This was a two-theme entry until #157, which moved '
-      + 'the dark accent up onto --purple-mid and then moved the ramp up a step behind it, so dark '
-      + '--purple-mid is a lighter colour than it was and its "soon" row clears. The dark row is '
-      + 'therefore gone from the ledger, not relocated: the two tokens tell each other apart in '
-      + 'both themes again, and there is no dark row left for this entry to hold. `themes` is a '
-      + 'matcher, so it names only light, where the pair still fails — a dark row appearing here '
-      + 'later should be looked at by a person, which is what leaving it out makes happen. Nobody '
-      + 'owns it: the decision to '
-      + 'make is whether a status that means "not yet" is allowed to sit below the floor, and if '
-      + 'not, whether it stops being purple or stops being washed. Alternate accents expose '
-      + 'more uses of the same middle-ramp ink. Phoenix and Emerald fail on the hero eyebrow, '
-      + 'the unstacked soon badge and pill, and the snippet keyword. Emerald also fails on '
-      + 'the lighter soon badge and pill backgrounds. These failures remain recorded under #376 '
-      + 'instead of being recoloured in the coverage change. Component owners must choose a '
-      + 'text-grade ink or a quieter background.',
-  },
+  /* F — --purple-mid on accent-tinted grounds — has left LEDGER for ALTERNATE_CAUSES
+     below, beside L, because the default accent no longer owes it a row. Its one row was
+     the landing page's "For agents" badge: a 9% accent wash on a card that was itself a
+     9% accent wash. #451 took the light tint to 5%, the ground under the badge lightened
+     with it, and the pair cleared the floor. Phoenix and emerald still owe rows against
+     the same cause, so the entry moved rather than being deleted — a cause the expanded
+     gate still finds is what ALTERNATE_CAUSES is for. */
   /* H — --muted on the snippet's shell bar, which is lighter than the card it sits
      in — is closed. The entry said the cheap fix was to darken the bar rather than
      the ink; #295 did neither and closed it anyway, by re-picking --muted against the
@@ -628,18 +608,80 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 // hide a regression in another. LEDGER above explains each cause.
 // Run locally: CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js
 // Add CONTRAST_LEDGER_REPORT=1 to print measured values. It does not change the gates.
-// Last full report: 2026-09-25, source 0877848.
+// Last full report: 2026-09-28, source 9b24b1f, re-run at #451's rework — see below.
 // Record `git rev-parse HEAD` with the output. Review measurements before changing debt.
+//
+// EVERY LIGHT CELL MOVED AT #448, AND ALL OF IT IN ONE DIRECTION: debt paid, none added.
+// Read row by row against the previous report (2026-09-25, 0877848) rather than accepted
+// as a re-run, because a ledger that only ever gets regenerated stops being evidence.
+//
+// One cause covers the whole table. Each of these buckets is an ink read either on a light
+// surface or on a translucent wash over one, and #448 lightened the four light surfaces the
+// washes composite against — the card to #ffffff, the page to #f2f3f6, the sunken step to
+// #e9ecf3, the quiet fill to #eef0f5. A lighter ground under the same ink is a higher ratio,
+// so every light row rose and the rows that sat just under AA crossed it:
+//
+//   C  --green on the success wash and white     3.56 -> 3.76   same 2 rows, all three cells
+//   E  --cyan on the info wash and white         3.05 -> 3.22   same 2 rows, all three cells
+//   L  --accent on the motion replay hover       phoenix 4.21 -> 4.31, ocean 4.35 -> 4.46,
+//                                                emerald 4.23 -> 4.34; still 1 row each
+//   F  --purple-mid on accent-tinted grounds     ocean's single row CLEARED AA and is gone
+//                                                from the table; phoenix 5 -> 4 rows, worst
+//                                                4.02 -> 4.21; emerald keeps 7, worst
+//                                                3.12 -> 3.26
+//
+// The F rows that cleared are the "soon" badge (--purple-mid on --glow-purple, a 0.09-0.10
+// alpha wash). Its ground used to be the tinted card, and the wash over a near-white card is
+// lighter than the same wash over #f8f9fc. Ocean's light --purple-mid #1560c8 is the deepest
+// of the three, so ocean is the cell where that one row had least distance to make up. What
+// is LEFT in F is unchanged in kind: emerald and phoenix inks are lighter, so their rows are
+// still short of AA and still owed. Nothing here fixes bucket F as a cause — see its entry.
+//
+// Both dark cells are byte-identical to the previous report, which is the control: #448
+// touched no dark token, and if it had, these two rows would say so.
+// `unassigned` was empty for all six cells, so no new cause appeared behind the movement.
+//
+// #451's REWORK moved F once more, and again in one direction. It took the light card tint
+// from 9% to 5%, because at 9% a tinted card sat below the page and read as a sunken slab;
+// every F row sits on that card or on a wash over it, so every one of them lightened:
+//
+//   F  default accent   the last row cleared AA — the entry LEFT the LEDGER for
+//                       ALTERNATE_CAUSES, where phoenix and emerald still owe theirs
+//      phoenix          4 rows, worst 4.21 -> 4.35
+//      emerald          7 rows, worst 3.26 -> 3.36
+//      ocean            still no row
+//
+// No count moved, so nothing in phoenix or emerald crossed the floor; the depth did. Both
+// dark cells and C, E, L, P and S are unchanged in every cell, which is the control for a
+// change that only touched a light tint. `unassigned` stayed empty for all six.
 const ACCENT_LEDGER = {
   'dark/phoenix': { B: [1, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [1, 4.20], P: [65, 1.06], S: [21, 2.66] },
   'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
-  'light/phoenix': { C: [2, 3.56], E: [2, 3.05], F: [5, 4.02], L: [1, 4.21], P: [65, 1.06], S: [21, 2.66] },
-  'light/ocean': { C: [2, 3.56], E: [2, 3.05], F: [1, 4.32], L: [1, 4.35], P: [65, 1.06], S: [21, 2.66] },
-  'light/emerald': { C: [2, 3.56], E: [2, 3.05], F: [7, 3.12], L: [1, 4.23], P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [2, 4.45], E: [2, 3.81], F: [1, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
+  // No F: #448 lifted this cell's one "soon" row (4.32) over AA. The bucket keeps its entry
+  // because phoenix and emerald still owe rows against it.
+  'light/ocean': { C: [2, 4.45], E: [2, 3.81], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [2, 4.45], E: [2, 3.81], F: [2, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
 };
 
+// #455, reviewed by hand: card-ground snippets raise C/E to 4.45/3.81.
+// Soon badges and pills use accent ink on the card and leave F; the remaining
+// rows are the hero eyebrow (Phoenix/Emerald) and snippet keyword (Emerald).
+// No new failure is accepted; dark cells and the existing P/S/L causes stay put.
 const ALTERNATE_CAUSES = [...LEDGER, {
+  id: 'F',
+  fg: '--purple-mid',
+  themes: ['light'],
+  bg: 'the hero eyebrow wash and snippet keywords under middle-ramp ink',
+  why: 'The remaining middle-ramp failures are the hero eyebrow in two light accents and '
+    + 'the snippet keyword in Emerald. Their existing limitation is recorded under #376. '
+    + 'The eyebrow keeps a wash of its own hue and the keyword keeps the middle-ramp ink; '
+    + 'neither is badge text. #455 moves Soon badges and pills to accent ink on the card '
+    + 'surface, so those rows are removed. The snippet reading surface also improves '
+    + 'contrast, but does not bring its Emerald keyword to the text floor.',
+
+}, {
   id: 'L',
   fg: '--accent',
   themes: ['light'],

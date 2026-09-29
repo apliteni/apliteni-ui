@@ -14,7 +14,7 @@
   /* One number for the mark-to-readout distance, read by both placements here
      and by the wiring's flip test, so above and below cannot drift apart. */
   --ui-tip-gap: 8px;
-  --ui-tip-bg: var(--surface-3);
+  --ui-tip-bg: var(--bg-elevated);
   position: absolute;
   top: var(--ui-tip-y, 0px);
   left: var(--ui-tip-x, 50%);
@@ -47,9 +47,9 @@
     visibility var(--dur-fast) linear;
 }
 
-/* No light override: it re-pointed the readout at --surface, which #295 made the card
-   step, so a readout over a card was painted the card's own colour. --surface-3 is the
-   readout's step in both themes. why: docs/specification.md#elevation */
+/* The readout uses the floating panel surface in both themes. Its edge
+   and shadow separate it from the card underneath.
+   why: docs/specification.md#elevation */
 
 /* Below the mark: the wiring's flip when above would be clipped, or the
    author's own choice. */

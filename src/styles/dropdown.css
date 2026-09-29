@@ -151,9 +151,9 @@
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
-/* A row in a raised panel lifts: the step above it, never the card step below. why: docs/specification.md#elevation */
-.ui-dropdown__item:hover { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
-.ui-dropdown__item:focus-visible { outline: 2px solid transparent; background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: var(--ring); }
+/* Rows keep a reading surface; hover adds an edge. why: docs/specification.md#elevation */
+.ui-dropdown__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-dropdown__item:focus-visible { outline: 2px solid transparent; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: var(--ring); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ui-dropdown__label { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
@@ -180,14 +180,14 @@
   flex: none;
   color: var(--text);
   /* A chip is the top step. why: docs/specification.md#elevation */
-  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 /* The accent counter keeps the badge's flat surface and changes only the ink — the shape
-   src/styles/nav.css:163 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
+   src/styles/nav.css:158 `.ui-nav__item.is-active .ui-nav__badge.is-accent` already holds.
    The accent wash goes on a base surface, never a raised one, and #295 made this panel a
    raised one. why: docs/specification.md#elevation */
-.ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-dropdown__badge.is-accent { color: var(--accent); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
@@ -257,9 +257,9 @@
   font: inherit;
   font-size: calc(var(--text-sm) - 0.5px);
   color: var(--strong);
-  /* A field is the sunken step, the same one .ui-input takes. why: docs/specification.md#elevation */
-  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
-  border: 1px solid var(--border);
+  /* The ground and line .ui-input takes. why: docs/specification.md#elevation */
+  background: var(--field-bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  border: 1px solid var(--field-edge);
   border-radius: var(--radius-sm);
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
@@ -267,14 +267,12 @@
   min-height: 38px;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
-/* Light sinks the field one rung less far: its panel is the only pure white the
-   kit paints, so --surface-2 falls two rungs under it rather than one. The
-   numbers are in the spec and the gate is stories/dropdown-field-ground.test.js.
-   why: docs/specification.md#elevation */
-:root[data-theme="light"] .ui-dropdown__search-input { background: var(--bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* The light-only `background: var(--bg)` override this field used to carry is gone:
+   --field-bg says the same thing for every field. Gated by
+   stories/dropdown-field-ground.test.js. why: docs/specification.md#elevation */
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
-.ui-dropdown__search-input:hover { border-color: var(--border-strong); }
+.ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
 .ui-dropdown__search-input:focus-visible { outline: 2px solid transparent; border-color: var(--accent); box-shadow: var(--ring); }
 
 .ui-dropdown__list { max-height: 300px; overflow-y: auto; }
@@ -284,7 +282,7 @@
 
 /* The row Enter would pick. Focus stays in the field, which carries the ring,
    so this row takes the hover fill and a bar rather than a second ring. */
-.ui-dropdown__item.is-active { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: inset 2px 0 0 var(--accent); }
+.ui-dropdown__item.is-active { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: inset 2px 0 0 var(--accent); }
 
 /* No match — a nudge and no action, per Guidelines / Microcopy. Empty while
    anything matches, so it takes no room. */
