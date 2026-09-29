@@ -291,4 +291,8 @@
 .ui-dropdown__none-title { font-size: calc(var(--text-sm) - 0.5px); font-weight: 600; color: var(--strong); }
 .ui-dropdown__none-hint { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
 
-.ui-dropdown__badge.is-state { /* muted-ink: state — off, unset, disabled or archived badge */ color: var(--muted); }
+.ui-dropdown__badge.is-state {
+  /* muted-ink: state — off, unset, disabled or archived badge */
+  color: var(--muted);
+  border: 1px solid var(--muted);
+}

@@ -451,7 +451,11 @@ reader must recognise; a count is not a status merely because its class says so.
 badges use body ink. Archive and disabled variants keep their state ink. Dropdown badges
 use explicit `tone: 'state'` for these states, including translated labels. Only when tone is
 omitted do exact English off, unset, disabled, archive or archived labels fall back to state
-ink. Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
+ink. State chips retain the badge reading surface and use the archived-badge ink for
+a visible edge: at least 3:1 against the dropdown panel in both themes, with text
+at least 4.5:1. Held by `stories/dropdown-state-contrast.test.js`; decided in
+[#445](https://github.com/apliteni/apliteni-ui/issues/445).
+Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
 To extend this closed list, open an issue and agree the new class before using it.
 
 Every CSS `color` or `-webkit-text-fill-color` declaration that can reach muted or dim carries
