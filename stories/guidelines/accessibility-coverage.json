@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/Success.test.tsx",
+      "name": "React: Success",
+      "does": "Checks heading ranks, polite status markup, hidden artwork, keyboard action access, refs, axe results and cancelable countdown ownership, including StrictMode.",
+      "blind": [
+        "JSDOM cannot measure paint, colour contrast, real layout or actual screen-reader announcements; matching browser captures cover the shared CSS."
+      ]
+    },
+    {
       "file": "react/src/Tooltip.test.tsx",
       "name": "React: Tooltip",
       "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",
