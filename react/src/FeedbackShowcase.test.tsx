@@ -60,12 +60,12 @@ describe('feedback showcase', () => {
     const note = await screen.findByRole('textbox');
     fireEvent.change(note, { target: { value: 'Please add a delivery date.' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't send. Your note is saved.");
+    expect(await screen.findByRole('alert')).toHaveTextContent("Could not send. Your note is still here. Try again.");
     expect(note).not.toHaveAttribute('aria-invalid', 'true');
     expect(note).not.toHaveClass('is-invalid');
-    expect(note).toHaveAccessibleDescription('Only this section and your note are sent.');
-    expect(screen.getByText('Only this section and your note are sent.')).toBeVisible();
-    expect(screen.getByRole('alert')).toHaveTextContent("Couldn't send. Your note is saved.");
+    expect(note).toHaveAccessibleDescription('Only this section and your note will be sent.');
+    expect(screen.getByText('Only this section and your note will be sent.')).toBeVisible();
+    expect(screen.getByRole('alert')).toHaveTextContent("Could not send. Your note is still here. Try again.");
     await waitFor(() => expect(document.querySelector('.ui-btn__status')).toHaveTextContent(/^$/));
     expect(note).toHaveValue('Please add a delivery date.');
     expect(screen.getByRole('dialog')).toBeInTheDocument();

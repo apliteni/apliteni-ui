@@ -4,6 +4,7 @@ import { Modal } from './Modal';
 import { TextArea } from './Field';
 import { Toast, useToast } from './Toast';
 import { Button } from './primitives/Button';
+import { Callout } from './primitives/Callout';
 import './FeedbackShowcase.css';
 
 type Args = { withExcerpt?: boolean; fail?: boolean };
@@ -61,12 +62,12 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
         </section>
         <section>
           <h2>Delivery</h2>
-          <p>The parcel goes out on the next collection round, weekdays at 16:00.</p>
+          <p>The parcel will leave on the next weekday collection at 16:00.</p>
           <p>{QUOTED}</p>
         </section>
         <section>
           <h2>Payment</h2>
-          <p>Paid in full on 26 September. The invoice went out with the order confirmation.</p>
+          <p>Paid in full on 26 September. The invoice was sent with the order confirmation.</p>
         </section>
       </main>
       <div style={{ ...trigger, opacity: open ? 0 : 1 }}>
@@ -94,11 +95,11 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
           }, 800);
         }}>
           <TextArea label="What went wrong, or what would help?"
-            hint="Only this section and your note are sent."
+            hint="Only this section and your note will be sent."
             placeholder="e.g. There is no way to change the delivery address from here." rows={4} value={note}
             readOnly={state === 'sending'} onChange={event => setNote(event.target.value)} />
         </form>
-        {state === 'failed' && <div className="fbs-error" role="alert">Couldn't send. Your note is saved.</div>}
+        {state === 'failed' && <div role="alert"><Callout icon="circleX">Could not send. Your note is still here. Try again.</Callout></div>}
       </Modal>
     </>
   );
