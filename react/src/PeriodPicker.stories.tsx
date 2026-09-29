@@ -7,6 +7,7 @@ import { NumericValue, DeltaValue } from './TableValues';
 import { BusyRegion, Skeleton, SkeletonTable } from './Loading';
 import { Segmented } from './Segmented';
 import { Badge } from './primitives/Badge';
+import { Icon } from './primitives/Icon';
 
 export default {
   title: 'Showcases/Period picker',
@@ -14,21 +15,18 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
-type Month = { value: string; short: string; name: string; status: string; tone: string; note?: string };
+type Month = { value: string; short: string; name: string; status: string; icon: string; note?: string };
 
-// Demo data. "As of September 2026" is what makes September the open month.
-// One status axis — Open, then Complete, then Closed — with Restated as its own
-// marker, so a reader can tell a step from a fact about the books.
+// Demo data as of September 2026; Restated is separate from closing status.
 const months: Month[] = [
-  { value: '2026-04', short: 'Apr', name: 'April', status: 'Closed', tone: 'neutral' },
-  { value: '2026-05', short: 'May', name: 'May', status: 'Closed', tone: 'neutral' },
-  { value: '2026-06', short: 'Jun', name: 'June', status: 'Closed', tone: 'neutral', note: 'Restated' },
-  { value: '2026-07', short: 'Jul', name: 'July', status: 'Closed', tone: 'neutral' },
-  { value: '2026-08', short: 'Aug', name: 'August', status: 'Complete', tone: 'success' },
-  { value: '2026-09', short: 'Sep', name: 'September', status: 'Open', tone: 'warn' },
+  { value: '2026-04', short: 'Apr', name: 'April', status: 'Closed', icon: 'lock' },
+  { value: '2026-05', short: 'May', name: 'May', status: 'Closed', icon: 'lock' },
+  { value: '2026-06', short: 'Jun', name: 'June', status: 'Closed', icon: 'lock', note: 'Restated' },
+  { value: '2026-07', short: 'Jul', name: 'July', status: 'Closed', icon: 'lock' },
+  { value: '2026-08', short: 'Aug', name: 'August', status: 'Complete', icon: 'circleCheck' },
+  { value: '2026-09', short: 'Sep', name: 'September', status: 'Open', icon: 'clock' },
 ];
-// The visible pill is three letters; the accessible name is the month. The
-// status is on the badge and in the live region, so it is not said a third time.
+// Announce the status once, in the live region.
 const options = months.map(month => ({
   value: month.value, label: month.short, ariaLabel: `${month.name} 2026`,
 }));
@@ -36,7 +34,8 @@ const options = months.map(month => ({
 const grouped = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 });
 // The finance showcase's typesetting: digits, a space, then the symbol, and
 // U+2212 for a negative so the minus lines up over tabular digits.
-const money = (amount: number) => `${amount < 0 ? '−' : ''}${grouped.format(Math.abs(amount))} €`;
+const amountText = (amount: number) => `${amount < 0 ? '−' : ''}${grouped.format(Math.abs(amount))}`;
+const money = (amount: number) => `${amountText(amount)} €`;
 const change = (amount: number) => `${amount < 0 ? '−' : '+'}${grouped.format(Math.abs(amount))} €`;
 // Good news is the caller's verdict, not the arrow's. Every ledger row is a
 // signed contribution to net cashflow, so a rise helps whichever row it is on —
@@ -68,7 +67,6 @@ const totalsIn = (index: number) => {
   return { income, spend, net: income - spend };
 };
 
-// One object for the page's three boxes, so the showcase states its rhythm once.
 // `minmax(0, 1fr)`: a grid track sizes to its widest child by default, so the
 // ledger would widen the column instead of scrolling inside its card.
 const layout = {
@@ -99,16 +97,16 @@ function Example({ busy = false }: { busy?: boolean }) {
 
   const columns: Column<Entry>[] = [
     { key: 'name', label: 'Category' },
-    { key: 'amount', label: `${selected.short} 2026 (EUR)`, num: true, render: row => <>{money(row.amount)}</> },
+    { key: 'amount', label: `${selected.short} 2026 (EUR)`, num: true, render: row => <NumericValue value={amountText(row.amount)} unit=" €" /> },
     {
       key: 'delta', label: 'Change', num: true,
       render: row => row.delta == null
         ? <NumericValue value={null} />
-        : <DeltaValue basisId={basisId} value={change(row.delta)} tone={rowTone(row.delta)} />,
+        : <span className="ui-value"><DeltaValue basisId={basisId} value={change(row.delta).replace(' €', '')} tone={rowTone(row.delta)} /><span className="ui-value__unit"> €</span></span>,
     },
     {
       key: 'earlier', label: earlier ? `${earlier.short} 2026` : 'Earlier month', num: true,
-      render: row => row.earlier == null ? <NumericValue value={null} /> : <>{money(row.earlier)}</>,
+      render: row => row.earlier == null ? <NumericValue value={null} /> : <NumericValue value={amountText(row.earlier)} unit=" €" />,
     },
   ];
 
@@ -126,15 +124,20 @@ function Example({ busy = false }: { busy?: boolean }) {
     (busy ? <BusyRegion busy label={label} placeholder={placeholder} /> : loaded);
 
   return <AppShell sections={[{ href: '#report', label: 'Finance report', icon: 'chart' }]}
-    pathname="#report" title="Finance report" word="Demo"
-    lede="Pick a month to see its cashflow, then the ledger the figures come from."
+    pathname="#report" title="Finance report" word="Demo" width="wide"
+    palette={{
+      groups: [{ label: 'Reports', items: months.filter(month => month.value !== value).map(month => ({
+        id: month.value, label: `${month.name} 2026 report`, icon: 'chart',
+      })) }],
+      onSelect: item => choose(item.id),
+    }}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
     <div id="report" style={layout.page}>
       <div style={layout.control}>
         <Segmented label="Period" options={options} value={value} onChange={choose} />
         <p role="status" style={layout.now}>
-          {selected.name} 2026 <Badge variant={selected.tone}>{selected.status}</Badge>
-          {selected.note && <Badge variant="info">{selected.note}</Badge>}
+          {selected.name} 2026 <Badge><Icon name={selected.icon} />{selected.status}</Badge>
+          {selected.note && <Badge><Icon name="info" />{selected.note}</Badge>}
         </p>
       </div>
       {/* Keyed on the period, so the replaced report arrives rather than cuts. */}
@@ -155,16 +158,16 @@ function Example({ busy = false }: { busy?: boolean }) {
             ))}</div>
           </>,
             <StatBand label="Cashflow" stats={figures}
-              basis={earlier ? `Change against ${earlier.name} 2026` : 'No earlier month: April 2026 is the first month in this demo.'} />)}
+              basis={earlier ? `Change against ${earlier.name} 2026` : 'No earlier month: this demo starts in April 2026.'} />)}
         </div>
         <Card title={`${selected.name} 2026 ledger`}
-          sub={<span id={basisId}>Every amount is in EUR. Money out is negative here and counted positive in the figures above.</span>}>
+          sub={<span id={basisId}>Amounts in EUR; money out is negative{earlier ? ` and changes are against ${earlier.name} 2026.` : ', with no earlier month to compare.'}</span>}>
           {/* pinnedIdentity gives the table the kit's named scroll region: a
               phone scrolls the money columns with the category held beside
               them, and the region is reachable from the keyboard. */}
           {pending(`Loading the ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
             <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
-              pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}
+              stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}
         </Card>
       </div>
     </div>

@@ -201,6 +201,12 @@ sat 12px inside the card's title. The table's own box hangs out by the same `--s
 card's 20–24px padding and never past it, so the inset stays and the columns line up. The card's
 scroll region is empty at rest at 1280; a ledger too wide for its column still scrolls.
 
+For a dense table in a direct scroll wrapper, the wrapper offsets its 4px focus
+clearance and the 12px cell inset; the nested table adds no further padding.
+Segmented strips also keep their content width inside grid parents; block and
+underline variants stretch. These extensions are covered by browser measurements on
+[#435](https://github.com/apliteni/apliteni-ui/pull/435).
+
 Both decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451).
 
 Held by `stories/table-rhythm.test.js`. Decided in

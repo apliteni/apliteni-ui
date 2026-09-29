@@ -17,7 +17,7 @@ it('changes the report, its comparison and the URL with the period', () => {
   expect(screen.getByRole('status')).toHaveTextContent('April 2026');
   expect(screen.getByRole('heading', { level: 2, name: 'April 2026 ledger' })).toBeInTheDocument();
   // The first month has nothing to compare against, and says so rather than 0 €.
-  expect(screen.getAllByText(/No earlier month/)).toHaveLength(1);
+  expect(screen.getAllByText(/this demo starts/)).toHaveLength(1);
   expect(screen.getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(['Category', 'Apr 2026 (EUR)', 'Change', 'Earlier month']);
   const missing = screen.getAllByText('—');
   expect(missing).toHaveLength(8);
@@ -29,7 +29,7 @@ it('changes the report, its comparison and the URL with the period', () => {
   expect(screen.getByRole('status')).toHaveTextContent('September 2026');
   expect(screen.getByText('41,000 €')).toBeInTheDocument();
   // Negative money uses U+2212, not the hyphen the plain formatter emits.
-  expect(screen.getByText('−17,000 €')).toBeInTheDocument();
+  expect(screen.getByText('−17,000')).toBeInTheDocument();
   expect(screen.getByText('Change against August 2026')).toBeInTheDocument();
   expect(window.location.search).toContain('period=2026-09');
 });
@@ -54,4 +54,15 @@ it('announces both pending regions while the period is fetched', () => {
   expect(busy[1]).toHaveTextContent('Loading the September ledger…');
   // The one useful thing to do while waiting stays live.
   expect(within(screen.getByRole('toolbar', { name: 'Period' })).getByRole('button', { name: 'April 2026' })).toBeEnabled();
+});
+
+// The palette opens another monthly report, rather than linking to this page.
+it('opens a different report from the command palette', () => {
+  window.history.replaceState(null, '', '?period=2026-09');
+  render(Default.render());
+  fireEvent.click(screen.getByRole('button', { name: /Search or run a command/ }));
+  expect(screen.queryByRole('option', { name: 'September 2026 report' })).toBeNull();
+  fireEvent.click(screen.getByRole('option', { name: 'April 2026 report' }));
+  expect(screen.getByRole('heading', { name: 'April 2026 ledger' })).toBeInTheDocument();
+  expect(window.location.search).toContain('period=2026-04');
 });
