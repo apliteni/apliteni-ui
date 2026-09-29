@@ -2311,3 +2311,17 @@ their side padding, which is what keeps six three-letter months on one row in a
 
 The underline appearance scrolls instead of wrapping, which is the right answer for
 column switches over one dataset, where the order is the reader's map.
+## Shared React logic and declarations
+
+The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
+`rankCommands`, `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`,
+`DEFAULT_PAGE_SIZE`, and `calloutIcons` from shared logic modules. Vanilla factories
+use the same logic and retain their exports during the removal migration.
+`formatNumericValue` returns plain text, a unit, and an optional missing-value label;
+`formatDeltaValue` returns plain text, the delta classes, and the comparison basis ID.
+React table values render these as JSX. These helpers do not produce HTML.
+
+The main entry and motion subpath ship TypeScript declarations. React FilterBar
+uses React Dropdown directly, preserving the filter-bar classes, controlled change
+callbacks, disabled fieldsets and removal focus. React tests check these DOM behaviors;
+they do not measure the rendered appearance or browser focus styling.

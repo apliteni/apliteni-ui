@@ -1,3 +1,5 @@
+import { dropdownMatch, dropdownFiltering } from '../logic/dropdown.js';
+export { dropdownMatch, dropdownFiltering } from '../logic/dropdown.js';
 // Dropdown — the kit's one popover-list primitive. A trigger opens a panel of
 // item rows; two flavours share the same panel and the same open/close JS:
 //
@@ -79,22 +81,6 @@ function ddBody({ items, sections }, listbox, sx) {
 // why: docs/specification.md#a-dropdown-with-a-search-field
 // NFD takes the mark off é or ö; ł, ø, đ and the rest are letters of their own
 // with nothing to take off, so they are mapped by hand.
-const FOLD = { ł: 'l', ø: 'o', đ: 'd', ð: 'd', ß: 'ss', æ: 'ae', œ: 'oe', ı: 'i', þ: 'th' };
-const fold = (s) => String(s == null ? '' : s).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
-  .replace(/[łøđðßæœıþ]/g, (c) => FOLD[c]);
-
-/**
- * Is this query narrowing anything? A query of spaces, or of marks with no letter
- * under them, is not — it leaves every row showing, and the separators with them.
- *
- * Public because a second implementation of this dropdown cannot write its own: the
- * React <Dropdown> asks these two, the way <CommandPalette> asks rankGroups(), so a
- * list a server rendered and the same list after a keystroke hide the same rows.
- */
-export const dropdownFiltering = (query) => fold(query).trim() !== '';
-
-/** Does `label` match `query`? A substring, anywhere, ignoring case and accents. */
-export const dropdownMatch = (label, query) => fold(label).includes(fold(query).trim());
 const ddIsRow = (it) => it && it !== '---' && !it.separator;
 
 let _ddSeq = 0;

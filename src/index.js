@@ -26,3 +26,10 @@ export { setButtonBusy } from './components/button-busy.js';
 export * from './components/table-values.js';
 export * from './components/segmented.js';
 export * from './components/filter-bar.js';
+
+export { dropdownMatch, dropdownFiltering } from './logic/dropdown.js';
+export { SCORE, rankGroups, rankCommands, scoreCommand, paletteHotkey } from './logic/command-palette.js';
+export { segmentedNextIndex } from './logic/segmented.js';
+export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
+export { calloutIcons } from './logic/callout.js';
+export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';

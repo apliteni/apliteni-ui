@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
@@ -9,7 +13,21 @@
     "declaration": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["vitest/globals", "@testing-library/jest-dom", "vite/client"]
+    "types": [
+      "vitest/globals",
+      "@testing-library/jest-dom",
+      "vite/client"
+    ],
+    "paths": {
+      "@apliteni/apliteni-ui": [
+        "../src/index.d.ts"
+      ],
+      "@apliteni/apliteni-ui/motion": [
+        "../src/motion.d.ts"
+      ]
+    }
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }
