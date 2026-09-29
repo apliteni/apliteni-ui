@@ -99,7 +99,7 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
             placeholder="e.g. There is no way to change the delivery address from here." rows={4} value={note}
             readOnly={state === 'sending'} onChange={event => setNote(event.target.value)} />
         </form>
-        {state === 'failed' && <div role="alert"><Callout icon="circleX">Could not send. Your note is still here. Try again.</Callout></div>}
+        {state === 'failed' && <div role="alert"><Callout icon="circleX">Could not send. Your note is still here; try again.</Callout></div>}
       </Modal>
     </>
   );

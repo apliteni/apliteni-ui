@@ -8,6 +8,7 @@
    fit-content shrinks the column to its longest line so the block sits centred
    rather than left-biased inside an 860px box its lines never fill. */
 .fbs-page {
+  background: var(--surface); /* ring-gap: inherit — reading area contains no focusable controls. */
   width: fit-content;
   max-width: var(--measure);
   margin: 0 auto;
@@ -21,10 +22,9 @@
 .fbs-page p { max-width: var(--prose-body); }
 .fbs-page p + p { margin-top: var(--space-4); }
 
-/* One accent line naming where the note comes from, in place of a two-row
-   definition list whose label column was sized for a drawer. */
+/* Context metadata keeps the same ink as the note. */
 .fbs-chip {
-  color: var(--accent);
+  color: var(--text);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
 }
