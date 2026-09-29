@@ -80,10 +80,12 @@ function Example({ busy = false }: { busy?: boolean }) {
     const query = new URLSearchParams(window.location.search).get('period');
     return months.some(month => month.value === query) ? query! : '2026-09';
   });
+  const [changed, setChanged] = useState(false);
   const index = months.findIndex(month => month.value === value);
   const selected = months[index];
   const earlier = index > 0 ? months[index - 1] : null;
   const choose = (next: string) => {
+    setChanged(true);
     setValue(next);
     const url = new URL(window.location.href);
     url.searchParams.set('period', next);
@@ -141,7 +143,7 @@ function Example({ busy = false }: { busy?: boolean }) {
         </p>
       </div>
       {/* Keyed on the period, so the replaced report arrives rather than cuts. */}
-      <div key={value} className="m-fade-in" style={layout.page}>
+      <div key={value} className={changed ? 'm-fade-in' : undefined} style={layout.page}>
         <div className="ui-stats ui-stats--tiles">
           {pending(`Loading ${selected.name} cashflow…`, <>
             {/* The skeleton wears the band's own classes, so the tiles fold the
