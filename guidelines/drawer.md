@@ -26,15 +26,15 @@
 
 **Don't:** Put each group in a card inside the drawer.
 
-## Three divider lines
+## Header and group dividers
 
 <!-- rule: three-lines -->
 
-**Rule:** Draw lines under the header, over the footer, and between each group; draw no other lines.
+**Rule:** Add lines below the header and between groups. Leave the footer unfilled and without a rule.
 
-**Why:** These lines mark scrolling boundaries and separate groups, not rows.
+**Why:** The header line marks the scrolling body; group lines separate content, and actions share the panel surface.
 
-**Do:** Separate header, footer and groups.
+**Do:** Separate the header and groups.
 
 **Don't:** Add dividers between every row.
 

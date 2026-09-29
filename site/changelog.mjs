@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.55.0', date: '2026-09-29',
+    changes: [
+      ['changed', 'Modal now uses a borderless dialog with a deeper backdrop, a compact header, and a scrolling body so the title and actions stay reachable on short screens. Modal and Drawer actions share the panel surface without a divider. Resolves #448.'],
+      ['changed', 'Component guidance allows content-sized modals for short forms and drawers for long forms.'],
+    ],
+  },
+  {
     v: '0.54.0', date: '2026-09-29',
     changes: [
       ['changed', "The light theme re-picks its surface colours: the card is now white (`--surface` #ffffff), the page is lighter and less blue (`--bg` #f2f3f6), the sunken step lifts off the border (`--surface-2` #e9ecf3) and the quiet fill takes the page's old colour (`--surface-3` #eef0f5). A card reads 1.11:1 against the page where it read 1.083:1, and every light ink gained contrast. A light floating panel is no longer the only white surface: a card shares it, and the panel is separated by its two-step edge and its drop, which now measure 1.52 and 1.44. Dark is unchanged. Consumers who hard-coded any of the four light values should read them from the tokens instead. See #455."],

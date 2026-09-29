@@ -379,3 +379,10 @@ test('inline issue links render as links while code and HTML remain escaped', ()
   assert.equal(doc.querySelector('code').textContent, '--text');
   assert.equal(JSDOM.fragment(mono('[bad](javascript:alert(1))')).querySelector('a'), null);
 });
+
+test('interrupt guidance distinguishes short modal forms from long drawer forms', async () => {
+  const { RULES } = await import('./_component-choice.js');
+  const matches = RULES.filter((rule) => rule.id === 'interrupt');
+  assert.equal(matches.length, 1);
+  assert.equal(matches[0].except, 'Use a content-sized modal for a short form and a drawer for a long form.');
+});

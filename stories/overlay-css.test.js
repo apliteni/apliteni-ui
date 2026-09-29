@@ -410,3 +410,30 @@ for (const m of MENUS) {
     }
   });
 }
+
+// Source guard only: browser captures check viewport geometry and actual scrolling.
+function checkModalScroll(css) {
+  const all = rules(css);
+  const bodyOf = (selector) => {
+    const found = all.filter((r) => r.selector === selector);
+    assert.equal(found.length, 1, `one ${selector} rule is measured`);
+    return found[0].body;
+  };
+  assert.match(bodyOf('.rx-modal'), /max-height:\s*96dvh/);
+  assert.match(bodyOf('.rx-modal'), /flex-direction:\s*column/);
+  assert.match(bodyOf('.rx-modal__body'), /min-height:\s*0/);
+  assert.match(bodyOf('.rx-modal__body'), /overflow:\s*auto/);
+  for (const slot of ['head', 'foot']) assert.match(bodyOf(`.rx-modal__${slot}`), /flex:\s*none/);
+}
+
+test('Modal keeps its header and actions outside a capped scrolling body', () => {
+  checkModalScroll(read('react/src/Modal.css'));
+});
+
+test('Modal scroll guard rejects a missing cap, scrolling body or fixed slots', () => {
+  const css = read('react/src/Modal.css');
+  for (const declaration of ['max-height: 96dvh;', 'overflow: auto;', 'min-height: 0;', 'flex: none;']) {
+    assert.ok(css.includes(declaration));
+    assert.throws(() => checkModalScroll(css.replaceAll(declaration, '')));
+  }
+});

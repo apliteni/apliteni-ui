@@ -620,7 +620,7 @@ measured 1.43 for the same drop, because its prototype wrote the ink as a litera
 rather than reading `--shadow-ink`, which is `#1e1e32` here; the kit's own token is what ships, and
 1.43 is what the gate floors.
 
-Three things follow from writing it as one list.
+The treatment has these composition rules.
 
 - **The focus ring composes with it.** A `box-shadow` list replaces the whole list, so a panel
   writing `box-shadow: var(--ring)` on focus takes off its own edge and its own drop for as long
@@ -631,9 +631,10 @@ Three things follow from writing it as one list.
   which is what a neutral panel wants. Toasts use the neutral border and drop across all styles.
 - **A flush panel draws the line in one direction.** The drawer sits against a screen edge, so it
   has one edge rather than four; a full inset ring would draw lines across the top and bottom of a
-  full-height panel, where there is no edge. It is the one floating surface that writes no ring at
-  all: it composes `var(--drawer-line), var(--elev-drop)`, and each `--drawer--<edge>` rule sets
-  `--drawer-line` in the direction its border runs.
+  full-height panel, where there is no edge. It composes `var(--drawer-line), var(--elev-drop)`,
+  and each `--drawer--<edge>` rule sets `--drawer-line` in the direction its border runs.
+- **The Modal uses only the drop.** Its deep scrim separates the surface without a border or
+  inset edge. Decided in [#448](https://github.com/apliteni/apliteni-ui/issues/448).
 
 Held by `stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader and one
 cascade resolver in `scripts/lib/box-shadow.js`, with their own tests in
@@ -1619,11 +1620,9 @@ it the keyboard.
 and value pairs, so a screen reader hears each label with its value. The value sits beside its
 label rather than at the far edge of the panel, and no row carries a rule.
 
-**It draws three lines and no others.** One under the header, one over the footer, and one between
-each group and the next. A drawer's normal state is a long record scrolling, and the header's line
-and the footer's are what say where that scrolling stops. Inside the body the one division worth
-drawing is group from group, inset by the body's padding; no row carries a rule, and nothing else
-inside the panel draws one.
+**It draws header and group lines.** The header separates the scrolling body, and a line
+between groups separates content. The footer shares the panel surface without a fill or
+rule; actions stay outside the scrolling body. Decided in [#448](https://github.com/apliteni/apliteni-ui/issues/448).
 
 **It moves on open and on close.** The panel slides in from the edge it is anchored to while the
 scrim fades, both on `--dur-med` and `--ease`. It leaves the same way. Under reduced motion both
@@ -1635,8 +1634,8 @@ inside the panel a card fails — `.ui-card`, or any box with all four edges dra
 control or a button and does not sit inside one — and so does an `<hr>`, and any element with a
 border on its top or bottom edge that does not also draw both sides. The group separator is the one
 exception: a `.ui-drawer__section` that follows another and draws a line on its top edge alone. The
-gate reads the three lines in both directions, so a header with no line under it, a footer with none
-over it, a group with none above it, and an edge the body draws for itself each fail too. Logical
+gate checks both missing and extra lines: a header or following group with no line,
+a footer rule, and an edge the body draws for itself each fail. Logical
 borders are read as the physical ones they are in horizontal, left-to-right writing. A specimen
 inside `[data-specimen="dont"]` is a picture of the fault rather than a subject; the gate uses those,
 and one fault of each kind it writes itself — lines added and lines taken away — to prove it can see
@@ -2207,3 +2206,16 @@ rendering starts with the Auto label and does not set root attributes.
 
 The contract is checked by `react/src/ThemeToggle.test.tsx`; JSDOM checks state and
 events, not first-paint timing or appearance.
+
+## The modal
+
+The React Modal caps its height at 96% of the dynamic viewport. The body scrolls while
+its title, close control and footer remain visible. It has a borderless raised surface,
+`--elev-drop`, `--radius-md`, a `--text-base` title and an 82% shadow-ink scrim without blur.
+Its header keeps a divider; its footer shares the surface without a rule. The vanilla
+entry point has no general Modal; its separate confirmation component is unchanged.
+Decided in [#448](https://github.com/apliteni/apliteni-ui/issues/448).
+
+`stories/overlay-css.test.js` checks the cap, scrolling body and fixed slots, including
+mutations that remove each. Browser captures check their actual viewport geometry; the
+source test does not render layout. Existing Modal tests cover focus, dismissal and motion.

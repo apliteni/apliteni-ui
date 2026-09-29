@@ -290,17 +290,17 @@
         "pattern": "export function drawerSection("
       },
       {
-        "ref": "src/styles/drawer.css:205",
+        "ref": "src/styles/drawer.css:200",
         "pattern": ".ui-drawer__section + .ui-drawer__section"
       }
     ],
     "three-lines": [
       {
-        "ref": "src/styles/drawer.css:134",
+        "ref": "src/styles/drawer.css:131",
         "pattern": ".ui-drawer__header {"
       },
       {
-        "ref": "src/styles/drawer.css:205",
+        "ref": "src/styles/drawer.css:200",
         "pattern": ".ui-drawer__section + .ui-drawer__section {"
       }
     ],
@@ -310,7 +310,7 @@
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
-        "ref": "src/styles/drawer.css:235",
+        "ref": "src/styles/drawer.css:230",
         "pattern": ".ui-drawer__row dt { color: var(--text); }"
       }
     ]
@@ -638,7 +638,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:247",
+        "ref": "src/styles/drawer.css:242",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]
