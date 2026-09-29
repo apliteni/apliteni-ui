@@ -869,6 +869,25 @@ error is announced without moving focus back to the field. Explicitly disabled b
 disabled. Unwired static `button({ busy: true })` markup retains native disabled as
 a safe fallback; `setButtonBusy` replaces it with guards when wiring the control.
 
+### React Button links and leading artwork
+
+React `Button` accepts `href` to render an anchor using the existing button classes.
+Without `href` it renders a native button, defaulting to `type="button"`. Refs and
+native attributes belong to the selected element. `leading` accepts decorative
+React content before the label wrapper and takes precedence over `icon`. Callers
+supply vendor artwork without focusable descendants and name icon-only controls
+with text children, `aria-label`, or `aria-labelledby`.
+
+Disabled links have `aria-disabled`, no href, and `tabIndex=-1`. Busy links keep
+their tab position and focus, remove their href, and retain the last idle label.
+Both block clicks, auxiliary clicks, and Enter/Space activation in capture and
+bubble handlers. When enabled, the destination and caller tab index return.
+Native buttons remain natively disabled when explicitly disabled. Busy artwork
+uses the shared CSS to stay in layout while hidden. Covered by
+`react/src/primitives/Button.test.tsx`; browser captures check layout, while these
+JSDOM tests check semantics and activation rather than screen-reader speech.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
 ### Extra-small buttons
 
 `button({ size: 'xs' })` and React `<Button size="xs">` draw a 13px glyph at
