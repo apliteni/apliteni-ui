@@ -8,7 +8,7 @@
  * control and the build green.
  */
 import React from 'react';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SET_GLOBALS, GLOBALS_UPDATED } from 'storybook/internal/core-events';
 
 const calls = [];                 // every addons call, in the order it happened
@@ -30,7 +30,9 @@ vi.mock('storybook/manager-api', async (importOriginal) => {
   return { ...actual, addons };
 });
 
-beforeAll(async () => {
+beforeEach(async () => {
+  calls.length = 0;
+  vi.resetModules();
   await import('../../.storybook/manager.js');
 });
 

@@ -247,11 +247,14 @@ test('b and strong are the semibold step, not the browser\'s bold', () => {
   );
 
   const cut = mount(without(STRONG_RULE));
-  assert.equal(
-    cut.getComputedStyle(cut.document.getElementById('b')).fontWeight, 'bolder',
-    'with the rule removed <b> is STILL not the user-agent default (`bolder`, which is jsdom\'s '
-    + 'spelling of the 700 a browser paints), so the assertion above proves nothing about the rule.',
-  );
+  // jsdom leaves custom properties unresolved; check loss of the rule, not its UA fallback.
+  for (const id of ['b', 'strong']) {
+    assert.notEqual(
+      cut.getComputedStyle(cut.document.getElementById(id)).fontWeight, 'var(--weight-semibold)',
+      `with the rule removed <${id}> still takes the semibold token, so the assertion above `
+      + 'does not prove that the rule supplies the emphasis weight.',
+    );
+  }
 });
 
 /* -- A panel that leaves its container takes its role with it ---------------
