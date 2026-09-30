@@ -104,6 +104,15 @@
   --delay-4: 240ms;
   --delay-5: 300ms;
 
+  /* The room a floating menu keeps between itself and the viewport edge, and the
+     shortest it is allowed to be once that room runs out. The rest of the
+     --ui-dropdown-* family is declared on .ui-dropdown__panel; these two are here
+     because three menus in two sheets read them — .ui-dropdown__panel, .vsw__menu
+     and .amenu, which are one wiring in three skins.
+     why: docs/specification.md#the-dropdown-panel */
+  --ui-dropdown-inset: 12px;
+  --ui-dropdown-min: 120px;
+
   /* -- Elevation (z) ------------------------------------------------------ */
   --z-base: 1;
   --z-sticky: 10;

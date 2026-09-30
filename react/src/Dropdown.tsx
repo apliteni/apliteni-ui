@@ -1,8 +1,9 @@
 import {
   Fragment, useCallback, useEffect, useId, useRef, useState,
-  type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
+  type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
-import { icon, dropdownMatch, dropdownFiltering } from '@apliteni/apliteni-ui';
+import { icon, dropdownMatch, dropdownFiltering, dropdownAvail } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 
 // The React face of the kit's dropdown() factory and of wireDropdown()'s keyboard.
@@ -154,6 +155,13 @@ const openNow = new Set<() => void>();
 // While an input method is composing, its keys commit or steer the text rather than
 // driving the list. Safari's committing Enter carries keyCode 229, not isComposing.
 const composing = (e: { isComposing?: boolean; keyCode?: number }) => e.isComposing || e.keyCode === 229;
+
+// What a document that has not loaded the kit's sheets gets for the three lengths
+// the cap is built from. The sheets declare all three; react/src/Dropdown.test.tsx
+// pins these to src/components/dropdown.js's copies.
+const DD_GAP = 9;
+const DD_INSET = 12;
+const DD_MIN = 120;
 
 const SEARCH_DEFAULTS = {
   placeholder: 'Search',
@@ -309,6 +317,49 @@ export function Dropdown({
     (els[to] || els[0]).focus();
   }, [open]);
 
+  // The room the panel may take, written as the custom property the shared sheet
+  // caps itself with — the same number src/components/dropdown.js writes, from the
+  // same shared calculation, so a panel opened low on a phone ends inside the
+  // viewport in React exactly as it does in vanilla. Re-measured on scroll and
+  // resize, because the page moves under the trigger and the viewport edge does
+  // not. why: docs/specification.md#the-dropdown-panel
+  useIsoLayoutEffect(() => {
+    if (!open) return;
+    const el = panel.current;
+    if (!el) return;
+    const view = el.ownerDocument?.defaultView ?? window;
+    // The three lengths are read once per open and not per scroll event: a sheet
+    // does not change while a panel is open, and this runs on every scroll.
+    const style = view.getComputedStyle(el);
+    const read = (prop: string, fallback: number) => {
+      const n = parseFloat(style.getPropertyValue(prop));
+      return Number.isFinite(n) ? n : fallback;
+    };
+    const gap = read('--ui-dropdown-gap', DD_GAP);
+    const inset = read('--ui-dropdown-inset', DD_INSET);
+    const min = read('--ui-dropdown-min', DD_MIN);
+    const size = () => {
+      const t = trigger.current?.getBoundingClientRect();
+      if (!t) return;
+      el.style.setProperty('--ui-dropdown-avail', `${dropdownAvail({
+        anchorTop: t.top,
+        anchorBottom: t.bottom,
+        viewport: view.innerHeight,
+        gap,
+        inset,
+        min,
+        up: direction === 'up',
+      })}px`);
+    };
+    size();
+    view.addEventListener('scroll', size, true);
+    view.addEventListener('resize', size);
+    return () => {
+      view.removeEventListener('scroll', size, true);
+      view.removeEventListener('resize', size);
+    };
+  }, [open, direction]);
+
   // Keep the active row inside the list's own scroll box, without scrolling the page
   // the way scrollIntoView() would.
   useIsoLayoutEffect(() => {
@@ -456,8 +507,11 @@ export function Dropdown({
     })
     : (items || []).map((entry, i) => renderRow(entry, `i${i}`));
 
+  // The cap property and not `max-height`: an inline height would outrank the
+  // sheet's min() and put the panel back past the viewport edge. The sheet reads
+  // the same property from the vanilla factory's markup. #489
   const cap = scroll && scroll !== true
-    ? { maxHeight: typeof scroll === 'number' ? `${scroll}px` : scroll }
+    ? ({ '--ui-dropdown-cap': typeof scroll === 'number' ? `${scroll}px` : scroll } as CSSProperties)
     : undefined;
   // The no-match state. A function replacer, so a `$&` typed into the field is text
   // rather than a replacement pattern.
@@ -492,6 +546,9 @@ export function Dropdown({
         className={cx('ui-dropdown__panel', align === 'end' && 'is-end', direction === 'up' && 'is-up',
           Boolean(scroll) && !sx && 'is-scroll', Boolean(sx) && 'ui-dropdown__panel--search', panelClass)}
         data-dropdown-panel=""
+        // Out of the tab order by hand — see src/components/dropdown.js for why a
+        // capped panel would otherwise take a tab stop of its own.
+        tabIndex={-1}
         role={sx ? 'dialog' : listRole}
         aria-label={sx ? name : ariaLabel}
         style={sx ? undefined : cap}
@@ -525,7 +582,7 @@ export function Dropdown({
                 onChange={(e) => { setQuery(e.target.value); setActiveKey(null); }}
               />
             </div>
-            <div className="ui-dropdown__list" role="listbox" id={listId} aria-label={name} style={cap}>
+            <div className="ui-dropdown__list" tabIndex={-1} role="listbox" id={listId} aria-label={name} style={cap}>
               {body}
             </div>
             <div

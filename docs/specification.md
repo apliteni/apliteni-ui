@@ -1357,6 +1357,56 @@ standing got a panel fourteen pixels tall. Measured in a browser at 1280×800, t
 foot of a 249px rail went from 128.8px tall and hanging 66px below the fold to 128.8px tall and
 inside it, at the same 9px from the trigger.
 
+**A panel never runs past the viewport edge.** Every floating panel the kit ships is capped at the
+room between its trigger and the edge it opens towards, less the gap it keeps from the trigger and
+`--ui-dropdown-inset` (12px) at the edge, and scrolls inside that cap. That is the whole of
+[#489](https://github.com/apliteni/apliteni-ui/issues/489): before it a panel took its content's
+height unless the consumer reached for the `scroll` modifier, so a twelve-row menu opened 300px
+above the bottom of a 390×844 phone ended 181px below the fold and its last rows could not be
+reached. Capped, the same menu ends 12px above the bottom and scrolls, and `overscroll-behavior:
+contain` keeps the wheel in the panel instead of carrying on down the page underneath it.
+
+Two custom properties decide the height and the smaller wins:
+
+- `--ui-dropdown-cap` is what the consumer asked for. `scroll: true` is `.is-scroll`, which sets it
+  to 300px; `scroll: <n>` writes it inline. It is the cap property and not `max-height`, because an
+  inline height outranks the sheet and would put the panel back past the edge.
+- `--ui-dropdown-avail` is the measured room. The wiring writes it on every open and re-writes it on
+  every scroll and resize, from `dropdownAvail()` in `src/logic/dropdown.js` — one calculation, so
+  the vanilla wiring and the React `<Dropdown>` cannot disagree about where a panel ends. Unwritten,
+  the sheets fall back to `calc(100dvh - var(--ui-dropdown-inset) * 2)`, which is the same promise at a
+  coarser grain for a server-rendered page before anything has hydrated.
+
+`--ui-dropdown-min` (120px, about three rows) is the floor, and it is the one limit: a trigger sitting on
+the viewport edge has no room at all, and a panel of no height is worse than one that overhangs, so
+below the floor the panel keeps the floor and scrolls inside it. The flip is unchanged —
+`direction: 'auto'` measures on each open and moves to the roomier side, and `'down'` and `'up'`
+stay where their author put them — but the measurement is now taken with the cap cleared, because a
+panel capped to fit below reports a height that fits below and would never flip again.
+
+**A capped panel carries `tabindex="-1"`, and that is not decoration.** Chrome gives a scroll
+container a tab stop of its own when nothing inside it is keyboard-focusable, and every row here is
+`tabindex="-1"` — so capping the panel made it a scroller and handed it one. Measured in Chrome 153
+at 390×844: without the attribute, Tab from the trigger closed the menu and left focus on the box it
+had just hidden, wearing the browser's own `outline: auto 1px`; with it, Tab closes the menu and
+moves past it, as it did before the cap. The panel, the search list and the two topbar menus all
+carry it. The sheets answer `:focus-visible` on each of those boxes with the kit's `--ring` as well,
+for a browser that hands one focus anyway and for focus moved by script — the native ring is the one
+[#457](https://github.com/apliteni/apliteni-ui/issues/457) refused. Nothing is lost: the arrows
+already walk the rows and scroll them into view.
+
+With a field above the rows the cap lands on the list and not on the field: `.ui-dropdown__panel--search`
+is a column, the field, head and foot keep their own height, and the list takes what is left. Without
+that the field scrolls away with the rows, which is the opposite of what the field is for.
+
+The two topbar menus owe this as much as `.ui-dropdown__panel` does, for the reason given below —
+they are the same `wireDropdown()` in bespoke clothes — so `.vsw__menu` and `.amenu` read
+`--ui-dropdown-avail` too, and `.amenu` keeps its `overflow: hidden` on X for its rounded corners.
+
+Held by `src/components/dropdown.test.js`, which reads the cap out of every menu's sheet and feeds
+the wiring a 390×844 phone, and by `stories/overlay-css.test.js`, which asks the menu table the
+same question it asks about `visibility` and `pointer-events`.
+
 **One padding, and two blocks that bleed back through it.** `--ui-dropdown-pad` is declared on
 `.ui-dropdown__panel` beside the offset, and the panel's own `padding` reads it —
 src/styles/dropdown.css:79 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
@@ -1367,7 +1417,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:219 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:255 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the

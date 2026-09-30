@@ -8,7 +8,7 @@
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { dropdown, wireDropdown, dropdownMatch } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownProps, type DropdownEntry } from './Dropdown';
 import { classesOf, classesOfEl } from './test/classlist';
@@ -43,8 +43,16 @@ function shape(dd: Element) {
     },
     panel: {
       cls: classesOfEl(panel).join(' '),
+      // Compared, because it is what keeps a capped panel out of the tab order in
+      // both implementations. #489
+      tabindex: panel.getAttribute('tabindex'),
       role: panel.getAttribute('role'),
       label: panel.getAttribute('aria-label'),
+      // The cap property, not `max-height`: both implementations moved to it in #489,
+      // so reading the height here would compare two nulls and measure nothing.
+      cap: (panel as HTMLElement).style.getPropertyValue('--ui-dropdown-cap') || null,
+      listCap: (dd.querySelector('.ui-dropdown__list') as HTMLElement | null)
+        ?.style.getPropertyValue('--ui-dropdown-cap') || null,
       maxHeight: (panel as HTMLElement).style.maxHeight || null,
     },
     sections: [...dd.querySelectorAll('.ui-dropdown__section')].map((s) => ({
@@ -780,4 +788,63 @@ test('state badge ink and generic metadata match the factory classification', ()
   const { container } = render(<Dropdown items={cases.map(([badge], i) => ({ label: `Option ${i}`, badge }))} />);
   expect([...container.querySelectorAll('.ui-dropdown__badge')].map(el => el.className))
     .toEqual(cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
+});
+
+// ---- The cap (#489) --------------------------------------------------------
+// The sheet caps every panel at the room between its trigger and the viewport
+// edge, and the room is a number the wiring has to measure. React has wiring of
+// its own, so it measures it too — from the same dropdownAvail(), so the two
+// cannot disagree about where a panel ends.
+// why: docs/specification.md#the-dropdown-panel
+
+/** A phone, with the trigger 300px above the bottom — #489's own acceptance. */
+function phone(top: number) {
+  vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(844);
+  vi.spyOn(HTMLButtonElement.prototype, 'getBoundingClientRect')
+    .mockReturnValue({ top, bottom: top + 31, left: 16, right: 176, width: 160, height: 31, x: 16, y: top } as DOMRect);
+}
+afterEach(() => { vi.restoreAllMocks(); });
+
+const availOf = (c: Element) =>
+  (c.querySelector('.ui-dropdown__panel') as HTMLElement).style.getPropertyValue('--ui-dropdown-avail');
+
+test('an open panel is capped at the room between its trigger and the viewport edge', () => {
+  phone(844 - 300 - 31);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe('279px');
+});
+
+test('an upward panel is capped against the room above its trigger', () => {
+  phone(300);
+  const { container } = render(<Dropdown value="Account" variant="menu" direction="up" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe('279px');
+});
+
+test('a trigger with no room left keeps the floor rather than no height at all', () => {
+  phone(844 - 36);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe('120px');
+});
+
+test('the room is re-measured when the page scrolls under an open panel', () => {
+  phone(200);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe(`${844 - 231 - 21}px`);
+
+  phone(600);
+  window.dispatchEvent(new Event('scroll'));
+  expect(availOf(container)).toBe(`${844 - 631 - 21}px`);
+});
+
+test('a closed panel is not measured, so nothing is written until it opens', () => {
+  phone(200);
+  const { container } = render(<Dropdown value="Account" variant="menu" items={MENU} />);
+  expect(availOf(container)).toBe('');
+});
+
+test('the `scroll` option asks for the cap property, never an inline height', () => {
+  const { container } = render(<Dropdown value="Account" variant="menu" scroll={420} items={MENU} />);
+  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+  expect(panel.style.getPropertyValue('--ui-dropdown-cap')).toBe('420px');
+  expect(panel.style.maxHeight).toBe('');
 });

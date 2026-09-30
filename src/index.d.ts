@@ -23,6 +23,17 @@ export declare function wireDropdown(root?: Document | Element): void;
 /** The kit's own match, asked rather than re-implemented by <Dropdown>. */
 export declare function dropdownMatch(label: unknown, query: unknown): boolean;
 export declare function dropdownFiltering(query: unknown): boolean;
+/** How tall a floating panel may be, in px: the room between its anchor and the
+ *  viewport edge, less the gap and the inset, floored at `min`. */
+export declare function dropdownAvail(o: {
+  anchorTop: number;
+  anchorBottom: number;
+  viewport: number;
+  gap: number;
+  inset: number;
+  min: number;
+  up?: boolean;
+}): number;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

@@ -129,6 +129,13 @@
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   border-radius: 16px;
   padding: 6px;
+  /* Capped at the room between the trigger and the viewport edge, scrolling inside
+     it, the same rule and the same two properties `.ui-dropdown__panel` reads —
+     these two menus are `wireDropdown()` in bespoke clothes, so the wiring writes
+     --ui-dropdown-avail here as well. why: docs/specification.md#the-dropdown-panel */
+  max-height: var(--ui-dropdown-avail, calc(100dvh - var(--ui-dropdown-inset) * 2));
+  overscroll-behavior: contain;
+  overflow-y: auto;
   opacity: 0;
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a box
@@ -159,6 +166,15 @@
   transform: translateY(0);
   transition-property: opacity, transform;
 }
+/* The scroller's own tab stop, answered with the kit ring — see
+   .ui-dropdown__panel:focus-visible in dropdown.css for why it exists at all. */
+.vsw__menu:focus-visible,
+.amenu:focus-visible {
+  outline: 2px solid transparent;
+  /* The ring composed with the floating treatment rather than replacing it: the ring
+     first, then the inner line, then the drops last. why: docs/specification.md#elevation */
+  box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+}
 .vopt {
   display: flex;
   gap: 11px;
@@ -180,7 +196,7 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:155 `.ui-dropdown__item:hover`.
+   src/styles/dropdown.css:191 `.ui-dropdown__item:hover`.
    why: docs/specification.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
@@ -231,7 +247,12 @@
   border: 1px solid var(--border-strong);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   border-radius: 14px;
-  overflow: hidden;
+  /* `hidden` on X keeps the rows off the rounded corners, which is what this menu
+     has always used it for; `auto` on Y is the cap below. */
+  overflow: hidden auto;
+  /* Capped at the room the viewport left — see .vsw__menu above. */
+  max-height: var(--ui-dropdown-avail, calc(100dvh - var(--ui-dropdown-inset) * 2));
+  overscroll-behavior: contain;
   opacity: 0;
   visibility: hidden;
   pointer-events: none; /* see .vsw__menu above */

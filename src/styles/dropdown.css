@@ -77,6 +77,24 @@
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
   border-radius: var(--radius-lg);
   padding: var(--ui-dropdown-pad);
+  /* The cap, and the whole of #489: a panel takes its content's height until that
+     height runs off the screen, and then it takes what is left. Two numbers decide
+     it and the smaller wins — --ui-dropdown-cap is what the consumer asked for
+     (the `scroll` option writes it), --ui-dropdown-avail is the room between the
+     trigger and the viewport edge, which the wiring measures on every open and
+     every scroll. Neither is declared here: an unset cap means the consumer wants
+     the whole list, and an unset avail means nothing has measured yet, which is a
+     server-rendered page before hydration — so the fallback promises the same
+     thing at a coarser grain, the viewport less the inset at each end.
+     why: docs/specification.md#the-dropdown-panel */
+  max-height: min(
+    var(--ui-dropdown-cap, 100dvh),
+    var(--ui-dropdown-avail, calc(100dvh - var(--ui-dropdown-inset) * 2))
+  );
+  overflow-y: auto;
+  /* The wheel stops at the panel's ends instead of carrying on down the page
+     underneath it, which is the second half of #489's acceptance. */
+  overscroll-behavior: contain;
   opacity: 0;
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
@@ -92,8 +110,26 @@
     visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
+/* A panel that scrolls takes a tab stop of its own: Chrome makes a scroller
+   keyboard-focusable when nothing inside it is, and every row here carries
+   `tabindex="-1"`. That is the right affordance — the arrows scroll it — but an
+   unanswered one paints the browser's native ring, which #457 refused. The kit's
+   ring instead, over the panel's own two-step edge and drop.
+   why: docs/specification.md#the-focus-ring */
+.ui-dropdown__panel:focus-visible {
+  outline: 2px solid transparent;
+  /* The ring composed with the floating treatment rather than replacing it: the ring
+     first, then the inner line, then the drops last. why: docs/specification.md#elevation */
+  box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+}
+/* The same tab stop, on the box that scrolls when there is a field above the rows. */
+.ui-dropdown__list:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
-.ui-dropdown__panel.is-scroll { max-height: 300px; overflow-y: auto; }
+/* The fixed-height modifier, unchanged for consumers and now expressed as the cap
+   the panel already reads: a consumer who wants less than the viewport allows still
+   gets less, and one opened where less is available gets that instead. */
+.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: 300px; }
 
 /* Opening upward. The kit releases its own `top` here so that nothing outside
    the kit has to: an absolute box with both edges pinned is stretched between
@@ -234,7 +270,14 @@
    while the list scrolls. Every rule below keys on a class only the search
    variant emits, so the plain dropdown renders as it did.
    why: docs/specification.md#a-dropdown-with-a-search-field */
-.ui-dropdown__panel--search { min-width: 280px; }
+/* The panel is a column so the capped height lands on the list and not on the
+   field: the field, the head and the foot keep their own height, the list takes
+   what is left, and `min-height: 0` is what lets a flex item shrink below its
+   content at all. Without this the field scrolls away with the rows.
+   why: docs/specification.md#a-dropdown-with-a-search-field */
+.ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }
+.ui-dropdown__panel--search > * { flex: none; }
+.ui-dropdown__panel--search > .ui-dropdown__list { flex: 1 1 auto; min-height: 0; }
 
 .ui-dropdown__search { position: relative; display: flex; align-items: center; margin-bottom: 6px; }
 .ui-dropdown__search-ic {
@@ -272,7 +315,9 @@
 .ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
 .ui-dropdown__search-input:focus-visible { outline: 2px solid transparent; border-color: var(--accent); box-shadow: var(--ring); }
 
-.ui-dropdown__list { max-height: 300px; overflow-y: auto; }
+/* The rows' own cap, read from the same property the panel reads, because the
+   `scroll` option lands on the list when there is a field above it. */
+.ui-dropdown__list { max-height: var(--ui-dropdown-cap, 300px); overflow-y: auto; overscroll-behavior: contain; }
 /* A row is `display: flex`, which outranks the UA's [hidden], so a row the
    query hides is put away here. */
 .ui-dropdown__list [hidden] { display: none; } /* motion: still — a row the query no longer matches is gone on the next keystroke */
