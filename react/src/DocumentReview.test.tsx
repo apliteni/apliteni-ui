@@ -60,7 +60,7 @@ describe('document review flow', () => {
       // A busy control does not submit twice.
       fireEvent.click(approve);
       act(() => { vi.advanceTimersByTime(900); });
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Document approved');
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Invoice DEMO-1042 is marked as reviewed');
       expect(document.getElementById('document-review')).toHaveAttribute('aria-busy', 'false');
       // success() brings its own live region, so the screen's announcer falls silent
       // rather than reporting the same event a second time.
@@ -90,9 +90,15 @@ describe('document review flow', () => {
     expect(within(result).getByRole('link', { name: 'Open DEMO-1042' })).toBeInTheDocument();
     // Fix 9: success() is the page, so no back link competes with it.
     expect(document.querySelector('.ui-back')).toBeNull();
-    // The result's title sits under the page title rather than adding a second one.
+    // The result's title sits under the page title rather than adding a second one, and
+    // the approval is titled once: the page title states it, and the block's own heading
+    // says what is left to do rather than repeating the event.
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(result.querySelector('.ui-sx__title')?.tagName).toBe('H2');
+    expect(screen.getByRole('heading', { level: 1 }))
+      .toHaveTextContent('Invoice DEMO-1042 is marked as reviewed');
+    const titles = [...document.querySelectorAll('h1, h2, h3')].map((h) => h.textContent ?? '');
+    expect(titles.filter((t) => /approved|reviewed/i.test(t))).toHaveLength(1);
     expect(within(result).getAllByRole('link')[0]).toHaveTextContent('Return to invoices');
   });
 
@@ -118,11 +124,34 @@ describe('document review flow', () => {
       expect(figure).toHaveClass('ui-table__num');
       expect(figure).toHaveClass('ui-table__num--strong');
     }
+    // The label column shares one edge with its own header. The header is left by the
+    // kit's `.ui-table th` default, so the showcase sends the body and footer labels
+    // there too instead of leaving the header and its values on opposite sides.
+    // Limit: jsdom applies the story's own <style> and not the kit stylesheet, so this
+    // measures the override; the rendered columns are in the #385 browser captures.
+    for (const label of extracted.querySelectorAll('tbody th, tfoot th')) {
+      expect(getComputedStyle(label).textAlign).toBe('left');
+    }
     expect(extracted.querySelector('thead th:last-child')).toHaveTextContent('EUR');
     expect(document_.querySelector('thead th:last-child')).toHaveTextContent('Amount (EUR)');
     // No € inside either table, so neither side is read character by character.
     expect(document_.textContent).not.toContain('€');
     expect(extracted.textContent).not.toContain('€');
+  });
+
+  it('draws the document as the card’s own page, not a second card on the same fill', () => {
+    const { container } = render(<Default />);
+    const sheet = container.querySelector('.doc-flow__sheet') as HTMLElement;
+    const box = getComputedStyle(sheet);
+    // A `.ui-card .ui-card` scan cannot see this: the sheet never wore the class, it
+    // copied a card's ground, hairline, radius and padding, which in light put white on
+    // white and in dark left one hairline between two identical fills.
+    // Limit: jsdom applies the story's own <style> only, so this holds the declarations
+    // the showcase writes; the two themes are compared in the #385 browser captures.
+    expect(box.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+    expect(box.borderTopWidth).toBe('0px');
+    expect(box.borderRadius).toBe('');
+    expect(box.padding).toBe('0');
   });
 
   it('offers no download and no zoom it cannot apply while the preview is missing', () => {
