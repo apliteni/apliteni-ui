@@ -47,7 +47,7 @@ export const errorDo = () => stage(field({
 export const errorDont = () => `
   <div class="gl-stage gl-stack">
     ${field({ label: 'Webhook URL', control: urlControl() })}
-    ${callout({ variant: 'danger', icon: 'alert', body: WHY_INVALID })}
+    ${callout({ variant: 'danger', body: WHY_INVALID })}
   </div>`;
 
 // The pending pair. Same screen, same in-flight moment, twice: on the left the

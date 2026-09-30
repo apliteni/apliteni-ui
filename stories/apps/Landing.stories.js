@@ -88,7 +88,11 @@ export const Default = {
 
     <section style="max-width:900px;margin:0 auto 100px;padding:0 26px;position:relative;z-index:1">
       <div class="ui-card ui-card--accent ui-card--pad-lg" style="text-align:center">
-        <div style="margin:0 auto 10px;display:inline-flex">${badge('For agents', 'soon')}</div>
+        <!-- A neutral eyebrow, not the "soon" tone: the card already carries the accent, and
+             one element gets one accent signal. It was accent ink on an accent wash, which
+             measured 4.84:1 in dark with the badge's old opaque surface under it and 3.95:1
+             once #453 gave the neutral tones the soft fill every other badge has. -->
+        <div style="margin:0 auto 10px;display:inline-flex">${badge('For agents')}</div>
         <h2 style="font:700 30px/1.1 var(--font-display);color:var(--strong);letter-spacing:-.02em;margin-bottom:12px">Give your agent the strategy</h2>
         <p style="color:var(--dim);font-size:16px;max-width:48ch;margin:0 auto 26px;line-height:1.6">One command connects an agent over MCP. Scoped to read-only, revocable anytime from your account.</p>
         <div style="display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center">

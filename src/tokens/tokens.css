@@ -214,6 +214,11 @@
   --chip-danger-fill: var(--glow-pink);
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);
+  /* The fill of a chip with no status to carry. The themes match on SEPARATION, not on
+     alpha — 12% here is 1.22:1 off the card, 15% in light is 1.23:1 — because --muted is
+     a light violet-grey in dark and a mid slate in light.
+     why: docs/specification.md#colour-and-contrast, #453 */
+  --chip-neutral-fill: color-mix(in srgb, var(--muted) 12%, transparent);
 
   /* Solid signal surfaces — a status that has stopped being ink and become the FILL (a
      solid toast). Fill and ink are ONE pair, never two independent picks: the fill is the
@@ -355,7 +360,10 @@
      chip text clears WCAG AA on its own pale fill, and on the soft toast's wash, which
      #131 gave the same ink. Three came down again at #295 with the page; danger did not
      need to. */
-  --chip-success-ink: #1c7034;
+  /* Success is held at the 7:1 body aim rather than the 4.5:1 floor: 7.17:1 on its own
+     fill, 8.33:1 on the card. Was #1c7034 at 5.29:1. The fill did not move.
+     why: docs/specification.md#colour-and-contrast, #453 */
+  --chip-success-ink: #145a26;
   --chip-success-fill: #dff3e4;
   --chip-warn-ink: #825900;
   --chip-warn-fill: #fbedd2;
@@ -366,6 +374,8 @@
      already occupy. See issue #131. */
   --chip-info-ink: #096a7c;
   --chip-info-fill: #ddeff3;
+  /* See the dark block for why the two alphas differ. */
+  --chip-neutral-fill: color-mix(in srgb, var(--muted) 15%, transparent);
 
   /* Light runs the same rule the other way. The signals are mid-tone here, so NO ink
      rescues them and the fill is what has to move: it takes the deepened form the chip

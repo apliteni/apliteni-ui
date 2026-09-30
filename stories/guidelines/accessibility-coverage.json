@@ -288,6 +288,14 @@
       ]
     },
     {
+      "file": "stories/badge-tones.test.js",
+      "name": "Badge tone family",
+      "does": "Discovers every badge and pill tone from the stylesheet and, per theme, requires each fill to leave a card in one direction \u2014 lighter in dark, darker in light \u2014 inside a soft separation band, with no edge and ink above 4.5:1 on its own fill. It checks that as many tones were measured as were discovered and names the thirteen it expects. Re-pointing a tone at the opaque card surface proves rejection.",
+      "blind": [
+        "Browser layout, anti-aliasing and consumer overrides. It measures the card ground only: the page and the floating panel are covered by the contrast walk and the dropdown chip gate. It does not judge whether a tone is the right one for a status."
+      ]
+    },
+    {
       "file": "stories/dropdown-field-ground.test.js",
       "name": "Dropdown field ground",
       "does": "Measures how deeply the dropdown search field sinks into its panel, compared per theme with the kit\u2019s own field on a card. The surrounding surface determines the depth: a floating panel is one level above a card.",

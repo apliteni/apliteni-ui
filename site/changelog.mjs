@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['fixed', 'Callout status tones now use the circled glyphs toasts already use: `circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts keep `info`, and an explicit `icon` still wins. If you passed `check` or `alert` to match the old default, drop the override. See #453.', ['Callout']],
+      ['fixed', 'Badge and pill tones that report no status — Soon, Archive, Neutral, and the plain badge and pill — take a soft fill instead of the card surface, so every badge tone now separates from its panel in the same direction: lighter in dark, darker in light. The archived version badge in the topbar follows. Landing’s accent card carries a neutral eyebrow, because the card already carries the accent. See #453.', ['Badge', 'Topbar']],
+      ['added', 'Use `--chip-neutral-fill` for a chip whose tone reports no verdict. It is the fill dropdown state chips already used, now published and shared by the badge, the pill and the version badge.'],
+      ['fixed', 'The light success chip ink is deeper, reading 7.17:1 on its own fill instead of 5.29:1. Success and Paid badges, live pills, success callout icons, toast actions and the solid success surface all follow `--chip-success-ink`; dark is unchanged. See #453.', ['Badge', 'Callout', 'Toast']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

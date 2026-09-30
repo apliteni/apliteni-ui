@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>html,body{margin:0;padding:0}</style>
+</head>
+<body>
+<script type="module">
+// Every badge tone and every callout tone, on each of the three grounds a chip is
+// drawn on: the page, a card, and a floating panel. The subject of #453 is whether
+// the set reads as ONE family, and that is a question about a row rather than about
+// any one chip — a tone that leaves its ground the other way is only visible beside
+// the tones that do not. why: scripts/evidence/README.md
+import { badge, pill, callout } from '/src/components/index.js';
+
+const BADGES = [['Live', 'live'], ['Soon', 'soon'], ['Info', 'info'], ['Beta', 'warn'],
+  ['Revoked', 'danger'], ['Archive', 'archive'], ['Neutral', undefined]];
+const RECORDS = [['Paid', 'success'], ['Verified', 'success'], ['Pending', 'pending'],
+  ['Failed', 'danger'], ['Dismissed', 'neutral']];
+const PILLS = [['Product units', undefined], ['Live', 'live'], ['Coming soon', 'soon']];
+const TONES = ['neutral', 'info', 'success', 'warn', 'danger'];
+
+const row = (items) => `<div class="tn-row">${items.join('')}</div>`;
+const chips = () => row(BADGES.map(([l, v]) => badge(l, v)))
+  + row(RECORDS.map(([l, v]) => badge(l, v)))
+  + row(PILLS.map(([l, v]) => pill(l, v)));
+const block = (label, body) => `<div class="tn-block"><div class="tn-cap">${label}</div>${body}</div>`;
+const ground = (cls, label) => block(label, `<div class="${cls}">${chips()}</div>`);
+
+document.documentElement.dataset.theme = new URLSearchParams(location.search).get('theme') || 'dark';
+
+const callouts = `<div class="tn-callouts">${TONES.map((variant) => callout({
+  variant, body: `<b>${variant}.</b> The glyph on the left is this tone's default.`,
+})).join('')}</div>`;
+
+document.body.innerHTML = `<div class="tn-page">
+  ${ground('tn-ground tn-ground--page', 'on the page — --bg')}
+  ${ground('ui-card', 'on a card — --surface')}
+  ${ground('tn-ground tn-ground--panel', 'on a floating panel — --bg-elevated')}
+  ${block('callout tones — the default glyph per tone', callouts)}
+</div>`;
+
+const st = document.createElement('style');
+st.textContent = 'html,body{background:var(--bg);color:var(--text);font-family:var(--font-sans)}'
+  + '.tn-page{display:flex;flex-direction:column;gap:var(--space-5);padding:var(--space-5)}'
+  + '.tn-block{display:flex;flex-direction:column;gap:var(--space-2)}'
+  + '.tn-cap{font:600 10px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}'
+  + '.tn-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}'
+  + '.tn-ground{display:flex;flex-direction:column;gap:10px;padding:var(--space-4);border-radius:var(--radius-xl)}'
+  + '.tn-ground--page{background:var(--bg)}'
+  + '.tn-ground--panel{background:var(--bg-elevated);border:1px solid var(--border)}'
+  + '.ui-card{display:flex;flex-direction:column;gap:10px}'
+  + '.tn-callouts{display:flex;flex-direction:column;gap:10px;max-width:560px}';
+document.head.append(st);
+
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

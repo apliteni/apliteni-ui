@@ -92,6 +92,23 @@ panel, where there is no edge and no line belongs. Nothing in
 `float.html` writes a shadow: both sides are that page over a different checkout,
 so the only thing that can differ between them is what the kit's own stylesheet
 paints.
+`tones.mjs` is #453's pair: every badge tone and every callout tone, on each of the
+three grounds a chip is drawn on — the page, a card and a floating panel — in both
+themes at 1280 and 390. The subject is the row rather than any one chip, because a
+tone that leaves its ground the wrong way is only visible beside the tones that do
+not. Its third argument is the side of the pair:
+
+```sh
+node scripts/evidence/tones.mjs .                   out/ after
+git worktree add --detach /tmp/before origin/main
+node scripts/evidence/tones.mjs /tmp/before         out/ before
+```
+
+It shoots `fullPage`, so the frame grows with the content rather than cropping a
+ground off the bottom, and it points at the checkout's own `src/` — `tones.html`
+travels with the rig, so the before side draws `main`'s stylesheet through the same
+page.
+
 `guideline.mjs` shoots a Guidelines page on the same server, through the story's
 own `guidelinePage()` call under Storybook's theme decorator. Its third argument
 is the side of the pair and its fourth is the page, defaulting to `the-page`; it
