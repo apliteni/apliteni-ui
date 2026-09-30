@@ -86,4 +86,4 @@ export { Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';
 
 export { SidebarNav } from './SidebarNav';
-export type { SidebarNavProps, SidebarNavItem, SidebarNavSection, SidebarNavBadge } from './SidebarNav';
+export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';

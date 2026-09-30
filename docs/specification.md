@@ -2377,7 +2377,8 @@ not visual rendering or assistive-technology announcements. Part of
 
 `SidebarNav` renders the shared sidebar classes without a vanilla initializer.
 It accepts flat items or captioned sections, nested groups, counts, optional artwork,
-a footer slot and router-link rendering. Each row retains its accessible name and
+a footer slot and router-link rendering. A group holds leaves: nesting stops one level
+deep, the depth `sidebarNav()` renders, and a deeper child is dropped as it is there. Each row retains its accessible name and
 count when collapsed; disclosures remain keyboard operable and use unique controlled
 list IDs. Current links use `aria-current="page"`, or `"true"` for `activeIs="section"`.
 Disabled leaves render non-interactive spans. Groups containing the current item

@@ -3,6 +3,7 @@ import { createRef } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach } from 'vitest';
+import { ENTRANCE_FALLBACK_MS } from '@apliteni/apliteni-ui/motion';
 import { SidebarNav, type SidebarNavItem } from './SidebarNav';
 
 afterEach(cleanup);
@@ -36,14 +37,27 @@ it('toggles its controlled list using Enter and Space while collapsed', async ()
   expect(toggle).toHaveFocus();
 });
 
-it('opens ancestors of a current page and keeps explicit user disclosure choices', () => {
-  const tree = [{ id: 'outer', label: 'Outer', items }];
-  const { rerender } = render(<SidebarNav items={tree} />);
-  rerender(<SidebarNav items={tree} active="pending" />);
+it('opens the group holding the current page and keeps explicit user disclosure choices', () => {
+  const { rerender } = render(<SidebarNav items={items} />);
+  rerender(<SidebarNav items={items} active="pending" />);
   expect(screen.getByRole('link', { name: 'Pending 0' })).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Payouts' }));
-  rerender(<SidebarNav items={tree} active="history" />);
+  rerender(<SidebarNav items={items} active="history" />);
   expect(screen.getByRole('button', { name: 'Payouts' })).toHaveAttribute('aria-expanded', 'false');
+});
+
+it('nests one level deep, where sidebarNav() caps it', () => {
+  // sideGroup() maps its children through sideLeaf(), which has no group branch, so
+  // a vanilla grandchild never reaches the DOM. The cast is the point of the test:
+  // the type forbids this shape, and a JavaScript caller can still pass it.
+  const deep = [{
+    id: 'payouts', label: 'Payouts', defaultOpen: true,
+    items: [{ id: 'pending', label: 'Pending', items: [{ id: 'daily', label: 'Daily' }] }],
+  }] as unknown as SidebarNavItem[];
+  render(<SidebarNav items={deep} />);
+  expect(screen.getAllByRole('button')).toHaveLength(1);
+  expect(screen.getByRole('link', { name: 'Pending' })).toHaveClass('ui-nav__item--sub');
+  expect(screen.queryByText('Daily')).not.toBeInTheDocument();
 });
 
 it('honors a closed default even when the group contains the current page', () => {
@@ -94,7 +108,7 @@ it('clears entrance state if the browser never sends animationend', () => {
     fireEvent.click(toggle);
     const list = document.getElementById(toggle.getAttribute('aria-controls')!)!;
     expect(list).toHaveClass('is-entering');
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(ENTRANCE_FALLBACK_MS));
     expect(list).not.toHaveClass('is-entering');
   } finally { vi.useRealTimers(); }
 });

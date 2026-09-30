@@ -46,8 +46,19 @@ const footer = <a className="ui-nav__item is-danger" href="#logout" aria-label="
 export const Sidebar: StoryObj<typeof SidebarNav> = {
   args: { sections, active: 'payouts-pending', 'aria-label': 'Primary', footer },
 };
+// The folded rail holds its caps, labels and counts at opacity 0, so the rail alone
+// renders no text a contrast walk can judge. The vanilla gallery's specimen caption
+// is what gives its own collapsed story a pair; this is that caption, in the story
+// rather than a decorator, because the contrast gate calls `render` and not the
+// decorators around it. The rail itself is unchanged.
 export const SidebarCollapsed: StoryObj<typeof SidebarNav> = {
   args: { ...Sidebar.args, collapsed: true },
+  render: args => <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+    <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)' }}>
+      Icon-only rail — labels fold into aria-label + title so the icons stay named and hoverable
+    </div>
+    <SidebarNav {...args} />
+  </div>,
 };
 export const ActiveBadge: StoryObj<typeof SidebarNav> = {
   args: { sections: [sections[0]], active: 'inbox', 'aria-label': 'Overview' },

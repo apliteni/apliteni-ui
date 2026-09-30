@@ -1,8 +1,10 @@
 import { forwardRef, useEffect, useId, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
+import { ENTRANCE_FALLBACK_MS } from '@apliteni/apliteni-ui/motion';
 import { Icon } from './primitives/Icon';
 
 export type SidebarNavBadge = string | number | { text: string | number; tone?: 'neutral' | 'accent' | 'live' | 'danger' };
-export type SidebarNavItem = {
+/** A row that goes somewhere. A group takes these as its children. */
+export type SidebarNavLeaf = {
   id: string;
   label: string;
   href?: string;
@@ -12,9 +14,13 @@ export type SidebarNavItem = {
   badge?: SidebarNavBadge;
   disabled?: boolean;
   danger?: boolean;
-  items?: SidebarNavItem[];
-  defaultOpen?: boolean;
 };
+/**
+ * One level of nesting, the depth `sidebarNav()` renders: its `sideGroup()` maps
+ * children through `sideLeaf()`, which has no group branch. A child's own `items`
+ * are dropped here too, so the two halves render the same tree.
+ */
+export type SidebarNavItem = SidebarNavLeaf & { items?: SidebarNavLeaf[]; defaultOpen?: boolean };
 export type SidebarNavSection = { label?: string; items: SidebarNavItem[] };
 export type SidebarNavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
   items?: SidebarNavItem[];
@@ -28,20 +34,21 @@ export type SidebarNavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> 
 };
 
 type RowProps = Pick<SidebarNavProps, 'active' | 'activeIs' | 'collapsed' | 'renderLink'> & { item: SidebarNavItem; sub?: boolean };
-const contains = (items: SidebarNavItem[], active?: string): boolean => items.some(item => item.id === active || !!item.items && contains(item.items, active));
 const badgeText = (badge?: SidebarNavBadge) => typeof badge === 'object' ? badge.text : badge;
 
 function Row({ item, active, activeIs, collapsed, renderLink, sub }: RowProps) {
   const uid = useId();
-  const group = !!item.items?.length;
-  const childActive = group && contains(item.items!, active);
+  // `sub` caps the depth where the kit caps it. The type already forbids a second
+  // level; this holds the cap for a JavaScript caller the type cannot reach.
+  const group = !sub && !!item.items?.length;
+  const childActive = group && item.items!.some(child => child.id === active);
   const [expanded, setExpanded] = useState<boolean | undefined>();
   const open = expanded ?? item.defaultOpen ?? childActive;
   const [entering, setEntering] = useState(false);
   useEffect(() => {
     if (!entering) return;
     // Hidden lists and interrupted animations may never emit animationend.
-    const timer = setTimeout(() => setEntering(false), 1000);
+    const timer = setTimeout(() => setEntering(false), ENTRANCE_FALLBACK_MS);
     return () => clearTimeout(timer);
   }, [entering]);
   const count = badgeText(item.badge);

@@ -78,17 +78,20 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     const linkProps: ComponentPropsWithoutRef<'a'> = {
       href: section.href,
       className: `ui-nav__item${section === active ? ' is-active' : ''}`,
-      'aria-current': section === active ? 'page' : undefined,
+      // guidelines/going-back.md, section-lit: the same row, so the same reading as
+      // the rail's. "page" here would announce the list as the page the reader is on.
+      'aria-current': section === active ? (back ? 'true' : 'page') : undefined,
       'aria-label': `${section.label}${section.count == null ? '' : ` ${section.count}`}`,
       onClick: (event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setMore(false); },
       children: <><span className="ui-nav__ic"><Icon name={section.icon} /></span>
         <span className="ui-nav__label">{section.label}</span>
-        {section.count != null && <span className="ui-nav__badge">{section.count}</span>}</>,
+        {section.count != null && <span className="ui-nav__badge is-neutral">{section.count}</span>}</>,
     };
     return <li key={section.href}>{renderLink ? renderLink(section, linkProps) : <a {...linkProps} />}</li>;
   });
   const sidebar = (items: AppShellSection[], label: string) => <SidebarNav aria-label={label}
     items={items.map(section => ({ ...section, id: section.href, badge: section.count }))} active={active?.href}
+    activeIs={back ? 'section' : 'page'}
     renderLink={(item, props) => {
       const section = items.find(section => section.href === item.id)!;
       const linkProps = { ...props, onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
