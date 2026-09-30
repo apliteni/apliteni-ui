@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.61.1', date: '2026-09-30',
+    changes: [
+      ['fixed', 'Iconography guidance allows the shell’s theme toggle, sidebar toggle and collapsed-rail links to drop their visible labels. Resolves #460.'],
+    ],
+  },
+  {
     v: '0.61.0', date: '2026-09-30',
     changes: [
       ['added', 'React TextField supports password and search, takes a decorative glyph by name in `icon`, and forwards its ref to the input. Field exposes the existing label, hint and error frame for composed controls. Part of #429.'],

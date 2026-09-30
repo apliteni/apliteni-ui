@@ -2,7 +2,8 @@
  *
  * `iconOnlyAllowed` in src/assets/icons.js names the actions that may drop their visible
  * text. This walks every call site that asks for one and checks the glyph it hands over
- * against that list.
+ * against that list. The shell controls allowed by #460 do not call `iconOnly`, so this
+ * walk never sees them.
  *
  * The accessibility gate next door proves an icon-only button always has a NAME. It
  * cannot prove the button should have been wordless — a `gear` with a perfect aria-label
