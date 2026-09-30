@@ -6,6 +6,16 @@
 
 export const RELEASES = [
   {
+    v: '0.94.0', date: '2026-10-06',
+    changes: [
+      ['added', 'While the React AppShell draws its phone bottom bar \u2014 below 560px, for a section list with somewhere to go \u2014 it publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. The page\u2019s bottom padding, root scroll padding and the React toast stack read it, each with `0px` as the fallback, and root scroll padding adds the focus ring\u2019s own room on top \u2014 so a changed action scrolled into view lands above the bar with its whole ring on screen. A phone page whose shell draws no bar keeps the ordinary end space the kit gives every phone page. The token is declared nowhere else, so read it as `var(--ui-app-bottom-clearance, 0px)`.'],
+      ['added', 'A batch-change showcase: proposed row changes with signed amounts and their booked month, a closed-period warning and Undo.'],
+      ['added', 'A table that scrolls sideways shows a soft shade on whichever edge still has columns behind it, and none once that edge is reached. It darkens on a light ground and lightens on a dark one, and it is CSS alone, so vanilla and React tables get it together.', ['DataTable']],
+      ['changed', 'While a scrollable React DataTable\u2019s columns reach past its region, that region\u2019s accessible name ends in \u201c, scroll for more columns\u201d. A table that fits claims no scroll, so the suffix appears only while there is something to scroll to.', ['DataTable']],
+      ['changed', 'A React AppShell draws its section navigation when the list has somewhere to go. Given one section and no back link \u2014 the page already on screen \u2014 it draws no rail, no fold control and no phone bottom bar; the brand lockup moves to the band, the section stays in the command palette, and the page keeps the width and height the rail and bar used to hold. One section under a child page is still drawn, because the row is that page\u2019s parent. Shells with two or more sections are unchanged.', ['AppShell']],
+    ],
+  },
+  {
     v: '0.93.0', date: '2026-10-05',
     changes: [
       ['changed', 'The kit\u2019s documentation is two reader pages instead of one specification: `docs/foundations.md` holds the tokens and the floors, and `docs/components.md` keeps the catalogue and says what each component guarantees. The specification is retired \u2014 a guarantee you rely on is now on one of those two pages, the per-prop React reference stays in `react/README.md`, and a heading you cited in the specification has moved to whichever page carries it. Nothing the kit draws changed: no CSS, no markup, no component behaviour, and no published name moved. Closes #559.'],
