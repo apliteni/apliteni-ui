@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-04',
+    changes: [
+      ['added', 'Table footers are a supported surface: totals open with the strong rule, each footer label sits against the figure it names, and a label marked strong carries the weight across the whole row. Footer labels take the body cell padding in every density. If your CSS left-aligned tfoot labels itself, that override is no longer needed. See #385.', ['Table']],
+      ['fixed', 'A final body row keeps its separator when a footer follows it; previously the last row of every row group lost its rule. Numeric table headers hold one line, so a two-word header such as Amount (EUR) no longer wraps beside a wide identity column.', ['Table']],
+      ['fixed', 'The theme toggle shows the kit focus ring on keyboard focus instead of the browser\u2019s own outline, in the vanilla topbar, React ThemeToggle and the React shell alike. See #385.', ['ThemeToggle']],
+      ['added', 'A document review showcase walks one invoice through review, confirmation and the recorded result, and shows the preview loading, unavailable and refused-approval states. See #385.'],
+    ],
+  },
+  {
     v: '0.75.2', date: '2026-10-02',
     changes: [
       ['fixed', 'A pager’s page-size control keeps its compact width, padding, type size, radius and chevron offset in a React app. `apliteni-ui/react/css` carried a copy of the kit’s form-control CSS, and in a document that loads `apliteni-ui/css` first that copy landed later and won, leaving the control a full-size form field in a row of small buttons. Fixes #551.', ['Pagination']],

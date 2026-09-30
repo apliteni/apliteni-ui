@@ -248,6 +248,28 @@ underline variants stretch. These extensions are covered by browser measurements
 
 Both decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451).
 
+**A table footer is a row of totals, not a second head.** A `tfoot` label takes the body
+cell's padding for its density, so it sits on the body rhythm; it is right-aligned against
+the figure it names rather than against the first column it spans, because a label that
+spans two columns and hugs the left edge leaves the reader crossing the row. The totals
+open with the 2px `--border-strong` rule the zebra head already uses, in every density and
+in zebra tables, which have no body rules of their own: five identical hairlines told a
+reader nothing about where items end. Borders are collapsed, so that rule meets the last
+body row's hairline and the wider of the two wins — no doubled line. A final body row keeps
+its separator when a footer follows, and the last footer row ends without a partial rule.
+`.ui-table__num--strong` carries ink and weight on either cell type, so a Total row reads as
+one row instead of a bold figure beside a body-weight label. A caller who left-aligned
+`tfoot th` to work around the old behaviour can drop that override.
+
+**A numeric header holds one line.** Its column is sized to its content while
+`.ui-table__title` claims the rest, so a two-word header such as `Amount (EUR)` was the only
+cell in the column that could wrap.
+
+Held by `src/styles/table.test.js` for the shipped rules and their cascade, across every
+modifier in the sheet and with a failing mutation per claim; jsdom has no layout, so
+rendered edges are checked in the browser captures. Decided in
+[#385](https://github.com/apliteni/apliteni-ui/issues/385).
+
 Held by `stories/table-rhythm.test.js`. Decided in
 [#211](https://github.com/apliteni/apliteni-ui/issues/211).
 
@@ -892,6 +914,14 @@ moves inside, their children use the inside gap.
 legacy `--ring` override does not cross a surface that recomposes it; apply the override
 on that surface as well, or tune the component tokens at the root. Focus rings compose
 in front of an existing floating panel's edge and drop, rather than replacing them.
+
+The ring is claimed by a selector list in `base.css`, so a control that wears none of the
+kit's control classes has to join it. The theme toggle is the one that did not: `.toggle`
+is a real button with its own paint in `topbar.css` and neither `.ui-btn` nor
+`.ui-focusable`, so keyboard focus on it fell back to the browser's own outline in the
+vanilla topbar, React `ThemeToggle` and the React shell's bar alike. It is on the list now
+([#385][i385]). The shell's brand link, `.ui-app__brand`, has the same gap and is open as
+[#482](https://github.com/apliteni/apliteni-ui/issues/482).
 
 Controls use native `:focus-visible`, including inputs, textareas, selects and invalid
 fields. Text-entry controls can match it on mouse focus because the browser expects
@@ -1752,7 +1782,9 @@ What the kit guarantees:
 - **The section stays lit.** With a back link on the page, the shell keeps the sidebar row the
   caller marks `active` highlighted, and marks it `aria-current="true"` — the current section —
   rather than `"page"`, which would announce the list as the page on screen.
-  `sidebarNav({ activeIs: 'section' })` does the same outside the shell.
+  `sidebarNav({ activeIs: 'section' })` does the same outside the shell. React `AppShell`
+  reads the same `back` prop for the same decision, so a flow's steps report their parent
+  section identically in both faces of the kit ([#385][i385]).
 - **It stays quiet whatever the host does to links.** The link rests in `--text` and takes no
   accent. Its colour rule is (0,2,0), so a host stylesheet's `a:link` at (0,1,1) does not repaint
   it.
@@ -1771,6 +1803,7 @@ the kit emits has a rule at all — the omission [#303][i303] reported — is he
 `src/styles/label-coverage.test.js`.
 
 [i270]: https://github.com/apliteni/apliteni-ui/issues/270
+[i385]: https://github.com/apliteni/apliteni-ui/issues/385
 [i303]: https://github.com/apliteni/apliteni-ui/issues/303
 
 ## The dropdown panel
