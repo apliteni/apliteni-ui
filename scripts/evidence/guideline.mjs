@@ -2,7 +2,9 @@
  * over the checkout under test, the story's own render call in the page, one
  * Chrome, one viewport — so between two checkouts only the code differs.
  *
- * argv: <checkout> <outDir> [side] [page]
+ * argv: <checkout> <outDir> [side] [page] [heading]
+ *   heading is a rule's own heading, for a page whose changed rule is not the
+ *   first one that draws a pair.
  *
  * why: scripts/evidence/README.md
  */
@@ -13,7 +15,7 @@ const { chromium } = await import(process.env.UI_PLAYWRIGHT || 'playwright');
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const CHROME = process.env.UI_CHROME;
-const [checkout, outDir, side = 'after', page = 'the-page'] = process.argv.slice(2);
+const [checkout, outDir, side = 'after', page = 'the-page', heading] = process.argv.slice(2);
 mkdirSync(outDir, { recursive: true });
 
 const server = await new Promise((resolve, reject) => {
@@ -38,9 +40,12 @@ try {
     await tab.screenshot({ path: path.join(outDir, `${side}-page-${theme}.png`), fullPage: true });
     console.log(`  ${side}-page-${theme}.png`);
 
-    // The first rule that draws a specimen pair, so a caption and the why under
-    // it are both in the crop at life size.
-    const rule = tab.locator('.gc-rule').filter({ has: tab.locator('.gc-cell__cap') }).first();
+    // A named rule, or else the first one that draws a specimen pair, so a
+    // caption and the why under it are both in the crop at life size.
+    const rule = heading
+      ? tab.locator('.gc-rule').filter({ has: tab.locator('.gc-imperative', { hasText: heading }) }).first()
+      : tab.locator('.gc-rule').filter({ has: tab.locator('.gc-cell__cap') }).first();
+    if (await rule.count() === 0) throw new Error(`no rule on ${page} headed "${heading}"`);
     await rule.screenshot({ path: path.join(outDir, `${side}-rule-${theme}.png`) });
     console.log(`  ${side}-rule-${theme}.png`);
     await ctx.close();

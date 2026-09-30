@@ -100,13 +100,15 @@
 
 <!-- rule: status-label -->
 
-**Rule:** Show every status with both a mark and a word.
+**Rule:** Name every status in words, not by its colour.
 
 **Why:** Colour alone is not reliably distinguishable.
 
-**Do:** Pair a status icon with text such as “Paused.”
+**Do:** Write “Paused” on the badge and let its tone fill carry the colour.
 
-**Don't:** Show success using green colour alone.
+**Don't:** Show success as a green badge with no word.
+
+**Except:** A status badge needs no glyph or dot: the word carries the status and the tone fill marks it as one. A callout or toast keeps its circled glyph, because its words sit in a sentence rather than in a fill.
 
 ## Measurable pairs
 

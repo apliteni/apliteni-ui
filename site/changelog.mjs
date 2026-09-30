@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.64.1', date: '2026-10-01',
+    changes: [
+      ['changed', 'The status-label guideline no longer asks a status badge for a glyph or a dot: its word and its tone fill are enough. Callouts and toasts keep their circled glyph. Part of #453.'],
+    ],
+  },
+  {
     v: '0.73.0', date: '2026-10-02',
     changes: [
       ['fixed', 'Snippet copy controls and keyboard-focused code use the shared focus ring in vanilla and React, including the reveal variant.'],
