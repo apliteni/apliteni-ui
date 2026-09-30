@@ -1284,6 +1284,49 @@ test('the search is drawn only when there is a palette for it to open', () => {
   );
 });
 
+test('the field carries a short word for the phone band, and the sentence stays its name', () => {
+  const field = dom(LAID({ layout: 'topbar', search: 'cmdk-1' })).querySelector('.ui-app__search');
+  const short = field.querySelector('.ui-app__search-short');
+  assert.ok(
+    short,
+    'the field draws only the sentence, so below 560px the band truncates it mid-word and a consumer '
+    + "has to override the kit's own text in CSS to stop it",
+  );
+  assert.equal(short.textContent, 'Search', 'the short form is not the kit\'s own default word');
+  assert.equal(
+    short.getAttribute('aria-hidden'), 'true',
+    'the short word is read out beside the sentence it replaces, so the button is named twice',
+  );
+  assert.equal(
+    field.querySelector('.ui-app__search-txt').textContent, 'Search or run a command…',
+    'the short form took the sentence\'s place in the markup rather than standing beside it',
+  );
+  assert.equal(field.getAttribute('aria-label'), null, 'the field writes a name over the words inside it');
+
+  const named = dom(LAID({ layout: 'topbar', search: { palette: 'cmdk-1', shortLabel: 'Find' } }))
+    .querySelector('.ui-app__search');
+  assert.equal(
+    named.querySelector('.ui-app__search-short').textContent, 'Find',
+    'the caller cannot name the short form, which is the override this option exists to replace',
+  );
+  assert.equal(
+    named.querySelector('.ui-app__search-txt').textContent, 'Search or run a command…',
+    'naming the short form moved the long one too',
+  );
+  const both = dom(LAID({ layout: 'topbar', search: { palette: 'cmdk-1', placeholder: 'Find anything', shortLabel: 'Find' } }))
+    .querySelector('.ui-app__search');
+  assert.deepEqual(
+    [both.querySelector('.ui-app__search-txt').textContent, both.querySelector('.ui-app__search-short').textContent],
+    ['Find anything', 'Find'],
+    'the two words are not independent — a caller naming both got one of them back',
+  );
+  assert.equal(
+    dom(LAID({ layout: 'topbar', search: { palette: 'cmdk-1', shortLabel: '<b>&' } }))
+      .querySelector('.ui-app__search-short').innerHTML, '&lt;b&gt;&amp;',
+    'the short form is interpolated raw, so a caller\'s text can close the button and open a tag',
+  );
+});
+
 test('the key that opens the palette is inside the field\'s own name', () => {
   const field = dom(LAID({ layout: 'topbar' })).querySelector('.ui-app__search');
   assert.equal(field.getAttribute('aria-label'), null, 'the field writes a name over the words inside it');

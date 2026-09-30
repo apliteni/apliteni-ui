@@ -1257,6 +1257,17 @@ What moves, and what each move buys:
   the fact it exists to teach. `paletteHotkey()`
   reads the platform, a server has none, so the markup ships `Ctrl K` and `wireShell()` writes the
   reader's own key into the cap — and therefore into the name — off the root's own window.
+- **Below 560px the trigger reads one word, and is still called the same thing.** At one column
+  the band holds the trigger, the reader's mark and whatever else the product puts between them,
+  so the sentence had a few characters to stand in and broke mid-word — "Search or run a co…".
+  `search: { palette, placeholder, shortLabel }` names that word, and with nothing named it is
+  `Search`. The short word is `aria-hidden`, and the sentence and the key cap are **clipped rather
+  than dropped** at that width, so the button's accessible name is the same string at 1280px and at
+  390px: a control that says something shorter to a screen reader on a phone is a second control.
+  The swap is one block in `layout.css`, so the React `AppShell` — `searchLabel` and
+  `searchShortLabel` — gets it from the same rules rather than a second copy of them. The palette's
+  own placeholder is not this text and does not shorten.
+  Decided in [#486](https://github.com/apliteni/apliteni-ui/issues/486).
 - **On the band the mark is the whole trigger, and it carries the name.** There is no room for the
   reader's two lines on a 52px row, so the block is the avatar, and the sentence the rail's two
   lines said is written on the control instead — the same sentence `readerFace()` writes when there
@@ -2247,6 +2258,10 @@ Below 560px, a bottom bar replaces it: up to four sections, or three plus More.
 More opens the React Drawer and closes on navigation. Search uses the React
 CommandPalette; page actions should include no more than one primary action.
 The fold glyph copies the vanilla shell’s frame and moving seam.
+
+`searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
+shared stylesheet draws the short one and clips the sentence and the key cap rather
+than dropping them, so the button keeps one accessible name at every width.
 
 `react/src/AppShell.test.tsx` checks route matching, persistence, search, account
 actions and sheet dismissal. Story accessibility and contrast gates cover both

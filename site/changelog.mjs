@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.61.1', date: '2026-09-30',
+    changes: [
+      ['fixed', 'The app shell\u2019s band search shows a short label below 560px instead of truncating its sentence mid-word. Name it with `shortLabel` on the vanilla `search` option or `searchShortLabel` on React AppShell; the default is \u201cSearch\u201d. The sentence and the key cap stay in the button\u2019s accessible name at every width, and the command palette\u2019s own placeholder is unchanged. Resolves #486.', ['Shell']],
+    ],
+  },
+  {
     v: '0.61.0', date: '2026-09-30',
     changes: [
       ['added', 'React TextField supports password and search, takes a decorative glyph by name in `icon`, and forwards its ref to the input. Field exposes the existing label, hint and error frame for composed controls. Part of #429.'],
