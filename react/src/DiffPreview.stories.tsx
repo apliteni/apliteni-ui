@@ -125,13 +125,13 @@ function Preview({ change, empty }: Args) {
         </>}
         <Card>
           {previewRows.length > 0
-            /* The kit pins Item and offers column controls on overflow. */
+            /* Column navigation comes from the kit; this showcase keeps no copy of it. */
             ? <DataTable columns={columns} rows={previewRows} selectable={false} pager={false}
               density="dense" stickyHeader pinnedIdentity scrollLabel="Cost changes" loading={busy} />
             : <EmptyState
               icon="doc"
-              title="No rows would move"
-              sub="No costs match this change."
+              title="No costs would move"
+              sub="Nothing matches this change."
               actions={<Button variant="primary" onClick={() => setShowExample(true)}>Load sample changes</Button>}
             />}
         </Card>
