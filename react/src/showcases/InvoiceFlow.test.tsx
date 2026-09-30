@@ -3,6 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { InvoiceFlow } from './InvoiceFlow';
 
 // Interaction tests cover in-memory state, not PDF rendering or real extraction.
+
+/* The form's own summary, named by its text rather than by role. Each invalid field
+ * carries its own `role="alert"` too (#388), so a rejected save leaves several alerts
+ * on the page and the role alone no longer picks one out. */
+const summaryAlert = () => {
+  const summary = screen.getByText(/Check the highlighted fields/);
+  expect(summary).toHaveAttribute('role', 'alert');
+  return summary;
+};
+
 describe('invoice flow prototype', () => {
   it('adds multiple selected files, including repeated filenames, without replacing rows', async () => {
     const user = userEvent.setup();
@@ -67,7 +77,7 @@ describe('invoice flow prototype', () => {
     await user.click(screen.getByRole('button', { name: 'Save invoice' }));
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByRole('spinbutton', { name: 'Total (EUR)' })).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByRole('alert')).toHaveTextContent('Check the highlighted fields');
+    expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
   });
   it('withdraws Saved and Ready when the next save is rejected', async () => {
     // The status line is the one thing a reviewer trusts; it may not report a save that failed.
@@ -83,7 +93,7 @@ describe('invoice flow prototype', () => {
     expect(screen.queryByText('Saved for this session.')).not.toBeInTheDocument();
     expect(screen.queryByText('Ready')).not.toBeInTheDocument();
     expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('Check the highlighted fields');
+    expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
   });
   it('marks every field the parser filled and clears the mark on the one edited', async () => {
     const user = userEvent.setup();
