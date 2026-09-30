@@ -11,7 +11,10 @@ import { card, badge } from '../../src/components/index.js';
 export default {
   title: 'Showcases/Shell layouts',
   id: 'apps-shell-layouts',
-  parameters: { layout: 'fullscreen' },
+  parameters: {
+    layout: 'fullscreen',
+    viewport: { options: { phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' } } },
+  },
 };
 
 const NAV = [
@@ -85,3 +88,13 @@ export const TopbarCentered = { render: () => screen({ layout: 'topbar', width: 
 export const RailWide = { render: () => screen({ layout: 'rail', width: 'wide' }) };
 
 export const RailCentered = { render: () => screen({ layout: 'rail', width: 'centered' }) };
+
+// The same band at 390px, which is the width the sentence used to truncate mid-word
+// at — "Search or run a co…" beside the reader's mark. Here the trigger draws its
+// short word instead, and the sentence is still what the button is called: the a11y
+// panel reads the same name on this story as on the four above. (#486)
+export const TopbarPhone = {
+  name: 'Topbar — phone',
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: () => screen({ layout: 'topbar', width: 'centered' }),
+};

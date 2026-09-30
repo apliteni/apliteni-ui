@@ -64,6 +64,24 @@ it('opens search with its button and shortcut, dismisses with Escape', () => {
   expect(screen.getByRole('combobox')).toHaveFocus();
 });
 
+it('draws a short word for the phone band without changing the trigger\'s name', () => {
+  render(<AppShell {...props} />);
+  const trigger = screen.getByRole('button', { name: /Search or run/ });
+  // aria-hidden, so the short word is not part of the name the assertion above read.
+  const short = trigger.querySelector('.ui-app__search-short');
+  expect(short).toHaveTextContent('Search');
+  expect(short).toHaveAttribute('aria-hidden', 'true');
+  expect(trigger.querySelector('.ui-app__search-txt')).toHaveTextContent('Search or run a command…');
+  // Which word is drawn is layout.css's 560px block; JSDOM resolves no @media, so
+  // stories/apps/shell-states.test.js reads that swap through the real cascade.
+  cleanup();
+
+  render(<AppShell {...props} searchLabel="Find anything" searchShortLabel="Find" />);
+  const named = screen.getByRole('button', { name: /Find anything/ });
+  expect(named.querySelector('.ui-app__search-short')).toHaveTextContent('Find');
+  expect(named).toHaveAccessibleName(expect.stringContaining('Find anything'));
+});
+
 it('opens the account menu and signs out', () => {
   render(<AppShell {...props} />);
   fireEvent.click(screen.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));

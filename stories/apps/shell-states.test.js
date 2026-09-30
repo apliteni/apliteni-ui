@@ -40,19 +40,34 @@ const SHEETS = [
   'src/styles/base.css', 'src/styles/dropdown.css', 'src/styles/nav.css', 'src/styles/layout.css',
 ];
 const FOLD = '@media (max-width: 720px)';
+const PHONE = '@media (max-width: 560px)';
 
-/** One at-rule's body, brace-matched — the regex the other resolvers use cannot nest. */
-function unwrap(css, query) {
-  const at = css.indexOf(query);
-  if (at < 0) return null;
-  const open = css.indexOf('{', at);
-  let depth = 0;
-  for (let i = open; i < css.length; i++) {
-    if (css[i] === '{') depth += 1;
-    else if (css[i] === '}') { depth -= 1; if (depth === 0) return css.slice(open + 1, i); }
+/** Every body an at-rule has, brace-matched, in source order — the regex the other
+ *  resolvers use cannot nest, and layout.css writes one step more than once: the
+ *  toolbar's 560px block sits beside the toolbar and the band search's beside the
+ *  band. A browser applies them all, so lifting the first alone resolves whichever
+ *  subject happens to be written higher up the file. */
+function unwrapAll(css, query) {
+  const bodies = [];
+  for (let from = 0; ; ) {
+    const at = css.indexOf(query, from);
+    if (at < 0) return bodies;
+    const open = css.indexOf('{', at);
+    if (open < 0) return bodies;
+    let depth = 0;
+    let close = -1;
+    for (let i = open; i < css.length; i++) {
+      if (css[i] === '{') depth += 1;
+      else if (css[i] === '}') { depth -= 1; if (depth === 0) { close = i; break; } }
+    }
+    if (close < 0) return bodies;
+    bodies.push(css.slice(open + 1, close));
+    from = close + 1;
   }
-  return null;
 }
+
+/** The first of them, for a caller reading one block's own rules. */
+const unwrap = (css, query) => unwrapAll(css, query)[0] ?? null;
 
 const SHELL = appShell({
   word: 'Finance',
@@ -95,13 +110,16 @@ const PAIR = (collapsed) => appShell({
   collapsed,
 });
 
-function mount(html, { theme = 'dark', accent = 'default', narrow = false, extra = '' } = {}) {
+function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone = false, extra = '' } = {}) {
   const vars = tokensFor(theme, accent);
   let raw = decomment(SHEETS.map(read).join('\n'));
-  if (narrow) {
-    const body = unwrap(raw, FOLD);
-    assert.ok(body, `layout.css no longer folds at ${FOLD} — this gate is measuring nothing`);
-    raw += `\n${body}`;
+  // `phone` is the narrow width and one step further down: a phone viewport is
+  // inside both blocks, and a browser applies them in source order.
+  for (const [lift, query] of [[narrow || phone, FOLD], [phone, PHONE]]) {
+    if (!lift) continue;
+    const bodies = unwrapAll(raw, query);
+    assert.ok(bodies.length, `layout.css no longer has a ${query} block — this gate is measuring nothing`);
+    raw += `\n${bodies.join('\n')}`;
   }
   // Appended last, which is how C1b's mutation re-paints one declaration and runs
   // that gate's own readings against the defect it is there to refuse.
@@ -475,6 +493,43 @@ const BANDED = (collapsed) => appShell({
   signOutHref: '#logout',
   collapsible: true,
   collapsed,
+});
+
+test('the band search reads one word at one column, and is named the same at both', () => {
+  const wide = mount(BANDED(false));
+  const narrow = mount(BANDED(false), { phone: true });
+
+  assert.equal(
+    wide.css('.ui-app__search-short', 'display'), 'none',
+    'the short word is drawn beside the sentence it stands in for, so the band says the same thing twice',
+  );
+  assert.equal(
+    wide.css('.ui-app__search-txt', 'position'), 'static',
+    'the sentence is clipped at a width where it fits, so the band reads as a word for no reason',
+  );
+  assert.equal(wide.shown(wide.q('.ui-app__search kbd')), true, 'the key cap is not drawn where there is room for it');
+
+  assert.notEqual(
+    narrow.css('.ui-app__search-short', 'display'), 'none',
+    'below 560px the band still draws the sentence alone, so it truncates mid-word — "Search or run a co…" — '
+    + "beside the reader's mark and whatever the page puts between them",
+  );
+  assert.equal(
+    narrow.css('.ui-app__search-short', 'textOverflow'), 'ellipsis',
+    'the short word cannot give way, so at a large font scale it pushes the reader\'s mark off the row',
+  );
+
+  // Clipped, not dropped: both halves of the name survive the width.
+  for (const [sel, what] of [['.ui-app__search-txt', 'the sentence'], ['.ui-app__search kbd', 'the key cap']]) {
+    assert.equal(
+      narrow.shown(narrow.q(sel)), true,
+      `${what} leaves the tree below 560px, so the button is called something shorter on a phone than on a `
+      + 'desktop. #308 put the cap inside that name on purpose.',
+    );
+    assert.equal(narrow.css(sel, 'position'), 'absolute', `${what} is not lifted out of the row it no longer fits`);
+    assert.equal(narrow.css(sel, 'width'), '1px', `${what} still takes its own width on the band`);
+    assert.equal(narrow.css(sel, 'overflow'), 'hidden', `${what} is clipped to 1px with its text spilling out of it`);
+  }
 });
 
 test('the phone strip drops the rail\'s foot with nothing left in it, and the reader\'s fold keeps it', () => {

@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.101.0', date: '2026-10-10',
+    changes: [
+      ['added', 'The app shell’s band search takes a short label for phone widths — `shortLabel` inside the vanilla `search` option, and `searchShortLabel` beside a new `searchLabel` on React `AppShell`. With nothing named the short word is “Search”, and the long form is the sentence the band already drew. Resolves #486.', ['Shell']],
+      ['fixed', 'Below 560px the band trigger no longer truncates mid-word. It read “Search or run a co…” where the band also holds the reader’s mark and whatever the product puts between them; it draws the short word there instead. The sentence and the key cap are clipped rather than dropped, so the button’s accessible name is the same string at 1280px and at 390px — a control that says something shorter to a screen reader on a phone is a second control. The command palette’s own placeholder is not this text and is unchanged. See #486.', ['Shell']],
+      ['fixed', 'On a phone, under a finger, the band’s palette trigger and its theme switch reach the 44x44 tap floor. Both draw under it — the trigger 37px tall once the band swaps its sentence for the short word, the switch 34px square — and both now carry the kit’s transparent tap layer, clamped to half the band’s own 12px gap. Nothing is drawn any bigger, the band keeps its 52px height, and above 560px nothing changes at all. The reader’s mark on the band reaches 42px across and 44px down because the band’s own 12px gap limits its tap width. The same clearance covers the strategy topbar, where the theme switch also ships. See #486.', ['Shell']],
+      ['fixed', 'The band’s theme switch keeps its square when the band is crowded. It was a flex item with the default shrink: measured at 390 with a product control beside the trigger it drew 19px wide instead of 34 — half a square — and its tap layer could then only reach 29. The trigger is the one part of this band that gives way, as its own flex-basis already said. The strategy topbar’s own switch stops shrinking the same way, drawing 34px square instead of 28.47; below 560px the row it sits in gives up width elsewhere to keep it whole. See #486.', ['Shell']],
+    ],
+  },
+  {
     v: '0.100.0', date: '2026-10-10',
     changes: [
       ['added', 'While the React AppShell draws its phone bottom bar \u2014 below 560px, for a section list with somewhere to go \u2014 it publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. The page\u2019s bottom padding, root scroll padding and the React toast stack read it, each with `0px` as the fallback, and root scroll padding adds the focus ring\u2019s own room on top \u2014 so a changed action scrolled into view lands above the bar with its whole ring on screen. A phone page whose shell draws no bar keeps the ordinary end space the kit gives every phone page. The token is declared nowhere else, so read it as `var(--ui-app-bottom-clearance, 0px)`.'],
