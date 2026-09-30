@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.60.0', date: '2026-09-29',
+    v: '0.60.0', date: '2026-09-30',
     changes: [
       ['added', 'React Pill and StatusDot use the existing metadata pill and live dot styling. Dots are decorative by default and accept accessible labels. Part of #429.'],
     ],
