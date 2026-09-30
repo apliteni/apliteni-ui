@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>apliteni-ui — the Apliteni design system</title>
-<meta name="description" content="The art of UI-Kits — a design system for vanilla pages and complex React apps, with tokens, components, screen prototypes, and themeable dark and light modes with accent sub-themes.">
+<meta name="description" content="The styling is decided — a design system for HTML pages and React apps, with tokens, components, written guidelines, and dark and light modes under four accents.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?{{CSSHASH}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,23 +13,38 @@
 <style>
   /* page-only chrome; everything else is kit tokens/components.
      The bar itself is the kit's own .topbar component — the landing eats its own
-     dog food. These rules only make it sticky + translucent for a marketing page. */
+     dog food. These rules only make it sticky + translucent for a marketing page.
+
+     There is no decorative layer on this page: no .ui-glow blobs, no ui-bg-*
+     backdrop, no gradient field. Every section sits on --bg, and the only
+     colour that is not ink or a kit surface is the accent a control carries.
+     Artur asked for that on #463; the kit still ships the glows for decks and
+     auth screens (stories/foundations/Backgrounds.stories.js). */
   body { overflow-x: hidden; }
   .wrap { max-width: var(--container); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
   section { position: relative; }
 
   {{CHROME_CSS}}
 
-  .ui-hero { padding-top: clamp(72px, 12vh, 140px); }
-  .swap { color: var(--muted); font-size: 13px; }
+  /* padding-block, never the `padding` shorthand: the shorthand would delete the
+     inline gutter .wrap supplies, which site/gutter.test.js refuses. */
+  .band { padding-block: clamp(56px, 8vh, 96px); }
+  .band--tight { padding-block: clamp(36px, 5vh, 56px); }
 
-  /* Accent playground — the interactive "pick an accent, watch it re-theme". */
-  .play { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: center; }
-  .play__stage { position: relative; }
+  .ui-hero { padding-top: clamp(72px, 12vh, 140px); }
+  .ui-hero .ui-eyebrow { display: block; margin-bottom: var(--space-4); }
+
+  /* The accent picker sits with the caption that explains it, directly above the
+     card it re-themes, so the claim below is checked in the view it is made in.
+     Named buttons rather than bare swatches: guidelines/iconography.md keeps
+     icon-only controls to a closed list, and a colour chip is not on it. */
+  .picker-row { display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-5); }
+  .swap { color: var(--text); font-size: 13px; margin: 0; }
   .play-accents { display: flex; flex-wrap: wrap; gap: 10px; }
   .play-accents button { width: auto; height: auto; border-radius: 12px; padding: 10px 15px 10px 11px;
     display: inline-flex; align-items: center; gap: 9px; background: var(--surface);
-    box-shadow: 0 0 0 1px var(--border); color: var(--dim); font: 600 14px/1 var(--font-sans);
+    box-shadow: 0 0 0 1px var(--border); color: var(--text); font: 600 14px/1 var(--font-sans);
     cursor: pointer; transition: color .15s, box-shadow .15s, transform .15s; }
   .play-accents button:hover { transform: translateY(-2px); color: var(--strong); }
   .play-accents button.on { color: var(--strong); box-shadow: 0 0 0 2px var(--accent); }
@@ -38,77 +53,59 @@
      keep its flat accent band while focused. #482 */
   .play-accents button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
   .play-accents .play-sw { width: 18px; height: 18px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
-  .play-grad { margin-bottom: var(--space-5); font: 700 clamp(30px, 5vw, 44px)/1 var(--font-display); letter-spacing: -.02em;
-    background: linear-gradient(120deg, var(--grad-from), var(--grad-to));
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  @media (max-width: 860px) { .play { grid-template-columns: 1fr; gap: 26px; } }
 
-  /* Bento — the "what's in the box" grid. Distinct cells by design: mixed spans
-     plus a per-cell hue (tinted icon tile + a hairline top edge). No hover — the
-     only interactive things are the real components living inside each cell. */
-  .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
-  .bento__cell { position: relative; background: var(--surface); border-radius: var(--radius-xl);
-    padding: 26px 24px; display: flex; flex-direction: column; gap: 13px; overflow: hidden; }
-  .bento__cell::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
-    background: linear-gradient(90deg, var(--_hue, var(--accent)), transparent 70%); z-index: 1; }
-  /* A cell is a card, so it takes what a card takes since #295: the step off the
-     page that --surface already is, and a hairline to draw its edge. In both
-     themes — the light page stopped being white, and the rule stopped being one. */
-  .bento__cell { border: 1px solid var(--border); }
-  .bento__cell:nth-child(1) { --_hue: var(--purple-light); }
-  .bento__cell:nth-child(2) { --_hue: var(--cyan); }
-  .bento__cell:nth-child(3) { --_hue: var(--green); }
-  .bento__cell:nth-child(4) { --_hue: var(--amber); }
-  .bento__cell:nth-child(5) { --_hue: var(--pink); }
-  .bento__cell:nth-child(6) { --_hue: var(--purple-mid); }
-  .bento__cell:nth-child(7) { --_hue: var(--cyan); }
-  .bento__cell:nth-child(8) { --_hue: var(--amber); }
-  .bento__cell h3 { color: var(--strong); font-size: 17px; font-weight: 600; }
-  .bento__cell p { color: var(--dim); font-size: 14px; line-height: 1.58; }
-  .bento__cell p code { font-size: .92em; }
-  .c-6 { grid-column: span 6; } .c-3 { grid-column: span 3; } .c-2 { grid-column: span 2; }
-  .bIcon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
-    color: var(--_hue, var(--accent));
-    background: color-mix(in srgb, var(--_hue, var(--accent)) 20%, var(--surface-3));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_hue, var(--accent)) 40%, transparent); }
-  .bIcon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8;
-    stroke-linecap: round; stroke-linejoin: round; }
-  /* Icons cell — a live mini-grid of real glyphs in the cell's hue. */
-  .bico-grid { display: flex; flex-wrap: wrap; gap: 9px; }
-  .bico { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 11px;
-    background: var(--surface-2); color: var(--_hue, var(--accent)); }
-  .bico svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.7; }
-  /* Motion cell — skeleton lines that shimmer + a pulsing badge, live from kit.css. */
-  .bmo-line { height: 12px; border-radius: 6px; }
-  .bento__demo { margin-top: auto; padding-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  /* Live-component demos: stack full-width instead of the inline chip row. */
-  .bento__demo--stack { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
-  .bento__demo--stack .ui-seg, .bento__demo--stack .ui-switch { align-self: flex-start; }
-  .bento__demo .ui-table { font-size: 13.5px; }
-  .bento__demo .ui-table th, .bento__demo .ui-table td { padding-top: 9px; padding-bottom: 9px; }
-  .bento__demo .ui-field__label { font-size: 13px; margin-bottom: 6px; }
-  .bento__demo .ui-input, .bento__demo .ui-select { padding: 9px 12px; font-size: 13.5px; }
-  .tchip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--dim); }
-  .tdot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; }
-  .tradius { width: 22px; height: 15px; border-radius: 6px; background: var(--surface-3); display: inline-block; }
-  .taa { font-weight: 700; color: var(--strong); font-size: 14px; }
-  code.cchip { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 7px; padding: 3px 9px; }
-  .sdot { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
-  .sdot i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .adot { width: 20px; height: 20px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px var(--surface); }
+  /* The demo screen: the settings column beside the table at desk width,
+     stacked on a phone. Both halves are kit components; only the frame is here. */
+  .screen { display: grid; grid-template-columns: minmax(0, 268px) minmax(0, 1fr);
+    gap: var(--space-6); align-items: start; }
+  .screen__fields { display: flex; flex-direction: column; gap: var(--space-4); }
+  .screen__row { display: flex; align-items: center; gap: var(--space-3); }
+  .screen__row span { color: var(--text); font-size: var(--text-sm); }
+  .screen__actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-2); }
+  .screen__note { color: var(--text); font-size: var(--text-sm); line-height: 1.6;
+    margin: var(--space-4) 0 0; }
 
-  @media (max-width: 860px) { .bento { grid-template-columns: repeat(2, 1fr); } .c-6 { grid-column: span 2; } .c-3 { grid-column: span 2; } .c-2 { grid-column: span 1; } }
-  @media (max-width: 560px) { .bento { grid-template-columns: 1fr; } .c-6, .c-3, .c-2 { grid-column: auto; } }
+  /* The decisions. Rows rather than cards: six cards would be a stack to scroll
+     past, and each row here is one fact with one specimen, not a claim repeated. */
+  .decisions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 var(--space-8); }
+  .dec { padding-block: var(--space-5); border-top: 1px solid var(--border); }
+  .dec h3 { color: var(--strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 6px; }
+  .dec p { color: var(--text); font-size: var(--text-sm); line-height: 1.6; margin: 0; }
+  /* Each specimen is a drawing of a value, not layout, so its own dimensions are
+     literals: an 8px bar IS --space-2, and writing it as a token would hide what
+     the picture is of. The gaps around them stay on the spacing scale. */
+  .dec__spec { margin-top: var(--space-4); display: flex; align-items: center; gap: 10px; min-height: 34px; }
+  .ink { color: var(--text); }
+  .ink--lg { font-size: 21px; font-weight: var(--weight-semibold); }
+  .ink--sm { font-size: var(--text-sm); }
+  .ladder { display: flex; gap: 6px; }
+  .ladder i { width: 34px; height: 22px; border-radius: var(--radius-xs); border: 1px solid var(--border); display: block; }
+  /* A resting picture of the focus ring, so the page can show it without asking
+     the reader to press Tab. A span, so it takes no focus of its own. */
+  .ringspec { width: 78px; height: 26px; border-radius: var(--radius-sm);
+    border: 1px solid var(--control-edge); background: var(--surface);
+    box-shadow: var(--ring); display: block; }
+  .steps { display: flex; align-items: flex-end; gap: 5px; }
+  .steps i { display: block; width: 9px; background: var(--accent); border-radius: 2px; }
+  .glyphs { display: flex; gap: 9px; color: var(--accent); }
+  .glyphs svg { width: 22px; height: 22px; stroke: currentColor; fill: none;
+    stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  /* Two rule titles quoted from the guidelines rather than a drawn specimen:
+     the claim above is that the rules ship, so the specimen is a rule. */
+  .rules { color: var(--text); font-size: var(--text-sm); line-height: 1.7; }
 
-  /* "Drop it in" — two toggle cards switch the panel between Humans and Agents. */
+  /* "Two ways in" — two toggle cards switch the panel between Humans and Agents. */
   .paths-sw { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .path-card { text-align: left; background: var(--surface); border: 1px solid var(--border);
     border-radius: 14px; padding: 15px 18px; cursor: pointer; font: inherit; transition: border-color .15s; }
   .path-card:hover { border-color: var(--border-strong); }
   .path-card.is-active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
   .path-card b { display: block; color: var(--strong); font: 600 15px var(--font-sans); }
-  .path-card span { color: var(--muted); font-size: 12.5px; }
+  /* Body ink, not muted: an unselected option's description is information, and
+     guidelines/labels-and-titles.md#limit-muted-ink names it as one of the
+     things that is not an exception. Rank here comes from the size and weight
+     of the <b> above it. */
+  .path-card span { color: var(--text); font-size: 12.5px; }
   /* Focus ring — the kit's own, the way src/styles/tabs.css gives one to a tab
      and its panel. This was a flat 2px accent outline with an offset until #482:
      a second focus shape nobody else in the kit draws. The panel is focusable
@@ -141,7 +138,27 @@
   .term pre .k { color: var(--term-k); }
   .term pre .s { color: var(--term-s); }
   .term pre .c { color: var(--term-c); }
-  @media (max-width: 560px) { .paths-sw { grid-template-columns: 1fr; } }
+
+  .close { display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--space-5); flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: var(--space-6); }
+  .close p { color: var(--text); font-size: var(--text-base); line-height: 1.6;
+    max-width: var(--prose-lede); margin: 0; }
+  .close__links { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+
+  @media (max-width: 860px) {
+    .decisions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-6); }
+    .screen { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .decisions { grid-template-columns: minmax(0, 1fr); }
+    .paths-sw { grid-template-columns: 1fr; }
+    /* Four columns only fit a phone by scrolling, and the one that ends up
+       off-screen is the action column. The deploy date is the least useful of
+       the four in a specimen, so it is the one that leaves; the kit's scroller
+       stays as the backstop for a narrower screen still. */
+    .screen .ui-table th:nth-child(3),
+    .screen .ui-table td:nth-child(3) { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -149,12 +166,11 @@
 <!-- Shared site chrome — see site/chrome.mjs (topbar/footer/theme+accent JS). -->
 {{TOPBAR}}
 
-<section style="overflow:hidden;padding-bottom:96px">
-  <span class="ui-glow ui-glow--purple" style="top:-120px;left:8%"></span>
-  <span class="ui-glow ui-glow--cyan" style="top:60px;right:-40px;width:340px;height:340px"></span>
+<section style="padding-bottom:clamp(40px,6vh,72px)">
   <div class="wrap ui-hero" style="text-align:center">
-    <h1 class="ui-hero__title">The art of <span class="grad">UI&#8209;Kits</span></h1>
-    <p class="ui-hero__sub">A design system for HTML pages and complex React apps.</p>
+    <span class="ui-eyebrow">Apliteni design system</span>
+    <h1 class="ui-hero__title">The styling is <span class="grad">decided</span></h1>
+    <p class="ui-hero__sub">Plain CSS classes for HTML pages, React components for larger apps. Dark and light, under four accents.</p>
     <div class="ui-hero__cta">
       <a class="ui-btn ui-btn--primary ui-btn--lg" href="#install" style="text-decoration:none">Install</a>
       <a class="ui-btn ui-btn--secondary ui-btn--lg" href="/storybook/" style="text-decoration:none">Open Storybook →</a>
@@ -162,41 +178,120 @@
   </div>
 </section>
 
-<section class="wrap" style="padding-block:70px" id="taste">
-  <div class="ui-section-head" style="margin-bottom:40px">
-    <h2>One kit, four identities</h2>
-    <p>Set <code class="ui-code">data-accent</code> to change the page colours.</p>
+<section class="wrap band" id="proof">
+  <div class="ui-section-head">
+    <h2>Styled entirely by the kit</h2>
+    <p>Every control below is a kit class. The workspace, the roles and the four services are made up for this page.</p>
   </div>
-  <div class="play">
-    <div class="play__picker">
-      <div class="accents play-accents" role="group" aria-label="Choose an accent">
-        <button data-acc="default" class="on" title="Nebula" aria-pressed="true"><span class="play-sw" style="background:linear-gradient(135deg,#bd8cff,#b479ff)"></span>Nebula</button>
-        <button data-acc="phoenix" title="Phoenix" aria-pressed="false"><span class="play-sw" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)"></span>Phoenix</button>
-        <button data-acc="ocean" title="Ocean" aria-pressed="false"><span class="play-sw" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)"></span>Ocean</button>
-        <button data-acc="emerald" title="Emerald" aria-pressed="false"><span class="play-sw" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)"></span>Emerald</button>
-      </div>
-      <p class="swap" style="margin:18px 0 0">Accents work in dark and light mode. Your choice carries over to the changelog.</p>
+  <div class="picker-row">
+    <p class="swap">Accents work in dark and light mode. Your choice carries over to the changelog.</p>
+    <div class="accents play-accents" role="group" aria-label="Choose an accent">
+      <button data-acc="default" class="on" title="Nebula" aria-pressed="true"><span class="play-sw" style="background:linear-gradient(135deg,#bd8cff,#b479ff)"></span>Nebula</button>
+      <button data-acc="phoenix" title="Phoenix" aria-pressed="false"><span class="play-sw" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)"></span>Phoenix</button>
+      <button data-acc="ocean" title="Ocean" aria-pressed="false"><span class="play-sw" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)"></span>Ocean</button>
+      <button data-acc="emerald" title="Emerald" aria-pressed="false"><span class="play-sw" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)"></span>Emerald</button>
     </div>
-    <div class="play__stage">
-      <span class="ui-glow ui-glow--purple" style="top:-50px;right:0;width:300px;height:300px"></span>
-      <div class="ui-card ui-card--accent" style="position:relative">
-        <div class="play-grad" id="playName">Nebula</div>
-        <div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap">
-          <button class="ui-btn ui-btn--primary">Primary action</button>
-          <span class="ui-badge ui-badge--soon">Soon</span>
-          <label class="ui-switch"><input type="checkbox" checked aria-label="Example toggle"><span class="ui-switch__track"></span></label>
+  </div>
+  <div class="ui-card">
+    <div class="screen">
+      <div class="screen__fields">
+        <h3 class="ui-card__title">Access &amp; agents</h3>
+        <div class="ui-field">
+          <label class="ui-field__label" for="ws">Workspace</label>
+          <input class="ui-input" id="ws" value="apliteni-core" readonly>
+          <span class="ui-field__hint">Lowercase; the value appears in service URLs.</span>
+        </div>
+        <div class="ui-field">
+          <label class="ui-field__label" for="role">Your role</label>
+          <select class="ui-select" id="role"><option>Owner</option><option>Editor</option><option>Viewer</option></select>
+        </div>
+        <div class="ui-field">
+          <span class="ui-field__label" id="notices-label">Deploy notices</span>
+          <!-- A real focusable control, so it owes the kit's contract: a named
+               toolbar, aria-pressed per option, one Tab stop. Mirrors what
+               segmented() emits; the keys are wired in site/chrome.mjs, and
+               site/segmented.test.js holds the two in step. -->
+          <div class="ui-seg" role="toolbar" aria-label="Deploy notices"><button type="button" class="is-active" aria-pressed="true" tabindex="0">All</button><button type="button" aria-pressed="false" tabindex="-1">Failures only</button></div>
+        </div>
+        <div class="screen__row">
+          <label class="ui-switch"><input type="checkbox" checked aria-label="Mail me when a token is revoked, on"><span class="ui-switch__track"></span></label>
+          <span>Mail me when a token is revoked</span>
+        </div>
+        <div class="screen__actions">
+          <button class="ui-btn ui-btn--secondary">Save changes</button>
+          <button class="ui-btn ui-btn--ghost">Cancel</button>
         </div>
       </div>
+      <!-- The kit's own scroller, so four columns on a phone scroll inside the
+           card instead of widening the page. It is a focus stop and carries the
+           kit ring from src/styles/table.css. -->
+      <div class="ui-table-scroll" role="region" aria-label="Services, scroll for more columns" tabindex="0">
+        <table class="ui-table ui-table--hover">
+          <thead><tr><th>Service</th><th>Status</th><th>Last deploy</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="ui-table__title">strategy-portal</td><td><span class="ui-badge ui-badge--live">Live</span></td><td>4 Mar 2026</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
+            <tr><td class="ui-table__title">operating-model</td><td><span class="ui-badge ui-badge--soon">Soon</span></td><td>No deploy yet</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
+            <tr><td class="ui-table__title">reporting-api</td><td><span class="ui-badge ui-badge--live">Live</span></td><td>27 Feb 2026</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
+            <tr class="is-dead"><td class="ui-table__title">legacy-admin</td><td><span class="ui-badge ui-badge--danger">Revoked</span></td><td>11 Nov 2025</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Restore</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <p class="screen__note">{{BUTTON_VARIANTS}} button variants and {{BUTTON_SIZES}} sizes ship with the kit, so nothing on this card is a one-off.</p>
+</section>
+
+<section class="wrap band" id="decided">
+  <div class="ui-section-head">
+    <h2>What the kit decides</h2>
+    <p>Each of these is one answer the kit already gives, so an app does not have to give its own.</p>
+  </div>
+  <div class="decisions">
+    <div class="dec">
+      <h3>Ink</h3>
+      <p>One body colour at every size. Rank comes from size and weight, never from fading a word.</p>
+      <div class="dec__spec"><span class="ink ink--lg">Aa</span><span class="ink">Aa</span><span class="ink ink--sm">Aa</span></div>
+    </div>
+    <div class="dec">
+      <h3>Surfaces</h3>
+      <p>A ladder of grounds, each edged by a hairline. The kit draws no shadows.</p>
+      <div class="dec__spec"><span class="ladder" aria-hidden="true"><i style="background:var(--bg)"></i><i style="background:var(--surface)"></i><i style="background:var(--surface-3)"></i></span></div>
+    </div>
+    <div class="dec">
+      <h3>Focus</h3>
+      <p>One ring on every control: a gap, a solid band in your accent, then a soft halo.</p>
+      <div class="dec__spec"><span class="ringspec" aria-hidden="true"></span></div>
+    </div>
+    <div class="dec">
+      <h3>Spacing</h3>
+      <p>A ten-step scale sets every gap and pad. There is no density mode to configure.</p>
+      <div class="dec__spec"><span class="steps" aria-hidden="true"><i style="height:8px"></i><i style="height:13px"></i><i style="height:18px"></i><i style="height:24px"></i><i style="height:30px"></i></span></div>
+    </div>
+    <div class="dec">
+      <h3>Glyphs</h3>
+      <p>{{ICON_COUNT}} inline icons on one 24-pixel grid, drawn at a single stroke width.</p>
+      <div class="dec__spec"><span class="glyphs" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-8"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg>
+      </span></div>
+    </div>
+    <div class="dec">
+      <h3>The written rules</h3>
+      <p>The guidelines ship inside the package, so the reasoning arrives with the classes.</p>
+      <div class="dec__spec"><span class="rules">Keep text off grey fills<br>Name the current state</span></div>
     </div>
   </div>
 </section>
 
-<section class="wrap" style="padding-block:70px" id="install">
-  <div class="ui-section-head" style="margin-bottom:44px">
-    <h2>Add it to your project</h2>
-    <p>Public npm package; no access token or scope configuration needed.</p>
-  </div>
+<section class="wrap band" id="install">
   <div style="max-width:var(--measure);margin:0 auto">
+    <div class="ui-section-head">
+      <h2>Two ways in</h2>
+      <p>A public npm package. No access token and no registry scope to configure.</p>
+    </div>
     <!-- A real tablist, wired the way the kit's tabs() wires one: each tab carries
          id + aria-controls, each panel role="tabpanel" + aria-labelledby + tabindex="0",
          one roving Tab stop. Behaviour is in the script at the foot of this file. -->
@@ -241,129 +336,13 @@
   </div>
 </section>
 
-<section class="wrap" style="padding-block:70px">
-  <div class="ui-section-head" style="margin-bottom:44px">
-    <h2>What is included</h2>
-  </div>
-  <div class="bento">
-
-    <div class="bento__cell c-3">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="3"/><path d="M8 12h8"/></svg></span>
-      <h3>Buttons &amp; actions</h3>
-      <p>{{BUTTON_VARIANTS}} variants and {{BUTTON_SIZES}} sizes, with every state, including busy.</p>
-      <div class="bento__demo">
-        <button class="ui-btn ui-btn--primary" disabled aria-disabled="true" aria-busy="true"><span class="ui-btn__label-slot"><span class="ui-btn__label">Save changes</span></span><span class="ui-btn__dots" aria-hidden="true"><i></i><i></i><i></i></span></button>
-        <button class="ui-btn ui-btn--secondary">Cancel</button>
-        <button class="ui-btn ui-btn--ghost">Skip</button>
-        <button class="ui-btn ui-btn--danger ui-btn--sm">Revoke</button>
-      </div>
-    </div>
-
-    <div class="bento__cell c-3">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h10"/></svg></span>
-      <h3>Forms &amp; inputs</h3>
-      <p>Labelled fields, select menus, textareas, and switches.</p>
-      <div class="bento__demo bento__demo--stack">
-        <div class="ui-field">
-          <label class="ui-field__label">Workspace</label>
-          <input class="ui-input" value="apliteni-core" readonly>
-          <span class="ui-field__hint">Use lowercase; this value is used in service URLs.</span>
-        </div>
-        <select class="ui-select" aria-label="Role"><option>Owner</option><option>Editor</option><option>Viewer</option></select>
-      </div>
-    </div>
-
-    <div class="bento__cell c-2">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5 2 6H4c.5-1 2-2 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>
-      <h3>Status &amp; feedback</h3>
-      <p>Badges, callouts, and toasts use consistent status colours.</p>
-      <div class="bento__demo bento__demo--stack">
-        <div style="display:flex;gap:7px;flex-wrap:wrap">
-          <span class="ui-badge ui-badge--live">Live</span>
-          <span class="ui-badge ui-badge--soon">Soon</span>
-          <span class="ui-badge ui-badge--danger">Revoked</span>
-        </div>
-        <div class="ui-callout ui-callout--success">
-          <span class="ui-callout__icon"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <span>Changes saved.</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="bento__cell c-2">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2.3"/><circle cx="9" cy="16" r="2.3"/></svg></span>
-      <h3>Controls</h3>
-      <p>Segmented controls and switches.</p>
-      <div class="bento__demo bento__demo--stack">
-        <!-- A specimen, not a switcher: it shows what a segmented control looks like and
-             chooses nothing. It is still a real focusable control, so it owes the kit's
-             contract — a named toolbar, aria-pressed per option, one Tab stop. Mirrors
-             what segmented() emits; the keys are wired in chrome.mjs, and
-             site/segmented.test.js holds the two in step. -->
-        <div class="ui-seg" role="toolbar" aria-label="Example segmented control"><button type="button" class="is-active" aria-pressed="true" tabindex="0">Deck</button><button type="button" aria-pressed="false" tabindex="-1">Text</button></div>
-        <label class="ui-switch"><input type="checkbox" checked aria-label="Example toggle"><span class="ui-switch__track"></span></label>
-      </div>
-    </div>
-
-    <div class="bento__cell c-2">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg></span>
-      <h3>Tokens &amp; theming</h3>
-      <p>Colours, typography, spacing, and corner radii are defined as CSS variables.</p>
-      <div class="bento__demo">
-        <span class="tchip"><span class="tdot" style="background:var(--accent)"></span><span class="tdot" style="background:var(--green)"></span><span class="tdot" style="background:var(--cyan)"></span><span class="tdot" style="background:var(--pink)"></span></span>
-        <span class="tchip"><span class="tradius"></span>radius</span>
-        <span class="tchip"><span class="taa">Aa</span>type</span>
-      </div>
-    </div>
-
-    <div class="bento__cell c-3">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg></span>
-      <h3>Icons</h3>
-      <p>{{ICON_COUNT}} Feather/Lucide-style glyphs as inline SVG, with no runtime. Each uses a 24&times;24 viewBox, a 1.7 stroke and <code>currentColor</code>.</p>
-      <div class="bento__demo">
-        <div class="bico-grid">
-          <span class="bico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.9 7.9 0 0 0 0-2l1.6-1.3-1.6-2.7-1.9.8a7.6 7.6 0 0 0-1.7-1L15.5 5h-3l-.3 1.8a7.6 7.6 0 0 0-1.7 1l-1.9-.8-1.6 2.7L8.6 11a7.9 7.9 0 0 0 0 2l-1.6 1.3 1.6 2.7 1.9-.8a7.6 7.6 0 0 0 1.7 1l.3 1.8h3l.3-1.8a7.6 7.6 0 0 0 1.7-1l1.9.8 1.6-2.7z"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18l-5.8 3 1.1-6.5L2.6 9.8l6.5-.9z"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-8"/></svg></span>
-          <span class="bico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="bento__cell c-3">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h8l-1 8 10-12h-8z"/></svg></span>
-      <h3>Motion</h3>
-      <p>Token-driven effects include entrances, hover lifts, scroll reveals, and skeleton loaders. They use the brand's motion vocabulary and support reduced-motion settings.</p>
-      <div class="bento__demo bento__demo--stack">
-        <div class="m-skeleton bmo-line"></div>
-        <div class="m-skeleton bmo-line" style="width:70%"></div>
-        <div style="display:flex;gap:10px;align-items:center;margin-top:2px">
-          <span class="ui-badge ui-badge--live m-pulse">Live</span>
-          <button class="ui-btn ui-btn--secondary ui-btn--sm m-lift">Hover over me</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="bento__cell c-6">
-      <span class="bIcon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M10 4v16"/></svg></span>
-      <h3>Tables &amp; data</h3>
-      <div class="bento__demo bento__demo--stack">
-        <table class="ui-table ui-table--hover">
-          <thead><tr><th>Service</th><th>Status</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="ui-table__title">strategy-portal</td><td><span class="ui-badge ui-badge--live">Live</span></td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
-            <tr><td class="ui-table__title">operating-model</td><td><span class="ui-badge ui-badge--soon">Soon</span></td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
-            <tr class="is-dead"><td class="ui-table__title">legacy-admin</td><td><span class="ui-badge ui-badge--danger">Revoked</span></td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Restore</button></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
+<section class="wrap band--tight">
+  <div class="close">
+    <p>Every rule above is written down, with the reason it was chosen and what it refuses.</p>
+    <span class="close__links">
+      <a class="ui-btn ui-btn--ghost" href="/storybook/?path=/story/guidelines-overview--overview" style="text-decoration:none">Read the guidelines</a>
+      <a class="ui-btn ui-btn--ghost" href="/changelog/" style="text-decoration:none">What changed</a>
+    </span>
   </div>
 </section>
 
@@ -371,17 +350,7 @@
 
 <script>{{CHROME_JS}}</script>
 <script>
-  /* Accent playground: mirror the live accent name into the preview headline. */
-  (function(){
-    var NM = { default:'Nebula', phoenix:'Phoenix', ocean:'Ocean', emerald:'Emerald' };
-    var el = document.getElementById('playName');
-    if (!el) return;
-    function sync(){ el.textContent = NM[document.documentElement.getAttribute('data-accent') || 'default']; }
-    new MutationObserver(sync).observe(document.documentElement, { attributes:true, attributeFilter:['data-accent'] });
-    sync();
-  })();
-
-  /* "Drop it in" switcher: the two cards move between the Humans and Agents
+  /* "Two ways in" switcher: the two cards move between the Humans and Agents
      panels. It announces itself as a tablist, so it owes the tablist contract —
      this is the site's copy of what initTabs() does for the kit (see
      src/components/tabs.js): roving tabindex, ArrowLeft/Right with wrap, Home
