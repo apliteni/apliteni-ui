@@ -59,4 +59,8 @@ export const Wide: Story = { render, args: { width: 'wide',
   back: { href: '/overview', label: 'Overview' }, actions: <Button>New report</Button>,
   bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
 export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', isRotated: false } } };
-export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } } };
+// A band with a control on it beside the reader's mark — the crowding that left the
+// trigger a few characters and truncated its sentence mid-word. It draws `Search`
+// here; the button is still named "Search or run a command… Ctrl K". (#486)
+export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };

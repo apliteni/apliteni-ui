@@ -6,9 +6,12 @@
   .ui-react-app { display: block; }
   .ui-react-app > .ui-app__rail { display: none; }
   .ui-react-app .ui-app__main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  /* The band search's short form is layout.css's, shared with the vanilla band: the
+     sentence and the key cap are clipped rather than dropped there, so the button
+     keeps one accessible name at every width, and this sheet writes no rule of its
+     own for it. src/styles/layout.css `@media (max-width: 560px)` */
   .ui-react-app .ui-app__bar { padding-inline: var(--space-4); }
-  .ui-react-app .ui-app__search { min-width: 0; }
-  .ui-react-app .ui-app__search kbd { display: none; }
+
   .ui-react-app__bottom {
     display: block;
     position: fixed;
