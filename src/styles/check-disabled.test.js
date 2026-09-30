@@ -1,5 +1,5 @@
 /* Rule: a disabled checkbox or radio reads as unavailable — and keeps reading that
- * way under a pointer. why: #429, guidelines/accessibility-floor.md#disabled-legibility
+ * way under a pointer. why: #429, guidelines/accessibility-floor.md#disabled-control-legibility
  *
  * The paint is measured where every other disabled control is measured, by
  * stories/guidelines/accessibility-floor.test.js against the specimen #429 added.
