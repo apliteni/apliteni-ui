@@ -42,7 +42,7 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
   }).join('');
   return `<div class="vsw" data-dropdown><button type="button" class="vsw__btn" data-dropdown-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Version — ${esc(cur)}">` +
     `<span class="lbl">version:</span><span class="cur">${cur}</span><span class="car"></span></button>` +
-    `<div class="vsw__menu" data-dropdown-panel role="listbox" aria-label="Version">${opts}</div></div>`;
+    `<div class="vsw__menu" data-dropdown-panel role="listbox" aria-label="Version" tabindex="-1">${opts}</div></div>`;
 }
 
 // `nav` mirrors the account sidebar, DERIVED from the one ACCOUNT_NAV definition
@@ -77,7 +77,7 @@ export function accountMenu({
   // Consumes the shared dropdown wiring via the generic [data-dropdown] hooks.
   return `<div class="acct on" data-dropdown>` +
     `<button class="avatar" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
-    `<div class="amenu" data-dropdown-panel role="menu">` +
+    `<div class="amenu" data-dropdown-panel role="menu" tabindex="-1">` +
     `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${trustedAttr(email)}">${email}</span></span></div>` +
     items.map(it).join('') +
     `<div class="asep"></div><a class="aout" href="#logout" data-dd-item tabindex="-1" role="menuitem">${icon('logout')}Sign out</a>` +

@@ -43,6 +43,12 @@ function rules(css) {
 }
 
 const selects = (rule, sel) => rule.selector.split(',').some((s) => s.trim() === sel);
+/** The last value a rule gives a property, whitespace collapsed — a declaration
+ *  may be written across lines, and the later of two wins. */
+const decl = (rule, prop) => {
+  const m = [...rule.body.matchAll(new RegExp(`(?:^|;)\\s*${prop}\\s*:([^;]*)`, 'g'))];
+  return m.length ? m[m.length - 1][1].trim().replace(/\s+/g, ' ') : null;
+};
 const transitions = (rule) => [...rule.body.matchAll(/transition(?:-property)?\s*:([^;]*)/g)].map((m) => m[1]);
 
 // The two overlays are one behaviour with two skins, so both sheets answer the
@@ -372,6 +378,51 @@ for (const m of MENUS) {
       transitions(base).some((t) => /\bvisibility\b/.test(t)),
       `\`${m.panel}\` stopped transitioning \`visibility\` at all, so it is gone in the frame it is `
       + 'told to close and the fade plays on a box nobody can see',
+    );
+  });
+
+  // The third question the table answers, and #489's half of it: a panel that
+  // takes its content's height runs off a phone the moment it is opened low, and
+  // the fix keys on `.ui-dropdown__panel` exactly as the two above do — so two of
+  // the three menus would go on running off the screen without being asked.
+  // why: docs/specification.md#the-dropdown-panel
+  test(`${m.file}: ${m.panel} is capped at the room the viewport left`, () => {
+    const all = rules(read(m.file));
+    const base = all.find((r) => selects(r, m.panel));
+    assert.ok(base, `the \`${m.panel}\` rule was found`);
+
+    assert.match(
+      decl(base, 'max-height') || '', /var\(--ui-dropdown-avail,/,
+      `${m.what} takes its content's height. The wiring measures the room between the trigger and `
+      + 'the viewport edge on every open and writes it as --ui-dropdown-avail; a panel that does '
+      + 'not read it ends past the bottom of a phone and its last rows cannot be reached (#489).',
+    );
+    assert.match(
+      decl(base, 'max-height') || '', /calc\(100dvh - var\(--ui-dropdown-inset\) \* 2\)/,
+      `${m.what} has no fallback for a page nothing has measured yet, so a server-rendered open `
+      + 'menu is uncapped until it hydrates',
+    );
+    assert.match(
+      base.body, /overflow(?:-y)?\s*:\s*(?:\S+\s+)?auto/,
+      `${m.what} caps its height without scrolling, which hides the rows past the cap instead of `
+      + 'reaching them',
+    );
+    assert.match(
+      base.body, /overscroll-behavior\s*:\s*contain/,
+      `the wheel over ${m.what} carries on down the page once its own rows end`,
+    );
+
+    // A scroller with no tab-focusable children of its own takes a tab stop in
+    // Chrome, and every row in these three carries `tabindex="-1"`.
+    const ring = all.find((r) => selects(r, `${m.panel}:focus-visible`));
+    assert.ok(ring, `${m.panel} scrolls and so takes a tab stop; no rule answers its focus`);
+    assert.match(
+      decl(ring, 'box-shadow') || '', /var\(--ring\)/,
+      `${m.what} paints the browser's own focus ring on that tab stop — the native ring #457 refused`,
+    );
+    assert.equal(
+      decl(ring, 'outline'), '2px solid transparent',
+      `${m.panel}:focus-visible keeps no real outline, so forced colours take the focus with the shadow`,
     );
   });
 

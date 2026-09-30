@@ -323,7 +323,7 @@ test('portal marks both halves, and an already-open one carries its own state', 
 
 const VIEW = { w: 1280, h: 800 };
 
-function mount(html) {
+function mount(html, view = VIEW) {
   const dom = new JSDOM(`<!doctype html><html><body><main id="page">${html}</main></body></html>`, {
     pretendToBeVisual: true, virtualConsole: quiet,
   });
@@ -331,8 +331,8 @@ function mount(html) {
   for (const key of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'getComputedStyle']) {
     Object.defineProperty(globalThis, key, { value: window[key] ?? window, configurable: true, writable: true });
   }
-  Object.defineProperty(window, 'innerHeight', { value: VIEW.h, configurable: true });
-  Object.defineProperty(window, 'innerWidth', { value: VIEW.w, configurable: true });
+  Object.defineProperty(window, 'innerHeight', { value: view.h, configurable: true });
+  Object.defineProperty(window, 'innerWidth', { value: view.w, configurable: true });
   return window;
 }
 
@@ -345,7 +345,16 @@ function measure(window, { triggerTop, triggerLeft = 40, panelHeight = 130 }) {
     top: triggerTop, bottom: triggerTop + 31, left: triggerLeft, right: triggerLeft + 160,
     width: 160, height: 31, x: triggerLeft, y: triggerTop,
   });
-  Object.defineProperty(panel, 'offsetHeight', { value: panelHeight, configurable: true });
+  // A browser reports the height the cap left, not the height the rows want, so
+  // the stub does too: the direction gate below reads this back after an open,
+  // and a cap it could not see would make that gate measure nothing.
+  Object.defineProperty(panel, 'offsetHeight', {
+    get() {
+      const cap = parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail'));
+      return Number.isFinite(cap) ? Math.min(panelHeight, cap) : panelHeight;
+    },
+    configurable: true,
+  });
   return { trigger, panel };
 }
 
@@ -519,4 +528,221 @@ test('neutral badges distinguish named states from metadata without changing sup
   const doc = JSDOM.fragment(dropdown({ items: cases.map(([badge], i) => ({ label: `Option ${i}`, badge })) }));
   assert.deepEqual([...doc.querySelectorAll('.ui-dropdown__badge')].map(el => el.className),
     cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
+});
+
+// ---- The cap (#489) --------------------------------------------------------
+// A panel took its content's height unless the consumer reached for `scroll`, so
+// one opened low on a phone ran off the bottom and its last rows could not be
+// reached. The sheet half is read as text; the arithmetic half is fed a phone.
+// why: docs/specification.md#the-dropdown-panel
+
+/** Every rule in the dropdown sheet that decides a height, discovered rather than
+ *  listed, so a fourth scrolling box joins this sweep by being written. */
+const CAPPING = RULES.filter((r) => decl(r, 'max-height'));
+
+test('every height the sheet sets is read from a property, never typed as a number', () => {
+  assert.equal(
+    CAPPING.length, 2,
+    'the sheet sets two heights — the panel and the search list. A third is a scrolling box this '
+    + 'sweep has not been told about; the fixed-height modifier is not one, because it writes the '
+    + 'cap property and lets the panel do the capping.',
+  );
+  for (const rule of CAPPING) {
+    assert.match(
+      decl(rule, 'max-height'), /var\(--ui-dropdown-(cap|avail)/,
+      `${rule.selector} { max-height: ${decl(rule, 'max-height')} } is a height of its own. A box `
+      + 'that does not read --ui-dropdown-cap or --ui-dropdown-avail cannot be capped at the room '
+      + 'the viewport left, which is the whole of #489.',
+    );
+    assert.match(
+      rule.body, /overflow-y\s*:\s*auto/,
+      `${rule.selector} caps its height without scrolling, so the rows past the cap are unreachable`,
+    );
+    assert.match(
+      rule.body, /overscroll-behavior\s*:\s*contain/,
+      `${rule.selector} lets the wheel carry on down the page once its own rows end, which #489's `
+      + 'acceptance names',
+    );
+
+    // A scroller with no tab-focusable children of its own takes a tab stop in
+    // Chrome, so every box this sweep found is a focusable box.
+    const base = rule.selector.trim();
+    const ring = RULES.find((r) => r.selector.split(',').some((sel) => sel.trim() === `${base}:focus-visible`));
+    assert.ok(
+      ring, `${base} scrolls, which gives it a tab stop of its own, and no rule answers its focus`,
+    );
+    assert.match(
+      decl(ring, 'box-shadow') || '', /var\(--ring\)/,
+      `${base}:focus-visible does not draw the kit's ring, so the tab stop the scroll gave it paints `
+      + 'the browser\'s own outline — the native ring #457 refused',
+    );
+    assert.equal(
+      decl(ring, 'outline'), '2px solid transparent',
+      `${base}:focus-visible keeps no real outline, so forced colours strip the box-shadow and the `
+      + 'focus with it',
+    );
+  }
+});
+
+test('the panel takes the smaller of what the consumer asked for and what the viewport left', () => {
+  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const h = decl(panel, 'max-height').replace(/\s+/g, ' ');
+  assert.match(h, /^min\(/, 'the panel takes the smaller of the two, so neither can outrank the other');
+  assert.match(h, /var\(--ui-dropdown-cap,/, 'and the consumer\'s cap is optional — unset means the whole list');
+  assert.match(
+    h, /var\(--ui-dropdown-avail, calc\(100dvh - var\(--ui-dropdown-inset\) \* 2\)\)/,
+    'an unmeasured panel — a server-rendered page before hydration — still promises the viewport '
+    + 'less the inset at each end, rather than no cap at all',
+  );
+});
+
+test('the fixed-height modifier still asks for less, and asks for it as the cap', () => {
+  const scroll = RULES.find((r) => r.selector.trim() === '.ui-dropdown__panel.is-scroll');
+  assert.ok(scroll, '.is-scroll is still the fixed-height modifier');
+  assert.equal(decl(scroll, '--ui-dropdown-cap'), '300px', 'and still 300px, as it was before #489');
+  assert.equal(
+    decl(scroll, 'max-height'), null,
+    '.is-scroll writing its own max-height would outrank the panel\'s min() and put a panel opened '
+    + 'low on a phone back past the viewport edge',
+  );
+});
+
+test('the search panel is a column, so the cap lands on the rows and not on the field', () => {
+  const col = RULES.find((r) => r.selector.trim() === '.ui-dropdown__panel--search');
+  assert.equal(decl(col, 'display'), 'flex');
+  assert.equal(decl(col, 'flex-direction'), 'column');
+  const list = RULES.find((r) => r.selector.trim() === '.ui-dropdown__panel--search > .ui-dropdown__list');
+  assert.ok(list, 'the list is the item that gives way');
+  assert.equal(decl(list, 'min-height'), '0', 'a flex item will not shrink below its content without it');
+});
+
+test('the factory writes the cap property, never an inline height', () => {
+  for (const [what, html] of [
+    ['a plain panel', dropdown({ variant: 'menu', scroll: 420, items: MENU })],
+    ['a search panel', dropdown({ variant: 'menu', search: true, scroll: 420, items: MENU })],
+  ]) {
+    assert.match(html, /style="--ui-dropdown-cap:420px"/, `${what} asks for its cap as the property`);
+    assert.doesNotMatch(
+      html, /max-height/,
+      `${what} writes an inline max-height, which outranks the sheet's min() and un-caps the panel`,
+    );
+  }
+});
+
+// The phone in #489's acceptance, with the trigger 300px above the bottom.
+const PHONE = { w: 390, h: 844 };
+const PHONE_TRIGGER_TOP = PHONE.h - 300 - 31;   // the trigger's own 31px box
+const TWELVE = Array.from({ length: 12 }, (_, i) => ({ label: `Row ${i + 1}` }));
+
+test('a menu opened 300px above the bottom of a 390x844 phone ends inside it', () => {
+  const window = mount(dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), PHONE);
+  const { panel, trigger } = measure(window, { triggerTop: PHONE_TRIGGER_TOP, panelHeight: 468 });
+  wireDropdown(window.document);
+  click(window, trigger);
+
+  const avail = parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail'));
+  assert.equal(avail, 279, 'the 300px below, less the 9px gap and the 12px inset');
+  const bottom = trigger.getBoundingClientRect().bottom + 9 + avail;
+  assert.equal(bottom, PHONE.h - 12, 'the panel ends one inset above the viewport\'s bottom edge');
+  assert.ok(avail < 468, 'and short of the twelve rows, so the panel scrolls rather than overhanging');
+});
+
+test('an upward panel is capped against the room above its trigger', () => {
+  const window = mount(dropdown({ value: 'Account', variant: 'menu', direction: 'up', items: TWELVE }), PHONE);
+  const { panel, trigger } = measure(window, { triggerTop: 300, panelHeight: 468 });
+  wireDropdown(window.document);
+  click(window, trigger);
+  assert.equal(
+    parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail')), 300 - 9 - 12,
+    'the trigger\'s top, less the same gap and the same inset',
+  );
+});
+
+test('a trigger with no room left keeps the floor rather than no height at all', () => {
+  const window = mount(dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), PHONE);
+  const { panel, trigger } = measure(window, { triggerTop: PHONE.h - 36, panelHeight: 468 });
+  wireDropdown(window.document);
+  click(window, trigger);
+  assert.equal(
+    parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail')), 120,
+    'five pixels of room is not a panel; the floor is about three rows, and it scrolls inside them',
+  );
+});
+
+test('the room is re-measured when the page scrolls under an open panel', () => {
+  const window = mount(dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), PHONE);
+  const { panel, trigger } = measure(window, { triggerTop: 200, panelHeight: 468 });
+  wireDropdown(window.document);
+  click(window, trigger);
+  assert.equal(parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail')), 844 - 231 - 21);
+
+  // The page scrolls; the trigger moves and the viewport edge does not.
+  measure(window, { triggerTop: 600, panelHeight: 468 });
+  window.dispatchEvent(new window.Event('scroll'));
+  assert.equal(
+    parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail')), 844 - 631 - 21,
+    'a panel in place moves with the page, so its room goes stale on the same scroll a portalled '
+    + 'panel is repositioned on',
+  );
+});
+
+test('the direction is measured on an uncapped panel, whatever the last open left', () => {
+  const window = mount(dropdown({ value: 'Account', variant: 'menu', direction: 'auto', items: TWELVE }), PHONE);
+  const { panel, trigger } = measure(window, { triggerTop: PHONE_TRIGGER_TOP, panelHeight: 468 });
+  wireDropdown(window.document);
+
+  click(window, trigger);
+  assert.ok(panel.style.getPropertyValue('--ui-dropdown-avail'), 'the first open caps the panel');
+  click(window, trigger);
+
+  // What the wiring could see of the panel's height when it chose a direction. A
+  // browser reports the height the cap left, so a cap still standing here makes
+  // "is there room below?" answer yes because the panel was made to fit below —
+  // the question answers itself and the flip stops happening.
+  const seen = [];
+  const natural = Object.getOwnPropertyDescriptor(panel, 'offsetHeight').get;
+  Object.defineProperty(panel, 'offsetHeight', {
+    get() {
+      seen.push(panel.style.getPropertyValue('--ui-dropdown-avail'));
+      return natural.call(panel);
+    },
+    configurable: true,
+  });
+  click(window, trigger);
+
+  assert.deepEqual(
+    seen, [''],
+    'the direction was decided against a panel still carrying the previous open\'s cap',
+  );
+  assert.ok(panel.style.getPropertyValue('--ui-dropdown-avail'), 'and the cap is written back after');
+});
+
+test('a panel rendered already open is capped at wiring time, with no click to do it', () => {
+  const window = mount(dropdown({ value: 'Account', variant: 'menu', open: true, items: TWELVE }), PHONE);
+  const { panel } = measure(window, { triggerTop: PHONE_TRIGGER_TOP, panelHeight: 468 });
+  wireDropdown(window.document);
+  assert.equal(
+    parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail')), 279,
+    'a page a server sent open would otherwise keep the sheet\'s coarse fallback until the reader '
+    + 'closed and reopened it',
+  );
+});
+
+test('a capped panel keeps out of the tab order, since capping it made it a scroller', () => {
+  // Chrome gives a scroller a tab stop when nothing inside it is keyboard-focusable,
+  // and every row here is `tabindex="-1"`. Without this, Tab from the trigger closed
+  // the menu and left focus on the box it had just hidden. Measured in Chrome 153:
+  // the stop is there without the attribute and gone with it.
+  for (const [what, html] of [
+    ['the panel', dropdown({ variant: 'menu', items: MENU })],
+    ['the search panel and its list', dropdown({ variant: 'menu', search: true, items: MENU })],
+  ]) {
+    const doc = JSDOM.fragment(html);
+    for (const el of doc.querySelectorAll('.ui-dropdown__panel, .ui-dropdown__list')) {
+      assert.equal(
+        el.getAttribute('tabindex'), '-1',
+        `${what}: .${el.className.split(' ')[0]} scrolls, so it takes a tab stop unless it says otherwise`,
+      );
+    }
+  }
 });

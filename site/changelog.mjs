@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.61.1', date: '2026-09-30',
+    changes: [
+      ['fixed', 'Dropdown panels and the topbar menus now cap themselves at the room between their trigger and the viewport edge and scroll inside it, so a menu opened low on a phone ends on the screen instead of running past it. The wheel over an open panel no longer scrolls the page underneath. The `scroll` option still caps at less, and now writes `--ui-dropdown-cap` instead of an inline `max-height`; if your CSS overrides a panel height, set that property. Vanilla and React share the stylesheet and the measurement. Resolves #489.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.61.0', date: '2026-09-30',
     changes: [
       ['added', 'React TextField supports password and search, takes a decorative glyph by name in `icon`, and forwards its ref to the input. Field exposes the existing label, hint and error frame for composed controls. Part of #429.'],

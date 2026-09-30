@@ -1,5 +1,5 @@
-import { dropdownMatch, dropdownFiltering } from '../logic/dropdown.js';
-export { dropdownMatch, dropdownFiltering } from '../logic/dropdown.js';
+import { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
+export { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
 // Dropdown — the kit's one popover-list primitive. A trigger opens a panel of
 // item rows; two flavours share the same panel and the same open/close JS:
 //
@@ -113,12 +113,16 @@ function ddNone(empty, hint, q) {
 // The field is a combobox that owns the list; the rows stay options, and the
 // one Enter would pick is named by aria-activedescendant, so focus never
 // leaves the field while the reader types.
+/** The `scroll` option as a length: a number is pixels, a string is the consumer's
+ *  own unit. Escaped, because it lands in an attribute. */
+const ddCap = (scroll) => esc(typeof scroll === 'number' ? `${scroll}px` : scroll);
+
 function ddSearchBody({ items, sections }, sx, name, scroll) {
   const listId = `${sx.base}-list`;
   const rows = ddBody({ items, sections }, true, sx);
   const flat = (sections ? sections.flatMap((s) => s.items || []) : (items || [])).filter(ddIsRow);
   const shown = flat.some((it) => dropdownMatch(it.label, sx.q));
-  const cap = scroll && scroll !== true ? ` style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '';
+  const cap = scroll && scroll !== true ? ` style="--ui-dropdown-cap:${ddCap(scroll)}"` : '';
   const input = [
     'class="ui-dropdown__search-input"', 'type="text"', 'role="combobox"',
     'aria-autocomplete="list"', 'aria-expanded="true"', `aria-controls="${esc(listId)}"`,
@@ -128,7 +132,7 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
   ].filter(Boolean).join(' ');
   return `<div class="ui-dropdown__search">`
     + `<span class="ui-dropdown__search-ic" aria-hidden="true">${icon('search')}</span><input ${input}></div>`
-    + `<div class="ui-dropdown__list" role="listbox" id="${esc(listId)}" aria-label="${esc(name)}"${cap}>${rows}</div>`
+    + `<div class="ui-dropdown__list" role="listbox" id="${esc(listId)}" aria-label="${esc(name)}"${cap} tabindex="-1">${rows}</div>`
     + `<div class="ui-dropdown__none" role="status" data-dd-none data-dd-empty="${esc(sx.empty)}" data-dd-hint="${esc(sx.hint)}">`
     + `${shown || !dropdownFiltering(sx.q) ? '' : ddNone(sx.empty, sx.hint, sx.q)}</div>`;
 }
@@ -200,7 +204,17 @@ export function dropdown({
     // With search the panel holds a field and a list, which a listbox may not.
     `role="${sx ? 'dialog' : listRole}"`,
     sx ? `aria-label="${esc(name)}"` : (ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''),
-    scroll && scroll !== true && !sx ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
+    // The cap property and not `max-height`: an inline height would outrank the
+    // sheet's min() and put the panel back past the viewport edge. #489
+    scroll && scroll !== true && !sx ? `style="--ui-dropdown-cap:${ddCap(scroll)}"` : '',
+    // Out of the tab order by hand, and last so the attributes before it keep the
+    // order the gates read them in. A box that scrolls is keyboard-focusable in
+    // Chrome when nothing inside it is — every row here carries `tabindex="-1"` —
+    // so capping the panel gave it a tab stop, and Tab from the trigger closed the
+    // menu and parked focus on the box it had just hidden. An explicit tabindex
+    // takes that stop back; the arrows already walk the rows and scroll them.
+    // why: docs/specification.md#the-dropdown-panel
+    'tabindex="-1"',
   ].filter(Boolean).join(' ');
 
   // The block the sheet bleeds to the panel's bottom edge. It sits OUTSIDE the
@@ -256,14 +270,50 @@ const ddViewOf = (node) => node.ownerDocument?.defaultView || window;
 // This is the fallback for a document that has not loaded the sheet;
 // src/components/dropdown.test.js pins the two to each other.
 const DD_GAP = 9;
+// The same fallbacks for the two numbers the cap is built from. --ui-dropdown-inset and
+// --ui-dropdown-min are in src/tokens/tokens.css; these are what a document that has not
+// loaded the tokens gets, and src/components/dropdown.test.js pins each pair.
+// why: docs/specification.md#the-dropdown-panel
+const DD_INSET = 12;
+const DD_MIN = 120;
 
 // A portalled panel is no longer a descendant of its container, so everything
 // below asks the container for its panel rather than querying inside it.
 const ddPanelOf = (dd) => dd.__ddPanel || dd.querySelector('[data-dropdown-panel]');
 
 function ddGap(panel) {
-  const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-gap'));
-  return Number.isFinite(declared) ? declared : DD_GAP;
+  return ddLength(ddViewOf(panel).getComputedStyle(panel), '--ui-dropdown-gap', DD_GAP);
+}
+
+/** A length a sheet declared, or the fallback for a document without that sheet. */
+function ddLength(style, prop, fallback) {
+  const declared = parseFloat(style.getPropertyValue(prop));
+  return Number.isFinite(declared) ? declared : fallback;
+}
+
+// The room the panel may take, written as the custom property the sheets cap
+// themselves with. Measured from the trigger rather than from the panel, so a
+// panel already capped from a previous open reports the same number as a fresh
+// one — the cap is a function of where the trigger is, and of nothing else.
+// why: docs/specification.md#the-dropdown-panel
+function sizeDropdownPanel(dd, panel) {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  if (!trigger || typeof trigger.getBoundingClientRect !== 'function') return;
+  const t = trigger.getBoundingClientRect();
+  const view = ddViewOf(panel);
+  // One read of the computed style for all three, since this runs on every scroll
+  // event while a panel is open.
+  const style = view.getComputedStyle(panel);
+  const avail = dropdownAvail({
+    anchorTop: t.top,
+    anchorBottom: t.bottom,
+    viewport: view.innerHeight,
+    gap: ddLength(style, '--ui-dropdown-gap', DD_GAP),
+    inset: ddLength(style, '--ui-dropdown-inset', DD_INSET),
+    min: ddLength(style, '--ui-dropdown-min', DD_MIN),
+    up: panel.classList.contains('is-up'),
+  });
+  panel.style.setProperty('--ui-dropdown-avail', `${avail}px`);
 }
 
 function ddItemsOf(dd) {
@@ -334,6 +384,10 @@ function ddResolveDirection(dd, panel) {
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function') return;
   const t = trigger.getBoundingClientRect();
   const below = ddViewOf(panel).innerHeight - t.bottom;
+  // Measured with no cap on, because the cap is what this decision produces: a
+  // panel capped to fit below reports a height that fits below, and the flip
+  // would never happen twice. The caller clears it first; sizeDropdownPanel()
+  // writes it back straight after, against the direction settled here.
   panel.classList.toggle('is-up', below < panel.offsetHeight + ddGap(panel) && t.top > below);
 }
 
@@ -398,7 +452,9 @@ function openDropdown(dd, focusIdx) {
   const search = ddSearchOf(dd);
   if (panel && search) ddResetSearch(dd, panel, search);
   if (panel) {
+    panel.style.removeProperty('--ui-dropdown-avail');
     ddResolveDirection(dd, panel);
+    sizeDropdownPanel(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
   }
   dd.classList.add('open');
@@ -448,7 +504,13 @@ function ddListen(doc) {
   // scroll inside the rail the panel was lifted out of counts too.
   const reposition = () => {
     for (const dd of ddLive()) {
-      if (dd.classList.contains('open') && dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
+      if (!dd.classList.contains('open')) continue;
+      const panel = ddPanelOf(dd);
+      // Every open panel, not the portalled ones alone: a panel in place moves
+      // with the page but the viewport edge does not, so the room it has goes
+      // stale on the same scroll. why: docs/specification.md#the-dropdown-panel
+      if (panel) sizeDropdownPanel(dd, panel);
+      if (dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
     }
   };
   const view = doc.defaultView;
@@ -484,10 +546,16 @@ export function wireDropdown(root = document) {
       host.appendChild(panel);
       if (dd.classList.contains('open')) {
         ddResolveDirection(dd, panel);
+        sizeDropdownPanel(dd, panel);
         positionPortalPanel(dd, panel);
         panel.classList.add('is-open');
       }
     }
+
+    // A panel rendered already open — `open: true`, or a page a server sent open —
+    // is capped here, because no click is coming to do it. The portalled branch
+    // above has already done its own, along with the placement it also needs.
+    if (panel && !dd.__ddPanel && dd.classList.contains('open')) sizeDropdownPanel(dd, panel);
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
