@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useEffect, useId, useRef, useState, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
 import { esc, icon } from '@apliteni/apliteni-ui';
 import '../../src/styles/input.css';
 import { Icon } from './primitives/Icon';
@@ -26,24 +26,60 @@ function Frame({ id, label, hint, error, required, children }: FieldMessage & { 
   </div>;
 }
 
-function wiring(id: string, hint?: string, error?: string) {
+// The attributes a caller spreads onto its control, written out rather than
+// derived: `ReturnType<typeof wiring>` compiles, but it pushes the private
+// helper into the published .d.ts and hovers as its name instead of these
+// three. This is the one type in the Field API a consumer has to read.
+export type FieldControlProps = {
+  id: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: true;
+  required?: boolean;
+};
+
+function wiring(id: string, hint?: string, error?: string): Omit<FieldControlProps, 'required'> {
   return { id, 'aria-describedby': messages(id, hint, error), 'aria-invalid': error ? true as const : undefined };
 }
 
-export type TextFieldProps = FieldMessage & Omit<InputHTMLAttributes<HTMLInputElement>, Wiring | 'type'> & {
-  type?: 'text' | 'number' | 'email'; unit?: string;
+export type FieldProps = FieldMessage & {
+  id?: string;
+  required?: boolean;
+  children: (control: FieldControlProps) => ReactNode;
 };
-export function TextField({ label, hint, error, required, type = 'text', unit, className = '', ...props }: TextFieldProps) {
+
+/** Spread the supplied attributes onto one labelable control. */
+export function Field({ id: suppliedId, label, hint, error, required, children }: FieldProps) {
+  const generatedId = useId();
+  const id = suppliedId ?? generatedId;
+  return <Frame {...{ id, label, hint, error, required }}>
+    {children({ ...wiring(id, hint, error), required })}
+  </Frame>;
+}
+
+export type TextFieldProps = FieldMessage & Omit<InputHTMLAttributes<HTMLInputElement>, Wiring | 'type'> & {
+  type?: 'text' | 'number' | 'email' | 'password' | 'search'; unit?: string;
+  /** Kit glyph name, as Button, Dropdown and vanilla input() take it. Decorative;
+      the label supplies the control's name. */
+  icon?: string;
+};
+export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField({ label, hint, error, required, type = 'text', unit, icon: glyph, className = '', ...props }, ref) {
   const id = useId();
   const hasUnit = type === 'number' && !!unit;
   const describedBy = [messages(id, hint, error), hasUnit ? `${id}-unit` : ''].filter(Boolean).join(' ') || undefined;
-  const control = <input {...props} {...wiring(id, hint, error)} required={required} type={type} aria-describedby={describedBy}
+  const control = <input ref={ref} {...props} {...wiring(id, hint, error)} required={required} type={type} aria-describedby={describedBy}
     inputMode={type === 'number' ? 'decimal' : props.inputMode}
     className={`ui-input${error ? ' is-invalid' : ''} ${className}`} />;
+  // icon() already marks the svg aria-hidden, so the span vanilla emits carries
+  // nothing extra — this is byte-for-byte the vanilla input({ icon }) group.
+  const unitSpan = hasUnit ? <span id={`${id}-unit`} className="ui-field-number__unit">{unit}</span> : null;
   return <Frame {...{ id, label, hint, error, required }}>
-    {hasUnit ? <div className="ui-field-number">{control}<span id={`${id}-unit`} className="ui-field-number__unit">{unit}</span></div> : control}
+    {glyph
+      ? <div className={`ui-input-group${hasUnit ? ' ui-field-number' : ''}`}>
+        <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon(glyph) }} />{control}{unitSpan}
+      </div>
+      : hasUnit ? <div className="ui-field-number">{control}{unitSpan}</div> : control}
   </Frame>;
-}
+});
 
 export type TextAreaProps = FieldMessage & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, Wiring>;
 export function TextArea({ label, hint, error, required, className = '', ...props }: TextAreaProps) {

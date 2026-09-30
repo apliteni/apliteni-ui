@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { TextField, TextArea, SelectField, FileField } from './Field';
+import { Field, TextField, TextArea, SelectField, FileField } from './Field';
 
-const meta: Meta = { title: 'React/Fields', decorators: [Story => <div style={{ maxWidth: 420 }}><Story /></div>] };
+const meta: Meta = { title: 'React/Fields', decorators: [(Story, context) => context.parameters.layout === 'fullscreen' ? <Story /> : <div style={{ maxWidth: 'var(--panel-md)' }}><Story /></div>] };
 export default meta;
 
 export const Text: StoryObj = { render: () => <TextField label="Project name" placeholder="Example project" hint="Use a name your team knows." required /> };
@@ -34,3 +34,21 @@ export const HasFile: StoryObj = { ...File, play: async ({ canvasElement }) => {
   input.files = transfer.files;
   input.dispatchEvent(new Event('change', { bubbles: true }));
 } };
+
+export const Password: StoryObj = { render: () => <TextField label="Password" type="password" autoComplete="current-password" icon="lock" required /> };
+export const Search: StoryObj = { render: () => <TextField label="Search components" type="search" placeholder="Search components…" icon="search" /> };
+export const Composed: StoryObj = { render: () => <Field label="Due date" hint="Use the delivery date." required>{control => <input {...control} className="ui-input" type="date" />}</Field> };
+
+export const TextFields: StoryObj = { parameters: { layout: 'fullscreen' }, render: () => <div style={{ padding: 'var(--space-10)', minHeight: '100vh' }}><div style={{ maxWidth: 'var(--panel-md)', display: 'flex', flexDirection: 'column', gap: 22 }}>
+  <TextField label="Work email" type="email" placeholder="you@example.com" icon="mail" required hint="Use your work email address." />
+  <TextField label="Agent name" placeholder="e.g. Research bot" />
+  <TextField label="Password" type="password" defaultValue="demo123" icon="lock" required />
+  <TextField label="API token" defaultValue="demo-revoked-token" error="This token has already been revoked." />
+  <TextField label="Disabled" placeholder="Read only" disabled />
+</div></div> };
+export const AdornedStates: StoryObj = { render: () => <div style={{ display: 'grid', gap: 'var(--space-5)' }}>
+  <TextField label="Search components" type="search" icon="search" placeholder="Search components…" />
+  <TextField label="Unavailable search" type="search" icon="search" defaultValue="Buttons" disabled />
+  <TextField label="Password" type="password" icon="lock" hint="Use your account password." error="Enter your password." required />
+  <TextField label="Weight" type="number" icon="cube" unit="kg" defaultValue={12} />
+</div> };

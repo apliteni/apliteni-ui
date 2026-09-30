@@ -14,7 +14,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:136",
+        "ref": "src/styles/input.css:150",
         "pattern": ".ui-check input::before"
       }
     ],
