@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'The React AppShell publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. Page bottom padding, root scroll padding and the React toast stack share it, so a changed action scrolled into view on a phone no longer lands behind the bottom bar. See #384 and #444.'],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

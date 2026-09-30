@@ -2323,6 +2323,11 @@ the longest matching section path wins, with matches ending at a path boundary.
 Router links receive the same classes, accessible name, count and navigation handler
 as native links. The rail shares the vanilla fold cookie and 720px fold breakpoint.
 Below 560px, a bottom bar replaces it: up to four sections, or three plus More.
+The shell sets `--ui-app-bottom-clearance` on the root, including the safe-area inset.
+Page bottom padding, root scroll padding and the React toast stack share this clearance;
+callers can scroll a changed action into view without placing it behind the bar.
+See [#384](https://github.com/apliteni/apliteni-ui/issues/384) and
+[#444](https://github.com/apliteni/apliteni-ui/issues/444).
 More opens the React Drawer and closes on navigation. Search uses the React
 CommandPalette; page actions should include no more than one primary action.
 The fold glyph copies the vanilla shell’s frame and moving seam.
