@@ -550,6 +550,14 @@
       "blind": [
         "Does not measure table layout, colour contrast, or image loading in browsers."
       ]
+    },
+    {
+      "file": "react/src/primitives/StatusDot.test.tsx",
+      "name": "React: StatusDot",
+      "does": "Checks decorative hiding, accessible labels, state updates, ref forwarding, and axe violations.",
+      "blind": [
+        "Does not measure pulse animation, browser contrast, or screen-reader announcements."
+      ]
     }
   ],
   "UNGATED": [

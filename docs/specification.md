@@ -2325,3 +2325,19 @@ The main entry and motion subpath ship TypeScript declarations. React FilterBar
 uses React Dropdown directly, preserving the filter-bar classes, controlled change
 callbacks, disabled fieldsets and removal focus. React tests check these DOM behaviors;
 they do not measure the rendered appearance or browser focus styling.
+
+## React metadata and status
+
+`Pill` renders a span with `.ui-pill` and optional `live` or `soon` modifiers,
+using the existing pill CSS. It accepts React children and does not add an
+interactive role. `StatusDot` renders an empty `.ui-dot` span; `live` adds
+`.is-live` and its shared pulse, subject to the kit’s reduced-motion rules.
+An unlabelled dot is decorative (`aria-hidden`); `aria-label` or
+`aria-labelledby` gives it an image role and accessible name. Keep visible status
+text beside the dot. Neither primitive creates a live region. Both forward span
+refs, native attributes, and additional classes.
+
+Held by `react/src/primitives/Pill.test.tsx` and
+`react/src/primitives/StatusDot.test.tsx`; these check DOM behavior and semantics,
+not visual rendering or assistive-technology announcements. Part of
+[#429](https://github.com/apliteni/apliteni-ui/issues/429).

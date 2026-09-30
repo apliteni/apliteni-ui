@@ -7,9 +7,10 @@ This directory is a **private workspace**, not a package. It builds to `react/di
 and ships as the `@apliteni/apliteni-ui/react` subpath of the kit — one package, one
 version, one pin. There is no `@apliteni/apliteni-ui-react` on npm.
 
-**Decision rule:** does this surface hold meaningful client state?
-No → use the vanilla factories from `@apliteni/apliteni-ui`.
-Yes → use these React components.
+Use React components for new React screens. The vanilla factories are deprecated
+and scheduled for removal under #429. This version still ships them, working as
+before: keep existing vanilla surfaces on them, and move a surface to React when
+you next change it.
 
 ## Install (as a consumer)
 
@@ -28,7 +29,19 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Card`, `Callout`, `Icon`.
+Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+
+`Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
+metadata or use `live` or `soon`. Its children accept React content.
+`StatusDot` takes `live` (default `false`). Place it beside visible status text;
+it is decorative by default. Use `aria-label` or `aria-labelledby` to expose a
+meaningful dot as a named image. Neither component announces changes automatically.
+Both forward a span ref and native span attributes, including `className`.
+
+```tsx
+<Pill variant="soon">Coming soon</Pill>
+<span><StatusDot live /> API online</span>
+```
 
 `Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
