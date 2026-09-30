@@ -11,6 +11,8 @@ const meta: Meta = {
 export default meta;
 
 // Gallery spacing follows the existing vanilla specimen; controls use shared CSS.
+// The two live switches keep one name each: a name that moves with the state leaves
+// a screen-reader user unable to tell a toggle from a move to another control.
 const stack = { display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 640 } as const;
 const section = { ...stack, gap: 10 } as const;
 const choices = { ...stack, gap: 14 } as const;
@@ -25,8 +27,8 @@ function SwitchExamples() {
     <section style={section} aria-label="States">
       <h2 style={heading}>States</h2>
       <div style={{ display: 'flex', gap: 26, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Switch label={first ? 'On' : 'Off'} checked={first} onChange={event => setFirst(event.currentTarget.checked)} />
-        <Switch label={second ? 'On' : 'Off'} checked={second} onChange={event => setSecond(event.currentTarget.checked)} />
+        <Switch label="First example" checked={first} onChange={event => setFirst(event.currentTarget.checked)} />
+        <Switch label="Second example" checked={second} onChange={event => setSecond(event.currentTarget.checked)} />
         <Switch label="Off, disabled" disabled />
         <Switch label="On, disabled" defaultChecked disabled />
       </div>

@@ -31,5 +31,11 @@ export const Checkboxes = {
       ${checkbox({ label: 'Read & comment', type: 'radio', name: 'scope' })}
       ${checkbox({ label: 'Full access', type: 'radio', name: 'scope' })}
     </div>`),
+    specimen('Unavailable', `<div style="display:flex;flex-direction:column;gap:14px">
+      ${checkbox({ label: 'Read only, unavailable', disabled: true })}
+      ${checkbox({ label: 'Read only, selected and unavailable', checked: true, disabled: true })}
+      ${checkbox({ label: 'Read access, unavailable', type: 'radio', name: 'off-scope', disabled: true })}
+      ${checkbox({ label: 'Full access, selected and unavailable', type: 'radio', name: 'off-scope', checked: true, disabled: true })}
+    </div>`),
   )),
 };

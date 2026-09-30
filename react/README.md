@@ -549,9 +549,13 @@ Place visible setting text beside a switch.
 
 Both accept native input props: `checked` with `onChange` for controlled state,
 `defaultChecked` for uncontrolled state, and `disabled`, `name`, `value`,
-`required`, and ARIA attributes. Refs and `className` target the input. They use
-unchanged shared CSS, including its existing lack of disabled checkbox/radio
-styling. Disabled controls still block activation and leave the Tab order.
+`required`, and ARIA attributes. Refs and every other prop reach the input.
+`className` reaches the input on `Checkbox` and the `.ui-switch` label on
+`Switch`, whose input is a hidden zero-size box that paints nothing. An empty
+`Switch` label falls back to "Toggle", as the vanilla factory does. Disabled
+controls do not activate, submit, or enter the Tab order, and the shared
+stylesheet paints them with the kit's disabled ink, surface and edge and drops
+the accent from a checked box.
 
 ```tsx
 <Checkbox label="Read only" type="radio" name="scope" value="read" defaultChecked />

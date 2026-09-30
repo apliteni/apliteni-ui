@@ -8,7 +8,8 @@ export const RELEASES = [
   {
     v: '0.60.0', date: '2026-09-29',
     changes: [
-      ['added', 'React Checkbox supports checkboxes and grouped radios, and Switch renders a native checkbox with the existing switch track. Both accept native input props and refs, including controlled state and disabled inputs. Part of #429.'],
+      ['added', 'React Checkbox supports checkboxes and grouped radios, and Switch renders a native checkbox with the existing switch track. Both accept native input props and refs, including controlled state and disabled inputs. Switch takes className on its visible label and names an empty label "Toggle". Part of #429.'],
+      ['fixed', 'A disabled checkbox or radio now paints as unavailable instead of rendering identically to a live one, and hovering it no longer lights its border with the accent. The vanilla checkbox() factory takes disabled. Part of #429.'],
     ],
   },
   {
