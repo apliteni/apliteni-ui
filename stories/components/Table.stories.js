@@ -81,3 +81,40 @@ export const Empty = {
     </div>
   </div>`),
 };
+
+// The footer: totals open with the strong rule, labels sit against their figures, and
+// the Total row carries one weight across both cells. why: docs/specification.md#spacing-and-rhythm
+export const WithTotals = {
+  render: () => pad(`<div class="ui-card" style="max-width:720px">
+    <h2 class="ui-card__title">Sample invoice</h2>
+    <table class="ui-table ui-table--dense">
+      <caption class="ui-sr">Sample services and totals in EUR</caption>
+      <thead><tr><th>Service</th><th class="ui-table__num">Amount (EUR)</th></tr></thead>
+      <tbody>
+        <tr><td class="ui-table__title">Interface design</td><td class="ui-table__num">450.00</td></tr>
+        <tr><td class="ui-table__title">Prototype review</td><td class="ui-table__num">300.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><th scope="row">Subtotal</th><td class="ui-table__num">750.00</td></tr>
+        <tr><th scope="row">VAT (20%)</th><td class="ui-table__num">150.00</td></tr>
+        <tr><th scope="row" class="ui-table__num--strong">Total</th><td class="ui-table__num ui-table__num--strong">900.00</td></tr>
+      </tfoot>
+    </table>
+  </div>`),
+};
+
+// A compact body row header keeps the compact cell's padding, so an identity column
+// spelled as `th` sits on the same rhythm as one spelled as `td`.
+export const CompactRowHeaders = {
+  render: () => pad(`<div class="ui-card" style="max-width:var(--panel-lg)">
+    <h2 class="ui-card__title">Sample services</h2>
+    <table class="ui-table ui-table--compact">
+      <caption class="ui-sr">Service hours with row headers</caption>
+      <thead><tr><th>Service</th><th class="ui-table__num">Hours</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Interface design</th><td class="ui-table__num">6</td></tr>
+        <tr><th scope="row">Prototype review</th><td class="ui-table__num">4</td></tr>
+      </tbody>
+    </table>
+  </div>`),
+};

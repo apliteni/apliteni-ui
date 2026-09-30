@@ -25,7 +25,7 @@ it('uses the longest matching route, keeps counts in link names, and forwards ro
 });
 
 it('keeps the section active under a back link and inks both counts alike', () => {
-  render(<AppShell {...props} back={{ href: '/reports', label: 'Back to Reports' }} />);
+  const { rerender } = render(<AppShell {...props} back={{ href: '/reports', label: 'Back to Reports' }} />);
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
   const bar = within(screen.getByRole('navigation', { name: 'Sections on mobile' }));
   for (const nav of [rail, bar]) {
@@ -37,6 +37,11 @@ it('keeps the section active under a back link and inks both counts alike', () =
     // it once. Without is-neutral the bar's count kept --text against the rail's --strong.
     expect(within(row).getByText('3')).toHaveClass('ui-nav__badge', 'is-neutral');
   }
+  // And the back link is what decides it: without one the same row is the page.
+  // shell.js decides the same way, from the same back link.
+  rerender(<AppShell {...props} />);
+  expect(within(screen.getByRole('navigation', { name: 'Sections' }))
+    .getByRole('link', { name: 'Reports 3' })).toHaveAttribute('aria-current', 'page');
 });
 
 it('persists the fold and restores it on remount', () => {
