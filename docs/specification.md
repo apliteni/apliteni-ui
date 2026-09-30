@@ -2393,8 +2393,11 @@ Segmented options may supply `ariaLabel` to give a short visible label a fuller
 accessible name. Without it, the visible label names the button.
 
 `size="sm"` adds `ui-seg--sm`; `block` adds `ui-seg--block` so the strip fills
-its container and its buttons share the width. Both compose with the pill and
-underline appearances. Omitting them keeps the existing size and width.
+its container and its buttons share the width. `block` composes with the pill and
+underline appearances. `size="sm"` compacts the pill appearance only: under
+underline it changes the type size and nothing else, because
+`.ui-seg--underline button` restates padding at the same specificity further down
+`src/styles/segmented.css`. Omitting them keeps the existing size and width.
 Selection remains controlled through `value` and `onChange`, with a named toolbar,
 pressed buttons, and one enabled tab stop. Arrow keys wrap past disabled options;
 Home and End select the first and last enabled choice. These contracts are covered

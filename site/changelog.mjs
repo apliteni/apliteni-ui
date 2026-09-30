@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.65.0', date: '2026-10-01',
     changes: [
-      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices, using the existing kit styles. block composes with the underline appearance; size="sm" does not. Part of #429.'],
+      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices, using the existing kit styles. block also composes with the underline appearance; under underline, size="sm" changes only the type size. Part of #429.'],
     ],
   },
   {
