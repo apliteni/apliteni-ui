@@ -433,7 +433,10 @@ Import both the kit CSS and React CSS. The Privileged story shows Undo adding a 
 
 `TextField`, `TextArea`, `SelectField`, and `FileField` pair a label with a native
 control. Each creates its own IDs and links hints or errors automatically. Use
-native control props. `SelectField` accepts option children.
+native control props. `SelectField` accepts option children. `TextField` takes
+text, number, email, password and search, forwards its ref to the input, and
+places a decorative kit glyph with `icon` — the same glyph names `Button` and
+`Dropdown` take. Number fields can combine a glyph with a `unit`.
 
 ```tsx
 <TextField label="Weight" type="number" unit="kg" required />
@@ -446,6 +449,19 @@ native control props. `SelectField` accepts option children.
 `FileField` accepts one file from a picker or a drop and reports it through
 `onFileChange`. Use `accept` and `hint` to describe allowed file types and size.
 Your application must validate files before upload.
+
+Use `Field` when an existing labelled control needs the kit frame. Spread its
+render-prop attributes onto one labelable control, and apply the existing control
+class and invalid styling as appropriate:
+
+```tsx
+<Field label="Due date" hint="Use the delivery date." required>
+  {control => <input {...control} className="ui-input" type="date" />}
+</Field>
+```
+
+The frame supplies a stable ID, required state, and linked hint/error messages.
+An optional `id` lets the caller choose the control ID; it must be unique.
 
 ## Toast
 
@@ -522,23 +538,3 @@ Tooltip accepts text and inline children, without nested controls. Hovering or f
 ```tsx
 <Tooltip text="Updated daily">Balance</Tooltip>
 ```
-
-### Composed fields
-
-`TextField` supports text, number, email, password and search. Pass decorative
-artwork in `leadingIcon`; native attributes such as `autoComplete`, `name` and
-`disabled` go to the input, and its ref points to that input. Number fields can
-combine artwork with a `unit`.
-
-Use `Field` when an existing labelled control needs the kit frame. Spread its
-render-prop attributes onto one labelable control, and apply the existing control
-class and invalid styling as appropriate:
-
-```tsx
-<Field label="Due date" hint="Use the delivery date." required>
-  {control => <input {...control} className="ui-input" type="date" />}
-</Field>
-```
-
-The frame supplies a stable ID, required state, and linked hint/error messages.
-An optional `id` lets the caller choose the control ID; it must be unique.

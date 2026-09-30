@@ -1,9 +1,15 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
 import { field, input, textarea, select } from '@apliteni/apliteni-ui';
-import { Field, TextField, TextArea, SelectField, FileField } from './Field';
+import { Field, TextField, TextArea, SelectField, FileField, type FieldControlProps } from './Field';
+
+// Vite rewrites a literal new URL(..., import.meta.url) into an asset URL, so the
+// path goes through a variable, the way stories/lib/contrast.js reads the kit.
+const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
@@ -32,7 +38,9 @@ it('matches the complete vanilla field structure and native attributes', () => {
       field({ label: 'Notes', hint: 'Help', required: true, control: textarea({ name: 'notes', placeholder: 'Notes', value: 'Draft' }) })],
     [<SelectField label="Currency" hint="Help" required name="currency" defaultValue="USD"><option value="EUR">EUR</option><option value="USD">USD</option></SelectField>,
       field({ label: 'Currency', hint: 'Help', required: true, control: select({ name: 'currency', options: ['EUR', 'USD'], value: 'USD' }) })],
-
+    // A glyph name, not a node: the group is vanilla's, down to the single span.
+    [<TextField label="Work email" type="email" hint="Help" required name="email" placeholder="you@example.com" defaultValue="name@example.com" icon="mail" />,
+      field({ label: 'Work email', hint: 'Help', required: true, control: input({ type: 'email', name: 'email', placeholder: 'you@example.com', value: 'name@example.com', icon: 'mail' }) })],
   ] as const) {
     const { container, unmount } = render(react);
     const reference = document.createElement('div'); reference.innerHTML = vanilla;
@@ -150,15 +158,18 @@ it('keeps error text escaped and preserves disabled field attributes', () => {
 it('supports password and search with decorative artwork, refs and native submission', async () => {
   const ref = { current: null as HTMLInputElement | null };
   const change = vi.fn();
-  const { container } = render(<form><TextField ref={ref} label="Password" type="password" name="password" autoComplete="current-password" leadingIcon={<svg aria-label="Lock" />} required hint="Use your password." />
-    <TextField label="Search" type="search" name="q" onChange={change} leadingIcon={<svg />} />
+  const { container } = render(<form><TextField ref={ref} label="Password" type="password" name="password" autoComplete="current-password" icon="lock" required hint="Use your password." />
+    <TextField label="Search" type="search" name="q" onChange={change} icon="search" />
   </form>);
   const password = screen.getByLabelText(/^Password/);
   expect(ref.current).toBe(password);
   expect(password).toHaveAttribute('type', 'password');
   expect(password).toHaveAttribute('autocomplete', 'current-password');
   expect(password).toHaveAccessibleDescription('Use your password.');
-  expect(container.querySelector('.ui-input-group__icon')).toHaveAttribute('aria-hidden', 'true');
+  const slot = container.querySelector('.ui-input-group__icon')!;
+  expect(slot.children).toHaveLength(1);
+  expect(slot.firstElementChild!.tagName).toBe('svg');
+  expect(slot.firstElementChild).toHaveAttribute('aria-hidden', 'true');
   await userEvent.type(password, 'demo-password');
   await userEvent.type(screen.getByRole('searchbox'), 'invoice');
   expect(change).toHaveBeenCalled();
@@ -168,11 +179,12 @@ it('supports password and search with decorative artwork, refs and native submis
 });
 
 it('keeps adorned controls disabled and preserves errors, hints and numeric units', () => {
-  const { container } = render(<TextField label="Weight" type="number" unit="kg" leadingIcon={<svg />} hint="Packed weight." error="Enter a positive weight." disabled />);
+  const { container } = render(<TextField label="Weight" type="number" unit="kg" icon="cube" hint="Packed weight." error="Enter a positive weight." disabled />);
   expect(screen.getByLabelText('Weight')).toBeDisabled();
   expect(screen.getByLabelText('Weight')).toHaveAccessibleDescription('Enter a positive weight. Packed weight. kg');
   expect(screen.getByLabelText('Weight')).toHaveAttribute('aria-invalid', 'true');
-  expect(container.querySelector('.ui-input-group__icon')).toHaveAttribute('aria-hidden', 'true');
+  expect(container.querySelector('.ui-input-group__icon svg')).not.toBeNull();
+  expect(container.querySelector('.ui-input-group__icon')!.children).toHaveLength(1);
 });
 
 it('wires composed controls with stable unique ids and clears resolved errors', async () => {
@@ -191,4 +203,56 @@ it('wires composed controls with stable unique ids and clears resolved errors', 
   expect(control).toHaveAccessibleDescription('Use the delivery date.');
   expect(screen.queryByRole('alert')).toBeNull();
   expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+});
+
+// JSDOM applies no stylesheet and knows no UA pseudo-element, so this checks the
+// two things that make the suppression reach: the sheet React ships carries one
+// such rule, and its selector matches the element TextField actually renders.
+// Whether Chromium then honours it is a browser fact, measured in a screenshot.
+it('suppresses the browser clear button on the search fields it renders', () => {
+  const inputCss = readRepo('../../src/styles/input.css');
+  const rules = [...inputCss.matchAll(/([^{}]*::-webkit-search-cancel-button)\s*\{([^}]*)\}/g)];
+  expect(rules).toHaveLength(1);
+  const [, selector, body] = rules[0];
+  expect(body).toMatch(/appearance:\s*none/);
+
+  // The selector has to reach the real element, not a hand-written one.
+  const { container } = render(<TextField label="Search components" type="search" icon="search" />);
+  const control = container.querySelector('input')!;
+  expect(control.matches(selector.trim().replace('::-webkit-search-cancel-button', ''))).toBe(true);
+
+  // Without the rule nothing else in the sheet refuses that button, so this gate
+  // is holding the fix up rather than restating a second copy of it.
+  expect(inputCss.replace(rules[0][0], '')).not.toMatch(/search-cancel-button/);
+});
+
+// The shape a consumer spreads. That the published .d.ts names these attributes
+// rather than an internal helper is held by the source check below.
+it('publishes the control attributes a consumer spreads, by name', () => {
+  const control: FieldControlProps = { id: 'due', 'aria-describedby': 'due-hint', 'aria-invalid': true, required: true };
+  expect(Object.keys(control).sort()).toEqual(['aria-describedby', 'aria-invalid', 'id', 'required']);
+  // id is the only attribute the frame always supplies.
+  const minimal: FieldControlProps = { id: 'due' };
+  expect(minimal.id).toBe('due');
+
+  // And the frame really hands over exactly these, nothing wider.
+  let handed: FieldControlProps | undefined;
+  render(<Field label="Due date" hint="Use the delivery date." error="Choose a date." required>
+    {props => { handed = props; return <input {...props} type="date" className="ui-input" />; }}
+  </Field>);
+  expect(Object.keys(handed!).sort()).toEqual(['aria-describedby', 'aria-invalid', 'id', 'required']);
+});
+
+it('declares the published control type without naming the internal helper', () => {
+  const source = readRepo('./Field.tsx');
+  const declaration = source.match(/export type FieldControlProps = \{[^}]*\}/);
+  expect(declaration).not.toBeNull();
+  // A derived alias is what leaked `wiring` into react/dist/index.d.ts.
+  expect(declaration![0]).not.toMatch(/ReturnType</);
+  for (const attribute of ["id: string", "'aria-describedby'?: string", "'aria-invalid'?: true", 'required?: boolean']) {
+    expect(declaration![0]).toContain(attribute);
+  }
+  // wiring stays private, so its signature has to name the published type rather
+  // than have one inferred and re-exported through FieldControlProps.
+  expect(source).toMatch(/function wiring\([^)]*\): Omit<FieldControlProps, 'required'>/);
 });

@@ -2196,7 +2196,9 @@ Text, textarea and select reuse the vanilla field classes. Number inputs request
 decimal keyboard and may show a unit.
 
 `TextField` also accepts password and search, forwards its ref to the native input,
-and places decorative `leadingIcon` artwork in the existing input-group classes.
+and places a decorative kit glyph, named through `icon`, in the existing
+input-group classes. The kit suppresses the browser's own clear button on a
+search field, the way it already refuses the native select chrome.
 Artwork can accompany a numeric unit without losing its description. `Field`
 exposes the existing frame for one caller-rendered labelable control: its child
 function receives a stable ID, `required`, `aria-invalid` and `aria-describedby`.

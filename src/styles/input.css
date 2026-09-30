@@ -69,6 +69,20 @@
 .ui-textarea.is-invalid { border-color: var(--pink); }
 /* Invalid fields keep the shared focus indicator; their border carries the error. */
 
+/* A search field with a value gets the browser's own clear button, and the
+   browser paints it — near-black on the light field, white on the dark one,
+   beside the kit's --muted magnifier. Two glyphs, and only one answers to a
+   token. .ui-select refuses UA chrome for the same reason, hand-drawing its
+   chevron per theme; and the vanilla search specimen is a text input with a
+   `search` glyph and no clear button, so a field without one is what the
+   design already says. Measured in Chromium; Firefox draws nothing here and
+   Edge is untested.
+   why: docs/specification.md#colour-and-contrast */
+.ui-input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+}
+
 /* Input with a leading icon / adornment */
 .ui-input-group { position: relative; display: flex; align-items: center; }
 .ui-input-group .ui-input { padding-left: 42px; }

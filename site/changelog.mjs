@@ -8,7 +8,8 @@ export const RELEASES = [
   {
     v: '0.61.0', date: '2026-09-30',
     changes: [
-      ['added', 'React TextField supports password, search, decorative leading artwork and input refs. Field exposes the existing label, hint and error frame for composed controls. Part of #429.'],
+      ['added', 'React TextField supports password and search, takes a decorative glyph by name in `icon`, and forwards its ref to the input. Field exposes the existing label, hint and error frame for composed controls. Part of #429.'],
+      ['fixed', 'A search field with a value no longer shows the browser’s own clear button next to the kit glyph. This is in the shared stylesheet, so it reaches vanilla too; no existing vanilla surface pairs `.ui-input` with `type="search"`, so nothing there changes.', ['Input']],
     ],
   },
   {
