@@ -24,19 +24,67 @@ it('accepts a heading rank, root props and a forwarded ref', () => {
   expect(ref.current).toHaveAttribute('id', 'result');
 });
 
-it.each(['aurora', 'glow', 'flat'] as const)('keeps %s decoration hidden', backdrop => {
-  const { container, queryByRole } = render(<Success backdrop={backdrop} confetti />);
+it('keeps its decoration hidden and carries no backdrop layer', () => {
+  const { container, queryByRole } = render(<Success confetti />);
   expect(queryByRole('img')).toBeNull();
   expect(container.querySelector('.ui-sx__confetti')).toHaveAttribute('aria-hidden', 'true');
   expect(container.querySelectorAll('.ui-sx__piece')).toHaveLength(14);
-  expect(container.querySelector('.ui-sx__aurora') !== null).toBe(backdrop === 'aurora');
-  expect(container.querySelector('.ui-sx__bg-glow') !== null).toBe(backdrop === 'glow');
+  // The blurred aurora blobs and the ambient glow are gone; the card is the surface.
+  expect(container.querySelector('.ui-sx__aurora')).toBeNull();
+  expect(container.querySelector('.ui-sx__glow')).toBeNull();
+  expect(container.querySelector('.ui-sx__bg-glow')).toBeNull();
+  expect(container.querySelector('.ui-glow')).toBeNull();
 });
 
+// The two marks. `line` is the default and draws itself on; `circled` adds the
+// ring path and is the mark Guidelines / Iconography asks a reported state to use.
+it('draws the line mark by default and the circled mark on request', () => {
+  const line = render(<Success title="Saved" />).container;
+  expect(line.querySelector('.ui-sx')).toHaveClass('ui-sx--check-line');
+  const lineSvg = line.querySelector('svg.ui-sx__check')!;
+  expect(lineSvg).toHaveClass('ui-sx__check--line');
+  expect(lineSvg).toHaveAttribute('viewBox', '0 0 24 24');
+  expect(lineSvg.querySelector('.ui-sx__circle')).toBeNull();
+  // Unmodified Lucide `check`.
+  expect(lineSvg.querySelector('.ui-sx__tick')).toHaveAttribute('d', 'M20 6L9 17l-5-5');
+  // No filled disc and no burst ring behind it.
+  expect(lineSvg.querySelector('circle')).toBeNull();
+  cleanup();
+
+  const circled = render(<Success check="circled" title="Saved" />).container;
+  expect(circled.querySelector('.ui-sx')).toHaveClass('ui-sx--check-circled');
+  const circledSvg = circled.querySelector('svg.ui-sx__check')!;
+  expect(circledSvg).toHaveClass('ui-sx__check--circled');
+  // Unmodified Lucide `circle-check-big`, the kit's circleCheck.
+  expect(circledSvg.querySelector('.ui-sx__circle')).toHaveAttribute('d', 'M22 11.08V12a10 10 0 1 1-5.93-9.14');
+  expect(circledSvg.querySelector('.ui-sx__tick')).toHaveAttribute('d', 'M22 4L12 14.01l-3-3');
+});
+
+// TypeScript constrains typed callers; a published package also has plain-JS ones,
+// and an unknown value must land on the default rather than on a class nobody styles.
+it('falls back to the line mark for a value outside the two', () => {
+  const { container } = render(<Success check={'nonsense' as never} title="Saved" />);
+  expect(container.querySelector('.ui-sx')).toHaveClass('ui-sx--check-line');
+  expect(container.querySelector('.ui-sx')).not.toHaveClass('ui-sx--check-nonsense');
+  expect(container.querySelector('svg.ui-sx__check')).toHaveClass('ui-sx__check--line');
+});
+
+it('lets SuccessCheck pick its own mark, defaulting to the line', () => {
+  const { container, rerender } = render(<SuccessCheck />);
+  expect(container.querySelector('svg')).toHaveClass('ui-sx__check--line');
+  rerender(<SuccessCheck variant="circled" />);
+  expect(container.querySelector('svg')).toHaveClass('ui-sx__check--circled');
+  expect(container.querySelectorAll('path')).toHaveLength(2);
+});
+
+// A bare <a> takes the browser's own outline, which #457 rejected. The kit's answer
+// is `.ui-focusable`, the opt-in class src/styles/base.css:140 paints with --ring, so
+// the composition this asserts is the one the README tells a caller to write.
+// jsdom paints nothing: the ring itself is measured in the browser, in the PR evidence.
 it('keeps action events, keyboard focus and caller routing', async () => {
   const user = userEvent.setup();
   const click = vi.fn();
-  const { getByRole } = render(<Success actions={<><Button onClick={click}>Continue</Button><a href="#receipt">Receipt</a></>} />);
+  const { getByRole } = render(<Success actions={<><Button onClick={click}>Continue</Button><a className="ui-focusable" href="#receipt">Receipt</a></>} />);
   await user.tab();
   expect(getByRole('button')).toHaveFocus();
   await user.keyboard('{Enter}');
@@ -44,6 +92,7 @@ it('keeps action events, keyboard focus and caller routing', async () => {
   await user.tab();
   expect(getByRole('link')).toHaveFocus();
   expect(getByRole('link')).toHaveAttribute('href', '#receipt');
+  expect(getByRole('link')).toHaveClass('ui-focusable');
 });
 
 it('renders panel text safely and shares the decorative check', () => {

@@ -8,7 +8,9 @@ export const RELEASES = [
   {
     v: '0.62.0', date: '2026-09-30',
     changes: [
-      ['added', 'React Success, SuccessPanel and SuccessCheck retain the existing confirmation layouts and animation. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
+      ['added', 'React Success, SuccessPanel and SuccessCheck provide the confirmation layouts and the check mark. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
+      ['changed', 'Success confirmations now sit on a plain elevated card. The blurred aurora blobs and the ambient green glow behind them are gone, and with them the `backdrop` option — vanilla callers passing it are unaffected, since the value is now ignored. This is in the shared stylesheet, so it reaches vanilla and React alike.', ['Success']],
+      ['changed', 'The check mark is now an unmodified Lucide path in the success colour, with no filled disc or burst ring behind it. `check: \'line\'` (the default) is the bare check; `check: \'circled\'` is the smaller circled mark, at the eyebrow\u2019s size, which is what Guidelines / Iconography asks a reported state to use. `successCheck()` takes the same choice as its first argument.', ['Success']],
     ],
   },
   {

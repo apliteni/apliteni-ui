@@ -2101,7 +2101,7 @@ the contract of the factory they invoke (for example, success actions use `butto
 | `skeleton`, `skeletonTable` | lines array entries, width (scalar/array), height, radius, className | — | — | — |
 | `busyRegion` | label, readyLabel, className, lines array entries | — | — | body |
 | `deniedState` | title, sub, need, className | action href | icon, action enums | — |
-| `success`, `successCheck` | eyebrow, title, body, className, countdown label/seconds; action label | action href | layout, backdrop, level, action enums | — |
+| `success`, `successCheck` | eyebrow, title, body, className, countdown label/seconds; action label | action href | layout, check, level, action enums | — |
 | `feedbackWidget` | label, placeholder, doneTitle, doneBody | — | — | — |
 | `pagination` | label, id | href(page) result | variant | — |
 | `statBand` | basis, label, id; stat label/value; delta value/basis/none | — | variant, delta tone/direction | stat trend |
@@ -2360,9 +2360,10 @@ Under [#429](https://github.com/apliteni/apliteni-ui/issues/429), React `Success
 provides the inline title/subtitle confirmation and `SuccessCheck` provides the bare
 shared decorative mark, the same markup as vanilla `successCheck()`. Its size and
 colours come from the containing box, which the inline panel owns. `Success` keeps the
-existing hero, split and compact layouts, aurora/glow/flat backdrops, and optional
-confetti. They use the existing CSS and reduced-motion behavior, without vanilla
-factories. Actions are React nodes; routing remains with the consumer. An omitted or
+hero, split and compact layouts and optional confetti, and takes `check` for the mark,
+as described under Success confirmations. They use the shared CSS and reduced-motion
+behavior, without vanilla factories. Actions are React nodes; routing remains with the
+consumer. An omitted or
 empty `actions` omits the actions row. The page confirmation has a polite status region
 and defaults to h1 for hero/split, h2 for compact; `level` allows an explicit rank of
 1 to 6, and any other value takes that layout default. The inline panel keeps its
@@ -2374,3 +2375,42 @@ elapsed time. Durations round down to whole seconds; missing, non-finite, or
 sub-one values use five seconds. `react/src/Success.test.tsx` checks semantics,
 action access and timer ownership; it does not measure browser paint or prove
 screen-reader announcements.
+
+## Success confirmations
+
+`success()` and React `Success` draw a confirmation on a plain elevated card: the
+kit surface, its border, and nothing behind it. There is no backdrop layer, and no
+`backdrop` option — the blurred aurora blobs and the ambient green glow were
+removed in r22 because they read as smudges rather than depth. The split layout
+keeps its flat tinted visual panel, and the inline `successPanel()` keeps its
+`--glow-green` wash; both are single flat fills, not blurs.
+
+The mark is one of two, chosen with `check` (`success({ check })`,
+`<Success check>`) or with `variant` on `SuccessCheck` directly:
+
+| `check` | Mark | Size | Motion |
+| --- | --- | --- | --- |
+| `line` (default) | Lucide `check`, bare, in the success colour | 56px hero, 72px split, 28px compact | strokes itself on over `--dur-slow` |
+| `circled` | Lucide `circle-check-big` (the kit's `circleCheck`) | 20px, the eyebrow's size, in every layout | at rest |
+
+Both are unmodified Lucide paths at Lucide's own `stroke-width: 2`, in a 24 box.
+Any other `check` value takes `line`. Neither mark has a filled disc or a burst
+ring behind it.
+
+**Guidelines / Iconography reserves a circled glyph for a state and a bare one
+for an action, and a confirmation reports a state.** `circled` is therefore the
+mark that rule asks for; `line` is the default because it carries the moment at
+page size, where a 20px mark does not. A surface that wants the rule met passes
+`check: 'circled'`. This exception is deliberate and recorded here rather than
+silently taken.
+
+An action that is not a kit `Button` — a router link, a plain `<a>` — takes
+`.ui-focusable`, the kit's opt-in focus class. Without it the browser paints its own
+focus outline, which [#457](https://github.com/apliteni/apliteni-ui/issues/457)
+rejected. The confirmation adds no focus rule of its own; both actions and the link
+are painted by the one shared rule in `src/styles/base.css`.
+
+`src/components/success.test.js` reads the emitted markup: it holds both paths
+against `src/assets/icons.js`, holds the root class against the mark drawn, and
+holds the removed backdrop layers out of all three layouts. It does not paint,
+so it cannot say how large either mark renders or whether the tick animates.

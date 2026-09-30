@@ -82,7 +82,7 @@ export declare function deckTextSwitch(active?: string): string;
 export declare function hlShell(raw: string): string;
 export declare function pill(label: string, variant?: string): string;
 export declare function statusDot(live?: boolean): string;
-export declare function successCheck(): string;
+export declare function successCheck(variant?: 'line' | 'circled'): string;
 export declare function themeIcon(theme: string): string;
 export declare function themeName(theme: string): string;
 export declare function themeToggle(theme?: string): string;

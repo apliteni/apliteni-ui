@@ -1,18 +1,27 @@
 import { forwardRef, useEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type SVGAttributes } from 'react';
 
-export type SuccessCheckProps = Omit<SVGAttributes<SVGSVGElement>, 'children'>;
+export type SuccessMark = 'line' | 'circled';
+export type SuccessCheckProps = Omit<SVGAttributes<SVGSVGElement>, 'children'> & {
+  /** `line` is the bare Lucide check and draws itself on; `circled` is Lucide
+   *  circle-check-big at the eyebrow's size, drawn at rest. */
+  variant?: SuccessMark;
+};
 
-// The bare mark vanilla successCheck() returns; its tick is custom artwork, not a
-// Lucide glyph. The width/height attributes keep the base svg fallback from sizing
-// it; the containing .ui-sx or .ui-success__check box sets the real size and the
-// --sx-* colours, so give it one of those wrappers when composing it alone.
+// The mark vanilla successCheck() returns, in both of its variants. Guidelines /
+// Iconography reserves a circled glyph for a state and a bare one for an action,
+// and a confirmation reports a state, so `circled` is the mark that rule asks for
+// and `line` is the louder one. The width/height attributes keep the base svg
+// fallback from sizing it; the containing .ui-sx or .ui-success__check box sets
+// the real size and the --sx-green colour, so give it one of those wrappers when
+// composing it alone.
 /** Decorative mark. Supply the outcome in adjacent text. */
-export const SuccessCheck = forwardRef<SVGSVGElement, SuccessCheckProps>(function SuccessCheck({ className, ...rest }, ref) {
-  return <svg {...rest} ref={ref} className={['ui-sx__check', className].filter(Boolean).join(' ')}
-    width="52" height="52" viewBox="0 0 52 52" aria-hidden="true" focusable="false">
-    <circle className="ui-sx__ring" cx="26" cy="26" r="24" />
-    <circle className="ui-sx__disc" cx="26" cy="26" r="24" />
-    <path className="ui-sx__tick" d="M15 27l7.5 7.5L37 18" />
+export const SuccessCheck = forwardRef<SVGSVGElement, SuccessCheckProps>(function SuccessCheck({ variant = 'line', className, ...rest }, ref) {
+  const circled = variant === 'circled';
+  return <svg {...rest} ref={ref}
+    className={['ui-sx__check', `ui-sx__check--${circled ? 'circled' : 'line'}`, className].filter(Boolean).join(' ')}
+    width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    {circled && <path className="ui-sx__circle" d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />}
+    <path className="ui-sx__tick" d={circled ? 'M22 4L12 14.01l-3-3' : 'M20 6L9 17l-5-5'} />
   </svg>;
 });
 
@@ -33,7 +42,8 @@ export type SuccessCountdown = { seconds?: number; label?: string };
 export type SuccessProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'children'> & {
   layout?: 'hero' | 'split' | 'compact';
   level?: 1 | 2 | 3 | 4 | 5 | 6;
-  backdrop?: 'aurora' | 'glow' | 'flat';
+  /** Which check mark to draw. See SuccessCheck. */
+  check?: SuccessMark;
   eyebrow?: string;
   title?: string;
   body?: string;
@@ -76,7 +86,7 @@ function Countdown({ seconds, label = 'Redirecting', onDone }: Required<Pick<Suc
 }
 
 export const Success = forwardRef<HTMLDivElement, SuccessProps>(function Success({
-  layout = 'hero', level, backdrop = 'aurora', eyebrow, title = 'All done', body,
+  layout = 'hero', level, check = 'line', eyebrow, title = 'All done', body,
   actions, confetti = false, countdown, onCountdownEnd, className, ...rest
 }, ref) {
   // Clamp the rank as vanilla does: an out-of-range level renders no heading at all,
@@ -88,17 +98,14 @@ export const Success = forwardRef<HTMLDivElement, SuccessProps>(function Success
   const hasActions = Array.isArray(actions) ? actions.length > 0 : Boolean(actions);
   const seconds = countdown?.seconds;
   const duration = seconds != null && Number.isFinite(seconds) && seconds >= 1 ? Math.floor(seconds) : 5;
+  const mark: SuccessMark = check === 'circled' ? 'circled' : 'line';
   return <div role="status" aria-live="polite" {...rest} ref={ref}
-    className={['ui-sx', `ui-sx--${layout}`, `ui-sx--bd-${backdrop}`, confetti && 'ui-sx--confetti', className].filter(Boolean).join(' ')}>
-    {backdrop === 'aurora' && <div className="ui-sx__aurora" aria-hidden="true">
-      <span className="ui-sx__glow ui-sx__glow--a" /><span className="ui-sx__glow ui-sx__glow--b" />
-    </div>}
-    {backdrop === 'glow' && <span className="ui-glow ui-glow--green ui-sx__bg-glow" aria-hidden="true" />}
+    className={['ui-sx', `ui-sx--${layout}`, `ui-sx--check-${mark}`, confetti && 'ui-sx--confetti', className].filter(Boolean).join(' ')}>
     {confetti && <div className="ui-sx__confetti" aria-hidden="true">{pieces.map(([x, d, r, t, s], index) =>
       <i key={index} className={`ui-sx__piece ui-sx__piece--${t}`} style={{ left: `${x}%`, '--sx-d': `${d}s`, '--sx-r': `${r}deg`, '--sx-s': s } as CSSProperties} />,
     )}</div>}
     <div className="ui-sx__inner">
-      <div className="ui-sx__visual"><SuccessCheck /></div>
+      <div className="ui-sx__visual"><SuccessCheck variant={mark} /></div>
       <div className="ui-sx__content">
         {eyebrow && <div className="ui-sx__eyebrow">{eyebrow}</div>}
         <Heading className="ui-sx__title">{title}</Heading>

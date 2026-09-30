@@ -3,7 +3,7 @@
     {
       "file": "react/src/Success.test.tsx",
       "name": "React: Success",
-      "does": "Checks heading ranks including the clamp on out-of-range levels, polite status markup, hidden artwork, the omitted empty actions row, the bare shared mark and its wrappers, keyboard action access, refs, axe results and cancelable countdown ownership, including StrictMode.",
+      "does": "Checks heading ranks including the clamp on out-of-range levels, polite status markup, hidden artwork with no backdrop layer, the omitted empty actions row, both check marks and the fallback for an unknown one, the bare shared mark and its wrappers, keyboard action access, refs, axe results and cancelable countdown ownership, including StrictMode.",
       "blind": [
         "JSDOM cannot measure paint, colour contrast, real layout or actual screen-reader announcements; matching browser captures cover the shared CSS."
       ]

@@ -14,6 +14,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { success, successCheck } from './success.js';
 import { successPanel } from './index.js';
 
@@ -103,4 +104,63 @@ test('block confirmation shares the full-page check and keeps text escaped', () 
   assert.ok(html.includes('&lt;Done&gt;'));
   assert.ok(html.includes('Saved &amp; sent'));
   assert.ok(!successPanel().includes('ui-success__sub'));
+});
+
+/* The check mark, after r22 replaced the disc-and-burst artwork with two Lucide
+ * marks on a plain card. Two things are worth a gate rather than a screenshot:
+ * the paths must stay the unmodified Lucide ones Guidelines / Iconography
+ * requires, and the backdrop layers must not come back — they were markup, so
+ * deleting the CSS alone would leave empty blurred boxes in every render.
+ *
+ * Limits: this reads the emitted string. It does not paint, so it cannot say
+ * how large either mark renders or whether the tick animates.
+ *
+ * why: docs/specification.md#success-confirmations
+ */
+const LUCIDE = {
+  // src/assets/icons.js ships both; read from there so a Lucide bump moves one copy.
+  line: 'M20 6L9 17l-5-5',
+  circled: ['M22 11.08V12a10 10 0 1 1-5.93-9.14', 'M22 4L12 14.01l-3-3'],
+};
+
+test('both marks draw the kit\'s own Lucide paths and nothing else', () => {
+  const icons = readFileSync(new URL('../assets/icons.js', import.meta.url), 'utf8');
+  assert.ok(icons.includes(`<path d="${LUCIDE.line}"`), 'the kit\'s `check` glyph moved; this mark must follow it');
+  assert.ok(
+    LUCIDE.circled.every((d) => icons.includes(`<path d="${d}"`)),
+    'the kit\'s `circleCheck` glyph moved; the circled mark must follow it',
+  );
+
+  const line = successCheck();
+  assert.equal(line, successCheck('line'), 'the line mark is the default');
+  assert.ok(line.includes(`class="ui-sx__tick" d="${LUCIDE.line}"`));
+  assert.ok(!line.includes('<circle'), 'the line mark grew a disc or a burst ring back');
+  assert.ok(!line.includes('ui-sx__circle'), 'the line mark is bare — no ring path');
+
+  const circled = successCheck('circled');
+  for (const d of LUCIDE.circled) assert.ok(circled.includes(`d="${d}"`), `the circled mark lost ${d}`);
+  assert.ok(circled.includes('ui-sx__check--circled'));
+
+  for (const mark of [line, circled]) {
+    assert.match(mark, /viewBox="0 0 24 24"/, 'a Lucide path needs Lucide\'s box to land in');
+    assert.match(mark, /aria-hidden="true"/, 'the mark is decorative; the outcome is in the text');
+  }
+  // An unknown variant is the default, not a class a caller can inject.
+  assert.equal(successCheck('x" onload="1'), line);
+});
+
+test('the confirmation carries its mark on its root and no backdrop layer', () => {
+  for (const [check, cls] of [[undefined, 'line'], ['line', 'line'], ['circled', 'circled'], ['nonsense', 'line']]) {
+    const html = success(check === undefined ? {} : { check });
+    assert.ok(html.includes(`ui-sx--check-${cls}`), `success({ check: ${JSON.stringify(check)} }) did not mark its root ui-sx--check-${cls}`);
+    assert.ok(html.includes(successCheck(cls)), 'the root class and the mark it draws disagree');
+  }
+  // r22: the blurred aurora blobs and the ambient green glow are gone for good.
+  const every = ['hero', 'split', 'compact'].map((layout) => success({ layout, confetti: true }));
+  for (const html of every) {
+    for (const gone of ['ui-sx__aurora', 'ui-sx__glow', 'ui-sx__bg-glow', 'ui-glow']) {
+      assert.ok(!html.includes(gone), `${gone} is back in the confirmation markup`);
+    }
+  }
+  assert.equal(every.length, 3, 'a layout stopped being measured here');
 });

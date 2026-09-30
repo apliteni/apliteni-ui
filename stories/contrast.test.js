@@ -471,9 +471,10 @@ test('the five toast statuses resolve to five different accents and five differe
   }
 });
 
-// The disc is a sibling of the tick, so composite its fill explicitly over the panel wash.
-// This measures solid paint; browser pixel evidence covers the decorative blur and animation.
-test('the success-panel tick clears 3:1 against its disc and panel wash in both themes', () => {
+// r22 took the tinted disc out from behind the tick, so the mark now paints straight
+// onto the panel wash and there is one ground to measure rather than two.
+// This measures solid paint; browser pixel evidence covers the mark's size and animation.
+test('the success-panel tick clears 3:1 against the panel wash in both themes', () => {
   for (const theme of THEMES) {
     const { css } = kitCssFor(theme, ACCENT);
     const win = new JSDOM(
@@ -483,17 +484,17 @@ test('the success-panel tick clears 3:1 against its disc and panel wash in both 
     ).window;
     try {
       const tick = win.document.querySelector('.ui-success__check .ui-sx__tick');
-      const disc = win.document.querySelector('.ui-success__check .ui-sx__disc');
-      assert.ok(tick && disc, `${theme}: the panel must render its tick and disc`);
+      assert.ok(tick, `${theme}: the panel must render its tick`);
+      assert.equal(
+        win.document.querySelector('.ui-success__check .ui-sx__disc'), null,
+        `${theme}: a tinted disc is back behind the tick — the ground this measures is the wash alone`,
+      );
       const ink = parseColour(win.getComputedStyle(tick).stroke);
-      const fill = parseColour(win.getComputedStyle(disc).fill);
       const wash = effectiveBackground(tick, win);
-      assert.ok(ink && fill && Array.isArray(wash), `${theme}: check paint must resolve`);
-      assert.ok(ink[3] === 1 && fill[3] > 0, `${theme}: tick is opaque and disc is tinted`);
-      for (const [surface, ground] of [['panel wash', wash], ['disc', composite(fill, wash)]]) {
-        const measured = ratio(ink, ground);
-        assert.ok(measured >= 3, `${theme}: success-panel tick on ${surface} is ${measured.toFixed(2)}:1`);
-      }
+      assert.ok(ink && Array.isArray(wash), `${theme}: check paint must resolve`);
+      assert.ok(ink[3] === 1, `${theme}: tick is opaque`);
+      const measured = ratio(ink, wash);
+      assert.ok(measured >= 3, `${theme}: success-panel tick on the panel wash is ${measured.toFixed(2)}:1`);
     } finally {
       win.close();
     }

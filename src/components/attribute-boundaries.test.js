@@ -54,7 +54,7 @@ const cases = [
   ['skeletonTable', () => ui.skeletonTable({ rows: probe, cols: probe })],
   ['busyRegion', () => ui.busyRegion({ className: probe, label: probe, readyLabel: probe })],
   ['deniedState', () => ui.deniedState({ className: probe, title: probe, sub: probe, need: probe })],
-  ['success', () => ui.success({ layout: probe, backdrop: probe, className: probe, title: probe, body: probe, countdown: { seconds: probe, label: probe } })],
+  ['success', () => ui.success({ layout: probe, check: probe, className: probe, title: probe, body: probe, countdown: { seconds: probe, label: probe } })],
   ['successCheck', () => ui.successCheck(probe)],
   ['feedbackWidget', () => ui.feedbackWidget({ label: probe, placeholder: probe, doneTitle: probe, doneBody: probe })],
   ['pagination', () => ui.pagination({ total: 1000, label: probe, id: probe, href: () => probe })],

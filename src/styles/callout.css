@@ -123,7 +123,7 @@
 }
 .ui-success__check {
   --sx-green: var(--chip-success-ink);
-  width: 48px; height: 48px;
+  width: 28px; height: 28px;
   margin: 0 auto 14px;
 }
 .ui-success__check .ui-sx__check { width: 100%; height: 100%; }

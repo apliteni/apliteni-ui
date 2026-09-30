@@ -22,14 +22,14 @@ export const Hero: Story = {
     actions={<><Button variant="primary" icon="compass">Back to strategy</Button><Button variant="ghost" icon="chat">Send another</Button></>} />),
 };
 export const Split: Story = {
-  render: () => wrap(<Success layout="split" backdrop="glow" eyebrow="Payment received" title="Your plan is active"
+  render: () => wrap(<Success layout="split" eyebrow="Payment received" title="Your plan is active"
     body="The Team plan is live for everyone in your workspace. A receipt is on its way to your inbox."
     actions={<><Button variant="primary" iconRight="arrowRight">Go to dashboard</Button><Button variant="ghost">View receipt</Button></>} />, 720),
 };
 export const Compact: Story = {
   render: () => <div style={{ padding: 40, minHeight: '100vh' }}>{stack(<>
-    {specimen('Single action', <div style={{ maxWidth: 520, margin: '0 auto' }}><Success layout="compact" backdrop="flat" title="Note saved" body="Autosaved just now." actions={<Button variant="ghost" size="sm">Undo</Button>} /></div>)}
-    {specimen('No action', <div style={{ maxWidth: 520, margin: '0 auto' }}><Success layout="compact" backdrop="flat" title="Copied to clipboard" /></div>)}
+    {specimen('Single action', <div style={{ maxWidth: 520, margin: '0 auto' }}><Success layout="compact" title="Note saved" body="Autosaved just now." actions={<Button variant="ghost" size="sm">Undo</Button>} /></div>)}
+    {specimen('No action', <div style={{ maxWidth: 520, margin: '0 auto' }}><Success layout="compact" title="Copied to clipboard" /></div>)}
   </>)}</div>,
 };
 export const Celebrate: Story = {
@@ -38,11 +38,19 @@ export const Celebrate: Story = {
     actions={<Button variant="primary" icon="sparkle">Enter workspace</Button>}
     countdown={{ seconds: 5, label: 'Redirecting' }} />),
 };
-export const Backdrops: Story = {
+// The two check marks side by side. `line` is the default; `circled` is the
+// smaller status mark Guidelines / Iconography asks a reported state to use.
+// No eyebrow here: light --green on white is 4.45:1 against a 4.5:1 floor, a debt
+// the Hero, Split and Celebrate stories already carry, and a comparison of two
+// marks is no reason to add three more rows to it.
+export const CheckMark: Story = {
   render: () => <div style={{ padding: 40, minHeight: '100vh' }}>{stack(<>
-    {specimen('Aurora', <div style={{ maxWidth: 620, margin: '0 auto' }}><Success backdrop="aurora" title="Aurora backdrop" body="Two soft blobs — a green wash plus an accent glow." /></div>)}
-    {specimen('Glow', <div style={{ maxWidth: 620, margin: '0 auto' }}><Success backdrop="glow" title="Glow backdrop" body="A single green ambient glow behind the check." /></div>)}
-    {specimen('Flat', <div style={{ maxWidth: 620, margin: '0 auto' }}><Success backdrop="flat" title="Flat backdrop" body="No backdrop — just the elevated surface." /></div>)}
+    {specimen('Line — the default', <div style={{ maxWidth: 620, margin: '0 auto' }}>
+      <Success title="Your plan is active" body="A receipt is on its way to your inbox." /></div>)}
+    {specimen('Circled', <div style={{ maxWidth: 620, margin: '0 auto' }}>
+      <Success check="circled" title="Your plan is active" body="A receipt is on its way to your inbox." /></div>)}
+    {specimen('Circled, beside the copy', <div style={{ maxWidth: 720, margin: '0 auto' }}>
+      <Success check="circled" layout="split" title="Your plan is active" body="A receipt is on its way to your inbox." /></div>)}
   </>)}</div>,
 };
 export const Panel: Story = {
