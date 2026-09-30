@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.61.2', date: '2026-10-01',
+    changes: [
+      ['changed', 'Nothing the kit renders changes. The application rail’s step off the page — 1.186:1 in dark, 1.110:1 in light, the same under all four accents — is now held to those measured numbers instead of the loose floor that let the barely-visible 0.53.3 rail through. The only published byte is a comment in `layout.css` citing a line that moved. See #454.', ['Shell']],
+    ],
+  },
+  {
     v: '0.61.1', date: '2026-09-30',
     changes: [
       ['fixed', 'Iconography guidance allows the shell’s theme toggle, sidebar toggle and collapsed-rail links to drop their visible labels. Resolves #460.'],
