@@ -69,6 +69,15 @@ it('falls back to the line mark for a value outside the two', () => {
   expect(container.querySelector('svg.ui-sx__check')).toHaveClass('ui-sx__check--line');
 });
 
+it('lets the inline panel pick its mark too', () => {
+  const { container, rerender } = render(<SuccessPanel />);
+  expect(container.querySelector('svg.ui-sx__check')).toHaveClass('ui-sx__check--line');
+  rerender(<SuccessPanel check="circled" />);
+  expect(container.querySelector('svg.ui-sx__check')).toHaveClass('ui-sx__check--circled');
+  rerender(<SuccessPanel check={'nonsense' as never} />);
+  expect(container.querySelector('svg.ui-sx__check')).toHaveClass('ui-sx__check--line');
+});
+
 it('lets SuccessCheck pick its own mark, defaulting to the line', () => {
   const { container, rerender } = render(<SuccessCheck />);
   expect(container.querySelector('svg')).toHaveClass('ui-sx__check--line');
@@ -77,10 +86,10 @@ it('lets SuccessCheck pick its own mark, defaulting to the line', () => {
   expect(container.querySelectorAll('path')).toHaveLength(2);
 });
 
-// A bare <a> takes the browser's own outline, which #457 rejected. The kit's answer
-// is `.ui-focusable`, the opt-in class src/styles/base.css:140 paints with --ring, so
-// the composition this asserts is the one the README tells a caller to write.
-// jsdom paints nothing: the ring itself is measured in the browser, in the PR evidence.
+// A bare <a> takes the browser's own outline, which #457 rejected. The kit's answer is
+// src/styles/base.css:140 `.ui-focusable:focus-visible,`, so the composition asserted
+// here is the one the README tells a caller to write. jsdom paints nothing: the ring
+// itself is measured in the browser, in this PR's evidence.
 it('keeps action events, keyboard focus and caller routing', async () => {
   const user = userEvent.setup();
   const click = vi.fn();

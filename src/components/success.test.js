@@ -100,6 +100,9 @@ test('only the tag moves: the title keeps its class and its text at every rank',
 test('block confirmation shares the full-page check and keeps text escaped', () => {
   const html = successPanel({ title: '<Done>', sub: 'Saved & sent' });
   assert.ok(html.includes(successCheck()));
+  // The inline panel is the purest report of a state, so it picks its mark too.
+  assert.ok(successPanel({ check: 'circled' }).includes(successCheck('circled')));
+  assert.ok(successPanel({ check: 'nonsense' }).includes(successCheck()));
   assert.ok(success().includes(successCheck()));
   assert.ok(html.includes('&lt;Done&gt;'));
   assert.ok(html.includes('Saved &amp; sent'));

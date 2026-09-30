@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { card, successPanel } from '../src/components/index.js';
+import { success } from '../src/components/success.js';
 import {
   AA_TEXT,
   composite,
@@ -499,6 +500,67 @@ test('the success-panel tick clears 3:1 against the panel wash in both themes', 
       win.close();
     }
   }
+});
+
+/* The page-sized mark, on every ground it actually reaches.
+ *
+ * The panel test above covers successPanel() only. r22 took the tinted disc away, so
+ * the mark on a success() card is now a stroke straight onto the surface behind it, and
+ * nothing measured that: signal-contrast.test.js scans callout.css for status glyph
+ * families, and .ui-sx__tick is neither in that sheet nor a status family.
+ *
+ * 3:1 is the graphic bar: the mark is a non-text object and every one of these strokes
+ * clears 1.5 CSS px, so it is the object floor that applies and not the 4.5 text floor.
+ *
+ * Limits: JSDOM resolves the cascade but paints nothing, so this reads declared colour
+ * over a composited ground. It does not prove the drawn mark's coverage, which the
+ * browser captures in the PR cover.
+ *
+ * why: docs/specification.md#success-confirmations
+ */
+test('the page confirmation\'s mark clears 3:1 on every ground and mark it has', () => {
+  // [layout, which stroke sits on which ground] — the split mark is the only one on the
+  // tinted visual panel; hero and compact sit on the card itself.
+  const LAYOUTS = ['hero', 'split', 'compact'];
+  const MARKS = ['line', 'circled'];
+  let measured = 0;
+  for (const theme of THEMES) {
+    const { css } = kitCssFor(theme, ACCENT);
+    const bodies = LAYOUTS.flatMap((layout) => MARKS.map((check) =>
+      success({ layout, check, title: 'Saved', body: 'A receipt is on its way.' })));
+    const win = new JSDOM(
+      `<!doctype html><html data-theme="${theme}"><head><style>${css}</style></head>`
+      + `<body>${bodies.join('')}</body></html>`,
+      { pretendToBeVisual: true },
+    ).window;
+    try {
+      const roots = [...win.document.querySelectorAll('.ui-sx')];
+      assert.equal(roots.length, LAYOUTS.length * MARKS.length,
+        `${theme}: expected one card per layout and mark, found ${roots.length}`);
+      for (const root of roots) {
+        const where = [...root.classList].filter((c) => c.startsWith('ui-sx--')).join(' ');
+        // Both paths of the circled mark, the single path of the line mark.
+        const strokes = [...root.querySelectorAll('.ui-sx__tick, .ui-sx__circle')];
+        assert.ok(strokes.length >= 1, `${theme} ${where}: the card drew no mark to measure`);
+        assert.equal(root.querySelector('.ui-sx__disc'), null,
+          `${theme} ${where}: a tinted disc is back — the ground measured here is the surface alone`);
+        for (const stroke of strokes) {
+          const ink = parseColour(win.getComputedStyle(stroke).stroke);
+          const ground = effectiveBackground(stroke, win);
+          assert.ok(ink && Array.isArray(ground), `${theme} ${where}: mark paint must resolve`);
+          assert.equal(ink[3], 1, `${theme} ${where}: the mark is opaque`);
+          const r = ratio(ink, ground);
+          assert.ok(r >= 3, `${theme} ${where}: the mark is ${r.toFixed(2)}:1 against its ground`);
+          measured += 1;
+        }
+      }
+    } finally {
+      win.close();
+    }
+  }
+  // 2 themes x 3 layouts x (1 line stroke + 2 circled strokes).
+  assert.equal(measured, 2 * 3 * 3,
+    `${measured} strokes measured, expected 18 — a layout or a mark stopped being covered`);
 });
 
 test('the style cache is still serving four reads in five from memory', () => {

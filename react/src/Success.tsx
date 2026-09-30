@@ -28,11 +28,13 @@ export const SuccessCheck = forwardRef<SVGSVGElement, SuccessCheckProps>(functio
 export type SuccessPanelProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'children'> & {
   title?: string;
   sub?: string;
+  /** Which check mark to draw. See SuccessCheck. */
+  check?: SuccessMark;
 };
 
-export const SuccessPanel = forwardRef<HTMLDivElement, SuccessPanelProps>(function SuccessPanel({ title = 'Done', sub, className, ...rest }, ref) {
+export const SuccessPanel = forwardRef<HTMLDivElement, SuccessPanelProps>(function SuccessPanel({ title = 'Done', sub, check = 'line', className, ...rest }, ref) {
   return <div {...rest} ref={ref} className={['ui-success', className].filter(Boolean).join(' ')}>
-    <div className="ui-success__check"><SuccessCheck /></div>
+    <div className="ui-success__check"><SuccessCheck variant={check === 'circled' ? 'circled' : 'line'} /></div>
     <div className="ui-success__title">{title}</div>
     {sub && <div className="ui-success__sub">{sub}</div>}
   </div>;

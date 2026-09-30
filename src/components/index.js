@@ -267,8 +267,8 @@ export function toast({
 // idea at page size: layouts, follow-up buttons and an auto-redirect countdown.
 // Pick by how much of the screen the confirmation owns. The two share the check;
 // their layout and content remain independent.
-export function successPanel({ title = 'Done', sub = '' } = {}) {
-  return `<div class="ui-success"><div class="ui-success__check">${successCheck()}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
+export function successPanel({ title = 'Done', sub = '', check = 'line' } = {}) {
+  return `<div class="ui-success"><div class="ui-success__check">${successCheck(check)}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
 }
 
 // ---- Empty state ---------------------------------------------------------

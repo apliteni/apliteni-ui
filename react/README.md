@@ -542,7 +542,7 @@ Tooltip accepts text and inline children, without nested controls. Hovering or f
 ## Success
 
 `SuccessPanel` confirms an outcome inside the current page with `title` and optional
-`sub`, and forwards a ref to its root div. `SuccessCheck` is the bare mark both
+`sub`, takes the same `check` as `Success`, and forwards a ref to its root div. `SuccessCheck` is the bare mark both
 confirmations draw, matching the kit's `successCheck()`, and forwards a ref to its
 `svg`. It carries no size or box of its own: to compose it alone, put it in a wrapper
 that sets both, such as the kit's `ui-success__check`, and name the outcome in text

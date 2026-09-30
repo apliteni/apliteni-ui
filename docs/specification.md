@@ -2385,8 +2385,9 @@ removed in r22 because they read as smudges rather than depth. The split layout
 keeps its flat tinted visual panel, and the inline `successPanel()` keeps its
 `--glow-green` wash; both are single flat fills, not blurs.
 
-The mark is one of two, chosen with `check` (`success({ check })`,
-`<Success check>`) or with `variant` on `SuccessCheck` directly:
+The mark is one of two, chosen with `check` on any of the three — `success()`,
+`successPanel()`, `<Success>`, `<SuccessPanel>` — or with `variant` on `SuccessCheck`
+directly:
 
 | `check` | Mark | Size | Motion |
 | --- | --- | --- | --- |
