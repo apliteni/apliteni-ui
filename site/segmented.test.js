@@ -1,7 +1,8 @@
 // The landing page's segmented strip, held against the kit's own.
 //
-// The strip in the bento's "Controls" cell switches nothing, which does not
-// excuse it from the contract: it is a real focusable control on a real page (#147).
+// The strip in the demo card's settings column switches nothing beyond its own
+// pressed state, which does not excuse it from the contract: it is a real
+// focusable control on a real page (#147).
 //
 // So this file asserts no list of attributes. It imports segmented() and
 // wireTopbar() FROM THE KIT, builds the kit's own strip beside the site's, drives
@@ -33,18 +34,38 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
 const { segmented } = await import('../src/components/index.js');
 const { wireTopbar } = await import('../src/components/topbar.js');
 
-// The two options the specimen shows, and the name it answers to. The kit's
-// strip is built with the same ones so any difference that turns up is a
-// difference in BEHAVIOUR, not in content.
-const OPTIONS = ['Deck', 'Text'];
-const LABEL = 'Example segmented control';
-
 // The page exactly as build.mjs hands it to a browser.
 const PAGE = readFileSync(new URL('./index.html', import.meta.url), 'utf8')
   .replace('{{TOPBAR}}', topbar(''))
   .replace('{{FOOTER}}', footer())
   .replace('{{CHROME_CSS}}', CHROME_CSS)
   .replace('{{CHROME_JS}}', CHROME_JS);
+
+// The name the specimen answers to and the options it shows, READ OFF THE PAGE
+// rather than written here. The kit's strip below is then built from the same
+// two, so every difference this file can report is a difference in BEHAVIOUR
+// and never one in copy. Written out, the pair went stale the first time the
+// page's words changed and the gate failed on a page that was correct (#463).
+//
+// Discovery is strict on purpose: one strip, named, with two options. A second
+// strip would make "the specimen" ambiguous, and the sweep below already holds
+// every strip on the page to the contract whatever its name.
+const { LABEL, OPTIONS } = (() => {
+  const dom = new JSDOM(PAGE);
+  const strips = [...dom.window.document.querySelectorAll('.ui-seg')];
+  assert.equal(strips.length, 1,
+    `site/index.html carries ${strips.length} .ui-seg strips; this file compares ONE of them `
+    + 'against the kit, and cannot tell you which. Name the specimen here explicitly, or take '
+    + 'the extra strip off the page.');
+  const label = (strips[0].getAttribute('aria-label') || '').trim();
+  assert.ok(label, 'the page\u2019s segmented strip has no aria-label, so it is an unnamed control');
+  const options = [...strips[0].querySelectorAll('button')].map((b) => b.textContent.trim());
+  assert.equal(options.length, 2,
+    `the specimen shows ${options.length} options; the key walk below is written for two`);
+  assert.ok(options.every(Boolean), 'an option with no visible word is a nameless control');
+  dom.window.close();
+  return { LABEL: label, OPTIONS: options };
+})();
 
 // A strip, its document, and the two verbs the tests drive it with. Both sides
 // are built through this so neither gets a helper the other lacks.
@@ -158,7 +179,7 @@ test('every option says whether it is the one that is on', () => {
   const { buttons } = site();
   const pressed = buttons().map((b) => b.getAttribute('aria-pressed'));
   assert.deepEqual(pressed, ['true', 'false'],
-    'Deck is the one on show, and Text has to say it is not');
+    `${OPTIONS[0]} is the one on show, and ${OPTIONS[1]} has to say it is not`);
 });
 
 test('the whole strip costs one Tab stop, not one per option', () => {
@@ -205,17 +226,18 @@ test('clicking an option moves the pressed state and the Tab stop, as the kit do
   k.click(1);
   assert.deepEqual(announcement(s), announcement(k));
   assert.equal(s.buttons()[1].getAttribute('aria-pressed'), 'true',
-    'clicking Text has to say Text is now the one on');
+    `clicking ${OPTIONS[1]} has to say ${OPTIONS[1]} is now the one on`);
 });
 
-for (const [key, from, expected] of [
-  ['ArrowRight', 0, 'Text'],
-  ['ArrowRight', 1, 'Deck'],
-  ['ArrowLeft', 1, 'Deck'],
-  ['ArrowLeft', 0, 'Text'],
-  ['Home', 1, 'Deck'],
-  ['End', 0, 'Text'],
+for (const [key, from, to] of [
+  ['ArrowRight', 0, 1],
+  ['ArrowRight', 1, 0],
+  ['ArrowLeft', 1, 0],
+  ['ArrowLeft', 0, 1],
+  ['Home', 1, 0],
+  ['End', 0, 1],
 ]) {
+  const expected = OPTIONS[to];
   test(`${key} from ${OPTIONS[from]} selects ${expected}, as the kit does`, () => {
     const s = site();
     const k = kit();
@@ -227,7 +249,7 @@ for (const [key, from, expected] of [
       'the arrow keys move focus with the selection, or a keyboard user is left behind');
     assert.equal(focusedLabel(s), focusedLabel(k));
     // A key the strip acts on must be cancelled, or it does its own job too:
-    // End selects Text and scrolls the page to the footer underneath it.
+    // End selects the last option and scrolls the page to the footer under it.
     assert.equal(sLive, false, `${key} must be cancelled once the strip has acted on it`);
     assert.equal(sLive, kLive, `${key}: the site and the kit must agree about cancelling`);
   });
