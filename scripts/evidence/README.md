@@ -146,6 +146,24 @@ open itself is opened by the rig with a real click once the page has settled: th
 dropdown panel freezes the width the whole list needs as it opens, so a panel open
 before the webfaces land freezes a width measured in the fallback.
 
+`filter-bar-fit.mjs` is a gate rather than a shoot, and the only producer here
+that fails. It is #467's measurement: a filter row adds nothing to the page's
+scrollable width on a phone, and its panels open inside the row. It discovers its
+subjects — every `React/FilterBar` story in the built Storybook's index, and the
+vanilla bars `filter-bar-fit.html` renders through `filterBar()` — and measures
+each at 320, 375 and 390 in both themes, shut and with a chip opened. It then puts
+the 240px panel floor back and requires every case that carries a panel to
+overflow, so a green run cannot be a run that measured nothing:
+
+```sh
+npm run build-storybook -w react
+node scripts/evidence/filter-bar-fit.mjs . out/     # out/ takes a JSON ledger; it is optional
+```
+
+It needs the React build for the React half and the checkout for the vanilla
+half, and it exits non-zero on a finding. `npm test` does not run it — nothing in
+`npm test` drives a browser — so its counts belong in the pull request.
+
 ## What is deterministic and what is not
 
 `shoot.mjs`, `nav.mjs`, `float.mjs`, `guideline.mjs`, `back.mjs` and `dropdown.mjs`

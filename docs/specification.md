@@ -1586,6 +1586,35 @@ Held by `src/components/dropdown.test.js`, which reads the offsets out of the st
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
 property — and feeds the wiring measured rects, JSDOM having no layout of its own.
 
+## A filter row holds its panels
+
+A filter chip's dropdown panel is as wide as the chip's trigger. It is the one place in the kit
+where `min-width: 240px` on `.ui-dropdown__panel` does not apply, and the reason is arithmetic
+rather than taste: a panel is absolutely positioned at its trigger's inline start, so its right
+edge is wherever the chip happens to sit plus 240px, and on a phone the second chip already sits
+far enough along the row for that sum to pass the screen.
+
+It passes the screen whether the panel is open or shut. A shut panel is `visibility: hidden`, which
+hides it and still lays it out, and a laid-out box counts towards the page's scrollable width. So a
+filter bar nobody had touched scrolled the page sideways. Measured on the React `FilterBar` story:
+a page 398px wide on a 390px view — the 8px of
+[#467](https://github.com/apliteni/apliteni-ui/issues/467) — and 23px over at 375px. The chips
+themselves were never the problem; `.ui-filter-bar` wraps, and at both widths they fitted.
+
+**What a consumer can rely on.** At any viewport, a filter bar adds nothing to the page's
+scrollable width, and each panel opens inside the row that holds it. The bound is `min-width: 100%;
+max-width: 100%` against the panel's own containing block, so it needs no measuring, no resize
+listener and no JavaScript, and vanilla and React get it from the same rule. What a consumer gives
+up is panel width: a filter whose options are longer than its chip wraps them over more rows
+instead of widening. That suits the values a filter shows — a filter's options are the short words
+its chip already carries — and a list that needs more room than that is a dropdown rather than a
+filter.
+
+Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
+and requires each one to be answered inside the bar, and measured in a browser by
+`scripts/evidence/filter-bar-fit.mjs` at 375px and 390px, which also puts the floor back and
+requires every case to fail.
+
 ## A dropdown row is a div, a link or a button
 
 `.ui-dropdown__item` renders identically under all three tags, and which one a row is written as
@@ -2121,8 +2150,10 @@ consumer supplies a real destination for that link. Columns scroll rather than d
 and never mutate the supplied filters. Updating the mounted host preserves the focused chip
 control; after removal focus moves to the next chip, then the previous, then the bar when no
 filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
-keyboard selection, Escape and focus return. Segmented controls support an underline appearance
-for switching columns over one dataset; arrow keys, Home and End skip disabled choices.
+keyboard selection, Escape and focus return. A chip's panel stays inside the row that holds it at
+every viewport, which is what bounds its width — see A filter row holds its panels. Segmented
+controls support an underline appearance for switching columns over one dataset; arrow keys, Home
+and End skip disabled choices.
 
 ## Vanilla HTML boundaries
 
