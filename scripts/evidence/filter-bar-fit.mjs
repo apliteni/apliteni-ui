@@ -12,7 +12,8 @@
  * why: scripts/evidence/README.md
  *
  * argv: <checkout> [outDir]   outDir also takes a JSON ledger.
- */import { spawn } from 'node:child_process';
+ */
+import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { settle } from './settle.mjs';
