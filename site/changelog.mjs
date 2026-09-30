@@ -9,6 +9,8 @@ export const RELEASES = [
     v: '0.65.0', date: '2026-10-01',
     changes: [
       ['added', 'The React AppShell publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. Page bottom padding, root scroll padding and the React toast stack share it, so a changed action scrolled into view on a phone no longer lands behind the bottom bar. See #384 and #444.'],
+      ['fixed', 'The shell’s theme toggle and brand link show the kit focus ring instead of the browser’s own outline. Vanilla and React share the fix. See #384 and #457.'],
+      ['added', 'A batch-change showcase: proposed row changes with signed amounts, booked-month totals carrying the change applying makes, a closed-period warning and Undo. See #384.'],
     ],
   },
   {
