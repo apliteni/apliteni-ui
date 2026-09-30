@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { afterEach, expect, it, vi } from 'vitest';
-import { Success, SuccessCheck, SuccessPanel } from './Success';
+import { Success, SuccessCheck, SuccessPanel, type SuccessProps } from './Success';
 import { Button } from './primitives/Button';
 
 // DOM checks cover semantics and timer ownership; browser evidence covers paint and motion.
@@ -58,11 +58,46 @@ it('renders panel text safely and shares the decorative check', () => {
   expect(container.querySelector('.ui-success__sub')).toBeNull();
 });
 
-it('forwards the standalone check ref without adding a focus target', () => {
-  const ref = createRef<HTMLDivElement>();
+it('is the bare mark, wrapped by whoever places it', () => {
+  const ref = createRef<SVGSVGElement>();
   const { container } = render(<SuccessCheck ref={ref} className="custom" />);
-  expect(ref.current).toHaveClass('ui-success__check', 'custom');
+  expect(ref.current).toBe(container.querySelector('svg'));
+  expect(ref.current).toHaveClass('ui-sx__check', 'custom');
+  expect(container.firstElementChild!.tagName).toBe('svg');
+  expect(container.querySelector('.ui-success__check')).toBeNull();
   expect(container.querySelector('svg')).toHaveAttribute('focusable', 'false');
+});
+
+it('lets the panel and the page confirmation own the mark box', () => {
+  const panel = render(<SuccessPanel />).container.querySelector('.ui-success__check');
+  expect(panel!.firstElementChild).toBe(panel!.querySelector('svg.ui-sx__check'));
+  cleanup();
+  const visual = render(<Success />).container.querySelector('.ui-sx__visual');
+  expect(visual!.firstElementChild).toBe(visual!.querySelector('svg.ui-sx__check'));
+});
+
+// Fix 1: an empty row would still add its 20px margin (src/styles/success.css).
+const EMPTY: [string, SuccessProps['actions']][] = [
+  ['omitted', undefined], ['null', null], ['false', false], ['an empty array', []], ['empty text', ''],
+];
+it.each(EMPTY)('omits the actions row when actions is %s', (_case, actions) => {
+  const { container } = render(<Success actions={actions} />);
+  expect(container.querySelector('.ui-sx__actions')).toBeNull();
+});
+
+it('keeps the actions row for a supplied action', () => {
+  const { container } = render(<Success actions={[<Button key="go">Continue</Button>]} />);
+  expect(container.querySelector('.ui-sx__actions')!.textContent).toBe('Continue');
+});
+
+// Fix 2: an unclamped rank renders <h9>, which is not a heading at all.
+it.each([0, 7, 9, 2.5, NaN])('clamps the out-of-range level %s to the layout default', level => {
+  const hero = render(<Success {...({ level } as SuccessProps)} title="Saved" />);
+  expect(hero.getByRole('heading', { level: 1 })).toHaveTextContent('Saved');
+  expect(hero.container.querySelector('.ui-sx__title')!.tagName).toBe('H1');
+  cleanup();
+  const compact = render(<Success layout="compact" {...({ level } as SuccessProps)} title="Saved" />);
+  expect(compact.getByRole('heading', { level: 2 })).toHaveTextContent('Saved');
 });
 
 it('finishes once, uses the latest callback and survives StrictMode', () => {

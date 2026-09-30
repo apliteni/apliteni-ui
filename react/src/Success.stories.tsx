@@ -49,7 +49,9 @@ export const Panel: Story = {
   render: () => <div style={{ padding: 40, minHeight: '100vh' }}><div style={{ maxWidth: 460 }}><SuccessPanel title="Feedback sent" sub="Thanks — it goes straight to the strategy owner." /></div></div>,
 };
 export const Check: Story = {
-  render: () => wrap(<div style={{ display: 'grid', justifyItems: 'center', gap: 'var(--space-4)' }}><SuccessCheck /><p>Changes saved</p></div>),
+  // The bare mark needs a wrapper for its size and colours; ui-success__check is the kit's.
+  render: () => wrap(<div style={{ display: 'grid', justifyItems: 'center', gap: 'var(--space-4)' }}>
+    <div className="ui-success__check"><SuccessCheck /></div><p>Changes saved</p></div>),
 };
 function CancelableCountdown() {
   const [running, setRunning] = useState(true);

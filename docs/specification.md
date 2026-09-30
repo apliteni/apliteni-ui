@@ -2357,13 +2357,16 @@ not visual rendering or assistive-technology announcements. Part of
 ## React success confirmations
 
 Under [#429](https://github.com/apliteni/apliteni-ui/issues/429), React `SuccessPanel`
-provides the inline title/subtitle confirmation and `SuccessCheck` provides its
-shared decorative mark and sizing wrapper. `Success` keeps the existing hero,
-split and compact layouts, aurora/glow/flat backdrops, and optional confetti.
-They use the existing CSS and reduced-motion behavior, without vanilla factories.
-Actions are React nodes; routing remains with the consumer. The page confirmation
-has a polite status region and defaults to h1 for hero/split, h2 for compact;
-`level` allows an explicit rank. The inline panel keeps its existing div title.
+provides the inline title/subtitle confirmation and `SuccessCheck` provides the bare
+shared decorative mark, the same markup as vanilla `successCheck()`. Its size and
+colours come from the containing box, which the inline panel owns. `Success` keeps the
+existing hero, split and compact layouts, aurora/glow/flat backdrops, and optional
+confetti. They use the existing CSS and reduced-motion behavior, without vanilla
+factories. Actions are React nodes; routing remains with the consumer. An omitted or
+empty `actions` omits the actions row. The page confirmation has a polite status region
+and defaults to h1 for hero/split, h2 for compact; `level` allows an explicit rank of
+1 to 6, and any other value takes that layout default. The inline panel keeps its
+existing div title.
 
 An optional countdown calls `onCountdownEnd` once when it reaches zero. Removal or
 unmount cancels it. Changing duration restarts it; changing label or callback keeps
