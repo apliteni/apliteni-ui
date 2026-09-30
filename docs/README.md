@@ -59,4 +59,13 @@ One line, pointing at a heading. `scripts/doc-refs.test.js` resolves every one o
 has to exist and the anchor has to be a heading in it — so a citation that stops landing turns a
 build red rather than misleading a reader who follows it.
 
+A guideline rule has two names and only one of them belongs in a citation. `guidelines/*.md` marks
+each rule with a `<!-- rule: id -->` comment, which is the handle its Storybook page and
+`stories/guidelines/references.json` use. A citation still points at the rule's **heading**, because
+that is what a reader following the link lands on. `guidelines/dense-tables.md#align-numeric-values`
+is the citation; `numbers` is the same rule's id. Reading the ids as the citable anchors makes twenty
+working links look invented, which is what happened on [#437][i437].
+
+[i437]: https://github.com/apliteni/apliteni-ui/pull/437
+
 [i198]: https://github.com/apliteni/apliteni-ui/issues/198

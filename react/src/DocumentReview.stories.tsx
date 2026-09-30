@@ -109,21 +109,24 @@ const CSS = `
   .doc-flow .ui-table-scroll { --ui-table-height: none; padding: 0; }
   .doc-flow__scroll-hint { margin: 0 0 var(--space-3); }
   .doc-flow__pinned-text { position: sticky; left: var(--space-3); }
-  /* The page is at least panel-lg wide; Fit scales it to its viewport.
-     why: guidelines/layout-and-density.md#use-panel-and-prose-units */
-  .doc-flow__sheet { width: var(--panel-lg); box-sizing: border-box; background: var(--table-bg);
-    border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5);
-    transition: zoom var(--dur-med) var(--ease-out); }
+  /* The page is at least panel-lg wide; Fit scales it to its viewport. It draws no
+     ground, border or radius of its own: the "Source document" card is the sheet, and a
+     bordered box on its parent's own fill is a card inside a card — white on white in
+     light, and one hairline apart in dark.
+     why: guidelines/layout-and-density.md#use-panel-and-prose-units, guidelines/the-page.md#limit-card-stacks */
+  .doc-flow__sheet { width: var(--panel-lg); transition: zoom var(--dur-med) var(--ease-out); }
   .doc-flow__sheet .ui-skel + .ui-skel { margin-top: var(--space-5); }
   .doc-flow__meta { margin: 0 0 var(--space-2); }
   .doc-flow__meta:last-of-type { margin-bottom: var(--space-4); }
   .doc-flow__toolbar { display: flex; flex-wrap: wrap; align-items: center;
     gap: var(--space-4); margin-bottom: var(--space-4); }
   .doc-flow__amounts { margin-top: var(--space-5); }
-  /* One alignment for one column. The kit sits a footer label against the figure it
-     names; every row of this table is an amount, so its body labels sit there too, and
-     the column does not change sides at the total. */
-  .doc-flow__amounts tbody th { text-align: right; }
+  /* One alignment for one column, and the header on the same side as its values. This
+     column holds text, so it stays left; only the figures share a right edge. The kit
+     right-aligns a footer label because it usually spans to sit against its figure —
+     here it owns a column, so it stays with the labels above it.
+     why: guidelines/dense-tables.md#align-numeric-values */
+  .ui-table.doc-flow__amounts :is(tbody, tfoot) th { text-align: left; }
   /* One order on every step and every width: the committing action first, then the
      quiet ones, so the button that commits never lands beside a way out.
      why: guidelines/component-choice.md#make-the-committing-action-stand-out */
@@ -372,14 +375,16 @@ export const Default: StoryObj<Args> = {
 
     // The result is the page and says where to go next, so it is success() rather than
     // successPanel(), at h2 under the page title, with no back link above it competing
-    // for the same destination. why: guidelines/component-choice.md#match-confirmation-scale
+    // for the same destination. The page title states the outcome, so this heading says
+    // what is left to do instead of titling the same event a second time.
+    // why: guidelines/component-choice.md#match-confirmation-scale, guidelines/the-page.md#order-page-headings
     const approved = (
       <div className="doc-flow doc-flow--measure" dangerouslySetInnerHTML={{
         __html: success({
           layout: 'hero',
           level: 2,
           backdrop: 'flat',
-          title: `Invoice ${DOCUMENT.number} is marked as reviewed`,
+          title: 'Nothing else is needed',
           body: `No payment was sent. Approved on ${APPROVED_AT} by ${APPROVER}.`,
           actions: [
             { label: 'Return to invoices', variant: 'primary', href: '#invoices' },
@@ -398,7 +403,7 @@ export const Default: StoryObj<Args> = {
         title: 'Confirm approval',
         lede: `Invoice ${DOCUMENT.number} from ${DOCUMENT.supplier}, due ${DOCUMENT.due}.`,
       },
-      approved: { title: 'Document approved', lede: undefined },
+      approved: { title: `Invoice ${DOCUMENT.number} is marked as reviewed`, lede: undefined },
     }[onConfirm ? 'confirm' : step === 'approved' ? 'approved' : 'review'];
 
     return (
