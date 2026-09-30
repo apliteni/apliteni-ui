@@ -93,8 +93,10 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     event.stopPropagation();
     return true;
   };
+  // Space activates a button and scrolls the page on a link, so only a button root
+  // blocks it: a focused busy link that swallowed Space would trap the scroll.
   const blockKey = (event: KeyboardEvent<ButtonElement>) =>
-    (event.key === 'Enter' || event.key === ' ') && blockActivation(event);
+    (event.key === 'Enter' || (event.key === ' ' && href === undefined)) && blockActivation(event);
   const cls = cx(
     'ui-btn',
     variant && `ui-btn--${variant}`,
@@ -104,11 +106,13 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     className,
   );
   // iconOnly drops the visible children and the glyph is aria-hidden, so the
-  // button would otherwise have no accessible name. Mirror string children into
+  // control would otherwise have no accessible name. Mirror string children into
   // aria-label + title (an explicit aria-label / aria-labelledby always wins),
-  // and fall back to the icon name so a nameless icon button can't ship.
+  // then the icon name. With neither, nothing is invented: a control named
+  // "Button" reads as named to axe and says nothing to the person hearing it.
+  // why: guidelines/microcopy.md#name-every-control
   const labelled = rest['aria-label'] != null || rest['aria-labelledby'] != null;
-  const fallback = typeof children === 'string' && children.trim() ? children.trim() : icon || 'Button';
+  const fallback = typeof children === 'string' && children.trim() ? children.trim() : icon;
   const named = iconOnly && !labelled && fallback
     ? { 'aria-label': fallback, title: rest.title ?? fallback }
     : {};
@@ -147,4 +151,12 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
 }) as {
   (props: NativeButtonProps & RefAttributes<HTMLButtonElement>): ReactElement;
   (props: ButtonLinkProps & RefAttributes<HTMLAnchorElement>): ReactElement;
+  // The union signature is last on purpose. It is what lets a caller forward the
+  // exported ButtonProps straight back in, and `ComponentProps<typeof Button>`
+  // reads the last signature of an overloaded type — with the anchor there it
+  // silently meant "a link, href required".
+  (props: ButtonProps & RefAttributes<ButtonElement>): ReactElement;
+  // forwardRef carries this; the cast has to keep it or `Button.displayName` stops
+  // type-checking for consumers.
+  displayName?: string;
 };

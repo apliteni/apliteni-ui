@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],
+      ['changed', 'React Button now merges a caller `className` with the kit classes instead of replacing them. Its own `aria-disabled`, `aria-busy` and `data-btn-*` attributes win over spread props, so a busy or disabled control cannot be made to read as idle.', ['Button']],
     ],
   },
   {

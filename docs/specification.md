@@ -876,16 +876,34 @@ Without `href` it renders a native button, defaulting to `type="button"`. Refs a
 native attributes belong to the selected element. `leading` accepts decorative
 React content before the label wrapper and takes precedence over `icon`. Callers
 supply vendor artwork without focusable descendants and name icon-only controls
-with text children, `aria-label`, or `aria-labelledby`.
+with text children, `aria-label`, or `aria-labelledby`. An icon-only control
+mirrors string children, then the icon name, into `aria-label` and `title`. With
+neither it stays nameless rather than carrying an invented one: an identifier
+reads as a name to a checker and says nothing to the person hearing it, so the
+gap has to stay visible.
+
+`className` merges with the kit's classes instead of replacing them, matching
+React `BackLink`. The component's state wins over the caller's spread props:
+`aria-disabled`, `aria-busy`, the `data-btn-*` hooks, a link's `role`, and the
+`href` and `tabIndex` a disabled or busy control drops. No caller can leave a
+busy or disabled control reading as idle. `type` stays the caller's on a button
+and defaults to `button`; an anchor has none. Every other native attribute
+passes through. `ButtonProps` is the union of both roots and spreads back into
+`Button`; `ComponentProps<typeof Button>` resolves to that union rather than to
+the link alone, and `Button.displayName` stays typed.
 
 Disabled links have `aria-disabled`, no href, and `tabIndex=-1`. Busy links keep
 their tab position and focus, remove their href, and retain the last idle label.
-Both block clicks, auxiliary clicks, and Enter/Space activation in capture and
-bubble handlers. When enabled, the destination and caller tab index return.
+Both block clicks, auxiliary clicks, and Enter activation in capture and bubble
+handlers. Space is blocked on button roots only: it never activates an anchor, and
+a focused busy link that swallowed it would cost the reader the page scroll and
+prevent nothing. When enabled, the destination and caller tab index return.
 Native buttons remain natively disabled when explicitly disabled. Busy artwork
 uses the shared CSS to stay in layout while hidden. Covered by
 `react/src/primitives/Button.test.tsx`; browser captures check layout, while these
-JSDOM tests check semantics and activation rather than screen-reader speech.
+JSDOM tests check semantics and activation rather than screen-reader speech. The
+exported types are a gate of their own: `react/src/primitives/Button.types.tsx`
+compiles the consumer patterns under `react/tsconfig.types.json`.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
 
 ### Extra-small buttons

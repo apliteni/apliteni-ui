@@ -149,15 +149,34 @@ it.each(['disabled', 'busy'] as const)('blocks all link activation while %s', st
   expect(link).toHaveFocus();
   expect(fireEvent.click(link)).toBe(false);
   expect(fireEvent(link, new MouseEvent('auxclick', { button: 1, bubbles: true, cancelable: true }))).toBe(false);
-  for (const key of ['Enter', ' ']) {
-    expect(fireEvent.keyDown(link, { key })).toBe(false);
-    expect(fireEvent.keyUp(link, { key })).toBe(false);
-  }
+  expect(fireEvent.keyDown(link, { key: 'Enter' })).toBe(false);
+  expect(fireEvent.keyUp(link, { key: 'Enter' })).toBe(false);
   expect(handler).not.toHaveBeenCalled();
+  // Space never activates an anchor, so it is left alone. A focused busy link that
+  // swallowed it would cost the reader the page scroll and block nothing; the busy
+  // button test above covers the root where Space does activate.
+  expect(fireEvent.keyDown(link, { key: ' ' })).toBe(true);
+  expect(fireEvent.keyUp(link, { key: ' ' })).toBe(true);
+  expect(handler).toHaveBeenCalledTimes(2);
+  handler.mockClear();
   rerender(<Button href="#details" onClick={handler}>Details</Button>);
   expect(link).toHaveAttribute('href', '#details');
   fireEvent.click(link);
   expect(handler).toHaveBeenCalledTimes(1);
+});
+
+// The documented precedence, both halves of it.
+// why: docs/specification.md#react-button-links-and-leading-artwork
+it('merges a caller className and keeps its own state attributes ahead of spread props', () => {
+  const { getByRole } = render(<Button busy className="mine" type="submit"
+    aria-busy={false} aria-disabled={false} data-btn-disabled="">Saving</Button>);
+  const button = getByRole('button');
+  expect(button).toHaveClass('ui-btn', 'ui-btn--secondary', 'mine');
+  expect(button).toHaveAttribute('aria-busy', 'true');
+  expect(button).toHaveAttribute('aria-disabled', 'true');
+  expect(button).not.toHaveAttribute('data-btn-disabled');
+  // type is the caller's: a form still needs its submit button.
+  expect(button).toHaveAttribute('type', 'submit');
 });
 
 it('places decorative caller artwork before the label and prefers it over icon', () => {
@@ -174,8 +193,15 @@ it('names icon-only caller artwork and respects explicit labels', () => {
   expect(getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close');
   rerender(<Button href="#details" leading={<svg />} iconOnly aria-label="Dismiss">Close</Button>);
   expect(getByRole('link', { name: 'Dismiss' })).toBeInTheDocument();
+  // With no children and no icon there is nothing to mirror, so the control ships
+  // nameless and axe fails it. An identifier like "Button" reads as a name to the
+  // checker and says nothing to the person hearing it.
+  // why: guidelines/microcopy.md#name-every-control
   rerender(<Button leading={<svg />} iconOnly />);
-  expect(getByRole('button', { name: 'Button' })).toBeInTheDocument();
+  const nameless = getByRole('button');
+  expect(nameless).not.toHaveAttribute('aria-label');
+  expect(nameless).not.toHaveAttribute('title');
+  expect(nameless).toHaveAccessibleName('');
 });
 
 it('marks explicitly disabled busy controls for the existing disabled paint', () => {

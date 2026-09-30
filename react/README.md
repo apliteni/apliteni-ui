@@ -77,6 +77,12 @@ Disabled links leave the tab order; busy links keep focus. Both remove their hre
 and block activation until enabled. Anchor attributes such as `target`, `rel`,
 and `download` pass through. The kit does not supply vendor artwork.
 
+A `className` you pass is added to the kit's classes rather than swapped for them,
+and the component's own `aria-busy`, `aria-disabled` and `data-btn-*` attributes win
+over anything you spread in, so a busy control cannot be made to read as idle. An
+icon-only control with no children, no `icon` and no label ships nameless on purpose:
+the gap then shows up in an accessibility check instead of reading as satisfied.
+
 `CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
 kit's ranking rather than repeating it — so a palette a server rendered and the same palette
 after a keystroke put the same row first. Two differences from the vanilla one follow from
