@@ -15,9 +15,10 @@
 .invoice-flow__announcement { font-size: var(--text-sm); margin: 0; }
 .invoice-flow__announcement:empty { display: none; }
 .invoice-flow__summary, .invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: var(--space-4) 0; }
-.invoice-flow__summary { justify-content: space-between; }
 .invoice-flow__status, .invoice-flow__error { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
-.invoice-flow__status .ui-icon, .invoice-flow__error .ui-icon { width: var(--space-4); height: var(--space-4); stroke-width: 2.4; }
+/* icon() emits a bare <svg>; `.ui-icon` is only on the shell's hand-drawn fold glyph, so
+   this has to name the element to reach these. At 16px, 2.4 paints 1.6 CSS px. */
+.invoice-flow__status svg, .invoice-flow__error svg { width: var(--space-4); height: var(--space-4); stroke-width: 2.4; }
 .invoice-flow__error { white-space: normal; color: var(--pink); }
 .invoice-flow__columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-10); align-items: start; }
 .invoice-flow__data { grid-column: 1; grid-row: 1; }
@@ -30,6 +31,18 @@
 .invoice-flow__paper dd { margin: 0; font-variant-numeric: tabular-nums; }
 .invoice-flow__preview img, .invoice-flow__preview iframe { width: 100%; border: 1px solid var(--border); }
 .invoice-flow__preview iframe { height: var(--panel-lg); }
+/* The accent marks provenance, not rank: a rule above a field means the value is still
+   exactly what the parser extracted, so it is one the reader has yet to check. */
+.invoice-flow__field { border-block-start: 2px solid transparent; padding-block-start: var(--space-3); }
+.invoice-flow__field[data-parsed] { border-block-start-color: var(--accent); }
+.invoice-flow__paper-line { margin: var(--space-3) 0; }
+.invoice-flow__paper table { width: 100%; border-collapse: collapse; margin: var(--space-6) 0; }
+.invoice-flow__paper th, .invoice-flow__paper td { text-align: start; font-weight: var(--weight-normal); padding: var(--space-2) 0; border-block-end: 1px solid var(--border); }
+.invoice-flow__paper th:not(:first-child), .invoice-flow__paper td:not(:first-child) { text-align: end; font-variant-numeric: tabular-nums; }
+.invoice-flow__paper-sums div:last-child { border-block-start: 1px solid var(--border-strong); padding-block-start: var(--space-3); font-weight: var(--weight-medium); }
+/* The identity cell's ghost button carries the control's own inset, which put its text
+   18px right of the column header. Pull the box back so the two share an edge. */
+.invoice-flow .ui-table td:first-child .ui-btn { margin-inline-start: calc(-1px - var(--btn-pad-x)); }
 .invoice-flow__drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin: var(--space-6) 0; padding: var(--space-4); }
 .invoice-flow__drop > p { margin: 0; font-size: var(--text-sm); }
 .invoice-flow__drop.is-dragging { border-color: var(--accent); }

@@ -45,6 +45,9 @@ const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 // DataTable, Field, KeyValueList and Timeline size glyphs on both axes, and the
 // invoice showcase sizes its status and error glyphs the same way. A rule leaving
 // coverage fails; change the count with the sizing rules and explain removals.
+// The showcase selectors name the `svg` element, not a class: icon() emits no class
+// for one to reach, so the count stands over CSS that applies. Deleting the showcase
+// rules drops this to 8 and fails here.
 const EXPECTED_SUBJECTS = 12;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
