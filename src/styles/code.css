@@ -51,6 +51,7 @@
 }
 .ui-snippet__copy:hover { color: var(--accent); }
 .ui-snippet--reveal .ui-snippet__copy:hover { color: var(--strong); }
+.ui-snippet__copy:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
 .ui-snippet__copy svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; }
 
 /* Shell token highlighting (matches viz/account.mjs classes) */

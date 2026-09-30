@@ -95,6 +95,15 @@
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
 .ui-dropdown__panel.is-scroll { max-height: 300px; overflow-y: auto; }
 
+/* Chrome makes a scroll container a keyboard stop on its own — no tabindex, no
+   author rule — so `.is-scroll` took the browser's outline, black in light mode.
+   #457 refused that, and #487's review measured it here. Written for every panel
+   rather than the scrolling one, as the palette and the drawer write it, because
+   a panel that takes focus any other way has the same claim on the ring. The
+   ring is COMPOSED with the floating treatment rather than over it: a box-shadow
+   list replaces the whole list. why: docs/specification.md#elevation */
+.ui-dropdown__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); }
+
 /* Opening upward. The kit releases its own `top` here so that nothing outside
    the kit has to: an absolute box with both edges pinned is stretched between
    them, and a consumer who set `bottom` and left our `top` standing got a

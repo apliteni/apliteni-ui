@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-sans)}
+  .fx-pad{padding:26px}</style>
+</head>
+<body>
+<script type="module">
+// One story of the served checkout, rendered on its own for a focus capture.
+// The module comes over HTTP from the checkout being shot, so the before side of
+// a pair is this same page pointed at the other checkout — the rule the rest of
+// this rig follows. why: scripts/evidence/README.md
+const params = new URLSearchParams(location.search);
+document.documentElement.dataset.theme = params.get('theme') || 'dark';
+
+const file = params.get('story');
+const name = params.get('export');
+const mod = await import(`/stories/${file}`);
+const story = mod[name];
+if (!story) throw new Error(`no story ${name} in ${file}`);
+const def = mod.default || {};
+const args = { ...def.args, ...story.args };
+const out = (story.render || def.render)(args, {
+  globals: { theme: document.documentElement.dataset.theme, accent: 'default' }, args,
+});
+const html = typeof out === 'string' ? out : out.outerHTML;
+// Padded, because a ring is drawn outside the control's box and a subject flush
+// against the viewport edge would be clipped by it rather than by the rig.
+document.body.innerHTML = `<div class="fx-pad">${html}</div>`;
+
+// Wire whatever the story's own surface needs to be operable. Each import is
+// guarded: a module or export that does not exist on the other checkout must not
+// take the before side of the pair down with it.
+for (const [path, fn] of [
+  ['/src/components/shell.js', 'wireShell'],
+  ['/src/components/topbar.js', 'wireTopbar'],
+  ['/src/components/command-palette.js', 'wireCommandPalette'],
+]) {
+  try {
+    const m = await import(path);
+    if (typeof m[fn] === 'function') m[fn](document);
+  } catch { /* not on this checkout */ }
+}
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

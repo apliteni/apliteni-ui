@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.70.0', date: '2026-10-02',
+    changes: [
+      ['fixed', "Keyboard focus draws the kit's ring on the controls that showed the browser's own outline instead: both brand lockups, the theme toggle, the deck and version switchers, the account avatar and its menu rows, snippet copy, footer links and social marks, the interactive card, a toast's action and close, the feedback composer's buttons, and the React table's row-selection checkbox. Each one keeps a transparent outline, so forced-colours mode still shows a system ring. If your own CSS sets focus on any of these, check that it still outranks the kit's rule. Resolves #482.", ['Topbar', 'Footer', 'Snippet', 'Callout', 'Card', 'Table', 'Feedback']],
+      ['fixed', 'A dropdown panel that scrolls now draws the ring when it takes keyboard focus. A browser makes a scroll container a focus stop of its own, so the panel showed the browser\u2019s outline \u2014 black in light mode. The focus rule repeats the panel\u2019s edge and drop beside the ring, because a box-shadow list replaces the whole list; a consumer who overrode the panel\u2019s box-shadow should do the same. Other scrolling boxes in the kit still have no ring and are listed on #482.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.69.0', date: '2026-10-02',
     changes: [
       ['added', 'React SearchField renders the kit\u2019s search input group for a toolbar: a search glyph, a native search input and an accessible name instead of a visible label, so the row keeps the height of the unlabelled controls beside it. It forwards its ref and the native input props and adds no CSS of its own. There is no clear button, the field the kit already draws. See #517.'],

@@ -78,6 +78,7 @@
 .ui-fbc__chip svg { width: 14px; height: 14px; flex: none; opacity: .85; stroke-width: 2.7; }
 .ui-fbc__x { margin-left: auto; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ /* muted-ink: glyph — dismiss icon */ color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; font: inherit; }
 .ui-fbc__x:hover { color: var(--strong); }
+.ui-fbc__x:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-fbc__x svg { width: 14px; height: 14px; stroke-width: 2.7; }
 .ui-fbc__quote { margin: 14px 20px 0; background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }
 .ui-fbc__qm { color: var(--accent); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
@@ -94,6 +95,7 @@
 .ui-fbbtn { font-family: var(--font-sans); font-size: calc(var(--text-sm) + 0.5px); font-weight: var(--weight-semibold); border-radius: 10px; padding: 9px 17px; cursor: pointer; border: 0; transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
 .ui-fbbtn.ghost { background: transparent; color: var(--text); }
 .ui-fbbtn.ghost:hover { color: var(--strong); background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-fbbtn:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-fbbtn.primary { background: var(--accent-strong); color: var(--accent-contrast); display: inline-flex; align-items: center; gap: 9px; }
 .ui-fbbtn.primary:hover { filter: brightness(1.08); }
 /* Same flat pair as .ui-btn:disabled, for the same reason (#220). */

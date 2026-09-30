@@ -83,6 +83,7 @@
 /* Carries the shell's class as well as its own, for the same reason the rail
    rows do (see nav.css): a host stylesheet's `a:link` is (0,1,1). */
 .ui-app .ui-app__brand { color: var(--strong); }
+.ui-app__brand:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
 .ui-app__brand svg { display: block; flex: none; }
 
 /* The head band: the product's mark, and the rail's own control at the far end of

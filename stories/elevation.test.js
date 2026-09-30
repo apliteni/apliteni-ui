@@ -63,8 +63,15 @@ const sweep = STYLE_FILES.flatMap((file) =>
 // reviewing each added or removed declaration. 49 -> 50: the focus ring a link
 // inside a table now takes, which was the browser's own outline before #510.
 test('the sweep sees every box-shadow the kit ships', () => {
-  assert.equal(sweep.length, 50,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 50. `
+  // 50 before #482: 46, plus the three `box-shadow: none` rules #429 PR 3.9 wrote
+  // to drop the hairline from a collapsed rail's active row — no layers, nothing
+  // floats — plus the table-cell link's ring from #510. #482 gave the shared ring
+  // to the seventeen kit controls that had no focus rule at all. Sixteen write
+  // `box-shadow: var(--ring)`; the dropdown panel composes the ring with the
+  // floating treatment it already carries, so taking focus does not drop its edge
+  // and its drop. All seventeen are the composed indicator, not a cast shadow.
+  assert.equal(sweep.length, 67,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 67. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -102,8 +109,10 @@ test('the only cast shadow under src/ is the floating treatment', () => {
     + 'says how high it is with its step and its hairline; a floating one adds '
     + 'the inner line and var(--elev-drop) and nothing else:\n  ' + offences.join('\n  '));
   // Both themes are walked, so each floating declaration is counted twice.
-  assert.equal(floating, 26,
-    `${floating / THEMES.length} declarations carry the floating treatment, not the pinned 13. `
+  // 13 before #487 gave the dropdown panel a focus rule that re-states the
+  // treatment beside the ring, which is the fourteenth declaration carrying it.
+  assert.equal(floating, 28,
+    `${floating / THEMES.length} declarations carry the floating treatment, not the pinned 14. `
     + 'If a floating surface dropped it, put it back; if one was added, move the number.');
 });
 

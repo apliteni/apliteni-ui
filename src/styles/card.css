@@ -58,6 +58,7 @@
 }
 /* The lift alone: the kit casts no shadow anywhere (#295), and cards are flat (#284). */
 .ui-card--interactive:hover { transform: translateY(-2px); }
+.ui-card--interactive:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 /* card() emits the title as an h2, so the text face is named here rather than
    left to the element. why: docs/specification.md#labels-and-titles */
