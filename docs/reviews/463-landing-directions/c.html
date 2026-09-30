@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction C — pick a colour (#463)</title>
+<meta name="description" content="Review prototype for issue 463: the Poster composition for ui.apli.tech, with its own slogan.">
+<!-- A review prototype, not kit source. It draws one landing direction with the
+     kit's real stylesheet and the site's real chrome, for the captures under the
+     #463 evidence folder. ?theme=light|dark &accent=phoenix|ocean|emerald -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../../src/index.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* Direction C — Poster. One typographic anchor, one graphic relationship (the
+     four accents, which are the page's only real control), and a quiet band of
+     facts under it.
+
+     The anchor uses .ui-hero__title unchanged, so it tops out at the kit's own
+     66px display ceiling. A poster wants more; the ceiling is reported with the
+     direction rather than inflated here. */
+
+  /* position + overflow like the kit's own .ui-hero: the glow is absolute, and
+     without a positioned, clipping parent it escapes and widens the document. */
+  .c-poster { position: relative; overflow: hidden;
+    padding-block: clamp(52px, 11vh, 132px) clamp(40px, 7vh, 88px); }
+  .c-poster__title { max-width: 18ch; margin-inline: 0; text-align: left; }
+  .c-poster__sub { max-width: 46ch; margin-inline: 0; text-align: left; }
+  .c-poster .ui-hero__cta { justify-content: flex-start; }
+  .c-poster .c-prism + .ui-hero__cta { margin-bottom: 0; }
+
+  /* The graphic: four accent tiles, which are also the control. Each name sits
+     on the page ground under its tile, never on the fill. */
+  .c-prism { display: flex; gap: clamp(10px, 1.4vw, 18px); margin-block: clamp(30px, 5vh, 52px); }
+  .c-tile { background: none; border: 0; padding: 0; cursor: pointer; font: inherit;
+    display: flex; flex-direction: column; gap: 11px; align-items: flex-start;
+    border-radius: var(--radius-lg); }
+  .c-tile__swatch { display: block; width: clamp(56px, 8vw, 104px); aspect-ratio: 1;
+    border-radius: var(--radius-lg); transition: transform var(--dur-fast) var(--ease); }
+  .c-tile:hover .c-tile__swatch { transform: translateY(-3px); }
+  .c-tile__name { color: var(--text); font-size: var(--text-sm); font-weight: var(--weight-medium); }
+  .c-tile[aria-pressed="true"] .c-tile__name { color: var(--strong); }
+  .c-tile[aria-pressed="true"] .c-tile__swatch { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  /* The kit's ring shape: a transparent outline so forced colours still draws
+     one, plus the composed shadow. why: docs/specification.md#the-focus-ring */
+  .c-tile:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+
+  /* The specimen row: what "the rest" means, at a glance. No second filled
+     button on the page — the hero owns the only one. */
+  .c-spec { display: flex; align-items: center; gap: clamp(14px, 2vw, 28px); flex-wrap: wrap;
+    padding-top: var(--space-6); border-top: 1px solid var(--border); }
+  .c-spec__item { display: flex; align-items: center; gap: 10px; }
+  .c-spec__label { color: var(--text); font-size: var(--text-xs); }
+  /* A resting picture of the focus ring; a span, so it takes no focus itself. */
+  .c-ring { display: block; width: 64px; height: 26px; border-radius: var(--radius-sm);
+    border: 1px solid var(--control-edge); background: var(--surface); box-shadow: var(--ring); }
+
+  /* The rule sits on the content edge, not on the section: .wrap carries the
+     gutter, so a border on the section would run wider than every line above it. */
+  .c-box { border-top: 1px solid var(--border); padding-top: clamp(30px, 5vh, 56px); }
+  /* .ui-section-head is centred and 560px by design. This page reads down its
+     left edge, so the head follows the column it heads rather than the page. */
+  .c-head { text-align: left; max-width: 64ch; margin-inline: 0; }
+  .c-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-6); margin: 0; }
+  .c-facts dt { color: var(--text); font-size: var(--text-sm); margin-bottom: 4px; }
+  .c-facts dd { color: var(--strong); font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: var(--weight-semibold); font-family: var(--font-display); margin: 0;
+    letter-spacing: -0.01em; }
+  .c-install { max-width: var(--panel-lg); margin-top: var(--space-7); }
+
+  @media (max-width: 860px) {
+    .c-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .c-prism { flex-wrap: wrap; gap: 14px; }
+    .c-poster__title { max-width: none; }
+    /* One figure per row below 28rem: two of these side by side on a phone is
+       the case guidelines/density-and-accents.md refuses. */
+    .c-facts { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <section class="c-poster">
+    <span class="ui-glow ui-glow--purple" style="top:-160px;right:-80px;width:460px;height:460px"></span>
+    <div class="wrap" style="position:relative">
+      <h1 class="ui-hero__title c-poster__title">Pick a colour. <br><span class="grad">The rest is done.</span></h1>
+      <p class="ui-hero__sub c-poster__sub">Ink, edges, surfaces and the focus ring follow the accent you choose, in dark and in light.</p>
+
+      <div class="c-prism" role="group" aria-label="Accent">
+        <button type="button" class="c-tile" data-acc="default" aria-pressed="true">
+          <span class="c-tile__swatch" style="background:linear-gradient(145deg,#bd8cff,#7c3aed)"></span>
+          <span class="c-tile__name">Nebula</span>
+        </button>
+        <button type="button" class="c-tile" data-acc="phoenix" aria-pressed="false">
+          <span class="c-tile__swatch" style="background:linear-gradient(145deg,#ff8a5c,#ff6a3d)"></span>
+          <span class="c-tile__name">Phoenix</span>
+        </button>
+        <button type="button" class="c-tile" data-acc="ocean" aria-pressed="false">
+          <span class="c-tile__swatch" style="background:linear-gradient(145deg,#5ab0ff,#3b9dff)"></span>
+          <span class="c-tile__name">Ocean</span>
+        </button>
+        <button type="button" class="c-tile" data-acc="emerald" aria-pressed="false">
+          <span class="c-tile__swatch" style="background:linear-gradient(145deg,#3ad9a0,#16c98a)"></span>
+          <span class="c-tile__name">Emerald</span>
+        </button>
+      </div>
+
+      <div class="ui-hero__cta">
+        <a class="ui-btn ui-btn--primary ui-btn--lg" href="#box" style="text-decoration:none">Install</a>
+        <a class="ui-btn ui-btn--secondary ui-btn--lg" href="/storybook/" style="text-decoration:none">Open Storybook &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-block:var(--space-6) 0">
+    <div class="c-spec">
+      <span class="c-spec__item"><span class="c-spec__label">Focus</span><span class="c-ring" aria-hidden="true"></span></span>
+      <span class="c-spec__item"><span class="c-spec__label">Status</span><span class="ui-badge ui-badge--live">Live</span><span class="ui-badge ui-badge--soon">Soon</span></span>
+      <span class="c-spec__item"><span class="c-spec__label">Controls</span><button type="button" class="ui-btn ui-btn--secondary ui-btn--sm">Manage</button><label class="ui-switch"><input type="checkbox" checked aria-label="Example toggle, on"><span class="ui-switch__track"></span></label></span>
+    </div>
+  </section>
+
+  <section class="wrap band" id="box">
+    <div class="c-box">
+    <div class="ui-section-head c-head">
+      <h2>What you install</h2>
+      <p>One stylesheet of plain CSS classes for HTML pages, plus React components for the complex apps.</p>
+    </div>
+    <dl class="c-facts">
+      <div><dt>Vanilla modules</dt><dd>23</dd></div>
+      <div><dt>React components</dt><dd>22</dd></div>
+      <div><dt>Glyphs</dt><dd>79</dd></div>
+      <div><dt>Guideline pages</dt><dd>21</dd></div>
+    </dl>
+    <div class="c-install" id="c-install"></div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  import { mountChrome } from './proto.mjs';
+  import { snippet, hlShell, wireTopbar } from '../../../src/index.js';
+
+  document.getElementById('c-install').innerHTML =
+    snippet({ label: 'Install', code: hlShell('npm install @apliteni/apliteni-ui') });
+
+  await mountChrome();
+  wireTopbar(document);
+
+  /* The tiles do not own accent state. They click the footer's accent button,
+     which is the page's one accent code path (site/chrome.mjs), and then follow
+     the attribute it sets. One writer, one reader. */
+  const tiles = [...document.querySelectorAll('.c-tile')];
+  const root = document.documentElement;
+  const sync = () => {
+    const on = root.getAttribute('data-accent') || 'default';
+    tiles.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.acc === on)));
+  };
+  tiles.forEach((t) => t.addEventListener('click', () => {
+    document.querySelector(`.site-footer .accents button[data-acc="${t.dataset.acc}"]`)?.click();
+  }));
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-accent'] });
+  sync();
+</script>
+</body>
+</html>

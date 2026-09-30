@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction B — the styling is already decided (#463)</title>
+<meta name="description" content="Review prototype for issue 463: the Precision composition for ui.apli.tech, with its own slogan.">
+<!-- A review prototype, not kit source. It draws one landing direction with the
+     kit's real stylesheet, real factories and the site's real chrome, for the
+     captures under the #463 evidence folder.
+     ?theme=light|dark &accent=phoenix|ocean|emerald -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../../src/index.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* Direction B — Precision. The promise, then the product evidence close
+     enough to explain it, then the decisions behind it, then how to adopt it. */
+
+  /* position + overflow like the kit's own .ui-hero: the glows are absolute, and
+     without a positioned, clipping parent they escape and widen the document. */
+  .b-hero { position: relative; overflow: hidden; padding-top: clamp(56px, 10vh, 104px); text-align: center; }
+  .b-hero .ui-eyebrow { display: block; margin-bottom: var(--space-4); }
+
+  /* The picker sits between the section head and the demo, aligned to the card
+     it changes, so a reader meets the caption before the control. */
+  .b-picker { display: flex; align-items: center; justify-content: flex-end;
+    gap: var(--space-3); margin-bottom: var(--space-4); }
+  .b-picker__label { color: var(--text); font-size: var(--text-sm); font-weight: var(--weight-medium); }
+
+  /* The demo screen: fields beside the table at desk width, stacked on a phone. */
+  .b-screen { display: grid; grid-template-columns: minmax(0, 262px) minmax(0, 1fr);
+    gap: var(--space-6); align-items: start; }
+  .b-screen__fields { display: flex; flex-direction: column; gap: var(--space-4); }
+  .b-switchrow { display: flex; align-items: center; gap: var(--space-3); }
+  .b-switchrow span { color: var(--text); font-size: var(--text-sm); }
+  .b-screen__actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-2); }
+
+  /* The decisions. Rows rather than cards: six cards would be a stack to scroll
+     past, and each row here is one fact with one specimen, not a claim repeated. */
+  .b-decisions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 var(--space-8); }
+  .b-dec { padding-block: var(--space-5); border-top: 1px solid var(--border); }
+  .b-dec h3 { color: var(--strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 6px; }
+  .b-dec p { color: var(--text); font-size: var(--text-sm); line-height: 1.6; margin: 0; }
+  .b-dec__spec { margin-top: var(--space-4); display: flex; align-items: center; gap: 10px; min-height: 34px; }
+  .b-ink { color: var(--text); }
+  .b-ink--lg { font-size: 21px; font-weight: var(--weight-semibold); }
+  .b-ink--sm { font-size: var(--text-sm); }
+  .b-ladder { display: flex; gap: 6px; }
+  .b-ladder i { width: 34px; height: 22px; border-radius: var(--radius-xs); border: 1px solid var(--border); display: block; }
+  /* A resting picture of the ring, so the page can show it without asking the
+     reader to press Tab. A span, so it takes no focus of its own. */
+  .b-ringspec { width: 78px; height: 26px; border-radius: var(--radius-sm);
+    border: 1px solid var(--control-edge); background: var(--surface);
+    box-shadow: var(--ring); display: block; }
+  .b-steps { display: flex; align-items: flex-end; gap: 5px; }
+  .b-steps i { display: block; width: 9px; background: var(--accent); border-radius: 2px; }
+  .b-glyphs { display: flex; gap: 9px; color: var(--accent); }
+  .b-glyphs svg { width: 22px; height: 22px; stroke: currentColor; fill: none;
+    stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  /* Two rule titles, verbatim from the guidelines, rather than a decorative
+     specimen: the claim above is that the rules ship, so the specimen is a rule. */
+  .b-rules { color: var(--text); font-size: var(--text-sm); line-height: 1.7; }
+
+  .b-adopt { max-width: var(--measure); margin: 0 auto; }
+  .b-adopt .ui-snippet + .ui-snippet { margin-top: var(--space-4); }
+  .b-adopt .ui-tabs__panel { padding-top: var(--space-5); }
+  .b-adopt__note { color: var(--text); font-size: var(--text-sm); line-height: 1.6; margin-top: var(--space-4); }
+
+  .b-close { display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--space-5); flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: var(--space-6); }
+  .b-close p { color: var(--text); font-size: var(--text-base); line-height: 1.6; max-width: 56ch; margin: 0; }
+  .b-close__links { display: flex; gap: var(--space-4); }
+
+  @media (max-width: 860px) {
+    .b-decisions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-6); }
+    .b-screen { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .b-decisions { grid-template-columns: minmax(0, 1fr); }
+    .b-picker { justify-content: flex-start; }
+    /* On a phone the four columns only fit by scrolling, and the column that
+       ends up off-screen is the action one. The deploy date is the least useful
+       of the four in a specimen, so it is the one that leaves; the scroller
+       stays as the backstop for a narrower screen still. */
+    .b-screen .ui-table th:nth-child(3),
+    .b-screen .ui-table td:nth-child(3) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <section class="b-hero">
+    <span class="ui-glow ui-glow--purple" style="top:-140px;left:6%"></span>
+    <span class="ui-glow ui-glow--cyan" style="top:40px;right:-60px;width:320px;height:320px"></span>
+    <div class="wrap" style="position:relative">
+      <span class="ui-eyebrow">Apliteni design system</span>
+      <h1 class="ui-hero__title">The styling is <span class="grad">already decided</span></h1>
+      <p class="ui-hero__sub">Plain CSS classes for HTML pages, React components for the complex apps. Dark and light, under four accents.</p>
+      <div class="ui-hero__cta">
+        <a class="ui-btn ui-btn--primary ui-btn--lg" href="#adopt" style="text-decoration:none">Install</a>
+        <a class="ui-btn ui-btn--secondary ui-btn--lg" href="/storybook/" style="text-decoration:none">Open Storybook &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap band" id="proof">
+    <div class="ui-section-head">
+      <h2>Styled entirely by the kit</h2>
+      <p>Every control below is a kit class. The workspace, the roles and the four services are made up for this page.</p>
+    </div>
+    <div class="b-picker">
+      <span class="b-picker__label" id="b-picker-label">Accent</span>
+      <div class="accents" role="group" aria-labelledby="b-picker-label">
+        <button type="button" data-acc="default" class="on" style="background:linear-gradient(135deg,#bd8cff,#b479ff)" aria-label="Nebula accent"></button>
+        <button type="button" data-acc="phoenix" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)" aria-label="Phoenix accent"></button>
+        <button type="button" data-acc="ocean" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)" aria-label="Ocean accent"></button>
+        <button type="button" data-acc="emerald" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)" aria-label="Emerald accent"></button>
+      </div>
+    </div>
+
+    <div class="ui-card">
+      <div class="b-screen">
+        <div class="b-screen__fields">
+          <h3 class="ui-card__title">Access &amp; agents</h3>
+          <div class="ui-field">
+            <label class="ui-field__label" for="b-ws">Workspace</label>
+            <input class="ui-input" id="b-ws" value="apliteni-core" readonly>
+            <span class="ui-field__hint">Lowercase; the value appears in service URLs.</span>
+          </div>
+          <div class="ui-field">
+            <label class="ui-field__label" for="b-role">Your role</label>
+            <select class="ui-select" id="b-role"><option>Owner</option><option>Editor</option><option>Viewer</option></select>
+          </div>
+          <div class="b-switchrow">
+            <label class="ui-switch"><input type="checkbox" id="b-mail" checked aria-label="Mail me when a token is revoked, on"><span class="ui-switch__track"></span></label>
+            <span>Mail me when a token is revoked</span>
+          </div>
+          <div class="b-screen__actions">
+            <button class="ui-btn ui-btn--secondary">Save changes</button>
+            <button class="ui-btn ui-btn--ghost">Cancel</button>
+          </div>
+        </div>
+        <!-- The kit's own scroller, so four columns on a phone scroll inside the
+             card instead of widening the page. It is a focus stop and carries the
+             kit ring from src/styles/table.css. -->
+        <div class="ui-table-scroll" role="region" aria-label="Services, scroll for more columns" tabindex="0">
+        <table class="ui-table ui-table--hover">
+          <thead><tr><th>Service</th><th>Status</th><th>Last deploy</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="ui-table__title">strategy-portal</td><td><span class="ui-badge ui-badge--live">Live</span></td><td>4 Mar 2026</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
+            <tr><td class="ui-table__title">operating-model</td><td><span class="ui-badge ui-badge--soon">Soon</span></td><td>No deploy yet</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
+            <tr><td class="ui-table__title">agent-broker</td><td><span class="ui-badge ui-badge--live">Live</span></td><td>27 Feb 2026</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Manage</button></td></tr>
+            <tr class="is-dead"><td class="ui-table__title">legacy-admin</td><td><span class="ui-badge ui-badge--danger">Revoked</span></td><td>11 Nov 2025</td><td class="ui-table__act"><button class="ui-btn ui-btn--ghost ui-btn--sm">Restore</button></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap band" id="decided">
+    <div class="ui-section-head">
+      <h2>What the kit decides</h2>
+      <p>Each of these is one answer the kit gives, so an app does not have to give its own.</p>
+    </div>
+    <div class="b-decisions">
+      <div class="b-dec">
+        <h3>Ink</h3>
+        <p>One body colour at every size. Rank comes from size and weight, never from fading a word.</p>
+        <div class="b-dec__spec"><span class="b-ink b-ink--lg">Aa</span><span class="b-ink">Aa</span><span class="b-ink b-ink--sm">Aa</span></div>
+      </div>
+      <div class="b-dec">
+        <h3>Surfaces</h3>
+        <p>A ladder of grounds, each edged by a hairline. The kit draws no shadows.</p>
+        <div class="b-dec__spec"><span class="b-ladder" aria-hidden="true"><i style="background:var(--bg)"></i><i style="background:var(--surface)"></i><i style="background:var(--surface-3)"></i></span></div>
+      </div>
+      <div class="b-dec">
+        <h3>Focus</h3>
+        <p>One ring on every control: a gap, a solid band in your accent, then a soft halo.</p>
+        <div class="b-dec__spec"><span class="b-ringspec" aria-hidden="true"></span></div>
+      </div>
+      <div class="b-dec">
+        <h3>Spacing</h3>
+        <p>A ten-step scale sets every gap and pad. There is no density mode to configure.</p>
+        <div class="b-dec__spec"><span class="b-steps" aria-hidden="true"><i style="height:8px"></i><i style="height:13px"></i><i style="height:18px"></i><i style="height:24px"></i><i style="height:30px"></i></span></div>
+      </div>
+      <div class="b-dec">
+        <h3>Glyphs</h3>
+        <p>79 inline icons on one 24-pixel grid, drawn at a single stroke width.</p>
+        <div class="b-dec__spec"><span class="b-glyphs" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-8"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg>
+        </span></div>
+      </div>
+      <div class="b-dec">
+        <h3>The written rules</h3>
+        <p>The guidelines ship inside the package, so the reasoning arrives with the classes.</p>
+        <div class="b-dec__spec"><span class="b-rules">Keep text off grey fills<br>Name the current state</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap band" id="adopt">
+    <div class="b-adopt">
+      <div class="ui-section-head">
+        <h2>Two ways in</h2>
+        <p>A public npm package. No access token and no registry scope to configure.</p>
+      </div>
+      <div id="b-adopt-tabs"></div>
+    </div>
+  </section>
+
+  <section class="wrap band--tight" style="padding-bottom:clamp(40px,6vh,72px)">
+    <div class="b-close">
+      <p>Every rule above is written down, with the reason it was chosen and what it refuses.</p>
+      <span class="b-close__links">
+        <a class="ui-btn ui-btn--ghost" href="/storybook/?path=/story/guidelines-overview--overview" style="text-decoration:none">Read the guidelines</a>
+        <a class="ui-btn ui-btn--ghost" href="/changelog/" style="text-decoration:none">What changed</a>
+      </span>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  import { mountChrome } from './proto.mjs';
+  import { snippet, hlShell, tabs, initTabs, wireTopbar } from '../../../src/index.js';
+
+  const person = snippet({ label: 'Install', code: hlShell('npm install @apliteni/apliteni-ui') })
+    + snippet({ label: 'Use it', code: hlShell("import '@apliteni/apliteni-ui/css'\nimport { button, card, topbar } from '@apliteni/apliteni-ui'") });
+
+  const agent = snippet({ label: 'Paste this into your coding agent', code: hlShell(
+    'Adopt the apliteni-ui design system across this app and replace the current styles.\n'
+    + '\n'
+    + "1. Load it: npm i @apliteni/apliteni-ui && import '@apliteni/apliteni-ui/css'.\n"
+    + '   Set data-theme to dark or light on the html element, and data-accent for another colour.\n'
+    + '2. Replace every hardcoded colour, spacing value and radius with the kit variables.\n'
+    + '   Add no shadows: a surface shows its level through the ladder and a 1px --border line.\n'
+    + '3. Restyle with the kit classes instead of custom CSS: .ui-btn, .ui-input, .ui-card,\n'
+    + '   .ui-badge, .ui-table, .ui-seg, and the matching .ui- class for the rest.\n'
+    + '4. Change only the visual layer. Keep the content and the behaviour, then check both themes.\n'
+    + '\n'
+    + '# Vocabulary: https://ui.apli.tech/assets/kit.css\n'
+    + '# Examples:   https://ui.apli.tech/storybook/',
+  ) })
+    + '<p class="b-adopt__note">The kit ships its whole vocabulary as one stylesheet, which is why a prompt this short can carry it.</p>';
+
+  /* The kit's own tabs() and snippet(), not a copy of their markup: initTabs()
+     gives the strip its roving Tab stop and arrow keys, and wireTopbar() gives
+     each copy button the clipboard and the "Copied" swap. */
+  document.getElementById('b-adopt-tabs').innerHTML = tabs({
+    name: 'b-adopt',
+    ariaLabel: 'Who is adopting the kit',
+    items: [{ label: 'A person', panel: person }, { label: 'An agent', panel: agent }],
+  });
+
+  await mountChrome();
+  initTabs(document);
+  wireTopbar(document);
+</script>
+</body>
+</html>

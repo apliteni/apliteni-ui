@@ -77,7 +77,7 @@ const loaders = () => {
 const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*))?/g)]
   .map((m) => [decodeURIComponent(m[1]).replace(/\+/g, ' '), m[2] ?? '']);
 
-/* Thirteen files load fonts today: the Storybook preview iframe, the Storybook
+/* Sixteen files load fonts today: the Storybook preview iframe, the Storybook
  * manager chrome, the two site pages, the snippet in README.md that tells a
  * consumer what to put in their own <head>, the two review prototypes —
  * docs/reviews/270-back-control/variants.html (#270) and
@@ -94,8 +94,12 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
  * that installed the package, and it was the one nothing watched. The count is
  * asserted because a loader that stops being found stops being checked, and an
  * empty sweep passes as loudly as a full one. */
-// The React preview now loads the same faces as the vanilla preview.
-const EXPECTED_LOADERS = 13;
+// The React preview now loads the same faces as the vanilla preview. The last
+// three are #463's landing directions — docs/reviews/463-landing-directions/b.html
+// and c.html, and the candidate page its shots.mjs composes — which are judged
+// against the kit's own faces and are disposable: when that decision is taken,
+// the folder and these three go together, and this number comes back to 13.
+const EXPECTED_LOADERS = 16;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

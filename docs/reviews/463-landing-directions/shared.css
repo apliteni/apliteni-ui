@@ -1,0 +1,50 @@
+/* Shared page frame for the #463 landing directions.
+ *
+ * A review prototype, not kit source. Only three kinds of rule live here: the
+ * two body lines the kit's own landing writes inline, the page gutter, and the
+ * focus rings the shared chrome is missing.
+ */
+
+body { overflow-x: hidden; background: var(--bg); }
+
+/* padding-block, never the `padding` shorthand: the shorthand would delete the
+ * inline gutter this class supplies, which the site's gutter gate refuses. */
+.wrap { max-width: var(--container); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px); }
+.band { padding-block: clamp(56px, 8vh, 96px); }
+.band--tight { padding-block: clamp(36px, 5vh, 56px); }
+
+/* ---------------------------------------------------------------------------
+ * The rings the shared chrome does not draw.
+ *
+ * FINDING, not a prototype nicety. Every one of these is a focusable part of
+ * the live page, and none of them has a :focus-visible rule anywhere in the kit
+ * or in site/chrome.mjs — so each falls back to the browser's own outline,
+ * which ignores the accent and differs per browser and theme: Chromium draws it
+ * near-white in dark and near-black in light. Artur refused native outlines on
+ * #457. Reproduced with real Tab presses; the walk in shots.mjs prints each one.
+ *
+ * The shape is the kit's own: a transparent 2px outline so forced-colours mode
+ * still gets a system outline, plus box-shadow: var(--ring).
+ * why: docs/specification.md#the-focus-ring
+ * ------------------------------------------------------------------------- */
+.site-topbar .brand:focus-visible,
+.site-topbar .lk:focus-visible,
+.toggle:focus-visible,
+.accents button:focus-visible,
+.site-footer a:focus-visible,
+.ui-snippet__copy:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--ring);
+  border-radius: var(--radius-xs);
+}
+/* The accent dots already own their box-shadow (the 2px page-coloured collar,
+ * and a second ring when selected), so the ring has to be composed with it
+ * rather than replacing it — otherwise focusing a dot erases its selection.
+ *
+ * `.on` is repeated on purpose. site/chrome.mjs injects CHROME_CSS into the head
+ * AFTER this sheet, and `.accents button.on` weighs the same as a bare
+ * `.accents button:focus-visible` — so the selected dot kept its resting shadow
+ * and lost the ring. Measured, not guessed: the focus walk in shots.mjs caught
+ * exactly the selected dot and nothing else. */
+.accents button:focus-visible,
+.accents button.on:focus-visible { border-radius: 50%; box-shadow: 0 0 0 2px var(--bg), var(--ring); }
