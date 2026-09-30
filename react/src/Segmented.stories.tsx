@@ -23,7 +23,8 @@ export const Playground: Story = { render: args => <Choice key={args.value} {...
 export const Small: Story = { ...Playground, args: { label: 'Language', options: options(['EN', 'RU']), value: 'EN', size: 'sm' } };
 export const Block: Story = { ...Playground, args: { label: 'Section', options: options(['Overview', 'Agents', 'Billing']), value: 'Agents', block: true } };
 export const SmallBlock: Story = { ...Block, args: { ...Block.args, size: 'sm' } };
-export const Underline: Story = { ...SmallBlock, args: { ...SmallBlock.args, appearance: 'underline' } };
+export const Underline: Story = { ...Playground, args: { appearance: 'underline' } };
+export const UnderlineBlock: Story = { ...Block, args: { ...Block.args, appearance: 'underline' } };
 export const Disabled: Story = { ...SmallBlock, args: { ...SmallBlock.args, disabled: true },
   render: args => <Specimen label="Section selection is unavailable"><Choice {...args} /></Specimen>,
 };
