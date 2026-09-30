@@ -1,0 +1,7 @@
+/* Accent ink for the `inked` alternative in Segmented.stories.tsx (#475).
+   It lives in a file, not in the story's <style> block, because react/src/*.css
+   is what the contrast gate resolves tokens into — a `color` declaration left in
+   the block reaches JSDOM with var() intact and the gate cannot judge it.
+   It paints no surface, so it needs no ring gap of its own. */
+[data-seg-proto="inked"] .ui-seg button.is-active,
+[data-seg-proto="inked"] .ui-seg button[aria-pressed="true"] { background: none; color: var(--accent); }
