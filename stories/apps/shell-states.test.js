@@ -961,42 +961,60 @@ test('the fold arrives at once for a reader who asked for less motion', () => {
   );
 });
 
-// ---- A1e. the mark is the state ------------------------------------------
+// ---- A1e. the mark says what the press will do ---------------------------
 //
-// The toggle draws one mark at both widths — a frame that holds still and a seam
-// that crosses it — so nothing about the control says which way to press and the
-// reader reads the state instead. That only works while the seam actually moves,
-// and a seam that does not is the same control drawn twice: no gate above would
-// notice, because the mark is one glyph in the one place the equality gates leave
-// out (it is meant to differ between the folds).
+// The toggle draws Lucide `panel-left-close` on an open rail and Lucide
+// `panel-left-open` on a folded one. Two things are held here, and the old gates
+// held neither because the mark used to carry the state instead.
 //
-// The distance is held to the mark's own geometry rather than compared with a
-// number written here. src/components/shell.js draws the frame and the seam; the
-// seam is mirrored about the frame's centre when the rail is folded, so the
-// compartment it cuts off changes sides. A travel written by hand that is not
-// that mirror lands the seam somewhere the frame does not explain.
+// The seam holds still. It is the rail, and the compartment it cuts off has to
+// stay on the side the rail is on: a seam that crosses the frame's centre when
+// the rail narrows draws a WIDE left compartment beside a narrow rail, which is
+// the mark saying the opposite of what happened.
+//
+// The chevron is what travels, and it is one reflection rather than a hand-drawn
+// second position: mirrored about the centre of the compartment it stands in,
+// `panel-left-close`'s chevron lands exactly on `panel-left-open`'s. So both
+// states are shipped Lucide glyphs, and a travel written by hand that is not
+// that mirror would land the chevron somewhere Lucide does not draw.
 
 const MARK = 'src/components/shell.js';
 
-/** The mark's frame and seam, read out of the component that draws them. */
+/** Lucide `panel-left-open`'s chevron, the glyph the folded state has to land on. */
+const LUCIDE_PANEL_LEFT_OPEN_CHEVRON = 'm14 9 3 3-3 3';
+
+/** The corner points of a chevron written as `m x y dx dy dx dy`, absolute. */
+function chevronPoints(d) {
+  const n = (d.match(/-?\d*\.?\d+/g) || []).map(Number);
+  assert.equal(n.length, 6, `\`${d}\` is not the three-point chevron this gate can read`);
+  const pts = [[n[0], n[1]]];
+  for (let i = 2; i < 6; i += 2) pts.push([pts[pts.length - 1][0] + n[i], pts[pts.length - 1][1] + n[i + 1]]);
+  return pts;
+}
+
+const sortPoints = (pts) => [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+
+/** The mark's frame, seam and chevron, read out of the component that draws them. */
 function markGeometry() {
   const js = read(MARK);
   const rect = /<rect x="(-?[\d.]+)" y="-?[\d.]+" width="([\d.]+)"/.exec(js);
   assert.ok(rect, `${MARK} no longer draws the toggle's frame as a <rect> this gate can read`);
   const seam = /<path class="ui-app__fold-seam" d="M([\d.]+) [\d.]+v[\d.]+"/.exec(js);
   assert.ok(seam, `${MARK} no longer draws the toggle's seam as a vertical path this gate can read`);
+  const arrow = /<path class="ui-app__fold-arrow" d="([^"]+)"/.exec(js);
+  assert.ok(arrow, `${MARK} no longer draws the toggle's chevron as a path this gate can read`);
   const x = Number(rect[1]);
   const width = Number(rect[2]);
-  return { x, width, centre: x + width / 2, seam: Number(seam[1]) };
+  return { x, width, centre: x + width / 2, seam: Number(seam[1]), arrow: arrow[1] };
 }
 
-/** The `translateX()` the folded rail puts on the seam, in the mark's own units. */
-function seamTravel() {
+/** The x the folded rail mirrors the chevron about, read off layout.css. */
+function mirrorAxis() {
   const css = decomment(read('src/styles/layout.css'));
   for (const rule of leafRules(css)) {
-    if (!selectors(rule.head).some((one) => one.endsWith('.ui-app__fold-seam') && one.includes('.is-collapsed'))) continue;
-    const m = /transform\s*:\s*translateX\(\s*(-?[\d.]+)px\s*\)/.exec(rule.decls);
-    return m ? Number(m[1]) : null;
+    if (!selectors(rule.head).some((one) => one.endsWith('.ui-app__fold-arrow') && !one.includes('.is-collapsed'))) continue;
+    const m = /transform-origin\s*:\s*([\d.]+)px/.exec(rule.decls);
+    if (m) return Number(m[1]);
   }
   return null;
 }
@@ -1028,83 +1046,100 @@ test('the toggle is the glyph column, at both widths, so the mark holds its plac
   );
 });
 
-test('the seam moves when the rail folds, so the mark is the state and not a direction', () => {
-  const open = mount(PAIR(false));
-  const folded = mount(PAIR(true));
+test('the seam holds still, so the compartment it cuts off stays on the rail\'s side', () => {
+  const { x, width, centre, seam } = markGeometry();
+  assert.ok(
+    seam > x && seam < centre,
+    `the seam is drawn at ${seam}, in a frame of ${x}..${x + width} centred on ${centre}. Past the `
+    + 'centre it cuts off the WIDE compartment on the left, which is the mark saying the rail is the '
+    + 'big half of the window.',
+  );
   const at = (w) => w.of(w.q('.ui-app__fold .ui-app__fold-seam'), 'transform');
-  const [a, b] = [at(open), at(folded)];
+  const [open, folded] = [at(mount(PAIR(false))), at(mount(PAIR(true)))];
+  assert.equal(
+    open, 'none',
+    `the open rail puts \`${open}\` on the seam, so it is drawn somewhere other than the 9 shell.js writes`,
+  );
+  assert.equal(
+    folded, 'none',
+    `the folded rail moves the seam with \`${folded}\`. It used to travel past the frame's centre, which `
+    + 'drew a wide left compartment beside a rail that had just become narrow (#429). The chevron is '
+    + 'what reports the press now; the seam is the rail and it stays where the rail is.',
+  );
+});
+
+test('the chevron turns over, so the mark says what the press will do', () => {
+  const at = (w) => w.of(w.q('.ui-app__fold .ui-app__fold-arrow'), 'transform');
+  const [open, folded] = [at(mount(PAIR(false))), at(mount(PAIR(true)))];
+  assert.equal(
+    open, 'none',
+    `the open rail puts \`${open}\` on the chevron, so the mirror below is measured from somewhere other `
+    + 'than where the glyph is drawn',
+  );
   assert.notEqual(
-    a, b,
-    `the seam resolves to \`${a}\` on an open rail and \`${b}\` on a folded one. The toggle draws one `
-    + 'mark at both widths, so a seam that holds still is the same control twice and the state is '
-    + 'readable only from the accessible name.',
+    folded, open,
+    `the chevron resolves to \`${open}\` at both widths, so the control draws one glyph twice and what `
+    + 'the press will do is readable only from the accessible name',
   );
   assert.match(
-    b, /translateX/,
-    `the folded rail moves the seam with \`${b}\` rather than along the frame, which is the one axis a `
-    + 'seam dividing a panel can travel on',
-  );
-  assert.equal(
-    open.of(open.q('.ui-app__fold .ui-app__fold-seam'), 'transform'), 'none',
-    'the open rail puts a transform on the seam of its own, so the travel is measured from somewhere '
-    + 'other than where the mark is drawn',
+    folded, /scaleX\(\s*-1\s*\)|matrix\(\s*-1/,
+    `the folded rail turns the chevron over with \`${folded}\` rather than by reflecting it, which is the `
+    + 'one transform that carries one Lucide glyph onto the other',
   );
 });
 
-test('the seam\'s travel is the frame\'s own mirror, not a number in the stylesheet', () => {
-  const { x, width, centre, seam } = markGeometry();
-  const travel = seamTravel();
+test('the mirrored chevron is Lucide\'s own open glyph, not a number in the stylesheet', () => {
+  const { arrow } = markGeometry();
+  const axis = mirrorAxis();
   assert.ok(
-    travel != null,
-    'the folded rail writes no translateX() on the seam, so nothing here is holding a distance — see '
-    + 'the test above, which is the one that notices a seam that stopped moving',
+    axis != null,
+    'layout.css writes no transform-origin on .ui-app__fold-arrow, so the reflection happens about the '
+    + 'viewBox\'s left edge and the chevron folds out of the frame entirely',
   );
-  assert.ok(
-    seam > x && seam < x + width,
-    `the seam is drawn at ${seam}, outside the frame's ${x}..${x + width}, so it divides nothing`,
-  );
-  assert.equal(
-    travel, 2 * (centre - seam),
-    `the seam stands at ${seam} and travels ${travel}, which lands it at ${seam + travel} in a frame `
-    + `centred on ${centre}. Mirrored, it lands at ${2 * centre - seam}: the narrow compartment the seam `
-    + 'cuts off changes sides and the frame stays the same frame. Any other distance is a position the '
-    + `mark drawn in ${MARK} does not explain.`,
+  const mirrored = chevronPoints(arrow).map(([px, py]) => [2 * axis - px, py]);
+  assert.deepEqual(
+    sortPoints(mirrored), sortPoints(chevronPoints(LUCIDE_PANEL_LEFT_OPEN_CHEVRON)),
+    `${MARK} draws \`${arrow}\` and layout.css mirrors it about x=${axis}, which lands it at `
+    + `${JSON.stringify(sortPoints(mirrored))}. Lucide \`panel-left-open\` draws `
+    + `${JSON.stringify(sortPoints(chevronPoints(LUCIDE_PANEL_LEFT_OPEN_CHEVRON)))}. Any other axis is a `
+    + 'folded state this kit has drawn by hand — see AGENTS.md, which asks for unmodified Lucide paths.',
   );
 });
 
-test('the seam arrives with the rail\'s own edge, and stops when the rail does', () => {
-  const travel = travelOf({ file: 'src/styles/layout.css', selector: '.ui-app__fold .ui-app__fold-seam' });
+test('the chevron arrives with the rail\'s own edge, and stops when the rail does', () => {
+  const travel = travelOf({ file: 'src/styles/layout.css', selector: '.ui-app__fold .ui-app__fold-arrow' });
   assert.ok(
     travel,
-    'the seam declares no transition, so the mark reports the fold finished while the rail is still '
-    + 'closing. It is one `transition: transform` on .ui-app__fold .ui-app__fold-seam in layout.css.',
+    'the chevron declares no transition, so the mark reports the fold finished while the rail is still '
+    + 'closing. It is one `transition: transform` on .ui-app__fold .ui-app__fold-arrow in layout.css.',
   );
   assert.match(
     travel.value, /^transform\s/,
-    `the seam transitions \`${travel.value}\`, which is not the property that moves it`,
+    `the chevron transitions \`${travel.value}\`, which is not the property that moves it`,
   );
   for (const [token, why] of [
-    ['--dur-med', 'the rail\'s width travels on --dur-med, and a seam on any other clock arrives '
+    ['--dur-med', 'the rail\'s width travels on --dur-med, and a mark on any other clock arrives '
       + 'before or after the edge it is reporting'],
     ['--ease', 'the CSS keyword `ease` is a different curve from --ease, and the two read alike in a '
       + 'stylesheet'],
   ]) {
     assert.ok(
       travel.value.includes(`var(${token})`),
-      `the seam is timed \`${travel.value}\` rather than with ${token} — ${why}`,
+      `the chevron is timed \`${travel.value}\` rather than with ${token} — ${why}`,
     );
   }
   assert.ok(
     !travel.important,
-    'the seam writes its travel !important, which outranks the reduced-motion net — the mark would '
-    + 'slide for a reader who asked for none while the rail it reports on arrives in one frame',
+    'the chevron writes its travel !important, which outranks the reduced-motion net — the mark would '
+    + 'turn over for a reader who asked for none while the rail it reports on arrives in one frame',
   );
   assert.ok(
     !inNet(travel.rule),
-    'the seam\'s travel is inside a reduced-motion block, so it moves only for the reader who asked '
+    'the chevron\'s travel is inside a reduced-motion block, so it moves only for the reader who asked '
     + 'it not to',
   );
 });
+
 
 // ---- A1f. the account block is a row of the same rail ---------------------
 //

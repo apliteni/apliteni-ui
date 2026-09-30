@@ -135,12 +135,17 @@ export function railCollapsed(cookies) {
 // The name says what the press will do, and aria-expanded says what the rail is.
 const railName = (collapsed) => (collapsed ? 'Expand sidebar' : 'Collapse sidebar');
 
-// A frame that holds still and a seam that crosses it. Only the two nodes are
-// written here — a seam that travels has to be a child a stylesheet can reach —
-// and they are spliced into icon()'s own wrapper rather than a copy of it.
-// why: docs/specification.md#the-page-shell
+// Lucide `panel-left-close`, unmodified: a frame, the seam at 9, and a chevron
+// pointing the way the press moves the rail's edge. The folded rail mirrors the
+// chevron about 15 in layout.css, which lands it exactly on Lucide
+// `panel-left-open` — so both states are a shipped glyph and neither is drawn by
+// hand. The seam does not move: it IS the rail, and the compartment it cuts off
+// stays on the side the rail is on. Only the nodes are written here — a child a
+// stylesheet can reach — and they are spliced into icon()'s own wrapper rather
+// than a copy of it. why: docs/specification.md#the-page-shell
 const MARK = '<rect x="3" y="3" width="18" height="18" rx="2"/>'
-  + '<path class="ui-app__fold-seam" d="M9 3v18"/>';
+  + '<path class="ui-app__fold-seam" d="M9 3v18"/>'
+  + '<path class="ui-app__fold-arrow" d="m16 15-3-3 3-3"/>';
 const railMark = () => icon('').replace('></svg>', `>${MARK}</svg>`);
 
 // The rail's own skin, outside the <nav>: folding the rail is not a place to go.

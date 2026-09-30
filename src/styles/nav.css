@@ -93,8 +93,12 @@
 
 .ui-nav__ic { display: inline-flex; flex: none; }
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
+/* The glyph brightens with its row and takes the row's ink, not the accent. One
+   accent signal per row: that is the marker above, which is the only thing on a
+   rail that means "here". A glyph in --accent beside it is the same sentence
+   said twice, and beside an accent counter it was said three times. See #429. */
 .ui-nav__item.is-active .ui-nav__ic svg,
-.ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: var(--accent); } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
+.ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
 .ui-nav__label {
   flex: 1 1 auto; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -146,16 +150,14 @@
 .ui-nav__badge.is-live { background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--chip-success-ink); }
 .ui-nav__badge.is-danger { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
 .ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); }
-/* Same shape, one row up: on an active row the accent counter takes the row's
-   OWN surface instead of laying its wash over it. An active row is already
-   painted --surface, so an opaque counter avoids stacking tinted fills. Every
-   figure here is measured against the tokens this kit now ships. The accent on
-   that pair falls under WCAG AA in four of the eight theme x accent cells —
-   4.08 in dark Nebula, where the flat surface reads 4.92 — and no alpha reaches
-   it, the largest that clears being 0.06 in dark Nebula and 0.02 in light
-   Emerald. So the accent wash is painted on a base surface, never a raised one.
-   See #157 and docs/specification.md#colour-and-contrast. */
-.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--accent); }
+/* Same shape, one row up: on the current row the accent counter drops both the
+   wash and the accent and reads as the neutral one beside it. The row already
+   carries the one accent signal it is allowed — the marker — and the count is a
+   number, not a second answer to "where am I". It also retires the pair #157
+   recorded: accent ink on --surface fell under WCAG AA in four of the eight
+   theme x accent cells (4.08 in dark Nebula), and no alpha cleared it. Nothing
+   now paints that pair. See #429 and docs/specification.md#colour-and-contrast. */
+.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); }
 
 /* Collapsible group */
 .ui-nav__group { display: flex; flex-direction: column; }
@@ -247,6 +249,43 @@
   margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0;
 }
 .ui-nav--side.is-collapsed .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
+
+/* The current row on a folded rail: ONE plate on the glyph column, and nothing
+   else. The open rail's marker is a 3px bar standing in the row's own left
+   padding; on the strip that padding is the rail's edge, so the bar reads as a
+   tick on the rail rather than a mark on a row — and a nested row puts it
+   --space-3 further out again, outside the rail altogether. The hairline cannot
+   close either: a row keeps the open column and the rail clips it, so its right
+   edge is drawn off the strip.
+
+   The plate is the strip. --ui-nav-strip is twice a row's own glyph centre, so a
+   box that wide standing at the row's edge is centred on the glyph, and the mark
+   lands where the reader is already looking. --surface-3 is the kit's quiet
+   non-text fill — a step off the rail in both themes, carrying a glyph and never
+   a word. The references mark current the same way and with no hue at all:
+   Cloudflare's docs rail paints a flat plate, and lessly-ui's rail is "a plate and
+   the weight step, no hue". Here the glyph's own step from 0.66 to full ink is the
+   second half of that pair. See #429.
+
+   `isolation` is what puts the plate behind the glyph: a positioned ::before paints
+   over its row's content, and a negative z-index with no stacking context of its
+   own would drop it behind the rail instead. */
+.ui-nav--side.is-collapsed .ui-nav__item.is-active { isolation: isolate; background: none; }
+/* At rest only — box-shadow carries the hairline AND the focus ring (WCAG 2.4.7). */
+.ui-nav--side.is-collapsed .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
+.ui-nav--side.is-collapsed .ui-nav__item.is-active::before {
+  left: 0;
+  width: var(--ui-nav-strip);
+  height: 100%;
+  border-radius: 10px;
+  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  z-index: -1;
+}
+/* Hover's hairline is an outline on a row that keeps the open column, so on the
+   strip it too is drawn with no right edge. A folded rail answers a pointer with
+   the row's own ink and the name beside it, which is the whole readout at this
+   width. At rest only, so the focus ring is left standing. */
+.ui-nav--side.is-collapsed .ui-nav__item:hover:not(:focus-visible) { outline: none; }
 
 /* -- Horizontal tabs ----------------------------------------------------- */
 .ui-nav--tabs {

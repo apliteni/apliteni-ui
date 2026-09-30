@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.62.0', date: '2026-10-01',
     changes: [
       ['added', 'React SidebarNav supports sections, one level of nested disclosure, counts, disabled and danger rows, collapsed presentation, artwork and footer slots, and router links. AppShell uses it in the desktop rail and More drawer with the existing sidebar styling, and a page under a back link keeps its section active in both navs. Part of #429.'],
+      ['changed', 'The rail\u2019s collapse control draws Lucide panel-left-close while the rail is open and panel-left-open while it is folded, so the mark says what the press will do; the seam no longer travels. A folded rail marks the current row with one plate on the glyph column, in place of the accent bar and the hairline that a rail one glyph wide cut off. An open rail keeps the accent bar on its own: the current row\u2019s glyph and its counter take body ink. Vanilla and React share all three. Part of #429.', ['AppShell', 'SidebarNav']],
     ],
   },
   {

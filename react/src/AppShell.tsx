@@ -113,7 +113,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       {sidebar(sections, 'Sections')}
       <div className="ui-app__foot"><div className="ui-app__fold-row">
         <button type="button" className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
-          <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /></svg></span><span className="ui-nav__label">{foldLabel}</span>
+          <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span><span className="ui-nav__label">{foldLabel}</span>
         </button>
       </div></div>
     </div>
