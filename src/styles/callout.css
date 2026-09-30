@@ -91,9 +91,16 @@
 }
 .ui-toast__close:hover { color: var(--text); }
 
-/* auto-dismiss progress bar — .is-running is added by wireToastStack() */
+/* auto-dismiss progress line — .is-running is added by wireToastStack() */
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
-.ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; /* motion: ambient — the bar spends the toast's dismiss timer, which the caller sets */ }
+.ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; /* motion: ambient — the line spends the toast's dismiss timer, which the caller sets */ }
+/* The line spends the notice's own timer, so it stops exactly when the timer
+   does: under the pointer, and while focus is anywhere inside. Holding both
+   pauses here rather than in each face's event wiring keeps the line and the
+   countdown from drifting apart, and gives a keyboard reader the same reprieve
+   a pointer reader gets. */
+.ui-toast:hover > .ui-toast__timer.is-running,
+.ui-toast:focus-within > .ui-toast__timer.is-running { animation-play-state: paused; }
 
 /* Legacy style classes share the neutral card. */
 .ui-toast--soft, .ui-toast--solid, .ui-toast--outline { background: var(--surface); --ring-gap: var(--surface); color: var(--text); }
@@ -108,11 +115,81 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ui-toast, .ui-toast.is-leaving { animation: none; }
-  .ui-toast__timer.is-running { animation: none; }
+  /* A line that cannot move sits full for the whole five seconds and reads as
+     "no time spent yet" — the opposite of what it is there to say. The notice
+     still expires on time; only the false readout goes. */
+  .ui-toast__timer { display: none; }
 }
 
 /* stack container for queued toasts */
 .ui-toast-stack { display: flex; flex-direction: column; gap: 12px; width: var(--panel-md); max-width: 100%; }
+
+/* ----------------------------------------------------------------------------
+ * Collapsed stack — several notices rest as one pile and fan out on hover or
+ * focus, newest in front. Both positions are measured and published per card by
+ * applyToastPile() in components/toasts.js; the switch between them is this
+ * sheet's, so a hover never waits on a script and reduced motion reaches it
+ * through the net like any other transition.
+ * -------------------------------------------------------------------------- */
+.ui-toast-stack--collapsed {
+  position: relative;
+  display: block;
+  height: var(--toast-pile-height, auto);
+  transition: height var(--dur-med) var(--ease);
+}
+.ui-toast-stack--collapsed > .ui-toast {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  /* Paint order follows the DOM, and the newest notice is not always last in it:
+     the vanilla stack prepends. The front card is named, not assumed. */
+  z-index: var(--toast-card-depth, auto);
+  transform-origin: bottom center;
+  /* `translate` and `scale`, not `transform`: the entrance keyframes own
+     transform and `both` holds their last value after they finish, which would
+     overwrite a pile offset written here. These two compose with it instead. */
+  translate: 0 var(--toast-card-lift, 0px);
+  scale: var(--toast-card-scale, 1);
+  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
+}
+.ui-toast-stack--collapsed:hover, .ui-toast-stack--collapsed:focus-within { height: var(--toast-fan-height, auto); }
+.ui-toast-stack--collapsed:hover > .ui-toast,
+.ui-toast-stack--collapsed:focus-within > .ui-toast {
+  translate: 0 var(--toast-card-fan, 0px);
+  scale: 1;
+}
+
+/* The count is the one thing a pile hides: how much is waiting behind the front
+   card. It sits above the pile and leaves once the pile has answered for itself.
+   .ui-badge--neutral is text on --surface, not on a grey fill. */
+.ui-toast-stack__count {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: var(--space-2);
+  transition: opacity var(--dur-fast) var(--ease), visibility var(--dur-fast) linear;
+}
+.ui-toast-stack--collapsed:hover > .ui-toast-stack__count,
+.ui-toast-stack--collapsed:focus-within > .ui-toast-stack__count { opacity: 0; visibility: hidden; }
+
+/* Half of what opens a pile is hover. Where the reader has none, and the cards
+   behind the front one are not focusable, a pile is one nobody can open — so
+   the stack stays the plain column and the count has nothing to add.
+   The question is hover, not precision: `(pointer: coarse)` is the kit's field
+   sizing net and answers a different one (stories/field-zoom.test.js).
+   Each fanned state is named again rather than left to the shorter selector:
+   a tap still lands focus inside the stack, and `:focus-within` above would
+   otherwise hand a static card the offset it only has while absolute. This
+   block therefore has to stay BELOW the rules it answers for. */
+@media (hover: none) {
+  .ui-toast-stack--collapsed,
+  .ui-toast-stack--collapsed:hover,
+  .ui-toast-stack--collapsed:focus-within { display: flex; height: auto; }
+  .ui-toast-stack--collapsed > .ui-toast,
+  .ui-toast-stack--collapsed:hover > .ui-toast,
+  .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; }
+  .ui-toast-stack--collapsed > .ui-toast-stack__count { display: none; }
+}
 
 /* Success panel — centered confirmation, used after form submit */
 .ui-success {

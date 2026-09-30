@@ -1,4 +1,7 @@
-.rx-toast-stack {
+/* Both class names, so this outranks `.ui-toast-stack--collapsed` in the kit
+   sheet: a collapsed stack asks for `position: relative`, which a plain
+   `.rx-toast-stack` would only win by load order. The corner is not negotiable. */
+.ui-toast-stack.rx-toast-stack {
   position: fixed;
   right: var(--space-4);
   bottom: var(--space-4);

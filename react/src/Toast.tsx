@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
+import { clearToastPile, toastPileLabel, watchToastPile, TOAST_PILE_MIN } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 import './Toast.css';
 
@@ -7,11 +8,12 @@ export type ToastNotice = {
   tone?: 'success' | 'danger' | 'warn' | 'info' | 'neutral';
   compact?: boolean;
   dismissible?: boolean;
+  progress?: boolean;
   title: string;
   text?: string;
   action?: { label: string; onClick: () => void };
 };
-export type ToastProps = { children: ReactNode };
+export type ToastProps = { children: ReactNode; collapse?: boolean };
 const Context = createContext<((notice: ToastNotice) => void) | null>(null);
 const glyphs = { success: 'circleCheck', danger: 'circleX', warn: 'circleAlert', info: 'info', neutral: 'bolt' };
 
@@ -75,7 +77,7 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
       {notice.dismissible !== false && <button type="button" className="ui-toast__close" aria-label="Dismiss" disabled={leaving} onClick={dismiss}>
         <Icon name="x" />
       </button>}
-      {!notice.action && <span className="ui-toast__timer is-running" aria-hidden="true"
+      {!notice.action && notice.progress !== false && <span className="ui-toast__timer is-running" aria-hidden="true"
         style={{ animationPlayState: paused ? 'paused' : 'running' }} />}
     </div>
   );
@@ -109,7 +111,21 @@ function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: numbe
   }, [stack, count]);
 }
 
-export function Toast({ children }: ToastProps) {
+/* The pile keeps its own measurements: where every notice rests behind the front
+ * card, and where it fans out to. applyToastPile() inside watchToastPile() is
+ * the kit's own, so the vanilla stack and this one pile identically.
+ * The switch between the two positions is the stylesheet's, on :hover and
+ * :focus-within — nothing here listens for either. why: docs/specification.md#toast-stacks */
+function usePile(stack: RefObject<HTMLDivElement | null>, piled: boolean, count: number) {
+  useLayoutEffect(() => {
+    const element = stack.current;
+    if (!element) return;
+    if (!piled) { clearToastPile(element); return; }
+    return watchToastPile(element);
+  }, [stack, piled, count]);
+}
+
+export function Toast({ children, collapse = false }: ToastProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const nextId = useRef(0);
   const stack = useRef<HTMLDivElement>(null);
@@ -118,12 +134,16 @@ export function Toast({ children }: ToastProps) {
     const remove = () => setEntries(current => current.filter(entry => entry.id !== id));
     setEntries(current => [...current, { id, notice, remove }]);
   }, []);
+  // One notice is not a pile: collapsing it would only hide it behind itself.
+  const piled = collapse && entries.length >= TOAST_PILE_MIN;
   usePublishedReach(stack, entries.length);
+  usePile(stack, piled, entries.length);
   return <Context.Provider value={push}>
     {children}
     {typeof document !== 'undefined' && createPortal(
-      <div className="ui-toast-stack rx-toast-stack" ref={stack}>
+      <div className={`ui-toast-stack rx-toast-stack${piled ? ' ui-toast-stack--collapsed' : ''}`} ref={stack}>
         {entries.map(entry => <Notice key={entry.id} notice={entry.notice} remove={entry.remove} />)}
+        {piled && <span className="ui-badge ui-badge--neutral ui-toast-stack__count">{toastPileLabel(entries.length)}</span>}
       </div>, document.body)}
   </Context.Provider>;
 }
