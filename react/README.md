@@ -41,7 +41,8 @@ and a `label` for its accessible name. Use `size="sm"` for compact choices and
 type size and leaves the control at its full height. Omitting both preserves the
 standard pill presentation. Options support `ariaLabel` and `disabled`;
 `disabled` on the toolbar disables all choices.
-Use tabs for panels and links for navigation between pages.
+Reach for it when a choice filters or switches a view in place; use `Tabs` when the
+choice owns a panel, and links when it changes the page.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
