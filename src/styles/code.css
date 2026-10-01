@@ -91,11 +91,13 @@
 .ui-snippet--reveal .ui-snippet__bar > span { color: var(--chip-success-ink); }
 .ui-snippet--reveal pre { color: var(--chip-success-ink); word-break: break-all; white-space: pre-wrap; }
 
-/* Inline code */
+/* Inline code. The chip paints whichever reading surface its container is not on, so an
+   identifier keeps its chip on the page AND inside a card, with no edge of its own. The
+   container hands the surface over in --code-bg; see src/tokens/tokens.css. #537 */
 .ui-code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--code-bg); /* ring-gap: inherit — an inline chip holds no focus target, and its own paint is one step from the gap beside it. */
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   color: var(--text);
