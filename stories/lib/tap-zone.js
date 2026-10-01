@@ -150,12 +150,21 @@ export const PROBE = ({ html, size, interior, families }) => {
     let reachX = Math.min(b.width, size);
     let reachY = Math.min(b.height, size);
     const missing = [];
+    const blockers = new Map();
     for (let dy = -half + 0.5; dy < half; dy += 2) {
       for (let dx = -half + 0.5; dx < half; dx += 2) {
         const x = cx + dx;
         const y = cy + dy;
         if (x < 0 || y < 0 || x >= window.innerWidth) continue;
-        if (owner(x, y) !== i) missing.push([Math.round(dx), Math.round(dy)]);
+        const o = owner(x, y);
+        if (o === i) continue;
+        missing.push([Math.round(dx), Math.round(dy)]);
+        // Which side the square is short on, and who holds it there. Diagnostic
+        // only; the gate asserts on the count.
+        const side = Math.abs(dx) / (b.width / 2) > Math.abs(dy) / (b.height / 2)
+          ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'top' : 'bottom');
+        const key = `${side}:${o === -1 ? 'nothing' : (typeof els[o].className === 'string' && els[o].className ? els[o].className.trim().split(/\s+/)[0] : els[o].tagName.toLowerCase())}`;
+        blockers.set(key, (blockers.get(key) || 0) + 1);
       }
     }
     // How far the control actually wins outside its own edge, on the two centre
@@ -239,6 +248,7 @@ export const PROBE = ({ html, size, interior, families }) => {
       drawn: [Math.round(b.width * 100) / 100, Math.round(b.height * 100) / 100],
       reach: [Math.round(reachX * 100) / 100, Math.round(reachY * 100) / 100],
       floorMiss: missing.length,
+      blockers: [...blockers].sort((a, b2) => b2[1] - a[1]).slice(0, 4),
       box: [Math.round(b.x), Math.round(b.y)],
       lost,
       lostTo,
@@ -277,8 +287,21 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
     }));
     const rows = [];
     for (const s of subjects) {
+      // The viewport has to hold the whole story before anything is asked of
+      // it: elementFromPoint answers about the VIEWPORT, and returns null below
+      // the fold. Measured with a fixed 900px box, every control on the lower
+      // half of a long story reported a reach of exactly its drawn size and no
+      // owner at all — a rig artefact that reads identically to a layer that
+      // was never applied.
+      const height = await page.evaluate((html) => {
+        document.body.innerHTML = html;
+        return Math.min(Math.max(document.documentElement.scrollHeight, 900), 6000);
+      }, s.html);
+      if (height !== page.viewportSize().height) {
+        await page.setViewportSize({ width, height });
+      }
       const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families });
-      if (targets.length) rows.push({ story: s.id, targets });
+      if (targets.length) rows.push({ story: s.id, targets, height });
     }
     return { media, rows };
   } finally {

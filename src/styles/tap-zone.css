@@ -1,13 +1,12 @@
 /* apliteni-ui — the tap zone. Below the phone step, to a coarse pointer, a
  * control that draws smaller than --tap-min carries a transparent layer that
- * reaches the floor, and the drawn control does not change by a pixel. The kit
- * has run this on the checkbox and the toast close since #219; this
- * generalises it, raises it to 44 and gates it on the pointer.
+ * reaches the floor, and no control is drawn any bigger. Zones alone do not
+ * finish it: a layer takes HALF the clear space its container declares, so
+ * where the kit packs small controls closer than that, the GAP opens to
+ * --tap-gap. The controls keep their size; the space between them grows.
  *
- * The clamp is the design: a layer takes HALF the clear space its container
- * declares and stops, so two neighbouring layers meet at the midpoint and
- * neither crosses a drawn edge. Unclamped, the later control in the markup
- * wins the overlap — on a menu, `Duplicate` handing its bottom to `Revoke`.
+ * Read LAST, after every component sheet — see src/index.css — because each
+ * opening overrides a gap one of them already set.
  *
  * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
  * Held by stories/tap-zone.test.js, measured in a browser at 390.
@@ -21,13 +20,15 @@
      resolving to nothing there would size the layer to `auto` in silence. */
   --tap-min: 44px;
 
-  /* Clear space to the nearest neighbour, per axis, declared by the container
-     that knows its own gap and inherited by the controls in it. The default is
-     the kit's ordinary row gap: what the layout is ASSUMED to give, not what it
-     does. Assuming more is what routes a tap to the neighbour — at an assumed
-     16 the kit's own stories lose 36 points. */
-  --tap-clear-x: var(--space-3, 12px);
-  --tap-clear-y: var(--space-3, 12px);
+  /* 44 − 24: two zones fit between two of the smallest marks the kit draws. */
+  --tap-gap: var(--space-5, 20px);
+
+  /* Clear space to the nearest neighbour, declared by the container that knows
+     its own gap. A layer takes half on each side, so the default is the gap
+     itself. A container that packs tighter and cannot open declares what it
+     does give; the gate fails a number that is not true. */
+  --tap-clear-x: var(--tap-gap);
+  --tap-clear-y: var(--tap-gap);
 }
 
 @media (max-width: 560px) and (pointer: coarse) {
@@ -79,31 +80,48 @@
     height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
   }
 
-  /* -- The clearances the kit's own layouts declare ------------------------
-   * Each is the gap that container sets. A number that drifts from it is caught
-   * by the browser gate, which measures the result rather than reading these. */
+  /* -- Where the kit opens a gap, and where it cannot --------------------
+   * `!important` for the reason field-zoom.css takes it: each opening
+   * overrides a `gap` shorthand a component sheet set, and the React bundle
+   * ships this sheet without those sheets, where order is the consumer's.   */
 
-  /* A segmented strip packs its pills at --space-1 and wraps. */
-  .ui-seg { --tap-clear-x: var(--space-1, 4px); --tap-clear-y: var(--space-1, 4px); }
+  /* A strip keeps its pills packed across — that tight track IS the control —
+     and opens down, where the room is free until it wraps. */
+  .ui-seg {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--space-1, 4px);
+    --tap-clear-y: var(--tap-gap);
+  }
 
-  /* Tabs sit 2px apart across. Down, the panel under the strip opens on 20px of
-     padding and nothing stands above it, which is what carries a 38px tab. */
-  .ui-tabs__list { --tap-clear-x: 2px; --tap-clear-y: var(--space-5, 20px); }
+  /* Tabs are wide enough across; down, the panel under them has the room. */
+  .ui-tabs__list { --tap-clear-x: 2px; --tap-clear-y: var(--tap-gap); }
 
-  /* A pager's steps are 4px apart, and the strip wraps at this width. */
-  .ui-pager__steps { --tap-clear-x: var(--space-1, 4px); --tap-clear-y: var(--space-1, 4px); }
-  .ui-pager { --tap-clear-y: var(--space-3, 12px); }
+  /* Equal cells read as one strip, so they stay packed across and open down,
+     which is where this strip wraps at this width. */
+  .ui-pager__steps {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--space-1, 4px);
+    --tap-clear-y: var(--tap-gap);
+  }
+  .ui-pager { row-gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
-  /* A table's action cell packs a button against an icon button, and its rows
-     touch top to bottom. Row actions get the cell's room and no more. */
-  .ui-table__act { --tap-clear-x: var(--space-2, 8px); --tap-clear-y: var(--space-2, 8px); }
+  /* Chips open both ways: the row wraps, and the button at the end of it is a
+     target like the chips are. */
+  .ui-filter-bar { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 
-  /* A filter row wraps at --space-2. Inside a chip the value trigger and the
-     remove mark share an edge, so the chip grants none; the remove mark is not
-     a carrier either, and keeps the 24px target filter-bar.css draws for it. */
-  .ui-filter-bar { --tap-clear-x: var(--space-2, 8px); --tap-clear-y: var(--space-2, 8px); }
+  /* Inside a chip there is nothing to open: parting the value from its remove
+     mark would draw two controls where the reader sees one. Named on the
+     Accessibility minimums page. */
   .ui-filter-bar__chip { --tap-clear-x: 0px; --tap-clear-y: 0px; }
 
-  /* A toast stacks under another toast and clips at its own padding. */
-  .ui-toast { --tap-clear-y: var(--space-3, 12px); }
+  /* Row actions open across — the pair #488 names — and cannot open down:
+     a dense table's rows share an edge, and parting them is the row height the
+     guideline protects. Down, they get the row's own padding, twice. */
+  .ui-table__act { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--space-4, 16px); }
+
+  /* The row opens; the box does not. A toast clips to its own rounded corners
+     for the timer bar, and widening its padding grows the surface rather than
+     the space between controls — measured at four marks for 8px on every
+     toast. Named on the Accessibility minimums page. */
+  .ui-toast { gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 }

@@ -17,7 +17,6 @@
 @import "./styles/base.css";
 @import "./styles/reduced-motion.css";
 @import "./styles/field-zoom.css";
-@import "./styles/tap-zone.css";
 @import "./styles/motion.css";
 @import "./styles/button.css";
 @import "./styles/card.css";
@@ -45,3 +44,6 @@
 @import "./styles/feedback.css";
 @import "./styles/success.css";
 @import "./styles/loading.css";
+/* Last, and that is the point: the tap zone opens a gap a component sheet set,
+   so it has to be read after every one of them. why: specification, the tap floor */
+@import "./styles/tap-zone.css";

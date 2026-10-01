@@ -947,23 +947,38 @@ knows its own gap — and inherits down. The default is `--space-3`, which is th
 between two controls in a row; assuming more is what turns the device into a misrouted tap, and
 the kit's own stories fail at an assumed 16.
 
-**What reaches 44, and what does not.** With the kit's current spacing a layer may take at most
-half of an 8–12px gap, so a family clears the floor where its layout is roomy and lands in the
-high thirties where it is not. That is the trade the issue chose: the gap is what decides, and
-widening the kit's gaps below the step is the visible change the issue ruled out. The guidelines'
-*Space between small targets* rule states the arithmetic — two neighbouring controls need
-`44 − drawn size` of clear space between them — so a consumer laying out their own row can reach
-the floor where the kit's showcases cannot.
+**Where the kit packs tighter than a zone needs, the GAP opens.** A layer may take at most half
+the gap, so a row at 8px carries a zone 4px past each edge and no further. The second half of
+#488's answer is therefore spacing: below the step, to a coarse pointer, the kit's own rows of
+small controls open to `--tap-gap`, which is 20 — `44 − 24`, where 24 is the smallest mark the
+kit draws in a row of its own. The filter row, a table's row actions and a toast's action row
+open across; a segmented strip, a pager and a tabs strip keep their packed track and open down,
+where the room is free until the strip wraps. **The controls do not change size**; the space
+between them does, by a few pixels, on a phone, under a finger. That is the cost the issue
+accepted, and it is the half that a floor made of zones alone cannot buy.
 
-**Three families get no layer, and three cannot carry one.** A menu's rows, the command palette's
+A container either opens or declares. `--tap-clear-*` is how a row that cannot afford the space
+says what it does give — a chip whose value and remove mark share an edge by design, a dense
+table's rows — and the browser gate fails a declared number that is not true.
+
+This sheet is imported **last**, after every component sheet, and its openings take `!important`:
+each one overrides a `gap` a component already set, and the React bundle ships this sheet without
+those component sheets at all, where load order belongs to the consumer. Same trade as
+`field-zoom.css` — a host packing one of these rows tighter at phone width does not win.
+
+**Three families get no layer, three cannot carry one, and two are clipped.** A menu's rows, the command palette's
 list and a sidebar's rows share an edge: there is nothing outside a row to put a layer in, and a
 44px one only moves the boundary — the first rows lose a sliver and the last takes the whole gain.
 `input`, `select` and `textarea` generate no pseudo-element at all, with or without
 `appearance: none`; padding with a negative margin is not invisible on a control that paints a
 border and a background, so the only remaining device is a wrapper, which is markup a consumer
 cannot add to a part the kit portals. `.ui-input` and `.ui-textarea` already draw taller than the
-floor; `.ui-select` is 42px and is reached by its own height or not at all. All six are named on
-the Accessibility minimums page.
+floor; `.ui-select` is 42px and is reached by its own height or not at all. A toast is the third
+case: it clips to its own rounded corners so the timer bar can run along the bottom edge, and
+both its controls sit against that clip, so their zones are trimmed rather than stopped. Opening
+the toast's padding was measured and rejected — it bought four marks and cost every toast 8px of
+height, which grows a surface rather than the space between two controls. All of them are named
+on the Accessibility minimums page.
 
 **The pointer clause is not decoration.** A transparent layer is also a hover surface, so under a
 mouse the control lights up with the cursor 8px off it, which reads as the page being misaligned.
@@ -985,9 +1000,17 @@ every clearance names a container the kit declares, and every entry on the exemp
 and is not also a carrier. The browser half is the measurement and runs only under `TAP_ZONES=1`,
 because Playwright is deliberately not a dependency of this package. It drives every story at 390
 and 1280, with and without the sheet, asking `elementFromPoint` who owns each pixel of each
-control's drawn box: nothing is drawn differently, no control loses a point it owned, each family
-the sheet names reaches further than it did, and 1280 and a fine pointer are identical either way.
-It proves its own rejection by unclamping the layer and failing on the result.
+control's drawn box: no control is drawn at a different size, the set of controls whose own box
+runs a different control does not grow, each family the sheet names reaches further than it did,
+and 1280 and a fine pointer are identical either way. That middle claim is stated as a set and
+not as coordinates on purpose — opening a row's gap moves the controls in it, so "the point this
+control owned before" stops being a question with an answer, and what survives the move is who
+collides with whom. It proves its own rejection by unclamping the layer and failing on the result.
+
+The viewport is sized to each story before anything is asked of it. `elementFromPoint` answers
+about the viewport and returns null below the fold, so a fixed box reported every control on the
+lower half of a long story as having no reach and no owner — a rig artefact that reads exactly
+like a layer that was never applied.
 
 What a green run does not prove: one browser, one theme, and only what the kit's own stories
 render. Two controls whose drawn boxes already overlap — a showcase grid at 390 where a `nowrap`

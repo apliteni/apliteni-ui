@@ -132,9 +132,19 @@ export const TAP_EXEMPT = [
   },
   {
     selector: '.ui-filter-bar__remove',
-    why: 'The remove mark sits flush against its chip\u2019s own value trigger, so the '
-      + 'chip grants no clearance and a layer would have nothing to grow into. It keeps '
-      + 'the 24px target the chip draws for it, which clears 2.5.8.',
+    why: 'The filter row around it opens at this width, but inside a chip there is nothing '
+      + 'to open: the value trigger and the remove mark share an edge by design, and parting '
+      + 'them would draw two controls where the reader sees one. The mark keeps the 24px '
+      + 'target the chip gives it, which clears 2.5.8.',
+  },
+  {
+    selector: '.ui-toast',
+    why: 'A toast clips to its own rounded corners so the timer bar can run along the bottom '
+      + 'edge, and both its controls sit against that clip \u2014 the close mark in the corner, '
+      + 'the action at the end of the row. Measured: each zone is laid out at 44 and the toast '
+      + 'trims it to the padding box. Opening the padding would grow the surface rather than the '
+      + 'space between two controls, and bought four marks for 8px on every toast. The row\u2019s '
+      + 'gap opens; the box does not.',
   },
   {
     selector: '.ui-select',
@@ -145,9 +155,10 @@ export const TAP_EXEMPT = [
   },
   {
     selector: '.ui-table__act',
-    why: 'A dense table\u2019s rows touch top to bottom and its action cell packs a button '
-      + 'against an icon button. The cell declares the little room it has, so the layer '
-      + 'stops there rather than reaching into the row above.',
+    why: 'A dense table\u2019s rows touch top to bottom, so a row action can open ACROSS at '
+      + 'this width \u2014 which is what the cell does \u2014 and cannot open down. Its zone '
+      + 'takes the row\u2019s own padding either side and stops there rather than reaching '
+      + 'into the row above.',
   },
 ];
 
@@ -177,7 +188,12 @@ export const SPEC_CSS = `
        These cells redraw it at reading width instead, with the SAME expression
        the sheet writes — stories/tap-zone.test.js reads both and fails if the
        two drift — and a dashed edge so the invisible thing can be seen. */
-    .gl-tap { display: flex; align-items: center; }
+    /* The cells carry their own values rather than reading the sheet's: this
+       page is a picture of the rule, and a picture that changed shape when
+       the sheet was not loaded would be measuring the sheet instead of
+       showing it. The numbers are the sheet's own and the gate compares the
+       expression below against it. */
+    .gl-tap { display: flex; align-items: center; --tap-min: 44px; --tap-clear-x: 20px; --tap-clear-y: 20px; }
     .gl-tap .ui-btn { position: relative; }
     .gl-tap .ui-btn::after {
       content: ""; position: absolute; left: 50%; top: 50%;
@@ -190,8 +206,9 @@ export const SPEC_CSS = `
          be the one place in the kit that breaks the rule it illustrates. */
       pointer-events: none;
     }
-    /* Do: the row states its gap, and both layers stop at its midpoint. */
-    .gl-tap--room { gap: var(--space-5); --tap-clear-x: var(--space-5); }
+    /* Do: the row is open to --tap-gap, which is the gap the kit's own rows
+       take at the phone step, and both zones stop at its midpoint. */
+    .gl-tap--room { gap: var(--tap-clear-x); }
     /* The Don't for the layer rule: the answer #488 turned down. Same button,
        drawn at the floor instead of reaching it — inert ink, because a real
        control this size would be the page breaking its own rule, and the point
@@ -202,9 +219,10 @@ export const SPEC_CSS = `
       color: var(--text); font-family: var(--font-sans); font-size: var(--text-sm);
       font-weight: var(--weight-medium); outline: 1.5px dashed var(--pink); }
 
-    /* The Don't for the spacing rule: the same two marks packed at --space-2
-       with the layer sized to the floor regardless. The pink edges cross. */
-    .gl-tap--tight { gap: var(--space-2); }
+    /* The Don't for the spacing rule: the same two marks left at the desktop
+       --space-2 with the zone sized to the floor regardless. The edges cross,
+       and the mark written later takes the overlap. */
+    .gl-tap--tight { gap: var(--space-2); --tap-clear-x: 44px; --tap-clear-y: 44px; }
     .gl-tap--tight .gl-tap__ink { position: relative; width: 24px; height: 24px;
       border: 1px solid var(--control-edge); border-radius: var(--radius-sm);
       background: var(--surface); }

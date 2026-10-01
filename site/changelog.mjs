@@ -8,8 +8,10 @@ export const RELEASES = [
   {
     v: '0.72.0', date: '2026-10-02',
     changes: [
-      ['added', 'Below the phone step a coarse pointer gets a transparent 44px tap layer outside each small control, so a finger reaches the floor and nothing is drawn differently. The layer stops at half the clear space its container declares through `--tap-clear-x` and `--tap-clear-y`, so it never crosses the drawn edge of the control beside it. `--tap-min` names the floor. Closes #488.', ['Button', 'Segmented', 'Tabs', 'Dropdown', 'Pagination']],
-      ['added', 'Two Accessibility minimums rules: the tap layer, and the clear space two neighbouring small controls need before either can reach the floor.'],
+      ['added', 'Below the phone step a coarse pointer gets a transparent 44px tap zone outside each small control, so a finger reaches the floor and no control is drawn any bigger. `--tap-min` names the floor. Closes #488.', ['Button', 'Segmented', 'Tabs', 'Dropdown', 'Pagination']],
+      ['changed', 'Below the phone step, to a coarse pointer, rows of small controls open to `--tap-gap` (20px) so two zones fit between their drawn edges: the filter row, a table\u2019s row actions and a toast\u2019s action row open across, and a segmented strip, a pager and a tabs strip open down. The controls keep their drawn size; the space between them grows a few pixels on a phone.', ['Segmented', 'Tabs', 'Pagination', 'Table', 'Toast']],
+      ['added', 'A zone never crosses the drawn edge of the control beside it: it stops at half the clear space its container declares through `--tap-clear-x` and `--tap-clear-y`. A row that cannot open \u2014 a chip whose value and remove mark share an edge, a dense table\u2019s rows \u2014 declares what it does give instead.'],
+      ['added', 'Two Accessibility minimums rules: the tap zone, and the space two neighbouring small controls need before either can reach the floor.'],
     ],
   },
   {

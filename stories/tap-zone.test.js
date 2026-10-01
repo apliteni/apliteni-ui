@@ -117,9 +117,13 @@ test('every family that carries a layer has something to hang it on', () => {
   }
 });
 
-test('every clearance names a container the kit declares', () => {
-  const clearances = [...css.matchAll(/^\s*(\.[\w-]+(?:\s+\.[\w-]+)*)\s*\{\s*--tap-clear/gm)]
-    .map((m) => m[1]);
+/** Every rule in the sheet that declares a clearance or opens a gap, by selector. */
+const containers = [...css.matchAll(/(^|\n)\s*(\.[\w-]+(?:\s+\.[\w-]+)*)\s*\{([^{}]*)\}/g)]
+  .map((m) => ({ selector: m[2], body: m[3] }))
+  .filter((r) => /--tap-clear|(^|[;\s])(row-)?gap\s*:/.test(r.body));
+
+test('every clearance and every opened gap names a container the kit declares', () => {
+  const clearances = containers.map((r) => r.selector);
   assert.ok(
     clearances.length >= 4,
     `${SHEET} declares ${clearances.length} container clearances. Each one is the gap a layout `
@@ -127,12 +131,38 @@ test('every clearance names a container the kit declares', () => {
     + 'default; finding almost none means the block was renamed and the clamp is no longer '
     + 'applied anywhere.',
   );
-  for (const sel of clearances) {
+  for (const { selector, body } of containers) {
     assert.ok(
-      declares(sel.split(/\s+/).pop()),
-      `${SHEET} declares a clearance for ${sel}, which no stylesheet under src/styles/ mentions. `
-      + 'A clearance on a selector nothing matches is a clamp that never runs, and the layer it '
-      + 'was meant to hold back reaches a neighbour instead.',
+      declares(selector.split(/\s+/).pop()),
+      `${SHEET} declares a clearance for ${selector}, which no stylesheet under src/styles/ `
+      + 'mentions. A clearance on a selector nothing matches is a clamp that never runs, and '
+      + 'the layer it was meant to hold back reaches a neighbour instead.',
+    );
+    // An opened gap has to outrank the component sheet that already set one.
+    // Without `!important` it wins only while this sheet is read last, and the
+    // React bundle ships it without the component sheets at all.
+    const opened = body.match(/(^|[;\s])((?:row-|column-)?gap)\s*:([^;]*)/);
+    if (opened) {
+      assert.match(
+        opened[3], /!important/,
+        `${SHEET} opens ${opened[2]} on ${selector} without !important. The component sheet that `
+        + 'already set a gap there wins whenever this one is not read last — and in the React '
+        + 'bundle, which ships this sheet without the component sheets, the order is the '
+        + "consumer's.",
+      );
+    }
+  }
+});
+
+test('a container that opens a gap declares the clearance to match it', () => {
+  for (const { selector, body } of containers) {
+    const opened = body.match(/(?:^|[;\s])(?:row-|column-)?gap\s*:\s*var\(--tap-gap\)/);
+    if (!opened) continue;
+    assert.match(
+      body, /--tap-clear-[xy]:\s*var\(--tap-gap\)/,
+      `${SHEET} opens ${selector} to --tap-gap and does not tell the layers inside it. The gap `
+      + 'is spent and the zone still stops where the old clearance put it, which is the spread '
+      + 'without the reach it was for.',
     );
   }
 });
@@ -251,7 +281,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       + 'selector that stopped matching, not a kit that got smaller.',
     );
 
-    await t.test('nothing is drawn differently', () => {
+    await t.test('no control is drawn at a different size', () => {
       const moved = B.filter((b, i) => b.drawn[0] !== A[i].drawn[0] || b.drawn[1] !== A[i].drawn[1]);
       assert.deepEqual(
         moved.map((b) => `${b.story} ${name(b)} ${A[B.indexOf(b)]}`), [],
@@ -261,27 +291,37 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       );
     });
 
-    await t.test('no control loses a tap it had', () => {
-      const lost = [];
-      for (let i = 0; i < B.length; i++) {
-        const had = new Set(A[i].lost);
-        const to = new Map(B[i].lostTo);
-        for (const key of B[i].lost) {
-          if (had.has(key)) continue;
-          lost.push(
-            `${B[i].story} — ${name(B[i])} lost (${Math.floor(key / 100000)}, ${key % 100000}) `
-            + `to ${to.get(key) || 'another target'}`,
-          );
+    await t.test('no control has a drawn pixel that runs another control', () => {
+      // Layout-independent, and it has to be: opening a row's gap MOVES the
+      // controls in it, so "the point this control owned before" is no longer
+      // a question with an answer. The property that survives is absolute —
+      // a tap anywhere on a control's own drawn box runs that control — and
+      // the comparison is by who collides with whom, not by where.
+      //
+      // The kit does not start clean: two menu rows share a subpixel edge
+      // before any of this loads. So the test is that the set does not GROW.
+      const pairs = (rows) => {
+        const out = new Set();
+        for (const t of rows) {
+          for (const [, to] of t.lostTo) {
+            if (to === 'nothing') continue;
+            out.add(`${t.story} — ${name(t)} ← ${to.split(' “')[0]}`);
+          }
         }
-      }
+        return out;
+      };
+      const was = pairs(A);
+      const now = pairs(B);
+      const added = [...now].filter((p) => !was.has(p));
       assert.deepEqual(
-        lost.slice(0, 12), [],
-        `${lost.length} point(s) on a control’s own drawn box changed hands when this sheet `
-        + 'loaded. This is the failure the sheet is built around: a layer that reaches past the '
-        + 'gap routes a tap into the neighbour, and on a menu that neighbour was the destructive '
-        + 'row. Give the container a --tap-clear-x / --tap-clear-y matching its real gap, or take '
-        + 'the family off the carrier list.',
+        added, [],
+        `${added.length} control(s) now have a drawn pixel that runs a different control. This is `
+        + 'the failure the clamp and the opened gaps exist to prevent: a zone that reaches past '
+        + 'the gap routes a tap into the neighbour, and on a menu that neighbour was the '
+        + 'destructive row. Open that container to --tap-gap, or declare the --tap-clear-x / '
+        + '--tap-clear-y it really gives.',
       );
+      t.diagnostic(`colliding pairs: ${was.size} without the sheet, ${now.size} with it`);
     });
 
     await t.test('the floor is reached where the layout has the room', () => {
@@ -327,26 +367,31 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       for (const line of report) t.diagnostic(line);
     });
 
-    await t.test('a layer sized to the floor regardless of the gap is rejected', async () => {
-      // The mutation. Unclamping the layer is exactly what #488's first pass did,
-      // and the check above has to fail on it or it is checking nothing.
-      const broken = withCss.replace(
-        /--tap-clear-x: var\(--space-3, 12px\);\n\s*--tap-clear-y: var\(--space-3, 12px\);/,
-        '--tap-clear-x: 999px;\n  --tap-clear-y: 999px;',
-      );
+    await t.test('a zone sized to the floor with the gaps shut is rejected', async () => {
+      // The mutation, and it has to close the gaps as well as unclamp the zone:
+      // once the kit's own rows open to --tap-gap, an unclamped zone has the
+      // room and crosses nothing. Shutting them and reaching 44 anyway is
+      // exactly what #488's first pass did, and the check above has to fail on
+      // it or it is checking nothing.
+      const broken = withCss
+        .replace('--tap-gap: var(--space-5, 20px);', '--tap-gap: 0px;')
+        .replace(
+          /--tap-clear-x: var\(--tap-gap\);\n\s*--tap-clear-y: var\(--tap-gap\);/,
+          '--tap-clear-x: 999px;\n  --tap-clear-y: 999px;',
+        );
       assert.notEqual(broken, withCss, 'The mutation did not apply, so it proves nothing.');
-      const mutated = flatten((await at(390, true, broken)).rows);
-      let lost = 0;
-      for (let i = 0; i < mutated.length; i++) {
-        const had = new Set(A[i].lost);
-        for (const key of mutated[i].lost) if (!had.has(key)) lost += 1;
-      }
+      const collisions = (rows) => new Set(rows.flatMap((r) => r.lostTo
+        .filter(([, to]) => to !== 'nothing')
+        .map(([, to]) => `${r.story} — ${name(r)} <- ${to.split(' “')[0]}`)));
+      const already = collisions(A);
+      const added = [...collisions(flatten((await at(390, true, broken)).rows))]
+        .filter((pair) => !already.has(pair));
       assert.ok(
-        lost > 0,
-        'An unclamped layer took no control’s drawn pixels, which means the check above '
-        + 'would pass over the very defect it was written for.',
+        added.length > 0,
+        'An unclamped layer put no control’s drawn pixels under another control, which means '
+        + 'the check above would pass over the very defect it was written for.',
       );
-      t.diagnostic(`unclamped layer costs ${lost} point(s) — the check rejects it`);
+      t.diagnostic(`zones at the floor with the gaps shut add ${added.length} colliding pair(s) — the check rejects it`);
     });
 
     await t.test('1280 and a fine pointer are untouched', async () => {

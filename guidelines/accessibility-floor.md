@@ -32,15 +32,15 @@
 
 <!-- rule: tap-spacing -->
 
-**Rule:** Give two neighbouring small controls at least 44 minus their drawn size of clear space between them.
+**Rule:** Below the phone step, open a row of small controls to 44 minus their drawn size, so both tap zones fit between the drawn edges.
 
-**Why:** A layer can only reach half the gap before it crosses the neighbour's edge, so the gap is what decides whether either control reaches the floor.
+**Why:** A zone reaches half the gap before it crosses its neighbour's edge, so the gap is what decides whether either control reaches the floor.
 
-**Do:** Set 20px between two 24px marks, where both layers meet at the midpoint and neither crosses.
+**Do:** Open a row of 24px marks to 20px on a phone, where both zones fit and neither mark changes size.
 
-**Don't:** Set 8px between them and let the later control in the markup win the overlap.
+**Don't:** Keep the desktop 8px and let the control written later in the markup win the overlap.
 
-**Except:** A row that cannot afford the space keeps its drawn targets and states the clearance it does give.
+**Except:** Rows that share an edge — a menu, a dense table, a settings list — have nothing to open and keep their drawn targets. A row that cannot open states the clearance it does give instead.
 
 ## Focus ring contrast
 

@@ -66,7 +66,6 @@ export const cssText = [
   styles.base,
   styles.reducedMotion,
   styles.fieldZoom,
-  styles.tapZone,
   styles.motion,
   styles.button,
   styles.card,
@@ -94,4 +93,7 @@ export const cssText = [
   styles.feedback,
   styles.success,
   styles.loading,
+  // Last in the list for the reason src/index.css imports it last: it opens a
+  // gap a component sheet set, so it is read after every one of them.
+  styles.tapZone,
 ].join('\n');
