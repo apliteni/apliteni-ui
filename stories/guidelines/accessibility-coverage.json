@@ -25,6 +25,15 @@
       ]
     },
     {
+      "file": "react/src/Tooltip.specimens.test.tsx",
+      "name": "React: Tooltip specimens",
+      "does": "Mounts every React story, walks each rendered picture with a pointer, focus and Escape, and fails when the readout a caption describes is closed or re-filled by using the page.",
+      "blind": [
+        "Its subject is the picture only. The React/Tooltip state stories open a live inline readout at mount on purpose and are not held here.",
+        "jsdom lays nothing out, so it reads the open state and the markup, never where the readout lands or what it paints."
+      ]
+    },
+    {
       "file": "react/src/Tooltip.test.tsx",
       "name": "React: Tooltip",
       "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",

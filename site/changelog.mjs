@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Tooltip supports a label, value and comparison. TooltipHost positions one readout across consumer-owned chart marks with hover, focus, tap and Escape support. Existing text tooltips keep working. Part of #429.', ['Tooltip']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

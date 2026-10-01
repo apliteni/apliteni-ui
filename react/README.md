@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `TooltipHost`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -547,11 +547,35 @@ AppShell includes the kit’s rail and top band. Pass the current router pathnam
 
 ## Tooltip
 
-Tooltip accepts text and inline children, without nested controls. Hovering or focusing opens it; pressing Escape, moving focus away, or moving the mouse away closes it. On touch devices, tapping toggles it. It uses the kit’s tooltip styles and moves below the trigger when there is not enough space above. Keep the same information elsewhere on the page.
+Tooltip accepts `text` (a label shorthand), or `label`, `value`, and `detail`, with inline children without nested controls. Hovering or focusing opens it; pressing Escape, moving focus away, or moving the mouse away closes it. On touch devices, tapping toggles it. It uses the kit’s tooltip styles and moves below the trigger when there is not enough space above. Keep the same information elsewhere on the page.
 
 ```tsx
 <Tooltip text="Updated daily">Balance</Tooltip>
 ```
+
+Use `TooltipHost` around consumer-owned chart markup. Marks carry `data-tip-value`,
+with optional `data-tip-label` and `data-tip-detail`. A nested `data-tip-anchor`
+places the readout at the mark rather than the whole hit area. The host keeps one
+readout and moves it between marks; `placement="bottom"` changes its preferred side.
+The host forwards its div ref and accepts `className` and `style`.
+
+```tsx
+<TooltipHost>
+  <svg role="img" aria-label="March revenue: €48,210">
+    <g data-tip-label="March" data-tip-value="€48,210" data-tip-detail="+4.2% on February">
+      <rect x={0} y={0} width={48} height={120} fill="transparent" />
+      <rect data-tip-anchor="" x={8} y={32} width={32} height={88} />
+    </g>
+  </svg>
+</TooltipHost>
+```
+
+Marks can receive focus when the consumer supplies keyboard navigation; the host adds
+no tab stops. Focus and hover open the readout, Escape dismisses it, and a tap opens,
+moves, or closes it. The opening tap blocks the mark's action while notifying page
+click listeners; the closing tap may activate it. Keep a labelled series summary or
+table available independently of the readout. Labels and values are plain strings;
+the tooltip never contains controls. Existing mark descriptions are preserved.
 
 ## Checkbox and Switch
 
