@@ -12,15 +12,15 @@
 // property at equal specificity further down the page. `focusPaint` therefore
 // resolves the cascade itself — every rule declaring `box-shadow` or `outline`,
 // ranked by specificity then by document order across the sheets as the page
-// loads them — and names the declaration that wins. That is the value a browser
-// computes for a focused stop, read off the page's own source instead of a
-// browser the test suite does not carry.
+// loads them — and names the declaration that wins.
 //
-// What the resolver still does not model: `!important`, an inline `style=`, a
-// media or container query's condition (a nested rule is read as if it always
-// applied), a state the static DOM is not in (`:hover`, `:checked`), and
-// `var()` resolution — a ring is recognised by the `var(--ring)` it is written
-// with, not by the layers it expands to.
+// That resolution covers specificity and order, and nothing else. It does not
+// model `!important`, an inline `style=`, a media or container query's condition
+// (a nested rule is read as if it always applied), a state the static DOM is not
+// in (`:hover`, `:checked`), or `var()` expansion — a ring is recognised by the
+// `var(--ring)` it is written with, not by the layers it resolves to. So this is
+// not what a browser computes; it is the part of the computation that decides
+// whether a written ring is the declaration that paints.
 const RULE = /([^{}]+)\{([^{}]*)\}/g;
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 

@@ -43,12 +43,24 @@ const SUBJECTS = [
       ['nav-link', '.site-topbar .lk', 'a topbar nav link'],
       ['theme-toggle', '.site-topbar .toggle', 'the theme toggle'],
       ['accent-swatch', '.play-accents button', 'a playground accent swatch'],
+      // The SELECTED swatch is a separate subject: it is the one #487's review
+      // found painting nothing when focused, because `.on` tied the chrome's
+      // focus rule on specificity and won on source order.
+      ['accent-swatch-on', '.play-accents button.on', 'the selected playground accent swatch'],
       ['path-card', '.path-card', 'an adoption-path tab'],
       ['tab-panel', '#paths-panel-humans', 'the adoption-path panel'],
       ['copy', '.term__copy', 'a snippet copy button'],
       ['footer-dot', '.site-footer .accents button', 'a footer accent dot'],
       ['footer-link', '.site-footer a', 'a footer link'],
     ],
+  },
+  {
+    // A scroll container is a keyboard stop Chrome makes on its own, so the panel
+    // is the subject, not a control inside it. #487's review measured the native
+    // outline here.
+    id: 'dropdown-scroll', kind: 'story', story: 'components/Dropdown.stories.js', export: 'Scrollable',
+    size: [1280, 700],
+    controls: [['panel', '.ui-dropdown__panel.is-scroll', 'a scrolling dropdown panel']],
   },
   {
     id: 'shell', kind: 'story', story: 'apps/ShellLayouts.stories.js', export: 'TopbarWide',
