@@ -19,6 +19,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { topbar, footer, CHROME_CSS, CHROME_JS } from './chrome.mjs';
+import { sloganCopy } from './slogans.mjs';
 
 // The kit's wiring needs a DOM in place before it is imported: wireDropdown()
 // compares its scope against the global `document` and throws without one. Same
@@ -35,7 +36,7 @@ const { segmented } = await import('../src/components/index.js');
 const { wireTopbar } = await import('../src/components/topbar.js');
 
 // The page exactly as build.mjs hands it to a browser.
-const PAGE = readFileSync(new URL('./index.html', import.meta.url), 'utf8')
+const PAGE = sloganCopy(readFileSync(new URL('./index.html', import.meta.url), 'utf8'))
   .replace('{{TOPBAR}}', topbar(''))
   .replace('{{FOOTER}}', footer())
   .replace('{{CHROME_CSS}}', CHROME_CSS)

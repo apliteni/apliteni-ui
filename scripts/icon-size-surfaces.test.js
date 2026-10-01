@@ -37,6 +37,7 @@ import {
 import { topbar, footer, CHROME_CSS, CHROME_JS } from '../site/chrome.mjs';
 import { changelogMain, release } from '../site/changelog.mjs';
 import { catalogueCopy } from '../site/catalogue.mjs';
+import { sloganCopy } from '../site/slogans.mjs';
 import { iconNames } from '../src/assets/icons.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -94,10 +95,10 @@ function sitePages() {
       .replace('{{MAIN}}', () => changelogMain({}))
       .replaceAll('{{VERSION}}', 'v0.0.0')
       .replaceAll('{{CSSHASH}}', '0000000000');
-    if (name === 'index.html') html = catalogueCopy(html, {
+    if (name === 'index.html') html = sloganCopy(catalogueCopy(html, {
       icons: iconNames,
       buttonSource: readFileSync(path.join(root, 'react/src/primitives/Button.tsx'), 'utf8'),
-    });
+    }));
     const left = [...html.matchAll(/\{\{[A-Z0-9_]+\}\}/g)].map((m) => m[0]);
     assert.deepEqual(left, [],
       `site/${name} still carries ${left.join(', ')} after composition. site/build.mjs fills a `
