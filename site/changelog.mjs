@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.79.0', date: '2026-10-04',
+    changes: [
+      ['added', 'React DatePicker picks one month, a range of months, or one date, from the dropdown\u2019s own trigger and panel. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. The grid has one tab stop: arrows, Home, End and the Page keys move it and turn the page. Below 560px the panel is a sheet on the bottom edge. Part of #429; resolves #506.', ['DatePicker']],
+    ],
+  },
+  {
     v: '0.78.0', date: '2026-10-04',
     changes: [
       ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, and a drop target painted only while a file is over the region it covers. Your application owns the upload and supplies the file it is holding; a file given with no status is uploading, so the kit never reports a success you have not claimed. A file in hand reads as a stack rather than a line: the name on top with the actions at its end, the size — or the failure message — under it, and the progress track the full width below. No tier takes a second line; the name truncates its stem and keeps its extension, and nothing is hidden or moved at any width. Where you give a progress value the track is the status, so the row spends no word on it and the word travels as the track’s accessible name. Closes #507.'],

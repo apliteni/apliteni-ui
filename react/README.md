@@ -700,3 +700,43 @@ the accent from a checked box.
 <Checkbox label="Full access" type="radio" name="scope" value="full" />
 <Switch label="Email notifications" checked={email} onChange={event => setEmail(event.currentTarget.checked)} />
 ```
+
+## DatePicker
+
+`DatePicker` picks one month (`mode="month"`, the default), a range of months
+(`mode="range"`) or one date (`mode="day"`). It uses the dropdown's own trigger and
+panel, so it sits beside a `Dropdown` as the same control. Periods are ISO strings in the
+mode's grain: `'2026-08'` for months, `'2026-08-14'` for dates. Pass `value`/`onChange`
+(or `range`/`onRangeChange`) to control it, or `defaultValue`/`defaultRange` to leave it
+to the component. Import both the kit CSS and the React CSS.
+
+```tsx
+<DatePicker label="Month:" value={month} onChange={setMonth}
+  min="2025-01" max="2026-12" disabledPeriods={['2026-07']}
+  marks={{ '2026-06': { label: 'Restated', tone: 'warn' } }} />
+
+<DatePicker mode="range" label="Period:" range={span} onRangeChange={setSpan}
+  presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]} />
+```
+
+**The grid has one tab stop.** The arrows move one period and one row, Home and End go to
+the ends of the row, Page Up and Page Down move a year in the month modes and a month in
+day mode, Enter and Space pick, and Escape closes and returns focus to the trigger. A move
+past the edge of the shown year or month turns the page and keeps the reader on the period
+they moved to. `min`, `max` and `disabledPeriods` mark a cell `aria-disabled` and refuse
+the press, and the cell stays focusable so the bound can be met rather than missed.
+
+**Range mode takes a start, then an end**, staying open in between; a second pick above or
+below the first always reads as the same range, so the ends swap rather than restarting.
+`onRangeChange` fires on each end, so `{ start, end: null }` reaches you too. `presets`
+set both ends at once.
+
+**`marks` are the consumer's own notes**, keyed by period. Each shows as a dot in the
+cell, as a word in the legend under the grid, and in the cell's accessible name. Give
+`tone` one of `neutral`, `info`, `success`, `warn` or `danger`.
+
+Pass `today` (a `'YYYY-MM-DD'` date) to fix what the grid calls today — stories and tests
+use it to stay the same whenever they run. `locale` names the months and weekdays,
+`weekStartsOn` sets the first column in day mode, and `align="end"` hangs the panel off
+the trigger's trailing edge. Below 560px the panel is a sheet on the bottom edge. The
+panel stays mounted while closed, and is `inert` while it is.

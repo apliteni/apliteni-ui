@@ -1,0 +1,201 @@
+/* ============================================================================
+ * Date and month picker — only what a calendar adds.
+ * The shell is the dropdown's: `.ui-dropdown` trigger, chevron, panel surface
+ * and open/close paint all come from src/styles/dropdown.css, so a picker and a
+ * select standing beside it are the same control at rest. Everything below
+ * styles the grid inside that panel.
+ * ========================================================================== */
+
+/* The panel's own padding knob, turned up: a grid needs more room at its edges
+   than a list of rows does. `max-content`, because an absolutely positioned box
+   shrinks to fit the trigger it hangs off, and a grid with a column of
+   shortcuts beside it is wider than any trigger — the kit's own panel stops at
+   its 240px floor and the shortcuts spill out of it. */
+.ui-datepicker__panel {
+  --ui-dropdown-pad: var(--space-3);
+  width: max-content;
+  max-width: 92vw;
+}
+
+.ui-datepicker__body { display: flex; align-items: flex-start; gap: var(--space-4); }
+.ui-datepicker__calendar { display: grid; gap: var(--space-3); }
+
+/* -- Head: the year or month, and the two steps either side ---------------- */
+.ui-datepicker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.ui-datepicker__caption {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--strong);
+}
+
+/* -- Grid ------------------------------------------------------------------ */
+.ui-datepicker__grid { display: grid; gap: var(--space-1); }
+.ui-datepicker__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+.ui-datepicker__grid.is-days .ui-datepicker__row { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+
+/* Weekday heads are words, so they take body ink and show their rank by size
+   and weight rather than by fading.
+   why: guidelines/labels-and-titles.md */
+.ui-datepicker__weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+
+.ui-datepicker__cell { display: flex; }
+
+.ui-datepicker__opt {
+  position: relative;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 24x24 is the floor; a month's three letters need the width anyway.
+     why: guidelines/accessibility-floor.md */
+  min-width: 34px;
+  min-height: 34px;
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+.ui-datepicker__grid.is-days .ui-datepicker__opt { min-width: 30px; }
+
+.ui-datepicker__opt:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  color: var(--strong);
+}
+
+/* The span between the two ends of a range. Tinted with the accent rather than
+   greyed, because these cells hold text and an opaque tint can be measured.
+   why: guidelines/colour-and-theming.md */
+.ui-datepicker__opt.is-inside {
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-elevated)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+}
+
+/* The one accent signal in the panel: what is chosen. */
+.ui-datepicker__opt.is-selected {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+.ui-datepicker__opt.is-selected:hover {
+  background: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+
+/* Today carries weight and nothing else: a second colour here would compete
+   with the pick, which is the consequential state. */
+.ui-datepicker__opt.is-today { font-weight: var(--weight-bold); }
+
+/* A boxless ghost, so the bare disabled ink rather than the surface pair, and
+   no light-up under a pointer that cannot press it. */
+.ui-datepicker__opt.is-disabled {
+  /* muted-ink: state — a period outside the bounds or blocked by the host */
+  color: var(--disabled-ink-bare);
+  cursor: not-allowed;
+}
+.ui-datepicker__opt.is-disabled:hover {
+  background: transparent;
+  border-color: transparent;
+  /* muted-ink: state — the same blocked period, holding its ink under the pointer */
+  color: var(--disabled-ink-bare);
+}
+
+/* -- Marks ----------------------------------------------------------------- */
+/* A dot under the numeral, out of the text flow so a marked cell is the same
+   height as an unmarked one. The word is in the legend and in the cell's
+   accessible name, so the colour is never the only channel.
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__mark {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+  display: inline-block;
+}
+.ui-datepicker__opt .ui-datepicker__mark {
+  position: absolute;
+  inset-block-end: var(--space-1);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+}
+.ui-datepicker__mark.is-info { background: var(--cyan); }
+.ui-datepicker__mark.is-success { background: var(--green); }
+.ui-datepicker__mark.is-warn { background: var(--amber); }
+.ui-datepicker__mark.is-danger { background: var(--pink); }
+.ui-datepicker__opt.is-selected .ui-datepicker__mark { background: var(--accent-contrast); }
+
+.ui-datepicker__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-2) 0 0;
+  list-style: none;
+  border-block-start: 1px solid var(--border);
+  font-size: var(--text-xs);
+  color: var(--text);
+}
+.ui-datepicker__legend-item { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+/* -- Presets --------------------------------------------------------------- */
+.ui-datepicker__presets {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: 0 var(--space-3) 0 0;
+  border-inline-end: 1px solid var(--border);
+}
+.ui-datepicker__preset { justify-content: flex-start; }
+
+/* -- Phone ----------------------------------------------------------------- */
+/* At the kit's narrowest step a floating panel goes edge to edge, so the picker
+   becomes a sheet on the bottom edge and the shortcuts move above the grid.
+   The selectors carry the shell class too, so `.is-end`'s own `right` cannot
+   outrank them whichever order the two stylesheets are imported in.
+   why: docs/specification.md#breakpoints */
+@media (max-width: 560px) {
+  .ui-dropdown.ui-datepicker .ui-datepicker__panel {
+    position: fixed;
+    inset-block: auto 0;
+    inset-inline: 0;
+    min-width: 0;
+    width: auto;
+    max-width: none;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .ui-datepicker__body { flex-direction: column; align-items: stretch; }
+  .ui-datepicker__presets {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    padding: 0 0 var(--space-3);
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--border);
+  }
+}

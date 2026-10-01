@@ -3353,3 +3353,51 @@ measure the target's cover or the focus ring, or check screen-reader speech, and
 by `stories/row-height.test.js`, which reads the sheet in CI and measures the
 tiers, the heights and the truncation in a browser under `ROW_HEIGHTS=1`.
 Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).
+## React date and month picker
+
+`DatePicker` picks one month, a range of months, or one date. It wears the dropdown's
+shell — the same `.ui-dropdown` trigger, chevron and `.ui-dropdown__panel` surface — and
+adds only the grid inside it, so a picker and a select standing beside it are the same
+control at rest. The panel is a `dialog`, because a calendar is a grid and a listbox may
+own only options. It is mounted while closed, the way every dropdown panel is, and
+`inert` while it is: a grid nobody opened is out of the tab order, out of the pointer's
+way and out of the accessibility tree.
+
+Periods are ISO strings in the mode's own grain — `YYYY-MM` for `month` and `range`,
+`YYYY-MM-DD` for `day` — and every step, bound and comparison is arithmetic on one
+integer per period, so no part of the component walks a `Date` across a daylight-saving
+boundary. `min`, `max` and `disabledPeriods` mark a cell `aria-disabled` and refuse the
+press; the cell stays focusable, so a reader meets the bound rather than losing it.
+
+**One tab stop in the grid, on the cell the keyboard is on.** Left and Right move one
+period, Up and Down one row, Home and End the ends of the row, Page Up and Page Down one
+year in month modes and one month in day mode. A move that leaves the shown page turns
+the page and keeps the reader on the period they moved to. The shown page is derived from
+that cell and is not state of its own, so the two cannot drift. The head's two steps move
+the page without taking focus off the button that was pressed.
+
+**Range mode takes a start, then an end, and stays open in between.** A second press
+below the first is the same range read backwards, so the ends swap. `onRangeChange` fires
+on each end, so a half-picked range is visible to the host. Consumer presets set both ends
+at once and carry no selected state of their own, because the grid already says what is
+chosen.
+
+**A mark is a dot, a word and a name.** `marks` keyed by period draws a dot in the cell,
+lists the word once under the grid for the page in view, and appends it to the cell's
+accessible name, so the colour is never the only channel. The accent is spent on the pick
+alone: today carries weight and no colour, the span inside a range is an opaque accent
+tint rather than a grey fill, and a blocked cell is a boxless ghost in
+`--disabled-ink-bare`.
+
+**Below 560px the panel is a sheet on the bottom edge**, full width, with the presets
+above the grid instead of beside it.
+
+Day grids show only the month in view. The slots before the first and after the last are
+empty cells rather than a neighbouring month's dates, because numbers in the same grid
+read as pickable; the arrows cross the boundary instead.
+
+Held by `react/src/DatePicker.test.tsx`, which also discovers every focusable part the
+picker renders and holds it against the kit's own ring selectors, read out of the
+stylesheets. Browser captures verify presentation separately.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429); asked for on
+[#506](https://github.com/apliteni/apliteni-ui/issues/506).
