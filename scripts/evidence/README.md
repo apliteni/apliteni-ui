@@ -161,14 +161,31 @@ the issue's own reproduction through `filterBar()`.
 
 Each subject is measured at 320, 375 and 390 in both themes, shut and with each
 chip opened in turn — the widest option list in the kit is not on the second chip.
-Two things are checked: that a panel is exactly as wide as the `.ui-dropdown` that
-contains it, which is what the rule does, and that the page gains no scrollable
-width with every panel inside its row, which is what #467 reported. The mutation
-puts the 240px floor back and has to widen a panel in every case that carries one.
-It is judged on width rather than on overflow because a 240px panel does not push
-every layout past the screen — a bar sitting early in a wide one absorbs it, and
-three of the swept subjects do, so overflow alone would let those cases pass
-having measured nothing:
+A case waits for a `.ui-filter-bar` to exist before it is probed: `load` fires
+before React mounts, and settling waits on fonts and transitions rather than on a
+render, so without it a loaded host reports a case as carrying no panel.
+
+Three things are checked. That a panel is exactly as wide as the `.ui-dropdown`
+that contains it, which is what the rule does. That the page gains no scrollable
+width, with every panel inside its row, which is what #467 reported. And that each
+option row's own text fits the row, because a panel is `overflow: visible`: at
+1280 an unbreakable label left its panel by 200.9px with the page never
+overflowing, so the page-edge check alone would have passed it. The fixture page
+carries such a value, on its second chip, so the wrap hint is measured rather than
+assumed.
+
+Two mutations have to be rejected. Putting the 240px floor back has to widen a
+panel in every case that carries one — judged on width rather than on overflow,
+because a 240px panel does not push every layout past the screen: a bar sitting
+early in a wide one absorbs it, and three of the swept subjects do, so overflow
+alone would let those cases pass having measured nothing. Taking the wrap hint
+away has to make at least one row spill, which the floor mutation cannot do
+because it only ever widens panels.
+
+Coverage is held by two recorded constants, `FLOOR_SUBJECTS` and
+`FLOOR_PANELLED`, rather than by a count the sweep re-derives: a sweep that lost
+half its surfaces would otherwise report its own smaller number back and pass.
+Raising them is the deliberate act of someone who has seen the new surfaces:
 
 ```sh
 npm run build-storybook && npm run build-storybook -w react

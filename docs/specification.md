@@ -1601,7 +1601,7 @@ a page 398px wide on a 390px view — the 8px of
 [#467](https://github.com/apliteni/apliteni-ui/issues/467) — and 23px over at 375px. The chips
 themselves were never the problem; `.ui-filter-bar` wraps, and at both widths they fitted.
 
-**What a consumer can rely on.** At any viewport, a filter bar adds nothing to the page's
+**What a consumer can rely on.** At any viewport, a filter bar's *panels* add nothing to the page's
 scrollable width, and each panel opens inside the row that holds it. The bound is `min-width: 100%;
 max-width: 100%` against the panel's own containing block, so it needs no measuring, no resize
 listener and no JavaScript, and vanilla and React get it from the same rule. What a consumer gives
@@ -1615,10 +1615,18 @@ break opportunity in it — `utm_campaign_blackfriday_2026_eu_retargeting`, a UR
 run out of a narrow panel and off the page while the box itself stayed put, shut as well as open,
 which is #467's mechanism arriving by another route. The same rule therefore carries
 `overflow-wrap: anywhere`, which inherits to an option's label and its description alike. Such a
-value breaks mid-token rather than overflowing. Measured through `filterBar()` with such a value on
-the second chip, the page is 473px wide on a 390px view and on a 375px one — 83px and 98px over —
-and both become 0 with the hint. The panel is not what escapes: it stays 113.3px inside a 113.3px
-`.ui-dropdown` in either arm, and every option row stays 38.3px tall.
+value breaks mid-token rather than overflowing, which costs row height instead of page width: the
+gate's 44-character campaign key takes five line boxes and a 119.3px row, and 180.6px where its
+description is as unbreakable. Every other option row stays 38.3px, and the panel stays the chip's
+width — 113.3px — at every viewport. Without the hint the same page is 473px wide on a 390px view
+and on a 375px one, 83px and 98px over.
+
+On a phone that is the right trade: nothing is hidden and nothing is clipped. On a wide screen the
+same column fragments with the screen empty beside it, because the rule binds the panel to the
+chip's width and not to the room the viewport left. Reading the available room is the measurement
+[#502](https://github.com/apliteni/apliteni-ui/pull/502) introduces on the height axis, and this
+bound is one declaration that it can later replace. Recorded here as a known limit rather than
+widened here.
 
 The guarantee holds against stylesheets, the kit's own and a consumer's: the bound carries more
 classes than any floor that could outrank it. It does not survive an inline `min-width` on the
@@ -1626,6 +1634,14 @@ panel, which beats a stylesheet `max-width` whatever its specificity, so a consu
 that writes one re-opens [#467](https://github.com/apliteni/apliteni-ui/issues/467). The one writer
 inside the kit, `ddResetSearch()`, sets it to the panel's already-bounded `offsetWidth`, so a search
 dropdown composed inside a filter bar stays inside the row.
+
+The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
+`inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
+cannot shrink below its selected value's min-content width: a filter showing
+`utm_campaign_blackfriday_2026_eu_retargeting` makes a 437px page with nothing open at all — 47px
+over at 390, 62px at 375, 117px at 320. That is true with this rule, without it, and on `main`;
+the bound is on the panel. A filter whose applied value can be that long wants a shorter display
+value, or a change to the trigger, which is a change to every chip in the kit.
 
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
 — resolving one spelled as a token — and requires each to be answered inside the bar, and measured

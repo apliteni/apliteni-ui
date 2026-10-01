@@ -50,10 +50,14 @@ const THEMES = ['dark', 'light'];
  * deliberate act of someone who has seen the new surfaces. */
 const FLOOR_SUBJECTS = 13;   // 8 root + 5 react stories rendering a filter bar
 const FLOOR_PANELLED = 42;   // cases that put a panel on the page, of 84
-// Putting the floor back is the mutation. It is the rule as it stood before the
+// Putting the floor back is one mutation. It is the rule as it stood before the
 // fix, written at a specificity that beats the bound so it cannot be a no-op.
-const MUTATION = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
+const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
   + ' { min-width: 240px !important; max-width: none !important; }';
+/* Taking the wrap hint away is the other. The floor mutation only ever widens a
+ * panel, so it can never exercise the row-fit check; without this one that check
+ * would have nothing proving it still measures anything. */
+const WRAP_OFF = '.ui-filter-bar .ui-dropdown__panel { overflow-wrap: normal !important; }';
 
 /** A static server over one root, with one page of our own at /__shot. */
 const serve = (root, page) => new Promise((resolve, reject) => {
@@ -184,7 +188,7 @@ async function measure({ url, ready, width, theme, mutate, attrTheme }) {
   await page.waitForSelector(ready || '.ui-filter-bar', { state: 'attached', timeout: 30000 });
   // The fixture page is not a Storybook, so it takes the attribute directly.
   if (attrTheme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
-  if (mutate) await page.addStyleTag({ content: MUTATION });
+  if (mutate) await page.addStyleTag({ content: mutate });
   // Asked of the document rather than of a clock. why: scripts/evidence/README.md
   await settle(page);
   const seen = await page.evaluate(probe);
@@ -241,6 +245,16 @@ const allPanels = (held) => [held, ...held.opens]
 const unbound = (held) => allPanels(held)
   .filter((p) => p.dropdown === null || Math.abs(p.width - p.dropdown) > 0.5);
 
+/** The distinct rows whose text left them, one entry per row however many times
+ *  the walk measured it. */
+const spilled = (held) => {
+  const seen = new Map();
+  for (const panel of allPanels(held)) {
+    for (const spill of panel.spills) if (!seen.has(spill.text)) seen.set(spill.text, spill);
+  }
+  return [...seen.values()];
+};
+
 /** Whether a case put a panel on the page at any point in its walk. */
 const carriesPanel = (held) => Math.max(panelCount(held), ...held.opens.map(panelCount), 0) > 0;
 
@@ -261,15 +275,17 @@ for (const one of cases) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: a panel is ${panel.width}px inside a `
       + `${panel.dropdown}px .ui-dropdown, so the bound is not deciding its width`);
   }
-  // Every panel inside the row that holds it, open or shut, and every option's
-  // text inside the panel that holds it.
+  /* Every panel inside the row that holds it, open or shut, and every option's
+   * text inside the panel that holds it. A row is reported once per case: the
+   * same row is measured shut and again for each chip opened, and twelve
+   * identical lines read as twelve defects. */
+  for (const spill of spilled(held)) {
+    fails.push(`${one.name} at ${one.width}px ${one.theme}: the option "${spill.text}" needs `
+      + `${spill.content}px in a ${spill.box}px row, so it leaves the panel that bounds it`);
+  }
   for (const state of [held, ...held.opens]) {
     for (const bar of state.bars) {
       for (const panel of bar.panels) {
-        for (const spill of panel.spills) {
-          fails.push(`${one.name} at ${one.width}px ${one.theme}: the option "${spill.text}" needs `
-            + `${spill.content}px in a ${spill.box}px row, so it leaves the panel that bounds it`);
-        }
         if (panel.right > bar.right + 0.5 || panel.left < bar.left - 0.5) {
           fails.push(`${one.name} at ${one.width}px ${one.theme}`
             + `${state.chip ? ` chip ${state.chip} open` : ''}: a panel spans `
@@ -286,7 +302,7 @@ for (const one of cases) {
  * panel for the floor to widen. */
 const survived = [];
 for (const one of cases) {
-  const broken = await measure({ ...one, mutate: true });
+  const broken = await measure({ ...one, mutate: FLOOR_BACK });
   ledger.push({ ...one, mutated: true, ...broken });
   const loose = unbound(broken);
   if (panelled.has(one) && !loose.length) {
@@ -297,6 +313,19 @@ for (const one of cases) {
     survived.push(`${one.name} at ${one.width}px ${one.theme}: counted as carrying no panel and `
       + `yet the floor widened ${loose.length}, so its panels were missed`);
   }
+}
+
+/* The second mutation. Taking the wrap hint away has to make a row spill
+ * somewhere, or the row-fit check is decorative. It is run at the narrowest
+ * width in one theme rather than across the grid: the question is whether the
+ * check still responds to the defect, which one width answers, and the shipped
+ * arm above already measures every row at every width. */
+const wrapArm = cases.filter((one) => one.width === WIDTHS[0] && one.theme === THEMES[0]);
+const unwrapped = [];
+for (const one of wrapArm) {
+  const loose = await measure({ ...one, mutate: WRAP_OFF });
+  ledger.push({ ...one, mutated: 'wrap-off', ...loose });
+  unwrapped.push(...spilled(loose).map((s) => `${one.name}: ${s.text}`));
 }
 
 await browser.close();
@@ -320,6 +349,8 @@ console.log(`cases measured: ${cases.length} of ${expected} expected, at ${WIDTH
 console.log(`cases carrying a panel: ${panelled.size} of ${cases.length}, floor ${FLOOR_PANELLED}`);
 console.log(`panels measured against their .ui-dropdown: ${measuredPanels}`);
 console.log(`mutations rejected: ${panelled.size - survived.length} of ${panelled.size}`);
+console.log(`rows that spill with the wrap hint off: ${unwrapped.length}, over `
+  + `${wrapArm.length} cases at ${WIDTHS[0]}px ${THEMES[0]}`);
 
 const problems = [];
 if (cases.length !== expected) problems.push(`measured ${cases.length} cases, expected ${expected}`);
@@ -345,6 +376,12 @@ for (const build of BUILDS) {
 // A run where nothing rendered a panel would report every check green having
 // looked at nothing at all.
 if (!panelled.size) problems.push('no case rendered a filter panel, so nothing here was measured');
+// And one where no row spills without the hint has a row-fit check that is not
+// reading anything, whatever it reports about the shipped arm.
+if (!unwrapped.length) {
+  problems.push('no row spilled with overflow-wrap taken away, so the row-fit check is not '
+    + "measuring anything — the subjects may have lost the fixture's unbreakable value");
+}
 problems.push(...unrendered, ...fails, ...survived);
 if (problems.length) {
   for (const line of problems) console.error(`  ✗ ${line}`);

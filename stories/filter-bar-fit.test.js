@@ -144,7 +144,7 @@ function floors(sheets) {
   for (const [file, css] of sheets) {
     for (const rule of rules(css)) {
       for (const one of selectors(rule.selector)) {
-        if (!one.includes(PANEL) || one.includes(BAR)) continue;
+        if (!one.includes(PANEL)) continue;
         for (const prop of ['min-width', 'width']) {
           const value = declared(rule.body, prop);
           if (!value) continue;
@@ -264,6 +264,26 @@ test('a floor spelled as a token is read, not skipped', () => {
   assert.match(unbounded(token), /outranks every bound/);
   assert.match(unbounded(literal), /outranks every bound/);
   assert.equal(unbounded(token) === null, unbounded(literal) === null);
+});
+
+test('a floor written inside the bar\'s own scope is seen, not skipped', () => {
+  // The sweep used to ignore any selector mentioning the bar, which is where the
+  // most dangerous floor lives: inside the bar's scope it carries more classes
+  // than the bound, and `min-width` beats `max-width` whatever the specificity,
+  // so the bound cannot answer it at all.
+  const inside = [
+    ['fixture.css', `${BAR} ${PANEL}--search { min-width: 280px; }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.equal(floors(inside).length, 1);
+  assert.match(unbounded(inside), /outranks every bound/);
+});
+
+test('the bound itself is not counted as a floor it has to answer', () => {
+  // It is a percentage, so it cannot hold the box wider than its containing
+  // block — which is why dropping the bar from the skip list is safe.
+  const bound = [['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`]];
+  assert.equal(floors(bound).length, 0);
 });
 
 test('a token resolves through a declared property, not only through its fallback', () => {
