@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.66.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline. The rule is in the shared stylesheet, so the React `DataTable` takes it with the vanilla table. Resolves #510.', ['Table']],
+    ],
+  },
+  {
     v: '0.65.0', date: '2026-10-01',
     changes: [
       ['added', 'React Success, SuccessPanel and SuccessCheck provide the confirmation layouts and the check mark. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
