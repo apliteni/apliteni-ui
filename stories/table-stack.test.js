@@ -37,9 +37,21 @@ const FOCUSABLE = ['a[href]', 'button', 'input', 'select', 'textarea', '[tabinde
   '[contenteditable]'].join(', ');
 const FOCUSABLE_IN_HEAD = FOCUSABLE.split(', ').map((sel) => `thead ${sel}`).join(', ');
 
-/** Anything outside the table that a reader could use to change its order. */
-const sortControlOutside = (table) =>
-  [...table.getRootNode().querySelectorAll(FOCUSABLE)].some((el) => !table.contains(el));
+/**
+ * A focusable outside the table that says it drives THIS table, through `aria-controls`.
+ *
+ * "Some focusable on the page" is not the rule and does not hold it: a sidebar link, a skip
+ * link or the scroll region's own tabindex satisfies that, and #532's re-review satisfied the
+ * first version of this check with the exact defect it was written to catch. The tie has to be
+ * a stated relationship, so it is the one ARIA has for it.
+ */
+const sortControlFor = (table) => {
+  const id = table.getAttribute('id');
+  if (!id) return null;
+  return [...table.getRootNode().querySelectorAll(FOCUSABLE)].find((el) =>
+    !table.contains(el)
+    && (el.getAttribute('aria-controls') ?? '').split(/\s+/).includes(id)) ?? null;
+};
 
 /* -- The subjects, swept ---------------------------------------------------- */
 
@@ -106,11 +118,12 @@ function stackedTables(html, where) {
       ));
     }
 
-    // An order announced in a clipped header needs a control somewhere a reader can reach.
-    if (table.querySelector('thead [aria-sort]') && !sortControlOutside(table)) {
+    // An order announced in a clipped header needs a control that says it drives this table.
+    if (table.querySelector('thead [aria-sort]') && !sortControlFor(table)) {
       problems.push(say(
-        'the clipped header announces aria-sort, and nothing outside the table can change '
-        + 'it — a reader is told the order and given no way to set it',
+        'the clipped header announces aria-sort, and no focusable outside the table names it '
+        + `in aria-controls${table.id ? '' : ' (the table has no id to name)'} — a reader is `
+        + 'told the order and given no way to set it',
       ));
     }
 
@@ -182,19 +195,26 @@ test('every stacked table in a story names its own roles', async () => {
 
 /* -- The gate's own gate ---------------------------------------------------- */
 
-const WHOLE = `<table class="ui-table ui-table--stack" role="table">
+const WHOLE = `<table class="ui-table ui-table--stack" id="fixture-log" role="table">
   <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Who</th>
     <th scope="col" role="columnheader">Change</th></tr></thead>
   <tbody role="rowgroup"><tr role="row"><td role="cell">t.quill</td>
     <td role="cell" class="ui-table__long">raised the cap</td></tr></tbody>
 </table>`;
 
+/** Focusables that have nothing to do with the table, as every real page has. */
+const BYSTANDERS = '<a href="#main">Skip to content</a><a href="#home">Home</a>'
+  + '<div tabindex="0" role="region" aria-label="Rows"></div><button type="button">Filter</button>';
+
+/** The order announced in the clipped header, with no control that claims the table. */
+const ANNOUNCED = WHOLE.replace('role="columnheader">Who', 'role="columnheader" aria-sort="ascending">Who');
+
 test('the gate rejects a stacked table that leans on the implicit roles', () => {
   assert.deepEqual(stackedTables(WHOLE, 'fixture'), { tables: 1, problems: [] });
 
   const survived = [];
   for (const [what, mutate] of [
-    ['no role on the table', (h) => h.replace('ui-table--stack" role="table"', 'ui-table--stack"')],
+    ['no role on the table', (h) => h.replace(' id="fixture-log" role="table"', ' id="fixture-log"')],
     ['no role on the row groups', (h) => h.replaceAll(' role="rowgroup"', '')],
     ['no role on the rows', (h) => h.replaceAll(' role="row"', '')],
     ['no role on the headers', (h) => h.replaceAll(' role="columnheader"', '')],
@@ -204,7 +224,19 @@ test('the gate rejects a stacked table that leans on the implicit roles', () => 
     ['a sort control left in the clipped header',
       (h) => h.replace('>Change</th>', '><button type="button">Change</button></th>')],
     ['an order announced with the control for it deleted',
-      (h) => h.replace('role="columnheader">Who', 'role="columnheader" aria-sort="ascending">Who')],
+      () => ANNOUNCED],
+    // #532's re-review reconstructed round 1's defect on the shipped screener markup and the
+    // first version of this check reported no problem, because the page had 17 focusables and
+    // the check asked only whether one existed. Every mutation below keeps bystanders on the
+    // page, so "something is focusable" can never be what makes the gate pass.
+    ['an order announced beside focusables that cannot sort it',
+      () => `${BYSTANDERS}${ANNOUNCED}`],
+    ['a control that claims a different table',
+      () => `<button type="button" aria-controls="some-other-table">Sort</button>${BYSTANDERS}${ANNOUNCED}`],
+    ['a control that claims the table but cannot be reached',
+      () => `<span aria-controls="fixture-log">Sort</span>${BYSTANDERS}${ANNOUNCED}`],
+    ['the table left with no id for a control to name',
+      () => `<button type="button" aria-controls="fixture-log">Sort</button>${ANNOUNCED.replace(' id="fixture-log"', '')}`],
   ]) {
     const mutated = mutate(WHOLE);
     assert.notEqual(mutated, WHOLE, `the mutation "${what}" changes nothing, so it proves nothing`);
@@ -216,10 +248,21 @@ test('the gate rejects a stacked table that leans on the implicit roles', () => 
 // The shape the specification prescribes: the order is announced in the clipped header and
 // the control that changes it sits above the table, where it can draw a focus ring.
 test('the gate accepts an announced order whose control sits above the table', () => {
-  const sorted = WHOLE.replace('role="columnheader">Who', 'role="columnheader" aria-sort="ascending">Who');
-  assert.deepEqual(stackedTables(sorted, 'fixture').problems.length, 1, 'with no control, rejected');
+  assert.equal(stackedTables(ANNOUNCED, 'fixture').problems.length, 1, 'with no control, rejected');
   assert.deepEqual(
-    stackedTables(`<button type="button">Sort by who</button>${sorted}`, 'fixture'),
+    stackedTables(
+      `<button type="button" aria-controls="fixture-log">Sort by who</button>${BYSTANDERS}${ANNOUNCED}`,
+      'fixture',
+    ),
+    { tables: 1, problems: [] },
+    'a control that names the table is what the specification asks for, bystanders or not',
+  );
+  // `aria-controls` takes a list, and a toolbar control often drives more than one thing.
+  assert.deepEqual(
+    stackedTables(
+      `<button type="button" aria-controls="chart-1 fixture-log">Sort</button>${ANNOUNCED}`,
+      'fixture',
+    ),
     { tables: 1, problems: [] },
   );
 });

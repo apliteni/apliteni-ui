@@ -208,8 +208,13 @@ a.ui-identity:hover { text-decoration: underline; }
     overflow: visible; clip-path: none;
   }
   /* The bleed now pays for the row's inset instead of the end cells', so the cells still
-     start on the card's own text edge and the outline keeps its room on both sides. */
+     start on the card's own text edge and the outline keeps its room on both sides. A scroll
+     wrapper owns that bleed when it is the card's child, and it owes one step more than the
+     table does because the wrapper keeps its own --space-1 of focus clearance. */
   .ui-card > .ui-table--stack {
     width: calc(100% + 2 * var(--space-2)); margin-inline: calc(-1 * var(--space-2));
+  }
+  .ui-card > .ui-table-scroll:has(> .ui-table--stack) {
+    margin-inline: calc(-1 * var(--space-3));
   }
 }

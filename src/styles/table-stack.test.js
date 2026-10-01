@@ -225,6 +225,28 @@ const MUTATIONS = [
       '@media (max-width: 360px) {\n  .ui-table.ui-table--stack {')],
 ];
 
+// JSDOM lays nothing out, so the scroll-wrapper bleed is held as a declaration and measured
+// in Chromium instead (the #499 round-3 captures). Without it the card's own
+// `:has(> .ui-table--dense)` rule bleeds the wrapper a step too far and the stacked text
+// drifts 4px off the card's text edge, which is how the re-review found it.
+const wrapperBleed = (css) =>
+  /\.ui-card > \.ui-table-scroll:has\(> \.ui-table--stack\)\s*\{([^}]*)\}/.exec(decomment(css))?.[1] ?? null;
+
+test('a stacked table in a scroll wrapper is bled by the step the row pays back', () => {
+  const rule = wrapperBleed(CSS);
+  assert.ok(rule, 'no stacked scroll-wrapper rule: a stacked log inside a scroll region drifts');
+  assert.match(rule, /margin-inline:\s*calc\(-1 \* var\(--space-3\)\)/,
+    "the wrapper owes the row's --space-2 plus its own --space-1 of focus clearance");
+
+  // Deleting it is the shape the re-review measured: main's `:has(> .ui-table--dense)` rule
+  // bleeds the wrapper a step too far and the stacked text drifts 4px off the card's edge.
+  assert.equal(
+    wrapperBleed(CSS.replace(/\.ui-card > \.ui-table-scroll:has\(> \.ui-table--stack\)\s*\{[^}]*\}/, '')),
+    null,
+    'removing the rule must be rejected',
+  );
+});
+
 test('the gate rejects every way the stacked row has to be got wrong', () => {
   const survived = [];
   for (const [what, mutate] of MUTATIONS) {

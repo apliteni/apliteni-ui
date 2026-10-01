@@ -2112,15 +2112,20 @@ Below the one-column step a table marked `.ui-table--stack` lays each row out as
 instead of scrolling: the identity and the short cells on the first line, the cell marked
 `.ui-table__long` on a line under them, and the header row clipped rather than removed, so a
 cell still reads with its column's name. The marked column holds running text at any width;
-the line of its own is what the modifier adds. Pinning, sticky headers, the end-cell inset
-and the card bleed are all off in a stacked row — there is no column left to pin and no inset
-left to pay for — and a pinned identity shows its full name there rather than the symbol
-alone.
+the line of its own is what the modifier adds. Pinning, sticky headers and the end-cell inset
+all come off — there is no column left to pin — and a pinned identity shows its full name
+there rather than the symbol the 720px fold leaves it. The card bleed stays, re-pointed: it
+pays for the row's own inset instead of the end cells', so a stacked row's hover outline keeps
+its clearance off the text while the text still lands on the card's text edge. A scroll
+wrapper owns that bleed when it is the card's child, and owes one step more than the table,
+because the wrapper keeps its own focus clearance.
 
 A clipped header is read and not operated, so a stacked table's header cells hold text. A
 control left in one is a focus stop with no ring drawn anywhere, because there is nothing on
 screen to draw it on; a sort or filter control belongs on the row above the table instead,
-and `aria-sort` still announces the column the rows are ordered by.
+where it can draw one, and names the table in `aria-controls`. `aria-sort` still announces the
+column the rows are ordered by, and that naming is what keeps the announcement honest: it is
+the difference between a reader being told the order and a reader being able to set it.
 
 A stacked table carries `role="table"`, `rowgroup`, `row`, `columnheader` and `cell` in its
 own markup, at every width, because a stylesheet cannot write a role and 560px is not a
