@@ -8,9 +8,8 @@ export const RELEASES = [
   {
     v: '0.81.0', date: '2026-10-04',
     changes: [
-      ['fixed', 'Below the phone fold a pinned identity column keeps its name on one line and caps its width at `min(--panel-sm, 50vw)`, cutting a longer name with an ellipsis instead of hiding it or running the column across the screen. The whole name stays in the DOM, so the accessible name and the company link are unchanged. Resolves #500.', ['Table']],
+      ['fixed', 'Below the phone fold a pinned identity column keeps its name on one line, capped at `min(var(--panel-sm), 50vw)` and cut with an ellipsis instead of being hidden or running the column across the screen. The whole name stays in the DOM, so the accessible name and the company link are unchanged, and a sortable header in that column keeps its sort caret. Resolves #500.', ['Table']],
       ['added', '`--ui-table-identity-max` retunes that cap without restyling the kit\u2019s cell.', ['Table']],
-      ['fixed', 'A sortable header in that column keeps its sort caret: React DataTable puts the label in its own box so the label truncates instead of pushing the caret out of the cell. A control inside a pinned identity cell is shrunk to the cap rather than clipped.', ['Table']],
     ],
   },
   {

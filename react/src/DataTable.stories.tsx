@@ -106,7 +106,6 @@ export const NoPager: StoryObj = {
 const pinnedColumns: Column<Row>[] = [
   { key: 'name', label: 'Campaign and registered trading name', sortable: true },
   ...columns.slice(1),
-  { key: 'clicks', label: 'Clicks this week', num: true, sortable: true, render: (r) => r.clicks.toLocaleString() },
 ];
 export const PinnedSortable: StoryObj = {
   render: () => (

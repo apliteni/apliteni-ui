@@ -211,17 +211,9 @@
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
-/* Below the fold a pinned identity keeps one line of identity and cuts the rest.
-   `width: 1%` sized the column to its content and nothing capped it, so a plain
-   "Cedar Infrastructure Holdings International" took 270px of a 390px screen,
-   while anything in the cell that sets `white-space: normal` — the header cell,
-   and .ui-identity__name itself — wrapped into a tall sliver. The name was hidden
-   outright, which left a reader on a phone with a ticker and no company (#500).
-   The cell no longer wraps, so the column's floor is one whole line, and
-   --ui-table-identity-max is its ceiling: the panel width on the widest phone,
-   half the screen on the narrowest, which is what leaves the columns beside it
-   room to be paged through. A consumer retunes that one property.
-   why: docs/specification.md#dense-financial-tables */
+/* Below the fold a pinned identity is one line wide: nothing in it wraps, so the
+   floor is a whole line, and --ui-table-identity-max is the ceiling a consumer
+   retunes. why: docs/specification.md#dense-financial-tables, #500 */
 @media (max-width: 720px) {
   .ui-table--pinned .ui-table__identity {
     width: 1%;
@@ -234,17 +226,20 @@ a.ui-identity:hover { text-decoration: underline; }
     overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;
   }
-  /* Every child shrinks into the cap instead of running past it. */
-  .ui-table--pinned .ui-table__identity > * { max-width: 100%; min-width: 0; }
-  /* A sub-line is a block of its own, so the cell's ellipsis cannot reach it; a
-     child that is nothing but text cuts itself the same way. A child holding
-     anything else keeps its own layout, because a clip takes the mark rather than
-     the words: it cut the sort caret off a pinned sortable header, and it would
-     cut a link's focus ring. */
-  .ui-table--pinned .ui-table__identity > :not(.ui-identity, a, button, :has(*)) {
+  /* A sub-line is a block of its own, so the cell's own ellipsis cannot reach it:
+     every child is held to the cap and cuts itself the same way. */
+  .ui-table--pinned .ui-table__identity > * {
+    max-width: 100%;
+    min-width: 0;
     overflow: clip;
     overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;
+  }
+  /* Except what carries a mark. A clip shortens words; it removes a sort caret or
+     a focus ring outright. */
+  .ui-table--pinned .ui-table__identity > :is(.ui-identity, a, button, input, select, textarea, svg, :has(a, button, input, select, textarea, svg, [tabindex])) {
+    overflow: visible;
+    text-overflow: clip;
   }
   .ui-table--pinned .ui-identity__logo { display: none; }
   .ui-table--pinned .ui-identity { max-width: 100%; }

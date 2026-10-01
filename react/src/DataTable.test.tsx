@@ -521,6 +521,37 @@ it('keeps a pinned sortable header a label that can give way and a caret that ca
   expect(button.querySelector('svg')).toHaveClass('rx-caret');
 });
 
+// The kit gate (src/styles/table-identity.test.js) holds the cell's side of #500:
+// a control in a pinned identity cell is capped, never clipped. This holds the half
+// that lives here — with the label unable to give way, its 231px of text runs over
+// the caret and into the next column inside the 170px the cap leaves it.
+it('gives the sortable label the rules that let it give way, and the caret none of them', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stickyHeader scrollLabel="Ledger" />);
+  const header = screen.getByRole('columnheader', { name: 'Name' });
+  const label = within(header).getByRole('button', { name: 'Name' }).querySelector('.rx-sort__label')!;
+  const caret = within(header).getByRole('button', { name: 'Name' }).querySelector('svg')!;
+  const style = document.createElement('style');
+  style.textContent = readFileSync(join(dirname(expect.getState().testPath!), 'DataTable.css'), 'utf8');
+  document.head.append(style);
+  try {
+    const declarations = (selector: Element) => Object.fromEntries(
+      Array.from(style.sheet!.cssRules)
+        .filter(rule => 'selectorText' in rule && selector.matches((rule as CSSStyleRule).selectorText))
+        .flatMap(rule => Array.from((rule as CSSStyleRule).style).map(p => [p, (rule as CSSStyleRule).style.getPropertyValue(p)])));
+    const onLabel = declarations(label);
+    expect(onLabel['overflow']).toBe('hidden');
+    expect(onLabel['text-overflow']).toBe('ellipsis');
+    expect(onLabel['min-width']).toBe('0px');
+    const onButton = declarations(label.parentElement!);
+    expect(onButton['max-width']).toBe('100%');
+    expect(onButton['min-width']).toBe('0px');
+    // What must not give way: the caret is the only visible sort direction.
+    expect(declarations(caret)['flex-shrink']).toBe('0');
+    expect(declarations(caret)['overflow']).toBeUndefined();
+  } finally { style.remove(); }
+});
+
 it('disables the chevron transition under reduced motion', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} />);
   const caret = screen.getByRole('button', { name: 'Clicks' }).querySelector('svg')!;
