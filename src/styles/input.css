@@ -157,7 +157,9 @@
   transform: translate(-50%, -50%);
 }
 .ui-check input[type="radio"] { border-radius: 50%; }
-.ui-check input:hover { border-color: var(--accent); }
+/* :enabled, or the accent lights the border of a box that cannot be clicked —
+   the same "press me" a disabled control has to stop making. #429 */
+.ui-check input:enabled:hover { border-color: var(--accent); }
 .ui-check input:checked { background: var(--accent); border-color: var(--accent); }
 .ui-check input[type="checkbox"]:checked::after {
   content: "";
@@ -176,6 +178,26 @@
   background: var(--accent-contrast);
 }
 .ui-check input:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+
+/* Off. `.ui-check` had no disabled rule at all until #429 put a disabled checkbox
+   on screen: the box kept --surface-2 and --border-strong, its words kept --text,
+   and it was the word "unavailable" in the label that carried the state. The same
+   flat pair the fields and the buttons take (#220, #273) — a paint on the box and
+   quiet ink on the words, never an `opacity`, which drags label and box toward the
+   ground together. A checked box drops the accent for the reason a disabled primary
+   button does: the accent IS the "press me". Its mark inverts to --disabled-surface,
+   so the tick and the dot keep the measured --disabled-ink pair in both themes. */
+.ui-check input:disabled {
+  background: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  border-color: var(--disabled-border);
+  cursor: not-allowed;
+}
+.ui-check input:disabled:checked { background: var(--disabled-ink); border-color: var(--disabled-ink); }
+.ui-check input[type="checkbox"]:disabled:checked::after { border-color: var(--disabled-surface); }
+.ui-check input[type="radio"]:disabled:checked::after { background: var(--disabled-surface); /* ring-gap: inherit — the mark inside the box; the box carries the focus indicator. */ }
+/* The label is the click target, so the cursor belongs on it, and the words it
+   holds go quiet with the box beside them. */
+.ui-check:has(input:disabled) { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; }
 
 /* Toggle switch */
 .ui-switch {

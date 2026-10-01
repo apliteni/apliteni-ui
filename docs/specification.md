@@ -2410,4 +2410,33 @@ open unless `defaultOpen` or a user toggle sets their state. Folding does not re
 AppShell composes this navigation in its desktop rail and More drawer.
 
 Held by `react/src/SidebarNav.test.tsx`; browser captures verify presentation separately.
+
+## React checkbox, radio and switch
+
+`Checkbox` and `Switch` render native inputs inside the existing `ui-check` and
+`ui-switch` labels and use the shared `input.css` without overrides. `Checkbox`
+accepts `type="radio"`; same-name radios retain native exclusive selection and
+arrow navigation. Its `label` is visible text. `Switch` requires a text `label`
+for its accessible name and retains native checkbox semantics.
+
+Both forward refs and native input attributes, including controlled `checked`
+with `onChange`, uncontrolled `defaultChecked`, form names and values, and
+`disabled`. Disabled controls do not activate, submit, or enter the Tab order.
+Uncontrolled inputs reset with their form. `Checkbox` passes `className` to the
+input; `Switch` passes it to the `.ui-switch` label, because its input is a
+hidden zero-size box. A `Switch` given an empty `label` takes the vanilla
+factory's "Toggle" default, so it always has an accessible name.
+
+A disabled checkbox or radio now takes the same paint as every other disabled
+control in the kit: `--disabled-surface`, `--disabled-border`, quiet
+`--disabled-ink` words and `cursor: not-allowed`, with a checked box dropping the
+accent for an opaque fill and inverting its tick or dot. Hover no longer lights
+the border of a control that cannot be clicked. The vanilla `checkbox()` factory
+takes `disabled` and its specimen renders the state, so
+`stories/guidelines/accessibility-floor.test.js` measures it.
+
+Tests in `react/src/Checkbox.test.tsx` and `react/src/Switch.test.tsx` check
+semantics, events, the class split and the label fallback in JSDOM, not browser
+paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
+things the story walk cannot: the hover qualification and the pseudo-element mark.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).

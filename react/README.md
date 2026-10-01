@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -537,4 +537,28 @@ Tooltip accepts text and inline children, without nested controls. Hovering or f
 
 ```tsx
 <Tooltip text="Updated daily">Balance</Tooltip>
+```
+
+## Checkbox and Switch
+
+`Checkbox` wraps a native checkbox and its visible `label`. Set `type="radio"`
+and give related options the same `name` for a native radio group. Use a fieldset
+and legend to name the group. `Switch` has the same native checkbox behavior,
+with the kit's switch track; its required `label` supplies the accessible name.
+Place visible setting text beside a switch.
+
+Both accept native input props: `checked` with `onChange` for controlled state,
+`defaultChecked` for uncontrolled state, and `disabled`, `name`, `value`,
+`required`, and ARIA attributes. Refs and every other prop reach the input.
+`className` reaches the input on `Checkbox` and the `.ui-switch` label on
+`Switch`, whose input is a hidden zero-size box that paints nothing. An empty
+`Switch` label falls back to "Toggle", as the vanilla factory does. Disabled
+controls do not activate, submit, or enter the Tab order, and the shared
+stylesheet paints them with the kit's disabled ink, surface and edge and drops
+the accent from a checked box.
+
+```tsx
+<Checkbox label="Read only" type="radio" name="scope" value="read" defaultChecked />
+<Checkbox label="Full access" type="radio" name="scope" value="full" />
+<Switch label="Email notifications" checked={email} onChange={event => setEmail(event.currentTarget.checked)} />
 ```

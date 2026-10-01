@@ -9,6 +9,10 @@ import '../../src/styles/reduced-motion.css';
 import '../../src/styles/field-zoom.css';
 
 export { Icon } from './primitives/Icon';
+export { Checkbox } from './Checkbox';
+export type { CheckboxProps } from './Checkbox';
+export { Switch } from './Switch';
+export type { SwitchProps } from './Switch';
 export { Button } from './primitives/Button';
 export type { ButtonProps } from './primitives/Button';
 export { Badge } from './primitives/Badge';

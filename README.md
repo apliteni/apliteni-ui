@@ -170,6 +170,9 @@ See Storybook's **Button / Busy Transition** for the live vanilla example.
 
 ## Theming
 
+React forms can use [Checkbox, radio and Switch](react/README.md#checkbox-and-switch)
+with native labels, keyboard behavior and controlled or uncontrolled state.
+
 React pages can use [ThemeToggle and its pre-paint script](react/README.md#themetoggle)
 to save dark, light or auto choices. Auto resolves to dark or light on the root.
 

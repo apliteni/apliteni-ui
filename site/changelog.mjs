@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.63.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Checkbox supports checkboxes and grouped radios, and Switch renders a native checkbox with the existing switch track. Both accept native input props and refs, including controlled state and disabled inputs. Switch takes className on its visible label and names an empty label "Toggle". Part of #429.'],
+      ['fixed', 'A disabled checkbox or radio now paints as unavailable instead of rendering identically to a live one, and hovering it no longer lights its border with the accent. The vanilla checkbox() factory takes disabled. Part of #429.'],
+    ],
+  },
+  {
     v: '0.62.0', date: '2026-10-01',
     changes: [
       ['added', 'React SidebarNav supports sections, one level of nested disclosure, counts, disabled and danger rows, collapsed presentation, artwork and footer slots, and router links. AppShell uses it in the desktop rail and More drawer with the existing sidebar styling, and a page under a back link keeps its section active in both navs. Part of #429.'],
