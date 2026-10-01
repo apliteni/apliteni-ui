@@ -1,23 +1,17 @@
 /* Rule: on a phone a pinned identity cell is one line of identity wide — never a
- * wrapped sliver, and never wider than its cap.
+ * wrapped sliver, never wider than its cap. why: #500, where the uncapped column
+ * took 270px of a 390px screen and the name was not drawn at all.
  *
- * The defect (#500): `width: 1%` sized the pinned column to its longest WORD, so
- * "North region" or a name over a sub-line wrapped and the column became tall and
- * thin. Nothing but a consumer restyle of the kit's own cell could widen it.
+ * The stylesheet is flattened for ONE viewport width and resolved against three
+ * mounted shapes — the kit's own `rowIdentity()`, a two-word plain cell, and a name
+ * over a sub-line — at 390 and again at 1280, so a rule that stops reaching the cell,
+ * or starts reaching the desktop, fails here.
  *
- * What this measures: the shipped stylesheet, flattened for ONE viewport width and
- * resolved against real markup. Three cell shapes are mounted — the kit's own
- * `rowIdentity()`, a two-word plain-text cell, and a name over a sub-line — and the
- * winning declarations are read back at 390 and again at 1280, so a rule that stops
- * reaching the cell, or starts reaching the desktop, fails here.
- *
- * Its limits, stated rather than assumed:
- *   - JSDOM models no layout. This proves which declarations reach the cell, not the
- *     drawn line box. Chromium measured the drawn box for #500: at 390 the plain
- *     cell is 195px with the text cut at its edge, a sub-line cell is two lines
- *     (45.4px), and a focused company link keeps its whole ring.
- *   - The cap's `min()` is evaluated here, because JSDOM reports
- *     `min(320px, 50vw)` as `320px` at every width.
+ * Limits: JSDOM models no layout, so this holds the declarations that reach the cell,
+ * not the drawn line box — Chromium measured that for #500 (195px, cut at the edge; a
+ * sub-line cell two lines at 45.4px; a focused link's ring whole). The cap's `min()`
+ * is evaluated below, because JSDOM reports `min(320px, 50vw)` as `320px` at every
+ * width.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
