@@ -308,6 +308,12 @@
         "pattern": "content over a scrim, focus-trapped, Esc-dismissable"
       }
     ],
+    "comfort": [
+      {
+        "ref": "src/styles/drawer.css:18",
+        "pattern": "--drawer-w: var(--panel-md)"
+      }
+    ],
     "no-cards": [
       {
         "ref": "src/components/drawer.js:88",

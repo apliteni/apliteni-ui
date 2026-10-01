@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['added', 'The drawer guideline now says when to use a drawer and when to use a page. Work that edits more than one group, or sets a value for each row of a list, belongs on a page; a drawer holds one short change. A rendered pair shows one member\u2019s access on a page beside the same editor in a drawer. Resolves #492.', ['Drawer']],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],
