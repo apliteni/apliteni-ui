@@ -141,12 +141,12 @@ const LEDGER = [{
   id: 'A',
   selectors: ['.ui-card--accent', '.ui-card--live'],
   themes: ['light'],
-  worst: 1.09,
+  worst: 1.085,
   why: 'A tinted card in LIGHT sits between the two reading surfaces, so neither is a full '
     + 'step away from it. Light mixes its tint DOWN from white (#448, --card-tint 5%), '
-    + 'which lands the accent card at #f8f4fc and the live card beside it: above the page '
+    + 'which lands the accent card at #f8f5fc and the live card at #f4f9f4: above the page '
     + 'it covers, below the white card it is a variant of. It is handed that card, the '
-    + 'better of the two at 1.07-1.08 against the page\'s 1.02-1.04, and still lands under '
+    + 'better of the two at 1.065-1.083 against the page\'s 1.024-1.042, and still lands under '
     + 'the 1.110 a plain card gives. Dark has the room and clears the step on both. Not '
     + 'closed here because every way to close it is a rule this kit has already decided '
     + 'against: a grey chip (#455), an edge (#490) or a second accent signal on the one '
