@@ -1610,6 +1610,16 @@ instead of widening. That suits the values a filter shows — a filter's options
 its chip already carries — and a list that needs more room than that is a dropdown rather than a
 filter.
 
+A bounded box is not the whole guarantee, because a panel is `overflow: visible`. A value with no
+break opportunity in it — `utm_campaign_blackfriday_2026_eu_retargeting`, a URL, an API key — would
+run out of a narrow panel and off the page while the box itself stayed put, shut as well as open,
+which is #467's mechanism arriving by another route. The same rule therefore carries
+`overflow-wrap: anywhere`, which inherits to an option's label and its description alike. Such a
+value breaks mid-token rather than overflowing. Measured through `filterBar()` with such a value on
+the second chip, the page is 473px wide on a 390px view and on a 375px one — 83px and 98px over —
+and both become 0 with the hint. The panel is not what escapes: it stays 113.3px inside a 113.3px
+`.ui-dropdown` in either arm, and every option row stays 38.3px tall.
+
 The guarantee holds against stylesheets, the kit's own and a consumer's: the bound carries more
 classes than any floor that could outrank it. It does not survive an inline `min-width` on the
 panel, which beats a stylesheet `max-width` whatever its specificity, so a consumer style or script
@@ -1618,11 +1628,12 @@ inside the kit, `ddResetSearch()`, sets it to the panel's already-bounded `offse
 dropdown composed inside a filter bar stays inside the row.
 
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
-and requires each one to be answered inside the bar, and measured in a browser by
-`scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes. That gate sweeps
-both Storybook indexes for every story rendering a filter bar, measures each panel against the
-`.ui-dropdown` that contains it, and puts the floor back to require a panel in every case that
-carries one to widen.
+— resolving one spelled as a token — and requires each to be answered inside the bar, and measured
+in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
+That gate sweeps both Storybook indexes for every story rendering a filter bar, measures each panel
+against the `.ui-dropdown` that contains it, asks every option row whether its own text fits it,
+and puts the floor back to require a panel in every case that carries one to widen. Its fixture
+page carries an unbreakable value so the wrap hint is measured rather than assumed.
 
 ## A dropdown row is a div, a link or a button
 

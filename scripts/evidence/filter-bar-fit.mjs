@@ -43,6 +43,13 @@ for (const build of BUILDS) {
 // place it is allowed to hold.
 const WIDTHS = [320, 375, 390];
 const THEMES = ['dark', 'light'];
+/* Floors, recorded from what this kit reaches rather than re-derived from the
+ * sweep. A count computed from the same loop that filled it can only restate
+ * itself: a sweep that silently stopped reaching half the surfaces would report
+ * "36 of 36 expected" and pass. These fail instead, and raising them is the
+ * deliberate act of someone who has seen the new surfaces. */
+const FLOOR_SUBJECTS = 13;   // 8 root + 5 react stories rendering a filter bar
+const FLOOR_PANELLED = 42;   // cases that put a panel on the page, of 84
 // Putting the floor back is the mutation. It is the rule as it stood before the
 // fix, written at a specificity that beats the bound so it cannot be a no-op.
 const MUTATION = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
@@ -91,9 +98,20 @@ const probe = () => {
       // The containing block the percentages resolve against, measured rather
       // than assumed equal to the trigger. why: src/styles/filter-bar.css
       const dd = panel.closest('.ui-dropdown')?.getBoundingClientRect();
+      /* A bound box is not the whole promise: a panel is overflow: visible, so
+       * text with no break opportunity leaves it while the box stays put. Each
+       * row is asked whether its own content fits it. */
+      const spills = [...panel.querySelectorAll('.ui-dropdown__item')]
+        .filter((row) => row.scrollWidth > row.clientWidth + 0.5)
+        .map((row) => ({
+          text: row.textContent.trim().slice(0, 48),
+          content: row.scrollWidth, box: row.clientWidth,
+        }));
       return {
         left: +p.left.toFixed(1), right: +p.right.toFixed(1), width: +p.width.toFixed(1),
         dropdown: dd ? +dd.width.toFixed(1) : null,
+        rows: panel.querySelectorAll('.ui-dropdown__item').length,
+        spills,
       };
     });
     return { left: +box.left.toFixed(1), right: +box.right.toFixed(1), panels };
@@ -230,10 +248,15 @@ for (const one of cases) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: a panel is ${panel.width}px inside a `
       + `${panel.dropdown}px .ui-dropdown, so the bound is not deciding its width`);
   }
-  // Every panel inside the row that holds it, open or shut.
+  // Every panel inside the row that holds it, open or shut, and every option's
+  // text inside the panel that holds it.
   for (const state of [held, ...held.opens]) {
     for (const bar of state.bars) {
       for (const panel of bar.panels) {
+        for (const spill of panel.spills) {
+          fails.push(`${one.name} at ${one.width}px ${one.theme}: the option "${spill.text}" needs `
+            + `${spill.content}px in a ${spill.box}px row, so it leaves the panel that bounds it`);
+        }
         if (panel.right > bar.right + 0.5 || panel.left < bar.left - 0.5) {
           fails.push(`${one.name} at ${one.width}px ${one.theme}`
             + `${state.chip ? ` chip ${state.chip} open` : ''}: a panel spans `
@@ -277,15 +300,26 @@ const measuredPanels = ledger.filter((row) => !row.mutated).reduce((n, row) => n
 const perHalf = BUILDS.map((b) => `${subjects.filter((s) => s.half === b.half).length} ${b.half}`);
 const expected = WIDTHS.length * THEMES.length * (subjects.length + 1);
 console.log(`swept: ${swept} stories across ${BUILDS.length} Storybook indexes`);
-console.log(`subjects: ${perHalf.join(' + ')} stories + 1 vanilla page`);
+console.log(`subjects: ${perHalf.join(' + ')} stories + 1 vanilla page `
+  + `(${subjects.length} stories against a floor of ${FLOOR_SUBJECTS})`);
 for (const s of subjects) console.log(`  · ${s.half}: ${s.label}`);
 console.log(`cases measured: ${cases.length} of ${expected} expected, at ${WIDTHS.join('px, ')}px`);
-console.log(`cases carrying a panel: ${panelled.size} of ${cases.length}`);
+console.log(`cases carrying a panel: ${panelled.size} of ${cases.length}, floor ${FLOOR_PANELLED}`);
 console.log(`panels measured against their .ui-dropdown: ${measuredPanels}`);
 console.log(`mutations rejected: ${panelled.size - survived.length} of ${panelled.size}`);
 
 const problems = [];
 if (cases.length !== expected) problems.push(`measured ${cases.length} cases, expected ${expected}`);
+// The counts that cannot come from the sweep. A surface lost to a rename, a
+// moved bar or a broken story fails here rather than renumbering quietly.
+if (subjects.length < FLOOR_SUBJECTS) {
+  problems.push(`the sweep found ${subjects.length} stories rendering .ui-filter-bar and this kit `
+    + `has at least ${FLOOR_SUBJECTS} — a surface was lost, or the sweep stopped reaching it`);
+}
+if (panelled.size < FLOOR_PANELLED) {
+  problems.push(`${panelled.size} cases carried a panel and this kit reaches at least `
+    + `${FLOOR_PANELLED} — panels went unmeasured even though the subjects were found`);
+}
 // A sweep that stops finding one half's bars reports every check green having
 // measured only the other half. Both halves ship filter bars, so both have to
 // contribute a subject; how many is free to grow.
