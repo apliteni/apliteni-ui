@@ -100,27 +100,35 @@ function useOverflows(ref: { current: HTMLElement | null }, watch: unknown) {
 const CSS = `
   .doc-flow { display: flex; flex-direction: column; gap: var(--space-5); }
   .doc-flow--measure { max-width: var(--measure); }
-  /* The document beside its fields above 860px, stacked below with the document
-     first — the order #385 asks for. At that width the side-by-side comparison is a
-     desktop affordance; the figures carry it at any width because both sides share a
-     right edge and a format. why: guidelines/layout-and-density.md#use-the-three-breakpoints */
+  /* The extracted fields lead and take the flexible track; the document sits beside
+     them in a fixed panel. The fields are what approval writes, so they get the first
+     position and the wider column at every width, stacked as well as side by side.
+     why: guidelines/density-and-accents.md#follow-the-consequence, guidelines/layout-and-density.md#use-the-three-breakpoints */
   .doc-flow__panes { display: grid; align-items: start; gap: var(--space-6);
     grid-template-columns: minmax(0, 1fr) var(--panel-md); }
   .doc-flow .ui-table-scroll { --ui-table-height: none; padding: 0; }
   .doc-flow__scroll-hint { margin: 0 0 var(--space-3); }
   .doc-flow__pinned-text { position: sticky; left: var(--space-3); }
-  /* The page is at least panel-lg wide; Fit scales it to its viewport. It draws no
-     ground, border or radius of its own: the "Source document" card is the sheet, and a
-     bordered box on its parent's own fill is a card inside a card — white on white in
-     light, and one hairline apart in dark.
+  /* The page is at least panel-md wide; Fit scales it to its viewport. The panel it
+     sits in is panel-md too, so Fit lands near 1:1 and the document keeps its own text
+     size in the quieter column — a preview that is smaller, not one that is faded.
+     It draws no ground, border or radius of its own: the "Source document" card is the
+     sheet, and a bordered box on its parent's own fill is a card inside a card — white
+     on white in light, and one hairline apart in dark.
      why: guidelines/layout-and-density.md#use-panel-and-prose-units, guidelines/the-page.md#limit-card-stacks */
-  .doc-flow__sheet { width: var(--panel-lg); transition: zoom var(--dur-med) var(--ease-out); }
+  .doc-flow__sheet { width: var(--panel-md); transition: zoom var(--dur-med) var(--ease-out); }
   .doc-flow__sheet .ui-skel + .ui-skel { margin-top: var(--space-5); }
   .doc-flow__meta { margin: 0 0 var(--space-2); }
   .doc-flow__meta:last-of-type { margin-bottom: var(--space-4); }
   .doc-flow__toolbar { display: flex; flex-wrap: wrap; align-items: center;
     gap: var(--space-4); margin-bottom: var(--space-4); }
   .doc-flow__amounts { margin-top: var(--space-5); }
+  /* The values the approval writes carry the weight; their labels keep theirs. Rank
+     here is weight, not ink: the rule asks for size, weight and spacing, and a colour
+     written in a story's own style block is one the contrast walk cannot resolve, so it
+     would judge these rows as nothing at all.
+     why: guidelines/labels-and-titles.md#use-body-ink, guidelines/density-and-accents.md#follow-the-consequence */
+  .doc-flow__saved .ui-drawer__row dd { font-weight: var(--weight-medium); }
   /* One alignment for one column, and the header on the same side as its values. This
      column holds text, so it stays left; only the figures share a right edge. The kit
      right-aligns a footer label because it usually spans to sit against its figure —
@@ -180,7 +188,7 @@ export const Default: StoryObj<Args> = {
       const box = scrollRef.current;
       if (!box) return;
       const read = () => {
-        const minimum = parseFloat(getComputedStyle(box).getPropertyValue('--panel-lg'));
+        const minimum = parseFloat(getComputedStyle(box).getPropertyValue('--panel-md'));
         const width = Math.max(minimum, box.clientWidth);
         setPageSize({ width, fit: box.clientWidth / width });
       };
@@ -280,62 +288,74 @@ export const Default: StoryObj<Args> = {
       </div>
     );
 
+    // The extracted fields come first and take the wider column: they are what the
+    // approval writes to the record, and the document beside them is the source they
+    // are checked against. The preview is quieter by being second and narrower, never
+    // by being faded. why: guidelines/density-and-accents.md#follow-the-consequence
+    const fields = (
+      <Card title="Extracted fields" sub="Saved to the record when you approve.">
+        {loading ? <Skeleton lines={8} /> : <>
+          <KeyValueList className={['doc-flow__saved', arriving].filter(Boolean).join(' ')} rows={identity} />
+          {/* Figures the reader compares belong in a right-aligned table, in the
+              document's own format, so the two columns of numbers share an edge
+              instead of being read character by character.
+              why: guidelines/dense-tables.md#align-numeric-values */}
+          <table className={['ui-table', 'ui-table--dense', 'doc-flow__amounts', arriving].filter(Boolean).join(' ')}>
+            <caption className="ui-sr">Amounts read from the invoice, in EUR.</caption>
+            <thead>
+              <tr><th>Amount</th><th className="ui-table__num">EUR</th></tr>
+            </thead>
+            <tbody>
+              {totals.slice(0, -1).map(({ label, value }) => (
+                <tr key={label}>
+                  <th scope="row">{label}</th>
+                  <td className="ui-table__num">{value}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" className="ui-table__num--strong">Total</th>
+                <td className="ui-table__num ui-table__num--strong">{totals[totals.length - 1].value}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </>}
+      </Card>
+    );
+
+    const source = (
+      <Card title="Source document">
+        {/* The toolbar stays in every state and disables what cannot act, so the
+            card header keeps its height and no control moves between states. */}
+        <div className="doc-flow__toolbar">
+          <Segmented
+            label="Zoom"
+            value={zoom}
+            onChange={setZoom}
+            disabled={state !== 'ready'}
+            options={ZOOMS.map((s) => ({ label: s === 'fit' ? 'Fit' : `${s}%`, value: String(s) }))}
+          />
+        </div>
+        {loading ? sheetPlaceholder : state === 'unavailable' ? (
+          <EmptyState
+            art="invoices"
+            title="We couldn’t render this file"
+            sub="The extracted fields were read from it and are complete."
+            actions={<Button onClick={retryPreview}>Try again</Button>}
+          />
+        ) : <>
+          {columnsScroll && <p className="doc-flow__scroll-hint">Scroll left or right to see all amounts.</p>}
+          {sheet}
+        </>}
+      </Card>
+    );
+
     const review = (
       <div className="doc-flow">
         <div className="doc-flow__panes">
-          <Card title="Source document">
-            {/* The toolbar stays in every state and disables what cannot act, so the
-                card header keeps its height and no control moves between states. */}
-            <div className="doc-flow__toolbar">
-              <Segmented
-                label="Zoom"
-                value={zoom}
-                onChange={setZoom}
-                disabled={state !== 'ready'}
-                options={ZOOMS.map((s) => ({ label: s === 'fit' ? 'Fit' : `${s}%`, value: String(s) }))}
-              />
-            </div>
-            {loading ? sheetPlaceholder : state === 'unavailable' ? (
-              <EmptyState
-                art="invoices"
-                title="We couldn’t render this file"
-                sub="The fields below were read from it and are complete."
-                actions={<Button onClick={retryPreview}>Try again</Button>}
-              />
-            ) : <>
-              {columnsScroll && <p className="doc-flow__scroll-hint">Scroll left or right to see all amounts.</p>}
-              {sheet}
-            </>}
-          </Card>
-          <Card title="Extracted fields">
-            {loading ? <Skeleton lines={8} /> : <>
-              <KeyValueList className={arriving} rows={identity} />
-              {/* Figures the reader compares belong in a right-aligned table, in the
-                  document's own format, so the two columns of numbers share an edge
-                  instead of being read character by character.
-                  why: guidelines/dense-tables.md#align-numeric-values */}
-              <table className={['ui-table', 'ui-table--dense', 'doc-flow__amounts', arriving].filter(Boolean).join(' ')}>
-                <caption className="ui-sr">Amounts read from the invoice, in EUR.</caption>
-                <thead>
-                  <tr><th>Amount</th><th className="ui-table__num">EUR</th></tr>
-                </thead>
-                <tbody>
-                  {totals.slice(0, -1).map(({ label, value }) => (
-                    <tr key={label}>
-                      <th scope="row">{label}</th>
-                      <td className="ui-table__num">{value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <th scope="row" className="ui-table__num--strong">Total</th>
-                    <td className="ui-table__num ui-table__num--strong">{totals[totals.length - 1].value}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </>}
-          </Card>
+          {fields}
+          {source}
         </div>
         <div className="doc-flow__actions">
           <Button variant="primary" onClick={() => setStep('confirm')} disabled={loading}>

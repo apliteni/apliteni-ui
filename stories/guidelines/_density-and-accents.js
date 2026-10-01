@@ -17,6 +17,12 @@ export const SPEC_CSS = `<style>
   .gda-forced .ui-stats__list { flex-wrap: nowrap; }
   .gda-forced .ui-stats__list > .ui-stat { flex-basis: 0; }
   .gda-coloured .ui-drawer__row dt, .gda-coloured .ui-drawer__row dd { color: var(--accent); }
+  /* Two panes, one source and one set of values to be saved. Which track is the wide
+     one, and which pane comes first, is the whole specimen. */
+  .gda-panes { display: grid; align-items: start; gap: var(--space-4);
+    grid-template-columns: minmax(0, 1fr) 190px; }
+  .gda-saved .ui-drawer__row dd { font-weight: var(--weight-medium); }
+  .gda-sheet > p { margin: 0 0 var(--space-3); }
   .gda-page .gc-except { box-shadow: none; padding-left: 0; }
 </style>`;
 
@@ -44,8 +50,32 @@ const figures = () => statBand({ variant: 'tiles', basis: 'Payouts · September'
   { label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' },
 ] });
 
+// A source document beside the fields a parser read from it. The fields are what an
+// approval writes to the record, so the Do leads with them in the wide track and gives
+// each value more weight than its label; the Don't hands both to the preview.
+const saved = (emphasised) => `<div class="ui-card ui-card--pad-sm ${emphasised ? 'gda-saved' : ''}">
+  <h3 class="ui-card__title">Extracted fields</h3>
+  ${drawerSection({ rows: [['Supplier', 'Sample Studio'], ['Invoice', 'DEMO-1042'], ['Total', '\u20ac 1,440.00']] })}
+</div>`;
+const sourceDocument = () => `<div class="ui-card ui-card--pad-sm">
+  <h3 class="ui-card__title">Source document</h3>
+  <div class="gda-sheet">
+    <p>Invoice DEMO-1042 \u00b7 Issued 14 Sep 2026</p>
+    <table class="ui-table ui-table--dense">
+      <tbody>
+        <tr><td>Interface design</td><td class="ui-table__num">450.00</td></tr>
+        <tr><td>Prototype review</td><td class="ui-table__num">300.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>`;
+const consequence = (savedLeads) => stage(`<div class="gda-panes">
+  ${savedLeads ? saved(true) + sourceDocument() : sourceDocument() + saved(false)}
+</div>`);
+
 export const RULES = withSpecimens(content.rules, [
   { id: 'check-density', doHtml: () => stage(figures(), 'gda-band'), dontHtml: () => stage(figures(), 'gda-band gda-forced') },
   { id: 'reduce-density', doHtml: () => stage(payouts() + preview()), dontHtml: () => stage(payouts() + preview(true)) },
   { id: 'purposeful-accent', doHtml: () => stage(preview()), dontHtml: () => stage(preview(false, true)) },
+  { id: 'follow-the-consequence', doHtml: () => consequence(true), dontHtml: () => consequence(false) },
 ]);
