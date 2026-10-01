@@ -99,3 +99,20 @@ export const NoPager: StoryObj = {
     <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />
   ),
 };
+
+// The pinned identity column is capped on a phone (#500), and the first column is
+// the one that can be sortable and long at the same time. The label gives way; the
+// caret does not, because the direction has no other visible signal.
+const pinnedColumns: Column<Row>[] = [
+  { key: 'name', label: 'Campaign and registered trading name', sortable: true },
+  ...columns.slice(1),
+  { key: 'clicks', label: 'Clicks this week', num: true, sortable: true, render: (r) => r.clicks.toLocaleString() },
+];
+export const PinnedSortable: StoryObj = {
+  render: () => (
+    <div className="ui-card" style={{ maxWidth: 'var(--panel-lg)' }}>
+      <DataTable columns={pinnedColumns} rows={rows} selectable={false} pager={false}
+        density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
+    </div>
+  ),
+};

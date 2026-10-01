@@ -10,6 +10,7 @@ export const RELEASES = [
     changes: [
       ['fixed', 'Below the phone fold a pinned identity column keeps its name on one line and caps its width at `min(--panel-sm, 50vw)`, cutting a longer name with an ellipsis instead of hiding it or running the column across the screen. The whole name stays in the DOM, so the accessible name and the company link are unchanged. Resolves #500.', ['Table']],
       ['added', '`--ui-table-identity-max` retunes that cap without restyling the kit\u2019s cell.', ['Table']],
+      ['fixed', 'A sortable header in that column keeps its sort caret: React DataTable puts the label in its own box so the label truncates instead of pushing the caret out of the cell. A control inside a pinned identity cell is shrunk to the cap rather than clipped.', ['Table']],
     ],
   },
   {

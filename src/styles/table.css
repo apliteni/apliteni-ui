@@ -234,11 +234,14 @@ a.ui-identity:hover { text-decoration: underline; }
     overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;
   }
-  /* A sub-line is a block of its own, so the cell's ellipsis cannot reach it; each
-     line under the name cuts itself the same way. `.ui-identity` is left out because
-     clipping it would cut a focused link's ring. */
-  .ui-table--pinned .ui-table__identity > :not(.ui-identity) {
-    max-width: 100%;
+  /* Every child shrinks into the cap instead of running past it. */
+  .ui-table--pinned .ui-table__identity > * { max-width: 100%; min-width: 0; }
+  /* A sub-line is a block of its own, so the cell's ellipsis cannot reach it; a
+     child that is nothing but text cuts itself the same way. A child holding
+     anything else keeps its own layout, because a clip takes the mark rather than
+     the words: it cut the sort caret off a pinned sortable header, and it would
+     cut a link's focus ring. */
+  .ui-table--pinned .ui-table__identity > :not(.ui-identity, a, button, :has(*)) {
     overflow: clip;
     overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;

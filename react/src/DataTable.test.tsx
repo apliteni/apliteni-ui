@@ -504,6 +504,23 @@ it('rotates the same chevron for ascending sort by default while rows reorder im
   expect(caret).not.toHaveAttribute('data-up');
 });
 
+// JSDOM supplies no layout; src/styles/table-identity.test.js holds the kit rule that
+// leaves a control in a pinned identity cell unclipped, and the #500 captures show the
+// drawn header at 390.
+it('keeps a pinned sortable header a label that can give way and a caret that cannot', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stickyHeader scrollLabel="Ledger" />);
+  const header = screen.getByRole('columnheader', { name: 'Name' });
+  expect(header).toHaveClass('ui-table__identity');
+  const button = within(header).getByRole('button', { name: 'Name' });
+  const label = button.querySelector('.rx-sort__label')!;
+  expect(label).toHaveTextContent('Name');
+  // The caret is the button's own child, not the label's: what truncates must not
+  // be able to take the sort direction with it.
+  expect(label.querySelector('svg')).toBeNull();
+  expect(button.querySelector('svg')).toHaveClass('rx-caret');
+});
+
 it('disables the chevron transition under reduced motion', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} />);
   const caret = screen.getByRole('button', { name: 'Clicks' }).querySelector('svg')!;
