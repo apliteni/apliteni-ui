@@ -17,12 +17,24 @@ export const SPEC_CSS = `<style>
   .gda-forced .ui-stats__list { flex-wrap: nowrap; }
   .gda-forced .ui-stats__list > .ui-stat { flex-basis: 0; }
   .gda-coloured .ui-drawer__row dt, .gda-coloured .ui-drawer__row dd { color: var(--accent); }
-  /* Two panes, one source and one set of values to be saved. Which track is the wide
-     one, and which pane comes first, is the whole specimen. */
-  .gda-panes { display: grid; align-items: start; gap: var(--space-4);
-    grid-template-columns: minmax(0, 1fr) 190px; }
-  .gda-saved .ui-drawer__row dd { font-weight: var(--weight-medium); }
-  .gda-sheet > p { margin: 0 0 var(--space-3); }
+  /* Two panes in one order, so the only thing that moves between Do and Don't is which
+     pane is given the width, the weight and the accent. The tracks are 2:1 rather than
+     the screen's 485:420, because a specimen at half a page has to exaggerate a ratio to
+     show it. Stretched, so neither card out-masses the other by accident. */
+  .gda-panes { display: grid; align-items: stretch; gap: var(--space-4); }
+  .gda-panes--saved-wide { grid-template-columns: 2fr 1fr; }
+  .gda-panes--source-wide { grid-template-columns: 1fr 2fr; }
+  /* Stacked label-over-value rows rather than a two-column list: at a third of a
+     half-page column a label beside its value has nowhere to wrap, and the kit's rows
+     break inside words to fit. */
+  .gda-panes .ui-card { display: flex; flex-direction: column; }
+  .gda-pane__label { margin: 0; overflow-wrap: normal; }
+  .gda-pane__value { margin: 0 0 var(--space-2); overflow-wrap: normal; }
+  .gda-pane__value--strong { font-weight: var(--weight-medium); }
+  .gda-pane__line { margin: 0 0 var(--space-2); overflow-wrap: normal; }
+  /* The accent on the edge, not the ground: a pane like this one holds a table, and a
+     table stays on the reading surface. */
+  .gda-pane--accent { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
   .gda-page .gc-except { box-shadow: none; padding-left: 0; }
 </style>`;
 
@@ -51,27 +63,27 @@ const figures = () => statBand({ variant: 'tiles', basis: 'Payouts · September'
 ] });
 
 // A source document beside the fields a parser read from it. The fields are what an
-// approval writes to the record, so the Do leads with them in the wide track and gives
-// each value more weight than its label; the Don't hands both to the preview.
-const saved = (emphasised) => `<div class="ui-card ui-card--pad-sm ${emphasised ? 'gda-saved' : ''}">
+// approval writes to the record. Both panels print the same two cards in the same order,
+// so what a reader compares is the width, the value weight and which card carries the
+// accent ground — the four levers the rule names.
+const savedPane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
   <h3 class="ui-card__title">Extracted fields</h3>
-  ${drawerSection({ rows: [['Supplier', 'Sample Studio'], ['Invoice', 'DEMO-1042'], ['Total', '\u20ac 1,440.00']] })}
+  <p class="gda-pane__label">Supplier</p>
+  <p class="gda-pane__value${lead ? ' gda-pane__value--strong' : ''}">Sample Studio</p>
+  <p class="gda-pane__label">Total</p>
+  <p class="gda-pane__value${lead ? ' gda-pane__value--strong' : ''}">1,440.00</p>
 </div>`;
-const sourceDocument = () => `<div class="ui-card ui-card--pad-sm">
+const sourcePane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
   <h3 class="ui-card__title">Source document</h3>
-  <div class="gda-sheet">
-    <p>Invoice DEMO-1042 \u00b7 Issued 14 Sep 2026</p>
-    <table class="ui-table ui-table--dense">
-      <tbody>
-        <tr><td>Interface design</td><td class="ui-table__num">450.00</td></tr>
-        <tr><td>Prototype review</td><td class="ui-table__num">300.00</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <p class="gda-pane__line">Invoice</p>
+  <p class="gda-pane__line">DEMO-1042</p>
+  <p class="gda-pane__line">Total</p>
+  <p class="gda-pane__line">1,440.00</p>
 </div>`;
-const consequence = (savedLeads) => stage(`<div class="gda-panes">
-  ${savedLeads ? saved(true) + sourceDocument() : sourceDocument() + saved(false)}
-</div>`);
+const consequence = (savedLeads) => stage(
+  `<div class="gda-panes gda-panes--${savedLeads ? 'saved' : 'source'}-wide">`
+  + savedPane(savedLeads) + sourcePane(!savedLeads)
+  + '</div>');
 
 export const RULES = withSpecimens(content.rules, [
   { id: 'check-density', doHtml: () => stage(figures(), 'gda-band'), dontHtml: () => stage(figures(), 'gda-band gda-forced') },

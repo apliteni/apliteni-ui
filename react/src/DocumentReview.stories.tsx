@@ -110,8 +110,8 @@ const CSS = `
   .doc-flow__scroll-hint { margin: 0 0 var(--space-3); }
   .doc-flow__pinned-text { position: sticky; left: var(--space-3); }
   /* The page is at least panel-md wide; Fit scales it to its viewport. The panel it
-     sits in is panel-md too, so Fit lands near 1:1 and the document keeps its own text
-     size in the quieter column — a preview that is smaller, not one that is faded.
+     sits in is panel-md too, so Fit lands at about 88% rather than scaling a 560px page
+     into a 420px box — a preview that is smaller, not one that is faded.
      It draws no ground, border or radius of its own: the "Source document" card is the
      sheet, and a bordered box on its parent's own fill is a card inside a card — white
      on white in light, and one hairline apart in dark.
@@ -123,11 +123,31 @@ const CSS = `
   .doc-flow__toolbar { display: flex; flex-wrap: wrap; align-items: center;
     gap: var(--space-4); margin-bottom: var(--space-4); }
   .doc-flow__amounts { margin-top: var(--space-5); }
+  /* The zoom control sits in the reference pane, so its selected pill marks itself with
+     the kit's strong edge instead of the accent. Between the two panes the accent names
+     the data that gets saved, and a reference cannot hold the step's only colour. The
+     focus state is left alone: :not(:focus-visible) keeps the ring's own transparent
+     outline off this rule. why: guidelines/density-and-accents.md#follow-the-consequence */
+  .doc-flow__toolbar .ui-seg button[aria-pressed="true"]:not(:focus-visible) {
+    outline-color: var(--border-strong);
+  }
   /* The values the approval writes carry the weight; their labels keep theirs. Rank
      here is weight, not ink: the rule asks for size, weight and spacing, and a colour
      written in a story's own style block is one the contrast walk cannot resolve, so it
      would judge these rows as nothing at all.
      why: guidelines/labels-and-titles.md#use-body-ink, guidelines/density-and-accents.md#follow-the-consequence */
+  /* The pane holding the values that get saved carries the step's accent, and carries it
+     on its edge rather than its ground: this pane holds a table, and a table belongs on
+     the reading surface in both themes, never on a tint. The kit's accent card re-colours
+     this same hairline; this is that half of it, without the fill. One edge, one step:
+     nothing here is a second outline and nothing is high-contrast.
+     why: guidelines/density-and-accents.md#follow-the-consequence,
+     guidelines/dense-tables.md#use-the-right-surface */
+  .doc-flow__saved-pane {
+    --saved-edge: color-mix(in srgb, var(--accent) 55%, transparent);
+    border-color: var(--saved-edge);
+  }
+  .doc-flow__saved .ui-drawer__row dt { font-weight: var(--weight-normal); }
   .doc-flow__saved .ui-drawer__row dd { font-weight: var(--weight-medium); }
   /* One alignment for one column, and the header on the same side as its values. This
      column holds text, so it stays left; only the figures share a right edge. The kit
@@ -135,6 +155,15 @@ const CSS = `
      here it owns a column, so it stays with the labels above it.
      why: guidelines/dense-tables.md#align-numeric-values */
   .ui-table.doc-flow__amounts :is(tbody, tfoot) th { text-align: left; }
+  /* …and the same ranking the rows above use. The kit's own th rule carries a weight, so
+     in this pane each label came out a step heavier than the figure beside it — the
+     inversion of the rule this showcase exists to show. Labels drop to the body weight
+     and figures take the step above, Total included.
+     why: guidelines/density-and-accents.md#follow-the-consequence */
+  .ui-table.doc-flow__amounts :is(tbody, tfoot) th { font-weight: var(--weight-normal); }
+  .ui-table.doc-flow__amounts :is(tbody, tfoot) td { font-weight: var(--weight-medium); }
+  .ui-table.doc-flow__amounts tfoot th.ui-table__num--strong { font-weight: var(--weight-medium); }
+  .ui-table.doc-flow__amounts tfoot td.ui-table__num--strong { font-weight: var(--weight-semibold); }
   /* One order on every step and every width: the committing action first, then the
      quiet ones, so the button that commits never lands beside a way out.
      why: guidelines/component-choice.md#make-the-committing-action-stand-out */
@@ -288,12 +317,13 @@ export const Default: StoryObj<Args> = {
       </div>
     );
 
-    // The extracted fields come first and take the wider column: they are what the
-    // approval writes to the record, and the document beside them is the source they
-    // are checked against. The preview is quieter by being second and narrower, never
-    // by being faded. why: guidelines/density-and-accents.md#follow-the-consequence
+    // The extracted fields come first, take the wider column and wear the kit's accent
+    // ground: they are what the approval writes to the record, and the document beside
+    // them is the source they are checked against. The preview is quieter by being
+    // second, narrower and uncoloured — never by being faded, and it holds no accent of
+    // its own. why: guidelines/density-and-accents.md#follow-the-consequence
     const fields = (
-      <Card title="Extracted fields" sub="Saved to the record when you approve.">
+      <Card title="Extracted fields" sub="Saved to the record when you approve." className="doc-flow__saved-pane">
         {loading ? <Skeleton lines={8} /> : <>
           <KeyValueList className={['doc-flow__saved', arriving].filter(Boolean).join(' ')} rows={identity} />
           {/* Figures the reader compares belong in a right-aligned table, in the
@@ -302,8 +332,15 @@ export const Default: StoryObj<Args> = {
               why: guidelines/dense-tables.md#align-numeric-values */}
           <table className={['ui-table', 'ui-table--dense', 'doc-flow__amounts', arriving].filter(Boolean).join(' ')}>
             <caption className="ui-sr">Amounts read from the invoice, in EUR.</caption>
+            {/* The left column holds the names of the amounts, not amounts, so it takes
+                no visible header; the figures carry the header the document's own table
+                gives them, which is what lets the two readings be compared word for word.
+                why: guidelines/dense-tables.md#keep-units-readable */}
             <thead>
-              <tr><th>Amount</th><th className="ui-table__num">EUR</th></tr>
+              <tr>
+                <th><span className="ui-sr">Amount read from the invoice</span></th>
+                <th className="ui-table__num">Amount (EUR)</th>
+              </tr>
             </thead>
             <tbody>
               {totals.slice(0, -1).map(({ label, value }) => (
