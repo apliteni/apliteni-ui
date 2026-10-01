@@ -2087,11 +2087,14 @@ Stated so nobody has to discover it by trying:
 
 Tables paint `--table-bg`: white in light mode and the base canvas in dark mode. Zebra no
 longer paints grey stripes; hover marks the row edge without tinting the data surface.
-**A link inside a cell takes the row's ink and underlines on hover**, which is what `.ui-identity`
-has always done: a link in a ledger is a value that happens to open something, and colouring every
-one of them spends the accent on the column that needs it least. `.ui-btn` and `.ui-identity`
-inside a table keep their own paint. Decided on
-[#451](https://github.com/apliteni/apliteni-ui/issues/451).
+**A link inside a cell takes the row's ink, underlines on hover, and wears the shared `--ring` on
+`:focus-visible`** at its own `--radius-xs` corner — one ring around the whole link, including a
+title-cell link that wraps. That is what `.ui-identity` has always done: a link in a ledger is a
+value that happens to open something, and colouring every one of them spends the accent on the
+column that needs it least. `.ui-btn` and `.ui-identity` inside a table keep their own paint, and
+`.ui-btn` keeps the button's radius under the ring. Decided on
+[#451](https://github.com/apliteni/apliteni-ui/issues/451) and
+[#510](https://github.com/apliteni/apliteni-ui/issues/510).
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.
 Dense, compact and zebra recipes give headers and values matching horizontal insets in

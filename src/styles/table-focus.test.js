@@ -7,26 +7,16 @@ import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
 
 /**
- * A link written inside a table cell must take the kit ring on keyboard focus (#510).
- *
- * How the defect got in: `table.css` gave a cell's link the row's ink and an underline on
- * hover, which is the whole of its look at rest — and nothing for `:focus-visible`. The
- * shared ring in `base.css` is keyed to control classes (`.ui-btn`, `.ui-input`,
- * `.ui-focusable`), and a bare `<a>` carries none of them, so Chromium drew its own
- * outline: a black box in light and a white one in dark, square against the cell.
- * `guidelines/state-set.md` asks for the same `--ring` on every focusable control, and
- * #457 put a link and a disclosure summary onto the shared focus class for that reason.
- * This one was photographed on the payouts ledger while #490 was being captured.
- *
- * Subjects are discovered from the markup the kit renders, not listed here, so a new
- * ledger with a linked ID joins this gate by existing.
+ * The guarantee: a link written inside a table cell takes the kit ring on keyboard focus.
+ * Subjects are discovered from the markup, so a new ledger with a linked ID joins by
+ * existing. why: docs/specification.md#dense-financial-tables; decided in #510.
  *
  * Limits: this reads the cascade, not paint. Whether the ring is visible against the
  * surface behind it belongs to stories/ring-surfaces.test.js and the contrast ledger;
  * whether `:focus-visible` matches on a real keystroke is the browser's, and the PR's
- * captures carry that evidence. It walks markup written as literal HTML — a cell whose
- * link is assembled at runtime from parts is outside what a source scan can see, and is
- * covered by the same stylesheet rule rather than by this list.
+ * captures carry that evidence. It reads markup written as literal tags — a cell whose
+ * link or whose table's class list is assembled at runtime cannot be read from source,
+ * and the check below refuses such a table rather than guessing at it.
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, "../..");
@@ -64,11 +54,16 @@ const cellLinks = () => sourceFiles().flatMap((file) => {
   });
 });
 
+// JSX spells the attribute `className`, which HTML parsing lowercases to `classname` and
+// leaves `classList` empty — every selector then misses, and the gate reports a hole that
+// is not there. The spelling is normalised before the markup is parsed.
+const asHtml = (tag) => tag.replace(/\bclassName=/g, "class=").replace(/\bhtmlFor=/g, "for=");
+
 /** A cell's link, standing in the table and cell the source puts it in. */
 const element = (subject) => {
-  const row = `<tr>${subject.cellOpen}${subject.link}ID</a></${subject.cell}></tr>`;
+  const row = `<tr>${asHtml(subject.cellOpen)}${asHtml(subject.link)}ID</a></${subject.cell}></tr>`;
   const body = subject.cell === "th" ? `<thead>${row}</thead>` : `<tbody>${row}</tbody>`;
-  const dom = new JSDOM(`${subject.table}${body}</table>`);
+  const dom = new JSDOM(`${asHtml(subject.table)}${body}</table>`);
   return dom.window.document.querySelector("a");
 };
 
@@ -106,11 +101,22 @@ const bare = (css, subjects) => {
     .map((subject) => `${subject.file}: ${subject.link}`);
 };
 
+// A table whose class list is a JS expression (`className={[...].join(' ')}`) carries no
+// class this reader can see, so a link inside it would be reported bare whatever the
+// stylesheet says. Measure that one in a rendered story instead.
+const unreadable = (subject) => !/\sclass(?:Name)?="[^"{}]*\bui-table\b/.test(subject.table);
+
 test("every link in a table cell takes the kit ring", () => {
   const subjects = cellLinks();
+  assert.deepEqual(
+    subjects.filter(unreadable).map((s) => `${s.file}: ${s.table}`),
+    [],
+    "this table's class list is built at runtime, so a source scan cannot say which rules " +
+      "reach the link inside it — measure it in a rendered story and exclude it here",
+  );
   assert.equal(
     subjects.length,
-    3,
+    4,
     "every link the kit writes in a cell must be measured; update this count with the " +
       `subjects, which are now:\n${subjects.map((s) => `${s.file}: ${s.link}`).join("\n")}`,
   );
@@ -133,6 +139,22 @@ test("the check rejects a cell link dropped from the ring", () => {
     "without the table's focus rule every cell link must be reported bare — if any still " +
       "passes, a second rule is covering it and this gate is measuring the wrong one",
   );
+});
+
+test("a JSX subject is read the same as its HTML spelling", () => {
+  // Without `asHtml` this is the gate's own false positive: `className` parses to the
+  // attribute `classname`, `classList` stays empty, every selector misses, and the first
+  // React cell link written is reported as falling back to the native outline.
+  const jsx = {
+    file: "fixture", table: '<table className="ui-table">', cell: "td",
+    cellOpen: '<td className="ui-table__title">', link: '<a href="#">',
+  };
+  const html = {
+    ...jsx, table: '<table class="ui-table">', cellOpen: '<td class="ui-table__title">',
+  };
+
+  assert.deepEqual(bare(SHEETS, [jsx]), [], "a JSX cell link must be seen to take the ring");
+  assert.deepEqual(bare(SHEETS, [jsx]), bare(SHEETS, [html]), "both spellings must read alike");
 });
 
 test("a button in a cell keeps its own ring, not the cell link's", () => {

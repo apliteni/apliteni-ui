@@ -89,18 +89,12 @@
   color: var(--strong);
   text-decoration: underline;
 }
-/* And on keyboard focus it takes the kit ring, like every other focusable part. With no
-   :focus-visible rule of its own the browser drew its own outline on it — a black box in
-   light, white in dark, square against the cell — and the rule is that every focusable
-   control wears the same ring. `.ui-btn` is left out: it carries the ring already, with
-   the button's radius.
-
-   Scoped to the table, not to `:where(td, th)` like the rules above. A link in a header
-   cell or a caption is the same link and wants the same ring, and the ring gates split a
-   selector list on every comma — including the ones inside `:where()` — so a ring rule
-   spelled that way reaches them in fragments.
+/* And on keyboard focus it takes the kit ring, at its own corner. `.ui-btn` is left out: it
+   carries the ring already, with the button's radius. The box is inline-block so a title
+   link that wraps paints one ring rather than one per line (#510).
    why: guidelines/state-set.md#focus-rings
    held by: src/styles/table-focus.test.js */
+.ui-table a:not(.ui-btn):not(.ui-identity) { display: inline-block; }
 .ui-table a:not(.ui-btn):focus-visible {
   outline: 2px solid transparent;
   box-shadow: var(--ring);

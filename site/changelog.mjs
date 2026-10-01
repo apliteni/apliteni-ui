@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.66.0', date: '2026-10-02',
     changes: [
-      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline. The rule is in the shared stylesheet, so the React `DataTable` takes it with the vanilla table. Resolves #510.', ['Table']],
+      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline, and a title-cell link that wraps paints one ring rather than one per line. The rule is in the shared stylesheet, so the React `DataTable` takes it with the vanilla table; the React DataTable and Loading stories now carry a cell link that shows it. Resolves #510.', ['Table']],
     ],
   },
   {
