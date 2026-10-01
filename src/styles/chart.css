@@ -14,9 +14,10 @@
   /* The ground the marks are drawn on, so a dot's rim and a hollow estimated
      dot read as cut out of it. A chart outside a card names its own. */
   --ui-chart-ground: var(--surface);
-  /* The tick's own line box. The axis is half of one taller than the plot and
-     pulled up by the other half, which lands every tick's middle on its
-     gridline without taking a single label out of flow. */
+  /* The tick's own line box. The axis spans the band the gridlines are drawn
+     in — the plot less the room a stroke needs at each edge — and is half a
+     line box taller at each end, so every tick's middle lands on its gridline
+     without taking a single label out of flow. */
   --ui-chart-tick: calc(var(--text-xs) * 1.45);
   display: flex;
   flex-direction: column;
@@ -74,8 +75,8 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: calc(var(--ui-chart-h) + var(--ui-chart-tick));
-  margin-block: calc(var(--ui-chart-tick) / -2);
+  height: calc(var(--ui-chart-h) - var(--ui-chart-pad) * 2 + var(--ui-chart-tick));
+  margin-block: calc(var(--ui-chart-pad) - var(--ui-chart-tick) / 2);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }

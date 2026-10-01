@@ -279,10 +279,14 @@ export function Chart(props: ChartProps) {
   const [ownPick, setOwnPick] = useState<number | null>(null);
   const pick = selected === undefined ? ownPick : selected;
 
-  const frame = useMemo<Frame>(() => (props.variant === 'bridge'
-    ? bridgeFrame(props.steps, props.tones, format)
-    : seriesFrame(props.periods, props.series, spark, format)
-  ), [props, spark, format]);
+  const steps = props.variant === 'bridge' ? props.steps : undefined;
+  const bridgeTones = props.variant === 'bridge' ? props.tones : undefined;
+  const periods = props.variant === 'bridge' ? undefined : props.periods;
+  const series = props.variant === 'bridge' ? undefined : props.series;
+  const frame = useMemo<Frame>(() => (steps
+    ? bridgeFrame(steps, bridgeTones, format)
+    : seriesFrame(periods ?? [], series ?? [], spark, format)
+  ), [steps, bridgeTones, periods, series, spark, format]);
   const { columns, scale, lines, keys, tableHead, tableRows } = frame;
 
   /* -- the pixels ---------------------------------------------------------- */
@@ -297,7 +301,7 @@ export function Chart(props: ChartProps) {
   );
   const zero = y(Math.min(Math.max(0, scale.min), scale.max));
   const barWidth = Math.max(4, Math.min(colWidth * 0.62, colWidth - 6));
-  const centre = (column: number) => column * colWidth + colWidth / 2;
+  const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
 
   const marks = useMemo<Mark[]>(() => {
     const out: Mark[] = frame.bars.map((bar) => {
@@ -325,9 +329,7 @@ export function Chart(props: ChartProps) {
       });
     }
     return out;
-  // `centre` closes over colWidth, which is in the list.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [frame, lines, keys, columns, colWidth, barWidth, y]);
+  }, [frame, lines, keys, columns, centre, barWidth, y]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
   /** The mark a keystroke opens for a column: its first, in drawing order. */
@@ -360,7 +362,10 @@ export function Chart(props: ChartProps) {
 
   useLayoutEffect(() => {
     if (!openId || !frameEl.current || !tipEl.current || !svgEl.current) return;
-    const anchor = svgEl.current.querySelector(`[data-anchor="${openId}"]`);
+    // Matched by attribute rather than by an interpolated selector: a series id
+    // is the caller's string and may carry a quote.
+    const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
+      .find((el) => el.getAttribute('data-anchor') === openId);
     if (anchor) placeTip(frameEl.current, anchor, tipEl.current);
   }, [openId, plotWidth, plotHeight]);
 
@@ -453,7 +458,7 @@ export function Chart(props: ChartProps) {
   return (
     <div
       className={cx('ui-chart', `ui-chart--${variant}`, className)}
-      style={{ '--ui-chart-h': `${plotHeight}px` } as CSSProperties}
+      style={{ '--ui-chart-h': `${plotHeight}px`, '--ui-chart-pad': `${PAD}px` } as CSSProperties}
     >
       {!spark && keys.length > 0 && (
         <ul className="ui-chart__legend">
