@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.82.0', date: '2026-10-04',
+    changes: [
+      ['added', 'A component-choice guideline: group a control only with others of its own category. Views, filters, sorting and actions each take their own group and style; a bar that mixes them hides which control re-draws every row and which only narrows them. See #508.'],
+    ],
+  },
+  {
     v: '0.81.0', date: '2026-10-04',
     changes: [
       ['breaking', '`accountShell()` is removed, with the Showcases/Account preset screen that drew it. It laid account settings out as a full-width page in the shell, which is the shape the new guideline rejects. Call `appShell()` instead: pass your own `nav` and `crumbs` \u2014 `[{ label: cap }, { label: crumb }]` is the trail the preset built \u2014 and a `topbar` bag if you want the band, with `versions`, `showSwitch` and `wireTopbar()` as before. `ACCOUNT_NAV` is still exported and is still the account menu\u2019s fallback nav, and the menu still reads the old `[id, icon, label, href?, target?]` tuples. Components/Topbar draws the band over a shell. Part of #509.', ['Shell']],

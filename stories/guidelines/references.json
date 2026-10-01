@@ -240,6 +240,20 @@
         "pattern": "not role=\"tablist\""
       }
     ],
+    "one-category": [
+      {
+        "ref": "src/components/filter-bar.js:4",
+        "pattern": "export function filterBar("
+      },
+      {
+        "ref": "src/styles/filter-bar.css:3",
+        "pattern": ".ui-filter-bar__chip {"
+      },
+      {
+        "ref": "src/components/index.js:75",
+        "pattern": "A strip of mutually exclusive toggle buttons."
+      }
+    ],
     "scale": [
       {
         "ref": "src/components/index.js:268",

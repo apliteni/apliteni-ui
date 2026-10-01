@@ -4,6 +4,7 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, callout, card, segmented, successPanel, toast } from '../../src/components/index.js';
+import { filterBar } from '../../src/components/filter-bar.js';
 import { confirm } from '../../src/components/confirm.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { success } from '../../src/components/success.js';
@@ -57,6 +58,24 @@ export const panelsDont = () => stage(tabs({
   items: FILTERS.map((label) => ({ label })),
 }));
 
+const SECTORS = ['Technology', 'Energy', 'Health care'].map((label) => ({ label, value: label }));
+const SAVED_VIEWS = ['All rows', 'Unclassified', 'This month'];
+
+// Three categories, three groups: the strip switches the table, the chip narrows
+// it, and the action sits at the far end.
+export const categoryDo = () => stage(`<div style="display:grid;gap:var(--space-4)">
+  ${segmented({ options: ['Overview', 'Performance'], appearance: 'underline', ariaLabel: 'Dataset view', name: 'gl-view' })}
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3)">
+    ${filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: SECTORS }], clearLabel: 'Clear filters' })}
+    <span style="margin-left:auto">${button({ label: 'Export', size: 'sm' })}</span>
+  </div>
+</div>`);
+// What #508 reported: the saved views and the control that adds a condition, one
+// bar and one style, so nothing says which of them replaces the whole table.
+export const categoryDont = () => stage(`<div style="display:flex;flex-wrap:wrap;gap:var(--space-2)">
+  ${[...SAVED_VIEWS, 'Filter'].map((label) => button({ label, size: 'sm' })).join('')}
+</div>`);
+
 export const scaleDo = () => stage(card({
   body: successPanel({ title: 'Feedback sent', sub: 'It goes straight to the strategy owner.' }),
 }));
@@ -78,6 +97,7 @@ export const RULES = withSpecimens(content.rules, [
 { id: 'interrupt', doHtml: interruptDo, dontHtml: interruptDont },
 { id: 'transient', doHtml: transientDo, dontHtml: transientDont },
 { id: 'panels', doHtml: panelsDo, dontHtml: panelsDont },
+{ id: 'one-category', doHtml: categoryDo, dontHtml: categoryDont },
 { id: 'scale', doHtml: scaleDo, dontHtml: scaleDont },
 { id: 'dropdown-search', doHtml: searchDo, dontHtml: searchDont }
 ]);

@@ -54,6 +54,20 @@
 
 **Don't:** Give those same list filters tab roles when they have no separate panels.
 
+## Group one category at a time
+
+<!-- rule: one-category -->
+
+**Rule:** Put a control in a group only with others of its own category: views, filters, sorting and actions each get their own group and style.
+
+**Why:** Identical controls in one bar hide that one of them switches the whole view while its neighbour only narrows it.
+
+**Do:** Give the views a strip above the table, the filters a bar of chips under it, and the action the right-hand end.
+
+**Don't:** Put three saved views and a filter control in one bar as four buttons of the same size and style.
+
+**Except:** Two filters, or two actions, belong together: the categories are what may not mix.
+
 ## Match confirmation scale
 
 <!-- rule: scale -->
