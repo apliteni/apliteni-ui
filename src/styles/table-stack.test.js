@@ -115,7 +115,7 @@ function resolve(css, width) {
       table: parts(table, ['display', 'min-width']),
       head: parts(head, ['display', 'position', 'clip-path', 'height']),
       body: parts(body, ['display']),
-      row: parts(body.rows[0], ['display', 'flex-wrap']),
+      row: parts(body.rows[0], ['display', 'flex-wrap', 'padding-left', 'padding-right']),
       cells: Object.fromEntries(['identity', 'title', 'num', 'long'].map((name) =>
         [name, parts(cell(name), ['display', 'white-space', 'position', 'padding-left', 'width', 'flex-basis'])])),
     };
@@ -144,6 +144,15 @@ function stackedProblems({ recipe, table, head, body, row, cells }) {
   if (body.display !== 'block') problems.push(say(`the row group is ${body.display}, not a block`));
   if (row.display !== 'flex') problems.push(say(`the row is ${row.display}, so its cells still make columns`));
   if (row['flex-wrap'] !== 'wrap') problems.push(say(`the row is ${row['flex-wrap']}, so the long cell cannot take a line`));
+
+  // The hover outline draws at the row's own edge, so the row — not the table — has to carry
+  // the inset, or the outline lands hard against the text on both sides (#71).
+  for (const side of ['padding-left', 'padding-right']) {
+    const px = Number.parseFloat(row[side]);
+    if (!(px > 0)) {
+      problems.push(say(`the row's ${side} is ${row[side]}, so its hover outline has no room off the text`));
+    }
+  }
 
   // The header has no column to sit over, and a cell still has to read with its column's
   // name — so it is clipped out of the picture and left in the accessibility tree.
@@ -206,6 +215,9 @@ const MUTATIONS = [
       '.ui-table.ui-table--stack > thead {\n    display: none; position: absolute;')],
   ['the long cell left to share the first line',
     (css) => css.replace('td.ui-table__long { flex: 0 0 100%;', 'td.ui-table__long { flex: 0 1 auto;')],
+  ['the row inset put back on the table, where the hover outline cannot use it',
+    (css) => css.replace('padding: var(--space-3) var(--space-2); border-bottom:',
+      'padding: var(--space-3) 0; border-bottom:')],
   ['the row left as a table row',
     (css) => css.replace('> tbody > tr {\n    display: flex;', '> tbody > tr {\n    display: table-row;')],
   ['the stacked block moved to a step that is not the one-column one',

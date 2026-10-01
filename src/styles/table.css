@@ -187,7 +187,9 @@ a.ui-identity:hover { text-decoration: underline; }
   .ui-table.ui-table--stack > tbody > tr {
     display: flex; flex-wrap: wrap; align-items: baseline;
     column-gap: var(--space-3); row-gap: var(--space-1);
-    padding: var(--space-3) 0; border-bottom: 1px solid var(--border);
+    /* The inset is on the row, not the table: the hover outline draws at the row's own
+       edge, so a pad on the table would put the outline back against the text (#71). */
+    padding: var(--space-3) var(--space-2); border-bottom: 1px solid var(--border);
   }
   .ui-table.ui-table--stack > tbody > tr:last-child { border-bottom: 0; }
   .ui-table.ui-table--stack > tbody > tr > td {
@@ -205,7 +207,9 @@ a.ui-identity:hover { text-decoration: underline; }
     position: static; width: auto; height: auto; max-width: none;
     overflow: visible; clip-path: none;
   }
-  /* The end-cell inset is gone, so the bleed that paid for it goes too. */
-  .ui-card > .ui-table--stack { width: 100%; margin-inline: 0; }
-  .ui-card > .ui-table-scroll:has(> .ui-table--stack) { margin-inline: 0; }
+  /* The bleed now pays for the row's inset instead of the end cells', so the cells still
+     start on the card's own text edge and the outline keeps its room on both sides. */
+  .ui-card > .ui-table--stack {
+    width: calc(100% + 2 * var(--space-2)); margin-inline: calc(-1 * var(--space-2));
+  }
 }

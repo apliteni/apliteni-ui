@@ -2122,14 +2122,22 @@ control left in one is a focus stop with no ring drawn anywhere, because there i
 screen to draw it on; a sort or filter control belongs on the row above the table instead,
 and `aria-sort` still announces the column the rows are ordered by.
 
-Changing `display` drops a table element's implicit role in every engine, so a table that
-stacks carries `role="table"`, `rowgroup`, `row`, `columnheader` and `cell` in its own
-markup, at every width. The kit cannot write a role from a stylesheet and 560px is not a
-moment markup can react to, so this is the consumer's half of the modifier: without it a
-stacked table reads as runs of text rather than as a table. The modifier is CSS, so React
-takes it through the shared stylesheet wherever the class is set; `DataTable` builds its own
-class list and does not offer it. Held by `src/styles/table-stack.test.js` and
-`stories/table-stack.test.js`; decided in
+A stacked table carries `role="table"`, `rowgroup`, `row`, `columnheader` and `cell` in its
+own markup, at every width, because a stylesheet cannot write a role and 560px is not a
+moment markup can react to. How much of that is load-bearing depends on the engine, and less
+is lost than changing `display` is usually said to cost: measured in Chromium at 390px with
+these rules applied, stripping every role still leaves `table`, `row`, `cell` and
+`columnheader` in the accessibility tree, and the one role lost is the `tbody`'s `rowgroup`.
+WebKit and Gecko are not measured here, so the kit asks for all five rather than for the one
+Chromium is known to drop: the attributes are cheap and a missing role fails silently.
+
+React is not served yet. `DataTable` builds its own table class list and takes no
+`className`, and it is the only table React ships, so a React consumer reaches the modifier
+only by leaving the component and hand-writing the table and its roles. `DataTable` also
+renders its sort control inside the header cell, which a stacked table clips, so opting it in
+means moving that control above the table first.
+
+Held by `src/styles/table-stack.test.js` and `stories/table-stack.test.js`; decided in
 [#499](https://github.com/apliteni/apliteni-ui/issues/499).
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,

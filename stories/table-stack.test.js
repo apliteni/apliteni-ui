@@ -1,10 +1,13 @@
 /* Rule: a table that stacks names its own roles.
  *
- * `.ui-table--stack` changes `display` on the table and everything in it, and every engine
- * drops a table element's implicit role when its display changes. The kit cannot write a
- * role from a stylesheet, and 560px is not a moment markup can react to, so a stacked
- * table carries its roles at every width — or it reads as runs of text, which is the half
- * of #499 no CSS gate can see.
+ * `.ui-table--stack` changes `display` on the table and everything in it. A stylesheet
+ * cannot write a role and 560px is not a moment markup can react to, so a stacked table
+ * carries its roles at every width — the half of #499 no CSS gate can see.
+ *
+ * How much is at stake is engine-specific and less than a changed `display` is usually said
+ * to cost: measured in Chromium at 390px, stripping every role still leaves table, row, cell
+ * and columnheader, and only the body's rowgroup goes. WebKit and Gecko were not measured,
+ * so all five are required rather than the one Chromium is known to drop.
  *
  * why: docs/specification.md#dense-financial-tables
  */
@@ -30,8 +33,13 @@ const ROLES = {
 };
 
 /** Anything in a header row that the keyboard can reach. */
-const FOCUSABLE_IN_HEAD = ['a[href]', 'button', 'input', 'select', 'textarea', '[tabindex]',
-  '[contenteditable]'].map((sel) => `thead ${sel}`).join(', ');
+const FOCUSABLE = ['a[href]', 'button', 'input', 'select', 'textarea', '[tabindex]',
+  '[contenteditable]'].join(', ');
+const FOCUSABLE_IN_HEAD = FOCUSABLE.split(', ').map((sel) => `thead ${sel}`).join(', ');
+
+/** Anything outside the table that a reader could use to change its order. */
+const sortControlOutside = (table) =>
+  [...table.getRootNode().querySelectorAll(FOCUSABLE)].some((el) => !table.contains(el));
 
 /* -- The subjects, swept ---------------------------------------------------- */
 
@@ -58,9 +66,16 @@ function serialize(out, where) {
 }
 
 /* The other thing a stylesheet cannot hold: a clipped header is read, not operated. A
- * control left in one is a focus stop with nothing drawn on screen — no ring, nowhere for
- * the eye to go — so a stacked table's header cells hold text and a sort control belongs
- * on the row above the table.
+ * control left in one is a focus stop with nothing drawn on screen, so a stacked table's
+ * header cells hold text and a sort control belongs on the row above the table.
+ *
+ * `aria-sort` has to stay in step with that. An order announced with its control deleted
+ * tells a screen-reader user the table is sorted and leaves no way to change it — the
+ * defect #532's review found in the screener showcase this PR has since withdrawn.
+ */
+
+/* No table in the kit sorts while stacked today, so that half of the sweep passes
+ * vacuously and the fixtures at the bottom are what hold it.
  *
  * Limit: this reads markup. It proves the roles are there, not that a screen reader
  * announces the table; the #499 captures and stories/a11y.test.js cover the rest.
@@ -88,6 +103,14 @@ function stackedTables(html, where) {
       problems.push(say(
         `<${el.tagName.toLowerCase()}> in the clipped header takes focus, and a clipped `
         + 'header can draw no ring — move the control above the table',
+      ));
+    }
+
+    // An order announced in a clipped header needs a control somewhere a reader can reach.
+    if (table.querySelector('thead [aria-sort]') && !sortControlOutside(table)) {
+      problems.push(say(
+        'the clipped header announces aria-sort, and nothing outside the table can change '
+        + 'it — a reader is told the order and given no way to set it',
       ));
     }
 
@@ -180,12 +203,25 @@ test('the gate rejects a stacked table that leans on the implicit roles', () => 
     ['no header row to clip', (h) => h.replace(/<thead[\s\S]*?<\/thead>/, '')],
     ['a sort control left in the clipped header',
       (h) => h.replace('>Change</th>', '><button type="button">Change</button></th>')],
+    ['an order announced with the control for it deleted',
+      (h) => h.replace('role="columnheader">Who', 'role="columnheader" aria-sort="ascending">Who')],
   ]) {
     const mutated = mutate(WHOLE);
     assert.notEqual(mutated, WHOLE, `the mutation "${what}" changes nothing, so it proves nothing`);
     if (stackedTables(mutated, 'fixture').problems.length === 0) survived.push(what);
   }
   assert.deepStrictEqual(survived, [], 'a stacked table missing its roles passed this gate');
+});
+
+// The shape the specification prescribes: the order is announced in the clipped header and
+// the control that changes it sits above the table, where it can draw a focus ring.
+test('the gate accepts an announced order whose control sits above the table', () => {
+  const sorted = WHOLE.replace('role="columnheader">Who', 'role="columnheader" aria-sort="ascending">Who');
+  assert.deepEqual(stackedTables(sorted, 'fixture').problems.length, 1, 'with no control, rejected');
+  assert.deepEqual(
+    stackedTables(`<button type="button">Sort by who</button>${sorted}`, 'fixture'),
+    { tables: 1, problems: [] },
+  );
 });
 
 test('the gate reads a table that does not stack as none of its business', () => {

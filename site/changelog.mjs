@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.65.0', date: '2026-10-01',
     changes: [
-      ['added', 'A table marked `ui-table--stack` lays each row out as a block below the one-column step: the identity and the short cells on the first line, the cell marked `ui-table__long` on a line under them, and the header row clipped rather than removed, so a cell still reads with its column name. A log or a queue whose last column is a paragraph now fits a phone without scrolling sideways. Changing `display` drops a table element\u2019s implicit role in every engine, so a table that stacks has to name the table, row group, row, column header and cell roles in its own markup; React takes the modifier through the shared stylesheet, and `DataTable` does not set it. Resolves #499.', ['Table']],
+      ['added', 'A table marked `ui-table--stack` lays each row out as a block below the one-column step: the identity and the short cells on the first line, the cell marked `ui-table__long` on a line under them, and the header row clipped rather than removed, so a cell still reads with its column name. A log or a queue whose last column is a paragraph now fits a phone without scrolling sideways. A stacked table has to name the table, row group, row, column header and cell roles in its own markup, because a stylesheet cannot write a role; in Chromium only the body\u2019s row group is actually lost, and the other four are asked for because WebKit and Gecko were not measured. React is not served yet: `DataTable` builds its own class list, takes no `className` and puts its sort control in the header cell, so reaching the modifier from React means hand-writing the table. Resolves #499.', ['Table']],
     ],
   },
   {
