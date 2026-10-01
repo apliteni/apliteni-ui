@@ -17,6 +17,21 @@ const BASIS = 'Change against the previous 12 months';
 export const Tiles: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} /> };
 export const Band: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="band" /> };
 export const Open: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="open" /> };
+
+// A share of a larger figure: neither a change nor a trend, so it takes neither
+// slot. The third figure carries both a caption and a change.
+export const Caption: StoryObj = {
+  render: () => (
+    <StatBand
+      stats={[
+        { label: 'Gross margin', value: '36.1%', caption: 'of income' },
+        { label: 'Cost of sales', value: '€ 4,127,880', caption: '63.9% of income' },
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against last year' } },
+      ]}
+    />
+  ),
+};
+
 export const NoEarlierFigure: StoryObj = {
   render: () => (
     <StatBand basis={BASIS} stats={[STATS[1], { label: 'New entity', value: '€ 12,040', delta: { value: null } }]} />

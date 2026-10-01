@@ -35,11 +35,18 @@ const deltaHtml = (delta, basisId) => {
   return `<dd class="ui-stat__delta"${describedby}>${icon(GLYPH[dir])}<span class="ui-stat__change">${esc(text)}</span>${own}</dd>`;
 };
 
+// `caption` is a figure's own words about its value — what it is a share of —
+// and not a change: no arrow is drawn for it and no tone paints it, because
+// nothing went up or down. It takes the change's place under the value, so a
+// band of captions and a band of changes line up.
+const captionHtml = (caption) =>
+  (caption ? `<dd class="ui-stat__caption">${esc(caption)}</dd>` : '');
+
 // `tone` says whether the change is good news, and nothing else. It is never
 // inferred from the direction: costs going up and unclassified rows going down
 // are both real, and a band that paints every rise green is editorialising.
 // A figure with no change has no news to colour.
-const figure = ({ label = '', value = '', delta, trend = '' }, tile, basisId) => {
+const figure = ({ label = '', value = '', caption = '', delta, trend = '' }, tile, basisId) => {
   const tone = hasChange(delta) && STAT_TONES.includes(delta.tone) && delta.tone !== 'neutral' ? delta.tone : '';
   const cls = cx('ui-stat', tone && `ui-stat--${tone}`, tile && 'ui-card ui-card--pad-sm');
   // `trend` is trusted markup — an <svg> the caller drew. The kit sizes and
@@ -47,6 +54,7 @@ const figure = ({ label = '', value = '', delta, trend = '' }, tile, basisId) =>
   return `<div class="${cls}">`
     + `<dt class="ui-stat__label">${esc(label)}</dt>`
     + `<dd class="ui-stat__value">${esc(value)}</dd>`
+    + captionHtml(caption)
     + deltaHtml(delta, basisId)
     + (trend ? `<dd class="ui-stat__trend">${trend}</dd>` : '')
     + '</div>';

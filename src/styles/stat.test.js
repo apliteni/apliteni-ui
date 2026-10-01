@@ -39,10 +39,10 @@ test('a figure never breaks across lines, and its digits sit on one grid', () =>
 // margins once, and every screenshot showed a value flush under its label.
 test('each part of a figure keeps the spacing its own rule gives it', () => {
   const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
-    stats: [{ label: 'Income', value: '€ 1', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' }],
+    stats: [{ label: 'Income', value: '€ 1', caption: 'of revenue', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' }],
   })}</body></html>`).window;
   const margin = (sel) => doc.getComputedStyle(doc.document.querySelector(sel)).marginTop;
-  for (const [sel, prop] of [['.ui-stat__value', 'margin-top'], ['.ui-stat__delta', 'margin-top'], ['.ui-stat__trend', 'margin-top']]) {
+  for (const [sel, prop] of [['.ui-stat__value', 'margin-top'], ['.ui-stat__caption', 'margin-top'], ['.ui-stat__delta', 'margin-top'], ['.ui-stat__trend', 'margin-top']]) {
     assert.equal(margin(sel), valueOf(ruleFor(sel).body, prop), `${sel} lost its ${prop} to another rule in the sheet`);
   }
 });
@@ -57,6 +57,38 @@ test('the caption carries its space below it, because it leads the row', () => {
   assert.equal(sides.length, 3, `margin: ${margin} — expected three sides, top x bottom`);
   assert.match(sides[0], /^0(px)?$/, `the caption keeps ${sides[0]} above it, and it leads the row`);
   assert.match(sides[2], /^var\(--space-\d+\)$/, `the caption's space below it is ${sides[2]}, not a spacing step`);
+});
+
+/** A rank's size and weight, read off the table in the specification. */
+const rankOf = (name) => {
+  const m = new RegExp(`^\\|\\s*\`${name}\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|`, 'm').exec(SPEC);
+  assert.ok(m, `the specification has no rank row for ${name}`);
+  return { size: m[1], weight: m[2] };
+};
+
+// A figure's caption is a sentence under a number, so it takes the caption rank
+// and not the label's: both are 13px and only the weight separates them, and at
+// medium the caption would read as the bolder of the two lines under the value.
+// Body ink and no fill, because it is words and not a mark.
+test("a figure's caption is body ink at the caption rank, on no fill", () => {
+  const rule = ruleFor('.ui-stat__caption');
+  assert.ok(rule, '.ui-stat__caption has no rule of its own');
+  const caption = rankOf('caption');
+  assert.equal(valueOf(rule.body, 'font-size'), `var(${caption.size})`);
+  assert.equal(valueOf(rule.body, 'font-weight'), `var(${caption.weight})`,
+    `the caption is not the rank's weight — at the label's it reads as the bolder line under the value`);
+  assert.equal(valueOf(rule.body, 'color'), 'var(--text)', 'the caption is not body ink');
+  for (const prop of ['background', 'background-color', 'border', 'padding']) {
+    assert.equal(valueOf(rule.body, prop), null, `the caption sets ${prop}; it is a sentence, not a mark`);
+  }
+});
+
+// The two tests above hold which parts a tone paints. This holds that the
+// caption is not one of them: it reports no change, so there is no news to colour.
+test('no tone reaches a figure\'s caption', () => {
+  const painted = rules.filter((r) => r.selector.includes('.ui-stat__caption') && /color/.test(r.body));
+  assert.deepEqual(painted.map((r) => r.selector), ['.ui-stat__caption'],
+    'a second rule colours the caption, and the only colour it takes is body ink');
 });
 
 test('a figure is never narrower than its value, so a band wraps rather than overlaps', () => {

@@ -36,7 +36,7 @@ test('label, value, change and caption are text, never markup', () => {
     basis: '<s>c</s>',
     label: '"><em>g</em>',
     id: '"><q>i</q>',
-    stats: [{ label: '<b>x</b>', value: '<img src=x>', delta: { value: '+<i>1</i>%', basis: '<u>y</u>' } }],
+    stats: [{ label: '<b>x</b>', value: '<img src=x>', caption: '<s>of <em>r</em></s>', delta: { value: '+<i>1</i>%', basis: '<u>y</u>' } }],
   }));
   assert.equal(doc.querySelectorAll('b, img, i, u, s, em, q').length, 0);
   assert.equal(doc.querySelector('.ui-stat__value').textContent, '<img src=x>');
@@ -117,6 +117,27 @@ test('a change against nothing says so, with no arrow and no percentage', () => 
   assert.equal(none.querySelector('svg'), null);
   const worded = one({ label: 'New', value: '€ 1', delta: { value: '', none: 'New this year' } });
   assert.equal(worded.querySelector('.ui-stat__delta').textContent, 'New this year');
+});
+
+// A ratio that is not a change fits neither slot the band had: as a change it
+// gets an arrow it has no direction for, as a trend it lands where a sparkline
+// goes. The caption is the third thing a figure can say, and it says it in words
+// after the value, where a reader meets the number first.
+// why: docs/specification.md#stat-bands
+test("a figure's caption follows its value, draws no arrow and takes no tone", () => {
+  const parts = (doc) => [...doc.querySelectorAll('.ui-stat > dd')].map((d) => d.className.split(' ')[0]);
+  const own = one({ label: 'Margin', value: '36.1%', caption: 'of revenue' });
+  assert.deepEqual(parts(own), ['ui-stat__value', 'ui-stat__caption'],
+    'the caption does not follow the value as its one companion');
+  const cap = own.querySelector('.ui-stat__caption');
+  assert.equal(cap.textContent, 'of revenue');
+  assert.equal(cap.querySelector('svg'), null, 'the caption drew an arrow, and it is not a change');
+  assert.equal(own.querySelector('.ui-stat').className, 'ui-stat', 'the caption painted the figure');
+  // Both at once: the words about the value, then how it moved.
+  assert.deepEqual(parts(one({ label: 'Margin', value: '36.1%', caption: 'of revenue', delta: { value: '−3.9 pts', tone: 'bad' }, trend: '<svg></svg>' })),
+    ['ui-stat__value', 'ui-stat__caption', 'ui-stat__delta', 'ui-stat__trend']);
+  assert.equal(one({ label: 'a', value: '1' }).querySelector('.ui-stat__caption'), null, 'a caption nobody gave was drawn');
+  assert.equal(one({ label: 'a', value: '1', caption: '' }).querySelector('.ui-stat__caption'), null, 'an empty caption drew an empty line');
 });
 
 test('a figure with no change and no trend is a label and a value', () => {
