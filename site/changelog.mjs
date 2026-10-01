@@ -8,7 +8,8 @@ export const RELEASES = [
   {
     v: '0.65.0', date: '2026-10-01',
     changes: [
-      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices, using the existing kit styles. block also composes with the underline appearance; under underline, size="sm" changes only the type size. Part of #429.'],
+      ['changed', 'A segmented control now shows the chosen option as a raised pill on a sunken track, in body ink, instead of outlining it in the accent colour. The underline appearance keeps its accent rule and drops the outline that sat on top of it. Selection no longer depends on telling two colours apart. Unselected labels now read on a grey track, and a disabled option sits on that track rather than on the card. Vanilla and React share the change through the same stylesheet. Resolves #475.', ['Segmented']],
+      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices, using the existing kit styles. block also composes with the underline appearance; under underline, size="sm" changes only the type size. Part of #429.', ['Segmented']],
     ],
   },
   {

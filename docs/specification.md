@@ -2415,6 +2415,27 @@ their side padding, which is what keeps six three-letter months on one row in a
 
 The underline appearance scrolls instead of wrapping, which is the right answer for
 column switches over one dataset, where the order is the reader's map.
+
+## How a segmented control shows the chosen option
+
+The pill track sits on the sunken step (`--surface-2`) and the chosen option rides
+above it on `--seg-active-bg`, in body ink. Selection is carried by that step alone:
+the control spends no accent on it, and the 1px accent outline that used to hold the
+selection is gone. A reader who cannot separate the two colours still sees which
+option is chosen, because the difference is a raised plane and not a hue.
+
+The underline appearance keeps its accent rule as its one signal, and no longer
+stacks an outline on top of it.
+
+Two consequences a consumer should expect. Unselected labels now read on a grey
+track, which `guidelines/colour-and-theming.md` otherwise reserves for non-text —
+accepted here, on measurement, as the cost of a selection that survives without
+colour. And a disabled option sits on that track rather than on the card, so its
+muted ink reads against a nearer ground.
+
+Chosen by Artur over an outlined, a tinted and an accent-ink alternative, each
+prototyped and measured on [#473](https://github.com/apliteni/apliteni-ui/pull/473).
+Decided in [#475](https://github.com/apliteni/apliteni-ui/issues/475).
 ## Shared React logic and declarations
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
