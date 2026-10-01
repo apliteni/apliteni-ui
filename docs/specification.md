@@ -2384,10 +2384,10 @@ A confirmation carries **one title and at most one short line under it**. There 
 no eyebrow: `success()`, `<Success>` and `successPanel()` take a title and a single
 line of detail, and nothing stacks a third tier of text above or between them. A
 label, a headline and a paragraph are three voices reporting one outcome, and the
-block gets heavy enough that the check mark stops being the first thing read. Put
-the outcome in the title — `Feedback sent`, not `Thanks — it goes straight to the
-strategy owner` with `Feedback sent` as a label above it — and let the line under it
-add the one detail the reader still needs.
+block carries more weight than the outcome needs. Put the outcome in the title —
+`Feedback sent`, not `Thanks — it goes straight to the strategy owner` with
+`Feedback sent` as a label above it — and let the line under it add the one detail
+the reader still needs.
 
 `success()` and React `Success` draw that confirmation on a plain elevated card: the
 kit surface, its border, and nothing behind it. There is no backdrop layer, and no

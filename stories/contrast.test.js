@@ -722,15 +722,18 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 // No count moved, so nothing in phoenix or emerald crossed the floor; the depth did. Both
 // dark cells and C, E, L, P and S are unchanged in every cell, which is the control for a
 // change that only touched a light tint. `unassigned` stayed empty for all six.
+// Measured with CONTRAST_ACCENTS=1, reviewed by hand. #429 took bucket C in every
+// light cell from two rows to one: the confirmation eyebrow is gone from the markup,
+// leaving the shell snippet token as the bucket's only row.
 const ACCENT_LEDGER = {
   'dark/phoenix': { B: [1, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [1, 4.20], P: [65, 1.06], S: [21, 2.66] },
   'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
-  'light/phoenix': { C: [2, 4.45], E: [2, 3.81], F: [1, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [1, 4.45], E: [2, 3.81], F: [1, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
   // No F: #448 lifted this cell's one "soon" row (4.32) over AA. The bucket keeps its entry
   // because phoenix and emerald still owe rows against it.
-  'light/ocean': { C: [2, 4.45], E: [2, 3.81], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
-  'light/emerald': { C: [2, 4.45], E: [2, 3.81], F: [2, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
+  'light/ocean': { C: [1, 4.45], E: [2, 3.81], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [1, 4.45], E: [2, 3.81], F: [2, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
 };
 
 // #455, reviewed by hand: card-ground snippets raise C/E to 4.45/3.81.
