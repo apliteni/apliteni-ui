@@ -11,10 +11,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  /* An auto margin distributes within its own line only, so a wrapped strip put its status
-     and its steps at the start of two lines — the control group split to opposite corners,
-     against the rule below. The far end holds a wrapped line; a single line is unchanged,
-     where the status's auto margin still wins. #504 */
+  /* A wrapped line keeps the far end; a single line is unchanged, where the status's auto
+     margin still wins. why: docs/specification.md#pagination */
   justify-content: flex-end;
   gap: var(--space-3) var(--space-4);
   font-size: var(--text-sm);
@@ -113,8 +111,8 @@
    for this, which is --space-4; the number moves to the scale with it rather than
    travelling as a literal.
 
-   Both shapes a vanilla caller writes are here. React DataTable wraps table and
-   pager, so neither selector reaches it and its own sheet repeats the step.
+   Both shapes a vanilla caller writes are here; React DataTable wraps both parts, so
+   its own sheet repeats the step.
    why: docs/specification.md#spacing-and-rhythm */
 .ui-table + .ui-pager,
 .ui-table-scroll + .ui-pager { margin-top: var(--space-4); }

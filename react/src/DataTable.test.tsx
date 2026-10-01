@@ -659,7 +659,28 @@ it('stands its pager off the table by the step the vanilla sheet uses', () => {
   const rule = (css: string, selector: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
     .split('}').find((block) => block.includes(selector));
   expect(rule(vanilla, '.ui-table + .ui-pager')).toMatch(step);
-  expect(rule(react, '.rx-table-pager')).toMatch(step);
+  const mine = rule(react, '.rx-table-pager');
+  expect(mine).toMatch(step);
+  // The vanilla sheet hangs the step off the strip itself, which is never there when it is
+  // empty. This one hangs it off a wrapper that is, so the step asks for the strip.
+  expect(mine).toContain('.rx-table-pager:has(.ui-pager)');
+});
+
+/**
+ * `Pagination` renders nothing for one page with no size menu, and the wrapper around it
+ * stays. A step on the wrapper alone put 16px of empty space under exactly the short table
+ * #504 is about, so the selector that carries it asks for a strip to be there.
+ */
+it('reserves no space under a table whose pager renders nothing', () => {
+  const { container } = render(
+    <DataTable columns={columns} rows={rows} selectable={false} />);   // one page, no sizes
+  const box = container.querySelector('.rx-table-pager');
+  expect(box).not.toBeNull();
+  expect(box!.querySelector('.ui-pager')).toBeNull();
+  expect(container.querySelector('.rx-table-pager:has(.ui-pager)')).toBeNull();
+
+  const paged = render(<DataTable columns={columns} rows={rows} pageSize={2} selectable={false} />);
+  expect(paged.container.querySelector('.rx-table-pager:has(.ui-pager)')).not.toBeNull();
 });
 
 /**
