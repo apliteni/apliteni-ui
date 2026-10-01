@@ -68,10 +68,31 @@
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 .ui-accent-picker button:hover { transform: scale(1.08); }
+/* The selection ring is the swatch's OWN accent, not the page's. The picker is
+ * documented to run before the host has applied anything, so var(--accent) here
+ * paints every selection in whichever accent the page happens to be on — a green
+ * swatch with a purple ring, and the same hue as the focus ring. The button
+ * carries the two values; an accent the picker has no paints for keeps the
+ * var(--accent) fallback it had. It is resolved per theme because the dark ramp
+ * the swatch circle itself wears does not clear 3:1 on the light card (emerald
+ * is 2.15:1 on #ffffff). Dark is the unstamped default, as in tokens.css, and
+ * the theme is stamped on the property rather than on the ring rules — a ring
+ * selector that only matches in one theme is a ring the accessibility floor's
+ * sweep cannot land in the other. */
+.ui-accent-picker button { --swatch-ring: var(--swatch-ring-dark, var(--accent)); }
+:root[data-theme="light"] .ui-accent-picker button { --swatch-ring: var(--swatch-ring-light, var(--accent)); }
 .ui-accent-picker button.is-active {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent));
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch-ring);
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+/* Focus is the kit ring and nothing else, so on the selected swatch it used to
+ * erase the only thing showing which accent is on. The selection ring moves out
+ * to 6px and paints under it instead — still inside the 10px gap to the next
+ * swatch, which carries no ring of its own. */
+.ui-accent-picker button.is-active:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--ring), 0 0 0 6px var(--swatch-ring);
+}
 
 .ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }

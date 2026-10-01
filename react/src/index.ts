@@ -91,3 +91,5 @@ export type { TooltipProps } from './Tooltip';
 
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';
+export { AccentPicker } from './AccentPicker';
+export type { Accent, AccentPickerProps } from './AccentPicker';
