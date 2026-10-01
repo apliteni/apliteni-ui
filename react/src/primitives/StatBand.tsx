@@ -22,6 +22,8 @@ export interface StatDelta {
 export interface StatFigure {
   label: string;
   value: ReactNode;
+  /** Context that is not a change, such as "of revenue": no arrow, no tone. */
+  caption?: string;
   delta?: StatDelta;
   trend?: ReactNode;
 }
@@ -77,6 +79,7 @@ export function StatBand({ stats, variant = 'tiles', basis, basisId: sharedBasis
             <div className={cls} key={`${s.label}-${i}`}>
               <dt className="ui-stat__label">{s.label}</dt>
               <dd className="ui-stat__value">{s.value}</dd>
+              {s.caption ? <dd className="ui-stat__caption">{s.caption}</dd> : null}
               {s.delta ? <Delta delta={s.delta} basisId={basisId} /> : null}
               {s.trend ? <dd className="ui-stat__trend">{s.trend}</dd> : null}
             </div>

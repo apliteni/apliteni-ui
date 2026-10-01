@@ -49,6 +49,19 @@
   white-space: nowrap;
 }
 
+/* A figure's own words about its value — what it is a share of. It takes the
+   caption rank's size and weight, and like the label keeps the band's tighter
+   leading rather than the rank's inherited one, so it claims no rank. Body ink
+   and no fill: it is a sentence, not a mark. No tone rule reaches it either —
+   a figure that reports no change has no news to colour. */
+.ui-stat__caption {
+  margin-top: var(--space-2);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+  line-height: var(--leading-snug);
+}
+
 .ui-stat__delta {
   display: flex;
   flex-wrap: wrap;

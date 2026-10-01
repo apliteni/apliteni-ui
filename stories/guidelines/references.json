@@ -752,7 +752,7 @@
     ],
     "tone-not-direction": [
       {
-        "ref": "src/components/stat.js:43",
+        "ref": "src/components/stat.js:50",
         "pattern": "delta.tone !== 'neutral'"
       }
     ],
@@ -845,11 +845,11 @@
     ],
     "check-density": [
       {
-        "ref": "src/styles/stat.css:110",
+        "ref": "src/styles/stat.css:123",
         "pattern": "@container (width <= 28rem)"
       },
       {
-        "ref": "src/styles/stat.css:111",
+        "ref": "src/styles/stat.css:124",
         "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
       }
     ]

@@ -27,6 +27,7 @@ function shape(root: Element) {
         tags: [...f.children].map((c) => `${c.tagName}.${c.className}`),
         label: f.querySelector('dt')?.textContent,
         value: f.querySelector('.ui-stat__value')?.textContent,
+        caption: f.querySelector('.ui-stat__caption')?.textContent ?? null,
         delta: d && d.textContent?.replace(/\s+/g, ' ').trim(),
         glyph: d?.querySelector('svg')?.innerHTML ?? null,
         describedBy: ref ? doc.getElementById(ref)?.textContent ?? `missing #${ref}` : null,
@@ -64,6 +65,17 @@ const CASES: [string, StatBandProps][] = [
   ['band', { stats: FOUR, variant: 'band', basis: 'x', id: 'b' }],
   ['tiles', { stats: FOUR, variant: 'tiles', basis: 'x', id: 't' }],
   ['open, named', { stats: FOUR, variant: 'open', label: 'Cashflow', id: 'o' }],
+  // Context that is not a change: alone under the value, and beside a change.
+  // `tags` carries the order, so a caption that slipped past the delta fails here.
+  ['a figure whose context is not a change', {
+    id: 'c',
+    basis: 'Against last year',
+    stats: [
+      { label: 'Margin', value: '36.1%', caption: 'of revenue' },
+      { label: 'Gross margin', value: '42.0%', caption: 'of revenue', delta: { value: '+1.2 pts', tone: 'good' } },
+      { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' }, trend: TREND },
+    ],
+  }],
   ['every kind of change', {
     id: 'k',
     basis: 'Against last year',

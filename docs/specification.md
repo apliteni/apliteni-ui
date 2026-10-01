@@ -2456,7 +2456,7 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 React StatBand deltas accept `tooltip` text, rendered by the kit Tooltip on the change value.
 
 `statBand()` renders a row of key figures. Each figure is a label and a value, and may carry a
-change and a trend. A figure is only ever rendered inside its band, because its label and values
+caption, a change and a trend. A figure is only ever rendered inside its band, because its label and values
 are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
 after it is a value of that term, so a screen reader reads each figure as one statement.
 
@@ -2497,6 +2497,14 @@ one statement about all of them, so it is read before the numbers it explains an
 every figure. Under a row of tiles it would read as a note on the last card, and inside the first
 tile it would read as that figure's own comparison — which is a different thing the band already
 says beside the change.
+
+**A figure can carry a caption of its own**, which says a different thing from the band's: words
+about one value, such as what it is a share of. The band's caption, above the row, says what
+every change is measured against; a figure's caption, under its value, says what that one value
+is. It is not a change, so it draws no arrow and takes no tone — nothing went up or down, so
+there is no news to colour — and it is not a trend, so it stays out of the slot a sparkline
+takes. It is read after the value and before a change, and takes the `caption` rank
+([Labels and titles](#labels-and-titles)): body ink, no fill.
 
 The trend is a slot. The kit sizes and colours the caller's `<svg>` and draws no chart.
 

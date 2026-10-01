@@ -57,7 +57,7 @@ const cases = [
   ['successCheck', () => ui.successCheck(probe)],
   ['feedbackWidget', () => ui.feedbackWidget({ label: probe, placeholder: probe, doneTitle: probe, doneBody: probe })],
   ['pagination', () => ui.pagination({ total: 1000, label: probe, id: probe, href: () => probe })],
-  ['statBand', () => ui.statBand({ id: probe, label: probe, basis: probe, stats: [{ label: probe, value: probe, delta: { value: probe } }] })],
+  ['statBand', () => ui.statBand({ id: probe, label: probe, basis: probe, stats: [{ label: probe, value: probe, caption: probe, delta: { value: probe } }] })],
   ['numericValue', () => ui.numericValue({ value: probe, unit: probe })],
   ['deltaValue', () => ui.deltaValue({ value: probe, basisId: probe })],
   ['rowIdentity', () => ui.rowIdentity({ name: probe, symbol: probe, logo: probe, href: probe })],
