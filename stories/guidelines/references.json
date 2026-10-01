@@ -432,7 +432,7 @@
         "pattern": "stroke-width: 2.1;"
       },
       {
-        "ref": "stories/signal-contrast.test.js:592",
+        "ref": "stories/signal-contrast.test.js:591",
         "pattern": "const barFor = (px) =>"
       }
     ]
@@ -526,7 +526,7 @@
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
-        "ref": "stories/table-rhythm.test.js:85",
+        "ref": "stories/table-rhythm.test.js:86",
         "pattern": "writes no row rhythm as a literal"
       }
     ],

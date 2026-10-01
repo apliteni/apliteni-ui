@@ -18,6 +18,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -118,7 +119,7 @@ test('every step the table names is a step that exists', () => {
 const paddingOf = (raw, selector) => {
   const css = decomment(raw);
   const block = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-    .find((m) => m[1].split(',').some((s) => s.trim() === selector));
+    .find((m) => splitSelectorList(m[1]).includes(selector));
   if (!block) return null;
   const decl = [...block[2].matchAll(DECL)].reverse().find((m) => m[1] === 'padding');
   if (!decl) return null;

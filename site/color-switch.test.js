@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { topbar, footer, CHROME_CSS, CHROME_JS } from './chrome.mjs';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 test('site crossfades use motion tokens and switch off under reduced motion', t => {
   const dom = new JSDOM(`<style>${CHROME_CSS}</style>`);
@@ -11,7 +12,7 @@ test('site crossfades use motion tokens and switch off under reduced motion', t 
   const reduced = rules.find(rule => rule.conditionText === '(prefers-reduced-motion: reduce)');
   assert.ok(reduced, 'site chrome must provide a reduced-motion media block');
   const matching = (list, selector) => [...list].filter(rule =>
-    rule.selectorText?.split(',').map(s => s.trim()).includes(selector));
+    splitSelectorList(rule.selectorText ?? '').includes(selector));
 
   for (const part of ['group', 'old', 'new']) {
     const selector = `::view-transition-${part}(root)`;

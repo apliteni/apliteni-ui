@@ -32,6 +32,7 @@ import path from 'node:path';
 import { luminance, parseColour, substitute, tokensFor } from './lib/contrast.js';
 import { accentPicker } from '../src/components/index.js';
 import { footer } from '../site/chrome.mjs';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(path.join(root, p), 'utf8');
@@ -80,7 +81,7 @@ function ownDarkBlock(accent) {
   const wanted = `:root[data-theme="dark"][data-accent="${accent}"]`;
   const decls = new Map();
   for (const [, selector, body] of ACCENT_RULES) {
-    if (!selector.split(',').map((s) => s.trim().replace(/\s+/g, ' ')).includes(wanted)) continue;
+    if (!splitSelectorList(selector).map((s) => s.replace(/\s+/g, ' ')).includes(wanted)) continue;
     for (const decl of body.split(';')) {
       const i = decl.indexOf(':');
       if (i < 0) continue;

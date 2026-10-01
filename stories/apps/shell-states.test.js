@@ -26,6 +26,7 @@ import {
 import { leafRules as motionRules, inNet, ms } from '../lib/motion-css.js';
 import { appShell } from '../../src/components/shell.js';
 import { layersOf, geometryOf } from '../../scripts/lib/box-shadow.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -675,7 +676,7 @@ test('every entry in the collapsed rail is drawn, the current page among them', 
 function pxOf(file, selector, prop) {
   const css = decomment(read(file));
   for (const [, sel, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (!sel.split(',').map((x) => x.trim().replace(/\s+/g, ' ')).includes(selector)) continue;
+    if (!splitSelectorList(sel).map((x) => x.replace(/\s+/g, ' ')).includes(selector)) continue;
     const m = new RegExp(`(?:^|;)\\s*${prop}\\s*:([^;]+)`).exec(body);
     if (!m) continue;
     const n = /(-?[\d.]+)px/.exec(m[1].trim().split(/\s+/).at(prop === 'padding' ? -1 : 0));
@@ -1228,7 +1229,7 @@ function foldMarkSelectors() {
   const body = unwrap(decomment(read('src/styles/layout.css')), FOLD);
   assert.ok(body, `layout.css no longer folds at ${FOLD}`);
   return [...body.matchAll(/([^{}]+)::after\s*\{/g)]
-    .flatMap(([, sel]) => sel.split(',').map((s) => s.trim()).filter(Boolean));
+    .flatMap(([, sel]) => splitSelectorList(sel));
 }
 
 const railRows = (html) => {

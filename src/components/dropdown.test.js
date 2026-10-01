@@ -14,6 +14,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { dropdown, wireDropdown } from './dropdown.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -60,7 +61,7 @@ test('a panel rule that pins `bottom` releases `top` in the same rule', () => {
 });
 
 test('both directions read one gap, so neither can drift from the other', () => {
-  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const gap = decl(panel, '--ui-dropdown-gap');
   assert.match(gap, /^\d+(\.\d+)?px$/, '--ui-dropdown-gap is declared on the panel as a length');
 
@@ -102,7 +103,7 @@ const NEG_LEN = /-\s*\d+(?:\.\d+)?(?:px|rem|em|%|ch)/;
 const BLEED = 'calc(var(--ui-dropdown-pad) * -1)';
 
 test('the panel names its padding and pads itself with it', () => {
-  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const pad = decl(panel, '--ui-dropdown-pad');
   assert.match(pad, /^\d+(\.\d+)?px$/, '--ui-dropdown-pad is declared on the panel as a length');
   assert.equal(
@@ -142,8 +143,8 @@ test('a block bleeding through the panel reads the padding, never a number of it
 // Both halves of the fix are read here, because either one alone leaves it wrong.
 // why: docs/specification.md#the-dropdown-panel
 test('the caret is centred in both states, and shifted in page space', () => {
-  const closed = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__chevron'));
-  const open = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown.open .ui-dropdown__chevron'));
+  const closed = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__chevron'));
+  const open = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown.open .ui-dropdown__chevron'));
   assert.ok(closed && open, 'the sheet draws a caret and flips it');
 
   const off = decl(closed, '--caret-off');
@@ -179,13 +180,13 @@ test('the caret is centred in both states, and shifted in page space', () => {
 
 test('the head and the foot are one pair, bleeding to opposite edges', () => {
   const sel = (cls) => `.ui-dropdown__panel > .${cls}`;
-  const rulesFor = (cls) => RULES.filter((r) => r.selector.split(',').some((s) => s.trim() === sel(cls)));
+  const rulesFor = (cls) => RULES.filter((r) => splitSelectorList(r.selector).includes(sel(cls)));
   // Whatever the cascade ends on, gathered across every rule that names the
   // block — so splitting one rule in two, or adding a third, is still read.
   const of = (cls, prop) => rulesFor(cls).map((r) => decl(r, prop)).filter((v) => v != null).at(-1) ?? null;
 
   const shared = RULES.find((r) => {
-    const list = r.selector.split(',').map((s) => s.trim());
+    const list = splitSelectorList(r.selector);
     return list.includes(sel('ui-dropdown__head')) && list.includes(sel('ui-dropdown__foot'));
   });
   assert.ok(shared && decl(shared, 'padding'), 'the pair takes its inner padding from one rule, not two that can drift');
@@ -211,7 +212,7 @@ test('the head and the foot are one pair, bleeding to opposite edges', () => {
 });
 
 test('the wiring falls back to the number the sheet declares', () => {
-  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const css = parseFloat(decl(panel, '--ui-dropdown-gap'));
   const js = parseFloat(/const DD_GAP = ([\d.]+)/.exec(JS)?.[1]);
   assert.equal(js, css, 'DD_GAP in dropdown.js is the fallback for a document without the sheet');

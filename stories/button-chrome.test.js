@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { STYLE_FILES, kitCssFor, installDomGlobals, storyFiles } from './lib/contrast.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -162,8 +163,8 @@ function candidates() {
       // The match starts wherever the previous rule ended, so the line comes
       // from where the selector's first character actually is.
       const line = css.slice(0, m.index + selector.search(/\S/)).split('\n').length;
-      for (const one of selector.split(',')) {
-        if (one.trimStart().startsWith('@')) continue;
+      for (const one of splitSelectorList(selector)) {
+        if (one.startsWith('@')) continue;
         const key = keyCompound(one);
         if (/^[a-z]/i.test(key)) continue; // the compound names an element
         for (const [, cls] of key.matchAll(/\.([\w-]+)/g)) {

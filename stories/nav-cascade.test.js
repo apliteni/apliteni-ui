@@ -15,6 +15,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -43,7 +44,7 @@ function tokensFor(theme, accent) {
   const vars = new Map();
   for (const file of ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css']) {
     for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
-      const sels = selector.split(',').map((s) => s.trim());
+      const sels = splitSelectorList(selector);
       if (!sels.some((s) => wanted.includes(s))) continue;
       for (const decl of body.split(';')) {
         const i = decl.indexOf(':');
