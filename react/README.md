@@ -464,6 +464,26 @@ places a decorative kit glyph with `icon` — the same glyph names `Button` and
 `onFileChange`. Use `accept` and `hint` to describe allowed file types and size.
 Your application must validate files before upload.
 
+## File drop
+
+`FileDrop` is the compact drop: one row with the button that opens the picker and
+the accepted types beside it, and a drop target painted only while a file is over
+the region. Use it where a file joins a list on the page; use `FileField` where a
+labelled, field-sized picker belongs. The guideline page states when to use a row,
+a region or a dialog.
+
+```tsx
+<FileDrop note="PDF or CSV, up to 10 MB" accept=".pdf,.csv"
+  file={upload} onFile={send} onRemove={clear} onRetry={send} />
+```
+
+Your application owns the upload and supplies the `file` it is holding: the name,
+the `size` already written for a reader, `progress` while the status is
+`uploading`, and the `error` when it failed. `Remove` and `Retry` appear only when
+you handle them. Children render above the row, inside the region the target
+covers; pass `dragging` to drive that target from a parent. `accept` filters the
+system picker only — validate type and size yourself.
+
 Use `Field` when an existing labelled control needs the kit frame. Spread its
 render-prop attributes onto one labelable control, and apply the existing control
 class and invalid styling as appropriate:

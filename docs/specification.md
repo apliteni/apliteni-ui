@@ -2477,3 +2477,42 @@ semantics, events, the class split and the label fallback in JSDOM, not browser
 paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
 things the story walk cannot: the hover qualification and the pseudo-element mark.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+## React file drop
+
+`FileDrop` is the compact drop: at rest, one row holding the button that opens the
+system picker and, beside it, the accepted types and the size limit in the
+consumer's words. The field-sized dashed box stays with `FileField`, which is a
+labelled form control. `guidelines/file-drop.md` states when a page uses a row, a
+region or a dialog.
+
+The consumer owns the upload. `FileDrop` reports a chosen or dropped file through
+`onFile` and renders the `file` it is given: name, an already-written `size`, a
+`progress` bar while the status is uploading, "Uploaded" or a supplied `state`
+when it is done, and the `error` when it is not. Done and failed each carry a
+circled mark beside their word, so neither status is colour alone. `Remove` and `Retry` appear only
+when `onRemove` and `onRetry` are supplied, so no row offers an action nobody
+handles. A failed file keeps its name in the row and its message beside it; the
+message carries `role="alert"`, and the progress bar is named by the file name and
+reports `aria-valuenow` out of 100. The kit does not announce the change from
+uploading to uploaded; a consumer that needs that announcement owns the live
+region. `accept` filters the system picker only, and the consumer still validates
+type and size.
+
+The drop target is painted only while a file is over the region, and it covers
+that region rather than joining it, so the row keeps its place while the reader
+aims. Children render above the row inside the same region, which is how one
+panel — or a whole page — becomes the target. The component tracks drag events
+over its own root and ignores a drag that carries no file; passing `dragging`
+overrides that, so a parent listening on its own region decides. A disabled drop
+refuses files by picker and by drag and paints no target.
+
+The picker opens from a real kit button, and the native input is hidden rather
+than laid over it: a one-row control has no field label to name an overlaid
+input, and the button keeps the kit's own focus ring. The input is cleared after
+each choice, so choosing the same file again reports it; nothing is submitted
+with a form, because the file travels through `onFile`.
+
+Covered by `react/src/FileDrop.test.tsx`, which does not open the system picker,
+measure the target's cover or the focus ring, or check screen-reader speech.
+Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).

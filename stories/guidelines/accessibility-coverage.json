@@ -65,6 +65,14 @@
       ]
     },
     {
+      "file": "react/src/FileDrop.test.tsx",
+      "name": "React: File drop",
+      "does": "Checks the resting row, the picker opened from the button, chosen and dropped files, a drag that carries no file, the target a parent drives, the progress bar's name and value, the uploaded and failed states with their retry and remove actions, and a disabled drop that accepts nothing.",
+      "blind": [
+        "JSDOM does not open the system picker, so the choice is simulated. It does not measure the drop target's cover, the focus ring or contrast, and it reads live-region markup rather than spoken screen-reader output; the kit does not announce the change from uploading to uploaded."
+      ]
+    },
+    {
       "file": "react/src/Timeline.test.tsx",
       "name": "React: Timeline",
       "does": "Checks ordered-list semantics, timestamps, event order, keyboard undo and axe violations.",

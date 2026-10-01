@@ -1,0 +1,72 @@
+/* ============================================================================
+ * File drop — .ui-drop
+ *
+ * At rest this is one row: the button that opens the picker and the accepted
+ * types beside it. The field-sized dashed box stays with .ui-file, which is a
+ * form control with a label above it; a drop that rides beside a list cannot
+ * hold that much of the page open for a file that arrives once a month.
+ *
+ * The drop target is painted only while a file is over the region that accepts
+ * it, so nothing is spent on it until there is something to catch.
+ * why: docs/specification.md#react-file-drop
+ * ========================================================================== */
+.ui-drop { position: relative; }
+
+/* Content the region accepts the file for, above the control it is dropped on. */
+.ui-drop > * + .ui-drop__row { margin-top: var(--space-3); }
+
+.ui-drop__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* The accepted types and the size limit, in the consumer's words, stated once. */
+.ui-drop__note { margin: 0; }
+
+/* The file once it is in hand: name, size and the state's own words on one
+   line, so the row changes in place instead of growing a second tier. */
+.ui-drop__file { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); min-width: 0; }
+.ui-drop__name { color: var(--strong); font-weight: var(--weight-medium); }
+
+/* A status is a circled mark and a word, because colour alone is not a status. */
+.ui-drop__state { display: inline-flex; align-items: center; gap: var(--space-1); }
+.ui-drop__state svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+.ui-drop__error { color: var(--pink); }
+
+/* The progress track carries no text, and its fill is the row's one accent. */
+.ui-drop__bar {
+  display: block; /* so a track outside a flex row still takes its size */
+  flex: none;
+  width: 120px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3); /* ring-gap: inherit — a progress track holds no focus target. */
+  overflow: hidden;
+}
+.ui-drop__bar span { display: block; height: 100%; background: var(--accent); }
+
+/* The target, while a file is over the region. It covers the region rather than
+   joining it, so the row keeps its place and the page does not move under the
+   reader at the moment they are aiming. */
+.ui-drop__target {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--surface); /* ring-gap: inherit — the target is painted while a file is over the region and holds no focus target. */
+  color: var(--strong);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.ui-drop.is-disabled .ui-drop__row { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
+.ui-drop.is-disabled .ui-drop__name { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
