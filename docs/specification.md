@@ -2098,10 +2098,10 @@ an amount a screen away from its label in
 width than the room renders exactly as before and is carried by its scroll region. Marking a
 text cell `.ui-table__title` gives that column the width left over.
 
-`.ui-table-frame` is the box a table shares with the parts attached to it — a pager, a
-toolbar, a totals row. It sizes to the widest of them and the table fills it, so a pager can
-never be wider than the rows it pages. React `DataTable` renders it around its own parts;
-a vanilla caller writes it around the table and the parts it owns. Held by
+Nothing sizes a table to the parts attached to it. React `DataTable` caps its pager at the
+measured width of the table it pages, so the strip never runs past the rows and a pager that
+needs more room wraps inside that width. `.ui-table__title` is a cell class: a vanilla caller
+marks the growing column, and `DataTable` offers no column flag for it yet. Held by
 `src/styles/table.test.js` and `react/src/DataTable.test.tsx`.
 
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,

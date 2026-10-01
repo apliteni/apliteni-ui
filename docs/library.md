@@ -258,8 +258,8 @@ column is the pinned identity even when selection is enabled. Wrap a vanilla tab
 Use `--ui-table-height` on the scroll region to choose its maximum height. If selection precedes identity, mark its header/cells `.ui-table__selection`; both columns then pin, with identity offset by `--ui-table-selection-width` (defaults to `--space-12`). Override that property on the table to change the selection track and its offset together.
 
 A table sizes to its content. Mark a text cell `.ui-table__title` to give that column the
-width left over, and wrap the table with its pager, toolbar or totals row in
-`.ui-table-frame` so they share one width. `DataTable` renders that frame itself.
+width left over; `DataTable` has no column flag for that yet. `DataTable` keeps its own
+pager no wider than the table it pages.
 
 ```js
 const options = {

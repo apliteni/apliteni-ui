@@ -9,7 +9,7 @@ export const RELEASES = [
     v: '0.65.0', date: '2026-10-01',
     changes: [
       ['changed', 'A table now sizes to its content instead of stretching to its container, so a short table ends where its values end and an amount sits beside its label. A table whose cells need more room than it has renders exactly as before. Mark a text cell `ui-table__title` to give that column the width left over. The same stylesheet rule reaches the React table. Resolves #504.', ['Table']],
-      ['added', 'Wrap a table and the parts attached to it \u2014 a pager, a toolbar, a totals row \u2014 in `ui-table-frame` and they share one width, so a pager can never be wider than the rows it pages. React `DataTable` renders that frame around its own parts.', ['DataTable', 'Pagination', 'Table']],
+      ['fixed', 'React `DataTable` keeps its pager no wider than the table it pages. A table that stops filling its container left the strip under it filling one, with the page controls far from the rows they move; the pager now follows the table and wraps inside it when it needs more room. The table is never widened to meet the pager.', ['DataTable', 'Pagination']],
       ['added', 'The dense-tables guidance states the width rule and shows the do and don\u2019t pair.'],
     ],
   },

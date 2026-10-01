@@ -66,6 +66,8 @@ export function DataTable<T extends { name: string }>({
   const scrollId = useId();
   const scrollRegion = useRef<HTMLDivElement>(null);
   const [columnScroll, setColumnScroll] = useState({ overflow: false, start: true, end: false });
+  const table = useRef<HTMLTableElement>(null);
+  const [tableWidth, setTableWidth] = useState<number>();
   const measureColumns = () => {
     const region = scrollRegion.current;
     if (region) setColumnScroll({
@@ -84,6 +86,17 @@ export function DataTable<T extends { name: string }>({
     measureColumns();
     return () => observer?.disconnect();
   }, [scrollable, columns, rows]);
+  // A width of zero is no measurement: jsdom and a page that has not laid out yet both
+  // report one, and a cap of zero would collapse the strip rather than leave it alone.
+  useEffect(() => {
+    const el = table.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const measure = () => setTableWidth(el.getBoundingClientRect().width || undefined);
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    measure();
+    return () => observer.disconnect();
+  }, [columns, rows]);
   const scrollColumns = (direction: number) => {
     const region = scrollRegion.current;
     if (region) region.scrollBy({ left: direction * region.clientWidth / 2, behavior: 'instant' });
@@ -147,11 +160,7 @@ export function DataTable<T extends { name: string }>({
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
 
   return (
-    // One box for the table and everything attached to it. The pager is a sibling
-    // of the table, and once the table stopped filling its container (#504) it drew
-    // a 1248px strip under a 315px table. The frame sizes to the widest part and the
-    // table fills it, so the two always share their edges.
-    <div className="ui-table-frame">
+    <>
       {scrollable && columnScroll.overflow && <div className="ui-card__row" role="group" aria-label={`${scrollLabel} columns`}>
         <Button size="sm" icon="arrowLeft" aria-controls={scrollId} disabled={columnScroll.start} onClick={() => scrollColumns(-1)}>Previous columns</Button>
         <Button size="sm" iconRight="arrowRight" aria-controls={scrollId} disabled={columnScroll.end} onClick={() => scrollColumns(1)}>More columns</Button>
@@ -161,7 +170,7 @@ export function DataTable<T extends { name: string }>({
           silently either current or stale, with no way to tell which. */}
       <div id={scrollId} ref={scrollRegion} onScroll={measureColumns} className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
         aria-label={stickyHeader || pinnedIdentity ? scrollLabel : undefined} tabIndex={stickyHeader || pinnedIdentity ? 0 : undefined}>
-      <table className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+      <table ref={table} className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         <thead>
           <tr>
@@ -213,6 +222,11 @@ export function DataTable<T extends { name: string }>({
       {/* One page and no size to choose renders nothing at all — the pager's own
           rule, not a second copy of it here. */}
       {pager ? (
+      // The strip that pages a table may not be wider than the rows it pages (#504).
+      // The two are siblings, and no selector sizes one to the other, so the width is
+      // measured: a cap rather than a width, so a pager wider than the table wraps
+      // inside it and a table wider than the room still leaves the strip in the room.
+      <div className="rx-table-pager" style={tableWidth ? { maxWidth: tableWidth } : undefined}>
         <Pagination page={page} pageSize={size} total={owned ? ordered.length : total ?? null}
           hasMore={hasMore} pageSizes={pageSizes} loading={loading}
           {...(pagerLabel === undefined ? {} : { label: pagerLabel })}
@@ -226,7 +240,8 @@ export function DataTable<T extends { name: string }>({
             // landed back on the size the reader had just replaced.
             if (owned) setLocalPage(1);
           }} />
+      </div>
       ) : null}
-    </div>
+    </>
   );
 }

@@ -563,32 +563,68 @@ it('offers column navigation only for overflow and disables each reached edge', 
 });
 
 /**
- * Rule: a table and the parts attached to it share one box, so they share their edges.
+ * Rule: the strip that pages a table is never wider than the rows it pages (#504).
  *
- * #504 stopped a table filling its container, and the pager — a sibling, not a child —
- * kept filling it: a 315px table over a 1248px strip, with Next 933px from its own rows.
- * The frame is what holds them together; the width itself comes from the stylesheet,
- * which `src/styles/table.test.js` holds. This asks only that every part the component
- * renders is inside the one box, which is the part a refactor can lose.
+ * The pager and the table are siblings — a wrapper around the table would be a third
+ * element between a card and the table, and the card bleed reaches the table as a direct
+ * child, so the width is measured here instead and applied as a cap.
  *
- * What it does not reach: layout. jsdom computes no widths, so a frame that sized itself
- * wrongly would still pass here.
+ * What it does not reach: layout. jsdom computes no widths, so this asks what the
+ * component does with a measurement rather than what a browser measures. The numbers
+ * themselves are in the pull request, read off Chromium.
  */
-it('keeps the table, its pager and its column controls in one frame', () => {
+it('caps its pager at the width of the table it pages', async () => {
+  const observed: Element[] = [];
+  const realRect = Element.prototype.getBoundingClientRect;
+  const realObserver = globalThis.ResizeObserver;
+  class Observer {
+    constructor(private run: () => void) {}
+    observe(el: Element) { observed.push(el); this.run(); }
+    disconnect() {}
+  }
+  globalThis.ResizeObserver = Observer as unknown as typeof ResizeObserver;
+  Element.prototype.getBoundingClientRect = function rect(this: Element) {
+    return { ...realRect.call(this), width: this.matches('table.ui-table') ? 331 : 0 } as DOMRect;
+  };
+  try {
+    const { container } = render(
+      <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} />);
+    await waitFor(() => {
+      const box = container.querySelector<HTMLElement>('.rx-table-pager');
+      expect(box?.style.maxWidth).toBe('331px');
+      expect(box?.querySelector('.ui-pager')).not.toBeNull();
+    });
+    expect(observed.some((el) => el.matches('table.ui-table'))).toBe(true);
+  } finally {
+    Element.prototype.getBoundingClientRect = realRect;
+    globalThis.ResizeObserver = realObserver;
+  }
+});
+
+/**
+ * A table that has not been laid out reports zero, and a cap of zero would collapse the
+ * strip instead of leaving it alone. This is the case jsdom hands every other test here.
+ */
+it('leaves the pager alone when there is no width to read', () => {
   const { container } = render(
-    <DataTable columns={columns} rows={rows} pageSize={2} selectable={false}
-      stickyHeader pinnedIdentity pageSizes={[2, 10]} />);
+    <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} />);
+  const box = container.querySelector<HTMLElement>('.rx-table-pager')!;
+  expect(box).not.toBeNull();
+  expect(box.style.maxWidth).toBe('');
+});
 
-  const frame = container.querySelector('.ui-table-frame');
-  expect(frame).not.toBeNull();
-
-  const parts = ['table.ui-table', '.ui-pager', '.ui-table-scroll']
-    .map((selector) => container.querySelector(selector));
-  expect(parts.filter(Boolean)).toHaveLength(parts.length);
-  for (const part of parts) expect(part!.closest('.ui-table-frame')).toBe(frame);
-
-  // Nothing the component renders may sit outside the frame: a part left behind is
-  // exactly the defect, and it would otherwise read as "no such part" above.
-  expect(container.firstElementChild).toBe(frame);
-  expect(container.childElementCount).toBe(1);
+/**
+ * The card bleed reaches a dense table through the scroll region as the card's own direct
+ * child — `.ui-card > .ui-table-scroll:has(> .ui-table--dense)`. A wrapper between them
+ * silently cost every dense React table in a card its bleed, and no gate saw it, so the
+ * shape this component renders is asserted here and the selector itself in
+ * `src/styles/table.test.js`.
+ */
+it('renders the scroll region where the card bleed can reach it', () => {
+  const { container } = render(
+    <div className="ui-card">
+      <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} dense
+        stickyHeader pinnedIdentity />
+    </div>);
+  expect(container.querySelector('.ui-card > .ui-table-scroll:has(> .ui-table--dense)')).not.toBeNull();
 });
