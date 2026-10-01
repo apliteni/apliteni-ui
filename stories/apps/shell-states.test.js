@@ -1292,18 +1292,97 @@ test('the rail\'s scroll box has room for the solid focus band at every edge', (
 });
 
 // ---- C1. the rail is a surface in both themes ----------------------------
+//
+// The step off the page is the whole of what makes the rail read as its own
+// surface, and `>= 1.04` was loose enough to pass the rail #454 was reported on.
+// What ships is measured, written down and held from both sides: below the band
+// the rail is regressing, and above it the step genuinely improved — which is a
+// decision to record here, not a number that moves on its own.
+//
+// Held from above as well because in light there is nowhere left to go by
+// accident: the light reading surfaces are `--bg` `#f2f3f6` and white, and the
+// rail is already on white. A larger light step means bringing `--bg` down,
+// which moves every light surface in the kit and belongs in a commit that says
+// so.
 
-test('the rail reads as its own surface against the page, in both themes', () => {
+/** The rail's ground against the page, as it ships. Measured, not chosen. */
+const RAIL_STEP = { dark: 1.186, light: 1.110 };
+/** Rounding room only. Both cells sit inside 0.001 of their number. */
+const STEP_TOL = 0.01;
+/* Three places: at r2's two, the reported rail prints as 1.1 against a shipped
+ * 1.11, and the 0.015 this gate turns on vanishes into the rounding. */
+const r3 = (n) => n.toFixed(3);
+
+/* The rail #454 was reported on: `--surface-2` `#e3e6ee` over `--bg` `#eef0f5`,
+ * the 0.53.3 palette. #451 has since moved the rail onto `--surface`, so this
+ * pair cannot be mounted any more — it is carried as a literal instead, and the
+ * gate asserts its own floor rejects it. That assertion is the failing mutation
+ * for this gate: it fails the moment the band is widened far enough to admit
+ * the rail the reporter called indistinguishable from the page. */
+const REPORTED_RAIL = ['#e3e6ee', '#eef0f5'].map(parseColour);
+
+/* Discovered, not listed: a fifth accent has to be measured before it can ship. */
+const RAIL_ACCENTS = ['default', ...new Set(
+  [...read('src/tokens/accents.css').matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]),
+)];
+
+test('the rail keeps the step off the page that ships, in both themes', () => {
+  assert.ok(
+    RAIL_ACCENTS.length >= 4,
+    `only ${RAIL_ACCENTS.length} accent(s) came out of src/tokens/accents.css, and the kit `
+    + 'ships four — the reader that finds them stopped finding them.',
+  );
+  const measured = new Map();
   for (const theme of ['dark', 'light']) {
-    const at = mount(SHELL, { theme });
-    const got = ratio(at.bg('.ui-app__rail'), at.bg('.ui-app'));
-    assert.ok(
-      got >= 1.04,
-      `the rail is ${r2(got)}:1 against the page in ${theme}. --bg-elevated resolves to --bg `
-      + 'itself in light, an exact no-op, which left a 1px border as the whole of the rail.',
-    );
+    for (const accent of RAIL_ACCENTS) {
+      const at = mount(SHELL, { theme, accent });
+      const ground = at.bg('.ui-app__rail');
+      const got = ratio(ground, at.bg('.ui-app'));
+      measured.set(`${theme}/${accent}`, got);
+
+      // The ratio alone does not say the rail is a place text may stand: a grey
+      // inset can reach the same number. Every rail label, the section captions
+      // and the reader block read on this ground, and #455 keeps text off grey
+      // fills — so the ground is checked as well as the step.
+      const reading = ['--surface', '--bg-elevated']
+        .map((token) => parseColour(substitute(`var(${token})`, at.vars)));
+      assert.ok(
+        reading.some((want) => want.every((v, i) => v === ground[i])),
+        `${theme}/${accent}: the rail's ground is rgba(${ground}), which is neither --surface nor `
+        + '--bg-elevated. A rail on --surface-2 or --surface-3 puts every one of its labels on a '
+        + 'grey fill, which is the rule #455 settled one commit before #454 was filed.',
+      );
+
+      const want = RAIL_STEP[theme];
+      assert.ok(
+        Math.abs(got - want) <= STEP_TOL,
+        `${theme}/${accent}: the rail is ${r3(got)}:1 against the page and what ships is `
+        + `${r3(want)}:1. Lower and the rail stops reading as its own surface — the rail #454 was `
+        + `reported on measured ${r3(ratio(...REPORTED_RAIL))}:1 and cleared the 1.04 this `
+        + 'replaced. Higher and the step improved: move the number here in the same commit, so '
+        + 'the new step is reviewed rather than absorbed.',
+      );
+    }
   }
+  assert.deepEqual(
+    [...measured.keys()].sort(),
+    ['dark', 'light'].flatMap((theme) => RAIL_ACCENTS.map((a) => `${theme}/${a}`)).sort(),
+    `${measured.size} cells were measured against ${2 * RAIL_ACCENTS.length} themes × accents`,
+  );
+  assert.ok(
+    ratio(...REPORTED_RAIL) < RAIL_STEP.light - STEP_TOL,
+    `this gate's light floor is ${r3(RAIL_STEP.light - STEP_TOL)}:1 and the rail #454 was `
+    + `reported on is ${r3(ratio(...REPORTED_RAIL))}:1. A floor that admits the reported rail `
+    + 'measures nothing.',
+  );
 });
+
+/* What this does not measure: how large the step looks. Light's 1.110:1 is
+ * ΔL* 4.16 and dark's 1.186:1 is ΔL* 8.33, so the light rail stands at half the
+ * dark one's perceptual distance from its page — and that is what the reporter
+ * on #454 was looking at, not the ratio. This gate holds the ceiling light can
+ * reach with the tokens that exist. Going past it needs `--bg` to come down,
+ * which is a theme decision; docs/specification.md records both. */
 
 // These checks resolve CSS states in JSDOM; browser captures verify their appearance.
 test('hovered rail rows use an edge on the reading surface', () => {

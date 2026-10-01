@@ -1201,6 +1201,23 @@ What the shell guarantees:
 - **The rail holds nothing that has to escape it.** `.ui-app__rail` is `position: sticky` with
   `overflow-y: auto`, and each of those traps a popover on its own — see
   [The dropdown panel](#the-dropdown-panel). A dropdown mounted in the rail passes `portal: true`.
+- **The rail stands on a reading surface, one measured step off the page — and in light that step
+  is at its ceiling.** `.ui-app__rail` paints `--surface`, the card, because every label, section
+  caption and the reader block inside it reads on that ground and
+  [#455](https://github.com/apliteni/apliteni-ui/issues/455) keeps text off grey fills. The step
+  that ships is **1.186:1 in dark** and **1.110:1 in light**, identical under all four accents —
+  neither accent re-points `--bg` or `--surface`. `stories/apps/shell-states.test.js` holds both
+  numbers to ±0.01 from both sides, so a drop is a regression and a rise is a decision written into
+  that gate rather than a number that moves on its own.
+
+  **Light cannot go further with the tokens that exist.** Perceptually the light step is half the
+  dark one — ΔL\* 4.16 against 8.33 — and that residual gap is what
+  [#454](https://github.com/apliteni/apliteni-ui/issues/454) was filed on. White is the furthest a
+  light *reading* surface gets from `--bg` `#f2f3f6`, and the rail is already on it; `--surface-2`
+  and `--surface-3` are nearer the page, not further, and are non-text fills besides. Matching
+  dark's step means bringing `--bg` down to about `#e5e7ed`, which is the token
+  [#448](https://github.com/apliteni/apliteni-ui/issues/448) pinned at `#f2f3f6` and moves every
+  light surface in the kit — a theme decision, not the rail's.
 
 ### The second layout
 
@@ -1231,10 +1248,11 @@ What moves, and what each move buys:
   **What that is not, measured at 1280 in Chrome:** the two rules land level — both boxes end at
   `52` — but they are **not one continuous stroke**. The rail insets its rule by the rail's own
   `--space-4`, so the rail's half runs `x 16→232` and the band's starts at `249`, a 17px break.
-  And in the light theme the rail's half is the fainter of the two: `--border` `#e4e7ee` on the
-  rail's `--surface-2` `#e9ecf3` is 1.047:1, against 1.116:1 for the same rule on the band's
-  `--bg`. It was 1.009:1 — a rule that was there and could not be seen — until
-  [#448](https://github.com/apliteni/apliteni-ui/issues/448) lifted the sunken step off the border. Both are inherited — the ladder is [#295](https://github.com/apliteni/apliteni-ui/issues/295)
+  In the light theme the rail's half is now the stronger of the two: `--border` `#e4e7ee` on the
+  rail's `--surface` `#ffffff` is 1.238:1, against 1.116:1 for the same rule on the band's `--bg`.
+  It ran the other way while the rail stood on `--surface-2` `#e9ecf3` — 1.047:1, and 1.009:1
+  before [#448](https://github.com/apliteni/apliteni-ui/issues/448) lifted the sunken step off the
+  border, a rule that was there and could not be seen. Both are inherited — the ladder is [#295](https://github.com/apliteni/apliteni-ui/issues/295)
   and the inset is the rail's — and neither is repainted here: the rail's head, its foot and the
   reader block all take one hairline, so repainting the head alone would leave the rail's own two
   rules disagreeing, and bleeding the head's rule to the rail's edges would cost it the open
