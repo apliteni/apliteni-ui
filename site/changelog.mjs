@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.81.0', date: '2026-10-04',
+    changes: [
+      ['fixed', 'Below the phone fold a pinned identity column keeps its name on one line and caps its width at `min(--panel-sm, 50vw)`, cutting a longer name with an ellipsis instead of hiding it or running the column across the screen. The whole name stays in the DOM, so the accessible name and the company link are unchanged. Resolves #500.', ['Table']],
+      ['added', '`--ui-table-identity-max` retunes that cap without restyling the kit\u2019s cell.', ['Table']],
+    ],
+  },
+  {
     v: '0.80.0', date: '2026-10-04',
     changes: [
       ['added', 'The drawer guideline now explains when a drawer fits and when a page does, with a rendered pair that edits one member\u2019s access on a page and in a drawer. A drawer holds one short change: a quick edit, a new key, a filter, a peek at a row\u2019s detail. A long form, several steps, a view with its own address and Back, or work across more than one group belongs on a page, though a drawer may still show groups a reader only reads. Resolves #492.', ['Drawer']],
