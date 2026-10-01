@@ -66,6 +66,9 @@ export function DataTable<T extends { name: string }>({
   const scrollId = useId();
   const scrollRegion = useRef<HTMLDivElement>(null);
   const [columnScroll, setColumnScroll] = useState({ overflow: false, start: true, end: false });
+  const table = useRef<HTMLTableElement>(null);
+  const pagerBox = useRef<HTMLDivElement>(null);
+  const [strip, setStrip] = useState<{ width: number; inset: number }>();
   const measureColumns = () => {
     const region = scrollRegion.current;
     if (region) setColumnScroll({
@@ -84,6 +87,31 @@ export function DataTable<T extends { name: string }>({
     measureColumns();
     return () => observer?.disconnect();
   }, [scrollable, columns, rows]);
+  // The strip starts where the table starts and ends where it ends, read against the box
+  // the strip itself sits in rather than against the table's own parent: a scroll region
+  // insets the table 4px inside itself, and a dense table in a card is bled 16px out of it,
+  // so neither edge can be copied from the table's width alone. A table bled past its
+  // container keeps the strip inside — only the table hangs into a card's padding.
+  // A width of zero is no measurement: jsdom and a page that has not laid out yet both
+  // report one, and a cap of zero would collapse the strip rather than leave it alone.
+  useEffect(() => {
+    const el = table.current;
+    const host = pagerBox.current?.parentElement;
+    if (!el || !host || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const box = host.getBoundingClientRect();
+      const left = box.left + host.clientLeft
+        + (Number.parseFloat(getComputedStyle(host).paddingLeft) || 0);
+      const inset = Math.max(0, rect.left - left);
+      const width = rect.right - left - inset;
+      setStrip(width > 0 ? { width, inset } : undefined);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    measure();
+    return () => observer.disconnect();
+  }, [columns, rows]);
   const scrollColumns = (direction: number) => {
     const region = scrollRegion.current;
     if (region) region.scrollBy({ left: direction * region.clientWidth / 2, behavior: 'instant' });
@@ -157,7 +185,7 @@ export function DataTable<T extends { name: string }>({
           silently either current or stale, with no way to tell which. */}
       <div id={scrollId} ref={scrollRegion} onScroll={measureColumns} className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
         aria-label={stickyHeader || pinnedIdentity ? scrollLabel : undefined} tabIndex={stickyHeader || pinnedIdentity ? 0 : undefined}>
-      <table className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+      <table ref={table} className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         <thead>
           <tr>
@@ -209,6 +237,12 @@ export function DataTable<T extends { name: string }>({
       {/* One page and no size to choose renders nothing at all — the pager's own
           rule, not a second copy of it here. */}
       {pager ? (
+      // The strip that pages a table may not be wider than the rows it pages (#504).
+      // The two are siblings, and no selector sizes one to the other, so the width is
+      // measured: a cap rather than a width, so a pager wider than the table wraps
+      // inside it and a table wider than the room still leaves the strip in the room.
+      <div className="rx-table-pager" ref={pagerBox}
+        style={strip ? { maxWidth: strip.width, marginInlineStart: strip.inset || undefined } : undefined}>
         <Pagination page={page} pageSize={size} total={owned ? ordered.length : total ?? null}
           hasMore={hasMore} pageSizes={pageSizes} loading={loading}
           {...(pagerLabel === undefined ? {} : { label: pagerLabel })}
@@ -222,6 +256,7 @@ export function DataTable<T extends { name: string }>({
             // landed back on the size the reader had just replaced.
             if (owned) setLocalPage(1);
           }} />
+      </div>
       ) : null}
     </>
   );
