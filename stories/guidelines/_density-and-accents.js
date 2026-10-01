@@ -20,10 +20,20 @@ export const SPEC_CSS = `<style>
   /* Two panes in one order, so the only thing that moves between Do and Don't is which
      pane is given the width, the weight and the accent. The tracks are 2:1 rather than
      the screen's 485:420, because a specimen at half a page has to exaggerate a ratio to
-     show it. Stretched, so neither card out-masses the other by accident. */
+     show it. Stretched, so neither card out-masses the other by accident. minmax(0, …)
+     because two cards on their min-content floors ignore the ratio and push the grid
+     past its own box. */
   .gda-panes { display: grid; align-items: stretch; gap: var(--space-4); }
-  .gda-panes--saved-wide { grid-template-columns: 2fr 1fr; }
-  .gda-panes--source-wide { grid-template-columns: 1fr 2fr; }
+  .gda-panes--saved-wide { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  .gda-panes--source-wide { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+  /* Below 560 a half-page cell is about 280px, where a 2:1 split leaves the narrow card
+     too thin to hold a word. The pair stacks instead and the emphasised pane goes first,
+     so the lever the reader can still see is position — the same trade the showcase makes
+     below 860. why: guidelines/layout-and-density.md#use-the-three-breakpoints */
+  @media (max-width: 560px) {
+    .gda-panes { grid-template-columns: minmax(0, 1fr); }
+    .gda-panes--source-wide > :first-child { order: 2; }
+  }
   /* Stacked label-over-value rows rather than a two-column list: at a third of a
      half-page column a label beside its value has nowhere to wrap, and the kit's rows
      break inside words to fit. */
@@ -64,9 +74,10 @@ const figures = () => statBand({ variant: 'tiles', basis: 'Payouts · September'
 ] });
 
 // A source document beside the fields a parser read from it. The fields are what an
-// approval writes to the record. Both panels print the same two cards in the same order,
-// so what a reader compares is the width, the value weight and which card's name carries
-// the accent — the four levers the rule names.
+// approval writes to the record. Both panels print the same two cards, so what a reader
+// compares is the width, the value weight and which card's name carries the accent. Below
+// 560 the pair stacks and the emphasised pane leads, so position carries the comparison
+// where width cannot. Three of the rule's four levers at a time, never none.
 const savedPane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
   <h3 class="ui-card__title">Extracted fields</h3>
   <p class="gda-pane__label">Supplier</p>

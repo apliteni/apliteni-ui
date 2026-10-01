@@ -1,15 +1,5 @@
-/* The one colour the document-review showcase declares, and the only part of its sheet
-   that does not live beside the story.
-
-   The step's accent is the name of the pane whose values get saved; nothing else in
-   either pane carries it, and no line anywhere does. An accent border was built and
-   withdrawn at 55%: it measured 2.76:1 light and 2.62:1 dark, twice the kit's own
-   hairline and nearly twice the 22% the kit's accent card uses, so beside a neighbour
-   whose edge is invisible it read as a purple-outlined box rather than a marked card.
-   why: guidelines/density-and-accents.md#follow-the-consequence
-
-   It sits here rather than in the story's own style block because this is a foreground
-   the contrast walk has to judge: this workspace's CSS is substituted for both themes
-   before the walk, while an inline block reaches it with var() intact and is counted as
-   a colour that would not parse. */
+/* The step's accent: the name of the pane whose values get saved, and the showcase's only
+   colour. It sits here rather than in the story's own style block because the contrast
+   walk substitutes this workspace's CSS and judges what it finds, while an inline block
+   reaches it with var() intact. why: guidelines/density-and-accents.md#follow-the-consequence */
 .doc-flow__saved-pane .ui-card__title { color: var(--accent); }

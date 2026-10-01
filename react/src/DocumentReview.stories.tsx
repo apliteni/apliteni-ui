@@ -124,6 +124,11 @@ const CSS = `
   .doc-flow__toolbar { display: flex; flex-wrap: wrap; align-items: center;
     gap: var(--space-4); margin-bottom: var(--space-4); }
   .doc-flow__amounts { margin-top: var(--space-5); }
+  /* The pane's name carries the step's accent, declared in DocumentReview.css so the
+     contrast walk can judge it. Both cards keep the kit's own hairline, and the figures
+     stay neutral: this step compares two readings of the same numbers, and colouring one
+     side's Total says they differ.
+     why: guidelines/density-and-accents.md#follow-the-consequence */
   /* The zoom control sits in the reference pane, so its selected pill marks itself with
      the kit's strong edge instead of the accent. Between the two panes the accent names
      the data that gets saved, and a reference cannot hold the step's only colour. The
@@ -137,12 +142,6 @@ const CSS = `
      written in a story's own style block is one the contrast walk cannot resolve, so it
      would judge these rows as nothing at all.
      why: guidelines/labels-and-titles.md#use-body-ink, guidelines/density-and-accents.md#follow-the-consequence */
-  /* The pane's name carries the step's accent, and it is declared in
-     DocumentReview.css so the contrast walk can judge it. Both cards keep the kit's own
-     hairline, and the figures stay neutral: this step exists to compare two readings of
-     the same numbers, and colouring one side's Total says the two differ.
-     why: guidelines/density-and-accents.md#follow-the-consequence,
-     guidelines/density-and-accents.md#give-accents-a-job */
   .doc-flow__saved .ui-drawer__row dt { font-weight: var(--weight-normal); }
   .doc-flow__saved .ui-drawer__row dd { font-weight: var(--weight-medium); }
   /* One alignment for one column, and the header on the same side as its values. This
