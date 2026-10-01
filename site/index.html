@@ -31,6 +31,8 @@
   .band { padding-block: clamp(56px, 8vh, 96px); }
   .band--tight { padding-block: clamp(36px, 5vh, 56px); }
 
+  {{SLOGAN_CSS}}
+
   .ui-hero { padding-top: clamp(72px, 12vh, 140px); }
   .ui-hero .ui-eyebrow { display: block; margin-bottom: var(--space-4); }
 
@@ -160,6 +162,9 @@
     .screen .ui-table td:nth-child(3) { display: none; }
   }
 </style>
+<!-- After the stylesheet above on purpose: the rule this emits ties with it
+     on specificity and has to win on order. See site/slogans.mjs. -->
+<script>{{SLOGAN_JS}}</script>
 </head>
 <body>
 
@@ -169,7 +174,8 @@
 <section style="padding-bottom:clamp(40px,6vh,72px)">
   <div class="wrap ui-hero" style="text-align:center">
     <span class="ui-eyebrow">Apliteni design system</span>
-    <h1 class="ui-hero__title">The styling is <span class="grad">decided</span></h1>
+    <!-- Every slogan ships here; site/slogans.mjs shows one. See the head. -->
+    <h1 class="ui-hero__title" id="slogan">{{SLOGAN}}</h1>
     <p class="ui-hero__sub">Plain CSS classes for HTML pages, React components for larger apps. Dark and light, under four accents.</p>
     <div class="ui-hero__cta">
       <a class="ui-btn ui-btn--primary ui-btn--lg" href="#install" style="text-decoration:none">Install</a>
