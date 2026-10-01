@@ -145,10 +145,12 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         <div className="ui-app__body">{children}</div>
       </main>
     </div>
-    <nav className="ui-nav ui-react-app__bottom" aria-label="Sections on mobile"><ul className="ui-nav__list">
+    {/* One destination is not a choice: the bar would hold a single row, marked
+        current on the only page it reaches, and keep 96px of a phone for it. */}
+    {sections.length > 1 && <nav className="ui-nav ui-react-app__bottom" aria-label="Sections on mobile"><ul className="ui-nav__list">
       {links(visible)}{remaining.length > 0 && <li><button type="button" className={`ui-nav__item${active && remaining.includes(active) ? ' is-active' : ''}`}
         aria-haspopup="dialog" aria-expanded={more} onClick={() => setMore(true)}><span className="ui-nav__ic"><Icon name="moreHorizontal" /></span><span className="ui-nav__label">More</span></button></li>}
-    </ul></nav>
+    </ul></nav>}
     <Drawer open={more} onClose={() => setMore(false)} title="More sections" side="bottom">
       {sidebar(remaining, 'More sections')}
     </Drawer>

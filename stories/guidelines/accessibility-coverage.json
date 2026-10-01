@@ -611,9 +611,9 @@
     {
       "file": "react/src/DiffPreview.test.tsx",
       "name": "React: batch changes",
-      "does": "Checks the focused Apply-to-Undo transition, the column header and shared basis behind each signed amount, the booked-month figures and their untoned changes, the block title outside its card, and that column navigation comes from the kit table.",
+      "does": "Checks the focused Apply-to-Undo transition, the column header and shared basis behind each signed amount, the booked-month figures and their untoned changes, the block title outside its card, and that the columns scroll in the kit region with no pager beside it and no bottom bar for one section.",
       "blind": [
-        "Actual bottom-navigation occlusion, table overflow and animation timing require browser measurements; these tests use JSDOM."
+        "Actual table overflow and animation timing require browser measurements; these tests use JSDOM."
       ]
     },
     {

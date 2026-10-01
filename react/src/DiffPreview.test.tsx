@@ -98,21 +98,19 @@ it('emphasizes recovery and gives the inserted content a kit entrance', () => {
   expect(container.querySelector('.ui-stack')).toHaveClass('m-fade-in');
 });
 
-// The kit's DataTable owns column navigation and its own endpoint tests; this
-// only proves the showcase keeps no second copy of those controls.
-it('takes column navigation from the kit table, not a local copy', () => {
+// The kit's DataTable owns the scroll region and its own overflow tests; this
+// only proves the showcase adds no controls of its own beside it, and that one
+// section leaves the phone's bottom bar unrendered.
+it('scrolls its columns in the kit region, with no pager and no one-row bottom bar', () => {
   const { container } = mount();
   const region = screen.getByRole('region', { name: 'Cost changes' });
+  for (const name of ['Previous columns', 'More columns']) {
+    expect(screen.queryByRole('button', { name })).toBeNull();
+  }
   expect(screen.queryByRole('group', { name: 'Cost changes columns' })).toBeNull();
-  Object.defineProperties(region, {
-    clientWidth: { configurable: true, value: 300 },
-    scrollWidth: { configurable: true, value: 450 },
-  });
-  fireEvent.scroll(region);
-  const group = screen.getByRole('group', { name: 'Cost changes columns' });
-  expect(group).toHaveClass('ui-card__row');
-  expect(screen.getByRole('button', { name: 'More columns' })).toHaveAttribute('aria-controls', region.id);
-  expect(container.querySelectorAll('[aria-label$="columns"]')).toHaveLength(1);
+  expect(container.querySelector('.ui-react-app__bottom')).toBeNull();
+  expect(screen.queryByRole('navigation', { name: 'Sections on mobile' })).toBeNull();
+  expect(region.closest('.ui-card')).not.toBeNull();
   expect(container.querySelectorAll('thead th')).toHaveLength(5);
   expect(container.querySelector('thead [aria-hidden]')).toBeNull();
 });

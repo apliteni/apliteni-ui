@@ -776,8 +776,10 @@ that swallowed Space would also prevent the reader from scrolling the page.
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. The longest matching section
   path wins. **Below 560px, a bottom bar replaces the rail:** it shows up to four sections, or
-  three sections plus More. It publishes `--ui-app-bottom-clearance`, the height of that bar
-  plus the device's safe-area inset. **Page bottom padding, root scroll padding and the toast
+  three sections plus More. **A shell whose list has nowhere to go — one section and no back
+  link — draws no rail, no fold control and no bottom bar;** the brand lockup moves to the band
+  and the section stays in the command palette. It publishes `--ui-app-bottom-clearance`, the
+  height of that bar plus the device's safe-area inset. **Page bottom padding, root scroll padding and the toast
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
   bar.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
