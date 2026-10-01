@@ -485,6 +485,11 @@ or neutral. Notices disappear after five seconds, pausing while hovered or focus
 Danger notices are announced assertively; other tones are polite. An `action` with a `label` and
 `onClick` stays until selected or dismissed. New notices appear at the bottom.
 
+Pass `compact: true` to show only the title, or `dismissible: false` to hide the
+close button. Hiding the close button keeps the five-second timer for notices
+without actions; notices with actions remain until their action is selected, so a
+notice with an action and no close button has no other dismissal affordance.
+
 ```tsx
 function SaveButton() {
   const push = useToast();

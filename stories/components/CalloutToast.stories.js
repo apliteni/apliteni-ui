@@ -1,5 +1,5 @@
 import { callout, toast, successPanel, button } from '../../src/components/index.js';
-import { wireToastStack, pushToast } from '../../src/components/toasts.js';
+import { wireToastStack, pushToast, collapseToastStack } from '../../src/components/toasts.js';
 import { pad, specimen, stack, grid } from '../_gallery.js';
 
 export default {
@@ -104,6 +104,38 @@ export const Stack = {
       wireToastStack(s);
       root.querySelectorAll('.ui-btn').forEach((b, i) => b.addEventListener('click', () => pushToast(s, SAMPLES[i])));
       pushToast(s, SAMPLES[0]); // seed one so the canvas isn't empty
+    });
+    return root;
+  },
+};
+
+// The collapsed pile: several notices rest as one, newest in front, and fan out
+// under the pointer or once focus reaches any control inside them. The cards
+// peeking behind the front one are what say more is waiting.
+export const CollapsedStack = {
+  render: () => {
+    const root = document.createElement('div');
+    root.innerHTML = pad(`<div style="display:flex;flex-direction:column;gap:20px;align-items:flex-start">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${button({ label: 'Add a notice', variant: 'primary', size: 'sm' })}
+        ${button({ label: 'Fan out', variant: 'ghost', size: 'sm' })}
+      </div>
+      <p style="margin:0;max-width:42ch;color:var(--text);font-size:var(--text-sm)">Hover the pile, or press Tab into it, to fan it out. It collapses again when you leave.</p>
+      <div style="padding-top:34px"><div class="ui-toast-stack" data-stack></div></div>
+    </div>`);
+    requestAnimationFrame(() => {
+      const s = root.querySelector('[data-stack]');
+      wireToastStack(s);
+      // pushToast() prepends, so this stack reads newest-first.
+      collapseToastStack(s, { newestFirst: true });
+      let next = 0;
+      const add = () => pushToast(s, { ...SAMPLES[next % SAMPLES.length], timer: false });
+      const [addButton, fanButton] = root.querySelectorAll('.ui-btn');
+      addButton.addEventListener('click', () => { next += 1; add(); });
+      // Keyboard readers fan the pile by tabbing into it; this button is the
+      // pointer-free way to do the same from outside it, for the story.
+      fanButton.addEventListener('click', () => s.querySelector('.ui-toast__close')?.focus());
+      for (let i = 0; i < 3; i += 1) { next += 1; add(); }
     });
     return root;
   },
