@@ -2184,9 +2184,13 @@ consumer supplies a real destination for that link. Columns scroll rather than d
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
 and never mutate the supplied filters. A chip shows the chosen value alone, and the field's
-name only while no value is chosen; `filterChipText` and `filterChipName` hold that choice for
-both faces. The trigger's accessible name carries the field and the value, and the chip's
-legend names the field, so the field a chip filters is never lost. Decided in
+name only while no value is chosen; `filterChipText`, `filterChipName` and `filterChipUnset`
+hold that choice for both faces. A chip with nothing chosen prints its field name in
+placeholder ink and is named `field: any`. Beside a chosen value the field is deliberately not
+drawn: it reaches a reader through the trigger's accessible name and the chip's visually hidden
+legend, which carry it in every state, and nowhere on screen. A filter's `value` is display
+text, because it is the chip's only visible line: a consumer answers a change with text a
+reader can read, not with a row's code. Decided in
 [#535](https://github.com/apliteni/apliteni-ui/issues/535). Updating the mounted host preserves the focused chip
 control; after removal focus moves to the next chip, then the previous, then the bar when no
 filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,

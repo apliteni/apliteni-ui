@@ -1,6 +1,6 @@
 import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
-import { filterChipText, filterChipName } from '../logic/filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset } from '../logic/filter-bar.js';
 
 export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
@@ -10,7 +10,7 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
       + dropdown({ items: filter.items || [], variant: 'select',
         // The chip prints one line; the field's name reaches a reader through the
         // trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables
-        triggerContent: `<span class="ui-dropdown__value">${esc(filterChipText(filter))}</span>`,
+        triggerContent: `<span class="${filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}">${esc(filterChipText(filter))}</span>`,
         ariaLabel: filterChipName(filter), open: !!filter.open && !disabled && !busy && !filter.disabled })
       + `<button type="button" class="ui-filter-bar__remove" data-filter-remove aria-label="${esc(`Remove ${filter.label} filter`)}">×</button></fieldset>`).join('')
     + `<span data-filter-clear>${button({ label: clearLabel, size: 'sm', variant: 'ghost', disabled: !filters.length })}</span></fieldset>`;
@@ -56,8 +56,11 @@ export function initFilterBar(host, options = {}) {
           // read by follows it, so the two cannot disagree while the consumer answers.
           const filter = (current.filters || []).find(f => f.id === id);
           const trigger = chip?.querySelector('[data-dropdown-trigger]');
-          const shown = trigger?.querySelector('.ui-dropdown__value')?.textContent;
+          const span = trigger?.querySelector('.ui-dropdown__value');
+          const shown = span?.textContent;
           if (filter && trigger) trigger.setAttribute('aria-label', filterChipName({ ...filter, value: shown }));
+          // A chip that was empty stops being a placeholder the moment it shows a pick.
+          if (span) span.classList.toggle('is-placeholder', filterChipUnset({ value: shown }));
           emit('ui-filter-change', { id, value });
         });
       }

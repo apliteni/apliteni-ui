@@ -8,8 +8,8 @@ export const RELEASES = [
   {
     v: '0.68.0', date: '2026-10-02',
     changes: [
-      ['changed', 'A FilterBar chip shows the chosen value by itself instead of printing the field\u2019s name beside it, so a bar of chips reads as the values in force. A chip with no value shows the field it filters, and the trigger\u2019s accessible name still carries both. Vanilla and React. Resolves #535.', ['FilterBar']],
-      ['added', 'filterChipText and filterChipName are exported from the entry: the one place that decides what a chip prints and what it is called. Pass a filter; take the line and the name. Part of #535.', ['FilterBar']],
+      ['changed', 'A FilterBar chip shows the chosen value by itself instead of printing the field\u2019s name beside it, so a bar of chips reads as the values in force. A chip with nothing chosen shows the field it filters, in placeholder ink, and is named \u201cSector: any\u201d; a chip with a value is named \u201cSector: Technology\u201d. Beside a value the field is no longer drawn: it reaches a reader through that name and the chip\u2019s legend. Keep a filter\u2019s value display text \u2014 it is now the whole visible chip. Vanilla and React. Resolves #535.', ['FilterBar']],
+      ['added', 'filterChipText, filterChipName and filterChipUnset are exported from the entry: the one place that decides what a chip prints, what it is called and whether it counts as unset. Pass a filter; take the line, the name or the state. Part of #535.', ['FilterBar']],
     ],
   },
   {

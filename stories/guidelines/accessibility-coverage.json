@@ -570,7 +570,7 @@
     {
       "file": "react/src/FilterBar.test.tsx",
       "name": "React: FilterBar",
-      "does": "Checks controlled filter changes, disabled controls, keyboard selection, focus after removal, and that a chip prints its value alone while its name carries the field.",
+      "does": "Checks controlled filter changes, disabled controls, keyboard selection, focus after removal, that a chip prints its value alone while its name carries the field and its empty state, and that a valueless chip is marked for the placeholder ink.",
       "blind": [
         "JSDOM does not measure browser focus styling, layout, or contrast."
       ]

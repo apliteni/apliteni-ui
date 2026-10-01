@@ -24,8 +24,16 @@ it('prints the chosen value alone and names the field it filters', () => {
   const props = callbacks();
   render(<FilterBar filters={[{ id: 'status', label: 'Status', value: 'Active', items: [] }, { id: 'region', label: 'Region', items: [] }]} {...props} />);
   expect(screen.getByRole('button', { name: 'Status: Active' })).toHaveTextContent(/^Active$/);
-  expect(screen.getByRole('button', { name: 'Region' })).toHaveTextContent(/^Region$/);
+  expect(screen.getByRole('button', { name: 'Region: any' })).toHaveTextContent(/^Region$/);
   expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
+});
+// The class the sheet paints with --muted; appearance itself is not measured here.
+it('marks the valueless chip so the sheet can give it the placeholder ink', () => {
+  const props = callbacks();
+  render(<FilterBar filters={[{ id: 'status', label: 'Status', value: 'Active', items: [] }, { id: 'region', label: 'Region', items: [] }]} {...props} />);
+  const marked = document.querySelectorAll('.ui-dropdown__value.is-placeholder');
+  expect(marked).toHaveLength(1);
+  expect(marked[0]).toHaveTextContent('Region');
 });
 it('preserves focused controls across updates and moves focus after removal', async () => {
   function Example() {
