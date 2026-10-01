@@ -10,6 +10,7 @@ import { Segmented } from './Segmented';
 import { BusyRegion, Skeleton, SkeletonTable } from './Loading';
 import { EmptyState } from './EmptyState';
 import { KeyValueList } from './KeyValueList';
+import './DocumentReview.css';
 
 // Three screens, in order: read the document, commit to the approval, see what was
 // recorded. The middle screen exists to separate inspecting from committing, so it
@@ -136,17 +137,12 @@ const CSS = `
      written in a story's own style block is one the contrast walk cannot resolve, so it
      would judge these rows as nothing at all.
      why: guidelines/labels-and-titles.md#use-body-ink, guidelines/density-and-accents.md#follow-the-consequence */
-  /* The pane holding the values that get saved carries the step's accent, and carries it
-     on its edge rather than its ground: this pane holds a table, and a table belongs on
-     the reading surface in both themes, never on a tint. The kit's accent card re-colours
-     this same hairline; this is that half of it, without the fill. One edge, one step:
-     nothing here is a second outline and nothing is high-contrast.
+  /* The pane's name carries the step's accent, and it is declared in
+     DocumentReview.css so the contrast walk can judge it. Both cards keep the kit's own
+     hairline, and the figures stay neutral: this step exists to compare two readings of
+     the same numbers, and colouring one side's Total says the two differ.
      why: guidelines/density-and-accents.md#follow-the-consequence,
-     guidelines/dense-tables.md#use-the-right-surface */
-  .doc-flow__saved-pane {
-    --saved-edge: color-mix(in srgb, var(--accent) 55%, transparent);
-    border-color: var(--saved-edge);
-  }
+     guidelines/density-and-accents.md#give-accents-a-job */
   .doc-flow__saved .ui-drawer__row dt { font-weight: var(--weight-normal); }
   .doc-flow__saved .ui-drawer__row dd { font-weight: var(--weight-medium); }
   /* One alignment for one column, and the header on the same side as its values. This
@@ -317,11 +313,11 @@ export const Default: StoryObj<Args> = {
       </div>
     );
 
-    // The extracted fields come first, take the wider column and wear the kit's accent
-    // ground: they are what the approval writes to the record, and the document beside
-    // them is the source they are checked against. The preview is quieter by being
-    // second, narrower and uncoloured — never by being faded, and it holds no accent of
-    // its own. why: guidelines/density-and-accents.md#follow-the-consequence
+    // The extracted fields come first, take the wider column and carry the step's accent
+    // on their own name: they are what the approval writes to the record, and the
+    // document beside them is the source they are checked against. The preview is quieter
+    // by being second, narrower and uncoloured — never by being faded, and it holds no
+    // accent of its own. why: guidelines/density-and-accents.md#follow-the-consequence
     const fields = (
       <Card title="Extracted fields" sub="Saved to the record when you approve." className="doc-flow__saved-pane">
         {loading ? <Skeleton lines={8} /> : <>

@@ -32,9 +32,10 @@ export const SPEC_CSS = `<style>
   .gda-pane__value { margin: 0 0 var(--space-2); overflow-wrap: normal; }
   .gda-pane__value--strong { font-weight: var(--weight-medium); }
   .gda-pane__line { margin: 0 0 var(--space-2); overflow-wrap: normal; }
-  /* The accent on the edge, not the ground: a pane like this one holds a table, and a
-     table stays on the reading surface. */
-  .gda-pane--accent { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+  /* The accent as ink on the pane's own name. Not a border: a line strong enough to read
+     as the signal is an outlined box, and not a ground either, because a pane like this
+     one holds a table and a table stays on the reading surface. */
+  .gda-pane--accent .ui-card__title { color: var(--accent); }
   .gda-page .gc-except { box-shadow: none; padding-left: 0; }
 </style>`;
 
@@ -64,8 +65,8 @@ const figures = () => statBand({ variant: 'tiles', basis: 'Payouts · September'
 
 // A source document beside the fields a parser read from it. The fields are what an
 // approval writes to the record. Both panels print the same two cards in the same order,
-// so what a reader compares is the width, the value weight and which card carries the
-// accent ground — the four levers the rule names.
+// so what a reader compares is the width, the value weight and which card's name carries
+// the accent — the four levers the rule names.
 const savedPane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
   <h3 class="ui-card__title">Extracted fields</h3>
   <p class="gda-pane__label">Supplier</p>
