@@ -59,13 +59,18 @@ type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string 
 //
 // Both entries carry debt the vanilla side already records. stories/contrast.test.js
 // holds the original rationale and #455's measurements: syntax colour repeats meaning
-// present in the source, and these light pairs still miss AA. No other surface, story
-// or colour inherits this debt.
-const snippetStories = new Set([
-  './Snippet.stories.tsx:Shell',
-  './Snippet.stories.tsx:Variants',
-  './Snippet.stories.tsx:Comparison',
-]);
+// present in the source, and these light pairs still miss AA. No other surface or
+// colour inherits this debt.
+//
+// Round 24 added JSON and TypeScript to the highlighter, so the same two pairs are
+// now painted in two more stories. The grouping key is the colour, the state and the
+// leaf selector rather than the story, so the counts below did not move: these are
+// the same four and two findings, reached from more places.
+// The file, not a list of story names. What pins this entry is the colour, the
+// state and the path — a token span inside a Snippet's code region — and a new
+// Snippet story painting the same token in the same place is the same debt, not a
+// new one. Naming each story would only guarantee this list goes stale.
+const SNIPPET_STORY = './Snippet.stories.tsx:';
 // Two states, one cause. Since #474 the card carries the code region's focus ring,
 // so .ui-snippet joins the containers the state walk re-measures — the same way it
 // already walks every .ui-card. The spans it finds there are the same literals at
@@ -74,7 +79,7 @@ const snippetStories = new Set([
 const STATES = [null, 'focus-visible'];
 const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default'
   && STATES.includes(f.state) && f.bg === 'rgb(255,255,255)'
-  && [...f.stories].every(story => snippetStories.has(story))
+  && [...f.stories].every(story => story.startsWith(SNIPPET_STORY))
   && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
 const LEDGER: LedgerEntry[] = [
   {

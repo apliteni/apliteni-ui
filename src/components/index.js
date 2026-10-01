@@ -289,56 +289,96 @@ export function emptyState({ art, icon: ic, title, sub, actions } = {}) {
 }
 
 // ---- Snippet -------------------------------------------------------------
-// `copyLabel` is both the visible text and the accessible name of the copy
-// button. wireTopbar() swaps that text to "✓ Copied" and back, so the button is
-// never left nameless — the glyph beside it is decorative (aria-hidden).
+// The copy button is icon-only: `copy` is on the closed list in
+// src/assets/icons.js, the bar is narrow, and the word said nothing the glyph
+// does not. `copyLabel` is therefore the accessible name and the tooltip rather
+// than visible text, and it should name what is being copied — "Copy command",
+// "Copy configuration" — the way every other icon-only control in the kit is
+// named (aria-label plus title, as button() and the theme toggle write it).
+// wireTopbar() still swaps the contents to "✓ Copied" and back, so the button is
+// never left nameless; `data-orig` records the resting label for a caller that
+// wants it, and the restore reads the markup so the glyph comes back with it.
 // `type="button"`: without it a snippet dropped inside a <form> submits the form.
-export function snippet({ label = 'shell', code = '', reveal = false, copy = true, copyLabel = 'Copy' } = {}) {
+export function snippet({ label = 'shell', code = '', reveal = false, copy = true, copyLabel = 'Copy code' } = {}) {
   const copyBtn = copy
-    ? `<button type="button" class="ui-snippet__copy" data-orig="${esc(copyLabel)}">${icon('copy')}${esc(copyLabel)}</button>`
+    ? `<button type="button" class="ui-snippet__copy" aria-label="${esc(copyLabel)}" title="${esc(copyLabel)}" data-orig="${esc(copyLabel)}">${icon('copy')}</button>`
     : '';
   return `<div class="${cx('ui-snippet', reveal && 'ui-snippet--reveal')}"><div class="ui-snippet__bar"><span>${esc(label)}</span>${copyBtn}</div><pre>${code}</pre></div>`;
 }
 
-// Tiny shell highlighter: escapes first, then wraps comments/strings/URLs/flags/command.
-// Matches the class names in styles/code.css (.k .f .s .u .c). Ported from viz/account.mjs.
-// The pattern runs over escaped text, so a quoted string ends at &quot; and a URL
-// stops at any entity. Group order is the class order below.
-const SHELL = /(#[^\n]*)|(&quot;(?:[^&]|&(?!quot;))*&quot;|'[^']*')|(https?:\/\/[^\s"'&]+)|(\B--?[A-Za-z][\w-]*)|(^[a-z][\w.-]*)/gm;
-const SHELL_CLASSES = ['c', 's', 'u', 'f', 'k'];
+// Tiny highlighters. Each escapes first, then wraps the tokens its language
+// shows, using the class names in styles/code.css (.k .f .s .u .c). Shell is
+// ported from viz/account.mjs; JSON and TypeScript were added for the snippets
+// the kit's own docs show.
+//
+// Every pattern runs over ESCAPED text, so a quoted string ends at &quot; and a
+// shell URL stops at any entity. The group order is the class order beside it.
+//
+// They are small on purpose — they colour short documentation snippets, not
+// arbitrary programs. Known limits: no nested template expressions, no regex
+// literals, and in TypeScript a `//` inside a string reads as a comment unless a
+// `:` precedes it, which is what keeps a URL in a string whole.
+const LANGUAGES = {
+  shell: {
+    pattern: /(#[^\n]*)|(&quot;(?:[^&]|&(?!quot;))*&quot;|'[^']*')|(https?:\/\/[^\s"'&]+)|(\B--?[A-Za-z][\w-]*)|(^[a-z][\w.-]*)/gm,
+    classes: ['c', 's', 'u', 'f', 'k'],
+  },
+  // A key is a string followed by a colon, matched by lookahead so the colon
+  // stays unpainted. Keys, string values and scalars take three different
+  // classes, because a number that looks exactly like a key is not highlighting.
+  json: {
+    pattern: /(&quot;(?:[^&]|&(?!quot;))*&quot;)(?=\s*:)|(&quot;(?:[^&]|&(?!quot;))*&quot;)|(\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+    classes: ['k', 's', 'f'],
+  },
+  ts: {
+    pattern: /(\/\*[\s\S]*?\*\/|(?<![:/])\/\/[^\n]*)|(&quot;(?:[^&]|&(?!quot;))*&quot;|'[^']*'|`[^`]*`)|(\b(?:import|export|from|const|let|var|function|return|async|await|class|extends|implements|interface|type|enum|new|if|else|for|while|of|in|as|default|readonly|void)\b)|(\b(?:true|false|null|undefined)\b|\b\d+(?:\.\d+)?\b)/g,
+    classes: ['c', 's', 'k', 'f'],
+  },
+};
+
+/** The languages codeTokens and hlCode understand, so a gate can discover them. */
+export const codeLanguages = Object.keys(LANGUAGES);
+
 const ENTITY = { amp: '&', lt: '<', gt: '>', quot: '"' };
 // The exact inverse of esc: every & in escaped text starts one of these four.
 const unesc = (text) => text.replace(/&(amp|lt|gt|quot);/g, (_, name) => ENTITY[name]);
 
 /**
- * The shell highlighter's tokens, as `[{ cls, text }]` with `cls` null between
- * tokens and `text` the original unescaped source. Concatenating `text` returns
- * `raw`, so a React caller renders the spans from the same string it copies
- * instead of keeping a second hand-written copy in step. hlShell joins the same
- * tokens into HTML; neither can drift from the other.
+ * A language's tokens, as `[{ cls, text }]` with `cls` null between tokens and
+ * `text` the original unescaped source. Concatenating `text` returns `raw`, so a
+ * React caller renders the spans from the same string it copies instead of
+ * keeping a second hand-written copy in step. hlCode joins the same tokens into
+ * HTML; neither can drift from the other. An unrecognised `lang` is read as
+ * shell, the way the kit reads every other unknown option name.
  *
- * SHELL never matches inside an entity — `#`, `h`, `-` and `^[a-z]` do not occur
- * in `&amp;`, `&lt;`, `&gt;` or `&quot;`, and every alternative stops before `&`
- * or consumes a whole `&quot;` — so each slice is entity-complete and
- * `esc(unesc(slice))` returns the slice unchanged. hlShell's output is therefore
- * byte-identical to tokenising inline, which src/components/snippet-tokens.test.js
- * holds against a copy of the previous one-pass implementation.
+ * No pattern ever matches inside an entity — `#`, `h`, `-`, `/`, `*`, a digit and
+ * `^[a-z]` do not occur in `&amp;`, `&lt;`, `&gt;` or `&quot;`, no keyword is one
+ * of `amp`, `lt`, `gt` or `quot`, and every alternative either stops before `&` or
+ * consumes a whole `&quot;` — so each slice is entity-complete and
+ * `esc(unesc(slice))` returns the slice unchanged. hlCode's output is therefore
+ * byte-identical to wrapping the matches in place, which
+ * src/components/snippet-tokens.test.js holds for every language, against a copy
+ * of the one-pass implementation hlShell had before #474.
  */
-export function shellTokens(raw) {
+export function codeTokens(raw, lang = 'shell') {
+  const { pattern, classes } = LANGUAGES[lang] || LANGUAGES.shell;
   const escaped = esc(raw);
   const out = [];
   let at = 0;
-  for (const match of escaped.matchAll(SHELL)) {
+  pattern.lastIndex = 0;
+  for (const match of escaped.matchAll(pattern)) {
     if (match.index > at) out.push({ cls: null, text: unesc(escaped.slice(at, match.index)) });
-    out.push({ cls: SHELL_CLASSES[match.slice(1).findIndex(Boolean)], text: unesc(match[0]) });
+    out.push({ cls: classes[match.slice(1).findIndex(Boolean)], text: unesc(match[0]) });
     at = match.index + match[0].length;
   }
   if (at < escaped.length) out.push({ cls: null, text: unesc(escaped.slice(at)) });
   return out;
 }
 
-export const hlShell = (raw) =>
-  shellTokens(raw).map(({ cls, text }) => (cls ? `<span class="${cls}">${esc(text)}</span>` : esc(text))).join('');
+export const hlCode = (raw, lang = 'shell') =>
+  codeTokens(raw, lang).map(({ cls, text }) => (cls ? `<span class="${cls}">${esc(text)}</span>` : esc(text))).join('');
+
+export const hlShell = (raw) => hlCode(raw, 'shell');
 
 export { icon };
 export { illo, illoNames } from '../assets/illustrations.js';

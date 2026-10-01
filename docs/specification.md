@@ -2940,7 +2940,7 @@ width. Decided in [#517](https://github.com/apliteni/apliteni-ui/issues/517).
 only the displayed content; copying always writes the original `code` string.
 Token spans use the existing `.k`, `.f`, `.s`, `.u`, and `.c` styles without parsing
 HTML strings. Callers keep displayed tokens consistent with their source text, and
-`shellTokens` is how: it returns the vanilla highlighter's own tokens as
+`codeTokens(raw, lang)` is how: it returns the vanilla highlighters' own tokens as
 `{ cls, text }`, where `cls` is one of those five classes or `null` between tokens
 and the `text` values concatenate back to the string passed in. Deriving children
 from the same string the component copies removes the need to keep a second copy
@@ -2950,17 +2950,62 @@ copy feedback. Held by `react/src/Snippet.test.tsx`, which also compares the
 rendered classes against the `snippet()` factory across `reveal` and `copy`;
 `react/src/snippet-stories.test.tsx` holds the kit's own stories to copying what
 they display, and `src/components/snippet-tokens.test.js` holds `hlShell`'s output
-and the token round trip. These check DOM behavior and strings, not browser layout
-or colour contrast. Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+and the token round trip for every language. These check DOM behavior and strings,
+not browser layout or colour contrast.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+## Code highlighting
+
+`hlCode(raw, lang)` returns highlighted HTML and `codeTokens(raw, lang)` returns the
+same tokens as data; `hlShell(raw)` is the shell case under the name it has always
+had. `codeLanguages` lists what `lang` accepts — `shell`, `json` and `ts` — and an
+unrecognised name is read as shell, the way the kit reads every other unknown
+option name. One tokenizer serves both, so vanilla HTML and React spans cannot
+drift apart.
+
+The five classes carry different meanings per language and are listed here because
+a caller reading the colours needs to know what they stand for:
+
+| Language | `.k` | `.s` | `.f` | `.u` | `.c` |
+| --- | --- | --- | --- | --- | --- |
+| `shell` | the command | a quoted string | a flag | a URL | a `#` comment |
+| `json` | a property key | a string value | a number, `true`, `false`, `null` | — | — |
+| `ts` | a keyword | a string or template | a number or literal | — | a `//` or `/* */` comment |
+
+These are deliberately small. They colour the short snippets the kit's own docs
+show, not arbitrary programs: no nested template expressions, no regular-expression
+literals, and in TypeScript a `//` inside a string reads as a comment unless a `:`
+precedes it, which is what keeps a URL in a string whole. The patterns run over
+escaped text and hand back unescaped text, which is safe only while no token splits
+an HTML entity; `src/components/snippet-tokens.test.js` holds that property, the
+round trip and `hlShell`'s unchanged output for every language it discovers from
+`codeLanguages`.
+
+Three of the five classes miss WCAG AA on the light card and are carried as
+recorded debt, not as a claim of compliance: `.f` and `.u` at 3.81:1 and `.s` at
+4.45:1. `.k` clears it at 5.95:1, and every class clears it in dark. The accepted
+failures and their reasoning live in `stories/contrast.test.js` and
+`react/src/contrast.test.tsx`.
+
+The copy button is icon-only in both implementations. `copy` is on the closed list
+in `src/assets/icons.js`, the bar it sits in is narrow, and the word repeated what
+the glyph already said. `copyLabel` is therefore the accessible name and the
+`title` tooltip rather than visible text, written the way every other icon-only
+control in the kit is written, and it should name what is being copied — “Copy
+command”, “Copy configuration”. It defaults to “Copy code”. The button keeps the
+24px target floor on both axes, which the width now carries alone: 4 + a 13px glyph
++ 4 is 21px without it.
 
 The two implementations' copy feedback differs, and has since before React Snippet
-existed. `wireTopbar()` replaces the vanilla button's contents with the text
-`✓ Copied`, so the kit glyph goes with it and there is no failure state at all;
+existed, and it keeps its words in both. `wireTopbar()` replaces the vanilla
+button's contents with the text `✓ Copied` and there is no failure state at all;
 React swaps the glyph to `check`, shows `Copied`, and shows `Copy failed` when the
-write is rejected. The vanilla button also carries `data-orig`, which is where
-`wireTopbar()` keeps the original label; React holds it in state. Nothing here
-depends on these matching, and the class comparison in `react/src/Snippet.test.tsx`
-does not see them, because none of them is a class.
+write is rejected, dropping `aria-label` while those words are on screen so the
+live region announces the confirmation rather than the resting name. The vanilla
+restore reads the markup the button started with, so the glyph comes back with it;
+`data-orig` still records the resting label for a caller that wants it. Nothing
+here depends on the two matching, and the class comparison in
+`react/src/Snippet.test.tsx` does not see them, because none of them is a class.
 
 Snippet descendants use the shared `--ring` on `:focus-visible`, including copy
 buttons in vanilla and React. The browser-focusable code region is the exception:

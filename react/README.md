@@ -57,20 +57,26 @@ text using the existing `.k` (command), `.f` (flag), `.s` (string), `.u` (URL), 
 `.c` (comment) classes. Keep `code` as the original source: copying always uses it,
 regardless of the displayed children. Neither strings nor children are parsed as HTML.
 
-Build the children from `code` with `shellTokens`, the same tokenizer the vanilla
-`hlShell` uses, so the text on screen cannot drift from the text the button copies.
-Writing the spans out by hand means keeping two copies of the string in step.
+Build the children from `code` with `codeTokens`, the same tokenizer the vanilla
+`hlShell` and `hlCode` use, so the text on screen cannot drift from the text the
+button copies. Writing the spans out by hand means keeping two copies of the string
+in step. The second argument is the language — `shell` (the default), `json` or
+`ts`; `codeLanguages` lists them.
 
 ```tsx
-import { shellTokens } from '@apliteni/apliteni-ui';
+import { codeTokens } from '@apliteni/apliteni-ui';
 
-const code = 'curl -s https://example.com';
+const code = '{ "url": "https://example.com/mcp" }';
 
-<Snippet label="Shell" code={code}>
-  {shellTokens(code).map(({ cls, text }, at) =>
+<Snippet label="mcp.json" code={code} copyLabel="Copy configuration">
+  {codeTokens(code, 'json').map(({ cls, text }, at) =>
     cls ? <span key={at} className={cls}>{text}</span> : text)}
 </Snippet>
 ```
+
+The copy button is icon-only: `copyLabel` is its accessible name and its tooltip
+rather than visible text, so name what is being copied — “Copy command”, “Copy
+configuration”. It still shows words while it confirms.
 
 Before a reveal snippet, explain that the secret is stored hashed and will not be
 shown again, and ask the reader to copy it now. The page decides when to remove it.

@@ -242,11 +242,14 @@ export function wireTopbar(root = document) {
       });
     });
   });
-  // Copy buttons
+  // Copy buttons. The resting button is the glyph alone, so the restore reads the
+  // markup it started with: putting `data-orig` back wrote the label as words and
+  // left the icon behind, which was invisible while a word sat beside it. #474
   root.querySelectorAll('.ui-snippet__copy').forEach((btn) => {
+    const resting = btn.innerHTML;
     btn.addEventListener('click', () => {
       const pre = btn.closest('.ui-snippet')?.querySelector('pre');
-      if (pre) { navigator.clipboard?.writeText(pre.innerText); btn.innerHTML = '✓ Copied'; setTimeout(() => { btn.innerHTML = btn.dataset.orig || 'Copy'; }, 1400); }
+      if (pre) { navigator.clipboard?.writeText(pre.innerText); btn.innerHTML = '✓ Copied'; setTimeout(() => { btn.innerHTML = resting; }, 1400); }
     });
   });
 }

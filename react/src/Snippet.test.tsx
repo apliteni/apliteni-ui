@@ -74,7 +74,32 @@ it('discards a pending copy when copying is turned off', async () => {
   rerender(<Snippet code="example" copy={false} />);
   await act(async () => { resolve(); });
   rerender(<Snippet code="example" />);
-  expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+});
+
+// The bar is narrow and `copy` is on the icon-only closed list in
+// src/assets/icons.js, so the resting button is the glyph alone. Everything a
+// reader needs then comes from the name and the tooltip. #474
+it('is icon-only at rest, named and tooltipped by copyLabel', () => {
+  const { container } = render(<Snippet code="npm install example" copyLabel="Copy command" />);
+  const button = screen.getByRole('button', { name: 'Copy command' });
+  expect(button).toHaveAttribute('title', 'Copy command');
+  expect(button).toHaveTextContent('');
+  expect(button.querySelector('svg')).not.toBeNull();
+  expect(container.querySelector('.ui-snippet__copy')).toBe(button);
+});
+
+it('lets the confirmation name the button instead of the resting label', async () => {
+  vi.useFakeTimers();
+  clipboard();
+  render(<Snippet code="npm install example" copyLabel="Copy command" />);
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy command' })); });
+  // aria-label would otherwise win over the text and announce the resting name.
+  const copied = screen.getByRole('button', { name: 'Copied' });
+  expect(copied).not.toHaveAttribute('aria-label');
+  expect(copied).toHaveAttribute('title', 'Copy command');
+  act(() => { vi.advanceTimersByTime(1400); });
+  expect(screen.getByRole('button', { name: 'Copy command' })).toHaveTextContent('');
 });
 
 it('copies raw text and announces success briefly without hiding the value', async () => {
@@ -84,13 +109,13 @@ it('copies raw text and announces success briefly without hiding the value', asy
   const { container } = render(<Snippet code={code} reveal />);
   expect(container.querySelector('pre')?.textContent).toBe(code);
   expect(container.querySelector('pre b')).toBeNull();
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy' })); });
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(write).toHaveBeenCalledWith(code);
   const button = screen.getByRole('button', { name: 'Copied' });
   expect(button).toHaveAttribute('aria-live', 'polite');
   expect(button.querySelector('svg')).not.toBeNull();
   act(() => { vi.advanceTimersByTime(1400); });
-  expect(screen.getByRole('button', { name: 'Copy' })).toBe(button);
+  expect(screen.getByRole('button', { name: 'Copy code' })).toBe(button);
   expect(container.querySelector('pre')?.textContent).toBe(code);
 });
 
@@ -108,7 +133,7 @@ it('supports keyboard copying without submitting its form', async () => {
 it('reports a rejected write and allows retry', async () => {
   const write = clipboard(vi.fn().mockRejectedValueOnce(new Error('Denied')).mockResolvedValue(undefined));
   render(<Snippet code="example" />);
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy' })); });
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(screen.getByRole('button', { name: 'Copy failed' })).toHaveAttribute('aria-live', 'polite');
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy failed' })); });
   expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
@@ -118,7 +143,7 @@ it('reports a rejected write and allows retry', async () => {
 it('does not claim success when the clipboard is unavailable', async () => {
   vi.stubGlobal('navigator', {});
   render(<Snippet code="Select this manually" />);
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy' })); });
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(screen.getByRole('button', { name: 'Copy failed' })).toBeInTheDocument();
   expect(screen.getByText('Select this manually')).toBeInTheDocument();
 });
@@ -127,10 +152,10 @@ it('ignores a pending write after the value changes', async () => {
   let resolve!: () => void;
   clipboard(vi.fn(() => new Promise<void>(done => { resolve = done; })));
   const { rerender } = render(<Snippet code="old" />);
-  fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Copy code' }));
   rerender(<Snippet code="new" />);
   await act(async () => { resolve(); });
-  expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
 });
 
 it('clears the feedback timer on unmount', async () => {
