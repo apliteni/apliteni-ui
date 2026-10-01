@@ -201,9 +201,11 @@ a.ui-identity:hover { text-decoration: underline; }
     overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;
   }
-  /* Except what carries a mark. A clip shortens words; it removes a sort caret or
-     a focus ring outright. */
-  .ui-table--pinned .ui-table__identity > :is(.ui-identity, a, button, input, select, textarea, svg, :has(a, button, input, select, textarea, svg, [tabindex])) {
+  /* Except a control, which is a mark a clip removes rather than shortens: its own
+     caret or ring sits past the box the cap leaves it. A box merely HOLDING one is
+     not on this list — it cuts, and the 16px above is what keeps the ring it holds
+     out of the cut. */
+  .ui-table--pinned .ui-table__identity > :is(.ui-identity, a, button, input, select, textarea, svg) {
     overflow: visible;
     text-overflow: clip;
   }

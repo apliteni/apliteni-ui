@@ -85,8 +85,11 @@ function lengthPx(value, width) {
   return Math.min(...lengths);
 }
 
-/** Every declaration the phone block writes on a pinned identity. */
-function phoneIdentityDeclarations() {
+/** Every rule the phone block writes, as `{ selector, declarations }`. Which of them
+ *  are a pinned identity's business is decided below by what each one REACHES: a rule
+ *  written on any other class — `.ui-table__code` is one the kit itself ships — lands
+ *  inside the cell just the same, and a name match never sees it. */
+function phoneRules() {
   const css = decomment(CSS);
   const at = css.indexOf('@media (max-width: 720px)');
   assert.ok(at > 0, 'the phone block for pinned identities is gone from table.css');
@@ -99,14 +102,16 @@ function phoneIdentityDeclarations() {
   }
   const out = [];
   for (const [, selector, body] of css.slice(open + 1, end - 1).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (!selector.includes('identity')) continue;
+    const declarations = [];
     for (const declaration of body.split(';')) {
       const i = declaration.indexOf(':');
       if (i < 0) continue;
-      out.push({ selector: selector.trim(), property: declaration.slice(0, i).trim(), value: declaration.slice(i + 1).trim() });
+      declarations.push({ property: declaration.slice(0, i).trim(), value: declaration.slice(i + 1).trim() });
     }
+    if (declarations.length) out.push({ selector: selector.trim(), declarations });
   }
-  assert.ok(out.length >= 10, `the phone block is down to ${out.length} declarations; what is no longer written is no longer measured`);
+  const written = out.reduce((n, rule) => n + rule.declarations.length, 0);
+  assert.ok(written >= 18, `the phone block is down to ${written} declarations; what is no longer written is no longer measured`);
   return out;
 }
 
@@ -123,23 +128,26 @@ function mountAt(width) {
       <tr><td class="ui-table__identity" id="plain">North region</td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="sub"><div>North region</div><div class="ui-table__code" id="subline">EU-NORTH-1 district office</div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="subel"><div>South region</div><div class="ui-table__code" id="sublineel"><span>EU-SOUTH-2 district office</span></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="sublink"><div>West region</div><div class="ui-table__code" id="sublinelink"><a href="#office">EU-WEST-3 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
     </tbody></table>`;
-  const cells = ['#head', '#kit', '#plain', '#sub', '#subel'];
+  const cells = ['#head', '#kit', '#plain', '#sub', '#subel', '#sublink'];
   const style = (sel) => dom.window.getComputedStyle(typeof sel === 'string' ? document.querySelector(sel) : sel);
   const declared = /--ui-table-identity-max:\s*([^;}]+)/.exec(substitute(decomment(CSS), tokensFor('light', 'default')));
   assert.ok(declared, 'the identity cap property is gone, so a consumer has nothing to retune');
   return { document, cells, style, cap: lengthPx(declared[1], width) };
 }
 
-const MARKS = 'a, button, input, select, textarea, svg, [tabindex]';
+/** A control: its caret, or its ring, sits past the box the cap leaves it, so a clip
+ *  removes the mark rather than shortening the words. A box merely HOLDING one is not
+ *  on this list — it cuts, and the cut's 16px margin keeps the ring it holds. */
+const MARKS = '.ui-identity, a, button, input, select, textarea, svg';
 /** What this element is, as far as the outcomes below are concerned. */
 const contextOf = (el, cap, declared) => ({
   cap,
   declared,
   cell: el.classList.contains('ui-table__identity'),
   decorative: el.classList.contains('ui-identity__logo'),
-  // A clip shortens words; on something carrying a mark it removes the mark.
-  marks: el.classList.contains('ui-identity') || el.matches(MARKS) || el.querySelector(MARKS) !== null,
+  marks: el.matches(MARKS),
 });
 
 /**
@@ -186,27 +194,39 @@ const OUTCOME = {
   display: (v, { decorative }) => (decorative
     ? (v === 'none' ? null : `the logo is back in the narrow column as ${v}`)
     : (v !== 'none' ? null : 'the pinned identity column is not drawn at all')),
+  // The two ways #500 hid the name: out of flow, or clipped to nothing.
+  position: (v) => (['static', 'relative', 'sticky'].includes(v) ? null
+    : `${v} takes this out of the row, which is how the name was hidden before #500`),
+  'clip-path': (v) => (['', 'none'].includes(v) ? null : `${v} clips this out of view`),
 };
 
-test('at 390 every rule in the phone block comes to the outcome it is written for', () => {
+test('at 390 every rule that reaches a pinned identity comes to the outcome it is written for', () => {
   const { document, style, cap } = mountAt(390);
   let judged = 0;
-  for (const { selector, property, value } of phoneIdentityDeclarations()) {
-    const outcome = OUTCOME[property];
-    assert.ok(outcome, `nothing here judges what ${property} does to a pinned identity`);
-    const elements = [...document.querySelectorAll(selector)];
-    assert.ok(elements.length, `${selector} reaches nothing among the shapes mounted here`);
-    for (const el of elements) {
-      const problem = outcome(style(el).getPropertyValue(property), contextOf(el, cap, substitute(value, tokensFor('light', 'default'))));
-      assert.equal(problem, null, `${selector} { ${property}: ${value} } on <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>: ${problem}`);
-      judged++;
+  for (const { selector, declarations } of phoneRules()) {
+    // Reach, not spelling: everything the rule matches that lives in a pinned
+    // identity cell, the cell itself included.
+    const reached = [...document.querySelectorAll(selector)].filter((el) => el.closest('.ui-table__identity'));
+    if (!reached.length) {
+      assert.ok(!selector.includes('identity'),
+        `${selector} names the pinned identity and reaches nothing among the shapes mounted here`);
+      continue;
+    }
+    for (const { property, value } of declarations) {
+      const outcome = OUTCOME[property];
+      assert.ok(outcome, `nothing here judges what ${property} does to a pinned identity`);
+      for (const el of reached) {
+        const problem = outcome(style(el).getPropertyValue(property), contextOf(el, cap, substitute(value, tokensFor('light', 'default'))));
+        assert.equal(problem, null, `${selector} { ${property}: ${value} } on <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>: ${problem}`);
+        judged++;
+      }
     }
   }
-  assert.ok(judged >= 10, `only ${judged} declarations were judged; the sweep stopped finding its subjects`);
+  assert.ok(judged >= 18, `only ${judged} declarations were judged; the sweep stopped finding its subjects`);
 });
 
 test('at 390 the column fits its region, shows a name and is drawn', () => {
-  const { style, cells, cap } = mountAt(390);
+  const { document, style, cells, cap } = mountAt(390);
 
   // Fits: the cap is at most half the viewport, and no floor inside the column can
   // push it past that. Usable: a 13px line of symbol and name needs the rest of it —
@@ -214,12 +234,24 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.ok(cap <= 195, `the cap leaves the columns beside it no room: ${cap}px of 390`);
   assert.ok(cap >= 156, `the cap is too narrow to hold a line of identity: ${cap}px of 390`);
 
+  // The cell AND everything living in it: a rule written on a sub-line's own class
+  // hides, unwraps or widens the column just as surely as one written on the cell.
   for (const cell of cells) {
-    const box = style(cell);
-    assert.equal(box.whiteSpace, 'nowrap', `${cell} wraps`);
-    assert.notEqual(box.display, 'none', `${cell} is not drawn`);
-    assert.notEqual(box.visibility, 'hidden', `${cell} is drawn invisible`);
-    assert.ok((lengthPx(box.minWidth, 390) ?? 0) <= cap, `${cell} has a floor past the cap: ${box.minWidth}`);
+    for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
+      const where = `${cell} <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>`;
+      // JSDOM resolves no inheritance, so an empty value is a property this
+      // stylesheet leaves to the cell above — only a value written here can be wrong.
+      const box = style(el);
+      assert.ok(['', 'nowrap'].includes(box.whiteSpace), `${where} wraps at ${box.whiteSpace}`);
+      assert.ok((lengthPx(box.minWidth, 390) ?? 0) <= cap, `${where} has a floor past the cap: ${box.minWidth}`);
+      assert.notEqual(box.visibility, 'hidden', `${where} is drawn invisible`);
+      assert.ok(['', 'static', 'relative', 'sticky'].includes(box.position), `${where} is out of the row at ${box.position}`);
+      assert.ok(['', 'none'].includes(box.clipPath), `${where} is clipped out of view`);
+      // The decorative logo is the one thing the narrow column drops.
+      if (!el.classList.contains('ui-identity__logo') && !el.closest('.ui-identity__logo')) {
+        assert.notEqual(box.display, 'none', `${where} is not drawn`);
+      }
+    }
   }
 
   // The name: drawn, given the whole cell, and cut with an ellipsis when it passes it.
@@ -236,9 +268,10 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.equal(style('#kit .ui-identity').maxWidth.trim(), '100%', 'the identity link is capped away from the cell it sits in');
   assert.equal(style('#kit .ui-identity__logo').display, 'none', 'the logo is back in the narrow column');
 
-  // A sub-line cuts itself with an ellipsis whether or not its text sits in an
-  // element; a control keeps its own layout, so its marks survive.
-  for (const subLine of ['#subline', '#sublineel']) {
+  // A sub-line cuts itself with an ellipsis whatever holds its text — bare, in a
+  // `<span>`, or around a link, which keeps its ring through the cut's 16px margin.
+  // Only a control itself keeps its own layout, because its marks sit past its box.
+  for (const subLine of ['#subline', '#sublineel', '#sublinelink']) {
     assert.equal(style(subLine).textOverflow, 'ellipsis', `${subLine} is cut without saying so`);
     assert.ok(['clip', 'hidden'].includes(style(subLine).overflow), `${subLine} runs past the cap`);
   }
