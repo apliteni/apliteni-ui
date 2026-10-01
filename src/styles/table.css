@@ -31,8 +31,12 @@
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
 .ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
 /* The strike is painted by the cell across its in-flow inline descendants, and an atomic
-   inline-level box is not one — so a linked name in a revoked row needs it struck itself. */
+   inline-level box is not one — so a linked name in a revoked row needs it struck itself.
+   On hover it carries both lines: the cell-link hover rule below is a whole `text-decoration`,
+   which would otherwise replace the strike with the underline.
+   held by: src/styles/table-focus.test.js */
 .ui-table tr.is-dead td.ui-table__title a { text-decoration: line-through; }
+.ui-table tr.is-dead td.ui-table__title a:hover { text-decoration-line: underline line-through; }
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
 
 /* Row hover: an inset, rounded fill so the highlight never sits flush against a

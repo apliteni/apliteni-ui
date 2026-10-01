@@ -46,10 +46,14 @@ const cellLinks = () => sourceFiles().flatMap((file) => {
   const source = readFileSync(path.join(root, file), "utf8");
   return [...source.matchAll(/<table\b[^>]*>[\s\S]*?<\/table>/g)].flatMap((table) => {
     const open = table[0].match(/<table\b[^>]*>/)[0];
-    return [...table[0].matchAll(/<(t[dh])\b[^>]*>[\s\S]*?<\/\1>/g)].flatMap((cell) => {
-      const cellOpen = cell[0].match(/<t[dh]\b[^>]*>/)[0];
-      return [...cell[0].matchAll(/<a\b[^>]*>/g)]
-        .map((link) => ({ file, table: open, cell: cell[1], cellOpen, link: link[0] }));
+    // Through the row, because a revoked row styles the link inside it (`tr.is-dead`).
+    return [...table[0].matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/g)].flatMap((row) => {
+      const rowOpen = row[0].match(/<tr\b[^>]*>/)[0];
+      return [...row[0].matchAll(/<(t[dh])\b[^>]*>[\s\S]*?<\/\1>/g)].flatMap((cell) => {
+        const cellOpen = cell[0].match(/<t[dh]\b[^>]*>/)[0];
+        return [...cell[0].matchAll(/<a\b[^>]*>/g)]
+          .map((link) => ({ file, table: open, row: rowOpen, cell: cell[1], cellOpen, link: link[0] }));
+      });
     });
   });
 });
@@ -61,7 +65,7 @@ const asHtml = (tag) => tag.replace(/\bclassName=/g, "class=");
 
 /** A cell's link, standing in the table and cell the source puts it in. */
 const element = (subject) => {
-  const row = `<tr>${asHtml(subject.cellOpen)}${asHtml(subject.link)}ID</a></${subject.cell}></tr>`;
+  const row = `${asHtml(subject.row ?? "<tr>")}${asHtml(subject.cellOpen)}${asHtml(subject.link)}ID</a></${subject.cell}></tr>`;
   const body = subject.cell === "th" ? `<thead>${row}</thead>` : `<tbody>${row}</tbody>`;
   const dom = new JSDOM(`${asHtml(subject.table)}${body}</table>`);
   return dom.window.document.querySelector("a");
@@ -91,27 +95,59 @@ const ringSelectors = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll
   .flatMap(([, selector]) => selectorParts(selector))
   .filter((part) => part.includes(":focus-visible"));
 
-/** The value the sheet leaves on `property` for this element, reading the rules that reach it
- *  in source order. Source order, not specificity — enough for a property that one rule in
- *  these sheets sets on a cell's link, and the mutation test below fails if that stops being
- *  true. */
-const declared = (css, property, el) => {
-  const found = new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`);
-  let value = null;
-  for (const [, selector, body] of css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const match = found.exec(body);
-    if (match && selectorParts(selector).some((part) => reaches(part, el))) value = match[1].trim();
-  }
-  return value;
+/** The states a reading can be in. JSDOM matches none of them, so each is stripped before the
+ *  selector is handed to `matches()` and accounted for by the caller instead. */
+const STATES = [":focus-visible", ":hover"];
+
+/** Does this selector reach the element, in a reading that is in the states `on`? A selector
+ *  keyed to a state the reading is not in reaches nothing — which is how a rest reading and a
+ *  hover reading of the same element come out different. */
+const reaches = (selector, el, on = []) => {
+  if (STATES.some((state) => selector.includes(state) && !on.includes(state))) return false;
+  return el.matches(STATES.reduce((rest, state) => rest.replaceAll(state, ""), selector));
 };
 
-// JSDOM never matches `:focus-visible`, so the question asked of it is the one this gate
-// is about: does a ring rule reach this element at all.
-const reaches = (selector, el) => el.matches(selector.replaceAll(":focus-visible", ""));
+/** Specificity as (ids, classes, types). `:where()` contributes nothing; `:not()` and `:is()`
+ *  contribute their argument's, which is why both are unwrapped rather than counted. */
+const specificity = (selector) => {
+  let flat = selector;
+  while (/:where\(/.test(flat)) flat = flat.replace(/:where\(([^()]*)\)/, "");
+  while (/:(?:not|is)\(/.test(flat)) flat = flat.replace(/:(?:not|is)\(([^()]*)\)/, " $1 ");
+  const count = (pattern) => (flat.match(pattern) || []).length;
+  return [
+    count(/#[\w-]+/g),
+    count(/\.[\w-]+/g) + count(/\[[^\]]*\]/g) + count(/(?<!:):[\w-]+/g),
+    count(/(?:^|[\s>+~(,])[a-zA-Z][\w-]*/g) + count(/::[\w-]+/g),
+  ];
+};
+const outranks = (a, b) => a.some((n, i) => n !== b[i] && n > b[i] && a.slice(0, i).every((m, j) => m === b[j]));
+
+/** The value the cascade leaves on `property` for this element, in the states `on`. Rules that
+ *  reach it are ranked by specificity, ties going to the later one — the cascade's own order.
+ *
+ *  Limits: it reads these sheets only, so no `!important`, no inline style and no author rule
+ *  from anywhere else; and it expands no shorthand beyond the pairs `aliases` names. The
+ *  mutation tests below fail if either stops being enough for what they measure. */
+const declared = (css, property, el, on = [], aliases = []) => {
+  const wanted = [property, ...aliases];
+  let best = null;
+  for (const [, selector, body] of css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    for (const name of wanted) {
+      const match = new RegExp(`(?:^|;)\\s*${name}\\s*:\\s*([^;]+)`).exec(body);
+      if (!match) continue;
+      for (const part of selectorParts(selector)) {
+        if (!reaches(part, el, on)) continue;
+        const rank = specificity(part);
+        if (!best || !outranks(best.rank, rank)) best = { rank, value: match[1].trim() };
+      }
+    }
+  }
+  return best && best.value;
+};
 const bare = (css, subjects) => {
   const selectors = ringSelectors(css);
   return subjects
-    .filter((subject) => !selectors.some((part) => reaches(part, element(subject))))
+    .filter((subject) => !selectors.some((part) => reaches(part, element(subject), [":focus-visible"])))
     .map((subject) => `${subject.file}: ${subject.link}`);
 };
 
@@ -163,8 +199,14 @@ test("a cell link is an inline-block box, so a wrapped one paints one ring", () 
   const flowed = subjects
     .filter((subject) => declared(SHEETS, "display", element(subject)) !== "inline-block")
     .map((subject) => `${subject.file}: ${subject.link}`);
+  // The corner the ring follows is the other half of that box, and the specification states
+  // it, so it is read the same way rather than left to the comment above the rule.
+  const square = subjects
+    .filter((subject) => declared(SHEETS, "border-radius", element(subject)) !== "var(--radius-xs)")
+    .map((subject) => `${subject.file}: ${subject.link}`);
 
   assert.deepEqual(flowed, [], "these cell links stay in the inline flow and would fragment");
+  assert.deepEqual(square, [], "these cell links take a ring at a corner the kit does not set");
 });
 
 test("the check rejects a cell link left in the inline flow", () => {
@@ -174,12 +216,45 @@ test("the check rejects a cell link left in the inline flow", () => {
   const stripped = SHEETS.replace(rule, "");
   const subjects = cellLinks();
   const flowed = subjects.filter((s) => declared(stripped, "display", element(s)) !== "inline-block");
+  const square = subjects.filter((s) => declared(stripped, "border-radius", element(s)) !== "var(--radius-xs)");
   assert.equal(
     flowed.length,
     subjects.length,
     "without that rule every cell link must read as an inline flow box — if any still passes, " +
       "a second rule is setting the display and this gate is measuring the wrong one",
   );
+  assert.equal(square.length, subjects.length, "and every one must lose the kit's corner with it");
+});
+
+// The one state the kit gives a cell of its own: a revoked row strikes its title. The strike is
+// painted by the cell, and `display: inline-block` makes the link a box an ancestor's decoration
+// does not cross, so the link carries it itself — at rest, and on hover, where the cell-link
+// hover rule is a whole `text-decoration` that would otherwise replace it.
+const DEAD = {
+  file: "fixture", table: '<table class="ui-table">', row: '<tr class="is-dead">',
+  cell: "td", cellOpen: '<td class="ui-table__title">', link: '<a href="#token">',
+};
+const strike = (css, on) => declared(css, "text-decoration-line", element(DEAD), on, ["text-decoration"]);
+
+test("a linked name in a revoked row stays struck, at rest and on hover", () => {
+  assert.match(strike(SHEETS, []) ?? "", /line-through/, "at rest the linked name must be struck");
+  assert.match(strike(SHEETS, [":hover"]) ?? "", /line-through/, "and hovering it must not take the strike off");
+  assert.match(strike(SHEETS, [":hover"]) ?? "", /underline/, "while still underlining, as any cell link does");
+});
+
+test("the check rejects the strike dropped from a revoked row's link", () => {
+  const rules = [...SHEETS.matchAll(/\n\.ui-table tr\.is-dead td\.ui-table__title a(?::hover)? \{[^}]*\}/g)]
+    .map((match) => match[0]);
+  assert.equal(rules.length, 2, "the rest rule and the hover rule must both exist to be taken out");
+
+  for (const rule of rules) {
+    const stripped = SHEETS.replace(rule, "");
+    const states = [[], [":hover"]].filter((on) => /line-through/.test(strike(stripped, on) ?? ""));
+    assert.ok(
+      states.length < 2,
+      `with this rule gone the strike must be missing in at least one state:\n${rule.trim()}`,
+    );
+  }
 });
 
 test("a table whose class list is built at runtime is refused, not guessed at", () => {
@@ -216,7 +291,7 @@ test("a JSX subject is read the same as its HTML spelling", () => {
     .window.document.querySelector("a");
   assert.equal(raw.closest("table").classList.length, 0, "HTML parsing must drop the JSX class");
   assert.ok(
-    !ringSelectors(SHEETS).some((part) => reaches(part, raw)),
+    !ringSelectors(SHEETS).some((part) => reaches(part, raw, [":focus-visible"])),
     "the trap this normaliser removes must still be there to remove",
   );
   assert.deepEqual(bare(SHEETS, [html]), [], "the HTML spelling reads the same way");
@@ -233,7 +308,7 @@ test("a button in a cell keeps its own ring, not the cell link's", () => {
     link: '<a class="ui-btn ui-btn--ghost" href="#">Open</a>',
   };
   const el = element(button);
-  const reaching = ringSelectors(SHEETS).filter((part) => reaches(part, el));
+  const reaching = ringSelectors(SHEETS).filter((part) => reaches(part, el, [":focus-visible"]));
 
   assert.ok(reaching.length > 0, "a button in a cell must still take the ring");
   assert.deepEqual(

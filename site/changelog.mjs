@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.66.0', date: '2026-10-02',
     changes: [
-      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline. A plain cell link is an inline-block box at the kit corner, so a title-cell link that wraps paints one ring rather than one per line, and the struck name of a revoked row still reaches a link inside it. An anchor the kit already styles — a button, an identity, a dropdown row, a nav item or a crumb composed into a cell — keeps its own box and corner. The rules are in the shared stylesheet, so the React `DataTable` takes them with the vanilla table; the React DataTable and Loading stories now carry a cell link that shows it. Resolves #510.', ['Table']],
+      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline. A plain cell link is an inline-block box at the kit corner, so a title-cell link that wraps paints one ring rather than one per line, and the struck name of a revoked row still reaches a link inside it, hovered or not. An anchor the kit already styles — a button, an identity, a dropdown row, a nav item or a crumb composed into a cell — keeps its own box and corner. The rules are in the shared stylesheet, so the React `DataTable` takes them with the vanilla table; the React DataTable and Loading stories now carry a cell link that shows it. Resolves #510.', ['Table']],
     ],
   },
   {

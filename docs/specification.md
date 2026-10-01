@@ -2095,7 +2095,8 @@ kit's `--radius-xs` corner, so a title-cell link long enough to wrap draws one r
 whole link rather than one per line; the box is as wide as its longest line, which can overhang
 shorter ones. An anchor the kit already styles keeps the box, the corner and the paint its own
 component sets: `.ui-btn` and `.ui-identity`, and a `.ui-dropdown__item`, `.ui-nav__item` or crumb
-composed into a cell. In a revoked row (`tr.is-dead`) the struck name reaches a link in it.
+composed into a cell. In a revoked row (`tr.is-dead`) the struck name reaches a link in it, at rest and on hover,
+where the link carries both lines.
 Decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451) and
 [#510](https://github.com/apliteni/apliteni-ui/issues/510).
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
