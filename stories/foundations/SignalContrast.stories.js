@@ -358,13 +358,13 @@ const sectionLive = () => {
       ${liveSpecimen(
         'Live pill',
         pill('Live', 'live'),
-        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:56')} ${code('.ui-pill--live')}`,
+        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:58')} ${code('.ui-pill--live')}`,
         chip('success', byKey.green),
       )}
       ${liveSpecimen(
         'Info badge',
         badge('Preview', 'info'),
-        `now ${code('--chip-info-*')} — ${code('src/styles/badge.css:29')} ${code('.ui-badge--info')}`,
+        `now ${code('--chip-info-*')} — ${code('src/styles/badge.css:31')} ${code('.ui-badge--info')}`,
         chip('info', byKey.cyan),
       )}
       ${liveSpecimen(

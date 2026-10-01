@@ -23,9 +23,11 @@
    wash out and the ink has to deepen to clear AA, and that is a token decision.
    The tones with no status take --chip-neutral-fill for the same reason: before #453
    they painted the opaque --surface, the one soft badge fill that sat DARKER than the
-   panel in dark. why: docs/specification.md#elevation */
+   panel in dark. why: docs/specification.md#elevation
+   Soon takes body ink here, not --accent: accent ink measured 4.06:1 on a dark floating
+   panel under three of the four accents, body ink 9.74:1. See specification.md:470. */
 .ui-badge--live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-.ui-badge--soon { color: var(--accent); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-badge--soon { color: var(--text); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 .ui-badge--info { color: var(--chip-info-ink); background: var(--chip-info-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .ui-badge--warn { color: var(--chip-warn-ink); background: var(--chip-warn-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 .ui-badge--danger { color: var(--chip-danger-ink); background: var(--chip-danger-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
@@ -54,7 +56,7 @@
    same pair. On its own it was --green on --glow-green, which is 3.97:1 over
    white — under AA, while the badge beside it cleared at 4.64:1. See issue #131. */
 .ui-pill--live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-.ui-pill--soon { color: var(--accent); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-pill--soon { color: var(--text); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 
 /* Status dot */
 .ui-dot {

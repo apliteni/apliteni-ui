@@ -210,7 +210,10 @@
   --chip-success-fill: var(--glow-green);
   --chip-warn-ink: var(--amber);
   --chip-warn-fill: color-mix(in srgb, var(--amber) 15%, transparent);
-  --chip-danger-ink: var(--pink);
+  /* Not --pink: that reads 4.23:1 on this fill over a floating panel, under the 4.5:1 badge
+     floor. Same hue lifted toward white — 8.64 page / 7.02 card / 6.30 panel. The signal
+     and the solid-toast pair keep --pink. why: docs/specification.md#colour-and-contrast, #453 */
+  --chip-danger-ink: #f5aec6;
   --chip-danger-fill: var(--glow-pink);
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);

@@ -12,6 +12,8 @@ export const RELEASES = [
       ['fixed', 'Badge and pill tones that report no status — Soon, Archive, Neutral, and the plain badge and pill — take a soft fill instead of the card surface, so every badge tone now separates from its panel in the same direction: lighter in dark, darker in light. The archived version badge in the topbar follows. Landing’s accent card carries a neutral eyebrow, because the card already carries the accent. See #453.', ['Badge', 'Topbar']],
       ['added', 'Use `--chip-neutral-fill` for a chip whose tone reports no verdict. It is the fill dropdown state chips already used, now published and shared by the badge, the pill and the version badge.'],
       ['fixed', 'The light success chip ink is deeper, reading 7.17:1 on its own fill instead of 5.29:1. Success and Paid badges, live pills, success callout icons, toast actions and the solid success surface all follow `--chip-success-ink`; dark is unchanged. See #453.', ['Badge', 'Callout', 'Toast']],
+      ['fixed', 'The Soon badge and pill take body ink instead of accent ink. On the soft fill they now share with the other tones that report no status, accent ink measured 4.06:1 on a floating panel in dark under three of the four accents — under AA. Soon and Neutral now paint identically; if you need them to differ, say so on #453. See #453.', ['Badge']],
+      ['fixed', 'The dark danger chip ink is lighter, reading 6.30:1 on its own fill over a floating panel instead of 4.23:1. Danger badges, table and stat deltas, danger callout icons and toast actions follow `--chip-danger-ink`. The `--pink` signal and the solid danger toast are unchanged; light is unchanged. See #453.', ['Badge', 'Callout', 'Toast', 'Table']],
     ],
   },
   {

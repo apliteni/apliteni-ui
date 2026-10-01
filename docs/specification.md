@@ -466,6 +466,28 @@ the themes separate by the same amount (1.22:1 and 1.23:1 off a card) rather tha
 by the same alpha, because `--muted` is a light violet-grey in dark and a mid
 slate in light. Held by `stories/dropdown-state-contrast.test.js` and
 `stories/badge-tones.test.js`.
+
+**The exception is named with its thinnest pairs, and they are per ground.** A chip
+sits on three grounds — the page, a card and a floating panel — and a translucent wash
+is not equally safe on all three, so the numbers that matter are the worst ones rather
+than the card's. `stories/badge-tones.test.js` measures every tone on all three, under
+both themes and all four accents, because the review of
+[#485](https://github.com/apliteni/apliteni-ui/pull/485) found a 4.06:1 chip that a
+card-only gate had passed. The pairs with the least room today:
+
+| Pair | Ground | Ink | Why it is the thinnest |
+| --- | --- | --- | --- |
+| `.ui-badge--archive` | light page | **4.51:1** | `--muted` on the 15% muted wash, over `--bg` rather than white. 0.01 over the floor; a later `--muted` tweak drops it under, and this line is what says so. |
+| `.ui-badge--archive` | dark floating panel | **4.56:1** | the same pair at the other theme's lightest ground. |
+| `.ui-badge--danger` | dark floating panel | 6.30:1 | was 4.23:1 under the floor while `--chip-danger-ink` was `--pink`; see the status-chip pair rule below. |
+
+Separation is thinnest in the other direction: on the **light page** the warn and
+pending fills leave their ground by only 1.043:1 and live by 1.047:1, because a light
+glow wash sits close to `--bg`. Those stay legible because a status chip is told apart
+by its ink as well as its fill, which is not true of the non-status tones — those
+measure 1.222:1 on the same ground, and holding that is what the family rule is for.
+Tightening the light page means moving the light glow alphas, which is a token decision
+and its own issue.
 Dropdown selection uses an accent checkmark and a body-ink title. Non-status badges,
 including the legacy accent tone, use body ink; live badges retain status colour.
 Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
@@ -520,8 +542,18 @@ solid success surface it also feeds improved with it. The other three light pair
 at 4.85:1 (danger), 5.27:1 (info) and 5.37:1 (warn) — above the floor, under the aim,
 and not part of this change.
 
+The same rule caught a second pair on the way through. Dark `--chip-danger-ink` was
+`--pink` itself, which reads 4.23:1 on `--chip-danger-fill` over a **floating panel** —
+the lightest dark ground, so the one that leaves a translucent tint least to work with,
+and under the 4.5:1 floor this section sets for both themes. It passed every gate because
+no badge gate measured that ground. It is now `#f5aec6`, the same hue lifted toward
+white: 8.64:1 on the page, 7.02:1 on a card, 6.30:1 on a panel, which puts danger back
+beside info (6.50:1) and warn (6.90:1). The `--pink` signal and the solid-toast pair are
+unchanged; only the chip ink moved, which is what light has always done here.
+
 Held by `stories/contrast.test.js`, whose chip-pair probe measures both halves of
-every `--chip-*` pair whether or not a story renders it.
+every `--chip-*` pair whether or not a story renders it, and by
+`stories/badge-tones.test.js` on all three grounds.
 
 **A disabled control is painted, never faded.** `opacity` is a group property: it pulls a label
 and the box under it toward the ground together, so what a reader is left with is wherever that
