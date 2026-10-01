@@ -113,9 +113,11 @@ export const Disabled: StoryObj<typeof DatePicker> = {
 // chosen month, and the keys that move the grid are listed beside it.
 export const Keyboard: StoryObj<typeof DatePicker> = {
   render: args => (
-    <div style={{ display: 'grid', gap: 'var(--space-6)', gridTemplateColumns: 'minmax(0, 1fr)' }}>
+    // Two columns, because the open panel floats over whatever is under it and
+    // the keys have to stay readable beside the grid they describe.
+    <div style={{ display: 'grid', gap: 'var(--space-6)', gridTemplateColumns: '300px minmax(0, 1fr)', alignItems: 'start' }}>
       <DatePicker {...args} label="Month:" defaultValue="2026-08" marks={marks} defaultOpen />
-      <ul style={{ margin: 0, paddingInlineStart: 'var(--space-5)', fontSize: 'var(--text-sm)' }}>
+      <ul style={{ margin: 0, paddingInlineStart: 'var(--space-5)', fontSize: 'var(--text-sm)', display: 'grid', gap: 'var(--space-2)' }}>
         <li>Left and Right move one month; Up and Down move one row.</li>
         <li>Home and End go to the ends of the row.</li>
         <li>Page Up and Page Down change the year.</li>
