@@ -553,6 +553,26 @@ the row above or below. Every tab reserves the bar, but only the chosen one draw
 therefore grows in place when the choice moves. Hover is an ink step from `--text` to
 `--strong`, the step every kit tab takes. There is no second mark.
 
+### The chosen option in a pill strip
+
+The chosen pill is raised, not outlined: the track sits on the sunken step and the pill rides a
+rung above it in body ink. **The pill strip spends no accent on selection.** The choice therefore
+reads without telling the accent from the ink, and reads only by telling two near greys apart.
+
+**Know how weak that cue is before you reach for a pill strip.** The step measures 1.51:1 in dark
+and 1.18:1 in light, against the 3:1 asked of a visual state indicator, and nothing else carries
+the state: the ink barely moves, the weight does not change, and there is no border, shadow or
+offset. `aria-pressed` carries the state for assistive technology throughout. The underline
+appearance marks its choice with an accent bar instead.
+
+**Under forced colours the step is gone,** because that mode replaces every background. The chosen
+pill takes the system highlight with its paired ink, and a disabled one takes the system grey.
+
+Two consequences come with the sunken track. **Unselected labels read on a grey track**, which the
+kit otherwise keeps for non-text. And **a disabled option sits on that track rather than on the
+card**, so its muted ink reads against a nearer ground. It stays above the 3:1 the floor asks of a
+disabled label.
+
 ### Escaping and URL slots
 
 Factories return HTML strings. **Text and attribute values are escaped where written:** quotes and

@@ -76,9 +76,14 @@ const EXEMPT_GROUNDS = [
       + 'is #ffffff in dark and near-black in light, and nothing else in the kit paints on this '
       + 'token at all. Measured anyway it would fail — --accent reads 4.23:1 on it in dark Nebula '
       + '— so this entry is a live one, not a formality: it records a LATENT risk, that the day a '
-      + 'component puts accent ink on an active segment the pair is already under the floor. It is '
-      + 'excused because the kit does not paint it, and it must stop being excused the moment the '
-      + 'kit does. No measurement can notice that happening; a person reading this has to.',
+      + 'component puts accent ink on an active segment the pair is already under the floor. '
+      + 'HALF OF THAT DAY HAS ARRIVED. Until #475 this token was declared and painted nowhere; the '
+      + 'raised selection now paints it as the chosen pill\'s ground in both themes, so the pair is '
+      + 'one declaration away rather than two. What still excuses it is unchanged and is the whole '
+      + 'of the argument: the ink on that pill is --strong, not --accent, and accent ink on a '
+      + 'raised segment was considered for #475 and rejected on this very measurement. The excuse '
+      + 'ends the moment anything paints --accent here. No measurement can notice that happening; '
+      + 'a person reading this has to.',
   },
 ];
 

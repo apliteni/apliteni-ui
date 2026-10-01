@@ -1,6 +1,7 @@
 /* ============================================================================
  * Segmented control — .ui-seg  (the deck's pill switch: theme, Deck/Text, plan)
- * The selected button keeps the reading surface and gains an accent edge.
+ * The track sinks and the selected button rides above it in body ink, so the
+ * selection survives without colour and spends no accent. #475
  * ========================================================================== */
 
 /* The strip wraps rather than overflows: a track wider than its column used to
@@ -14,7 +15,7 @@
      states its own alignment; --block and --underline ask for the width back. */
   align-self: start;
   justify-self: start;
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--surface-2); --ring-gap: var(--surface-2);
   flex-wrap: wrap;
   max-width: 100%;
   border-radius: var(--radius-2xl);
@@ -41,8 +42,9 @@
 .ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
   color: var(--strong);
-  background: var(--surface); /* ring-gap: inherit — the button ring meets its containing track. */
-  outline: 1px solid var(--accent);
+  /* The pill paints its own step, so it carries its own gap rather than the
+     track's — and re-composes --ring, which substitutes the gap where it is set. */
+  background: var(--seg-active-bg); --ring-gap: var(--seg-active-bg);
 }
 
 /* Standard pills tighten on phones so six short month names fit one row. */
@@ -104,8 +106,11 @@
    why: guidelines/layout-and-density.md, the spacing scale */
 .ui-seg--underline button { position: relative; border-radius: var(--radius-sm); padding: var(--space-3); min-height: var(--tap-min, 44px); white-space: normal; overflow-wrap: anywhere; font-weight: var(--weight-medium); }
 /* The chosen tab is its label and one bar under it: no plate, no hairline, no
-   upright rail — those read as a list-row grip. `outline: 0` cancels the accent
-   outline the pill rule gives every chosen button, which is #544's second mark.
+   upright rail — those read as a list-row grip. `outline: 0` holds the tab to no
+   box of its own: it cancelled the accent outline the pill rule used to give
+   every chosen button — #544's second mark, gone from that rule since #475 — and
+   it still refuses any outline a later rule or a user agent would put here, which
+   is why the focus ring is restated below.
    #527 r31. why: docs/components.md#the-chosen-tab-in-an-underline-strip */
 .ui-seg--underline button.is-active,
 .ui-seg--underline button[aria-pressed="true"] {

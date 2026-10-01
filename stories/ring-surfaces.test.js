@@ -14,8 +14,13 @@ const sheets = files.map((file) => {
 });
 const declarations = sheets.flatMap(({ file, css }) => customPropertiesIn(css).map((d) => ({ file, ...d })));
 const references = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
+// A `-bg` name is a surface by the kit's own naming signal, the same pattern
+// stories/accent-contrast.test.js sweeps grounds with. Transitive resolution
+// reaches --table-bg and --field-bg because they alias a --surface token, but
+// not --seg-active-bg, which is a literal: without this clause the raised
+// segment would paint a step the gate never measured a gap against. #475
 const surface = (value, seen = new Set()) => references(value).some((name) => {
-  if (/^--(?:bg(?:-elevated)?|surface(?:-[23])?|glow-[\w-]+|signal-solid-[\w-]+)$/.test(name)) return true;
+  if (/^--(?:bg(?:-elevated)?|surface(?:-[23])?|glow-[\w-]+|signal-solid-[\w-]+)$|-bg$/.test(name)) return true;
   if (seen.has(name)) return false;
   return declarations.filter((d) => d.name === name).some((d) => surface(d.value, new Set([...seen, name])));
 });

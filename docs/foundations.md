@@ -212,6 +212,7 @@ The ladder, from bottom to top:
 | `--surface` | a card | `#211e2d` | `#ffffff` |
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
+| `--seg-active-bg` | the chosen pill of a segmented control, raised off its sunken track | `#383350` | `#ffffff` |
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.** In both
 themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
