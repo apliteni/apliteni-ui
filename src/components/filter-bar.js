@@ -1,12 +1,17 @@
 import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
+import { filterChipText, filterChipName } from '../logic/filter-bar.js';
 
 export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
     + `<legend class="ui-filter-bar__legend">${esc(label)}</legend>`
     + filters.map(filter => `<fieldset class="ui-filter-bar__chip" data-filter-id="${esc(filter.id)}"${filter.disabled ? ' disabled' : ''}>`
       + `<legend class="ui-filter-bar__legend">${esc(filter.label)}</legend>`
-      + dropdown({ label: filter.label, value: filter.value, items: filter.items || [], variant: 'select', ariaLabel: `${filter.label}: ${filter.value}`, open: !!filter.open && !disabled && !busy && !filter.disabled })
+      + dropdown({ items: filter.items || [], variant: 'select',
+        // The chip prints one line; the field's name reaches a reader through the
+        // trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables
+        triggerContent: `<span class="ui-dropdown__value">${esc(filterChipText(filter))}</span>`,
+        ariaLabel: filterChipName(filter), open: !!filter.open && !disabled && !busy && !filter.disabled })
       + `<button type="button" class="ui-filter-bar__remove" data-filter-remove aria-label="${esc(`Remove ${filter.label} filter`)}">×</button></fieldset>`).join('')
     + `<span data-filter-clear>${button({ label: clearLabel, size: 'sm', variant: 'ghost', disabled: !filters.length })}</span></fieldset>`;
 }
@@ -46,7 +51,15 @@ export function initFilterBar(host, options = {}) {
       if (item.getAttribute('aria-disabled') !== 'true') {
         const id = chip?.dataset.filterId, value = item.dataset.value;
         // Dropdown completes its own close/focus before the consumer replaces the markup.
-        queueMicrotask(() => emit('ui-filter-change', { id, value }));
+        queueMicrotask(() => {
+          // Dropdown writes the picked row's label into the trigger; the name it is
+          // read by follows it, so the two cannot disagree while the consumer answers.
+          const filter = (current.filters || []).find(f => f.id === id);
+          const trigger = chip?.querySelector('[data-dropdown-trigger]');
+          const shown = trigger?.querySelector('.ui-dropdown__value')?.textContent;
+          if (filter && trigger) trigger.setAttribute('aria-label', filterChipName({ ...filter, value: shown }));
+          emit('ui-filter-change', { id, value });
+        });
       }
     }
   };

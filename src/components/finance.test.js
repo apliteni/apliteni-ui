@@ -34,6 +34,23 @@ test('non-zero deltas keep their caller-supplied judgement with unit suffixes', 
     }
   }
 });
+// Markup only: these read the strings the factory writes, not how a chip looks.
+test('a chip prints its value alone and keeps its field in its accessible name', () => {
+  const { dom, host } = setup(filterBar({ filters }));
+  const [trigger] = host.querySelectorAll('[data-dropdown-trigger]');
+  assert.equal(trigger.textContent.trim(), 'Technology');
+  assert.equal(trigger.getAttribute('aria-label'), 'Sector: Technology');
+  assert.equal(host.querySelector('.ui-dropdown__pre'), null, 'no field name beside the value');
+  assert.equal(host.querySelector('[data-filter-id="sector"] legend').textContent, 'Sector');
+  dom.window.close();
+});
+test('a chip with nothing chosen shows the field it filters', () => {
+  const { dom, host } = setup(filterBar({ filters: [{ id: 'sector', label: 'Sector', value: '', items: [] }] }));
+  const trigger = host.querySelector('[data-dropdown-trigger]');
+  assert.equal(trigger.textContent.trim(), 'Sector');
+  assert.equal(trigger.getAttribute('aria-label'), 'Sector');
+  dom.window.close();
+});
 test('filter removal is controlled and update recovers focus through the last chip', () => {
   const { dom, host } = setup(filterBar({ filters })); const bar = initFilterBar(host, { filters });
   let requested; host.addEventListener('ui-filter-remove', e => { requested = e.detail.id; });
@@ -48,6 +65,9 @@ test('Dropdown selection reports the filter id and value after its own close', a
   let result; host.addEventListener('ui-filter-change', e => { result = e.detail; });
   host.querySelector('[data-dropdown-trigger]').click(); host.querySelector('[data-dd-item]').click();
   await Promise.resolve(); assert.deepEqual(result, { id: 'sector', value: 'energy' });
+  // The trigger's own optimistic text and the name it is read by stay together.
+  assert.equal(host.querySelector('[data-dropdown-trigger]').textContent.trim(), 'Energy');
+  assert.equal(host.querySelector('[data-dropdown-trigger]').getAttribute('aria-label'), 'Sector: Energy');
   assert.equal(host.querySelector('[data-dropdown-trigger]').getAttribute('aria-expanded'), 'false');
   bar.update({ filters, busy: true }); result = undefined;
   host.querySelector('[data-filter-remove]').click(); assert.equal(result, undefined);

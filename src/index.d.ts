@@ -7,6 +7,8 @@ export declare function numericValue(opts?: Record<string, unknown>): string;
 export declare function deltaValue(opts?: Record<string, unknown>): string;
 export declare function filterBar(opts?: Record<string, unknown>): string;
 export declare function initFilterBar(host: Element, opts?: Record<string, unknown>): { update: (opts: Record<string, unknown>) => void; destroy: () => void };
+export declare function filterChipText(filter?: { label?: string; value?: string }): string;
+export declare function filterChipName(filter?: { label?: string; value?: string }): string;
 export declare function segmentedNextIndex(key: string, index: number, length: number): number | null;
 export declare function icon(name: string, className?: string): string;
 export declare function snippet(opts?: Record<string, unknown>): string;

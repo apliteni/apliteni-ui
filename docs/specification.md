@@ -2183,7 +2183,11 @@ the symbol, retain the full accessible name, and use a company link for disclosu
 consumer supplies a real destination for that link. Columns scroll rather than disappear.
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
-and never mutate the supplied filters. Updating the mounted host preserves the focused chip
+and never mutate the supplied filters. A chip shows the chosen value alone, and the field's
+name only while no value is chosen; `filterChipText` and `filterChipName` hold that choice for
+both faces. The trigger's accessible name carries the field and the value, and the chip's
+legend names the field, so the field a chip filters is never lost. Decided in
+[#535](https://github.com/apliteni/apliteni-ui/issues/535). Updating the mounted host preserves the focused chip
 control; after removal focus moves to the next chip, then the previous, then the bar when no
 filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
 keyboard selection, Escape and focus return. A chip's panel stays inside the row that holds it at
