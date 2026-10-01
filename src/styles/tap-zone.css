@@ -20,19 +20,20 @@
      resolving to nothing there would size the layer to `auto` in silence. */
   --tap-min: 44px;
 
+  /* WCAG 2.5.8 (AA), the target the kit holds at every width: the floor this
+     sheet raises FROM and may never drop below. */
+  --tap-aa: 24px;
+
   /* 44 − 24: two zones fit between two of the smallest marks the kit draws. */
   --tap-gap: var(--space-5, 20px);
 
   /* Clear space to the nearest neighbour, declared by the container that knows
      its own gap; a zone takes half on each side.
 
-     ZERO by default, which means a zone grows nowhere until a container has
-     opened the room for it. The alternative — assume --tap-gap everywhere —
-     was measured and rejected: outside the containers this sheet opens, the
-     assumption is simply false, and `Keep the workspace` ended up with a pixel
-     of its own drawn box answering for `Delete it permanently`. A floor that
-     reaches further by asserting space nobody gave is the defect #488 is
-     about, one level up. */
+     ZERO by default, so a zone grows nowhere until a container has opened the
+     room — assuming --tap-gap everywhere was measured handing `Keep the
+     workspace` a pixel of its own box that answered for `Delete it
+     permanently`. */
   --tap-clear-x: 0px;
   --tap-clear-y: 0px;
 }
@@ -46,7 +47,6 @@
     .ui-seg button,
     .ui-tabs__tab,
     .ui-dropdown__trigger,
-    .ui-back,
     .ui-toast__action,
     .ui-drawer__close,
     .ui-snippet__copy,
@@ -60,7 +60,6 @@
     .ui-seg button,
     .ui-tabs__tab,
     .ui-dropdown__trigger,
-    .ui-back,
     .ui-toast__action,
     .ui-drawer__close,
     .ui-snippet__copy,
@@ -76,17 +75,15 @@
     height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
   }
 
-  /* The two layers the kit already had. ::after on these is spoken for — the
-     tick and the dot, the toast close's glyph plate — so it is the existing
-     ::before that grows. Each carries the clearance input.css and callout.css
-     already assumed for it, 2.5px a side, so with no container to open the
-     room the target stays exactly the 24 they draw today and never shrinks. */
-  .ui-check input,
-  .ui-toast__close { --tap-clear-x: 5px; --tap-clear-y: 5px; }
+  /* ::after on these is spoken for — the tick and the dot, the toast close's
+     glyph plate — so the existing ::before grows, floored at --tap-aa. The
+     floor is load-bearing: `100%` is the PADDING box, 16 on a 19px checkbox
+     with a 1.5px border, so without it the clamp takes this layer DOWN to 22
+     and under the kit's own minimum. */
   .ui-check input::before,
   .ui-toast__close::before {
-    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
-    height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
+    width: max(var(--tap-aa), min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x))));
+    height: max(var(--tap-aa), min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y))));
   }
 
   /* -- Where the kit opens a gap, and where it cannot --------------------
@@ -126,21 +123,20 @@
   /* Row actions open across — the pair #488 names — and cannot open down:
      a dense table's rows share an edge, and parting them is the row height the
      guideline protects. Down, they get the row's own padding, twice. */
-  .ui-table__act { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--space-4, 16px); }
+  /* Row actions — the pair #488 names — part ACROSS with a margin: the cell is
+     a `table-cell`, where `gap` does nothing, and declaring it anyway left the
+     mark's zone 9px inside `Revoke`. Nothing down, because a dense table's
+     rows share an edge and its padding is not clearance to spend. */
+  .ui-table__act .ui-btn + .ui-btn { margin-inline-start: var(--tap-gap) !important; }
+  .ui-table__act { --tap-clear-x: var(--tap-gap); --tap-clear-y: 0px; }
 
-  /* The row opens; the box does not. A toast clips to its own rounded corners
-     for the timer bar, and widening its padding grows the surface rather than
-     the space between controls — measured at four marks for 8px on every
-     toast. Named on the Accessibility minimums page. */
-  .ui-toast { gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
-
-  /* A back link stands on its own, so it opens its own block margins rather
-     than waiting for a row to do it. The shell already gives it --space-5
-     below; this is the same step above, at the width where a finger needs it. */
-  .ui-back {
-    margin-block: var(--tap-gap) !important;
-    --tap-clear-y: var(--tap-gap);
-  }
+  /* Down only, like the nine rows below: a toast is a full row at this width,
+     and opening it across took 24px out of the message for no reach at all —
+     its action already clears the floor on the vertical half. The box does not
+     open either: a toast clips to its own rounded corners for the timer bar,
+     and widening its padding grows the surface rather than the space between
+     controls, measured at four marks for 8px on every toast. */
+  .ui-toast { row-gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
   /* The kit's remaining control rows open DOWN only. A row of labelled buttons
      at 390 is often already full, so widening its column gap does not move the
@@ -151,7 +147,6 @@
   .ui-toolbar,
   .ui-empty__actions,
   .ui-sx__actions,
-  .ui-hero__cta,
   .ui-fbc__foot,
   .ui-drawer__footer,
   .ui-snippet__bar,
@@ -160,12 +155,10 @@
     --tap-clear-y: var(--tap-gap);
   }
 
-  /* These open both ways. A row of small square marks cannot overflow the way
-     a row of labels can — each mark is its own fixed size — and a drawer's
-     header holds a title and a close mark, where the column gap is spent on
-     the title's text rather than on the mark. */
+  /* Both ways: fixed squares cannot overflow the way labels can, and a drawer
+     header spends its column gap on the title. Not the accent picker — its
+     swatches are on no carrier list, so opening it bought no reach. */
   .ui-footer__socials,
-  .ui-accent-picker,
   .ui-drawer__header {
     gap: var(--tap-gap) !important;
     --tap-clear-x: var(--tap-gap);

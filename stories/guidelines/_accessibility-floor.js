@@ -147,6 +147,13 @@ export const TAP_EXEMPT = [
       + 'gap opens; the box does not.',
   },
   {
+    selector: '.ui-back',
+    why: 'A back link stands at the top of a page, where what sits above it belongs to the '
+      + 'shell rather than to the link \u2014 measured in the app shell at 390, a zone reaching '
+      + 'up from it met the wordmark. A control cannot declare clearance it has no way to know, '
+      + 'so this one keeps the 24px it draws, which clears 2.5.8 on both axes.',
+  },
+  {
     selector: '.ui-select',
     why: 'A `select` generates no pseudo-element in any browser the kit targets, with or '
       + 'without `appearance: none`, so it cannot carry a layer at all. It measures 42px '
@@ -155,10 +162,10 @@ export const TAP_EXEMPT = [
   },
   {
     selector: '.ui-table__act',
-    why: 'A dense table\u2019s rows touch top to bottom, so a row action can open ACROSS at '
-      + 'this width \u2014 which is what the cell does \u2014 and cannot open down. Its zone '
-      + 'takes the row\u2019s own padding either side and stops there rather than reaching '
-      + 'into the row above.',
+    why: 'A dense table\u2019s rows touch top to bottom, so a row action opens ACROSS at this '
+      + 'width \u2014 which is what the cell does, and is the pair #488 names \u2014 and gets '
+      + 'nothing down. The row\u2019s own padding looked like clearance and is not: claiming it '
+      + 'was measured handing a pixel of `Revoke` to the `More actions` mark in the row below.',
   },
 ];
 

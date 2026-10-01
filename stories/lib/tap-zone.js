@@ -139,6 +139,17 @@ export async function rowFixtures() {
     row('card-row', `<div class="ui-card"><div class="ui-card__row">`
       + `<span>Notify on first use</span>${switchToggle({ checked: true, label: 'Notify' })}</div></div>`),
 
+    // The pair #488 names: a dense table's row actions, a labelled button
+    // against an icon-only one in the same cell. Every story in the tree
+    // renders a single action, so the cell that the issue is actually about
+    // was in no subject the gate measured.
+    row('table-actions', `<table class="ui-table"><tbody>`
+      + [1, 2].map((n) => `<tr><td>Row ${n}</td><td class="ui-table__act">`
+        + `${button({ label: 'Revoke', variant: 'danger', size: 'sm' })}`
+        + `${button({ label: 'More actions', icon: 'moreHorizontal', iconOnly: true, variant: 'ghost', size: 'xs' })}`
+        + `</td></tr>`).join('')
+      + `</tbody></table>`),
+
     // And two a consumer would write. Nothing opens these, so nothing may grow
     // into them: the zones have to stay inside the drawn boxes.
     row('packed-row', two('Cancel', 'Continue'), 'display:flex;gap:8px;flex-wrap:wrap'),
@@ -160,7 +171,7 @@ export async function rowFixtures() {
  *
  * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
  */
-export const PROBE = ({ html, size, interior, families }) => {
+export const PROBE = ({ html, size, interior, families, within }) => {
   document.body.innerHTML = html;
   // A story's own <script> does not run from innerHTML; nothing here needs one.
 
@@ -283,7 +294,12 @@ export const PROBE = ({ html, size, interior, families }) => {
       if (overlapping.has(o)) return;
       const key = Math.round(x) * 100000 + Math.round(y);
       lost.push(key);
-      if (lostTo.length < 8) lostTo.push([key, describe(o)]);
+      // One entry per DISTINCT thief, and never a slot spent on `nothing`.
+      // Capping by first-seen point instead hid a real collision behind eight
+      // points of empty card: the gate reads this list, not `lost`.
+      if (o === -1) return;
+      const who = describe(o);
+      if (lostTo.length < 8 && !lostTo.some(([, w]) => w === who)) lostTo.push([key, who]);
     };
     // Pixel CENTRES on the integer grid, never offsets from the box's own edge:
     // a tap lands on a pixel, and a box whose edge falls at 249.56 would
@@ -307,6 +323,9 @@ export const PROBE = ({ html, size, interior, families }) => {
       // element rather than guessed from its class text — `.ui-seg button`
       // names a control that carries no class of its own.
       fam: (families || []).filter((sel) => { try { return el.matches(sel); } catch { return false; } }),
+      // Which opened containers this target sits inside, so the gate can ask
+      // whether an opening bought anything at all.
+      within: (within || []).filter((sel) => { try { return el.closest(sel); } catch { return false; } }),
       text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 32),
       drawn: [Math.round(b.width * 100) / 100, Math.round(b.height * 100) / 100],
       reach: [Math.round(reachX * 100) / 100, Math.round(reachY * 100) / 100],
@@ -329,7 +348,7 @@ export const PROBE = ({ html, size, interior, families }) => {
  * believes a pass, because a rig that quietly ran as a mouse would report the
  * kit untouched and call that a green.
  */
-export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [] }) {
+export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [] }) {
   const ctx = await browser.newContext({
     viewport: { width, height: 900 },
     deviceScaleFactor: 1,
@@ -363,7 +382,7 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       if (height !== page.viewportSize().height) {
         await page.setViewportSize({ width, height });
       }
-      const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families });
+      const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families, within });
       if (targets.length) rows.push({ story: s.id, targets, height });
     }
     return { media, rows };

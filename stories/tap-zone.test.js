@@ -18,7 +18,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { TAP_MIN, TAP_EXEMPT } from './guidelines/_accessibility-floor.js';
+import { TAP_MIN, TARGET_MIN, TAP_EXEMPT } from './guidelines/_accessibility-floor.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
@@ -29,7 +29,21 @@ const css = decomment(read(SHEET));
 
 /* -- The source half -------------------------------------------------------- */
 
-test('the floor is a token, written once', () => {
+test('both floors are tokens, each written once', () => {
+  const aa = css.match(/--tap-aa:\s*(\d+(?:\.\d+)?)px\s*;/);
+  assert.ok(
+    aa,
+    `${SHEET} declares no --tap-aa. A zone is clamped by its container's clearance, so without `
+    + 'a floor under the clamp the two layers this sheet RAISES can be taken below the target '
+    + 'the kit already draws — measured at 22 on a checkbox, because `100%` on an absolutely '
+    + 'positioned pseudo-element is the padding box and the box has a 1.5px border.',
+  );
+  assert.equal(
+    Number(aa[1]), TARGET_MIN,
+    `${SHEET} floors its layers at ${aa[1]}px and the Accessibility minimums page states `
+    + `${TARGET_MIN} for WCAG 2.5.8. The lower floor is not this sheet's to move.`,
+  );
+
   const declared = css.match(/--tap-min:\s*(\d+(?:\.\d+)?)px\s*;/);
   assert.ok(
     declared,
@@ -47,14 +61,18 @@ test('the floor is a token, written once', () => {
   // Every other px literal at the size of a target would be a second floor. A
   // media prelude is not one: a breakpoint is the one width a token cannot
   // express, and stories/breakpoints.test.js holds the list those come from.
-  const strays = [...css.replace(/@media[^{]+\{/g, '').matchAll(/(\d+(?:\.\d+)?)px/g)]
+  const strays = [...css
+    .replace(/@media[^{]+\{/g, '')
+    // The two token declarations themselves are where these numbers belong.
+    .replace(/--tap-(?:min|aa):[^;]+;/g, '')
+    .matchAll(/(\d+(?:\.\d+)?)px/g)]
     .map((m) => Number(m[1]))
-    .filter((n) => n >= 24 && n !== TAP_MIN);
+    .filter((n) => n >= TARGET_MIN);
   assert.deepEqual(
     strays, [],
     `${SHEET} writes ${strays.join(', ')} as a bare px literal at target scale. A size that `
-    + 'large in this sheet is a floor, and a second floor nobody named is how the first one '
-    + 'stops being true. Use --tap-min, or a spacing token for a clearance.',
+    + 'large in this sheet is a floor, and a third floor nobody named is how the other two '
+    + 'stop being true. Use --tap-min or --tap-aa, or a spacing token for a clearance.',
   );
 });
 
@@ -117,10 +135,22 @@ test('every family that carries a layer has something to hang it on', () => {
   }
 });
 
-/** Every rule in the sheet that declares a clearance or opens a gap, by selector. */
-const containers = [...css.matchAll(/(^|\n)\s*(\.[\w-]+(?:\s+\.[\w-]+)*)\s*\{([^{}]*)\}/g)]
-  .map((m) => ({ selector: m[2], body: m[3] }))
-  .filter((r) => /--tap-clear|(^|[;\s])(row-)?gap\s*:/.test(r.body));
+/**
+ * Every rule in the sheet that declares a clearance or opens a gap, one entry
+ * per SELECTOR — a group of nine written on nine lines is nine containers, and
+ * a scan that only matched single selectors skipped every one of them.
+ */
+const containers = [...css.matchAll(/(?:^|\n)\s*((?:\.[\w-]+(?:\s+\.?[\w-]+)*)(?:\s*,\s*(?:\.[\w-]+(?:\s+\.?[\w-]+)*))*)\s*\{([^{}]*)\}/g)]
+  .filter((m) => /--tap-clear|(?:^|[;\s])(?:(?:row-|column-)?gap|margin(?:-[\w-]+)?)\s*:/.test(m[2]))
+  .flatMap((m) => m[1].split(',').map((sel) => ({ selector: sel.trim(), body: m[2] })));
+
+assert.ok(
+  containers.length >= 14,
+  `${SHEET} parsed ${containers.length} containers. The sheet opens or declares on more than `
+  + 'that, so the scan has stopped seeing a shape it used to — a selector group written across '
+  + 'several lines was invisible to the first version of this regex, and nine rules went '
+  + 'unchecked.',
+);
 
 test('every clearance and every opened gap names a container the kit declares', () => {
   const clearances = containers.map((r) => r.selector);
@@ -177,6 +207,50 @@ const kitPseudos = readdirSync(path.join(root, 'src/styles'))
   .flatMap((f) => [...decomment(read(`src/styles/${f}`)).matchAll(/([^{}]+)\{/g)]
     .flatMap((m) => [...m[1].matchAll(/([.\w-]+)(::(?:before|after))/g)]
       .map((p) => ({ selector: p[1], pseudo: p[2], where: `src/styles/${f}` }))));
+
+/** The containers this sheet opens a gap on, as selectors. */
+const opened = containers
+  .filter((r) => /(?:^|[;\s])(?:row-|column-)?gap\s*:\s*var\(--tap-gap\)/.test(r.body))
+  .flatMap((r) => r.selector.split(',').map((x) => x.trim()));
+
+test('a container that opens an axis declares the clearance for THAT axis', () => {
+  // Per axis, because `gap` is a shorthand and opens both. `.ui-toast` opened
+  // both and declared only the vertical half: the horizontal 8px it spent came
+  // straight out of the message column, 202px to 178px, and bought no reach
+  // because nothing inside could use it.
+  for (const { selector, body } of containers) {
+    const opens = { x: false, y: false };
+    for (const m of body.matchAll(
+      /(?:^|[;\s])(row-gap|column-gap|gap|margin-inline-start|margin-inline-end|margin-left|margin-right|margin-block|margin-top|margin-bottom|margin)\s*:\s*var\(--tap-gap\)/g)) {
+      if (/^(column-gap|gap|margin-inline|margin-left|margin-right|margin$)/.test(m[1])) opens.x = true;
+      if (/^(row-gap|gap|margin-block|margin-top|margin-bottom|margin$)/.test(m[1])) opens.y = true;
+    }
+    for (const axis of ['x', 'y']) {
+      if (!opens[axis]) continue;
+      assert.match(
+        body, new RegExp(`--tap-clear-${axis}:` + String.raw`\s*var\(--tap-gap\)`),
+        `${SHEET} opens ${selector} on the ${axis === 'x' ? 'horizontal' : 'vertical'} axis and `
+        + `declares no --tap-clear-${axis} to go with it. The space is spent and no zone inside `
+        + 'may use it, so the row is wider or shorter for nothing — which on a full row means '
+        + 'its content is narrower instead. Open the other axis only, or declare this one.',
+      );
+    }
+  }
+});
+
+test('this gate rejects an axis opened without its clearance', () => {
+  // The mutation for the rule above, run against the checker: `.ui-toast` the
+  // way this head shipped it.
+  const body = 'row-gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap);'
+    .replace('row-gap', 'gap');
+  const opensX = [...body.matchAll(/(?:^|[;\s])(row-gap|column-gap|gap)\s*:\s*var\(--tap-gap\)/g)]
+    .some((m) => m[1] !== 'row-gap');
+  assert.ok(
+    opensX && !/--tap-clear-x:\s*var\(--tap-gap\)/.test(body),
+    'The shorthand `gap` did not read as opening the horizontal axis, so the check above would '
+    + 'pass over a row that spends space nothing can use.',
+  );
+});
 
 test('a carrier is never given a pseudo-element another sheet already owns', () => {
   // The defect this is written for shipped: `.ui-nav__tab::after` is the active
@@ -327,7 +401,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 8,
+    fixtures.length >= 9,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -339,7 +413,9 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
 
   try {
     const at = (width, coarse, sheet) =>
-      pass(browser, { subjects, css: sheet, width, coarse, size: TAP_MIN, families: carriers });
+      pass(browser, {
+        subjects, css: sheet, width, coarse, size: TAP_MIN, families: carriers, within: opened,
+      });
 
     const before = await at(390, true, without);
     const after = await at(390, true, withCss);
@@ -376,8 +452,9 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       // a tap anywhere on a control's own drawn box runs that control — and
       // the comparison is by who collides with whom, not by where.
       //
-      // The kit does not start clean: two menu rows share a subpixel edge
-      // before any of this loads. So the test is that the set does not GROW.
+      // The kit does not start clean: 73 pairs of its own controls already
+      // overlap at 390 before any of this loads, most of them a shell whose
+      // rail does not fold. So the test is that the set does not GROW.
       const pairs = (rows) => {
         const out = new Set();
         for (const t of rows) {
@@ -443,6 +520,79 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       );
       t.diagnostic(`targets at the floor: ${reached(A)} → ${reached(B)} of ${B.length}`);
       for (const line of report) t.diagnostic(line);
+    });
+
+    await t.test('no target reaches less than it did without the sheet', async () => {
+      // The floor only ever goes up. The gate used to assert that the COUNT of
+      // targets at 44 rises, which is a different claim: at 992c2a2 every
+      // checkbox and radio in the kit quietly fell from a 24px hit layer to 22
+      // — under the kit's own 2.5.8 minimum — and the count still rose, because
+      // the checkbox is not on the per-family list and nothing printed its
+      // number. A per-target floor catches that whoever is looking.
+      const shrunk = [];
+      for (let i = 0; i < B.length; i++) {
+        const dx = B[i].reach[0] - A[i].reach[0];
+        const dy = B[i].reach[1] - A[i].reach[1];
+        // Half a pixel of slack: a reach is sampled on the integer grid, so a
+        // box whose edge moves within one pixel can read one either way.
+        if (dx < -0.5 || dy < -0.5) {
+          shrunk.push(`${B[i].story} — ${name(B[i])} ${A[i].reach.join('x')} → ${B[i].reach.join('x')}`);
+        }
+      }
+      assert.deepEqual(
+        shrunk.slice(0, 10), [],
+        `${shrunk.length} target(s) reach LESS with this sheet loaded than without it. A floor `
+        + 'that takes hit area away from a control has made the phone worse at the one width it '
+        + 'is about. Check the clamp against the control’s own box: `100%` on an absolutely '
+        + 'positioned pseudo-element is the PADDING box, so a control with a border measures '
+        + 'smaller than it draws.',
+      );
+    });
+
+    await t.test('a clamp that drops a layer under the kit’s own floor is rejected', async () => {
+      // The mutation: 992c2a2's hand-written 5px clearance, which is what took
+      // the checkbox to 22. The check above has to fail on it.
+      const broken = withCss.replace(
+        /\.ui-check input::before,\n(\s*)\.ui-toast__close::before \{/,
+        '.ui-check input,\n$1.ui-toast__close { --tap-clear-x: 5px; --tap-clear-y: 5px; }\n'
+        + '$1.ui-check input::before,\n$1.ui-toast__close::before {',
+      ).replace(/max\(var\(--tap-aa\), (min\(max\(100%, var\(--tap-min\)\), calc\(100% \+ var\(--tap-clear-[xy]\)\)\))\)/g, '$1');
+      assert.notEqual(broken, withCss, 'The mutation did not apply, so it proves nothing.');
+      const mutated = flatten((await at(390, true, broken)).rows);
+      const shrunk = mutated.filter((m, i) =>
+        m.reach[0] - A[i].reach[0] < -0.5 || m.reach[1] - A[i].reach[1] < -0.5);
+      assert.ok(
+        shrunk.length > 0,
+        'Taking the --tap-aa floor off the two raised layers shrank nothing, so the check above '
+        + 'would pass over the defect it was written for.',
+      );
+      t.diagnostic(`unfloored clamp shrinks ${shrunk.length} target(s) — the check rejects it`);
+    });
+
+    await t.test('every opened container has something inside it that grew', async () => {
+      // The accent picker opened to --tap-gap and spread four swatches that
+      // carry no layer at all: 0 of 4 gained a pixel. An opening that buys no
+      // reach is a visible change for nothing.
+      const grewIn = new Map(opened.map((sel) => [sel, 0]));
+      const seenIn = new Map(opened.map((sel) => [sel, 0]));
+      for (let i = 0; i < B.length; i++) {
+        for (const sel of B[i].within || []) {
+          seenIn.set(sel, (seenIn.get(sel) || 0) + 1);
+          if (B[i].reach[0] > A[i].reach[0] || B[i].reach[1] > A[i].reach[1]) {
+            grewIn.set(sel, (grewIn.get(sel) || 0) + 1);
+          }
+        }
+      }
+      const barren = opened.filter((sel) => seenIn.get(sel) > 0 && grewIn.get(sel) === 0);
+      assert.deepEqual(
+        barren, [],
+        `${SHEET} opens ${barren.join(', ')} and no target inside reached a pixel further for it. `
+        + 'The row is wider or taller and nothing uses the room — a visible change that buys no '
+        + 'tap area. Put the control on the carrier list, or stop opening the row.',
+      );
+      for (const sel of opened) {
+        t.diagnostic(`opened ${sel}: ${seenIn.get(sel)} targets seen, ${grewIn.get(sel)} grew`);
+      }
     });
 
     await t.test('a zone sized to the floor with the gaps shut is rejected', async () => {
