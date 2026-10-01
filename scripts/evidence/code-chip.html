@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>
+  html, body { margin: 0; padding: 0; font-family: var(--font-sans); color: var(--text) }
+  .cc { padding: 28px; display: grid; gap: 22px; max-width: 760px }
+  .cc__cap { font: 600 11px/1 var(--font-sans); color: var(--muted) }
+  .cc__line { font: 400 13.5px/1.6 var(--font-sans); color: var(--text); margin: 8px 0 0 }
+</style>
+</head>
+<body>
+<script type="module">
+// Namespace imports: the before side of a pair is shot off `main` with this same
+// page, and a checkout that exports less must still load.
+import * as kit from '/src/components/index.js';
+import * as loading from '/src/components/loading.js';
+import { applyTheme } from '/src/components/topbar.js';
+
+const params = new URLSearchParams(location.search);
+applyTheme(params.get('theme') || 'dark', document.documentElement);
+document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+
+const line = (text) => `<p class="cc__line">${text}</p>`;
+// One sentence, rendered on each ground. The chip is the subject, so nothing
+// else about the specimens differs.
+const SENTENCE = 'Grant the agent <code class="ui-code">reports.read</code> before it runs.';
+
+const cap = (text) => `<div class="cc__cap">${text}</div>`;
+
+document.body.innerHTML = `<div class="cc">
+  <div id="cc-page">${cap('On the page')}${line(SENTENCE)}</div>
+  <div id="cc-card">${cap('Inside a card')}
+    ${kit.card({ body: line(SENTENCE) })}</div>
+  <div id="cc-denied">${cap('The kit’s own case: a denied state in a card')}
+    ${kit.card({ body: loading.deniedState({
+      title: 'You don’t have access',
+      sub: 'Ask an owner to add the scope to your token.',
+      need: 'reports.read',
+    }) })}</div>
+</div>`;
+
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

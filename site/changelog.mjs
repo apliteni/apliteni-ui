@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.75.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'An inline `.ui-code` chip no longer disappears inside a card. It painted `--surface`, which is the card, so an identifier written in a card, a panel, a drawer, a toast or a table cell lost its chip in both themes. The chip now paints whichever reading surface its container is not on and keeps between 1.065:1 and 1.321:1 on every painted ground the kit draws, against the 1.110:1 a light card keeps over the page. It takes no border and no hairline, and nothing about it changes on the page. Fixes #537.', ['Typography']],
+      ['added', '`--code-bg` names the reading surface an inline code chip paints, and `--table-code-bg` is the pair of `--table-bg` for a table. A consumer painting a reading surface of its own hands `--code-bg` the other one; one painting a table surface sets both. See #537.'],
+    ],
+  },
+  {
     v: '0.74.0', date: '2026-10-02',
     changes: [
       ['changed', 'The status-label guideline no longer asks a status badge for a glyph or a dot: its word and its tone fill are enough. Callouts and toasts keep their glyph. Part of #453.'],

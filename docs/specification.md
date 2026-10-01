@@ -608,6 +608,24 @@ of a grey text background. Floating readouts use `--bg-elevated` and keep their
 existing edge and shadow treatment. Decided in
 [#455](https://github.com/apliteni/apliteni-ui/issues/455).
 
+**An inline code chip paints the reading surface its container is not on, and `--code-bg` is
+how it finds out which.** `.ui-code` is text on a chip, so the rule above leaves it two grounds
+and no grey — and a chip written with `background: var(--surface)` disappears the moment it is
+written inside a card. The kit's own `deniedState()` puts one there: *Needs `reports.read`*, in a
+card, with no chip under it in either theme until this. It cannot read the ground it is
+standing on: a `var()` inside a custom property is substituted on the element that **declares**
+it, so the chip would only ever read its own value back. The painted container therefore hands
+the free surface down. The page hands over the card; every painted container hands over the page;
+a table hands over `--table-code-bg`, the pair of `--table-bg`, because a table is the page in
+dark and white in light and follows its card into one; and a **tinted** surface hands over the
+card it is a variant of, because light mixes its tint down from white and that moves it toward
+the page. The chip keeps between 1.065 and 1.321 on every painted ground in both themes, against
+the 1.110 a light card keeps over the page, and it draws no edge of its own. The two light tinted
+cards are the floor and the only grounds under that step; the table of all 132 pairs is in
+`stories/code-chip.test.js`, which also holds the hand-off. Consumers may read `--code-bg` and
+`--table-code-bg`, and a consumer painting a reading surface of its own should hand `--code-bg`
+the other one. Decided on [#537](https://github.com/apliteni/apliteni-ui/issues/537).
+
 **A tinted card stays above the page, and `--card-tint` is what buys that.** `.ui-card--accent`
 and `.ui-card--live` mix their colour into `--surface`. Dark mixes upward off a mid-grey card and
 can spend 9%. Light mixes **down from white**, so every point of tint is a point of lightness the

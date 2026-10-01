@@ -92,7 +92,7 @@
 .ui-snippet--reveal pre { color: var(--chip-success-ink); word-break: break-all; white-space: pre-wrap; }
 
 /* Inline code. The chip paints whichever reading surface its container is not on, so an
-   identifier keeps its chip on the page AND inside a card, with no edge of its own. The
+   identifier keeps its chip on the page and inside a card, with no edge of its own. The
    container hands the surface over in --code-bg; see src/tokens/tokens.css. #537 */
 .ui-code {
   font-family: var(--font-mono);

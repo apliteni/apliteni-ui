@@ -241,6 +241,14 @@
       ]
     },
     {
+      "file": "stories/code-chip.test.js",
+      "name": "Inline code: the chip's surface",
+      "does": "Discovers every painted ground in the kit's sheets and measures the step between it and the reading surface it hands an inline code chip, in both themes and in the one context a ground token is re-pointed in. Holds that the chip paints what it is handed and draws no edge.",
+      "blind": [
+        "It reads the sheets, not a render: nothing here proves a browser composited the pair, and a step is not a text floor — the ink on the chip is measured by the contrast gate instead. One ground per selector, the last one declared. Two light tinted cards are under the step and carry a written reason."
+      ]
+    },
+    {
       "file": "stories/elevation.test.js",
       "name": "Elevation",
       "does": "Checks every box-shadow declared by the kit’s stylesheets, reads each layer’s geometry per theme and rejects a cast shadow that is not the floating treatment. It also checks the floor this page needs: --muted on raised surfaces clears AA in both themes.",
