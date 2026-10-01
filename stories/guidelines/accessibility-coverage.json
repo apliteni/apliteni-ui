@@ -405,6 +405,24 @@
       ]
     },
     {
+      "file": "stories/accent-ring.test.js",
+      "name": "Vanilla accent selection ring",
+      "does": "Checks, with the page on a DIFFERENT accent from the one selected, that the vanilla selection ring is the selected accent's own --accent in each theme and clears 3:1 against its gap, rejecting a missing shadow, a gradient colour and a ring in the page accent.",
+      "blind": [
+        "Browser paint, antialiasing, the halo in var(--ring) and host overrides; source CSS is resolved in JSDOM.",
+        "Reads two opaque shadow colours, so a third shadow layer is outside what it can judge."
+      ]
+    },
+    {
+      "file": "react/src/AccentPicker.ring.test.tsx",
+      "name": "React accent selection ring",
+      "does": "Same measurement for the React picker, over the kit's exported accent list, and checks that each button carries the shared module's paints and no data-accent-pick for wireTopbar to adopt.",
+      "blind": [
+        "Browser paint, antialiasing, the halo in var(--ring) and host overrides; source CSS is resolved in JSDOM.",
+        "Reads two opaque shadow colours, so a third shadow layer is outside what it can judge."
+      ]
+    },
+    {
       "file": "stories/accent-swatch.test.js",
       "name": "Accent swatch",
       "does": "Checks that the accent picker\u2019s swatch uses the tokens selected by the accent in all three picker copies. A stale swatch would misrepresent the available choice.",
@@ -581,6 +599,14 @@
       "does": "Checks decorative hiding, accessible labels, state updates, ref forwarding, and axe violations.",
       "blind": [
         "Does not measure pulse animation, browser contrast, or screen-reader announcements."
+      ]
+    },
+    {
+      "file": "react/src/AccentPicker.test.tsx",
+      "name": "React: AccentPicker",
+      "does": "Checks controlled accent selection, accessible names and pressed state, native keyboard activation, focus retention, form safety, SSR and host-owned persistence.",
+      "blind": [
+        "JSDOM does not paint gradients, selection rings or focus indicators; browser captures cover appearance and grid alignment."
       ]
     }
   ],

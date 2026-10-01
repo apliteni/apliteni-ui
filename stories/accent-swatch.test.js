@@ -31,6 +31,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { luminance, parseColour, substitute, tokensFor } from './lib/contrast.js';
 import { accentPicker } from '../src/components/index.js';
+import { ACCENTS as SHIPPED, accentSwatchStyle } from '../src/logic/accents.js';
 import { footer } from '../site/chrome.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -396,4 +397,72 @@ test('all three copies of the accent picker paint the same swatches', () => {
       + '`background` there) and in what order they list the accents, but not in what they paint.',
     );
   }
+});
+
+/* ---- the selection ring --------------------------------------------------
+ * The ring is a solid colour, so it cannot be the swatch gradient; it is that
+ * accent's own --accent, one value per theme, and src/logic/accents.js is where
+ * both pickers read it. Derived from the tokens here, same as the gradient above
+ * — nothing in this file restates a shipped literal.
+ */
+test("every accent's selection ring is its own --accent in both themes", () => {
+  assert.deepEqual(
+    [...SHIPPED].sort(), [...ACCENTS].sort(),
+    'src/logic/accents.js and src/tokens/accents.css do not list the same accents. Both pickers '
+    + 'take their list from the logic module, so an accent missing there is one nobody can pick '
+    + 'in either implementation, and one invented there selects a sub-theme that does not exist.',
+  );
+  const drift = [];
+  for (const accent of ACCENTS) {
+    requireOwnDarkBlock(accent);
+    const style = accentSwatchStyle(accent);
+    for (const theme of ['dark', 'light']) {
+      const vars = tokensFor(theme, accent);
+      const want = parseColour(substitute(vars.get('--accent'), vars));
+      const got = parseColour(style[`--swatch-ring-${theme}`]);
+      if (!got) {
+        drift.push(`${accent}: no --swatch-ring-${theme}, so segmented.css falls the ring back to `
+          + 'var(--accent) — the accent the PAGE is on, which is the bug the property exists to fix');
+        continue;
+      }
+      if (paints(got) !== paints(want)) {
+        drift.push(`${accent} ${theme}: the ring paints ${style[`--swatch-ring-${theme}`]}, `
+          + `${theme} ${accent} ships --accent ${paints(want)}`);
+      }
+    }
+  }
+  assert.deepEqual(
+    drift, [],
+    `\n${drift.join('\n')}\n\nThe selected swatch's ring is the one thing that says WHICH accent is `
+    + "on, so it is painted in that accent's own colour and not the page's. It is resolved per "
+    + 'theme because the dark ramp the swatch circle itself wears does not clear 3:1 on the light '
+    + 'card. stories/accent-ring.test.js measures the contrast; this only says the colour is the '
+    + "accent's own.",
+  );
+});
+
+/* The React picker was a fourth copy of the accent list and the eight gradient
+ * stops, outside every gate above — a fifth accent or a token change shipped a
+ * silently wrong React picker. It now reads src/logic/accents.js, and this says
+ * so by reading the source rather than trusting the import to stay. */
+test('the React picker paints from the shared module, not its own copy', () => {
+  const source = read('react/src/AccentPicker.tsx');
+  assert.match(
+    source, /import \{[^}]*\baccentSwatchStyle\b[^}]*\} from '@apliteni\/apliteni-ui'/,
+    'react/src/AccentPicker.tsx does not take its paints from the kit.',
+  );
+  const literals = [
+    ...[...source.matchAll(/linear-gradient\(/g)].map(() => 'a gradient of its own'),
+    ...[...source.matchAll(/#[\da-fA-F]{3,8}\b/g)].map(([hex]) => `the literal colour ${hex}`),
+    ...ACCENTS.filter((accent) => accent !== 'default')
+      .filter((accent) => source.includes(`'${accent}'`) || source.includes(`"${accent}"`))
+      .map((accent) => `the accent name "${accent}"`),
+  ];
+  assert.deepEqual(
+    literals, [],
+    `react/src/AccentPicker.tsx carries ${literals.join(', ')}. The accent list and every swatch's `
+    + 'paints come from src/logic/accents.js so that the two pickers cannot disagree and so that '
+    + 'the gates in this file reach both. Re-deriving them here puts the React picker back outside '
+    + 'every one of them.',
+  );
 });
