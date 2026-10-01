@@ -62,7 +62,7 @@
 
 ## Size the table to its content
 
-<!-- rule: width -->
+<!-- rule: content-width -->
 
 **Why:** A short table stretched to the page width leaves a gap between a label and its value, and the reader has to cross it to pair them.
 

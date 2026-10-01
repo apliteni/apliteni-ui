@@ -561,3 +561,34 @@ it('offers column navigation only for overflow and disables each reached edge', 
   fireEvent.scroll(region);
   expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
 });
+
+/**
+ * Rule: a table and the parts attached to it share one box, so they share their edges.
+ *
+ * #504 stopped a table filling its container, and the pager — a sibling, not a child —
+ * kept filling it: a 315px table over a 1248px strip, with Next 933px from its own rows.
+ * The frame is what holds them together; the width itself comes from the stylesheet,
+ * which `src/styles/table.test.js` holds. This asks only that every part the component
+ * renders is inside the one box, which is the part a refactor can lose.
+ *
+ * What it does not reach: layout. jsdom computes no widths, so a frame that sized itself
+ * wrongly would still pass here.
+ */
+it('keeps the table, its pager and its column controls in one frame', () => {
+  const { container } = render(
+    <DataTable columns={columns} rows={rows} pageSize={2} selectable={false}
+      stickyHeader pinnedIdentity pageSizes={[2, 10]} />);
+
+  const frame = container.querySelector('.ui-table-frame');
+  expect(frame).not.toBeNull();
+
+  const parts = ['table.ui-table', '.ui-pager', '.ui-table-scroll']
+    .map((selector) => container.querySelector(selector));
+  expect(parts.filter(Boolean)).toHaveLength(parts.length);
+  for (const part of parts) expect(part!.closest('.ui-table-frame')).toBe(frame);
+
+  // Nothing the component renders may sit outside the frame: a part left behind is
+  // exactly the defect, and it would otherwise read as "no such part" above.
+  expect(container.firstElementChild).toBe(frame);
+  expect(container.childElementCount).toBe(1);
+});

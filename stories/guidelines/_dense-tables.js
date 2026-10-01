@@ -14,11 +14,14 @@ export const SPEC_CSS = `<style>
   .gdt-stretch { width: 100%; max-width: none; }
 </style>`;
 
-const PAYOUTS = [['Payout 1162', '1,240.00'], ['Payout 1161', '860.00'], ['Payout 1160', '2,100.00']];
+const PAYOUTS = [['1162', '1,240.00'], ['1161', '860.00'], ['1160', '2,100.00']];
 
-// One table, twice: the pair is the width and nothing else.
+// One table, twice: the pair is the width and nothing else. Dense, because the base
+// recipe leaves its last header flush with the table edge while its values keep a
+// right inset — 16px apart, against this page's own rule on numeric alignment three
+// rules above. Short references keep the two halves far apart at phone width.
 const payouts = (stretch = false) => `<div class="gdt-stage">
-  <table class="ui-table ui-table--hover${stretch ? ' gdt-stretch' : ''}">
+  <table class="ui-table ui-table--dense ui-table--hover${stretch ? ' gdt-stretch' : ''}">
     <caption>Payouts · EUR</caption>
     <thead><tr><th>Reference</th><th class="ui-table__num">Amount</th></tr></thead>
     <tbody>${PAYOUTS.map(([reference, amount]) => `
@@ -33,7 +36,7 @@ export const RULES = withSpecimens(content.rules, [
   { id: 'numbers' },
   { id: 'delta' },
   { id: 'units' },
-  { id: 'width', doHtml: () => payouts(), dontHtml: () => payouts(true) },
+  { id: 'content-width', doHtml: () => payouts(), dontHtml: () => payouts(true) },
   { id: 'overflow' },
   { id: 'states' },
 ]);

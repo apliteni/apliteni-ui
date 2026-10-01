@@ -6,7 +6,7 @@
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ],
-    "width": [
+    "content-width": [
       {
         "ref": "src/styles/table.css:12",
         "pattern": "width: auto;"

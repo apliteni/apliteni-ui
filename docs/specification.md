@@ -2091,12 +2091,18 @@ one of them spends the accent on the column that needs it least. `.ui-btn` and `
 inside a table keep their own paint. Decided on
 [#451](https://github.com/apliteni/apliteni-ui/issues/451).
 
-A table sizes to its content and never exceeds the width it has: a short table ends where
-its values end instead of stretching, which is what put an amount a screen away from its
-label in [#504](https://github.com/apliteni/apliteni-ui/issues/504). A table whose cells need
-more width than that is unchanged, and marking a text cell `.ui-table__title` gives that
-column the width left over. The React table paints through the same classes. Held by
-`src/styles/table.test.js`.
+A table sizes to its content and is capped at the room it has, unless its cells need more
+than that: a short table ends where its values end instead of stretching, which is what put
+an amount a screen away from its label in
+[#504](https://github.com/apliteni/apliteni-ui/issues/504), and a table whose cells need more
+width than the room renders exactly as before and is carried by its scroll region. Marking a
+text cell `.ui-table__title` gives that column the width left over.
+
+`.ui-table-frame` is the box a table shares with the parts attached to it — a pager, a
+toolbar, a totals row. It sizes to the widest of them and the table fills it, so a pager can
+never be wider than the rows it pages. React `DataTable` renders it around its own parts;
+a vanilla caller writes it around the table and the parts it owns. Held by
+`src/styles/table.test.js` and `react/src/DataTable.test.tsx`.
 
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.

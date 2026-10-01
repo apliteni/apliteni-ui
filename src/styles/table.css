@@ -138,6 +138,14 @@
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }
 .ui-table--compact th:last-child,
 .ui-table--compact td:last-child { padding-right: var(--space-3); }
+/* A table and the parts attached to it — a pager, a toolbar, a totals row — are one
+ * block. The frame sizes to the widest of them and the table fills it, so the pager
+ * can never be wider than the rows it pages: #504's review found a 315px table over a
+ * 1248px pager, with Next 933px from its own rows.
+ * why: docs/specification.md#dense-financial-tables */
+.ui-table-frame { width: fit-content; max-width: 100%; }
+.ui-table-frame .ui-table { width: 100%; }
+
 .ui-table-scroll { overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1); }
 .ui-table-scroll:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }

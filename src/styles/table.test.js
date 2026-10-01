@@ -146,28 +146,37 @@ test('compact end cells override the base last-header inset together', () => {
 });
 
 /**
- * Rule: a table sizes to its content and is capped at the room it has; no rule in this
- * sheet stretches one. #504 was a two-column table across a 1440px page, with the amount
- * a screen away from its label.
+ * Rule: a table sizes to its content and is capped at the room it has (#504). The one
+ * exception is the frame — the box a table shares with its pager or toolbar — where the
+ * table fills a box already sized to the widest part, so the two keep the same edges.
  *
- * Subjects are discovered: every rule here whose selector sizes a table ELEMENT — cell
- * rules are excluded, because `__title`'s own 99% is the documented way to let a text
- * column take the slack, and `__selection`'s fixed track is a column width.
+ * Subjects are discovered by what a rule's last compound targets: a table element, bare or
+ * by class. Cell rules are out: `__title`'s 99% is how a text column takes the slack.
  *
- * What it does not reach: whether a stretched table is still reachable from outside this
- * sheet. A consumer writing `width: 100%` in their own CSS, or a story adding a class of
- * its own, is their choice and no gate here sees it. The guideline is what forbids it.
+ * What it does not reach: layout, and any sheet but this one. Whether the frame is wide
+ * enough for both parts is Chromium's answer, and `react/src/DataTable.test.tsx` asks it.
  */
-const CELL = /(?:__|\s(?:td|th|thead|tbody|tr|caption)\b)/;
+const CELL = /(?:__|\s(?:thead|tbody|tr|caption)\b)/;
 // Comments out first: the header comment above the base rule names a cell class,
 // and an uncommented scan read it as part of that rule's selector.
 const noComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
-const tableSizingRules = (css) => [...noComments(css).matchAll(/([^{}\n][^{}]*)\{([^}]*)\}/g)]
-  .map(([, selector, body]) => ({ selector: selector.trim(), body }))
-  .filter(({ selector, body }) => /\.ui-table(?:--[\w-]+)?(?![\w-])/.test(selector) && !CELL.test(selector)
-    && /(?:^|;|\s)width\s*:/.test(body));
+// `:where(…)` and `:is(…)` hold their own comma lists, so the wrapper goes before the
+// selector is split on commas — `.ui-card > :where(.ui-table--dense, .ui-table--zebra)`
+// is two selectors, and the second one ended in a bracket the match could not read.
+const compounds = (selector) => selector.replace(/:where\(|:is\(|\)/g, '').split(',')
+  .map((part) => part.trim().split(/[\s>+~]+/).filter(Boolean).pop() || '');
+const TABLE_ELEMENT = /^(?:table|\.ui-table(?:--[\w-]+)?)(?:[:.[][^\s]*)?$/;
+const targetsTable = (selector) => compounds(selector).some((last) => TABLE_ELEMENT.test(last));
 
-const stretches = (value) => !/^auto$/.test(value.trim());
+const rulesIn = (css) => [...noComments(css).matchAll(/([^{}\n][^{}]*)\{([^}]*)\}/g)]
+  .map(([, selector, body]) => ({ selector: selector.trim(), body }));
+const tableSizingRules = (css) => rulesIn(css)
+  .filter(({ selector, body }) => targetsTable(selector) && !CELL.test(selector)
+    && /(?:^|;|\s)width\s*:/.test(body));
+const declared = (body, property) => {
+  const found = [...body.matchAll(new RegExp(`(?:^|;|\\s)${property}\\s*:\\s*([^;}]+)`, 'g'))];
+  return found.length ? found[found.length - 1][1].trim() : null;
+};
 
 function tableWidths(css) {
   const rules = tableSizingRules(css);
@@ -177,7 +186,11 @@ function tableWidths(css) {
 
   for (const { selector, body } of rules) {
     for (const [, value] of body.matchAll(/(?:^|;|\s)width\s*:\s*([^;}]+)/g)) {
-      if (stretches(value)) problems.push(`${selector} sizes the table itself: width: ${value.trim()}`);
+      const width = value.trim();
+      const inFrame = selector.includes('.ui-table-frame');
+      if (width !== 'auto' && !(inFrame && width === '100%')) {
+        problems.push(`${selector} sizes the table itself: width: ${width}`);
+      }
       measured++;
     }
   }
@@ -185,13 +198,30 @@ function tableWidths(css) {
 
   // The cap is the other half: without it a short table shrinks but a bled one
   // inside a card loses the end inset it bleeds into.
-  const caps = [...noComments(css).matchAll(/([^{}\n][^{}]*)\{([^}]*max-width[^}]*)\}/g)]
-    .filter(([, selector]) => /\.ui-table(?:--[\w-]+)?(?![\w-])/.test(selector) && !CELL.test(selector));
-  if (!caps.some(([, , body]) => /max-width\s*:\s*100%/.test(body))) {
+  const caps = rulesIn(css).filter(({ selector, body }) => /max-width/.test(body)
+    && (targetsTable(selector) || selector.includes('.ui-table-frame')) && !CELL.test(selector));
+  if (!caps.some(({ selector, body }) => targetsTable(selector) && /max-width\s*:\s*100%/.test(body))) {
     problems.push('no rule caps a table at the room it has');
   }
-  if (!caps.some(([, selector, body]) => selector.includes('.ui-card') && /calc\(100%/.test(body))) {
+  if (!caps.some(({ selector, body }) => selector.includes('.ui-card') && /calc\(100%/.test(body))) {
     problems.push('the card bleed no longer caps a table at the width it bleeds to');
+  }
+
+  // The frame: one box for the table and what is attached to it, sized to the widest of
+  // them. Both halves are needed — a frame that does not size to its content puts the
+  // pager back on the container's edge, and a table that does not fill the frame leaves
+  // the two on different edges whenever the pager is the wider part.
+  const frame = rulesIn(css).find(({ selector }) => selector === '.ui-table-frame');
+  if (!frame) problems.push('no frame for a table and the parts attached to it');
+  else {
+    if (!/^(?:fit|max)-content$/.test(declared(frame.body, 'width') || '')) {
+      problems.push(`the frame does not size to its content: width: ${declared(frame.body, 'width')}`);
+    }
+    if (declared(frame.body, 'max-width') !== '100%') problems.push('the frame is not capped at its container');
+  }
+  if (!tableSizingRules(css).some(({ selector, body }) => selector.includes('.ui-table-frame')
+    && declared(body, 'width') === '100%')) {
+    problems.push('a table in the frame does not fill it, so it cannot share the pager\'s edges');
   }
   return problems;
 }
@@ -200,16 +230,31 @@ test('a table sizes to its content and is capped, never stretched', () => {
   assert.deepEqual(tableWidths(CSS), []);
 });
 
+test('a table and the parts attached to it share one box', () => {
+  const frame = rulesIn(noComments(CSS)).find(({ selector }) => selector === '.ui-table-frame');
+  assert.ok(frame, 'the frame is the box; without it the pager sizes to the container');
+  assert.equal(declared(frame.body, 'width'), 'fit-content');
+  assert.equal(declared(frame.body, 'max-width'), '100%');
+  assert.deepEqual(tableWidths(CSS.replace('.ui-table-frame .ui-table { width: 100%; }', '')).length > 0, true,
+    'a table that does not fill the frame must be rejected');
+});
+
 test('the width gate rejects a table stretched back to its container', () => {
   for (const [name, mutation] of [
     ['the base rule', CSS.replace('  width: auto;', '  width: 100%;')],
     ['a modifier', `${CSS}\n.ui-table--dense { width: 100%; }`],
     ['a composition inside a card', `${CSS}\n.ui-card > .ui-table--zebra { width: calc(100% + 2 * var(--space-3)); }`],
+    // The hole #504's review named: a bare `table` reached through the scroll host
+    // stretches every table in the kit and names no `.ui-table` class at all.
+    ['a bare table under the scroll host', `${CSS}\n.ui-table-scroll > table { width: 100%; }`],
+    ['a frame sized to its container', CSS.replace('.ui-table-frame { width: fit-content;', '.ui-table-frame { width: 100%;')],
   ]) {
-    assert.ok(tableWidths(mutation).length > 0, `${name} stretching a table must be rejected`);
+    assert.ok(tableWidths(mutation).length > 0, `${name} must be rejected`);
   }
   assert.ok(tableWidths(CSS.replace('  max-width: 100%;', '')).length > 0,
     'removing the cap must be rejected');
   assert.ok(tableWidths(CSS.replace('max-width: calc(100% + 2 * var(--space-3));', 'max-width: 100%;')).length > 0,
     'a card bleed that caps at the card instead of the bled width must be rejected');
+  assert.ok(tableWidths(CSS.replace('.ui-table-frame { width: fit-content; max-width: 100%; }', '')).length > 0,
+    'removing the frame must be rejected');
 });

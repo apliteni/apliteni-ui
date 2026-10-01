@@ -147,7 +147,11 @@ export function DataTable<T extends { name: string }>({
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
 
   return (
-    <>
+    // One box for the table and everything attached to it. The pager is a sibling
+    // of the table, and once the table stopped filling its container (#504) it drew
+    // a 1248px strip under a 315px table. The frame sizes to the widest part and the
+    // table fills it, so the two always share their edges.
+    <div className="ui-table-frame">
       {scrollable && columnScroll.overflow && <div className="ui-card__row" role="group" aria-label={`${scrollLabel} columns`}>
         <Button size="sm" icon="arrowLeft" aria-controls={scrollId} disabled={columnScroll.start} onClick={() => scrollColumns(-1)}>Previous columns</Button>
         <Button size="sm" iconRight="arrowRight" aria-controls={scrollId} disabled={columnScroll.end} onClick={() => scrollColumns(1)}>More columns</Button>
@@ -223,6 +227,6 @@ export function DataTable<T extends { name: string }>({
             if (owned) setLocalPage(1);
           }} />
       ) : null}
-    </>
+    </div>
   );
 }
