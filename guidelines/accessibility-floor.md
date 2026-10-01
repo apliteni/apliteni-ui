@@ -40,7 +40,7 @@
 
 **Don't:** Keep the desktop 8px and let the control written later in the markup win the overlap.
 
-**Except:** Rows that share an edge — a menu, a dense table, a settings list — have nothing to open and keep their drawn targets. A row that cannot open states the clearance it does give instead.
+**Except:** A row that is already full opens downward only — widening it across makes the controls narrower, which is the one thing the floor must not do. Rows that share an edge — a menu, a dense table, a settings list — have nothing to open and keep their drawn targets. A row that opens nothing grows no zone at all.
 
 ## Focus ring contrast
 

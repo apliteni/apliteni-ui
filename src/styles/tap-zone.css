@@ -24,11 +24,17 @@
   --tap-gap: var(--space-5, 20px);
 
   /* Clear space to the nearest neighbour, declared by the container that knows
-     its own gap. A layer takes half on each side, so the default is the gap
-     itself. A container that packs tighter and cannot open declares what it
-     does give; the gate fails a number that is not true. */
-  --tap-clear-x: var(--tap-gap);
-  --tap-clear-y: var(--tap-gap);
+     its own gap; a zone takes half on each side.
+
+     ZERO by default, which means a zone grows nowhere until a container has
+     opened the room for it. The alternative — assume --tap-gap everywhere —
+     was measured and rejected: outside the containers this sheet opens, the
+     assumption is simply false, and `Keep the workspace` ended up with a pixel
+     of its own drawn box answering for `Delete it permanently`. A floor that
+     reaches further by asserting space nobody gave is the defect #488 is
+     about, one level up. */
+  --tap-clear-x: 0px;
+  --tap-clear-y: 0px;
 }
 
 @media (max-width: 560px) and (pointer: coarse) {
@@ -39,7 +45,6 @@
   :where(
     .ui-seg button,
     .ui-tabs__tab,
-    .ui-nav__tab,
     .ui-dropdown__trigger,
     .ui-back,
     .ui-toast__action,
@@ -54,7 +59,6 @@
     .ui-btn,
     .ui-seg button,
     .ui-tabs__tab,
-    .ui-nav__tab,
     .ui-dropdown__trigger,
     .ui-back,
     .ui-toast__action,
@@ -72,8 +76,13 @@
     height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
   }
 
-  /* The two layers the kit already had, raised from 24. ::after on these is
-     spoken for — the tick and the dot, the toast close's glyph plate. */
+  /* The two layers the kit already had. ::after on these is spoken for — the
+     tick and the dot, the toast close's glyph plate — so it is the existing
+     ::before that grows. Each carries the clearance input.css and callout.css
+     already assumed for it, 2.5px a side, so with no container to open the
+     room the target stays exactly the 24 they draw today and never shrinks. */
+  .ui-check input,
+  .ui-toast__close { --tap-clear-x: 5px; --tap-clear-y: 5px; }
   .ui-check input::before,
   .ui-toast__close::before {
     width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
@@ -124,4 +133,42 @@
      the space between controls — measured at four marks for 8px on every
      toast. Named on the Accessibility minimums page. */
   .ui-toast { gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
+
+  /* A back link stands on its own, so it opens its own block margins rather
+     than waiting for a row to do it. The shell already gives it --space-5
+     below; this is the same step above, at the width where a finger needs it. */
+  .ui-back {
+    margin-block: var(--tap-gap) !important;
+    --tap-clear-y: var(--tap-gap);
+  }
+
+  /* The kit's remaining control rows open DOWN only. A row of labelled buttons
+     at 390 is often already full, so widening its column gap does not move the
+     buttons apart — it makes them narrower, and that is the half #488 rules
+     out. Measured on a toolbar of three buttons and a dropdown. These rows
+     wrap, which is also where the review measured them colliding. */
+  .ui-confirm__acts,
+  .ui-toolbar,
+  .ui-empty__actions,
+  .ui-sx__actions,
+  .ui-hero__cta,
+  .ui-fbc__foot,
+  .ui-drawer__footer,
+  .ui-snippet__bar,
+  .ui-app__main .ui-card__row {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-y: var(--tap-gap);
+  }
+
+  /* These open both ways. A row of small square marks cannot overflow the way
+     a row of labels can — each mark is its own fixed size — and a drawer's
+     header holds a title and a close mark, where the column gap is spent on
+     the title's text rather than on the mark. */
+  .ui-footer__socials,
+  .ui-accent-picker,
+  .ui-drawer__header {
+    gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--tap-gap);
+    --tap-clear-y: var(--tap-gap);
+  }
 }

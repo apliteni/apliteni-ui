@@ -957,14 +957,34 @@ where the room is free until the strip wraps. **The controls do not change size*
 between them does, by a few pixels, on a phone, under a finger. That is the cost the issue
 accepted, and it is the half that a floor made of zones alone cannot buy.
 
-A container either opens or declares. `--tap-clear-*` is how a row that cannot afford the space
-says what it does give — a chip whose value and remove mark share an edge by design, a dense
-table's rows — and the browser gate fails a declared number that is not true.
+**A zone grows only where a container has opened the room for it.** `--tap-clear-*` defaults to
+**zero**, which is the honest default: the sheet cannot see a layout it has never met, and the
+earlier draft assumed `--tap-gap` everywhere and was wrong outside the rows it opened — the
+review of #488 measured the confirm dialog's `Keep the workspace` losing a pixel of its own box
+to `Delete it permanently`. So a container either opens and says so, or says nothing and its
+controls keep the targets they draw. A row that cannot open but does give something — a chip
+whose value and remove mark share an edge by design, a dense table's rows — declares what it
+gives, and the browser gate fails a declared number that is not true.
+
+**Rows open down unless they cannot overflow.** A row of labelled buttons at 390 is often
+already full, and widening its column gap there does not move the buttons apart: it makes them
+narrower, and a control drawn narrower is the half #488 rules out. Measured on a toolbar holding
+three buttons and a dropdown. So the action rows open `row-gap` only — which is also where their
+collision was, since they wrap — and only a row whose marks are each a fixed square, or a drawer
+header whose column gap is spent on a title rather than a control, opens both ways.
 
 This sheet is imported **last**, after every component sheet, and its openings take `!important`:
 each one overrides a `gap` a component already set, and the React bundle ships this sheet without
 those component sheets at all, where load order belongs to the consumer. Same trade as
 `field-zoom.css` — a host packing one of these rows tighter at phone width does not win.
+
+**A carrier's pseudo-element must be free.** `.ui-nav__tab::after` is the active underline
+`nav.css` draws, and an earlier draft listed that family: the zone's `top` and `width` landed on
+the indicator, over-constrained it, and moved it from under the label into the middle of it,
+where it read as a strikethrough. The tab is drawn 86x45 and already clears the floor, so it is
+not a carrier. The checkbox and the toast close go the other way — their `::after` is spoken for
+by the tick and the glyph plate, so it is the `::before` each already has as a hit layer that
+grows. Both directions are now held by the gate rather than by a comment.
 
 **Three families get no layer, three cannot carry one, and two are clipped.** A menu's rows, the command palette's
 list and a sidebar's rows share an edge: there is nothing outside a row to put a layer in, and a

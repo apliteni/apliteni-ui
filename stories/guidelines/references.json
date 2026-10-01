@@ -20,11 +20,11 @@
     ],
     "tap-zone": [
       {
-        "ref": "src/styles/tap-zone.css:71",
+        "ref": "src/styles/tap-zone.css:75",
         "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
       },
       {
-        "ref": "src/styles/tap-zone.css:34",
+        "ref": "src/styles/tap-zone.css:40",
         "pattern": "@media (max-width: 560px) and (pointer: coarse)"
       }
     ],
@@ -34,8 +34,8 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:110",
-        "pattern": ".ui-filter-bar { gap: var(--tap-gap) !important;"
+        "ref": "src/styles/tap-zone.css:100",
+        "pattern": "row-gap: var(--tap-gap) !important;"
       }
     ],
     "ring-contrast": [

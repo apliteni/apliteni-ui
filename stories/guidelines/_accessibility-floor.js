@@ -250,7 +250,9 @@ const mark = (label, icon) => button({ label, icon, iconOnly: true, variant: 'gh
 
 export const tapZoneDo = () => tapRow(
   'room',
-  button({ label: 'Approve', variant: 'primary', size: 'sm' }),
+  // Secondary and not primary: the dashed edge IS the accent signal on this
+  // specimen, and an accent-filled button under an accent edge is two.
+  button({ label: 'Approve', variant: 'secondary', size: 'sm' }),
   button({ label: 'Hold', variant: 'secondary', size: 'sm' }),
 );
 export const tapZoneDont = () => tapRow(

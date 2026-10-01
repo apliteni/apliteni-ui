@@ -84,6 +84,69 @@ export async function storySubjects({ theme = 'dark' } = {}) {
   return { subjects, problems };
 }
 
+
+/**
+ * Rows of controls the kit ships that NO story renders on screen — a confirm's
+ * two answers, a drawer's footer, an empty state's actions — plus two rows a
+ * consumer would write with kit buttons and no help from this sheet.
+ *
+ * The sweep above is the coverage for everything a story shows. These are the
+ * gap in it, and the gap had a defect in it: #488's review measured the
+ * confirm's `Keep the workspace` losing a pixel of its own box to
+ * `Delete it permanently`, because the dialog is closed in every story and
+ * nothing ever looked at it. Each one is built from the kit's own factories at
+ * a width where it wraps, so the fixture is the component and not a drawing of
+ * it; the two consumer rows are deliberately packed at --space-2, which is
+ * where an optimistic default clearance does its damage.
+ */
+export async function rowFixtures() {
+  const kit = await import(path.join(root, 'src/index.js'));
+  const { button, confirm, emptyState, snippet, switchToggle, drawer } = kit;
+  const row = (id, inner, style = '') =>
+    ({ id: `fixture:${id}`, html: `<div style="padding:16px;${style}">${inner}</div>` });
+  const two = (a, b) => button({ label: a, variant: 'secondary', size: 'sm' })
+    + button({ label: b, variant: 'primary', size: 'sm' });
+
+  return [
+    // The kit's own rows, each one opened by this sheet at the phone step.
+    // Labels long enough that the two answers wrap onto separate lines at 390,
+    // which is the state the review of #488 measured colliding. A confirm with
+    // two short answers fits on one line and never showed it.
+    row('confirm', confirm({
+      id: 'fx-confirm',
+      title: 'Delete this workspace?',
+      body: 'Everything in it goes with it, and nothing comes back.',
+      confirmLabel: 'Delete it permanently',
+      cancelLabel: 'Keep the workspace',
+      open: true,
+    })),
+    row('empty-actions', emptyState({
+      art: 'inbox',
+      title: 'Nothing here yet',
+      actions: two('Import a file', 'Add the first one'),
+    })),
+    row('toolbar', `<div class="ui-toolbar">${two('Filter', 'New report')}`
+      + `${button({ label: 'Export', variant: 'secondary', size: 'sm' })}`
+      + `${kit.dropdown({ id: 'fx-dd', pre: 'Period', value: 'Last 30 days', items: [{ label: 'Last 30 days' }, { label: 'This quarter' }] })}</div>`),
+    row('snippet', snippet({ code: 'npm i @apliteni/apliteni-ui', label: 'Install' })),
+    row('drawer', drawer({
+      id: 'fx-drawer',
+      title: 'Edit the record',
+      body: '<p>One record.</p>',
+      footer: two('Discard', 'Save the record'),
+      open: true,
+    })),
+    row('card-row', `<div class="ui-card"><div class="ui-card__row">`
+      + `<span>Notify on first use</span>${switchToggle({ checked: true, label: 'Notify' })}</div></div>`),
+
+    // And two a consumer would write. Nothing opens these, so nothing may grow
+    // into them: the zones have to stay inside the drawn boxes.
+    row('packed-row', two('Cancel', 'Continue'), 'display:flex;gap:8px;flex-wrap:wrap'),
+    row('packed-stack', two('Cancel', 'Continue'),
+      'display:flex;flex-direction:column;align-items:flex-start;gap:8px'),
+  ];
+}
+
 /**
  * The measurement, run inside the page by page.evaluate, so it closes over
  * nothing and every number it needs arrives as an argument.

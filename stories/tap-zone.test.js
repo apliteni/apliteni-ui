@@ -167,6 +167,75 @@ test('a container that opens a gap declares the clearance to match it', () => {
   }
 });
 
+/**
+ * Every rule in the kit's own sheets that declares a pseudo-element, as
+ * `.selector::which`. Read as text: the question is which sheet has already
+ * SPOKEN FOR a pseudo-element, and a resolved cascade would not answer it.
+ */
+const kitPseudos = readdirSync(path.join(root, 'src/styles'))
+  .filter((f) => f.endsWith('.css') && f !== path.basename(SHEET))
+  .flatMap((f) => [...decomment(read(`src/styles/${f}`)).matchAll(/([^{}]+)\{/g)]
+    .flatMap((m) => [...m[1].matchAll(/([.\w-]+)(::(?:before|after))/g)]
+      .map((p) => ({ selector: p[1], pseudo: p[2], where: `src/styles/${f}` }))));
+
+test('a carrier is never given a pseudo-element another sheet already owns', () => {
+  // The defect this is written for shipped: `.ui-nav__tab::after` is the active
+  // underline nav.css draws, and listing that family here moved the indicator
+  // from under the label into the middle of it, where it read as a
+  // strikethrough. The sheet's own comments show the question was asked by hand
+  // for two families out of thirteen; nothing held the other eleven.
+  const taken = [];
+  for (const sel of carriers) {
+    const leaf = sel.split(/\s+/).pop();
+    for (const p of kitPseudos) {
+      if (p.selector === leaf && p.pseudo === '::after') taken.push(`${sel}::after (${p.where})`);
+    }
+  }
+  assert.deepEqual(
+    taken, [],
+    `${SHEET} hangs its zone on a pseudo-element another kit sheet already draws with: `
+    + `${taken.join(', ')}. The zone's own declarations land on that drawing instead of on a `
+    + 'box of their own — a `top` and a `width` on an indicator that had `bottom` and `right`, '
+    + 'which over-constrains it and moves it. Use the other pseudo-element if it is free, or '
+    + 'take the family off the carrier list.',
+  );
+});
+
+test('the two families that reuse an existing layer really have one', () => {
+  // The inverse, and it is the reason the rule above can be absolute. These two
+  // do not get a ::after; they grow a ::before that input.css and callout.css
+  // already draw as a hit layer. If either stopped drawing one, this sheet
+  // would be inventing a box rather than raising one.
+  const reused = [...css.matchAll(/^\s*([.\w-]+(?:\s+[.\w-]+)*)::before\s*[,{]/gm)].map((m) => m[1]);
+  assert.ok(
+    reused.length >= 2,
+    `${SHEET} no longer raises an existing ::before on any family. The checkbox and the toast `
+    + 'close are the two the kit floored by hand in #219, and this sheet is supposed to carry '
+    + 'them to the same floor as the rest.',
+  );
+  for (const sel of reused) {
+    const leaf = sel.split(/\s+/).pop();
+    assert.ok(
+      kitPseudos.some((p) => p.selector === leaf && p.pseudo === '::before'),
+      `${SHEET} sizes ${sel}::before, and no other kit sheet draws one there. This rule is meant `
+      + 'to RAISE the hit layer #219 added, not to invent one — an invented box is the same '
+      + 'defect as overwriting a drawn one, in the other direction.',
+    );
+  }
+});
+
+test('this gate rejects the nav tab going back on the carrier list', () => {
+  // The mutation for the rule two tests up, run against the checker.
+  const mutated = [...carriers, '.ui-nav__tab'];
+  const taken = mutated.filter((sel) => kitPseudos
+    .some((p) => p.selector === sel.split(/\s+/).pop() && p.pseudo === '::after'));
+  assert.deepEqual(
+    taken, ['.ui-nav__tab'],
+    'Putting .ui-nav__tab back on the carrier list did not trip the check above, so the check '
+    + 'would pass over the defect it exists for.',
+  );
+});
+
 test('the exempt ledger is real, and nothing on it also carries a layer', () => {
   assert.ok(TAP_EXEMPT.length > 0, 'TAP_EXEMPT is empty, so the page claims the floor is universal.');
   for (const entry of TAP_EXEMPT) {
@@ -233,7 +302,7 @@ test('this gate rejects a sheet that drops the pointer clause', () => {
 const RUN = process.env.TAP_ZONES === '1';
 
 test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' }, async (t) => {
-  const { storySubjects, kitStylesheet, pass, playwright, flatten, name } =
+  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name } =
     await import('./lib/tap-zone.js');
 
   const pw = await playwright();
@@ -244,16 +313,25 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     + 'that quietly skipped would report the same green as one that measured.',
   );
 
-  const { subjects, problems } = await storySubjects();
+  const { subjects: stories, problems } = await storySubjects();
   assert.deepEqual(
     problems, [],
     'Stories that would not render are not skipped here: an unmeasured subject is a failure.',
   );
   assert.ok(
-    subjects.length >= 150,
-    `${subjects.length} stories rendered. The sweep is the coverage, and a sweep that collapsed `
+    stories.length >= 150,
+    `${stories.length} stories rendered. The sweep is the coverage, and a sweep that collapsed `
     + 'to a handful would pass while measuring almost nothing.',
   );
+
+  // Plus the rows no story puts on screen, and two a consumer would write.
+  const fixtures = await rowFixtures();
+  assert.ok(
+    fixtures.length >= 8,
+    `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
+    + 'could not see, and a list that shrank would quietly give that coverage back.',
+  );
+  const subjects = [...stories, ...fixtures];
 
   const withCss = kitStylesheet();
   const without = kitStylesheet({ without: ['styles/tap-zone.css'] });
