@@ -3,7 +3,9 @@
 .ui-react-app .ui-app__brand .ui-react-app__mark { display: inline-flex; opacity: 1; }
 .ui-react-app__bottom .ui-nav__item { min-height: 48px; }
 @media (max-width: 560px) {
-  :root:has(.ui-react-app) {
+  /* Keyed on the bar, not the shell: a one-section shell renders no bar, and the
+     0px fallback below then leaves that page nothing to pad for. */
+  :root:has(.ui-react-app__bottom) {
     --ui-app-bottom-clearance: calc(96px + env(safe-area-inset-bottom));
     scroll-padding-bottom: var(--ui-app-bottom-clearance, 0px);
   }
