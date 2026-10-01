@@ -553,16 +553,18 @@ next to it.
 ```
 
 The mark comes in two: `line` (the default) is the bare Lucide check in the success
-colour, which strokes itself on; `circled` is Lucide `circle-check-big` at the
-eyebrow's size, drawn at rest. Pick it with `check` on `Success` or `variant` on
+colour, which strokes itself on; `circled` is Lucide `circle-check-big` at 20px, the
+kit's label size, drawn at rest. Pick it with `check` on `Success` or `variant` on
 `SuccessCheck`. Guidelines / Iconography reserves a circled glyph for a state and a
 bare one for an action, and a confirmation reports a state — so `circled` is the mark
 that rule asks for, and `line` is the default because it carries the moment at page
 size. Neither has a filled disc behind it.
 
 `Success` provides `hero`, `split`, and `compact` layouts on a plain elevated card;
-there is no backdrop layer and no `backdrop` prop. Pass `eyebrow`, `title`, `body`,
-and React `actions`. A kit `Button` carries the focus ring already; a router link or
+there is no backdrop layer and no `backdrop` prop. Pass `title`, one short `body`
+line, and React `actions`. There is no `eyebrow` prop: a confirmation carries one
+title and at most one line under it, so put the outcome in the title rather than in a
+label above it. A kit `Button` carries the focus ring already; a router link or
 a plain `<a>` must also take `className="ui-focusable"`, or it falls back to the
 browser's own focus outline. An omitted or empty `actions`
 leaves out the actions row. Hero and split default to h1; compact defaults to h2.

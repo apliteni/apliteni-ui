@@ -10,12 +10,13 @@ const wrap = (html, w = 620) => `<div style="max-width:${w}px;margin:0 auto">${h
 
 // 1 — Hero (upgraded default): the check draws itself on a plain elevated card,
 // with follow-up actions. It shares its check with the block-sized successPanel().
+// The outcome is the title and the detail is one short line — the block carries
+// no third text tier. why: docs/specification.md#success-confirmations
 export const Hero = {
   render: () => pad(wrap(success({
     layout: 'hero',
-    eyebrow: 'Feedback sent',
-    title: 'Thanks — it goes straight to the strategy owner',
-    body: 'We read every note against the current cycle. You can keep browsing or send another passage.',
+    title: 'Feedback sent',
+    body: 'It goes straight to the strategy owner.',
     actions: [
       { label: 'Back to strategy', variant: 'primary', icon: 'compass' },
       { label: 'Send another', variant: 'ghost', icon: 'chat' },
@@ -28,9 +29,8 @@ export const Hero = {
 export const Split = {
   render: () => pad(wrap(success({
     layout: 'split',
-    eyebrow: 'Payment received',
     title: 'Your plan is active',
-    body: 'The Team plan is live for everyone in your workspace. A receipt is on its way to your inbox.',
+    body: 'A receipt is on its way to your inbox.',
     actions: [
       { label: 'Go to dashboard', variant: 'primary', iconRight: 'arrowRight' },
       { label: 'View receipt', variant: 'ghost' },
@@ -62,9 +62,8 @@ export const Celebrate = {
   render: () => pad(wrap(success({
     layout: 'hero',
     confetti: true,
-    eyebrow: 'Welcome aboard',
     title: 'Your workspace is ready',
-    body: "You're all set. We'll take you to your new dashboard in a moment.",
+    body: 'Taking you to your new dashboard.',
     actions: [
       { label: 'Enter workspace', variant: 'primary', icon: 'sparkle' },
     ],
@@ -74,8 +73,6 @@ export const Celebrate = {
 
 // The two check marks side by side. `line` is the default; `circled` is the
 // smaller status mark Guidelines / Iconography asks a reported state to use.
-// No eyebrow here: light --green on white is 4.45:1 against a 4.5:1 floor —
-// ledger C — and a comparison of two marks is no reason to add rows to it.
 export const CheckMark = {
   render: () => pad(stack(
     specimen('Line — the default', wrap(success({

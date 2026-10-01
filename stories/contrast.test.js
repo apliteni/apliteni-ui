@@ -107,16 +107,21 @@ const LEDGER = [
     id: 'C',
     fg: '--green',
     themes: ['light'],
-    bg: 'the success wash and plain white in the light theme',
-    example: 'div.ui-sx__eyebrow',
-    count: 2,
-    worst: 3.56,
+    bg: 'plain white in the light theme',
+    example: 'span.s',
+    count: 1,
+    worst: 4.45,
     why: 'Light --green has to stay recognisably green while carrying text, and green is the '
       + 'hue that darkens worst without turning into a colour nobody reads as success. #155 '
-      + 'took the live pill and the badge over the line; what is left is the eyebrow on the '
-      + 'success screen and shell syntax highlighting. #393 removed the reveal label and value '
-      + 'from this bucket by using text-grade success ink. Each remaining row repeats a '
-      + 'meaning already carried by an icon or nearby wording, so they were allowed to lag components that carry '
+      + 'took the live pill and the badge over the line; what is left is shell syntax '
+      + 'highlighting — the string token in a snippet. #393 removed the reveal label and value '
+      + 'from this bucket by using text-grade success ink. #429 removed the other row this '
+      + 'bucket still carried, and it was the deeper of the two: the confirmation eyebrow is '
+      + 'gone from the markup and the stylesheet, because a confirmation now carries one title '
+      + 'and at most one line and has no label tier to paint. Deleting the element rather than '
+      + 'recolouring it is why the count drops and the floor rises in the same change. The one '
+      + 'remaining row repeats a '
+      + 'meaning already carried by an icon or nearby wording, so it was allowed to lag components that carry '
       + 'meaning alone. The toast action used to be here too, on its own soft wash and again on '
       + 'the outline card, and #131 closed those rows: the action is the one part of a toast '
       + 'that is both the status colour and a piece of text, so it stopped taking the accent and '

@@ -167,3 +167,66 @@ test('the confirmation carries its mark on its root and no backdrop layer', () =
   }
   assert.equal(every.length, 3, 'a layout stopped being measured here');
 });
+
+/* The text budget: one title and at most one short line.
+ *
+ * Artur rejected a confirmation that stacked an eyebrow, a headline and a
+ * paragraph — three voices reporting one outcome, heavy enough that the check
+ * mark stopped being read first. The eyebrow is gone from the API and the
+ * stylesheet, and this holds the shape rather than the one removed name: it
+ * counts the text tiers each layout actually emits, so a second label under a
+ * new class fails here too.
+ *
+ * Limits: this reads the emitted markup. It counts tiers, not words, so it
+ * cannot tell a short line from a long one — `body` is one element whatever is
+ * put in it, and the stories are where the length is judged.
+ *
+ * why: docs/specification.md#success-confirmations
+ */
+const LAYOUTS = ['hero', 'split', 'compact'];
+
+/** The text-bearing elements inside one confirmation's content column, in order. */
+const tiers = async (opts) => {
+  const { JSDOM } = await import('jsdom');
+  const content = new JSDOM(success(opts)).window.document.querySelector('.ui-sx__content');
+  assert.ok(content, 'the confirmation stopped emitting a content column');
+  return [...content.children]
+    // Actions and the countdown are controls and a timer, not tiers of prose.
+    .filter((el) => !el.classList.contains('ui-sx__actions') && !el.classList.contains('ui-sx__count'))
+    .map((el) => ({ tag: el.tagName.toLowerCase(), cls: el.className, text: el.textContent }));
+};
+
+test('every layout emits one title and at most one line under it', async () => {
+  for (const layout of LAYOUTS) {
+    const withLine = await tiers({ layout, title: 'Feedback sent', body: 'It goes to the owner.' });
+    assert.deepEqual(
+      withLine.map((t) => t.cls), ['ui-sx__title', 'ui-sx__body'],
+      `success({ layout: '${layout}' }) emitted ${withLine.length} text tiers (${withLine.map((t) => t.cls).join(', ')}). `
+      + 'A confirmation carries the outcome as its title and at most one line under it.',
+    );
+    assert.match(withLine[0].tag, /^h[1-6]$/, 'the title is a heading, whatever rank the layout takes');
+
+    const bare = await tiers({ layout, title: 'Feedback sent' });
+    assert.deepEqual(bare.map((t) => t.cls), ['ui-sx__title'],
+      `success({ layout: '${layout}' }) with no body still drew a second tier`);
+  }
+  assert.equal(LAYOUTS.length, 3, 'a layout stopped being measured here');
+});
+
+test('an `eyebrow` an old caller still passes draws nothing and leaks no text', async () => {
+  const html = success({ eyebrow: 'Feedback sent', title: 'Your plan is active' });
+  assert.ok(!html.includes('ui-sx__eyebrow'), 'the eyebrow element came back');
+  assert.ok(!html.includes('Feedback sent'),
+    'the dropped eyebrow\'s text reached the markup — an ignored option must be ignored, not relocated');
+  assert.deepEqual(
+    (await tiers({ eyebrow: 'Feedback sent', title: 'Your plan is active' })).map((t) => t.cls),
+    ['ui-sx__title'],
+  );
+});
+
+test('the stylesheet keeps no rule for the tier the markup no longer has', () => {
+  const css = readFileSync(new URL('../styles/success.css', import.meta.url), 'utf8');
+  assert.ok(!css.includes('ui-sx__eyebrow'),
+    'src/styles/success.css still paints .ui-sx__eyebrow. A rule nothing emits is an invitation to '
+    + 'hand-write the element back, and it keeps a rank note src/styles/type-ranks.test.js counts.');
+});

@@ -289,7 +289,8 @@ menu row badge, the footer column title, the code sample's label, the confirmati
 the version badge. Each carried letter-spacing that only capitals need, and it went with them.
 Where the displayed text was a key, the kit now writes the word: `versionSwitcher()` shows
 `Live` and `Archive` for `live` and `archive`. Text a caller hands a badge is shown as handed,
-so a status passed as `paid` reads `paid`.
+so a status passed as `paid` reads `paid`. Ten of those eleven are left: [#429][i429] removed the
+confirmation's eyebrow outright, so the rank table below lists six labels rather than seven.
 
 **Six ranks, each under the one above it.** A screen stacks a page title, card titles,
 running text, labels, captions and chips, and each takes one rank:
@@ -299,7 +300,7 @@ running text, labels, captions and chips, and each takes one rank:
 | `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `appShell()` |
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
-| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label, a confirmation's eyebrow |
+| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label |
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
@@ -332,6 +333,7 @@ beside it.
 [i268]: https://github.com/apliteni/apliteni-ui/issues/268
 [i269]: https://github.com/apliteni/apliteni-ui/issues/269
 [i310]: https://github.com/apliteni/apliteni-ui/issues/310
+[i429]: https://github.com/apliteni/apliteni-ui/issues/429
 
 ## Motion
 
@@ -2101,7 +2103,7 @@ the contract of the factory they invoke (for example, success actions use `butto
 | `skeleton`, `skeletonTable` | lines array entries, width (scalar/array), height, radius, className | — | — | — |
 | `busyRegion` | label, readyLabel, className, lines array entries | — | — | body |
 | `deniedState` | title, sub, need, className | action href | icon, action enums | — |
-| `success`, `successCheck` | eyebrow, title, body, className, countdown label/seconds; action label | action href | layout, check, level, action enums | — |
+| `success`, `successCheck` | title, body, className, countdown label/seconds; action label | action href | layout, check, level, action enums | — |
 | `feedbackWidget` | label, placeholder, doneTitle, doneBody | — | — | — |
 | `pagination` | label, id | href(page) result | variant | — |
 | `statBand` | basis, label, id; stat label/value; delta value/basis/none | — | variant, delta tone/direction | stat trend |
@@ -2378,7 +2380,16 @@ screen-reader announcements.
 
 ## Success confirmations
 
-`success()` and React `Success` draw a confirmation on a plain elevated card: the
+A confirmation carries **one title and at most one short line under it**. There is
+no eyebrow: `success()`, `<Success>` and `successPanel()` take a title and a single
+line of detail, and nothing stacks a third tier of text above or between them. A
+label, a headline and a paragraph are three voices reporting one outcome, and the
+block gets heavy enough that the check mark stops being the first thing read. Put
+the outcome in the title — `Feedback sent`, not `Thanks — it goes straight to the
+strategy owner` with `Feedback sent` as a label above it — and let the line under it
+add the one detail the reader still needs.
+
+`success()` and React `Success` draw that confirmation on a plain elevated card: the
 kit surface, its border, and nothing behind it. There is no backdrop layer, and no
 `backdrop` option — the blurred aurora blobs and the ambient green glow were
 removed in r22 because they read as smudges rather than depth. The split layout
@@ -2392,7 +2403,7 @@ directly:
 | `check` | Mark | Size | Motion |
 | --- | --- | --- | --- |
 | `line` (default) | Lucide `check`, bare, in the success colour | 56px hero, 72px split, 28px compact | strokes itself on over `--dur-slow` |
-| `circled` | Lucide `circle-check-big` (the kit's `circleCheck`) | 20px, the eyebrow's size, in every layout | at rest |
+| `circled` | Lucide `circle-check-big` (the kit's `circleCheck`) | 20px, the kit's label size, in every layout | at rest |
 
 Both are unmodified Lucide paths at Lucide's own `stroke-width: 2`, in a 24 box.
 Any other `check` value takes `line`. Neither mark has a filled disc or a burst
@@ -2412,6 +2423,7 @@ rejected. The confirmation adds no focus rule of its own; both actions and the l
 are painted by the one shared rule in `src/styles/base.css`.
 
 `src/components/success.test.js` reads the emitted markup: it holds both paths
-against `src/assets/icons.js`, holds the root class against the mark drawn, and
-holds the removed backdrop layers out of all three layouts. It does not paint,
-so it cannot say how large either mark renders or whether the tick animates.
+against `src/assets/icons.js`, holds the root class against the mark drawn, holds
+the removed backdrop layers out of all three layouts, and counts the text tiers each
+layout emits so a third one cannot return unnoticed. It does not paint, so it cannot
+say how large either mark renders or whether the tick animates.

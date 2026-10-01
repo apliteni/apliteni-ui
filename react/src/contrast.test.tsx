@@ -5,8 +5,8 @@
 //
 // Same rule as stories/contrast.test.js: a foreground/background pair this
 // workspace renders as text clears WCAG AA, or is named in the ledger below by a
-// person who decided it is acceptable. The migrated Success eyebrow retains its
-// existing vanilla exception below. Every `*.stories.tsx`
+// person who decided it is acceptable. The ledger is currently empty — see it for
+// why, and do not read that as permission to leave it so. Every `*.stories.tsx`
 // under react/src is mounted in both themes, every text-owning element measured
 // against the background chain composited above it, and the count asserted at the
 // foot of this file.
@@ -49,19 +49,19 @@ type Theme = (typeof THEMES)[number];
  * ────────────────────────────────────────────────────────────────────────── */
 type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string };
 
-// Carried by hand from vanilla ledger C: the migration preserves this eyebrow.
-// The status also has a check and outcome wording; its light green ink remains
-// below AA. This is the same existing debt, not permission for other green text.
-const LEDGER: LedgerEntry[] = [{
-  match: f => f.key === 'light/default div.ui-sx__eyebrow | rgb(28, 138, 44) on rgb(255,255,255)'
-    && [...f.stories].every(story => [
-      './Success.stories.tsx:Hero', './Success.stories.tsx:Split', './Success.stories.tsx:Celebrate',
-    ].includes(story)),
-  count: 1,
-  why: 'Existing vanilla ledger C, preserved under #429: Success eyebrow is 4.45:1 in light mode '
-    + 'against a 4.5:1 floor. The adjacent check and outcome wording repeat its meaning. '
-    + 'This match covers only the three migrated Success stories and this measured colour pair.',
-}];
+// EMPTY, and that is the claim: this workspace accepts no contrast failure.
+//
+// It held exactly one entry — the Success eyebrow, carried by hand from vanilla
+// ledger C, whose light green ink sat below AA. #429 removed that eyebrow from
+// the markup and the stylesheet, because a confirmation carries one title and at
+// most one line and has no label tier to paint. The debt went with the element,
+// so the entry was deleted rather than left to rot.
+//
+// An empty ledger is only safe because the walk above proves it ran: every cell
+// judges a non-zero number of pairs, every foreground resolves, and both
+// stylesheets are asserted to have reached the document. A failure appearing
+// here now has nowhere to land and turns the per-story assertion red.
+const LEDGER: LedgerEntry[] = [];
 
 type Finding = {
   key: string; theme: string; accent: string; state: string | null;
@@ -334,5 +334,9 @@ describe('contrast: React coverage', () => {
     const ledgered = findings.filter((f) => LEDGER.some((e) => e.match(f)));
     expect(ledgered.length, 'findings covered by the ledger').toBe(
       LEDGER.reduce((n, e) => n + e.count, 0));
+    // The empty ledger stated as a claim rather than left as a silence: adding an
+    // entry is a person deciding to accept a failure, and this is where they say so.
+    expect(findings, 'React accepts no contrast failure; every pair it renders clears AA')
+      .toEqual([]);
   });
 });

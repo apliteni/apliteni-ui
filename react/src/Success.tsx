@@ -3,7 +3,7 @@ import { forwardRef, useEffect, useRef, useState, type CSSProperties, type HTMLA
 export type SuccessMark = 'line' | 'circled';
 export type SuccessCheckProps = Omit<SVGAttributes<SVGSVGElement>, 'children'> & {
   /** `line` is the bare Lucide check and draws itself on; `circled` is Lucide
-   *  circle-check-big at the eyebrow's size, drawn at rest. */
+   *  circle-check-big at 20px, the kit's label size, drawn at rest. */
   variant?: SuccessMark;
 };
 
@@ -46,9 +46,14 @@ export type SuccessProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'child
   level?: 1 | 2 | 3 | 4 | 5 | 6;
   /** Which check mark to draw. See SuccessCheck. */
   check?: SuccessMark;
-  eyebrow?: string;
   title?: string;
+  /** One short line under the title, or nothing. There is no eyebrow tier.
+   *  why: docs/specification.md#success-confirmations */
   body?: string;
+  /** Removed: a confirmation carries one title and at most one line. Typed as
+   *  `never` so a caller still passing it is told where it went rather than
+   *  having it spread silently onto the root as an unknown DOM attribute. */
+  eyebrow?: never;
   actions?: ReactNode;
   confetti?: boolean;
   /** Set to null to cancel; changing seconds starts a new countdown. */
@@ -88,9 +93,12 @@ function Countdown({ seconds, label = 'Redirecting', onDone }: Required<Pick<Suc
 }
 
 export const Success = forwardRef<HTMLDivElement, SuccessProps>(function Success({
-  layout = 'hero', level, check = 'line', eyebrow, title = 'All done', body,
-  actions, confetti = false, countdown, onCountdownEnd, className, ...rest
+  layout = 'hero', level, check = 'line', title = 'All done', body,
+  actions, confetti = false, countdown, onCountdownEnd, className,
+  // Destructured only to keep it out of `rest`; see SuccessProps.eyebrow.
+  eyebrow: _removedEyebrow, ...rest
 }, ref) {
+  void _removedEyebrow;
   // Clamp the rank as vanilla does: an out-of-range level renders no heading at all,
   // leaving a page whose whole content is a Success without one.
   // why: docs/specification.md#the-page
@@ -109,7 +117,6 @@ export const Success = forwardRef<HTMLDivElement, SuccessProps>(function Success
     <div className="ui-sx__inner">
       <div className="ui-sx__visual"><SuccessCheck variant={mark} /></div>
       <div className="ui-sx__content">
-        {eyebrow && <div className="ui-sx__eyebrow">{eyebrow}</div>}
         <Heading className="ui-sx__title">{title}</Heading>
         {body && <p className="ui-sx__body">{body}</p>}
         {hasActions && <div className="ui-sx__actions">{actions}</div>}

@@ -4,7 +4,6 @@ import { card, badge, pill, snippet } from '../../src/components/index.js';
 import { sidebarNav } from '../../src/components/nav.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { footer } from '../../src/components/footer.js';
-import { success } from '../../src/components/success.js';
 import { versionSwitcher } from '../../src/components/topbar.js';
 
 export default {
@@ -102,7 +101,6 @@ const everyLabel = () => `
     ${cell('Menu group captions and row badges', MENU, 'min-height:280px')}
     ${cell('Version badges', `<div class="topbar" style="position:static;background:none">${VERSIONS}</div>`, 'min-height:220px')}
     ${cell('A code sample’s label', snippet({ label: 'Shell', code: 'npm install @apliteni/apliteni-ui' }))}
-    ${cell('A confirmation’s eyebrow', success({ layout: 'compact', eyebrow: 'Payment received', title: 'Invoice 1042 is paid' }))}
     ${cell('Footer column titles', footer({ variant: 'full', columns: [
       { title: 'Product', links: [{ label: 'Deck' }, { label: 'Text' }] },
       { title: 'Company', links: [{ label: 'About' }, { label: 'Careers' }] },

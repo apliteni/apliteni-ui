@@ -16,14 +16,16 @@ const specimen = (label: string, content: ReactNode) => <div style={{ display: '
   <div style={{ font: '600 11px/1 var(--font-sans)' }}>{label}</div>{content}
 </div>;
 
+// The outcome is the title and the detail is one short line — the block carries
+// no third text tier. why: docs/specification.md#success-confirmations
 export const Hero: Story = {
-  render: () => wrap(<Success eyebrow="Feedback sent" title="Thanks — it goes straight to the strategy owner"
-    body="We read every note against the current cycle. You can keep browsing or send another passage."
+  render: () => wrap(<Success title="Feedback sent"
+    body="It goes straight to the strategy owner."
     actions={<><Button variant="primary" icon="compass">Back to strategy</Button><Button variant="ghost" icon="chat">Send another</Button></>} />),
 };
 export const Split: Story = {
-  render: () => wrap(<Success layout="split" eyebrow="Payment received" title="Your plan is active"
-    body="The Team plan is live for everyone in your workspace. A receipt is on its way to your inbox."
+  render: () => wrap(<Success layout="split" title="Your plan is active"
+    body="A receipt is on its way to your inbox."
     actions={<><Button variant="primary" iconRight="arrowRight">Go to dashboard</Button><Button variant="ghost">View receipt</Button></>} />, 720),
 };
 export const Compact: Story = {
@@ -33,16 +35,13 @@ export const Compact: Story = {
   </>)}</div>,
 };
 export const Celebrate: Story = {
-  render: () => wrap(<Success confetti eyebrow="Welcome aboard" title="Your workspace is ready"
-    body="You're all set. We'll take you to your new dashboard in a moment."
+  render: () => wrap(<Success confetti title="Your workspace is ready"
+    body="Taking you to your new dashboard."
     actions={<Button variant="primary" icon="sparkle">Enter workspace</Button>}
     countdown={{ seconds: 5, label: 'Redirecting' }} />),
 };
 // The two check marks side by side. `line` is the default; `circled` is the
 // smaller status mark Guidelines / Iconography asks a reported state to use.
-// No eyebrow here: light --green on white is 4.45:1 against a 4.5:1 floor, a debt
-// the Hero, Split and Celebrate stories already carry, and a comparison of two
-// marks is no reason to add three more rows to it.
 export const CheckMark: Story = {
   render: () => <div style={{ padding: 40, minHeight: '100vh' }}>{stack(<>
     {specimen('Line — the default', <div style={{ maxWidth: 620, margin: '0 auto' }}>

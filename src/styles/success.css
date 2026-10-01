@@ -24,11 +24,6 @@
 /* ---- Layout shell -------------------------------------------------------- */
 .ui-sx__inner { position: relative; z-index: 1; }
 .ui-sx__content { min-width: 0; }
-.ui-sx__eyebrow {
-  /* rank: label */
-  color: var(--green); font-size: var(--text-sm); font-weight: var(--weight-medium);
-  margin-bottom: 10px;
-}
 .ui-sx__title {
   color: var(--strong); font-size: var(--text-xl); font-weight: var(--weight-semibold);
   letter-spacing: -.02em; line-height: 1.2; margin: 0;
@@ -74,9 +69,9 @@
 /* Two marks, both unmodified Lucide paths at Lucide's own stroke width, in the
    success colour. `line` is the bare check (Lucide `check`), the default. It
    strokes itself on via dash-offset; the path is 22.6 units long, which is what
-   the dasharray is tuned to. `circled` is Lucide `circle-check-big` at the
-   eyebrow's size, for a confirmation that should stay quiet — it is drawn at
-   rest, because a 20px mark has nothing to choreograph. */
+   the dasharray is tuned to. `circled` is Lucide `circle-check-big` at 20px —
+   the kit's label size — for a confirmation that should stay quiet. It is drawn
+   at rest, because a 20px mark has nothing to choreograph. */
 .ui-sx__check { display: block; }
 .ui-sx__tick, .ui-sx__circle {
   fill: none; stroke: var(--sx-green, var(--green)); stroke-width: 2;

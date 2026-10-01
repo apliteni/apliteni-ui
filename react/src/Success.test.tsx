@@ -36,6 +36,43 @@ it('keeps its decoration hidden and carries no backdrop layer', () => {
   expect(container.querySelector('.ui-glow')).toBeNull();
 });
 
+/* The text budget: one title and at most one short line.
+ *
+ * The same shape vanilla holds in src/components/success.test.js, held
+ * separately here because the two render independently. It counts the text
+ * tiers the content column emits rather than the one removed `eyebrow` name, so
+ * a second label under a new class fails too.
+ *
+ * Limits: it counts tiers, not words. `body` is one element whatever length of
+ * line is put in it.
+ *
+ * why: docs/specification.md#success-confirmations
+ */
+const tiers = (container: HTMLElement) =>
+  [...container.querySelector('.ui-sx__content')!.children]
+    // Actions and the countdown are controls and a timer, not tiers of prose.
+    .filter(el => !el.classList.contains('ui-sx__actions') && !el.classList.contains('ui-sx__count'))
+    .map(el => el.className);
+
+it.each(['hero', 'split', 'compact'] as const)('emits one title and at most one line in the %s layout', layout => {
+  const withLine = render(<Success layout={layout} title="Feedback sent" body="It goes to the owner." />);
+  expect(tiers(withLine.container)).toEqual(['ui-sx__title', 'ui-sx__body']);
+  cleanup();
+  expect(tiers(render(<Success layout={layout} title="Feedback sent" />).container)).toEqual(['ui-sx__title']);
+});
+
+// `eyebrow` is not in SuccessProps, so this is the untyped caller — a plain JS
+// consumer, or a spread whose type was widened. It must draw nothing rather than
+// land in {...rest} as an attribute on the root.
+it('ignores an `eyebrow` an untyped caller still passes', () => {
+  const stray = { eyebrow: 'Feedback sent' } as unknown as SuccessProps;
+  const { container, queryByText } = render(<Success {...stray} title="Your plan is active" />);
+  expect(container.querySelector('.ui-sx__eyebrow')).toBeNull();
+  expect(queryByText('Feedback sent')).toBeNull();
+  expect(tiers(container)).toEqual(['ui-sx__title']);
+  expect(container.querySelector('.ui-sx')).not.toHaveAttribute('eyebrow');
+});
+
 // The two marks. `line` is the default and draws itself on; `circled` adds the
 // ring path and is the mark Guidelines / Iconography asks a reported state to use.
 it('draws the line mark by default and the circled mark on request', () => {

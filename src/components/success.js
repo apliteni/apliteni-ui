@@ -62,13 +62,17 @@ function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
 // line of sub, and nothing to configure. Pick by how much of the screen the
 // confirmation owns. The two share the check, while their layout and content
 // remain independent.
+//
+// Both carry one title and at most one short line under it. There is no eyebrow
+// tier: a confirmation stacking a label, a headline and a paragraph reads as
+// three competing voices for one outcome.
+// why: docs/specification.md#success-confirmations
 export function success({
   layout = 'hero',          // 'hero' | 'split' | 'compact'
   level,                    // heading level of the title; see the note below
   check = 'line',           // 'line' | 'circled' — see successCheck() above
-  eyebrow = '',
   title = 'All done',
-  body = '',
+  body = '',                // one short line, or nothing; see the note below
   actions = [],             // [{ label, variant, href, icon, iconRight, size }]
   confetti = false,         // opt-in particle burst (reduced-motion safe)
   countdown = null,         // { seconds, label } | null
@@ -88,7 +92,6 @@ export function success({
   const rank = [1, 2, 3, 4, 5, 6].includes(Number(level)) ? Number(level) : (layout === 'compact' ? 2 : 1);
   const h = `h${rank}`;
 
-  const eyebrowEl = eyebrow ? `<div class="ui-sx__eyebrow">${esc(eyebrow)}</div>` : '';
   const bodyEl = body ? `<p class="ui-sx__body">${esc(body)}</p>` : '';
   const actionsEl = actions.length
     ? `<div class="ui-sx__actions">${actions.map((a) => button({ size: 'md', ...a })).join('')}</div>`
@@ -100,7 +103,6 @@ export function success({
   <div class="ui-sx__inner">
     <div class="ui-sx__visual">${successCheck(mark)}</div>
     <div class="ui-sx__content">
-      ${eyebrowEl}
       <${h} class="ui-sx__title">${esc(title)}</${h}>
       ${bodyEl}
       ${actionsEl}
