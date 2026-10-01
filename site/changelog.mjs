@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.80.0', date: '2026-10-04',
     changes: [
-      ['added', 'The drawer guideline now says when to use a drawer and when to use a page. Work that edits more than one group, or sets a value for each row of a list, belongs on a page; a drawer holds one short change. A rendered pair shows one member\u2019s access on a page beside the same editor in a drawer. Resolves #492.', ['Drawer']],
+      ['added', 'The drawer guideline now says when a drawer is uncomfortable even though it fits. Work that edits more than one group, or sets a value for each row of a list, belongs on a page; a single field is changed in its own row. A rendered pair shows one member\u2019s access on a page beside the same editor in a drawer. Resolves #492.', ['Drawer']],
     ],
   },
   {
