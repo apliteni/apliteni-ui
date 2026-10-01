@@ -30,6 +30,9 @@
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
 .ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
+/* The strike is painted by the cell across its in-flow inline descendants, and an atomic
+   inline-level box is not one — so a linked name in a revoked row needs it struck itself. */
+.ui-table tr.is-dead td.ui-table__title a { text-decoration: line-through; }
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
 
 /* Row hover: an inset, rounded fill so the highlight never sits flush against a
@@ -89,16 +92,23 @@
   color: var(--strong);
   text-decoration: underline;
 }
-/* And on keyboard focus it takes the kit ring, at its own corner. `.ui-btn` is left out: it
-   carries the ring already, with the button's radius. The box is inline-block so a title
-   link that wraps paints one ring rather than one per line (#510).
+/* A plain link — one carrying no class — is the link these rules are about. An inline-block
+   box, so a title link that wraps paints one ring instead of one per line, and the kit's small
+   corner for that ring to follow. Anchors the kit already styles (`.ui-btn`, `.ui-identity`,
+   `.ui-dropdown__item`, `.ui-nav__item`) keep the box and the corner their own component sets;
+   a denylist of them went stale twice before this said what it meant (#510).
+   held by: src/styles/table-focus.test.js */
+.ui-table :where(td, th, caption) a:not([class]) {
+  display: inline-block;
+  border-radius: var(--radius-xs);
+}
+/* And on keyboard focus every link in a table takes the kit ring, at whatever corner it
+   carries, so none falls back to the browser's own outline. `.ui-btn` has the ring already.
    why: guidelines/state-set.md#focus-rings
    held by: src/styles/table-focus.test.js */
-.ui-table a:not(.ui-btn):not(.ui-identity) { display: inline-block; }
 .ui-table a:not(.ui-btn):focus-visible {
   outline: 2px solid transparent;
   box-shadow: var(--ring);
-  border-radius: var(--radius-xs);
 }
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }

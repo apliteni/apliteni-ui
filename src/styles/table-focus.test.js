@@ -57,7 +57,7 @@ const cellLinks = () => sourceFiles().flatMap((file) => {
 // JSX spells the attribute `className`, which HTML parsing lowercases to `classname` and
 // leaves `classList` empty — every selector then misses, and the gate reports a hole that
 // is not there. The spelling is normalised before the markup is parsed.
-const asHtml = (tag) => tag.replace(/\bclassName=/g, "class=").replace(/\bhtmlFor=/g, "for=");
+const asHtml = (tag) => tag.replace(/\bclassName=/g, "class=");
 
 /** A cell's link, standing in the table and cell the source puts it in. */
 const element = (subject) => {
@@ -90,6 +90,20 @@ const ringSelectors = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll
   .filter(([, , body]) => /box-shadow:\s*var\(--ring\)/.test(body))
   .flatMap(([, selector]) => selectorParts(selector))
   .filter((part) => part.includes(":focus-visible"));
+
+/** The value the sheet leaves on `property` for this element, reading the rules that reach it
+ *  in source order. Source order, not specificity — enough for a property that one rule in
+ *  these sheets sets on a cell's link, and the mutation test below fails if that stops being
+ *  true. */
+const declared = (css, property, el) => {
+  const found = new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`);
+  let value = null;
+  for (const [, selector, body] of css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const match = found.exec(body);
+    if (match && selectorParts(selector).some((part) => reaches(part, el))) value = match[1].trim();
+  }
+  return value;
+};
 
 // JSDOM never matches `:focus-visible`, so the question asked of it is the one this gate
 // is about: does a ring rule reach this element at all.
@@ -141,6 +155,47 @@ test("the check rejects a cell link dropped from the ring", () => {
   );
 });
 
+test("a cell link is an inline-block box, so a wrapped one paints one ring", () => {
+  // The guarantee `docs/specification.md` states: one ring around the whole link, including a
+  // title-cell link that wraps. A link left in the inline flow takes a ring per line box —
+  // seven of them, measured at 390 on a title cell — so the box is what carries this.
+  const subjects = cellLinks();
+  const flowed = subjects
+    .filter((subject) => declared(SHEETS, "display", element(subject)) !== "inline-block")
+    .map((subject) => `${subject.file}: ${subject.link}`);
+
+  assert.deepEqual(flowed, [], "these cell links stay in the inline flow and would fragment");
+});
+
+test("the check rejects a cell link left in the inline flow", () => {
+  const rule = /\n\.ui-table :where\(td, th, caption\) a:not\(\[class\]\) \{[^}]*\}/;
+  assert.ok(rule.test(SHEETS), "the plain-link box rule must exist to be taken out");
+
+  const stripped = SHEETS.replace(rule, "");
+  const subjects = cellLinks();
+  const flowed = subjects.filter((s) => declared(stripped, "display", element(s)) !== "inline-block");
+  assert.equal(
+    flowed.length,
+    subjects.length,
+    "without that rule every cell link must read as an inline flow box — if any still passes, " +
+      "a second rule is setting the display and this gate is measuring the wrong one",
+  );
+});
+
+test("a table whose class list is built at runtime is refused, not guessed at", () => {
+  // `className={[...].join(' ')}` leaves no class a source scan can read, so a link inside it
+  // would be reported bare whatever the stylesheet says. The refusal is the honest answer.
+  const runtime = {
+    file: "fixture", table: "<table className={classes.join(' ')}>", cell: "td",
+    cellOpen: "<td>", link: '<a href="#">',
+  };
+  const literal = { ...runtime, table: '<table className="ui-table ui-table--dense">' };
+
+  assert.ok(unreadable(runtime), "a runtime class list must be refused");
+  assert.ok(!unreadable(literal), "a literal one must be read, not refused");
+  assert.deepEqual(bare(SHEETS, [literal]), [], "and read as taking the ring");
+});
+
 test("a JSX subject is read the same as its HTML spelling", () => {
   // Without `asHtml` this is the gate's own false positive: `className` parses to the
   // attribute `classname`, `classList` stays empty, every selector misses, and the first
@@ -154,7 +209,17 @@ test("a JSX subject is read the same as its HTML spelling", () => {
   };
 
   assert.deepEqual(bare(SHEETS, [jsx]), [], "a JSX cell link must be seen to take the ring");
-  assert.deepEqual(bare(SHEETS, [jsx]), bare(SHEETS, [html]), "both spellings must read alike");
+
+  // And the normaliser is load-bearing: parsed as JSX writes it, the table carries the
+  // attribute `classname`, its `classList` is empty, and no ring selector reaches the link.
+  const raw = new JSDOM(`${jsx.table}<tbody><tr>${jsx.cellOpen}${jsx.link}ID</a></td></tr></tbody></table>`)
+    .window.document.querySelector("a");
+  assert.equal(raw.closest("table").classList.length, 0, "HTML parsing must drop the JSX class");
+  assert.ok(
+    !ringSelectors(SHEETS).some((part) => reaches(part, raw)),
+    "the trap this normaliser removes must still be there to remove",
+  );
+  assert.deepEqual(bare(SHEETS, [html]), [], "the HTML spelling reads the same way");
 });
 
 test("a button in a cell keeps its own ring, not the cell link's", () => {
