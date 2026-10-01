@@ -23,7 +23,7 @@ const THEMES = ['dark', 'light'];
 // specimen on a guideline page, added or removed moves these, and so does a story
 // that stops rendering one: set them to the count the failure prints once the change
 // is meant.
-const EXPECTED = { subjects: 12, donts: 2 };
+const EXPECTED = { subjects: 12, donts: 3 };
 
 const markup = (out) => (typeof out === 'string' ? out : out?.outerHTML ?? null);
 

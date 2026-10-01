@@ -14,6 +14,20 @@
 
 **Except:** Two-answer questions use confirm. Short forms fit; forms needing steps or more than one screen use a page.
 
+## When a drawer is uncomfortable
+
+<!-- rule: comfort -->
+
+**Rule:** Open a page instead of a drawer when the reader edits more than one group, or sets a value for each row of a list.
+
+**Why:** Returning to the opened row is all a drawer buys, and a reader editing several groups pays for it by scrolling a narrow column.
+
+**Do:** Give a member’s roles and per-unit access a page, where every group is in view at once.
+
+**Don't:** Put the same groups in a drawer, where the last unit sits below the fold.
+
+**Except:** Change a single field in its own row, with no panel at all.
+
 ## Grouped content
 
 <!-- rule: no-cards -->
