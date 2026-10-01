@@ -2108,6 +2108,30 @@ opaque table backgrounds and the shared G2 focus composition. Narrow pinned iden
 the symbol, retain the full accessible name, and use a company link for disclosure. The
 consumer supplies a real destination for that link. Columns scroll rather than disappear.
 
+Below the one-column step a table marked `.ui-table--stack` lays each row out as a block
+instead of scrolling: the identity and the short cells on the first line, the cell marked
+`.ui-table__long` on a line under them, and the header row clipped rather than removed, so a
+cell still reads with its column's name. The marked column holds running text at any width;
+the line of its own is what the modifier adds. Pinning, sticky headers, the end-cell inset
+and the card bleed are all off in a stacked row — there is no column left to pin and no inset
+left to pay for — and a pinned identity shows its full name there rather than the symbol
+alone.
+
+A clipped header is read and not operated, so a stacked table's header cells hold text. A
+control left in one is a focus stop with no ring drawn anywhere, because there is nothing on
+screen to draw it on; a sort or filter control belongs on the row above the table instead,
+and `aria-sort` still announces the column the rows are ordered by.
+
+Changing `display` drops a table element's implicit role in every engine, so a table that
+stacks carries `role="table"`, `rowgroup`, `row`, `columnheader` and `cell` in its own
+markup, at every width. The kit cannot write a role from a stylesheet and 560px is not a
+moment markup can react to, so this is the consumer's half of the modifier: without it a
+stacked table reads as runs of text rather than as a table. The modifier is CSS, so React
+takes it through the shared stylesheet wherever the class is set; `DataTable` builds its own
+class list and does not offer it. Held by `src/styles/table-stack.test.js` and
+`stories/table-stack.test.js`; decided in
+[#499](https://github.com/apliteni/apliteni-ui/issues/499).
+
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
 and never mutate the supplied filters. Updating the mounted host preserves the focused chip
 control; after removal focus moves to the next chip, then the previous, then the bar when no

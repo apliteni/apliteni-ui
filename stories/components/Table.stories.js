@@ -81,3 +81,38 @@ export const Empty = {
     </div>
   </div>`),
 };
+
+// A log whose last column is a paragraph (#499). Below the one-column step
+// `ui-table--stack` lays each row out as a block: the handle, the area and the time on
+// one line, the change on a line of its own. The header is clipped rather than removed,
+// so a cell still reads with its column's name, and the roles are written here because
+// changing `display` drops a table element's implicit role in every engine.
+const AUDIT = [
+  ['t.quill', 'Billing', '09:12', 'Raised the monthly spend cap on the Harbor Software workspace from 2,000 to 5,000 EUR, after the June reconciliation closed short.'],
+  ['m.arbor', 'Access', '08:40', 'Revoked the Old integration token. Read-only scope, unused for three weeks.'],
+  ['Review bot', 'Content', '08:02', 'Flagged four pages for a second read: the pricing table and the trial terms disagree on how long the trial runs.'],
+];
+
+export const StackedLog = {
+  render: () => pad(`<div class="ui-card" style="max-width:720px">
+    <h2 class="ui-card__title"><span class="ui-card__icon">${icon('clock')}</span> Audit log</h2>
+    <div class="ui-card__sub">Fabricated entries. Each row stacks on a phone.</div>
+    <table class="ui-table ui-table--dense ui-table--hover ui-table--stack" role="table">
+      <thead role="rowgroup"><tr role="row">
+        <th scope="col" role="columnheader">Who</th>
+        <th scope="col" role="columnheader">Area</th>
+        <th scope="col" role="columnheader">Time</th>
+        <th scope="col" role="columnheader">Change</th>
+      </tr></thead>
+      <tbody role="rowgroup">
+        ${AUDIT.map(([who, area, time, change]) => `
+          <tr role="row">
+            <td role="cell" class="ui-table__code">${who}</td>
+            <td role="cell">${area}</td>
+            <td role="cell">${time}</td>
+            <td role="cell" class="ui-table__long">${change}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`),
+};

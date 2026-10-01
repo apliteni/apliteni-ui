@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'A table marked `ui-table--stack` lays each row out as a block below the one-column step: the identity and the short cells on the first line, the cell marked `ui-table__long` on a line under them, and the header row clipped rather than removed, so a cell still reads with its column name. A log or a queue whose last column is a paragraph now fits a phone without scrolling sideways. Changing `display` drops a table element\u2019s implicit role in every engine, so a table that stacks has to name the table, row group, row, column header and cell roles in its own markup; React takes the modifier through the shared stylesheet, and `DataTable` does not set it. Resolves #499.', ['Table']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],
