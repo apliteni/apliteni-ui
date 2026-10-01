@@ -2479,9 +2479,16 @@ names the comparison through `basisId`. `rowIdentity` combines decorative logo, 
 name; missing or failed images retain a letter fallback after initialization.
 
 A named scroll region holds the native table. Sticky headers and pinned identity cells have
-opaque table backgrounds and the shared G2 focus composition. Narrow pinned identities show
-the symbol, retain the full accessible name, and use a company link for disclosure. The
-consumer supplies a real destination for that link. Columns scroll rather than disappear.
+opaque table backgrounds and the shared G2 focus composition. Below the 720px fold a pinned
+identity cell keeps its content on one line — the kit's own `.ui-identity__name` included —
+and is capped by `--ui-table-identity-max`, `min(--panel-sm, 50vw)` until a consumer retunes
+that one property; the decorative logo is not drawn there. What passes the cap is cut with an
+ellipsis while the whole text stays in the DOM, so the accessible name is unchanged and the
+company link remains the disclosure. The cut is `overflow: clip` with a 16px margin, which is
+what keeps a focused link's ring and glow out of it. The consumer supplies a real destination
+for that link. Columns scroll rather than disappear. Held by
+`src/styles/table-identity.test.js`; decided in
+[#500](https://github.com/apliteni/apliteni-ui/issues/500).
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
 and never mutate the supplied filters. A chip shows the chosen value alone, and the field's

@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-03',
+    changes: [
+      ['fixed', 'Below the phone fold a pinned identity column keeps its name on one line and caps its width at `min(--panel-sm, 50vw)`, cutting a longer name with an ellipsis instead of hiding it or running the column across the screen. The whole name stays in the DOM, so the accessible name and the company link are unchanged. Resolves #500.', ['Table']],
+      ['added', '`--ui-table-identity-max` retunes that cap without restyling the kit\u2019s cell.', ['Table']],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],

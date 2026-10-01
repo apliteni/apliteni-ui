@@ -177,14 +177,43 @@
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+/* Below the fold a pinned identity keeps one line of identity and cuts the rest.
+   `width: 1%` alone sized the column to its longest WORD, so "North region" and a
+   sub-line stacked into a tall sliver that only a consumer restyle could widen
+   (#500). The cell no longer wraps, so the column's floor is one whole line, and
+   --ui-table-identity-max is its ceiling: the panel width on the widest phone,
+   half the screen on the narrowest, which is what leaves the columns beside it
+   room to be paged through. A consumer retunes that one property.
+   why: docs/specification.md#dense-financial-tables */
 @media (max-width: 720px) {
-  .ui-table--pinned .ui-table__identity { width: 1%; }
+  .ui-table--pinned .ui-table__identity {
+    width: 1%;
+    max-width: var(--ui-table-identity-max);
+    white-space: nowrap;
+    /* `clip` with a margin rather than `hidden`: the ellipsis lands on the cell's
+       own edge either way, and the 16px keeps a focused link's ring and glow —
+       which a 4px row inset leaves no room for — out of the cut. */
+    overflow: clip;
+    overflow-clip-margin: var(--space-4);
+    text-overflow: ellipsis;
+  }
+  /* A sub-line is a block of its own, so the cell's ellipsis cannot reach it; each
+     line under the name cuts itself the same way. `.ui-identity` is left out because
+     clipping it would cut a focused link's ring. */
+  .ui-table--pinned .ui-table__identity > :not(.ui-identity) {
+    max-width: 100%;
+    overflow: clip;
+    overflow-clip-margin: var(--space-4);
+    text-overflow: ellipsis;
+  }
   .ui-table--pinned .ui-identity__logo { display: none; }
-  .ui-table--pinned .ui-identity__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .ui-table--pinned .ui-identity { max-width: var(--panel-sm); }
+  .ui-table--pinned .ui-identity { max-width: 100%; }
+  /* The whole name stays in the DOM — the accessible name and the link's own
+     disclosure are what they were; only the drawn line is cut. */
+  .ui-table--pinned .ui-identity__name { min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
 /* One width reserves the selection track and offsets the adjacent identity. */
-.ui-table--pinned { --ui-table-selection-width: var(--space-12); }
+.ui-table--pinned { --ui-table-selection-width: var(--space-12); --ui-table-identity-max: min(var(--panel-sm), 50vw); }
 .ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }
 .ui-table--pinned .ui-table__selection + .ui-table__identity { left: var(--ui-table-selection-width); }
