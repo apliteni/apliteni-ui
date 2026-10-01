@@ -845,11 +845,11 @@
     ],
     "check-density": [
       {
-        "ref": "src/styles/stat.css:127",
+        "ref": "src/styles/stat.css:143",
         "pattern": "@container (width <= 28rem)"
       },
       {
-        "ref": "src/styles/stat.css:128",
+        "ref": "src/styles/stat.css:144",
         "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
       }
     ]

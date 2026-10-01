@@ -85,6 +85,16 @@ const CASES: [string, StatBandProps][] = [
       { label: 'Refunds', value: '€ 0', caption: 'of revenue', delta: { value: null } },
     ],
   }],
+  // A band with no caption of its own: the branch where the kit has nothing to
+  // point a change at, which is where a caption used to cost the caller their
+  // basis. Both sides must print it.
+  ['a captioned figure in a band with no caption of its own', {
+    id: 'n',
+    stats: [
+      { label: 'Operating margin', value: '12.4%', caption: 'of revenue', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } },
+      { label: 'Net margin', value: '8.0%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
+    ],
+  }],
   ['every kind of change', {
     id: 'k',
     basis: 'Against last year',

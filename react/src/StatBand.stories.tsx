@@ -34,8 +34,33 @@ export const Caption: StoryObj = {
   ),
 };
 
+// The row is one line: a caption past the figure's width is clipped, and a change
+// measured against its own target still says so after the change.
+export const CaptionLength: StoryObj = {
+  render: () => (
+    <StatBand
+      basis={BASIS}
+      stats={[
+        { label: 'Gross margin', value: '36.1%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Net margin', value: '8.0%', caption: 'March revenue in EUR, excluding refunds', delta: { value: '+0.4 pts', tone: 'good' } },
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ]}
+    />
+  ),
+};
+
+// The third figure is a caption in a row with no arrow and no number between the
+// two statements, which is why that row spaces them further apart than a change.
 export const NoEarlierFigure: StoryObj = {
   render: () => (
-    <StatBand basis={BASIS} stats={[STATS[1], { label: 'New entity', value: '€ 12,040', delta: { value: null } }]} />
+    <StatBand
+      basis={BASIS}
+      stats={[
+        STATS[1],
+        { label: 'New entity', value: '€ 12,040', delta: { value: null } },
+        { label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } },
+      ]}
+    />
   ),
 };

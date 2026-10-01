@@ -163,26 +163,38 @@ test('a figure draws exactly one row between its value and its trend, whatever i
 });
 
 // Beside a change the caption leads the row, because it belongs to the value
-// above it: "of income, up 1.2 points", never "up 1.2 points of income".
-test("a caption leading a change takes the place of that change's own basis", () => {
-  const doc = dom(statBand({
-    variant: 'band',
-    basis: 'Change against the previous 12 months',
-    id: 'kpi',
-    stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } }],
-  }));
-  const row = doc.querySelector('.ui-stat__delta');
-  assert.equal(row.firstElementChild.className, 'ui-stat__caption', 'the caption does not lead the row');
-  assert.equal(row.querySelector('.ui-stat__basis'), null,
-    'the caption and the change\'s own basis are the same statement in the same place, and both were drawn');
-  assert.doesNotMatch(row.textContent, /40% target/);
-  assert.equal(row.getAttribute('aria-describedby'), 'kpi-basis',
-    'the change gave up its own basis and does not point at the band\'s either');
-  assert.equal(row.textContent.replace(/\s+/g, ' ').trim(), 'of income +1.2 pts');
-  assert.ok(row.querySelector('svg'), 'the change lost its arrow');
-  // Without a caption the basis is still the caller's to print.
-  const kept = dom(statBand({ variant: 'band', stats: [{ label: 'Margin', value: '36.1%', delta: { value: '+1.2 pts', basis: 'against the 40% target' } }] }));
-  assert.equal(kept.querySelector('.ui-stat__basis').textContent, 'against the 40% target');
+// above it: "of income, up 1.2 points", never "up 1.2 points of income". What
+// the change is measured against follows it, so the row reads in that order.
+test('a caption leads the row and what the change is measured against follows it', () => {
+  const row = (opts) => dom(statBand({ variant: 'band', ...opts })).querySelector('.ui-stat__delta');
+  const figure = { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } };
+  const own = row({ stats: [figure], basis: 'Change against the previous 12 months', id: 'kpi' });
+  assert.deepEqual([...own.querySelectorAll('[class^="ui-stat__"]')].map((e) => e.className),
+    ['ui-stat__caption', 'ui-stat__change', 'ui-stat__basis'], 'the row does not read caption, change, basis');
+  assert.equal(own.textContent.replace(/\s+/g, ' ').trim(), 'of income +1.2 pts against the 40% target');
+  assert.ok(own.querySelector('svg'), 'the change lost its arrow');
+  assert.equal(own.getAttribute('aria-describedby'), null,
+    'a figure measured against its own thing was pointed at the band\'s as well');
+});
+
+// The defect this replaces: a caption used to take the basis's place, so a band
+// with no caption of its own printed neither and the change compared against
+// nothing. A basis is passed precisely when a figure is measured against
+// something the band's caption does not cover, so it is never the kit's to drop.
+test('a caption never costs the caller the basis they passed', () => {
+  const figure = { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', basis: 'against the 40% target' } };
+  for (const [name, opts] of [
+    ['with a band caption', { stats: [figure], basis: 'Change against the previous 12 months', id: 'kpi' }],
+    ['with no band caption', { stats: [figure] }],
+  ]) {
+    const doc = dom(statBand({ variant: 'band', ...opts }));
+    assert.equal(doc.querySelector('.ui-stat__basis')?.textContent, 'against the 40% target',
+      `${name}: the basis the caller passed is not on the page`);
+  }
+  // With no caption and no basis of its own, the band's caption is still what a
+  // change points at — the rule a caption no longer changes.
+  const shared = dom(statBand({ variant: 'band', basis: 'Against last year', id: 'b', stats: [{ label: 'Income', value: '€ 1', caption: 'of the group', delta: { value: '+4%' } }] }));
+  assert.equal(shared.querySelector('.ui-stat__delta').getAttribute('aria-describedby'), 'b-basis');
 });
 
 test('a figure with no change and no trend is a label and a value', () => {
