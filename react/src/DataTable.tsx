@@ -67,7 +67,8 @@ export function DataTable<T extends { name: string }>({
   const scrollRegion = useRef<HTMLDivElement>(null);
   const [columnScroll, setColumnScroll] = useState({ overflow: false, start: true, end: false });
   const table = useRef<HTMLTableElement>(null);
-  const [tableWidth, setTableWidth] = useState<number>();
+  const pagerBox = useRef<HTMLDivElement>(null);
+  const [strip, setStrip] = useState<{ width: number; inset: number }>();
   const measureColumns = () => {
     const region = scrollRegion.current;
     if (region) setColumnScroll({
@@ -86,12 +87,26 @@ export function DataTable<T extends { name: string }>({
     measureColumns();
     return () => observer?.disconnect();
   }, [scrollable, columns, rows]);
+  // The strip starts where the table starts and ends where it ends, read against the box
+  // the strip itself sits in rather than against the table's own parent: a scroll region
+  // insets the table 4px inside itself, and a dense table in a card is bled 16px out of it,
+  // so neither edge can be copied from the table's width alone. A table bled past its
+  // container keeps the strip inside — only the table hangs into a card's padding.
   // A width of zero is no measurement: jsdom and a page that has not laid out yet both
   // report one, and a cap of zero would collapse the strip rather than leave it alone.
   useEffect(() => {
     const el = table.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const measure = () => setTableWidth(el.getBoundingClientRect().width || undefined);
+    const host = pagerBox.current?.parentElement;
+    if (!el || !host || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const box = host.getBoundingClientRect();
+      const left = box.left + host.clientLeft
+        + (Number.parseFloat(getComputedStyle(host).paddingLeft) || 0);
+      const inset = Math.max(0, rect.left - left);
+      const width = rect.right - left - inset;
+      setStrip(width > 0 ? { width, inset } : undefined);
+    };
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     measure();
@@ -226,7 +241,8 @@ export function DataTable<T extends { name: string }>({
       // The two are siblings, and no selector sizes one to the other, so the width is
       // measured: a cap rather than a width, so a pager wider than the table wraps
       // inside it and a table wider than the room still leaves the strip in the room.
-      <div className="rx-table-pager" style={tableWidth ? { maxWidth: tableWidth } : undefined}>
+      <div className="rx-table-pager" ref={pagerBox}
+        style={strip ? { maxWidth: strip.width, marginInlineStart: strip.inset || undefined } : undefined}>
         <Pagination page={page} pageSize={size} total={owned ? ordered.length : total ?? null}
           hasMore={hasMore} pageSizes={pageSizes} loading={loading}
           {...(pagerLabel === undefined ? {} : { label: pagerLabel })}

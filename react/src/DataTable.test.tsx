@@ -573,7 +573,10 @@ it('offers column navigation only for overflow and disables each reached edge', 
  * component does with a measurement rather than what a browser measures. The numbers
  * themselves are in the pull request, read off Chromium.
  */
-it('caps its pager at the width of the table it pages', async () => {
+// A 331px-wide table whose left edge sits at `tableLeft`, inside a host box whose content
+// starts at `hostLeft` — the two shapes a scroll region makes: inset 4px inside its own
+// padding, or bled out of a card by 16px. Returns what the component wrote on the strip.
+async function stripIn({ tableLeft, hostLeft }: { tableLeft: number; hostLeft: number }, props = {}) {
   const observed: Element[] = [];
   const realRect = Element.prototype.getBoundingClientRect;
   const realObserver = globalThis.ResizeObserver;
@@ -584,21 +587,79 @@ it('caps its pager at the width of the table it pages', async () => {
   }
   globalThis.ResizeObserver = Observer as unknown as typeof ResizeObserver;
   Element.prototype.getBoundingClientRect = function rect(this: Element) {
-    return { ...realRect.call(this), width: this.matches('table.ui-table') ? 331 : 0 } as DOMRect;
+    const real = realRect.call(this);
+    if (this.matches('table.ui-table')) {
+      return { ...real, left: tableLeft, right: tableLeft + 331, width: 331 } as DOMRect;
+    }
+    if (this.matches('[data-host]')) {
+      return { ...real, left: hostLeft, right: hostLeft + 900, width: 900 } as DOMRect;
+    }
+    return real;
   };
   try {
     const { container } = render(
-      <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} />);
+      <div data-host>
+        <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} {...props} />
+      </div>);
+    let box: HTMLElement | null = null;
     await waitFor(() => {
-      const box = container.querySelector<HTMLElement>('.rx-table-pager');
-      expect(box?.style.maxWidth).toBe('331px');
-      expect(box?.querySelector('.ui-pager')).not.toBeNull();
+      box = container.querySelector<HTMLElement>('.rx-table-pager');
+      expect(box?.style.maxWidth).not.toBe('');
     });
-    expect(observed.some((el) => el.matches('table.ui-table'))).toBe(true);
+    return { style: box!.style, observed, pager: box!.querySelector('.ui-pager') };
   } finally {
     Element.prototype.getBoundingClientRect = realRect;
     globalThis.ResizeObserver = realObserver;
   }
+}
+
+it('caps its pager at the width of the table it pages', async () => {
+  const { style, observed, pager } = await stripIn({ tableLeft: 0, hostLeft: 0 });
+  expect(style.maxWidth).toBe('331px');
+  expect(style.marginInlineStart).toBe('');
+  expect(pager).not.toBeNull();
+  expect(observed.some((el) => el.matches('table.ui-table'))).toBe(true);
+});
+
+/**
+ * `.ui-table-scroll` carries `padding: 0 var(--space-1)`, so a sticky or pinned table
+ * starts 4px inside its region. A cap that copied the width but not the position left the
+ * strip 4px left of the rows at both ends — in the one measurement #504 exists to get right.
+ */
+it("takes the scroll region's inset, so the strip starts where the rows do", async () => {
+  const { style } = await stripIn({ tableLeft: 4, hostLeft: 0 },
+    { stickyHeader: true, pinnedIdentity: true });
+  expect(style.marginInlineStart).toBe('4px');
+  expect(style.maxWidth).toBe('331px');
+});
+
+/**
+ * A dense table in a card is bled 16px out of the card's text column on purpose, so its
+ * columns land on that column's edge. Only the table hangs out: the strip stays inside and
+ * ends where the table ends, which is 315 of the table's 331 here.
+ */
+it('keeps the strip inside the box when the table is bled out of it', async () => {
+  const { style } = await stripIn({ tableLeft: 0, hostLeft: 16 }, { dense: true });
+  expect(style.marginInlineStart).toBe('');
+  expect(style.maxWidth).toBe('315px');
+});
+
+/**
+ * The gap between a table and its pager is one step of the scale, in both faces. The
+ * vanilla sheet declares it on the adjacency a caller writes; this component wraps both
+ * parts, so neither selector reaches it and its own sheet carries the same step. Two
+ * sheets, one value — which is the thing that drifts.
+ */
+it('stands its pager off the table by the step the vanilla sheet uses', () => {
+  const here = dirname(expect.getState().testPath!);
+  const step = /margin-top:\s*var\(--space-4\)/;
+  const vanilla = readFileSync(join(here, '../../src/styles/pagination.css'), 'utf8');
+  const react = readFileSync(join(here, 'DataTable.css'), 'utf8');
+  // Comments out first: both rules carry one that names the other selector.
+  const rule = (css: string, selector: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('}').find((block) => block.includes(selector));
+  expect(rule(vanilla, '.ui-table + .ui-pager')).toMatch(step);
+  expect(rule(react, '.rx-table-pager')).toMatch(step);
 });
 
 /**

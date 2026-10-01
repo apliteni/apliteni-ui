@@ -2099,10 +2099,13 @@ width than the room renders exactly as before and is carried by its scroll regio
 text cell `.ui-table__title` gives that column the width left over.
 
 Nothing sizes a table to the parts attached to it. React `DataTable` caps its pager at the
-measured width of the table it pages, so the strip never runs past the rows and a pager that
-needs more room wraps inside that width. `.ui-table__title` is a cell class: a vanilla caller
-marks the growing column, and `DataTable` offers no column flag for it yet. Held by
-`src/styles/table.test.js` and `react/src/DataTable.test.tsx`.
+measured width of the table it pages, and takes the scroll region's own inset with it, so the
+strip starts where the rows do and never runs past them; a pager that needs more room wraps
+inside that width, and a wrapped strip keeps its controls at the far end. The cap is measured
+after layout, so a host without `ResizeObserver` leaves the pager at its container's width.
+`.ui-table__title` is a cell class: a vanilla caller marks the growing column, and `DataTable`
+offers no column flag for it yet. Held by `src/styles/table.test.js` and
+`react/src/DataTable.test.tsx`.
 
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.

@@ -26,3 +26,9 @@
 @media (prefers-reduced-motion: reduce) {
   .rx-caret { transition: none; }
 }
+
+/* The step the vanilla sheet puts on `.ui-table + .ui-pager`. That selector cannot reach
+   this component — the table and the pager are each inside a wrapper of their own — so the
+   same step is declared here, and DataTable.test.tsx holds the two to one value.
+   why: docs/specification.md#spacing-and-rhythm */
+.rx-table-pager { margin-top: var(--space-4); }
