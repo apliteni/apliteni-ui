@@ -77,17 +77,18 @@ const loaders = () => {
 const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*))?/g)]
   .map((m) => [decodeURIComponent(m[1]).replace(/\+/g, ' '), m[2] ?? '']);
 
-/* Thirteen files load fonts today: the Storybook preview iframe, the Storybook
+/* Fourteen files load fonts today: the Storybook preview iframe, the Storybook
  * manager chrome, the two site pages, the snippet in README.md that tells a
  * consumer what to put in their own <head>, the two review prototypes —
  * docs/reviews/270-back-control/variants.html (#270) and
  * docs/reviews/275-page-limits.html (#275), which draw their screenshots in the
- * kit's own faces — and the four evidence pages, scripts/evidence/shot.html (#286,
+ * kit's own faces — and the five evidence pages, scripts/evidence/shot.html (#286,
  * the rail), scripts/evidence/float.html (#309, the floating step),
- * scripts/evidence/guideline.html (#310, the guideline pages) and
- * scripts/evidence/back.html (#303, the back link): a shot taken in the fallback
- * faces is a shot of a different kit, so each loads them and waits on
- * document.fonts.ready. The twelfth is scripts/evidence/react.mjs (#304), the same
+ * scripts/evidence/guideline.html (#310, the guideline pages),
+ * scripts/evidence/back.html (#303, the back link) and
+ * scripts/evidence/tones.html (#453, the badge and callout tone family): a shot
+ * taken in the fallback faces is a shot of a different kit, so each loads them and
+ * waits on document.fonts.ready. Another is scripts/evidence/react.mjs (#304), the same
  * rig pointed at the React Storybook's build, which imports the kit's stylesheet
  * and no faces of its own. The readme is a subject on purpose —
  * it is the copy of this list that lives outside the repository, in every app
@@ -95,7 +96,7 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
  * asserted because a loader that stops being found stops being checked, and an
  * empty sweep passes as loudly as a full one. */
 // The React preview now loads the same faces as the vanilla preview.
-const EXPECTED_LOADERS = 13;
+const EXPECTED_LOADERS = 14;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

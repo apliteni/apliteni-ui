@@ -179,12 +179,12 @@
   margin-left: auto;
   flex: none;
   color: var(--text);
-  background: color-mix(in srgb, var(--muted) 12%, transparent); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  /* The kit's one neutral chip fill, which #453 moved into a token so the badge, the
+     pill, this chip and the version badge are one family. The per-theme alphas that
+     used to be written here twice live with the token. */
+  background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-:root[data-theme="light"] .ui-dropdown__badge:not(.is-live) {
-  background: color-mix(in srgb, var(--muted) 15%, transparent); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
-}
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }

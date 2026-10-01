@@ -722,7 +722,7 @@
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:248",
+        "ref": "src/tokens/tokens.css:256",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],

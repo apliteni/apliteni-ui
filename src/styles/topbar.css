@@ -196,7 +196,10 @@
   margin-top: 1px;
 }
 .vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+/* The archived version badge is the archive badge tone in a floating menu, so it takes
+   the same neutral chip fill rather than the card surface — which, inside a panel that
+   is itself lighter than a card, was darker than the ground it sat on. #453 */
+.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 /* The switcher keeps its glyph and drops its label where the shell folds — the
    same step the rail folds at: docs/specification.md#breakpoints. */
 @media (max-width: 720px) { .vsw__btn .lbl { display: none; } }

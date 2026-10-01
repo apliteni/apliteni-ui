@@ -288,6 +288,16 @@
       ]
     },
     {
+      "file": "stories/badge-tones.test.js",
+      "name": "Badge tone family",
+      "does": "Discovers every badge and pill tone from the stylesheet and every accent from accents.css, then requires each fill to leave its ground in one direction \u2014 lighter in dark, darker in light \u2014 inside a soft separation band, with no edge and ink above 4.5:1 on its own fill. It measures three grounds (the page, a card and a floating panel) under both themes and all four accents, asserts the case count is the product of those three dimensions, and checks the grounds composite to distinct surfaces rather than silently collapsing to one. It names the thirteen tones it expects. Two mutations prove rejection: re-pointing a tone at the opaque card surface, and putting accent ink back on the neutral fill, which fails on a dark floating panel under three accents of four.",
+      "blind": [
+        "Browser layout, anti-aliasing and consumer overrides. It resolves the source cascade in JSDOM rather than reading rendered pixels; stories/contrast.test.js and stories/dropdown-state-contrast.test.js measure the same pairs in a browser.",
+        "Whether a tone is the right one for a status. It measures the paint, not the meaning.",
+        "The separation floor on the light page is 1.03 rather than 1.1, because the light glow washes sit close to --bg there: warn and pending measure 1.043 today. Tightening it means moving those alphas."
+      ]
+    },
+    {
       "file": "stories/dropdown-field-ground.test.js",
       "name": "Dropdown field ground",
       "does": "Measures how deeply the dropdown search field sinks into its panel, compared per theme with the kit\u2019s own field on a card. The surrounding surface determines the depth: a floating panel is one level above a card.",

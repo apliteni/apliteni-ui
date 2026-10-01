@@ -15,7 +15,11 @@ const sheets = files.map((file) => {
 const declarations = sheets.flatMap(({ file, css }) => customPropertiesIn(css).map((d) => ({ file, ...d })));
 const references = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
 const surface = (value, seen = new Set()) => references(value).some((name) => {
-  if (/^--(?:bg(?:-elevated)?|surface(?:-[23])?|glow-[\w-]+|signal-solid-[\w-]+)$/.test(name)) return true;
+  // chip-*-fill is named here rather than left to the recursion: in dark every signal
+  // fill is an alias of a --glow-* the recursion already finds, but --chip-neutral-fill
+  // is mixed from --muted and the light fills are flat hexes, so a chip that paints one
+  // would leave the gate without being discovered. #453
+  if (/^--(?:bg(?:-elevated)?|surface(?:-[23])?|glow-[\w-]+|signal-solid-[\w-]+|chip-[\w-]+-fill)$/.test(name)) return true;
   if (seen.has(name)) return false;
   return declarations.filter((d) => d.name === name).some((d) => surface(d.value, new Set([...seen, name])));
 });
@@ -31,7 +35,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 138, 'surface discovery changed; the folded rail\'s current-row plate adds three and the disabled checkbox box and its radio mark add two');
+  assert.equal(surfaces.length, 139, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, and chip fills are discovered by name since #453');
   const shared = compositions.find((r) => !r.selector.includes(':root'));
   const covered = (rule) => rule.selector.split(',').every((selector) => shared.selector.split(',').map((s) => s.trim()).includes(selector.trim()));
   for (const rule of surfaces) {
