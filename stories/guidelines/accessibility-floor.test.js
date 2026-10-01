@@ -800,12 +800,14 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
     // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:140 `.ui-focusable:focus-visible,`).
-    // No component wears it and no story renders one, so it has no ground to be
-    // measured against — which is a fact about the class, not a hole here. It
-    // is named rather than filtered so it cannot quietly become two.
+    // (src/styles/base.css:140 `.ui-focusable:focus-visible,`). It stood here as
+    // the one named exemption while nothing wore it; #509's citation link on the
+    // Account preset is the first element that does, so the class has a ground
+    // and the exemption is gone. Every ring selector in the sheet is now landed
+    // and measured, and the list is empty rather than named: a selector nobody
+    // renders is a ring nobody measured, whichever one it turns out to be.
     const orphans = run.selectors.filter((s) => !landed.has(s));
-    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${key}: a ring selector no story renders is a ring nobody measured`);
+    assert.deepEqual(orphans, [], `${key}: a ring selector no story renders is a ring nobody measured`);
   }
 });
 

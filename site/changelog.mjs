@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'Guidelines / Account and settings says where account and personal settings live: on pages in the product shell, not in a sheet or a dialog split into panes. Five rules cover the shape, when one short setting may use a dialog, what the account menu holds, how the pages split \u2014 profile, security and sessions, agents and API tokens, appearance \u2014 and how each page names its one action. Resolves #509.', ['Shell']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

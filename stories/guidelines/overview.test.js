@@ -105,16 +105,20 @@ test('the id rule the page reproduces is the id rule Storybook applies', () => {
   }
 });
 
-// The three files that link the Overview by id — a story id is the kind of
-// string that is right when it is written and wrong a rename later.
+// The files that link the Overview or a rule page by id — a story id is the kind
+// of string that is right when it is written and wrong a rename later. The
+// shipped documents reach Storybook through its public path; a story citing a
+// guideline links the manager relative to the preview iframe, so both spellings
+// are read here.
 test('the pointers into the collection name a story that exists', () => {
   const ids = new Set(storyPages.map((p) => p.id));
   const problems = [];
   let found = 0;
 
-  for (const file of ['README.md', 'docs/README.md', 'site/index.html']) {
+  for (const file of ['README.md', 'docs/README.md', 'site/index.html',
+    'stories/apps/AccountPreset.stories.js']) {
     const text = readFileSync(path.join(root, file), 'utf8');
-    for (const m of text.matchAll(/\/storybook\/\?path=\/story\/(guidelines-[a-z0-9-]+)/g)) {
+    for (const m of text.matchAll(/(?:\/storybook|\.)\/\?path=\/story\/(guidelines-[a-z0-9-]+)/g)) {
       found += 1;
       if (!ids.has(m[1])) {
         problems.push(`${file} links story ${m[1]}, and no story module in stories/guidelines/ `
@@ -152,7 +156,7 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.deepEqual(LINKS.map(link => link.title), PAGES.map(page => page.title));
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
-  assert.equal(rules, 104);
+  assert.equal(rules, 109);
   assert.equal(INTRO, '');
   assert.equal(PAGES.flatMap(page => page.gaps).length, 0, 'update the Overview when a rule is unmet');
 });

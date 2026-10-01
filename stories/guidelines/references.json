@@ -809,5 +809,49 @@
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
+  },
+  "_account-and-settings.js": {
+    "pages": [
+      {
+        "ref": "src/components/shell.js:440",
+        "pattern": "export function accountShell("
+      }
+    ],
+    "one-setting": [
+      {
+        "ref": "src/components/confirm.js:43",
+        "pattern": "export function confirm("
+      }
+    ],
+    "menu": [
+      {
+        "ref": "src/components/topbar.js:57",
+        "pattern": "export function accountMenu("
+      },
+      {
+        "ref": "src/components/topbar.js:83",
+        "pattern": "Sign out"
+      }
+    ],
+    "split": [
+      {
+        "ref": "src/components/account-nav.js:14",
+        "pattern": "export const ACCOUNT_NAV = ["
+      },
+      {
+        "ref": "src/components/nav.js:106",
+        "pattern": "export function sidebarNav("
+      }
+    ],
+    "one-action": [
+      {
+        "ref": "src/components/index.js:25",
+        "pattern": "export function button("
+      },
+      {
+        "ref": "src/styles/button.css:45",
+        "pattern": ".ui-btn--primary {"
+      }
+    ]
   }
 }
