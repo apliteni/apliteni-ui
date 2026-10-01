@@ -805,7 +805,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:278",
+        "ref": "src/components/index.js:280",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
