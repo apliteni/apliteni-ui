@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.64.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],
+      ['changed', 'React Button now merges a caller `className` with the kit classes instead of replacing them. Its own `aria-disabled`, `aria-busy` and `data-btn-*` attributes win over spread props, so a busy or disabled control cannot be made to read as idle.', ['Button']],
+    ],
+  },
+  {
     v: '0.63.0', date: '2026-10-01',
     changes: [
       ['added', 'React Checkbox supports checkboxes and grouped radios, and Switch renders a native checkbox with the existing switch track. Both accept native input props and refs, including controlled state and disabled inputs. Switch takes className on its visible label and names an empty label "Toggle". Part of #429.'],

@@ -69,6 +69,20 @@ for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconO
 Its glyph is 13px and its icon-only target is 24×24px; labelled xs buttons use
 `--text-xs`. The other sizes keep 16px glyphs.
 
+`Button href="/reports"` renders a native link and forwards an anchor ref. Without
+`href`, it remains a native button. `leading={<VendorMark />}` puts decorative
+caller artwork before the label and takes precedence over `icon`; artwork must
+contain no focusable elements. Use visible children or an explicit accessible name.
+Disabled links leave the tab order; busy links keep focus. Both remove their href
+and block activation until enabled. Anchor attributes such as `target`, `rel`,
+and `download` pass through. The kit does not supply vendor artwork.
+
+A `className` you pass is added to the kit's classes rather than swapped for them,
+and the component's own `aria-busy`, `aria-disabled` and `data-btn-*` attributes win
+over anything you spread in, so a busy control cannot be made to read as idle. An
+icon-only control with no children, no `icon` and no label ships nameless on purpose:
+the gap then shows up in an accessibility check instead of reading as satisfied.
+
 `CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
 kit's ranking rather than repeating it — so a palette a server rendered and the same palette
 after a keystroke put the same row first. Two differences from the vanilla one follow from
