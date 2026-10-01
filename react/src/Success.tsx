@@ -33,8 +33,11 @@ export type SuccessPanelProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | '
 };
 
 export const SuccessPanel = forwardRef<HTMLDivElement, SuccessPanelProps>(function SuccessPanel({ title = 'Done', sub, check = 'line', className, ...rest }, ref) {
+  // The circled mark is one status size everywhere, so the box narrows for it,
+  // exactly as vanilla successPanel() writes the modifier.
+  const circled = check === 'circled';
   return <div {...rest} ref={ref} className={['ui-success', className].filter(Boolean).join(' ')}>
-    <div className="ui-success__check"><SuccessCheck variant={check === 'circled' ? 'circled' : 'line'} /></div>
+    <div className={['ui-success__check', circled && 'ui-success__check--circled'].filter(Boolean).join(' ')}><SuccessCheck variant={circled ? 'circled' : 'line'} /></div>
     <div className="ui-success__title">{title}</div>
     {sub && <div className="ui-success__sub">{sub}</div>}
   </div>;

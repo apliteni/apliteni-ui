@@ -109,7 +109,7 @@ test('block confirmation shares the full-page check and keeps text escaped', () 
   assert.ok(!successPanel().includes('ui-success__sub'));
 });
 
-/* The check mark, after r22 replaced the disc-and-burst artwork with two Lucide
+/* The check mark, after #429 replaced the disc-and-burst artwork with two Lucide
  * marks on a plain card. Two things are worth a gate rather than a screenshot:
  * the paths must stay the unmodified Lucide ones Guidelines / Iconography
  * requires, and the backdrop layers must not come back — they were markup, so
@@ -158,7 +158,7 @@ test('the confirmation carries its mark on its root and no backdrop layer', () =
     assert.ok(html.includes(`ui-sx--check-${cls}`), `success({ check: ${JSON.stringify(check)} }) did not mark its root ui-sx--check-${cls}`);
     assert.ok(html.includes(successCheck(cls)), 'the root class and the mark it draws disagree');
   }
-  // r22: the blurred aurora blobs and the ambient green glow are gone for good.
+  // #429: the blurred aurora blobs and the ambient green glow are gone for good.
   const every = ['hero', 'split', 'compact'].map((layout) => success({ layout, confetti: true }));
   for (const html of every) {
     for (const gone of ['ui-sx__aurora', 'ui-sx__glow', 'ui-sx__bg-glow', 'ui-glow']) {
@@ -229,4 +229,56 @@ test('the stylesheet keeps no rule for the tier the markup no longer has', () =>
   assert.ok(!css.includes('ui-sx__eyebrow'),
     'src/styles/success.css still paints .ui-sx__eyebrow. A rule nothing emits is an invitation to '
     + 'hand-write the element back, and it keeps a rank note src/styles/type-ranks.test.js counts.');
+});
+
+/* `circled` is one size everywhere — including the inline panel.
+ *
+ * The size lives in two sheets: success.css sizes it for success()'s three
+ * layouts, callout.css narrows the inline panel's box to match. Nothing else
+ * ties them together, so the two can drift apart silently — which is exactly
+ * what they had done before #429 measured the panel and found 28px behind a
+ * published 20px guarantee.
+ *
+ * Limits: this reads the declarations, it does not paint. It proves the two
+ * sheets agree on a number, not that a browser draws it; the measurement that
+ * found the original drift was a browser, and so is the capture in the PR.
+ *
+ * why: docs/specification.md#success-confirmations
+ */
+const sizeOf = (css, selector) => {
+  const rule = new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`).exec(css);
+  assert.ok(rule, `no rule for \`${selector}\` — it was renamed or removed, so nothing sizes that mark`);
+  const w = /width:\s*([\d.]+)px/.exec(rule[1]);
+  const h = /height:\s*([\d.]+)px/.exec(rule[1]);
+  assert.ok(w && h, `\`${selector}\` stopped setting both a width and a height in px`);
+  return { w: Number(w[1]), h: Number(h[1]) };
+};
+
+test('the inline panel draws the circled mark at the same size success() does', () => {
+  const successCss = readFileSync(new URL('../styles/success.css', import.meta.url), 'utf8');
+  const calloutCss = readFileSync(new URL('../styles/callout.css', import.meta.url), 'utf8');
+
+  const page = sizeOf(successCss, '.ui-sx--check-circled .ui-sx__check');
+  const panel = sizeOf(calloutCss, '.ui-success__check--circled');
+
+  assert.deepEqual(panel, page,
+    `the inline panel sizes the circled mark ${panel.w}x${panel.h} while success() draws it `
+    + `${page.w}x${page.h}. The specification promises one status size everywhere, and `
+    + 'docs/specification.md#success-confirmations, react/README.md and the changelog all state '
+    + 'the number — move all four together or none.');
+  assert.equal(page.w, page.h, 'the mark is square; a Lucide glyph in a 24 box has no other shape');
+
+  // The guarantee is a number a reader can look up, so hold the number too: a
+  // matched pair that both drifted would otherwise satisfy the assertion above.
+  assert.equal(page.w, 20,
+    'the circled mark left 20px. That number is published in the specification, react/README.md '
+    + 'and site/changelog.mjs; change those in the same commit or put it back.');
+
+  // The rule only reaches the panel if successPanel() writes the modifier, and only
+  // for the circled mark. A class nothing emits would pass the comparison above.
+  assert.match(successPanel({ check: 'circled' }), /class="ui-success__check ui-success__check--circled"/,
+    'successPanel({ check: \'circled\' }) stopped writing the modifier, so the 20px rule reaches nothing');
+  assert.doesNotMatch(successPanel({ check: 'line' }), /ui-success__check--circled/,
+    'the line mark took the circled box; it is sized by the panel, not by the status rule');
+  assert.doesNotMatch(successPanel(), /ui-success__check--circled/, 'the default took the circled box');
 });

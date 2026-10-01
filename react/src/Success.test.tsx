@@ -115,6 +115,19 @@ it('lets the inline panel pick its mark too', () => {
   expect(container.querySelector('svg.ui-sx__check')).toHaveClass('ui-sx__check--line');
 });
 
+// The circled mark is one status size everywhere, and the panel's box is what sets
+// it. Vanilla writes the same modifier; src/components/success.test.js holds the two
+// stylesheets to the same number, and this holds React to the same markup.
+// why: docs/specification.md#success-confirmations
+it('narrows the panel box for the circled mark, as vanilla does', () => {
+  const { container, rerender } = render(<SuccessPanel check="circled" />);
+  expect(container.querySelector('.ui-success__check')).toHaveClass('ui-success__check--circled');
+  for (const check of [undefined, 'line', 'nonsense'] as const) {
+    rerender(<SuccessPanel check={check as never} />);
+    expect(container.querySelector('.ui-success__check')).not.toHaveClass('ui-success__check--circled');
+  }
+});
+
 it('lets SuccessCheck pick its own mark, defaulting to the line', () => {
   const { container, rerender } = render(<SuccessCheck />);
   expect(container.querySelector('svg')).toHaveClass('ui-sx__check--line');

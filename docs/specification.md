@@ -2471,7 +2471,7 @@ the reader still needs.
 `success()` and React `Success` draw that confirmation on a plain elevated card: the
 kit surface, its border, and nothing behind it. There is no backdrop layer, and no
 `backdrop` option — the blurred aurora blobs and the ambient green glow were
-removed in r22 because they read as smudges rather than depth. The split layout
+removed under [#429][i429] because they read as smudges rather than depth. The split layout
 keeps its flat tinted visual panel, and the inline `successPanel()` keeps its
 `--glow-green` wash; both are single flat fills, not blurs.
 
@@ -2481,8 +2481,12 @@ directly:
 
 | `check` | Mark | Size | Motion |
 | --- | --- | --- | --- |
-| `line` (default) | Lucide `check`, bare, in the success colour | 56px hero, 72px split, 28px compact | strokes itself on over `--dur-slow` |
-| `circled` | Lucide `circle-check-big` (the kit's `circleCheck`) | 20px, the kit's label size, in every layout | at rest |
+| `line` (default) | Lucide `check`, bare, in the success colour | 56px hero, 72px split, 28px compact, 28px inline panel | strokes itself on over `--dur-slow` |
+| `circled` | Lucide `circle-check-big` (the kit's `circleCheck`) | 20px, the kit's label size — every `success()` layout **and** the inline `successPanel()` | at rest |
+
+`line` is sized by the layout it lands in; `circled` is one size everywhere, because a
+status mark that changes size reads as an illustration. The inline panel's box narrows
+to 20px for it rather than stretching it to the 28px the line mark fills.
 
 Both are unmodified Lucide paths at Lucide's own `stroke-width: 2`, in a 24 box.
 Any other `check` value takes `line`. Neither mark has a filled disc or a burst
@@ -2492,8 +2496,7 @@ ring behind it.
 for an action, and a confirmation reports a state.** `circled` is therefore the
 mark that rule asks for; `line` is the default because it carries the moment at
 page size, where a 20px mark does not. A surface that wants the rule met passes
-`check: 'circled'`. This exception is deliberate and recorded here rather than
-silently taken.
+`check: 'circled'`.
 
 An action that is not a kit `Button` — a router link, a plain `<a>` — takes
 `.ui-focusable`, the kit's opt-in focus class. Without it the browser paints its own

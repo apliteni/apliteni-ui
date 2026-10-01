@@ -268,7 +268,9 @@ export function toast({
 // Pick by how much of the screen the confirmation owns. The two share the check;
 // their layout and content remain independent.
 export function successPanel({ title = 'Done', sub = '', check = 'line' } = {}) {
-  return `<div class="ui-success"><div class="ui-success__check">${successCheck(check)}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
+  // The circled mark is one status size everywhere, so the box narrows for it.
+  const box = check === 'circled' ? 'ui-success__check ui-success__check--circled' : 'ui-success__check';
+  return `<div class="ui-success"><div class="${box}">${successCheck(check)}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
 }
 
 // ---- Empty state ---------------------------------------------------------

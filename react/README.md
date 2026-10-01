@@ -567,8 +567,9 @@ next to it.
 ```
 
 The mark comes in two: `line` (the default) is the bare Lucide check in the success
-colour, which strokes itself on; `circled` is Lucide `circle-check-big` at 20px, the
-kit's label size, drawn at rest. Pick it with `check` on `Success` or `variant` on
+colour, which strokes itself on and takes its size from the layout it lands in;
+`circled` is Lucide `circle-check-big` at 20px, the kit's label size, drawn at rest and
+the same size everywhere — in every `Success` layout and in `SuccessPanel`. Pick it with `check` on `Success` or `variant` on
 `SuccessCheck`. Guidelines / Iconography reserves a circled glyph for a state and a
 bare one for an action, and a confirmation reports a state — so `circled` is the mark
 that rule asks for, and `line` is the default because it carries the moment at page

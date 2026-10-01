@@ -477,7 +477,7 @@ test('the five toast statuses resolve to five different accents and five differe
   }
 });
 
-// r22 took the tinted disc out from behind the tick, so the mark now paints straight
+// #429 took the tinted disc out from behind the tick, so the mark now paints straight
 // onto the panel wash and there is one ground to measure rather than two.
 // This measures solid paint; browser pixel evidence covers the mark's size and animation.
 test('the success-panel tick clears 3:1 against the panel wash in both themes', () => {
@@ -509,7 +509,7 @@ test('the success-panel tick clears 3:1 against the panel wash in both themes', 
 
 /* The page-sized mark, on every ground it actually reaches.
  *
- * The panel test above covers successPanel() only. r22 took the tinted disc away, so
+ * The panel test above covers successPanel() only. #429 took the tinted disc away, so
  * the mark on a success() card is now a stroke straight onto the surface behind it, and
  * nothing measured that: signal-contrast.test.js scans callout.css for status glyph
  * families, and .ui-sx__tick is neither in that sheet nor a status family.

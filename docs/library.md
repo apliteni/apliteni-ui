@@ -211,12 +211,14 @@ Ask how much of the screen the confirmation owns. If it sits under a form that j
 submitted, or inside a card on a page the user is staying on, you want
 `successPanel({ title, sub })` — a check, a title and one line of sub, with nothing to
 configure. If the confirmation *is* the screen, and the user needs somewhere to go next,
-you want `success({ layout, backdrop, actions, … })`, which picks a layout and a backdrop,
+you want `success({ layout, check, actions, … })`, which picks a layout and a check mark,
 carries follow-up buttons, and can run an auto-redirect countdown once you call
 `wireSuccess()` on the mounted element.
 
-Restyling one never moves the other, because they share no CSS: `successPanel` is
-`.ui-success` in `styles/callout.css`, `success` is `.ui-sx` in `styles/success.css`.
+Restyling one never moves the other's block, because they own separate rules:
+`successPanel` is `.ui-success` in `styles/callout.css`, `success` is `.ui-sx` in
+`styles/success.css`. The check mark is the exception — both draw `successCheck()`, so
+`styles/success.css` paints it for each.
 
 ### Forms
 
