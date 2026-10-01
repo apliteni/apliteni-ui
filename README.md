@@ -220,6 +220,12 @@ react/                   # React components — private workspace, built to reac
   dist/                  #   tsup output; shipped as …/react and …/react/css
 ```
 
+`SidebarNav` renders flat items or captioned sections with one level of nested
+disclosure, counts, disabled and danger rows, an artwork slot, and a footer slot. Its
+`renderLink(item, linkProps)` hook supports router links; spread the supplied props
+to retain names, children and current-page semantics. `collapsed` changes only
+presentation, keeping nested links reachable and named.
+
 ## Contribute
 
 Use Node 20 or newer. Install [jq](https://jqlang.github.io/jq/), then run `npm ci` at

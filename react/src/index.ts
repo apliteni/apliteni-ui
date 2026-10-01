@@ -84,3 +84,6 @@ export { ThemeToggle, THEME_INIT_SCRIPT } from './ThemeToggle';
 export type { ThemeToggleProps } from './ThemeToggle';
 export { Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';
+
+export { SidebarNav } from './SidebarNav';
+export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';

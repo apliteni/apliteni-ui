@@ -62,8 +62,8 @@ const sweep = STYLE_FILES.flatMap((file) =>
 // Asserted so coverage cannot shrink to zero and stay green. Moving it means
 // reviewing each added or removed declaration.
 test('the sweep sees every box-shadow the kit ships', () => {
-  assert.equal(sweep.length, 46,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 46. `
+  assert.equal(sweep.length, 49,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 49. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

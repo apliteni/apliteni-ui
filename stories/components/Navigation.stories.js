@@ -69,16 +69,19 @@ export const Sidebar = {
         footer: SIGN_OUT,
       }),
     ),
-    // The accent counter ON the active row — the one place the kit reads accent
-    // ink on a raised surface. The rail above cannot also show it: only one row
-    // is ever active, and that one carries the neutral counter. It is here so
-    // the contrast walk measures the pair rather than a person's reading of it.
-    // src/styles/nav.css:158 `.ui-nav__item.is-active .ui-nav__badge.is-accent` gives the counter the
-    // active row's own --surface-3 instead of
-    // laying --glow-purple over it; deleted, that rule broke nothing in the
-    // suite until this specimen existed. See #157.
+    // The accent counter ON the active row. Since #429 it reads as the neutral one
+    // beside it: the row already carries the one accent signal a rail row is
+    // allowed — the marker — and the count is a number, not a second answer to
+    // "where am I". The rail above cannot show this pair: only one row is ever
+    // active. It is here so the contrast walk measures it rather than a person's
+    // reading of it.
+    // src/styles/nav.css:160 `.ui-nav__item.is-active .ui-nav__badge.is-accent` drops
+    // both the wash and the accent; deleted, that rule broke nothing in the suite
+    // until this specimen existed. What it retires is the pair #157 recorded —
+    // accent ink on --surface, under WCAG AA in four of the eight theme x accent
+    // cells. See #157 and #429.
     specimen(
-      'The accent counter on the active row — an active row is already raised, so the counter takes that surface rather than stacking the accent wash on it',
+      'The accent counter on the active row — the row carries the one accent signal, so the counter reads as the neutral one beside it',
       sidebarNav({
         ariaLabel: 'Overview',
         sections: [SECTIONS[0]],

@@ -1060,9 +1060,15 @@ What the shell guarantees:
   control that replaced it, and the box keeps its space so the band keeps its height. Below 720px
   the toggle is not drawn, nothing arrives on the mark's column, and the band is the lockup alone
   with its words folded away.
-- **The toggle is one mark, and the mark is the state.** The control is a frame that holds still
-  and a seam that crosses it — `lessly-ui`'s `RailToggle`, which this rail is reworked on — so what
-  a reader takes from it is which arrangement the panel is in rather than a direction to press. No
+- **The toggle is one mark, and the mark says what the press will do.** The control is Lucide
+  `panel-left-close` on an open rail and Lucide `panel-left-open` on a folded one: a frame, a seam
+  at 9 that never moves, and a chevron pointing the way the press moves the rail's edge. The seam
+  holds still because it IS the rail — the compartment it cuts off stays on the side the rail is
+  on. Until #429 the seam was what travelled, mirrored about the frame's centre as `lessly-ui`'s
+  `RailToggle` mirrors its own, and it landed at 15: a WIDE left compartment beside a rail that had
+  just become narrow, which is the mark reporting the opposite of what happened. Artur rejected that
+  mark on 2026-09-30 and named Cloudflare's dashboard and `lessly-ui` as the references; the panel
+  frame is what both draw, and Lucide's own pair is the frame with the direction added. No
   words beside it and no tooltip of its own: it takes the same name chip every other row takes on a
   folded rail, and it takes that chip on an open rail too. Every other row reads its own name on an
   open rail; the toggle is the one row that is its mark at both widths, so it is the one row whose
@@ -1079,15 +1085,33 @@ What the shell guarantees:
   `stories/apps/shell.test.js` compares the two attribute for attribute — which is what makes "by
   construction" a thing a reader can check. The box it is drawn in is the glyph column —
   `--ui-nav-strip`, a row's padding either side of a glyph, which is the width the closed rail is
-  derived from — one box, written once, at both widths; where that box stands is the bullet above. The seam moves on `--dur-med`, the rail's own
-  clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and its
-  distance is the frame's own mirror rather than a number: the seam is drawn at 9 in an 18-unit
-  frame and lands at 15, so the narrow compartment changes sides.
-  `stories/apps/shell-states.test.js` reads the frame and the seam out of the factory and refuses a
-  travel the mark does not explain, a control wider or narrower than the column, a seam that holds
-  still between the two states, an offset written as a number rather than as the two widths' own
+  derived from — one box, written once, at both widths; where that box stands is the bullet above. The chevron turns over on `--dur-med`, the rail's own
+  clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and the
+  turn is a reflection rather than a number: `panel-left-close`'s chevron is drawn at 13..16 and
+  mirrored about 15, the centre of the compartment it stands in, which lands it at 14..17 — exactly
+  where Lucide draws `panel-left-open`'s. So both states are a shipped glyph and the CSS between
+  them is one axis.
+  `stories/apps/shell-states.test.js` reads the frame, the seam and the chevron out of the factory
+  and refuses a seam past the frame's centre, a seam that moves at all, a chevron that holds still
+  between the two states, a mirror that does not land on Lucide's own open glyph, a control wider or
+  narrower than the column, an offset written as a number rather than as the two widths' own
   difference, and a band that stacks its marks again. The same file resolves the toggle's chip at both widths, under
   the pointer and under the keyboard, so the rule cannot be scoped back to the fold.
+- **One accent signal per rail row, and on a folded rail it is a plate rather than a bar.** An open
+  rail marks the current row with the accent marker in its left padding, and with nothing else in
+  the accent: the glyph takes the row's own ink at full strength — which is the step that says
+  "current" whatever `--accent` is doing — and an accent counter on that row reads as the neutral
+  one beside it. Before #429 a current row could carry all three at once, and the counter's pair
+  (accent ink on `--surface`) was the one #157 recorded under WCAG AA in four of the eight theme x
+  accent cells; nothing paints it now. On a folded rail the marker is dropped and the row takes one
+  plate instead: `--surface-3`, the kit's quiet non-text fill, `--ui-nav-strip` wide at the row's
+  own edge — twice a glyph's centre, so the plate is centred on the glyph. The bar cannot serve
+  there, because the padding it stands in is the rail's own edge on a strip and a nested row puts it
+  `--space-3` further out again; nor can the resting hairline, which is drawn on a row that keeps
+  the open column and so has its right edge off the strip. Both references mark current the same
+  way and with no hue: Cloudflare's docs rail paints a flat plate, and `lessly-ui`'s rail is a plate
+  and the weight step. Artur asked for it on 2026-09-30. The plate sits behind the glyph on the
+  row's own stacking context, so the focus ring is untouched.
 - **The fold travels, and no glyph moves while it does — except the one that rides the edge.** The
   rail's column keeps its open width and the box closes over it, so nothing inside is laid out a
   second way: the width goes from
@@ -2372,3 +2396,18 @@ Held by `react/src/primitives/Pill.test.tsx` and
 `react/src/primitives/StatusDot.test.tsx`; these check DOM behavior and semantics,
 not visual rendering or assistive-technology announcements. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+## React sidebar navigation
+
+`SidebarNav` renders the shared sidebar classes without a vanilla initializer.
+It accepts flat items or captioned sections, nested groups, counts, optional artwork,
+a footer slot and router-link rendering. A group holds leaves: nesting stops one level
+deep, the depth `sidebarNav()` renders, and a deeper child is dropped as it is there. Each row retains its accessible name and
+count when collapsed; disclosures remain keyboard operable and use unique controlled
+list IDs. Current links use `aria-current="page"`, or `"true"` for `activeIs="section"`.
+Disabled leaves render non-interactive spans. Groups containing the current item
+open unless `defaultOpen` or a user toggle sets their state. Folding does not reset it.
+AppShell composes this navigation in its desktop rail and More drawer.
+
+Held by `react/src/SidebarNav.test.tsx`; browser captures verify presentation separately.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
