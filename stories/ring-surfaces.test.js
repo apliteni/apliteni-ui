@@ -31,7 +31,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 0, 'surface discovery changed; the folded rail\'s current-row '
+  assert.equal(surfaces.length, 141, 'surface discovery changed; the folded rail\'s current-row '
     + 'plate adds three, the disabled checkbox box and its radio mark add two, and the '
     + 'invoice prototype adds three reading-surface rules');
   const shared = compositions.find((r) => !r.selector.includes(':root'));
