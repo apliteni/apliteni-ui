@@ -9,15 +9,12 @@
 
 .ui-filter-bar .ui-dropdown__pre, .ui-filter-bar .ui-dropdown__value { color: inherit; }
 
-/* A chip's panel is as wide as the chip's own trigger, and never the 240px floor
-   .ui-dropdown__panel gives a standalone dropdown. A panel is absolutely
-   positioned at its trigger's inline start, so a chip that begins far enough
-   along a narrow row puts its panel past the screen — shut as well as open,
-   because a `visibility: hidden` box is still laid out and still counts towards
-   the page's scrollable width. Measured on the React story: a 398px page on a
-   390px view, which scrolled sideways, and 23px over at 375px. The chips
-   themselves wrap and always fitted; their panels did not. Bounding a panel by
-   the trigger it drops from keeps it inside a row that fits, at every width and
-   with nothing measured, and a filter's options are the short values its own
-   chip already shows. why: docs/specification.md#a-filter-row-holds-its-panels */
+/* A chip's panel is as wide as the chip's trigger, never the 240px floor
+   .ui-dropdown__panel gives a standalone dropdown. A panel is positioned at its
+   trigger's inline start, so on a narrow row a later chip put its panel past the
+   screen — shut as well as open, a `visibility: hidden` box still being laid out
+   and still counting towards the page's scrollable width. The percentage
+   resolves against .ui-dropdown, the panel's containing block, which is the
+   trigger's width because the trigger is its one in-flow child.
+   why: docs/specification.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; }

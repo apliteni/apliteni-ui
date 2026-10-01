@@ -1610,10 +1610,19 @@ instead of widening. That suits the values a filter shows — a filter's options
 its chip already carries — and a list that needs more room than that is a dropdown rather than a
 filter.
 
+The guarantee holds against stylesheets, the kit's own and a consumer's: the bound carries more
+classes than any floor that could outrank it. It does not survive an inline `min-width` on the
+panel, which beats a stylesheet `max-width` whatever its specificity, so a consumer style or script
+that writes one re-opens [#467](https://github.com/apliteni/apliteni-ui/issues/467). The one writer
+inside the kit, `ddResetSearch()`, sets it to the panel's already-bounded `offsetWidth`, so a search
+dropdown composed inside a filter bar stays inside the row.
+
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
 and requires each one to be answered inside the bar, and measured in a browser by
-`scripts/evidence/filter-bar-fit.mjs` at 375px and 390px, which also puts the floor back and
-requires every case to fail.
+`scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes. That gate sweeps
+both Storybook indexes for every story rendering a filter bar, measures each panel against the
+`.ui-dropdown` that contains it, and puts the floor back to require a panel in every case that
+carries one to widen.
 
 ## A dropdown row is a div, a link or a button
 
