@@ -159,22 +159,9 @@
   scale: 1;
 }
 
-/* The count is the one thing a pile hides: how much is waiting behind the front
-   card. It sits above the pile and leaves once the pile has answered for itself.
-   .ui-badge--neutral is text on --surface, not on a grey fill. */
-.ui-toast-stack__count {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  margin-bottom: var(--space-2);
-  transition: opacity var(--dur-fast) var(--ease), visibility var(--dur-fast) linear;
-}
-.ui-toast-stack--collapsed:hover > .ui-toast-stack__count,
-.ui-toast-stack--collapsed:focus-within > .ui-toast-stack__count { opacity: 0; visibility: hidden; }
-
 /* Half of what opens a pile is hover. Where the reader has none, and the cards
    behind the front one are not focusable, a pile is one nobody can open — so
-   the stack stays the plain column and the count has nothing to add.
+   the stack stays the plain column.
    The question is hover, not precision: `(pointer: coarse)` is the kit's field
    sizing net and answers a different one (stories/field-zoom.test.js).
    Each fanned state is named again rather than left to the shorter selector:
@@ -188,7 +175,6 @@
   .ui-toast-stack--collapsed > .ui-toast,
   .ui-toast-stack--collapsed:hover > .ui-toast,
   .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; }
-  .ui-toast-stack--collapsed > .ui-toast-stack__count { display: none; }
 }
 
 /* Success panel — centered confirmation, used after form submit */

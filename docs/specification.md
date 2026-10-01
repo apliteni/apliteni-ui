@@ -2329,8 +2329,8 @@ A stack of notices can collapse into a pile. `.ui-toast-stack--collapsed` draws
 its notices on top of one another, bottom-aligned, with the newest in front and
 each one behind it lifted `TOAST_PEEK` further and drawn one scale step smaller.
 Notices past `TOAST_TIERS` rest on the last tier, so a ninth notice makes the
-pile no taller than a third one. `.ui-toast-stack__count` sits above the pile as
-a `.ui-badge--neutral` chip and says how many are waiting. A pile needs
+pile no taller than a third one. The cards peeking behind the front one are what
+say more is waiting; the pile carries no counted chip above it. A pile needs
 `TOAST_PILE_MIN` notices: one notice collapsed would only hide behind itself.
 
 The pile fans out into the ordinary column on `:hover` and on `:focus-within`,
@@ -2348,7 +2348,7 @@ scaling about the bottom edge took off the top, so every tier shows exactly
 card rather than assuming it: `pushToast()` prepends, so a live vanilla stack
 reads newest-first, while the React provider appends and reads oldest-first.
 
-Under `(hover: none)` the stack stays the plain column and draws no count: half
+Under `(hover: none)` the stack stays the plain column: half
 of what opens a pile is hover, and the notices behind the front card are not
 focusable, so a pile there would be one nobody could open. The query asks about
 hover rather than pointer precision, because `(pointer: coarse)` is the field

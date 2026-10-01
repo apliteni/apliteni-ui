@@ -40,7 +40,3 @@ export function toastPileGeometry(heights, gap = TOAST_GAP) {
   };
 }
 
-/** The readable count above a pile. Below `TOAST_PILE_MIN` there is nothing to say. */
-export function toastPileLabel(count) {
-  return count === 1 ? '1 notice' : `${count} notices`;
-}

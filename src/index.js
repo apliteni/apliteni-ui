@@ -32,5 +32,5 @@ export { SCORE, rankGroups, rankCommands, scoreCommand, paletteHotkey } from './
 export { segmentedNextIndex } from './logic/segmented.js';
 export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
 export { calloutIcons } from './logic/callout.js';
-export { toastPileGeometry, toastPileLabel, TOAST_PEEK, TOAST_SCALE_STEP, TOAST_TIERS, TOAST_PILE_MIN, TOAST_GAP } from './logic/toast-stack.js';
+export { toastPileGeometry, TOAST_PEEK, TOAST_SCALE_STEP, TOAST_TIERS, TOAST_PILE_MIN, TOAST_GAP } from './logic/toast-stack.js';
 export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';

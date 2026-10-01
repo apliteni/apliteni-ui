@@ -14,7 +14,7 @@
 //
 //   const pile = collapseToastStack(stack);  // fan-out pile; pile.stop() undoes it
 import { toast } from './index.js';
-import { toastPileGeometry, toastPileLabel, TOAST_GAP, TOAST_PILE_MIN } from '../logic/toast-stack.js';
+import { toastPileGeometry, TOAST_GAP, TOAST_PILE_MIN } from '../logic/toast-stack.js';
 
 const reduceMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -199,28 +199,19 @@ export function watchToastPile(stack, { onSync, ...options } = {}) {
 }
 
 /**
- * Collapse a live stack into a pile, with the count above it, and keep both
- * measured. Below TOAST_PILE_MIN notices there is no pile: one notice is not a
- * stack, and collapsing it would only hide it behind itself.
+ * Collapse a live stack into a pile and keep it measured. Below TOAST_PILE_MIN
+ * notices there is no pile: one notice is not a stack, and collapsing it would
+ * only hide it behind itself.
  */
 export function collapseToastStack(container, options = {}) {
   const root = resolve(container);
   if (!root) return null;
-  const count = root.ownerDocument.createElement('span');
-  count.className = 'ui-badge ui-badge--neutral ui-toast-stack__count';
-  // Appended once and then only hidden, because adding and removing it inside
-  // the MutationObserver that watches this stack's children would re-enter.
-  root.append(count);
-  const label = (stack) => {
-    const total = pileCards(stack).length;
-    const piled = total >= TOAST_PILE_MIN;
-    root.classList.toggle('ui-toast-stack--collapsed', piled);
-    count.hidden = !piled;
-    if (piled) count.textContent = toastPileLabel(total);
+  const mark = (stack) => {
+    root.classList.toggle('ui-toast-stack--collapsed', pileCards(stack).length >= TOAST_PILE_MIN);
   };
-  const stop = watchToastPile(root, { ...options, onSync: label });
+  const stop = watchToastPile(root, { ...options, onSync: mark });
   return {
-    sync: () => { applyToastPile(root, options); label(root); },
-    stop() { stop(); count.remove(); root.classList.remove('ui-toast-stack--collapsed'); },
+    sync: () => { applyToastPile(root, options); mark(root); },
+    stop() { stop(); root.classList.remove('ui-toast-stack--collapsed'); },
   };
 }

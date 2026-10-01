@@ -125,10 +125,6 @@ test('a reader with no hover is not shown a pile they cannot open', () => {
   for (const property of ['position: static', 'scale: 1']) {
     assert.ok(cards[2].includes(property), `${SHEET}: the hoverless card rule is missing \`${property}\``);
   }
-  assert.match(block, /\.ui-toast-stack--collapsed\s*>\s*\.ui-toast-stack__count\s*\{[^}]*display:\s*none/,
-    `${SHEET}: the count still counts a pile that is no longer drawn. It also has to outweigh \`.ui-badge\`, `
-    + 'which sets its own display.');
-
   // A tap lands focus inside the stack, so :focus-within is reachable without a
   // hover. Both fanned states have to be named again here, or the shorter
   // selector loses to them and a static card is handed an absolute offset.
@@ -144,15 +140,15 @@ test('a reader with no hover is not shown a pile they cannot open', () => {
     + 'weight as them, so it only wins while it stays below.');
 });
 
-test('the count fades on the kit curves, and its visibility is linear', () => {
-  const rule = pileRules.find((r) => r.selector === '.ui-toast-stack__count')
-    || /\.ui-toast-stack__count\s*\{([^}]*)\}/.exec(css)?.[1];
-  const body = typeof rule === 'string' ? rule : rule?.body;
-  assert.ok(body, `${SHEET} no longer has a \`.ui-toast-stack__count\` rule.`);
-  assert.match(body, /opacity\s+var\(--dur-fast\)\s+var\(--ease\)/,
-    `${SHEET}: the count's fade is not on a kit curve at a kit duration.`);
-  assert.match(body, /visibility\s+var\(--dur-fast\)\s+linear/,
-    `${SHEET}: visibility is discrete, so the specification times every transition of it \`linear\`.`);
+test('the pile carries no count chip', () => {
+  // Artur struck the chip off the pile on #479: the cards behind the front one
+  // already say there is more, and a second thing saying so was a tier of text
+  // the block did not need. The pile is the notices and nothing else.
+  assert.ok(!css.includes('ui-toast-stack__count'),
+    `${SHEET} draws a \`.ui-toast-stack__count\` chip again. The pile says how much is waiting by `
+    + 'showing the cards behind the front one; a counted chip above it was rejected on #479.');
+  assert.ok(!script.includes('ui-toast-stack__count'),
+    `${SCRIPT} builds a \`.ui-toast-stack__count\` chip again; see #479.`);
 });
 
 /* -- The progress line pauses for both readers -------------------------------- */
@@ -190,7 +186,7 @@ Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetHeight', {
 
 const { applyToastPile, clearToastPile, collapseToastStack, wireToastStack } = await import('../src/components/toasts.js');
 const { toast } = await import('../src/components/index.js');
-const { TOAST_PEEK, TOAST_PILE_MIN, toastPileLabel } = await import('../src/logic/toast-stack.js');
+const { TOAST_PEEK, TOAST_PILE_MIN } = await import('../src/logic/toast-stack.js');
 
 /** A stack of notices, oldest first, at the given heights. */
 function stackOf(...heights) {
@@ -286,26 +282,23 @@ test('clearing a pile leaves the stack exactly as it was found', () => {
   stack.remove();
 });
 
-test('the count says how many notices are waiting, and re-measures as they come and go', async () => {
+test('a collapsed stack re-measures as notices come and go, and adds nothing to the DOM', async () => {
   const stack = stackOf(80, 80, 80);
   const pile = collapseToastStack(stack);
   assert.ok(stack.classList.contains('ui-toast-stack--collapsed'));
-  const count = stack.querySelector('.ui-toast-stack__count');
-  assert.ok(count, 'a pile with no readable count hides how much is behind the front card');
-  assert.equal(count.textContent, toastPileLabel(3));
-  assert.ok(count.classList.contains('ui-badge'), 'the count is a kit badge, not a new part');
+  assert.equal(stack.children.length, 3,
+    'collapsing put something in the stack that is not a notice; the pile is the notices alone (#479)');
 
   const fresh = document.createElement('div');
   fresh.className = 'ui-toast';
   fresh.dataset.height = '80';
-  stack.insertBefore(fresh, count);
+  stack.append(fresh);
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.equal(count.textContent, toastPileLabel(4), 'the count did not follow a notice arriving');
   assert.equal(lift(fresh), '0px', 'the notice that just arrived did not take the front of the pile');
+  assert.equal(cardsOf(stack).length, 4);
 
   pile.stop();
   assert.ok(!stack.classList.contains('ui-toast-stack--collapsed'));
-  assert.equal(stack.querySelector('.ui-toast-stack__count'), null);
   assert.equal(stack.getAttribute('style'), '');
   stack.remove();
 });
@@ -315,7 +308,6 @@ test('one notice is not a pile', () => {
   const pile = collapseToastStack(stack);
   assert.ok(!stack.classList.contains('ui-toast-stack--collapsed'),
     `a single notice collapsed into a pile would only hide behind itself; ${TOAST_PILE_MIN} is the floor`);
-  assert.ok(stack.querySelector('.ui-toast-stack__count').hidden, 'nothing to count with one notice');
   pile.stop();
   stack.remove();
 });

@@ -194,8 +194,8 @@ it('has no axe violations in compact non-dismissible presentation', async () => 
  *
  * The geometry is the kit's own and is measured in src/logic/toast-stack.test.js;
  * the sheet's half is walked in stories/toast-pile.test.js. What is left for this
- * file is the provider's part: which notices are in the pile, which one is in
- * front, and what the count says. JSDOM lays nothing out, so the heights below
+ * file is the provider's part: which notices are in the pile and which one is in
+ * front. JSDOM lays nothing out, so the heights below
  * are stubbed — the offsets themselves are a browser question. */
 function stubHeights(height: number) {
   const real = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
@@ -211,18 +211,19 @@ function collapsing(notice: ToastNotice = { title: 'Saved', text: 'Your changes 
 const pile = () => document.querySelector('.rx-toast-stack') as HTMLElement;
 const notices = () => [...pile().children].filter(el => el.classList.contains('ui-toast')) as HTMLElement[];
 
-it('collapses several notices into one pile and says how many are waiting', () => {
+it('collapses several notices into one pile, and leaves a single notice alone', () => {
   const restore = stubHeights(80);
   try {
     collapsing();
     const notify = screen.getByText('Notify');
     fireEvent.click(notify);
     expect(pile()).not.toHaveClass('ui-toast-stack--collapsed');
-    expect(document.querySelector('.ui-toast-stack__count')).toBeNull();
+    expect(notices()).toHaveLength(1);
     fireEvent.click(notify); fireEvent.click(notify);
     expect(pile()).toHaveClass('ui-toast-stack--collapsed');
-    expect(document.querySelector('.ui-toast-stack__count')).toHaveTextContent('3 notices');
-    expect(document.querySelector('.ui-toast-stack__count')).toHaveClass('ui-badge', 'ui-badge--neutral');
+    // The pile is the notices themselves and nothing else: no chip above it.
+    expect(notices()).toHaveLength(3);
+    expect(pile().children).toHaveLength(3);
   } finally { restore(); }
 });
 it('keeps the newest notice at the front of the pile and the oldest furthest back', () => {
@@ -251,7 +252,6 @@ it('gives the stack back when the pile drops below two notices', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Dismiss' })[0]);
     act(() => { fireEvent.animationEnd(notices()[0]); });
     expect(pile()).not.toHaveClass('ui-toast-stack--collapsed');
-    expect(document.querySelector('.ui-toast-stack__count')).toBeNull();
     expect(notices()[0].style.getPropertyValue('--toast-card-lift')).toBe('');
     expect(pile().style.getPropertyValue('--toast-pile-height')).toBe('');
   } finally { restore(); }
@@ -260,7 +260,6 @@ it('leaves the stack alone unless collapsing was asked for', () => {
   setup(); const notify = screen.getByText('Notify');
   fireEvent.click(notify); fireEvent.click(notify);
   expect(pile()).not.toHaveClass('ui-toast-stack--collapsed');
-  expect(document.querySelector('.ui-toast-stack__count')).toBeNull();
 });
 
 it('draws the progress line on an auto-dismissing notice and drops it on request', () => {

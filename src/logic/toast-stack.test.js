@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  toastPileGeometry, toastPileLabel,
+  toastPileGeometry,
   TOAST_PEEK, TOAST_SCALE_STEP, TOAST_TIERS, TOAST_PILE_MIN, TOAST_GAP,
 } from './toast-stack.js';
 
@@ -102,9 +102,6 @@ test('TOAST_GAP is the gap the stylesheet actually sets, not a copy of it', () =
     + `${Math.abs(Number(gap[1]) - TOAST_GAP)}px out of place, once per notice below it.`);
 });
 
-test('the count reads as a sentence, and one notice is not a pile', () => {
-  assert.equal(toastPileLabel(1), '1 notice');
-  assert.equal(toastPileLabel(2), '2 notices');
-  assert.equal(toastPileLabel(12), '12 notices');
+test('one notice is not a pile', () => {
   assert.equal(TOAST_PILE_MIN, 2);
 });

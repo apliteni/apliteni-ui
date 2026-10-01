@@ -110,8 +110,8 @@ export const Stack = {
 };
 
 // The collapsed pile: several notices rest as one, newest in front, and fan out
-// under the pointer or once focus reaches any control inside them. The count
-// above the pile is what the collapse hides — how much is still waiting.
+// under the pointer or once focus reaches any control inside them. The cards
+// peeking behind the front one are what say more is waiting.
 export const CollapsedStack = {
   render: () => {
     const root = document.createElement('div');

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { clearToastPile, toastPileLabel, watchToastPile, TOAST_PILE_MIN } from '@apliteni/apliteni-ui';
+import { clearToastPile, watchToastPile, TOAST_PILE_MIN } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 import './Toast.css';
 
@@ -143,7 +143,6 @@ export function Toast({ children, collapse = false }: ToastProps) {
     {typeof document !== 'undefined' && createPortal(
       <div className={`ui-toast-stack rx-toast-stack${piled ? ' ui-toast-stack--collapsed' : ''}`} ref={stack}>
         {entries.map(entry => <Notice key={entry.id} notice={entry.notice} remove={entry.remove} />)}
-        {piled && <span className="ui-badge ui-badge--neutral ui-toast-stack__count">{toastPileLabel(entries.length)}</span>}
       </div>, document.body)}
   </Context.Provider>;
 }

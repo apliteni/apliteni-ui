@@ -134,7 +134,6 @@ export declare type ToastPileCard = { depth: number; tier: number; scale: number
 export declare function toastPileGeometry(heights: number[], gap?: number): {
   cards: ToastPileCard[]; collapsedHeight: number; fannedHeight: number;
 };
-export declare function toastPileLabel(count: number): string;
 export declare type ToastPileOptions = { newestFirst?: boolean; gap?: number };
 export declare function applyToastPile(stack: Element | null, options?: ToastPileOptions): {
   cards: ToastPileCard[]; collapsedHeight: number; fannedHeight: number;

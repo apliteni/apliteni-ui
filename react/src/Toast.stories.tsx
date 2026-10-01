@@ -62,8 +62,8 @@ export const PresentationsGallery: StoryObj = {
 };
 
 // The pile: several notices rest as one, newest in front, and fan out under the
-// pointer or once focus reaches a control inside them. The count above the pile
-// is what collapsing hides — how much is still waiting behind the front card.
+// pointer or once focus reaches a control inside them. The cards peeking behind
+// the front one are what say more is waiting.
 function Pile() {
   const push = useToast();
   // Each notice carries its action, so the pile stays put while it is read
