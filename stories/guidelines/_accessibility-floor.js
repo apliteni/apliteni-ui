@@ -13,7 +13,7 @@ export const BLURB = content.blurb;
 // pinned next door in stories/field-zoom.test.js, where the fields are.
 //
 // Measure behavior instead of matching the source text.
-import { button, checkbox } from '../../src/components/index.js';
+import { badge, button, checkbox } from '../../src/components/index.js';
 
 // ---- the three numbers -----------------------------------------------------
 
@@ -238,15 +238,32 @@ export const SPEC_CSS = `
       width: 44px; height: 44px; transform: translate(-50%, -50%);
       outline: 1.5px dashed var(--pink); pointer-events: none;
     }
+
+    /* A focus ring exists only under a live keyboard, so the Do cell pins what
+       :focus-visible paints — var(--ring), the composition src/styles/base.css
+       applies. Same device as stories/guidelines/_state-set.js. */
+    .gl-ring .ui-btn { box-shadow: var(--ring); }
+
+    /* The Don't is that composition with the solid band taken out, so the pair
+       differs by the band and nothing else. Glow alone is the treatment the ring
+       evidence measured under the bar, which is why the kit ships no selector
+       for it and why this half has to be drawn rather than borrowed. */
+    .gl-ring--halo .ui-btn { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 34%, transparent); }
+
+    /* A word is what this chip is missing, so the Don't cannot carry one. The
+       fill, radius and padding are the badge's own; only the box a word would
+       have filled is drawn, because an empty inline-flex works out no size. */
+    .gl-status__gap { display: inline-block; width: 3.25rem; height: 1.45em; height: 1lh; }
   </style>`;
 
-const row = (...html) => `<div class="gl-stage gl-stage--row gl-target">${html.join('')}</div>`;
+const row = (...html) => `<div class="gl-stage gl-stage--row">${html.join('')}</div>`;
+const targetRow = (...html) => `<div class="gl-stage gl-stage--row gl-target">${html.join('')}</div>`;
 
-export const targetDo = () => row(
+export const targetDo = () => targetRow(
   checkbox({ label: 'Revoke on expiry', checked: true }),
   button({ label: 'Revoke', variant: 'secondary', size: 'sm' }),
 );
-export const targetDont = () => row(
+export const targetDont = () => targetRow(
   `<span class="gl-target__ink" aria-hidden="true"></span>`,
 );
 
@@ -275,15 +292,56 @@ export const tapSpacingDont = () => tapRow(
   '<span class="gl-tap__ink" aria-hidden="true"></span>',
 );
 
+// Two controls wear the indicator at once, which a keyboard never does: the pair
+// is the accent-filled control and the plain one, and the gap colour is the thing
+// being compared between them. The note says so rather than the picture implying
+// two focused controls.
+const ringed = (mod) => `
+  <div class="gl-stage gl-ring ${mod}">
+    <div class="gl-stage--row">
+      ${button({ label: 'Publish', variant: 'primary' })}
+      ${button({ label: 'Discard' })}
+    </div>
+    <div class="gl-cursor">Both drawn focused</div>
+  </div>`;
+
+export const ringDo = () => ringed('');
+export const ringDont = () => ringed('gl-ring--halo');
+
+// The Do cell's unavailable button is the real state: the disabled gate next door
+// reads the kit's own disabled rules off the sheet, so a copy would be measured
+// as nothing. The Don't cell cannot be real — a second disabled control would
+// pass that same gate and prove nothing — so it keeps the live paint and leaves
+// the state to the note underneath, which IS the mistake.
+const revoking = (disabled) => `
+  <div class="gl-stage">
+    <div class="gl-stage--row">
+      ${button({ label: 'Save changes', variant: 'primary' })}
+      ${button({ label: 'Revoke key', disabled })}
+    </div>
+    <div class="gl-cursor">Revoke key is unavailable</div>
+  </div>`;
+
+export const disabledDo = () => revoking(true);
+export const disabledDont = () => revoking(false);
+
+export const statusDo = () => row(
+  badge('Paused', 'warn'),
+  badge('Live', 'live'),
+);
+export const statusDont = () => row(
+  `<span class="ui-badge ui-badge--live" aria-hidden="true"><span class="gl-status__gap"></span></span>`,
+);
+
 export const RULES = withSpecimens(content.rules, [
 { id: 'target-size', doHtml: targetDo, dontHtml: targetDont },
 { id: 'tap-zone', doHtml: tapZoneDo, dontHtml: tapZoneDont },
 { id: 'tap-spacing', doHtml: tapSpacingDo, dontHtml: tapSpacingDont },
-{ id: 'ring-contrast' },
-{ id: 'disabled-legibility' },
+{ id: 'ring-contrast', doHtml: ringDo, dontHtml: ringDont },
+{ id: 'disabled-legibility', doHtml: disabledDo, dontHtml: disabledDont },
 { id: 'touch-field-size' },
 { id: 'body-contrast' },
-{ id: 'status-label' },
+{ id: 'status-label', doHtml: statusDo, dontHtml: statusDont },
 { id: 'measurable-pair' },
 { id: 'keyboard-first' },
 ]);

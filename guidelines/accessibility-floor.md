@@ -6,13 +6,11 @@
 
 **Rule:** Give every pointer target at least 24x24 CSS px.
 
-**Why:** Larger targets are easier to activate accurately.
+**Do:** The dashed square is the hit area the box declares, not a drawing of one.
 
-**Do:** Use a centred 24x24 `::before` hit area for a 19x19 checkbox.
+**Don't:** The target stops where the 19x19 box stops.
 
-**Don't:** Leave a 19x19 target unchanged.
-
-**Except:** WCAG 2.5.8 permits spacing, equivalent controls, inline text, user-agent sizes and essential presentation. Overlays must not reach neighbours.
+**Except:** WCAG 2.5.8 permits spacing, equivalent controls, inline text, user-agent sizes and essential presentation. An overlay must not reach its neighbours.
 
 ## Tap target on a phone
 
@@ -48,27 +46,23 @@
 
 **Rule:** Keep a focus indicator at least 3:1 against every ground it reaches.
 
-**Why:** A solid band remains visible where glow alone may disappear.
+**Do:** The solid band, with a surface-coloured gap around an accent-filled control.
 
-**Do:** Use G2’s solid band with a surface-coloured gap around accent-filled controls.
+**Don't:** The halo on its own, which fades into the ground it sits on.
 
-**Don't:** Use the halo alone as the focus indicator.
-
-**Except:** The band must reach 4.22:1 on flat ground and 3:1 against actual gap and halo pixels.
+**Except:** The band must clear the bar against the gap and halo pixels too, not only against flat ground.
 
 ## Disabled control legibility
 
 <!-- rule: disabled-legibility -->
 
-**Rule:** Paint disabled controls with a different ink/surface pair from enabled controls.
+**Rule:** Give a disabled control its own ink and surface pair, and take the accent off it.
 
-**Why:** Opaque colours keep disabled text and surfaces readable.
+**Do:** Unavailable reads as unavailable with the pointer nowhere near it.
 
-**Do:** Use opaque `--disabled-ink`, `--disabled-surface` and `--disabled-border`.
+**Don't:** Unavailable keeps the live paint, so only the cursor reports the state.
 
-**Don't:** Fade the label and box together.
-
-**Except:** Labels must reach 3:1. Boxless ghosts use `--disabled-ink-bare`, floored at 4.89:1. Disabled controls must look weaker by changing the pair and removing accent. Only the label-free switch track may fade.
+**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade.
 
 ## Touch field text
 
@@ -76,25 +70,25 @@
 
 **Rule:** Set coarse-pointer field text to 16px without scaling it down.
 
-**Why:** iOS Safari zooms fields below 16px and does not zoom out.
+**Why:** iOS Safari zooms into a field under 16px and does not zoom out. The size answers to the pointer rather than the width, so a specimen on this page would draw the desktop size in both halves.
 
-**Do:** Apply real 16px text to `input`, `select` and `textarea`, including host fields.
+**Do:** Real 16px text in the field itself.
 
-**Don't:** Scale 16px down with transforms or smaller computed text.
+**Don't:** 16px scaled down, or a smaller computed size.
 
-**Except:** Preserve host fields above 16px with `!important` on a more specific selector. Checkbox, radio, range, colour, file and button types do not zoom. Do not remove pinch-zoom with `user-scalable=no` or `maximum-scale=1`. The host owns the viewport tag.
+**Except:** A host field above 16px keeps its size. Checkbox, radio, range, colour, file and button types do not zoom. Never take pinch-zoom away; the host owns the viewport tag.
 
 ## Body contrast
 
 <!-- rule: body-contrast -->
 
-**Rule:** Aim for body text contrast close to 7:1, not merely 4.5:1.
+**Rule:** Keep body text close to 7:1 at every size, not merely at 4.5:1.
 
-**Why:** Stronger contrast supports comfortable reading at every size.
+**Why:** A pale specimen cannot be drawn here without breaking this rule in front of the reader, so it is described instead.
 
-**Do:** Use body ink at every size, then vary size, weight or spacing for hierarchy.
+**Do:** Body ink at every size, with size, weight and spacing carrying the hierarchy.
 
-**Don't:** Use pale body ink and rely on larger text for hierarchy.
+**Don't:** Pale ink propped up by larger text.
 
 ## Status labels
 
@@ -104,32 +98,32 @@
 
 **Why:** Colour alone is not reliably distinguishable.
 
-**Do:** Write “Paused” on the badge and let its tone fill carry the colour.
+**Do:** The word carries the status; the tone fill agrees with it.
 
-**Don't:** Show success as a green badge with no word.
+**Don't:** A tone fill with the word taken out of it.
 
-**Except:** A status badge needs no glyph or dot: the word carries the status and the tone fill marks it as one. A callout or toast keeps its circled glyph, because its words sit in a sentence rather than in a fill.
+**Except:** A status badge needs no glyph or dot. A callout or toast keeps its circled glyph, because its words sit in a sentence rather than in a fill.
 
 ## Measurable pairs
 
 <!-- rule: measurable-pair -->
 
-**Rule:** Prefer opaque grounds behind text so contrast can be measured.
+**Rule:** Keep text on opaque grounds so its contrast can be measured.
 
-**Why:** Gradients, filters and translucent layers make contrast uncertain.
+**Why:** A gradient, filter or translucent layer leaves the ratio uncertain, so the failure cannot be measured either and is described below rather than drawn.
 
-**Do:** Place text on an opaque surface with a measurable ink pair.
+**Do:** An opaque surface under the text, and an ink pair that can be read off it.
 
-**Don't:** Place text over a gradient, filter or translucent layer.
+**Don't:** Text over a gradient, a filter or a translucent layer.
 
 ## Keyboard first
 
 <!-- rule: keyboard-first -->
 
-**Rule:** Implement keyboard behaviour before pointer behaviour and styling.
+**Rule:** Build keyboard behaviour before pointer behaviour and styling.
 
-**Why:** Keyboard access defines the interaction before visual polish.
+**Why:** This is an order of work, which a specimen cannot show: both halves would look the same once they were finished.
 
-**Do:** Make focus, order and keyboard actions work before styling controls.
+**Do:** Focus, order and keyboard actions working before anything is styled.
 
-**Don't:** Style pointer interactions before implementing keyboard behaviour.
+**Don't:** Pointer styling first and keyboard behaviour afterwards.

@@ -17,9 +17,22 @@ Each rule has a short `##` title, a stable `<!-- rule: id -->`, and these fields
 Keep each field on one source line. Backticks mark code. File paths, line numbers,
 test names and links to implementation files do not belong in guidelines.
 
+## Show, less tell
+
+A guideline page shows its rule and says the least it can. Give every rule a picture can
+carry a rendered do and don't pair, built from kit parts, and keep each field to a line or
+two: the rule states what to do, each caption says what its picture cannot, and `Why`
+appears only where the reason is invisible. Measurements, token names and boundaries
+belong in the specification; a page that explains a rule it could have drawn is not done.
+
 The matching story module attaches live specimens by rule id. Rules without a visual
 pair render their text examples. Both halves use readable text; explain inaccessible
 behaviour in words instead of drawing illegible specimens.
+
+Leave a rule text-only when drawing the failure would break the rule in front of the
+reader, when the state depends on a pointer, a keyboard or a viewport a static specimen
+cannot set, or when the rule governs an order of work rather than a result. Say which of
+those it is in `Why`, so a missing pair reads as a decision rather than an omission.
 
 ## Tests and references
 
