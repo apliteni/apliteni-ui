@@ -758,7 +758,7 @@
     ],
     "say-the-basis": [
       {
-        "ref": "src/components/stat.js:34",
+        "ref": "src/components/stat.js:40",
         "pattern": "aria-describedby"
       }
     ]
@@ -845,11 +845,11 @@
     ],
     "check-density": [
       {
-        "ref": "src/styles/stat.css:123",
+        "ref": "src/styles/stat.css:127",
         "pattern": "@container (width <= 28rem)"
       },
       {
-        "ref": "src/styles/stat.css:124",
+        "ref": "src/styles/stat.css:128",
         "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
       }
     ]

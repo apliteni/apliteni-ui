@@ -87,14 +87,17 @@ export const States = {
       ],
     })
     + heading('Context that is not a change',
-      'A share of a larger figure is neither a change nor a trend. The band says it in words under the '
-      + 'value, with no arrow and no colour, and a figure can carry both: the words, then how it moved.')
+      'A share of a larger figure is neither a change nor a trend, so it takes the row a change would have taken. '
+      + 'A figure says one thing in that row &mdash; a caption, a change, or a caption leading one &mdash; so the '
+      + 'changes stay on one line across a band whose figures differ.')
     + statBand({
       id: 'states-caption',
+      basis: BASIS,
       stats: [
         { label: 'Gross margin', value: '36.1%', caption: 'of income' },
-        { label: 'Cost of sales', value: '€ 4,127,880', caption: '63.9% of income' },
-        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against last year' } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ],
     })
     + heading('Figures only', 'No change and no trend: a label and a value is a complete band.')

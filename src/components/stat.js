@@ -23,24 +23,24 @@ const directionOf = (text) => {
 const GLYPH = { up: 'arrowUp', down: 'arrowDown', flat: 'minus' };
 const hasChange = (delta) => delta && delta.value != null && delta.value !== '';
 
-const deltaHtml = (delta, basisId) => {
-  if (!delta) return '';
+// One row under the value: a change, a caption, or a caption leading a change.
+// A second row would drop the changes beside it out of line with the band.
+// why: docs/specification.md#stat-bands
+const contextRow = (caption, delta, basisId) => {
+  if (!delta) return caption ? `<dd class="ui-stat__caption">${esc(caption)}</dd>` : '';
+  // The space is read where the CSS gap is only drawn: "of income+1.2 pts" else.
+  const lead = caption ? `<span class="ui-stat__caption">${esc(caption)}</span> ` : '';
   if (!hasChange(delta)) {
-    return `<dd class="ui-stat__delta ui-stat__delta--none">${esc(delta.none || 'No earlier figure')}</dd>`;
+    return `<dd class="ui-stat__delta ui-stat__delta--none">${lead}${esc(delta.none || 'No earlier figure')}</dd>`;
   }
   const text = String(delta.value);
   const dir = GLYPH[delta.direction] ? delta.direction : directionOf(text);
-  const own = delta.basis ? ` <span class="ui-stat__basis">${esc(delta.basis)}</span>` : '';
-  const describedby = !delta.basis && basisId ? ` aria-describedby="${basisId}"` : '';
-  return `<dd class="ui-stat__delta"${describedby}>${icon(GLYPH[dir])}<span class="ui-stat__change">${esc(text)}</span>${own}</dd>`;
+  // A caption takes the basis's place, so the change points at the band's caption.
+  const own = !caption && delta.basis ? ` <span class="ui-stat__basis">${esc(delta.basis)}</span>` : '';
+  const describedby = !own && basisId ? ` aria-describedby="${basisId}"` : '';
+  return `<dd class="ui-stat__delta"${describedby}>${lead}${icon(GLYPH[dir])}`
+    + `<span class="ui-stat__change">${esc(text)}</span>${own}</dd>`;
 };
-
-// `caption` is a figure's own words about its value — what it is a share of —
-// and not a change: no arrow is drawn for it and no tone paints it, because
-// nothing went up or down. It takes the change's place under the value, so a
-// band of captions and a band of changes line up.
-const captionHtml = (caption) =>
-  (caption ? `<dd class="ui-stat__caption">${esc(caption)}</dd>` : '');
 
 // `tone` says whether the change is good news, and nothing else. It is never
 // inferred from the direction: costs going up and unclassified rows going down
@@ -54,21 +54,15 @@ const figure = ({ label = '', value = '', caption = '', delta, trend = '' }, til
   return `<div class="${cls}">`
     + `<dt class="ui-stat__label">${esc(label)}</dt>`
     + `<dd class="ui-stat__value">${esc(value)}</dd>`
-    + captionHtml(caption)
-    + deltaHtml(delta, basisId)
+    + contextRow(caption, delta, basisId)
     + (trend ? `<dd class="ui-stat__trend">${trend}</dd>` : '')
     + '</div>';
 };
 
-// `basis` is the band's caption, said once above the figures: what every change
-// is measured against, or on a band with no changes, what the figures cover. A
-// figure measured against something else carries its own `delta.basis`, printed
-// beside the change.
-//
-// The caption comes before the list, the way a table's <caption> does, in every
-// layout. It is one statement about all the figures, so it is read before them
-// and it sits outside every one of them — under a row of tiles it would read as
-// a note on the last card. why: docs/specification.md#stat-bands
+// `basis` is the band's caption: what every change is measured against, said
+// once before the list the way a table's <caption> is, in every layout — under
+// a row of tiles it would read as a note on the last card.
+// why: docs/specification.md#stat-bands
 export function statBand({ stats = [], variant = 'tiles', basis = '', label, id } = {}) {
   const v = STAT_VARIANTS.includes(variant) ? variant : 'tiles';
   const base = id ? esc(id) : `ui-stats-${++seq}`;

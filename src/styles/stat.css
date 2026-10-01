@@ -49,18 +49,21 @@
   white-space: nowrap;
 }
 
-/* A figure's own words about its value — what it is a share of. It takes the
-   caption rank's size and weight, and like the label keeps the band's tighter
-   leading rather than the rank's inherited one, so it claims no rank. Body ink
-   and no fill: it is a sentence, not a mark. No tone rule reaches it either —
-   a figure that reports no change has no news to colour. */
+/* A figure's own words about its value. The caption rank's size and weight with
+   the band's tighter leading, as the label takes, so it claims no rank. Body ink
+   on no fill, and no tone rule reaches it: it reports no change to colour. */
 .ui-stat__caption {
-  margin-top: var(--space-2);
   color: var(--text);
   font-size: var(--text-sm);
   font-weight: var(--weight-normal);
   line-height: var(--leading-snug);
 }
+
+/* Alone it is the row a change would have taken — the same step down and the
+   same line box — which is what holds a band of unlike figures on one line.
+   Leading a change it is a span in that row, spaced off what follows. */
+dd.ui-stat__caption { margin-top: var(--space-2); }
+.ui-stat__delta .ui-stat__caption { margin-inline-end: var(--space-1); }
 
 .ui-stat__delta {
   display: flex;
@@ -90,14 +93,15 @@
 .ui-stat--good .ui-stat__trend { color: var(--chip-success-ink); }
 .ui-stat--bad .ui-stat__trend { color: var(--chip-danger-ink); }
 
-/* The band's caption, above the figures rather than in one: it is what every
-   change points at, so it sits outside the ranks and takes none of them. The
-   margin is under it because it leads the row. */
+/* The band's caption, above the figures rather than in one: what every change
+   points at. It governs the row, so it takes the caption rank itself and is
+   never set under a caption inside one figure, and its margin is below it. */
 .ui-stats__basis {
   margin: 0 0 var(--space-5);
   color: var(--text);
-  font-size: var(--text-xs);
-  line-height: var(--leading-snug);
+  /* rank: caption */
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
 }
 
 .ui-stats--tiles .ui-stats__list { gap: var(--space-4); }

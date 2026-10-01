@@ -29,6 +29,11 @@ function shape(root: Element) {
         value: f.querySelector('.ui-stat__value')?.textContent,
         caption: f.querySelector('.ui-stat__caption')?.textContent ?? null,
         delta: d && d.textContent?.replace(/\s+/g, ' ').trim(),
+        // The order of the words inside the row, so a caption that moved past the
+        // change — or a basis drawn beside one — is a difference between the two
+        // sides. The glyph is left out: React wraps it and the factory does not.
+        rowParts: [...(d?.querySelectorAll('.ui-stat__caption, .ui-stat__change, .ui-stat__basis') ?? [])]
+          .map((c) => c.className),
         glyph: d?.querySelector('svg')?.innerHTML ?? null,
         describedBy: ref ? doc.getElementById(ref)?.textContent ?? `missing #${ref}` : null,
         trend: !!f.querySelector('.ui-stat__trend svg'),
@@ -65,15 +70,19 @@ const CASES: [string, StatBandProps][] = [
   ['band', { stats: FOUR, variant: 'band', basis: 'x', id: 'b' }],
   ['tiles', { stats: FOUR, variant: 'tiles', basis: 'x', id: 't' }],
   ['open, named', { stats: FOUR, variant: 'open', label: 'Cashflow', id: 'o' }],
-  // Context that is not a change: alone under the value, and beside a change.
-  // `tags` carries the order, so a caption that slipped past the delta fails here.
-  ['a figure whose context is not a change', {
+  // Context that is not a change. The band is mixed on purpose: `tags` carries
+  // each figure's rows and `rowParts` the order inside one, so a caption that
+  // opened a second row — the defect #512's review measured — fails here.
+  ['a mixed band: captions, changes, and both at once', {
     id: 'c',
     basis: 'Against last year',
     stats: [
-      { label: 'Margin', value: '36.1%', caption: 'of revenue' },
-      { label: 'Gross margin', value: '42.0%', caption: 'of revenue', delta: { value: '+1.2 pts', tone: 'good' } },
+      { label: 'Gross margin', value: '36.1%', caption: 'of revenue' },
       { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' }, trend: TREND },
+      { label: 'Operating margin', value: '12.4%', caption: 'of revenue', delta: { value: '+1.2 pts', tone: 'good' } },
+      // The caption takes the basis's place, and the change points at the band.
+      { label: 'Net margin', value: '8.0%', caption: 'of revenue', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
+      { label: 'Refunds', value: '€ 0', caption: 'of revenue', delta: { value: null } },
     ],
   }],
   ['every kind of change', {

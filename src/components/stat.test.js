@@ -121,23 +121,68 @@ test('a change against nothing says so, with no arrow and no percentage', () => 
 
 // A ratio that is not a change fits neither slot the band had: as a change it
 // gets an arrow it has no direction for, as a trend it lands where a sparkline
-// goes. The caption is the third thing a figure can say, and it says it in words
-// after the value, where a reader meets the number first.
+// goes. It is the row a change would have taken — a figure says at most one
+// thing there — so no figure stacks four text lines around its number, and a
+// band whose figures differ does not drop half its changes a line lower.
 // why: docs/specification.md#stat-bands
-test("a figure's caption follows its value, draws no arrow and takes no tone", () => {
-  const parts = (doc) => [...doc.querySelectorAll('.ui-stat > dd')].map((d) => d.className.split(' ')[0]);
-  const own = one({ label: 'Margin', value: '36.1%', caption: 'of revenue' });
-  assert.deepEqual(parts(own), ['ui-stat__value', 'ui-stat__caption'],
-    'the caption does not follow the value as its one companion');
+test("a figure's caption is the row a change would take, with no arrow and no tone", () => {
+  const rows = (fig) => [...one(fig).querySelectorAll('.ui-stat > dd')].map((d) => d.className.split(' ')[0]);
+  const own = one({ label: 'Margin', value: '36.1%', caption: 'of income' });
+  assert.deepEqual(rows({ label: 'Margin', value: '36.1%', caption: 'of income' }),
+    ['ui-stat__value', 'ui-stat__caption'], 'a caption alone is not the one row under the value');
   const cap = own.querySelector('.ui-stat__caption');
-  assert.equal(cap.textContent, 'of revenue');
+  assert.equal(cap.tagName, 'DD', 'a caption alone is not a value of the figure');
+  assert.equal(cap.textContent, 'of income');
   assert.equal(cap.querySelector('svg'), null, 'the caption drew an arrow, and it is not a change');
   assert.equal(own.querySelector('.ui-stat').className, 'ui-stat', 'the caption painted the figure');
-  // Both at once: the words about the value, then how it moved.
-  assert.deepEqual(parts(one({ label: 'Margin', value: '36.1%', caption: 'of revenue', delta: { value: '−3.9 pts', tone: 'bad' }, trend: '<svg></svg>' })),
-    ['ui-stat__value', 'ui-stat__caption', 'ui-stat__delta', 'ui-stat__trend']);
   assert.equal(one({ label: 'a', value: '1' }).querySelector('.ui-stat__caption'), null, 'a caption nobody gave was drawn');
   assert.equal(one({ label: 'a', value: '1', caption: '' }).querySelector('.ui-stat__caption'), null, 'an empty caption drew an empty line');
+});
+
+// The rule the band rests on: whatever a figure has to say under its value, it
+// says in one row. Every combination, because the defect this replaces was a
+// second row that only appeared when a caption met a change.
+test('a figure draws exactly one row between its value and its trend, whatever it carries', () => {
+  const cases = [
+    ['a caption', { caption: 'of income' }],
+    ['a change', { delta: { value: '+1%' } }],
+    ['a change with its own basis', { delta: { value: '+1%', basis: 'against plan' } }],
+    ['a caption and a change', { caption: 'of income', delta: { value: '+1%' } }],
+    ['a caption and a change with a basis', { caption: 'of income', delta: { value: '+1%', basis: 'against plan' } }],
+    ['a caption and no earlier figure', { caption: 'of income', delta: { value: null } }],
+    ['a caption, a change and a trend', { caption: 'of income', delta: { value: '+1%' }, trend: '<svg></svg>' }],
+  ];
+  for (const [name, extra] of cases) {
+    const fig = one({ label: 'Margin', value: '36.1%', ...extra });
+    const between = [...fig.querySelectorAll('.ui-stat > dd')]
+      .filter((d) => !d.classList.contains('ui-stat__value') && !d.classList.contains('ui-stat__trend'));
+    assert.equal(between.length, 1, `${name}: ${between.length} rows under the value, and a figure says one thing there`);
+  }
+  assert.equal(one({ label: 'a', value: '1' }).querySelectorAll('.ui-stat > dd').length, 1,
+    'a figure with nothing to add drew a row anyway');
+});
+
+// Beside a change the caption leads the row, because it belongs to the value
+// above it: "of income, up 1.2 points", never "up 1.2 points of income".
+test("a caption leading a change takes the place of that change's own basis", () => {
+  const doc = dom(statBand({
+    variant: 'band',
+    basis: 'Change against the previous 12 months',
+    id: 'kpi',
+    stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } }],
+  }));
+  const row = doc.querySelector('.ui-stat__delta');
+  assert.equal(row.firstElementChild.className, 'ui-stat__caption', 'the caption does not lead the row');
+  assert.equal(row.querySelector('.ui-stat__basis'), null,
+    'the caption and the change\'s own basis are the same statement in the same place, and both were drawn');
+  assert.doesNotMatch(row.textContent, /40% target/);
+  assert.equal(row.getAttribute('aria-describedby'), 'kpi-basis',
+    'the change gave up its own basis and does not point at the band\'s either');
+  assert.equal(row.textContent.replace(/\s+/g, ' ').trim(), 'of income +1.2 pts');
+  assert.ok(row.querySelector('svg'), 'the change lost its arrow');
+  // Without a caption the basis is still the caller's to print.
+  const kept = dom(statBand({ variant: 'band', stats: [{ label: 'Margin', value: '36.1%', delta: { value: '+1.2 pts', basis: 'against the 40% target' } }] }));
+  assert.equal(kept.querySelector('.ui-stat__basis').textContent, 'against the 40% target');
 });
 
 test('a figure with no change and no trend is a label and a value', () => {

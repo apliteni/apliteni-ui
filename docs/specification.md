@@ -2455,8 +2455,8 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 
 React StatBand deltas accept `tooltip` text, rendered by the kit Tooltip on the change value.
 
-`statBand()` renders a row of key figures. Each figure is a label and a value, and may carry a
-caption, a change and a trend. A figure is only ever rendered inside its band, because its label and values
+`statBand()` renders a row of key figures. Each figure is a label and a value, and may carry one
+row of words under that value — a change, a caption, or a caption leading a change — and a trend. A figure is only ever rendered inside its band, because its label and values
 are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
 after it is a value of that term, so a screen reader reads each figure as one statement.
 
@@ -2493,18 +2493,27 @@ the band's own caption and takes precedence over `basisId`. The period showcase
 uses this to share one comparison with its ledger; React tests check the references.
 
 The caption comes **before** the figures, in every layout, the way a table's `<caption>` does. It is
-one statement about all of them, so it is read before the numbers it explains and it sits outside
-every figure. Under a row of tiles it would read as a note on the last card, and inside the first
+one statement about all of them, so it is read before the numbers it explains, it sits outside
+every figure, and it takes the `caption` rank — it governs the whole row, so it is never set
+smaller than a caption inside one figure. Under a row of tiles it would read as a note on the last card, and inside the first
 tile it would read as that figure's own comparison — which is a different thing the band already
 says beside the change.
 
-**A figure can carry a caption of its own**, which says a different thing from the band's: words
-about one value, such as what it is a share of. The band's caption, above the row, says what
-every change is measured against; a figure's caption, under its value, says what that one value
-is. It is not a change, so it draws no arrow and takes no tone — nothing went up or down, so
+**A figure says at most one thing under its value, and it says it in one row.** A change is that
+row. **A figure's own caption** — words about one value, such as what it is a share of — is that
+row when there is no change, and leads it when there is. Leading a change it takes the place of
+that change's own basis, because the two are the same kind of statement in the same spot; the
+change then points at the band's caption for what it is measured against, and a figure never
+prints both. A second row would drop every change that sat under a caption a line below the rest
+of the band, which is the layout the band exists to keep, and four lines of text around one
+number read as a paragraph with a figure in it rather than a figure.
+
+A caption is not a change, so it draws no arrow and takes no tone — nothing went up or down, so
 there is no news to colour — and it is not a trend, so it stays out of the slot a sparkline
-takes. It is read after the value and before a change, and takes the `caption` rank
-([Labels and titles](#labels-and-titles)): body ink, no fill.
+takes. It takes the `caption` rank's size and weight ([Labels and titles](#labels-and-titles)) in
+body ink on no fill, and keeps the figure's tighter leading the way the label does. Alone it is
+the row, so it takes the step down a change takes and renders in the same line box: that is what
+holds a band of unlike figures on one line.
 
 The trend is a slot. The kit sizes and colours the caller's `<svg>` and draws no chart.
 
