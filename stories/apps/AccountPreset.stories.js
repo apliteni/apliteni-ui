@@ -17,6 +17,14 @@ export default {
 
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 
+// The rules the preset follows, cited on the page so a reader of it finds them;
+// stories/guidelines/overview.test.js holds the id in step. `./` resolves against
+// /iframe.html, so this is the manager URL in a static build too. `ui-focusable`
+// is the kit's ring opt-in: the base sheet paints it on control classes, and a
+// bare anchor is not one, so without it this link answers Tab in browser black.
+const GUIDELINE = './?path=/story/guidelines-account-and-settings--account-and-settings';
+const cite = `<a class="ui-focusable" href="${GUIDELINE}" target="_top">Guidelines / Account and settings</a>`;
+
 const settingRow = (lab, hint, control) =>
   `<div class="ui-card__row"><div><div class="lab">${lab}</div><div class="hint">${hint}</div></div>${control}</div>`;
 
@@ -36,7 +44,7 @@ export const Default = {
     active: 'prefs',
     crumb: 'Preferences',
     title: 'Preferences',
-    sub: 'The kit\'s /account preset: appShell() with the topbar switched on.',
+    sub: `The kit's /account preset: appShell() with the topbar switched on. What these pages hold, and what they must not become, is settled on ${cite}.`,
     body,
   }),
 };
