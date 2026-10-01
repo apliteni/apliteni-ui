@@ -11,7 +11,8 @@ export const RELEASES = [
       ['added', 'Table footers are a supported surface: totals open with the strong rule, each footer label sits against the figure it names, and a label marked strong carries the weight across the whole row. Footer labels take the body cell padding in every density. If your CSS left-aligned tfoot labels itself, that override is no longer needed. See #385.', ['Table']],
       ['fixed', 'A final body row keeps its separator when a footer follows it; previously the last row of every row group lost its rule. Numeric table headers hold one line, so a two-word header such as Amount (EUR) no longer wraps beside a wide identity column.', ['Table']],
       ['fixed', 'The theme toggle shows the kit focus ring on keyboard focus instead of the browser\u2019s own outline, in the vanilla topbar, React ThemeToggle and the React shell alike. See #385.', ['ThemeToggle']],
-      ['added', 'A document review showcase walks one invoice through review, confirmation and the recorded result, and shows the preview loading, unavailable and refused-approval states. See #385.'],
+      ['added', 'A document review showcase walks one invoice through review, confirmation and the recorded result, and shows the preview loading, unavailable and refused-approval states. The review step leads with the extracted fields, in the wider column, and keeps the document a quieter preview beside them. See #385.'],
+      ['added', 'Density and accents gains a rule: emphasis follows consequence. Where a source sits beside the values a screen will save, the saved values take the leading position, the wider column and the heavier weight, and a quieter block is made smaller or later rather than faded. See #385.'],
     ],
   },
   {

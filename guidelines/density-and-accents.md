@@ -37,3 +37,17 @@
 **Don't:** Make both actions primary or colour every label and value with the accent.
 
 **Except:** Keep [Badge success, pending and danger](https://ui.apli.tech/storybook/?path=/story/components-badge-status--badges) for their named statuses; do not replace those signals with the accent.
+
+## Follow the consequence
+
+<!-- rule: follow-the-consequence -->
+
+**Rule:** Where a screen shows a source beside the values that will be saved, give the saved values the leading position, the wider column and the heavier weight.
+
+**Why:** Emphasis tells the reader what the screen is for. A preview that outweighs the data being committed makes a commitment look like a reading task.
+
+**Do:** Lead with the extracted fields, in the wider column, with each value heavier than its label.
+
+**Don't:** Give the source document the leading, wider pane and leave the saved values in a narrow panel beside it.
+
+**Except:** Fade nothing to make a block quieter; a quieter block is smaller or later, never muted. See [Limit muted ink](https://ui.apli.tech/storybook/?path=/story/guidelines-labels-and-titles--page).

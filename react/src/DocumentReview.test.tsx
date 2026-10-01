@@ -113,7 +113,8 @@ describe('document review flow', () => {
 
   it('compares the two readings of the same figures in one format, right-aligned', () => {
     const { container } = render(<Default />);
-    const [document_, extracted] = [...container.querySelectorAll('.ui-table')];
+    // The extracted table leads the review step now; the document's own table follows.
+    const [extracted, document_] = [...container.querySelectorAll('.ui-table')];
     // Fix 11: both sides write 1,440.00 with the unit in the header, and both put the
     // figure in a right-aligned numeric cell so the decimal points line up.
     for (const table of [document_, extracted]) {
@@ -137,6 +138,46 @@ describe('document review flow', () => {
     // No € inside either table, so neither side is read character by character.
     expect(document_.textContent).not.toContain('€');
     expect(extracted.textContent).not.toContain('€');
+  });
+
+  it('gives the values that get saved more emphasis than the document they came from', () => {
+    const { container } = render(<Default />);
+    const panes = [...container.querySelectorAll('.doc-flow__panes > .ui-card')];
+    // Discover the panes rather than naming them: a step that grows a third pane should
+    // fail here until this gate is told what emphasis it carries.
+    expect(panes).toHaveLength(2);
+    const titles = panes.map((pane) => pane.querySelector('.ui-card__title')?.textContent);
+    expect(titles).toEqual(['Extracted fields', 'Source document']);
+
+    // The leading pane is the one that says what approval writes, and it is the only
+    // one carrying that sentence — the preview stays a preview.
+    const [saved, source] = panes;
+    expect(saved.querySelector('.ui-card__sub')).toHaveTextContent('Saved to the record when you approve.');
+    expect(source.querySelector('.ui-card__sub')).toBeNull();
+
+    // Each saved value outweighs its own label, and nothing is faded to get there:
+    // rank is weight, and the showcase writes no colour of its own.
+    // why: guidelines/density-and-accents.md#follow-the-consequence,
+    // guidelines/labels-and-titles.md#limit-muted-ink
+    // Limit: jsdom applies the story's own <style> and not the kit stylesheet, so this
+    // measures the showcase's declarations; the rendered weight, the column widths and
+    // the preview's scale are in the #385 browser captures.
+    const rows = [...saved.querySelectorAll('.doc-flow__saved .ui-drawer__row')];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      const value = getComputedStyle(row.querySelector('dd') as HTMLElement);
+      const label = getComputedStyle(row.querySelector('dt') as HTMLElement);
+      expect(value.fontWeight).toBe('var(--weight-medium)');
+      expect(label.fontWeight).not.toBe('var(--weight-medium)');
+      expect(value.color).toBe(label.color);
+    }
+
+    // The preview is quieter by being narrower, not by being scaled down: the sheet's
+    // own page width is the panel it sits in, so Fit lands near 1:1.
+    const sheet = container.querySelector('.doc-flow__sheet') as HTMLElement;
+    expect(getComputedStyle(sheet).width).toBe('var(--panel-md)');
+    const panes_ = container.querySelector('.doc-flow__panes') as HTMLElement;
+    expect(getComputedStyle(panes_).gridTemplateColumns).toBe('minmax(0, 1fr) var(--panel-md)');
   });
 
   it('draws the document as the card’s own page, not a second card on the same fill', () => {
