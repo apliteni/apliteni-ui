@@ -310,3 +310,72 @@ it('updates a visible mark after React changes its content and closes when it is
   view.rerender(<TooltipHost><p>No marks</p></TooltipHost>);
   expect(view.container.querySelector('.ui-tip')).not.toHaveClass('is-open');
 });
+
+// ---- The readout's own markup and what it costs the page -------------------
+
+it('marks every readout with data-tip, the attribute the vanilla wiring reads', () => {
+  const { tip } = mount();
+  expect(tip).toHaveAttribute('data-tip');
+  expect(chart().tip).toHaveAttribute('data-tip');
+});
+
+// Five listeners per document and none for a closed readout: the version this
+// replaced stood up five per instance, plus a capturing window scroll listener
+// that hears every scroller on the page.
+const DOC_TYPES = ['pointerdown', 'pointercancel', 'click', 'keydown', 'touchend'];
+const typesOf = (spy: { mock: { calls: unknown[][] } }, wanted: string[]) =>
+  spy.mock.calls.map((call) => String(call[0])).filter((type) => wanted.includes(type)).sort();
+
+it('wires the document once for every readout and the window only while one is open', () => {
+  const onDoc = vi.spyOn(document, 'addEventListener');
+  const onWin = vi.spyOn(window, 'addEventListener');
+  const offWin = vi.spyOn(window, 'removeEventListener');
+  const view = render(<>{[0, 1, 2, 3].map((i) =>
+    <TooltipHost key={i}><span data-tip-value={`€${i}`}>{`mark ${i}`}</span></TooltipHost>)}</>);
+
+  expect(typesOf(onDoc, DOC_TYPES)).toEqual([...DOC_TYPES].sort());
+  expect(typesOf(onWin, ['scroll', 'resize'])).toEqual([]);
+
+  const host = view.container.firstElementChild as HTMLElement;
+  fireEvent.mouseOver(view.getByText('mark 0'));
+  expect(typesOf(onWin, ['scroll', 'resize'])).toEqual(['resize', 'scroll']);
+  fireEvent.mouseLeave(host);
+  expect(typesOf(offWin, ['scroll', 'resize'])).toEqual(['resize', 'scroll']);
+});
+
+it('drops the document listeners when the last readout unmounts', () => {
+  const off = vi.spyOn(document, 'removeEventListener');
+  const first = render(<Tooltip text="One">A</Tooltip>);
+  const second = render(<Tooltip text="Two">B</Tooltip>);
+  first.unmount();
+  expect(typesOf(off, DOC_TYPES)).toEqual([]);
+  second.unmount();
+  expect(typesOf(off, DOC_TYPES)).toEqual([...DOC_TYPES].sort());
+});
+
+it('honours a gap of zero instead of falling back to the sheet default', () => {
+  const { trigger, tip } = mount();
+  // 35px of room above, a 30px readout: it fits with no gap and not with 8px.
+  geometry(trigger, tip, 35);
+  tip.style.setProperty('--ui-tip-gap', '0px');
+  fireEvent.mouseEnter(trigger);
+  expect(tip).not.toHaveClass('is-below');
+});
+
+it('keeps the fallback gap equal to the number the stylesheet declares', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const read = (rel: string) => readFile(new URL(rel, import.meta.url), 'utf8');
+  const sheet = parseFloat(/--ui-tip-gap:\s*([\d.]+)px/.exec(await read('../../src/styles/tooltip.css'))![1]);
+  const source = parseFloat(/const TIP_GAP = ([\d.]+)/.exec(await read('./Tooltip.tsx'))![1]);
+  expect(source, 'TIP_GAP is the fallback for a document without the sheet').toBe(sheet);
+});
+
+// Last in the file: wireTooltip() wires this jsdom document for good, and the
+// vanilla document listeners would then outlive the test that asked for them.
+it('is adopted by the vanilla wiring on a mixed page instead of being doubled', async () => {
+  const { wireTooltip } = await import('../../src/components/tooltip.js') as { wireTooltip: (root?: Document | Element) => void };
+  const { host, tip } = chart();
+  wireTooltip(host.ownerDocument);
+  expect(host.querySelectorAll('[data-tip]')).toHaveLength(1);
+  expect(host.querySelector('[data-tip]')).toBe(tip);
+});

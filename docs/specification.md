@@ -2397,8 +2397,14 @@ the dismissed mark closed until another mark opens or the host is left. Existing
 mark descriptions are preserved; host-owned descriptions are removed on dismissal
 and unmount. Both Tooltip forms support preferred top/bottom placement, clipping
 ancestor and viewport bounds, and repositioning on scroll and resize. The readout
-remains absolutely positioned in its host. Covered by `react/src/Tooltip.test.tsx`;
-real layout and no-reflow evidence are captured in the Tooltip readout showcase.
+remains absolutely positioned in its host, and carries `data-tip` as the vanilla
+readout does, so `wireTooltip()` running over a page that mixes the two adopts the
+React readout instead of inserting a second one. One set of document listeners
+serves every React readout in a document; the scroll and resize listeners are bound
+only while a readout is open. A readout rendered open is a picture of one, marked
+`data-tip-picture`, with no wiring to take it down. Covered by
+`react/src/Tooltip.test.tsx` and `react/src/Tooltip.specimens.test.tsx`; real layout
+and no-reflow evidence are captured in the Tooltip readout showcase.
 
 ## React segmented labels
 

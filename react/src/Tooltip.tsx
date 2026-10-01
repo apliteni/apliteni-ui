@@ -19,6 +19,73 @@ export type TooltipHostProps = {
   style?: CSSProperties;
 };
 
+type Parts = { label?: string; value?: string; detail?: string };
+
+// The mark-to-readout distance is --ui-tip-gap in src/styles/tooltip.css. This is
+// the fallback for a document that has not loaded the sheet;
+// react/src/Tooltip.test.tsx pins the two to each other.
+const TIP_GAP = 8;
+
+// ---- The document ---------------------------------------------------------
+
+// Five listeners per document, however many readouts the page holds. The vanilla
+// kit does the same with doc.__tipDocWired; a readout per table row would
+// otherwise stand up five document listeners each, open or not.
+type DocHandlers = {
+  pointerdown(event: PointerEvent): void;
+  pointercancel(): void;
+  click(event: MouseEvent): void;
+  keydown(event: KeyboardEvent): void;
+  touchend(event: TouchEvent): void;
+};
+
+const DOC_EVENTS = ['pointerdown', 'pointercancel', 'click', 'keydown', 'touchend'] as const;
+const CAPTURED = new Set<string>(['pointerdown', 'pointercancel']);
+const wirings = new WeakMap<Document, { members: Set<DocHandlers>; off(): void }>();
+
+function wireDocument(doc: Document, handlers: DocHandlers) {
+  let wiring = wirings.get(doc);
+  if (!wiring) {
+    const members = new Set<DocHandlers>();
+    const offs = DOC_EVENTS.map((type) => {
+      // A copy: a handler may unmount another readout while the relay runs.
+      const relay = (event: Event) => { for (const member of [...members]) (member[type] as (e: Event) => void)(event); };
+      doc.addEventListener(type, relay, CAPTURED.has(type));
+      return () => doc.removeEventListener(type, relay, CAPTURED.has(type));
+    });
+    wiring = { members, off: () => offs.forEach((off) => off()) };
+    wirings.set(doc, wiring);
+  }
+  const { members, off } = wiring;
+  members.add(handlers);
+  return () => {
+    members.delete(handlers);
+    if (members.size) return;
+    off();
+    wirings.delete(doc);
+  };
+}
+
+// ---- The readout ----------------------------------------------------------
+
+// One place the readout's markup is written, so the live panel and the picture
+// below cannot drift apart. `data-tip` is what the vanilla wiring reads to see
+// that a host already holds a readout, so a page mixing the two gets one.
+function panelProps(open: boolean, below: boolean, named: boolean, id?: string) {
+  return {
+    id,
+    'data-tip': '',
+    role: named ? ('tooltip' as const) : undefined,
+    className: `ui-tip${below ? ' is-below' : ''}${open ? ' is-open' : ''}`,
+  };
+}
+
+const Text = ({ label = '', value = '', detail = '' }: Parts) => <>
+  <span className="ui-tip__label" hidden={!label}>{label}</span>
+  <span className="ui-tip__value" hidden={!value}>{value}</span>
+  <span className="ui-tip__detail" hidden={!detail}>{detail}</span>
+</>;
+
 export function Tooltip(props: TooltipProps) {
   return <TooltipSurface {...props} />;
 }
@@ -26,6 +93,28 @@ export function Tooltip(props: TooltipProps) {
 export const TooltipHost = forwardRef<HTMLDivElement, TooltipHostProps>(function TooltipHost(props, ref) {
   return <TooltipSurface {...props} chart forwardedRef={ref} />;
 });
+
+/**
+ * A readout rendered open, as a picture of one — what a documentation page or a
+ * contrast gate can see. Its host carries `.ui-tip-host` and no `data-tip-host`,
+ * so no wiring reaches it and a passing pointer cannot take it down. `x` and `y`
+ * are the mark's centre and its top edge (its bottom for 'bottom'), in px from
+ * the host's top left.
+ *
+ * Internal to this module: the showcase uses it, `index.ts` does not export it.
+ * why: docs/specification.md#the-hover-readout
+ */
+export function TooltipPicture({ x, y, placement = 'top', children, style, className, ...parts }: Parts & {
+  x: number; y: number; placement?: 'top' | 'bottom'; children: ReactNode; style?: CSSProperties; className?: string;
+}) {
+  return <div className={['ui-tip-host', className].filter(Boolean).join(' ')} data-tip-picture="" style={style}>
+    {children}
+    <div {...panelProps(true, placement === 'bottom', !!parts.value)}
+      style={{ '--ui-tip-x': `${x}px`, '--ui-tip-y': `${y}px` } as CSSProperties}>
+      <Text {...parts} />
+    </div>
+  </div>;
+}
 
 function TooltipSurface({ text, label = text, value, detail, placement = 'top', children, chart = false, className, style, forwardedRef }: TooltipProps & TooltipHostProps & { chart?: boolean; forwardedRef?: ForwardedRef<HTMLDivElement> }) {
   const id = useId();
@@ -82,7 +171,8 @@ function TooltipSurface({ text, label = text, value, detail, placement = 'top', 
       clip.right = Math.min(clip.right, bounds.right);
       clip.bottom = Math.min(clip.bottom, bounds.bottom);
     }
-    const gap = parseFloat(getComputedStyle(t).getPropertyValue('--ui-tip-gap')) || 8;
+    const declared = parseFloat(getComputedStyle(t).getPropertyValue('--ui-tip-gap'));
+    const gap = Number.isFinite(declared) ? declared : TIP_GAP;
     const above = anchor.top - clip.top;
     const below = clip.bottom - anchor.bottom;
     const prefersBelow = placement === 'bottom';
@@ -112,45 +202,45 @@ function TooltipSurface({ text, label = text, value, detail, placement = 'top', 
     mark.setAttribute('aria-describedby', id);
     return () => { if (mark.getAttribute('aria-describedby') === id) mark.removeAttribute('aria-describedby'); };
   }, [chart, mark, id]);
+
+  // The document's five listeners are shared; this instance's share of them is a
+  // stable object whose handlers are replaced on every render, so the relay above
+  // always calls the current closures without rebinding anything.
+  const shared = useRef<DocHandlers>({} as DocHandlers);
+  shared.current.keydown = (event) => {
+    ignoreMouseUntil.current = 0;
+    pointerKind.current = '';
+    pendingClick.current = null;
+    if (event.key === 'Escape') close();
+  };
+  shared.current.touchend = (event) => {
+    if (!host.current?.contains(event.target as Node)) close(true);
+  };
+  shared.current.pointerdown = (event) => {
+    pointerKind.current = event.pointerType;
+    tapping.current = event.pointerType === 'touch' || event.pointerType === 'pen';
+    if (tapping.current) ignoreMouseUntil.current = Date.now() + 800;
+  };
+  shared.current.pointercancel = () => { tapping.current = false; };
+  shared.current.click = (event) => {
+    tapping.current = false;
+    if ((pointerKind.current === 'touch' || pointerKind.current === 'pen') && !host.current?.contains(event.target as Node)) close(true);
+  };
+  useEffect(() => wireDocument(host.current!.ownerDocument, shared.current), []);
+
+  // Only while a readout is open: a capturing scroll listener hears every
+  // scroller on the page, and a closed readout has nothing to re-place.
   useEffect(() => {
-    const doc = host.current!.ownerDocument;
-    const view = doc.defaultView!;
-    const keyboard = (event: KeyboardEvent) => {
-      ignoreMouseUntil.current = 0;
-      pointerKind.current = '';
-      pendingClick.current = null;
-      if (event.key === 'Escape') close();
-    };
-    const outside = (event: TouchEvent) => {
-      if (!host.current?.contains(event.target as Node)) close(true);
-    };
-    const pointer = (event: PointerEvent) => {
-      pointerKind.current = event.pointerType;
-      tapping.current = event.pointerType === 'touch' || event.pointerType === 'pen';
-      if (event.pointerType === 'touch' || event.pointerType === 'pen') ignoreMouseUntil.current = Date.now() + 800;
-    };
-    const cancel = () => { tapping.current = false; };
-    const outsideClick = (event: MouseEvent) => {
-      tapping.current = false;
-      if ((pointerKind.current === 'touch' || pointerKind.current === 'pen') && !host.current?.contains(event.target as Node)) close(true);
-    };
-    doc.addEventListener('pointerdown', pointer, true);
-    doc.addEventListener('pointercancel', cancel, true);
-    doc.addEventListener('click', outsideClick);
-    doc.addEventListener('keydown', keyboard);
-    doc.addEventListener('touchend', outside);
-    view.addEventListener('scroll', place, true);
-    view.addEventListener('resize', place);
+    if (!open) return;
+    const view = host.current!.ownerDocument.defaultView!;
+    const reposition = () => place();
+    view.addEventListener('scroll', reposition, true);
+    view.addEventListener('resize', reposition);
     return () => {
-      doc.removeEventListener('pointerdown', pointer, true);
-      doc.removeEventListener('pointercancel', cancel, true);
-      doc.removeEventListener('click', outsideClick);
-      doc.removeEventListener('keydown', keyboard);
-      doc.removeEventListener('touchend', outside);
-      view.removeEventListener('scroll', place, true);
-      view.removeEventListener('resize', place);
+      view.removeEventListener('scroll', reposition, true);
+      view.removeEventListener('resize', reposition);
     };
-  }, [placement]);
+  }, [open, placement]);
 
   const contents = chart ? readout : { label, value, detail };
   const Host = chart ? 'div' : 'span';
@@ -206,10 +296,8 @@ function TooltipSurface({ text, label = text, value, detail, placement = 'top', 
       }}
     >
       {chart ? children : <span ref={trigger} className="ui-focusable" tabIndex={0} aria-describedby={id}>{children}</span>}
-      <Panel ref={tip as Ref<HTMLDivElement>} id={id} role={chart && !mark ? undefined : 'tooltip'} className={`ui-tip${open ? ' is-open' : ''}`}>
-        <span className="ui-tip__label" hidden={!contents.label}>{contents.label}</span>
-        <span className="ui-tip__value" hidden={!contents.value}>{contents.value}</span>
-        <span className="ui-tip__detail" hidden={!contents.detail}>{contents.detail}</span>
+      <Panel ref={tip as Ref<HTMLDivElement>} {...panelProps(open, false, !(chart && !mark), id)}>
+        <Text {...contents} />
       </Panel>
     </Host>
   );
