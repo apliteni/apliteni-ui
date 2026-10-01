@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
+import { snippet } from '@apliteni/apliteni-ui';
 import { Snippet } from './Snippet';
 
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); });
@@ -12,13 +13,24 @@ function clipboard(writeText = vi.fn().mockResolvedValue(undefined)) {
 }
 
 // jsdom checks behavior and semantics; browser evidence covers layout and contrast.
-for (const reveal of [false, true]) {
-  it(`keeps selectable plain text (reveal=${reveal})`, () => {
-    const { container } = render(<Snippet reveal={reveal} label="Terminal" code="npm install example" copyLabel="Copy command" />);
-    expect(container.firstChild).toHaveClass('ui-snippet');
-    expect(container.firstChild).toHaveClass(reveal ? 'ui-snippet--reveal' : 'ui-snippet');
-    expect(container.querySelector('pre')).toHaveTextContent('npm install example');
-    expect(screen.getByRole('button', { name: 'Copy command' })).toHaveAttribute('type', 'button');
+
+// The #429 series exists so React emits the vanilla markup, so compare against
+// the factory instead of restating class names: a restatement passes a component
+// that always adds ui-snippet--reveal, and says nothing about the bar or the copy
+// button. Not a new parity test — this one predates the PR that dropped it, and
+// now covers `copy` as well.
+for (const reveal of [false, true]) for (const copy of [false, true]) {
+  it(`keeps the factory classes and selectable text (reveal=${reveal}, copy=${copy})`, () => {
+    const props = { reveal, copy, label: 'Terminal', code: 'npm install example', copyLabel: 'Copy command' };
+    const vanilla = document.createElement('div');
+    vanilla.innerHTML = snippet(props);
+    const { container } = render(<Snippet {...props} />);
+    const classes = (root: Element) => Array.from(root.querySelectorAll('[class]'), el => el.getAttribute('class'));
+    expect(classes(container)).toEqual(classes(vanilla));
+    expect(classes(container)).toContain('ui-snippet__bar');
+    expect(container.querySelector('pre')).toHaveTextContent(props.code);
+    if (copy) expect(screen.getByRole('button', { name: props.copyLabel })).toHaveAttribute('type', 'button');
+    else expect(container.querySelector('button')).toBeNull();
   });
 }
 

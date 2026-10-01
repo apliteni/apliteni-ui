@@ -62,8 +62,10 @@ test('every ring consumer keeps a real outline for forced colors', () => {
   // controls, the feedback composer's two, React's row-selection checkbox, the
   // dropdown panel — a scroll container Chrome makes a keyboard stop, found by
   // #487's review — and `.vopt`, the version switcher's rows, which the arrow keys
-  // focus and #487's re-review found still taking the browser's outline.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // focus and #487's re-review found still taking the browser's outline. 47 -> 48:
+  // a Snippet's card, which now draws the ring for its focused code region because
+  // the `<pre>` has no radius of its own.
+  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

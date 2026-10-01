@@ -11,9 +11,19 @@
     {
       "file": "stories/snippet-focus.test.js",
       "name": "Snippet focus",
-      "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, plus a rejected selector-removal mutation.",
+      "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, that the code region hands its ring to the rounded card it sits in, and that the card still clips. Four mutations remove one declaration each.",
       "blind": [
-        "JSDOM forces focus state and cannot prove real Tab reachability, clipping or pixels; Chromium evidence covers vanilla and React at 390px."
+        "JSDOM forces focus state and cannot prove real Tab reachability, clipping or pixels; Chromium evidence covers vanilla and React at 390px and 1280px.",
+        "contrast.js substitutes each custom property once for the whole sheet, so the per-surface --ring-gap is unmeasured here."
+      ]
+    },
+    {
+      "file": "react/src/snippet-stories.test.tsx",
+      "name": "React: Snippet stories",
+      "does": "Clicks every React copy button in the Snippet stories and checks the clipboard got the text the code region displays, pairs the Comparison story's two columns, and rejects a story whose children drift from its code. Counts the buttons it measured.",
+      "blind": [
+        "jsdom and strings only: no token colour (react/src/contrast.test.tsx) and no layout (browser captures).",
+        "The vanilla copy button is unmeasured because wireTopbar() reads innerText, which jsdom does not implement."
       ]
     },
     {

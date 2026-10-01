@@ -49,33 +49,49 @@ type Theme = (typeof THEMES)[number];
  * ────────────────────────────────────────────────────────────────────────── */
 type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string };
 
-// #429 PR 3.8 carries the existing vanilla C/E debt into the React migration.
-// stories/contrast.test.js records the original rationale and #455 measurements:
-// syntax colour repeats meaning present in the source; these light pairs still
-// miss AA. No other surface, state, story, or changed colour inherits this debt.
+// An entry belongs here only when A PERSON has decided a failure is debt and
+// written down why. This list was empty until #429 PR 3.8, and it stopped being
+// empty on an agent's judgement — which is why the PR body names these two entries
+// for Artur rather than leaving them to pass as a green suite. Before this gate had
+// anything in it, it found the sort caret painting --muted at opacity .5, 2.39:1
+// dark and 2.16:1 light against a 4.5 floor; #131 removed the opacity rather than
+// ledgering it, and that is still the first thing to try.
+//
+// Both entries carry debt the vanilla side already records. stories/contrast.test.js
+// holds the original rationale and #455's measurements: syntax colour repeats meaning
+// present in the source, and these light pairs still miss AA. No other surface, story
+// or colour inherits this debt.
 const snippetStories = new Set([
   './Snippet.stories.tsx:Shell',
   './Snippet.stories.tsx:Variants',
   './Snippet.stories.tsx:Comparison',
 ]);
+// Two states, one cause. Since #474 the card carries the code region's focus ring,
+// so .ui-snippet joins the containers the state walk re-measures — the same way it
+// already walks every .ui-card. The spans it finds there are the same literals at
+// the same ratios; only the state label differs, which is why each entry's count
+// is exactly twice its resting count and no new colour is accepted.
+const STATES = [null, 'focus-visible'];
 const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default'
-  && f.state === null && f.bg === 'rgb(255,255,255)'
+  && STATES.includes(f.state) && f.bg === 'rgb(255,255,255)'
   && [...f.stories].every(story => snippetStories.has(story))
   && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
 const LEDGER: LedgerEntry[] = [
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
       && [...f.paths].every(path => /span\.[fu]$/.test(path)),
-    count: 2,
-    why: 'Vanilla E: light cyan flags and URLs retain the existing 3.81:1 pair. '
-      + 'Syntax colour is a second signal; preserving it does not claim AA compliance.',
+    count: 4,
+    why: 'Vanilla E: light cyan flags and URLs retain the existing 3.81:1 pair, at '
+      + 'rest and with the card ringed. Syntax colour is a second signal; preserving '
+      + 'it does not claim AA compliance.',
   },
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(28, 138, 44)'
       && [...f.paths].every(path => path.endsWith('span.s')),
-    count: 1,
-    why: 'Vanilla C: light green strings retain the existing 4.45:1 pair. '
-      + 'The source conveys the meaning; this remains below the 4.5:1 text floor.',
+    count: 2,
+    why: 'Vanilla C: light green strings retain the existing 4.45:1 pair, at rest '
+      + 'and with the card ringed. The source conveys the meaning; this remains '
+      + 'below the 4.5:1 text floor.',
   },
 ];
 

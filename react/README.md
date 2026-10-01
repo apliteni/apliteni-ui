@@ -57,10 +57,18 @@ text using the existing `.k` (command), `.f` (flag), `.s` (string), `.u` (URL), 
 `.c` (comment) classes. Keep `code` as the original source: copying always uses it,
 regardless of the displayed children. Neither strings nor children are parsed as HTML.
 
+Build the children from `code` with `shellTokens`, the same tokenizer the vanilla
+`hlShell` uses, so the text on screen cannot drift from the text the button copies.
+Writing the spans out by hand means keeping two copies of the string in step.
+
 ```tsx
-<Snippet label="Shell" code="curl -s https://example.com">
-  <span className="k">curl</span>{' '}<span className="f">-s</span>{' '}
-  <span className="u">https://example.com</span>
+import { shellTokens } from '@apliteni/apliteni-ui';
+
+const code = 'curl -s https://example.com';
+
+<Snippet label="Shell" code={code}>
+  {shellTokens(code).map(({ cls, text }, at) =>
+    cls ? <span key={at} className={cls}>{text}</span> : text)}
 </Snippet>
 ```
 

@@ -302,17 +302,43 @@ export function snippet({ label = 'shell', code = '', reveal = false, copy = tru
 
 // Tiny shell highlighter: escapes first, then wraps comments/strings/URLs/flags/command.
 // Matches the class names in styles/code.css (.k .f .s .u .c). Ported from viz/account.mjs.
+// The pattern runs over escaped text, so a quoted string ends at &quot; and a URL
+// stops at any entity. Group order is the class order below.
+const SHELL = /(#[^\n]*)|(&quot;(?:[^&]|&(?!quot;))*&quot;|'[^']*')|(https?:\/\/[^\s"'&]+)|(\B--?[A-Za-z][\w-]*)|(^[a-z][\w.-]*)/gm;
+const SHELL_CLASSES = ['c', 's', 'u', 'f', 'k'];
+const ENTITY = { amp: '&', lt: '<', gt: '>', quot: '"' };
+// The exact inverse of esc: every & in escaped text starts one of these four.
+const unesc = (text) => text.replace(/&(amp|lt|gt|quot);/g, (_, name) => ENTITY[name]);
+
+/**
+ * The shell highlighter's tokens, as `[{ cls, text }]` with `cls` null between
+ * tokens and `text` the original unescaped source. Concatenating `text` returns
+ * `raw`, so a React caller renders the spans from the same string it copies
+ * instead of keeping a second hand-written copy in step. hlShell joins the same
+ * tokens into HTML; neither can drift from the other.
+ *
+ * SHELL never matches inside an entity — `#`, `h`, `-` and `^[a-z]` do not occur
+ * in `&amp;`, `&lt;`, `&gt;` or `&quot;`, and every alternative stops before `&`
+ * or consumes a whole `&quot;` — so each slice is entity-complete and
+ * `esc(unesc(slice))` returns the slice unchanged. hlShell's output is therefore
+ * byte-identical to tokenising inline, which src/components/snippet-tokens.test.js
+ * holds against a copy of the previous one-pass implementation.
+ */
+export function shellTokens(raw) {
+  const escaped = esc(raw);
+  const out = [];
+  let at = 0;
+  for (const match of escaped.matchAll(SHELL)) {
+    if (match.index > at) out.push({ cls: null, text: unesc(escaped.slice(at, match.index)) });
+    out.push({ cls: SHELL_CLASSES[match.slice(1).findIndex(Boolean)], text: unesc(match[0]) });
+    at = match.index + match[0].length;
+  }
+  if (at < escaped.length) out.push({ cls: null, text: unesc(escaped.slice(at)) });
+  return out;
+}
+
 export const hlShell = (raw) =>
-  esc(raw).replace(
-    /(#[^\n]*)|(&quot;(?:[^&]|&(?!quot;))*&quot;|'[^']*')|(https?:\/\/[^\s"'&]+)|(\B--?[A-Za-z][\w-]*)|(^[a-z][\w.-]*)/gm,
-    (m, c, s, u, f, cmd) =>
-      c ? `<span class="c">${c}</span>`
-        : s ? `<span class="s">${s}</span>`
-        : u ? `<span class="u">${u}</span>`
-        : f ? `<span class="f">${f}</span>`
-        : cmd ? `<span class="k">${cmd}</span>`
-        : m,
-  );
+  shellTokens(raw).map(({ cls, text }) => (cls ? `<span class="${cls}">${esc(text)}</span>` : esc(text))).join('');
 
 export { icon };
 export { illo, illoNames } from '../assets/illustrations.js';

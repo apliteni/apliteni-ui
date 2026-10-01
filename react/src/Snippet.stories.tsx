@@ -1,4 +1,5 @@
-import { snippet, hlShell } from '@apliteni/apliteni-ui';
+import { useEffect, useRef } from 'react';
+import { snippet, hlShell, shellTokens, wireTopbar } from '@apliteni/apliteni-ui';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, within } from 'storybook/test';
 import { Snippet, type SnippetProps } from './Snippet';
@@ -47,24 +48,37 @@ export const Copied: Story = {
 };
 
 const shellCode = 'curl -s https://example.com/api/version \\\n  -H "Accept: application/json"';
-const shellTokens = <><span className="k">curl</span>{' '}<span className="f">-s</span>{' '}
-  <span className="u">https://example.com/api/version</span>{' \\\n  '}
-  <span className="f">-H</span>{' '}<span className="s">{'"Accept: application/json"'}</span></>;
 const configCode = '{\n  "url": "https://example.com/mcp",\n  "transport": "http"\n}';
-const configTokens = <>{'{\n  '}<span className="s">{'"url"'}</span>{': '}
-  <span className="s">{'"https://example.com/mcp"'}</span>{',\n  '}
-  <span className="s">{'"transport"'}</span>{': '}<span className="s">{'"http"'}</span>{'\n}'}</>;
+const commentedShell = '# read the current version\n' + shellCode;
+
+// shellTokens is the vanilla highlighter's own tokenizer, so the spans and the
+// copied string come from one source. Hand-written spans beside a `code` string
+// are two copies of the same text, and nothing keeps them in step.
+const tokens = (code: string) =>
+  shellTokens(code).map(({ cls, text }, at) => (cls ? <span key={at} className={cls}>{text}</span> : text));
+
+// snippet() returns markup; wireTopbar() attaches the copy behaviour. Without it
+// the vanilla Copy button is inert and a reader comparing the columns side by
+// side reads that as a React regression. #474
+function Vanilla({ html }: { html: string }) {
+  const host = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = host.current;
+    if (!node) return;
+    node.innerHTML = html;
+    wireTopbar(node);
+  }, [html]);
+  return <div ref={host} style={{ display: 'grid', gap: 'var(--space-6)' }} />;
+}
 
 export const Shell: Story = {
-  args: { label: 'Terminal', code: shellCode, children: shellTokens },
+  args: { label: 'Terminal', code: shellCode, children: tokens(shellCode) },
 };
 
 export const Variants: Story = {
   render: () => <div style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: 'var(--panel-lg)' }}>
-    <Snippet label="mcp.json" code={configCode} copy={false}>{configTokens}</Snippet>
-    <Snippet label="Shell" code={'# read the current version\n' + shellCode}>
-      <span className="c"># read the current version</span>{'\n'}{shellTokens}
-    </Snippet>
+    <Snippet label="mcp.json" code={configCode} copy={false}>{tokens(configCode)}</Snippet>
+    <Snippet label="Shell" code={commentedShell}>{tokens(commentedShell)}</Snippet>
   </div>,
 };
 
@@ -72,20 +86,18 @@ export const Comparison: Story = {
   render: () => <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
     <section aria-label="Vanilla" style={{ minWidth: 0 }}>
       <h2>Vanilla</h2>
-      <div style={{ display: 'grid', gap: 'var(--space-6)' }} dangerouslySetInnerHTML={{ __html:
+      <Vanilla html={
         snippet({ label: 'Terminal', code: hlShell(shellCode) }) +
         snippet({ label: 'mcp.json', code: hlShell(configCode), copy: false }) +
-        snippet({ label: 'Shell', code: hlShell('# read the current version\n' + shellCode) }),
-      }} />
+        snippet({ label: 'Shell', code: hlShell(commentedShell) })
+      } />
     </section>
     <section aria-label="React" style={{ minWidth: 0 }}>
       <h2>React</h2>
       <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
-        <Snippet label="Terminal" code={shellCode}>{shellTokens}</Snippet>
-        <Snippet label="mcp.json" code={configCode} copy={false}>{configTokens}</Snippet>
-        <Snippet label="Shell" code={'# read the current version\n' + shellCode}>
-          <span className="c"># read the current version</span>{'\n'}{shellTokens}
-        </Snippet>
+        <Snippet label="Terminal" code={shellCode}>{tokens(shellCode)}</Snippet>
+        <Snippet label="mcp.json" code={configCode} copy={false}>{tokens(configCode)}</Snippet>
+        <Snippet label="Shell" code={commentedShell}>{tokens(commentedShell)}</Snippet>
       </div>
     </section>
   </div>,
@@ -95,11 +107,11 @@ export const KeyboardFocus: Story = {
   render: () => <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
     <section aria-label="Vanilla" style={{ minWidth: 0 }}>
       <h2>Vanilla</h2>
-      <div style={{ display: 'grid', gap: 'var(--space-6)' }} dangerouslySetInnerHTML={{ __html:
+      <Vanilla html={
         snippet({ label: 'Terminal', code: shellCode }) +
         snippet({ label: 'Example token', code: 'example-only-token-value', reveal: true }) +
-        snippet({ label: 'Read only', code: shellCode, copy: false }),
-      }} />
+        snippet({ label: 'Read only', code: shellCode, copy: false })
+      } />
     </section>
     <section aria-label="React" style={{ minWidth: 0 }}>
       <h2>React</h2>

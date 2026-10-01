@@ -6,9 +6,7 @@
 .ui-snippet {
   background: var(--surface); --ring-gap: var(--surface);
   border-radius: var(--radius-md);
-  /* Scrollable code can receive keyboard focus; leave room for its ring. */
-  overflow: visible;
-  min-width: 0;
+  overflow: hidden;
 }
 .ui-snippet__bar {
   display: flex;
@@ -32,6 +30,18 @@
   white-space: pre;
   font-family: var(--font-mono);
 }
+/* Scrollable code is a keyboard target, but a <pre> flush with the card and
+   without its radius draws a square ring that cuts across the card and squares
+   its corners. The card carries the ring instead, so it follows --radius-md and
+   survives `overflow: hidden`, which clips descendants and not the card's own
+   shadow. --ring-gap comes from the page here, matching the container rule in
+   tokens.css: a ring outside its own surface cannot use that surface as its gap.
+   Forced colors drops box-shadow, so the card keeps a transparent outline of its
+   own for the system to repaint; the pre keeps the one that suppresses the native
+   outline, and focus survives on both. See stories/snippet-focus.test.js. */
+.ui-snippet pre:focus-visible { box-shadow: none; }
+.ui-snippet:has(pre:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring); }
+
 .ui-snippet__copy {
   background: none;
   border: 0;

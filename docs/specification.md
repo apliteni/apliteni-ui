@@ -2493,7 +2493,7 @@ the contract of the factory they invoke (for example, success actions use `butto
 | `toast` | title, body, action string / label | — | variant, style, icon | — |
 | `successPanel` | title, sub | — | — | — |
 | `emptyState` | title, sub | — | icon, named art | SVG art, actions |
-| `snippet`, `hlShell` | label, copyLabel; hlShell raw | — | — | snippet code (use hlShell for raw source) |
+| `snippet`, `hlShell`, `shellTokens` | label, copyLabel; hlShell / shellTokens raw | — | — | snippet code (use hlShell for raw source) |
 | `tabs` | name, ariaLabel, className | — | — | items.label, items.panel |
 | `dropdown` | label, value, placeholder, ariaLabel, id, triggerClass, panelClass, scroll; item label / value / description / target / badge text; section label; search placeholder / label / empty / hint / query | item href | variant, align, direction, item icon / badge tone | triggerContent, header, footer, foot |
 | `sidebarNav` | id, ariaLabel, active; item id / label / target / badge text; section label | item href | activeIs, item icon / badge tone | footer |
@@ -2939,13 +2939,34 @@ width. Decided in [#517](https://github.com/apliteni/apliteni-ui/issues/517).
 `Snippet` displays `code` as plain text by default. Optional React `children` replace
 only the displayed content; copying always writes the original `code` string.
 Token spans use the existing `.k`, `.f`, `.s`, `.u`, and `.c` styles without parsing
-HTML strings. Callers keep displayed tokens consistent with their source text.
-`copy={false}` removes the copy button and its tab stop, leaving the label and
-selectable content. Changing `code` or `copy`, or unmounting, invalidates pending
-copy feedback. Held by `react/src/Snippet.test.tsx`; this checks DOM behavior and
-accessibility semantics, not browser layout or colour contrast. Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+HTML strings. Callers keep displayed tokens consistent with their source text, and
+`shellTokens` is how: it returns the vanilla highlighter's own tokens as
+`{ cls, text }`, where `cls` is one of those five classes or `null` between tokens
+and the `text` values concatenate back to the string passed in. Deriving children
+from the same string the component copies removes the need to keep a second copy
+in step. `copy={false}` removes the copy button and its tab stop, leaving the label
+and selectable content. Changing `code` or `copy`, or unmounting, invalidates pending
+copy feedback. Held by `react/src/Snippet.test.tsx`, which also compares the
+rendered classes against the `snippet()` factory across `reveal` and `copy`;
+`react/src/snippet-stories.test.tsx` holds the kit's own stories to copying what
+they display, and `src/components/snippet-tokens.test.js` holds `hlShell`'s output
+and the token round trip. These check DOM behavior and strings, not browser layout
+or colour contrast. Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+The two implementations' copy feedback differs, and has since before React Snippet
+existed. `wireTopbar()` replaces the vanilla button's contents with the text
+`✓ Copied`, so the kit glyph goes with it and there is no failure state at all;
+React swaps the glyph to `check`, shows `Copied`, and shows `Copy failed` when the
+write is rejected. The vanilla button also carries `data-orig`, which is where
+`wireTopbar()` keeps the original label; React holds it in state. Nothing here
+depends on these matching, and the class comparison in `react/src/Snippet.test.tsx`
+does not see them, because none of them is a class.
 
 Snippet descendants use the shared `--ring` on `:focus-visible`, including copy
-buttons and browser-focusable scroll regions in vanilla and React. The container
-does not clip that ring. Held by `stories/snippet-focus.test.js`; keyboard and
-clipping evidence is checked in Chromium because JSDOM cannot prove either.
+buttons in vanilla and React. The browser-focusable code region is the exception:
+a `<pre>` sits flush with its card and has no radius, so a ring on it would paint
+a square that overhangs the rounded card. The card paints that ring instead, with
+`--ring-gap` taken from the page rather than from its own surface, and keeps
+`overflow: hidden`. One focus signal is drawn either way. Held by
+`stories/snippet-focus.test.js`; keyboard reachability, the gap colour and pixels
+are checked in Chromium because JSDOM cannot prove any of them.
