@@ -131,10 +131,16 @@ export const Chart: Story = { render: () => <ReadoutChart /> };
 // The two sides, rendered open. Below is what the wiring picks when the side
 // above would be clipped — here by a box that hides its overflow.
 export const Placement: Story = {
-  render: () => <div className="tooltip-gallery tooltip-placement">
-    <Specimen label="Above the mark — the default"><Picture {...pointOf(revenue, HOT)} /></Specimen>
-    <Specimen label="Below — where above is clipped">
-      <Picture {...pointOf(revenue, HOT)} placement="bottom" clip />
-    </Specimen>
+  // Two elements, as the vanilla gallery has them: pad() is the canvas that fills
+  // the viewport, row() is a content-height flex row. On one element the row's
+  // min-height is the viewport's, and at a phone width its two wrapped lines are
+  // stretched a screen apart.
+  render: () => <div className="tooltip-gallery">
+    <div className="tooltip-placement">
+      <Specimen label="Above the mark — the default"><Picture {...pointOf(revenue, HOT)} /></Specimen>
+      <Specimen label="Below — where above is clipped">
+        <Picture {...pointOf(revenue, HOT)} placement="bottom" clip />
+      </Specimen>
+    </div>
   </div>,
 };

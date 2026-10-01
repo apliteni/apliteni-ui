@@ -2387,6 +2387,7 @@ source test does not render layout. Existing Modal tests cover focus, dismissal 
 ## React tooltip
 
 React Tooltip renders `ui-tip-host`, `ui-tip`, and label/value/detail spans using the existing tooltip CSS. `text` remains a shorthand for `label`; empty parts are hidden. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
+
 React `TooltipHost` renders one readout for consumer-owned chart marks carrying
 `data-tip-value`, optional `data-tip-label` and `data-tip-detail`. A nested
 `data-tip-anchor` determines placement. The host adds no tab stops or chart logic.
