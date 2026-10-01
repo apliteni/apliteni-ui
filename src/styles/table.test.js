@@ -144,3 +144,72 @@ test('compact end cells override the base last-header inset together', () => {
   assert.equal(compactTrailingInset(CSS.replace('.ui-table--compact th:last-child,', '')), null,
     'removing the header override must be rejected');
 });
+
+/**
+ * Rule: a table sizes to its content and is capped at the room it has; no rule in this
+ * sheet stretches one. #504 was a two-column table across a 1440px page, with the amount
+ * a screen away from its label.
+ *
+ * Subjects are discovered: every rule here whose selector sizes a table ELEMENT — cell
+ * rules are excluded, because `__title`'s own 99% is the documented way to let a text
+ * column take the slack, and `__selection`'s fixed track is a column width.
+ *
+ * What it does not reach: whether a stretched table is still reachable from outside this
+ * sheet. A consumer writing `width: 100%` in their own CSS, or a story adding a class of
+ * its own, is their choice and no gate here sees it. The guideline is what forbids it.
+ */
+const CELL = /(?:__|\s(?:td|th|thead|tbody|tr|caption)\b)/;
+// Comments out first: the header comment above the base rule names a cell class,
+// and an uncommented scan read it as part of that rule's selector.
+const noComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+const tableSizingRules = (css) => [...noComments(css).matchAll(/([^{}\n][^{}]*)\{([^}]*)\}/g)]
+  .map(([, selector, body]) => ({ selector: selector.trim(), body }))
+  .filter(({ selector, body }) => /\.ui-table(?:--[\w-]+)?(?![\w-])/.test(selector) && !CELL.test(selector)
+    && /(?:^|;|\s)width\s*:/.test(body));
+
+const stretches = (value) => !/^auto$/.test(value.trim());
+
+function tableWidths(css) {
+  const rules = tableSizingRules(css);
+  assert.ok(rules.length > 0, 'no rule in this sheet sizes a table — the subject is gone');
+  const problems = [];
+  let measured = 0;
+
+  for (const { selector, body } of rules) {
+    for (const [, value] of body.matchAll(/(?:^|;|\s)width\s*:\s*([^;}]+)/g)) {
+      if (stretches(value)) problems.push(`${selector} sizes the table itself: width: ${value.trim()}`);
+      measured++;
+    }
+  }
+  assert.equal(measured, rules.length, 'every sizing rule must be measured once');
+
+  // The cap is the other half: without it a short table shrinks but a bled one
+  // inside a card loses the end inset it bleeds into.
+  const caps = [...noComments(css).matchAll(/([^{}\n][^{}]*)\{([^}]*max-width[^}]*)\}/g)]
+    .filter(([, selector]) => /\.ui-table(?:--[\w-]+)?(?![\w-])/.test(selector) && !CELL.test(selector));
+  if (!caps.some(([, , body]) => /max-width\s*:\s*100%/.test(body))) {
+    problems.push('no rule caps a table at the room it has');
+  }
+  if (!caps.some(([, selector, body]) => selector.includes('.ui-card') && /calc\(100%/.test(body))) {
+    problems.push('the card bleed no longer caps a table at the width it bleeds to');
+  }
+  return problems;
+}
+
+test('a table sizes to its content and is capped, never stretched', () => {
+  assert.deepEqual(tableWidths(CSS), []);
+});
+
+test('the width gate rejects a table stretched back to its container', () => {
+  for (const [name, mutation] of [
+    ['the base rule', CSS.replace('  width: auto;', '  width: 100%;')],
+    ['a modifier', `${CSS}\n.ui-table--dense { width: 100%; }`],
+    ['a composition inside a card', `${CSS}\n.ui-card > .ui-table--zebra { width: calc(100% + 2 * var(--space-3)); }`],
+  ]) {
+    assert.ok(tableWidths(mutation).length > 0, `${name} stretching a table must be rejected`);
+  }
+  assert.ok(tableWidths(CSS.replace('  max-width: 100%;', '')).length > 0,
+    'removing the cap must be rejected');
+  assert.ok(tableWidths(CSS.replace('max-width: calc(100% + 2 * var(--space-3));', 'max-width: 100%;')).length > 0,
+    'a card bleed that caps at the card instead of the bled width must be rejected');
+});

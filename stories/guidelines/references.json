@@ -2,8 +2,18 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:105",
+        "ref": "src/styles/table.css:111",
         "pattern": ".ui-table { background: var(--table-bg);"
+      }
+    ],
+    "width": [
+      {
+        "ref": "src/styles/table.css:12",
+        "pattern": "width: auto;"
+      },
+      {
+        "ref": "src/styles/table.css:125",
+        "pattern": "max-width: calc(100% + 2 * var(--space-3));"
       }
     ]
   },
@@ -522,7 +532,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:58",
+        "ref": "src/styles/table.css:64",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {

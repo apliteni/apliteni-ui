@@ -3,8 +3,14 @@
  * Row modifiers: .is-dead (revoked/struck), right-aligned .ui-table__act
  * ========================================================================== */
 
+/* A table ends where its values end. Stretching a short one put an amount a
+ * screen away from its label (#504). A table with more content than room is
+ * unchanged: its cells do not wrap, so their total is its floor. A `__title`
+ * cell below still takes the slack when a text column should grow.
+ * why: guidelines/dense-tables.md */
 .ui-table {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   border-collapse: collapse;
   font-size: var(--text-base);
 }
@@ -116,7 +122,7 @@
    padding and never past it, so the columns start on the card's own text edge and the
    scroll region stays empty at rest. why: docs/specification.md#spacing-and-rhythm */
 .ui-card > :where(.ui-table--dense, .ui-table--zebra) {
-  width: calc(100% + 2 * var(--space-3));
+  max-width: calc(100% + 2 * var(--space-3));
   margin-inline: calc(-1 * var(--space-3));
 }
 /* A scroll wrapper owns the bleed for a nested dense table: 4px of focus

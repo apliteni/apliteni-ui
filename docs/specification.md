@@ -2090,6 +2090,14 @@ has always done: a link in a ledger is a value that happens to open something, a
 one of them spends the accent on the column that needs it least. `.ui-btn` and `.ui-identity`
 inside a table keep their own paint. Decided on
 [#451](https://github.com/apliteni/apliteni-ui/issues/451).
+
+A table sizes to its content and never exceeds the width it has: a short table ends where
+its values end instead of stretching, which is what put an amount a screen away from its
+label in [#504](https://github.com/apliteni/apliteni-ui/issues/504). A table whose cells need
+more width than that is unchanged, and marking a text cell `.ui-table__title` gives that
+column the width left over. The React table paints through the same classes. Held by
+`src/styles/table.test.js`.
+
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.
 Dense, compact and zebra recipes give headers and values matching horizontal insets in
