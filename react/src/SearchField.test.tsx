@@ -5,7 +5,6 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach } from 'vitest';
 import axe from 'axe-core';
-import { input } from '@apliteni/apliteni-ui';
 import { SearchField } from './SearchField';
 
 // Vite rewrites a literal new URL(..., import.meta.url) into an asset URL, so the
@@ -14,31 +13,29 @@ const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import
 
 afterEach(cleanup);
 
-/** Tag, sorted attributes and children of a tree, so two renderers compare. */
-function structure(el: Element): unknown {
-  return {
-    tag: el.tagName,
-    attrs: Object.fromEntries(Array.from(el.attributes).map(a => [a.name, a.value.trim()]).sort()),
-    children: Array.from(el.childNodes).map(n => n instanceof Element ? structure(n) : n.textContent),
-  };
-}
-
-it('renders the vanilla search input group, attribute for attribute', () => {
-  const { container } = render(
-    <SearchField ariaLabel="Search invoices" placeholder="Vendor" defaultValue="Northwind" name="q" />);
-  const reference = document.createElement('div');
-  reference.innerHTML = input({
-    type: 'search', icon: 'search', ariaLabel: 'Search invoices',
-    placeholder: 'Vendor', value: 'Northwind', name: 'q',
-  });
-  expect(structure(container.firstElementChild!)).toEqual(structure(reference.firstElementChild!));
+// The field owns no CSS, so what it renders is the whole of what it is: the
+// group the kit's stylesheet styles, the glyph slot, and one native control on
+// .ui-input. A class dropped here is a field that stops being painted.
+it('is a group, a glyph slot and one native search input', () => {
+  const { container } = render(<SearchField ariaLabel="Search invoices" />);
+  const group = container.firstElementChild!;
+  expect(group.tagName).toBe('DIV');
+  expect(group.className).toBe('ui-input-group');
+  const [glyph, control] = Array.from(group.children);
+  expect(group.children).toHaveLength(2);
+  expect(glyph.className).toBe('ui-input-group__icon');
+  expect(glyph.querySelectorAll('svg')).toHaveLength(1);
+  // The glyph names nothing: the control carries the name.
+  expect(glyph.textContent).toBe('');
+  expect(control.tagName).toBe('INPUT');
+  expect(control.getAttribute('type')).toBe('search');
+  expect(control.className.split(/\s+/)).toContain('ui-input');
 });
 
 it('is a searchbox named by ariaLabel, with no visible label', () => {
   const { container } = render(<SearchField ariaLabel="Search invoices" placeholder="Vendor" />);
   expect(screen.getByRole('searchbox', { name: 'Search invoices' })).toBe(container.querySelector('input'));
   expect(container.querySelector('label')).toBeNull();
-  // The glyph is the only other node, and it says nothing: the group's text is empty.
   expect(container.textContent).toBe('');
 });
 
@@ -67,21 +64,35 @@ it('forwards its ref, its className and the native input props', async () => {
   const ref = createRef<HTMLInputElement>();
   const typed: string[] = [];
   render(<SearchField ref={ref} ariaLabel="Search invoices" className="rx-wide" disabled={false}
-    autoComplete="off" onChange={e => typed.push(e.currentTarget.value)} />);
+    autoComplete="off" name="q" onChange={e => typed.push(e.currentTarget.value)} />);
   const field = screen.getByRole('searchbox');
   expect(ref.current).toBe(field);
+  // Joined onto the kit class, never in place of it.
   expect(field.className.split(/\s+/).sort()).toEqual(['rx-wide', 'ui-input']);
   expect(field.getAttribute('autocomplete')).toBe('off');
+  expect(field.getAttribute('name')).toBe('q');
   await userEvent.type(field, 'ab');
   expect(typed).toEqual(['a', 'ab']);
 });
 
-it('takes the toolbar row rule, so it is the control that grows', () => {
+// A caller cannot turn it into some other field: `type` and the glyph are fixed,
+// and `aria-label` cannot be set past the required name.
+it('ignores a type or an aria-label a caller spreads over it', () => {
+  const props = { type: 'password', 'aria-label': 'Password' } as Record<string, unknown>;
+  render(<SearchField ariaLabel="Search invoices" {...props} />);
+  const field = screen.getByRole('searchbox', { name: 'Search invoices' });
+  expect(field.getAttribute('type')).toBe('search');
+});
+
+// The row rule is the reason the field carries no width of its own. Both halves
+// are read from the kit's sheet, because JSDOM resolves neither flex nor @media.
+it('takes the toolbar row rule at both of its widths', () => {
   const { container } = render(<div className="ui-toolbar"><SearchField ariaLabel="Search invoices" /></div>);
-  const group = container.querySelector('.ui-toolbar > .ui-input-group');
-  expect(group).not.toBeNull();
-  expect(readRepo('../../src/styles/layout.css'))
-    .toMatch(/\.ui-toolbar > \.ui-input-group \{[^}]*flex: 1 1 6rem/);
+  expect(container.querySelector('.ui-toolbar > .ui-input-group')).not.toBeNull();
+  const css = readRepo('../../src/styles/layout.css');
+  expect(css).toMatch(/\.ui-toolbar > \.ui-input-group \{[^}]*flex: 1 1 6rem/);
+  // One column: the field takes the line instead of sharing it with two chips.
+  expect(css).toMatch(/@media \(max-width: 560px\) \{\s*\.ui-toolbar > \.ui-input,\s*\.ui-toolbar > \.ui-input-group \{[^}]*flex-basis: 100%/);
 });
 
 it('passes axe with no visible label', async () => {

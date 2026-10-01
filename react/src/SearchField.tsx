@@ -9,20 +9,22 @@ export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type
 };
 
 /**
- * The toolbar's search box: the kit's `input({ type: 'search', icon: 'search',
- * ariaLabel })`, which React had no way to render without hand-writing
- * `<input className="ui-input">`.
+ * The toolbar's search box: one `.ui-input-group` holding the `search` glyph and
+ * a native `type="search"` control on `.ui-input`. It has no visible label, so
+ * the row keeps the height of the unlabelled controls beside it, and no CSS of
+ * its own, so the toolbar's row rule and the field's focus ring reach it from
+ * the kit's stylesheet.
  *
- * No visible label, so the row keeps the height of the controls beside it, and
- * no clear button, which is the field the kit already draws — `input.css`
- * suppresses the browser's own for the reason recorded there.
+ * No clear button. The browser paints its own near-black on the light field and
+ * white on the dark one, beside the kit's `--muted` magnifier — two glyphs, and
+ * only one answers to a token — so `input.css` suppresses it.
  * why: docs/specification.md#react-search-field
  */
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
   { ariaLabel, className, ...props }, ref,
 ) {
-  // icon() marks the svg aria-hidden, so the span carries nothing the vanilla
-  // group does not. SearchField.test.tsx compares the two attribute for attribute.
+  // icon() already marks the svg aria-hidden, so the slot adds no name of its
+  // own and `ariaLabel` stays the control's whole name.
   return <div className="ui-input-group">
     <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon('search') }} />
     <input ref={ref} {...props} type="search" aria-label={ariaLabel}

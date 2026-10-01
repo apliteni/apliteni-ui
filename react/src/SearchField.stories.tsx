@@ -64,6 +64,9 @@ export const Toolbar: StoryObj = {
       <div className="ui-toolbar">
         <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
+        {/* Both panels keep the kit's default start edge. The panel floor is
+            240px, and once the field takes the phone line the chips start it
+            again at the row's left edge, so neither runs off either side. */}
         <Dropdown variant="select" ariaLabel="Status" value={status} onSelect={(v) => setStatus(String(v))}
           items={STATUS.map((label) => ({ label, value: label, selected: label === status }))} />
         <Dropdown variant="select" ariaLabel="Period" value={period} onSelect={(v) => setPeriod(String(v))}

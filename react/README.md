@@ -493,9 +493,10 @@ name. It forwards its ref and the native input props, and `className` joins
 </div>
 ```
 
-Put it first in a `.ui-toolbar`: it is the one control there that grows into the
-slack the others leave. Use `TextField` instead wherever the field stands in a
-form and a visible label belongs over it.
+Put it first in a `.ui-toolbar`. Above 560px it is the control there that grows
+into the slack the others leave; at 560px and below it takes a line of its own
+and the rest of the row wraps under it. Use `TextField` instead wherever the
+field stands in a form and a visible label belongs over it.
 
 ## Toast
 

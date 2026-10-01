@@ -10,6 +10,7 @@ export const RELEASES = [
     changes: [
       ['added', 'React SearchField renders the kit\u2019s search input group for a toolbar: a search glyph, a native search input and an accessible name instead of a visible label, so the row keeps the height of the unlabelled controls beside it. It forwards its ref and the native input props and adds no CSS of its own. There is no clear button, the field the kit already draws. See #517.'],
       ['changed', 'The Empty states showcase draws its filtered list\u2019s search box with the kit\u2019s standalone search field, the part React\u2019s SearchField renders, so the box has a name and the search glyph. A new showcase toolbar puts search, then filters, then the view switch in one row. See #517.'],
+      ['changed', 'A toolbar\u2019s text field takes the whole line at 560px and below, instead of holding its 6rem basis while narrow controls share the line and cut its placeholder off. Wider rows are unchanged. See #517.'],
     ],
   },
   {
