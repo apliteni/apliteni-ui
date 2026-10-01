@@ -36,11 +36,20 @@
    survives `overflow: hidden`, which clips descendants and not the card's own
    shadow. --ring-gap comes from the page here, matching the container rule in
    tokens.css: a ring outside its own surface cannot use that surface as its gap.
-   Forced colors drops box-shadow, so the card keeps a transparent outline of its
-   own for the system to repaint; the pre keeps the one that suppresses the native
-   outline, and focus survives on both. See stories/snippet-focus.test.js. */
+   The card also keeps a transparent outline, which forced colors repaints as the
+   focus signal once box-shadow is gone; the block below is why only one box has
+   one there. See stories/snippet-focus.test.js. */
 .ui-snippet pre:focus-visible { box-shadow: none; }
 .ui-snippet:has(pre:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring); }
+
+/* Forced colors drops box-shadow, so both boxes fall back to their outlines and
+   the system repaints the pre's transparent one as the square this rule set out
+   to remove — with the card's rounded one 2px further out, two indicators for one
+   focus. The card's outline is the one that survives, so the pre keeps none.
+   Emulated in stories/snippet-focus.test.js and captured in Chromium. #474 */
+@media (forced-colors: active) {
+  .ui-snippet pre:focus-visible { outline: none; }
+}
 
 .ui-snippet__copy {
   background: none;

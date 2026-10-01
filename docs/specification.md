@@ -2967,6 +2967,15 @@ buttons in vanilla and React. The browser-focusable code region is the exception
 a `<pre>` sits flush with its card and has no radius, so a ring on it would paint
 a square that overhangs the rounded card. The card paints that ring instead, with
 `--ring-gap` taken from the page rather than from its own surface, and keeps
-`overflow: hidden`. One focus signal is drawn either way. Held by
-`stories/snippet-focus.test.js`; keyboard reachability, the gap colour and pixels
-are checked in Chromium because JSDOM cannot prove any of them.
+`overflow: hidden`. One focus signal is drawn either way.
+
+Forced colors is the same guarantee by a different route. That mode drops
+box-shadow, so both boxes fall back to their outlines: the card's transparent one
+is repainted as the focus signal, and the code region declares none at all, because
+an outline on it would be the square ring again, inside the card's rounded one.
+Every other focusable part of a Snippet keeps its own outline there.
+
+Held by `stories/snippet-focus.test.js`, which emulates forced colors by flattening
+the media block and dropping every box-shadow; keyboard reachability, the gap
+colour, the colour the system repaints an outline as, and pixels are checked in
+Chromium because JSDOM cannot prove any of them.
