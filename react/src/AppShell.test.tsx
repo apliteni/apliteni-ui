@@ -83,3 +83,18 @@ it('leaves shortcuts in editable fields alone and updates the theme', () => {
   fireEvent.click(screen.getByRole('button', { name: /Theme:/ }));
   expect(document.documentElement.getAttribute('data-theme')).toBe(theme === 'light' ? 'dark' : 'light');
 });
+
+// A bar holding one row is navigation that can only point at the page already on
+// screen, and it keeps 96px of a phone to do it. The clearance those pixels buy
+// is keyed on the bar in AppShell.css, so no page pads for a bar that is absent.
+it('renders no bottom bar for a single section and keeps the rail', () => {
+  const one = [{ href: '/changes', label: 'Changes', icon: 'doc' }];
+  const { rerender } = render(<AppShell {...props} sections={one} pathname="/changes" />);
+  expect(screen.queryByRole('navigation', { name: 'Sections on mobile' })).toBeNull();
+  expect(document.querySelector('.ui-react-app__bottom')).toBeNull();
+  const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
+  expect(rail.getByRole('link', { name: 'Changes' })).toHaveAttribute('aria-current', 'page');
+  rerender(<AppShell {...props} sections={[...one, { href: '/costs', label: 'Costs', icon: 'chart' }]} pathname="/changes" />);
+  const bar = within(screen.getByRole('navigation', { name: 'Sections on mobile' }));
+  expect(bar.getByRole('link', { name: 'Changes' })).toHaveAttribute('aria-current', 'page');
+});

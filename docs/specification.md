@@ -1945,7 +1945,11 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 
 Column labels accept React content, including a kit Tooltip for a header explanation.
 
-Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
+A scrollable React DataTable scrolls its columns in its own named, keyboard-focusable
+region, as the vanilla kit's table does, and offers no separate control that scrolls it.
+While columns reach past that region, its accessible name ends in “, scroll for more
+columns”; a table whose columns fit keeps the name its consumer gave it. Tables inside
+cards use the card reading surface for their body, sticky header and pinned cells.
 
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.
@@ -2323,6 +2327,8 @@ the longest matching section path wins, with matches ending at a path boundary.
 Router links receive the same classes, accessible name, count and navigation handler
 as native links. The rail shares the vanilla fold cookie and 720px fold breakpoint.
 Below 560px, a bottom bar replaces it: up to four sections, or three plus More.
+A shell given one section renders no bottom bar — a bar holding a single row is
+navigation to the page already on screen — and the rail keeps that section.
 The shell sets `--ui-app-bottom-clearance` on the root, including the safe-area inset.
 Page bottom padding, root scroll padding and the React toast stack share this clearance;
 callers can scroll a changed action into view without placing it behind the bar.

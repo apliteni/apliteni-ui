@@ -11,6 +11,8 @@ export const RELEASES = [
       ['added', 'The React AppShell publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. Page bottom padding, root scroll padding and the React toast stack share it, so a changed action scrolled into view on a phone no longer lands behind the bottom bar. See #384 and #444.'],
       ['fixed', 'The shell’s theme toggle and brand link show the kit focus ring instead of the browser’s own outline. Vanilla and React share the fix. See #384 and #457.'],
       ['added', 'A batch-change showcase: proposed row changes with signed amounts, booked-month totals carrying the change applying makes, a closed-period warning and Undo. See #384.'],
+      ['changed', 'A scrollable React DataTable no longer draws Previous columns and More columns buttons above its table. Its scroll region already scrolls — it is named, focusable and takes arrow keys — and while columns reach past it the region’s accessible name ends in “, scroll for more columns”. The vanilla table region has no such buttons either, so the two now match. See #384.', ['DataTable']],
+      ['changed', 'A React AppShell given one section renders no phone bottom bar. One row cannot navigate anywhere but the page already on screen, and the page now keeps the height the bar used to hold. Shells with two or more sections are unchanged. See #384.', ['AppShell']],
     ],
   },
   {
