@@ -4,6 +4,10 @@ import { composeStories } from '@storybook/react';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import * as stories from './DocumentReview.stories';
+// stories/lib is plain JS outside this workspace's tsconfig, shared the way the contrast
+// arithmetic is. Its own unit tests live beside it.
+// @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
+import { accentOffences } from '../../stories/lib/accent-paint.js';
 
 /* The showcase's one stylesheet file, read as text. Vitest does not apply imported CSS in
  * jsdom, so a rule living there cannot be measured through getComputedStyle; it is held
@@ -257,32 +261,21 @@ describe('document review flow', () => {
     expect(getComputedStyle(panes_).gridTemplateColumns).toBe('minmax(0, 1fr) var(--panel-md)');
   });
 
-  // The quantity that decides whether an accent honours the rules is its strength, and a
-  // gate that only proves an accent exists is how a 55% border shipped green. Every
-  // `color-mix` on the accent that this showcase writes is held to the kit's own edge
-  // strength. Read from the sheet the story injects, so a mix added anywhere in it is
-  // covered, not only the one this test happens to name.
-  const KIT_ACCENT_MIX = 22; // `.ui-card--accent` in src/styles/card.css
-  it('writes no accent louder than the kit draws one, and draws no accent line', () => {
+  // The showcase paints the accent as ink on one name. This holds that it paints no line
+  // from it anywhere — in the sheet beside the story or the block the story injects — and
+  // that no accent mix it writes is louder than the kit's own edge. The judgement is
+  // shared with the vanilla specimen's gate; the coverage check below is this
+  // workspace's own. why: guidelines/density-and-accents.md#follow-the-consequence
+  it('paints the accent as ink only, never as a line, and never louder than the kit', () => {
     render(<Default />);
-    const sheet = SHEET + '\n'
-      + [...document.querySelectorAll('style')].map((s) => s.textContent ?? '').join('\n');
-    expect(sheet, 'the showcase injects its own stylesheet').toContain('.doc-flow');
-
-    // The quantity that decides whether an accent honours the rules is its strength, and
-    // the version of this gate that only proved an accent existed is how a 55% border
-    // shipped green. Every accent mix the showcase writes is held to the kit's own edge.
-    const mixes = [...sheet.matchAll(/color-mix\([^)]*var\(--accent\)\s*(\d+)%/g)]
-      .map((m) => ({ at: m[0], percent: Number(m[1]) }));
-    for (const mix of mixes) {
-      expect(mix.percent, `${mix.at} is louder than the kit's own accent edge (${KIT_ACCENT_MIX}%)`)
-        .toBeLessThanOrEqual(KIT_ACCENT_MIX);
-    }
-
-    // And no border, outline or shadow is painted from the accent at all: the carrier is
-    // ink on a name, and a line under the bound would still be a line.
-    const asLine = /(?:border[\w-]*|outline[\w-]*|box-shadow)\s*:[^;]*var\(--accent\)/g;
-    expect(sheet.match(asLine) ?? [], 'the showcase draws no accent line').toEqual([]);
+    const inline = [...document.querySelectorAll('style')].map((s) => s.textContent ?? '').join('\n');
+    expect(inline, 'the story injects its own stylesheet').toContain('.doc-flow');
+    expect(SHEET, 'the showcase ships a sheet beside the story').toContain('.doc-flow__saved-pane');
+    // Both halves are judged, and named apart, so a sheet that stops being read shows up
+    // as a missing subject rather than a silent pass.
+    const sheets = [['DocumentReview.css', SHEET], ['the story\u2019s own <style>', inline]] as const;
+    expect(sheets.filter(([, css]) => css.trim()), 'both sheets reach this gate').toHaveLength(2);
+    expect(sheets.flatMap(([where, css]) => accentOffences(css, where))).toEqual([]);
   });
 
   it('draws the document as the card’s own page, not a second card on the same fill', () => {
