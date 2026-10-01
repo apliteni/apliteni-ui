@@ -1,6 +1,14 @@
 {
   "GATES": [
     {
+      "file": "react/src/DatePicker.test.tsx",
+      "name": "React: Date and month picker",
+      "does": "Checks the trigger's name and state, grid roles and the single tab stop, arrow/Home/End/Page keys across month and day grids, bounds and blocked periods, range ends and their order, marks named in both the cell and the legend, and that every focusable part the picker renders matches a kit ring selector read out of the stylesheets.",
+      "blind": [
+        "JSDOM renders no paint: the ring's visibility, the grid's alignment, pointer target sizes and the phone sheet's layout are read as CSS text or left to browser captures, and spoken screen-reader output is not measured."
+      ]
+    },
+    {
       "file": "react/src/Checkbox.test.tsx",
       "name": "React: Checkbox and radio",
       "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results.",

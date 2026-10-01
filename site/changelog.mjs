@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React DatePicker picks one month, a range of months, or one date, from the dropdown\u2019s own trigger and panel. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. The grid has one tab stop: arrows, Home, End and the Page keys move it and turn the page. Below 560px the panel is a sheet on the bottom edge. Part of #429; resolves #506.', ['DatePicker']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],
