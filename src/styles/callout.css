@@ -68,7 +68,7 @@
 .ui-toast__action { flex: none; align-self: center; background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 
-.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; font: inherit; }
+.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; border-radius: var(--radius-xs); /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; font: inherit; }
 .ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 /* The target, not the ink. WCAG 2.5.8 measures what a pointer can land on, and
    the drawn button is 19x19 — a 15px glyph in 2px of padding. Growing the box
@@ -90,6 +90,13 @@
   transform: translate(-50%, -50%);
 }
 .ui-toast__close:hover { color: var(--text); }
+
+/* Both toast controls are bare buttons — no `.ui-btn`, no `.ui-focusable` — so
+   without this they fall back to the browser's own outline, which the kit does
+   not use (#457). `.ui-toast` sets `--ring-gap: var(--surface)`, so the ring
+   lands on the card it sits on. */
+.ui-toast__action:focus-visible,
+.ui-toast__close:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 /* auto-dismiss progress line — .is-running is added by wireToastStack() */
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }

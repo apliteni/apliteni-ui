@@ -38,7 +38,13 @@ const withdrawn = new Set(
   [...script.matchAll(/removeProperty\(\s*'(--toast-[\w-]+)'/g)].map(([, name]) => name),
 );
 
-/** The sheet's rules for the collapsed stack and its count, selector and body. */
+/** Every rule in the sheet, as selector and body. Comments are blanked first,
+ *  because a comma inside one would otherwise split a selector list. */
+const rules = [...css.replace(/\/\*[\s\S]*?\*\//g, ' ').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .filter(([, selector]) => !selector.trim().startsWith('@'))
+  .map(([, selector, body]) => ({ selector: selector.trim(), body }));
+
+/** The sheet's rules for the collapsed stack, selector and body. */
 const pileRules = [...css.matchAll(/(\.ui-toast-stack--collapsed[^{}]*)\{([^}]*)\}/g)]
   .map(([, selector, body]) => ({ selector: selector.trim(), body }));
 
@@ -125,6 +131,7 @@ test('a reader with no hover is not shown a pile they cannot open', () => {
   for (const property of ['position: static', 'scale: 1']) {
     assert.ok(cards[2].includes(property), `${SHEET}: the hoverless card rule is missing \`${property}\``);
   }
+
   // A tap lands focus inside the stack, so :focus-within is reachable without a
   // hover. Both fanned states have to be named again here, or the shorter
   // selector loses to them and a static card is handed an absolute offset.
@@ -149,6 +156,29 @@ test('the pile carries no count chip', () => {
     + 'showing the cards behind the front one; a counted chip above it was rejected on #479.');
   assert.ok(!script.includes('ui-toast-stack__count'),
     `${SCRIPT} builds a \`.ui-toast-stack__count\` chip again; see #479.`);
+});
+
+test('every control inside a notice wears the kit ring, never the browser outline', () => {
+  // Discovered from both faces, so a control added to one and not the other is
+  // still measured. Artur rejected the native outline on #457; these two are
+  // bare buttons, outside `.ui-btn` and `.ui-focusable`, so the sheet has to
+  // name them itself or the browser draws its own.
+  const faces = [script, readFileSync('react/src/Toast.tsx', 'utf8')];
+  const controls = new Set(faces
+    .flatMap((source) => [...source.matchAll(/["'`](ui-toast__(?:action|close))["'`]/g)].map((m) => m[1])));
+  assert.equal(controls.size, 2,
+    `expected the action and the close button; found ${[...controls].join(', ') || 'none'}. A new `
+    + 'control inside a notice needs the ring too — add it here and to the sheet.');
+
+  for (const control of controls) {
+    const rule = rules.find((r) => r.selector.split(',').some((s) => s.trim() === `.${control}:focus-visible`));
+    assert.ok(rule, `${SHEET}: \`.${control}\` has no \`:focus-visible\` rule, so it falls back to the `
+      + "browser's own outline. The kit uses `--ring` (#457).");
+    assert.match(rule.body, /box-shadow:\s*var\(--ring\)/,
+      `${SHEET}: \`.${control}:focus-visible\` does not draw \`var(--ring)\`.`);
+    assert.match(rule.body, /outline:\s*2px solid transparent/,
+      `${SHEET}: \`.${control}:focus-visible\` loses focus when forced colors removes box-shadow.`);
+  }
 });
 
 /* -- The progress line pauses for both readers -------------------------------- */
@@ -295,7 +325,7 @@ test('a collapsed stack re-measures as notices come and go, and adds nothing to 
   stack.append(fresh);
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(lift(fresh), '0px', 'the notice that just arrived did not take the front of the pile');
-  assert.equal(cardsOf(stack).length, 4);
+  assert.equal(cardsOf(stack).length, 4, 'the arriving notice was not counted as a card');
 
   pile.stop();
   assert.ok(!stack.classList.contains('ui-toast-stack--collapsed'));

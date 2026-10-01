@@ -2348,9 +2348,9 @@ scaling about the bottom edge took off the top, so every tier shows exactly
 card rather than assuming it: `pushToast()` prepends, so a live vanilla stack
 reads newest-first, while the React provider appends and reads oldest-first.
 
-Under `(hover: none)` the stack stays the plain column: half
-of what opens a pile is hover, and the notices behind the front card are not
-focusable, so a pile there would be one nobody could open. The query asks about
+Under `(hover: none)` the stack stays the plain column: half of what opens a
+pile is hover, and the notices behind the front card are not focusable, so a
+pile there would be one nobody could open. The query asks about
 hover rather than pointer precision, because `(pointer: coarse)` is the field
 sizing net's question and `stories/field-zoom.test.js` keeps it to one sheet.
 

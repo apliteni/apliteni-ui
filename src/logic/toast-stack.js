@@ -39,4 +39,3 @@ export function toastPileGeometry(heights, gap = TOAST_GAP) {
     fannedHeight: heights.reduce((sum, height) => sum + height, 0) + (count - 1) * gap,
   };
 }
-

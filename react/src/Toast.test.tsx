@@ -194,9 +194,9 @@ it('has no axe violations in compact non-dismissible presentation', async () => 
  *
  * The geometry is the kit's own and is measured in src/logic/toast-stack.test.js;
  * the sheet's half is walked in stories/toast-pile.test.js. What is left for this
- * file is the provider's part: which notices are in the pile and which one is in
- * front. JSDOM lays nothing out, so the heights below
- * are stubbed — the offsets themselves are a browser question. */
+ * file is the provider's part: which notices are in the pile and which one is
+ * in front. JSDOM lays nothing out, so the heights below are stubbed — the
+ * offsets themselves are a browser question. */
 function stubHeights(height: number) {
   const real = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => height });
