@@ -412,9 +412,12 @@ component cannot forget.
 
 The net gives every element a 0.01ms transition, and a child whose `visibility` is inherited then
 turns visible one tick after its parent. An overlay that focuses a control in the frame it opens
-would find that control still hidden. So an open drawer and an open confirm carry no transition
-inside them at all — for as long as they are open, not only in the frame they open — and focus
-lands where it does with motion on. Held by `stories/overlay-css.test.js`.
+would find that control still hidden. So an open drawer, an open confirm, an open palette and an
+open dropdown panel carry no transition inside them at all — for as long as they are open, not only
+in the frame they open — and focus lands where it does with motion on. Held by
+`stories/overlay-css.test.js` for the first two, and for every curtain in the kit by
+`stories/reveal-focus.test.js`, which discovers them rather than listing them. The dropdown panel
+was the one nothing asked, and #519 is what that cost.
 
 Held by `stories/motion-tokens.test.js`, which reads the four tokens out of the table above at run
 time, resolves each through `tokens.css` into the brand primitive it aliases and checks the
@@ -1446,7 +1449,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:219 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:242 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the
@@ -1579,6 +1582,35 @@ first and not the second, and a gate that reads one sheet cannot tell. So the ga
 `{ file, panel, open rules }`, asks every menu in it the same two questions, and asks each named open
 rule on its own: the panel in place and the portalled panel carry one `pointer-events: auto` each,
 and either alone used to satisfy one assertion standing for both.
+
+**And so is everything inside it, for a reader who asked for less motion.** The rule above answers
+for the panel and not for its contents. Under `prefers-reduced-motion: reduce` the net gives every
+element a 0.01ms transition, and an element that names no property of its own transitions `all` —
+which includes `visibility`, a property that is inherited and moves in a discrete step. So an
+element inside the panel that names no property holds `hidden` for one tick after the panel turns
+visible, for itself and for everything under it.
+[#519](https://github.com/apliteni/apliteni-ui/issues/519) is the search field: it names
+`border-color` and `box-shadow`, but the `.ui-dropdown__search` around it names nothing, so the
+field was still hidden in the frame `openDropdown()` focused it and the panel stood open with the
+reader's focus on the trigger — where every key they pressed then went. The topbar's account menu
+lost its first row to the same tick from the other shape: `.amenu a` names no property, so the row
+held itself. Measured in Chrome, both opened with the key that opens them: with reduced motion off,
+focus reached the field and the row; with it on, focus stayed on the trigger and on the avatar. The
+kit's other menus were untouched, because their rows name a property and a named list does not
+carry `visibility`. So an open panel carries no transition inside it at all — for as long as it is
+open, not only in the frame it opens — which is what reduced motion asked for anyway: under the net
+nothing inside it had longer than 0.01ms to run. One rule says it for all three menus, keyed on the
+hook they share rather than on any one sheet's class: `.open > [data-dropdown-panel] *`, with
+`[data-dropdown-panel].is-open *` for the portalled panel. It is the answer `.ui-drawer`,
+`.ui-confirm` and `.ui-cmdk` each already give in their own sheets — see
+[Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
+
+Held by `stories/reveal-focus.test.js`, which finds every `visibility: hidden` curtain in the kit's
+sheets rather than taking a list, opens each one that takes focus with the kit's own wiring and
+fails any element inside it that the net does not reach — so the next component to hide itself this
+way is asked the question too. A curtain that holds nothing focusable is named there with the reason
+it is exempt. `react/src/Dropdown.test.tsx` asks the React panel the same question, because the rule
+is in the sheet both faces load and what the React side owes is markup the rule can reach.
 
 Held by `src/components/dropdown.test.js`, which reads the offsets out of the stylesheet — any
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom

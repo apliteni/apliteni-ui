@@ -180,7 +180,7 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:155 `.ui-dropdown__item:hover`.
+   src/styles/dropdown.css:178 `.ui-dropdown__item:hover`.
    why: docs/specification.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
