@@ -18,6 +18,26 @@
         "pattern": ".ui-check input::before"
       }
     ],
+    "tap-zone": [
+      {
+        "ref": "src/styles/tap-zone.css:70",
+        "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:33",
+        "pattern": "@media (max-width: 560px) and (pointer: coarse)"
+      }
+    ],
+    "tap-spacing": [
+      {
+        "ref": "src/styles/tap-zone.css:29",
+        "pattern": "--tap-clear-x: var(--space-3, 12px);"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:87",
+        "pattern": ".ui-seg { --tap-clear-x: var(--space-1, 4px);"
+      }
+    ],
     "ring-contrast": [
       {
         "ref": "src/styles/base.css:146",

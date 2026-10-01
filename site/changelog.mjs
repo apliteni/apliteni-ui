@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.72.0', date: '2026-10-02',
+    changes: [
+      ['added', 'Below the phone step a coarse pointer gets a transparent 44px tap layer outside each small control, so a finger reaches the floor and nothing is drawn differently. The layer stops at half the clear space its container declares through `--tap-clear-x` and `--tap-clear-y`, so it never crosses the drawn edge of the control beside it. `--tap-min` names the floor. Closes #488.', ['Button', 'Segmented', 'Tabs', 'Dropdown', 'Pagination']],
+      ['added', 'Two Accessibility minimums rules: the tap layer, and the clear space two neighbouring small controls need before either can reach the floor.'],
+    ],
+  },
+  {
     v: '0.71.0', date: '2026-10-02',
     changes: [
       ['breaking', 'In the light theme a card, the shell\'s rail and every floating surface no longer draw the neutral hairline. Each casts a soft, diffuse drop instead — `--elev-rest`, `--elev-rail` and a widened `--elev-drop`. Dark is unchanged. A consumer whose light-theme screens relied on the card or rail edge sees a different kit. Closes #490.', ['Card', 'Shell', 'Dropdown', 'Drawer', 'Modal', 'Toast']],

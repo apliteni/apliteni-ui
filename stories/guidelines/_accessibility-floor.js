@@ -20,6 +20,20 @@ import { button, checkbox } from '../../src/components/index.js';
 /** WCAG 2.5.8, AA. Not ours to choose; ours to hold and to measure against. */
 export const TARGET_MIN = 24;
 
+/**
+ * The pointer target a phone deserves, below the phone step. Not 2.5.8's bar —
+ * that is TARGET_MIN above and the kit holds it everywhere. 44 is 2.5.5 (AAA),
+ * and the same number the iOS and Android guidelines land on.
+ *
+ * Settled in #488, where the choice was not the number but how to reach it:
+ * growing every small control on a phone, or putting the extra size OUTSIDE the
+ * drawn shape where nobody sees it. The second, with the clearance rule beside
+ * it, because a layer that reaches 44 regardless of the gap takes the tap next
+ * to it — measured, on a menu whose `Duplicate` row handed its bottom 3px to
+ * `Revoke`.
+ */
+export const TAP_MIN = 44;
+
 /** WCAG 1.4.11 contrast minimum for the solid focus band. */
 export const RING_MIN = 3;
 
@@ -90,6 +104,53 @@ export const TARGET_EXEMPT = [
   },
 ];
 
+/**
+ * Kit controls the phone floor does not reach, each with the reason and the
+ * measurement. Not an excuse list: stories/tap-zone.test.js refuses an entry
+ * naming a selector the kit's own stylesheets do not declare, an entry that is
+ * also a carrier in src/styles/tap-zone.css, and an entry whose family has
+ * since started reaching the floor. A fix retires its own entry.
+ */
+export const TAP_EXEMPT = [
+  {
+    selector: '.ui-dropdown__item',
+    why: 'A menu\u2019s rows share an edge, so there is no space outside a row to put a '
+      + 'layer in. Measured at 390: a 44px layer moved the boundary rather than widening '
+      + 'the target \u2014 the first rows lost a sliver and the last one took the whole '
+      + 'gain, and the bottom of `Duplicate` started running `Revoke`. Reaching 44 here '
+      + 'costs row height or row spacing, both of which a reader sees.',
+  },
+  {
+    selector: '.ui-cmdk__item',
+    why: 'The palette\u2019s result list is the same contiguous stack as a menu, for the '
+      + 'same reason: a row\u2019s neighbour starts where it ends.',
+  },
+  {
+    selector: '.ui-app__rail .ui-nav__item',
+    why: 'A sidebar\u2019s rows touch. The rail already holds its own rows to 44px high '
+      + 'below the phone step, which is the visible answer this family takes instead.',
+  },
+  {
+    selector: '.ui-filter-bar__remove',
+    why: 'The remove mark sits flush against its chip\u2019s own value trigger, so the '
+      + 'chip grants no clearance and a layer would have nothing to grow into. It keeps '
+      + 'the 24px target the chip draws for it, which clears 2.5.8.',
+  },
+  {
+    selector: '.ui-select',
+    why: 'A `select` generates no pseudo-element in any browser the kit targets, with or '
+      + 'without `appearance: none`, so it cannot carry a layer at all. It measures 42px '
+      + 'tall \u2014 two short \u2014 and is reached by its own height or not at all. The '
+      + 'same is true of `input` and `textarea`; both already draw taller than the floor.',
+  },
+  {
+    selector: '.ui-table__act',
+    why: 'A dense table\u2019s rows touch top to bottom and its action cell packs a button '
+      + 'against an icon button. The cell declares the little room it has, so the layer '
+      + 'stops there rather than reaching into the row above.',
+  },
+];
+
 // ---- the rules -------------------------------------------------------------
 
 export const SPEC_CSS = `
@@ -109,6 +170,49 @@ export const SPEC_CSS = `
     .gl-target__ink { width: 19px; height: 19px;
       border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs);
       background: var(--surface-2); outline: 1.5px dashed var(--pink); }
+
+    /* The phone floor's two pairs. The layer src/styles/tap-zone.css declares is
+       live only below the phone step and only to a coarse pointer, so on this
+       page there is nothing to reveal the way .gl-target reveals the checkbox's.
+       These cells redraw it at reading width instead, with the SAME expression
+       the sheet writes — stories/tap-zone.test.js reads both and fails if the
+       two drift — and a dashed edge so the invisible thing can be seen. */
+    .gl-tap { display: flex; align-items: center; }
+    .gl-tap .ui-btn { position: relative; }
+    .gl-tap .ui-btn::after {
+      content: ""; position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+      height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
+      outline: 1.5px dashed var(--accent);
+      /* A drawing of the layer, not a layer: this page is read at reading width
+         with a mouse, where the real one is not live, and a hit area here would
+         be the one place in the kit that breaks the rule it illustrates. */
+      pointer-events: none;
+    }
+    /* Do: the row states its gap, and both layers stop at its midpoint. */
+    .gl-tap--room { gap: var(--space-5); --tap-clear-x: var(--space-5); }
+    /* The Don't for the layer rule: the answer #488 turned down. Same button,
+       drawn at the floor instead of reaching it — inert ink, because a real
+       control this size would be the page breaking its own rule, and the point
+       is the box, not the press. The pink edge is where the row grows to. */
+    .gl-tap__fat { display: inline-flex; align-items: center; justify-content: center;
+      height: 44px; padding: 0 17px; border-radius: var(--radius-sm);
+      border: 1px solid var(--control-edge); background: var(--surface);
+      color: var(--text); font-family: var(--font-sans); font-size: var(--text-sm);
+      font-weight: var(--weight-medium); outline: 1.5px dashed var(--pink); }
+
+    /* The Don't for the spacing rule: the same two marks packed at --space-2
+       with the layer sized to the floor regardless. The pink edges cross. */
+    .gl-tap--tight { gap: var(--space-2); }
+    .gl-tap--tight .gl-tap__ink { position: relative; width: 24px; height: 24px;
+      border: 1px solid var(--control-edge); border-radius: var(--radius-sm);
+      background: var(--surface); }
+    .gl-tap--tight .gl-tap__ink::after {
+      content: ""; position: absolute; left: 50%; top: 50%;
+      width: 44px; height: 44px; transform: translate(-50%, -50%);
+      outline: 1.5px dashed var(--pink); pointer-events: none;
+    }
   </style>`;
 
 const row = (...html) => `<div class="gl-stage gl-stage--row gl-target">${html.join('')}</div>`;
@@ -121,8 +225,33 @@ export const targetDont = () => row(
   `<span class="gl-target__ink" aria-hidden="true"></span>`,
 );
 
+const tapRow = (mod, ...html) =>
+  `<div class="gl-stage gl-stage--row gl-tap gl-tap--${mod}">${html.join('')}</div>`;
+
+const mark = (label, icon) => button({ label, icon, iconOnly: true, variant: 'ghost', size: 'xs' });
+
+export const tapZoneDo = () => tapRow(
+  'room',
+  button({ label: 'Approve', variant: 'primary', size: 'sm' }),
+  button({ label: 'Hold', variant: 'secondary', size: 'sm' }),
+);
+export const tapZoneDont = () => tapRow(
+  'room',
+  '<span class="gl-tap__fat" aria-hidden="true">Approve</span>',
+  '<span class="gl-tap__fat" aria-hidden="true">Hold</span>',
+);
+
+export const tapSpacingDo = () => tapRow('room', mark('Copy', 'copy'), mark('More actions', 'moreHorizontal'));
+export const tapSpacingDont = () => tapRow(
+  'tight',
+  '<span class="gl-tap__ink" aria-hidden="true"></span>',
+  '<span class="gl-tap__ink" aria-hidden="true"></span>',
+);
+
 export const RULES = withSpecimens(content.rules, [
 { id: 'target-size', doHtml: targetDo, dontHtml: targetDont },
+{ id: 'tap-zone', doHtml: tapZoneDo, dontHtml: tapZoneDont },
+{ id: 'tap-spacing', doHtml: tapSpacingDo, dontHtml: tapSpacingDont },
 { id: 'ring-contrast' },
 { id: 'disabled-legibility' },
 { id: 'touch-field-size' },

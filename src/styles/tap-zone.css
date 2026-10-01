@@ -1,0 +1,109 @@
+/* apliteni-ui — the tap zone. Below the phone step, to a coarse pointer, a
+ * control that draws smaller than --tap-min carries a transparent layer that
+ * reaches the floor, and the drawn control does not change by a pixel. The kit
+ * has run this on the checkbox and the toast close since #219; this
+ * generalises it, raises it to 44 and gates it on the pointer.
+ *
+ * The clamp is the design: a layer takes HALF the clear space its container
+ * declares and stops, so two neighbouring layers meet at the midpoint and
+ * neither crosses a drawn edge. Unclamped, the later control in the markup
+ * wins the overlap — on a menu, `Duplicate` handing its bottom to `Revoke`.
+ *
+ * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+ * Held by stories/tap-zone.test.js, measured in a browser at 390.
+ */
+
+:root {
+  /* WCAG 2.5.5, and where iOS and Android land. Not on the spacing scale,
+     which runs 40 then 48, because a fingertip is not spacing. Declared here
+     rather than in tokens.css for the reason field-zoom.css carries its own 16:
+     react/src/index.ts imports this sheet without the token file, and a var()
+     resolving to nothing there would size the layer to `auto` in silence. */
+  --tap-min: 44px;
+
+  /* Clear space to the nearest neighbour, per axis, declared by the container
+     that knows its own gap and inherited by the controls in it. The default is
+     the kit's ordinary row gap: what the layout is ASSUMED to give, not what it
+     does. Assuming more is what routes a tap to the neighbour — at an assumed
+     16 the kit's own stories lose 36 points. */
+  --tap-clear-x: var(--space-3, 12px);
+  --tap-clear-y: var(--space-3, 12px);
+}
+
+@media (max-width: 560px) and (pointer: coarse) {
+  /* The containing block for every layer below. `.ui-btn` already has it; the
+     rest take it only inside this query, because `position: relative` lifts a
+     control over the in-flow one beside it and that changes who wins a shared
+     pixel. */
+  :where(
+    .ui-seg button,
+    .ui-tabs__tab,
+    .ui-nav__tab,
+    .ui-dropdown__trigger,
+    .ui-back,
+    .ui-toast__action,
+    .ui-drawer__close,
+    .ui-snippet__copy,
+    .ui-footer__social
+  ) { position: relative; }
+
+  /* The layer: centred, transparent, sized to the floor, clamped to half the
+     clearance. */
+  :where(
+    .ui-btn,
+    .ui-seg button,
+    .ui-tabs__tab,
+    .ui-nav__tab,
+    .ui-dropdown__trigger,
+    .ui-back,
+    .ui-toast__action,
+    .ui-drawer__close,
+    .ui-snippet__copy,
+    .ui-footer__social,
+    .ui-switch
+  )::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+    height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
+  }
+
+  /* The two layers the kit already had, raised from 24. ::after on these is
+     spoken for — the tick and the dot, the toast close's glyph plate. */
+  .ui-check input::before,
+  .ui-toast__close::before {
+    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+    height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
+  }
+
+  /* -- The clearances the kit's own layouts declare ------------------------
+   * Each is the gap that container sets. A number that drifts from it is caught
+   * by the browser gate, which measures the result rather than reading these. */
+
+  /* A segmented strip packs its pills at --space-1 and wraps. */
+  .ui-seg { --tap-clear-x: var(--space-1, 4px); --tap-clear-y: var(--space-1, 4px); }
+
+  /* Tabs sit 2px apart across. Down, the panel under the strip opens on 20px of
+     padding and nothing stands above it, which is what carries a 38px tab. */
+  .ui-tabs__list { --tap-clear-x: 2px; --tap-clear-y: var(--space-5, 20px); }
+
+  /* A pager's steps are 4px apart, and the strip wraps at this width. */
+  .ui-pager__steps { --tap-clear-x: var(--space-1, 4px); --tap-clear-y: var(--space-1, 4px); }
+  .ui-pager { --tap-clear-y: var(--space-3, 12px); }
+
+  /* A table's action cell packs a button against an icon button, and its rows
+     touch top to bottom. Row actions get the cell's room and no more. */
+  .ui-table__act { --tap-clear-x: var(--space-2, 8px); --tap-clear-y: var(--space-2, 8px); }
+
+  /* A filter row wraps at --space-2. Inside a chip the value trigger and the
+     remove mark share an edge, so the chip grants none; the remove mark is not
+     a carrier either, and keeps the 24px target filter-bar.css draws for it. */
+  .ui-filter-bar { --tap-clear-x: var(--space-2, 8px); --tap-clear-y: var(--space-2, 8px); }
+  .ui-filter-bar__chip { --tap-clear-x: 0px; --tap-clear-y: 0px; }
+
+  /* A toast stacks under another toast and clips at its own padding. */
+  .ui-toast { --tap-clear-y: var(--space-3, 12px); }
+}

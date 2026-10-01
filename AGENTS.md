@@ -36,6 +36,14 @@ Before opening a PR that changes colours, tokens or theme/accent CSS, run:
 `CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js`
 Report the result in the PR. Keep this check out of routine CI to save Actions minutes.
 
+## Check the phone tap floor locally
+
+Before opening a PR that changes a control's size, a container's gap, or
+`src/styles/tap-zone.css`, measure the tap zones in a real browser:
+`UI_PLAYWRIGHT=… TAP_ZONES=1 node --test stories/tap-zone.test.js`
+Report the result in the PR. Playwright is not a dependency and CI runs only this
+gate's source half, so the measurement is yours to run.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

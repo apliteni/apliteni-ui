@@ -918,6 +918,86 @@ Decided in [#294](https://github.com/apliteni/apliteni-ui/issues/294), after
 [#291](https://github.com/apliteni/apliteni-ui/issues/291) answered it for the dropdown's search
 field alone.
 
+## A tap reaches the floor below the phone step
+
+A finger covers more than a cursor. Below the phone step the kit's own controls measure under
+44px on at least one axis — a segmented pill 34, a tab 38, an `sm` button 27, an `xs` icon button
+24 — and a consumer cannot fix that at the call site for a part the kit sizes or portals.
+
+**The extra size goes outside the drawn shape.** `src/styles/tap-zone.css` gives each of those
+families a transparent, centred `::after`, and the control keeps the size it draws. The kit had
+already run this device on two controls for six weeks — a 24px `::before` over a 19px checkbox and
+the same over the toast's 19px close mark — and this sheet is that pattern generalised and raised
+to `--tap-min`. Growing the controls instead was the first answer and was rejected: every row that
+holds one grows with it, which is a visible change to a page a reader already knows, and the
+issue's own acceptance line asks that no row grow unless its content does.
+
+**A layer never crosses a neighbour's drawn edge.** A centred layer over a control of drawn size
+*s* reaches `(44 − s) / 2` past each edge, so a 24px mark in a row gapped at 8 takes 2px of the
+control beside it. Which of the two then wins those pixels is paint order, and with both layers at
+`z-index: auto` that is **source order** — the control written later in the markup. Measured on
+#488's first pass: the bottom 3px of a menu's `Duplicate` row started running `Revoke`. A
+hit-target change that routes taps into a destructive row has made the screen worse.
+
+So the layer is clamped to the room the layout says it has. `--tap-clear-x` and `--tap-clear-y`
+are the clear space to the nearest neighbour on each axis; a layer takes **half** of that on each
+side and stops, so two neighbouring layers meet at the midpoint of the gap and the nearer control
+wins it rather than the later one. The clamp is declared by the container — the only thing that
+knows its own gap — and inherits down. The default is `--space-3`, which is the kit's ordinary gap
+between two controls in a row; assuming more is what turns the device into a misrouted tap, and
+the kit's own stories fail at an assumed 16.
+
+**What reaches 44, and what does not.** With the kit's current spacing a layer may take at most
+half of an 8–12px gap, so a family clears the floor where its layout is roomy and lands in the
+high thirties where it is not. That is the trade the issue chose: the gap is what decides, and
+widening the kit's gaps below the step is the visible change the issue ruled out. The guidelines'
+*Space between small targets* rule states the arithmetic — two neighbouring controls need
+`44 − drawn size` of clear space between them — so a consumer laying out their own row can reach
+the floor where the kit's showcases cannot.
+
+**Three families get no layer, and three cannot carry one.** A menu's rows, the command palette's
+list and a sidebar's rows share an edge: there is nothing outside a row to put a layer in, and a
+44px one only moves the boundary — the first rows lose a sliver and the last takes the whole gain.
+`input`, `select` and `textarea` generate no pseudo-element at all, with or without
+`appearance: none`; padding with a negative margin is not invisible on a control that paints a
+border and a background, so the only remaining device is a wrapper, which is markup a consumer
+cannot add to a part the kit portals. `.ui-input` and `.ui-textarea` already draw taller than the
+floor; `.ui-select` is 42px and is reached by its own height or not at all. All six are named on
+the Accessibility minimums page.
+
+**The pointer clause is not decoration.** A transparent layer is also a hover surface, so under a
+mouse the control lights up with the cursor 8px off it, which reads as the page being misaligned.
+`@media (max-width: 560px) and (pointer: coarse)` is the whole gate: a coarse pointer has no
+hover, so the clause that earns the layer is the clause that removes the side effect. The focus
+ring is unaffected either way — it is a `box-shadow` on the control, drawn on the drawn box, and a
+transparent descendant neither clips it nor moves it.
+
+**`--tap-min` is declared in this sheet rather than in the token file.** `reduced-motion.css` and
+`field-zoom.css` carry their own numbers for the same reason: a net has to reach every bundle the
+kit publishes, and `react/src/index.ts` imports these three sheets without `tokens.css`. A `var()`
+resolving to nothing there would size the layer to `auto` in silence. It is still a token and a
+consumer can move it; the clearances reference the spacing scale with a literal fallback for the
+same reason.
+
+Held by `stories/tap-zone.test.js` in two halves. The source half runs in CI and reads the sheet:
+the floor is a token, the query carries the pointer clause, every carrier has a containing block,
+every clearance names a container the kit declares, and every entry on the exempt ledger is real
+and is not also a carrier. The browser half is the measurement and runs only under `TAP_ZONES=1`,
+because Playwright is deliberately not a dependency of this package. It drives every story at 390
+and 1280, with and without the sheet, asking `elementFromPoint` who owns each pixel of each
+control's drawn box: nothing is drawn differently, no control loses a point it owned, each family
+the sheet names reaches further than it did, and 1280 and a fine pointer are identical either way.
+It proves its own rejection by unclamping the layer and failing on the result.
+
+What a green run does not prove: one browser, one theme, and only what the kit's own stories
+render. Two controls whose drawn boxes already overlap — a showcase grid at 390 where a `nowrap`
+label outgrows its column — are left out of the loss check, because between two controls that
+already overlap, which one wins a pixel is undetermined before anybody adds a layer.
+
+Decided in [#488](https://github.com/apliteni/apliteni-ui/issues/488), building on
+[#219](https://github.com/apliteni/apliteni-ui/issues/219), which put the first hit layer over the
+checkbox.
+
 ## Icons and glyphs
 
 **An icon's size is settled by measuring the cascade, not by reading the stylesheet.** The kit

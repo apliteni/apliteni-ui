@@ -14,6 +14,34 @@
 
 **Except:** WCAG 2.5.8 permits spacing, equivalent controls, inline text, user-agent sizes and essential presentation. Overlays must not reach neighbours.
 
+## Tap target on a phone
+
+<!-- rule: tap-zone -->
+
+**Rule:** Below the phone step, reach 44x44 with a transparent layer outside the control, never by growing the control.
+
+**Why:** A finger covers more than a cursor, and a control that grows on a phone moves the page a reader already knows.
+
+**Do:** Centre a transparent layer on the control and let it stop at half the gap to the nearest neighbour.
+
+**Don't:** Grow the drawn control to 44 and push out every row that holds one.
+
+**Except:** Only a coarse pointer gets the layer, or a cursor lights a control it is not over. Rows that share an edge — a menu, a dense table, a settings list — have nothing to grow into and stay as they are drawn. Fields generate no layer, so a field reaches the floor by its own height or not at all.
+
+## Space between small targets
+
+<!-- rule: tap-spacing -->
+
+**Rule:** Give two neighbouring small controls at least 44 minus their drawn size of clear space between them.
+
+**Why:** A layer can only reach half the gap before it crosses the neighbour's edge, so the gap is what decides whether either control reaches the floor.
+
+**Do:** Set 20px between two 24px marks, where both layers meet at the midpoint and neither crosses.
+
+**Don't:** Set 8px between them and let the later control in the markup win the overlap.
+
+**Except:** A row that cannot afford the space keeps its drawn targets and states the clearance it does give.
+
 ## Focus ring contrast
 
 <!-- rule: ring-contrast -->

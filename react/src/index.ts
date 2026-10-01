@@ -7,6 +7,7 @@
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen
 import '../../src/styles/reduced-motion.css';
 import '../../src/styles/field-zoom.css';
+import '../../src/styles/tap-zone.css';
 
 export { Icon } from './primitives/Icon';
 export { Checkbox } from './Checkbox';
