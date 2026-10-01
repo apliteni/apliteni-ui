@@ -6,12 +6,45 @@
 
 export const RELEASES = [
   {
-    v: '0.62.0', date: '2026-09-30',
+    v: '0.65.0', date: '2026-10-01',
     changes: [
       ['added', 'React Success, SuccessPanel and SuccessCheck provide the confirmation layouts and the check mark. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
       ['changed', 'Success confirmations now sit on a plain elevated card. The blurred aurora blobs and the ambient green glow behind them are gone, and with them the `backdrop` option — vanilla callers passing it are unaffected, since the value is now ignored. This is in the shared stylesheet, so it reaches vanilla and React alike.', ['Success']],
       ['changed', 'Success confirmations carry one title and at most one short line. The `eyebrow` option is gone from `success()` and the `eyebrow` prop from React `Success`; vanilla callers passing it are unaffected, since the key is now ignored, and React `Success` is unreleased. Put the outcome in the title rather than in a label above it. Part of #429.', ['Success']],
       ['changed', 'The check mark is now an unmodified Lucide path in the success colour, with no filled disc or burst ring behind it. `check: \'line\'` (the default) is the bare check; `check: \'circled\'` is the smaller circled mark, at 20px, which is what Guidelines / Iconography asks a reported state to use. `success()`, `successPanel()` and both React components take `check`; `successCheck()` takes the same choice as its first argument.', ['Success']],
+    ],
+  },
+  {
+    v: '0.64.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],
+      ['changed', 'React Button now merges a caller `className` with the kit classes instead of replacing them. Its own `aria-disabled`, `aria-busy` and `data-btn-*` attributes win over spread props, so a busy or disabled control cannot be made to read as idle.', ['Button']],
+    ],
+  },
+  {
+    v: '0.63.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Checkbox supports checkboxes and grouped radios, and Switch renders a native checkbox with the existing switch track. Both accept native input props and refs, including controlled state and disabled inputs. Switch takes className on its visible label and names an empty label "Toggle". Part of #429.'],
+      ['fixed', 'A disabled checkbox or radio now paints as unavailable instead of rendering identically to a live one, and hovering it no longer lights its border with the accent. The vanilla checkbox() factory takes disabled. Part of #429.'],
+    ],
+  },
+  {
+    v: '0.62.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React SidebarNav supports sections, one level of nested disclosure, counts, disabled and danger rows, collapsed presentation, artwork and footer slots, and router links. AppShell uses it in the desktop rail and More drawer with the existing sidebar styling, and a page under a back link keeps its section active in both navs. Part of #429.'],
+      ['changed', 'The rail\u2019s collapse control draws Lucide panel-left-close while the rail is open and panel-left-open while it is folded, so the mark says what the press will do; the seam no longer travels. A folded rail marks the current row with one plate on the glyph column, in place of the accent bar and the hairline that a rail one glyph wide cut off. An open rail keeps the accent bar on its own: the current row\u2019s glyph and its counter take body ink. Vanilla and React share all three. Part of #429.', ['AppShell', 'SidebarNav']],
+    ],
+  },
+  {
+    v: '0.61.2', date: '2026-10-01',
+    changes: [
+      ['changed', 'Nothing the kit renders changes. The application rail’s step off the page — 1.186:1 in dark, 1.110:1 in light, the same under all four accents — is now held to those measured numbers instead of the loose floor that let the barely-visible 0.53.3 rail through. The only published byte is a comment in `layout.css` citing a line that moved. See #454.', ['Shell']],
+    ],
+  },
+  {
+    v: '0.61.1', date: '2026-09-30',
+    changes: [
+      ['fixed', 'Iconography guidance allows the shell’s theme toggle, sidebar toggle and collapsed-rail links to drop their visible labels. Resolves #460.'],
     ],
   },
   {

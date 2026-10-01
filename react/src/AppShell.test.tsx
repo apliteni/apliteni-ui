@@ -24,6 +24,21 @@ it('uses the longest matching route, keeps counts in link names, and forwards ro
   expect(document.querySelector('[aria-current]')).toBeNull();
 });
 
+it('keeps the section active under a back link and inks both counts alike', () => {
+  render(<AppShell {...props} back={{ href: '/reports', label: 'Back to Reports' }} />);
+  const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
+  const bar = within(screen.getByRole('navigation', { name: 'Sections on mobile' }));
+  for (const nav of [rail, bar]) {
+    const row = nav.getByRole('link', { name: 'Reports 3' });
+    // guidelines/going-back.md, section-lit: the weekly report sits under the list,
+    // so the list's row stays active without claiming to be the page on screen.
+    expect(row).toHaveAttribute('aria-current', 'true');
+    // Both navs hand the count the same classes, so `.is-active .is-neutral` re-inks
+    // it once. Without is-neutral the bar's count kept --text against the rail's --strong.
+    expect(within(row).getByText('3')).toHaveClass('ui-nav__badge', 'is-neutral');
+  }
+});
+
 it('persists the fold and restores it on remount', () => {
   const { unmount } = render(<AppShell {...props} />);
   fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));

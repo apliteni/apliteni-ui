@@ -122,9 +122,15 @@ function disabledRules(css) {
  * always on the element the rule selects — `.ui-dropdown__item.is-disabled
  * .ui-dropdown__label` paints a label whose ancestor carries the class — so the
  * nearest element actually holding a spelling is the one turned off.
+ *
+ * It is not always ABOVE the element either. `:has()` paints from a state held by
+ * a DESCENDANT: `.ui-check:has(input:disabled)` dims a label because the input
+ * inside it is off. Searching only upwards found nothing there, returned a no-op
+ * undo, and so measured the same paint twice — which reads as "this control does
+ * not repaint" no matter what the rule says. The search goes up, then in. #429
  */
 function enable(el) {
-  const host = el.closest(DISABLED_STATE);
+  const host = el.closest(DISABLED_STATE) || el.querySelector(DISABLED_STATE);
   if (!host) return () => {};
   const undo = DISABLED_SPELLINGS.filter((s) => host.matches(s.inDom)).map((s) => s.off(host));
   return () => undo.forEach((f) => f());

@@ -1,0 +1,10 @@
+{
+  "//": "The type gate's project: Button.types.tsx and what it pulls in. Separate from tsconfig.json because that one also covers the tests and stories, which import node: builtins this workspace has no @types/node for.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/primitives/Button.types.tsx"
+  ]
+}

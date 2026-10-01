@@ -248,7 +248,7 @@
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
-        "ref": "src/styles/nav.css:111",
+        "ref": "src/styles/nav.css:115",
         "pattern": ".ui-nav__item.is-danger:hover"
       }
     ],
@@ -330,7 +330,7 @@
     ],
     "one-or-the-other": [
       {
-        "ref": "src/components/shell.js:322",
+        "ref": "src/components/shell.js:327",
         "pattern": "${up || (crumbs.length"
       }
     ],
@@ -398,7 +398,7 @@
         "pattern": "export const iconOnlyAllowed"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:95",
+        "ref": "stories/guidelines/iconography.test.js:96",
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
@@ -466,7 +466,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:390",
+        "ref": "src/styles/layout.css:416",
         "pattern": "rank: page-title"
       },
       {
@@ -508,7 +508,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:298",
+        "ref": "src/styles/layout.css:324",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -542,7 +542,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:425",
+        "ref": "src/styles/layout.css:451",
         "pattern": "@media (max-width: 720px)"
       },
       {

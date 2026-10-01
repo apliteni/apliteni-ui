@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `Success`, `SuccessPanel`, `SuccessCheck`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -68,6 +68,20 @@ The other variants are `info`, `success`, `warn`, and `danger`. Only `danger` us
 for a small inline control: `<Button size="xs" variant="ghost" icon="copy" iconOnly>Copy</Button>`.
 Its glyph is 13px and its icon-only target is 24×24px; labelled xs buttons use
 `--text-xs`. The other sizes keep 16px glyphs.
+
+`Button href="/reports"` renders a native link and forwards an anchor ref. Without
+`href`, it remains a native button. `leading={<VendorMark />}` puts decorative
+caller artwork before the label and takes precedence over `icon`; artwork must
+contain no focusable elements. Use visible children or an explicit accessible name.
+Disabled links leave the tab order; busy links keep focus. Both remove their href
+and block activation until enabled. Anchor attributes such as `target`, `rel`,
+and `download` pass through. The kit does not supply vendor artwork.
+
+A `className` you pass is added to the kit's classes rather than swapped for them,
+and the component's own `aria-busy`, `aria-disabled` and `data-btn-*` attributes win
+over anything you spread in, so a busy control cannot be made to read as idle. An
+icon-only control with no children, no `icon` and no label ships nameless on purpose:
+the gap then shows up in an accessibility check instead of reading as satisfied.
 
 `CommandPalette` renders the kit's `commandPalette()` markup, class for class, and imports the
 kit's ranking rather than repeating it — so a palette a server rendered and the same palette
@@ -583,3 +597,27 @@ Removing `countdown` or unmounting cancels the timer. Changing its duration rest
 it; changing its label or callback does not. Durations are whole seconds rounded
 down, with five seconds used for omitted, non-finite, or sub-one values. Completion
 fires once per countdown, including in StrictMode. Navigation belongs to the caller.
+
+## Checkbox and Switch
+
+`Checkbox` wraps a native checkbox and its visible `label`. Set `type="radio"`
+and give related options the same `name` for a native radio group. Use a fieldset
+and legend to name the group. `Switch` has the same native checkbox behavior,
+with the kit's switch track; its required `label` supplies the accessible name.
+Place visible setting text beside a switch.
+
+Both accept native input props: `checked` with `onChange` for controlled state,
+`defaultChecked` for uncontrolled state, and `disabled`, `name`, `value`,
+`required`, and ARIA attributes. Refs and every other prop reach the input.
+`className` reaches the input on `Checkbox` and the `.ui-switch` label on
+`Switch`, whose input is a hidden zero-size box that paints nothing. An empty
+`Switch` label falls back to "Toggle", as the vanilla factory does. Disabled
+controls do not activate, submit, or enter the Tab order, and the shared
+stylesheet paints them with the kit's disabled ink, surface and edge and drops
+the accent from a checked box.
+
+```tsx
+<Checkbox label="Read only" type="radio" name="scope" value="read" defaultChecked />
+<Checkbox label="Full access" type="radio" name="scope" value="full" />
+<Switch label="Email notifications" checked={email} onChange={event => setEmail(event.currentTarget.checked)} />
+```

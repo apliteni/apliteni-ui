@@ -170,6 +170,9 @@ See Storybook's **Button / Busy Transition** for the live vanilla example.
 
 ## Theming
 
+React forms can use [Checkbox, radio and Switch](react/README.md#checkbox-and-switch)
+with native labels, keyboard behavior and controlled or uncontrolled state.
+
 React pages can use [ThemeToggle and its pre-paint script](react/README.md#themetoggle)
 to save dark, light or auto choices. Auto resolves to dark or light on the root.
 
@@ -219,6 +222,12 @@ site/                    # ui.apli.tech landing page (static site build)
 react/                   # React components — private workspace, built to react/dist/
   dist/                  #   tsup output; shipped as …/react and …/react/css
 ```
+
+`SidebarNav` renders flat items or captioned sections with one level of nested
+disclosure, counts, disabled and danger rows, an artwork slot, and a footer slot. Its
+`renderLink(item, linkProps)` hook supports router links; spread the supplied props
+to retain names, children and current-page semantics. `collapsed` changes only
+presentation, keeping nested links reachable and named.
 
 ## Contribute
 

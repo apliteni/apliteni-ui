@@ -871,6 +871,43 @@ error is announced without moving focus back to the field. Explicitly disabled b
 disabled. Unwired static `button({ busy: true })` markup retains native disabled as
 a safe fallback; `setButtonBusy` replaces it with guards when wiring the control.
 
+### React Button links and leading artwork
+
+React `Button` accepts `href` to render an anchor using the existing button classes.
+Without `href` it renders a native button, defaulting to `type="button"`. Refs and
+native attributes belong to the selected element. `leading` accepts decorative
+React content before the label wrapper and takes precedence over `icon`. Callers
+supply vendor artwork without focusable descendants and name icon-only controls
+with text children, `aria-label`, or `aria-labelledby`. An icon-only control
+mirrors string children, then the icon name, into `aria-label` and `title`. With
+neither it stays nameless rather than carrying an invented one: an identifier
+reads as a name to a checker and says nothing to the person hearing it, so the
+gap has to stay visible.
+
+`className` merges with the kit's classes instead of replacing them, matching
+React `BackLink`. The component's state wins over the caller's spread props:
+`aria-disabled`, `aria-busy`, the `data-btn-*` hooks, a link's `role`, and the
+`href` and `tabIndex` a disabled or busy control drops. No caller can leave a
+busy or disabled control reading as idle. `type` stays the caller's on a button
+and defaults to `button`; an anchor has none. Every other native attribute
+passes through. `ButtonProps` is the union of both roots and spreads back into
+`Button`; `ComponentProps<typeof Button>` resolves to that union rather than to
+the link alone, and `Button.displayName` stays typed.
+
+Disabled links have `aria-disabled`, no href, and `tabIndex=-1`. Busy links keep
+their tab position and focus, remove their href, and retain the last idle label.
+Both block clicks, auxiliary clicks, and Enter activation in capture and bubble
+handlers. Space is blocked on button roots only: it never activates an anchor, and
+a focused busy link that swallowed it would cost the reader the page scroll and
+prevent nothing. When enabled, the destination and caller tab index return.
+Native buttons remain natively disabled when explicitly disabled. Busy artwork
+uses the shared CSS to stay in layout while hidden. Covered by
+`react/src/primitives/Button.test.tsx`; browser captures check layout, while these
+JSDOM tests check semantics and activation rather than screen-reader speech. The
+exported types are a gate of their own: `react/src/primitives/Button.types.tsx`
+compiles the consumer patterns under `react/tsconfig.types.json`.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
 ### Extra-small buttons
 
 `button({ size: 'xs' })` and React `<Button size="xs">` draw a 13px glyph at
@@ -1062,9 +1099,15 @@ What the shell guarantees:
   control that replaced it, and the box keeps its space so the band keeps its height. Below 720px
   the toggle is not drawn, nothing arrives on the mark's column, and the band is the lockup alone
   with its words folded away.
-- **The toggle is one mark, and the mark is the state.** The control is a frame that holds still
-  and a seam that crosses it — `lessly-ui`'s `RailToggle`, which this rail is reworked on — so what
-  a reader takes from it is which arrangement the panel is in rather than a direction to press. No
+- **The toggle is one mark, and the mark says what the press will do.** The control is Lucide
+  `panel-left-close` on an open rail and Lucide `panel-left-open` on a folded one: a frame, a seam
+  at 9 that never moves, and a chevron pointing the way the press moves the rail's edge. The seam
+  holds still because it IS the rail — the compartment it cuts off stays on the side the rail is
+  on. Until #429 the seam was what travelled, mirrored about the frame's centre as `lessly-ui`'s
+  `RailToggle` mirrors its own, and it landed at 15: a WIDE left compartment beside a rail that had
+  just become narrow, which is the mark reporting the opposite of what happened. Artur rejected that
+  mark on 2026-09-30 and named Cloudflare's dashboard and `lessly-ui` as the references; the panel
+  frame is what both draw, and Lucide's own pair is the frame with the direction added. No
   words beside it and no tooltip of its own: it takes the same name chip every other row takes on a
   folded rail, and it takes that chip on an open rail too. Every other row reads its own name on an
   open rail; the toggle is the one row that is its mark at both widths, so it is the one row whose
@@ -1081,15 +1124,33 @@ What the shell guarantees:
   `stories/apps/shell.test.js` compares the two attribute for attribute — which is what makes "by
   construction" a thing a reader can check. The box it is drawn in is the glyph column —
   `--ui-nav-strip`, a row's padding either side of a glyph, which is the width the closed rail is
-  derived from — one box, written once, at both widths; where that box stands is the bullet above. The seam moves on `--dur-med`, the rail's own
-  clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and its
-  distance is the frame's own mirror rather than a number: the seam is drawn at 9 in an 18-unit
-  frame and lands at 15, so the narrow compartment changes sides.
-  `stories/apps/shell-states.test.js` reads the frame and the seam out of the factory and refuses a
-  travel the mark does not explain, a control wider or narrower than the column, a seam that holds
-  still between the two states, an offset written as a number rather than as the two widths' own
+  derived from — one box, written once, at both widths; where that box stands is the bullet above. The chevron turns over on `--dur-med`, the rail's own
+  clock and not the words' `--dur-fast`, so the mark and the closing edge arrive together, and the
+  turn is a reflection rather than a number: `panel-left-close`'s chevron is drawn at 13..16 and
+  mirrored about 15, the centre of the compartment it stands in, which lands it at 14..17 — exactly
+  where Lucide draws `panel-left-open`'s. So both states are a shipped glyph and the CSS between
+  them is one axis.
+  `stories/apps/shell-states.test.js` reads the frame, the seam and the chevron out of the factory
+  and refuses a seam past the frame's centre, a seam that moves at all, a chevron that holds still
+  between the two states, a mirror that does not land on Lucide's own open glyph, a control wider or
+  narrower than the column, an offset written as a number rather than as the two widths' own
   difference, and a band that stacks its marks again. The same file resolves the toggle's chip at both widths, under
   the pointer and under the keyboard, so the rule cannot be scoped back to the fold.
+- **One accent signal per rail row, and on a folded rail it is a plate rather than a bar.** An open
+  rail marks the current row with the accent marker in its left padding, and with nothing else in
+  the accent: the glyph takes the row's own ink at full strength — which is the step that says
+  "current" whatever `--accent` is doing — and an accent counter on that row reads as the neutral
+  one beside it. Before #429 a current row could carry all three at once, and the counter's pair
+  (accent ink on `--surface`) was the one #157 recorded under WCAG AA in four of the eight theme x
+  accent cells; nothing paints it now. On a folded rail the marker is dropped and the row takes one
+  plate instead: `--surface-3`, the kit's quiet non-text fill, `--ui-nav-strip` wide at the row's
+  own edge — twice a glyph's centre, so the plate is centred on the glyph. The bar cannot serve
+  there, because the padding it stands in is the rail's own edge on a strip and a nested row puts it
+  `--space-3` further out again; nor can the resting hairline, which is drawn on a row that keeps
+  the open column and so has its right edge off the strip. Both references mark current the same
+  way and with no hue: Cloudflare's docs rail paints a flat plate, and `lessly-ui`'s rail is a plate
+  and the weight step. Artur asked for it on 2026-09-30. The plate sits behind the glyph on the
+  row's own stacking context, so the focus ring is untouched.
 - **The fold travels, and no glyph moves while it does — except the one that rides the edge.** The
   rail's column keeps its open width and the box closes over it, so nothing inside is laid out a
   second way: the width goes from
@@ -1203,6 +1264,23 @@ What the shell guarantees:
 - **The rail holds nothing that has to escape it.** `.ui-app__rail` is `position: sticky` with
   `overflow-y: auto`, and each of those traps a popover on its own — see
   [The dropdown panel](#the-dropdown-panel). A dropdown mounted in the rail passes `portal: true`.
+- **The rail stands on a reading surface, one measured step off the page — and in light that step
+  is at its ceiling.** `.ui-app__rail` paints `--surface`, the card, because every label, section
+  caption and the reader block inside it reads on that ground and
+  [#455](https://github.com/apliteni/apliteni-ui/issues/455) keeps text off grey fills. The step
+  that ships is **1.186:1 in dark** and **1.110:1 in light**, identical under all four accents —
+  neither accent re-points `--bg` or `--surface`. `stories/apps/shell-states.test.js` holds both
+  numbers to ±0.01 from both sides, so a drop is a regression and a rise is a decision written into
+  that gate rather than a number that moves on its own.
+
+  **Light cannot go further with the tokens that exist.** Perceptually the light step is half the
+  dark one — ΔL\* 4.16 against 8.33 — and that residual gap is what
+  [#454](https://github.com/apliteni/apliteni-ui/issues/454) was filed on. White is the furthest a
+  light *reading* surface gets from `--bg` `#f2f3f6`, and the rail is already on it; `--surface-2`
+  and `--surface-3` are nearer the page, not further, and are non-text fills besides. Matching
+  dark's step means bringing `--bg` down to about `#e5e7ed`, which is the token
+  [#448](https://github.com/apliteni/apliteni-ui/issues/448) pinned at `#f2f3f6` and moves every
+  light surface in the kit — a theme decision, not the rail's.
 
 ### The second layout
 
@@ -1233,10 +1311,11 @@ What moves, and what each move buys:
   **What that is not, measured at 1280 in Chrome:** the two rules land level — both boxes end at
   `52` — but they are **not one continuous stroke**. The rail insets its rule by the rail's own
   `--space-4`, so the rail's half runs `x 16→232` and the band's starts at `249`, a 17px break.
-  And in the light theme the rail's half is the fainter of the two: `--border` `#e4e7ee` on the
-  rail's `--surface-2` `#e9ecf3` is 1.047:1, against 1.116:1 for the same rule on the band's
-  `--bg`. It was 1.009:1 — a rule that was there and could not be seen — until
-  [#448](https://github.com/apliteni/apliteni-ui/issues/448) lifted the sunken step off the border. Both are inherited — the ladder is [#295](https://github.com/apliteni/apliteni-ui/issues/295)
+  In the light theme the rail's half is now the stronger of the two: `--border` `#e4e7ee` on the
+  rail's `--surface` `#ffffff` is 1.238:1, against 1.116:1 for the same rule on the band's `--bg`.
+  It ran the other way while the rail stood on `--surface-2` `#e9ecf3` — 1.047:1, and 1.009:1
+  before [#448](https://github.com/apliteni/apliteni-ui/issues/448) lifted the sunken step off the
+  border, a rule that was there and could not be seen. Both are inherited — the ladder is [#295](https://github.com/apliteni/apliteni-ui/issues/295)
   and the inset is the rail's — and neither is repainted here: the rail's head, its foot and the
   reader block all take one hairline, so repainting the head alone would leave the rail's own two
   rules disagreeing, and bleeding the head's rule to the rail's edges would cost it the open
@@ -2427,3 +2506,47 @@ against `src/assets/icons.js`, holds the root class against the mark drawn, hold
 the removed backdrop layers out of all three layouts, and counts the text tiers each
 layout emits so a third one cannot return unnoticed. It does not paint, so it cannot
 say how large either mark renders or whether the tick animates.
+
+## React sidebar navigation
+
+`SidebarNav` renders the shared sidebar classes without a vanilla initializer.
+It accepts flat items or captioned sections, nested groups, counts, optional artwork,
+a footer slot and router-link rendering. A group holds leaves: nesting stops one level
+deep, the depth `sidebarNav()` renders, and a deeper child is dropped as it is there. Each row retains its accessible name and
+count when collapsed; disclosures remain keyboard operable and use unique controlled
+list IDs. Current links use `aria-current="page"`, or `"true"` for `activeIs="section"`.
+Disabled leaves render non-interactive spans. Groups containing the current item
+open unless `defaultOpen` or a user toggle sets their state. Folding does not reset it.
+AppShell composes this navigation in its desktop rail and More drawer.
+
+Held by `react/src/SidebarNav.test.tsx`; browser captures verify presentation separately.
+
+## React checkbox, radio and switch
+
+`Checkbox` and `Switch` render native inputs inside the existing `ui-check` and
+`ui-switch` labels and use the shared `input.css` without overrides. `Checkbox`
+accepts `type="radio"`; same-name radios retain native exclusive selection and
+arrow navigation. Its `label` is visible text. `Switch` requires a text `label`
+for its accessible name and retains native checkbox semantics.
+
+Both forward refs and native input attributes, including controlled `checked`
+with `onChange`, uncontrolled `defaultChecked`, form names and values, and
+`disabled`. Disabled controls do not activate, submit, or enter the Tab order.
+Uncontrolled inputs reset with their form. `Checkbox` passes `className` to the
+input; `Switch` passes it to the `.ui-switch` label, because its input is a
+hidden zero-size box. A `Switch` given an empty `label` takes the vanilla
+factory's "Toggle" default, so it always has an accessible name.
+
+A disabled checkbox or radio now takes the same paint as every other disabled
+control in the kit: `--disabled-surface`, `--disabled-border`, quiet
+`--disabled-ink` words and `cursor: not-allowed`, with a checked box dropping the
+accent for an opaque fill and inverting its tick or dot. Hover no longer lights
+the border of a control that cannot be clicked. The vanilla `checkbox()` factory
+takes `disabled` and its specimen renders the state, so
+`stories/guidelines/accessibility-floor.test.js` measures it.
+
+Tests in `react/src/Checkbox.test.tsx` and `react/src/Switch.test.tsx` check
+semantics, events, the class split and the label fallback in JSDOM, not browser
+paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
+things the story walk cannot: the hover qualification and the pseudo-element mark.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).

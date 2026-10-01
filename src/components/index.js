@@ -210,8 +210,8 @@ export function select({ options = [], value, name, id, ariaLabel, disabled } = 
   }).join('');
   return `<select class="ui-select"${id ? ` id="${esc(id)}"` : ''}${name ? ` name="${esc(name)}"` : ''}${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}${disabled ? ' disabled' : ''}>${opts}</select>`;
 }
-export function checkbox({ label, checked, type = 'checkbox', name } = {}) {
-  return `<label class="ui-check"><input type="${esc(type)}"${name ? ` name="${esc(name)}"` : ''}${checked ? ' checked' : ''}><span>${label}</span></label>`;
+export function checkbox({ label, checked, type = 'checkbox', name, disabled = false } = {}) {
+  return `<label class="ui-check"><input type="${esc(type)}"${name ? ` name="${esc(name)}"` : ''}${checked ? ' checked' : ''}${disabled ? ' disabled' : ''}><span>${label}</span></label>`;
 }
 // `label` becomes the input's accessible name (a bare switch has no visible text,
 // so it needs one). Defaults to "Toggle" so a control is never left unlabelled.

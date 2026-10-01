@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { applyTheme, paletteHotkey, prism, railCollapsed, themeIcon, themeName } from '@apliteni/apliteni-ui';
+import { SidebarNav } from './SidebarNav';
 import { BackLink } from './BackLink';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
@@ -77,15 +78,27 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     const linkProps: ComponentPropsWithoutRef<'a'> = {
       href: section.href,
       className: `ui-nav__item${section === active ? ' is-active' : ''}`,
-      'aria-current': section === active ? 'page' : undefined,
+      // guidelines/going-back.md, section-lit: the same row, so the same reading as
+      // the rail's. "page" here would announce the list as the page the reader is on.
+      'aria-current': section === active ? (back ? 'true' : 'page') : undefined,
       'aria-label': `${section.label}${section.count == null ? '' : ` ${section.count}`}`,
       onClick: (event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setMore(false); },
       children: <><span className="ui-nav__ic"><Icon name={section.icon} /></span>
         <span className="ui-nav__label">{section.label}</span>
-        {section.count != null && <span className="ui-nav__badge">{section.count}</span>}</>,
+        {section.count != null && <span className="ui-nav__badge is-neutral">{section.count}</span>}</>,
     };
     return <li key={section.href}>{renderLink ? renderLink(section, linkProps) : <a {...linkProps} />}</li>;
   });
+  const sidebar = (items: AppShellSection[], label: string) => <SidebarNav aria-label={label}
+    items={items.map(section => ({ ...section, id: section.href, badge: section.count }))} active={active?.href}
+    activeIs={back ? 'section' : 'page'}
+    renderLink={(item, props) => {
+      const section = items.find(section => section.href === item.id)!;
+      const linkProps = { ...props, onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+        if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setMore(false);
+      } };
+      return renderLink ? renderLink(section, linkProps) : <a {...linkProps} />;
+    }} />;
   const foldLabel = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
   const visible = sections.length > 4 ? sections.slice(0, 3) : sections;
   const remaining = sections.slice(visible.length);
@@ -97,10 +110,10 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(uid, 24) }} />}
         <span>{word}</span>
       </a></div>
-      <nav className="ui-nav ui-nav--side" aria-label="Sections"><ul className="ui-nav__list">{links(sections)}</ul></nav>
+      {sidebar(sections, 'Sections')}
       <div className="ui-app__foot"><div className="ui-app__fold-row">
         <button type="button" className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
-          <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /></svg></span><span className="ui-nav__label">{foldLabel}</span>
+          <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span><span className="ui-nav__label">{foldLabel}</span>
         </button>
       </div></div>
     </div>
@@ -133,7 +146,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         aria-haspopup="dialog" aria-expanded={more} onClick={() => setMore(true)}><span className="ui-nav__ic"><Icon name="moreHorizontal" /></span><span className="ui-nav__label">More</span></button></li>}
     </ul></nav>
     <Drawer open={more} onClose={() => setMore(false)} title="More sections" side="bottom">
-      <nav className="ui-nav ui-nav--side" aria-label="More sections"><ul className="ui-nav__list">{links(remaining)}</ul></nav>
+      {sidebar(remaining, 'More sections')}
     </Drawer>
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
   </div>;
