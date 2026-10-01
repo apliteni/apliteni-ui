@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { composeStories } from '@storybook/react';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import * as stories from './DocumentReview.stories';
+
+/* The showcase's one stylesheet file, read as text. Vitest does not apply imported CSS in
+ * jsdom, so a rule living there cannot be measured through getComputedStyle; it is held
+ * as the declaration it is. It lives there rather than in the story's <style> because the
+ * React contrast walk substitutes this workspace's CSS for both themes and judges what it
+ * finds, while an inline block reaches it with var() intact and is counted as a colour
+ * that would not parse. */
+const SHEET = readFileSync(path.join(process.cwd(), 'src/DocumentReview.css'), 'utf8');
 
 /* The three-step flow, driven through the story the showcase publishes, so the test and
  * the screen a reader sees cannot drift apart. jsdom has no layout, so what this covers
@@ -173,24 +183,31 @@ describe('document review flow', () => {
     // Position, width, weight and accent are the rule's four levers, and the preview
     // holds none of them. why: guidelines/density-and-accents.md#follow-the-consequence
     //
-    // Accent. The leading pane carries it on its edge — not its ground, because the pane
-    // holds a table and a table stays on the reading surface.
-    // why: guidelines/dense-tables.md#use-the-right-surface
+    // Accent. It is ink on the leading pane's own name, and it is the only accent in
+    // either pane. Not a border: an edge strong enough to read as the signal measured
+    // 2.76:1 against the kit hairline's 1.24:1 and read as an outlined box, which is why
+    // the sheet below bounds any accent mix this showcase writes.
+    // why: guidelines/density-and-accents.md#follow-the-consequence
     expect(saved).toHaveClass('doc-flow__saved-pane');
-    // The edge is accent-derived, read from the property the rule points at: jsdom's
-    // cssstyle drops any border-color it cannot parse to a literal, so `border-color`
-    // itself measures nothing here. The painted hairline is in the #385 captures, where
-    // the walk also checks that no element in either pane carries the raw accent.
-    expect(getComputedStyle(saved as HTMLElement).getPropertyValue('--saved-edge'))
-      .toMatch(/color-mix\(in srgb,\s*var\(--accent\) \d+%/);
-    // The preview carries none of it, and the one control inside it marks its selection
-    // with the strong edge instead of the accent outline `.ui-seg` paints by default.
+    // The colour is in DocumentReview.css so the contrast walk can resolve it, so this
+    // holds the selector that sheet paints together with the class the markup wears —
+    // the two halves that put the accent on this one name.
+    expect(SHEET).toMatch(/\.doc-flow__saved-pane\s+\.ui-card__title\s*\{[^}]*color:\s*var\(--accent\)/);
+    // The preview carries none of it: not on its name, not on a card ground, and the one
+    // control inside it marks its selection with the strong edge instead of the accent
+    // outline `.ui-seg` paints by default.
     expect(source).not.toHaveClass('doc-flow__saved-pane');
     expect(source.querySelectorAll('.ui-card--accent, .ui-card--live, .doc-flow__saved-pane'))
       .toHaveLength(0);
     const pressed = [...source.querySelectorAll('.ui-seg button[aria-pressed="true"]')];
     expect(pressed).toHaveLength(1);
     expect(getComputedStyle(pressed[0] as HTMLElement).outlineColor).toBe('var(--border-strong)');
+    // Neither card draws an edge of its own, so both keep one hairline between them.
+    // Limit: the kit stylesheet is not loaded here, so this holds that the showcase
+    // declares no edge on either card; the painted hairlines are measured in the #385
+    // captures, where both read 1.12:1 light and 1.50:1 dark against the page.
+    expect(getComputedStyle(saved as HTMLElement).borderTopColor)
+      .toBe(getComputedStyle(source as HTMLElement).borderTopColor);
 
     // The leading pane is the one that says what approval writes, and it is the only
     // one carrying that sentence — the preview stays a preview.
@@ -238,6 +255,34 @@ describe('document review flow', () => {
     expect(getComputedStyle(sheet).width).toBe('var(--panel-md)');
     const panes_ = container.querySelector('.doc-flow__panes') as HTMLElement;
     expect(getComputedStyle(panes_).gridTemplateColumns).toBe('minmax(0, 1fr) var(--panel-md)');
+  });
+
+  // The quantity that decides whether an accent honours the rules is its strength, and a
+  // gate that only proves an accent exists is how a 55% border shipped green. Every
+  // `color-mix` on the accent that this showcase writes is held to the kit's own edge
+  // strength. Read from the sheet the story injects, so a mix added anywhere in it is
+  // covered, not only the one this test happens to name.
+  const KIT_ACCENT_MIX = 22; // `.ui-card--accent` in src/styles/card.css
+  it('writes no accent louder than the kit draws one, and draws no accent line', () => {
+    render(<Default />);
+    const sheet = SHEET + '\n'
+      + [...document.querySelectorAll('style')].map((s) => s.textContent ?? '').join('\n');
+    expect(sheet, 'the showcase injects its own stylesheet').toContain('.doc-flow');
+
+    // The quantity that decides whether an accent honours the rules is its strength, and
+    // the version of this gate that only proved an accent existed is how a 55% border
+    // shipped green. Every accent mix the showcase writes is held to the kit's own edge.
+    const mixes = [...sheet.matchAll(/color-mix\([^)]*var\(--accent\)\s*(\d+)%/g)]
+      .map((m) => ({ at: m[0], percent: Number(m[1]) }));
+    for (const mix of mixes) {
+      expect(mix.percent, `${mix.at} is louder than the kit's own accent edge (${KIT_ACCENT_MIX}%)`)
+        .toBeLessThanOrEqual(KIT_ACCENT_MIX);
+    }
+
+    // And no border, outline or shadow is painted from the accent at all: the carrier is
+    // ink on a name, and a line under the bound would still be a line.
+    const asLine = /(?:border[\w-]*|outline[\w-]*|box-shadow)\s*:[^;]*var\(--accent\)/g;
+    expect(sheet.match(asLine) ?? [], 'the showcase draws no accent line').toEqual([]);
   });
 
   it('draws the document as the card’s own page, not a second card on the same fill', () => {
