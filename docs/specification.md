@@ -2313,7 +2313,7 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 
 Column labels accept React content, including a kit Tooltip for a header explanation.
 
-Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
+Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells. A sortable header's label truncates rather than pushing the sort caret out of a capped column, so a pinned sortable identity keeps its direction visible on a phone.
 
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.
@@ -2480,13 +2480,12 @@ name; missing or failed images retain a letter fallback after initialization.
 
 A named scroll region holds the native table. Sticky headers and pinned identity cells have
 opaque table backgrounds and the shared G2 focus composition. Below the 720px fold a pinned
-identity cell keeps its content on one line — the kit's own `.ui-identity__name` included —
-and is capped by `--ui-table-identity-max`, `min(--panel-sm, 50vw)` until a consumer retunes
-that one property; the decorative logo is not drawn there. What passes the cap is cut with an
-ellipsis while the whole text stays in the DOM, so the accessible name is unchanged and the
-company link remains the disclosure. The cut is `overflow: clip` with a 16px margin, which is
-what keeps a focused link's ring and glow out of it. The consumer supplies a real destination
-for that link. Columns scroll rather than disappear. Held by
+identity cell keeps its content on one line, capped by `--ui-table-identity-max` —
+`min(var(--panel-sm), 50vw)` until a consumer retunes that one property — and cuts what passes
+the cap with an ellipsis. The whole text stays in the DOM, so the accessible name is unchanged
+and the company link remains the disclosure; a control in the cell keeps its own marks and its
+focus ring, and the decorative logo is not drawn there. The consumer supplies a real
+destination for that link. Columns scroll rather than disappear. Held by
 `src/styles/table-identity.test.js`; decided in
 [#500](https://github.com/apliteni/apliteni-ui/issues/500).
 

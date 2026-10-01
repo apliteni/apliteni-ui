@@ -181,8 +181,11 @@ export function DataTable<T extends { name: string }>({
                   : (c.sortable && sortIsKnown ? 'none' : undefined)}>
                 {c.sortable
                   ? (
+                    // The label is its own box so it can truncate: in a pinned
+                    // identity column on a phone the header is capped, and a bare
+                    // text node would push the caret out of the cell instead.
                     <button type="button" className="rx-sort" onClick={() => onSort(c.key)}>
-                      {c.label}{caret(c.key)}
+                      <span className="rx-sort__label">{c.label}</span>{caret(c.key)}
                     </button>
                   )
                   : c.label}

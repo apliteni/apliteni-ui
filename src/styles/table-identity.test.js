@@ -91,7 +91,10 @@ function cellsAt(width) {
       <tr><td class="ui-table__identity" id="kit">${rowIdentity({ symbol: 'NORT', name: 'Northstar Analytics Incorporated', href: '#company' })}</td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="plain">North region</td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="sub"><div>North region</div><div class="ui-table__code">EU-NORTH-1 district office</div></td><td class="ui-table__num">1.00</td></tr>
-    </tbody></table>`;
+    </tbody></table>
+    <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned"><thead>
+      <tr><th class="ui-table__identity" id="head" scope="col"><button type="button" class="rx-sort" id="sort">Company and registered trading name<svg class="rx-caret" id="caret"></svg></button></th><th class="ui-table__num">1.00</th></tr>
+    </thead></table>`;
   const style = (sel) => dom.window.getComputedStyle(document.querySelector(sel));
   return { style, shapes: ['#kit', '#plain', '#sub'] };
 }
@@ -135,7 +138,16 @@ test('at 390 a pinned identity cell holds one line and cuts the rest', () => {
   const cap = /--ui-table-identity-max:\s*([^;}]+)/.exec(substitute(decomment(CSS), tokensFor('light', 'default')));
   assert.ok(cap, 'the identity cap property is gone, so a consumer has nothing to retune');
   const capPx = evaluateLength(cap[1], 390);
-  assert.ok(capPx > 0 && capPx <= 195, `the cap leaves the columns beside it no room: ${capPx}px of 390`);
+  // Both bounds, because each protects the opposite reader. Over half the screen
+  // and the columns beside the identity have nothing left to page through; under
+  // 40% and a 13px line of symbol and name no longer fits — a 10vw cap renders a
+  // 39px column with no name in it, which is #500's own symptom back again.
+  assert.ok(capPx <= 195, `the cap leaves the columns beside it no room: ${capPx}px of 390`);
+  assert.ok(capPx >= 156, `the cap is too narrow to hold a line of identity: ${capPx}px of 390`);
+
+  // One declaration for every identity cell; it does not vary by shape.
+  const cellCap = declaredOn('.ui-table__identity', 'max-width');
+  assert.match(cellCap, /--ui-table-identity-max/, 'the cell is not capped by --ui-table-identity-max');
 
   let measured = 0;
   for (const shape of shapes) {
@@ -143,9 +155,8 @@ test('at 390 a pinned identity cell holds one line and cuts the rest', () => {
     assert.equal(cell.whiteSpace, 'nowrap', `${shape} still wraps, which is the sliver #500 reported`);
     assert.ok(['clip', 'hidden'].includes(cell.overflow), `${shape} does not cut what passes its cap: ${cell.overflow}`);
     assert.equal(cell.textOverflow, 'ellipsis', `${shape} cuts its text without saying so`);
-    // JSDOM reports `min(320px, 50vw)` as `320px`, so the cap is read from the
-    // stylesheet and evaluated above; what is checked here is that it reaches the cell.
-    assert.match(declaredOn(shape === '#kit' || shape === '#plain' || shape === '#sub' ? '.ui-table__identity' : shape, 'max-width'), /--ui-table-identity-max/, `${shape} is not capped by --ui-table-identity-max`);
+    // JSDOM reports `min(320px, 50vw)` as `320px`, so the cap itself is read from
+    // the stylesheet and evaluated above; what is read back here is that it arrives.
     assert.notEqual(cell.maxWidth.trim(), '', `${shape} reaches no cap at all`);
     measured++;
   }
@@ -161,12 +172,25 @@ test('at 390 a pinned identity cell holds one line and cuts the rest', () => {
   assert.equal(subLine.textOverflow, 'ellipsis', 'a sub-line is cut without saying so');
   assert.ok(['clip', 'hidden'].includes(subLine.overflow), `a sub-line runs past the cap: ${subLine.overflow}`);
 
+  // The cell's cap is no use if what is inside it is capped to nothing: both the
+  // link and its name take the whole cell.
+  assert.equal(style('#kit .ui-identity').maxWidth.trim(), '100%', 'the identity link is capped away from the cell it sits in');
+  assert.equal(declaredOn('.ui-identity', 'max-width'), '100%', 'the phone block no longer gives the identity link the whole cell');
+
   const name = style('#kit .ui-identity__name');
   assert.equal(name.whiteSpace, 'nowrap', 'the name wraps inside the cell');
   assert.equal(name.textOverflow, 'ellipsis', 'a long name is cut without saying so');
   assert.notEqual(name.position, 'absolute', 'the name is hidden again rather than shown on one line');
   assert.ok(['', 'none'].includes(name.clipPath), 'the name is clipped out of view rather than shown');
+  assert.equal(name.maxWidth.trim(), '100%', 'the name is capped away from the link it sits in');
   assert.equal(style('#kit .ui-identity__logo').display, 'none', 'the logo is back in the narrow column');
+
+  // A control in the cell shrinks into the cap; it is never clipped. Clipping took
+  // the sort caret off a pinned sortable header, leaving a direction nobody can see.
+  const sort = style('#sort');
+  assert.equal(sort.maxWidth.trim(), '100%', 'a sort button is not held to the cell it sits in');
+  assert.ok(['', 'visible'].includes(sort.overflow), `a sort button is clipped, which takes its caret: ${sort.overflow}`);
+  assert.ok(['', 'clip'].includes(sort.textOverflow), 'a sort button carries an ellipsis it cannot draw');
 });
 
 test('at 1280 the phone rules are off and the desktop identity is what it was', () => {

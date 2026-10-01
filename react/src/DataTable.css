@@ -13,6 +13,11 @@
 /* The row-selection checkbox is a bare <input>, not the kit's .ui-check, so the
    shared ring in base.css does not reach it and the browser drew its own. #482 */
 .ui-table__selection input[type="checkbox"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+/* `all: unset` above takes the shrinking with it. A capped header — the pinned
+   identity column on a phone — needs the button to fit the cell and the label to
+   be what gives way, so the caret is still drawn. */
+.rx-sort { max-width: 100%; min-width: 0; }
+.rx-sort__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* Keep the sort mark in undiluted muted ink; see #131. */
 .rx-caret {
   margin-left: 2px;
