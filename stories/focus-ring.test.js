@@ -24,11 +24,17 @@
 //    a state the static DOM is not in, and var() expansion.
 //  - It says nothing about the ring's contrast, its shape on screen, or whether
 //    a clipping ancestor hides it.
-//  - A scroll container Chrome makes a keyboard stop is not one of its stops.
-//    `keyboardStops` matches a fixed list of focusable kinds, and an overflowing
-//    `div` is in none of them. #487's review found one such stop outside this
-//    walk — `.ui-dropdown__panel.is-scroll`, which keeps the browser's own
-//    outline. It predates #482 and is recorded as remaining work on the issue.
+//  - A scroll container is never one of THIS walk's stops. `keyboardStops`
+//    matches a fixed list of focusable kinds, and an overflowing `div` is in
+//    none of them, although Chrome makes it a keyboard stop. Scroll containers
+//    are covered separately, by the `scrollingSelectors` triage below, which
+//    discovers them from the sheets and holds which carry the ring and which do
+//    not. The eight without one are tracked on #531.
+//  - A roving row the kit focuses with a key rather than Tab is judged only if
+//    its role is in ROVING_ROLES. That list is what the kit uses today; a row
+//    given some other role would drop out of the walk unseen. #487's re-review
+//    found `.vopt` that way — `role="option"` was missing, so the version
+//    switcher's rows shipped with the browser's outline and nothing saw it.
 //  - It walks these surfaces only. Not the whole story catalogue: the guideline
 //    pages draw deliberate counter-examples (stories/guidelines/_state-set.js
 //    paints an ad-hoc ring to show the rule being broken), and a gate over all of
@@ -67,6 +73,16 @@ const EXEMPT = [
       + 'ring would be painted the whole time and mark nothing. Decided in src/styles/'
       + 'command-palette.css, which states it on the declaration.',
   },
+  {
+    selector: '.ui-cmdk__item',
+    why: 'the palette never focuses a row. Focus stays in the input — '
+      + 'src/components/command-palette.js:349 `input.focus()` is the only call that moves '
+      + 'it — and the row the reader is on is announced instead, by '
+      + 'src/components/command-palette.js:263 `aria-activedescendant`, which that file '
+      + 'calls the combobox pattern\'s own answer. A ring needs a stop, and there is none. '
+      + 'The rows are walked at all only because #487 added `option` to ROVING_ROLES so '
+      + 'that .vopt, which IS focused, could be seen.',
+  },
 ];
 const exempt = (stop) => EXEMPT.some(({ selector }) => stop.el.matches(selector));
 
@@ -103,7 +119,15 @@ function landingHtml() {
 
 /** The story files #482 names, found by filename in the discovered catalogue so
  *  a moved or renamed file fails rather than dropping out of the walk. */
-const SUBJECT_FILES = ['apps/ShellLayouts.stories.js', 'components/Footer.stories.js'];
+const SUBJECT_FILES = [
+  'apps/ShellLayouts.stories.js',
+  'components/Footer.stories.js',
+  // Added by #487's re-review. The version switcher's rows are `role="option"`
+  // with `tabindex="-1"`, focused by the arrow keys in src/components/dropdown.js,
+  // and no walked surface rendered one — so `.vopt` shipped with the browser's
+  // own outline and nothing could see it.
+  'apps/AccountPreset.stories.js',
+];
 for (const wanted of SUBJECT_FILES) {
   assert.ok(storyFiles.includes(wanted), `${wanted} is not in the story catalogue any more`);
 }
@@ -199,17 +223,23 @@ test('focus walk: the surfaces and stops this gate covers', () => {
   const counts = Object.fromEntries(walked.map(({ id, stops }) => [id, stops.length]));
   assert.deepEqual(counts, {
     'site/index.html': 37,
-    'stories/apps/ShellLayouts.stories.js:TopbarWide': 12,
-    'stories/apps/ShellLayouts.stories.js:TopbarCentered': 12,
+    // 12 before #487's re-review added `option` to ROVING_ROLES; the three the
+    // palette holds are rows it never focuses, exempted by name below.
+    'stories/apps/ShellLayouts.stories.js:TopbarWide': 15,
+    'stories/apps/ShellLayouts.stories.js:TopbarCentered': 15,
     'stories/apps/ShellLayouts.stories.js:RailWide': 10,
     'stories/apps/ShellLayouts.stories.js:RailCentered': 10,
     'stories/components/Footer.stories.js:Full': 22,
     'stories/components/Footer.stories.js:Slim': 7,
     'stories/components/Footer.stories.js:App': 3,
     'stories/components/Footer.stories.js:MobileStacked': 21,
+    // The surface #487's re-review added, for the version switcher's rows.
+    'stories/apps/AccountPreset.stories.js:Default': 13,
+    'stories/apps/AccountPreset.stories.js:WithVersionSwitcher': 18,
   }, 'the walk covers different ground than it did; count the new surface by hand');
   const exempted = walked.flatMap(({ stops }) => stops.filter(exempt));
-  assert.equal(exempted.length, 2, 'the two topbar-layout shell screens each hold one palette input');
+  assert.equal(exempted.length, 8, 'the two topbar-layout shell screens hold one palette input '
+    + 'and three palette rows each');
 });
 
 // Prove the gate rejects, rule by rule, rather than agreeing with the tree.
@@ -286,12 +316,14 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
       buckets.exempt += 1;
     }
   }
-  assert.equal(buckets.self, 130, 'the number of stops whose own cascade was resolved moved');
+  assert.equal(buckets.self, 157, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
-  assert.equal(buckets.delegated.length, 2, 'the landing page holds the two switch inputs');
-  assert.equal(buckets.exempt, 2, 'the two topbar-layout shell screens each hold one palette input');
+  assert.equal(buckets.delegated.length, 6, 'two switch inputs on the landing page, and two '
+    + 'more on each of the account presets');
+  assert.equal(buckets.exempt, 8, 'the two topbar-layout shell screens hold one palette input '
+    + 'and three palette rows each');
 });
 
 // Specificity is where a cascade reading lives or dies, so it is asserted
@@ -340,7 +372,7 @@ test('focus walk: losing a ring to source order turns the cascade test red', () 
 // one has to be triaged here rather than appearing unseen.
 //
 // NOT A DECISION THIS GATE MAKES. Whether the eight below should paint the ring
-// is Artur's call on #482; several sit inside a region that already takes focus,
+// is Artur's call on #531; several sit inside a region that already takes focus,
 // and the ring on a scrolling table wrapper or the application rail is a visible
 // change on surfaces #482 never named. They are recorded as a measured gap, not
 // excused: the list is asserted exactly, so one of them gaining a ring, or a
@@ -371,7 +403,7 @@ test('focus walk: every box the kit makes scrollable is triaged', () => {
   assert.deepEqual(ringed, ['.ui-dropdown__panel.is-scroll', '.ui-table-scroll'],
     'a scrolling box gained or lost the ring — move it between the lists and say why');
   assert.deepEqual(bare, SCROLL_GAP,
-    'the set of scrolling boxes without the ring moved; triage each change on #482');
+    'the set of scrolling boxes without the ring moved; triage each change on #531');
 });
 
 // Prove the triage rejects: take the ring off the panel this PR gave one to, and

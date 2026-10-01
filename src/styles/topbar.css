@@ -189,6 +189,11 @@
    src/styles/dropdown.css:164 `.ui-dropdown__item:hover`.
    why: docs/specification.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* The row is a keyboard stop: src/components/dropdown.js:554
+   `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
+   the arrow keys, and this is one. It takes the ring on its own 10px radius, the
+   same way `.amenu a` above does. #482 */
+.vopt:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vopt .vmeta { font-size: var(--text-xs); color: var(--text); margin-top: 2px; }
 .vopt .vbadge {

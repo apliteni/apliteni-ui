@@ -95,9 +95,13 @@ test('a keyboard stop is one the keyboard reaches, not every focusable node', ()
     <div role="option" tabindex="-1">a listbox row</div>
     <div tabindex="-1">a dialog panel</div>
     <div hidden><button>in a closed panel</button></div>`);
+  // `a listbox row` joined the list when #487's re-review added `option` to
+  // ROVING_ROLES: the version switcher's rows carry that role and the kit's
+  // arrow keys focus them. `a dialog panel` stays out — a bare tabindex="-1"
+  // with no roving role is programmatic focus, not a keyboard stop.
   assert.deepEqual(
     keyboardStops(body).map((el) => (el.textContent || '').trim()),
-    ['link', 'go', 'panel', 'unselected tab', 'in a closed panel'],
+    ['link', 'go', 'panel', 'unselected tab', 'a listbox row', 'in a closed panel'],
   );
 });
 

@@ -71,6 +71,16 @@ const EXEMPT = [
       + 'would be painted the whole time and mark nothing. Stated on the declaration in '
       + 'src/styles/command-palette.css.',
   },
+  {
+    selector: '.ui-cmdk__item',
+    why: 'the palette never focuses a row. CommandPalette.tsx has no focus() call at all; '
+      + 'focus stays in the input, and the row the reader is on is announced by '
+      + 'react/src/CommandPalette.tsx:156 `aria-activedescendant`. A ring needs a stop, and '
+      + 'there is none. The rows are walked at all only because #487 added `option` to '
+      + 'ROVING_ROLES in the shared reader, so that the vanilla kit\'s .vopt — which IS '
+      + 'focused, by the arrow keys — could be seen. The vanilla gate exempts them for the '
+      + 'same reason.',
+  },
 ];
 type Stop = { el: HTMLElement; label: string; status: string; detail: string };
 const exempt = (stop: Stop) => EXEMPT.some(({ selector }) => stop.el.matches(selector));

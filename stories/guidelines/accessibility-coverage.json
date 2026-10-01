@@ -602,13 +602,14 @@
     {
       "file": "stories/focus-ring.test.js",
       "name": "Focus ring: the keyboard walk",
-      "does": "Walks the keyboard stops of the landing page and of the shell and footer stories, and fails a stop that draws the browser's own outline, an outline of its own, or a box-shadow that is not the shared ring. It then resolves the cascade for each stop over the sheets in the order a page loads them, and fails a stop whose ring is written but outranked by an always-on rule. It also discovers every box the kit makes scrollable, holds the list of those with and without a ring, and checks that every accent swatch is named and says whether it is on.",
+      "does": "Walks the keyboard stops of the landing page and of the shell, footer and account-preset stories, and fails a stop that draws the browser's own outline, an outline of its own, or a box-shadow that is not the shared ring. It then resolves the cascade for each stop over the sheets in the order a page loads them, and fails a stop whose ring is written but outranked by an always-on rule. It also discovers every box the kit makes scrollable, holds the list of those with and without a ring, and checks that every accent swatch is named and says whether it is on.",
       "blind": [
         "What a browser computes. The reading is of the CSS source, because JSDOM computes neither box-shadow nor :focus-visible. The cascade is resolved here instead, by specificity and document order, and that resolver does not model !important, an inline style attribute, a media or container query's condition, a state the static DOM is not in such as :hover, or var() expansion.",
         "A ring the kit paints on another box. Where the focus rule targets a child, a sibling or a pseudo-element, the declaration belongs to that element's cascade; the walk still credits the stop, and the count of such rings is held so it cannot grow unseen.",
         "The ring's contrast, its shape on screen, and whether a clipping ancestor hides it. Those are the accessibility floor's own numbers and a browser's.",
         "Surfaces it does not walk. Three, not the whole catalogue: the guideline pages draw counter-examples on purpose. A bare anchor in story copy is the known remaining gap.",
-        "Whether a scrolling box OUGHT to paint the ring. The list is measured and held, not decided; eight boxes are recorded without one, tracked on #482.",
+        "Whether a scrolling box OUGHT to paint the ring. The list is measured and held, not decided; eight boxes are recorded without one, tracked on #531.",
+        "A roving row whose role is not in ROVING_ROLES. The list holds the roles the kit uses today; #487's re-review added `option` to it, which is what brought the version switcher's rows into the walk at all.",
         "A control a script adds after load. Nothing runs here."
       ]
     },

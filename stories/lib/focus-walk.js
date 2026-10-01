@@ -212,7 +212,7 @@ const FOCUSABLE = [
   '[contenteditable="true"]', '[tabindex]',
 ].join(',');
 
-const ROVING_ROLES = ['tab', 'radio', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'treeitem'];
+const ROVING_ROLES = ['tab', 'radio', 'option', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'treeitem'];
 
 /**
  * Selectors the kit makes scrollable, discovered from the sheets rather than

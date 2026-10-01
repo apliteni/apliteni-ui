@@ -66,12 +66,14 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // 50 before #482: 46, plus the three `box-shadow: none` rules #429 PR 3.9 wrote
   // to drop the hairline from a collapsed rail's active row — no layers, nothing
   // floats — plus the table-cell link's ring from #510. #482 gave the shared ring
-  // to the seventeen kit controls that had no focus rule at all. Sixteen write
-  // `box-shadow: var(--ring)`; the dropdown panel composes the ring with the
-  // floating treatment it already carries, so taking focus does not drop its edge
-  // and its drop. All seventeen are the composed indicator, not a cast shadow.
-  assert.equal(sweep.length, 67,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 67. `
+  // to the eighteen kit controls that had no focus rule at all. Seventeen write
+  // `box-shadow: var(--ring)` — the last of them `.vopt`, the version switcher's
+  // rows, which #487's re-review found still taking the browser's outline; the
+  // dropdown panel composes the ring with the floating treatment it already
+  // carries, so taking focus does not drop its edge and its drop. All eighteen
+  // are the composed indicator, not a cast shadow.
+  assert.equal(sweep.length, 68,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 68. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

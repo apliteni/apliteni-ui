@@ -737,7 +737,9 @@ which becomes a visible system outline when forced colours remove box shadows.
 **Every focusable control the kit ships draws it.** The ring is not opt-in: a control
 this kit styles is a control it gives a focus rule, so none falls back to the browser's
 own outline, which ignores the accent, differs between browsers and is black in both
-themes. Seventeen of them shipped without one until [#482](https://github.com/apliteni/apliteni-ui/issues/482),
+themes. This covers a control the keyboard reaches with an arrow key rather than Tab: a
+roving row inside a menu or listbox takes the ring like any other stop. Eighteen of them
+shipped without one until [#482](https://github.com/apliteni/apliteni-ui/issues/482),
 so every page that used those components inherited the gap. One control is exempt and states it on its
 own declaration: the command palette's input holds focus for as long as the dialog is up,
 so a ring there would be painted the whole time and mark nothing. A bare `a` in host copy
@@ -761,7 +763,7 @@ as much as a button does. The kit's scrolling table wrapper and dropdown panel c
 The gate discovers every box the kit makes scrollable and holds the list, so a new one is
 triaged rather than shipping with the browser's outline; the boxes still without a ring
 are named in that list and tracked on
-[#482](https://github.com/apliteni/apliteni-ui/issues/482).
+[#531](https://github.com/apliteni/apliteni-ui/issues/531).
 
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
