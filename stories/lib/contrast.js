@@ -17,6 +17,7 @@ import path from 'node:path';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -67,7 +68,7 @@ export function declarationsFor(theme, accent = 'default') {
   };
   for (const file of TOKEN_FILES) {
     for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
-      if (!selector.split(',').map((s) => s.trim()).some((s) => wanted.includes(s))) continue;
+      if (!splitSelectorList(selector).some((s) => wanted.includes(s))) continue;
       for (const decl of body.split(';')) {
         const i = decl.indexOf(':');
         if (i < 0) continue;
@@ -218,8 +219,8 @@ export function specialiseContextual(css) {
       const keep = body.split(';').filter((d) => !d.trim().startsWith('--') && d.includes(`var(${prop})`)).join(';');
       if (!keep) continue;
       for (const [dsel, val] of ds) {
-        const scoped = dsel.split(',').flatMap((d) => sel.split(',')
-          .map((x) => `${d.trim()} ${x.trim()}, ${d.trim()}${x.trim()}`)).join(', ');
+        const scoped = splitSelectorList(dsel).flatMap((d) => splitSelectorList(sel)
+          .map((x) => `${d} ${x}, ${d}${x}`)).join(', ');
         out += `\n${scoped}{${keep.split(`var(${prop})`).join(val)}}`;
       }
     }
@@ -459,7 +460,7 @@ export function stateBases(css) {
     const declarations = decomment(body).split(';').map(d => d.trim()).filter(Boolean);
     if (declarations.every(d => decoration.test(d.split(':', 1)[0].trim()))) continue;
     if (selector.trimStart().startsWith('@')) continue;
-    for (const sel of selector.split(',')) {
+    for (const sel of splitSelectorList(selector)) {
       for (const s of STATES) {
         const tag = `[data-ui-state~="${s}"]`;
         const i = sel.indexOf(tag);
