@@ -23,7 +23,8 @@ export interface StatFigure {
   label: string;
   value: ReactNode;
   /** Context that is not a change, such as "of revenue": no arrow, no tone. It
-   *  takes the row a change would take, and the place of `delta.basis` beside one. */
+   *  takes the row a change would take, and leads that row beside one. A short
+   *  phrase: the row is one line, and a longer caption is clipped. */
   caption?: string;
   delta?: StatDelta;
   trend?: ReactNode;
@@ -47,9 +48,9 @@ const directionOf = (text: string) => {
 };
 const hasChange = (d?: StatDelta): d is StatDelta & { value: string } => !!d && d.value != null && d.value !== '';
 
-// The row under the value, as the factory builds it: a change, or a caption, or
-// a caption leading a change. A caption takes the place of the change's own
-// basis. why: docs/specification.md#stat-bands
+// The row under the value, as the factory builds it, in one line: the caption,
+// the change, then what the change is measured against.
+// why: docs/specification.md#stat-bands
 function ContextRow({ caption, delta, basisId }: { caption?: string; delta?: StatDelta; basisId?: string }) {
   // The trailing space is read, where the gap beside it is only drawn.
   const lead = caption ? <><span className="ui-stat__caption">{caption}</span>{' '}</> : null;
@@ -58,7 +59,7 @@ function ContextRow({ caption, delta, basisId }: { caption?: string; delta?: Sta
     return <dd className="ui-stat__delta ui-stat__delta--none">{lead}{delta.none || 'No earlier figure'}</dd>;
   }
   const dir = delta.direction && GLYPH[delta.direction] ? delta.direction : directionOf(delta.value);
-  const own = !caption && delta.basis ? delta.basis : '';
+  const own = delta.basis || '';
   return (
     <dd className="ui-stat__delta" aria-describedby={!own && basisId ? basisId : undefined}>
       {lead}

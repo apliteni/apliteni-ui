@@ -111,6 +111,71 @@ test('a caption alone and a change take the same row box, so a mixed band keeps 
   assert.ok(cap.marginTop && cap.fontSize && cap.lineHeight, 'the cascade resolved nothing, so this compared two blanks');
 });
 
+/* The one-row guarantee in src/components/stat.test.js is a markup guarantee: it
+ * counts <dd>s, and a row that wrapped would still be one. This is the other
+ * half — the row is one LINE. A change that wrapped put its arrow at the end of
+ * one line and its number at the start of the next, and a caption long enough to
+ * wrap dropped its own change 20.1px below the changes beside it, measured in
+ * #512's re-review at 32 characters in a 296px tile.
+ *
+ * jsdom lays nothing out, so what is held here is the cascade that makes the
+ * line unbreakable: the row does not wrap, the arrow and the number cannot give
+ * way, and the words can. It does not measure a rendered width — the showcase
+ * draws a caption past the tile's width for that. */
+test('a change is one line: the arrow keeps its number, and the words clip instead', () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income before tax and refunds', delta: { value: '+1.2 pts', basis: 'against the 40% target' } }],
+  })}</body></html>`).window;
+  const style = (sel) => doc.getComputedStyle(doc.document.querySelector(sel));
+  assert.equal(style('.ui-stat__delta').flexWrap, 'nowrap', 'the change can wrap, so its arrow can land on a line without its number');
+  for (const sel of ['.ui-stat__delta svg', '.ui-stat__change']) {
+    // `flex: none` resolves to its longhands; the middle one is what matters.
+    assert.equal(style(sel).flexShrink, '0', `${sel} can give way, and then the number it belongs to moves`);
+  }
+  for (const sel of ['.ui-stat__caption', '.ui-stat__basis']) {
+    const got = style(sel);
+    assert.equal(got.minWidth, '0px', `${sel} cannot shrink, so a long one widens the row instead of clipping`);
+    assert.equal(got.overflow, 'hidden', `${sel} spills out of the figure`);
+    assert.equal(got.textOverflow, 'ellipsis', `${sel} is cut with no mark that it was cut`);
+    assert.equal(got.whiteSpace, 'nowrap', `${sel} takes a second line of its own`);
+  }
+  // Clipping is CSS, so the whole string a caller passed is still in the markup
+  // for a screen reader and for a copy. This is what makes clipping acceptable.
+  assert.equal(doc.document.querySelector('.ui-stat__caption').textContent, 'of income before tax and refunds');
+  // And clipping has to be what happens. A figure is never narrower than its own
+  // content, so a line free to size itself widens the figure and takes the room
+  // from the figures beside it rather than giving way. Measured in Chrome before
+  // these three: a 39-character caption made its tile 363px beside 263px
+  // neighbours; after them every tile is 288px and the caption clips.
+  for (const sel of ['.ui-stat__delta .ui-stat__caption', '.ui-stat__basis']) {
+    const got = style(sel);
+    assert.equal(got.width, '0px', `${sel} starts from its own text, so its text sets the figure's width`);
+    assert.equal(got.maxWidth, 'max-content', `${sel} grows past its own text and pushes the change away`);
+    assert.equal(got.flexGrow, '1', `${sel} never reaches its own text, because nothing grows it`);
+  }
+  // The lone caption is a block, not a flex item, so it is bounded the other way.
+  const alone = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    stats: [{ label: 'Gross margin', value: '36.1%', caption: 'March revenue in EUR, excluding refunds' }],
+  })}</body></html>`).window;
+  assert.equal(alone.getComputedStyle(alone.document.querySelector('dd.ui-stat__caption')).contain, 'inline-size',
+    'a caption alone sizes its figure by its text instead of being sized by it');
+});
+
+// The row with no change holds words only: nothing in it to orphan or to drop,
+// so it keeps the wrap — and two statements of only words need more than a
+// word-space between them.
+test('the row with no change keeps its wrap, and separates two statements', () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    stats: [{ label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } }],
+  })}</body></html>`).window;
+  const row = doc.document.querySelector('.ui-stat__delta--none');
+  assert.equal(doc.getComputedStyle(row).flexWrap, 'wrap');
+  const gap = doc.getComputedStyle(doc.document.querySelector('.ui-stat__delta--none .ui-stat__caption')).marginInlineEnd;
+  const beside = valueOf(ruleFor('.ui-stat__delta .ui-stat__caption').body, 'margin-inline-end');
+  assert.notEqual(gap, beside, 'the caption is spaced off the words beside it as if an arrow stood between them');
+  assert.match(gap, /^var\(--space-\d+\)$/, `the separation is ${gap}, not a spacing step`);
+});
+
 /* The band's caption governs every figure and a figure's caption governs one,
  * so the wider statement is never set smaller. Both sit on the caption rank;
  * this reads the px behind the tokens so a later edit to either one fails. */

@@ -100,6 +100,30 @@ export const States = {
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ],
     })
+    + heading('How long a caption can be',
+      'The row is one line. A caption longer than the figure is wide is clipped rather than wrapped, because a '
+      + 'wrapped row would put the arrow on one line and its number on the next and drop this change below the '
+      + 'ones beside it &mdash; the whole caption stays in the markup, and the third figure is past the width here.')
+    + statBand({
+      id: 'states-caption-length',
+      basis: BASIS,
+      stats: [
+        { label: 'Gross margin', value: '36.1%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Operating margin', value: '12.4%', caption: 'of total income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Net margin', value: '8.0%', caption: 'March revenue in EUR, excluding refunds', delta: { value: '+0.4 pts', tone: 'good' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('Measured against something else',
+      'A figure compared with its own target says so after the change, where it always has. A caption never costs '
+      + 'a reader that comparison: the row reads what the value is, how it moved, and what it moved against.')
+    + statBand({
+      id: 'states-caption-basis',
+      stats: [
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } },
+        { label: 'Net margin', value: '8.0%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
+      ],
+    })
     + heading('Figures only', 'No change and no trend: a label and a value is a complete band.')
     + statBand({
       id: 'states-bare',

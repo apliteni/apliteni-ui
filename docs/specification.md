@@ -2063,7 +2063,8 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 React StatBand deltas accept `tooltip` text, rendered by the kit Tooltip on the change value.
 
 `statBand()` renders a row of key figures. Each figure is a label and a value, and may carry one
-row of words under that value — a change, a caption, or a caption leading a change — and a trend. A figure is only ever rendered inside its band, because its label and values
+row of words under that value — a change, a caption, or a caption leading a change — and a
+trend. A figure is only ever rendered inside its band, because its label and values
 are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
 after it is a value of that term, so a screen reader reads each figure as one statement.
 
@@ -2108,12 +2109,26 @@ says beside the change.
 
 **A figure says at most one thing under its value, and it says it in one row.** A change is that
 row. **A figure's own caption** — words about one value, such as what it is a share of — is that
-row when there is no change, and leads it when there is. Leading a change it takes the place of
-that change's own basis, because the two are the same kind of statement in the same spot; the
-change then points at the band's caption for what it is measured against, and a figure never
-prints both. A second row would drop every change that sat under a caption a line below the rest
-of the band, which is the layout the band exists to keep, and four lines of text around one
-number read as a paragraph with a figure in it rather than a figure.
+row when there is no change, and leads it when there is. The row then reads in that order: what
+the value is, how it moved, and what it moved against. A second row would drop every change that
+sat under a caption a line below the rest of the band, which is the layout the band exists to
+keep, and four lines of text around one number read as a paragraph with a figure in it rather
+than a figure.
+
+**A caption never costs a reader the comparison.** A change's own `basis` is printed whether or
+not the figure has a caption, because a `basis` is passed exactly when a figure is measured
+against something the band's caption does not cover — so the band's caption cannot stand in for
+it, and the kit never drops it. A change with no `basis` of its own still points at the band's
+caption, with or without a caption beside it.
+
+**The row is one line.** A caption is a short phrase and not a sentence: it shares that line with
+the change. A caption or a basis too long for the figure's width is clipped with an ellipsis
+rather than wrapped, and the whole string stays in the markup, where a screen reader and a copy
+still reach it. Wrapping is what the line may not do: it would put a change's arrow at the end of
+one line and its number at the start of the next, and it would drop that change below the changes
+beside it — the defect a second row caused, reached by length instead of by presence. The one row
+that may still wrap is the one with no change in it, which holds words only and has nothing to
+orphan.
 
 A caption is not a change, so it draws no arrow and takes no tone — nothing went up or down, so
 there is no news to colour — and it is not a trend, so it stays out of the slot a sparkline

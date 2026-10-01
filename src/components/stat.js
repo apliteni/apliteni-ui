@@ -23,9 +23,8 @@ const directionOf = (text) => {
 const GLYPH = { up: 'arrowUp', down: 'arrowDown', flat: 'minus' };
 const hasChange = (delta) => delta && delta.value != null && delta.value !== '';
 
-// One row under the value: a change, a caption, or a caption leading a change.
-// A second row would drop the changes beside it out of line with the band.
-// why: docs/specification.md#stat-bands
+// One row and one line: the caption, the change, then what it is measured
+// against. A second row drops the changes beside it. why: docs/specification.md#stat-bands
 const contextRow = (caption, delta, basisId) => {
   if (!delta) return caption ? `<dd class="ui-stat__caption">${esc(caption)}</dd>` : '';
   // The space is read where the CSS gap is only drawn: "of income+1.2 pts" else.
@@ -35,8 +34,9 @@ const contextRow = (caption, delta, basisId) => {
   }
   const text = String(delta.value);
   const dir = GLYPH[delta.direction] ? delta.direction : directionOf(text);
-  // A caption takes the basis's place, so the change points at the band's caption.
-  const own = !caption && delta.basis ? ` <span class="ui-stat__basis">${esc(delta.basis)}</span>` : '';
+  // Never dropped: a basis is passed when the band's caption does not cover this
+  // figure, so the band's caption cannot stand in for it.
+  const own = delta.basis ? ` <span class="ui-stat__basis">${esc(delta.basis)}</span>` : '';
   const describedby = !own && basisId ? ` aria-describedby="${basisId}"` : '';
   return `<dd class="ui-stat__delta"${describedby}>${lead}${icon(GLYPH[dir])}`
     + `<span class="ui-stat__change">${esc(text)}</span>${own}</dd>`;
