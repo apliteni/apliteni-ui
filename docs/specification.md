@@ -655,10 +655,18 @@ wide blur — and the rail is exempt by geometry rather than by taste: it is flu
 and full height, so its left, top and bottom are off the screen and its right edge is the only one
 a reader can see.
 
-**A rung's peak stays at or under the step it sits on.** A card is 1.110 above the page, and its
-rung measures 1.064 at the top, 1.074 at the sides and 1.134 under the bottom — the lit-from-above
-side, and the only one over the step. A shadow that outpeaks the surface change beneath it stops
-reading as a lift and starts reading as a drawn edge, which is the thing this section replaced.
+**What keeps a rung from reading as a line is its width, not its peak.** Measured at 1x on a
+card in light, against a page the card sits **1.110** above: the rung peaks at **1.064** at the
+top, **1.084** at the sides and **1.134** under the bottom, which is the lit-from-above side.
+Each of those is the strongest sample of a gradient that runs **16 to 20 px**, where the hairline
+it replaced was 1.116 over exactly one pixel. So the bottom peak is above the card's own step and
+is meant to be: a drop that separates by area can be stronger at its core than the step and still
+read as a lift, because a reader sees the gradient rather than the sample. Peak alone was the
+wrong measure of an edge, and it is why the line went.
+
+These are measurements, not guarantees. What the kit guarantees about a rung is the shape the
+gate holds: two layers, offset on one axis, `blur ≥ 2 × offset`, a negative spread, ink written as
+an alpha, and — for a level with no line — a trailing reach above zero.
 
 **In dark, a floating surface draws its line twice, and the second one is a pixel inside the
 first.** `--border-strong` on the border, `--border` as an inset one-pixel line within it: an outer

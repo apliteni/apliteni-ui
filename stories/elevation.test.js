@@ -467,9 +467,11 @@ test('a neutral floating surface writes the same inner line as the rest', () => 
  * other end — the surface a sheet paints — and every rule that puts something on the
  * floating step has to carry the treatment that goes with it.
  *
- * WHAT THIS DOES NOT REACH: a rule that paints the step and a SEPARATE rule that casts
- * the rung onto the same element. Every one of the six writes both together, and this
- * reads the rule rather than the cascade. */
+ * WHAT THIS DOES NOT REACH: a step and a rung written in two rules on one element;
+ * a surface reaching the step through a local alias (--confirm-surface, --cmdk-surface,
+ * --ui-tip-bg, --drawer-surface — all four carry the rung, and the cast walk above would
+ * catch one dropping it, but a NEW aliased surface with no rung would pass); and the
+ * React workspace, swept by react/src/elevation.test.ts. */
 const bodyShadow = (body) => ((/(^|;)\s*box-shadow\s*:([^;]*)/.exec(body) ?? [])[2] ?? '');
 const ELEVATED = STYLE_FILES.flatMap((file) =>
   [...read(file).matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap((m) => {
