@@ -124,6 +124,14 @@ const probe = () => {
   };
 };
 
+/* settle() reports "still moving" by throwing at its ceiling. While sweeping that
+ * is not a verdict on the story — a loaded host holds a transition past it — and
+ * the only question being asked is whether a filter bar is on the page. A
+ * navigation that throws is still reported. */
+const settled = async (page) => {
+  try { await settle(page); } catch { /* asked anyway; the bar is either there or not */ }
+};
+
 /* The sweep. Every story in both indexes is rendered once at the narrowest width
  * and kept if it puts a filter bar on the page, so a new surface joins the
  * subject set by existing.
@@ -145,7 +153,7 @@ async function sweep() {
     for (const story of indexed(build)) {
       try {
         await page.goto(storyUrl(servers[build.half].port, story.id, THEMES[0]), { waitUntil: 'load' });
-        await settle(page);
+        await settled(page);
         if (await page.evaluate(() => document.querySelectorAll('.ui-filter-bar').length > 0)) {
           found.push(story);
         }
@@ -168,7 +176,12 @@ async function measure({ url, ready, width, theme, mutate, attrTheme }) {
   });
   const page = await ctx.newPage();
   await page.goto(url, { waitUntil: 'load' });
-  if (ready) await page.waitForSelector(ready);
+  /* Every subject was chosen because it renders a filter bar, so measuring
+   * before one exists is measuring nothing. `load` fires before React mounts,
+   * and settle() waits on fonts and transitions rather than on a render, so
+   * without this a loaded host silently reports a case as carrying no panel —
+   * which the mutation pass then contradicts. */
+  await page.waitForSelector(ready || '.ui-filter-bar', { state: 'attached', timeout: 30000 });
   // The fixture page is not a Storybook, so it takes the attribute directly.
   if (attrTheme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
   if (mutate) await page.addStyleTag({ content: MUTATION });
