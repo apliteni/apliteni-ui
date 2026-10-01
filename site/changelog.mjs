@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.71.0', date: '2026-10-02',
+    changes: [
+      ['breaking', 'In the light theme a card, the shell\'s rail and every floating surface no longer draw the neutral hairline. Each casts a soft, diffuse drop instead — `--elev-rest`, `--elev-rail` and a widened `--elev-drop`. Dark is unchanged. A consumer whose light-theme screens relied on the card or rail edge sees a different kit. Closes #490.', ['Card', 'Shell', 'Dropdown', 'Drawer', 'Modal', 'Toast']],
+      ['added', 'Four level tokens name which edge each level draws — `--card-edge`, `--rail-edge`, `--float-edge`, `--float-edge-inner` — so a sheet never has to ask which theme it is in. Light resolves all four to `transparent`.'],
+      ['changed', 'A line that divides two regions of one surface stays a line in both themes: a card\'s rows, a table\'s rules, the rail\'s head band, the topbar. Fields keep their edge, and a tinted card keeps its own coloured one.'],
+    ],
+  },
+  {
     v: '0.70.0', date: '2026-10-02',
     changes: [
       ['fixed', "Keyboard focus draws the kit's ring on the controls that showed the browser's own outline instead: both brand lockups, the theme toggle, the deck and version switchers and the version menu's rows, the account avatar and its menu rows, snippet copy, footer links and social marks, the interactive card, a toast's action and close, the feedback composer's buttons, and the React table's row-selection checkbox. The version menu's rows are reached with the arrow keys rather than Tab, which is why they were missed until last. Each one keeps a transparent outline, so forced-colours mode still shows a system ring. If your own CSS sets focus on any of these, check that it still outranks the kit's rule. Resolves #482.", ['Topbar', 'Footer', 'Snippet', 'Callout', 'Card', 'Table', 'Feedback']],

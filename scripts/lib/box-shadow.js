@@ -201,30 +201,55 @@ export function resolutionsOf(raw, { vars, decls, substitute }) {
   return [...out];
 }
 
-/* The treatment's drop layer, as a floating surface writes it. Both gates used
- * to count this spelling and never read it — isCast() would refuse the kit's own
- * shadow on all thirteen floating surfaces — and #314's third review re-pointed
- * `--elev-drop` from a component sheet and stayed green on a tight dark cast. So
- * the layer is resolved like every other, against the two rules below.
- * Check every shadow layer, including resolved custom properties. */
+/* THE LADDER: the only tokens a kit surface may cast, the axis each one falls on,
+ * and the spelling a sheet writes. Light climbs all three — a card rests on
+ * --elev-rest, the rail casts --elev-rail sideways, and a floating surface keeps
+ * --elev-drop. Dark climbs only the last and holds the other two at the
+ * transparent shadow. why: docs/specification.md#elevation
+ *
+ * Both gates used to count --elev-drop's spelling and never read it — isCast()
+ * would refuse the kit's own shadow on every floating surface — and #314's third
+ * review re-pointed the token from a component sheet and stayed green on a tight
+ * dark cast. So every rung is resolved like any other layer, against the rules
+ * below. Check every shadow layer, including resolved custom properties. */
+export const LADDER = [
+  { name: '--elev-rest', layer: 'var(--elev-rest)', axis: 'y' },
+  { name: '--elev-rail', layer: 'var(--elev-rail)', axis: 'x' },
+  { name: '--elev-drop', layer: 'var(--elev-drop)', axis: 'y' },
+];
+/** The floating rung, named on its own because the two-step edge is written beside it. */
 export const TREATMENT_DROP = 'var(--elev-drop)';
-const DROP = '--elev-drop';
+/** Every rung's spelling, for a gate deciding whether a layer is the kit's own. */
+export const LADDER_LAYERS = LADDER.map((rung) => rung.layer);
+/** A rung a theme does not climb. Transparent and not `none`, because a rung is read
+ *  in a layer list and `none` is valid only alone — it invalidates the whole
+ *  declaration and silently takes the focus ring with it. */
+export const FLAT = '0 0 #0000';
 
-/** Why `value` is not the shape --elev-drop may take, or '' if it is: two broad
- *  faint drops, each offset straight down, blurred wider than it is offset, held
- *  inside the panel's footprint by a negative spread, and inked at an alpha
- *  rather than a colour. why: docs/specification.md#elevation */
-export function dropShapeOffence(value) {
+/** Why `value` is not a shape a ladder rung may take, or '' if it is: two broad
+ *  faint drops, each offset along ONE axis, blurred wider than it is offset, held
+ *  inside the surface's footprint by a negative spread, and inked at an alpha
+ *  rather than a colour. `axis` is 'y' for a surface that floats above the page and
+ *  'x' for one flush to a screen edge, which is the rail. The transparent shadow is
+ *  allowed and means the theme does not climb this rung.
+ *  why: docs/specification.md#elevation */
+export function dropShapeOffence(value, axis = 'y') {
+  if (value.trim() === FLAT) return '';
+  const cross = axis === 'x' ? 'y' : 'x';
+  const along = axis === 'x' ? 'sideways' : 'downward';
   const drops = layersOf(value);
   if (drops.length !== 2) return `${drops.length} layer${drops.length === 1 ? '' : 's'}, where the drop is two`;
   for (const drop of drops) {
     if (/(^|\s)inset(\s|$)/.test(drop)) return `"${drop}" went inset`;
-    const { x, y, blur, spread } = geometryOf(drop);
-    if (x !== 0) return `"${drop}" is offset sideways, and light falls from above in this kit`;
-    if (!(y > 0)) return `"${drop}" has no downward offset, which is a glow rather than a drop`;
-    if (!(blur >= 2 * y)) return `"${drop}" blurs ${blur} against an offset of ${y} — a tight drop `
+    const g = geometryOf(drop);
+    const { blur, spread } = g;
+    const off = g[axis];
+    if (g[cross] !== 0) return `"${drop}" is offset on both axes, and a rung of this ladder `
+      + `falls ${along} only`;
+    if (!(off > 0)) return `"${drop}" has no ${along} offset, which is a glow rather than a drop`;
+    if (!(blur >= 2 * off)) return `"${drop}" blurs ${blur} against an offset of ${off} — a tight drop `
       + 'draws an edge instead of separating a surface from what it covers';
-    if (!(spread < 0)) return `"${drop}" has no negative spread, so it reaches past the panel on `
+    if (!(spread < 0)) return `"${drop}" has no negative spread, so it reaches past the surface on `
       + 'every side and reads as a halo';
     const ink = inkOf(drop);
     if (!/^color-mix\(\s*in srgb\s*,\s*.+\s+[\d.]+%\s*,\s*transparent\s*\)$/.test(ink))
@@ -235,25 +260,27 @@ export function dropShapeOffence(value) {
   return '';
 }
 
-/** Everything wrong with the drop layer in one cascade: where --elev-drop is
- *  declared, and every value it can resolve to. `palette` is the files the token
- *  may come from — each gate hands over the ones it reads. The first rule cannot
- *  be left to the resolver: a cascade marks what it did not read from a token
- *  file `root: false`, so the palette wins where a browser would let a later
- *  `:root` declaration win. Check every shadow layer, including resolved custom properties. */
+/** Everything wrong with the ladder in one cascade: where any rung is declared,
+ *  and every value each one can resolve to. `palette` is the files the tokens may
+ *  come from — each gate hands over the ones it reads. The first rule cannot be
+ *  left to the resolver: a cascade marks what it did not read from a token file
+ *  `root: false`, so the palette wins where a browser would let a later `:root`
+ *  declaration win. Check every shadow layer, including resolved custom properties. */
 export function dropOffences(cascade, palette) {
   const out = [];
-  for (const entry of cascade.decls.get(DROP) ?? []) {
-    if (palette.includes(entry.file)) continue;
-    // (?![\w-]) rather than \b, so a class named `:root-…` is not read as :root.
-    if (!entry.selector.split(',').some((sel) => /^:root(?![\w-])/.test(sel.trim()))) continue;
-    out.push(`${entry.file}  ${entry.selector} { ${DROP}: ${entry.value} } — the palette is the `
-      + 'only place this token is declared at :root, and a component sheet declaring it there '
-      + 'changes the one shadow every floating surface in the kit reads');
-  }
-  for (const value of resolutionsOf(TREATMENT_DROP, cascade)) {
-    const why = dropShapeOffence(value);
-    if (why) out.push(`${TREATMENT_DROP} resolves to "${value}" — ${why}`);
+  for (const { name, layer, axis } of LADDER) {
+    for (const entry of cascade.decls.get(name) ?? []) {
+      if (palette.includes(entry.file)) continue;
+      // (?![\w-]) rather than \b, so a class named `:root-…` is not read as :root.
+      if (!entry.selector.split(',').some((sel) => /^:root(?![\w-])/.test(sel.trim()))) continue;
+      out.push(`${entry.file}  ${entry.selector} { ${name}: ${entry.value} } — the palette is the `
+        + 'only place this token is declared at :root, and a component sheet declaring it there '
+        + 'changes a shadow every surface on that rung reads');
+    }
+    for (const value of resolutionsOf(layer, cascade)) {
+      const why = dropShapeOffence(value, axis);
+      if (why) out.push(`${layer} resolves to "${value}" — ${why}`);
+    }
   }
   return out;
 }

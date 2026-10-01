@@ -98,7 +98,8 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // fourteenth is scripts/evidence/focus.html (#482, the keyboard focus rig): a ring
 // is shot around real type, and in the fallback faces it would be a ring around a
 // different control. It returns to 13 if that rig is ever deleted.
-const EXPECTED_LOADERS = 14;
+// The fifteenth is scripts/evidence/levels.html, the #490 producer's shot page.
+const EXPECTED_LOADERS = 15;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

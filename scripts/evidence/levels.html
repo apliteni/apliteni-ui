@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>html,body{margin:0;padding:0}</style>
+</head>
+<body>
+<script type="module">
+/* The #490 subject: the three levels the elevation rule names, on one screen,
+ * composed the way the reference screenshot is — a rail down the side, a grid of
+ * cards, and a menu open over them. Namespace imports, because the before side of
+ * every pair is shot off `main` with this same page and a named import of
+ * something `main` lacks is a load error rather than a missing block.
+ * why: scripts/evidence/README.md */
+import * as shell from '/src/components/shell.js';
+import * as kit from '/src/components/index.js';
+import * as dd from '/src/components/dropdown.js';
+
+const { appShell, wireShell, ACCOUNT_NAV } = shell;
+const { card, badge, button, field, input, select, checkbox } = kit;
+
+const NAV = [
+  { id: 'overview', icon: 'chart', label: 'Overview' },
+  { id: 'artifacts', icon: 'doc', label: 'Artifacts' },
+  {
+    icon: 'card',
+    label: 'Payouts',
+    items: [
+      { id: 'pending', icon: 'clock', label: 'Pending', badge: 3 },
+      { id: 'history', icon: 'doc', label: 'History' },
+    ],
+  },
+  ...ACCOUNT_NAV,
+];
+
+const row = (lab, hint, value) =>
+  `<div class="ui-card__row"><div><div>${lab}</div>`
+  + `<div class="lv-hint">${hint}</div></div><span>${value}</span></div>`;
+
+/* Three cards side by side, as the reference's artifact grid is, plus one that
+ * holds fields — the level that keeps its edge whatever the theme does. */
+const GRID = '<div class="lv-grid">'
+  + card({ title: 'Waiting for approval', sub: 'Three payouts need a second signature.',
+    body: row('Northwind Traders', 'Requested by Ada Lovelace', '&euro;4,200.00')
+      + row('Globex', 'Requested by Ada Lovelace', '&euro;860.00')
+      + row('Initech', 'Requested by Ada Lovelace', '&euro;1,975.50') })
+  + card({ title: 'This month', sub: 'Across every workspace.',
+    body: '<div class="lv-fig">&euro;31,480</div>'
+      + `<div class="lv-meta">${badge('Settled', 'success')} 48 payouts</div>` })
+  + card({ title: 'Payout account', sub: 'Where settled money lands.',
+    body: field({ label: 'Account name', control: input({ value: 'Apliteni OU' }) })
+      + field({ label: 'Currency', control: select({ options: ['EUR', 'USD'], value: 'EUR' }) })
+      + field({ label: 'Reference', hint: 'Shown on the statement.',
+        control: input({ placeholder: 'Optional', disabled: true }) })
+      + `<div class="lv-meta">${checkbox({ label: 'Email a receipt', checked: true })}`
+      + `${checkbox({ label: 'Hold until approved', disabled: true })}</div>` })
+  + '</div>';
+
+/* The open menu, over the grid rather than beside it, so the panel's own
+ * separation is read against the card it covers — the case the light theme has
+ * no surface step for. */
+const MENU = dd.dropdown({
+  value: 'Filter payouts',
+  variant: 'menu',
+  ariaLabel: 'Filter payouts',
+  open: true,
+  items: [
+    { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
+    { label: 'Awaiting approval', description: '3 payouts', icon: 'shield' },
+    { label: 'Paid this month', description: '48 payouts', icon: 'check' },
+  ],
+});
+
+const params = new URLSearchParams(location.search);
+document.documentElement.dataset.theme = params.get('theme') || 'light';
+
+document.body.innerHTML = appShell({
+  word: 'Finance',
+  nav: NAV,
+  active: 'pending',
+  account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+  signOutHref: '#logout',
+  crumbs: [{ label: 'Payouts', href: '#' }, { label: 'Pending' }],
+  title: 'Pending payouts',
+  sub: 'Three of the nine that arrived this week are waiting for a second approval.',
+  body: `<div class="lv-bar">${MENU}${button({ label: 'Approve all', variant: 'primary' })}`
+    + `${button({ label: 'Export', variant: 'ghost', disabled: true })}</div>${GRID}`,
+});
+if (typeof wireShell === 'function') wireShell(document.body);
+
+const st = document.createElement('style');
+st.textContent = `
+.lv-bar { display: flex; align-items: flex-start; gap: var(--space-3); margin-bottom: var(--space-5); }
+.lv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-5); align-items: start; }
+.lv-hint { color: var(--muted); font-size: var(--text-sm); }
+.lv-fig { font-size: var(--text-2xl); font-weight: var(--weight-semibold); color: var(--strong); }
+.lv-meta { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-3); color: var(--muted); font-size: var(--text-sm); }
+`;
+document.head.append(st);
+
+/* The panel is rendered open rather than opened, so it never gets the pointer
+ * that would otherwise leave a hover state in the shot. */
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

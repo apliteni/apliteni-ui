@@ -1,6 +1,13 @@
-/* Rule: nothing below the floating step casts a shadow, and the floating step
- * casts exactly one — the two-step edge's inner line written at the call site,
- * then `--elev-drop`. The ledger of what this does not reach is below the imports.
+/* Rule: a surface casts a shadow only to say it is HIGHER, and the only shadows it
+ * may cast are the three rungs of the ladder — `--elev-rest` under a card,
+ * `--elev-rail` sideways off the rail, `--elev-drop` under a floating surface.
+ * Dark climbs only the last and holds the other two at the transparent shadow, so
+ * dark still casts nothing below the floating step. Light climbs all three and
+ * draws no neutral line at any of them. A line that divides two regions of ONE
+ * surface — a card's rows, a table's rules, the rail's head band, the topbar — is
+ * not a level and stays a line in both themes.
+ * Decided by Artur on #490 round t3. The ledger of what this does not reach is
+ * below the imports.
  *
  * Subjects are discovered: every `box-shadow` in every sheet `src/index.css`
  * imports. Each is read per theme with the token files substituted in, because
@@ -16,7 +23,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, composite, ratio } from './lib/contrast.js';
-import { boxShadowsIn, customPropertiesIn, layersOf, isCast, isFocusRing, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, TREATMENT_DROP } from '../scripts/lib/box-shadow.js';
+import { boxShadowsIn, customPropertiesIn, layersOf, isCast, isFocusRing, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, TREATMENT_DROP, LADDER, LADDER_LAYERS, FLAT } from '../scripts/lib/box-shadow.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -27,7 +34,7 @@ const THEMES = ['dark', 'light'];
  * DECLARES it: an --elev-edge read inside a :root token resolves at :root, and
  * every component that re-points it writes a dead declaration. #314 found five.
  * why: docs/specification.md#elevation */
-const TREATMENT_LINE = 'inset 0 0 0 1px var(--elev-edge, var(--border))';
+const TREATMENT_LINE = 'inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner))';
 /* TREATMENT_DROP — `var(--elev-drop)` — comes from the reader, which also holds
  * the two rules that read the layer rather than counting its spelling. */
 /* State what this test cannot measure.
@@ -52,6 +59,12 @@ const TREATMENT_LINE = 'inset 0 0 0 1px var(--elev-edge, var(--border))';
  *    blurred penumbra is not one, so the drop is scored at its CORE.
  *  - The React workspace, gated over this same reader in
  *    react/src/elevation.test.ts.
+ *  - Whether a rung is RENDERED as wide as its token claims. Every ratio here is
+ *    arithmetic over flat colours; a blurred penumbra is not one, so each rung is
+ *    scored at its CORE and the rendered width is evidence, not a gate.
+ *  - Which surfaces are levels. The gate holds the shape of the three rungs and
+ *    the count of the declarations that read them; it cannot say that a divider
+ *    inside a card should have stayed a line.
  */
 
 
@@ -71,9 +84,12 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // rows, which #487's re-review found still taking the browser's outline; the
   // dropdown panel composes the ring with the floating treatment it already
   // carries, so taking focus does not drop its edge and its drop. All eighteen
-  // are the composed indicator, not a cast shadow.
-  assert.equal(sweep.length, 68,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 68. `
+  // are the composed indicator, not a cast shadow. 68 -> 70: the two rungs #490
+  // adds, under a card and sideways off the rail, where both drew a hairline and
+  // cast nothing before. The eleven floating declarations it rewrites to read
+  // --float-edge-inner instead of --border are rewritten in place and move no count.
+  assert.equal(sweep.length, 70,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 70. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -91,14 +107,17 @@ const cascadeFor = (theme) =>
 /* A raw layer is substituted on its own, so provenance survives: a layer that
  * resolves to a cast shadow has to be `var(--elev-drop)`, not merely contain ink
  * that looks like it. */
-test('the only cast shadow under src/ is the floating treatment', () => {
+/** Every cast in `sweep`, bucketed by the rung it reads — and everything that
+ *  casts without reading one. Shared by the rule and by the mutation below, so
+ *  the proof of rejection runs the same walk the rule does. */
+const castWalk = (sweeps) => {
   const offences = [];
-  let floating = 0;
+  const rungs = new Map(LADDER_LAYERS.map((layer) => [layer, 0]));
   for (const theme of THEMES) {
     const cascade = cascadeFor(theme);
-    for (const d of sweep) {
+    for (const d of sweeps) {
       for (const raw of layersOf(d.value)) {
-        if (raw === TREATMENT_DROP) { floating += 1; continue; }
+        if (rungs.has(raw)) { rungs.set(raw, rungs.get(raw) + 1); continue; }
         if (raw === 'var(--ring)' && resolutionsOf(raw, cascade).every(isFocusRing)) continue;
         const casts = resolutionsOf(raw, cascade).some((v) => layersOf(v).some(isCast));
         if (!casts) continue;
@@ -106,16 +125,40 @@ test('the only cast shadow under src/ is the floating treatment', () => {
       }
     }
   }
+  return { offences, rungs };
+};
+
+test('the only cast shadow under src/ is a rung of the ladder', () => {
+  const { offences, rungs } = castWalk(sweep);
   assert.deepStrictEqual(offences, [],
-    'a cast shadow that is not the floating treatment. A surface below the floating step '
-    + 'says how high it is with its step and its hairline; a floating one adds '
-    + 'the inner line and var(--elev-drop) and nothing else:\n  ' + offences.join('\n  '));
-  // Both themes are walked, so each floating declaration is counted twice.
-  // 13 before #487 gave the dropdown panel a focus rule that re-states the
-  // treatment beside the ring, which is the fourteenth declaration carrying it.
-  assert.equal(floating, 28,
-    `${floating / THEMES.length} declarations carry the floating treatment, not the pinned 14. `
-    + 'If a floating surface dropped it, put it back; if one was added, move the number.');
+    'a cast shadow that is not a rung of the ladder. A surface casts only to say it is '
+    + 'higher, and only --elev-rest, --elev-rail and --elev-drop say it:\n  '
+    + offences.join('\n  '));
+  // Both themes are walked, so each declaration is counted twice. The drop is read
+  // by 13 floating surfaces plus .ui-dropdown__panel:focus-visible, the rule #487
+  // wrote to re-state the panel's edge and drop beside the ring — a box-shadow list
+  // replaces the whole list, so taking focus must not drop the rung.
+  const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
+  assert.deepStrictEqual(got, {
+    'var(--elev-rest)': 1,   // .ui-card
+    'var(--elev-rail)': 1,   // .ui-app__rail
+    'var(--elev-drop)': 14,  // the floating surfaces, and the panel's focus rule
+  }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
+    + 'was added, move the number and check it against docs/specification.md#elevation.');
+});
+
+/* Proof of rejection, on the same walk: a card that lifts itself with a cast of
+ * its own rather than reading a rung is the thing this rule is against, and the
+ * pair is what proves the walk sees it — the mutation is refused, and the same
+ * sweep without it is clean. */
+test('a cast that is not a rung is refused', () => {
+  const planted = { file: 'src/styles/planted.css', line: 1, selector: '.ui-card',
+    value: '0 18px 40px -8px rgba(0,0,0,0.45)' };
+  const caught = castWalk([...sweep, planted]).offences;
+  assert.deepStrictEqual(caught, THEMES.map((theme) =>
+    `${planted.file}:${planted.line} (${theme})  ${planted.selector} { box-shadow: … ${planted.value} … }`));
+  assert.deepStrictEqual(castWalk(sweep).offences, [],
+    'the same sweep without the mutation is clean — without this half the case proves nothing');
 });
 
 test('nothing under src/ reads a deprecated --shadow-* token', () => {
@@ -137,16 +180,69 @@ test('nothing under src/ reads a deprecated --shadow-* token', () => {
   }
 });
 
-/* Primer's --shadow-floating-* order, which is what the review page recommended:
- * the 1px inset line first, then the broad faint drops. */
-test('--elev-drop is broad faint drops and nothing else', () => {
+/* Every rung, in both themes: broad faint drops on one axis and nothing else, or
+ * the transparent shadow for a rung this theme does not climb. Discovered from
+ * LADDER rather than listed here, so a rung added to the reader is measured by
+ * this case the moment it exists. */
+test('every rung of the ladder is broad faint drops and nothing else', () => {
+  let measured = 0;
   for (const theme of THEMES) {
-    const raw = tokensFor(theme).get('--elev-drop');
-    assert.ok(raw, `--elev-drop is missing in ${theme}`);
-    // The same sentence a re-pointed drop is held to, so the palette's own value
-    // and a component's cannot be judged by two different readings of "faint".
-    assert.equal(dropShapeOffence(raw), '', `${theme}: ${dropShapeOffence(raw)}`);
+    for (const { name, axis } of LADDER) {
+      const raw = tokensFor(theme).get(name);
+      assert.ok(raw, `${name} is missing in ${theme}`);
+      // The same sentence a re-pointed rung is held to, so the palette's own value
+      // and a component's cannot be judged by two different readings of "faint".
+      assert.equal(dropShapeOffence(raw, axis), '', `${theme} ${name}: ${dropShapeOffence(raw, axis)}`);
+      measured += 1;
+    }
   }
+  assert.equal(measured, THEMES.length * LADDER.length,
+    'a rung went unmeasured — every rung is read in every theme');
+});
+
+/* The rule this issue is actually about, and the one a future palette edit is most
+ * likely to break: a level is expressed by a line OR by a drop, and never by
+ * neither. #284 took the card's shadow off and left the line; #295 took the line
+ * off everything else and left the step; a theme that loses both at once is the
+ * flat card both of those were complaining about. Each level is read through the
+ * token the sheets actually paint, so a theme is judged on what it draws rather
+ * than on a neutral it no longer uses. */
+const LEVELS = [
+  { level: 'a card', edges: ['--card-edge'], rung: '--elev-rest' },
+  { level: 'the rail', edges: ['--rail-edge'], rung: '--elev-rail' },
+  { level: 'a floating surface', edges: ['--float-edge', '--float-edge-inner'], rung: '--elev-drop' },
+];
+const INVISIBLE = new Set(['transparent', 'rgba(0, 0, 0, 0)', 'rgba(0,0,0,0)', '#0000']);
+
+test('every level draws a line or casts a drop, in both themes', () => {
+  let measured = 0;
+  for (const theme of THEMES) {
+    const vars = tokensFor(theme);
+    for (const { level, edges, rung } of LEVELS) {
+      const lines = edges.map((name) => substitute(`var(${name})`, vars).trim());
+      const drawn = lines.some((value) => !INVISIBLE.has(value));
+      const cast = (vars.get(rung) ?? '').trim() !== FLAT;
+      assert.ok(drawn || cast,
+        `${theme}: ${level} draws no line (${edges.join(', ')} are all invisible) and casts no `
+        + `drop (${rung} is the transparent shadow). That surface has nothing left to say it is `
+        + 'a level — it is the flat card #284 and #295 were opened about.');
+      measured += 1;
+    }
+  }
+  assert.equal(measured, THEMES.length * LEVELS.length, 'a level went unmeasured');
+});
+
+test('a level that loses both its line and its drop is refused', () => {
+  const vars = new Map(tokensFor('light'));
+  vars.set('--card-edge', 'transparent');
+  vars.set('--elev-rest', FLAT);
+  const lines = ['--card-edge'].map((name) => substitute(`var(${name})`, vars).trim());
+  assert.ok(lines.every((value) => INVISIBLE.has(value)) && vars.get('--elev-rest').trim() === FLAT,
+    'the mutation did not produce the state the case above refuses');
+  // And the unmutated palette is not in that state, or the case proves nothing.
+  const real = tokensFor('light');
+  assert.notEqual(real.get('--elev-rest').trim(), FLAT,
+    'light\'s card rung is the transparent shadow — the pair above has no positive half');
 });
 
 /* #314 round 3. `var(--elev-drop)` is the one layer the sweep above counts by
@@ -318,29 +414,48 @@ test('a neutral floating surface writes the same inner line as the rest', () => 
     + 'flush to a screen edge, so it draws its line in one direction instead of four.');
 });
 
-/* Each is the "a + b" row of docs/reviews/295-popover-variants.html, which is what
- * the decision on #309 was taken against. The gate holds the floor, not the value:
- * a treatment that measures better is fine. */
+/* dark's two numbers are the "a + b" row of docs/reviews/295-popover-variants.html,
+ * which is what the decision on #309 was taken against. light has no lines left to
+ * score, and its drop floor is RAISED instead — 1.50 against the 1.43 that page
+ * measured — because the drop there sat behind two lines and now carries the whole
+ * separation on its own. The gate holds the floor, not the value: a treatment that
+ * measures better is fine. */
 const FLOOR = {
   dark: { edge: 1.64, inner: 1.30, drop: 1.20 },
-  light: { edge: 1.44, inner: 1.23, drop: 1.43 },
+  light: { edge: null, inner: null, drop: 1.50 },
 };
 
 test('the floating treatment reads at least what the review page measured', () => {
+  let lined = 0;
+  let dropOnly = 0;
   for (const theme of THEMES) {
     const vars = tokensFor(theme);
     const v = (name) => parseColour(substitute(`var(${name})`, vars));
     const card = v('--surface');
     const panel = v('--bg-elevated');
 
-    const edge = ratio(v('--border-strong'), card);
-    assert.ok(edge >= FLOOR[theme].edge - 0.005,
-      `${theme}: the outer line reads ${edge.toFixed(2)} on the card, under the ${FLOOR[theme].edge} `
-      + 'the review page measured for the two-step edge');
-    const inner = ratio(v('--border-strong'), v('--border'));
-    assert.ok(inner >= FLOOR[theme].inner - 0.005,
-      `${theme}: the two lines read ${inner.toFixed(2)} against each other, under ${FLOOR[theme].inner} — `
-      + 'a two-step edge whose steps agree is one line drawn twice');
+    /* Scored on the tokens the floating call sites actually paint, not on a neutral
+     * the theme may have stopped reading. A theme whose two lines are invisible is
+     * carried by the drop alone and is held to the raised floor instead. */
+    const outer = substitute('var(--float-edge)', vars).trim();
+    const innerLine = substitute('var(--float-edge-inner)', vars).trim();
+    const draws = !INVISIBLE.has(outer) && !INVISIBLE.has(innerLine);
+    assert.equal(draws, FLOOR[theme].edge !== null,
+      `${theme}: the floating edge is ${draws ? 'drawn' : 'invisible'} and the floor table says `
+      + 'otherwise. Moving a theme between the two is the decision this gate exists to notice.');
+    if (draws) {
+      lined += 1;
+      const edge = ratio(parseColour(outer), card);
+      assert.ok(edge >= FLOOR[theme].edge - 0.005,
+        `${theme}: the outer line reads ${edge.toFixed(2)} on the card, under the ${FLOOR[theme].edge} `
+        + 'the review page measured for the two-step edge');
+      const inner = ratio(parseColour(outer), parseColour(innerLine));
+      assert.ok(inner >= FLOOR[theme].inner - 0.005,
+        `${theme}: the two lines read ${inner.toFixed(2)} against each other, under ${FLOOR[theme].inner} — `
+        + 'a two-step edge whose steps agree is one line drawn twice');
+    } else {
+      dropOnly += 1;
+    }
 
     // The drop's core: the first drop's ink, composited over the card at its own
     // alpha. The kit writes an alpha as a color-mix against `transparent`, which is
@@ -365,4 +480,7 @@ test('the floating treatment reads at least what the review page measured', () =
       assert.ok(m >= 4.5, `${theme}: --muted reads ${m.toFixed(2)} on ${name} — under AA`);
     }
   }
+  // Both halves of the rule are exercised, so neither branch can rot unread.
+  assert.equal(lined, 1, 'exactly one theme draws the two-step edge — dark');
+  assert.equal(dropOnly, 1, 'exactly one theme is carried by the drop alone — light');
 });

@@ -1,13 +1,16 @@
 /* ============================================================================
- * Card — .ui-card  (a filled surface one step off the page, edged by a hairline)
+ * Card — .ui-card  (a filled surface one step off the page: edged in dark, dropped in light)
  * Rows: .ui-card__row  /  headers: .ui-card__title / .ui-card__sub
  * ========================================================================== */
 
-/* Flat since #284 and edged in both themes since #295: the surface is the step, the
-   line is what makes it legible. why: docs/specification.md#elevation */
+/* The surface is the step; what makes it legible depends on the theme. Dark edges the
+   card with the hairline (--card-edge). Light draws no line at all and casts --elev-rest
+   instead — a 22px penumbra off a 10px offset, the width Artur's reference uses on a
+   card. Chosen by him on #490 round t3. why: docs/specification.md#elevation */
 .ui-card {
   background: var(--surface); --ring-gap: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-edge);
+  box-shadow: var(--elev-rest);
   border-radius: var(--radius-xl);
   /* Was `var(--space-6) 26px`; 26 is off the scale and broke the column's text edge.
      why: docs/specification.md#spacing-and-rhythm */

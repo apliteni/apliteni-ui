@@ -28,7 +28,11 @@
 .ui-app-page .topbar { position: sticky; top: 0; z-index: var(--z-sticky); }
 
 /* The rail uses the card surface so its labels stay on a reading ground.
-   Its border separates navigation from the page in both themes.
+   What separates navigation from the page depends on the theme: dark keeps the edge
+   (--rail-edge), light casts --elev-rail instead — sideways, because the rail is flush
+   to the screen edge and full height, the same reason the drawer draws its line in one
+   direction. This reopens #454's "no visual change to the light rail": the rail's edge
+   is one of the hairlines #490 round t3 decided against.
    overflow-y, because the box is pinned at the viewport's height for the whole
    scroll of .ui-app — without it a row past that height paints below the fold
    and no amount of document scrolling brings it back. The rail's own padding is
@@ -38,7 +42,8 @@
   flex-direction: column;
   gap: var(--space-5);
   padding: var(--space-5) var(--space-4);
-  border-right: var(--ui-rail-rule) solid var(--border);
+  border-right: var(--ui-rail-rule) solid var(--rail-edge);
+  box-shadow: var(--elev-rail);
   background: var(--surface); --ring-gap: var(--surface);
   position: sticky;
   top: var(--ui-app-top, 0px);
@@ -296,7 +301,7 @@
    why: docs/specification.md#elevation */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
-.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
+.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
   .ui-app.is-collapsed,
   .ui-app:has(.ui-app__fold) { anchor-scope: --ui-rail; }
@@ -395,7 +400,7 @@
 .ui-app__search:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-color: var(--accent); }
 /* The same glyph the palette draws in its own search box, at the same box and the
    same stroke: the trigger and the thing it opens are not two search marks.
-   src/styles/command-palette.css:107 `.ui-cmdk__search-ic svg` */
+   src/styles/command-palette.css:109 `.ui-cmdk__search-ic svg` */
 .ui-app__search-ic { display: flex; flex: none; }
 .ui-app__search-ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 /* Part of the button's name, so it is squeezed rather than dropped: an ellipsis
@@ -497,7 +502,7 @@
   .ui-app__rail .ui-nav__item,
   .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--border-strong); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
+  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }
     .ui-app__rail { anchor-name: --ui-rail; }

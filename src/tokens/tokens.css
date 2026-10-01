@@ -133,10 +133,10 @@
   --pink: #e97ca5;
   --amber: #ffcf6a;
 
-  /* The elevation ladder, bottom to top. A surface says how high it is with its step and
-     with the hairline around it, and --muted caps how far the ladder can go. Nothing casts
-     below the floating step; the floating step itself adds --elev-drop under its inner
-     line and nothing else in the kit does. why: docs/specification.md#elevation */
+  /* The elevation ladder, bottom to top. A surface says how high it is with its step
+     and, IN DARK, with the hairline around it; --muted caps how far the ladder can go.
+     Nothing casts in dark below the floating step, and the floating step adds
+     --elev-drop under its inner line. why: docs/specification.md#elevation */
   --bg: #0e0d14;
   --table-bg: var(--bg);
   --surface-2: #161520;     /* non-text sunken marks and tracks */
@@ -149,6 +149,15 @@
   --control-knob: #ffffff;
   --border: #332f45;
   --border-strong: #453f5c;
+
+  /* WHICH EDGE EACH LEVEL DRAWS. One name per level, so a sheet never has to ask
+     which theme it is in. Dark answers all four with the hairline, because a drop
+     on a near-black page reaches 1.20 at its core and has nowhere else to go —
+     light answers them with the drop instead. why: docs/specification.md#elevation */
+  --card-edge: var(--border);          /* a card */
+  --rail-edge: var(--border);          /* the shell's rail */
+  --float-edge: var(--border-strong);  /* a floating surface, outer line */
+  --float-edge-inner: var(--border);   /* a floating surface, inner line */
 
   /* Fields use the card surface and an edge in both themes. why: docs/specification.md#elevation */
   --field-bg: var(--surface);
@@ -257,12 +266,19 @@
      token and cannot be — a var() inside a custom property is substituted on the
      element that DECLARES it, so an --elev-edge read here resolves at :root and
      nothing below could re-point it. A floating surface writes the pair itself:
-       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
      Dark spends 62% / 50% of the ink and reaches 1.20 at the drop's core, having
      nowhere to go on a near-black page. why: docs/specification.md#elevation */
   --elev-drop:
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),
     0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 50%, transparent);
+
+  /* The ladder's two resting rungs, which only light climbs. Transparent here and
+     not `none`, for the reason the deprecated --shadow-* tokens are: these are read
+     in a layer list, and `none` is valid only alone — it would invalidate the whole
+     declaration and take the focus ring with it. why: docs/specification.md#elevation */
+  --elev-rest: 0 0 #0000;   /* a card */
+  --elev-rail: 0 0 #0000;   /* the shell's rail, cast sideways */
 
   /* Backdrop that dims the page behind an overlay (drawer, modal, composer). */
   --scrim: rgba(0, 0, 0, 0.58);
@@ -311,6 +327,17 @@
   --control-knob: #ffffff;
   --border: #e4e7ee;
   --border-strong: #cdd2dc;
+
+  /* Light draws a LEVEL with a drop and no line at all. Decided by Artur on the
+     #490 triage round t3: "It's better" — the soft shadow over the hairline, against
+     the reference he supplied. A line divides two regions of ONE surface (a card's
+     rows, a table's rules, the rail's head band, the topbar); a drop says a surface
+     is HIGHER, and only a higher surface may cast one.
+     why: docs/specification.md#elevation */
+  --card-edge: transparent;
+  --rail-edge: transparent;
+  --float-edge: transparent;
+  --float-edge-inner: transparent;
 
   /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
      with: a card and a panel are both white, the sunken step falls two rungs under either,
@@ -389,12 +416,34 @@
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
 
-  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card that is
-     now #ffffff, and 18% is what puts the drop core at #d7d7da — 1.44, the strongest
-     separation either theme gets. why: docs/specification.md#elevation */
+  /* THE LIGHT LADDER. Three rungs, each two layers: a wide faint one that separates
+     by AREA, and a short one that keeps the surface from floating free of its own
+     footprint. Every value has a negative spread, so none of them reaches past the
+     surface on every side as a halo, and none is a glow: a glow is a zero-offset
+     layer of the signal's own colour and says "this is lit", not "this is high".
+
+     The widths come from Artur's reference, measured in
+     evidence 490c/reference.md: a card's penumbra runs 12–13 CSS px there, a
+     floating control's 25, and a popover's 35–40. The second pass on this issue
+     concluded a drop could not carry a floating panel in light, because
+     --surface and --bg-elevated are both #ffffff and the step between them is
+     1.000. The reference answers that: its popover sits at a 1.002 step with no
+     border at all and reads as floating, because its drop is three times wider
+     than the kit's was. Width was the variable that pass held fixed.
+
+     --elev-drop keeps its ink ABOVE what #309's review page measured — 22% against
+     the old 18%, core #ceced2 / 1.57 on a white card — because the two lines it
+     used to sit behind are gone in light and the drop now carries all of the
+     separation. why: docs/specification.md#elevation */
+  --elev-rest:
+    0 10px 22px -14px color-mix(in srgb, var(--shadow-ink) 16%, transparent),
+    0 1px 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
+  --elev-rail:
+    10px 0 24px -14px color-mix(in srgb, var(--shadow-ink) 16%, transparent),
+    1px 0 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
   --elev-drop:
-    0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 18%, transparent),
-    0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 10%, transparent);
+    0 20px 46px -16px color-mix(in srgb, var(--shadow-ink) 22%, transparent),
+    0 1px 14px -4px color-mix(in srgb, var(--shadow-ink) 12%, transparent);
 
   --scrim: rgba(20, 22, 40, 0.38);
 
