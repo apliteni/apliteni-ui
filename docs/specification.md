@@ -2421,17 +2421,35 @@ column switches over one dataset, where the order is the reader's map.
 The pill track sits on the sunken step (`--surface-2`) and the chosen option rides
 above it on `--seg-active-bg`, in body ink. Selection is carried by that step alone:
 the control spends no accent on it, and the 1px accent outline that used to hold the
-selection is gone. A reader who cannot separate the two colours still sees which
-option is chosen, because the difference is a raised plane and not a hue.
+selection is gone.
+
+Know how weak that cue is before you reach for this control. The step measures
+**1.51:1 in dark and 1.18:1 in light**, against the 3:1 WCAG 1.4.11 asks of a visual
+state indicator, and nothing else carries the state — the ink changes by 1.22:1 and
+1.16:1, the weight does not change, and there is no border, shadow or offset. So the
+step survives a loss of *hue*: a reader who cannot tell the accent from the ink still
+sees it, which the outline it replaced could not promise. It does not survive a loss
+of *contrast sensitivity*, and a reader who needs more separation than this will not
+get it from colour. `aria-pressed` carries the state for assistive technology
+throughout, and `stories/segmented-state-step.test.js` pins both numbers so an edit to
+either token is measured rather than noticed.
 
 The underline appearance keeps its accent rule as its one signal, and no longer
 stacks an outline on top of it.
 
+Under `forced-colors: active` the step is gone entirely, because the mode replaces
+every background. The control answers in system colours instead: the chosen pill takes
+`Highlight` with `HighlightText`, the chosen tab takes a `Highlight` rule, and the
+transparent edge the underline appearance reserves on every tab is painted `Canvas` so
+only the chosen one shows. This changes nothing in normal rendering, and
+`src/styles/segmented.test.js` holds the contract.
+
 Two consequences a consumer should expect. Unselected labels now read on a grey
 track, which `guidelines/colour-and-theming.md` otherwise reserves for non-text —
-accepted here, on measurement, as the cost of a selection that survives without
-colour. And a disabled option sits on that track rather than on the card, so its
-muted ink reads against a nearer ground.
+accepted as the cost of the step above, with those labels measuring 14.76:1 in dark
+and 14.10:1 in light. And a disabled option sits on that track rather than on the
+card, so its muted ink reads against a nearer ground: 5.17:1 in light, down from
+6.11:1, still above the 3:1 the floor asks of a disabled label.
 
 Chosen by Artur over an outlined, a tinted and an accent-ink alternative, each
 prototyped and measured on [#473](https://github.com/apliteni/apliteni-ui/pull/473).

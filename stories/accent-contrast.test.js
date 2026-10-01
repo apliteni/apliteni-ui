@@ -77,7 +77,7 @@ const EXEMPT_GROUNDS = [
       + 'token at all. Measured anyway it would fail — --accent reads 4.23:1 on it in dark Nebula '
       + '— so this entry is a live one, not a formality: it records a LATENT risk, that the day a '
       + 'component puts accent ink on an active segment the pair is already under the floor. '
-      + 'HALF OF THAT DAY HAS ARRIVED. Until #475 this token was declared and painted nowhere; the '
+      + 'Half of that day has now arrived. Until #475 this token was declared and painted nowhere; the '
       + 'raised selection now paints it as the chosen pill\'s ground in both themes, so the pair is '
       + 'one declaration away rather than two. What still excuses it is unchanged and is the whole '
       + 'of the argument: the ink on that pill is --strong, not --accent, and accent ink on a '

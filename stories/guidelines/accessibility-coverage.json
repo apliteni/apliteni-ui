@@ -97,6 +97,15 @@
       ]
     },
     {
+      "file": "stories/segmented-state-step.test.js",
+      "name": "Segmented: the chosen option's step",
+      "does": "Pins the elevation step that is the segmented control's only selection cue \u2014 1.51:1 dark, 1.18:1 light \u2014 and holds that the ink beside it is not a second cue, so an edit to --seg-active-bg or --surface-2 is measured rather than noticed.",
+      "blind": [
+        "Does not judge whether the step is perceivable; it is below the 3:1 WCAG 1.4.11 asks of a state indicator and is pinned as accepted, not floored.",
+        "Reads tokens, not pixels: it cannot see a component that stacks something over the track, and it says nothing about forced-colors mode, which src/styles/segmented.test.js covers."
+      ]
+    },
+    {
       "file": "react/src/BackLink.test.tsx",
       "name": "React: BackLink",
       "does": "Checks the React back link against the factory rule: the arrow is aria-hidden so its meaning is spoken in words; the accessible name includes the visible text as WCAG 2.5.3 requires; and a name already saying \"Back to\" is not repeated.",

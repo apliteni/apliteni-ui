@@ -81,3 +81,37 @@
 .ui-seg--underline button[aria-pressed="true"] { background: transparent; --ring-gap: inherit; border-bottom-color: var(--accent); }
 .ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
+
+/* Forced colours drop `background-color`, and since #475 the raised step is the
+   only thing carrying selection — so without this block every pill reads
+   unselected. The underline appearance has the opposite fault: it reserves a
+   transparent bottom border on every tab and the mode makes all of them visible,
+   so every tab reads selected. Both states are restated with properties the mode
+   keeps. The block is inert in normal rendering, so Artur's r23 look is untouched.
+   Opting the chosen pill out is what lets it keep a fill at all; that also stops
+   the mode recolouring its focus outline and its disabled pair, so both are
+   restated here rather than left to the rules above. #475 */
+@media (forced-colors: active) {
+  .ui-seg:not(.ui-seg--underline) button.is-active,
+  .ui-seg:not(.ui-seg--underline) button[aria-pressed="true"],
+  .ui-seg:not(.ui-seg--underline) button[aria-selected="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .ui-seg:not(.ui-seg--underline) button.is-active:focus-visible,
+  .ui-seg:not(.ui-seg--underline) button[aria-pressed="true"]:focus-visible,
+  .ui-seg:not(.ui-seg--underline) button[aria-selected="true"]:focus-visible {
+    outline: 2px solid HighlightText;
+    outline-offset: -4px;
+  }
+  .ui-seg:not(.ui-seg--underline) button:disabled {
+    forced-color-adjust: none;
+    background: Canvas;
+    color: GrayText;
+  }
+  .ui-seg--underline button { border-bottom-color: Canvas; }
+  .ui-seg--underline button.is-active,
+  .ui-seg--underline button[aria-pressed="true"] { border-bottom-color: Highlight; }
+  .ui-seg--underline button:disabled { color: GrayText; }
+}
